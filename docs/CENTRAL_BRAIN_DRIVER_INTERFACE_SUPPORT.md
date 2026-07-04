@@ -23,6 +23,8 @@ A3 Runtime & Governance 审计持久化增量新增 `CENTRAL_BRAIN_AUDIT_LOG` JS
 
 A3 Runtime & Governance QoS 增量新增 `/soa/invoke` per-service fixed-window QoS 检查和 `tools/smoke_central_brain_qos.sh`，覆盖 XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002；只在单进程治理原型内做限流决策与审计记录，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、多进程 QoS 后端或虚拟化代码。
 
+Android Console Binder 绑定增量只修改 debug APK 的 manifest、构建脚本和 `MainActivity` 调用路径，使 App 层通过 `CentralBrainGatewayClient` 绑定 `CentralBrainGatewayBinderService` 后访问 Uni Info Bus/SOA；覆盖 XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。Binder service 仍代理 REST prototype gateway，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Android system service、Driver/HAL、Safety Runtime 或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |

@@ -6,8 +6,12 @@
 
 - 普通 Android App，不依赖 Gradle。
 - 使用仓库本地 Android SDK、`aapt2`、`javac`、`d8`、`zipalign`、`apksigner` 构建。
-- 默认连接模拟器宿主机地址：`http://10.0.2.2:8787`。
-- 用于验证应用层到后端 mock NPU 服务的最小闭环。
+- Debug APK 内置 `CentralBrainGatewayBinderService` 与 `CentralBrainGatewayClient`。
+- App 层先绑定 Binder service，再通过 Binder 调用 Uni Info Bus State 与 SOA Inference。
+- Binder service sample 默认以上游 prototype gateway `http://10.0.2.2:8787` 访问 mock 后端。
+- 用于验证 Android App -> Binder -> Uni Info Bus/SOA -> mock NPU 服务的最小闭环。
+
+覆盖 Req ID：XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
 
 ## 构建
 

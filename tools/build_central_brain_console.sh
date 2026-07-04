@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT_DIR/env.sh"
 
 APP_DIR="$ROOT_DIR/central-brain/android-console"
+BINDING_DIR="$ROOT_DIR/central-brain/bindings/android"
 OUT_DIR="$APP_DIR/out"
 ANDROID_JAR="$ANDROID_HOME/platforms/android-36/android.jar"
 KEYSTORE="$ROOT_DIR/keystores/debug.keystore"
@@ -13,7 +14,7 @@ APK_ALIGNED="$OUT_DIR/central-brain-console.aligned.apk"
 APK_SIGNED="$OUT_DIR/central-brain-console.debug.apk"
 
 rm -rf "$OUT_DIR"
-mkdir -p "$OUT_DIR/res" "$OUT_DIR/generated" "$OUT_DIR/classes" "$OUT_DIR/dex"
+mkdir -p "$OUT_DIR/res" "$OUT_DIR/generated" "$OUT_DIR/generated-aidl" "$OUT_DIR/classes" "$OUT_DIR/dex"
 
 if [[ ! -f "$ANDROID_JAR" ]]; then
   echo "Missing Android platform jar: $ANDROID_JAR" >&2
@@ -30,7 +31,18 @@ aapt2 link \
   -o "$APK_BASE" \
   "$OUT_DIR/res.zip"
 
-find "$APP_DIR/src" "$OUT_DIR/generated" -name "*.java" | sort > "$OUT_DIR/sources.txt"
+AIDL_BIN="$(command -v aidl || find "$ANDROID_HOME" -name aidl -type f 2>/dev/null | head -1)"
+if [[ -z "$AIDL_BIN" ]]; then
+  echo "Missing Android aidl compiler in PATH or ANDROID_HOME" >&2
+  exit 1
+fi
+
+"$AIDL_BIN" \
+  -I"$BINDING_DIR/aidl" \
+  -o"$OUT_DIR/generated-aidl" \
+  "$BINDING_DIR/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl"
+
+find "$APP_DIR/src" "$OUT_DIR/generated" "$OUT_DIR/generated-aidl" "$BINDING_DIR/java" -name "*.java" | sort > "$OUT_DIR/sources.txt"
 javac -encoding UTF-8 -source 8 -target 8 \
   -bootclasspath "$ANDROID_JAR" \
   -d "$OUT_DIR/classes" \

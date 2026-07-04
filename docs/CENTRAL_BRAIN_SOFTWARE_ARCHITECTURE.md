@@ -52,7 +52,7 @@ flowchart TB
 - 根据驾驶状态隐藏或降级高分心能力。
 
 第一阶段实现：
-- `central-brain/android-console`：普通 Android App，不依赖 Gradle，可用本仓库 Android SDK 构建。
+- `central-brain/android-console`：普通 Android App，不依赖 Gradle，可用本仓库 Android SDK 构建；debug APK 内置 Binder service/client sample，App 层通过 Binder 调用 Uni Info Bus/SOA。
 
 ### Framework 层
 
@@ -103,14 +103,14 @@ flowchart TB
 
 | 协议 | 用途 | 第一阶段 |
 | --- | --- | --- |
-| IPC/Binder | Android App 与系统服务 | AIDL + service/client sample |
+| IPC/Binder | Android App 与系统服务 | AIDL + service/client sample；Console debug APK 已绑定 sample service |
 | REST | 原型、工具、云 API | 已用于 mock |
 | gRPC/RPC | AI 工具服务、跨进程高层 API | 预留 |
 | MQTT | 云端消息和轻量事件 | 预留 |
 | SOME/IP | 量产车载 SOA 与 ECU 服务发现 | 预留 |
 | DDS | 感知/融合/高频发布订阅 | 预留 |
 
-当前 A1/A4 增量已把 Uni Info Bus Event 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton。该增量不实现 DDS broker、高频共享内存、Driver/HAL 或虚拟化功能。
+当前 A1/A4 增量已把 Uni Info Bus Event 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton；Android Console 已通过 Binder client 调用 State/SOA。该增量不实现 DDS broker、高频共享内存、Driver/HAL 或虚拟化功能。
 
 ### Kernel & HAL 层
 
@@ -170,7 +170,7 @@ L5 虚拟化层只记录接口约束和部署假设，不开发 Hypervisor、ASI
 后续演进：
 - JSON contract 迁移到 OpenAPI + protobuf/IDL。
 - Android 侧生成客户端。
-- 系统服务侧引入 Stable AIDL；当前已有 Android Binder service/client sample，仍代理语义网关 prototype binding。
+- 系统服务侧引入 Stable AIDL；当前 Android Console 已绑定 Binder service/client sample，但 service 仍代理语义网关 prototype binding。
 - 车载 SOA 侧增加 SOME/IP IDL/映射。
 
 ## 安全设计

@@ -9,9 +9,9 @@ Brain semantic gateway.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
-- The current Android Console still uses the REST prototype binding. The Binder
-  service sample shows the Android main-path target shape and currently proxies
-  to the semantic gateway.
+- The Android Console debug APK now binds this service sample before calling
+  Uni Info Bus State and SOA Inference. The Binder service sample still proxies
+  to the REST semantic gateway as its upstream prototype binding.
 
 ## Mapping
 

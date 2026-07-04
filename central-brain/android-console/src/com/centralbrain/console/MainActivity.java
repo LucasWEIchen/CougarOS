@@ -5,33 +5,45 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import java.io.BufferedReader;
-import java.io.OutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import com.centralbrain.binding.CentralBrainGatewayBinderService;
+import com.centralbrain.binding.CentralBrainGatewayClient;
 
 public class MainActivity extends Activity {
-    private static final String BASE_URL = "http://10.0.2.2:8787";
+    private static final String BASE_URL = CentralBrainGatewayBinderService.DEFAULT_BASE_URL;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private TextView statusView;
     private TextView detailView;
     private Button refreshButton;
     private Button inferButton;
+    private CentralBrainGatewayClient gatewayClient;
+    private boolean gatewayBound;
+
+    private interface GatewayCall {
+        String run(CentralBrainGatewayClient client) throws RemoteException;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(buildContentView());
-        refreshHealth();
+        bindGateway();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (gatewayClient != null && gatewayBound) {
+            gatewayClient.unbind();
+            gatewayBound = false;
+        }
+        super.onDestroy();
     }
 
     private View buildContentView() {
@@ -51,7 +63,7 @@ public class MainActivity extends Activity {
         root.addView(title);
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Android app layer -> Uni Info Bus prototype -> mock PCIe NPU backend");
+        subtitle.setText("Android app layer -> Binder gateway -> Uni Info Bus/SOA prototype");
         subtitle.setTextSize(14);
         subtitle.setTextColor(Color.rgb(76, 91, 101));
         subtitle.setPadding(0, 0, 0, dp(18));
@@ -102,50 +114,62 @@ public class MainActivity extends Activity {
     }
 
     private void refreshHealth() {
-        setBusy(true, "Status: refreshing Uni Info Bus state");
-        request("GET", "/uib/state", null, "Uni Info Bus State");
+        setBusy(true, "Status: refreshing Uni Info Bus state via Binder");
+        gatewayRequest("Uni Info Bus State (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getStateJson(newTraceId("state"));
+            }
+        });
     }
 
     private void runInference() {
-        setBusy(true, "Status: invoking SOA inference");
+        setBusy(true, "Status: invoking SOA inference via Binder");
         String body = "{\"service\":\"npu-inference\",\"method\":\"infer\",\"caller_permissions\":[\"ai.infer\",\"service.read\"],"
             + "\"payload\":{\"model\":\"central-intent-v0\",\"input\":{\"utterance\":\"query vehicle state\"},"
             + "\"policy\":{\"safety_state_required\":\"normal\",\"timeout_ms\":2000}}}";
-        request("POST", "/soa/invoke", body, "SOA Inference");
+        gatewayRequest("SOA Inference (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.invokeServiceJson(newTraceId("soa"), body);
+            }
+        });
     }
 
-    private void request(String method, String path, String body, String label) {
+    private void bindGateway() {
+        setBusy(true, "Status: binding Android gateway service");
+        gatewayClient = new CentralBrainGatewayClient(this, new CentralBrainGatewayClient.Callback() {
+            @Override
+            public void onConnected(CentralBrainGatewayClient client) {
+                gatewayBound = true;
+                postResult("Status: Binder gateway connected", "Req IDs: XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
+                    + "Upstream prototype binding: " + BASE_URL + "\n\n"
+                    + "Use Refresh or Invoke SOA Inference to exercise the Android Binder path.");
+            }
+
+            @Override
+            public void onDisconnected() {
+                gatewayBound = false;
+                postResult("Status: Binder gateway disconnected", "Central Brain gateway service disconnected.");
+            }
+        });
+        if (!gatewayClient.bind(BASE_URL)) {
+            gatewayBound = false;
+            postResult("Status: Binder gateway bind failed",
+                "Unable to bind Central Brain gateway service.\n\nReq IDs: XSC-006, NV-P-002, DEL-001");
+        }
+    }
+
+    private void gatewayRequest(String label, GatewayCall call) {
+        if (!gatewayBound || gatewayClient == null) {
+            postResult("Status: Binder gateway unavailable", "Central Brain Binder gateway is not connected.");
+            return;
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    HttpURLConnection connection = (HttpURLConnection) new URL(BASE_URL + path).openConnection();
-                    connection.setRequestMethod(method);
-                    connection.setConnectTimeout(2000);
-                    connection.setReadTimeout(4000);
-                    connection.setRequestProperty("Accept", "application/json");
-                    if (body != null) {
-                        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-                        connection.setDoOutput(true);
-                        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-                        connection.setRequestProperty("Content-Length", String.valueOf(bytes.length));
-                        try (OutputStream output = connection.getOutputStream()) {
-                            output.write(bytes);
-                        }
-                    }
-
-                    int code = connection.getResponseCode();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        code >= 400 ? connection.getErrorStream() : connection.getInputStream(),
-                        StandardCharsets.UTF_8
-                    ));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line).append('\n');
-                    }
-                    reader.close();
-                    postResult("Status: " + label + " HTTP " + code, response.toString());
+                    postResult("Status: " + label + " OK", call.run(gatewayClient));
                 } catch (Exception e) {
                     postResult("Status: backend unavailable", e.getClass().getSimpleName() + ": " + e.getMessage()
                         + "\n\nStart backend with:\n  bash tools/run_central_brain_backend.sh");
@@ -166,11 +190,15 @@ public class MainActivity extends Activity {
 
     private void setBusy(boolean busy, String status) {
         statusView.setText(status);
-        refreshButton.setEnabled(!busy);
-        inferButton.setEnabled(!busy);
+        refreshButton.setEnabled(!busy && gatewayBound);
+        inferButton.setEnabled(!busy && gatewayBound);
     }
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private static String newTraceId(String operation) {
+        return "android-console-binder-" + operation + "-" + System.currentTimeMillis();
     }
 }

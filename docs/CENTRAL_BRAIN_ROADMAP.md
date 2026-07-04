@@ -12,7 +12,7 @@
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event active mock + Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；gRPC contract skeleton；Event semantic mapping |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；Android Console Binder path；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -161,3 +161,9 @@
   - 新增验证脚本：`tools/smoke_central_brain_qos.sh`。
   - 本轮未开发多进程限流、真实服务治理后端、Driver/HAL、Safety Runtime 或虚拟化层。
   - 覆盖 Req ID：XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002。
+- 推进 Android Console Binder 绑定路径：
+  - Debug APK 构建脚本生成 `ICentralBrainGateway` AIDL Java，并把 Android Binder service/client sample 编入 Console APK。
+  - `AndroidManifest.xml` 声明 `CentralBrainGatewayBinderService`，Console 启动后先绑定该 service，再通过 `CentralBrainGatewayClient` 调用 `getStateJson` 和 `invokeServiceJson`。
+  - Android App 层不再直接发起 `/uib/state`、`/soa/invoke` HTTP 调用；REST 仍仅由 Binder service 作为上游 prototype binding 代理。
+  - 本轮未开发 Android system service、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。

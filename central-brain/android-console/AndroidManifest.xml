@@ -15,5 +15,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name="com.centralbrain.binding.CentralBrainGatewayBinderService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.centralbrain.binding.action.BIND_CENTRAL_BRAIN_GATEWAY" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
