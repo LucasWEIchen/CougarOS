@@ -50,7 +50,7 @@
 | XSC-002 | Uni Info Bus 语义接口 | Framework 层 | 语义对象和 contract 跨 SoC 一致 | Android client/API | Linux client/API |
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
 | XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter；adapter registry 初版 |
-| XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle 可移植 | Android runtime integration | Linux runtime integration |
+| XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit 可移植 | Android runtime integration | Linux runtime integration；JSONL audit persistence sample |
 | XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | REST active prototype + Binder/AIDL service stub sample | REST active prototype + Unix socket IPC active sample + gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
 
 ## 交付对象与平台要求
@@ -133,7 +133,7 @@
 | NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | registry 返回 QoS 元数据，未真实限流 |
 | NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | `/policy/evaluate` + `/soa/invoke` active prototype |
 | NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | `/soa/invoke` 拒绝非 ready service |
-| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/audit/recent` 记录 SOA 调用 |
+| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/audit/recent` 记录 SOA 调用；`CENTRAL_BRAIN_AUDIT_LOG` 可选 JSONL 恢复最近 50 条 |
 
 ### Uni Info Bus Protocol Binding
 

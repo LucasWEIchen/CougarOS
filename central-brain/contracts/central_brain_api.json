@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "updated": "2026-07-04",
   "transport": {
     "prototype": "http-json",
@@ -121,8 +121,8 @@
     {
       "method": "GET",
       "path": "/audit/recent",
-      "description": "Returns recent in-memory Runtime & Governance audit records created by SOA calls.",
-      "req_ids": ["XSC-005", "NV-G-007"]
+      "description": "Returns recent Runtime & Governance audit records created by SOA calls; optional JSONL persistence is enabled by CENTRAL_BRAIN_AUDIT_LOG.",
+      "req_ids": ["XSC-005", "NV-G-007", "DEL-002"]
     },
     {
       "method": "GET",

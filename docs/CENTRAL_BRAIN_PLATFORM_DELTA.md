@@ -24,7 +24,7 @@ Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 | Protocol Binding | Binder/AIDL service stub sample；REST 只是 prototype binding | Unix socket IPC active sample；gRPC contract skeleton；REST prototype binding | Android stub + Linux active sample | XSC-006, NV-P-002, NV-P-003, NV-P-005 |
 | 服务部署 | APK/Android service；后续 AAOS/SystemService 集成 | `central-brain-backend.service` + `central-brain-linux-ipc.service` 样例 | Linux systemd sample 初版 | DEL-003, DEL-004 |
 | 权限模型 | Android app permission、Binder caller identity、Runtime & Governance policy | Linux service user/group、Unix socket mode、Runtime & Governance policy | 文档化，未接入真实系统权限 | FW-U-007, NV-G-005, DEL-004 |
-| 日志与审计 | Android logcat + `/audit/recent` | journald + `/audit/recent` | 审计内存态，日志依赖平台 | NV-G-007, DEL-004 |
+| 日志与审计 | Android logcat + `/audit/recent`；可通过服务配置指定 `CENTRAL_BRAIN_AUDIT_LOG` | journald + `/audit/recent`；可指定 JSONL audit log 路径 | JSONL 持久化样例已可验证，量产仍需轮转/导出/权限加固 | XSC-005, NV-G-007, DEL-002, DEL-004 |
 | Driver/HAL | Android HAL/AIDL/NDK/vendor SDK bridge，当前不新增驱动 | Linux device node/ioctl/sysfs/vendor lib，当前不新增驱动 | 仅接口矩阵 | DEL-005, KH-003, KH-006 |
 | 虚拟化 | 只记录 Hypervisor/ASIL/QM 接口约束 | 只记录跨 VM 通信假设和 fallback | 非开发范围 | HV-001..003 |
 
@@ -58,5 +58,5 @@ bash tools/smoke_central_brain_linux_ipc.sh
 
 - Android Binder sample 和 Linux IPC daemon 仍代理到同进程 REST prototype gateway，偏差记录见 DEV-001、DEV-013。
 - Linux systemd unit 是部署样例，不等同量产包管理或安全加固基线。
-- 当前审计为内存态，重启后丢失，偏差记录见 DEV-006。
+- 当前审计可选 JSONL 持久化并恢复最近 50 条；仍不是量产审计后端，偏差记录见 DEV-006。
 - 当前没有真实 Driver/HAL/NPU/Vehicle bus 接入，偏差记录见 DEV-004、DEV-005、DEV-014。

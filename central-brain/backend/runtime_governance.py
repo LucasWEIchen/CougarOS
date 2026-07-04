@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import copy
+import json
 import time
 from collections import deque
+from pathlib import Path
 from typing import Any
 
 
@@ -79,13 +81,49 @@ SERVICE_CATALOG: list[dict[str, Any]] = [
 class RuntimeGovernance:
     """Small in-process runtime standing in for registry, policy and audit."""
 
-    def __init__(self) -> None:
+    def __init__(self, audit_log_path: str | None = None) -> None:
         self.lifecycle: dict[str, str] = {
             service["name"]: "ready" if service["implementation"] != "planned" else "planned"
             for service in SERVICE_CATALOG
         }
         self.audit_events: deque[dict[str, Any]] = deque(maxlen=50)
         self.sequence = 0
+        self.audit_log_path = Path(audit_log_path).expanduser() if audit_log_path else None
+        self.audit_persistence_error: str | None = None
+        self._load_audit_events()
+
+    def _load_audit_events(self) -> None:
+        if self.audit_log_path is None or not self.audit_log_path.exists():
+            return
+
+        try:
+            records: list[dict[str, Any]] = []
+            for line in self.audit_log_path.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                if isinstance(record, dict):
+                    records.append(record)
+
+            for record in records[-50:]:
+                self.audit_events.appendleft(record)
+                self.sequence = max(self.sequence, int(record.get("sequence", 0)))
+            self.audit_persistence_error = None
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            self.audit_persistence_error = f"audit restore failed: {exc}"
+
+    def _persist_audit_event(self, event: dict[str, Any]) -> None:
+        if self.audit_log_path is None:
+            return
+
+        try:
+            self.audit_log_path.parent.mkdir(parents=True, exist_ok=True)
+            with self.audit_log_path.open("a", encoding="utf-8") as log_file:
+                log_file.write(json.dumps(event, ensure_ascii=False, sort_keys=True))
+                log_file.write("\n")
+            self.audit_persistence_error = None
+        except OSError as exc:
+            self.audit_persistence_error = f"audit persist failed: {exc}"
 
     def services_payload(self) -> dict[str, Any]:
         services = copy.deepcopy(SERVICE_CATALOG)
@@ -184,13 +222,19 @@ class RuntimeGovernance:
             "req_ids": ["NV-G-007"],
         }
         self.audit_events.appendleft(event)
+        self._persist_audit_event(event)
         return event
 
     def audit_payload(self, limit: int = 20) -> dict[str, Any]:
         return {
             "events": list(self.audit_events)[:limit],
-            "retention": "in-memory-last-50",
-            "req_ids": ["NV-G-007"],
+            "retention": "jsonl-last-50" if self.audit_log_path else "in-memory-last-50",
+            "persistence": {
+                "state": "enabled" if self.audit_log_path else "disabled",
+                "path": str(self.audit_log_path) if self.audit_log_path else None,
+                "last_error": self.audit_persistence_error,
+            },
+            "req_ids": ["XSC-005", "NV-G-007", "DEL-002"],
         }
 
     def governance_payload(self) -> dict[str, Any]:
@@ -234,11 +278,16 @@ class RuntimeGovernance:
                 "req_ids": ["NV-G-006"],
             },
             "audit": {
-                "state": "active-prototype",
+                "state": "active-prototype-jsonl" if self.audit_log_path else "active-prototype",
                 "entry": "GET /audit/recent",
                 "recent_count": len(self.audit_events),
+                "persistence": {
+                    "state": "enabled" if self.audit_log_path else "disabled",
+                    "path": str(self.audit_log_path) if self.audit_log_path else None,
+                    "last_error": self.audit_persistence_error,
+                },
                 "record_fields": ["trace_id", "service", "method", "policy.decision", "lifecycle_state"],
-                "req_ids": ["NV-G-007"],
+                "req_ids": ["XSC-005", "NV-G-007", "DEL-002"],
             },
             "req_ids": GOVERNANCE_REQ_IDS,
         }

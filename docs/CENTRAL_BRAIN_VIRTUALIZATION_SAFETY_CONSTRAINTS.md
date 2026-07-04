@@ -65,7 +65,7 @@ Req ID：HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DE
 - `source_domain` 和 `target_domain` 必须由目标平台安全域配置提供，当前原型只记录假设。
 - 共享内存只允许放 `payload_ref`，不能绕过 schema、Policy、Lifecycle 和 Audit。
 - ASIL domain 不可用时，上层只允许 readonly fallback 或明确失败，不允许自动降级为不受控写操作。
-- 所有跨域调用必须进入 Audit，当前原型审计仍是内存态，偏差见 DEV-006。
+- 所有跨域调用必须进入 Audit；当前原型支持可选 JSONL 最近审计恢复，但仍不是量产审计后端，偏差见 DEV-006。
 
 ## Android/Linux 集成假设
 

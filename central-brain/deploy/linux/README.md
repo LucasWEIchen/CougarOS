@@ -10,7 +10,7 @@ HAL, SOME/IP, DDS, MQTT, NPU, or virtualization code.
 ## Files
 
 - `central-brain.env.example`: environment template for gateway port, semantic
-  base URL, and Unix socket path.
+  base URL, Unix socket path, and JSONL audit log path.
 - `systemd/central-brain-backend.service`: backend semantic gateway service.
 - `systemd/central-brain-linux-ipc.service`: Unix socket Protocol Binding
   daemon service.
@@ -50,6 +50,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
   python3 /opt/central-brain/appDev/central-brain/linux-cli/central_brain_cli.py state
 CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
   python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
+sudo test -s /var/log/central-brain/audit.jsonl || true
 ```
 
 ## Deployment Assumptions
@@ -61,6 +62,9 @@ CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
 - Permission enforcement in this sample is process/user based plus Runtime &
   Governance policy checks. Android permission parity is documented in
   `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`.
+- `CENTRAL_BRAIN_AUDIT_LOG` enables a JSONL Runtime & Governance audit sample
+  for XSC-005/NV-G-007/DEL-002. It is intentionally a local integration aid;
+  production still needs rotation, export, and access-control hardening.
 - `/run/central-brain/gateway.sock` is group-readable/writable for local
   same-SoC clients. Production integration should map this group to cockpit
   service identities.

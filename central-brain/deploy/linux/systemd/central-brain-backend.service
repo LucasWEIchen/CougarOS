@@ -14,6 +14,7 @@ Environment=CENTRAL_BRAIN_PORT=8787
 ExecStart=/usr/bin/env bash /opt/central-brain/appDev/tools/run_central_brain_backend.sh
 Restart=on-failure
 RestartSec=2
+LogsDirectory=central-brain
 NoNewPrivileges=true
 PrivateTmp=true
 

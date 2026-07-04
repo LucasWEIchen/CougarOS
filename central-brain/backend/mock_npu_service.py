@@ -24,8 +24,8 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.7"
-GOVERNANCE = RuntimeGovernance()
+API_VERSION = "0.1.8"
+GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
 EVENT_LOG: deque[dict[str, Any]] = deque(maxlen=50)

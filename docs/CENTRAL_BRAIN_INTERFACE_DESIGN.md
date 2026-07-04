@@ -131,7 +131,7 @@
 | --- | --- | --- | --- |
 | POST | `/policy/evaluate` | 权限与安全状态评估 | 是 |
 | GET | `/policy/permissions` | 权限矩阵 | 否 |
-| GET | `/audit/recent` | 最近治理审计记录 | 是 |
+| GET | `/audit/recent` | 最近治理审计记录；设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可恢复最近 50 条 | 是 |
 
 ### Uni Info Bus Event
 
@@ -161,7 +161,7 @@
 | --- | --- | --- | --- |
 | GET | `/trace/recent` | 最近调用 Trace | 否 |
 | GET | `/metrics` | 指标快照 | 否 |
-| GET | `/audit/recent` | 最近审计记录 | 是 |
+| GET | `/audit/recent` | 最近审计记录；可选 JSONL 持久化样例 | 是 |
 
 ### Native Adapters
 
