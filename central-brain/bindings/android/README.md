@@ -1,15 +1,17 @@
 # Android Protocol Binding Skeleton
 
-This directory contains the Android Binder/AIDL binding skeleton for the
-Central Brain semantic gateway.
+This directory contains the Android Binder/AIDL binding sample for the Central
+Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-002, XSC-003, XSC-005, XSC-006, NV-P-002, DEL-001.
-- This is a binding contract only. It does not replace Uni Info Bus or SOA
-  semantics, and it does not access drivers, HAL, or virtualization directly.
-- The current Android Console still uses the REST prototype binding while this
-  AIDL shape is used as the target integration contract.
+- Req IDs: XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, NV-P-002, DEL-001.
+- This is a Binder service/client sample. It does not replace Uni Info Bus or
+  SOA semantics, and it does not access drivers, HAL, or virtualization
+  directly.
+- The current Android Console still uses the REST prototype binding. The Binder
+  service sample shows the Android main-path target shape and currently proxies
+  to the semantic gateway.
 
 ## Mapping
 
@@ -23,6 +25,29 @@ Central Brain semantic gateway.
 | `getRuntimeGovernanceJson` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `getRecentAuditJson` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
+| `getBindingDetailJson` | `GET /bindings/detail` | XSC-006, NV-P-002 |
+| `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
+
+## Artifacts
+
+- `aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`: stable Binder
+  contract for Android IPC integration.
+- `java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`: sample
+  service stub that maps Binder methods to the semantic gateway.
+- `java/com/centralbrain/binding/CentralBrainGatewayClient.java`: sample app or
+  SDK-side client helper for binding to the service.
+
+## Sample Service Manifest Entry
+
+```xml
+<service
+    android:name="com.centralbrain.binding.CentralBrainGatewayBinderService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.centralbrain.binding.action.BIND_CENTRAL_BRAIN_GATEWAY" />
+    </intent-filter>
+</service>
+```
 
 ## Delivery Assumptions
 
@@ -31,3 +56,5 @@ Central Brain semantic gateway.
 - Permission checks remain in Runtime & Governance; Binder caller identity is an
   input to policy, not a replacement for policy.
 - Stable parcelable models can replace JSON after the semantic contract settles.
+- The current sample is not a Driver/HAL bridge and does not create any
+  virtualization-layer development scope.

@@ -1,0 +1,186 @@
+package com.centralbrain.binding;
+
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URLEncoder;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * Android Binder service stub for the Central Brain semantic gateway.
+ *
+ * Req IDs: XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, NV-P-002, DEL-001.
+ *
+ * This sample keeps REST as the upstream prototype binding. Production AAOS
+ * integration should host this in a system/privileged service and replace the
+ * upstream bridge with the in-process gateway or target platform service.
+ */
+public final class CentralBrainGatewayBinderService extends Service {
+    public static final String ACTION_BIND =
+            "com.centralbrain.binding.action.BIND_CENTRAL_BRAIN_GATEWAY";
+    public static final String EXTRA_BASE_URL = "com.centralbrain.binding.extra.BASE_URL";
+    public static final String DEFAULT_BASE_URL = "http://10.0.2.2:8787";
+
+    private volatile String baseUrl = DEFAULT_BASE_URL;
+
+    private final ICentralBrainGateway.Stub binder = new ICentralBrainGateway.Stub() {
+        @Override
+        public String getContextJson(String traceId) throws RemoteException {
+            return get("/uib/context", traceId);
+        }
+
+        @Override
+        public String getStateJson(String traceId) throws RemoteException {
+            return get("/uib/state", traceId);
+        }
+
+        @Override
+        public String listServicesJson(String traceId) throws RemoteException {
+            return get("/soa/services", traceId);
+        }
+
+        @Override
+        public String invokeServiceJson(String traceId, String requestJson) throws RemoteException {
+            return post("/soa/invoke", withTraceId(traceId, requestJson));
+        }
+
+        @Override
+        public String evaluatePolicyJson(String traceId, String requestJson) throws RemoteException {
+            return post("/policy/evaluate", withTraceId(traceId, requestJson));
+        }
+
+        @Override
+        public String getRuntimeGovernanceJson(String traceId) throws RemoteException {
+            return get("/governance/runtime", traceId);
+        }
+
+        @Override
+        public String getRecentAuditJson(String traceId, int limit) throws RemoteException {
+            return get("/audit/recent?limit=" + Math.max(1, limit), traceId);
+        }
+
+        @Override
+        public String listBindingsJson(String traceId) throws RemoteException {
+            return get("/bindings", traceId);
+        }
+
+        @Override
+        public String getBindingDetailJson(String traceId) throws RemoteException {
+            return get("/bindings/detail", traceId);
+        }
+
+        @Override
+        public String getNativeAdaptersDetailJson(String traceId) throws RemoteException {
+            return get("/native/adapters/detail", traceId);
+        }
+    };
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        updateBaseUrl(intent);
+        return START_STICKY;
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        updateBaseUrl(intent);
+        return binder;
+    }
+
+    private void updateBaseUrl(Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        String candidate = intent.getStringExtra(EXTRA_BASE_URL);
+        if (candidate != null && candidate.startsWith("http")) {
+            baseUrl = candidate.replaceAll("/+$", "");
+        }
+    }
+
+    private String get(String path, String traceId) throws RemoteException {
+        String suffix = traceId == null || traceId.isEmpty()
+                ? path
+                : path + (path.contains("?") ? "&" : "?") + "trace_id=" + urlEncode(traceId);
+        return request("GET", suffix, null);
+    }
+
+    private String post(String path, String body) throws RemoteException {
+        return request("POST", path, body == null || body.isEmpty() ? "{}" : body);
+    }
+
+    private String request(String method, String path, String body) throws RemoteException {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new URL(baseUrl + path).openConnection();
+            connection.setRequestMethod(method);
+            connection.setConnectTimeout(1000);
+            connection.setReadTimeout(3000);
+            connection.setRequestProperty("Accept", "application/json");
+            if (body != null) {
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                byte[] encoded = body.getBytes(StandardCharsets.UTF_8);
+                connection.setFixedLengthStreamingMode(encoded.length);
+                try (OutputStream output = connection.getOutputStream()) {
+                    output.write(encoded);
+                }
+            }
+
+            int status = connection.getResponseCode();
+            InputStream stream = status >= 400 ? connection.getErrorStream() : connection.getInputStream();
+            if (stream == null) {
+                throw new IOException("HTTP " + status + " without response body");
+            }
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line).append('\n');
+                }
+                return response.toString().trim();
+            }
+        } catch (IOException ex) {
+            throw new RemoteException("Central Brain gateway request failed: " + ex.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    private static String withTraceId(String traceId, String requestJson) {
+        if (traceId == null || traceId.isEmpty() || requestJson == null || requestJson.trim().isEmpty()) {
+            return requestJson;
+        }
+        String trimmed = requestJson.trim();
+        if (!trimmed.startsWith("{") || trimmed.contains("\"trace_id\"")) {
+            return requestJson;
+        }
+        if (trimmed.length() == 2) {
+            return "{\"trace_id\":\"" + escapeJson(traceId) + "\"}";
+        }
+        return "{\"trace_id\":\"" + escapeJson(traceId) + "\"," + trimmed.substring(1);
+    }
+
+    private static String urlEncode(String value) throws RemoteException {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+        } catch (IOException ex) {
+            throw new RemoteException("Failed to encode trace id: " + ex.getMessage());
+        }
+    }
+
+    private static String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+}

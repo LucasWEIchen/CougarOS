@@ -8,6 +8,7 @@ package com.centralbrain.binding;
  * - XSC-003 SOA service entry
  * - XSC-005 Runtime & Governance
  * - XSC-006 Protocol Binding
+ * - XSC-004 AIOS Kernel / Native adapter visibility
  * - NV-P-002 IPC/Binder binding
  * - DEL-001 Android main delivery path
  */
@@ -27,4 +28,8 @@ interface ICentralBrainGateway {
     String getRecentAuditJson(String traceId, int limit);
 
     String listBindingsJson(String traceId);
+
+    String getBindingDetailJson(String traceId);
+
+    String getNativeAdaptersDetailJson(String traceId);
 }

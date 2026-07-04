@@ -12,7 +12,7 @@
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype 初版 |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android/Linux contract skeleton |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；gRPC contract skeleton |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -121,3 +121,8 @@
   - `linux-ipc` 在 `/bindings/detail` 中从 `contract-skeleton` 推进为 `active-sample`，映射 `uib.context.get`、`uib.state.get`、`soa.services.list`、`soa.service.invoke`、`policy.evaluate`、`governance.runtime.get`、`audit.recent.get`、`bindings.list`。
   - 新增 smoke test：`tools/smoke_central_brain_linux_ipc.sh`。
   - 覆盖 Req ID：XSC-002、XSC-003、XSC-005、XSC-006、FW-U-001、FW-U-002、FW-S-004、FW-S-005、NV-G-005、NV-G-007、NV-P-002、DEL-002。
+- 推进 Android Binder service stub sample：
+  - 扩展 AIDL：`getBindingDetailJson`、`getNativeAdaptersDetailJson`，让 Android IPC contract 覆盖 Protocol Binding 与 Native adapter 可见性。
+  - 新增 Android service/client sample：`CentralBrainGatewayBinderService.java`、`CentralBrainGatewayClient.java`，将 Binder 方法映射到 `/uib/*`、`/soa/*`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`。
+  - `/bindings/detail` 中 `android-binder-aidl` 从 `contract-skeleton` 推进为 `service-stub-sample`；REST 仍只是上游 prototype binding。
+  - 覆盖 Req ID：XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、NV-P-002、DEL-001。

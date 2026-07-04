@@ -310,7 +310,7 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 
 | Binding | Artifact | 语义入口 | Req IDs | 状态 |
 | --- | --- | --- | --- | --- |
-| Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl` | `/uib/context`、`/uib/state`、`/soa/invoke`、`/policy/evaluate` | XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、DEL-001 | contract skeleton |
+| Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java` | `/uib/context`、`/uib/state`、`/soa/invoke`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail` | XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、NV-P-002、DEL-001 | service stub sample |
 | Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json` | `uib.context.get`、`uib.state.get`、`soa.service.invoke`、`policy.evaluate` | XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、DEL-002 | contract skeleton |
 | Linux gRPC/RPC | `central-brain/bindings/linux/proto/central_brain_gateway.proto` | `CentralBrainGateway.GetState`、`InvokeService`、`EvaluatePolicy` | XSC-002、XSC-003、XSC-005、XSC-006、NV-P-003、DEL-002 | contract skeleton |
 

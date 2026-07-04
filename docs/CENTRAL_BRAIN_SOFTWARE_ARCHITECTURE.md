@@ -103,7 +103,7 @@ flowchart TB
 
 | 协议 | 用途 | 第一阶段 |
 | --- | --- | --- |
-| IPC/Binder | Android App 与系统服务 | 文档设计 |
+| IPC/Binder | Android App 与系统服务 | AIDL + service/client sample |
 | REST | 原型、工具、云 API | 已用于 mock |
 | gRPC/RPC | AI 工具服务、跨进程高层 API | 预留 |
 | MQTT | 云端消息和轻量事件 | 预留 |
@@ -155,7 +155,7 @@ sequenceDiagram
 后续演进：
 - JSON contract 迁移到 OpenAPI + protobuf/IDL。
 - Android 侧生成客户端。
-- 系统服务侧引入 Stable AIDL。
+- 系统服务侧引入 Stable AIDL；当前已有 Android Binder service/client sample，仍代理语义网关 prototype binding。
 - 车载 SOA 侧增加 SOME/IP IDL/映射。
 
 ## 安全设计

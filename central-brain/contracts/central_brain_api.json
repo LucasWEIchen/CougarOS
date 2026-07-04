@@ -1,10 +1,11 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "updated": "2026-07-04",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
     "linux_ipc_socket": "/tmp/central_brain_gateway.sock"

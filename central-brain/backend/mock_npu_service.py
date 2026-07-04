@@ -23,7 +23,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.5"
+API_VERSION = "0.1.6"
 GOVERNANCE = RuntimeGovernance()
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()

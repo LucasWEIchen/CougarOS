@@ -28,18 +28,27 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
     },
     {
         "name": "android-binder-aidl",
-        "status": "contract-skeleton",
+        "status": "service-stub-sample",
         "platforms": ["Android"],
         "semantic_paths": [
             "getContextJson -> /uib/context",
             "getStateJson -> /uib/state",
+            "listServicesJson -> /soa/services",
             "invokeServiceJson -> /soa/invoke",
+            "evaluatePolicyJson -> /policy/evaluate",
+            "getRuntimeGovernanceJson -> /governance/runtime",
+            "getRecentAuditJson -> /audit/recent",
+            "listBindingsJson -> /bindings",
+            "getBindingDetailJson -> /bindings/detail",
+            "getNativeAdaptersDetailJson -> /native/adapters/detail",
         ],
         "artifacts": [
             "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl",
+            "central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java",
+            "central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java",
             "central-brain/bindings/android/README.md",
         ],
-        "req_ids": ["XSC-002", "XSC-003", "XSC-005", "XSC-006", "NV-P-002", "DEL-001"],
+        "req_ids": ["XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-P-002", "DEL-001"],
     },
     {
         "name": "linux-ipc",
@@ -133,6 +142,7 @@ class ProtocolBindingRegistry:
             "constraints": [
                 "Protocol Binding cannot bypass Uni Info Bus semantic objects.",
                 "SOA calls remain policy, lifecycle, and audit checked.",
+                "Android Binder service sample maps Binder calls to the semantic gateway; REST remains the upstream prototype binding.",
                 "Linux IPC active sample maps Unix socket envelopes to the semantic gateway; REST remains the upstream prototype binding.",
                 "Virtualization and driver layers are documented integration assumptions only in this increment.",
             ],
