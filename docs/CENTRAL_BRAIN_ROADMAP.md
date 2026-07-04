@@ -6,16 +6,17 @@
 
 | 阶段 | 目标 | 主要交付物 | 状态 |
 | --- | --- | --- | --- |
-| M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 进行中 |
-| M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 进行中 |
-| M1 | 本地端到端联通稳定化 | 后端启动脚本、APK 构建/安装、模拟器联通截图/日志、一键 smoke test | 待开始 |
-| M2 | 中间层接口契约扩展 | Agent、Skill、Memory、Policy、Trace mock 实现 | 待开始 |
-| M2.5 | 中间层服务网关 | Registry、Discovery、Schema、Policy、Lifecycle 模块化 | 待开始 |
-| M3 | Android 系统接口 | AIDL contract、system service 原型、权限模型 | 待开始 |
-| M4 | 车辆信号模型 | VSS 子集、VHAL/VSS 映射、信号订阅 | 待开始 |
-| M5 | AI runtime | 模型管理、NPU SDK adapter、CPU fallback、推理队列 | 待开始 |
-| M6 | 车载协议 | SOME/IP 或 DDS proof-of-concept | 待开始 |
-| M7 | 量产约束 | 安全状态、OTA、诊断、审计、性能测试 | 待开始 |
+| M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
+| M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
+| A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | 待开始 |
+| A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | 待开始 |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | 待开始 |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | 待开始 |
+| A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | 待开始 |
+| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
+| A7 | Hypervisor/Safety 域映射 | ASIL/QM domain map、跨 VM 通信设计 | 待开始 |
+| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | 待开始 |
 
 ## M0 任务清单
 
@@ -33,7 +34,7 @@
 - [x] 安装 APK 到本地模拟器。
 - [x] 验证 App 访问 `/health` 返回 `Health HTTP 200`。
 - [x] 验证 App 触发 `/ai/infer` 返回 `Inference HTTP 200`。
-- [ ] 形成 M0 Git 提交。
+- [x] 形成 M0 Git 提交。
 
 ## 当前工程策略
 
@@ -42,6 +43,9 @@
 - 构建和运行脚本放在 `tools/`。
 - 文档放在 `docs/CENTRAL_BRAIN_*`。
 - 后续每完成一个可运行增量，都创建 Git 提交。
+- 架构图是最高优先级需求基线；所有产品参考、接口扩展和 mock 实现都必须映射回图中模块。
+- 新增或保留任何软件偏差，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md`。
+- 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
 
@@ -69,3 +73,9 @@
 - 新增 PM 级需求拆解：`docs/CENTRAL_BRAIN_REQUIREMENTS_BREAKDOWN.md`。
 - 新增接口设计文档：`docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md`。
 - 创建 20 小时自动进展推进任务：每 20 分钟一次，共 60 次，自动化 ID `20`。
+- 用户明确要求将架构图作为真实需求基线，而非示意图。
+- 新增架构图需求矩阵：`docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md`。
+- 新增软件偏差登记表：`docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md`。
+- 新增架构疑点登记表：`docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
+- 新增按图执行计划：`docs/CENTRAL_BRAIN_ARCHITECTURE_EXECUTION_PLAN.md`。
+- 更新自动化 ID `20`：每 20 分钟推进时必须先检查架构需求矩阵、偏差登记表和疑点登记表。

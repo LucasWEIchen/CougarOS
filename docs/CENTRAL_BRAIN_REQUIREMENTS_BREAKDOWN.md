@@ -6,7 +6,7 @@
 
 ## 产品参考基线
 
-本项目在产品概念上参考地平线 KaKaClaw 咖咖虾公开信息，但不做复制式实现。可借鉴的方向：
+本项目在产品概念上参考地平线 KaKaClaw 咖咖虾公开信息，但不做复制式实现。该参考只用于补充产品体验，不改变 `docs/assets/central_brain_architecture_source.png` 的架构需求基线。所有 Agent、Skill、Memory、Privacy 能力必须映射回图中的 AI SDK、AIOS Kernel、Tool、Permission、Security/Policy Adapter、Runtime & Governance 等模块。
 
 - 整车智能体 OS：车载 OS 不只是固定功能集合，而是能理解用户意图、主动编排任务、调用硬件资源的 Agentic OS。
 - 任务即服务：用户输入自然语言或场景触发条件后，系统自动拆解任务、选择服务、执行跨域流程。

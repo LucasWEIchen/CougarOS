@@ -7,6 +7,12 @@
 
 建立一个可从本地 mock 演进到真实车载域控/中央计算平台的软件架构。系统由 Android 应用层、中间层服务总线、Native runtime、Kernel/HAL、虚拟化隔离和外置 PCIe NPU 后端组成。
 
+## 架构图基线
+
+`docs/assets/central_brain_architecture_source.png` 是本项目的需求基线，不是示意图。本文档的任何架构描述都必须服从该图的分层和模块边界。需求追踪见 `docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md`；软件偏差见 `docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md`；架构疑点见 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
+
+产品参考资料，例如 KaKaClaw 咖咖虾，只能用于补充应用体验和 Agent/Skill/Memory 的产品形态，不能替代图中的 Uni Info Bus、SOA 服务入口、Native Runtime & Governance、Protocol Binding、Kernel/HAL 和 Hypervisor 分层。
+
 ## 总体视图
 
 ```mermaid

@@ -1,0 +1,152 @@
+# 中央大脑架构图需求基线
+
+版本：0.1
+日期：2026-07-04
+来源：`docs/assets/central_brain_architecture_source.png`
+
+## 基线声明
+
+用户提供的《中央大脑软件部分展开》不是概念示意图，而是本项目的架构需求基线。后续开发计划、接口设计、代码实现和验证都必须追踪到该图中的层级、模块和接口。
+
+任何未按图实现的内容必须进入 `docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md`；任何图中表达不清、边界重叠、工程上有风险或需要用户确认的内容必须进入 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
+
+## 所有权颜色
+
+| 颜色 | 图中含义 | 项目处理 |
+| --- | --- | --- |
+| 蓝色 | 展锐负责 | 默认按平台/底座能力实现或预留接口 |
+| 肤色 | 芯片原有 | 默认按底层 OS/芯片能力依赖，不在 App 侧重造 |
+| 绿色 | 生态合作 | 默认按 adapter/plugin/provider 接入 |
+| 黄色 | 客户开发 | 默认按上层应用/业务服务实现 |
+
+## 分层基线
+
+| 层级 ID | 图中层级 | 需求约束 | 当前状态 |
+| --- | --- | --- | --- |
+| L1 | 应用层 | 承载客户开发的 Apps/Services，以及平台提供的 AI SDK | 部分原型 |
+| L2 | Framework 层 | 必须包含 Uni Info Bus 语义接口和 SOA 服务入口 | 文档化，未完整实现 |
+| L3 | Native 层 | 必须包含 AIOS Kernel、Signal/Service/Runtime/Policy/Model adapters，以及 Runtime & Governance、Protocol Binding | mock 后端仅覆盖极小子集 |
+| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用 | 未实现，仅文档 |
+| L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信 | 未实现，仅文档 |
+| L6 | 硬件层 | 基线硬件为 UniSOC Automotive-solution，并扩展接入外置 PCIe NPU | 未实现，仅 mock |
+
+## L1 应用层需求
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| APP-001 | 座舱 Apps | 客户开发 | HMI/车控/场景/... | Android 前端必须支持座舱 HMI 与车控场景入口 | console 原型仅健康/推理 |
+| APP-002 | 座舱服务 | 客户开发 | 音频/蓝牙/车控/... | 应作为 Business/Foundation/Atomic services 暴露 | 未实现 |
+| APP-003 | Agent Apps | 客户开发 | 车控/座舱/诊断/导航/... | Agent 应通过 Tool/Permission/Action 调用底层能力 | 仅接口设计 |
+| APP-004 | AI SDK | 展锐负责 | 多模态/意图/模型路由/工具规划/... | App 不应直连模型，应经 AI SDK 到 Uni Info Bus/AIOS Kernel | 当前 App 直连 mock，偏差 DEV-003 |
+| APP-005 | Cluster & TBOX | 客户开发 | 仪表/警告/TSP/OTA/远控/... | Cluster/TBOX 应独立服务域建模 | 未实现 |
+| APP-006 | Cluster/TBOX 服务 | 客户开发 | Weston/GStreamer/... | 应声明显示/媒体服务边界 | 未实现 |
+| APP-007 | 智驾应用 | 客户开发 | NOA/TJA/APA/... | App 只能读取/请求智驾服务，不能绕过 Safety State | 未实现 |
+| APP-008 | 智驾服务 | 客户开发 | 感知/地图/位置/... | 通过 ADAS Funcware/Protocol Binding 暴露 | 未实现 |
+| APP-009 | 其他应用 | 客户开发 | 诊断/标定/Trace/... | 必须接入权限、审计和 Trace | 未实现 |
+| APP-010 | 其他服务 | 客户开发 | 网关管理/诊断/标定/Trace/... | 应作为受控服务，不允许直连底层 | 未实现 |
+
+## L2 Framework 层需求
+
+### Uni Info Bus 语义接口
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | contract 初版 |
+| FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | `/health` 部分覆盖 |
+| FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | 未实现 |
+| FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | 未实现 |
+| FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/services` 部分覆盖 |
+| FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | 接口设计 |
+| FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | 未实现 |
+| FW-U-008 | 其他 | 展锐负责 | 扩展语义 | 必须有扩展机制且不可破坏核心对象 | 未实现 |
+
+### SOA 服务入口
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| FW-S-001 | Business Services | 展锐负责 | 场景服务 | 按场景编排应用能力 | 未实现 |
+| FW-S-002 | Foundation Services | 展锐负责 | 复用能力 | 账号、配置、时间、权限等公共能力 | 未实现 |
+| FW-S-003 | Atomic Services | 展锐负责 | 最小能力 | 最小车控/信号/诊断能力 | 未实现 |
+| FW-S-004 | Service Contract | 展锐负责 | IDL/Schema | 所有服务必须有 contract 和版本 | JSON contract 初版 |
+| FW-S-005 | Safety State | 展锐负责 | 降级/互锁 | 必须作为服务入口的强制检查项 | 仅文档 |
+| FW-S-006 | 其他 | 展锐负责 | 扩展服务 | 必须纳入 registry/discovery/schema/policy | 未实现 |
+
+## L3 Native 层需求
+
+### 功能与适配模块
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| NV-F-001 | AIOS Kernel | 展锐负责 | Agent/Model/Tool/Memory/Safety/... | AI/Agent 核心不能仅在 App 或后端散落实现 | 仅 mock/文档 |
+| NV-F-002 | Sensor/Actuator | 展锐负责 | Camera/Radar/USS/IMU/Mic/... | 传感器/执行器统一适配 | 未实现 |
+| NV-F-003 | Service Adapters | 展锐负责 | Signal Map/ECU Proxy/Impl/... | 业务服务到 ECU/Signal 的 adapter | 未实现 |
+| NV-F-004 | Vehicle/Body Signal | 生态合作 | BCM/HVAC/Seat/Door/Light/... | 车辆/车身信号按合作生态接入 | mock 车辆状态 |
+| NV-F-005 | ECU Proxy / Signal Adapter | 生态合作 | DBC/ARXML/... | CAN/Ethernet 信号需 DBC/ARXML 映射 | 未实现 |
+| NV-F-006 | Data/Time Sync | 展锐负责 | TSN/PTP/Frame Meta/... | 高频数据必须有时间同步和帧元数据 | 未实现 |
+| NV-F-007 | Connected Funcware | 生态合作 | TBOX/V2X/OTA/Diag/... | 互联功能软件经 adapter 接入 | 未实现 |
+| NV-F-008 | SOA Service Runtime | 展锐负责 | 服务容器/状态机/Impl/... | 服务生命周期和状态机运行时 | 未实现 |
+| NV-F-009 | Security/Policy Adapter | 生态合作 | ASIL/QM/Zone/... | 安全域、权限、区域策略适配 | 文档化 |
+| NV-F-010 | ADAS Funcware | 生态合作 | Perception/Fusion/Scene/... | 智驾能力通过 ADAS adapter 接入 | 未实现 |
+| NV-F-011 | Model Runtime Adapter | 展锐负责 | GPU/NPU/Cloud/... | 模型运行时必须抽象 GPU/NPU/Cloud | mock NPU 部分覆盖 |
+| NV-F-012 | 其他 | 展锐负责 | Trace/Logging/Metric/... | 原生层可观测性必须平台化 | 未实现 |
+
+### Uni Info Bus Runtime & Governance
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| NV-G-001 | Registry | 展锐负责/生态合作 | 服务注册 | 服务必须注册后被发现和调用 | `/services` 静态 mock |
+| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | 未实现 |
+| NV-G-003 | Schema/IDL | 展锐负责/生态合作 | 契约管理 | 契约必须版本化和校验 | JSON 初版 |
+| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | 未实现 |
+| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | 未实现 |
+| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | 未实现 |
+| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | 未实现 |
+
+### Uni Info Bus Protocol Binding
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| NV-P-001 | SOME/IP | 展锐负责/生态合作 | 跨 ECU 服务 | 车内跨 ECU 服务优先通过 SOME/IP binding | 未实现 |
+| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | 未实现 |
+| NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | 未实现 |
+| NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | 未实现 |
+| NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | 当前 mock 直接 REST，偏差 DEV-001 |
+| NV-P-006 | DDS | 展锐负责/生态合作 | Topic/Context/... | 高频 Topic/Context 订阅预留 DDS | 未实现 |
+| NV-P-007 | 其他 | 展锐负责/生态合作 | 大数据/... | 大数据通道必须纳入协议绑定与治理 | 未实现 |
+
+## L4 Kernel & HAL 层需求
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| KH-001 | 文件系统管理/网络协议栈/... | 芯片原有 | OS 基础能力 | 上层不得重造基础 OS 能力 | 依赖宿主/Android |
+| KH-002 | 内存管理 | 芯片原有 | 内存管理 | NPU/ADAS/多媒体需考虑共享内存与隔离 | 未实现 |
+| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 外置 PCIe NPU 必须进入 Driver/HAL 设计 | mock 偏差 |
+| KH-004 | 其他 | 芯片原有 | 底层扩展 | 需后续明确 | 未实现 |
+| KH-005 | Libs | 芯片原有 | 基础库 | 需记录依赖库边界 | 未实现 |
+| KH-006 | HAL | 芯片原有 | 硬件抽象层 | NPU、传感器、车身信号需 HAL 边界 | 未实现 |
+| KH-007 | Safety Runtime | 芯片原有 | 安全运行时 | ASIL/QM 策略必须落到 runtime | 未实现 |
+| KH-008 | Libs | 芯片原有 | 另一组基础库 | 图中重复 Libs 需确认含义，见 ISSUE-007 | 未实现 |
+| KH-009 | 进程&线程调度/中断与异常管理/系统调用接口/... | 芯片原有 | OS 调度和异常 | 真实 NPU/ADAS 接入必须定义异常恢复 | 未实现 |
+
+## L5 虚拟化层需求
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| HV-001 | Hypervisor | 展锐负责 | 虚拟化基座 | 座舱/智驾/安全域必须可隔离 | 未实现 |
+| HV-002 | ASIL/QM 隔离 | 芯片原有 | 安全等级隔离 | 必须定义服务到 ASIL/QM 的映射 | 未实现 |
+| HV-003 | 跨 VM 共享内存与安全域通信 | 芯片原有 | 跨域通信 | 必须定义共享内存、认证和访问控制 | 未实现 |
+
+## L6 硬件层需求
+
+| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
+| --- | --- | --- | --- | --- | --- |
+| HW-001 | UniSOC Automotive-solution | 展锐负责 | 中央计算硬件基线 | 软件架构默认基于 UniSOC 车规方案 | 未实现 |
+| HW-002 | 外置 PCIe NPU 算力卡 | 用户补充需求 | 后端 AI 基座由 PCIe NPU 实现 | 必须映射到 KH-003、KH-006、NV-F-011 | mock |
+
+## 开发顺序约束
+
+1. 先补齐 L2/L3 的契约和治理骨架，再扩展上层 App。
+2. 所有 App 能力必须经 Uni Info Bus 语义接口进入 SOA 服务入口。
+3. REST/gRPC/MQTT/SOME-IP/DDS 只能作为 Protocol Binding，不能成为绕过 Uni Info Bus 的主架构。
+4. NPU 调用必须经 Model Runtime Adapter，最终落到 Driver/HAL；mock 只能作为开发阶段替身。
+5. Safety State、Policy、Lifecycle、Audit 不是后续附加模块，必须与接口设计同步推进。
