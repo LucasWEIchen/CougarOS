@@ -11,7 +11,7 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | 状态端点初版 |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype 初版 |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | binding 状态初版 |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | 待开始 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
@@ -97,3 +97,9 @@
   - 新增 Linux CLI：`central-brain/linux-cli/central_brain_cli.py`。
   - 新增 smoke test：`tools/smoke_central_brain_semantic_gateway.sh`。
   - 覆盖 Req ID：XSC-002、XSC-003、XSC-005、XSC-006、FW-U-001、FW-U-002、FW-U-005、FW-U-007、FW-S-004、FW-S-005、NV-G-001..007、NV-P-001..006。
+- 推进 Runtime & Governance active prototype：
+  - 新增 `central-brain/backend/runtime_governance.py`，集中承载服务注册、发现、Policy、Lifecycle、QoS 元数据和内存审计。
+  - `/soa/invoke` 现在先通过 registry/discovery/policy/lifecycle precheck，再写入 audit。
+  - 新增架构命名入口：`POST /policy/evaluate`、`GET /audit/recent`。
+  - Linux CLI 与 smoke test 覆盖 policy deny、SOA invoke audit 和 governance 状态。
+  - 覆盖 Req ID：XSC-005、FW-S-001、FW-S-002、FW-S-003、FW-S-004、FW-S-005、NV-G-001..007。

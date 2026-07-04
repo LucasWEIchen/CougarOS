@@ -19,7 +19,19 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "state": ("GET", "/uib/state", None),
     "services": ("GET", "/soa/services", None),
     "governance": ("GET", "/governance/runtime", None),
+    "audit": ("GET", "/audit/recent", None),
     "bindings": ("GET", "/bindings", None),
+    "policy": (
+        "POST",
+        "/policy/evaluate",
+        {
+            "trace_id": "linux-cli-policy",
+            "permissions": ["vehicle.control"],
+            "caller_permissions": ["vehicle.read"],
+            "vehicle_state": "driving",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-state": (
         "POST",
         "/soa/invoke",

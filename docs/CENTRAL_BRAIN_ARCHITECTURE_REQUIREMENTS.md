@@ -97,11 +97,11 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| FW-S-001 | Business Services | 展锐负责 | 场景服务 | 按场景编排应用能力 | 未实现 |
-| FW-S-002 | Foundation Services | 展锐负责 | 复用能力 | 账号、配置、时间、权限等公共能力 | 未实现 |
-| FW-S-003 | Atomic Services | 展锐负责 | 最小能力 | 最小车控/信号/诊断能力 | 未实现 |
-| FW-S-004 | Service Contract | 展锐负责 | IDL/Schema | 所有服务必须有 contract 和版本 | JSON contract + `/soa/services` 初版 |
-| FW-S-005 | Safety State | 展锐负责 | 降级/互锁 | 必须作为服务入口的强制检查项 | `/soa/invoke` policy mock |
+| FW-S-001 | Business Services | 展锐负责 | 场景服务 | 按场景编排应用能力 | registry 中已有 planned business service |
+| FW-S-002 | Foundation Services | 展锐负责 | 复用能力 | 账号、配置、时间、权限等公共能力 | registry 中已有 foundation service |
+| FW-S-003 | Atomic Services | 展锐负责 | 最小能力 | 最小车控/信号/诊断能力 | registry 中已有 vehicle-state atomic service |
+| FW-S-004 | Service Contract | 展锐负责 | IDL/Schema | 所有服务必须有 contract 和版本 | JSON contract + runtime registry |
+| FW-S-005 | Safety State | 展锐负责 | 降级/互锁 | 必须作为服务入口的强制检查项 | `/soa/invoke` 强制 policy/lifecycle precheck |
 | FW-S-006 | 其他 | 展锐负责 | 扩展服务 | 必须纳入 registry/discovery/schema/policy | 未实现 |
 
 ## L3 Native 层需求
@@ -127,13 +127,13 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| NV-G-001 | Registry | 展锐负责/生态合作 | 服务注册 | 服务必须注册后被发现和调用 | `/soa/services` + `/governance/runtime` mock |
-| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | `/governance/runtime` mock |
-| NV-G-003 | Schema/IDL | 展锐负责/生态合作 | 契约管理 | 契约必须版本化和校验 | JSON contract + runtime schema 状态 |
-| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | `/governance/runtime` mock |
-| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | `/permission/check` + `/soa/invoke` mock |
-| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | `/governance/runtime` mock |
-| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/governance/runtime` audit 字段 mock |
+| NV-G-001 | Registry | 展锐负责/生态合作 | 服务注册 | 服务必须注册后被发现和调用 | `runtime_governance.py` service catalog + `/soa/services` |
+| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | `/soa/invoke` 通过 runtime discovery precheck |
+| NV-G-003 | Schema/IDL | 展锐负责/生态合作 | 契约管理 | 契约必须版本化和校验 | JSON contract + registry contract metadata |
+| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | registry 返回 QoS 元数据，未真实限流 |
+| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | `/policy/evaluate` + `/soa/invoke` active prototype |
+| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | `/soa/invoke` 拒绝非 ready service |
+| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/audit/recent` 记录 SOA 调用 |
 
 ### Uni Info Bus Protocol Binding
 

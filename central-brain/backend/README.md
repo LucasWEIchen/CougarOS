@@ -1,6 +1,7 @@
 # Mock NPU Backend
 
 `mock_npu_service.py` 是第一阶段后端，用标准库 HTTP server 模拟中央大脑 AI 基座。
+`runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、QoS 元数据和内存审计。
 
 ## 启动
 
@@ -22,10 +23,12 @@ bash tools/run_central_brain_backend.sh
 - `GET /uib/state`
 - `GET /soa/services`
 - `GET /governance/runtime`
+- `GET /audit/recent`
 - `GET /bindings`
 - `GET /vehicle/state`
 - `GET /npu/status`
 - `POST /soa/invoke`
+- `POST /policy/evaluate`
 - `POST /ai/infer`
 
 旧的 `/context`、`/state`、`/service/invoke` 仍保留为兼容入口。Android 和 Linux 新样例优先使用 `/uib/*` 与 `/soa/*`，REST 在此阶段只作为 `NV-P-005` prototype binding。

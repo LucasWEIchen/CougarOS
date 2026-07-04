@@ -127,9 +127,9 @@
 
 | Method | Path | 用途 | 已实现 |
 | --- | --- | --- | --- |
-| POST | `/policy/evaluate` | 权限与安全状态评估 | 否 |
+| POST | `/policy/evaluate` | 权限与安全状态评估 | 是 |
 | GET | `/policy/permissions` | 权限矩阵 | 否 |
-| GET | `/policy/audit` | 审计记录 | 否 |
+| GET | `/audit/recent` | 最近治理审计记录 | 是 |
 
 ### AI/NPU
 
@@ -147,7 +147,7 @@
 | --- | --- | --- | --- |
 | GET | `/trace/recent` | 最近调用 Trace | 否 |
 | GET | `/metrics` | 指标快照 | 否 |
-| GET | `/audit/recent` | 最近审计记录 | 否 |
+| GET | `/audit/recent` | 最近审计记录 | 是 |
 
 ## 核心数据模型
 
@@ -321,7 +321,7 @@ IAiRuntimeService
 ## 下一步接口任务
 
 1. 把 `central-brain/contracts/central_brain_api.json` 扩展为按域组织的 contract。
-2. 为 Agent/Skill/Memory/Policy 增加 mock endpoint。
+2. 为 Agent/Skill/Memory 增加 mock endpoint，并让 Policy/Audit 继续共用 Runtime & Governance。
 3. Android Console 增加服务目录、车辆信号、推理、Trace 四个视图。
 4. 为所有 mock API 增加 `trace_id`。
 5. 增加 smoke test：验证 `/health`、`/services`、`/vehicle/state`、`/policy/evaluate`、`/ai/infer`。

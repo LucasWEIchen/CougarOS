@@ -58,6 +58,18 @@ checks = [
     ("GET", "/bindings", None, "NV-P-005"),
     (
         "POST",
+        "/policy/evaluate",
+        {
+            "trace_id": "smoke-policy-deny",
+            "permissions": ["vehicle.control"],
+            "caller_permissions": ["vehicle.read"],
+            "vehicle_state": "driving",
+            "safety_state": "normal",
+        },
+        "NV-G-005",
+    ),
+    (
+        "POST",
         "/soa/invoke",
         {
             "service": "npu-inference",
@@ -71,6 +83,7 @@ checks = [
         },
         "FW-S-005",
     ),
+    ("GET", "/audit/recent", None, "NV-G-007"),
 ]
 
 for method, path, body, req_id in checks:
@@ -78,11 +91,16 @@ for method, path, body, req_id in checks:
     encoded = json.dumps(payload)
     assert req_id in encoded, f"{path} missing {req_id}"
     assert payload.get("status", "ok") == "ok", f"{path} status not ok"
+    if path == "/audit/recent":
+        events = payload["payload"]["events"]
+        assert events, "audit endpoint did not record the SOA call"
+        assert events[0]["outcome"] == "completed", "latest audit event is not the SOA completion"
 
 print("semantic gateway smoke ok")
 PY
 
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" state >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 
 echo "linux cli smoke ok"

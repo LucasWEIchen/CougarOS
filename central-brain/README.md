@@ -59,4 +59,6 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 - `GET /uib/state`：Uni Info Bus State，覆盖 XSC-002、FW-U-002。
 - `POST /soa/invoke`：SOA 服务入口，覆盖 XSC-003、FW-S-004、FW-S-005。
 - `GET /governance/runtime`：Runtime & Governance 状态，覆盖 XSC-005、NV-G-001..007。
+- `GET /audit/recent`：SOA 调用审计记录，覆盖 XSC-005、NV-G-007。
+- `POST /policy/evaluate`：Policy/Safety State 评估入口，覆盖 FW-U-007、FW-S-005、NV-G-005。
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。

@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "updated": "2026-07-04",
   "transport": {
     "prototype": "http-json",
@@ -88,8 +88,20 @@
     {
       "method": "GET",
       "path": "/governance/runtime",
-      "description": "Returns Runtime & Governance prototype state for Registry, Discovery, Schema, QoS, Policy, Lifecycle, and Audit.",
+      "description": "Returns Runtime & Governance state for Registry, Discovery, Schema, QoS, Policy, Lifecycle, and Audit.",
       "req_ids": ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007"]
+    },
+    {
+      "method": "POST",
+      "path": "/policy/evaluate",
+      "description": "Architecture-aligned Policy entry for Permission and Safety State checks.",
+      "req_ids": ["FW-U-007", "FW-S-005", "NV-G-005"]
+    },
+    {
+      "method": "GET",
+      "path": "/audit/recent",
+      "description": "Returns recent in-memory Runtime & Governance audit records created by SOA calls.",
+      "req_ids": ["XSC-005", "NV-G-007"]
     },
     {
       "method": "GET",
@@ -106,8 +118,8 @@
     {
       "method": "POST",
       "path": "/permission/check",
-      "description": "Evaluates mock Permission and Safety State before Action/Tool/Service calls.",
-      "req_ids": ["FW-U-007", "NV-G-005"]
+      "description": "Compatibility alias for Policy evaluation during Action/Tool/Service calls.",
+      "req_ids": ["FW-U-007", "FW-S-005", "NV-G-005"]
     },
     {
       "method": "GET",
@@ -167,11 +179,6 @@
       "method": "POST",
       "path": "/memory/query",
       "description": "Planned: queries local vehicle/user memory for task context."
-    },
-    {
-      "method": "POST",
-      "path": "/policy/evaluate",
-      "description": "Planned: evaluates permissions, safety state, and privacy rules before execution."
     },
     {
       "method": "POST",

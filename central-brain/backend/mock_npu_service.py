@@ -17,11 +17,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from runtime_governance import RuntimeGovernance
+
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.1"
-GOVERNANCE_REQ_IDS = ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007"]
+API_VERSION = "0.1.2"
 BINDING_REQ_IDS = ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006"]
+GOVERNANCE = RuntimeGovernance()
 EVENT_TOPICS = [
     "vehicle.signal.changed",
     "service.health.changed",
@@ -129,40 +131,7 @@ def envelope(payload: dict[str, Any], trace_id: str | None = None, status: str =
 
 
 def services_payload() -> dict[str, Any]:
-    return {
-        "services": [
-            {
-                "name": "vehicle-state",
-                "version": "0.1.0",
-                "contract": "GET /vehicle/state",
-                "semantic_entry": "POST /soa/invoke service=vehicle-state method=getState",
-                "layer": "Framework/SOA Service Entry",
-                "req_ids": ["XSC-003", "FW-S-003", "FW-S-004"],
-                "permissions": ["vehicle.read"],
-                "safety_state": "normal"
-            },
-            {
-                "name": "npu-inference",
-                "version": "0.1.0",
-                "contract": "POST /ai/infer",
-                "semantic_entry": "POST /soa/invoke service=npu-inference method=infer",
-                "layer": "Framework/SOA Service Entry -> Native/Model Runtime Adapter",
-                "req_ids": ["XSC-003", "FW-S-004", "FW-S-005", "NV-F-011"],
-                "permissions": ["ai.infer"],
-                "safety_state": "normal"
-            },
-            {
-                "name": "service-registry",
-                "version": "0.1.0",
-                "contract": "GET /services",
-                "semantic_entry": "GET /soa/services",
-                "layer": "Native/Runtime & Governance",
-                "req_ids": ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003"],
-                "permissions": ["service.read"],
-                "safety_state": "normal"
-            }
-        ]
-    }
+    return GOVERNANCE.services_payload()
 
 
 def context_payload() -> dict[str, Any]:
@@ -242,45 +211,7 @@ def tools_payload() -> dict[str, Any]:
 
 
 def governance_payload() -> dict[str, Any]:
-    return {
-        "registry": {
-            "state": "ok",
-            "source": "in-process service catalog",
-            "req_ids": ["NV-G-001"]
-        },
-        "discovery": {
-            "state": "prototype",
-            "lookup": "service name to local handler",
-            "req_ids": ["NV-G-002"]
-        },
-        "schema": {
-            "state": "prototype",
-            "contract": "central-brain/contracts/central_brain_api.json",
-            "req_ids": ["NV-G-003"]
-        },
-        "qos": {
-            "state": "mock",
-            "default_timeout_ms": 2000,
-            "priority_classes": ["vehicle-control", "ai-task", "diagnostic"],
-            "req_ids": ["NV-G-004"]
-        },
-        "policy": {
-            "state": "mock",
-            "entry": "POST /permission/check",
-            "req_ids": ["NV-G-005", "FW-U-007", "FW-S-005"]
-        },
-        "lifecycle": {
-            "state": "prototype",
-            "service_states": ["starting", "ready", "degraded", "stopped"],
-            "req_ids": ["NV-G-006"]
-        },
-        "audit": {
-            "state": "prototype",
-            "record_fields": ["trace_id", "service", "method", "policy.decision"],
-            "req_ids": ["NV-G-007"]
-        },
-        "req_ids": GOVERNANCE_REQ_IDS
-    }
+    return GOVERNANCE.governance_payload()
 
 
 def bindings_payload() -> dict[str, Any]:
@@ -409,21 +340,13 @@ def inference_payload(request: dict[str, Any]) -> dict[str, Any]:
 
 
 def permission_check_payload(request: dict[str, Any]) -> dict[str, Any]:
-    required = set(request.get("permissions") or request.get("required_permissions") or [])
-    granted = set(request.get("caller_permissions") or ["vehicle.read", "ai.infer", "service.read", "policy.read"])
-    safety_state = request.get("safety_state", "normal")
-    vehicle_state = request.get("vehicle_state", "parked")
-    high_risk = bool(required.intersection({"vehicle.control", "diagnostics.write", "ota.manage"}))
-    allowed = required.issubset(granted) and safety_state == "normal" and (not high_risk or vehicle_state == "parked")
-    return {
-        "decision": "allow" if allowed else "deny",
-        "required_permissions": sorted(required),
-        "granted_permissions": sorted(granted),
-        "safety_state": safety_state,
-        "vehicle_state": vehicle_state,
-        "reason": "policy mock allowed" if allowed else "missing permission or unsafe vehicle/safety state",
-        "req_ids": ["FW-U-007", "NV-G-005"]
-    }
+    return GOVERNANCE.evaluate_permissions(
+        request.get("permissions") or request.get("required_permissions") or [],
+        request.get("caller_permissions") or ["vehicle.read", "ai.infer", "service.read", "policy.read"],
+        request.get("safety_state", "normal"),
+        request.get("vehicle_state", "parked"),
+        request.get("allowed_safety_states")
+    )
 
 
 def action_request_payload(request: dict[str, Any]) -> dict[str, Any]:
@@ -449,27 +372,31 @@ def action_request_payload(request: dict[str, Any]) -> dict[str, Any]:
 def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
     service = request.get("service", "vehicle-state")
     method = request.get("method", "getState")
-    required_permissions = {
-        "vehicle-state": ["vehicle.read"],
-        "npu-inference": ["ai.infer"],
-        "service-registry": ["service.read"]
-    }.get(service, ["service.read"])
-    policy = permission_check_payload(
-        {
-            "required_permissions": required_permissions,
-            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "ai.infer", "service.read"]),
-            "vehicle_state": request.get("vehicle_state", "parked"),
-            "safety_state": request.get("safety_state", "normal")
-        }
-    )
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    precheck = GOVERNANCE.precheck(request)
+    service_entry = precheck["service"]
+    policy = precheck["policy"]
     if policy["decision"] != "allow":
-        return {
+        response = {
             "service": service,
             "method": method,
             "state": "rejected",
             "policy": policy,
-            "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-005"]
+            "lifecycle_state": precheck["lifecycle_state"],
+            "qos": precheck["qos"],
+            "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-002", "NV-G-005", "NV-G-006"]
         }
+        GOVERNANCE.record_audit(
+            trace_id,
+            {
+                "service": service,
+                "method": method,
+                "outcome": "rejected",
+                "policy_decision": policy["decision"],
+                "lifecycle_state": precheck["lifecycle_state"],
+            }
+        )
+        return response
 
     if service == "vehicle-state":
         result: dict[str, Any] = vehicle_state_payload()
@@ -479,14 +406,32 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
         result = services_payload()
     else:
         result = {"message": "mock service not implemented", "service": service, "method": method}
-    return {
+    response = {
         "service": service,
         "method": method,
         "state": "completed",
+        "service_contract": {
+            "version": service_entry.get("version") if service_entry else "unknown",
+            "domain": service_entry.get("domain") if service_entry else "unknown",
+            "req_ids": service_entry.get("req_ids") if service_entry else []
+        },
         "policy": policy,
+        "lifecycle_state": precheck["lifecycle_state"],
+        "qos": precheck["qos"],
         "result": result,
-        "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-005"]
+        "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006"]
     }
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": service,
+            "method": method,
+            "outcome": "completed",
+            "policy_decision": policy["decision"],
+            "lifecycle_state": precheck["lifecycle_state"],
+        }
+    )
+    return response
 
 
 def event_publish_payload(request: dict[str, Any]) -> dict[str, Any]:
@@ -529,6 +474,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(services_payload()))
         elif path == "/governance/runtime":
             self.send_json(200, envelope(governance_payload()))
+        elif path == "/audit/recent":
+            self.send_json(200, envelope(GOVERNANCE.audit_payload()))
         elif path == "/bindings":
             self.send_json(200, envelope(bindings_payload()))
         elif path == "/events/topics":
@@ -554,12 +501,14 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/ai/infer":
             self.send_json(200, inference_payload(request))
-        elif path == "/permission/check":
+        elif path in ("/permission/check", "/policy/evaluate"):
             self.send_json(200, envelope(permission_check_payload(request), request.get("trace_id")))
         elif path == "/actions/request":
             self.send_json(200, envelope(action_request_payload(request), request.get("trace_id")))
         elif path in ("/service/invoke", "/soa/invoke"):
-            self.send_json(200, envelope(service_invoke_payload(request), request.get("trace_id")))
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(service_invoke_payload(request), trace_id))
         elif path == "/events/publish":
             self.send_json(200, envelope(event_publish_payload(request), request.get("trace_id")))
         else:

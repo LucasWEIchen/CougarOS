@@ -22,7 +22,7 @@
 | Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | 黄色小太阳，跨 SoC |
-| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | `/governance/runtime` mock 状态 |
+| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype |
 | Protocol Binding | XSC-006 | Binder/REST/gRPC adapter | IPC/REST/gRPC/MQTT/SOME-IP/DDS adapter | REST active prototype，其他 binding 计划态 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge | Linux runtime bridge | NPU/GPU/Cloud 后端可替换 |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发 |
@@ -53,6 +53,7 @@
 ```bash
 bash tools/smoke_central_brain_semantic_gateway.sh
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py state
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
 ```
 
 ## Android 版本最低要求
