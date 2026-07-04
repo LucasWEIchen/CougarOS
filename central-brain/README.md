@@ -11,6 +11,7 @@
 - `deploy/linux/`：Linux systemd 部署样例、环境模板和平台部署说明。
 - `android-console/`：普通 Android App 原型，用于模拟器验证应用层和后端联通。
 - `linux-cli/`：Linux 同步交付 CLI 示例，调用同一套 Uni Info Bus/SOA 语义入口。
+- `../docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`：Hypervisor/Safety 接口约束，记录 HV-001..003 非开发范围。
 
 ## 第一阶段运行方式
 
@@ -49,6 +50,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 bash tools/check_central_brain_binding_artifacts.sh
 bash tools/check_central_brain_delivery_docs.sh
+bash tools/check_central_brain_virtualization_docs.sh
 bash tools/smoke_central_brain_linux_ipc.sh
 ```
 
@@ -92,3 +94,4 @@ bash tools/check_central_brain_delivery_docs.sh
 - `GET /native/adapters`：Native adapter 注册表，覆盖 XSC-004、NV-F-001、NV-F-003、NV-F-004、NV-F-008、NV-F-009、NV-F-011。
 - `GET /native/adapters/detail`：Android/Linux 原生适配交付边界与 Driver/HAL 依赖说明，覆盖 XSC-004、DEL-001、DEL-002、DEL-005。
 - Linux systemd deployment sample：`central-brain/deploy/linux/` 覆盖 DEL-002、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002。
+- Virtualization/Safety constraints：`docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 覆盖 HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004；只记录接口约束和部署假设，不开发虚拟化层。

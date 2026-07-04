@@ -37,7 +37,7 @@
 | L2 | Framework 层 | 必须包含 Uni Info Bus 语义接口和 SOA 服务入口 | 文档化，未完整实现 |
 | L3 | Native 层 | 必须包含 AIOS Kernel、Signal/Service/Runtime/Policy/Model adapters，以及 Runtime & Governance、Protocol Binding | mock 后端仅覆盖极小子集 |
 | L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用；新增开发仅限当前环境缺口 | 需补驱动接口文档 |
-| L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信的接口约束；不开发虚拟化功能 | 非开发范围，需文档化 |
+| L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信的接口约束；不开发虚拟化功能 | `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 初版 |
 | L6 | 硬件层 | 基线硬件为 UniSOC Automotive-solution，并扩展接入外置 PCIe NPU | 未实现，仅 mock |
 
 ## 跨 SoC 黄色小太阳组件
@@ -165,9 +165,9 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| HV-001 | Hypervisor | 展锐负责 | 虚拟化基座 | 不开发虚拟化功能；仅记录依赖、接口假设和部署约束 | 非开发范围 |
-| HV-002 | ASIL/QM 隔离 | 芯片原有 | 安全等级隔离 | 不开发隔离机制；必须定义服务到 ASIL/QM 的映射和假设 | 非开发范围 |
-| HV-003 | 跨 VM 共享内存与安全域通信 | 芯片原有 | 跨域通信 | 不开发跨 VM 通信；仅定义接口需求、fallback 和集成说明 | 非开发范围 |
+| HV-001 | Hypervisor | 展锐负责 | 虚拟化基座 | 不开发虚拟化功能；仅记录依赖、接口假设和部署约束 | `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 初版 |
+| HV-002 | ASIL/QM 隔离 | 芯片原有 | 安全等级隔离 | 不开发隔离机制；必须定义服务到 ASIL/QM 的映射和假设 | Safety State 到安全域映射初版 |
+| HV-003 | 跨 VM 共享内存与安全域通信 | 芯片原有 | 跨域通信 | 不开发跨 VM 通信；仅定义接口需求、fallback 和集成说明 | 跨 VM envelope 约束初版 |
 
 ## L6 硬件层需求
 

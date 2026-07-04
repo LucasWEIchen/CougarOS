@@ -25,7 +25,7 @@
 | ISSUE-007 | Kernel & HAL 层 Libs 出现两次 | 图中右侧有两个 Libs，含义可能分别对应不同域或不同库集合 | 影响底层依赖清单 | 需要用户或原架构方确认 | Open |
 | ISSUE-008 | 外置 PCIe NPU | 图中硬件层写 UniSOC Automotive-solution，用户需求增加外置 PCIe NPU 卡，图中未明确外置卡边界 | 影响 Driver/HAL 接口，不影响虚拟化开发范围 | 暂定外置 PCIe NPU 映射到 Drivers:NPU、HAL、Model Runtime Adapter 和硬件扩展；只在当前环境缺口处新增驱动开发 | Proposed |
 | ISSUE-009 | 色块所有权 | 生态合作/客户开发/展锐负责/芯片原有是组织责任还是代码所有权不明确 | 影响开发任务分配 | 暂定同时作为责任和实现边界，后续任务都保留 ownership 字段 | Proposed |
-| ISSUE-010 | Safety State、Safety Runtime、ASIL/QM 隔离 | 三处安全概念分布在 Framework、Kernel/HAL、虚拟化层，映射关系未定义 | 影响安全闭环 | 需要建立 Safety State -> Safety Runtime -> ASIL/QM domain 映射表；虚拟化只记录接口约束不开发 | Open |
+| ISSUE-010 | Safety State、Safety Runtime、ASIL/QM 隔离 | 三处安全概念分布在 Framework、Kernel/HAL、虚拟化层，量产映射仍依赖目标 SoC/Hypervisor | 影响安全闭环 | 已在 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 建立 Safety State -> Safety Runtime -> ASIL/QM domain 初版映射；虚拟化只记录接口约束不开发 | Proposed |
 | ISSUE-011 | 黄色小太阳组件 | 图中 AI SDK、Uni Info Bus、SOA 服务入口、AIOS Kernel、Runtime & Governance、Protocol Binding 等带黄色小太阳，用户确认会在多个 SoC 出现 | 影响跨 SoC 可移植设计和平台交付 | 已新增 XSC-001..006，后续按 Android 主线 + Linux 同步交付处理 | Closed |
 | ISSUE-012 | 交付对象 | 交付对象明确为 Android/Linux 座舱域软件工程师 | 影响文档、示例、验证脚本和平台差异说明 | 已新增 DEL-001..005 和交付目标文档 | Closed |
 

@@ -16,7 +16,7 @@
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
-| A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 待开始 |
+| A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | 待开始 |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Linux systemd 与平台差异初版 |
 
@@ -131,3 +131,8 @@
   - 新增 Linux 部署样例：`central-brain/deploy/linux/central-brain.env.example`、`central-brain/deploy/linux/systemd/central-brain-backend.service`、`central-brain/deploy/linux/systemd/central-brain-linux-ipc.service`。
   - 新增静态验证脚本：`tools/check_central_brain_delivery_docs.sh`。
   - 覆盖 Req ID：DEL-001、DEL-002、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002。
+- 推进 A7 Hypervisor/Safety 接口约束：
+  - 新增 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`，记录 HV-001..003 的非开发范围、ASIL/QM domain 假设、Safety State 映射、跨 VM envelope 和 fallback。
+  - 新增静态验证脚本：`tools/check_central_brain_virtualization_docs.sh`。
+  - 未开发虚拟化层、Safety Runtime、共享内存驱动或 Driver/HAL。
+  - 覆盖 Req ID：HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004。

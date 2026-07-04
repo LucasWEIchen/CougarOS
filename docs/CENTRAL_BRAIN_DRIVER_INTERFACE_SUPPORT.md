@@ -11,6 +11,8 @@
 
 2026-07-04 本轮语义网关、Runtime & Governance、Protocol Binding contract skeleton、Native adapters mock、Linux IPC active sample、Android Binder service stub sample、Linux systemd 部署样例与 Android/Linux 平台差异说明增量只新增 Uni Info Bus/SOA/Governance/Binding/Native Adapter mock、Policy/Audit active prototype、Android AIDL 与 Binder service/client sample、Linux Unix socket IPC daemon/client sample、Linux gRPC contract skeleton、Linux CLI、systemd unit 和交付文档，不访问真实 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，因此未触发新增驱动开发条件。
 
+A7 虚拟化与 Safety 接口约束增量只新增 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 和 `tools/check_central_brain_virtualization_docs.sh`，覆盖 HV-001..003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004；不新增 Hypervisor、Safety Runtime、跨 VM 共享内存、Driver/HAL 或 NPU/GPU/Camera/Audio/ETH/Vehicle bus 代码。
+
 A5 Native adapters mock 的 `/native/adapters/detail` 只记录 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界和 Driver/HAL 依赖，不新增驱动代码。
 
 ## 驱动接口矩阵

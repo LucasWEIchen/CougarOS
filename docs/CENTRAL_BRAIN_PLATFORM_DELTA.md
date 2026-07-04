@@ -8,7 +8,8 @@
 本文件覆盖 DEL-001、DEL-002、DEL-003、DEL-004，以及跨 SoC 组件
 XSC-002、XSC-003、XSC-005、XSC-006 的 Android 主开发路径与 Linux 同步交付路径差异。
 
-虚拟化层不开发；相关内容只作为 HV-001..003 的部署假设。驱动层不默认新增开发；
+虚拟化层不开发；相关内容只作为 HV-001..003 的部署假设，详见
+`docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`。驱动层不默认新增开发；
 Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 `docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` 维护。
 
@@ -27,6 +28,15 @@ Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 | Driver/HAL | Android HAL/AIDL/NDK/vendor SDK bridge，当前不新增驱动 | Linux device node/ioctl/sysfs/vendor lib，当前不新增驱动 | 仅接口矩阵 | DEL-005, KH-003, KH-006 |
 | 虚拟化 | 只记录 Hypervisor/ASIL/QM 接口约束 | 只记录跨 VM 通信假设和 fallback | 非开发范围 | HV-001..003 |
 
+## 虚拟化与 Safety 约束
+
+A7 交付文档 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 固定以下边界：
+
+- HV-001：Hypervisor 仅作为 domain、transport、共享内存和启动依赖假设，不开发虚拟化功能。
+- HV-002：ASIL/QM 隔离只做服务到安全域映射和降级策略说明，不实现隔离机制。
+- HV-003：跨 VM 通信必须保留 Uni Info Bus/SOA 语义，不能让 App 直连 Hypervisor channel。
+- FW-S-005、NV-G-005、NV-F-009：Safety State、Policy 和 Security/Policy Adapter 是 Android/Linux 共同约束。
+
 ## Linux systemd 样例
 
 Linux 部署样例位于 `central-brain/deploy/linux/`：
@@ -39,6 +49,7 @@ Linux 部署样例位于 `central-brain/deploy/linux/`：
 
 ```bash
 bash tools/check_central_brain_delivery_docs.sh
+bash tools/check_central_brain_virtualization_docs.sh
 bash tools/smoke_central_brain_semantic_gateway.sh
 bash tools/smoke_central_brain_linux_ipc.sh
 ```

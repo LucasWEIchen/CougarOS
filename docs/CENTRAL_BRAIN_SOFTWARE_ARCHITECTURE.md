@@ -141,6 +141,17 @@ sequenceDiagram
   Bus-->>App: inference result
 ```
 
+### 虚拟化与 Safety 约束
+
+L5 虚拟化层只记录接口约束和部署假设，不开发 Hypervisor、ASIL/QM 隔离或跨 VM 共享内存实现。A7 当前交付见 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`，覆盖 HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004。
+
+关键约束：
+
+- 跨 VM 通信必须保留 Uni Info Bus/SOA 语义，不能让 App 直连 Hypervisor channel。
+- Safety State 必须进入 SOA 服务入口、Runtime & Governance Policy 和 Native Security/Policy Adapter。
+- ASIL domain 不可用时，只允许 readonly fallback 或明确失败，不允许自动降级为不受控写操作。
+- 目标 SoC/Hypervisor/Safety Runtime 未明确前，本仓库不新增虚拟化、共享内存或 Driver/HAL 代码。
+
 ## 服务契约
 
 第一阶段契约文件：`central-brain/contracts/central_brain_api.json`。

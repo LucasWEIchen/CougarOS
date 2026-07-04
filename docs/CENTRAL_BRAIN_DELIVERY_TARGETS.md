@@ -26,6 +26,7 @@
 | Protocol Binding | XSC-006 | REST active prototype + Binder/AIDL service stub sample | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge | Linux runtime bridge | NPU/GPU/Cloud 后端可替换 |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发 |
+| Hypervisor/Safety constraints | HV-001, HV-002, HV-003 | Android domain、Binder identity、Safety State 和 Policy 集成假设 | Linux domain、service identity、IPC fallback 和 Safety State 集成假设 | 只记录接口约束和部署假设，不开发虚拟化 |
 
 ## 交付包要求
 
@@ -58,6 +59,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 bash tools/check_central_brain_binding_artifacts.sh
 bash tools/check_central_brain_delivery_docs.sh
+bash tools/check_central_brain_virtualization_docs.sh
 bash tools/smoke_central_brain_linux_ipc.sh
 ```
 
@@ -67,6 +69,7 @@ Linux systemd 部署样例：
 - `central-brain/deploy/linux/systemd/central-brain-backend.service`
 - `central-brain/deploy/linux/systemd/central-brain-linux-ipc.service`
 - `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`
+- `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`
 
 ## Android 版本最低要求
 
