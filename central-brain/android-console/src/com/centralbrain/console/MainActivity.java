@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
         buttonRow.addView(refreshButton);
 
         inferButton = new Button(this);
-        inferButton.setText("Run Mock Inference");
+        inferButton.setText("Invoke SOA Inference");
         inferButton.setAllCaps(false);
         inferButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,14 +102,16 @@ public class MainActivity extends Activity {
     }
 
     private void refreshHealth() {
-        setBusy(true, "Status: refreshing");
-        request("GET", "/health", null, "Health");
+        setBusy(true, "Status: refreshing Uni Info Bus state");
+        request("GET", "/uib/state", null, "Uni Info Bus State");
     }
 
     private void runInference() {
-        setBusy(true, "Status: running mock inference");
-        String body = "{\"model\":\"central-intent-v0\",\"input\":{\"utterance\":\"query vehicle state\"},\"policy\":{\"safety_state_required\":\"normal\",\"timeout_ms\":2000}}";
-        request("POST", "/ai/infer", body, "Inference");
+        setBusy(true, "Status: invoking SOA inference");
+        String body = "{\"service\":\"npu-inference\",\"method\":\"infer\",\"caller_permissions\":[\"ai.infer\",\"service.read\"],"
+            + "\"payload\":{\"model\":\"central-intent-v0\",\"input\":{\"utterance\":\"query vehicle state\"},"
+            + "\"policy\":{\"safety_state_required\":\"normal\",\"timeout_ms\":2000}}}";
+        request("POST", "/soa/invoke", body, "SOA Inference");
     }
 
     private void request(String method, String path, String body, String label) {

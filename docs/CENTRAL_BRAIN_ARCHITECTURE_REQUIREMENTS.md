@@ -58,7 +58,7 @@
 | Req ID | 要求 | 说明 | 当前状态 |
 | --- | --- | --- | --- |
 | DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | 已有 Android Console |
-| DEL-002 | Linux 同步交付路径 | 每个核心接口需要 Linux 版示例、CLI 或 daemon 集成说明 | 未实现 |
+| DEL-002 | Linux 同步交付路径 | 每个核心接口需要 Linux 版示例、CLI 或 daemon 集成说明 | CLI 初版 |
 | DEL-003 | 座舱域工程师文档 | 交付给 Android/Linux 座舱软件工程师，必须给出集成步骤、接口、验证命令 | 部分文档 |
 | DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | 未实现 |
 | DEL-005 | 驱动接口支持文档 | 明确当前环境已有能力、缺口、新增开发边界和 mock/fallback | 初版 |
@@ -84,13 +84,13 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | `/context` mock |
-| FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | `/state` mock |
+| FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | `/context` 与 `/uib/context` mock |
+| FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | Android/Linux 调用 `/uib/state` |
 | FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | `/events/topics` 与 `/events/publish` mock |
 | FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | `/actions/request` mock |
-| FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/service/invoke` mock |
+| FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/service/invoke` 与 `/soa/invoke` mock |
 | FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | `/tools` mock |
-| FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | `/permission/check` mock |
+| FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | `/permission/check` + `/soa/invoke` mock |
 | FW-U-008 | 其他 | 展锐负责 | 扩展语义 | 必须有扩展机制且不可破坏核心对象 | 未实现 |
 
 ### SOA 服务入口
@@ -100,8 +100,8 @@
 | FW-S-001 | Business Services | 展锐负责 | 场景服务 | 按场景编排应用能力 | 未实现 |
 | FW-S-002 | Foundation Services | 展锐负责 | 复用能力 | 账号、配置、时间、权限等公共能力 | 未实现 |
 | FW-S-003 | Atomic Services | 展锐负责 | 最小能力 | 最小车控/信号/诊断能力 | 未实现 |
-| FW-S-004 | Service Contract | 展锐负责 | IDL/Schema | 所有服务必须有 contract 和版本 | JSON contract 初版 |
-| FW-S-005 | Safety State | 展锐负责 | 降级/互锁 | 必须作为服务入口的强制检查项 | 仅文档 |
+| FW-S-004 | Service Contract | 展锐负责 | IDL/Schema | 所有服务必须有 contract 和版本 | JSON contract + `/soa/services` 初版 |
+| FW-S-005 | Safety State | 展锐负责 | 降级/互锁 | 必须作为服务入口的强制检查项 | `/soa/invoke` policy mock |
 | FW-S-006 | 其他 | 展锐负责 | 扩展服务 | 必须纳入 registry/discovery/schema/policy | 未实现 |
 
 ## L3 Native 层需求
@@ -127,24 +127,24 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| NV-G-001 | Registry | 展锐负责/生态合作 | 服务注册 | 服务必须注册后被发现和调用 | `/services` 静态 mock |
-| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | 未实现 |
-| NV-G-003 | Schema/IDL | 展锐负责/生态合作 | 契约管理 | 契约必须版本化和校验 | JSON 初版 |
-| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | 未实现 |
-| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | 未实现 |
-| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | 未实现 |
-| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | 未实现 |
+| NV-G-001 | Registry | 展锐负责/生态合作 | 服务注册 | 服务必须注册后被发现和调用 | `/soa/services` + `/governance/runtime` mock |
+| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | `/governance/runtime` mock |
+| NV-G-003 | Schema/IDL | 展锐负责/生态合作 | 契约管理 | 契约必须版本化和校验 | JSON contract + runtime schema 状态 |
+| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | `/governance/runtime` mock |
+| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | `/permission/check` + `/soa/invoke` mock |
+| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | `/governance/runtime` mock |
+| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/governance/runtime` audit 字段 mock |
 
 ### Uni Info Bus Protocol Binding
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| NV-P-001 | SOME/IP | 展锐负责/生态合作 | 跨 ECU 服务 | 车内跨 ECU 服务优先通过 SOME/IP binding | 未实现 |
-| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | 未实现 |
-| NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | 未实现 |
-| NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | 未实现 |
-| NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | 当前 mock 直接 REST，偏差 DEV-001 |
-| NV-P-006 | DDS | 展锐负责/生态合作 | Topic/Context/... | 高频 Topic/Context 订阅预留 DDS | 未实现 |
+| NV-P-001 | SOME/IP | 展锐负责/生态合作 | 跨 ECU 服务 | 车内跨 ECU 服务优先通过 SOME/IP binding | `/bindings` 计划态 |
+| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | `/bindings` 计划态 |
+| NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | `/bindings` 计划态 |
+| NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | `/bindings` 计划态 |
+| NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | Android/Linux 主路径经 `/uib/*`、`/soa/*`，REST 为 prototype binding |
+| NV-P-006 | DDS | 展锐负责/生态合作 | Topic/Context/... | 高频 Topic/Context 订阅预留 DDS | `/bindings` 计划态 |
 | NV-P-007 | 其他 | 展锐负责/生态合作 | 大数据/... | 大数据通道必须纳入协议绑定与治理 | 未实现 |
 
 ## L4 Kernel & HAL 层需求

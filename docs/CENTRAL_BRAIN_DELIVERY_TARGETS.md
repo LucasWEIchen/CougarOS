@@ -11,19 +11,19 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android service 集成、模拟器/设备验证 | 已有 Console 原型 |
-| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | 待建设 |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android service 集成、模拟器/设备验证 | Console 已走 `/uib/state`、`/soa/invoke` |
+| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版 |
 
 ## 每个核心模块的交付形态
 
 | 模块 | Req ID | Android 交付 | Linux 交付 | 备注 |
 | --- | --- | --- | --- | --- |
 | AI SDK | XSC-001 | Android library/API sample | Linux SDK sample 或 CLI | 黄色小太阳，跨 SoC |
-| Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | 黄色小太阳，跨 SoC |
-| SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | 黄色小太阳，跨 SoC |
+| Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state` 初版 |
+| SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | 黄色小太阳，跨 SoC |
-| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | 黄色小太阳，跨 SoC |
-| Protocol Binding | XSC-006 | Binder/REST/gRPC adapter | IPC/REST/gRPC/MQTT/SOME-IP/DDS adapter | 黄色小太阳，跨 SoC |
+| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | `/governance/runtime` mock 状态 |
+| Protocol Binding | XSC-006 | Binder/REST/gRPC adapter | IPC/REST/gRPC/MQTT/SOME-IP/DDS adapter | REST active prototype，其他 binding 计划态 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge | Linux runtime bridge | NPU/GPU/Cloud 后端可替换 |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发 |
 
@@ -48,6 +48,13 @@
 - 可执行 smoke test。
 - 驱动/HAL 接口支持矩阵。
 
+当前最低 Linux 样例：
+
+```bash
+bash tools/smoke_central_brain_semantic_gateway.sh
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py state
+```
+
 ## Android 版本最低要求
 
 Android 版本必须提供：
@@ -57,3 +64,8 @@ Android 版本必须提供：
 - 模拟器或设备验证脚本。
 - 日志与截图留档。
 - 后续迁移到 AIDL/System Service 的接口草案。
+
+当前 Android Console 主路径：
+
+- `GET /uib/state`
+- `POST /soa/invoke`

@@ -18,9 +18,17 @@ bash tools/run_central_brain_backend.sh
 
 - `GET /health`
 - `GET /services`
+- `GET /uib/context`
+- `GET /uib/state`
+- `GET /soa/services`
+- `GET /governance/runtime`
+- `GET /bindings`
 - `GET /vehicle/state`
 - `GET /npu/status`
+- `POST /soa/invoke`
 - `POST /ai/infer`
+
+旧的 `/context`、`/state`、`/service/invoke` 仍保留为兼容入口。Android 和 Linux 新样例优先使用 `/uib/*` 与 `/soa/*`，REST 在此阶段只作为 `NV-P-005` prototype binding。
 
 ## 环境变量
 

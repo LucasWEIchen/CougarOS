@@ -9,10 +9,10 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | 后端 mock 初版 |
-| A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | 待开始 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | 待开始 |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | 待开始 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Android/Linux 主路径初版 |
+| A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | 状态端点初版 |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | binding 状态初版 |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | 待开始 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -91,3 +91,9 @@
   - 完成 A1 后端 mock 初版：`/context`、`/state`、`/events/topics`、`/events/publish`、`/actions/request`、`/service/invoke`、`/tools`、`/permission/check`。
   - 新增 Linux/WSL smoke test：`tools/test_central_brain_bus.sh`。
   - 注意：Android Console 仍未切到 Uni Info Bus client，`DEV-001` 保持临时偏差。
+- 推进语义网关主路径：
+  - Android Console 改为调用 `GET /uib/state` 和 `POST /soa/invoke`。
+  - 后端新增架构命名入口：`/uib/context`、`/uib/state`、`/soa/services`、`/soa/invoke`、`/governance/runtime`、`/bindings`。
+  - 新增 Linux CLI：`central-brain/linux-cli/central_brain_cli.py`。
+  - 新增 smoke test：`tools/smoke_central_brain_semantic_gateway.sh`。
+  - 覆盖 Req ID：XSC-002、XSC-003、XSC-005、XSC-006、FW-U-001、FW-U-002、FW-U-005、FW-U-007、FW-S-004、FW-S-005、NV-G-001..007、NV-P-001..006。

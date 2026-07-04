@@ -19,6 +19,9 @@ from urllib.parse import urlparse
 
 
 STARTED_AT = time.time()
+API_VERSION = "0.1.1"
+GOVERNANCE_REQ_IDS = ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007"]
+BINDING_REQ_IDS = ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006"]
 EVENT_TOPICS = [
     "vehicle.signal.changed",
     "service.health.changed",
@@ -97,7 +100,7 @@ def npu_status() -> dict[str, Any]:
 def health_payload() -> dict[str, Any]:
     return {
         "system": "central-brain",
-        "version": "0.1.0",
+        "version": API_VERSION,
         "status": "ok",
         "safety_state": "normal",
         "uptime_s": round(time.time() - STARTED_AT, 3),
@@ -132,6 +135,9 @@ def services_payload() -> dict[str, Any]:
                 "name": "vehicle-state",
                 "version": "0.1.0",
                 "contract": "GET /vehicle/state",
+                "semantic_entry": "POST /soa/invoke service=vehicle-state method=getState",
+                "layer": "Framework/SOA Service Entry",
+                "req_ids": ["XSC-003", "FW-S-003", "FW-S-004"],
                 "permissions": ["vehicle.read"],
                 "safety_state": "normal"
             },
@@ -139,6 +145,9 @@ def services_payload() -> dict[str, Any]:
                 "name": "npu-inference",
                 "version": "0.1.0",
                 "contract": "POST /ai/infer",
+                "semantic_entry": "POST /soa/invoke service=npu-inference method=infer",
+                "layer": "Framework/SOA Service Entry -> Native/Model Runtime Adapter",
+                "req_ids": ["XSC-003", "FW-S-004", "FW-S-005", "NV-F-011"],
                 "permissions": ["ai.infer"],
                 "safety_state": "normal"
             },
@@ -146,6 +155,9 @@ def services_payload() -> dict[str, Any]:
                 "name": "service-registry",
                 "version": "0.1.0",
                 "contract": "GET /services",
+                "semantic_entry": "GET /soa/services",
+                "layer": "Native/Runtime & Governance",
+                "req_ids": ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003"],
                 "permissions": ["service.read"],
                 "safety_state": "normal"
             }
@@ -226,6 +238,98 @@ def tools_payload() -> dict[str, Any]:
             }
         ],
         "req_ids": ["FW-U-006"]
+    }
+
+
+def governance_payload() -> dict[str, Any]:
+    return {
+        "registry": {
+            "state": "ok",
+            "source": "in-process service catalog",
+            "req_ids": ["NV-G-001"]
+        },
+        "discovery": {
+            "state": "prototype",
+            "lookup": "service name to local handler",
+            "req_ids": ["NV-G-002"]
+        },
+        "schema": {
+            "state": "prototype",
+            "contract": "central-brain/contracts/central_brain_api.json",
+            "req_ids": ["NV-G-003"]
+        },
+        "qos": {
+            "state": "mock",
+            "default_timeout_ms": 2000,
+            "priority_classes": ["vehicle-control", "ai-task", "diagnostic"],
+            "req_ids": ["NV-G-004"]
+        },
+        "policy": {
+            "state": "mock",
+            "entry": "POST /permission/check",
+            "req_ids": ["NV-G-005", "FW-U-007", "FW-S-005"]
+        },
+        "lifecycle": {
+            "state": "prototype",
+            "service_states": ["starting", "ready", "degraded", "stopped"],
+            "req_ids": ["NV-G-006"]
+        },
+        "audit": {
+            "state": "prototype",
+            "record_fields": ["trace_id", "service", "method", "policy.decision"],
+            "req_ids": ["NV-G-007"]
+        },
+        "req_ids": GOVERNANCE_REQ_IDS
+    }
+
+
+def bindings_payload() -> dict[str, Any]:
+    return {
+        "bindings": [
+            {
+                "name": "rest-http-json",
+                "status": "active-prototype",
+                "platforms": ["Android emulator", "Linux host"],
+                "req_ids": ["XSC-006", "NV-P-005"]
+            },
+            {
+                "name": "android-binder-aidl",
+                "status": "planned",
+                "platforms": ["Android"],
+                "req_ids": ["XSC-006", "NV-P-002", "DEL-001"]
+            },
+            {
+                "name": "linux-ipc",
+                "status": "planned",
+                "platforms": ["Linux"],
+                "req_ids": ["XSC-006", "NV-P-002", "DEL-002"]
+            },
+            {
+                "name": "grpc",
+                "status": "planned",
+                "platforms": ["Android", "Linux"],
+                "req_ids": ["XSC-006", "NV-P-003"]
+            },
+            {
+                "name": "mqtt",
+                "status": "planned-policy-gated",
+                "platforms": ["Android", "Linux"],
+                "req_ids": ["XSC-006", "NV-P-004"]
+            },
+            {
+                "name": "someip",
+                "status": "planned-after-vehicle-network",
+                "platforms": ["Linux", "QNX/RT domain integration assumption"],
+                "req_ids": ["XSC-006", "NV-P-001"]
+            },
+            {
+                "name": "dds",
+                "status": "planned-for-high-rate-topics",
+                "platforms": ["Linux", "Android native"],
+                "req_ids": ["XSC-006", "NV-P-006"]
+            }
+        ],
+        "req_ids": BINDING_REQ_IDS
     }
 
 
@@ -345,6 +449,28 @@ def action_request_payload(request: dict[str, Any]) -> dict[str, Any]:
 def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
     service = request.get("service", "vehicle-state")
     method = request.get("method", "getState")
+    required_permissions = {
+        "vehicle-state": ["vehicle.read"],
+        "npu-inference": ["ai.infer"],
+        "service-registry": ["service.read"]
+    }.get(service, ["service.read"])
+    policy = permission_check_payload(
+        {
+            "required_permissions": required_permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "ai.infer", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal")
+        }
+    )
+    if policy["decision"] != "allow":
+        return {
+            "service": service,
+            "method": method,
+            "state": "rejected",
+            "policy": policy,
+            "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-005"]
+        }
+
     if service == "vehicle-state":
         result: dict[str, Any] = vehicle_state_payload()
     elif service == "npu-inference":
@@ -356,8 +482,10 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
     return {
         "service": service,
         "method": method,
+        "state": "completed",
+        "policy": policy,
         "result": result,
-        "req_ids": ["FW-U-005", "FW-S-004"]
+        "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-005"]
     }
 
 
@@ -393,10 +521,16 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, health_payload())
         elif path == "/services":
             self.send_json(200, services_payload())
-        elif path == "/context":
+        elif path in ("/context", "/uib/context"):
             self.send_json(200, envelope(context_payload()))
-        elif path == "/state":
+        elif path in ("/state", "/uib/state"):
             self.send_json(200, envelope(state_payload()))
+        elif path == "/soa/services":
+            self.send_json(200, envelope(services_payload()))
+        elif path == "/governance/runtime":
+            self.send_json(200, envelope(governance_payload()))
+        elif path == "/bindings":
+            self.send_json(200, envelope(bindings_payload()))
         elif path == "/events/topics":
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/tools":
@@ -424,7 +558,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(permission_check_payload(request), request.get("trace_id")))
         elif path == "/actions/request":
             self.send_json(200, envelope(action_request_payload(request), request.get("trace_id")))
-        elif path == "/service/invoke":
+        elif path in ("/service/invoke", "/soa/invoke"):
             self.send_json(200, envelope(service_invoke_payload(request), request.get("trace_id")))
         elif path == "/events/publish":
             self.send_json(200, envelope(event_publish_payload(request), request.get("trace_id")))

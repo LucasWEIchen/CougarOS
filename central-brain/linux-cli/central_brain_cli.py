@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Linux CLI sample for the Central Brain semantic gateway."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from typing import Any
+from urllib import request
+
+
+DEFAULT_BASE_URL = os.environ.get("CENTRAL_BRAIN_BASE_URL", "http://127.0.0.1:8787")
+
+
+COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
+    "context": ("GET", "/uib/context", None),
+    "state": ("GET", "/uib/state", None),
+    "services": ("GET", "/soa/services", None),
+    "governance": ("GET", "/governance/runtime", None),
+    "bindings": ("GET", "/bindings", None),
+    "vehicle-state": (
+        "POST",
+        "/soa/invoke",
+        {
+            "service": "vehicle-state",
+            "method": "getState",
+            "caller_permissions": ["vehicle.read", "service.read"],
+        },
+    ),
+    "infer": (
+        "POST",
+        "/soa/invoke",
+        {
+            "service": "npu-inference",
+            "method": "infer",
+            "caller_permissions": ["ai.infer", "service.read"],
+            "payload": {
+                "model": "central-intent-v0",
+                "input": {"utterance": "query vehicle state"},
+                "policy": {"safety_state_required": "normal", "timeout_ms": 2000},
+            },
+        },
+    ),
+}
+
+
+def call(base_url: str, method: str, path: str, body: dict[str, Any] | None) -> dict[str, Any]:
+    encoded = None
+    headers = {"Accept": "application/json"}
+    if body is not None:
+        encoded = json.dumps(body).encode("utf-8")
+        headers["Content-Type"] = "application/json; charset=utf-8"
+
+    req = request.Request(base_url.rstrip("/") + path, data=encoded, headers=headers, method=method)
+    with request.urlopen(req, timeout=5) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Call the Central Brain Linux semantic gateway sample.")
+    parser.add_argument("command", choices=sorted(COMMANDS))
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
+    args = parser.parse_args()
+
+    method, path, body = COMMANDS[args.command]
+    payload = call(args.base_url, method, path, body)
+    json.dump(payload, sys.stdout, ensure_ascii=False, indent=2)
+    print()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
