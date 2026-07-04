@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "updated": "2026-07-04",
   "transport": {
     "prototype": "http-json",
@@ -114,6 +114,18 @@
       "path": "/bindings/detail",
       "description": "Returns Protocol Binding contract artifacts for Android Binder/AIDL, Linux IPC, and Linux gRPC skeletons.",
       "req_ids": ["XSC-006", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002"]
+    },
+    {
+      "method": "GET",
+      "path": "/native/adapters",
+      "description": "Returns Native adapter registry for AIOS Kernel, SOA Service Adapter, Vehicle Signal Adapter, Model Runtime Adapter, and Security/Policy Adapter.",
+      "req_ids": ["XSC-004", "NV-F-001", "NV-F-003", "NV-F-004", "NV-F-008", "NV-F-009", "NV-F-011"]
+    },
+    {
+      "method": "GET",
+      "path": "/native/adapters/detail",
+      "description": "Returns Native adapter integration constraints, Android primary path, Linux sync path, and driver/HAL dependency notes.",
+      "req_ids": ["XSC-004", "NV-F-001", "NV-F-003", "NV-F-004", "NV-F-005", "NV-F-008", "NV-F-009", "NV-F-011", "DEL-001", "DEL-002", "DEL-005"]
     },
     {
       "method": "GET",

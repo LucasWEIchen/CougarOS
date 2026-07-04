@@ -9,7 +9,9 @@
 
 虚拟化层不开发；如果某个驱动接口依赖 Hypervisor、跨 VM 共享内存或安全域通信，本项目只记录依赖假设和 fallback，不实现虚拟化功能。
 
-2026-07-04 本轮语义网关、Runtime & Governance 与 Protocol Binding contract skeleton 增量只新增 Uni Info Bus/SOA/Governance/Binding mock、Policy/Audit active prototype、Android AIDL skeleton、Linux IPC/gRPC contract skeleton 与 Linux CLI，不访问真实 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，因此未触发新增驱动开发条件。
+2026-07-04 本轮语义网关、Runtime & Governance、Protocol Binding contract skeleton 与 Native adapters mock 增量只新增 Uni Info Bus/SOA/Governance/Binding/Native Adapter mock、Policy/Audit active prototype、Android AIDL skeleton、Linux IPC/gRPC contract skeleton 与 Linux CLI，不访问真实 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，因此未触发新增驱动开发条件。
+
+A5 Native adapters mock 的 `/native/adapters/detail` 只记录 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界和 Driver/HAL 依赖，不新增驱动代码。
 
 ## 驱动接口矩阵
 

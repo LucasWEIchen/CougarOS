@@ -29,6 +29,7 @@
 | DEV-011 | Linux 已有 CLI smoke 样例，但尚未提供 daemon、systemd 部署、真实 IPC 和驱动/HAL 集成说明 | DEL-002, DEL-003, XSC-001..006 | 本轮补最小 Linux 同步交付路径 | Linux 座舱工程师仍缺少进程部署和平台差异细节 | A9 继续提供 Linux daemon/client、systemd 示例、IPC/gRPC binding 与平台差异说明 | Accepted Temporary |
 | DEV-012 | 当前未显式区分黄色小太阳跨 SoC 组件和普通应用/生态组件 | XSC-001..006 | 初版只按层级拆解 | 跨 SoC 复用组件可能被做成单平台实现 | 已新增 XSC-001..006；后续所有 XSC 组件必须同时规划 Android/Linux 和平台无关 contract | Resolved |
 | DEV-013 | A4 Protocol Binding 目前是 AIDL/proto/schema contract skeleton 和注册表发现，不是真实 Binder、Unix socket 或 gRPC runtime | XSC-006, NV-P-002, NV-P-003, DEL-001, DEL-002 | 当前增量先固化跨 SoC 绑定 contract 和语义入口映射，避免在语义层未稳定前开发多套 runtime | 集成工程师可能误以为 Binder/gRPC 已可部署 | 文档和 `/bindings/detail` 明确 `contract-skeleton` 状态；下一步实现 Android Binder service stub 或 Linux IPC daemon sample | Accepted Temporary |
+| DEV-014 | A5 Native adapters 目前是注册表和边界 mock，不是真实 AIOS Kernel、VHAL/ECU adapter、Model Runtime daemon 或 Driver/HAL bridge | XSC-004, NV-F-001, NV-F-003, NV-F-004, NV-F-005, NV-F-008, NV-F-011, KH-003, KH-006 | 当前 Android/Linux 环境没有真实车身信号源、DBC/ARXML、NPU vendor SDK 或 Driver/HAL；用户要求驱动层仅在能力不足时新增最小开发量 | 集成方可能误以为 Native adapter 已具备量产数据面能力 | `/native/adapters/detail` 明确状态、Android/Linux 交付路径和 Driver/HAL 依赖；后续按真实信号目录、vendor SDK 或 IPC daemon 逐项替换 mock | Accepted Temporary |
 
 ## 新增偏差记录模板
 

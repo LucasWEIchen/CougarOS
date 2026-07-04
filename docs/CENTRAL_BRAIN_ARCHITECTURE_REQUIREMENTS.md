@@ -49,7 +49,7 @@
 | XSC-001 | AI SDK | 应用层 | SDK API 稳定，底层 runtime 可替换 | Android library/API sample | Linux SDK/API sample 或 CLI |
 | XSC-002 | Uni Info Bus 语义接口 | Framework 层 | 语义对象和 contract 跨 SoC 一致 | Android client/API | Linux client/API |
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
-| XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter |
+| XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter；adapter registry 初版 |
 | XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle 可移植 | Android runtime integration | Linux runtime integration |
 | XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | REST active prototype + Binder/AIDL contract skeleton | REST active prototype + IPC/gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
 
@@ -110,17 +110,17 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| NV-F-001 | AIOS Kernel | 展锐负责 | Agent/Model/Tool/Memory/Safety/... | AI/Agent 核心不能仅在 App 或后端散落实现 | 仅 mock/文档 |
+| NV-F-001 | AIOS Kernel | 展锐负责 | Agent/Model/Tool/Memory/Safety/... | AI/Agent 核心不能仅在 App 或后端散落实现 | `native_adapters.py` contract mock |
 | NV-F-002 | Sensor/Actuator | 展锐负责 | Camera/Radar/USS/IMU/Mic/... | 传感器/执行器统一适配 | 未实现 |
-| NV-F-003 | Service Adapters | 展锐负责 | Signal Map/ECU Proxy/Impl/... | 业务服务到 ECU/Signal 的 adapter | 未实现 |
-| NV-F-004 | Vehicle/Body Signal | 生态合作 | BCM/HVAC/Seat/Door/Light/... | 车辆/车身信号按合作生态接入 | mock 车辆状态 |
-| NV-F-005 | ECU Proxy / Signal Adapter | 生态合作 | DBC/ARXML/... | CAN/Ethernet 信号需 DBC/ARXML 映射 | 未实现 |
+| NV-F-003 | Service Adapters | 展锐负责 | Signal Map/ECU Proxy/Impl/... | 业务服务到 ECU/Signal 的 adapter | SOA Service Adapter registry 初版 |
+| NV-F-004 | Vehicle/Body Signal | 生态合作 | BCM/HVAC/Seat/Door/Light/... | 车辆/车身信号按合作生态接入 | mock VSS snapshot + adapter boundary |
+| NV-F-005 | ECU Proxy / Signal Adapter | 生态合作 | DBC/ARXML/... | CAN/Ethernet 信号需 DBC/ARXML 映射 | adapter boundary，待真实 DBC/ARXML |
 | NV-F-006 | Data/Time Sync | 展锐负责 | TSN/PTP/Frame Meta/... | 高频数据必须有时间同步和帧元数据 | 未实现 |
 | NV-F-007 | Connected Funcware | 生态合作 | TBOX/V2X/OTA/Diag/... | 互联功能软件经 adapter 接入 | 未实现 |
-| NV-F-008 | SOA Service Runtime | 展锐负责 | 服务容器/状态机/Impl/... | 服务生命周期和状态机运行时 | 未实现 |
-| NV-F-009 | Security/Policy Adapter | 生态合作 | ASIL/QM/Zone/... | 安全域、权限、区域策略适配 | 文档化 |
+| NV-F-008 | SOA Service Runtime | 展锐负责 | 服务容器/状态机/Impl/... | 服务生命周期和状态机运行时 | SOA Service Adapter active prototype |
+| NV-F-009 | Security/Policy Adapter | 生态合作 | ASIL/QM/Zone/... | 安全域、权限、区域策略适配 | Policy adapter active prototype + 虚拟化约束 |
 | NV-F-010 | ADAS Funcware | 生态合作 | Perception/Fusion/Scene/... | 智驾能力通过 ADAS adapter 接入 | 未实现 |
-| NV-F-011 | Model Runtime Adapter | 展锐负责 | GPU/NPU/Cloud/... | 模型运行时必须抽象 GPU/NPU/Cloud | mock NPU 部分覆盖 |
+| NV-F-011 | Model Runtime Adapter | 展锐负责 | GPU/NPU/Cloud/... | 模型运行时必须抽象 GPU/NPU/Cloud | mock NPU runtime adapter boundary |
 | NV-F-012 | 其他 | 展锐负责 | Trace/Logging/Metric/... | 原生层可观测性必须平台化 | 未实现 |
 
 ### Uni Info Bus Runtime & Governance

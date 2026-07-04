@@ -17,14 +17,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from native_adapters import NativeAdapterRegistry
 from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.3"
+API_VERSION = "0.1.4"
 GOVERNANCE = RuntimeGovernance()
 BINDINGS = ProtocolBindingRegistry()
+NATIVE_ADAPTERS = NativeAdapterRegistry()
 EVENT_TOPICS = [
     "vehicle.signal.changed",
     "service.health.changed",
@@ -221,6 +223,14 @@ def bindings_payload() -> dict[str, Any]:
 
 def binding_detail_payload() -> dict[str, Any]:
     return BINDINGS.detail_payload()
+
+
+def native_adapters_payload() -> dict[str, Any]:
+    return NATIVE_ADAPTERS.list_payload()
+
+
+def native_adapters_detail_payload() -> dict[str, Any]:
+    return NATIVE_ADAPTERS.detail_payload()
 
 
 def vehicle_state_payload() -> dict[str, Any]:
@@ -439,6 +449,10 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(bindings_payload()))
         elif path == "/bindings/detail":
             self.send_json(200, envelope(binding_detail_payload()))
+        elif path == "/native/adapters":
+            self.send_json(200, envelope(native_adapters_payload()))
+        elif path == "/native/adapters/detail":
+            self.send_json(200, envelope(native_adapters_detail_payload()))
         elif path == "/events/topics":
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/tools":

@@ -97,6 +97,8 @@ flowchart TB
 - Security/Policy Adapter：权限、安全域、ASIL/QM 分区策略。
 - Data/Time Sync：TSN/PTP/Frame metadata。
 
+当前 A5 原型新增 `central-brain/backend/native_adapters.py` 和 `/native/adapters/detail`，以注册表方式固定 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Req ID、Android 主开发路径、Linux 同步交付路径、Driver/HAL 依赖和虚拟化约束。该增量不访问真实 Driver/HAL，不开发虚拟化层。
+
 ### Protocol Binding
 
 | 协议 | 用途 | 第一阶段 |

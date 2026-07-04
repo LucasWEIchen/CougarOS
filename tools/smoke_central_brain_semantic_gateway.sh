@@ -57,6 +57,8 @@ checks = [
     ("GET", "/governance/runtime", None, "NV-G-005"),
     ("GET", "/bindings", None, "NV-P-005"),
     ("GET", "/bindings/detail", None, "NV-P-002"),
+    ("GET", "/native/adapters", None, "NV-F-011"),
+    ("GET", "/native/adapters/detail", None, "XSC-004"),
     (
         "POST",
         "/policy/evaluate",
@@ -97,6 +99,12 @@ for method, path, body, req_id in checks:
         assert "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl" in artifacts
         assert "central-brain/bindings/linux/proto/central_brain_gateway.proto" in artifacts
         assert "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json" in artifacts
+    if path == "/native/adapters/detail":
+        adapter_names = {adapter["name"] for adapter in payload["payload"]["adapters"]}
+        assert "aios-kernel" in adapter_names
+        assert "soa-service-adapter" in adapter_names
+        assert "vehicle-signal-adapter" in adapter_names
+        assert "model-runtime-adapter" in adapter_names
     if path == "/audit/recent":
         events = payload["payload"]["events"]
         assert events, "audit endpoint did not record the SOA call"
@@ -109,5 +117,6 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null
 
 echo "linux cli smoke ok"

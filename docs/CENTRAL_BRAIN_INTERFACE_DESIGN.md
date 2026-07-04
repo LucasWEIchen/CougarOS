@@ -75,6 +75,7 @@
 | Vehicle | VSS/VHAL/ECU 信号 | HTTP/JSON | VHAL/AIDL/SOME-IP |
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
 | Observability | Trace、Metric、Audit | HTTP/JSON | AIDL + file/socket exporter |
+| Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
 
 ## MVP HTTP 接口
 
@@ -148,6 +149,13 @@
 | GET | `/trace/recent` | 最近调用 Trace | 否 |
 | GET | `/metrics` | 指标快照 | 否 |
 | GET | `/audit/recent` | 最近审计记录 | 是 |
+
+### Native Adapters
+
+| Method | Path | 用途 | 已实现 |
+| --- | --- | --- | --- |
+| GET | `/native/adapters` | Native adapter 注册表，覆盖 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter | 是 |
+| GET | `/native/adapters/detail` | Android/Linux 交付路径、Driver/HAL 依赖、虚拟化约束和跨 SoC 约束 | 是 |
 
 ## 核心数据模型
 
@@ -311,6 +319,25 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 ```bash
 bash tools/check_central_brain_binding_artifacts.sh
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
+```
+
+## Native Adapter Contract Mock
+
+A5 增量新增 `central-brain/backend/native_adapters.py`，将图中的 Native 层能力先收敛成可查询注册表。当前状态不是 Driver/HAL 或真实 daemon 实现，只用于固定分层边界、Req ID 和 Android/Linux 交付路径。
+
+| Adapter | 语义入口 | Req IDs | 状态 |
+| --- | --- | --- | --- |
+| AIOS Kernel | Tool、Service、Permission、Action | XSC-004、NV-F-001 | contract mock |
+| SOA Service Adapter | `/soa/invoke`、`/soa/services` | XSC-003、NV-F-003、NV-F-008、FW-S-004、FW-S-005 | active prototype |
+| Vehicle Signal Adapter | `/uib/context`、`/uib/state`、`vehicle-state` service | NV-F-004、NV-F-005、KH-006 | mock VSS snapshot |
+| Model Runtime Adapter | `npu-inference` service、`/npu/status` | NV-F-011、KH-003、KH-006、HW-002 | mock NPU runtime |
+| Security/Policy Adapter | `/policy/evaluate`、`/soa/invoke` | NV-F-009、NV-G-005、FW-U-007、FW-S-005 | active prototype |
+
+验证命令：
+
+```bash
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
+bash tools/smoke_central_brain_semantic_gateway.sh
 ```
 
 ## Event Topic 设计
