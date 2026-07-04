@@ -7,8 +7,10 @@
 | 阶段 | 目标 | 主要交付物 | 状态 |
 | --- | --- | --- | --- |
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 进行中 |
-| M1 | 本地端到端联通 | 后端启动脚本、APK 构建/安装、模拟器联通截图/日志 | 待开始 |
-| M2 | 中间层服务网关 | Registry、Discovery、Schema、Policy、Trace mock 实现 | 待开始 |
+| M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 进行中 |
+| M1 | 本地端到端联通稳定化 | 后端启动脚本、APK 构建/安装、模拟器联通截图/日志、一键 smoke test | 待开始 |
+| M2 | 中间层接口契约扩展 | Agent、Skill、Memory、Policy、Trace mock 实现 | 待开始 |
+| M2.5 | 中间层服务网关 | Registry、Discovery、Schema、Policy、Lifecycle 模块化 | 待开始 |
 | M3 | Android 系统接口 | AIDL contract、system service 原型、权限模型 | 待开始 |
 | M4 | 车辆信号模型 | VSS 子集、VHAL/VSS 映射、信号订阅 | 待开始 |
 | M5 | AI runtime | 模型管理、NPU SDK adapter、CPU fallback、推理队列 | 待开始 |
@@ -57,3 +59,13 @@
 - 保存验证截图：
   - `logs/test/central-brain/console-launch.png`
   - `logs/test/central-brain/console-inference.png`
+- 参考地平线 KaKaClaw 咖咖虾公开资料，补充产品概念映射：
+  - Agentic Car OS
+  - 任务即服务
+  - Soul / Skill / Memory
+  - 舱驾协同
+  - Skill 沙箱
+  - Privacy Router
+- 新增 PM 级需求拆解：`docs/CENTRAL_BRAIN_REQUIREMENTS_BREAKDOWN.md`。
+- 新增接口设计文档：`docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md`。
+- 创建 20 小时自动进展推进任务：每 20 分钟一次，共 60 次，自动化 ID `20`。

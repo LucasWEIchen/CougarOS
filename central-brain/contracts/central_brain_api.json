@@ -58,6 +58,41 @@
           "inference_ms": "number"
         }
       }
+    },
+    {
+      "method": "POST",
+      "path": "/agent/plan",
+      "description": "Planned: converts a user intent or scene trigger into a task graph."
+    },
+    {
+      "method": "POST",
+      "path": "/agent/execute",
+      "description": "Planned: executes a policy-approved task graph."
+    },
+    {
+      "method": "GET",
+      "path": "/skills",
+      "description": "Planned: returns available built-in and user-created skills."
+    },
+    {
+      "method": "POST",
+      "path": "/skills/{skill_id}/invoke",
+      "description": "Planned: invokes a sandboxed skill after policy evaluation."
+    },
+    {
+      "method": "POST",
+      "path": "/memory/query",
+      "description": "Planned: queries local vehicle/user memory for task context."
+    },
+    {
+      "method": "POST",
+      "path": "/policy/evaluate",
+      "description": "Planned: evaluates permissions, safety state, and privacy rules before execution."
+    },
+    {
+      "method": "POST",
+      "path": "/privacy/evaluate",
+      "description": "Planned: decides whether data can leave the vehicle and what redaction is required."
     }
   ],
   "semantic_objects": {
@@ -90,7 +125,11 @@
       "vehicle_state_query",
       "cabin_control",
       "diagnostic_trace",
-      "npu_inference"
+      "npu_inference",
+      "agent_task_planner",
+      "memory_query",
+      "policy_evaluate",
+      "privacy_route"
     ],
     "permission": [
       "vehicle.read",

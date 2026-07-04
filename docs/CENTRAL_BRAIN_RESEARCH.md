@@ -45,6 +45,11 @@
     来源：https://unece.org/transport/documents/2021/03/standards/un-regulation-no-155-cyber-security-and-cyber-security
     来源：https://unece.org/transport/documents/2021/03/standards/un-regulation-no-156-software-update-and-software-update
 
+11. 地平线 KaKaClaw 咖咖虾公开资料显示，整车智能体 OS 的产品重点不是单点语音助手，而是 Agentic Car OS、任务即服务、Soul/Skill/Memory、舱驾并行调度、Skill 沙箱和 Privacy Router。对本项目的启发是：中央大脑中间层必须把 Agent、Skill、Memory、Policy、Privacy 做成一等接口，而不是 UI 附属功能。
+    来源：https://www.horizon.auto/news/press/445
+    来源：https://finance.sina.com.cn/jjxw/2026-04-29/doc-inhwczny7905228.shtml
+    来源：https://news.qq.com/rain/a/20260426A05LV100
+
 ## 本地环境发现
 
 - Git 可用：`git version 2.43.0`。

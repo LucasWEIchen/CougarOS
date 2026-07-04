@@ -9,6 +9,8 @@
 
 第一阶段目标不是一次性完成量产系统，而是建立可持续演进的工程底座：设计文档、服务契约、Android 可运行控制台、后端 NPU mock、测试脚本和版本管理流程。
 
+参考 KaKaClaw 咖咖虾公开产品概念，本项目的产品形态要从“车机 App + AI 后端”升级为“整车智能体底座”：用户表达的是任务，系统负责理解、规划、调用技能、检查权限、执行动作、沉淀记忆和持续进化。
+
 ## 目标用户
 
 - 驾驶员/乘员：使用座舱 HMI、语音/Agent、车控、导航、娱乐和个性化服务。
@@ -71,6 +73,10 @@
 | --- | --- | --- |
 | Android Console | 手机/模拟器前端，查看中央大脑状态 | 已搭建原型 |
 | Uni Info Bus API | 语义接口层，承载 Context/State/Event/Action/Service/Tool/Permission | 文档和契约初版 |
+| Agentic Task Service | 任务即服务，负责意图理解、任务图规划和执行 | 接口设计 |
+| Skill Runtime | 技能声明、权限、调用、沙箱和生命周期 | 接口设计 |
+| Memory Service | 用户偏好、上下文记忆和本地隐私记忆 | 接口设计 |
+| Privacy Router | 数据外发、脱敏、用户授权和云路由 | 接口设计 |
 | SOA Gateway | 服务入口、鉴权、路由、降级 | mock 设计 |
 | Vehicle Signal Adapter | VSS/VHAL/ECU 信号映射 | 文档设计 |
 | AI Runtime Adapter | 面向 NPU/GPU/CPU/Cloud 的模型运行时适配 | mock 设计 |
