@@ -56,7 +56,7 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
     "soa.service.invoke": {
         "method": "POST",
         "path": "/soa/invoke",
-        "req_ids": ["XSC-003", "XSC-006", "FW-S-005", "NV-P-002", "DEL-002"],
+        "req_ids": ["XSC-003", "XSC-006", "FW-S-005", "NV-G-004", "NV-P-002", "DEL-002"],
     },
     "policy.evaluate": {
         "method": "POST",

@@ -21,6 +21,8 @@ A6 NPU Runtime Adapter 接口约束增量新增 `docs/CENTRAL_BRAIN_NPU_RUNTIME_
 
 A3 Runtime & Governance 审计持久化增量新增 `CENTRAL_BRAIN_AUDIT_LOG` JSONL 最近审计恢复样例和 `tools/smoke_central_brain_audit_persistence.sh`，覆盖 XSC-005、NV-G-007、DEL-002；只写普通文件系统日志，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime 或虚拟化代码。
 
+A3 Runtime & Governance QoS 增量新增 `/soa/invoke` per-service fixed-window QoS 检查和 `tools/smoke_central_brain_qos.sh`，覆盖 XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002；只在单进程治理原型内做限流决策与审计记录，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、多进程 QoS 后端或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |

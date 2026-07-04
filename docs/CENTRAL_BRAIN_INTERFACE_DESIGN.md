@@ -75,7 +75,7 @@
 | Policy | 权限、安全状态、隐私路由 | HTTP/JSON | AIDL/native policy engine |
 | Vehicle | VSS/VHAL/ECU 信号 | HTTP/JSON | VHAL/AIDL/SOME-IP |
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
-| Observability | Trace、Metric、Audit | HTTP/JSON | AIDL + file/socket exporter |
+| Observability | Trace、Metric、QoS、Audit | HTTP/JSON | AIDL + file/socket exporter |
 | Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
 
 ## MVP HTTP 接口
@@ -132,6 +132,8 @@
 | POST | `/policy/evaluate` | 权限与安全状态评估 | 是 |
 | GET | `/policy/permissions` | 权限矩阵 | 否 |
 | GET | `/audit/recent` | 最近治理审计记录；设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可恢复最近 50 条 | 是 |
+
+当前 A3 QoS 增量不新增独立接口，而是在 `POST /soa/invoke` 内执行 per-service fixed-window 检查。`npu-inference` 样例限制为每 1 秒 2 次；超过窗口时 response payload 中 `state=rejected`、`qos_decision.decision=deny`，并写入 `outcome=qos_rejected` 的 audit。该实现覆盖 XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002；它仍是单进程原型，不代表量产多进程/多协议限流后端。
 
 ### Uni Info Bus Event
 

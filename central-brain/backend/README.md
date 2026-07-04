@@ -1,7 +1,7 @@
 # Mock NPU Backend
 
 `mock_npu_service.py` 是第一阶段后端，用标准库 HTTP server 模拟中央大脑 AI 基座。
-`runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、QoS 元数据和可选 JSONL 审计持久化。
+`runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、per-service fixed-window QoS 和可选 JSONL 审计持久化。
 `protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、Linux IPC active sample、Linux gRPC contract skeleton 和 MQTT/SOME-IP/DDS 计划态。
 `native_adapters.py` 承载当前 Native adapter 注册表，包括 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 和 Security/Policy Adapter 的 Android/Linux 交付边界。
 
@@ -49,3 +49,11 @@ bash tools/run_central_brain_backend.sh
 - `CENTRAL_BRAIN_AUDIT_LOG`：可选 JSONL 审计日志路径；设置后 `/audit/recent` 会在服务重启后恢复最近 50 条 SOA 审计记录，覆盖 XSC-005、NV-G-007、DEL-002。
 
 当前服务只做 mock，不访问真实 NPU。
+
+## 验证
+
+```bash
+bash tools/smoke_central_brain_qos.sh
+```
+
+该脚本验证 `POST /soa/invoke` 对 `npu-inference` 执行 NV-G-004 QoS fixed-window 限流，并把 `qos_rejected` 写入 audit。

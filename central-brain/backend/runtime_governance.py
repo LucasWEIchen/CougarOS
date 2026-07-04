@@ -8,6 +8,7 @@ import json
 import time
 from collections import deque
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
 
@@ -33,7 +34,11 @@ SERVICE_CATALOG: list[dict[str, Any]] = [
         "req_ids": ["XSC-003", "FW-S-003", "FW-S-004"],
         "permissions": ["vehicle.read"],
         "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
-        "qos": {"priority": "vehicle-control", "timeout_ms": 1000},
+        "qos": {
+            "priority": "vehicle-control",
+            "timeout_ms": 1000,
+            "rate_limit": {"max_requests": 20, "window_s": 1},
+        },
         "implementation": "mock-handler",
     },
     {
@@ -46,7 +51,11 @@ SERVICE_CATALOG: list[dict[str, Any]] = [
         "req_ids": ["XSC-003", "FW-S-002", "FW-S-004", "FW-S-005", "NV-F-011"],
         "permissions": ["ai.infer"],
         "allowed_safety_states": ["normal"],
-        "qos": {"priority": "ai-task", "timeout_ms": 2000},
+        "qos": {
+            "priority": "ai-task",
+            "timeout_ms": 2000,
+            "rate_limit": {"max_requests": 2, "window_s": 1},
+        },
         "implementation": "mock-handler",
     },
     {
@@ -59,7 +68,11 @@ SERVICE_CATALOG: list[dict[str, Any]] = [
         "req_ids": ["XSC-005", "FW-S-002", "NV-G-001", "NV-G-002", "NV-G-003"],
         "permissions": ["service.read"],
         "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
-        "qos": {"priority": "diagnostic", "timeout_ms": 1000},
+        "qos": {
+            "priority": "diagnostic",
+            "timeout_ms": 1000,
+            "rate_limit": {"max_requests": 20, "window_s": 1},
+        },
         "implementation": "runtime-governance",
     },
     {
@@ -72,7 +85,11 @@ SERVICE_CATALOG: list[dict[str, Any]] = [
         "req_ids": ["XSC-003", "FW-S-001", "FW-S-004", "FW-S-005"],
         "permissions": ["vehicle.read", "vehicle.control"],
         "allowed_safety_states": ["normal"],
-        "qos": {"priority": "vehicle-control", "timeout_ms": 1500},
+        "qos": {
+            "priority": "vehicle-control",
+            "timeout_ms": 1500,
+            "rate_limit": {"max_requests": 10, "window_s": 1},
+        },
         "implementation": "planned",
     },
 ]
@@ -90,6 +107,8 @@ class RuntimeGovernance:
         self.sequence = 0
         self.audit_log_path = Path(audit_log_path).expanduser() if audit_log_path else None
         self.audit_persistence_error: str | None = None
+        self.qos_windows: dict[str, deque[float]] = {}
+        self.qos_lock = Lock()
         self._load_audit_events()
 
     def _load_audit_events(self) -> None:
@@ -191,6 +210,11 @@ class RuntimeGovernance:
                 "policy": policy,
                 "lifecycle_state": "unknown",
                 "qos": {"priority": "diagnostic", "timeout_ms": 1000},
+                "qos_decision": {
+                    "decision": "allow",
+                    "reason": "service not registered; QoS window not applied",
+                    "req_ids": ["NV-G-004"],
+                },
             }
 
         lifecycle_state = self.lifecycle.get(service_name, "unknown")
@@ -205,11 +229,62 @@ class RuntimeGovernance:
             policy["decision"] = "deny"
             policy["reason"] = f"service lifecycle is {lifecycle_state}"
 
+        qos = service.get("qos", {"priority": "diagnostic", "timeout_ms": 1000})
+        if policy["decision"] != "allow":
+            return {
+                "service": service,
+                "policy": policy,
+                "lifecycle_state": lifecycle_state,
+                "qos": qos,
+                "qos_decision": {
+                    "decision": "skipped",
+                    "service": service_name,
+                    "reason": "Policy or lifecycle denied before QoS window was consumed",
+                    "req_ids": ["NV-G-004"],
+                },
+            }
+
+        qos_decision = self.evaluate_qos(service_name, qos)
         return {
             "service": service,
             "policy": policy,
             "lifecycle_state": lifecycle_state,
-            "qos": service.get("qos", {"priority": "diagnostic", "timeout_ms": 1000}),
+            "qos": qos,
+            "qos_decision": qos_decision,
+        }
+
+    def evaluate_qos(self, service_name: str, qos: dict[str, Any]) -> dict[str, Any]:
+        rate_limit = qos.get("rate_limit") or {}
+        max_requests = int(rate_limit.get("max_requests", 0) or 0)
+        window_s = float(rate_limit.get("window_s", 0) or 0)
+        if max_requests <= 0 or window_s <= 0:
+            return {
+                "decision": "allow",
+                "service": service_name,
+                "reason": "no rate limit configured",
+                "req_ids": ["NV-G-004"],
+            }
+
+        now = time.monotonic()
+        with self.qos_lock:
+            window = self.qos_windows.setdefault(service_name, deque())
+            while window and now - window[0] >= window_s:
+                window.popleft()
+            current_count = len(window)
+            allowed = current_count < max_requests
+            if allowed:
+                window.append(now)
+
+        return {
+            "decision": "allow" if allowed else "deny",
+            "service": service_name,
+            "priority": qos.get("priority", "diagnostic"),
+            "window_s": window_s,
+            "max_requests": max_requests,
+            "current_count": current_count + 1 if allowed else current_count,
+            "retry_after_ms": 0 if allowed else int(window_s * 1000),
+            "reason": "QoS window allowed" if allowed else "QoS rate limit exceeded",
+            "req_ids": ["NV-G-004"],
         }
 
     def record_audit(self, trace_id: str, record: dict[str, Any]) -> dict[str, Any]:
@@ -257,12 +332,14 @@ class RuntimeGovernance:
                 "req_ids": ["NV-G-003"],
             },
             "qos": {
-                "state": "mock-enforced-metadata",
+                "state": "active-prototype-fixed-window",
                 "priority_classes": ["vehicle-control", "ai-task", "diagnostic"],
                 "service_defaults": {
                     service["name"]: service["qos"]
                     for service in SERVICE_CATALOG
                 },
+                "enforced_on": ["POST /soa/invoke"],
+                "limiter": "in-process fixed window per service",
                 "req_ids": ["NV-G-004"],
             },
             "policy": {

@@ -24,7 +24,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.8"
+API_VERSION = "0.1.9"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -357,6 +357,7 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
     precheck = GOVERNANCE.precheck(request)
     service_entry = precheck["service"]
     policy = precheck["policy"]
+    qos_decision = precheck["qos_decision"]
     if policy["decision"] != "allow":
         response = {
             "service": service,
@@ -365,6 +366,7 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
             "policy": policy,
             "lifecycle_state": precheck["lifecycle_state"],
             "qos": precheck["qos"],
+            "qos_decision": qos_decision,
             "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-002", "NV-G-005", "NV-G-006"]
         }
         GOVERNANCE.record_audit(
@@ -375,6 +377,30 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
                 "outcome": "rejected",
                 "policy_decision": policy["decision"],
                 "lifecycle_state": precheck["lifecycle_state"],
+                "qos_decision": qos_decision["decision"],
+            }
+        )
+        return response
+    if qos_decision["decision"] != "allow":
+        response = {
+            "service": service,
+            "method": method,
+            "state": "rejected",
+            "policy": policy,
+            "lifecycle_state": precheck["lifecycle_state"],
+            "qos": precheck["qos"],
+            "qos_decision": qos_decision,
+            "req_ids": ["FW-U-005", "FW-S-004", "FW-S-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006"]
+        }
+        GOVERNANCE.record_audit(
+            trace_id,
+            {
+                "service": service,
+                "method": method,
+                "outcome": "qos_rejected",
+                "policy_decision": policy["decision"],
+                "lifecycle_state": precheck["lifecycle_state"],
+                "qos_decision": qos_decision["decision"],
             }
         )
         return response
@@ -399,6 +425,7 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
         "policy": policy,
         "lifecycle_state": precheck["lifecycle_state"],
         "qos": precheck["qos"],
+        "qos_decision": qos_decision,
         "result": result,
         "req_ids": ["FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006"]
     }
@@ -410,6 +437,7 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
             "outcome": "completed",
             "policy_decision": policy["decision"],
             "lifecycle_state": precheck["lifecycle_state"],
+            "qos_decision": qos_decision["decision"],
         }
     )
     return response

@@ -55,6 +55,7 @@ bash tools/check_central_brain_binding_artifacts.sh
 bash tools/check_central_brain_delivery_docs.sh
 bash tools/check_central_brain_virtualization_docs.sh
 bash tools/smoke_central_brain_audit_persistence.sh
+bash tools/smoke_central_brain_qos.sh
 bash tools/smoke_central_brain_linux_ipc.sh
 ```
 
@@ -91,6 +92,7 @@ bash tools/check_central_brain_delivery_docs.sh
 - `POST /soa/invoke`：SOA 服务入口，覆盖 XSC-003、FW-S-004、FW-S-005。
 - `GET /governance/runtime`：Runtime & Governance 状态，覆盖 XSC-005、NV-G-001..007。
 - `GET /audit/recent`：SOA 调用审计记录；设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可从 JSONL 恢复最近记录，覆盖 XSC-005、NV-G-007、DEL-002。
+- `/soa/invoke` QoS fixed-window 检查：对受控服务执行 NV-G-004 限流，超限时返回 `qos_decision=deny` 并写入 `qos_rejected` audit，覆盖 XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002。
 - `POST /policy/evaluate`：Policy/Safety State 评估入口，覆盖 FW-U-007、FW-S-005、NV-G-005。
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。
 - `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。

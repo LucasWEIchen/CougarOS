@@ -11,7 +11,7 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event active mock + Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
@@ -155,3 +155,9 @@
   - 新增验证脚本：`tools/smoke_central_brain_audit_persistence.sh`。
   - 本轮未开发 Driver/HAL、Safety Runtime、虚拟化层、真实审计后端或日志轮转。
   - 覆盖 Req ID：XSC-005、NV-G-007、DEL-002、DEL-004。
+- 推进 A3 Runtime & Governance QoS active prototype：
+  - `RuntimeGovernance` 新增 per-service fixed-window QoS 检查，`/soa/invoke` 在 Policy/Lifecycle 之后执行限流。
+  - `npu-inference` 样例限制为每 1 秒 2 次，超出后返回 `qos_decision=deny` 并写入 `qos_rejected` audit。
+  - 新增验证脚本：`tools/smoke_central_brain_qos.sh`。
+  - 本轮未开发多进程限流、真实服务治理后端、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002。
