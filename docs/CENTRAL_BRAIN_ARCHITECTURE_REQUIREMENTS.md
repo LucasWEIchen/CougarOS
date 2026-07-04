@@ -51,7 +51,7 @@
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
 | XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter；adapter registry 初版 |
 | XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle 可移植 | Android runtime integration | Linux runtime integration |
-| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | REST active prototype + Binder/AIDL contract skeleton | REST active prototype + IPC/gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
+| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | REST active prototype + Binder/AIDL contract skeleton | REST active prototype + Unix socket IPC active sample + gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
 
 ## 交付对象与平台要求
 
@@ -140,7 +140,7 @@
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
 | NV-P-001 | SOME/IP | 展锐负责/生态合作 | 跨 ECU 服务 | 车内跨 ECU 服务优先通过 SOME/IP binding | `/bindings` 计划态，待车载网络环境 |
-| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | Android Binder/AIDL + Linux IPC contract skeleton |
+| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | Android Binder/AIDL contract skeleton + Linux Unix socket IPC active sample |
 | NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | Linux gRPC proto contract skeleton |
 | NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | `/bindings` 计划态 |
 | NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | Android/Linux 主路径经 `/uib/*`、`/soa/*`，REST 为 active prototype binding |

@@ -1,4 +1,4 @@
-# Linux Protocol Binding Skeleton
+# Linux Protocol Binding
 
 This directory contains Linux-side protocol binding skeletons for the Central
 Brain semantic gateway.
@@ -9,8 +9,12 @@ Brain semantic gateway.
 - `proto/central_brain_gateway.proto` defines the gRPC/RPC surface.
 - `ipc/central_brain_ipc_envelope.schema.json` defines the Unix domain socket
   JSON envelope for a lightweight local IPC daemon.
-- These files are binding contracts only. They do not implement SOME/IP, DDS,
-  MQTT, drivers, HAL, or virtualization.
+- `ipc/central_brain_ipc_daemon.py` is an active Unix socket sample that maps
+  IPC envelopes to the architecture-aligned semantic gateway.
+- `ipc/central_brain_ipc_client.py` is a Linux client sample for the same IPC
+  envelope.
+- These files do not implement SOME/IP, DDS, MQTT, drivers, HAL, or
+  virtualization.
 
 ## Mapping
 
@@ -25,10 +29,36 @@ Brain semantic gateway.
 | `audit.recent.get` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
 
+## Unix Socket Sample
+
+Run the backend first, then start the IPC daemon:
+
+```bash
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py \
+  --socket-path /tmp/central_brain_gateway.sock
+```
+
+Call it with the sample client:
+
+```bash
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
+```
+
+Validate daemon/client behavior:
+
+```bash
+bash tools/smoke_central_brain_linux_ipc.sh
+```
+
 ## Delivery Assumptions
 
 - Local Linux daemon integration should start with Unix domain sockets for
   same-SoC IPC and add gRPC when cross-process or cross-host tooling needs it.
+- The current IPC daemon is an active sample, not a full production gateway; it
+  forwards to the REST prototype binding while preserving Uni Info Bus and SOA
+  semantic operations.
 - SOME/IP and DDS remain separate vehicle-network/high-rate topic bindings and
   are not implemented in this prototype.
 - Policy and lifecycle checks stay in Runtime & Governance regardless of the

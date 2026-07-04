@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+"""Linux Unix socket sample for the Central Brain IPC binding.
+
+Req IDs: XSC-006, NV-P-002, DEL-002.
+This daemon is a transport sample: it maps local IPC envelopes onto the
+architecture-aligned Uni Info Bus and SOA semantic gateway.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import signal
+import socket
+import sys
+from typing import Any
+from urllib import request
+from urllib.error import HTTPError, URLError
+
+
+DEFAULT_BASE_URL = os.environ.get("CENTRAL_BRAIN_BASE_URL", "http://127.0.0.1:8787")
+DEFAULT_SOCKET_PATH = os.environ.get("CENTRAL_BRAIN_IPC_SOCKET", "/tmp/central_brain_gateway.sock")
+
+OPERATION_MAP: dict[str, dict[str, Any]] = {
+    "uib.context.get": {
+        "method": "GET",
+        "path": "/uib/context",
+        "req_ids": ["XSC-002", "XSC-006", "FW-U-001", "NV-P-002", "DEL-002"],
+    },
+    "uib.state.get": {
+        "method": "GET",
+        "path": "/uib/state",
+        "req_ids": ["XSC-002", "XSC-006", "FW-U-002", "NV-P-002", "DEL-002"],
+    },
+    "soa.services.list": {
+        "method": "GET",
+        "path": "/soa/services",
+        "req_ids": ["XSC-003", "XSC-006", "FW-S-004", "NV-P-002", "DEL-002"],
+    },
+    "soa.service.invoke": {
+        "method": "POST",
+        "path": "/soa/invoke",
+        "req_ids": ["XSC-003", "XSC-006", "FW-S-005", "NV-P-002", "DEL-002"],
+    },
+    "policy.evaluate": {
+        "method": "POST",
+        "path": "/policy/evaluate",
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-005", "NV-P-002", "DEL-002"],
+    },
+    "governance.runtime.get": {
+        "method": "GET",
+        "path": "/governance/runtime",
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-P-002", "DEL-002"],
+    },
+    "audit.recent.get": {
+        "method": "GET",
+        "path": "/audit/recent",
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-007", "NV-P-002", "DEL-002"],
+    },
+    "bindings.list": {
+        "method": "GET",
+        "path": "/bindings",
+        "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-002"],
+    },
+}
+
+
+def response(trace_id: str, status: str, payload: dict[str, Any], error: dict[str, Any] | None = None) -> dict[str, Any]:
+    return {
+        "trace_id": trace_id,
+        "status": status,
+        "error": error,
+        "payload": payload,
+        "req_ids": ["XSC-006", "NV-P-002", "DEL-002"],
+    }
+
+
+def validate_envelope(envelope: Any) -> tuple[str, str, dict[str, Any]]:
+    if not isinstance(envelope, dict):
+        raise ValueError("IPC envelope must be a JSON object")
+    trace_id = envelope.get("trace_id")
+    operation = envelope.get("operation")
+    payload = envelope.get("payload")
+    req_ids = envelope.get("req_ids", [])
+    if not isinstance(trace_id, str) or not trace_id:
+        raise ValueError("trace_id must be a non-empty string")
+    if operation not in OPERATION_MAP:
+        raise ValueError(f"unsupported operation: {operation}")
+    if not isinstance(payload, dict):
+        raise ValueError("payload must be an object")
+    if req_ids and (not isinstance(req_ids, list) or "XSC-006" not in req_ids):
+        raise ValueError("req_ids must include XSC-006 when provided")
+    return trace_id, operation, payload
+
+
+def call_gateway(base_url: str, trace_id: str, operation: str, payload: dict[str, Any]) -> dict[str, Any]:
+    mapping = OPERATION_MAP[operation]
+    method = mapping["method"]
+    body = None
+    headers = {"Accept": "application/json"}
+    if method == "POST":
+        outbound = dict(payload)
+        outbound.setdefault("trace_id", trace_id)
+        body = json.dumps(outbound).encode("utf-8")
+        headers["Content-Type"] = "application/json; charset=utf-8"
+
+    req = request.Request(base_url.rstrip("/") + mapping["path"], data=body, headers=headers, method=method)
+    with request.urlopen(req, timeout=5) as gateway_response:
+        gateway_payload = json.loads(gateway_response.read().decode("utf-8"))
+
+    return response(
+        trace_id,
+        "ok",
+        {
+            "operation": operation,
+            "semantic_path": mapping["path"],
+            "gateway": gateway_payload,
+            "req_ids": mapping["req_ids"],
+        },
+    )
+
+
+def handle_bytes(raw: bytes, base_url: str) -> dict[str, Any]:
+    fallback_trace_id = "unknown"
+    try:
+        envelope = json.loads(raw.decode("utf-8"))
+        trace_id, operation, payload = validate_envelope(envelope)
+        fallback_trace_id = trace_id
+        return call_gateway(base_url, trace_id, operation, payload)
+    except json.JSONDecodeError as exc:
+        return response(fallback_trace_id, "error", {}, {"code": "INVALID_JSON", "message": str(exc)})
+    except ValueError as exc:
+        return response(fallback_trace_id, "error", {}, {"code": "INVALID_ENVELOPE", "message": str(exc)})
+    except (HTTPError, URLError, TimeoutError, OSError) as exc:
+        return response(fallback_trace_id, "error", {}, {"code": "GATEWAY_UNAVAILABLE", "message": str(exc)})
+
+
+def serve(socket_path: str, base_url: str) -> int:
+    if os.path.exists(socket_path):
+        os.unlink(socket_path)
+
+    shutdown = False
+
+    def stop(_signum: int, _frame: Any) -> None:
+        nonlocal shutdown
+        shutdown = True
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server:
+        server.bind(socket_path)
+        os.chmod(socket_path, 0o660)
+        server.listen(8)
+        server.settimeout(0.2)
+        print(f"Central Brain Linux IPC daemon listening on {socket_path}", flush=True)
+        while not shutdown:
+            try:
+                conn, _ = server.accept()
+            except socket.timeout:
+                continue
+            with conn:
+                chunks = []
+                while True:
+                    chunk = conn.recv(65536)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                raw = b"".join(chunks)
+                payload = handle_bytes(raw, base_url)
+                conn.sendall(json.dumps(payload, ensure_ascii=False).encode("utf-8") + b"\n")
+
+    if os.path.exists(socket_path):
+        os.unlink(socket_path)
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the Central Brain Linux IPC binding sample.")
+    parser.add_argument("--socket-path", default=DEFAULT_SOCKET_PATH)
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
+    args = parser.parse_args()
+    try:
+        return serve(args.socket_path, args.base_url)
+    except OSError as exc:
+        print(f"ipc daemon failed: {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

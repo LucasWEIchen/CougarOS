@@ -7,7 +7,7 @@
 - `contracts/`：Android 前端、中间层和后端之间的服务契约。
 - `backend/`：WSL 本地 mock NPU 后端，模拟 PCIe NPU runtime。
 - `backend/native_adapters.py`：Native adapter 注册表，表达 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 的 Android/Linux 交付边界。
-- `bindings/`：Android Binder/AIDL、Linux IPC/gRPC 等协议绑定契约骨架。
+- `bindings/`：Android Binder/AIDL、Linux IPC/gRPC 等协议绑定契约与 Linux IPC active sample。
 - `android-console/`：普通 Android App 原型，用于模拟器验证应用层和后端联通。
 - `linux-cli/`：Linux 同步交付 CLI 示例，调用同一套 Uni Info Bus/SOA 语义入口。
 
@@ -47,6 +47,16 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 bash tools/check_central_brain_binding_artifacts.sh
+bash tools/smoke_central_brain_linux_ipc.sh
+```
+
+Linux IPC sample：
+
+```bash
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py --socket-path /tmp/central_brain_gateway.sock
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
 ```
 
 ## 设计边界
@@ -68,5 +78,6 @@ bash tools/check_central_brain_binding_artifacts.sh
 - `POST /policy/evaluate`：Policy/Safety State 评估入口，覆盖 FW-U-007、FW-S-005、NV-G-005。
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。
 - `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
+- Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*` 和 `audit.*` 本地 IPC envelope，覆盖 XSC-006、NV-P-002、DEL-002。
 - `GET /native/adapters`：Native adapter 注册表，覆盖 XSC-004、NV-F-001、NV-F-003、NV-F-004、NV-F-008、NV-F-009、NV-F-011。
 - `GET /native/adapters/detail`：Android/Linux 原生适配交付边界与 Driver/HAL 依赖说明，覆盖 XSC-004、DEL-001、DEL-002、DEL-005。

@@ -43,15 +43,22 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
     },
     {
         "name": "linux-ipc",
-        "status": "contract-skeleton",
+        "status": "active-sample",
         "platforms": ["Linux"],
         "semantic_paths": [
             "uib.context.get -> /uib/context",
             "uib.state.get -> /uib/state",
+            "soa.services.list -> /soa/services",
             "soa.service.invoke -> /soa/invoke",
+            "policy.evaluate -> /policy/evaluate",
+            "governance.runtime.get -> /governance/runtime",
+            "audit.recent.get -> /audit/recent",
+            "bindings.list -> /bindings",
         ],
         "artifacts": [
             "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
+            "central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py",
+            "central-brain/bindings/linux/ipc/central_brain_ipc_client.py",
             "central-brain/bindings/linux/README.md",
         ],
         "req_ids": ["XSC-002", "XSC-003", "XSC-005", "XSC-006", "NV-P-002", "DEL-002"],
@@ -126,6 +133,7 @@ class ProtocolBindingRegistry:
             "constraints": [
                 "Protocol Binding cannot bypass Uni Info Bus semantic objects.",
                 "SOA calls remain policy, lifecycle, and audit checked.",
+                "Linux IPC active sample maps Unix socket envelopes to the semantic gateway; REST remains the upstream prototype binding.",
                 "Virtualization and driver layers are documented integration assumptions only in this increment.",
             ],
             "req_ids": BINDING_REQ_IDS + ["DEL-001", "DEL-002"],
