@@ -9,7 +9,7 @@
 
 虚拟化层不开发；如果某个驱动接口依赖 Hypervisor、跨 VM 共享内存或安全域通信，本项目只记录依赖假设和 fallback，不实现虚拟化功能。
 
-2026-07-04 本轮语义网关、Runtime & Governance、Protocol Binding contract skeleton、Native adapters mock、Linux IPC active sample、Android Binder service stub sample、Linux systemd 部署样例与 Android/Linux 平台差异说明增量只新增 Uni Info Bus/SOA/Governance/Binding/Native Adapter mock、Policy/Audit active prototype、Android AIDL 与 Binder service/client sample、Linux Unix socket IPC daemon/client sample、Linux gRPC contract skeleton、Linux CLI、systemd unit 和交付文档，不访问真实 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，因此未触发新增驱动开发条件。
+2026-07-04/05 本轮语义网关、Runtime & Governance、Protocol Binding contract skeleton、Native adapters mock、Linux IPC active sample、Linux gRPC/RPC JSON contract sample、Android Binder service stub sample、Linux systemd 部署样例与 Android/Linux 平台差异说明增量只新增 Uni Info Bus/SOA/Governance/Binding/Native Adapter mock、Policy/Audit active prototype、Android AIDL 与 Binder service/client sample、Linux Unix socket IPC daemon/client sample、Linux gRPC/RPC contract sample、Linux CLI、systemd unit 和交付文档，不访问真实 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，因此未触发新增驱动开发条件。
 
 A7 虚拟化与 Safety 接口约束增量只新增 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 和 `tools/check_central_brain_virtualization_docs.sh`，覆盖 HV-001..003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004；不新增 Hypervisor、Safety Runtime、跨 VM 共享内存、Driver/HAL 或 NPU/GPU/Camera/Audio/ETH/Vehicle bus 代码。
 
@@ -40,6 +40,8 @@ Linux IPC Runtime & Governance precheck 增量只在 `central_brain_ipc_daemon.p
 Runtime & Governance 显式 precheck 契约增量新增 `POST /governance/precheck`、Android Binder/AIDL `precheckGovernanceJson`、Linux CLI/IPC `governance-precheck`/`governance.precheck` 和 gRPC `PrecheckGovernance` contract skeleton；覆盖 XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-001、DEL-002。该增量只返回 discovery、Policy/Safety State、Lifecycle 和 QoS 决策，默认不消费 QoS 窗口且不 dispatch 到 SOA service、Driver/HAL、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化层，不新增驱动开发量。
 
 Linux Runtime & Governance 共享 daemon 样例新增 `central_brain_governance_daemon.py`、`central-brain-governance.service`、`CENTRAL_BRAIN_GOVERNANCE_SOCKET` 和 `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG`，让 Linux IPC `soa.service.invoke` 可在转发到 REST prototype gateway 前优先复用共享 governance socket，并在不可用时回退本地 precheck；覆盖 XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002、DEL-004。该增量只使用 Unix domain socket 和普通 JSONL 文件，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、多机治理后端或虚拟化代码。
+
+Linux gRPC/RPC contract sample 增量新增 `central_brain_grpc_server.py`、`central_brain_grpc_client.py`、`central-brain-linux-grpc.service`、`CENTRAL_BRAIN_GRPC_PORT`、`CENTRAL_BRAIN_GRPC_AUDIT_LOG` 和 `tools/smoke_central_brain_linux_grpc.sh`，覆盖 XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-003、DEL-002、DEL-004。该增量只用标准库 TCP JSON wrapper 验证 gRPC proto contract、Req ID、`InvokeService` shared governance precheck 和 local fallback；当前环境无 `grpcio`，不新增真实 gRPC runtime、Driver/HAL、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
 
 ## 驱动接口矩阵
 

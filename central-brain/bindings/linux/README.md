@@ -7,6 +7,9 @@ Brain semantic gateway.
 
 - Req IDs: XSC-001, XSC-002, XSC-003, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-003, NV-P-006, DEL-002.
 - `proto/central_brain_gateway.proto` defines the gRPC/RPC surface.
+- `grpc/central_brain_grpc_server.py` and `grpc/central_brain_grpc_client.py`
+  are dependency-free JSON TCP samples that mirror the proto request/response
+  fields and validate NV-P-003 behavior in the current workspace.
 - `ipc/central_brain_ipc_envelope.schema.json` defines the Unix domain socket
   JSON envelope for a lightweight local IPC daemon.
 - `ipc/central_brain_ipc_daemon.py` is an active Unix socket sample that maps
@@ -43,6 +46,12 @@ Brain semantic gateway.
 | `governance.runtime.get` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `audit.recent.get` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
+
+The gRPC/RPC JSON sample maps the same semantic endpoints through
+`CentralBrainGateway.*` RPC names from `proto/central_brain_gateway.proto`.
+`CentralBrainGateway.InvokeService` calls the shared Linux governance daemon
+before forwarding allowed SOA calls and falls back to local Runtime &
+Governance when the shared socket is unavailable.
 
 ## Unix Socket Sample
 
@@ -87,6 +96,39 @@ Validate daemon/client behavior:
 bash tools/smoke_central_brain_linux_ipc.sh
 ```
 
+## gRPC/RPC Contract Sample
+
+The current workspace does not include `grpcio`, so this sample verifies the
+gRPC/RPC contract with a small standard-library TCP JSON wrapper. It is an
+active Linux delivery sample for NV-P-003, not a production gRPC server.
+
+Run the backend and governance daemon first, then start the gRPC/RPC sample:
+
+```bash
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+  CENTRAL_BRAIN_GOVERNANCE_SOCKET=/tmp/central_brain_governance.sock \
+  CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_server.py \
+  --host 127.0.0.1 --port 18788
+```
+
+Call it with the sample client:
+
+```bash
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py state
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-precheck
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py infer-denied
+```
+
+Validate behavior:
+
+```bash
+bash tools/smoke_central_brain_linux_grpc.sh
+```
+
 For systemd deployment samples, see:
 
 ```bash
@@ -98,6 +140,9 @@ bash tools/check_central_brain_delivery_docs.sh
 
 - Local Linux daemon integration should start with Unix domain sockets for
   same-SoC IPC and add gRPC when cross-process or cross-host tooling needs it.
+- The current gRPC/RPC sample mirrors proto fields over JSON TCP because
+  `grpcio` is unavailable; target images can replace only the transport while
+  keeping the same RPC names, Req IDs, and governance precheck behavior.
 - The current IPC daemon is an active sample, not a full production gateway; it
   applies a shared Linux governance daemon precheck to SOA service invocations
   when `CENTRAL_BRAIN_GOVERNANCE_SOCKET` is configured, falls back to local
@@ -109,6 +154,8 @@ bash tools/check_central_brain_delivery_docs.sh
   `CENTRAL_BRAIN_AUDIT_LOG` sample.
 - `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG` can persist shared governance daemon
   decisions for Linux integration tests.
+- `CENTRAL_BRAIN_GRPC_AUDIT_LOG` can persist gRPC/RPC sample local fallback
+  precheck decisions separately from the backend and IPC audit logs.
 - SOME/IP and DDS remain separate vehicle-network/high-rate topic bindings and
   are not implemented in this prototype.
 - Policy and lifecycle checks stay in Runtime & Governance regardless of the

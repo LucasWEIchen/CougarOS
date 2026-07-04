@@ -346,7 +346,7 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 | --- | --- | --- | --- | --- |
 | Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java`，并已编入 Android Console debug APK | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/invoke`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail` | XSC-001、APP-004、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-P-002、NV-P-005、DEL-001 | Console Binder path + service stub sample；Console 主任务入口已走 `planAgentTaskJson`；execute/Skill/Memory 为 contract mock；service 上游仍代理 REST prototype |
 | Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json` | `uib.context.get`、`uib.state.get`、`uib.events.*`、`uib.actions.request`、`agent.plan`、`agent.execute`、`skills.*`、`memory.query`、`soa.service.invoke` 本地 Runtime & Governance precheck 后转发、`policy.evaluate`、`governance.precheck` | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002 | active sample with SOA governance precheck and explicit governance precheck contract |
-| Linux gRPC/RPC | `central-brain/bindings/linux/proto/central_brain_gateway.proto` | `CentralBrainGateway.GetState`、`RequestAction`、`InvokeService`、`EvaluatePolicy` | XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、NV-P-003、DEL-002 | contract skeleton |
+| Linux gRPC/RPC | `central-brain/bindings/linux/proto/central_brain_gateway.proto`、`central-brain/bindings/linux/grpc/central_brain_grpc_server.py`、`central-brain/bindings/linux/grpc/central_brain_grpc_client.py` | `CentralBrainGateway.GetState`、`RequestAction`、`InvokeService`、`EvaluatePolicy`、`PrecheckGovernance`、`ListBindings`；`InvokeService` 先走 shared governance daemon precheck，不可用时 local fallback | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-003、DEL-002 | JSON TCP contract sample；真实 gRPC runtime 待目标环境提供 `grpcio`/C++ gRPC |
 
 验证命令：
 
@@ -376,7 +376,7 @@ bash tools/smoke_central_brain_semantic_gateway.sh
 
 ## Event Topic 设计
 
-当前 FW-U-003 增量已实现 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` active mock，并在 Android Binder、Linux IPC、gRPC contract skeleton 中建立映射。该实现只验证 Uni Info Bus 事件语义、Req ID 和跨平台 binding，不实现 DDS、高频推送 broker、真实订阅生命周期或 Driver/HAL 数据面；这些仍按 NV-P-006 计划态推进。
+当前 FW-U-003 增量已实现 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` active mock，并在 Android Binder、Linux IPC、Linux gRPC/RPC contract sample 中建立映射。该实现只验证 Uni Info Bus 事件语义、Req ID 和跨平台 binding，不实现 DDS、高频推送 broker、真实订阅生命周期或 Driver/HAL 数据面；这些仍按 NV-P-006 计划态推进。
 
 | Topic | 载荷 | 订阅方 |
 | --- | --- | --- |

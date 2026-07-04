@@ -51,7 +51,7 @@
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
 | XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter；adapter registry 初版 |
 | XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit 可移植 | Android runtime integration + `precheckGovernanceJson` contract | Linux runtime integration；JSONL audit persistence sample；QoS fixed-window active prototype；`/governance/precheck`/`governance-precheck`；Linux shared governance daemon sample + IPC local fallback |
-| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Console 已绑定 Binder service sample；system/privileged service integration note 初版；REST 仍为 service 上游 prototype binding | REST active prototype + Unix socket IPC active sample with shared SOA governance precheck + gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
+| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Console 已绑定 Binder service sample；system/privileged service integration note 初版；REST 仍为 service 上游 prototype binding | REST active prototype + Unix socket IPC active sample with shared SOA governance precheck + Linux gRPC/RPC JSON contract sample，MQTT/SOME-IP/DDS 计划态 |
 
 ## 交付对象与平台要求
 
@@ -141,7 +141,7 @@
 | --- | --- | --- | --- | --- | --- |
 | NV-P-001 | SOME/IP | 展锐负责/生态合作 | 跨 ECU 服务 | 车内跨 ECU 服务优先通过 SOME/IP binding | `/bindings` 计划态，待车载网络环境 |
 | NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | Android Console 绑定 Binder/AIDL service sample；Android system/privileged service integration note 初版；Linux Unix socket IPC active sample 已对 SOA 调用执行 shared governance daemon precheck，并保留本地 fallback |
-| NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | Linux gRPC proto contract skeleton |
+| NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | Linux `central_brain_gateway.proto` + JSON TCP contract sample；`InvokeService` 复用 shared governance daemon precheck；真实 gRPC runtime 待目标环境提供 `grpcio`/C++ gRPC |
 | NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | `/bindings` 计划态 |
 | NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | Android App 层经 Binder sample；Linux IPC 对 SOA 调用先做本地治理 precheck 后再代理 REST prototype gateway；Binder 仍代理 REST prototype gateway |
 | NV-P-006 | DDS | 展锐负责/生态合作 | Topic/Context/... | 高频 Topic/Context 订阅预留 DDS | `/uib/events/*` 已建立 Event 语义 contract 与 Android Binder/Linux IPC/gRPC 映射；DDS 数据面仍为计划态，待高频 topic 环境 |

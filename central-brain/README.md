@@ -8,7 +8,7 @@
 - `backend/`：WSL 本地 mock NPU 后端，模拟 PCIe NPU runtime。
 - `backend/ai_sdk.py`：AI SDK/Agent facade mock，输出 policy-aware task graph。
 - `backend/native_adapters.py`：Native adapter 注册表，表达 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 的 Android/Linux 交付边界。
-- `bindings/`：Android Binder/AIDL service/client sample、Linux IPC/gRPC 等协议绑定契约与 Linux IPC active sample。
+- `bindings/`：Android Binder/AIDL service/client sample、Linux IPC/gRPC 等协议绑定契约、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample。
 - `deploy/linux/`：Linux systemd 部署样例、环境模板和平台部署说明。
 - `android-console/`：普通 Android App 原型，用于模拟器验证 App -> Binder -> AI SDK/Uni Info Bus/SOA semantic gateway -> 后端联通。
 - `linux-cli/`：Linux 同步交付 CLI 示例，调用同一套 Uni Info Bus/SOA 语义入口。
@@ -67,6 +67,7 @@ bash tools/check_central_brain_virtualization_docs.sh
 bash tools/smoke_central_brain_audit_persistence.sh
 bash tools/smoke_central_brain_qos.sh
 bash tools/smoke_central_brain_linux_ipc.sh
+bash tools/smoke_central_brain_linux_grpc.sh
 ```
 
 Linux IPC sample：
@@ -86,6 +87,18 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 ```
 
+Linux gRPC/RPC contract sample：
+
+```bash
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+  CENTRAL_BRAIN_GOVERNANCE_SOCKET=/tmp/central_brain_governance.sock \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_server.py --host 127.0.0.1 --port 18788
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py state
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py infer-denied
+```
+
 Linux systemd deployment sample：
 
 ```bash
@@ -99,7 +112,7 @@ bash tools/check_central_brain_delivery_docs.sh
 
 - Android/AAOS AIDL 系统服务，当前已有 Binder service/client sample。
 - VSS/VHAL 信号适配。
-- SOME/IP、DDS、MQTT、gRPC 协议绑定。
+- SOME/IP、DDS、MQTT、真实 gRPC runtime。
 - 真实 PCIe NPU 驱动和供应商 runtime。
 - 安全状态、权限治理、Trace、OTA 和诊断闭环。
 
@@ -122,6 +135,7 @@ bash tools/check_central_brain_delivery_docs.sh
 - Android system/privileged service integration note：`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 记录 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项，覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005；本轮不开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化层。
 - Linux shared governance daemon sample：`central_brain_governance_daemon.py` 通过 Unix socket 提供 `governance.precheck`，可供 Linux IPC `soa.service.invoke` 转发前复用，覆盖 XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002。
 - Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*` 和 `audit.*` 本地 IPC envelope；`soa.service.invoke` 在转发到 REST prototype 前优先执行 shared Runtime & Governance daemon precheck，不可用时回退本地 precheck，覆盖 XSC-005、XSC-006、FW-U-003、FW-U-004、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-006、DEL-002。
+- Linux gRPC/RPC JSON contract sample：`central_brain_gateway.proto`、`central_brain_grpc_server.py` 和 `central_brain_grpc_client.py` 验证 GatewayRequest/GatewayResponse、RPC 名称映射和 `InvokeService` shared governance precheck；当前环境无 `grpcio`，所以使用标准库 JSON TCP wrapper，覆盖 XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-P-003、DEL-002。
 - `GET /native/adapters`：Native adapter 注册表，覆盖 XSC-004、NV-F-001、NV-F-003、NV-F-004、NV-F-008、NV-F-009、NV-F-011。
 - `GET /native/adapters/detail`：Android/Linux 原生适配交付边界与 Driver/HAL 依赖说明，覆盖 XSC-004、DEL-001、DEL-002、DEL-005。
 - `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`：外置 PCIe NPU 的 Model Runtime Adapter、Driver/HAL、Safety 状态、错误码和 Android/Linux 集成检查点，覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。

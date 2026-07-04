@@ -110,7 +110,7 @@ flowchart TB
 | SOME/IP | 量产车载 SOA 与 ECU 服务发现 | 预留 |
 | DDS | 感知/融合/高频发布订阅 | 预留 |
 
-当前 A1/A4/A8 增量已把 Uni Info Bus Event、Action 与 AI SDK/Agent plan 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton；Android Console 已通过 Binder client 调用 State 与 Agent task plan。Android system/privileged service 集成约束见 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`，其中明确 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项。该增量不实现 DDS broker、高频共享内存、真实车控执行、Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化功能。
+当前 A1/A4/A8 增量已把 Uni Info Bus Event、Action 与 AI SDK/Agent plan 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 Linux gRPC/RPC JSON contract sample；Android Console 已通过 Binder client 调用 State 与 Agent task plan。Android system/privileged service 集成约束见 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`，其中明确 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项。该增量不实现 DDS broker、高频共享内存、真实车控执行、Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化功能。
 
 ### Kernel & HAL 层
 

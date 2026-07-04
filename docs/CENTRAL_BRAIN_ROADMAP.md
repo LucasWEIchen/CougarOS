@@ -12,7 +12,7 @@
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux shared governance daemon sample |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck + local fallback；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck + local fallback；Linux gRPC/RPC JSON contract sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -53,6 +53,12 @@
 
 ### 2026-07-05
 
+- 推进 Linux gRPC/RPC contract active sample：
+  - 新增 `central_brain_grpc_server.py` 与 `central_brain_grpc_client.py`，用当前环境可运行的 JSON TCP wrapper 验证 `central_brain_gateway.proto` 中 GatewayRequest/GatewayResponse 与 RPC 名称映射。
+  - `InvokeService` 在转发到 REST prototype gateway 前优先调用 shared Linux governance daemon precheck，不可用时回退本地 Runtime & Governance precheck。
+  - 新增 `central-brain-linux-grpc.service`、`CENTRAL_BRAIN_GRPC_PORT`、`CENTRAL_BRAIN_GRPC_AUDIT_LOG` 和 `tools/smoke_central_brain_linux_grpc.sh`。
+  - 当前环境无 `grpcio`，因此本轮不是量产 gRPC server；仍未开发 Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-003、DEL-002、DEL-004。
 - 推进 Linux Runtime & Governance 共享 daemon 样例：
   - 新增 `central_brain_governance_daemon.py`，通过 Unix socket 提供 `governance.precheck` 决策，Linux IPC `soa.service.invoke` 可优先调用该共享 socket。
   - Linux IPC daemon 在 `CENTRAL_BRAIN_GOVERNANCE_SOCKET` 不可用时保留本地 Runtime & Governance precheck fallback，避免绕过 Policy/Lifecycle/QoS。

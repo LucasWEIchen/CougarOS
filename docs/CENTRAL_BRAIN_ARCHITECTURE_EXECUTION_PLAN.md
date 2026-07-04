@@ -71,7 +71,7 @@
 | --- | --- | --- | --- |
 | A4-T01 | NV-P-005 | REST binding 下沉为 adapter | REST adapter |
 | A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + Linux IPC active sample with shared SOA governance precheck + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
-| A4-T03 | NV-P-003 | gRPC/RPC adapter stub | RPC adapter |
+| A4-T03 | NV-P-003 | gRPC/RPC adapter stub | JSON TCP contract sample + proto；真实 gRPC runtime 待目标环境 |
 | A4-T04 | NV-P-004 | MQTT adapter stub | MQTT adapter |
 | A4-T05 | NV-P-001 | SOME/IP mapping design | SOME/IP plan |
 | A4-T06 | NV-P-006 | DDS topic mapping design | DDS plan |

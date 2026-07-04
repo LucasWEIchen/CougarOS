@@ -1,10 +1,11 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "updated": "2026-07-05",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck and local fallback",
+    "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck and local fallback",
     "linux_governance_socket_sample": "/tmp/central_brain_governance.sock",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state and /agent/plan; execute/skills/memory are Binder contract samples",
@@ -179,13 +180,13 @@
     {
       "method": "GET",
       "path": "/bindings",
-      "description": "Returns Protocol Binding status for active REST, Android Binder/AIDL skeleton, Linux IPC/gRPC skeleton, and planned MQTT/SOME-IP/DDS paths.",
+      "description": "Returns Protocol Binding status for active REST, Android Binder/AIDL sample, Linux IPC sample, Linux gRPC/RPC JSON contract sample, and planned MQTT/SOME-IP/DDS paths.",
       "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006"]
     },
     {
       "method": "GET",
       "path": "/bindings/detail",
-      "description": "Returns Protocol Binding contract artifacts for Android Binder/AIDL, Android system service integration notes, Linux IPC, and Linux gRPC skeletons.",
+      "description": "Returns Protocol Binding contract artifacts for Android Binder/AIDL, Android system service integration notes, Linux IPC, and Linux gRPC/RPC sample artifacts.",
       "req_ids": ["XSC-006", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
     },
     {

@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+"""Linux gRPC/RPC contract sample for the Central Brain gateway.
+
+Req IDs: XSC-001, XSC-002, XSC-003, XSC-005, XSC-006, APP-004, FW-U-003,
+FW-U-004, FW-U-006, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007,
+NV-P-003, DEL-002.
+
+The current environment does not provide grpcio, so this sample uses a tiny
+TCP JSON request/response wrapper that mirrors the proto GatewayRequest and
+GatewayResponse fields. It validates the RPC contract and governance boundary
+without claiming to be a production gRPC transport.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import signal
+import socket
+import sys
+from typing import Any
+from urllib import request
+from urllib.error import HTTPError, URLError
+
+BACKEND_DIR = Path(__file__).resolve().parents[3] / "backend"
+IPC_DIR = Path(__file__).resolve().parents[1] / "ipc"
+sys.path.insert(0, str(BACKEND_DIR))
+sys.path.insert(0, str(IPC_DIR))
+
+from runtime_governance import RuntimeGovernance
+
+
+DEFAULT_BASE_URL = os.environ.get("CENTRAL_BRAIN_BASE_URL", "http://127.0.0.1:8787")
+DEFAULT_HOST = os.environ.get("CENTRAL_BRAIN_GRPC_HOST", "127.0.0.1")
+DEFAULT_PORT = int(os.environ.get("CENTRAL_BRAIN_GRPC_PORT", "18788"))
+DEFAULT_GOVERNANCE_SOCKET = os.environ.get("CENTRAL_BRAIN_GOVERNANCE_SOCKET")
+DEFAULT_GRPC_AUDIT_LOG = os.environ.get("CENTRAL_BRAIN_GRPC_AUDIT_LOG")
+GRPC_GOVERNANCE = RuntimeGovernance(DEFAULT_GRPC_AUDIT_LOG)
+
+RPC_MAP: dict[str, dict[str, Any]] = {
+    "GetContext": {"method": "GET", "path": "/uib/context", "req_ids": ["XSC-002", "FW-U-001", "NV-P-003", "DEL-002"]},
+    "GetState": {"method": "GET", "path": "/uib/state", "req_ids": ["XSC-002", "FW-U-002", "NV-P-003", "DEL-002"]},
+    "ListEventTopics": {"method": "GET", "path": "/uib/events/topics", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
+    "PublishEvent": {"method": "POST", "path": "/uib/events/publish", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
+    "GetRecentEvents": {"method": "GET", "path": "/uib/events/recent", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
+    "GetAiSdkCapabilities": {"method": "GET", "path": "/ai/sdk/capabilities", "req_ids": ["XSC-001", "APP-004", "NV-P-003", "DEL-002"]},
+    "PlanAgentTask": {"method": "POST", "path": "/agent/plan", "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},
+    "ExecuteAgentTask": {"method": "POST", "path": "/agent/execute", "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},
+    "ListSkills": {"method": "GET", "path": "/skills", "req_ids": ["XSC-001", "FW-U-006", "NV-P-003", "DEL-002"]},
+    "InvokeSkill": {"method": "POST", "path": "/skills/vehicle.state.query/invoke", "req_ids": ["XSC-001", "FW-U-006", "NV-G-005", "NV-P-003", "DEL-002"]},
+    "QueryMemory": {"method": "POST", "path": "/memory/query", "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},
+    "RequestAction": {"method": "POST", "path": "/uib/actions/request", "req_ids": ["XSC-002", "FW-U-004", "FW-U-007", "XSC-005", "NV-G-005", "NV-P-003", "DEL-002"]},
+    "ListServices": {"method": "GET", "path": "/soa/services", "req_ids": ["XSC-003", "FW-S-004", "NV-P-003", "DEL-002"]},
+    "InvokeService": {"method": "POST", "path": "/soa/invoke", "req_ids": ["XSC-003", "FW-S-005", "NV-G-004", "NV-P-003", "DEL-002"]},
+    "EvaluatePolicy": {"method": "POST", "path": "/policy/evaluate", "req_ids": ["XSC-005", "NV-G-005", "NV-P-003", "DEL-002"]},
+    "PrecheckGovernance": {"method": "POST", "path": "/governance/precheck", "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "DEL-002"]},
+    "GetRuntimeGovernance": {"method": "GET", "path": "/governance/runtime", "req_ids": ["XSC-005", "NV-G-001", "NV-P-003", "DEL-002"]},
+    "GetRecentAudit": {"method": "GET", "path": "/audit/recent", "req_ids": ["XSC-005", "NV-G-007", "NV-P-003", "DEL-002"]},
+    "ListBindings": {"method": "GET", "path": "/bindings", "req_ids": ["XSC-006", "NV-P-003", "DEL-002"]},
+}
+
+
+def make_response(trace_id: str, status: str, payload: dict[str, Any], req_ids: list[str], error: dict[str, Any] | None = None) -> dict[str, Any]:
+    return {
+        "trace_id": trace_id,
+        "status": status,
+        "error_json": json.dumps(error, ensure_ascii=False) if error else "",
+        "payload_json": json.dumps(payload, ensure_ascii=False),
+        "req_ids": sorted(set(req_ids + ["XSC-006", "NV-P-003", "DEL-002"])),
+    }
+
+
+def parse_request(raw: bytes) -> tuple[str, str, dict[str, Any]]:
+    envelope = json.loads(raw.decode("utf-8"))
+    if not isinstance(envelope, dict):
+        raise ValueError("GatewayRequest must be a JSON object")
+    trace_id = envelope.get("trace_id")
+    rpc = envelope.get("rpc")
+    if not isinstance(trace_id, str) or not trace_id:
+        raise ValueError("trace_id must be a non-empty string")
+    if rpc not in RPC_MAP:
+        raise ValueError(f"unsupported rpc: {rpc}")
+    payload_json = envelope.get("payload_json") or "{}"
+    if not isinstance(payload_json, str):
+        raise ValueError("payload_json must be a JSON string")
+    payload = json.loads(payload_json)
+    if not isinstance(payload, dict):
+        raise ValueError("payload_json must decode to an object")
+    return trace_id, rpc, payload
+
+
+def local_governance_precheck(trace_id: str, payload: dict[str, Any], reason: str | None = None) -> tuple[dict[str, Any], bool]:
+    precheck = GRPC_GOVERNANCE.precheck(payload)
+    policy = precheck["policy"]
+    qos_decision = precheck["qos_decision"]
+    allowed = policy["decision"] == "allow" and qos_decision["decision"] == "allow"
+    service = payload.get("service", "vehicle-state")
+    method = payload.get("method", "invoke")
+    outcome = "grpc_prechecked_allowed"
+    if policy["decision"] != "allow":
+        outcome = "grpc_policy_or_lifecycle_rejected"
+    elif qos_decision["decision"] != "allow":
+        outcome = "grpc_qos_rejected"
+
+    GRPC_GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": service,
+            "method": method,
+            "outcome": outcome,
+            "policy_decision": policy["decision"],
+            "lifecycle_state": precheck["lifecycle_state"],
+            "qos_decision": qos_decision["decision"],
+            "binding": "linux-grpc-json-sample",
+        },
+    )
+    return {
+        "state": "allowed" if allowed else "rejected",
+        "service": service,
+        "method": method,
+        "policy": policy,
+        "lifecycle_state": precheck["lifecycle_state"],
+        "qos": precheck["qos"],
+        "qos_decision": qos_decision,
+        "audit": {
+            "scope": "linux-grpc-json-sample",
+            "persistence": "enabled" if DEFAULT_GRPC_AUDIT_LOG else "disabled",
+            "path": DEFAULT_GRPC_AUDIT_LOG,
+        },
+        "precheck_source": {
+            "mode": "local-runtime-governance",
+            "fallback_reason": reason,
+        },
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "DEL-002"],
+    }, allowed
+
+
+def shared_governance_precheck(trace_id: str, payload: dict[str, Any]) -> tuple[dict[str, Any], bool] | None:
+    if not DEFAULT_GOVERNANCE_SOCKET:
+        return None
+
+    envelope = {
+        "trace_id": trace_id,
+        "operation": "governance.precheck",
+        "payload": {**payload, "consume_qos": payload.get("consume_qos", True)},
+        "req_ids": ["XSC-005", "XSC-006", "NV-P-003", "DEL-002"],
+    }
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.settimeout(3)
+        client.connect(DEFAULT_GOVERNANCE_SOCKET)
+        client.sendall(json.dumps(envelope).encode("utf-8"))
+        client.shutdown(socket.SHUT_WR)
+        chunks = []
+        while True:
+            chunk = client.recv(65536)
+            if not chunk:
+                break
+            chunks.append(chunk)
+    result = json.loads(b"".join(chunks).decode("utf-8"))
+    if result.get("status") != "ok":
+        raise OSError(result.get("error", {}).get("message", "governance daemon rejected precheck"))
+
+    precheck = result["payload"]
+    allowed = precheck["state"] == "allowed"
+    precheck["precheck_source"] = {
+        "mode": "shared-linux-governance-daemon",
+        "socket": DEFAULT_GOVERNANCE_SOCKET,
+    }
+    return precheck, allowed
+
+
+def grpc_governance_precheck(trace_id: str, rpc: str, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:
+    if rpc != "InvokeService":
+        return None, True
+
+    try:
+        shared = shared_governance_precheck(trace_id, payload)
+        if shared is not None:
+            return shared
+    except (OSError, TimeoutError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        return local_governance_precheck(trace_id, payload, f"shared governance daemon unavailable: {exc}")
+
+    return local_governance_precheck(trace_id, payload)
+
+
+def call_gateway(base_url: str, trace_id: str, rpc: str, payload: dict[str, Any]) -> dict[str, Any]:
+    mapping = RPC_MAP[rpc]
+    governance_precheck, can_forward = grpc_governance_precheck(trace_id, rpc, payload)
+    if governance_precheck is not None and not can_forward:
+        return make_response(
+            trace_id,
+            "ok",
+            {
+                "rpc": rpc,
+                "semantic_path": mapping["path"],
+                "forwarding": "blocked-before-rest-gateway",
+                "grpc_governance_precheck": governance_precheck,
+                "req_ids": mapping["req_ids"] + ["XSC-005", "NV-G-004", "NV-G-005", "NV-G-007"],
+            },
+            mapping["req_ids"] + ["XSC-005", "NV-G-004", "NV-G-005", "NV-G-007"],
+        )
+
+    method = mapping["method"]
+    body = None
+    headers = {"Accept": "application/json"}
+    if method == "POST":
+        outbound = dict(payload)
+        outbound.setdefault("trace_id", trace_id)
+        body = json.dumps(outbound).encode("utf-8")
+        headers["Content-Type"] = "application/json; charset=utf-8"
+
+    req = request.Request(base_url.rstrip("/") + mapping["path"], data=body, headers=headers, method=method)
+    with request.urlopen(req, timeout=5) as gateway_response:
+        gateway_payload = json.loads(gateway_response.read().decode("utf-8"))
+
+    return make_response(
+        trace_id,
+        "ok",
+        {
+            "rpc": rpc,
+            "semantic_path": mapping["path"],
+            "grpc_governance_precheck": governance_precheck,
+            "gateway": gateway_payload,
+            "req_ids": mapping["req_ids"],
+        },
+        mapping["req_ids"],
+    )
+
+
+def handle_bytes(raw: bytes, base_url: str) -> dict[str, Any]:
+    fallback_trace_id = "unknown"
+    try:
+        trace_id, rpc, payload = parse_request(raw)
+        fallback_trace_id = trace_id
+        return call_gateway(base_url, trace_id, rpc, payload)
+    except json.JSONDecodeError as exc:
+        return make_response(fallback_trace_id, "error", {}, ["XSC-006", "NV-P-003"], {"code": "INVALID_JSON", "message": str(exc)})
+    except ValueError as exc:
+        return make_response(fallback_trace_id, "error", {}, ["XSC-006", "NV-P-003"], {"code": "INVALID_REQUEST", "message": str(exc)})
+    except (HTTPError, URLError, TimeoutError, OSError) as exc:
+        return make_response(fallback_trace_id, "error", {}, ["XSC-006", "NV-P-003"], {"code": "GATEWAY_UNAVAILABLE", "message": str(exc)})
+
+
+def serve(host: str, port: int, base_url: str) -> int:
+    shutdown = False
+
+    def stop(_signum: int, _frame: Any) -> None:
+        nonlocal shutdown
+        shutdown = True
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind((host, port))
+        server.listen(8)
+        server.settimeout(0.2)
+        print(f"Central Brain Linux gRPC/RPC JSON contract sample listening on {host}:{port}", flush=True)
+        while not shutdown:
+            try:
+                conn, _addr = server.accept()
+            except socket.timeout:
+                continue
+            with conn:
+                chunks = []
+                while True:
+                    chunk = conn.recv(65536)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                payload = handle_bytes(b"".join(chunks), base_url)
+                conn.sendall(json.dumps(payload, ensure_ascii=False).encode("utf-8") + b"\n")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the Central Brain Linux gRPC/RPC contract sample.")
+    parser.add_argument("--host", default=DEFAULT_HOST)
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
+    args = parser.parse_args()
+    try:
+        return serve(args.host, args.port, args.base_url)
+    except OSError as exc:
+        print(f"gRPC/RPC sample failed: {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
