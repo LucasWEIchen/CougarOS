@@ -17,7 +17,7 @@
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
-| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console plan path |
+| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 |
 
 ## M0 任务清单
@@ -53,6 +53,12 @@
 
 ### 2026-07-05
 
+- 推进 Android Console execute/Skill/Memory Binder 调试路径：
+  - `MainActivity` 在现有 `Refresh` 与 `Plan Agent Task` 基础上新增 `Execute Task`、`Invoke Skill`、`Query Memory`，分别调用 `executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`。
+  - Android Console 现在可直接验证 XSC-001/FW-U-006 的 Agent execute、Skill/Tool 与 Memory contract mock；所有调用仍经 Binder service 上游 REST prototype gateway，不绕过 AI SDK/Uni Info Bus/SOA/Runtime & Governance 边界。
+  - 静态绑定检查新增对 Console execute/Skill/Memory 按钮与 Binder client 方法的断言，防止 Android 主路径只停留在 plan。
+  - 本轮未开发真实 Agent runtime、Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、XSC-006、NV-P-002、NV-P-005、DEL-001。
 - 推进 Linux gRPC/RPC contract active sample：
   - 新增 `central_brain_grpc_server.py` 与 `central_brain_grpc_client.py`，用当前环境可运行的 JSON TCP wrapper 验证 `central_brain_gateway.proto` 中 GatewayRequest/GatewayResponse 与 RPC 名称映射。
   - `InvokeService` 在转发到 REST prototype gateway 前优先调用 shared Linux governance daemon precheck，不可用时回退本地 Runtime & Governance precheck。

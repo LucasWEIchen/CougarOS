@@ -11,7 +11,7 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并以 `planAgentTaskJson` 作为 AI SDK/Agent 主任务入口；Binder contract 已含 execute/Skill/Memory mock；system service integration note 初版 |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并可触发 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`；system service integration note 初版 |
 | Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Unix socket IPC daemon/client active sample 已含 execute/Skill/Memory mock；gRPC/RPC JSON contract sample 初版；systemd 部署样例初版 |
 
 ## 每个核心模块的交付形态
@@ -113,7 +113,9 @@ Android 版本必须提供：
 - 绑定 `CentralBrainGatewayBinderService`。
 - 通过 `CentralBrainGatewayClient.getStateJson` 调用 Uni Info Bus State。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
-- Binder contract 同步提供 `executeAgentTaskJson`、`listSkillsJson`、`invokeSkillJson`、`queryMemoryJson`，用于验证 AIOS Kernel/Tool/Memory 边界；当前 Console 主按钮尚不直接触发这些 mock。
+- 通过 `CentralBrainGatewayClient.executeAgentTaskJson` 验证 Agent execute contract mock，只返回 policy-checked dispatch 边界。
+- 通过 `CentralBrainGatewayClient.invokeSkillJson` 验证 Skill/Tool contract mock，不运行真实 sandbox 或车身总线。
+- 通过 `CentralBrainGatewayClient.queryMemoryJson` 验证本地 Memory query contract mock，不允许 cloud sync。
 - Binder contract 同步提供 `precheckGovernanceJson`，用于验证 Runtime & Governance discovery、Policy、Lifecycle、QoS 的只检查不调用路径；当前 Console 主按钮尚不直接触发该 mock。
 - Binder service sample 内部仍以 REST prototype gateway 作为上游绑定，不代表量产 system service。
 

@@ -10,8 +10,9 @@ Brain semantic gateway.
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
 - The Android Console debug APK now binds this service sample before calling
-  Uni Info Bus State and AI SDK/Agent task planning. The Binder service sample
-  still proxies to the REST semantic gateway as its upstream prototype binding.
+  Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
+  and Memory query contract mocks. The Binder service sample still proxies to
+  the REST semantic gateway as its upstream prototype binding.
 
 ## Mapping
 
@@ -69,10 +70,10 @@ Brain semantic gateway.
 - Stable parcelable models can replace JSON after the semantic contract settles.
 - The current sample is not a Driver/HAL bridge and does not create any
   virtualization-layer development scope.
-- Agent execute, Skill invoke, and Memory query methods are contract mocks.
-  They validate policy and expose dispatch boundaries, but they do not run a
-  real Skill sandbox, Memory store, Model Runtime Adapter, Driver/HAL, vehicle
-  bus, or virtualization path.
+- Agent execute, Skill invoke, and Memory query methods are contract mocks now
+  exposed by the Android Console. They validate policy and expose dispatch
+  boundaries, but they do not run a real Skill sandbox, Memory store, Model
+  Runtime Adapter, Driver/HAL, vehicle bus, or virtualization path.
 - `precheckGovernanceJson` is a diagnostic Runtime & Governance contract. It
   checks discovery, Policy, Lifecycle, and QoS decisions without dispatching a
   service; by default it does not reserve the QoS fixed-window slot.

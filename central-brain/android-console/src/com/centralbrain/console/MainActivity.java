@@ -23,6 +23,9 @@ public class MainActivity extends Activity {
     private TextView detailView;
     private Button refreshButton;
     private Button planButton;
+    private Button executeButton;
+    private Button skillButton;
+    private Button memoryButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
 
@@ -76,32 +79,48 @@ public class MainActivity extends Activity {
         statusView.setPadding(0, 0, 0, dp(14));
         root.addView(statusView);
 
-        LinearLayout buttonRow = new LinearLayout(this);
-        buttonRow.setOrientation(LinearLayout.HORIZONTAL);
-        buttonRow.setGravity(Gravity.START);
-        root.addView(buttonRow);
+        LinearLayout buttonArea = new LinearLayout(this);
+        buttonArea.setOrientation(LinearLayout.VERTICAL);
+        root.addView(buttonArea);
 
-        refreshButton = new Button(this);
-        refreshButton.setText("Refresh");
-        refreshButton.setAllCaps(false);
-        refreshButton.setOnClickListener(new View.OnClickListener() {
+        LinearLayout primaryRow = buttonRow();
+        buttonArea.addView(primaryRow);
+        refreshButton = addButton(primaryRow, "Refresh", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 refreshHealth();
             }
         });
-        buttonRow.addView(refreshButton);
-
-        planButton = new Button(this);
-        planButton.setText("Plan Agent Task");
-        planButton.setAllCaps(false);
-        planButton.setOnClickListener(new View.OnClickListener() {
+        planButton = addButton(primaryRow, "Plan Agent Task", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 planAgentTask();
             }
         });
-        buttonRow.addView(planButton);
+
+        LinearLayout agentRow = buttonRow();
+        buttonArea.addView(agentRow);
+        executeButton = addButton(agentRow, "Execute Task", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                executeAgentTask();
+            }
+        });
+        skillButton = addButton(agentRow, "Invoke Skill", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                invokeSkill();
+            }
+        });
+
+        LinearLayout memoryRow = buttonRow();
+        buttonArea.addView(memoryRow);
+        memoryButton = addButton(memoryRow, "Query Memory", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                queryMemory();
+            }
+        });
 
         detailView = new TextView(this);
         detailView.setTextSize(13);
@@ -135,6 +154,47 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void executeAgentTask() {
+        setBusy(true, "Status: validating Agent execute contract via Binder");
+        String body = "{\"task\":{\"task_id\":\"android-console-task\",\"steps\":["
+            + "{\"step_id\":\"query_vehicle_state\",\"type\":\"invoke_service\",\"service\":\"vehicle-state\","
+            + "\"method\":\"getState\",\"semantic_entry\":\"POST /soa/invoke\"}]},"
+            + "\"caller\":{\"app_id\":\"android-console\",\"role\":\"debug_console\"},"
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],\"vehicle_state\":\"parked\",\"safety_state\":\"normal\"}";
+        gatewayRequest("AI SDK Agent Execute (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.executeAgentTaskJson(newTraceId("agent-execute"), body);
+            }
+        });
+    }
+
+    private void invokeSkill() {
+        setBusy(true, "Status: invoking Skill contract via Binder");
+        String body = "{\"input\":{\"intent\":\"vehicle_state_query\"},\"permissions\":[\"vehicle.read\"],"
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],\"vehicle_state\":\"parked\","
+            + "\"safety_state\":\"normal\"}";
+        gatewayRequest("Skill Invoke (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.invokeSkillJson(newTraceId("skill-invoke"), "vehicle.state.query", body);
+            }
+        });
+    }
+
+    private void queryMemory() {
+        setBusy(true, "Status: querying local Memory contract via Binder");
+        String body = "{\"query\":\"vehicle state\",\"scope\":\"vehicle_session\","
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],\"vehicle_state\":\"parked\","
+            + "\"safety_state\":\"normal\"}";
+        gatewayRequest("Memory Query (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.queryMemoryJson(newTraceId("memory-query"), body);
+            }
+        });
+    }
+
     private void bindGateway() {
         setBusy(true, "Status: binding Android gateway service");
         gatewayClient = new CentralBrainGatewayClient(this, new CentralBrainGatewayClient.Callback() {
@@ -143,7 +203,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh or Plan Agent Task to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, or Memory to exercise the Android Binder path.");
             }
 
             @Override
@@ -189,8 +249,30 @@ public class MainActivity extends Activity {
 
     private void setBusy(boolean busy, String status) {
         statusView.setText(status);
-        refreshButton.setEnabled(!busy && gatewayBound);
-        planButton.setEnabled(!busy && gatewayBound);
+        boolean enabled = !busy && gatewayBound;
+        refreshButton.setEnabled(enabled);
+        planButton.setEnabled(enabled);
+        executeButton.setEnabled(enabled);
+        skillButton.setEnabled(enabled);
+        memoryButton.setEnabled(enabled);
+    }
+
+    private LinearLayout buttonRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.START);
+        return row;
+    }
+
+    private Button addButton(LinearLayout row, String text, View.OnClickListener listener) {
+        Button button = new Button(this);
+        button.setText(text);
+        button.setAllCaps(false);
+        button.setOnClickListener(listener);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        params.setMargins(row.getChildCount() == 0 ? 0 : dp(8), dp(4), 0, dp(4));
+        row.addView(button, params);
+        return button;
     }
 
     private int dp(int value) {
