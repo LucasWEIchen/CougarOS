@@ -22,9 +22,17 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
         "name": "rest-http-json",
         "status": "active-prototype",
         "platforms": ["Android emulator", "Linux host"],
-        "semantic_paths": ["/uib/context", "/uib/state", "/soa/services", "/soa/invoke"],
+        "semantic_paths": [
+            "/uib/context",
+            "/uib/state",
+            "/uib/events/topics",
+            "/uib/events/publish",
+            "/uib/events/recent",
+            "/soa/services",
+            "/soa/invoke",
+        ],
         "artifacts": ["central-brain/contracts/central_brain_api.json"],
-        "req_ids": ["XSC-006", "NV-P-005"],
+        "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-005", "NV-P-006"],
     },
     {
         "name": "android-binder-aidl",
@@ -33,6 +41,9 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
         "semantic_paths": [
             "getContextJson -> /uib/context",
             "getStateJson -> /uib/state",
+            "listEventTopicsJson -> /uib/events/topics",
+            "publishEventJson -> /uib/events/publish",
+            "getRecentEventsJson -> /uib/events/recent",
             "listServicesJson -> /soa/services",
             "invokeServiceJson -> /soa/invoke",
             "evaluatePolicyJson -> /policy/evaluate",
@@ -48,7 +59,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java",
             "central-brain/bindings/android/README.md",
         ],
-        "req_ids": ["XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-P-002", "DEL-001"],
+        "req_ids": ["XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-001"],
     },
     {
         "name": "linux-ipc",
@@ -57,6 +68,9 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
         "semantic_paths": [
             "uib.context.get -> /uib/context",
             "uib.state.get -> /uib/state",
+            "uib.events.topics -> /uib/events/topics",
+            "uib.events.publish -> /uib/events/publish",
+            "uib.events.recent -> /uib/events/recent",
             "soa.services.list -> /soa/services",
             "soa.service.invoke -> /soa/invoke",
             "policy.evaluate -> /policy/evaluate",
@@ -70,7 +84,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/linux/ipc/central_brain_ipc_client.py",
             "central-brain/bindings/linux/README.md",
         ],
-        "req_ids": ["XSC-002", "XSC-003", "XSC-005", "XSC-006", "NV-P-002", "DEL-002"],
+        "req_ids": ["XSC-002", "XSC-003", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
     },
     {
         "name": "grpc",
@@ -79,10 +93,13 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
         "semantic_paths": [
             "CentralBrainGateway.GetContext -> /uib/context",
             "CentralBrainGateway.GetState -> /uib/state",
+            "CentralBrainGateway.ListEventTopics -> /uib/events/topics",
+            "CentralBrainGateway.PublishEvent -> /uib/events/publish",
+            "CentralBrainGateway.GetRecentEvents -> /uib/events/recent",
             "CentralBrainGateway.InvokeService -> /soa/invoke",
         ],
         "artifacts": ["central-brain/bindings/linux/proto/central_brain_gateway.proto"],
-        "req_ids": ["XSC-002", "XSC-003", "XSC-005", "XSC-006", "NV-P-003", "DEL-002"],
+        "req_ids": ["XSC-002", "XSC-003", "XSC-005", "XSC-006", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"],
     },
     {
         "name": "mqtt",
@@ -104,7 +121,9 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
         "name": "dds",
         "status": "planned-for-high-rate-topics",
         "platforms": ["Linux", "Android native"],
-        "semantic_paths": ["high-rate Context/Event topics"],
+        "semantic_paths": [
+            "planned DDS delivery for /uib/events/topics and /uib/events/recent high-rate topics",
+        ],
         "artifacts": [],
         "req_ids": ["XSC-006", "NV-P-006"],
     },

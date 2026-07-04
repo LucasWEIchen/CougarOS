@@ -33,6 +33,21 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/uib/state",
         "req_ids": ["XSC-002", "XSC-006", "FW-U-002", "NV-P-002", "DEL-002"],
     },
+    "uib.events.topics": {
+        "method": "GET",
+        "path": "/uib/events/topics",
+        "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
+    },
+    "uib.events.publish": {
+        "method": "POST",
+        "path": "/uib/events/publish",
+        "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
+    },
+    "uib.events.recent": {
+        "method": "GET",
+        "path": "/uib/events/recent",
+        "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
+    },
     "soa.services.list": {
         "method": "GET",
         "path": "/soa/services",

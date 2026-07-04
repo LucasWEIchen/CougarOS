@@ -9,12 +9,17 @@ package centralbrain.binding.v1;
 // - XSC-003 SOA service entry
 // - XSC-005 Runtime & Governance
 // - XSC-006 Protocol Binding
+// - FW-U-003 Uni Info Bus Event
 // - NV-P-003 gRPC/RPC binding
+// - NV-P-006 DDS/high-rate topic reservation
 // - DEL-002 Linux synchronized delivery path
 
 service CentralBrainGateway {
   rpc GetContext(GatewayRequest) returns (GatewayResponse);
   rpc GetState(GatewayRequest) returns (GatewayResponse);
+  rpc ListEventTopics(GatewayRequest) returns (GatewayResponse);
+  rpc PublishEvent(GatewayRequest) returns (GatewayResponse);
+  rpc GetRecentEvents(GatewayRequest) returns (GatewayResponse);
   rpc ListServices(GatewayRequest) returns (GatewayResponse);
   rpc InvokeService(GatewayRequest) returns (GatewayResponse);
   rpc EvaluatePolicy(GatewayRequest) returns (GatewayResponse);

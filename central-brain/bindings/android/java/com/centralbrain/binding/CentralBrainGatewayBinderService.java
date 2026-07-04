@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Android Binder service stub for the Central Brain semantic gateway.
  *
- * Req IDs: XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, NV-P-002, DEL-001.
+ * Req IDs: XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, FW-U-003, NV-P-002, NV-P-006, DEL-001.
  *
  * This sample keeps REST as the upstream prototype binding. Production AAOS
  * integration should host this in a system/privileged service and replace the
@@ -41,6 +41,21 @@ public final class CentralBrainGatewayBinderService extends Service {
         @Override
         public String getStateJson(String traceId) throws RemoteException {
             return get("/uib/state", traceId);
+        }
+
+        @Override
+        public String listEventTopicsJson(String traceId) throws RemoteException {
+            return get("/uib/events/topics", traceId);
+        }
+
+        @Override
+        public String publishEventJson(String traceId, String requestJson) throws RemoteException {
+            return post("/uib/events/publish", withTraceId(traceId, requestJson));
+        }
+
+        @Override
+        public String getRecentEventsJson(String traceId, int limit) throws RemoteException {
+            return get("/uib/events/recent?limit=" + Math.max(1, limit), traceId);
         }
 
         @Override

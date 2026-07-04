@@ -18,6 +18,8 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "context": ("GET", "/uib/context", None),
     "state": ("GET", "/uib/state", None),
     "services": ("GET", "/soa/services", None),
+    "events": ("GET", "/uib/events/topics", None),
+    "event-recent": ("GET", "/uib/events/recent", None),
     "governance": ("GET", "/governance/runtime", None),
     "audit": ("GET", "/audit/recent", None),
     "bindings": ("GET", "/bindings", None),
@@ -33,6 +35,17 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
             "caller_permissions": ["vehicle.read"],
             "vehicle_state": "driving",
             "safety_state": "normal",
+        },
+    ),
+    "event-publish": (
+        "POST",
+        "/uib/events/publish",
+        {
+            "trace_id": "linux-cli-event",
+            "topic": "vehicle.signal.changed",
+            "source": "linux-cli",
+            "safety_state": "normal",
+            "payload": {"signal": "Vehicle.Speed", "value": 0},
         },
     ),
     "vehicle-state": (

@@ -61,7 +61,7 @@ flowchart TB
 核心对象：
 - `Context`：车辆、用户、环境、驾驶场景。
 - `State`：服务、模型、车辆信号、网络、健康状态。
-- `Event`：订阅型事件，包含车辆信号变化、诊断、模型状态、OTA。
+- `Event`：订阅型事件，包含车辆信号变化、诊断、模型状态、OTA；当前 active mock 为 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent`，DDS 数据面仍为 NV-P-006 计划态。
 - `Action`：受控动作，例如座椅、灯光、空调、导航、诊断工具执行。
 - `Service`：方法调用入口，包含同步/异步调用。
 - `Tool`：AI Agent 可调用工具 Schema。
@@ -109,6 +109,8 @@ flowchart TB
 | MQTT | 云端消息和轻量事件 | 预留 |
 | SOME/IP | 量产车载 SOA 与 ECU 服务发现 | 预留 |
 | DDS | 感知/融合/高频发布订阅 | 预留 |
+
+当前 A1/A4 增量已把 Uni Info Bus Event 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton。该增量不实现 DDS broker、高频共享内存、Driver/HAL 或虚拟化功能。
 
 ### Kernel & HAL 层
 

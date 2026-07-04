@@ -19,11 +19,11 @@
 | 模块 | Req ID | Android 交付 | Linux 交付 | 备注 |
 | --- | --- | --- | --- | --- |
 | AI SDK | XSC-001 | Android library/API sample | Linux SDK sample 或 CLI | 黄色小太阳，跨 SoC |
-| Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state` 初版 |
+| Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | `GET /native/adapters/detail` 初版 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype |
-| Protocol Binding | XSC-006 | REST active prototype + Binder/AIDL service stub sample | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID |
+| Protocol Binding | XSC-006 | REST active prototype + Binder/AIDL service stub sample，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge | Linux runtime bridge | NPU/GPU/Cloud 后端可替换 |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发 |
 | Hypervisor/Safety constraints | HV-001, HV-002, HV-003 | Android domain、Binder identity、Safety State 和 Policy 集成假设 | Linux domain、service identity、IPC fallback 和 Safety State 集成假设 | 只记录接口约束和部署假设，不开发虚拟化 |
@@ -54,6 +54,9 @@
 ```bash
 bash tools/smoke_central_brain_semantic_gateway.sh
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py state
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py events
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-publish
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-recent
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
@@ -84,6 +87,9 @@ Android 版本必须提供：
 当前 Android Console 主路径：
 
 - `GET /uib/state`
+- `GET /uib/events/topics`
+- `POST /uib/events/publish`
+- `GET /uib/events/recent`
 - `POST /soa/invoke`
 
 当前 Android binding service stub sample：
@@ -93,3 +99,6 @@ Android 版本必须提供：
 - `central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java`
 - `GET /bindings/detail`
 - `GET /native/adapters/detail`
+- `GET /uib/events/topics`
+- `POST /uib/events/publish`
+- `GET /uib/events/recent`

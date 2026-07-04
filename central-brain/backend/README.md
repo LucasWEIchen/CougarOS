@@ -23,6 +23,8 @@ bash tools/run_central_brain_backend.sh
 - `GET /services`
 - `GET /uib/context`
 - `GET /uib/state`
+- `GET /uib/events/topics`
+- `GET /uib/events/recent`
 - `GET /soa/services`
 - `GET /governance/runtime`
 - `GET /audit/recent`
@@ -33,6 +35,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /vehicle/state`
 - `GET /npu/status`
 - `POST /soa/invoke`
+- `POST /uib/events/publish`
 - `POST /policy/evaluate`
 - `POST /ai/infer`
 

@@ -9,10 +9,10 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Android/Linux 主路径初版 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event active mock + Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype 初版 |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；gRPC contract skeleton |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -136,3 +136,9 @@
   - 新增静态验证脚本：`tools/check_central_brain_virtualization_docs.sh`。
   - 未开发虚拟化层、Safety Runtime、共享内存驱动或 Driver/HAL。
   - 覆盖 Req ID：HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004。
+- 推进 FW-U-003 Uni Info Bus Event active mock：
+  - 后端新增架构命名事件入口：`GET /uib/events/topics`、`POST /uib/events/publish`、`GET /uib/events/recent`；legacy `/events/*` 仅保留兼容。
+  - Linux CLI 与 Linux IPC active sample 新增 `events`、`event-publish`、`event-recent` 验证路径。
+  - Android Binder/AIDL 与 gRPC contract skeleton 新增事件 topic、publish、recent 方法。
+  - 本轮未实现 DDS、高频推送、真实订阅 broker、Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、XSC-006、FW-U-003、NV-P-002、NV-P-006、DEL-001、DEL-002。

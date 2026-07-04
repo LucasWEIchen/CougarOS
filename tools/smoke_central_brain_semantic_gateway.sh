@@ -53,6 +53,20 @@ while True:
 checks = [
     ("GET", "/uib/context", None, "FW-U-001"),
     ("GET", "/uib/state", None, "FW-U-002"),
+    ("GET", "/uib/events/topics", None, "FW-U-003"),
+    (
+        "POST",
+        "/uib/events/publish",
+        {
+            "trace_id": "smoke-event",
+            "topic": "vehicle.signal.changed",
+            "source": "semantic-gateway-smoke",
+            "safety_state": "normal",
+            "payload": {"signal": "Vehicle.Speed", "value": 0},
+        },
+        "NV-P-006",
+    ),
+    ("GET", "/uib/events/recent", None, "FW-U-003"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/governance/runtime", None, "NV-G-005"),
     ("GET", "/bindings", None, "NV-P-005"),
@@ -105,6 +119,10 @@ for method, path, body, req_id in checks:
         assert "soa-service-adapter" in adapter_names
         assert "vehicle-signal-adapter" in adapter_names
         assert "model-runtime-adapter" in adapter_names
+    if path == "/uib/events/recent":
+        events = payload["payload"]["events"]
+        assert events, "event recent endpoint did not keep the published event"
+        assert events[0]["topic"] == "vehicle.signal.changed", "latest event topic mismatch"
     if path == "/audit/recent":
         events = payload["payload"]["events"]
         assert events, "audit endpoint did not record the SOA call"
@@ -114,6 +132,9 @@ print("semantic gateway smoke ok")
 PY
 
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" state >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" events >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-publish >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-recent >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null

@@ -16,6 +16,8 @@ DEFAULT_SOCKET_PATH = os.environ.get("CENTRAL_BRAIN_IPC_SOCKET", "/tmp/central_b
 COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "context": ("uib.context.get", {}),
     "state": ("uib.state.get", {}),
+    "events": ("uib.events.topics", {}),
+    "event-recent": ("uib.events.recent", {}),
     "services": ("soa.services.list", {}),
     "governance": ("governance.runtime.get", {}),
     "audit": ("audit.recent.get", {}),
@@ -28,6 +30,16 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "caller_permissions": ["vehicle.read"],
             "vehicle_state": "driving",
             "safety_state": "normal",
+        },
+    ),
+    "event-publish": (
+        "uib.events.publish",
+        {
+            "trace_id": "linux-ipc-event",
+            "topic": "vehicle.signal.changed",
+            "source": "linux-ipc-client",
+            "safety_state": "normal",
+            "payload": {"signal": "Vehicle.Speed", "value": 0},
         },
     ),
     "infer": (

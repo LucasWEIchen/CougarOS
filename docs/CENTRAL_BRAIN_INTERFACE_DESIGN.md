@@ -68,6 +68,7 @@
 | System | 健康、版本、能力 | HTTP/JSON | AIDL + REST debug |
 | Registry | 服务注册发现 | HTTP/JSON | AIDL/gRPC/SOME-IP-SD |
 | Context | 车辆/用户/环境上下文 | HTTP/JSON | AIDL + DDS event |
+| Event | Uni Info Bus 事件 topic、发布、recent log | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；高频 topic 预留 DDS |
 | Agent | 任务规划和执行 | HTTP/JSON | AIDL/gRPC |
 | Skill | 技能声明、调用、生命周期 | HTTP/JSON | AIDL + sandbox IPC |
 | Memory | 用户偏好和长期记忆 | HTTP/JSON | AIDL + local encrypted store |
@@ -131,6 +132,16 @@
 | POST | `/policy/evaluate` | 权限与安全状态评估 | 是 |
 | GET | `/policy/permissions` | 权限矩阵 | 否 |
 | GET | `/audit/recent` | 最近治理审计记录 | 是 |
+
+### Uni Info Bus Event
+
+| Method | Path | 用途 | 已实现 |
+| --- | --- | --- | --- |
+| GET | `/uib/events/topics` | 事件 topic contract、订阅过滤字段、delivery 和 binding candidates | 是 |
+| POST | `/uib/events/publish` | 通过 Uni Info Bus Event envelope 发布 mock 事件并写入 bounded recent log | 是 |
+| GET | `/uib/events/recent` | 查询最近 Event 记录，作为订阅语义验证替身 | 是 |
+| GET | `/events/topics` | legacy 兼容入口 | 是 |
+| POST | `/events/publish` | legacy 兼容入口 | 是 |
 
 ### AI/NPU
 
@@ -341,6 +352,8 @@ bash tools/smoke_central_brain_semantic_gateway.sh
 ```
 
 ## Event Topic 设计
+
+当前 FW-U-003 增量已实现 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` active mock，并在 Android Binder、Linux IPC、gRPC contract skeleton 中建立映射。该实现只验证 Uni Info Bus 事件语义、Req ID 和跨平台 binding，不实现 DDS、高频推送 broker、真实订阅生命周期或 Driver/HAL 数据面；这些仍按 NV-P-006 计划态推进。
 
 | Topic | 载荷 | 订阅方 |
 | --- | --- | --- |

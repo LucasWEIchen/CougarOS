@@ -10,7 +10,7 @@ import android.os.RemoteException;
 /**
  * Minimal Android client helper for the Central Brain Binder sample.
  *
- * Req IDs: XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, NV-P-002, DEL-001.
+ * Req IDs: XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, FW-U-003, NV-P-002, NV-P-006, DEL-001.
  */
 public final class CentralBrainGatewayClient {
     public interface Callback {
@@ -57,6 +57,18 @@ public final class CentralBrainGatewayClient {
 
     public String getStateJson(String traceId) throws RemoteException {
         return requireGateway().getStateJson(traceId);
+    }
+
+    public String listEventTopicsJson(String traceId) throws RemoteException {
+        return requireGateway().listEventTopicsJson(traceId);
+    }
+
+    public String publishEventJson(String traceId, String requestJson) throws RemoteException {
+        return requireGateway().publishEventJson(traceId, requestJson);
+    }
+
+    public String getRecentEventsJson(String traceId, int limit) throws RemoteException {
+        return requireGateway().getRecentEventsJson(traceId, limit);
     }
 
     public String invokeServiceJson(String traceId, String requestJson) throws RemoteException {

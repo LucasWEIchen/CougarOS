@@ -86,7 +86,7 @@
 | --- | --- | --- | --- | --- | --- |
 | FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | `/context` 与 `/uib/context` mock |
 | FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | Android/Linux 调用 `/uib/state` |
-| FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | `/events/topics` 与 `/events/publish` mock |
+| FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` active mock；legacy `/events/*` 兼容 |
 | FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | `/actions/request` mock |
 | FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/service/invoke` 与 `/soa/invoke` mock |
 | FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | `/tools` mock |
@@ -144,7 +144,7 @@
 | NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | Linux gRPC proto contract skeleton |
 | NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | `/bindings` 计划态 |
 | NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | Android/Linux 主路径经 `/uib/*`、`/soa/*`，REST 为 active prototype binding |
-| NV-P-006 | DDS | 展锐负责/生态合作 | Topic/Context/... | 高频 Topic/Context 订阅预留 DDS | `/bindings` 计划态，待高频 topic 环境 |
+| NV-P-006 | DDS | 展锐负责/生态合作 | Topic/Context/... | 高频 Topic/Context 订阅预留 DDS | `/uib/events/*` 已建立 Event 语义 contract 与 Android Binder/Linux IPC/gRPC 映射；DDS 数据面仍为计划态，待高频 topic 环境 |
 | NV-P-007 | 其他 | 展锐负责/生态合作 | 大数据/... | 大数据通道必须纳入协议绑定与治理 | 未实现 |
 
 ## L4 Kernel & HAL 层需求

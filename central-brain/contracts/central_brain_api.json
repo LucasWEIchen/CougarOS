@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "updated": "2026-07-04",
   "transport": {
     "prototype": "http-json",
@@ -55,14 +55,32 @@
     {
       "method": "GET",
       "path": "/events/topics",
-      "description": "Returns mock event topics for Uni Info Bus subscription design.",
+      "description": "Compatibility endpoint for Uni Info Bus event topics.",
       "req_ids": ["FW-U-003"]
     },
     {
       "method": "POST",
       "path": "/events/publish",
-      "description": "Publishes a mock event to a known Uni Info Bus topic.",
+      "description": "Compatibility endpoint for publishing a mock Uni Info Bus event.",
       "req_ids": ["FW-U-003"]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/topics",
+      "description": "Returns Uni Info Bus Event topic contract, delivery model, and binding candidates.",
+      "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+    },
+    {
+      "method": "POST",
+      "path": "/uib/events/publish",
+      "description": "Publishes a bounded-log mock event through the Uni Info Bus Event semantic envelope.",
+      "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/recent",
+      "description": "Returns recent Uni Info Bus Event records from the active mock log.",
+      "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
     },
     {
       "method": "POST",

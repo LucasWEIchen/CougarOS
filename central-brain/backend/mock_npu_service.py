@@ -8,6 +8,7 @@ inside the current WSL workspace without adding package dependencies.
 from __future__ import annotations
 
 import argparse
+from collections import deque
 import json
 import os
 import time
@@ -15,7 +16,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from native_adapters import NativeAdapterRegistry
 from protocol_bindings import ProtocolBindingRegistry
@@ -23,10 +24,11 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.6"
+API_VERSION = "0.1.7"
 GOVERNANCE = RuntimeGovernance()
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
+EVENT_LOG: deque[dict[str, Any]] = deque(maxlen=50)
 EVENT_TOPICS = [
     "vehicle.signal.changed",
     "service.health.changed",
@@ -178,12 +180,22 @@ def event_topics_payload() -> dict[str, Any]:
         "topics": [
             {
                 "name": topic,
-                "mode": "mock",
-                "delivery": "request-response-placeholder"
+                "mode": "active-mock",
+                "delivery": ["publish-ack", "recent-log"],
+                "subscription_contract": {
+                    "filter_fields": ["topic", "source", "safety_state"],
+                    "delivery_cursor": "event_id",
+                    "backpressure": "drop-oldest-after-50-events",
+                },
+                "binding_candidates": ["android-binder-aidl", "linux-ipc", "dds-planned"],
             }
             for topic in EVENT_TOPICS
         ],
-        "req_ids": ["FW-U-003"]
+        "constraints": [
+            "Events are Uni Info Bus semantic objects; transport bindings cannot publish raw vehicle data without this envelope.",
+            "DDS is reserved for high-rate topic delivery, but this prototype only stores a bounded in-memory recent log.",
+        ],
+        "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
     }
 
 
@@ -406,12 +418,39 @@ def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
 def event_publish_payload(request: dict[str, Any]) -> dict[str, Any]:
     topic = request.get("topic", "vehicle.signal.changed")
     accepted = topic in EVENT_TOPICS
-    return {
+    event = {
         "event_id": str(uuid.uuid4()),
+        "topic": topic,
+        "timestamp_ms": int(time.time() * 1000),
+        "source": request.get("source", "mock-gateway"),
+        "safety_state": request.get("safety_state", "normal"),
+        "payload": request.get("payload", {}),
+        "req_ids": ["FW-U-003"],
+    }
+    if accepted:
+        EVENT_LOG.appendleft(event)
+    return {
+        "event_id": event["event_id"],
         "topic": topic,
         "state": "accepted" if accepted else "rejected",
         "known_topic": accepted,
-        "req_ids": ["FW-U-003"]
+        "event": event if accepted else None,
+        "delivery": {
+            "mode": "recent-log",
+            "retention": "last-50-events",
+            "dds_status": "planned-for-high-rate-topics",
+        },
+        "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+    }
+
+
+def event_recent_payload(limit: int = 20) -> dict[str, Any]:
+    safe_limit = max(1, min(limit, 50))
+    return {
+        "events": list(EVENT_LOG)[:safe_limit],
+        "limit": safe_limit,
+        "delivery": "bounded-in-memory-log",
+        "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
     }
 
 
@@ -430,7 +469,9 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(encoded)
 
     def do_GET(self) -> None:
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
         if path == "/health":
             self.send_json(200, health_payload())
         elif path == "/services":
@@ -453,8 +494,11 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(native_adapters_payload()))
         elif path == "/native/adapters/detail":
             self.send_json(200, envelope(native_adapters_detail_payload()))
-        elif path == "/events/topics":
+        elif path in ("/events/topics", "/uib/events/topics"):
             self.send_json(200, envelope(event_topics_payload()))
+        elif path == "/uib/events/recent":
+            limit = int(query.get("limit", ["20"])[0])
+            self.send_json(200, envelope(event_recent_payload(limit)))
         elif path == "/tools":
             self.send_json(200, envelope(tools_payload()))
         elif path == "/vehicle/state":
@@ -484,7 +528,7 @@ class Handler(BaseHTTPRequestHandler):
             trace_id = request.get("trace_id") or str(uuid.uuid4())
             request["trace_id"] = trace_id
             self.send_json(200, envelope(service_invoke_payload(request), trace_id))
-        elif path == "/events/publish":
+        elif path in ("/events/publish", "/uib/events/publish"):
             self.send_json(200, envelope(event_publish_payload(request), request.get("trace_id")))
         else:
             self.send_json(404, {"status": "error", "message": "unknown endpoint"})

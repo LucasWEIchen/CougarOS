@@ -9,13 +9,21 @@ package com.centralbrain.binding;
  * - XSC-005 Runtime & Governance
  * - XSC-006 Protocol Binding
  * - XSC-004 AIOS Kernel / Native adapter visibility
+ * - FW-U-003 Uni Info Bus Event
  * - NV-P-002 IPC/Binder binding
+ * - NV-P-006 DDS/high-rate topic reservation
  * - DEL-001 Android main delivery path
  */
 interface ICentralBrainGateway {
     String getContextJson(String traceId);
 
     String getStateJson(String traceId);
+
+    String listEventTopicsJson(String traceId);
+
+    String publishEventJson(String traceId, String requestJson);
+
+    String getRecentEventsJson(String traceId, int limit);
 
     String listServicesJson(String traceId);
 
