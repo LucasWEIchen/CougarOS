@@ -1,0 +1,104 @@
+{
+  "name": "central-brain-api",
+  "version": "0.1.0",
+  "updated": "2026-07-04",
+  "transport": {
+    "prototype": "http-json",
+    "android_emulator_base_url": "http://10.0.2.2:8787",
+    "host_base_url": "http://127.0.0.1:8787"
+  },
+  "safety_states": [
+    "normal",
+    "degraded",
+    "interlocked",
+    "fault_isolated",
+    "diagnostic_readonly"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "description": "Returns system, service bus, and AI backend health."
+    },
+    {
+      "method": "GET",
+      "path": "/services",
+      "description": "Returns registered prototype services and capabilities."
+    },
+    {
+      "method": "GET",
+      "path": "/vehicle/state",
+      "description": "Returns mock vehicle state with VSS-style signal names."
+    },
+    {
+      "method": "GET",
+      "path": "/npu/status",
+      "description": "Returns external PCIe NPU runtime and discovery status."
+    },
+    {
+      "method": "POST",
+      "path": "/ai/infer",
+      "description": "Submits a mock inference request.",
+      "request": {
+        "model": "string",
+        "input": "object|string",
+        "policy": {
+          "safety_state_required": "normal",
+          "timeout_ms": 2000
+        }
+      },
+      "response": {
+        "request_id": "string",
+        "model": "string",
+        "runtime": "mock-npu",
+        "status": "ok|rejected|error",
+        "result": "object",
+        "metrics": {
+          "queue_ms": "number",
+          "inference_ms": "number"
+        }
+      }
+    }
+  ],
+  "semantic_objects": {
+    "context": [
+      "Vehicle.Speed",
+      "Vehicle.Cabin.HVAC.Station.Row1.Left.Temperature",
+      "Vehicle.CurrentLocation",
+      "User.DriverProfile",
+      "Environment.Weather"
+    ],
+    "state": [
+      "CentralBrain.Services",
+      "CentralBrain.NPU",
+      "CentralBrain.SafetyState",
+      "CentralBrain.Network"
+    ],
+    "event": [
+      "Vehicle.SignalChanged",
+      "AI.ModelLoaded",
+      "Service.HealthChanged",
+      "Diagnostics.DtcChanged"
+    ],
+    "action": [
+      "Cabin.SetTemperature",
+      "Cabin.SetSeatMode",
+      "Navigation.SetDestination",
+      "Diagnostics.StartReadout"
+    ],
+    "tool": [
+      "vehicle_state_query",
+      "cabin_control",
+      "diagnostic_trace",
+      "npu_inference"
+    ],
+    "permission": [
+      "vehicle.read",
+      "vehicle.control",
+      "diagnostics.read",
+      "diagnostics.write",
+      "ai.infer",
+      "ota.manage"
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Android local build state
+local.properties
+.gradle/
+build/
+captures/
+
+# Tool scratch space
+tmp/
+.cache/
+.tools/
+env.local.sh
+builds/
+keystores/
+logs/test/
+
+# Central brain prototype build outputs
+central-brain/android-console/out/
+central-brain/backend/.runtime/
