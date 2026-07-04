@@ -111,7 +111,10 @@ grep -q "agent.execute" "$LINUX_IPC_DAEMON"
 grep -q "skills.invoke" "$LINUX_IPC_DAEMON"
 grep -q "memory.query" "$LINUX_IPC_DAEMON"
 grep -q "uib.actions.request" "$LINUX_IPC_DAEMON"
+grep -q "ipc_governance_precheck" "$LINUX_IPC_DAEMON"
+grep -q "CENTRAL_BRAIN_IPC_AUDIT_LOG" "$LINUX_IPC_DAEMON"
 grep -q "COMMANDS" "$LINUX_IPC_CLIENT"
+grep -q "infer-denied" "$LINUX_IPC_CLIENT"
 
 if [[ -n "${ANDROID_HOME:-}" ]]; then
   AIDL_BIN="$(command -v aidl || find "$ANDROID_HOME" -name aidl -type f 2>/dev/null | head -1)"

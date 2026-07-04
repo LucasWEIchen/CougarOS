@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from pathlib import Path
 import signal
 import socket
 import sys
@@ -18,9 +19,16 @@ from typing import Any
 from urllib import request
 from urllib.error import HTTPError, URLError
 
+BACKEND_DIR = Path(__file__).resolve().parents[3] / "backend"
+sys.path.insert(0, str(BACKEND_DIR))
+
+from runtime_governance import RuntimeGovernance
+
 
 DEFAULT_BASE_URL = os.environ.get("CENTRAL_BRAIN_BASE_URL", "http://127.0.0.1:8787")
 DEFAULT_SOCKET_PATH = os.environ.get("CENTRAL_BRAIN_IPC_SOCKET", "/tmp/central_brain_gateway.sock")
+DEFAULT_IPC_AUDIT_LOG = os.environ.get("CENTRAL_BRAIN_IPC_AUDIT_LOG")
+IPC_GOVERNANCE = RuntimeGovernance(DEFAULT_IPC_AUDIT_LOG)
 
 OPERATION_MAP: dict[str, dict[str, Any]] = {
     "uib.context.get": {
@@ -126,6 +134,51 @@ def response(trace_id: str, status: str, payload: dict[str, Any], error: dict[st
     }
 
 
+def ipc_governance_precheck(trace_id: str, operation: str, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:
+    if operation != "soa.service.invoke":
+        return None, True
+
+    precheck = IPC_GOVERNANCE.precheck(payload)
+    policy = precheck["policy"]
+    qos_decision = precheck["qos_decision"]
+    allowed = policy["decision"] == "allow" and qos_decision["decision"] == "allow"
+    service = payload.get("service", "vehicle-state")
+    method = payload.get("method", "invoke")
+    outcome = "ipc_prechecked_allowed"
+    if policy["decision"] != "allow":
+        outcome = "ipc_policy_or_lifecycle_rejected"
+    elif qos_decision["decision"] != "allow":
+        outcome = "ipc_qos_rejected"
+
+    IPC_GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": service,
+            "method": method,
+            "outcome": outcome,
+            "policy_decision": policy["decision"],
+            "lifecycle_state": precheck["lifecycle_state"],
+            "qos_decision": qos_decision["decision"],
+            "binding": "linux-ipc",
+        },
+    )
+    return {
+        "state": "allowed" if allowed else "rejected",
+        "service": service,
+        "method": method,
+        "policy": policy,
+        "lifecycle_state": precheck["lifecycle_state"],
+        "qos": precheck["qos"],
+        "qos_decision": qos_decision,
+        "audit": {
+            "scope": "linux-ipc-daemon",
+            "persistence": "enabled" if DEFAULT_IPC_AUDIT_LOG else "disabled",
+            "path": DEFAULT_IPC_AUDIT_LOG,
+        },
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "DEL-002"],
+    }, allowed
+
+
 def validate_envelope(envelope: Any) -> tuple[str, str, dict[str, Any]]:
     if not isinstance(envelope, dict):
         raise ValueError("IPC envelope must be a JSON object")
@@ -146,6 +199,20 @@ def validate_envelope(envelope: Any) -> tuple[str, str, dict[str, Any]]:
 
 def call_gateway(base_url: str, trace_id: str, operation: str, payload: dict[str, Any]) -> dict[str, Any]:
     mapping = OPERATION_MAP[operation]
+    governance_precheck, can_forward = ipc_governance_precheck(trace_id, operation, payload)
+    if governance_precheck is not None and not can_forward:
+        return response(
+            trace_id,
+            "ok",
+            {
+                "operation": operation,
+                "semantic_path": mapping["path"],
+                "forwarding": "blocked-before-rest-gateway",
+                "ipc_governance_precheck": governance_precheck,
+                "req_ids": mapping["req_ids"] + ["XSC-005", "NV-G-004", "NV-G-005", "NV-G-007"],
+            },
+        )
+
     method = mapping["method"]
     body = None
     headers = {"Accept": "application/json"}
@@ -165,6 +232,7 @@ def call_gateway(base_url: str, trace_id: str, operation: str, payload: dict[str
         {
             "operation": operation,
             "semantic_path": mapping["path"],
+            "ipc_governance_precheck": governance_precheck,
             "gateway": gateway_payload,
             "req_ids": mapping["req_ids"],
         },

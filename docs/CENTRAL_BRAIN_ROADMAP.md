@@ -11,8 +11,8 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + Linux IPC local precheck sample |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with SOA governance precheck；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -53,6 +53,12 @@
 
 ### 2026-07-05
 
+- 推进 Linux IPC Runtime & Governance 前置检查样例：
+  - `central_brain_ipc_daemon.py` 对 `soa.service.invoke` 新增本地 Runtime & Governance precheck，覆盖 service discovery、Policy/Safety State、Lifecycle、QoS 和 IPC audit。
+  - 允许的 SOA 调用继续转发到 REST semantic gateway；拒绝的 SOA 调用直接在 IPC 边界返回 `forwarding=blocked-before-rest-gateway` 和 `ipc_governance_precheck`。
+  - Linux env/systemd 样例新增 `CENTRAL_BRAIN_IPC_AUDIT_LOG=/var/log/central-brain/ipc-audit.jsonl`，用于区分 IPC binding 审计与后端 gateway 审计。
+  - 本轮仍未开发独立量产 gateway、多进程治理后端、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002、DEL-004。
 - 推进 XSC-001/FW-U-006 Agent execute、Skill 与 Memory contract mock：
   - 后端新增 `POST /agent/execute`、`GET /skills`、`POST /skills/{skill_id}/invoke`、`POST /memory/query`，执行 Permission/Safety State 检查并写入 Runtime & Governance audit。
   - execute 只返回 `execution_mode=policy-checked-contract-mock` 和 SOA/Tool/Action dispatch 边界，不运行真实 Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL、车身总线或虚拟化层。

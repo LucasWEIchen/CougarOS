@@ -21,8 +21,8 @@
 | A0 | 建立架构需求基线 | 全部 | 需求矩阵、偏差表、疑点表 | 每个图中模块有 Req ID |
 | A1 | Uni Info Bus 语义接口 mock | L2 | Context/State/Event/Action/Service/Tool/Permission contract | App 不再直连后端具体模型接口 |
 | A2 | SOA 服务入口 mock | L2 | Business/Foundation/Atomic/Contract/SafetyState 服务目录 | 所有服务可查询、可校验 contract |
-| A3 | Runtime & Governance mock | L3 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit | 每次调用有注册、策略、生命周期、QoS fixed-window 检查和审计记录；可选 JSONL 恢复最近审计 |
-| A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub；Android system/privileged service integration note | REST 仅是 binding，不承载业务语义 |
+| A3 | Runtime & Governance mock | L3 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit | 每次调用有注册、策略、生命周期、QoS fixed-window 检查和审计记录；可选 JSONL 恢复最近审计；Linux IPC SOA precheck sample |
+| A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub；Android system/privileged service integration note | REST 仅是 binding，不承载业务语义；Linux IPC 对 SOA 调用先做本地治理 precheck |
 | A5 | Native adapters mock | L3 | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | AI/信号/模型调用均通过 adapter |
 | A6 | Kernel/HAL/NPU 接口文档与缺口补齐 | L4/L6 | Driver/HAL interface support matrix、NPU runtime interface、hardware discovery | 明确当前环境能力、缺口和最小新增开发量 |
 | A7 | Hypervisor/Safety 接口约束文档 | L5 | ASIL/QM domain map、跨 VM 通信假设、fallback | 不开发虚拟化功能，只记录集成约束 |
@@ -60,17 +60,17 @@
 | A3-T01 | NV-G-001 | Registry 模块化 | backend module |
 | A3-T02 | NV-G-002 | Discovery 不再返回硬编码地址 | backend module |
 | A3-T03 | NV-G-003 | Schema/IDL 校验 | contract validator |
-| A3-T04 | NV-G-004 | QoS 优先级和限流字段 | `/soa/invoke` fixed-window QoS active prototype |
+| A3-T04 | NV-G-004 | QoS 优先级和限流字段 | `/soa/invoke` fixed-window QoS active prototype + Linux IPC `soa.service.invoke` precheck |
 | A3-T05 | NV-G-005 | Policy engine mock | `/policy/evaluate` |
 | A3-T06 | NV-G-006 | Lifecycle 状态机 | service/model lifecycle |
-| A3-T07 | NV-G-007, DEL-002 | Audit/Diagnostics 记录 | `/audit/recent` + `CENTRAL_BRAIN_AUDIT_LOG` JSONL sample |
+| A3-T07 | NV-G-007, DEL-002 | Audit/Diagnostics 记录 | `/audit/recent` + `CENTRAL_BRAIN_AUDIT_LOG` JSONL sample + `CENTRAL_BRAIN_IPC_AUDIT_LOG` IPC precheck sample |
 
 ## A4 详细任务：Protocol Binding
 
 | Task ID | Req ID | 任务 | 输出 |
 | --- | --- | --- | --- |
 | A4-T01 | NV-P-005 | REST binding 下沉为 adapter | REST adapter |
-| A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
+| A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + Linux IPC active sample with SOA governance precheck + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
 | A4-T03 | NV-P-003 | gRPC/RPC adapter stub | RPC adapter |
 | A4-T04 | NV-P-004 | MQTT adapter stub | MQTT adapter |
 | A4-T05 | NV-P-001 | SOME/IP mapping design | SOME/IP plan |

@@ -12,8 +12,10 @@ WorkingDirectory=/opt/central-brain/appDev
 EnvironmentFile=-/etc/central-brain/central-brain.env
 Environment=CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787
 Environment=CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock
+Environment=CENTRAL_BRAIN_IPC_AUDIT_LOG=/var/log/central-brain/ipc-audit.jsonl
 RuntimeDirectory=central-brain
 RuntimeDirectoryMode=0770
+LogsDirectory=central-brain
 UMask=0007
 ExecStart=/usr/bin/python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py --socket-path ${CENTRAL_BRAIN_IPC_SOCKET} --base-url ${CENTRAL_BRAIN_BASE_URL}
 Restart=on-failure

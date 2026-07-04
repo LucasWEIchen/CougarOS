@@ -130,6 +130,19 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             },
         },
     ),
+    "infer-denied": (
+        "soa.service.invoke",
+        {
+            "service": "npu-inference",
+            "method": "infer",
+            "caller_permissions": ["service.read"],
+            "payload": {
+                "model": "central-intent-v0",
+                "input": {"utterance": "query vehicle state without ai permission"},
+                "policy": {"safety_state_required": "normal", "timeout_ms": 2000},
+            },
+        },
+    ),
 }
 
 

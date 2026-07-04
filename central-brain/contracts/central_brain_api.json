@@ -1,10 +1,10 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "updated": "2026-07-05",
   "transport": {
     "prototype": "http-json",
-    "linux_ipc_sample": "unix-domain-socket-json",
+    "linux_ipc_sample": "unix-domain-socket-json with local Runtime & Governance SOA precheck",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state and /agent/plan; execute/skills/memory are Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",

@@ -10,7 +10,8 @@ HAL, SOME/IP, DDS, MQTT, NPU, or virtualization code.
 ## Files
 
 - `central-brain.env.example`: environment template for gateway port, semantic
-  base URL, Unix socket path, and JSONL audit log path.
+  base URL, Unix socket path, gateway JSONL audit log path, and IPC precheck
+  JSONL audit log path.
 - `systemd/central-brain-backend.service`: backend semantic gateway service.
 - `systemd/central-brain-linux-ipc.service`: Unix socket Protocol Binding
   daemon service.
@@ -50,7 +51,10 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
   python3 /opt/central-brain/appDev/central-brain/linux-cli/central_brain_cli.py state
 CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
   python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
+CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
+  python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 sudo test -s /var/log/central-brain/audit.jsonl || true
+sudo test -s /var/log/central-brain/ipc-audit.jsonl || true
 ```
 
 ## Deployment Assumptions
@@ -58,13 +62,17 @@ sudo test -s /var/log/central-brain/audit.jsonl || true
 - The systemd units are samples for Linux delivery, not a production packaging
   format.
 - The backend remains the active REST prototype binding; the IPC daemon
-  preserves Uni Info Bus/SOA semantic operations and forwards to that gateway.
+  preserves Uni Info Bus/SOA semantic operations, applies local Runtime &
+  Governance precheck to SOA service invocations, and forwards allowed calls to
+  that gateway.
 - Permission enforcement in this sample is process/user based plus Runtime &
   Governance policy checks. Android permission parity is documented in
   `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`.
 - `CENTRAL_BRAIN_AUDIT_LOG` enables a JSONL Runtime & Governance audit sample
   for XSC-005/NV-G-007/DEL-002. It is intentionally a local integration aid;
   production still needs rotation, export, and access-control hardening.
+- `CENTRAL_BRAIN_IPC_AUDIT_LOG` enables the Linux IPC binding to persist
+  pre-forwarding governance decisions separately from the backend gateway audit.
 - `/run/central-brain/gateway.sock` is group-readable/writable for local
   same-SoC clients. Production integration should map this group to cockpit
   service identities.
