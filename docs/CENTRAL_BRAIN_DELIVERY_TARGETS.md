@@ -19,7 +19,7 @@
 | 模块 | Req ID | Android 交付 | Linux 交付 | 备注 |
 | --- | --- | --- | --- | --- |
 | AI SDK | XSC-001 | Android Binder/AIDL `planAgentTaskJson` contract sample + `/ai/sdk/capabilities` | Linux CLI/IPC `agent-plan` active sample + `/ai/sdk/capabilities` | 黄色小太阳，跨 SoC；当前是 facade/plan mock，不是真实 SDK library |
-| Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*` 初版 |
+| Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | `GET /native/adapters/detail` 初版 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration | daemon modules + JSONL audit persistence sample + QoS fixed-window sample | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke` 执行 NV-G-004 QoS 检查 |
@@ -62,6 +62,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py ai-sdk
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py agent-plan
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py action-request
 bash tools/check_central_brain_binding_artifacts.sh
 bash tools/check_central_brain_delivery_docs.sh
 bash tools/check_central_brain_virtualization_docs.sh
@@ -112,6 +113,7 @@ Android 版本必须提供：
 - `GET /uib/events/recent`
 - `GET /ai/sdk/capabilities`
 - `POST /agent/plan`
+- `POST /uib/actions/request`
 
 当前 Android system/privileged service integration note：
 

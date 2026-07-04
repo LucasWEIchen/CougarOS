@@ -36,7 +36,7 @@
 | A1-T01 | FW-U-001 | 定义 `Context` envelope 和 mock endpoint | `/context` contract |
 | A1-T02 | FW-U-002 | 定义 `State` 查询，包括 service/model/vehicle | `/state` contract |
 | A1-T03 | FW-U-003 | 定义 `Event` topic、subscribe、publish mock | event contract |
-| A1-T04 | FW-U-004 | 定义 `Action` 请求、审批、执行状态 | action contract |
+| A1-T04 | FW-U-004 | 定义 `Action` 请求、审批、执行状态 | `/uib/actions/request` active mock + Android/Linux binding mapping |
 | A1-T05 | FW-U-005 | 定义统一 `Service.invoke` | service invocation contract |
 | A1-T06 | FW-U-006 | 定义 `Tool` schema 和 Agent 工具绑定 | tool schema |
 | A1-T07 | FW-U-007 | 定义 `Permission.check` | policy precheck |

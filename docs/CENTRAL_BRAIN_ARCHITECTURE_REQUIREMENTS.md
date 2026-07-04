@@ -87,7 +87,7 @@
 | FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | `/context` 与 `/uib/context` mock |
 | FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | Android/Linux 调用 `/uib/state` |
 | FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` active mock；legacy `/events/*` 兼容 |
-| FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | `/actions/request` mock |
+| FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | `/uib/actions/request` architecture-named active mock；legacy `/actions/request` 兼容；Android Binder/Linux IPC/gRPC contract 已映射 |
 | FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/service/invoke` 与 `/soa/invoke` mock |
 | FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | `/tools` mock + `/agent/plan` 输出 policy-aware task graph |
 | FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | `/permission/check` + `/soa/invoke` mock |

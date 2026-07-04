@@ -62,7 +62,7 @@ flowchart TB
 - `Context`：车辆、用户、环境、驾驶场景。
 - `State`：服务、模型、车辆信号、网络、健康状态。
 - `Event`：订阅型事件，包含车辆信号变化、诊断、模型状态、OTA；当前 active mock 为 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent`，DDS 数据面仍为 NV-P-006 计划态。
-- `Action`：受控动作，例如座椅、灯光、空调、导航、诊断工具执行。
+- `Action`：受控动作，例如座椅、灯光、空调、导航、诊断工具执行；当前 active mock 为 `/uib/actions/request`，只做 Policy/Safety State 检查并返回 mock 执行状态，不 dispatch 到 Driver/HAL。
 - `Service`：方法调用入口，包含同步/异步调用。
 - `Tool`：AI Agent 可调用工具 Schema。
 - `Permission`：权限、角色、安全域、驾驶状态限制。
@@ -110,7 +110,7 @@ flowchart TB
 | SOME/IP | 量产车载 SOA 与 ECU 服务发现 | 预留 |
 | DDS | 感知/融合/高频发布订阅 | 预留 |
 
-当前 A1/A4/A8 增量已把 Uni Info Bus Event 与 AI SDK/Agent plan 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton；Android Console 已通过 Binder client 调用 State 与 Agent task plan。Android system/privileged service 集成约束见 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`，其中明确 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项。该增量不实现 DDS broker、高频共享内存、Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化功能。
+当前 A1/A4/A8 增量已把 Uni Info Bus Event、Action 与 AI SDK/Agent plan 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton；Android Console 已通过 Binder client 调用 State 与 Agent task plan。Android system/privileged service 集成约束见 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`，其中明确 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项。该增量不实现 DDS broker、高频共享内存、真实车控执行、Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化功能。
 
 ### Kernel & HAL 层
 

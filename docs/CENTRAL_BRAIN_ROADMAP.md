@@ -1,6 +1,6 @@
 # 车载中央大脑路线图与进展
 
-更新时间：2026-07-04
+更新时间：2026-07-05
 
 ## 长期任务拆解
 
@@ -9,7 +9,7 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event active mock + Android/Linux 主路径初版 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
@@ -50,6 +50,16 @@
 - 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
+
+### 2026-07-05
+
+- 推进 FW-U-004 Uni Info Bus Action active mock：
+  - 后端新增架构命名动作入口：`POST /uib/actions/request`；legacy `/actions/request` 仅保留兼容。
+  - Action 请求执行 Permission/Safety State 检查并返回 `execution_mode=policy-checked-mock`，明确不 dispatch 到 Driver/HAL、Vehicle bus 或虚拟化层。
+  - Linux CLI 与 Linux IPC active sample 新增 `action-request` / `uib.actions.request` 验证路径。
+  - Android Binder/AIDL 与 gRPC contract skeleton 新增 `requestActionJson` / `RequestAction` 映射。
+  - 本轮未开发真实车控执行、Vehicle Signal/ECU Adapter、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、XSC-005、XSC-006、FW-U-004、FW-U-007、NV-G-005、NV-P-002、NV-P-005、NV-P-003、DEL-001、DEL-002。
 
 ### 2026-07-04
 

@@ -1,12 +1,12 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.12",
-  "updated": "2026-07-04",
+  "version": "0.1.13",
+  "updated": "2026-07-05",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state and /soa/invoke",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state and /agent/plan",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -87,8 +87,32 @@
     {
       "method": "POST",
       "path": "/actions/request",
-      "description": "Submits a policy-checked mock Action request.",
+      "description": "Compatibility endpoint for submitting a policy-checked mock Action request.",
       "req_ids": ["FW-U-004"]
+    },
+    {
+      "method": "POST",
+      "path": "/uib/actions/request",
+      "description": "Architecture-aligned Uni Info Bus Action entry that applies Permission and Safety State checks without dispatching real Driver/HAL or vehicle bus control.",
+      "request": {
+        "action": "string",
+        "target": "object",
+        "permissions": ["vehicle.control"],
+        "caller_permissions": ["vehicle.read", "vehicle.control"],
+        "vehicle_state": "parked|driving|diagnostic",
+        "safety_state": "normal|degraded|diagnostic_readonly"
+      },
+      "response": {
+        "action_id": "string",
+        "state": "accepted|rejected",
+        "execution_mode": "policy-checked-mock",
+        "dispatch": {
+          "driver_hal": "not-dispatched",
+          "vehicle_bus": "not-dispatched",
+          "virtualization": "not-developed"
+        }
+      },
+      "req_ids": ["XSC-002", "FW-U-004", "FW-U-007", "XSC-005", "NV-G-005", "NV-P-005"]
     },
     {
       "method": "POST",

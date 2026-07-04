@@ -53,6 +53,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py infer
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py ai-sdk
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py agent-plan
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py action-request
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 bash tools/check_central_brain_binding_artifacts.sh
@@ -94,6 +95,7 @@ bash tools/check_central_brain_delivery_docs.sh
 
 - `GET /uib/state`：Uni Info Bus State，覆盖 XSC-002、FW-U-002。
 - `GET /uib/events/topics`、`POST /uib/events/publish`、`GET /uib/events/recent`：Uni Info Bus Event active mock，覆盖 XSC-002、FW-U-003、XSC-006、NV-P-006。
+- `POST /uib/actions/request`：Uni Info Bus Action active mock，执行 Permission/Safety State 检查并明确不 dispatch 到 Driver/HAL，覆盖 XSC-002、FW-U-004、FW-U-007、XSC-005、NV-G-005、DEL-001、DEL-002。
 - `GET /ai/sdk/capabilities`、`POST /agent/plan`：AI SDK/Agent facade 与 policy-aware task graph，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。
 - `POST /soa/invoke`：SOA 服务入口，覆盖 XSC-003、FW-S-004、FW-S-005。
 - `GET /governance/runtime`：Runtime & Governance 状态，覆盖 XSC-005、NV-G-001..007。
@@ -103,9 +105,9 @@ bash tools/check_central_brain_delivery_docs.sh
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。
 - `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - Android Console Binder path：debug APK 绑定 `CentralBrainGatewayBinderService`，通过 `CentralBrainGatewayClient` 调用 Uni Info Bus State 与 AI SDK/Agent task plan；service sample 仍代理 REST prototype gateway，覆盖 XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
-- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/soa/*`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、NV-P-002、NV-P-006、DEL-001。
+- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/soa/*`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、NV-P-002、NV-P-006、DEL-001。
 - Android system/privileged service integration note：`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 记录 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项，覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005；本轮不开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化层。
-- Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*` 和 `audit.*` 本地 IPC envelope，覆盖 XSC-006、FW-U-003、NV-P-002、NV-P-006、DEL-002。
+- Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*` 和 `audit.*` 本地 IPC envelope，覆盖 XSC-006、FW-U-003、FW-U-004、NV-P-002、NV-P-006、DEL-002。
 - `GET /native/adapters`：Native adapter 注册表，覆盖 XSC-004、NV-F-001、NV-F-003、NV-F-004、NV-F-008、NV-F-009、NV-F-011。
 - `GET /native/adapters/detail`：Android/Linux 原生适配交付边界与 Driver/HAL 依赖说明，覆盖 XSC-004、DEL-001、DEL-002、DEL-005。
 - `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`：外置 PCIe NPU 的 Model Runtime Adapter、Driver/HAL、Safety 状态、错误码和 Android/Linux 集成检查点，覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。

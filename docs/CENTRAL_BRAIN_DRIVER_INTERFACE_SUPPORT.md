@@ -31,6 +31,8 @@ AI SDK/Agent 任务规划入口增量新增 `GET /ai/sdk/capabilities`、`POST /
 
 Android Console AI SDK/Agent 主任务路径增量只修改 `MainActivity` 与静态检查，使第二个主按钮通过 Binder `planAgentTaskJson` 调用 `/agent/plan`，覆盖 XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。该增量只提交 utterance/caller/permission/safety context 并返回任务图，不执行真实 Skill、Memory、Model Runtime Adapter、NPU vendor SDK、Driver/HAL、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
 
+FW-U-004 Action active mock 增量新增 `POST /uib/actions/request`、Linux CLI/IPC `action-request`/`uib.actions.request`、Android Binder/AIDL `requestActionJson` 和 gRPC `RequestAction` contract 映射，覆盖 XSC-002、XSC-005、XSC-006、FW-U-004、FW-U-007、NV-G-005、NV-P-002、NV-P-005、NV-P-003、DEL-001、DEL-002。该增量只做 Permission/Safety State 检查并返回 `execution_mode=policy-checked-mock`；不执行真实车控、Vehicle Signal/ECU Adapter、Driver/HAL、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |

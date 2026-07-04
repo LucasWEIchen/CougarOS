@@ -26,7 +26,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.12"
+API_VERSION = "0.1.13"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -351,6 +351,7 @@ def permission_check_payload(request: dict[str, Any]) -> dict[str, Any]:
 def action_request_payload(request: dict[str, Any]) -> dict[str, Any]:
     action = request.get("action", "Unknown.Action")
     permissions = request.get("permissions") or ["vehicle.control"]
+    target = request.get("target", {})
     decision = permission_check_payload(
         {
             "permissions": permissions,
@@ -362,9 +363,16 @@ def action_request_payload(request: dict[str, Any]) -> dict[str, Any]:
     return {
         "action_id": str(uuid.uuid4()),
         "action": action,
+        "target": target,
         "state": "accepted" if decision["decision"] == "allow" else "rejected",
+        "execution_mode": "policy-checked-mock",
+        "dispatch": {
+            "driver_hal": "not-dispatched",
+            "vehicle_bus": "not-dispatched",
+            "virtualization": "not-developed",
+        },
         "policy": decision,
-        "req_ids": ["FW-U-004"]
+        "req_ids": ["XSC-002", "FW-U-004", "FW-U-007", "XSC-005", "NV-G-005"]
     }
 
 
@@ -570,7 +578,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, inference_payload(request))
         elif path in ("/permission/check", "/policy/evaluate"):
             self.send_json(200, envelope(permission_check_payload(request), request.get("trace_id")))
-        elif path == "/actions/request":
+        elif path in ("/actions/request", "/uib/actions/request"):
             self.send_json(200, envelope(action_request_payload(request), request.get("trace_id")))
         elif path in ("/service/invoke", "/soa/invoke"):
             trace_id = request.get("trace_id") or str(uuid.uuid4())

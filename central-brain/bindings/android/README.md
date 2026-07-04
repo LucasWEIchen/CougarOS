@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, NV-P-002, NV-P-006, DEL-001.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, NV-P-002, NV-P-006, DEL-001.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
@@ -24,6 +24,7 @@ Brain semantic gateway.
 | `getRecentEventsJson` | `GET /uib/events/recent` | XSC-002, FW-U-003, NV-P-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
+| `requestActionJson` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `listServicesJson` | `GET /soa/services` | XSC-003, FW-S-001..004 |
 | `invokeServiceJson` | `POST /soa/invoke` | XSC-003, FW-S-005 |
 | `evaluatePolicyJson` | `POST /policy/evaluate` | XSC-005, NV-G-005 |

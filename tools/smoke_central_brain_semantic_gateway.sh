@@ -89,6 +89,20 @@ checks = [
     ),
     (
         "POST",
+        "/uib/actions/request",
+        {
+            "trace_id": "smoke-action",
+            "action": "Cabin.SetTemperature",
+            "target": {"zone": "row1-left", "temperature_c": 22.5},
+            "permissions": ["vehicle.control"],
+            "caller_permissions": ["vehicle.read", "vehicle.control"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "FW-U-004",
+    ),
+    (
+        "POST",
         "/policy/evaluate",
         {
             "trace_id": "smoke-policy-deny",
@@ -138,6 +152,10 @@ for method, path, body, req_id in checks:
         assert task["state"] == "planned", "agent plan was not accepted"
         assert task["steps"], "agent plan did not return task steps"
         assert "POST /soa/invoke" in json.dumps(task), "agent plan bypassed SOA"
+    if path == "/uib/actions/request":
+        action = payload["payload"]
+        assert action["state"] == "accepted", "action request was not accepted"
+        assert action["dispatch"]["driver_hal"] == "not-dispatched", "action mock dispatched to Driver/HAL"
     if path == "/uib/events/recent":
         events = payload["payload"]["events"]
         assert events, "event recent endpoint did not keep the published event"
@@ -157,6 +175,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" agent-plan >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" action-request >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null

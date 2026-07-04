@@ -48,6 +48,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/uib/events/recent",
         "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
     },
+    "uib.actions.request": {
+        "method": "POST",
+        "path": "/uib/actions/request",
+        "req_ids": ["XSC-002", "XSC-005", "XSC-006", "FW-U-004", "FW-U-007", "NV-G-005", "NV-P-002", "DEL-002"],
+    },
     "ai.sdk.capabilities": {
         "method": "GET",
         "path": "/ai/sdk/capabilities",

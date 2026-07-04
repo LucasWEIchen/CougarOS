@@ -34,6 +34,18 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "safety_state": "normal",
         },
     ),
+    "action-request": (
+        "uib.actions.request",
+        {
+            "trace_id": "linux-ipc-action",
+            "action": "Cabin.SetTemperature",
+            "target": {"zone": "row1-left", "temperature_c": 22.5},
+            "permissions": ["vehicle.control"],
+            "caller_permissions": ["vehicle.read", "vehicle.control"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "policy": (
         "policy.evaluate",
         {
