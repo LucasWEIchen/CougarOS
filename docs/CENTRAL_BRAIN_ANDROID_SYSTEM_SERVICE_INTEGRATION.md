@@ -18,11 +18,12 @@ system server 代码、priv-app 签名配置、SELinux policy、Driver/HAL、Saf
 
 当前 Android Console debug APK 已经绑定
 `CentralBrainGatewayBinderService`，并通过 `CentralBrainGatewayClient`
-调用 Uni Info Bus State 与 SOA Inference。该路径覆盖：
+调用 Uni Info Bus State 与 AI SDK/Agent task plan。该路径覆盖：
 
 | 组件 | 当前交付 | Req ID |
 | --- | --- | --- |
 | Uni Info Bus client path | `getStateJson`、`getContextJson`、Event methods | XSC-002, FW-U-001, FW-U-002, FW-U-003 |
+| AI SDK/Agent task path | `getAiSdkCapabilitiesJson`、`planAgentTaskJson` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
 | SOA service entry | `listServicesJson`、`invokeServiceJson` | XSC-003, FW-S-004, FW-S-005 |
 | Runtime & Governance | `evaluatePolicyJson`、`getRuntimeGovernanceJson`、`getRecentAuditJson` | XSC-005, FW-U-007, NV-G-005, NV-G-007 |
 | Protocol Binding | AIDL + Binder service/client sample | XSC-006, NV-P-002, NV-P-005, DEL-001 |

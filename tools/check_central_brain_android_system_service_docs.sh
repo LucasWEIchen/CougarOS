@@ -38,7 +38,7 @@ require_file "$DEVIATIONS"
 require_file "$ISSUES"
 require_file "$MANIFEST"
 
-for req_id in DEL-001 DEL-003 DEL-004 XSC-002 XSC-003 XSC-005 XSC-006 NV-P-002 NV-P-005 FW-U-007 FW-S-005 NV-G-005; do
+for req_id in DEL-001 DEL-003 DEL-004 XSC-001 APP-004 XSC-002 XSC-003 XSC-005 XSC-006 NV-P-002 NV-P-005 FW-U-007 FW-S-005 NV-G-005; do
   require_text "$DOC" "$req_id"
 done
 
@@ -47,6 +47,7 @@ require_text "$DOC" "Privileged app service"
 require_text "$DOC" "Framework system service"
 require_text "$DOC" "Vendor native gateway bridge"
 require_text "$DOC" "BIND_CENTRAL_BRAIN_GATEWAY"
+require_text "$DOC" "planAgentTaskJson"
 require_text "$DOC" "com.centralbrain.permission.BIND_GATEWAY"
 require_text "$DOC" "Binder UID"
 require_text "$DOC" "SELinux"

@@ -59,7 +59,12 @@ grep -q "SELinux" "$ANDROID_SYSTEM_SERVICE_DOC"
 grep -q "CentralBrainGatewayBinderService" "$ANDROID_CONSOLE_MANIFEST"
 grep -q "BIND_CENTRAL_BRAIN_GATEWAY" "$ANDROID_CONSOLE_MANIFEST"
 grep -q "CentralBrainGatewayClient" "$ANDROID_CONSOLE_MAIN"
-grep -q "invokeServiceJson" "$ANDROID_CONSOLE_MAIN"
+grep -q "Plan Agent Task" "$ANDROID_CONSOLE_MAIN"
+grep -q "planAgentTaskJson" "$ANDROID_CONSOLE_MAIN"
+if grep -q "Invoke SOA Inference" "$ANDROID_CONSOLE_MAIN"; then
+  echo "Android Console main path must use AI SDK/Agent planning, not the old SOA inference button" >&2
+  exit 1
+fi
 grep -q "generated-aidl" "$ANDROID_CONSOLE_BUILD"
 grep -q "BINDING_DIR/java" "$ANDROID_CONSOLE_BUILD"
 

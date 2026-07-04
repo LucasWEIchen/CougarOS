@@ -57,7 +57,7 @@
 
 | Req ID | 要求 | 说明 | 当前状态 |
 | --- | --- | --- | --- |
-| DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | Android Console 已通过 Binder client 调用 Uni Info Bus/SOA sample；Android system/privileged service integration note 初版 |
+| DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | Android Console 已通过 Binder client 调用 Uni Info Bus State 与 AI SDK/Agent plan sample；Android system/privileged service integration note 初版 |
 | DEL-002 | Linux 同步交付路径 | 每个核心接口需要 Linux 版示例、CLI 或 daemon 集成说明 | CLI 初版 |
 | DEL-003 | 座舱域工程师文档 | 交付给 Android/Linux 座舱软件工程师，必须给出集成步骤、接口、验证命令 | Android system service integration note + Linux 部署文档初版 |
 | DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | `CENTRAL_BRAIN_PLATFORM_DELTA.md` + Android system service integration note + Linux systemd sample |
@@ -70,7 +70,7 @@
 | APP-001 | 座舱 Apps | 客户开发 | HMI/车控/场景/... | Android 前端必须支持座舱 HMI 与车控场景入口 | console 原型仅健康/推理 |
 | APP-002 | 座舱服务 | 客户开发 | 音频/蓝牙/车控/... | 应作为 Business/Foundation/Atomic services 暴露 | 未实现 |
 | APP-003 | Agent Apps | 客户开发 | 车控/座舱/诊断/导航/... | Agent 应通过 Tool/Permission/Action 调用底层能力 | 仅接口设计 |
-| APP-004 | AI SDK | 展锐负责 | 多模态/意图/模型路由/工具规划/... | App 不应直连模型，应经 AI SDK 到 Uni Info Bus/AIOS Kernel | `/ai/sdk/capabilities` 与 `/agent/plan` active mock；Android/Linux binding 已有 contract，Console 仍保留 SOA 调试入口，偏差 DEV-003 |
+| APP-004 | AI SDK | 展锐负责 | 多模态/意图/模型路由/工具规划/... | App 不应直连模型，应经 AI SDK 到 Uni Info Bus/AIOS Kernel | `/ai/sdk/capabilities` 与 `/agent/plan` active mock；Android Console 主按钮已调用 `planAgentTaskJson`；仍未实现真实 SDK/Agent 执行，偏差 DEV-003 |
 | APP-005 | Cluster & TBOX | 客户开发 | 仪表/警告/TSP/OTA/远控/... | Cluster/TBOX 应独立服务域建模 | 未实现 |
 | APP-006 | Cluster/TBOX 服务 | 客户开发 | Weston/GStreamer/... | 应声明显示/媒体服务边界 | 未实现 |
 | APP-007 | 智驾应用 | 客户开发 | NOA/TJA/APA/... | App 只能读取/请求智驾服务，不能绕过 Safety State | 未实现 |

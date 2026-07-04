@@ -10,8 +10,8 @@ Brain semantic gateway.
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
 - The Android Console debug APK now binds this service sample before calling
-  Uni Info Bus State and SOA Inference. The Binder service sample still proxies
-  to the REST semantic gateway as its upstream prototype binding.
+  Uni Info Bus State and AI SDK/Agent task planning. The Binder service sample
+  still proxies to the REST semantic gateway as its upstream prototype binding.
 
 ## Mapping
 

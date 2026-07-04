@@ -10,7 +10,7 @@
 - `backend/native_adapters.py`：Native adapter 注册表，表达 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 的 Android/Linux 交付边界。
 - `bindings/`：Android Binder/AIDL service/client sample、Linux IPC/gRPC 等协议绑定契约与 Linux IPC active sample。
 - `deploy/linux/`：Linux systemd 部署样例、环境模板和平台部署说明。
-- `android-console/`：普通 Android App 原型，用于模拟器验证 App -> Binder -> Uni Info Bus/SOA -> 后端联通。
+- `android-console/`：普通 Android App 原型，用于模拟器验证 App -> Binder -> AI SDK/Uni Info Bus/SOA semantic gateway -> 后端联通。
 - `linux-cli/`：Linux 同步交付 CLI 示例，调用同一套 Uni Info Bus/SOA 语义入口。
 - `../docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`：Android system/privileged service 集成约束，记录 DEL-001/003/004 与 NV-P-002 目标部署假设。
 - `../docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`：Hypervisor/Safety 接口约束，记录 HV-001..003 非开发范围。
@@ -102,7 +102,7 @@ bash tools/check_central_brain_delivery_docs.sh
 - `POST /policy/evaluate`：Policy/Safety State 评估入口，覆盖 FW-U-007、FW-S-005、NV-G-005。
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。
 - `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
-- Android Console Binder path：debug APK 绑定 `CentralBrainGatewayBinderService`，通过 `CentralBrainGatewayClient` 调用 Uni Info Bus State 与 SOA Inference；service sample 仍代理 REST prototype gateway，覆盖 XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
+- Android Console Binder path：debug APK 绑定 `CentralBrainGatewayBinderService`，通过 `CentralBrainGatewayClient` 调用 Uni Info Bus State 与 AI SDK/Agent task plan；service sample 仍代理 REST prototype gateway，覆盖 XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
 - Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/soa/*`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、NV-P-002、NV-P-006、DEL-001。
 - Android system/privileged service integration note：`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 记录 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项，覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005；本轮不开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化层。
 - Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*` 和 `audit.*` 本地 IPC envelope，覆盖 XSC-006、FW-U-003、NV-P-002、NV-P-006、DEL-002。

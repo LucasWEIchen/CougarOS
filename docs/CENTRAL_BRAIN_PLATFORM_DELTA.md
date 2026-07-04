@@ -58,11 +58,11 @@ bash tools/smoke_central_brain_linux_ipc.sh
 
 Android 量产集成说明位于
 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`，覆盖 DEL-001、
-DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、
-NV-P-005、FW-U-007、FW-S-005、NV-G-005。
+DEL-003、DEL-004、XSC-001、APP-004、XSC-002、XSC-003、XSC-005、
+XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005。
 
 该文档将当前 debug APK 内置 Binder sample 与目标 AAOS system/privileged
-service 区分开：当前 sample 只验证 App -> Binder -> Uni Info Bus/SOA 路径；
+service 区分开：当前 sample 只验证 App -> Binder -> AI SDK/Uni Info Bus/SOA 路径；
 目标集成需要平台方提供签名、priv-app 白名单、SELinux domain、service context
 和上游 native gateway/system service 形态。Binder caller identity 必须进入
 Runtime & Governance Policy 输入，不能替代 Policy 检查。

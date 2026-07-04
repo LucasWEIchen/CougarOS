@@ -17,7 +17,7 @@
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
-| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan active mock 初版 |
+| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan active mock + Android Console plan path |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 |
 
 ## M0 任务清单
@@ -181,3 +181,9 @@
   - Linux CLI/IPC active sample 新增 `ai-sdk`、`agent-plan` 验证路径，semantic gateway 和 Linux IPC smoke test 已覆盖。
   - 本轮未开发 AI SDK 真库、Agent execute、Skill sandbox、Memory store、真实 Model Runtime Adapter、Driver/HAL、Safety Runtime 或虚拟化层。
   - 覆盖 Req ID：XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、XSC-002、XSC-003、FW-S-005、XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
+- 推进 Android Console AI SDK/Agent 主任务路径：
+  - `MainActivity` 第二个主按钮从 SOA inference 调试入口切换为 `CentralBrainGatewayClient.planAgentTaskJson`。
+  - Console 现在通过 Binder 提交 utterance、caller、permission、vehicle/safety state 到 `/agent/plan`，只获得任务图；实际执行仍必须经 SOA/Tool/Action。
+  - 静态绑定检查新增对 Console `Plan Agent Task` 与 `planAgentTaskJson` 的断言，防止 App 主路径回退到直按 SOA 推理。
+  - 本轮未开发 AI SDK 真库、Agent execute、Skill sandbox、Memory store、真实 Model Runtime Adapter、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。

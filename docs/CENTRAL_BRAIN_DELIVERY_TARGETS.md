@@ -11,7 +11,7 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample；system service integration note 初版 |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并以 `planAgentTaskJson` 作为 AI SDK/Agent 主任务入口；system service integration note 初版 |
 | Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Unix socket IPC daemon/client active sample；gRPC contract skeleton 初版；systemd 部署样例初版 |
 
 ## 每个核心模块的交付形态
@@ -97,7 +97,7 @@ Android 版本必须提供：
 
 - 绑定 `CentralBrainGatewayBinderService`。
 - 通过 `CentralBrainGatewayClient.getStateJson` 调用 Uni Info Bus State。
-- 通过 `CentralBrainGatewayClient.invokeServiceJson` 调用 SOA Inference。
+- 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
 - Binder service sample 内部仍以 REST prototype gateway 作为上游绑定，不代表量产 system service。
 
 当前 Android binding service stub sample：

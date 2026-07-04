@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
     private TextView statusView;
     private TextView detailView;
     private Button refreshButton;
-    private Button inferButton;
+    private Button planButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
 
@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
         root.addView(title);
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Android app layer -> Binder gateway -> Uni Info Bus/SOA prototype");
+        subtitle.setText("Android app layer -> Binder gateway -> AI SDK/Uni Info Bus prototype");
         subtitle.setTextSize(14);
         subtitle.setTextColor(Color.rgb(76, 91, 101));
         subtitle.setPadding(0, 0, 0, dp(18));
@@ -92,16 +92,16 @@ public class MainActivity extends Activity {
         });
         buttonRow.addView(refreshButton);
 
-        inferButton = new Button(this);
-        inferButton.setText("Invoke SOA Inference");
-        inferButton.setAllCaps(false);
-        inferButton.setOnClickListener(new View.OnClickListener() {
+        planButton = new Button(this);
+        planButton.setText("Plan Agent Task");
+        planButton.setAllCaps(false);
+        planButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                runInference();
+                planAgentTask();
             }
         });
-        buttonRow.addView(inferButton);
+        buttonRow.addView(planButton);
 
         detailView = new TextView(this);
         detailView.setTextSize(13);
@@ -123,15 +123,14 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void runInference() {
-        setBusy(true, "Status: invoking SOA inference via Binder");
-        String body = "{\"service\":\"npu-inference\",\"method\":\"infer\",\"caller_permissions\":[\"ai.infer\",\"service.read\"],"
-            + "\"payload\":{\"model\":\"central-intent-v0\",\"input\":{\"utterance\":\"query vehicle state\"},"
-            + "\"policy\":{\"safety_state_required\":\"normal\",\"timeout_ms\":2000}}}";
-        gatewayRequest("SOA Inference (Binder)", new GatewayCall() {
+    private void planAgentTask() {
+        setBusy(true, "Status: planning Agent task via Binder");
+        String body = "{\"utterance\":\"query vehicle state\",\"caller\":{\"app_id\":\"android-console\",\"role\":\"debug_console\"},"
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],\"vehicle_state\":\"parked\",\"safety_state\":\"normal\"}";
+        gatewayRequest("AI SDK Agent Plan (Binder)", new GatewayCall() {
             @Override
             public String run(CentralBrainGatewayClient client) throws RemoteException {
-                return client.invokeServiceJson(newTraceId("soa"), body);
+                return client.planAgentTaskJson(newTraceId("agent-plan"), body);
             }
         });
     }
@@ -142,9 +141,9 @@ public class MainActivity extends Activity {
             @Override
             public void onConnected(CentralBrainGatewayClient client) {
                 gatewayBound = true;
-                postResult("Status: Binder gateway connected", "Req IDs: XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
+                postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh or Invoke SOA Inference to exercise the Android Binder path.");
+                    + "Use Refresh or Plan Agent Task to exercise the Android Binder path.");
             }
 
             @Override
@@ -191,7 +190,7 @@ public class MainActivity extends Activity {
     private void setBusy(boolean busy, String status) {
         statusView.setText(status);
         refreshButton.setEnabled(!busy && gatewayBound);
-        inferButton.setEnabled(!busy && gatewayBound);
+        planButton.setEnabled(!busy && gatewayBound);
     }
 
     private int dp(int value) {
