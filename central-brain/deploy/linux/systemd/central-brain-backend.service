@@ -1,0 +1,21 @@
+[Unit]
+Description=Central Brain semantic gateway prototype
+Documentation=file:/opt/central-brain/appDev/docs/CENTRAL_BRAIN_PLATFORM_DELTA.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=centralbrain
+Group=centralbrain
+WorkingDirectory=/opt/central-brain/appDev
+EnvironmentFile=-/etc/central-brain/central-brain.env
+Environment=CENTRAL_BRAIN_PORT=8787
+ExecStart=/usr/bin/env bash /opt/central-brain/appDev/tools/run_central_brain_backend.sh
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

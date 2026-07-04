@@ -18,7 +18,7 @@
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 待开始 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | 待开始 |
-| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | 待开始 |
+| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Linux systemd 与平台差异初版 |
 
 ## M0 任务清单
 
@@ -126,3 +126,8 @@
   - 新增 Android service/client sample：`CentralBrainGatewayBinderService.java`、`CentralBrainGatewayClient.java`，将 Binder 方法映射到 `/uib/*`、`/soa/*`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`。
   - `/bindings/detail` 中 `android-binder-aidl` 从 `contract-skeleton` 推进为 `service-stub-sample`；REST 仍只是上游 prototype binding。
   - 覆盖 Req ID：XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、NV-P-002、DEL-001。
+- 推进 A9 Android/Linux 交付样例：
+  - 新增平台差异说明：`docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`，覆盖 Android/Linux IPC、权限、部署、日志、Driver/HAL、虚拟化差异。
+  - 新增 Linux 部署样例：`central-brain/deploy/linux/central-brain.env.example`、`central-brain/deploy/linux/systemd/central-brain-backend.service`、`central-brain/deploy/linux/systemd/central-brain-linux-ipc.service`。
+  - 新增静态验证脚本：`tools/check_central_brain_delivery_docs.sh`。
+  - 覆盖 Req ID：DEL-001、DEL-002、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002。

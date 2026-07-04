@@ -52,6 +52,13 @@ Validate daemon/client behavior:
 bash tools/smoke_central_brain_linux_ipc.sh
 ```
 
+For systemd deployment samples, see:
+
+```bash
+sed -n '1,220p' central-brain/deploy/linux/README.md
+bash tools/check_central_brain_delivery_docs.sh
+```
+
 ## Delivery Assumptions
 
 - Local Linux daemon integration should start with Unix domain sockets for

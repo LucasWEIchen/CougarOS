@@ -60,7 +60,7 @@
 | DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | 已有 Android Console |
 | DEL-002 | Linux 同步交付路径 | 每个核心接口需要 Linux 版示例、CLI 或 daemon 集成说明 | CLI 初版 |
 | DEL-003 | 座舱域工程师文档 | 交付给 Android/Linux 座舱软件工程师，必须给出集成步骤、接口、验证命令 | 部分文档 |
-| DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | 未实现 |
+| DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | `CENTRAL_BRAIN_PLATFORM_DELTA.md` 初版 + Linux systemd sample |
 | DEL-005 | 驱动接口支持文档 | 明确当前环境已有能力、缺口、新增开发边界和 mock/fallback | 初版 |
 
 ## L1 应用层需求

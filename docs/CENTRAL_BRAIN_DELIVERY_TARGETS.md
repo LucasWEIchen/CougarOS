@@ -12,7 +12,7 @@
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
 | Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android service 集成、模拟器/设备验证 | Console 已走 `/uib/state`、`/soa/invoke`；AIDL Binder service/client sample 初版 |
-| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Unix socket IPC daemon/client active sample；gRPC contract skeleton 初版 |
+| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Unix socket IPC daemon/client active sample；gRPC contract skeleton 初版；systemd 部署样例初版 |
 
 ## 每个核心模块的交付形态
 
@@ -23,7 +23,7 @@
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | `GET /native/adapters/detail` 初版 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype |
-| Protocol Binding | XSC-006 | REST active prototype + Binder/AIDL service stub sample | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID |
+| Protocol Binding | XSC-006 | REST active prototype + Binder/AIDL service stub sample | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge | Linux runtime bridge | NPU/GPU/Cloud 后端可替换 |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发 |
 
@@ -57,8 +57,16 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 bash tools/check_central_brain_binding_artifacts.sh
+bash tools/check_central_brain_delivery_docs.sh
 bash tools/smoke_central_brain_linux_ipc.sh
 ```
+
+Linux systemd 部署样例：
+
+- `central-brain/deploy/linux/central-brain.env.example`
+- `central-brain/deploy/linux/systemd/central-brain-backend.service`
+- `central-brain/deploy/linux/systemd/central-brain-linux-ipc.service`
+- `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`
 
 ## Android 版本最低要求
 
