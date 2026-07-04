@@ -14,6 +14,11 @@
       "enum": [
         "uib.context.get",
         "uib.state.get",
+        "uib.events.topics",
+        "uib.events.publish",
+        "uib.events.recent",
+        "ai.sdk.capabilities",
+        "agent.plan",
         "soa.services.list",
         "soa.service.invoke",
         "policy.evaluate",

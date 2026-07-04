@@ -6,7 +6,7 @@
 ## 范围
 
 本文件覆盖 DEL-001、DEL-002、DEL-003、DEL-004，以及跨 SoC 组件
-XSC-002、XSC-003、XSC-005、XSC-006 的 Android 主开发路径与 Linux 同步交付路径差异。
+XSC-001、XSC-002、XSC-003、XSC-005、XSC-006 的 Android 主开发路径与 Linux 同步交付路径差异。
 
 虚拟化层不开发；相关内容只作为 HV-001..003 的部署假设，详见
 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`。驱动层不默认新增开发；
@@ -17,7 +17,7 @@ Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 
 | 维度 | Android 主开发路径 | Linux 同步交付路径 | 当前交付状态 | Req ID |
 | --- | --- | --- | --- | --- |
-| 应用入口 | Android Console APK 和后续 AI SDK client | CLI/client，无 UI 最低样例 | Console + CLI 初版 | DEL-001, DEL-002, XSC-001 |
+| 应用入口 | Android Console APK 和后续 AI SDK client；Binder contract 暴露 `planAgentTaskJson` | CLI/client，无 UI 最低样例；CLI/IPC 暴露 `agent-plan` | Console + CLI 初版；AI SDK/Agent plan active mock | DEL-001, DEL-002, XSC-001, APP-004 |
 | Uni Info Bus | App/client 调用 `/uib/*`，Binder sample 暴露 `getContextJson`、`getStateJson` | CLI 和 Unix socket IPC operation 映射 `uib.context.get`、`uib.state.get` | active prototype | XSC-002, FW-U-001, FW-U-002 |
 | SOA 服务入口 | Binder sample 暴露服务目录和 invoke 方法，当前代理语义网关 | CLI、Unix socket IPC 和 systemd gateway sample | active prototype + Linux unit sample | XSC-003, FW-S-004, FW-S-005 |
 | Runtime & Governance | 通过 `/policy/evaluate`、`/governance/runtime`、`/audit/recent` 验证 | 同一 contract；Linux IPC daemon 保持 policy/governance operation | active prototype | XSC-005, NV-G-001..007 |

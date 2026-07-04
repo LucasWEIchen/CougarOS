@@ -6,6 +6,7 @@ package com.centralbrain.binding;
  * Req IDs:
  * - XSC-002 Uni Info Bus semantic interface
  * - XSC-003 SOA service entry
+ * - XSC-001 AI SDK application facade
  * - XSC-005 Runtime & Governance
  * - XSC-006 Protocol Binding
  * - XSC-004 AIOS Kernel / Native adapter visibility
@@ -24,6 +25,10 @@ interface ICentralBrainGateway {
     String publishEventJson(String traceId, String requestJson);
 
     String getRecentEventsJson(String traceId, int limit);
+
+    String getAiSdkCapabilitiesJson(String traceId);
+
+    String planAgentTaskJson(String traceId, String requestJson);
 
     String listServicesJson(String traceId);
 

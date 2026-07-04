@@ -73,6 +73,20 @@ checks = [
     ("GET", "/bindings/detail", None, "NV-P-002"),
     ("GET", "/native/adapters", None, "NV-F-011"),
     ("GET", "/native/adapters/detail", None, "XSC-004"),
+    ("GET", "/ai/sdk/capabilities", None, "XSC-001"),
+    (
+        "POST",
+        "/agent/plan",
+        {
+            "trace_id": "smoke-agent-plan",
+            "utterance": "query vehicle state",
+            "caller": {"app_id": "semantic-gateway-smoke", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "APP-004",
+    ),
     (
         "POST",
         "/policy/evaluate",
@@ -119,6 +133,11 @@ for method, path, body, req_id in checks:
         assert "soa-service-adapter" in adapter_names
         assert "vehicle-signal-adapter" in adapter_names
         assert "model-runtime-adapter" in adapter_names
+    if path == "/agent/plan":
+        task = payload["payload"]["task"]
+        assert task["state"] == "planned", "agent plan was not accepted"
+        assert task["steps"], "agent plan did not return task steps"
+        assert "POST /soa/invoke" in json.dumps(task), "agent plan bypassed SOA"
     if path == "/uib/events/recent":
         events = payload["payload"]["events"]
         assert events, "event recent endpoint did not keep the published event"
@@ -136,6 +155,8 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-publish >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-recent >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" agent-plan >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null

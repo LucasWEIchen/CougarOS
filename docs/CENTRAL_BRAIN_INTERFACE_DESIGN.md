@@ -69,7 +69,7 @@
 | Registry | 服务注册发现 | HTTP/JSON | AIDL/gRPC/SOME-IP-SD |
 | Context | 车辆/用户/环境上下文 | HTTP/JSON | AIDL + DDS event |
 | Event | Uni Info Bus 事件 topic、发布、recent log | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；高频 topic 预留 DDS |
-| Agent | 任务规划和执行 | HTTP/JSON | AIDL/gRPC |
+| Agent | 任务规划和执行 | HTTP/JSON active mock | AIDL/gRPC |
 | Skill | 技能声明、调用、生命周期 | HTTP/JSON | AIDL + sandbox IPC |
 | Memory | 用户偏好和长期记忆 | HTTP/JSON | AIDL + local encrypted store |
 | Policy | 权限、安全状态、隐私路由 | HTTP/JSON | AIDL/native policy engine |
@@ -77,6 +77,8 @@
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
 | Observability | Trace、Metric、QoS、Audit | HTTP/JSON | AIDL + file/socket exporter |
 | Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
+
+AI SDK/Agent 入口当前已新增 `GET /ai/sdk/capabilities` 与 `POST /agent/plan` active mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。App 侧只能提交 intent/utterance 并获得任务图；任务图中的执行步骤仍必须通过 Uni Info Bus、Tool、Action 或 SOA 服务入口，不能直连 Model Runtime Adapter、NPU vendor SDK 或设备节点。
 
 Android AIDL/Binder 的 system/privileged service 集成约束见
 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`。该约束覆盖
@@ -107,7 +109,8 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 
 | Method | Path | 用途 | 已实现 |
 | --- | --- | --- | --- |
-| POST | `/agent/plan` | 用户意图转任务图 | 否 |
+| GET | `/ai/sdk/capabilities` | AI SDK facade 能力、Android/Linux 交付入口和路由约束 | 是 |
+| POST | `/agent/plan` | 用户意图转 policy-aware task graph | 是 |
 | POST | `/agent/execute` | 执行任务图 | 否 |
 | GET | `/agent/tasks/{task_id}` | 查询任务状态 | 否 |
 | POST | `/agent/tasks/{task_id}/cancel` | 取消任务 | 否 |

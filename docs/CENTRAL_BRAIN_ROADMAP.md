@@ -17,7 +17,7 @@
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
-| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | 待开始 |
+| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan active mock 初版 |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 |
 
 ## M0 任务清单
@@ -174,3 +174,10 @@
   - 登记 ISSUE-013：目标 AAOS 镜像签名、priv-app 白名单、SELinux domain、service manager 注册方式和 native gateway 形态待确认。
   - 本轮未开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL、Safety Runtime 或虚拟化层。
   - 覆盖 Req ID：DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005。
+- 推进 XSC-001 AI SDK/Agent 任务规划入口：
+  - 新增 `central-brain/backend/ai_sdk.py`，提供 AI SDK facade capabilities 与 policy-aware task graph planner。
+  - 后端新增 `GET /ai/sdk/capabilities` 与 `POST /agent/plan`，App 提交 intent/utterance 后只获得任务图，执行步骤仍必须经 Uni Info Bus、Tool、Action 或 SOA 服务入口。
+  - Runtime & Governance registry 新增 `agent-task-planner`，Protocol Binding 增加 Android Binder/AIDL、Linux IPC 和 gRPC contract 映射。
+  - Linux CLI/IPC active sample 新增 `ai-sdk`、`agent-plan` 验证路径，semantic gateway 和 Linux IPC smoke test 已覆盖。
+  - 本轮未开发 AI SDK 真库、Agent execute、Skill sandbox、Memory store、真实 Model Runtime Adapter、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、XSC-002、XSC-003、FW-S-005、XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。

@@ -46,7 +46,7 @@
 
 | Req ID | 图中组件 | 所属层级 | 跨 SoC 要求 | Android 交付 | Linux 交付 |
 | --- | --- | --- | --- | --- | --- |
-| XSC-001 | AI SDK | 应用层 | SDK API 稳定，底层 runtime 可替换 | Android library/API sample | Linux SDK/API sample 或 CLI |
+| XSC-001 | AI SDK | 应用层 | SDK API 稳定，底层 runtime 可替换 | Android Binder/AIDL contract sample + `/ai/sdk/capabilities` + `/agent/plan` | Linux CLI/IPC active sample + `/ai/sdk/capabilities` + `/agent/plan` |
 | XSC-002 | Uni Info Bus 语义接口 | Framework 层 | 语义对象和 contract 跨 SoC 一致 | Android client/API | Linux client/API |
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
 | XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter；adapter registry 初版 |
@@ -70,7 +70,7 @@
 | APP-001 | 座舱 Apps | 客户开发 | HMI/车控/场景/... | Android 前端必须支持座舱 HMI 与车控场景入口 | console 原型仅健康/推理 |
 | APP-002 | 座舱服务 | 客户开发 | 音频/蓝牙/车控/... | 应作为 Business/Foundation/Atomic services 暴露 | 未实现 |
 | APP-003 | Agent Apps | 客户开发 | 车控/座舱/诊断/导航/... | Agent 应通过 Tool/Permission/Action 调用底层能力 | 仅接口设计 |
-| APP-004 | AI SDK | 展锐负责 | 多模态/意图/模型路由/工具规划/... | App 不应直连模型，应经 AI SDK 到 Uni Info Bus/AIOS Kernel | 当前 App 直连 mock，偏差 DEV-003 |
+| APP-004 | AI SDK | 展锐负责 | 多模态/意图/模型路由/工具规划/... | App 不应直连模型，应经 AI SDK 到 Uni Info Bus/AIOS Kernel | `/ai/sdk/capabilities` 与 `/agent/plan` active mock；Android/Linux binding 已有 contract，Console 仍保留 SOA 调试入口，偏差 DEV-003 |
 | APP-005 | Cluster & TBOX | 客户开发 | 仪表/警告/TSP/OTA/远控/... | Cluster/TBOX 应独立服务域建模 | 未实现 |
 | APP-006 | Cluster/TBOX 服务 | 客户开发 | Weston/GStreamer/... | 应声明显示/媒体服务边界 | 未实现 |
 | APP-007 | 智驾应用 | 客户开发 | NOA/TJA/APA/... | App 只能读取/请求智驾服务，不能绕过 Safety State | 未实现 |
@@ -89,7 +89,7 @@
 | FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` active mock；legacy `/events/*` 兼容 |
 | FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | `/actions/request` mock |
 | FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/service/invoke` 与 `/soa/invoke` mock |
-| FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | `/tools` mock |
+| FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | `/tools` mock + `/agent/plan` 输出 policy-aware task graph |
 | FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | `/permission/check` + `/soa/invoke` mock |
 | FW-U-008 | 其他 | 展锐负责 | 扩展语义 | 必须有扩展机制且不可破坏核心对象 | 未实现 |
 
@@ -110,7 +110,7 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| NV-F-001 | AIOS Kernel | 展锐负责 | Agent/Model/Tool/Memory/Safety/... | AI/Agent 核心不能仅在 App 或后端散落实现 | `native_adapters.py` contract mock |
+| NV-F-001 | AIOS Kernel | 展锐负责 | Agent/Model/Tool/Memory/Safety/... | AI/Agent 核心不能仅在 App 或后端散落实现 | `native_adapters.py` contract mock + `agent-task-planner` registry entry + `/agent/plan` active mock |
 | NV-F-002 | Sensor/Actuator | 展锐负责 | Camera/Radar/USS/IMU/Mic/... | 传感器/执行器统一适配 | 未实现 |
 | NV-F-003 | Service Adapters | 展锐负责 | Signal Map/ECU Proxy/Impl/... | 业务服务到 ECU/Signal 的 adapter | SOA Service Adapter registry 初版 |
 | NV-F-004 | Vehicle/Body Signal | 生态合作 | BCM/HVAC/Seat/Door/Light/... | 车辆/车身信号按合作生态接入 | mock VSS snapshot + adapter boundary |

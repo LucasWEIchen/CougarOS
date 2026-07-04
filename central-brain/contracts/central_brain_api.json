@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "updated": "2026-07-04",
   "transport": {
     "prototype": "http-json",
@@ -157,6 +157,12 @@
       "req_ids": ["FW-U-006"]
     },
     {
+      "method": "GET",
+      "path": "/ai/sdk/capabilities",
+      "description": "Returns AI SDK facade capabilities and the Android/Linux task planning delivery paths.",
+      "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "DEL-001", "DEL-002"]
+    },
+    {
       "method": "POST",
       "path": "/permission/check",
       "description": "Compatibility alias for Policy evaluation during Action/Tool/Service calls.",
@@ -199,7 +205,8 @@
     {
       "method": "POST",
       "path": "/agent/plan",
-      "description": "Planned: converts a user intent or scene trigger into a task graph."
+      "description": "Converts a user intent or scene trigger into a policy-aware task graph whose executable steps must route through Uni Info Bus, Tool, Action, or SOA entries.",
+      "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "XSC-002", "XSC-003", "FW-S-005"]
     },
     {
       "method": "POST",

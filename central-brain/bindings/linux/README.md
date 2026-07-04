@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-002, XSC-003, XSC-005, XSC-006, FW-U-003, NV-P-002, NV-P-003, NV-P-006, DEL-002.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-005, XSC-006, APP-004, FW-U-003, NV-P-002, NV-P-003, NV-P-006, DEL-002.
 - `proto/central_brain_gateway.proto` defines the gRPC/RPC surface.
 - `ipc/central_brain_ipc_envelope.schema.json` defines the Unix domain socket
   JSON envelope for a lightweight local IPC daemon.
@@ -25,6 +25,8 @@ Brain semantic gateway.
 | `uib.events.topics` | `GET /uib/events/topics` | XSC-002, FW-U-003, NV-P-006 |
 | `uib.events.publish` | `POST /uib/events/publish` | XSC-002, FW-U-003, NV-P-006 |
 | `uib.events.recent` | `GET /uib/events/recent` | XSC-002, FW-U-003, NV-P-006 |
+| `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
+| `agent.plan` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
 | `soa.services.list` | `GET /soa/services` | XSC-003, FW-S-001..004 |
 | `soa.service.invoke` | `POST /soa/invoke` | XSC-003, FW-S-005 |
 | `policy.evaluate` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
@@ -49,6 +51,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-publish
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py agent-plan
 ```
 
 Validate daemon/client behavior:

@@ -17,7 +17,7 @@
 | ID | 图中位置 | 疑点/风险 | 影响 | 当前建议 | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | ISSUE-001 | 左侧 UNIOS 大括号 | 图中 UNIOS 似乎覆盖 Framework、Native、Kernel/HAL、虚拟化和硬件，但是否包含应用层不明确 | 影响系统边界、SDK 发布形态和责任划分 | 暂定应用层不属于 UNIOS 内核，只通过 AI SDK/Uni Info Bus 接入 | Open |
-| ISSUE-002 | AI SDK 位于应用层且为蓝色 | AI SDK 是 App 内 SDK、系统 SDK，还是平台服务的 client library 不明确 | 影响 Android 端架构和接口位置 | 暂定为平台提供的 client SDK，应用层调用但实现归平台 | Proposed |
+| ISSUE-002 | AI SDK 位于应用层且为蓝色 | AI SDK 是 App 内 SDK、系统 SDK，还是平台服务的 client library 不明确 | 影响 Android 端架构和接口位置 | 暂定为平台提供的 client facade/SDK，应用层调用 `planAgentTask` 类任务接口，但实现归平台并经 Uni Info Bus、AIOS Kernel、SOA 与 Runtime & Governance | Proposed |
 | ISSUE-003 | Cluster/TBOX 与 Connected Funcware | 应用层和 Native 层都出现 TBOX/OTA/Diag 类能力，职责边界可能重叠 | 影响服务拆分 | 暂定应用层为业务 UI/流程，Native 为设备/协议/状态机 adapter | Proposed |
 | ISSUE-004 | 智驾应用/服务 与 ADAS Funcware | NOA/TJA/APA、感知/地图/位置、Perception/Fusion/Scene 的调用边界未细化 | 影响安全域和实时数据通道 | 暂定 App 只读状态/发起请求，ADAS Funcware 保持安全域内闭环 | Proposed |
 | ISSUE-005 | SOA 服务入口 与 Uni Info Bus Runtime & Governance | 两层都涉及服务管理，控制面/数据面边界未明确 | 影响 Gateway 实现 | 暂定 SOA 服务入口负责语义服务门面，Runtime & Governance 负责注册、发现、策略、生命周期 | Proposed |

@@ -18,13 +18,15 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from ai_sdk import capabilities_payload as ai_sdk_capabilities_payload
+from ai_sdk import plan_payload as ai_sdk_plan_payload
 from native_adapters import NativeAdapterRegistry
 from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.11"
+API_VERSION = "0.1.12"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -223,6 +225,22 @@ def tools_payload() -> dict[str, Any]:
         ],
         "req_ids": ["FW-U-006"]
     }
+
+
+def agent_plan_payload(request: dict[str, Any]) -> dict[str, Any]:
+    intent = request.get("intent") or request.get("utterance") or "vehicle_state_query"
+    requires_vehicle_control = "comfort" in str(intent).lower() or "control" in str(intent).lower()
+    required_permissions = ["vehicle.read", "vehicle.control"] if requires_vehicle_control else ["vehicle.read"]
+    policy = permission_check_payload(
+        {
+            "permissions": request.get("permissions") or required_permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        }
+    )
+    return ai_sdk_plan_payload(request, policy)
 
 
 def governance_payload() -> dict[str, Any]:
@@ -529,6 +547,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_recent_payload(limit)))
         elif path == "/tools":
             self.send_json(200, envelope(tools_payload()))
+        elif path == "/ai/sdk/capabilities":
+            self.send_json(200, envelope(ai_sdk_capabilities_payload()))
         elif path == "/vehicle/state":
             self.send_json(200, vehicle_state_payload())
         elif path == "/npu/status":
@@ -558,6 +578,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(service_invoke_payload(request), trace_id))
         elif path in ("/events/publish", "/uib/events/publish"):
             self.send_json(200, envelope(event_publish_payload(request), request.get("trace_id")))
+        elif path == "/agent/plan":
+            self.send_json(200, envelope(agent_plan_payload(request), request.get("trace_id")))
         else:
             self.send_json(404, {"status": "error", "message": "unknown endpoint"})
 

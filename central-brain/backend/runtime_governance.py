@@ -92,6 +92,23 @@ SERVICE_CATALOG: list[dict[str, Any]] = [
         },
         "implementation": "planned",
     },
+    {
+        "name": "agent-task-planner",
+        "version": "0.1.0",
+        "domain": "foundation",
+        "contract": "POST /agent/plan",
+        "semantic_entry": "POST /agent/plan intent=<intent>",
+        "layer": "Application/AI SDK -> Native/AIOS Kernel -> Framework/SOA Service Entry",
+        "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007"],
+        "permissions": ["vehicle.read"],
+        "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        "qos": {
+            "priority": "ai-task",
+            "timeout_ms": 1000,
+            "rate_limit": {"max_requests": 10, "window_s": 1},
+        },
+        "implementation": "mock-handler",
+    },
 ]
 
 

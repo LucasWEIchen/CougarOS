@@ -7,8 +7,10 @@ package centralbrain.binding.v1;
 // Req IDs:
 // - XSC-002 Uni Info Bus semantic interface
 // - XSC-003 SOA service entry
+// - XSC-001 AI SDK application facade
 // - XSC-005 Runtime & Governance
 // - XSC-006 Protocol Binding
+// - APP-004 App access to model routing through AI SDK
 // - FW-U-003 Uni Info Bus Event
 // - NV-P-003 gRPC/RPC binding
 // - NV-P-006 DDS/high-rate topic reservation
@@ -20,6 +22,8 @@ service CentralBrainGateway {
   rpc ListEventTopics(GatewayRequest) returns (GatewayResponse);
   rpc PublishEvent(GatewayRequest) returns (GatewayResponse);
   rpc GetRecentEvents(GatewayRequest) returns (GatewayResponse);
+  rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
+  rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);
   rpc ListServices(GatewayRequest) returns (GatewayResponse);
   rpc InvokeService(GatewayRequest) returns (GatewayResponse);
   rpc EvaluatePolicy(GatewayRequest) returns (GatewayResponse);

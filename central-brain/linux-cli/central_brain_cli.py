@@ -26,6 +26,19 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "binding-detail": ("GET", "/bindings/detail", None),
     "native-adapters": ("GET", "/native/adapters", None),
     "native-adapters-detail": ("GET", "/native/adapters/detail", None),
+    "ai-sdk": ("GET", "/ai/sdk/capabilities", None),
+    "agent-plan": (
+        "POST",
+        "/agent/plan",
+        {
+            "trace_id": "linux-cli-agent-plan",
+            "utterance": "query vehicle state",
+            "caller": {"app_id": "linux-cli", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "policy": (
         "POST",
         "/policy/evaluate",

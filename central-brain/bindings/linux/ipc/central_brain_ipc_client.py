@@ -22,6 +22,18 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "governance": ("governance.runtime.get", {}),
     "audit": ("audit.recent.get", {}),
     "bindings": ("bindings.list", {}),
+    "ai-sdk": ("ai.sdk.capabilities", {}),
+    "agent-plan": (
+        "agent.plan",
+        {
+            "trace_id": "linux-ipc-agent-plan",
+            "utterance": "query vehicle state",
+            "caller": {"app_id": "linux-ipc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "policy": (
         "policy.evaluate",
         {
