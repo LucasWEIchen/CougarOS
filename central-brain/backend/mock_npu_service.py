@@ -17,13 +17,14 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.2"
-BINDING_REQ_IDS = ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006"]
+API_VERSION = "0.1.3"
 GOVERNANCE = RuntimeGovernance()
+BINDINGS = ProtocolBindingRegistry()
 EVENT_TOPICS = [
     "vehicle.signal.changed",
     "service.health.changed",
@@ -215,53 +216,11 @@ def governance_payload() -> dict[str, Any]:
 
 
 def bindings_payload() -> dict[str, Any]:
-    return {
-        "bindings": [
-            {
-                "name": "rest-http-json",
-                "status": "active-prototype",
-                "platforms": ["Android emulator", "Linux host"],
-                "req_ids": ["XSC-006", "NV-P-005"]
-            },
-            {
-                "name": "android-binder-aidl",
-                "status": "planned",
-                "platforms": ["Android"],
-                "req_ids": ["XSC-006", "NV-P-002", "DEL-001"]
-            },
-            {
-                "name": "linux-ipc",
-                "status": "planned",
-                "platforms": ["Linux"],
-                "req_ids": ["XSC-006", "NV-P-002", "DEL-002"]
-            },
-            {
-                "name": "grpc",
-                "status": "planned",
-                "platforms": ["Android", "Linux"],
-                "req_ids": ["XSC-006", "NV-P-003"]
-            },
-            {
-                "name": "mqtt",
-                "status": "planned-policy-gated",
-                "platforms": ["Android", "Linux"],
-                "req_ids": ["XSC-006", "NV-P-004"]
-            },
-            {
-                "name": "someip",
-                "status": "planned-after-vehicle-network",
-                "platforms": ["Linux", "QNX/RT domain integration assumption"],
-                "req_ids": ["XSC-006", "NV-P-001"]
-            },
-            {
-                "name": "dds",
-                "status": "planned-for-high-rate-topics",
-                "platforms": ["Linux", "Android native"],
-                "req_ids": ["XSC-006", "NV-P-006"]
-            }
-        ],
-        "req_ids": BINDING_REQ_IDS
-    }
+    return BINDINGS.list_payload()
+
+
+def binding_detail_payload() -> dict[str, Any]:
+    return BINDINGS.detail_payload()
 
 
 def vehicle_state_payload() -> dict[str, Any]:
@@ -478,6 +437,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(GOVERNANCE.audit_payload()))
         elif path == "/bindings":
             self.send_json(200, envelope(bindings_payload()))
+        elif path == "/bindings/detail":
+            self.send_json(200, envelope(binding_detail_payload()))
         elif path == "/events/topics":
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/tools":

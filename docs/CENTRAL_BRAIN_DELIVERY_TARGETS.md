@@ -11,8 +11,8 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android service 集成、模拟器/设备验证 | Console 已走 `/uib/state`、`/soa/invoke` |
-| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版 |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android service 集成、模拟器/设备验证 | Console 已走 `/uib/state`、`/soa/invoke`；AIDL binding skeleton 初版 |
+| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；IPC/gRPC contract skeleton 初版 |
 
 ## 每个核心模块的交付形态
 
@@ -23,7 +23,7 @@
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | 黄色小太阳，跨 SoC |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype |
-| Protocol Binding | XSC-006 | Binder/REST/gRPC adapter | IPC/REST/gRPC/MQTT/SOME-IP/DDS adapter | REST active prototype，其他 binding 计划态 |
+| Protocol Binding | XSC-006 | REST active prototype + Binder/AIDL contract skeleton | REST active prototype + IPC/gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact 和 Req ID |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge | Linux runtime bridge | NPU/GPU/Cloud 后端可替换 |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发 |
 
@@ -54,6 +54,8 @@
 bash tools/smoke_central_brain_semantic_gateway.sh
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py state
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
+bash tools/check_central_brain_binding_artifacts.sh
 ```
 
 ## Android 版本最低要求
@@ -70,3 +72,8 @@ Android 版本必须提供：
 
 - `GET /uib/state`
 - `POST /soa/invoke`
+
+当前 Android binding contract skeleton：
+
+- `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`
+- `GET /bindings/detail`

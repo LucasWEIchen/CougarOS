@@ -56,6 +56,7 @@ checks = [
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/governance/runtime", None, "NV-G-005"),
     ("GET", "/bindings", None, "NV-P-005"),
+    ("GET", "/bindings/detail", None, "NV-P-002"),
     (
         "POST",
         "/policy/evaluate",
@@ -91,6 +92,11 @@ for method, path, body, req_id in checks:
     encoded = json.dumps(payload)
     assert req_id in encoded, f"{path} missing {req_id}"
     assert payload.get("status", "ok") == "ok", f"{path} status not ok"
+    if path == "/bindings/detail":
+        artifacts = payload["payload"]["contract_artifacts"]
+        assert "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl" in artifacts
+        assert "central-brain/bindings/linux/proto/central_brain_gateway.proto" in artifacts
+        assert "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json" in artifacts
     if path == "/audit/recent":
         events = payload["payload"]["events"]
         assert events, "audit endpoint did not record the SOA call"
@@ -102,5 +108,6 @@ PY
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" state >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 
 echo "linux cli smoke ok"

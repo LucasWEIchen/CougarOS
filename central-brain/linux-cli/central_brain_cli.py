@@ -21,6 +21,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "governance": ("GET", "/governance/runtime", None),
     "audit": ("GET", "/audit/recent", None),
     "bindings": ("GET", "/bindings", None),
+    "binding-detail": ("GET", "/bindings/detail", None),
     "policy": (
         "POST",
         "/policy/evaluate",

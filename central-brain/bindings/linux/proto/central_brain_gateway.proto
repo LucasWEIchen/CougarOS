@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package centralbrain.binding.v1;
+
+// Linux gRPC/RPC skeleton for the Central Brain semantic gateway.
+//
+// Req IDs:
+// - XSC-002 Uni Info Bus semantic interface
+// - XSC-003 SOA service entry
+// - XSC-005 Runtime & Governance
+// - XSC-006 Protocol Binding
+// - NV-P-003 gRPC/RPC binding
+// - DEL-002 Linux synchronized delivery path
+
+service CentralBrainGateway {
+  rpc GetContext(GatewayRequest) returns (GatewayResponse);
+  rpc GetState(GatewayRequest) returns (GatewayResponse);
+  rpc ListServices(GatewayRequest) returns (GatewayResponse);
+  rpc InvokeService(GatewayRequest) returns (GatewayResponse);
+  rpc EvaluatePolicy(GatewayRequest) returns (GatewayResponse);
+  rpc GetRuntimeGovernance(GatewayRequest) returns (GatewayResponse);
+  rpc GetRecentAudit(GatewayRequest) returns (GatewayResponse);
+  rpc ListBindings(GatewayRequest) returns (GatewayResponse);
+}
+
+message GatewayRequest {
+  string trace_id = 1;
+  string caller = 2;
+  string permission_context_json = 3;
+  string payload_json = 4;
+}
+
+message GatewayResponse {
+  string trace_id = 1;
+  string status = 2;
+  string error_json = 3;
+  string payload_json = 4;
+  repeated string req_ids = 5;
+}

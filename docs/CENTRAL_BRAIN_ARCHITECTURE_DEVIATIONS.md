@@ -16,7 +16,7 @@
 
 | ID | 偏差 | 涉及需求 | 当前原因 | 风险 | 修正计划 | 状态 |
 | --- | --- | --- | --- | --- | --- | --- |
-| DEV-001 | 当前仍以 REST/HTTP 承载 mock 后端，但 Android/Linux 主路径已改为 `/uib/*` 和 `/soa/*`，REST 作为 prototype Protocol Binding | FW-U-001..008, FW-S-001..006, NV-P-005, XSC-006 | M0 为快速验证端到端链路；本轮先收敛语义路径，未实现 Binder/IPC/gRPC | 如果继续让业务代码直接调用 legacy REST endpoint，会绕过语义层 | 下一步后端拆出 Gateway/binding 边界，Android 迁移到 AIDL/Binder 草案，Linux 增加 IPC/gRPC 样例 | Accepted Temporary |
+| DEV-001 | 当前仍以 REST/HTTP 承载 mock 后端，但 Android/Linux 主路径已改为 `/uib/*` 和 `/soa/*`，REST 作为 prototype Protocol Binding | FW-U-001..008, FW-S-001..006, NV-P-005, XSC-006 | M0 为快速验证端到端链路；A4 已新增 Binder/IPC/gRPC contract skeleton，但未实现真实进程间 binding | 如果继续让业务代码直接调用 legacy REST endpoint，会绕过语义层 | 下一步将 Android Console 从 REST prototype 迁移到 Binder service stub，Linux 增加 IPC/gRPC daemon sample | Accepted Temporary |
 | DEV-002 | 当前 `mock_npu_service.py` 仍同时承担 HTTP gateway、vehicle state、NPU runtime；Registry/Discovery/Policy/Lifecycle/Audit 已拆到 `runtime_governance.py`，但仍是同进程原型 | NV-F-008, NV-F-011, NV-G-001..007 | M0/A3 用单进程 mock 降低复杂度，同时先形成可验证治理边界 | Gateway、SOA runtime、Model Runtime Adapter 尚未成为独立进程/模块 | M2 继续拆成 gateway、SOA runtime、model runtime adapter；保留 `runtime_governance.py` 作为治理边界原型 | Accepted Temporary |
 | DEV-003 | Android Console 仍有“Invoke SOA Inference”调试入口，虽已走 `/soa/invoke`，但仍未经过图中 AI SDK 的多模态/意图/模型路由/工具规划 | APP-004, NV-F-001, NV-F-011, XSC-001 | M0 尚未实现 AI SDK；本轮只收敛到 SOA 服务入口 | App 仍可能过早理解模型细节 | M2 实现 `/agent/plan` 与 `/ai/route`，App 调用任务/意图接口 | Open |
 | DEV-004 | 当前车辆信号只有 mock VSS 风格路径，没有落到 Vehicle/Body Signal、ECU Proxy、DBC/ARXML、VHAL/HAL | NV-F-004, NV-F-005, KH-006 | 没有真实车身信号源和 DBC/ARXML | 信号语义无法验证量产适配 | M4 建立信号目录和映射表；用户提供车型/DBC/ARXML 后进入 adapter | Open |
@@ -28,6 +28,7 @@
 | DEV-010 | 当前路线图先写了 M0/M0.1，但没有明确“架构图需求基线优先级高于产品参考” | 全部 | 初期把图当概念参考 | 开发计划优先级错误 | 本轮修订路线图和跟踪规则 | Resolved |
 | DEV-011 | Linux 已有 CLI smoke 样例，但尚未提供 daemon、systemd 部署、真实 IPC 和驱动/HAL 集成说明 | DEL-002, DEL-003, XSC-001..006 | 本轮补最小 Linux 同步交付路径 | Linux 座舱工程师仍缺少进程部署和平台差异细节 | A9 继续提供 Linux daemon/client、systemd 示例、IPC/gRPC binding 与平台差异说明 | Accepted Temporary |
 | DEV-012 | 当前未显式区分黄色小太阳跨 SoC 组件和普通应用/生态组件 | XSC-001..006 | 初版只按层级拆解 | 跨 SoC 复用组件可能被做成单平台实现 | 已新增 XSC-001..006；后续所有 XSC 组件必须同时规划 Android/Linux 和平台无关 contract | Resolved |
+| DEV-013 | A4 Protocol Binding 目前是 AIDL/proto/schema contract skeleton 和注册表发现，不是真实 Binder、Unix socket 或 gRPC runtime | XSC-006, NV-P-002, NV-P-003, DEL-001, DEL-002 | 当前增量先固化跨 SoC 绑定 contract 和语义入口映射，避免在语义层未稳定前开发多套 runtime | 集成工程师可能误以为 Binder/gRPC 已可部署 | 文档和 `/bindings/detail` 明确 `contract-skeleton` 状态；下一步实现 Android Binder service stub 或 Linux IPC daemon sample | Accepted Temporary |
 
 ## 新增偏差记录模板
 

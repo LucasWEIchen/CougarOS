@@ -6,6 +6,7 @@
 
 - `contracts/`：Android 前端、中间层和后端之间的服务契约。
 - `backend/`：WSL 本地 mock NPU 后端，模拟 PCIe NPU runtime。
+- `bindings/`：Android Binder/AIDL、Linux IPC/gRPC 等协议绑定契约骨架。
 - `android-console/`：普通 Android App 原型，用于模拟器验证应用层和后端联通。
 - `linux-cli/`：Linux 同步交付 CLI 示例，调用同一套 Uni Info Bus/SOA 语义入口。
 
@@ -42,6 +43,8 @@ Linux CLI 示例：
 ```bash
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py state
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py infer
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
+bash tools/check_central_brain_binding_artifacts.sh
 ```
 
 ## 设计边界
@@ -62,3 +65,4 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 - `GET /audit/recent`：SOA 调用审计记录，覆盖 XSC-005、NV-G-007。
 - `POST /policy/evaluate`：Policy/Safety State 评估入口，覆盖 FW-U-007、FW-S-005、NV-G-005。
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。
+- `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。

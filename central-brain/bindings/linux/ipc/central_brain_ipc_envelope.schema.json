@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "central_brain_ipc_envelope.schema.json",
+  "title": "Central Brain Linux IPC Envelope",
+  "description": "Unix domain socket JSON envelope for XSC-006 and NV-P-002 Linux IPC binding.",
+  "type": "object",
+  "required": ["trace_id", "operation", "payload"],
+  "properties": {
+    "trace_id": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "uib.context.get",
+        "uib.state.get",
+        "soa.services.list",
+        "soa.service.invoke",
+        "policy.evaluate",
+        "governance.runtime.get",
+        "audit.recent.get",
+        "bindings.list"
+      ]
+    },
+    "caller": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "permission_context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "req_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "contains": {
+        "const": "XSC-006"
+      }
+    }
+  },
+  "additionalProperties": false
+}

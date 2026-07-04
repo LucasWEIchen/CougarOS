@@ -296,6 +296,23 @@ IAiRuntimeService
   infer(InferenceRequest)
 ```
 
+## Protocol Binding Contract Skeleton
+
+A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Android/Linux binding artifact。所有 binding 只能承载 Uni Info Bus/SOA 语义入口，不能绕过 `Policy`、`Lifecycle` 和 `Audit`。
+
+| Binding | Artifact | 语义入口 | Req IDs | 状态 |
+| --- | --- | --- | --- | --- |
+| Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl` | `/uib/context`、`/uib/state`、`/soa/invoke`、`/policy/evaluate` | XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、DEL-001 | contract skeleton |
+| Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json` | `uib.context.get`、`uib.state.get`、`soa.service.invoke`、`policy.evaluate` | XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、DEL-002 | contract skeleton |
+| Linux gRPC/RPC | `central-brain/bindings/linux/proto/central_brain_gateway.proto` | `CentralBrainGateway.GetState`、`InvokeService`、`EvaluatePolicy` | XSC-002、XSC-003、XSC-005、XSC-006、NV-P-003、DEL-002 | contract skeleton |
+
+验证命令：
+
+```bash
+bash tools/check_central_brain_binding_artifacts.sh
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
+```
+
 ## Event Topic 设计
 
 | Topic | 载荷 | 订阅方 |

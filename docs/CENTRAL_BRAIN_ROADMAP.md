@@ -12,7 +12,7 @@
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype 初版 |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | binding 状态初版 |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Android/Linux contract skeleton |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | 待开始 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -103,3 +103,10 @@
   - 新增架构命名入口：`POST /policy/evaluate`、`GET /audit/recent`。
   - Linux CLI 与 smoke test 覆盖 policy deny、SOA invoke audit 和 governance 状态。
   - 覆盖 Req ID：XSC-005、FW-S-001、FW-S-002、FW-S-003、FW-S-004、FW-S-005、NV-G-001..007。
+- 推进 Protocol Binding contract skeleton：
+  - 新增 `central-brain/backend/protocol_bindings.py`，把 REST、Android Binder/AIDL、Linux IPC、gRPC、MQTT、SOME/IP、DDS 纳入绑定注册表。
+  - 新增 Android AIDL artifact：`central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`。
+  - 新增 Linux artifact：`central-brain/bindings/linux/proto/central_brain_gateway.proto` 与 `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json`。
+  - 新增 `/bindings/detail` 与 Linux CLI `binding-detail`，可查看绑定 artifact、语义入口映射和分层约束。
+  - 新增 `tools/check_central_brain_binding_artifacts.sh`，验证 AIDL/proto/schema artifact 存在、可解析并包含 Req ID。
+  - 覆盖 Req ID：XSC-002、XSC-003、XSC-005、XSC-006、NV-P-001..006、DEL-001、DEL-002。
