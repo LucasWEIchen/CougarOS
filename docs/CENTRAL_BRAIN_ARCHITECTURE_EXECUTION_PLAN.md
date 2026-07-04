@@ -10,6 +10,9 @@
 3. 每个临时实现必须登记到偏差表。
 4. 每个架构疑点必须登记到疑点表，并在设计或代码中保留 TODO/decision。
 5. 开发优先级按图中中间层闭环排序：Uni Info Bus 语义接口 -> SOA 服务入口 -> Runtime & Governance -> Protocol Binding -> Native adapters -> Kernel/HAL -> App 扩展。
+6. 虚拟化层不开发，只维护接口约束和部署假设。
+7. 驱动层不默认开发，只在当前 Android/Linux 环境不满足接口要求时新增最小开发量。
+8. 带黄色小太阳的组件按跨 SoC 可移植组件处理，必须同时规划 Android 和 Linux 交付。
 
 ## 新里程碑
 
@@ -21,9 +24,10 @@
 | A3 | Runtime & Governance mock | L3 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit | 每次调用有注册、策略、生命周期和审计记录 |
 | A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub | REST 仅是 binding，不承载业务语义 |
 | A5 | Native adapters mock | L3 | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | AI/信号/模型调用均通过 adapter |
-| A6 | Kernel/HAL/NPU 设计落地 | L4/L6 | Driver/HAL/NPU runtime design、hardware discovery | 明确 PCIe NPU 接入路径 |
-| A7 | Hypervisor/Safety 域映射 | L5 | ASIL/QM domain map、跨 VM 通信设计 | 每个服务有安全域归属 |
+| A6 | Kernel/HAL/NPU 接口文档与缺口补齐 | L4/L6 | Driver/HAL interface support matrix、NPU runtime interface、hardware discovery | 明确当前环境能力、缺口和最小新增开发量 |
+| A7 | Hypervisor/Safety 接口约束文档 | L5 | ASIL/QM domain map、跨 VM 通信假设、fallback | 不开发虚拟化功能，只记录集成约束 |
 | A8 | 应用层扩展 | L1 | Seat/Agent/Cluster/TBOX/ADAS/Diag App views | App 页面按图中应用域组织 |
+| A9 | Android/Linux 双平台交付 | 全部 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | 座舱域工程师可在 Android 和 Linux 上集成验证 |
 
 ## A1 详细任务：Uni Info Bus 语义接口
 
@@ -83,6 +87,33 @@
 | A5-T05 | NV-F-011 | Model Runtime Adapter 抽象 | model runtime selector |
 | A5-T06 | NV-F-012 | Trace/Logging/Metric 平台化 | observability module |
 
+## A6 详细任务：Kernel/HAL/NPU 接口
+
+| Task ID | Req ID | 任务 | 输出 |
+| --- | --- | --- | --- |
+| A6-T01 | KH-003, KH-006 | 建立驱动/HAL 接口支持矩阵 | `CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` |
+| A6-T02 | HW-002, NV-F-011 | 定义 NPU runtime 最低抽象 | NPU interface spec |
+| A6-T03 | DEL-004, DEL-005 | 明确 Android 与 Linux 驱动接口差异 | platform delta |
+| A6-T04 | KH-003 | 只对当前环境缺口建立开发任务 | gap backlog |
+
+## A7 详细任务：虚拟化接口约束
+
+| Task ID | Req ID | 任务 | 输出 |
+| --- | --- | --- | --- |
+| A7-T01 | HV-001 | 记录 Hypervisor 依赖假设，不开发 | deployment assumptions |
+| A7-T02 | HV-002 | 定义 Safety State 到 ASIL/QM 的映射 | safety domain map |
+| A7-T03 | HV-003 | 记录跨 VM 通信接口需求和 fallback | integration note |
+
+## A9 详细任务：Android/Linux 双平台交付
+
+| Task ID | Req ID | 任务 | 输出 |
+| --- | --- | --- | --- |
+| A9-T01 | DEL-001 | Android 构建、安装、验证脚本 | APK + scripts |
+| A9-T02 | DEL-002 | Linux client/CLI 或 daemon 示例 | Linux delivery sample |
+| A9-T03 | DEL-003 | 座舱域工程师集成文档 | integration guide |
+| A9-T04 | DEL-004 | Android/Linux 平台差异说明 | platform delta doc |
+| A9-T05 | XSC-001..006 | 黄色小太阳组件跨 SoC 交付矩阵 | cross-SoC matrix |
+
 ## 每次开发检查清单
 
 - [ ] 本次任务是否引用了 Req ID？
@@ -91,3 +122,6 @@
 - [ ] 是否绕过 Uni Info Bus 或 SOA 服务入口？若是，是否有临时偏差记录？
 - [ ] 是否运行了可行的验证命令？
 - [ ] 是否更新了路线图？
+- [ ] 是否影响 Android/Linux 双平台交付？
+- [ ] 是否影响驱动接口支持矩阵？
+- [ ] 是否误把虚拟化层变成开发任务？

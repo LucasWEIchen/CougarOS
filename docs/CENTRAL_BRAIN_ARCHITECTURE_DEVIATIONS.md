@@ -20,12 +20,14 @@
 | DEV-002 | 当前 `mock_npu_service.py` 同时承担 health、service registry、vehicle state、NPU runtime，未按图拆分 SOA Runtime、Model Runtime Adapter、Registry/Discovery/Policy | NV-F-008, NV-F-011, NV-G-001..007 | M0 用单进程 mock 降低复杂度 | 职责混杂，后续接口膨胀 | M2 拆成 gateway、registry、policy、runtime adapter 模块 | Accepted Temporary |
 | DEV-003 | Android Console 中的“Run Mock Inference”直接表达 AI 推理，未经过图中 AI SDK 的多模态/意图/模型路由/工具规划 | APP-004, NV-F-001, NV-F-011 | M0 尚未实现 AI SDK | App 过早理解模型细节 | M2 实现 `/agent/plan` 与 `/ai/route`，App 调用任务/意图接口 | Open |
 | DEV-004 | 当前车辆信号只有 mock VSS 风格路径，没有落到 Vehicle/Body Signal、ECU Proxy、DBC/ARXML、VHAL/HAL | NV-F-004, NV-F-005, KH-006 | 没有真实车身信号源和 DBC/ARXML | 信号语义无法验证量产适配 | M4 建立信号目录和映射表；用户提供车型/DBC/ARXML 后进入 adapter | Open |
-| DEV-005 | 外置 PCIe NPU 目前仅通过 Python mock 表达，没有 Driver、HAL、Safety Runtime、DMA/IOMMU、Model Runtime Adapter | HW-002, KH-003, KH-006, KH-007, NV-F-011 | 缺少真实 NPU 卡型号和 vendor SDK | AI 基座架构风险最高 | M5 定义 NPU adapter 接口；获取硬件信息后补 driver/HAL 设计 | Open |
+| DEV-005 | 外置 PCIe NPU 目前仅通过 Python mock 表达，没有 Driver、HAL、Safety Runtime、DMA/IOMMU、Model Runtime Adapter | HW-002, KH-003, KH-006, KH-007, NV-F-011 | 缺少真实 NPU 卡型号和 vendor SDK；驱动层只在环境缺口处新增开发 | AI 基座接口风险最高 | A6 先明确驱动接口支持矩阵和 NPU runtime 抽象；获取硬件信息后只补缺口 | Open |
 | DEV-006 | 当前没有 Runtime & Governance 中的 Discovery、QoS、Policy、Lifecycle、Audit 实现 | NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 | M0 只做静态服务列表 | 后续服务不可治理 | M2 优先实现 Policy、Trace、Lifecycle mock | Open |
 | DEV-007 | 当前没有 Event 订阅机制，只有请求/响应 | FW-U-003, NV-P-006 | M0 只验证同步 HTTP | 车辆信号、服务健康、AI 任务无法实时推送 | M2 增加事件模型；M3 选择 SSE/WebSocket/mock DDS | Open |
-| DEV-008 | 当前没有 Hypervisor、ASIL/QM 隔离、跨 VM 通信实现 | HV-001..003 | WSL/AVD 无法模拟真实虚拟化 | 安全域设计可能滞后 | M3 先建立安全域映射文档；真实硬件阶段落地 | Open |
+| DEV-008 | 当前没有 Hypervisor、ASIL/QM 隔离、跨 VM 通信实现 | HV-001..003 | 用户已明确虚拟化层不需要开发 | 如果误纳入开发会浪费范围；如果不记录接口会影响集成 | A7 只建立安全域映射、依赖假设和跨 VM 通信接口说明，不开发虚拟化功能 | Accepted Temporary |
 | DEV-009 | KaKaClaw/咖咖虾相关 Agentic OS 概念是产品参考，不属于原图直接模块；若直接扩展会偏离图中基线 | APP-004, NV-F-001, FW-U-006 | 用户要求参考该产品 | 产品概念覆盖架构图需求 | 所有 Agent/Skill/Memory 功能必须映射到 AI SDK、AIOS Kernel、Tool、Policy，不单独替代基线 | Accepted Temporary |
 | DEV-010 | 当前路线图先写了 M0/M0.1，但没有明确“架构图需求基线优先级高于产品参考” | 全部 | 初期把图当概念参考 | 开发计划优先级错误 | 本轮修订路线图和跟踪规则 | Resolved |
+| DEV-011 | 当前只实现 Android Console，尚未提供 Linux 版本交付物 | DEL-002, DEL-003, XSC-001..006 | M0 先验证 Android 模拟器链路 | Linux 座舱工程师无法直接集成验证 | A9 提供 Linux CLI/client/daemon 示例，与 Android 共用 contract | Open |
+| DEV-012 | 当前未显式区分黄色小太阳跨 SoC 组件和普通应用/生态组件 | XSC-001..006 | 初版只按层级拆解 | 跨 SoC 复用组件可能被做成单平台实现 | 已新增 XSC-001..006；后续所有 XSC 组件必须同时规划 Android/Linux 和平台无关 contract | Resolved |
 
 ## 新增偏差记录模板
 

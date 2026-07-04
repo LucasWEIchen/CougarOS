@@ -13,6 +13,8 @@
 
 产品参考资料，例如 KaKaClaw 咖咖虾，只能用于补充应用体验和 Agent/Skill/Memory 的产品形态，不能替代图中的 Uni Info Bus、SOA 服务入口、Native Runtime & Governance、Protocol Binding、Kernel/HAL 和 Hypervisor 分层。
 
+用户进一步明确：虚拟化层不需要开发；驱动层只在当前环境不满足接口时新增开发量，但驱动接口支持必须文档化。图中带黄色小太阳标记的 AI SDK、Uni Info Bus、SOA 服务入口、AIOS Kernel、Runtime & Governance、Protocol Binding 等组件按跨 SoC 可移植平台组件处理。开发以 Android 为主，交付必须同步提供 Linux 版本，面向 Android/Linux 座舱域软件工程师。
+
 ## 总体视图
 
 ```mermaid

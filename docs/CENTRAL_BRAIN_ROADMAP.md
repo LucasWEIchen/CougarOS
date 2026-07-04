@@ -15,8 +15,10 @@
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | 待开始 |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | 待开始 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
-| A7 | Hypervisor/Safety 域映射 | ASIL/QM domain map、跨 VM 通信设计 | 待开始 |
+| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
+| A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 待开始 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | 待开始 |
+| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | 待开始 |
 
 ## M0 任务清单
 
@@ -79,3 +81,9 @@
 - 新增架构疑点登记表：`docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 - 新增按图执行计划：`docs/CENTRAL_BRAIN_ARCHITECTURE_EXECUTION_PLAN.md`。
 - 更新自动化 ID `20`：每 20 分钟推进时必须先检查架构需求矩阵、偏差登记表和疑点登记表。
+- 用户明确虚拟化层不开发；本项目只记录虚拟化接口约束和部署假设。
+- 用户明确驱动层仅在当前 Android/Linux 环境能力不足时新增开发量，但驱动接口支持必须文档化。
+- 用户明确黄色小太阳组件会在多个 SoC 出现；已按跨 SoC 可移植平台组件建立 `XSC-001..006`。
+- 用户明确以 Android 开发为主，交付时同时提供 Linux 版本；交付对象为 Android/Linux 座舱域软件工程师。
+- 新增交付目标文档：`docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md`。
+- 新增驱动接口支持矩阵：`docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md`。

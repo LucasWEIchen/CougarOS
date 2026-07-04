@@ -10,6 +10,16 @@
 
 任何未按图实现的内容必须进入 `docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md`；任何图中表达不清、边界重叠、工程上有风险或需要用户确认的内容必须进入 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
+## 用户明确约束
+
+以下约束优先级高于此前计划：
+
+1. 虚拟化层不需要被开发。Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信只作为架构接口、部署约束和适配说明记录，不产生代码开发量。
+2. 驱动层仅在当前 Android/Linux 环境不能满足需求时新增开发量。驱动接口支持范围必须明确写入文档，包括 NPU/GPU/Camera/Audio/ETH 等接口边界。
+3. 图中带黄色小太阳标记的组件会在多个 SoC 中出现，必须按跨 SoC 可移植平台组件设计。
+4. 开发以 Android 环境为主，但交付时必须同时提供 Linux 版本。
+5. 交付对象是使用 Android 和 Linux 系统的座舱域软件工程师，因此交付物必须包括接口说明、集成路径、验证命令和平台差异说明。
+
 ## 所有权颜色
 
 | 颜色 | 图中含义 | 项目处理 |
@@ -26,9 +36,32 @@
 | L1 | 应用层 | 承载客户开发的 Apps/Services，以及平台提供的 AI SDK | 部分原型 |
 | L2 | Framework 层 | 必须包含 Uni Info Bus 语义接口和 SOA 服务入口 | 文档化，未完整实现 |
 | L3 | Native 层 | 必须包含 AIOS Kernel、Signal/Service/Runtime/Policy/Model adapters，以及 Runtime & Governance、Protocol Binding | mock 后端仅覆盖极小子集 |
-| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用 | 未实现，仅文档 |
-| L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信 | 未实现，仅文档 |
+| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用；新增开发仅限当前环境缺口 | 需补驱动接口文档 |
+| L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信的接口约束；不开发虚拟化功能 | 非开发范围，需文档化 |
 | L6 | 硬件层 | 基线硬件为 UniSOC Automotive-solution，并扩展接入外置 PCIe NPU | 未实现，仅 mock |
+
+## 跨 SoC 黄色小太阳组件
+
+图中带黄色小太阳标记的组件按跨 SoC 复用平台组件处理。这些组件不能绑定单一 SoC、单一 Android 版本或单一 Linux 发行版。
+
+| Req ID | 图中组件 | 所属层级 | 跨 SoC 要求 | Android 交付 | Linux 交付 |
+| --- | --- | --- | --- | --- | --- |
+| XSC-001 | AI SDK | 应用层 | SDK API 稳定，底层 runtime 可替换 | Android library/API sample | Linux SDK/API sample 或 CLI |
+| XSC-002 | Uni Info Bus 语义接口 | Framework 层 | 语义对象和 contract 跨 SoC 一致 | Android client/API | Linux client/API |
+| XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
+| XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter |
+| XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle 可移植 | Android runtime integration | Linux runtime integration |
+| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Binder/REST/gRPC 适配 | IPC/REST/gRPC/MQTT/SOME-IP/DDS 适配 |
+
+## 交付对象与平台要求
+
+| Req ID | 要求 | 说明 | 当前状态 |
+| --- | --- | --- | --- |
+| DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | 已有 Android Console |
+| DEL-002 | Linux 同步交付路径 | 每个核心接口需要 Linux 版示例、CLI 或 daemon 集成说明 | 未实现 |
+| DEL-003 | 座舱域工程师文档 | 交付给 Android/Linux 座舱软件工程师，必须给出集成步骤、接口、验证命令 | 部分文档 |
+| DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | 未实现 |
+| DEL-005 | 驱动接口支持文档 | 明确当前环境已有能力、缺口、新增开发边界和 mock/fallback | 初版 |
 
 ## L1 应用层需求
 
@@ -120,7 +153,7 @@
 | --- | --- | --- | --- | --- | --- |
 | KH-001 | 文件系统管理/网络协议栈/... | 芯片原有 | OS 基础能力 | 上层不得重造基础 OS 能力 | 依赖宿主/Android |
 | KH-002 | 内存管理 | 芯片原有 | 内存管理 | NPU/ADAS/多媒体需考虑共享内存与隔离 | 未实现 |
-| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 外置 PCIe NPU 必须进入 Driver/HAL 设计 | mock 偏差 |
+| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 仅在当前 Android/Linux 环境能力不足时新增开发；必须明确驱动接口支持矩阵 | mock 偏差 |
 | KH-004 | 其他 | 芯片原有 | 底层扩展 | 需后续明确 | 未实现 |
 | KH-005 | Libs | 芯片原有 | 基础库 | 需记录依赖库边界 | 未实现 |
 | KH-006 | HAL | 芯片原有 | 硬件抽象层 | NPU、传感器、车身信号需 HAL 边界 | 未实现 |
@@ -132,9 +165,9 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| HV-001 | Hypervisor | 展锐负责 | 虚拟化基座 | 座舱/智驾/安全域必须可隔离 | 未实现 |
-| HV-002 | ASIL/QM 隔离 | 芯片原有 | 安全等级隔离 | 必须定义服务到 ASIL/QM 的映射 | 未实现 |
-| HV-003 | 跨 VM 共享内存与安全域通信 | 芯片原有 | 跨域通信 | 必须定义共享内存、认证和访问控制 | 未实现 |
+| HV-001 | Hypervisor | 展锐负责 | 虚拟化基座 | 不开发虚拟化功能；仅记录依赖、接口假设和部署约束 | 非开发范围 |
+| HV-002 | ASIL/QM 隔离 | 芯片原有 | 安全等级隔离 | 不开发隔离机制；必须定义服务到 ASIL/QM 的映射和假设 | 非开发范围 |
+| HV-003 | 跨 VM 共享内存与安全域通信 | 芯片原有 | 跨域通信 | 不开发跨 VM 通信；仅定义接口需求、fallback 和集成说明 | 非开发范围 |
 
 ## L6 硬件层需求
 
@@ -148,5 +181,8 @@
 1. 先补齐 L2/L3 的契约和治理骨架，再扩展上层 App。
 2. 所有 App 能力必须经 Uni Info Bus 语义接口进入 SOA 服务入口。
 3. REST/gRPC/MQTT/SOME-IP/DDS 只能作为 Protocol Binding，不能成为绕过 Uni Info Bus 的主架构。
-4. NPU 调用必须经 Model Runtime Adapter，最终落到 Driver/HAL；mock 只能作为开发阶段替身。
+4. NPU 调用必须经 Model Runtime Adapter，最终接口落到 Driver/HAL；mock 只能作为开发阶段替身。
 5. Safety State、Policy、Lifecycle、Audit 不是后续附加模块，必须与接口设计同步推进。
+6. 虚拟化层不产生开发任务，只产生文档、接口假设和集成约束。
+7. 驱动层不默认产生开发任务，只在当前 Android/Linux 环境不能满足接口时记录缺口并新增最小开发量。
+8. 跨 SoC 黄色小太阳组件必须同时提供 Android 与 Linux 交付路径。
