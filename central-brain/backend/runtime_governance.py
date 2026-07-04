@@ -109,6 +109,57 @@ SERVICE_CATALOG: list[dict[str, Any]] = [
         },
         "implementation": "mock-handler",
     },
+    {
+        "name": "agent-task-executor",
+        "version": "0.1.0",
+        "domain": "foundation",
+        "contract": "POST /agent/execute",
+        "semantic_entry": "POST /agent/execute task=<task_graph>",
+        "layer": "Application/AI SDK -> Native/AIOS Kernel -> Tool/Action/SOA boundary",
+        "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005"],
+        "permissions": ["vehicle.read"],
+        "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        "qos": {
+            "priority": "ai-task",
+            "timeout_ms": 1000,
+            "rate_limit": {"max_requests": 10, "window_s": 1},
+        },
+        "implementation": "contract-mock",
+    },
+    {
+        "name": "skill-registry",
+        "version": "0.1.0",
+        "domain": "foundation",
+        "contract": "GET /skills and POST /skills/{skill_id}/invoke",
+        "semantic_entry": "GET /skills; POST /skills/{skill_id}/invoke",
+        "layer": "Application/AI SDK -> Native/AIOS Kernel -> Framework/Tool",
+        "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005"],
+        "permissions": ["vehicle.read"],
+        "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        "qos": {
+            "priority": "ai-task",
+            "timeout_ms": 1000,
+            "rate_limit": {"max_requests": 20, "window_s": 1},
+        },
+        "implementation": "contract-mock",
+    },
+    {
+        "name": "memory-query",
+        "version": "0.1.0",
+        "domain": "foundation",
+        "contract": "POST /memory/query",
+        "semantic_entry": "POST /memory/query scope=<local_vehicle>",
+        "layer": "Application/AI SDK -> Native/AIOS Kernel -> Memory boundary",
+        "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005"],
+        "permissions": ["vehicle.read"],
+        "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        "qos": {
+            "priority": "ai-task",
+            "timeout_ms": 1000,
+            "rate_limit": {"max_requests": 20, "window_s": 1},
+        },
+        "implementation": "contract-mock",
+    },
 ]
 
 
@@ -362,7 +413,13 @@ class RuntimeGovernance:
             "policy": {
                 "state": "active-prototype",
                 "entry": "POST /policy/evaluate",
-                "also_applied_to": ["POST /soa/invoke", "POST /permission/check"],
+                "also_applied_to": [
+                    "POST /soa/invoke",
+                    "POST /permission/check",
+                    "POST /agent/execute",
+                    "POST /skills/{skill_id}/invoke",
+                    "POST /memory/query",
+                ],
                 "req_ids": ["NV-G-005", "FW-U-007", "FW-S-005"],
             },
             "lifecycle": {

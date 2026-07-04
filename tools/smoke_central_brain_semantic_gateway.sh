@@ -89,6 +89,63 @@ checks = [
     ),
     (
         "POST",
+        "/agent/execute",
+        {
+            "trace_id": "smoke-agent-execute",
+            "task": {
+                "task_id": "task-smoke",
+                "steps": [
+                    {
+                        "step_id": "state",
+                        "type": "read_state",
+                        "semantic_entry": "GET /uib/state",
+                    },
+                    {
+                        "step_id": "query_vehicle_state",
+                        "type": "invoke_service",
+                        "service": "vehicle-state",
+                        "method": "getState",
+                        "semantic_entry": "POST /soa/invoke",
+                    },
+                ],
+                "policy": {"required_permissions": ["vehicle.read"]},
+            },
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "FW-U-006",
+    ),
+    ("GET", "/skills", None, "FW-U-006"),
+    (
+        "POST",
+        "/skills/vehicle.state.query/invoke",
+        {
+            "trace_id": "smoke-skill-invoke",
+            "input": {"signals": ["Vehicle.Speed"]},
+            "permissions": ["vehicle.read"],
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "FW-U-006",
+    ),
+    (
+        "POST",
+        "/memory/query",
+        {
+            "trace_id": "smoke-memory-query",
+            "query": "cabin temperature preference",
+            "scope": "driver_profile",
+            "permissions": ["vehicle.read"],
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "NV-F-001",
+    ),
+    (
+        "POST",
         "/uib/actions/request",
         {
             "trace_id": "smoke-action",
@@ -152,6 +209,22 @@ for method, path, body, req_id in checks:
         assert task["state"] == "planned", "agent plan was not accepted"
         assert task["steps"], "agent plan did not return task steps"
         assert "POST /soa/invoke" in json.dumps(task), "agent plan bypassed SOA"
+    if path == "/agent/execute":
+        execution = payload["payload"]["task_execution"]
+        assert execution["state"] == "validated_mock", "agent execute was not validated"
+        assert execution["execution_mode"] == "policy-checked-contract-mock", "agent execute left contract mock mode"
+        assert "not-dispatched" in json.dumps(execution), "agent execute dispatched below semantic layer"
+    if path == "/skills":
+        skills = payload["payload"]["skills"]
+        assert any(skill["skill_id"] == "vehicle.state.query" for skill in skills), "skill registry missing vehicle.state.query"
+    if path.startswith("/skills/") and path.endswith("/invoke"):
+        invocation = payload["payload"]["skill_invocation"]
+        assert invocation["state"] == "completed_mock", "skill invocation was not policy accepted"
+        assert invocation["execution_mode"] == "sandbox-contract-mock", "skill invocation left contract mock mode"
+    if path == "/memory/query":
+        memory = payload["payload"]["memory_query"]
+        assert memory["state"] == "completed_mock", "memory query was not accepted"
+        assert memory["privacy"]["cloud_sync"] is False, "memory query allowed cloud sync"
     if path == "/uib/actions/request":
         action = payload["payload"]
         assert action["state"] == "accepted", "action request was not accepted"
@@ -175,6 +248,10 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" agent-plan >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" agent-execute >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" skills >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" skill-invoke >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" memory-query >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" action-request >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null

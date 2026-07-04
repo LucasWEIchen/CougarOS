@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, NV-P-002, NV-P-006, DEL-001.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, DEL-001.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
@@ -24,6 +24,10 @@ Brain semantic gateway.
 | `getRecentEventsJson` | `GET /uib/events/recent` | XSC-002, FW-U-003, NV-P-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
+| `executeAgentTaskJson` | `POST /agent/execute` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
+| `listSkillsJson` | `GET /skills` | XSC-001, FW-U-006 |
+| `invokeSkillJson` | `POST /skills/{skill_id}/invoke` | XSC-001, FW-U-006, NV-G-005 |
+| `queryMemoryJson` | `POST /memory/query` | XSC-001, NV-F-001, FW-U-006 |
 | `requestActionJson` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `listServicesJson` | `GET /soa/services` | XSC-003, FW-S-001..004 |
 | `invokeServiceJson` | `POST /soa/invoke` | XSC-003, FW-S-005 |
@@ -64,6 +68,10 @@ Brain semantic gateway.
 - Stable parcelable models can replace JSON after the semantic contract settles.
 - The current sample is not a Driver/HAL bridge and does not create any
   virtualization-layer development scope.
+- Agent execute, Skill invoke, and Memory query methods are contract mocks.
+  They validate policy and expose dispatch boundaries, but they do not run a
+  real Skill sandbox, Memory store, Model Runtime Adapter, Driver/HAL, vehicle
+  bus, or virtualization path.
 
 ## System Service Integration Notes
 

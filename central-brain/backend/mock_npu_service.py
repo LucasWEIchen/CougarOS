@@ -19,14 +19,18 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from ai_sdk import capabilities_payload as ai_sdk_capabilities_payload
+from ai_sdk import execute_payload as ai_sdk_execute_payload
+from ai_sdk import memory_query_payload as ai_sdk_memory_query_payload
 from ai_sdk import plan_payload as ai_sdk_plan_payload
+from ai_sdk import skill_invoke_payload as ai_sdk_skill_invoke_payload
+from ai_sdk import skills_payload as ai_sdk_skills_payload
 from native_adapters import NativeAdapterRegistry
 from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.13"
+API_VERSION = "0.1.14"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -241,6 +245,96 @@ def agent_plan_payload(request: dict[str, Any]) -> dict[str, Any]:
         }
     )
     return ai_sdk_plan_payload(request, policy)
+
+
+def agent_execute_payload(request: dict[str, Any]) -> dict[str, Any]:
+    task = request.get("task") if isinstance(request.get("task"), dict) else {}
+    task_policy = task.get("policy", {}) if isinstance(task.get("policy"), dict) else {}
+    required_permissions = (
+        request.get("permissions")
+        or task_policy.get("required_permissions")
+        or task_policy.get("requires")
+        or ["vehicle.read"]
+    )
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    policy = permission_check_payload(
+        {
+            "permissions": required_permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": request.get(
+                "allowed_safety_states",
+                ["normal", "degraded", "diagnostic_readonly"],
+            ),
+        }
+    )
+    payload = ai_sdk_execute_payload(request, policy)
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": "agent-execute",
+            "method": "execute",
+            "outcome": payload["task_execution"]["state"],
+            "policy_decision": policy["decision"],
+            "lifecycle_state": "ready",
+            "qos_decision": "not-applied",
+        },
+    )
+    return payload
+
+
+def skill_invoke_payload(skill_id: str, request: dict[str, Any]) -> dict[str, Any]:
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    policy = permission_check_payload(
+        {
+            "permissions": request.get("permissions") or ["vehicle.read"],
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": request.get("allowed_safety_states", ["normal", "degraded", "diagnostic_readonly"]),
+        }
+    )
+    payload = ai_sdk_skill_invoke_payload(skill_id, request, policy)
+    invocation = payload.get("skill_invocation", {})
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": "skill-invoke",
+            "method": skill_id,
+            "outcome": invocation.get("state", payload.get("state", "unknown")),
+            "policy_decision": policy["decision"],
+            "lifecycle_state": "ready",
+            "qos_decision": "not-applied",
+        },
+    )
+    return payload
+
+
+def memory_query_payload(request: dict[str, Any]) -> dict[str, Any]:
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    policy = permission_check_payload(
+        {
+            "permissions": request.get("permissions") or ["vehicle.read"],
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        }
+    )
+    payload = ai_sdk_memory_query_payload(request, policy)
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": "memory-query",
+            "method": "query",
+            "outcome": payload["memory_query"]["state"],
+            "policy_decision": policy["decision"],
+            "lifecycle_state": "ready",
+            "qos_decision": "not-applied",
+        },
+    )
+    return payload
 
 
 def governance_payload() -> dict[str, Any]:
@@ -557,6 +651,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(tools_payload()))
         elif path == "/ai/sdk/capabilities":
             self.send_json(200, envelope(ai_sdk_capabilities_payload()))
+        elif path == "/skills":
+            self.send_json(200, envelope(ai_sdk_skills_payload()))
         elif path == "/vehicle/state":
             self.send_json(200, vehicle_state_payload())
         elif path == "/npu/status":
@@ -588,6 +684,19 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_publish_payload(request), request.get("trace_id")))
         elif path == "/agent/plan":
             self.send_json(200, envelope(agent_plan_payload(request), request.get("trace_id")))
+        elif path == "/agent/execute":
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(agent_execute_payload(request), trace_id))
+        elif path.startswith("/skills/") and path.endswith("/invoke"):
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            skill_id = path.removeprefix("/skills/").removesuffix("/invoke")
+            self.send_json(200, envelope(skill_invoke_payload(skill_id, request), trace_id))
+        elif path == "/memory/query":
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(memory_query_payload(request), trace_id))
         else:
             self.send_json(404, {"status": "error", "message": "unknown endpoint"})
 

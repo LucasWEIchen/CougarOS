@@ -23,12 +23,63 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "audit": ("audit.recent.get", {}),
     "bindings": ("bindings.list", {}),
     "ai-sdk": ("ai.sdk.capabilities", {}),
+    "skills": ("skills.list", {}),
     "agent-plan": (
         "agent.plan",
         {
             "trace_id": "linux-ipc-agent-plan",
             "utterance": "query vehicle state",
             "caller": {"app_id": "linux-ipc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
+    "agent-execute": (
+        "agent.execute",
+        {
+            "trace_id": "linux-ipc-agent-execute",
+            "task": {
+                "task_id": "task-linux-ipc",
+                "steps": [
+                    {
+                        "step_id": "state",
+                        "type": "read_state",
+                        "semantic_entry": "GET /uib/state",
+                    },
+                    {
+                        "step_id": "query_vehicle_state",
+                        "type": "invoke_service",
+                        "service": "vehicle-state",
+                        "method": "getState",
+                        "semantic_entry": "POST /soa/invoke",
+                    },
+                ],
+                "policy": {"required_permissions": ["vehicle.read"]},
+            },
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
+    "skill-invoke": (
+        "skills.invoke",
+        {
+            "trace_id": "linux-ipc-skill-invoke",
+            "input": {"signals": ["Vehicle.Speed"]},
+            "permissions": ["vehicle.read"],
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
+    "memory-query": (
+        "memory.query",
+        {
+            "trace_id": "linux-ipc-memory-query",
+            "query": "cabin temperature preference",
+            "scope": "driver_profile",
+            "permissions": ["vehicle.read"],
             "caller_permissions": ["vehicle.read", "service.read"],
             "vehicle_state": "parked",
             "safety_state": "normal",

@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, NV-P-002, NV-P-003, NV-P-006, DEL-002.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-003, NV-P-006, DEL-002.
 - `proto/central_brain_gateway.proto` defines the gRPC/RPC surface.
 - `ipc/central_brain_ipc_envelope.schema.json` defines the Unix domain socket
   JSON envelope for a lightweight local IPC daemon.
@@ -28,6 +28,10 @@ Brain semantic gateway.
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `agent.plan` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
+| `agent.execute` | `POST /agent/execute` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
+| `skills.list` | `GET /skills` | XSC-001, FW-U-006 |
+| `skills.invoke` | `POST /skills/{skill_id}/invoke` | XSC-001, FW-U-006, NV-G-005 |
+| `memory.query` | `POST /memory/query` | XSC-001, NV-F-001, FW-U-006 |
 | `soa.services.list` | `GET /soa/services` | XSC-003, FW-S-001..004 |
 | `soa.service.invoke` | `POST /soa/invoke` | XSC-003, FW-S-005 |
 | `policy.evaluate` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
@@ -54,6 +58,12 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-publish
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py agent-plan
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py agent-execute
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py skill-invoke
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py memory-query
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py action-request
 ```
@@ -82,3 +92,6 @@ bash tools/check_central_brain_delivery_docs.sh
   are not implemented in this prototype.
 - Policy and lifecycle checks stay in Runtime & Governance regardless of the
   selected transport.
+- Agent execute, Skill invoke, and Memory query are contract mocks that expose
+  AIOS Kernel/Tool/Memory boundaries without running real Skill sandbox,
+  persistent Memory store, Driver/HAL, vehicle bus, or virtualization code.

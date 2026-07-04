@@ -27,6 +27,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "native-adapters": ("GET", "/native/adapters", None),
     "native-adapters-detail": ("GET", "/native/adapters/detail", None),
     "ai-sdk": ("GET", "/ai/sdk/capabilities", None),
+    "skills": ("GET", "/skills", None),
     "agent-plan": (
         "POST",
         "/agent/plan",
@@ -34,6 +35,59 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
             "trace_id": "linux-cli-agent-plan",
             "utterance": "query vehicle state",
             "caller": {"app_id": "linux-cli", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
+    "agent-execute": (
+        "POST",
+        "/agent/execute",
+        {
+            "trace_id": "linux-cli-agent-execute",
+            "task": {
+                "task_id": "task-linux-cli",
+                "steps": [
+                    {
+                        "step_id": "state",
+                        "type": "read_state",
+                        "semantic_entry": "GET /uib/state",
+                    },
+                    {
+                        "step_id": "query_vehicle_state",
+                        "type": "invoke_service",
+                        "service": "vehicle-state",
+                        "method": "getState",
+                        "semantic_entry": "POST /soa/invoke",
+                    },
+                ],
+                "policy": {"required_permissions": ["vehicle.read"]},
+            },
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
+    "skill-invoke": (
+        "POST",
+        "/skills/vehicle.state.query/invoke",
+        {
+            "trace_id": "linux-cli-skill-invoke",
+            "input": {"signals": ["Vehicle.Speed"]},
+            "permissions": ["vehicle.read"],
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
+    "memory-query": (
+        "POST",
+        "/memory/query",
+        {
+            "trace_id": "linux-cli-memory-query",
+            "query": "cabin temperature preference",
+            "scope": "driver_profile",
+            "permissions": ["vehicle.read"],
             "caller_permissions": ["vehicle.read", "service.read"],
             "vehicle_state": "parked",
             "safety_state": "normal",

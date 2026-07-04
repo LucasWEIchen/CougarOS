@@ -63,6 +63,26 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/agent/plan",
         "req_ids": ["XSC-001", "XSC-006", "APP-004", "NV-F-001", "NV-P-002", "DEL-002"],
     },
+    "agent.execute": {
+        "method": "POST",
+        "path": "/agent/execute",
+        "req_ids": ["XSC-001", "XSC-006", "APP-004", "NV-F-001", "FW-U-006", "NV-P-002", "DEL-002"],
+    },
+    "skills.list": {
+        "method": "GET",
+        "path": "/skills",
+        "req_ids": ["XSC-001", "XSC-006", "FW-U-006", "NV-P-002", "DEL-002"],
+    },
+    "skills.invoke": {
+        "method": "POST",
+        "path": "/skills/vehicle.state.query/invoke",
+        "req_ids": ["XSC-001", "XSC-006", "FW-U-006", "NV-G-005", "NV-P-002", "DEL-002"],
+    },
+    "memory.query": {
+        "method": "POST",
+        "path": "/memory/query",
+        "req_ids": ["XSC-001", "XSC-006", "NV-F-001", "FW-U-006", "NV-P-002", "DEL-002"],
+    },
     "soa.services.list": {
         "method": "GET",
         "path": "/soa/services",

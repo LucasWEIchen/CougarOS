@@ -23,13 +23,16 @@ system server 代码、priv-app 签名配置、SELinux policy、Driver/HAL、Saf
 | 组件 | 当前交付 | Req ID |
 | --- | --- | --- |
 | Uni Info Bus client path | `getStateJson`、`getContextJson`、Event methods | XSC-002, FW-U-001, FW-U-002, FW-U-003 |
-| AI SDK/Agent task path | `getAiSdkCapabilitiesJson`、`planAgentTaskJson` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
+| AI SDK/Agent task path | `getAiSdkCapabilitiesJson`、`planAgentTaskJson`、`executeAgentTaskJson`、`listSkillsJson`、`invokeSkillJson`、`queryMemoryJson` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
 | SOA service entry | `listServicesJson`、`invokeServiceJson` | XSC-003, FW-S-004, FW-S-005 |
 | Runtime & Governance | `evaluatePolicyJson`、`getRuntimeGovernanceJson`、`getRecentAuditJson` | XSC-005, FW-U-007, NV-G-005, NV-G-007 |
 | Protocol Binding | AIDL + Binder service/client sample | XSC-006, NV-P-002, NV-P-005, DEL-001 |
 
 当前 service 仍是普通 APK 内的非导出 service，并继续代理 REST prototype gateway。
 它不是量产 Android system service，也不是 Driver/HAL bridge。
+`executeAgentTaskJson`、`invokeSkillJson` 和 `queryMemoryJson` 当前只验证
+Policy/Safety State、audit 和 contract dispatch 边界，不运行真实 Agent runtime、
+Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL 或虚拟化层。
 
 ## 目标 Android 集成形态
 

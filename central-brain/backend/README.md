@@ -1,7 +1,7 @@
 # Mock NPU Backend
 
 `mock_npu_service.py` 是第一阶段后端，用标准库 HTTP server 模拟中央大脑 AI 基座。
-`ai_sdk.py` 承载当前 AI SDK/Agent facade mock，用 intent/utterance 生成 policy-aware task graph，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007。
+`ai_sdk.py` 承载当前 AI SDK/Agent facade mock，用 intent/utterance 生成 policy-aware task graph，并提供 execute/Skill/Memory contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007。
 `runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、per-service fixed-window QoS 和可选 JSONL 审计持久化。
 `protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、Linux IPC active sample、Linux gRPC contract skeleton 和 MQTT/SOME-IP/DDS 计划态。
 `native_adapters.py` 承载当前 Native adapter 注册表，包括 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 和 Security/Policy Adapter 的 Android/Linux 交付边界。
@@ -34,9 +34,13 @@ bash tools/run_central_brain_backend.sh
 - `GET /native/adapters`
 - `GET /native/adapters/detail`
 - `GET /ai/sdk/capabilities`
+- `GET /skills`
 - `GET /vehicle/state`
 - `GET /npu/status`
 - `POST /agent/plan`
+- `POST /agent/execute`
+- `POST /skills/{skill_id}/invoke`
+- `POST /memory/query`
 - `POST /soa/invoke`
 - `POST /uib/events/publish`
 - `POST /uib/actions/request`
@@ -52,7 +56,7 @@ bash tools/run_central_brain_backend.sh
 - `CENTRAL_BRAIN_NPU_DEVICE`：用于标记真实或模拟 NPU 设备节点。
 - `CENTRAL_BRAIN_AUDIT_LOG`：可选 JSONL 审计日志路径；设置后 `/audit/recent` 会在服务重启后恢复最近 50 条 SOA 审计记录，覆盖 XSC-005、NV-G-007、DEL-002。
 
-当前服务只做 mock，不访问真实 NPU。
+当前服务只做 mock，不访问真实 NPU。`/agent/execute`、`/skills/{skill_id}/invoke` 和 `/memory/query` 只做 Policy/Safety State 检查、audit 记录和 contract 边界展示，不运行真实 Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL、车身总线或虚拟化层。
 
 ## 验证
 

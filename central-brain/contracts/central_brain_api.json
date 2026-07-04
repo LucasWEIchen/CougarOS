@@ -1,12 +1,12 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "updated": "2026-07-05",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state and /agent/plan",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state and /agent/plan; execute/skills/memory are Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -183,7 +183,7 @@
     {
       "method": "GET",
       "path": "/ai/sdk/capabilities",
-      "description": "Returns AI SDK facade capabilities and the Android/Linux task planning delivery paths.",
+      "description": "Returns AI SDK facade capabilities and the Android/Linux task planning, execute, Skill, and Memory delivery paths.",
       "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "DEL-001", "DEL-002"]
     },
     {
@@ -235,22 +235,26 @@
     {
       "method": "POST",
       "path": "/agent/execute",
-      "description": "Planned: executes a policy-approved task graph."
+      "description": "Validates a policy-approved task graph and returns execution dispatch boundaries without calling real Skill runtime, Model Runtime Adapter, Driver/HAL, vehicle bus, or virtualization.",
+      "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "XSC-005", "NV-G-005", "DEL-001", "DEL-002"]
     },
     {
       "method": "GET",
       "path": "/skills",
-      "description": "Planned: returns available built-in and user-created skills."
+      "description": "Returns built-in Skill manifests with sandbox, permissions, Safety State, and semantic entry constraints.",
+      "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005", "DEL-001", "DEL-002"]
     },
     {
       "method": "POST",
       "path": "/skills/{skill_id}/invoke",
-      "description": "Planned: invokes a sandboxed skill after policy evaluation."
+      "description": "Invokes a sandbox-contract mock Skill after Policy/Safety State evaluation and records audit without direct Driver/HAL or vehicle bus dispatch.",
+      "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005", "DEL-001", "DEL-002"]
     },
     {
       "method": "POST",
       "path": "/memory/query",
-      "description": "Planned: queries local vehicle/user memory for task context."
+      "description": "Queries local-only mock vehicle/user memory for task context after Policy/Safety State evaluation; no cloud sync or memory write occurs.",
+      "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005", "DEL-001", "DEL-002"]
     },
     {
       "method": "POST",
@@ -310,6 +314,8 @@
       "diagnostic_trace",
       "npu_inference",
       "agent_task_planner",
+      "agent_task_executor",
+      "skill_invoker",
       "memory_query",
       "policy_evaluate",
       "privacy_route"

@@ -13,6 +13,7 @@ package centralbrain.binding.v1;
 // - APP-004 App access to model routing through AI SDK
 // - FW-U-003 Uni Info Bus Event
 // - FW-U-004 Uni Info Bus Action
+// - FW-U-006 Tool / Skill contract
 // - NV-P-003 gRPC/RPC binding
 // - NV-P-006 DDS/high-rate topic reservation
 // - DEL-002 Linux synchronized delivery path
@@ -25,6 +26,10 @@ service CentralBrainGateway {
   rpc GetRecentEvents(GatewayRequest) returns (GatewayResponse);
   rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
   rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);
+  rpc ExecuteAgentTask(GatewayRequest) returns (GatewayResponse);
+  rpc ListSkills(GatewayRequest) returns (GatewayResponse);
+  rpc InvokeSkill(GatewayRequest) returns (GatewayResponse);
+  rpc QueryMemory(GatewayRequest) returns (GatewayResponse);
   rpc RequestAction(GatewayRequest) returns (GatewayResponse);
   rpc ListServices(GatewayRequest) returns (GatewayResponse);
   rpc InvokeService(GatewayRequest) returns (GatewayResponse);

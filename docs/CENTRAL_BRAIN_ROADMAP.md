@@ -17,7 +17,7 @@
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
-| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan active mock + Android Console plan path |
+| A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console plan path |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 |
 
 ## M0 任务清单
@@ -53,6 +53,11 @@
 
 ### 2026-07-05
 
+- 推进 XSC-001/FW-U-006 Agent execute、Skill 与 Memory contract mock：
+  - 后端新增 `POST /agent/execute`、`GET /skills`、`POST /skills/{skill_id}/invoke`、`POST /memory/query`，执行 Permission/Safety State 检查并写入 Runtime & Governance audit。
+  - execute 只返回 `execution_mode=policy-checked-contract-mock` 和 SOA/Tool/Action dispatch 边界，不运行真实 Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL、车身总线或虚拟化层。
+  - Android Binder/AIDL、Linux CLI/IPC 与 gRPC contract skeleton 同步新增 execute/Skill/Memory 映射。
+  - 覆盖 Req ID：XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、XSC-005、XSC-006、NV-G-005、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - 推进 FW-U-004 Uni Info Bus Action active mock：
   - 后端新增架构命名动作入口：`POST /uib/actions/request`；legacy `/actions/request` 仅保留兼容。
   - Action 请求执行 Permission/Safety State 检查并返回 `execution_mode=policy-checked-mock`，明确不 dispatch 到 Driver/HAL、Vehicle bus 或虚拟化层。

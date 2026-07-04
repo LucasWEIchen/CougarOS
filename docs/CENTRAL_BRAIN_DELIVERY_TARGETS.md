@@ -11,17 +11,17 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并以 `planAgentTaskJson` 作为 AI SDK/Agent 主任务入口；system service integration note 初版 |
-| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Unix socket IPC daemon/client active sample；gRPC contract skeleton 初版；systemd 部署样例初版 |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并以 `planAgentTaskJson` 作为 AI SDK/Agent 主任务入口；Binder contract 已含 execute/Skill/Memory mock；system service integration note 初版 |
+| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Unix socket IPC daemon/client active sample 已含 execute/Skill/Memory mock；gRPC contract skeleton 初版；systemd 部署样例初版 |
 
 ## 每个核心模块的交付形态
 
 | 模块 | Req ID | Android 交付 | Linux 交付 | 备注 |
 | --- | --- | --- | --- | --- |
-| AI SDK | XSC-001 | Android Binder/AIDL `planAgentTaskJson` contract sample + `/ai/sdk/capabilities` | Linux CLI/IPC `agent-plan` active sample + `/ai/sdk/capabilities` | 黄色小太阳，跨 SoC；当前是 facade/plan mock，不是真实 SDK library |
+| AI SDK | XSC-001 | Android Binder/AIDL `planAgentTaskJson`、`executeAgentTaskJson`、Skill/Memory contract sample + `/ai/sdk/capabilities` | Linux CLI/IPC `agent-plan`、`agent-execute`、`skill-invoke`、`memory-query` active sample + `/ai/sdk/capabilities` | 黄色小太阳，跨 SoC；当前是 facade/plan/execute/Skill/Memory contract mock，不是真实 SDK library |
 | Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
-| AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | `GET /native/adapters/detail` 初版 |
+| AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample | Linux service adapter + Agent execute/Skill/Memory boundary sample | `GET /native/adapters/detail` 初版；AIOS Kernel 真实 runtime 仍未实现 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration | daemon modules + JSONL audit persistence sample + QoS fixed-window sample | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke` 执行 NV-G-004 QoS 检查 |
 | Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge + NPU runtime interface contract | Linux runtime bridge + NPU runtime interface contract | NPU/GPU/Cloud 后端可替换；见 `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
@@ -62,6 +62,10 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py ai-sdk
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py agent-plan
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py agent-execute
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py skills
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py skill-invoke
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py memory-query
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py action-request
 bash tools/check_central_brain_binding_artifacts.sh
 bash tools/check_central_brain_delivery_docs.sh
@@ -99,6 +103,7 @@ Android 版本必须提供：
 - 绑定 `CentralBrainGatewayBinderService`。
 - 通过 `CentralBrainGatewayClient.getStateJson` 调用 Uni Info Bus State。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
+- Binder contract 同步提供 `executeAgentTaskJson`、`listSkillsJson`、`invokeSkillJson`、`queryMemoryJson`，用于验证 AIOS Kernel/Tool/Memory 边界；当前 Console 主按钮尚不直接触发这些 mock。
 - Binder service sample 内部仍以 REST prototype gateway 作为上游绑定，不代表量产 system service。
 
 当前 Android binding service stub sample：
@@ -113,6 +118,10 @@ Android 版本必须提供：
 - `GET /uib/events/recent`
 - `GET /ai/sdk/capabilities`
 - `POST /agent/plan`
+- `POST /agent/execute`
+- `GET /skills`
+- `POST /skills/{skill_id}/invoke`
+- `POST /memory/query`
 - `POST /uib/actions/request`
 
 当前 Android system/privileged service integration note：

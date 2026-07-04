@@ -79,7 +79,7 @@
 | Observability | Trace、Metric、QoS、Audit | HTTP/JSON | AIDL + file/socket exporter |
 | Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
 
-AI SDK/Agent 入口当前已新增 `GET /ai/sdk/capabilities` 与 `POST /agent/plan` active mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。App 侧只能提交 intent/utterance 并获得任务图；任务图中的执行步骤仍必须通过 Uni Info Bus、Tool、Action 或 SOA 服务入口，不能直连 Model Runtime Adapter、NPU vendor SDK 或设备节点。
+AI SDK/Agent 入口当前已新增 `GET /ai/sdk/capabilities`、`POST /agent/plan`、`POST /agent/execute`、`GET /skills`、`POST /skills/{skill_id}/invoke` 与 `POST /memory/query` active contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。App 侧只能提交 intent/utterance/task graph 并获得任务图或受控执行边界；任务图中的执行步骤仍必须通过 Uni Info Bus、Tool、Action 或 SOA 服务入口，不能直连 Model Runtime Adapter、NPU vendor SDK 或设备节点。
 
 Android AIDL/Binder 的 system/privileged service 集成约束见
 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`。该约束覆盖
@@ -121,7 +121,7 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | --- | --- | --- | --- |
 | GET | `/ai/sdk/capabilities` | AI SDK facade 能力、Android/Linux 交付入口和路由约束 | 是 |
 | POST | `/agent/plan` | 用户意图转 policy-aware task graph | 是 |
-| POST | `/agent/execute` | 执行任务图 | 否 |
+| POST | `/agent/execute` | 校验任务图并返回 policy-checked contract mock 执行边界 | 是 |
 | GET | `/agent/tasks/{task_id}` | 查询任务状态 | 否 |
 | POST | `/agent/tasks/{task_id}/cancel` | 取消任务 | 否 |
 
@@ -129,9 +129,9 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 
 | Method | Path | 用途 | 已实现 |
 | --- | --- | --- | --- |
-| GET | `/skills` | 技能列表 | 否 |
+| GET | `/skills` | 技能列表 | 是 |
 | GET | `/skills/{skill_id}` | 技能详情 | 否 |
-| POST | `/skills/{skill_id}/invoke` | 调用技能 | 否 |
+| POST | `/skills/{skill_id}/invoke` | 调用技能 contract mock | 是 |
 | POST | `/skills/{skill_id}/enable` | 启用技能 | 否 |
 | POST | `/skills/{skill_id}/disable` | 停用技能 | 否 |
 
@@ -139,7 +139,7 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 
 | Method | Path | 用途 | 已实现 |
 | --- | --- | --- | --- |
-| POST | `/memory/query` | 查询相关记忆 | 否 |
+| POST | `/memory/query` | 查询相关本地 mock 记忆 | 是 |
 | POST | `/memory/items` | 写入记忆 | 否 |
 | DELETE | `/memory/items/{memory_id}` | 删除记忆 | 否 |
 | POST | `/privacy/evaluate` | 判断数据是否可外发 | 否 |
@@ -344,8 +344,8 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 
 | Binding | Artifact | 语义入口 | Req IDs | 状态 |
 | --- | --- | --- | --- | --- |
-| Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java`，并已编入 Android Console debug APK | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request`、`/ai/sdk/capabilities`、`/agent/plan`、`/soa/invoke`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail` | XSC-001、APP-004、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、FW-U-004、NV-P-002、NV-P-005、DEL-001 | Console Binder path + service stub sample；Console 主任务入口已走 `planAgentTaskJson`；service 上游仍代理 REST prototype |
-| Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json` | `uib.context.get`、`uib.state.get`、`uib.events.*`、`uib.actions.request`、`agent.plan`、`soa.service.invoke`、`policy.evaluate` | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、NV-P-002、DEL-002 | active sample |
+| Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java`，并已编入 Android Console debug APK | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/invoke`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail` | XSC-001、APP-004、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-P-002、NV-P-005、DEL-001 | Console Binder path + service stub sample；Console 主任务入口已走 `planAgentTaskJson`；execute/Skill/Memory 为 contract mock；service 上游仍代理 REST prototype |
+| Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json` | `uib.context.get`、`uib.state.get`、`uib.events.*`、`uib.actions.request`、`agent.plan`、`agent.execute`、`skills.*`、`memory.query`、`soa.service.invoke`、`policy.evaluate` | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-P-002、DEL-002 | active sample |
 | Linux gRPC/RPC | `central-brain/bindings/linux/proto/central_brain_gateway.proto` | `CentralBrainGateway.GetState`、`RequestAction`、`InvokeService`、`EvaluatePolicy` | XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、NV-P-003、DEL-002 | contract skeleton |
 
 验证命令：
