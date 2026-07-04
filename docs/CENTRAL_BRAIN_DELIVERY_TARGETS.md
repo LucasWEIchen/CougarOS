@@ -24,8 +24,8 @@
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | `GET /native/adapters/detail` 初版 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle integration | daemon modules | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype |
 | Protocol Binding | XSC-006 | REST active prototype + Binder/AIDL service stub sample，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
-| Model Runtime Adapter | NV-F-011 | Android native/runtime bridge | Linux runtime bridge | NPU/GPU/Cloud 后端可替换 |
-| Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发 |
+| Model Runtime Adapter | NV-F-011 | Android native/runtime bridge + NPU runtime interface contract | Linux runtime bridge + NPU runtime interface contract | NPU/GPU/Cloud 后端可替换；见 `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
+| Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发；NPU 检查点已文档化 |
 | Hypervisor/Safety constraints | HV-001, HV-002, HV-003 | Android domain、Binder identity、Safety State 和 Policy 集成假设 | Linux domain、service identity、IPC fallback 和 Safety State 集成假设 | 只记录接口约束和部署假设，不开发虚拟化 |
 
 ## 交付包要求
@@ -73,6 +73,8 @@ Linux systemd 部署样例：
 - `central-brain/deploy/linux/systemd/central-brain-linux-ipc.service`
 - `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`
 - `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`
+- `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`
+- `tools/check_central_brain_npu_interface.sh`
 
 ## Android 版本最低要求
 

@@ -153,6 +153,8 @@
 | POST | `/models/unload` | 卸载模型 | 否 |
 | POST | `/ai/infer` | 推理请求 | 是 |
 
+当前 A6 增量新增 `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`，将 AI/NPU 域的量产接口边界明确为 Model Runtime Adapter -> Driver/HAL contract，而不是 App 直连 vendor SDK 或设备节点。该 contract 覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005；本轮不新增真实 NPU driver、HAL、DMA/IOMMU、Safety Runtime 或虚拟化代码。
+
 ### Observability
 
 | Method | Path | 用途 | 已实现 |

@@ -21,6 +21,7 @@ require_text() {
 }
 
 require_file "docs/CENTRAL_BRAIN_PLATFORM_DELTA.md"
+require_file "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
 require_file "central-brain/deploy/linux/README.md"
 require_file "central-brain/deploy/linux/central-brain.env.example"
 require_file "central-brain/deploy/linux/systemd/central-brain-backend.service"
@@ -37,5 +38,11 @@ require_text "central-brain/deploy/linux/systemd/central-brain-linux-ipc.service
 require_text "central-brain/deploy/linux/systemd/central-brain-linux-ipc.service" "central_brain_ipc_daemon.py"
 require_text "central-brain/deploy/linux/central-brain.env.example" "CENTRAL_BRAIN_IPC_SOCKET"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "CENTRAL_BRAIN_PLATFORM_DELTA.md"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
+require_text "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md" "HW-002"
+require_text "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md" "NV-F-011"
+require_text "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md" "KH-003"
+require_text "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md" "KH-006"
+require_text "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md" "DEL-005"
 
 echo "Central Brain delivery docs check passed"

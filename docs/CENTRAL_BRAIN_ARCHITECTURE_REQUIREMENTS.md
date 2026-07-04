@@ -36,7 +36,7 @@
 | L1 | 应用层 | 承载客户开发的 Apps/Services，以及平台提供的 AI SDK | 部分原型 |
 | L2 | Framework 层 | 必须包含 Uni Info Bus 语义接口和 SOA 服务入口 | 文档化，未完整实现 |
 | L3 | Native 层 | 必须包含 AIOS Kernel、Signal/Service/Runtime/Policy/Model adapters，以及 Runtime & Governance、Protocol Binding | mock 后端仅覆盖极小子集 |
-| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用；新增开发仅限当前环境缺口 | 需补驱动接口文档 |
+| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用；新增开发仅限当前环境缺口 | 驱动接口矩阵 + NPU runtime interface 初版 |
 | L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信的接口约束；不开发虚拟化功能 | `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 初版 |
 | L6 | 硬件层 | 基线硬件为 UniSOC Automotive-solution，并扩展接入外置 PCIe NPU | 未实现，仅 mock |
 
@@ -120,7 +120,7 @@
 | NV-F-008 | SOA Service Runtime | 展锐负责 | 服务容器/状态机/Impl/... | 服务生命周期和状态机运行时 | SOA Service Adapter active prototype |
 | NV-F-009 | Security/Policy Adapter | 生态合作 | ASIL/QM/Zone/... | 安全域、权限、区域策略适配 | Policy adapter active prototype + 虚拟化约束 |
 | NV-F-010 | ADAS Funcware | 生态合作 | Perception/Fusion/Scene/... | 智驾能力通过 ADAS adapter 接入 | 未实现 |
-| NV-F-011 | Model Runtime Adapter | 展锐负责 | GPU/NPU/Cloud/... | 模型运行时必须抽象 GPU/NPU/Cloud | mock NPU runtime adapter boundary |
+| NV-F-011 | Model Runtime Adapter | 展锐负责 | GPU/NPU/Cloud/... | 模型运行时必须抽象 GPU/NPU/Cloud | mock NPU runtime adapter boundary + `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
 | NV-F-012 | 其他 | 展锐负责 | Trace/Logging/Metric/... | 原生层可观测性必须平台化 | 未实现 |
 
 ### Uni Info Bus Runtime & Governance
@@ -153,11 +153,11 @@
 | --- | --- | --- | --- | --- | --- |
 | KH-001 | 文件系统管理/网络协议栈/... | 芯片原有 | OS 基础能力 | 上层不得重造基础 OS 能力 | 依赖宿主/Android |
 | KH-002 | 内存管理 | 芯片原有 | 内存管理 | NPU/ADAS/多媒体需考虑共享内存与隔离 | 未实现 |
-| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 仅在当前 Android/Linux 环境能力不足时新增开发；必须明确驱动接口支持矩阵 | mock 偏差 |
+| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 仅在当前 Android/Linux 环境能力不足时新增开发；必须明确驱动接口支持矩阵 | 驱动接口矩阵 + NPU runtime interface 初版；真实 driver 未实现 |
 | KH-004 | 其他 | 芯片原有 | 底层扩展 | 需后续明确 | 未实现 |
 | KH-005 | Libs | 芯片原有 | 基础库 | 需记录依赖库边界 | 未实现 |
-| KH-006 | HAL | 芯片原有 | 硬件抽象层 | NPU、传感器、车身信号需 HAL 边界 | 未实现 |
-| KH-007 | Safety Runtime | 芯片原有 | 安全运行时 | ASIL/QM 策略必须落到 runtime | 未实现 |
+| KH-006 | HAL | 芯片原有 | 硬件抽象层 | NPU、传感器、车身信号需 HAL 边界 | NPU HAL 边界文档化；真实 HAL 未实现 |
+| KH-007 | Safety Runtime | 芯片原有 | 安全运行时 | ASIL/QM 策略必须落到 runtime | Safety/NPU fault state 约束文档化；真实 Safety Runtime 未实现 |
 | KH-008 | Libs | 芯片原有 | 另一组基础库 | 图中重复 Libs 需确认含义，见 ISSUE-007 | 未实现 |
 | KH-009 | 进程&线程调度/中断与异常管理/系统调用接口/... | 芯片原有 | OS 调度和异常 | 真实 NPU/ADAS 接入必须定义异常恢复 | 未实现 |
 
@@ -174,7 +174,7 @@
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
 | HW-001 | UniSOC Automotive-solution | 展锐负责 | 中央计算硬件基线 | 软件架构默认基于 UniSOC 车规方案 | 未实现 |
-| HW-002 | 外置 PCIe NPU 算力卡 | 用户补充需求 | 后端 AI 基座由 PCIe NPU 实现 | 必须映射到 KH-003、KH-006、NV-F-011 | mock |
+| HW-002 | 外置 PCIe NPU 算力卡 | 用户补充需求 | 后端 AI 基座由 PCIe NPU 实现 | 必须映射到 KH-003、KH-006、NV-F-011 | mock + `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
 
 ## 开发顺序约束
 

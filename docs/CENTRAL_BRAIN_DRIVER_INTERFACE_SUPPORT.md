@@ -17,6 +17,8 @@ A1 Event active mock 增量只新增 `/uib/events/topics`、`/uib/events/publish
 
 A5 Native adapters mock 的 `/native/adapters/detail` 只记录 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界和 Driver/HAL 依赖，不新增驱动代码。
 
+A6 NPU Runtime Adapter 接口约束增量新增 `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` 和 `tools/check_central_brain_npu_interface.sh`，覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005；只固定 Android/Linux runtime contract、状态机、错误码和 Driver/HAL 集成检查点，不新增 NPU driver、HAL、DMA/IOMMU、Safety Runtime、vendor SDK bridge 或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |
@@ -32,7 +34,7 @@ A5 Native adapters mock 的 `/native/adapters/detail` 只记录 AIOS Kernel、SO
 
 ## NPU 接口最低抽象
 
-无论 Android 还是 Linux，NPU 后端必须至少暴露以下抽象：
+无论 Android 还是 Linux，NPU 后端必须至少暴露以下抽象；完整 contract、状态机、错误码和集成检查点见 `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`：
 
 ```text
 NpuDevice.discover()

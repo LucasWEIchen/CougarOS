@@ -92,7 +92,7 @@
 | Task ID | Req ID | 任务 | 输出 |
 | --- | --- | --- | --- |
 | A6-T01 | KH-003, KH-006 | 建立驱动/HAL 接口支持矩阵 | `CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` |
-| A6-T02 | HW-002, NV-F-011 | 定义 NPU runtime 最低抽象 | NPU interface spec |
+| A6-T02 | HW-002, NV-F-011 | 定义 NPU runtime 最低抽象 | `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` 初版 |
 | A6-T03 | DEL-004, DEL-005 | 明确 Android 与 Linux 驱动接口差异 | platform delta |
 | A6-T04 | KH-003 | 只对当前环境缺口建立开发任务 | gap backlog |
 

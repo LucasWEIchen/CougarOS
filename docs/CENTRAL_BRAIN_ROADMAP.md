@@ -14,7 +14,7 @@
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype 初版 |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
-| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | 待开始 |
+| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | 待开始 |
@@ -142,3 +142,9 @@
   - Android Binder/AIDL 与 gRPC contract skeleton 新增事件 topic、publish、recent 方法。
   - 本轮未实现 DDS、高频推送、真实订阅 broker、Driver/HAL 或虚拟化层。
   - 覆盖 Req ID：XSC-002、XSC-006、FW-U-003、NV-P-002、NV-P-006、DEL-001、DEL-002。
+- 推进 A6 NPU Runtime Adapter 接口约束：
+  - 新增 `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`，固定外置 PCIe NPU 从 Uni Info Bus/SOA 到 Model Runtime Adapter、Driver/HAL 的分层边界。
+  - 明确 Android 主开发路径、Linux 同步交付路径、最低 API 抽象、统一 envelope、状态机、错误码和 Driver/HAL 集成检查点。
+  - 新增静态验证脚本：`tools/check_central_brain_npu_interface.sh`。
+  - 本轮未开发 NPU driver、HAL、DMA/IOMMU、Safety Runtime、虚拟化层或 vendor SDK bridge。
+  - 覆盖 Req ID：HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。

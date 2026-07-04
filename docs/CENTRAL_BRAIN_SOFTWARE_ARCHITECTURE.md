@@ -143,6 +143,8 @@ sequenceDiagram
   Bus-->>App: inference result
 ```
 
+A6 当前交付见 `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`，覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。该文档固定 Model Runtime Adapter 到 Driver/HAL 的最低 API、统一 envelope、状态机、错误码和 Android/Linux 集成检查点；仍不开发真实 NPU driver、HAL、DMA/IOMMU、Safety Runtime 或虚拟化层。
+
 ### 虚拟化与 Safety 约束
 
 L5 虚拟化层只记录接口约束和部署假设，不开发 Hypervisor、ASIL/QM 隔离或跨 VM 共享内存实现。A7 当前交付见 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`，覆盖 HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004。
