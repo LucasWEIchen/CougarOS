@@ -105,6 +105,7 @@ Linux systemd deployment sample：
 ```bash
 sed -n '1,220p' central-brain/deploy/linux/README.md
 bash tools/check_central_brain_delivery_docs.sh
+bash tools/check_central_brain_linux_systemd_hardening.sh
 ```
 
 ## 设计边界
@@ -141,5 +142,5 @@ bash tools/check_central_brain_delivery_docs.sh
 - `GET /native/adapters/detail`：Android/Linux 原生适配交付边界与 Driver/HAL 依赖说明，覆盖 XSC-004、DEL-001、DEL-002、DEL-005。
 - `GET /native/driver-gaps`：Driver/HAL gap backlog，列出 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的触发条件与最小新增开发量；Android Binder `getDriverHalGapsJson` 和 Linux CLI `driver-gaps` 共用该 contract，覆盖 KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 - `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`：外置 PCIe NPU 的 Model Runtime Adapter、Driver/HAL、Safety 状态、错误码和 Android/Linux 集成检查点，覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
-- Linux systemd deployment sample：`central-brain/deploy/linux/` 覆盖 DEL-002、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002。
+- Linux systemd deployment sample：`central-brain/deploy/linux/` 覆盖 DEL-002、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-003；`tools/check_central_brain_linux_systemd_hardening.sh` 验证 systemd unit 的最小 sandbox 和写路径约束。
 - Virtualization/Safety constraints：`docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 覆盖 HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004；只记录接口约束和部署假设，不开发虚拟化层。

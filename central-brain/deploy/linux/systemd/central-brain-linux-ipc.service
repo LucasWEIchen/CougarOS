@@ -14,6 +14,7 @@ Environment=CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787
 Environment=CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock
 Environment=CENTRAL_BRAIN_GOVERNANCE_SOCKET=/run/central-brain/governance.sock
 Environment=CENTRAL_BRAIN_IPC_AUDIT_LOG=/var/log/central-brain/ipc-audit.jsonl
+Environment=PYTHONDONTWRITEBYTECODE=1
 RuntimeDirectory=central-brain
 RuntimeDirectoryMode=0770
 LogsDirectory=central-brain
@@ -23,6 +24,12 @@ Restart=on-failure
 RestartSec=2
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/run/central-brain /var/log/central-brain
 
 [Install]
 WantedBy=multi-user.target

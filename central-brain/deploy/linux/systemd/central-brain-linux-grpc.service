@@ -15,6 +15,7 @@ Environment=CENTRAL_BRAIN_GRPC_HOST=127.0.0.1
 Environment=CENTRAL_BRAIN_GRPC_PORT=18788
 Environment=CENTRAL_BRAIN_GOVERNANCE_SOCKET=/run/central-brain/governance.sock
 Environment=CENTRAL_BRAIN_GRPC_AUDIT_LOG=/var/log/central-brain/grpc-audit.jsonl
+Environment=PYTHONDONTWRITEBYTECODE=1
 LogsDirectory=central-brain
 UMask=0007
 ExecStart=/usr/bin/python3 /opt/central-brain/appDev/central-brain/bindings/linux/grpc/central_brain_grpc_server.py --host ${CENTRAL_BRAIN_GRPC_HOST} --port ${CENTRAL_BRAIN_GRPC_PORT} --base-url ${CENTRAL_BRAIN_BASE_URL}
@@ -22,6 +23,12 @@ Restart=on-failure
 RestartSec=2
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/log/central-brain
 
 [Install]
 WantedBy=multi-user.target

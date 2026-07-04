@@ -109,9 +109,9 @@
 | Task ID | Req ID | 任务 | 输出 |
 | --- | --- | --- | --- |
 | A9-T01 | DEL-001 | Android 构建、安装、验证脚本 | APK + scripts |
-| A9-T02 | DEL-002 | Linux client/CLI 或 daemon 示例 | Linux delivery sample |
+| A9-T02 | DEL-002 | Linux client/CLI 或 daemon 示例 | Linux delivery sample + systemd hardening check |
 | A9-T03 | DEL-003 | 座舱域工程师集成文档 | Android system service integration guide + Linux deployment guide |
-| A9-T04 | DEL-004 | Android/Linux 平台差异说明 | platform delta doc + Android permission/SELinux assumptions |
+| A9-T04 | DEL-004 | Android/Linux 平台差异说明 | platform delta doc + Android permission/SELinux assumptions + Linux unit hardening notes |
 | A9-T05 | XSC-001..006 | 黄色小太阳组件跨 SoC 交付矩阵 | cross-SoC matrix |
 
 ## 每次开发检查清单

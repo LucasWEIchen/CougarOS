@@ -11,12 +11,19 @@ Group=centralbrain
 WorkingDirectory=/opt/central-brain/appDev
 EnvironmentFile=-/etc/central-brain/central-brain.env
 Environment=CENTRAL_BRAIN_PORT=8787
+Environment=PYTHONDONTWRITEBYTECODE=1
 ExecStart=/usr/bin/env bash /opt/central-brain/appDev/tools/run_central_brain_backend.sh
 Restart=on-failure
 RestartSec=2
 LogsDirectory=central-brain
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/log/central-brain
 
 [Install]
 WantedBy=multi-user.target

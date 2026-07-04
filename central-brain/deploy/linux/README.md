@@ -21,6 +21,9 @@ HAL, SOME/IP, DDS, MQTT, NPU, or virtualization code.
 - `systemd/central-brain-linux-grpc.service`: gRPC/RPC contract sample service
   that mirrors the proto envelope over JSON TCP and uses the governance socket
   before falling back locally.
+- `../../../tools/check_central_brain_linux_systemd_hardening.sh`: static check
+  for service identity, log/runtime write paths, and systemd sandbox directives
+  on the Linux delivery units.
 
 ## Integration Path
 
@@ -69,10 +72,22 @@ sudo test -s /var/log/central-brain/ipc-audit.jsonl || true
 sudo test -s /var/log/central-brain/grpc-audit.jsonl || true
 ```
 
+Validate the unit hardening contract before installing to a target image:
+
+```bash
+bash tools/check_central_brain_linux_systemd_hardening.sh
+```
+
 ## Deployment Assumptions
 
 - The systemd units are samples for Linux delivery, not a production packaging
   format.
+- The systemd units set `NoNewPrivileges`, `PrivateTmp`, `PrivateDevices`,
+  `ProtectSystem=strict`, `ProtectHome`, `RestrictSUIDSGID`,
+  `LockPersonality`, `PYTHONDONTWRITEBYTECODE`, and explicit
+  `ReadWritePaths`. These are sample hardening defaults for DEL-002/DEL-004,
+  not a substitute for target distribution packaging, LSM policy, or security
+  certification.
 - The backend remains the active REST prototype binding; the IPC daemon
   preserves Uni Info Bus/SOA semantic operations, calls the shared Linux
   Runtime & Governance socket for SOA precheck when configured, falls back to

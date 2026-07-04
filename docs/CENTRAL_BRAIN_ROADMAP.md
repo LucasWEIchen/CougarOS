@@ -18,7 +18,7 @@
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
-| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 |
+| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check |
 
 ## M0 任务清单
 
@@ -53,6 +53,11 @@
 
 ### 2026-07-05
 
+- 推进 A9 Linux systemd hardening sample：
+  - 四个 Linux systemd unit 新增 `ProtectSystem=strict`、`ProtectHome=true`、`PrivateDevices=true`、`RestrictSUIDSGID=true`、`LockPersonality=true`、`PYTHONDONTWRITEBYTECODE=1` 和最小 `ReadWritePaths`。
+  - 新增 `tools/check_central_brain_linux_systemd_hardening.sh`，验证 gateway、governance、IPC、gRPC/RPC 样例 unit 的服务身份、日志目录、运行目录和 hardening 约束，并在可用时运行 `systemd-analyze verify`。
+  - 本轮只收紧 Linux 交付样例部署约束；未新增量产包管理、真实 IPC/gRPC runtime、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：DEL-002、DEL-003、DEL-004、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-G-007。
 - 推进 A6 Driver/HAL gap backlog contract：
   - `native_adapters.py` 新增 Driver/HAL gap backlog，覆盖 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 五类缺口。
   - 后端新增 `GET /native/driver-gaps`；Android Binder/AIDL 新增 `getDriverHalGapsJson`；Linux CLI 新增 `driver-gaps`，均只返回触发条件、Android 主路径、Linux 同步路径和最小新增开发量。

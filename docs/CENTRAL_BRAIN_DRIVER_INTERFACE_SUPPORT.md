@@ -47,6 +47,8 @@ Linux gRPC/RPC contract sample 增量新增 `central_brain_grpc_server.py`、`ce
 
 Driver/HAL gap backlog contract 增量新增 `GET /native/driver-gaps`、Android Binder/AIDL `getDriverHalGapsJson`、Linux CLI `driver-gaps`，并把 `driver_hal_gap_backlog` 纳入 `/native/adapters/detail`；覆盖 KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005、HW-002、NV-F-002、NV-F-004、NV-F-005、NV-F-006、NV-F-011、NV-P-001、NV-P-006、HV-001..003。该增量只记录 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的触发条件、Android/Linux 目标接口和最小新增开发量，不新增 NPU/GPU/Camera/Audio/ETH/Vehicle bus Driver/HAL、Safety Runtime、共享内存、vendor SDK bridge 或虚拟化代码。
 
+Linux systemd hardening sample 增量只收紧 `central-brain-backend.service`、`central-brain-governance.service`、`central-brain-linux-ipc.service` 和 `central-brain-linux-grpc.service` 的部署约束，并新增 `tools/check_central_brain_linux_systemd_hardening.sh`；覆盖 DEL-002、DEL-003、DEL-004、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-G-007。该增量只使用 systemd sandbox 配置、普通文件日志目录和 `/run/central-brain` socket 目录，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、共享内存、vendor SDK bridge 或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |

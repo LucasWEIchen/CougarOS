@@ -23,8 +23,8 @@ Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 | Uni Info Bus | App/client 调用 `/uib/*`，Binder sample 暴露 `getContextJson`、`getStateJson` | CLI 和 Unix socket IPC operation 映射 `uib.context.get`、`uib.state.get` | active prototype | XSC-002, FW-U-001, FW-U-002 |
 | SOA 服务入口 | Binder sample 暴露服务目录和 invoke 方法，当前代理语义网关 | CLI、Unix socket IPC 和 systemd gateway sample | active prototype + Linux unit sample | XSC-003, FW-S-004, FW-S-005 |
 | Runtime & Governance | 通过 `/policy/evaluate`、`/governance/precheck`、`/governance/runtime`、`/audit/recent` 验证；Binder contract 暴露 `precheckGovernanceJson` | 同一 contract；Linux CLI/IPC 提供 `governance-precheck`/`governance.precheck`；Linux IPC daemon 保持 policy/governance operation，并对 `soa.service.invoke` 优先走 shared governance daemon precheck，不可用时回退本地 precheck | active prototype；`/governance/precheck` 默认不消费 QoS 且不 dispatch 服务；Linux governance daemon 是共享 socket 样例 | XSC-005, NV-G-001..007 |
-| Protocol Binding | Binder/AIDL service stub sample；REST 只是 prototype binding | Unix socket IPC active sample；gRPC/RPC JSON contract sample；REST prototype binding | Android stub + Linux active samples；当前 gRPC/RPC sample 因环境无 `grpcio` 使用 JSON TCP wrapper | XSC-006, NV-P-002, NV-P-003, NV-P-005 |
-| 服务部署 | Debug APK 内置 Binder sample；量产目标为 AAOS system/privileged service 约束 | `central-brain-backend.service` + `central-brain-governance.service` + `central-brain-linux-ipc.service` 样例 | Android system service integration note + Linux systemd sample | DEL-001, DEL-003, DEL-004 |
+| Protocol Binding | Binder/AIDL service stub sample；REST 只是 prototype binding | Unix socket IPC active sample；gRPC/RPC JSON contract sample；REST prototype binding；systemd unit hardening check | Android stub + Linux active samples；当前 gRPC/RPC sample 因环境无 `grpcio` 使用 JSON TCP wrapper | XSC-006, NV-P-002, NV-P-003, NV-P-005 |
+| 服务部署 | Debug APK 内置 Binder sample；量产目标为 AAOS system/privileged service 约束 | `central-brain-backend.service` + `central-brain-governance.service` + `central-brain-linux-ipc.service` + `central-brain-linux-grpc.service` 样例，含 unit hardening check | Android system service integration note + Linux systemd sample + hardening check | DEL-001, DEL-002, DEL-003, DEL-004 |
 | 权限模型 | Android app permission、Binder caller identity、signature permission、Runtime & Governance policy | Linux service user/group、Unix socket mode、Runtime & Governance policy | Android 权限/SELinux 假设文档化，未接入真实系统权限 | FW-U-007, FW-S-005, NV-G-005, DEL-004 |
 | 日志与审计 | Android logcat + `/audit/recent`；可通过服务配置指定 `CENTRAL_BRAIN_AUDIT_LOG` | journald + `/audit/recent`；可指定 gateway JSONL audit log 路径、shared governance audit log、IPC fallback audit log | JSONL 持久化样例已可验证，量产仍需轮转/导出/权限加固 | XSC-005, NV-G-007, DEL-002, DEL-004 |
 | Driver/HAL | Android HAL/AIDL/NDK/vendor SDK bridge，当前不新增驱动；Binder `getDriverHalGapsJson` 可查 gap backlog | Linux device node/ioctl/sysfs/vendor lib，当前不新增驱动；CLI `driver-gaps` 可查 gap backlog | 接口矩阵 + `/native/driver-gaps` contract | DEL-005, KH-003, KH-006 |
@@ -48,11 +48,13 @@ Linux 部署样例位于 `central-brain/deploy/linux/`：
 - `systemd/central-brain-governance.service`：Linux shared Runtime & Governance socket sample。
 - `systemd/central-brain-linux-ipc.service`：Linux IPC Protocol Binding daemon。
 - `systemd/central-brain-linux-grpc.service`：Linux gRPC/RPC JSON contract sample，验证 proto envelope 与 shared governance precheck。
+- `tools/check_central_brain_linux_systemd_hardening.sh`：检查 service user/group、`NoNewPrivileges`、`PrivateTmp`、`PrivateDevices`、`ProtectSystem=strict`、`ProtectHome=true`、`RestrictSUIDSGID`、`LockPersonality`、`PYTHONDONTWRITEBYTECODE`、`LogsDirectory` 和最小 `ReadWritePaths`。
 
 验证命令：
 
 ```bash
 bash tools/check_central_brain_delivery_docs.sh
+bash tools/check_central_brain_linux_systemd_hardening.sh
 bash tools/check_central_brain_virtualization_docs.sh
 bash tools/smoke_central_brain_semantic_gateway.sh
 bash tools/smoke_central_brain_linux_ipc.sh
@@ -82,6 +84,6 @@ bash tools/check_central_brain_android_system_service_docs.sh
 
 - Android Binder sample、Linux IPC daemon 和 Linux gRPC/RPC JSON contract sample 允许路径仍代理到同进程 REST prototype gateway；`/governance/precheck` 和 Linux governance daemon 是显式 contract/共享 socket 样例，不是共享量产治理 daemon；Linux IPC/gRPC sample 已对 SOA 调用增加 shared governance daemon precheck + local fallback，偏差记录见 DEV-001、DEV-013。
 - Android system/privileged service 当前只有集成约束文档，没有 framework patch、priv-app 签名配置或 sepolicy，风险记录见 ISSUE-013。
-- Linux systemd unit 是部署样例，不等同量产包管理或安全加固基线。
+- Linux systemd unit 是带最小 hardening 约束的部署样例，不等同量产包管理、LSM 策略或安全认证基线。
 - 当前审计可选 JSONL 持久化并恢复最近 50 条；仍不是量产审计后端，偏差记录见 DEV-006。
 - 当前没有真实 Driver/HAL/NPU/Vehicle bus 接入，偏差记录见 DEV-004、DEV-005、DEV-014。
