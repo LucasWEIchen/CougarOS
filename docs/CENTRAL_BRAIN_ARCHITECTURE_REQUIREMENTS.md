@@ -84,13 +84,13 @@
 
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
-| FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | contract 初版 |
-| FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | `/health` 部分覆盖 |
-| FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | 未实现 |
-| FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | 未实现 |
-| FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/services` 部分覆盖 |
-| FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | 接口设计 |
-| FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | 未实现 |
+| FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | `/context` mock |
+| FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | `/state` mock |
+| FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | `/events/topics` 与 `/events/publish` mock |
+| FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | `/actions/request` mock |
+| FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/service/invoke` mock |
+| FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | `/tools` mock |
+| FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | `/permission/check` mock |
 | FW-U-008 | 其他 | 展锐负责 | 扩展语义 | 必须有扩展机制且不可破坏核心对象 | 未实现 |
 
 ### SOA 服务入口

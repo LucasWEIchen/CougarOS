@@ -19,6 +19,15 @@ from urllib.parse import urlparse
 
 
 STARTED_AT = time.time()
+EVENT_TOPICS = [
+    "vehicle.signal.changed",
+    "service.health.changed",
+    "agent.task.updated",
+    "skill.invocation.completed",
+    "policy.decision.created",
+    "ai.inference.completed",
+    "npu.runtime.changed"
+]
 
 
 def read_text(path: Path) -> str | None:
@@ -103,6 +112,19 @@ def health_payload() -> dict[str, Any]:
     }
 
 
+def envelope(payload: dict[str, Any], trace_id: str | None = None, status: str = "ok") -> dict[str, Any]:
+    return {
+        "trace_id": trace_id or str(uuid.uuid4()),
+        "status": status,
+        "error": None if status == "ok" else {"code": status.upper(), "message": status},
+        "payload": payload,
+        "metrics": {
+            "queue_ms": 0.0,
+            "execution_ms": 0.0
+        }
+    }
+
+
 def services_payload() -> dict[str, Any]:
     return {
         "services": [
@@ -128,6 +150,82 @@ def services_payload() -> dict[str, Any]:
                 "safety_state": "normal"
             }
         ]
+    }
+
+
+def context_payload() -> dict[str, Any]:
+    vehicle = vehicle_state_payload()
+    return {
+        "context": {
+            "vehicle": {
+                "signals": vehicle["signals"],
+                "driving_state": vehicle["context"]["driving_state"]
+            },
+            "user": {
+                "profile": "local-driver",
+                "role": "debug_console",
+                "privacy_level": "local_only"
+            },
+            "environment": {
+                "runtime": "wsl-local",
+                "network": vehicle["context"]["network"],
+                "timestamp_ms": vehicle["timestamp_ms"]
+            }
+        },
+        "req_ids": ["FW-U-001"]
+    }
+
+
+def state_payload() -> dict[str, Any]:
+    return {
+        "state": {
+            "system": health_payload(),
+            "services": services_payload()["services"],
+            "npu": npu_status(),
+            "vehicle": vehicle_state_payload(),
+            "safety_state": "normal"
+        },
+        "req_ids": ["FW-U-002"]
+    }
+
+
+def event_topics_payload() -> dict[str, Any]:
+    return {
+        "topics": [
+            {
+                "name": topic,
+                "mode": "mock",
+                "delivery": "request-response-placeholder"
+            }
+            for topic in EVENT_TOPICS
+        ],
+        "req_ids": ["FW-U-003"]
+    }
+
+
+def tools_payload() -> dict[str, Any]:
+    return {
+        "tools": [
+            {
+                "tool_id": "vehicle_state_query",
+                "permissions": ["vehicle.read"],
+                "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+                "schema": {"signals": "string[]"}
+            },
+            {
+                "tool_id": "npu_inference",
+                "permissions": ["ai.infer"],
+                "allowed_safety_states": ["normal"],
+                "schema": {"model": "string", "input": "object"}
+            },
+            {
+                "tool_id": "policy_evaluate",
+                "permissions": ["policy.read"],
+                "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+                "schema": {"action": "string", "resource": "string", "permissions": "string[]"}
+            }
+        ],
+        "req_ids": ["FW-U-006"]
     }
 
 
@@ -206,6 +304,75 @@ def inference_payload(request: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def permission_check_payload(request: dict[str, Any]) -> dict[str, Any]:
+    required = set(request.get("permissions") or request.get("required_permissions") or [])
+    granted = set(request.get("caller_permissions") or ["vehicle.read", "ai.infer", "service.read", "policy.read"])
+    safety_state = request.get("safety_state", "normal")
+    vehicle_state = request.get("vehicle_state", "parked")
+    high_risk = bool(required.intersection({"vehicle.control", "diagnostics.write", "ota.manage"}))
+    allowed = required.issubset(granted) and safety_state == "normal" and (not high_risk or vehicle_state == "parked")
+    return {
+        "decision": "allow" if allowed else "deny",
+        "required_permissions": sorted(required),
+        "granted_permissions": sorted(granted),
+        "safety_state": safety_state,
+        "vehicle_state": vehicle_state,
+        "reason": "policy mock allowed" if allowed else "missing permission or unsafe vehicle/safety state",
+        "req_ids": ["FW-U-007", "NV-G-005"]
+    }
+
+
+def action_request_payload(request: dict[str, Any]) -> dict[str, Any]:
+    action = request.get("action", "Unknown.Action")
+    permissions = request.get("permissions") or ["vehicle.control"]
+    decision = permission_check_payload(
+        {
+            "permissions": permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "vehicle.control"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal")
+        }
+    )
+    return {
+        "action_id": str(uuid.uuid4()),
+        "action": action,
+        "state": "accepted" if decision["decision"] == "allow" else "rejected",
+        "policy": decision,
+        "req_ids": ["FW-U-004"]
+    }
+
+
+def service_invoke_payload(request: dict[str, Any]) -> dict[str, Any]:
+    service = request.get("service", "vehicle-state")
+    method = request.get("method", "getState")
+    if service == "vehicle-state":
+        result: dict[str, Any] = vehicle_state_payload()
+    elif service == "npu-inference":
+        result = inference_payload(request.get("payload", {}))
+    elif service == "service-registry":
+        result = services_payload()
+    else:
+        result = {"message": "mock service not implemented", "service": service, "method": method}
+    return {
+        "service": service,
+        "method": method,
+        "result": result,
+        "req_ids": ["FW-U-005", "FW-S-004"]
+    }
+
+
+def event_publish_payload(request: dict[str, Any]) -> dict[str, Any]:
+    topic = request.get("topic", "vehicle.signal.changed")
+    accepted = topic in EVENT_TOPICS
+    return {
+        "event_id": str(uuid.uuid4()),
+        "topic": topic,
+        "state": "accepted" if accepted else "rejected",
+        "known_topic": accepted,
+        "req_ids": ["FW-U-003"]
+    }
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "CentralBrainMock/0.1"
 
@@ -226,6 +393,14 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, health_payload())
         elif path == "/services":
             self.send_json(200, services_payload())
+        elif path == "/context":
+            self.send_json(200, envelope(context_payload()))
+        elif path == "/state":
+            self.send_json(200, envelope(state_payload()))
+        elif path == "/events/topics":
+            self.send_json(200, envelope(event_topics_payload()))
+        elif path == "/tools":
+            self.send_json(200, envelope(tools_payload()))
         elif path == "/vehicle/state":
             self.send_json(200, vehicle_state_payload())
         elif path == "/npu/status":
@@ -245,6 +420,14 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/ai/infer":
             self.send_json(200, inference_payload(request))
+        elif path == "/permission/check":
+            self.send_json(200, envelope(permission_check_payload(request), request.get("trace_id")))
+        elif path == "/actions/request":
+            self.send_json(200, envelope(action_request_payload(request), request.get("trace_id")))
+        elif path == "/service/invoke":
+            self.send_json(200, envelope(service_invoke_payload(request), request.get("trace_id")))
+        elif path == "/events/publish":
+            self.send_json(200, envelope(event_publish_payload(request), request.get("trace_id")))
         else:
             self.send_json(404, {"status": "error", "message": "unknown endpoint"})
 

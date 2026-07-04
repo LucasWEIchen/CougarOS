@@ -27,6 +27,54 @@
     },
     {
       "method": "GET",
+      "path": "/context",
+      "description": "Returns Uni Info Bus Context envelope for vehicle, user, and environment.",
+      "req_ids": ["FW-U-001"]
+    },
+    {
+      "method": "GET",
+      "path": "/state",
+      "description": "Returns Uni Info Bus State envelope for system, services, NPU, vehicle, and safety state.",
+      "req_ids": ["FW-U-002"]
+    },
+    {
+      "method": "GET",
+      "path": "/events/topics",
+      "description": "Returns mock event topics for Uni Info Bus subscription design.",
+      "req_ids": ["FW-U-003"]
+    },
+    {
+      "method": "POST",
+      "path": "/events/publish",
+      "description": "Publishes a mock event to a known Uni Info Bus topic.",
+      "req_ids": ["FW-U-003"]
+    },
+    {
+      "method": "POST",
+      "path": "/actions/request",
+      "description": "Submits a policy-checked mock Action request.",
+      "req_ids": ["FW-U-004"]
+    },
+    {
+      "method": "POST",
+      "path": "/service/invoke",
+      "description": "Invokes a mock service through the Uni Info Bus service method entry.",
+      "req_ids": ["FW-U-005", "FW-S-004"]
+    },
+    {
+      "method": "GET",
+      "path": "/tools",
+      "description": "Returns mock Tool schemas for AI tool calls.",
+      "req_ids": ["FW-U-006"]
+    },
+    {
+      "method": "POST",
+      "path": "/permission/check",
+      "description": "Evaluates mock Permission and Safety State before Action/Tool/Service calls.",
+      "req_ids": ["FW-U-007", "NV-G-005"]
+    },
+    {
+      "method": "GET",
       "path": "/vehicle/state",
       "description": "Returns mock vehicle state with VSS-style signal names."
     },
@@ -95,6 +143,16 @@
       "description": "Planned: decides whether data can leave the vehicle and what redaction is required."
     }
   ],
+  "envelope": {
+    "trace_id": "string",
+    "status": "ok|error",
+    "error": "object|null",
+    "payload": "object",
+    "metrics": {
+      "queue_ms": "number",
+      "execution_ms": "number"
+    }
+  },
   "semantic_objects": {
     "context": [
       "Vehicle.Speed",

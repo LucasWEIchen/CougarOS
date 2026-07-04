@@ -9,7 +9,7 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | 待开始 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | 后端 mock 初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | 待开始 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | 待开始 |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | 待开始 |
@@ -87,3 +87,7 @@
 - 用户明确以 Android 开发为主，交付时同时提供 Linux 版本；交付对象为 Android/Linux 座舱域软件工程师。
 - 新增交付目标文档：`docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md`。
 - 新增驱动接口支持矩阵：`docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md`。
+- 立即手动执行一次自动化任务：
+  - 完成 A1 后端 mock 初版：`/context`、`/state`、`/events/topics`、`/events/publish`、`/actions/request`、`/service/invoke`、`/tools`、`/permission/check`。
+  - 新增 Linux/WSL smoke test：`tools/test_central_brain_bus.sh`。
+  - 注意：Android Console 仍未切到 Uni Info Bus client，`DEV-001` 保持临时偏差。
