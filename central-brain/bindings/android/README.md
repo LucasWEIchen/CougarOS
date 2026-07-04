@@ -61,3 +61,16 @@ Brain semantic gateway.
 - Stable parcelable models can replace JSON after the semantic contract settles.
 - The current sample is not a Driver/HAL bridge and does not create any
   virtualization-layer development scope.
+
+## System Service Integration Notes
+
+`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` records the Android
+system/privileged service integration constraints for DEL-001, DEL-003,
+DEL-004, XSC-002, XSC-003, XSC-005, XSC-006, NV-P-002, NV-P-005, FW-U-007,
+FW-S-005, and NV-G-005. It covers target service shapes, manifest permission
+constraints, Binder identity to Policy mapping, SELinux/deployment assumptions,
+and verification checks.
+
+The note is intentionally documentation-only in this increment. It does not add
+Android framework patches, priv-app signing config, sepolicy, Driver/HAL code,
+Safety Runtime code, or virtualization code.

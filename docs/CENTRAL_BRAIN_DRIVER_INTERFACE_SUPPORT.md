@@ -25,6 +25,8 @@ A3 Runtime & Governance QoS 增量新增 `/soa/invoke` per-service fixed-window 
 
 Android Console Binder 绑定增量只修改 debug APK 的 manifest、构建脚本和 `MainActivity` 调用路径，使 App 层通过 `CentralBrainGatewayClient` 绑定 `CentralBrainGatewayBinderService` 后访问 Uni Info Bus/SOA；覆盖 XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。Binder service 仍代理 REST prototype gateway，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Android system service、Driver/HAL、Safety Runtime 或虚拟化代码。
 
+Android system/privileged service 集成说明增量新增 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 和 `tools/check_central_brain_android_system_service_docs.sh`，覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005。该增量只记录 AAOS system/privileged service 目标形态、manifest 权限、Binder identity 到 Policy 的映射、SELinux/deployment 假设和验证检查项，不新增 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |

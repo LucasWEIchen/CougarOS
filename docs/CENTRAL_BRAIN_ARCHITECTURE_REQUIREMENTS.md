@@ -51,16 +51,16 @@
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
 | XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter；adapter registry 初版 |
 | XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit 可移植 | Android runtime integration | Linux runtime integration；JSONL audit persistence sample；QoS fixed-window active prototype |
-| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Console 已绑定 Binder service sample；REST 仍为 service 上游 prototype binding | REST active prototype + Unix socket IPC active sample + gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
+| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Console 已绑定 Binder service sample；system/privileged service integration note 初版；REST 仍为 service 上游 prototype binding | REST active prototype + Unix socket IPC active sample + gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
 
 ## 交付对象与平台要求
 
 | Req ID | 要求 | 说明 | 当前状态 |
 | --- | --- | --- | --- |
-| DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | Android Console 已通过 Binder client 调用 Uni Info Bus/SOA sample |
+| DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | Android Console 已通过 Binder client 调用 Uni Info Bus/SOA sample；Android system/privileged service integration note 初版 |
 | DEL-002 | Linux 同步交付路径 | 每个核心接口需要 Linux 版示例、CLI 或 daemon 集成说明 | CLI 初版 |
-| DEL-003 | 座舱域工程师文档 | 交付给 Android/Linux 座舱软件工程师，必须给出集成步骤、接口、验证命令 | 部分文档 |
-| DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | `CENTRAL_BRAIN_PLATFORM_DELTA.md` 初版 + Linux systemd sample |
+| DEL-003 | 座舱域工程师文档 | 交付给 Android/Linux 座舱软件工程师，必须给出集成步骤、接口、验证命令 | Android system service integration note + Linux 部署文档初版 |
+| DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | `CENTRAL_BRAIN_PLATFORM_DELTA.md` + Android system service integration note + Linux systemd sample |
 | DEL-005 | 驱动接口支持文档 | 明确当前环境已有能力、缺口、新增开发边界和 mock/fallback | 初版 |
 
 ## L1 应用层需求
@@ -140,7 +140,7 @@
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
 | NV-P-001 | SOME/IP | 展锐负责/生态合作 | 跨 ECU 服务 | 车内跨 ECU 服务优先通过 SOME/IP binding | `/bindings` 计划态，待车载网络环境 |
-| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | Android Console 绑定 Binder/AIDL service sample + Linux Unix socket IPC active sample |
+| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | Android Console 绑定 Binder/AIDL service sample；Android system/privileged service integration note 初版；Linux Unix socket IPC active sample |
 | NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | Linux gRPC proto contract skeleton |
 | NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | `/bindings` 计划态 |
 | NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | Android App 层经 Binder sample；Binder/Linux IPC 仍代理 REST prototype gateway |

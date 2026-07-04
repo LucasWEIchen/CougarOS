@@ -22,7 +22,7 @@
 | A1 | Uni Info Bus 语义接口 mock | L2 | Context/State/Event/Action/Service/Tool/Permission contract | App 不再直连后端具体模型接口 |
 | A2 | SOA 服务入口 mock | L2 | Business/Foundation/Atomic/Contract/SafetyState 服务目录 | 所有服务可查询、可校验 contract |
 | A3 | Runtime & Governance mock | L3 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit | 每次调用有注册、策略、生命周期、QoS fixed-window 检查和审计记录；可选 JSONL 恢复最近审计 |
-| A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub | REST 仅是 binding，不承载业务语义 |
+| A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub；Android system/privileged service integration note | REST 仅是 binding，不承载业务语义 |
 | A5 | Native adapters mock | L3 | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | AI/信号/模型调用均通过 adapter |
 | A6 | Kernel/HAL/NPU 接口文档与缺口补齐 | L4/L6 | Driver/HAL interface support matrix、NPU runtime interface、hardware discovery | 明确当前环境能力、缺口和最小新增开发量 |
 | A7 | Hypervisor/Safety 接口约束文档 | L5 | ASIL/QM domain map、跨 VM 通信假设、fallback | 不开发虚拟化功能，只记录集成约束 |
@@ -70,7 +70,7 @@
 | Task ID | Req ID | 任务 | 输出 |
 | --- | --- | --- | --- |
 | A4-T01 | NV-P-005 | REST binding 下沉为 adapter | REST adapter |
-| A4-T02 | NV-P-002 | IPC/Binder 设计草案 | AIDL draft |
+| A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
 | A4-T03 | NV-P-003 | gRPC/RPC adapter stub | RPC adapter |
 | A4-T04 | NV-P-004 | MQTT adapter stub | MQTT adapter |
 | A4-T05 | NV-P-001 | SOME/IP mapping design | SOME/IP plan |
@@ -110,8 +110,8 @@
 | --- | --- | --- | --- |
 | A9-T01 | DEL-001 | Android 构建、安装、验证脚本 | APK + scripts |
 | A9-T02 | DEL-002 | Linux client/CLI 或 daemon 示例 | Linux delivery sample |
-| A9-T03 | DEL-003 | 座舱域工程师集成文档 | integration guide |
-| A9-T04 | DEL-004 | Android/Linux 平台差异说明 | platform delta doc |
+| A9-T03 | DEL-003 | 座舱域工程师集成文档 | Android system service integration guide + Linux deployment guide |
+| A9-T04 | DEL-004 | Android/Linux 平台差异说明 | platform delta doc + Android permission/SELinux assumptions |
 | A9-T05 | XSC-001..006 | 黄色小太阳组件跨 SoC 交付矩阵 | cross-SoC matrix |
 
 ## 每次开发检查清单

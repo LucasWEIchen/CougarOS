@@ -58,8 +58,9 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java",
             "central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java",
             "central-brain/bindings/android/README.md",
+            "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md",
         ],
-        "req_ids": ["XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-001"],
+        "req_ids": ["XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "FW-U-003", "FW-U-007", "FW-S-005", "NV-P-002", "NV-P-005", "NV-P-006", "NV-G-005", "DEL-001", "DEL-003", "DEL-004"],
     },
     {
         "name": "linux-ipc",
@@ -162,8 +163,9 @@ class ProtocolBindingRegistry:
                 "Protocol Binding cannot bypass Uni Info Bus semantic objects.",
                 "SOA calls remain policy, lifecycle, and audit checked.",
                 "Android Binder service sample maps Binder calls to the semantic gateway; REST remains the upstream prototype binding.",
+                "Android system/privileged service integration is documented only; target signing, SELinux, and service manager choices remain platform decisions.",
                 "Linux IPC active sample maps Unix socket envelopes to the semantic gateway; REST remains the upstream prototype binding.",
                 "Virtualization and driver layers are documented integration assumptions only in this increment.",
             ],
-            "req_ids": BINDING_REQ_IDS + ["DEL-001", "DEL-002"],
+            "req_ids": BINDING_REQ_IDS + ["DEL-001", "DEL-002", "DEL-003", "DEL-004"],
         }

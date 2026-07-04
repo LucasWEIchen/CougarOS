@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+DOC="$ROOT_DIR/docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md"
+ANDROID_README="$ROOT_DIR/central-brain/bindings/android/README.md"
+PLATFORM_DELTA="$ROOT_DIR/docs/CENTRAL_BRAIN_PLATFORM_DELTA.md"
+DELIVERY_TARGETS="$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
+DRIVER_SUPPORT="$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
+DEVIATIONS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
+ISSUES="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
+MANIFEST="$ROOT_DIR/central-brain/android-console/AndroidManifest.xml"
+
+require_file() {
+  local path="$1"
+  if [[ ! -f "$path" ]]; then
+    echo "missing required Android system service file: $path" >&2
+    exit 1
+  fi
+}
+
+require_text() {
+  local path="$1"
+  local pattern="$2"
+  if ! grep -Fq "$pattern" "$path"; then
+    echo "missing pattern '$pattern' in $path" >&2
+    exit 1
+  fi
+}
+
+require_file "$DOC"
+require_file "$ANDROID_README"
+require_file "$PLATFORM_DELTA"
+require_file "$DELIVERY_TARGETS"
+require_file "$DRIVER_SUPPORT"
+require_file "$DEVIATIONS"
+require_file "$ISSUES"
+require_file "$MANIFEST"
+
+for req_id in DEL-001 DEL-003 DEL-004 XSC-002 XSC-003 XSC-005 XSC-006 NV-P-002 NV-P-005 FW-U-007 FW-S-005 NV-G-005; do
+  require_text "$DOC" "$req_id"
+done
+
+require_text "$DOC" "system/privileged service"
+require_text "$DOC" "Privileged app service"
+require_text "$DOC" "Framework system service"
+require_text "$DOC" "Vendor native gateway bridge"
+require_text "$DOC" "BIND_CENTRAL_BRAIN_GATEWAY"
+require_text "$DOC" "com.centralbrain.permission.BIND_GATEWAY"
+require_text "$DOC" "Binder UID"
+require_text "$DOC" "SELinux"
+require_text "$DOC" "Policy 仍由 Runtime & Governance 执行"
+require_text "$DOC" "不新增 Android framework patch"
+require_text "$DOC" "Driver/HAL"
+require_text "$DOC" "ISSUE-013"
+
+require_text "$ANDROID_README" "CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md"
+require_text "$PLATFORM_DELTA" "CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md"
+require_text "$DELIVERY_TARGETS" "CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md"
+require_text "$DRIVER_SUPPORT" "Android system/privileged service"
+require_text "$DEVIATIONS" "CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md"
+require_text "$ISSUES" "ISSUE-013"
+require_text "$MANIFEST" "BIND_CENTRAL_BRAIN_GATEWAY"
+
+echo "Central Brain Android system service docs check passed"

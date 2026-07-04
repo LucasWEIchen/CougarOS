@@ -28,6 +28,7 @@
 | ISSUE-010 | Safety State、Safety Runtime、ASIL/QM 隔离 | 三处安全概念分布在 Framework、Kernel/HAL、虚拟化层，量产映射仍依赖目标 SoC/Hypervisor | 影响安全闭环 | 已在 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 建立 Safety State -> Safety Runtime -> ASIL/QM domain 初版映射；虚拟化只记录接口约束不开发 | Proposed |
 | ISSUE-011 | 黄色小太阳组件 | 图中 AI SDK、Uni Info Bus、SOA 服务入口、AIOS Kernel、Runtime & Governance、Protocol Binding 等带黄色小太阳，用户确认会在多个 SoC 出现 | 影响跨 SoC 可移植设计和平台交付 | 已新增 XSC-001..006，后续按 Android 主线 + Linux 同步交付处理 | Closed |
 | ISSUE-012 | 交付对象 | 交付对象明确为 Android/Linux 座舱域软件工程师 | 影响文档、示例、验证脚本和平台差异说明 | 已新增 DEL-001..005 和交付目标文档 | Closed |
+| ISSUE-013 | Android system/privileged service 集成 | 目标 AAOS 镜像的签名、priv-app 白名单、SELinux domain、service manager 注册方式和上游 native gateway 形态尚未确定 | 影响 Binder service 从 debug APK sample 迁移到量产 system/privileged service 的边界、权限和部署方式 | 已新增 `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 固定集成约束；目标镜像明确前不提交 framework patch、priv-app 签名配置或 sepolicy patch | Proposed |
 
 ## 新增疑点模板
 

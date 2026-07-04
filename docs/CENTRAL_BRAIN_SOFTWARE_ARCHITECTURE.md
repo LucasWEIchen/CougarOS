@@ -103,14 +103,14 @@ flowchart TB
 
 | 协议 | 用途 | 第一阶段 |
 | --- | --- | --- |
-| IPC/Binder | Android App 与系统服务 | AIDL + service/client sample；Console debug APK 已绑定 sample service |
+| IPC/Binder | Android App 与系统服务 | AIDL + service/client sample；Console debug APK 已绑定 sample service；system/privileged service integration note 初版 |
 | REST | 原型、工具、云 API | 已用于 mock |
 | gRPC/RPC | AI 工具服务、跨进程高层 API | 预留 |
 | MQTT | 云端消息和轻量事件 | 预留 |
 | SOME/IP | 量产车载 SOA 与 ECU 服务发现 | 预留 |
 | DDS | 感知/融合/高频发布订阅 | 预留 |
 
-当前 A1/A4 增量已把 Uni Info Bus Event 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton；Android Console 已通过 Binder client 调用 State/SOA。该增量不实现 DDS broker、高频共享内存、Driver/HAL 或虚拟化功能。
+当前 A1/A4 增量已把 Uni Info Bus Event 语义入口映射到 REST active prototype、Android Binder service stub sample、Linux IPC active sample 和 gRPC contract skeleton；Android Console 已通过 Binder client 调用 State/SOA。Android system/privileged service 集成约束见 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`，其中明确 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项。该增量不实现 DDS broker、高频共享内存、Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化功能。
 
 ### Kernel & HAL 层
 
@@ -170,7 +170,7 @@ L5 虚拟化层只记录接口约束和部署假设，不开发 Hypervisor、ASI
 后续演进：
 - JSON contract 迁移到 OpenAPI + protobuf/IDL。
 - Android 侧生成客户端。
-- 系统服务侧引入 Stable AIDL；当前 Android Console 已绑定 Binder service/client sample，但 service 仍代理语义网关 prototype binding。
+- 系统服务侧引入 Stable AIDL；当前 Android Console 已绑定 Binder service/client sample，但 service 仍代理语义网关 prototype binding。目标 AAOS system/privileged service 的签名、SELinux、service manager 和 native gateway 形态按 `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 约束推进。
 - 车载 SOA 侧增加 SOME/IP IDL/映射。
 
 ## 安全设计

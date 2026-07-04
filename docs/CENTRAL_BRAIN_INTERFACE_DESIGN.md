@@ -65,7 +65,7 @@
 
 | 域 | 职责 | 原型协议 | 量产协议 |
 | --- | --- | --- | --- |
-| System | 健康、版本、能力 | HTTP/JSON | AIDL + REST debug |
+| System | 健康、版本、能力 | HTTP/JSON | AIDL system/privileged service + REST debug |
 | Registry | 服务注册发现 | HTTP/JSON | AIDL/gRPC/SOME-IP-SD |
 | Context | 车辆/用户/环境上下文 | HTTP/JSON | AIDL + DDS event |
 | Event | Uni Info Bus 事件 topic、发布、recent log | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；高频 topic 预留 DDS |
@@ -77,6 +77,12 @@
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
 | Observability | Trace、Metric、QoS、Audit | HTTP/JSON | AIDL + file/socket exporter |
 | Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
+
+Android AIDL/Binder 的 system/privileged service 集成约束见
+`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`。该约束覆盖
+DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、
+NV-P-005、FW-U-007、FW-S-005、NV-G-005，并明确 Binder caller identity 只是
+Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审计检查。
 
 ## MVP HTTP 接口
 

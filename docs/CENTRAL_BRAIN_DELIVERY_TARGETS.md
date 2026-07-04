@@ -11,7 +11,7 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android service 集成、模拟器/设备验证 | Console 已绑定 Binder service sample，并经 Binder 调用 Uni Info Bus/SOA |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample；system service integration note 初版 |
 | Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Unix socket IPC daemon/client active sample；gRPC contract skeleton 初版；systemd 部署样例初版 |
 
 ## 每个核心模块的交付形态
@@ -23,7 +23,7 @@
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter | Linux service adapter | `GET /native/adapters/detail` 初版 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration | daemon modules + JSONL audit persistence sample + QoS fixed-window sample | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke` 执行 NV-G-004 QoS 检查 |
-| Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample，service 上游仍代理 REST prototype，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
+| Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge + NPU runtime interface contract | Linux runtime bridge + NPU runtime interface contract | NPU/GPU/Cloud 后端可替换；见 `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发；NPU 检查点已文档化 |
 | Hypervisor/Safety constraints | HV-001, HV-002, HV-003 | Android domain、Binder identity、Safety State 和 Policy 集成假设 | Linux domain、service identity、IPC fallback 和 Safety State 集成假设 | 只记录接口约束和部署假设，不开发虚拟化 |
@@ -74,8 +74,10 @@ Linux systemd 部署样例：
 - `central-brain/deploy/linux/systemd/central-brain-backend.service`
 - `central-brain/deploy/linux/systemd/central-brain-linux-ipc.service`
 - `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`
+- `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`
 - `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`
 - `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`
+- `tools/check_central_brain_android_system_service_docs.sh`
 - `tools/check_central_brain_npu_interface.sh`
 
 ## Android 版本最低要求
@@ -87,6 +89,7 @@ Android 版本必须提供：
 - 模拟器或设备验证脚本。
 - 日志与截图留档。
 - AIDL/System Service 目标接口草案与 Binder service/client sample。
+- Android system/privileged service 集成约束、权限/SELinux 假设和 Binder identity 到 Policy 的映射说明。
 
 当前 Android Console 主路径：
 
@@ -105,3 +108,10 @@ Android 版本必须提供：
 - `GET /uib/events/topics`
 - `POST /uib/events/publish`
 - `GET /uib/events/recent`
+
+当前 Android system/privileged service integration note：
+
+- `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`
+- `bash tools/check_central_brain_android_system_service_docs.sh`
+- 覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005。
+- 本轮不新增 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL、Safety Runtime 或虚拟化层代码。

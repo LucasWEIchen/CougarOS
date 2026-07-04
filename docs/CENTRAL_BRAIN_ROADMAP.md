@@ -12,13 +12,13 @@
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event active mock + Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；Android Console Binder path；gRPC contract skeleton；Event semantic mapping |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | 待开始 |
-| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Linux systemd 与平台差异初版 |
+| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 |
 
 ## M0 任务清单
 
@@ -167,3 +167,10 @@
   - Android App 层不再直接发起 `/uib/state`、`/soa/invoke` HTTP 调用；REST 仍仅由 Binder service 作为上游 prototype binding 代理。
   - 本轮未开发 Android system service、Driver/HAL、Safety Runtime 或虚拟化层。
   - 覆盖 Req ID：XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
+- 推进 Android system/privileged service 集成说明：
+  - 新增 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`，明确 debug APK Binder sample 与目标 AAOS system/privileged service 的差异。
+  - 文档化 manifest/signature permission、Binder identity 到 Runtime & Governance Policy、SELinux/deployment 假设和验证检查项。
+  - 新增 `tools/check_central_brain_android_system_service_docs.sh`，并纳入交付文档校验。
+  - 登记 ISSUE-013：目标 AAOS 镜像签名、priv-app 白名单、SELinux domain、service manager 注册方式和 native gateway 形态待确认。
+  - 本轮未开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005。
