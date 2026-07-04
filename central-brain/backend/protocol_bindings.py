@@ -38,9 +38,10 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "/soa/services",
             "/soa/invoke",
             "/governance/precheck",
+            "/native/driver-gaps",
         ],
         "artifacts": ["central-brain/contracts/central_brain_api.json"],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "NV-G-004", "NV-P-005", "NV-P-006"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "KH-003", "KH-006", "DEL-005", "NV-G-004", "NV-P-005", "NV-P-006"],
     },
     {
         "name": "android-binder-aidl",
@@ -68,6 +69,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "listBindingsJson -> /bindings",
             "getBindingDetailJson -> /bindings/detail",
             "getNativeAdaptersDetailJson -> /native/adapters/detail",
+            "getDriverHalGapsJson -> /native/driver-gaps",
         ],
         "artifacts": [
             "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl",
@@ -76,7 +78,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/android/README.md",
             "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md",
         ],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-007", "FW-S-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-005", "NV-P-006", "DEL-001", "DEL-003", "DEL-004"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-007", "FW-S-005", "KH-003", "KH-006", "DEL-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-005", "NV-P-006", "DEL-001", "DEL-003", "DEL-004"],
     },
     {
         "name": "linux-ipc",

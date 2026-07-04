@@ -26,6 +26,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "binding-detail": ("GET", "/bindings/detail", None),
     "native-adapters": ("GET", "/native/adapters", None),
     "native-adapters-detail": ("GET", "/native/adapters/detail", None),
+    "driver-gaps": ("GET", "/native/driver-gaps", None),
     "ai-sdk": ("GET", "/ai/sdk/capabilities", None),
     "skills": ("GET", "/skills", None),
     "agent-plan": (

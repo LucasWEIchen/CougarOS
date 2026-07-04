@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "updated": "2026-07-05",
   "transport": {
     "prototype": "http-json",
@@ -200,6 +200,28 @@
       "path": "/native/adapters/detail",
       "description": "Returns Native adapter integration constraints, Android primary path, Linux sync path, and driver/HAL dependency notes.",
       "req_ids": ["XSC-004", "NV-F-001", "NV-F-003", "NV-F-004", "NV-F-005", "NV-F-008", "NV-F-009", "NV-F-011", "DEL-001", "DEL-002", "DEL-005"]
+    },
+    {
+      "method": "GET",
+      "path": "/native/driver-gaps",
+      "description": "Returns the Driver/HAL gap backlog with Android primary targets, Linux sync targets, trigger conditions, and explicit no-driver-development boundary for the current increment.",
+      "response": {
+        "gaps": [
+          {
+            "gap_id": "DRV-GAP-001",
+            "interface_domain": "npu|vehicle-bus|camera-audio-sensors|ethernet-someip-dds-tsn|shared-memory-safety-runtime",
+            "status": "open|planned",
+            "trigger_condition": "string",
+            "minimal_development": "string",
+            "mock_boundary": "string"
+          }
+        ],
+        "summary": {
+          "driver_development_triggered": false,
+          "current_increment": "contract-backlog-only"
+        }
+      },
+      "req_ids": ["KH-003", "KH-006", "KH-007", "DEL-001", "DEL-002", "DEL-005", "HW-002", "NV-F-011"]
     },
     {
       "method": "GET",

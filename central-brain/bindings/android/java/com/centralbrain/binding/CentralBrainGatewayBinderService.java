@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
  * Android Binder service stub for the Central Brain semantic gateway.
  *
  * Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004,
- * FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, DEL-001.
+ * FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001.
  *
  * This sample keeps REST as the upstream prototype binding. Production AAOS
  * integration should host this in a system/privileged service and replace the
@@ -137,6 +137,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         @Override
         public String getNativeAdaptersDetailJson(String traceId) throws RemoteException {
             return get("/native/adapters/detail", traceId);
+        }
+
+        @Override
+        public String getDriverHalGapsJson(String traceId) throws RemoteException {
+            return get("/native/driver-gaps", traceId);
         }
     };
 

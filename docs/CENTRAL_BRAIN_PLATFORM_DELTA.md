@@ -11,7 +11,9 @@ XSC-001、XSC-002、XSC-003、XSC-005、XSC-006 的 Android 主开发路径与 L
 虚拟化层不开发；相关内容只作为 HV-001..003 的部署假设，详见
 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`。驱动层不默认新增开发；
 Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
-`docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` 维护。
+`docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` 维护，并可通过
+`GET /native/driver-gaps`、Android Binder `getDriverHalGapsJson` 与 Linux CLI
+`driver-gaps` 查询。
 
 ## 差异矩阵
 
@@ -25,7 +27,7 @@ Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 | 服务部署 | Debug APK 内置 Binder sample；量产目标为 AAOS system/privileged service 约束 | `central-brain-backend.service` + `central-brain-governance.service` + `central-brain-linux-ipc.service` 样例 | Android system service integration note + Linux systemd sample | DEL-001, DEL-003, DEL-004 |
 | 权限模型 | Android app permission、Binder caller identity、signature permission、Runtime & Governance policy | Linux service user/group、Unix socket mode、Runtime & Governance policy | Android 权限/SELinux 假设文档化，未接入真实系统权限 | FW-U-007, FW-S-005, NV-G-005, DEL-004 |
 | 日志与审计 | Android logcat + `/audit/recent`；可通过服务配置指定 `CENTRAL_BRAIN_AUDIT_LOG` | journald + `/audit/recent`；可指定 gateway JSONL audit log 路径、shared governance audit log、IPC fallback audit log | JSONL 持久化样例已可验证，量产仍需轮转/导出/权限加固 | XSC-005, NV-G-007, DEL-002, DEL-004 |
-| Driver/HAL | Android HAL/AIDL/NDK/vendor SDK bridge，当前不新增驱动 | Linux device node/ioctl/sysfs/vendor lib，当前不新增驱动 | 仅接口矩阵 | DEL-005, KH-003, KH-006 |
+| Driver/HAL | Android HAL/AIDL/NDK/vendor SDK bridge，当前不新增驱动；Binder `getDriverHalGapsJson` 可查 gap backlog | Linux device node/ioctl/sysfs/vendor lib，当前不新增驱动；CLI `driver-gaps` 可查 gap backlog | 接口矩阵 + `/native/driver-gaps` contract | DEL-005, KH-003, KH-006 |
 | 虚拟化 | 只记录 Hypervisor/ASIL/QM 接口约束 | 只记录跨 VM 通信假设和 fallback | 非开发范围 | HV-001..003 |
 
 ## 虚拟化与 Safety 约束

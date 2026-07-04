@@ -45,6 +45,8 @@ Linux Runtime & Governance 共享 daemon 样例新增 `central_brain_governance_
 
 Linux gRPC/RPC contract sample 增量新增 `central_brain_grpc_server.py`、`central_brain_grpc_client.py`、`central-brain-linux-grpc.service`、`CENTRAL_BRAIN_GRPC_PORT`、`CENTRAL_BRAIN_GRPC_AUDIT_LOG` 和 `tools/smoke_central_brain_linux_grpc.sh`，覆盖 XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-003、DEL-002、DEL-004。该增量只用标准库 TCP JSON wrapper 验证 gRPC proto contract、Req ID、`InvokeService` shared governance precheck 和 local fallback；当前环境无 `grpcio`，不新增真实 gRPC runtime、Driver/HAL、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
 
+Driver/HAL gap backlog contract 增量新增 `GET /native/driver-gaps`、Android Binder/AIDL `getDriverHalGapsJson`、Linux CLI `driver-gaps`，并把 `driver_hal_gap_backlog` 纳入 `/native/adapters/detail`；覆盖 KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005、HW-002、NV-F-002、NV-F-004、NV-F-005、NV-F-006、NV-F-011、NV-P-001、NV-P-006、HV-001..003。该增量只记录 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的触发条件、Android/Linux 目标接口和最小新增开发量，不新增 NPU/GPU/Camera/Audio/ETH/Vehicle bus Driver/HAL、Safety Runtime、共享内存、vendor SDK bridge 或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |
@@ -79,3 +81,15 @@ NpuDevice.reset(reason)
 | ID | 接口域 | 当前环境缺口 | 触发条件 | 新增开发量 | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | DRV-GAP-001 | NPU | 无真实 PCIe NPU driver/vendor SDK | 用户提供硬件和 SDK | NPU runtime adapter + driver/HAL bridge | Open |
+
+## 当前 Driver/HAL gap backlog
+
+`GET /native/driver-gaps` 是当前可查询 backlog，供 Android/Linux 座舱域工程师确认哪些底层接口尚未进入开发。该接口的 `summary.driver_development_triggered=false` 是本轮验收条件，表示只建立缺口记录，不启动真实驱动工作。
+
+| ID | 接口域 | 当前环境缺口 | 触发条件 | 最小新增开发量 | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| DRV-GAP-001 | NPU | 无真实 PCIe NPU driver、HAL、vendor SDK | 用户提供真实 PCIe NPU 硬件、vendor id、SDK、driver ABI | Model Runtime Adapter bridge + Driver/HAL adapter shim | Open |
+| DRV-GAP-002 | Vehicle bus | 无 VHAL、SocketCAN、DBC、ARXML、vendor gateway | 目标车型信号目录、DBC/ARXML、VHAL contract 或 gateway 可用 | Vehicle Signal Adapter 映射表 + read-only signal bridge，先读后控 | Open |
+| DRV-GAP-003 | Camera/Audio/Sensors | 无真实车载 camera、mic array、radar、USS、IMU | 多模态 Agent 或 ADAS adapter 需要真实传感器数据 | Sensor/Actuator adapter read path + timestamp/quality metadata | Planned |
+| DRV-GAP-004 | Ethernet/SOME-IP/DDS/TSN | WSL 网络只验证 REST/JSON；未验证 SOME/IP、DDS、TSN、PTP | 跨 ECU 服务、高频 topic 或时间同步数据成为必需 | Protocol Binding adapter + time-sync metadata contract | Planned |
+| DRV-GAP-005 | Shared memory/Safety Runtime | 无 shared memory、DMA-BUF、IOMMU、Safety Runtime 集成 | 高吞吐模型/传感器数据或 ASIL/QM domain 集成需要 | Buffer envelope + Safety State bridge，等待目标平台约束 | Planned |

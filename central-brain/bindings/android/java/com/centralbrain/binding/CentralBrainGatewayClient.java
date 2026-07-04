@@ -11,7 +11,7 @@ import android.os.RemoteException;
  * Minimal Android client helper for the Central Brain Binder sample.
  *
  * Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004,
- * FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, DEL-001.
+ * FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001.
  */
 public final class CentralBrainGatewayClient {
     public interface Callback {
@@ -114,6 +114,10 @@ public final class CentralBrainGatewayClient {
 
     public String getNativeAdaptersDetailJson(String traceId) throws RemoteException {
         return requireGateway().getNativeAdaptersDetailJson(traceId);
+    }
+
+    public String getDriverHalGapsJson(String traceId) throws RemoteException {
+        return requireGateway().getDriverHalGapsJson(traceId);
     }
 
     private ICentralBrainGateway requireGateway() {

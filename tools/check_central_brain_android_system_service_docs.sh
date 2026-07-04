@@ -38,7 +38,7 @@ require_file "$DEVIATIONS"
 require_file "$ISSUES"
 require_file "$MANIFEST"
 
-for req_id in DEL-001 DEL-003 DEL-004 XSC-001 APP-004 XSC-002 XSC-003 XSC-005 XSC-006 NV-P-002 NV-P-005 FW-U-007 FW-S-005 NV-G-005; do
+for req_id in DEL-001 DEL-003 DEL-004 DEL-005 XSC-001 APP-004 XSC-002 XSC-003 XSC-005 XSC-006 NV-P-002 NV-P-005 FW-U-007 FW-S-005 NV-G-005 KH-003 KH-006; do
   require_text "$DOC" "$req_id"
 done
 
@@ -52,7 +52,9 @@ require_text "$DOC" "executeAgentTaskJson"
 require_text "$DOC" "invokeSkillJson"
 require_text "$DOC" "queryMemoryJson"
 require_text "$DOC" "precheckGovernanceJson"
+require_text "$DOC" "getDriverHalGapsJson"
 require_text "$DOC" "/governance/precheck"
+require_text "$DOC" "/native/driver-gaps"
 require_text "$DOC" "com.centralbrain.permission.BIND_GATEWAY"
 require_text "$DOC" "Binder UID"
 require_text "$DOC" "SELinux"

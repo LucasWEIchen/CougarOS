@@ -73,6 +73,7 @@ checks = [
     ("GET", "/bindings/detail", None, "NV-P-002"),
     ("GET", "/native/adapters", None, "NV-F-011"),
     ("GET", "/native/adapters/detail", None, "XSC-004"),
+    ("GET", "/native/driver-gaps", None, "DEL-005"),
     ("GET", "/ai/sdk/capabilities", None, "XSC-001"),
     (
         "POST",
@@ -218,6 +219,15 @@ for method, path, body, req_id in checks:
         assert "soa-service-adapter" in adapter_names
         assert "vehicle-signal-adapter" in adapter_names
         assert "model-runtime-adapter" in adapter_names
+        assert payload["payload"]["driver_hal_gap_backlog"], "native detail missing driver/HAL gap backlog"
+    if path == "/native/driver-gaps":
+        gaps = payload["payload"]["gaps"]
+        gap_ids = {gap["gap_id"] for gap in gaps}
+        assert "DRV-GAP-001" in gap_ids, "driver gap backlog missing NPU gap"
+        assert "DRV-GAP-002" in gap_ids, "driver gap backlog missing vehicle bus gap"
+        assert payload["payload"]["summary"]["driver_development_triggered"] is False, "driver gap endpoint triggered development"
+        assert "future HAL/AIDL/vendor bridge" in json.dumps(payload), "Android Driver/HAL target missing"
+        assert "future device node/vendor daemon" in json.dumps(payload), "Linux Driver/HAL target missing"
     if path == "/agent/plan":
         task = payload["payload"]["task"]
         assert task["state"] == "planned", "agent plan was not accepted"
@@ -276,5 +286,6 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
 
 echo "linux cli smoke ok"

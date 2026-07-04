@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, DEL-001.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001, DEL-005.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
@@ -39,6 +39,7 @@ Brain semantic gateway.
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `getBindingDetailJson` | `GET /bindings/detail` | XSC-006, NV-P-002 |
 | `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
+| `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
 
 ## Artifacts
 
@@ -77,13 +78,16 @@ Brain semantic gateway.
 - `precheckGovernanceJson` is a diagnostic Runtime & Governance contract. It
   checks discovery, Policy, Lifecycle, and QoS decisions without dispatching a
   service; by default it does not reserve the QoS fixed-window slot.
+- `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
+  integration review only; it does not call HAL, device nodes, vendor SDKs, or
+  Safety Runtime.
 
 ## System Service Integration Notes
 
 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` records the Android
 system/privileged service integration constraints for DEL-001, DEL-003,
-DEL-004, XSC-002, XSC-003, XSC-005, XSC-006, NV-P-002, NV-P-005, FW-U-007,
-FW-S-005, and NV-G-005. It covers target service shapes, manifest permission
+DEL-004, DEL-005, XSC-002, XSC-003, XSC-005, XSC-006, NV-P-002, NV-P-005,
+FW-U-007, FW-S-005, NV-G-005, KH-003, and KH-006. It covers target service shapes, manifest permission
 constraints, Binder identity to Policy mapping, SELinux/deployment assumptions,
 and verification checks.
 

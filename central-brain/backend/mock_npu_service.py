@@ -30,7 +30,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.18"
+API_VERSION = "0.1.19"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -404,6 +404,10 @@ def native_adapters_detail_payload() -> dict[str, Any]:
     return NATIVE_ADAPTERS.detail_payload()
 
 
+def native_driver_gaps_payload() -> dict[str, Any]:
+    return NATIVE_ADAPTERS.driver_gap_payload()
+
+
 def vehicle_state_payload() -> dict[str, Any]:
     now = time.time()
     return {
@@ -689,6 +693,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(native_adapters_payload()))
         elif path == "/native/adapters/detail":
             self.send_json(200, envelope(native_adapters_detail_payload()))
+        elif path == "/native/driver-gaps":
+            self.send_json(200, envelope(native_driver_gaps_payload()))
         elif path in ("/events/topics", "/uib/events/topics"):
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/uib/events/recent":

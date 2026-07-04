@@ -14,8 +14,8 @@
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux shared governance daemon sample |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck + local fallback；Linux gRPC/RPC JSON contract sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
-| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
-| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
+| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog contract |
+| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 |
@@ -53,6 +53,12 @@
 
 ### 2026-07-05
 
+- 推进 A6 Driver/HAL gap backlog contract：
+  - `native_adapters.py` 新增 Driver/HAL gap backlog，覆盖 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 五类缺口。
+  - 后端新增 `GET /native/driver-gaps`；Android Binder/AIDL 新增 `getDriverHalGapsJson`；Linux CLI 新增 `driver-gaps`，均只返回触发条件、Android 主路径、Linux 同步路径和最小新增开发量。
+  - `/native/adapters/detail` 同步包含 `driver_hal_gap_backlog`，方便 Native adapter 交付边界与 Driver/HAL 缺口一起检查。
+  - 本轮未开发 NPU/GPU/Camera/Audio/ETH/Vehicle bus driver、HAL、Safety Runtime、共享内存、真实 vendor SDK bridge 或虚拟化层。
+  - 覆盖 Req ID：KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005、HW-002、NV-F-002、NV-F-004、NV-F-005、NV-F-006、NV-F-011、NV-P-001、NV-P-006、HV-001、HV-002、HV-003。
 - 推进 Android Console execute/Skill/Memory Binder 调试路径：
   - `MainActivity` 在现有 `Refresh` 与 `Plan Agent Task` 基础上新增 `Execute Task`、`Invoke Skill`、`Query Memory`，分别调用 `executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`。
   - Android Console 现在可直接验证 XSC-001/FW-U-006 的 Agent execute、Skill/Tool 与 Memory contract mock；所有调用仍经 Binder service 上游 REST prototype gateway，不绕过 AI SDK/Uni Info Bus/SOA/Runtime & Governance 边界。

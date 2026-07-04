@@ -15,6 +15,7 @@ package com.centralbrain.binding;
  * - FW-U-006 Tool / Skill contract
  * - NV-P-002 IPC/Binder binding
  * - NV-P-006 DDS/high-rate topic reservation
+ * - KH-003/KH-006 Driver/HAL interface backlog visibility
  * - DEL-001 Android main delivery path
  */
 interface ICentralBrainGateway {
@@ -59,4 +60,6 @@ interface ICentralBrainGateway {
     String getBindingDetailJson(String traceId);
 
     String getNativeAdaptersDetailJson(String traceId);
+
+    String getDriverHalGapsJson(String traceId);
 }

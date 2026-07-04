@@ -24,7 +24,7 @@
 | A3 | Runtime & Governance mock | L3 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit | 每次调用有注册、策略、生命周期、QoS fixed-window 检查和审计记录；`/governance/precheck` 可只检查不调用；可选 JSONL 恢复最近审计；Linux shared governance daemon sample |
 | A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub；Android system/privileged service integration note | REST 仅是 binding，不承载业务语义；Linux IPC 对 SOA 调用先走 shared governance daemon precheck，不可用时回退本地 precheck |
 | A5 | Native adapters mock | L3 | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | AI/信号/模型调用均通过 adapter |
-| A6 | Kernel/HAL/NPU 接口文档与缺口补齐 | L4/L6 | Driver/HAL interface support matrix、NPU runtime interface、hardware discovery | 明确当前环境能力、缺口和最小新增开发量 |
+| A6 | Kernel/HAL/NPU 接口文档与缺口补齐 | L4/L6 | Driver/HAL interface support matrix、NPU runtime interface、hardware discovery、`/native/driver-gaps` | 明确当前环境能力、缺口和最小新增开发量，不触发默认驱动开发 |
 | A7 | Hypervisor/Safety 接口约束文档 | L5 | ASIL/QM domain map、跨 VM 通信假设、fallback | 不开发虚拟化功能，只记录集成约束 |
 | A8 | 应用层扩展 | L1 | Seat/Agent/Cluster/TBOX/ADAS/Diag App views | App 页面按图中应用域组织 |
 | A9 | Android/Linux 双平台交付 | 全部 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | 座舱域工程师可在 Android 和 Linux 上集成验证 |
@@ -94,7 +94,7 @@
 | A6-T01 | KH-003, KH-006 | 建立驱动/HAL 接口支持矩阵 | `CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` |
 | A6-T02 | HW-002, NV-F-011 | 定义 NPU runtime 最低抽象 | `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` 初版 |
 | A6-T03 | DEL-004, DEL-005 | 明确 Android 与 Linux 驱动接口差异 | platform delta |
-| A6-T04 | KH-003 | 只对当前环境缺口建立开发任务 | gap backlog |
+| A6-T04 | KH-003, KH-006, DEL-005 | 只对当前环境缺口建立开发任务 | `/native/driver-gaps` + Android `getDriverHalGapsJson` + Linux CLI `driver-gaps` |
 
 ## A7 详细任务：虚拟化接口约束
 

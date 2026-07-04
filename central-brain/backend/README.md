@@ -4,7 +4,7 @@
 `ai_sdk.py` 承载当前 AI SDK/Agent facade mock，用 intent/utterance 生成 policy-aware task graph，并提供 execute/Skill/Memory contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007。
 `runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、per-service fixed-window QoS 和可选 JSONL 审计持久化。
 `protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、带 shared SOA Runtime & Governance precheck + local fallback 的 Linux IPC active sample、Linux gRPC/RPC JSON contract sample 和 MQTT/SOME-IP/DDS 计划态。
-`native_adapters.py` 承载当前 Native adapter 注册表，包括 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 和 Security/Policy Adapter 的 Android/Linux 交付边界。
+`native_adapters.py` 承载当前 Native adapter 注册表，包括 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界，以及 Driver/HAL gap backlog。
 
 ## 启动
 
@@ -34,6 +34,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /bindings/detail`
 - `GET /native/adapters`
 - `GET /native/adapters/detail`
+- `GET /native/driver-gaps`
 - `GET /ai/sdk/capabilities`
 - `GET /skills`
 - `GET /vehicle/state`
@@ -58,6 +59,8 @@ bash tools/run_central_brain_backend.sh
 - `CENTRAL_BRAIN_AUDIT_LOG`：可选 JSONL 审计日志路径；设置后 `/audit/recent` 会在服务重启后恢复最近 50 条 SOA 审计记录，覆盖 XSC-005、NV-G-007、DEL-002。
 
 当前服务只做 mock，不访问真实 NPU。`/agent/execute`、`/skills/{skill_id}/invoke` 和 `/memory/query` 只做 Policy/Safety State 检查、audit 记录和 contract 边界展示，不运行真实 Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL、车身总线或虚拟化层。
+
+`GET /native/driver-gaps` 覆盖 KH-003、KH-006、KH-007、DEL-005，只返回 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 缺口、触发条件和 Android/Linux 目标接口；`summary.driver_development_triggered=false` 表示本轮没有新增真实 Driver/HAL 开发。
 
 ## 验证
 
