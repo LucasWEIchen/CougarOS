@@ -39,6 +39,8 @@ Linux IPC Runtime & Governance precheck 增量只在 `central_brain_ipc_daemon.p
 
 Runtime & Governance 显式 precheck 契约增量新增 `POST /governance/precheck`、Android Binder/AIDL `precheckGovernanceJson`、Linux CLI/IPC `governance-precheck`/`governance.precheck` 和 gRPC `PrecheckGovernance` contract skeleton；覆盖 XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-001、DEL-002。该增量只返回 discovery、Policy/Safety State、Lifecycle 和 QoS 决策，默认不消费 QoS 窗口且不 dispatch 到 SOA service、Driver/HAL、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化层，不新增驱动开发量。
 
+Linux Runtime & Governance 共享 daemon 样例新增 `central_brain_governance_daemon.py`、`central-brain-governance.service`、`CENTRAL_BRAIN_GOVERNANCE_SOCKET` 和 `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG`，让 Linux IPC `soa.service.invoke` 可在转发到 REST prototype gateway 前优先复用共享 governance socket，并在不可用时回退本地 precheck；覆盖 XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002、DEL-004。该增量只使用 Unix domain socket 和普通 JSONL 文件，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、多机治理后端或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |

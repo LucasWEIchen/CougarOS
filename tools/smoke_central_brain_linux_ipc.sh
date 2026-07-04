@@ -5,8 +5,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${CENTRAL_BRAIN_IPC_SMOKE_PORT:-19787}"
 BASE_URL="http://127.0.0.1:${PORT}"
 SOCKET_PATH="${CENTRAL_BRAIN_IPC_SMOKE_SOCKET:-/tmp/central_brain_gateway_smoke.sock}"
+GOVERNANCE_SOCKET_PATH="${CENTRAL_BRAIN_GOVERNANCE_SMOKE_SOCKET:-/tmp/central_brain_governance_smoke.sock}"
 BACKEND_LOG="$(mktemp)"
 IPC_LOG="$(mktemp)"
+GOVERNANCE_LOG="$(mktemp)"
 
 cleanup() {
   if [[ -n "${IPC_PID:-}" ]] && kill -0 "$IPC_PID" 2>/dev/null; then
@@ -17,7 +19,11 @@ cleanup() {
     kill "$BACKEND_PID" 2>/dev/null || true
     wait "$BACKEND_PID" 2>/dev/null || true
   fi
-  rm -f "$SOCKET_PATH" "$BACKEND_LOG" "$IPC_LOG"
+  if [[ -n "${GOVERNANCE_PID:-}" ]] && kill -0 "$GOVERNANCE_PID" 2>/dev/null; then
+    kill "$GOVERNANCE_PID" 2>/dev/null || true
+    wait "$GOVERNANCE_PID" 2>/dev/null || true
+  fi
+  rm -f "$SOCKET_PATH" "$GOVERNANCE_SOCKET_PATH" "$BACKEND_LOG" "$IPC_LOG" "$GOVERNANCE_LOG"
 }
 trap cleanup EXIT
 
@@ -43,7 +49,25 @@ while True:
         time.sleep(0.2)
 PY
 
-CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py" \
+CENTRAL_BRAIN_GOVERNANCE_SOCKET="$GOVERNANCE_SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_governance_daemon.py" \
+  --socket-path "$GOVERNANCE_SOCKET_PATH" >"$GOVERNANCE_LOG" 2>&1 &
+GOVERNANCE_PID="$!"
+
+python3 - "$GOVERNANCE_SOCKET_PATH" <<'PY'
+import os
+import sys
+import time
+
+socket_path = sys.argv[1]
+deadline = time.time() + 8
+while not os.path.exists(socket_path):
+    if time.time() > deadline:
+        raise TimeoutError(f"Governance socket did not appear: {socket_path}")
+    time.sleep(0.2)
+PY
+
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" CENTRAL_BRAIN_GOVERNANCE_SOCKET="$GOVERNANCE_SOCKET_PATH" \
+  python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py" \
   --socket-path "$SOCKET_PATH" --base-url "$BASE_URL" >"$IPC_LOG" 2>&1 &
 IPC_PID="$!"
 
@@ -99,6 +123,7 @@ assert payload["forwarding"] == "blocked-before-rest-gateway", response
 assert "gateway" not in payload, response
 assert precheck["state"] == "rejected", response
 assert precheck["policy"]["decision"] == "deny", response
+assert precheck["precheck_source"]["mode"] == "shared-linux-governance-daemon", response
 assert "XSC-005" in json.dumps(precheck), response
 assert "NV-G-005" in json.dumps(precheck), response
 PY

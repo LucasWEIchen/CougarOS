@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Linux Unix socket sample for the Central Brain IPC binding.
 
-Req IDs: XSC-006, NV-P-002, DEL-002.
+Req IDs: XSC-005, XSC-006, NV-P-002, DEL-002.
 This daemon is a transport sample: it maps local IPC envelopes onto the
 architecture-aligned Uni Info Bus and SOA semantic gateway.
 """
@@ -27,6 +27,7 @@ from runtime_governance import RuntimeGovernance
 
 DEFAULT_BASE_URL = os.environ.get("CENTRAL_BRAIN_BASE_URL", "http://127.0.0.1:8787")
 DEFAULT_SOCKET_PATH = os.environ.get("CENTRAL_BRAIN_IPC_SOCKET", "/tmp/central_brain_gateway.sock")
+DEFAULT_GOVERNANCE_SOCKET = os.environ.get("CENTRAL_BRAIN_GOVERNANCE_SOCKET")
 DEFAULT_IPC_AUDIT_LOG = os.environ.get("CENTRAL_BRAIN_IPC_AUDIT_LOG")
 IPC_GOVERNANCE = RuntimeGovernance(DEFAULT_IPC_AUDIT_LOG)
 
@@ -139,10 +140,7 @@ def response(trace_id: str, status: str, payload: dict[str, Any], error: dict[st
     }
 
 
-def ipc_governance_precheck(trace_id: str, operation: str, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:
-    if operation != "soa.service.invoke":
-        return None, True
-
+def local_governance_precheck(trace_id: str, payload: dict[str, Any], reason: str | None = None) -> tuple[dict[str, Any], bool]:
     precheck = IPC_GOVERNANCE.precheck(payload)
     policy = precheck["policy"]
     qos_decision = precheck["qos_decision"]
@@ -180,8 +178,60 @@ def ipc_governance_precheck(trace_id: str, operation: str, payload: dict[str, An
             "persistence": "enabled" if DEFAULT_IPC_AUDIT_LOG else "disabled",
             "path": DEFAULT_IPC_AUDIT_LOG,
         },
+        "precheck_source": {
+            "mode": "local-runtime-governance",
+            "fallback_reason": reason,
+        },
         "req_ids": ["XSC-005", "XSC-006", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "DEL-002"],
     }, allowed
+
+
+def shared_governance_precheck(trace_id: str, payload: dict[str, Any]) -> tuple[dict[str, Any], bool] | None:
+    if not DEFAULT_GOVERNANCE_SOCKET:
+        return None
+
+    envelope = {
+        "trace_id": trace_id,
+        "operation": "governance.precheck",
+        "payload": {**payload, "consume_qos": payload.get("consume_qos", True)},
+        "req_ids": ["XSC-005", "XSC-006", "NV-P-002", "DEL-002"],
+    }
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.settimeout(3)
+        client.connect(DEFAULT_GOVERNANCE_SOCKET)
+        client.sendall(json.dumps(envelope).encode("utf-8"))
+        client.shutdown(socket.SHUT_WR)
+        chunks = []
+        while True:
+            chunk = client.recv(65536)
+            if not chunk:
+                break
+            chunks.append(chunk)
+    result = json.loads(b"".join(chunks).decode("utf-8"))
+    if result.get("status") != "ok":
+        raise OSError(result.get("error", {}).get("message", "governance daemon rejected precheck"))
+
+    precheck = result["payload"]
+    allowed = precheck["state"] == "allowed"
+    precheck["precheck_source"] = {
+        "mode": "shared-linux-governance-daemon",
+        "socket": DEFAULT_GOVERNANCE_SOCKET,
+    }
+    return precheck, allowed
+
+
+def ipc_governance_precheck(trace_id: str, operation: str, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:
+    if operation != "soa.service.invoke":
+        return None, True
+
+    try:
+        shared = shared_governance_precheck(trace_id, payload)
+        if shared is not None:
+            return shared
+    except (OSError, TimeoutError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        return local_governance_precheck(trace_id, payload, f"shared governance daemon unavailable: {exc}")
+
+    return local_governance_precheck(trace_id, payload)
 
 
 def validate_envelope(envelope: Any) -> tuple[str, str, dict[str, Any]]:

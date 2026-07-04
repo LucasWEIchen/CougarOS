@@ -11,8 +11,8 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux IPC local precheck sample |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with SOA governance precheck；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux shared governance daemon sample |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck + local fallback；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 |
@@ -53,6 +53,12 @@
 
 ### 2026-07-05
 
+- 推进 Linux Runtime & Governance 共享 daemon 样例：
+  - 新增 `central_brain_governance_daemon.py`，通过 Unix socket 提供 `governance.precheck` 决策，Linux IPC `soa.service.invoke` 可优先调用该共享 socket。
+  - Linux IPC daemon 在 `CENTRAL_BRAIN_GOVERNANCE_SOCKET` 不可用时保留本地 Runtime & Governance precheck fallback，避免绕过 Policy/Lifecycle/QoS。
+  - Linux env/systemd 样例新增 `central-brain-governance.service`、`CENTRAL_BRAIN_GOVERNANCE_SOCKET` 和 `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG`。
+  - 本轮仍未开发量产多进程治理后端、独立 native gateway、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002、DEL-004。
 - 推进 Runtime & Governance 显式 precheck 契约：
   - 后端新增 `POST /governance/precheck`，对服务执行 discovery、Policy/Safety State、Lifecycle 和 QoS 决策检查，但默认 `consume_qos=false`，不 dispatch 到 SOA service、Driver/HAL、车辆总线或虚拟化层。
   - Android Binder/AIDL 新增 `precheckGovernanceJson`；Linux CLI/IPC 新增 `governance-precheck` / `governance.precheck`；gRPC contract skeleton 新增 `PrecheckGovernance`。

@@ -10,8 +10,11 @@ Brain semantic gateway.
 - `ipc/central_brain_ipc_envelope.schema.json` defines the Unix domain socket
   JSON envelope for a lightweight local IPC daemon.
 - `ipc/central_brain_ipc_daemon.py` is an active Unix socket sample that maps
-  IPC envelopes to the architecture-aligned semantic gateway and runs a local
-  Runtime & Governance precheck for `soa.service.invoke`.
+  IPC envelopes to the architecture-aligned semantic gateway and calls a shared
+  Runtime & Governance socket precheck for `soa.service.invoke` when configured.
+- `ipc/central_brain_governance_daemon.py` is a Linux Runtime & Governance
+  socket sample for shared `governance.precheck` decisions across local binding
+  processes.
 - `ipc/central_brain_ipc_client.py` is a Linux client sample for the same IPC
   envelope.
 - These files do not implement SOME/IP, DDS, MQTT, drivers, HAL, or
@@ -34,7 +37,7 @@ Brain semantic gateway.
 | `skills.invoke` | `POST /skills/{skill_id}/invoke` | XSC-001, FW-U-006, NV-G-005 |
 | `memory.query` | `POST /memory/query` | XSC-001, NV-F-001, FW-U-006 |
 | `soa.services.list` | `GET /soa/services` | XSC-003, FW-S-001..004 |
-| `soa.service.invoke` | local Runtime & Governance precheck -> `POST /soa/invoke` | XSC-003, XSC-005, FW-S-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
+| `soa.service.invoke` | shared Linux governance daemon precheck with local fallback -> `POST /soa/invoke` | XSC-003, XSC-005, FW-S-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | `policy.evaluate` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
 | `governance.precheck` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | `governance.runtime.get` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
@@ -43,10 +46,14 @@ Brain semantic gateway.
 
 ## Unix Socket Sample
 
-Run the backend first, then start the IPC daemon:
+Run the backend and governance daemon first, then start the IPC daemon:
 
 ```bash
+CENTRAL_BRAIN_GOVERNANCE_SOCKET=/tmp/central_brain_governance.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_governance_daemon.py \
+  --socket-path /tmp/central_brain_governance.sock
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+  CENTRAL_BRAIN_GOVERNANCE_SOCKET=/tmp/central_brain_governance.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py \
   --socket-path /tmp/central_brain_gateway.sock
 ```
@@ -92,12 +99,16 @@ bash tools/check_central_brain_delivery_docs.sh
 - Local Linux daemon integration should start with Unix domain sockets for
   same-SoC IPC and add gRPC when cross-process or cross-host tooling needs it.
 - The current IPC daemon is an active sample, not a full production gateway; it
-  applies a local Runtime & Governance precheck to SOA service invocations, then
-  forwards allowed calls to the REST prototype binding while preserving Uni Info
-  Bus and SOA semantic operations.
+  applies a shared Linux governance daemon precheck to SOA service invocations
+  when `CENTRAL_BRAIN_GOVERNANCE_SOCKET` is configured, falls back to local
+  Runtime & Governance precheck if unavailable, then forwards allowed calls to
+  the REST prototype binding while preserving Uni Info Bus and SOA semantic
+  operations.
 - `CENTRAL_BRAIN_IPC_AUDIT_LOG` can persist IPC-side precheck decisions for
   Linux integration tests; it is separate from the backend
   `CENTRAL_BRAIN_AUDIT_LOG` sample.
+- `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG` can persist shared governance daemon
+  decisions for Linux integration tests.
 - SOME/IP and DDS remain separate vehicle-network/high-rate topic bindings and
   are not implemented in this prototype.
 - Policy and lifecycle checks stay in Runtime & Governance regardless of the

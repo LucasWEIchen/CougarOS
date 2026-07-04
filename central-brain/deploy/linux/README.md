@@ -10,11 +10,13 @@ HAL, SOME/IP, DDS, MQTT, NPU, or virtualization code.
 ## Files
 
 - `central-brain.env.example`: environment template for gateway port, semantic
-  base URL, Unix socket path, gateway JSONL audit log path, and IPC precheck
-  JSONL audit log path.
+  base URL, Unix socket paths, gateway JSONL audit log path, shared governance
+  audit log path, and IPC fallback audit log path.
 - `systemd/central-brain-backend.service`: backend semantic gateway service.
+- `systemd/central-brain-governance.service`: Linux Runtime & Governance socket
+  sample for shared `governance.precheck` decisions.
 - `systemd/central-brain-linux-ipc.service`: Unix socket Protocol Binding
-  daemon service.
+  daemon service that uses the governance socket before falling back locally.
 
 ## Integration Path
 
@@ -40,7 +42,7 @@ Install and start the units:
 ```bash
 sudo cp /opt/central-brain/appDev/central-brain/deploy/linux/systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now central-brain-backend.service central-brain-linux-ipc.service
+sudo systemctl enable --now central-brain-backend.service central-brain-governance.service central-brain-linux-ipc.service
 ```
 
 Validate the semantic gateway and local IPC binding:
@@ -56,6 +58,7 @@ CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
 CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
   python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 sudo test -s /var/log/central-brain/audit.jsonl || true
+sudo test -s /var/log/central-brain/governance-audit.jsonl || true
 sudo test -s /var/log/central-brain/ipc-audit.jsonl || true
 ```
 
@@ -64,8 +67,9 @@ sudo test -s /var/log/central-brain/ipc-audit.jsonl || true
 - The systemd units are samples for Linux delivery, not a production packaging
   format.
 - The backend remains the active REST prototype binding; the IPC daemon
-  preserves Uni Info Bus/SOA semantic operations, applies local Runtime &
-  Governance precheck to SOA service invocations, and forwards allowed calls to
+  preserves Uni Info Bus/SOA semantic operations, calls the shared Linux
+  Runtime & Governance socket for SOA precheck when configured, falls back to
+  local precheck if that socket is unavailable, and forwards allowed calls to
   that gateway.
 - `governance-precheck` exposes the same XSC-005/NV-G-002/NV-G-004..007
   decision envelope for Linux clients without dispatching a service; by default
@@ -77,7 +81,10 @@ sudo test -s /var/log/central-brain/ipc-audit.jsonl || true
   for XSC-005/NV-G-007/DEL-002. It is intentionally a local integration aid;
   production still needs rotation, export, and access-control hardening.
 - `CENTRAL_BRAIN_IPC_AUDIT_LOG` enables the Linux IPC binding to persist
-  pre-forwarding governance decisions separately from the backend gateway audit.
+  local fallback pre-forwarding governance decisions separately from the backend
+  gateway audit.
+- `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG` enables the shared Linux governance
+  socket sample to persist precheck decisions used by IPC binding clients.
 - `/run/central-brain/gateway.sock` is group-readable/writable for local
   same-SoC clients. Production integration should map this group to cockpit
   service identities.

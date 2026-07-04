@@ -22,8 +22,8 @@
 | Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample | Linux service adapter + Agent execute/Skill/Memory boundary sample | `GET /native/adapters/detail` 初版；AIOS Kernel 真实 runtime 仍未实现 |
-| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + `precheckGovernanceJson` | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux IPC local SOA precheck sample + `governance-precheck` | `/governance/runtime`、`/governance/precheck`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke` 与 Linux IPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；`/governance/precheck` 默认只检查不消费 QoS |
-| Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample with SOA governance precheck + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
+| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + `precheckGovernanceJson` | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux shared governance daemon sample + IPC local SOA precheck fallback + `governance-precheck` | `/governance/runtime`、`/governance/precheck`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke`、Linux governance daemon 与 Linux IPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；`/governance/precheck` 默认只检查不消费 QoS |
+| Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample with shared SOA governance precheck + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge + NPU runtime interface contract | Linux runtime bridge + NPU runtime interface contract | NPU/GPU/Cloud 后端可替换；见 `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发；NPU 检查点已文档化 |
 | Hypervisor/Safety constraints | HV-001, HV-002, HV-003 | Android domain、Binder identity、Safety State 和 Policy 集成假设 | Linux domain、service identity、IPC fallback 和 Safety State 集成假设 | 只记录接口约束和部署假设，不开发虚拟化 |
@@ -76,7 +76,7 @@ bash tools/smoke_central_brain_qos.sh
 bash tools/smoke_central_brain_linux_ipc.sh
 ```
 
-Linux IPC `infer-denied` 样例用于验证 Unix socket binding 在转发到 REST prototype gateway 前先执行 Runtime & Governance precheck：
+Linux IPC `infer-denied` 样例用于验证 Unix socket binding 在转发到 REST prototype gateway 前先执行 Runtime & Governance precheck；配置 `CENTRAL_BRAIN_GOVERNANCE_SOCKET` 时优先走共享 governance daemon，不可用时回退本地 precheck：
 
 ```bash
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
@@ -86,6 +86,7 @@ Linux systemd 部署样例：
 
 - `central-brain/deploy/linux/central-brain.env.example`
 - `central-brain/deploy/linux/systemd/central-brain-backend.service`
+- `central-brain/deploy/linux/systemd/central-brain-governance.service`
 - `central-brain/deploy/linux/systemd/central-brain-linux-ipc.service`
 - `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`
 - `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`

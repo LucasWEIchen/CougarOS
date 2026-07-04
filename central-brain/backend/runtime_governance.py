@@ -407,7 +407,11 @@ class RuntimeGovernance:
                     service["name"]: service["qos"]
                     for service in SERVICE_CATALOG
                 },
-                "enforced_on": ["POST /soa/invoke", "Linux IPC soa.service.invoke pre-forwarding precheck"],
+                "enforced_on": [
+                    "POST /soa/invoke",
+                    "Linux IPC soa.service.invoke pre-forwarding precheck",
+                    "Linux governance daemon shared precheck sample",
+                ],
                 "diagnostic_precheck": "POST /governance/precheck defaults to consume_qos=false",
                 "limiter": "in-process fixed window per service",
                 "req_ids": ["NV-G-004"],
