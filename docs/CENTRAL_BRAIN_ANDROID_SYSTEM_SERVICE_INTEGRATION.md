@@ -25,7 +25,7 @@ system server 代码、priv-app 签名配置、SELinux policy、Driver/HAL、Saf
 | Uni Info Bus client path | `getStateJson`、`getContextJson`、Event methods | XSC-002, FW-U-001, FW-U-002, FW-U-003 |
 | AI SDK/Agent task path | `getAiSdkCapabilitiesJson`、`planAgentTaskJson`、`executeAgentTaskJson`、`listSkillsJson`、`invokeSkillJson`、`queryMemoryJson` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
 | SOA service entry | `listServicesJson`、`invokeServiceJson` | XSC-003, FW-S-004, FW-S-005 |
-| Runtime & Governance | `evaluatePolicyJson`、`getRuntimeGovernanceJson`、`getRecentAuditJson` | XSC-005, FW-U-007, NV-G-005, NV-G-007 |
+| Runtime & Governance | `evaluatePolicyJson`、`precheckGovernanceJson`、`getRuntimeGovernanceJson`、`getRecentAuditJson` | XSC-005, FW-U-007, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | Protocol Binding | AIDL + Binder service/client sample | XSC-006, NV-P-002, NV-P-005, DEL-001 |
 
 当前 service 仍是普通 APK 内的非导出 service，并继续代理 REST prototype gateway。
@@ -90,7 +90,7 @@ debug APK 当前仍使用 `android:exported="false"`，因此只验证 App 内 B
 | AIDL method name | `resource`、`action` | XSC-002, XSC-003, XSC-005 |
 
 Policy 仍由 Runtime & Governance 执行。Binder 身份是输入，不是绕过
-`/policy/evaluate` 或 `/soa/invoke` precheck 的理由。
+`/policy/evaluate`、`/governance/precheck` 或 `/soa/invoke` precheck 的理由。
 
 ## SELinux 与部署假设
 

@@ -11,7 +11,7 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + Linux IPC local precheck sample |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux IPC local precheck sample |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with SOA governance precheck；Android Binder service stub sample；Android Console Binder path；Android system service integration note；gRPC contract skeleton；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface 初版 |
@@ -53,6 +53,12 @@
 
 ### 2026-07-05
 
+- 推进 Runtime & Governance 显式 precheck 契约：
+  - 后端新增 `POST /governance/precheck`，对服务执行 discovery、Policy/Safety State、Lifecycle 和 QoS 决策检查，但默认 `consume_qos=false`，不 dispatch 到 SOA service、Driver/HAL、车辆总线或虚拟化层。
+  - Android Binder/AIDL 新增 `precheckGovernanceJson`；Linux CLI/IPC 新增 `governance-precheck` / `governance.precheck`；gRPC contract skeleton 新增 `PrecheckGovernance`。
+  - Protocol Binding registry、API contract、smoke test、交付文档与检查脚本同步覆盖该 precheck 路径。
+  - 本轮仍未开发共享量产治理 daemon、多进程 QoS 后端、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - 推进 Linux IPC Runtime & Governance 前置检查样例：
   - `central_brain_ipc_daemon.py` 对 `soa.service.invoke` 新增本地 Runtime & Governance precheck，覆盖 service discovery、Policy/Safety State、Lifecycle、QoS 和 IPC audit。
   - 允许的 SOA 调用继续转发到 REST semantic gateway；拒绝的 SOA 调用直接在 IPC 边界返回 `forwarding=blocked-before-rest-gateway` 和 `ipc_governance_precheck`。

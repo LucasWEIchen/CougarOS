@@ -160,6 +160,20 @@ checks = [
     ),
     (
         "POST",
+        "/governance/precheck",
+        {
+            "trace_id": "smoke-governance-precheck",
+            "service": "npu-inference",
+            "method": "infer",
+            "caller_permissions": ["ai.infer", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+            "consume_qos": False,
+        },
+        "NV-G-004",
+    ),
+    (
+        "POST",
         "/policy/evaluate",
         {
             "trace_id": "smoke-policy-deny",
@@ -229,6 +243,11 @@ for method, path, body, req_id in checks:
         action = payload["payload"]
         assert action["state"] == "accepted", "action request was not accepted"
         assert action["dispatch"]["driver_hal"] == "not-dispatched", "action mock dispatched to Driver/HAL"
+    if path == "/governance/precheck":
+        precheck = payload["payload"]
+        assert precheck["state"] == "allowed", "governance precheck was not allowed"
+        assert precheck["dispatch"]["service_invoked"] is False, "governance precheck dispatched service"
+        assert precheck["qos_decision"]["consumed"] is False, "diagnostic precheck consumed QoS window"
     if path == "/uib/events/recent":
         events = payload["payload"]["events"]
         assert events, "event recent endpoint did not keep the published event"
@@ -253,6 +272,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" skill-invoke >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" memory-query >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" action-request >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" governance-precheck >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null

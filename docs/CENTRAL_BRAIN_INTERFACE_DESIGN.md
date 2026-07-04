@@ -345,7 +345,7 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 | Binding | Artifact | 语义入口 | Req IDs | 状态 |
 | --- | --- | --- | --- | --- |
 | Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java`，并已编入 Android Console debug APK | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/invoke`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail` | XSC-001、APP-004、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-P-002、NV-P-005、DEL-001 | Console Binder path + service stub sample；Console 主任务入口已走 `planAgentTaskJson`；execute/Skill/Memory 为 contract mock；service 上游仍代理 REST prototype |
-| Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json` | `uib.context.get`、`uib.state.get`、`uib.events.*`、`uib.actions.request`、`agent.plan`、`agent.execute`、`skills.*`、`memory.query`、`soa.service.invoke` 本地 Runtime & Governance precheck 后转发、`policy.evaluate` | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002 | active sample with SOA governance precheck |
+| Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json` | `uib.context.get`、`uib.state.get`、`uib.events.*`、`uib.actions.request`、`agent.plan`、`agent.execute`、`skills.*`、`memory.query`、`soa.service.invoke` 本地 Runtime & Governance precheck 后转发、`policy.evaluate`、`governance.precheck` | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002 | active sample with SOA governance precheck and explicit governance precheck contract |
 | Linux gRPC/RPC | `central-brain/bindings/linux/proto/central_brain_gateway.proto` | `CentralBrainGateway.GetState`、`RequestAction`、`InvokeService`、`EvaluatePolicy` | XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、NV-P-003、DEL-002 | contract skeleton |
 
 验证命令：
@@ -401,7 +401,7 @@ bash tools/smoke_central_brain_semantic_gateway.sh
 ## 下一步接口任务
 
 1. 把 `central-brain/contracts/central_brain_api.json` 扩展为按域组织的 contract。
-2. 为 Agent execute/Skill/Memory 增加 mock endpoint，并让 Policy/Audit 继续共用 Runtime & Governance。
+2. 将 `/governance/precheck` 后续迁移到共享治理 daemon，并让 Binder/Linux IPC/gRPC 复用同一治理状态与 QoS 窗口。
 3. Android Console 增加服务目录、车辆信号、推理、Trace 四个视图。
 4. 为所有 mock API 增加 `trace_id`。
 5. 增加 smoke test：验证 `/health`、`/services`、`/vehicle/state`、`/policy/evaluate`、`/ai/infer`。

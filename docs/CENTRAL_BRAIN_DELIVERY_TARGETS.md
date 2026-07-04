@@ -22,7 +22,7 @@
 | Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample | Linux service adapter + Agent execute/Skill/Memory boundary sample | `GET /native/adapters/detail` 初版；AIOS Kernel 真实 runtime 仍未实现 |
-| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux IPC local SOA precheck sample | `/governance/runtime`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke` 与 Linux IPC `soa.service.invoke` 执行 NV-G-004 QoS 检查 |
+| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + `precheckGovernanceJson` | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux IPC local SOA precheck sample + `governance-precheck` | `/governance/runtime`、`/governance/precheck`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke` 与 Linux IPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；`/governance/precheck` 默认只检查不消费 QoS |
 | Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample with SOA governance precheck + gRPC contract skeleton + systemd sample，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；DDS 不在本轮实现 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge + NPU runtime interface contract | Linux runtime bridge + NPU runtime interface contract | NPU/GPU/Cloud 后端可替换；见 `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
 | Driver/HAL interface | KH-003, KH-006 | Android HAL/AIDL/NDK interface docs | Linux device node/ioctl/sysfs/libs docs | 只在缺口处新增开发；NPU 检查点已文档化 |
@@ -67,6 +67,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py skill-invoke
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py memory-query
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py action-request
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py governance-precheck
 bash tools/check_central_brain_binding_artifacts.sh
 bash tools/check_central_brain_delivery_docs.sh
 bash tools/check_central_brain_virtualization_docs.sh
@@ -110,6 +111,7 @@ Android 版本必须提供：
 - 通过 `CentralBrainGatewayClient.getStateJson` 调用 Uni Info Bus State。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
 - Binder contract 同步提供 `executeAgentTaskJson`、`listSkillsJson`、`invokeSkillJson`、`queryMemoryJson`，用于验证 AIOS Kernel/Tool/Memory 边界；当前 Console 主按钮尚不直接触发这些 mock。
+- Binder contract 同步提供 `precheckGovernanceJson`，用于验证 Runtime & Governance discovery、Policy、Lifecycle、QoS 的只检查不调用路径；当前 Console 主按钮尚不直接触发该 mock。
 - Binder service sample 内部仍以 REST prototype gateway 作为上游绑定，不代表量产 system service。
 
 当前 Android binding service stub sample：
@@ -129,6 +131,7 @@ Android 版本必须提供：
 - `POST /skills/{skill_id}/invoke`
 - `POST /memory/query`
 - `POST /uib/actions/request`
+- `POST /governance/precheck`
 
 当前 Android system/privileged service integration note：
 

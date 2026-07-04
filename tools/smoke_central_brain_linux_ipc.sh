@@ -72,6 +72,19 @@ CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/binding
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" skill-invoke >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" memory-query >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" action-request >/dev/null
+PRECHECK_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-precheck)"
+python3 - "$PRECHECK_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+assert response["status"] == "ok", response
+assert payload["state"] == "allowed", response
+assert payload["dispatch"]["service_invoked"] is False, response
+assert payload["qos_decision"]["consumed"] is False, response
+assert "NV-G-004" in json.dumps(payload), response
+PY
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" infer >/dev/null
 DENIED_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" infer-denied)"
 python3 - "$DENIED_OUTPUT" <<'PY'
@@ -118,6 +131,7 @@ assert "agent.execute" in encoded, response
 assert "skills.invoke" in encoded, response
 assert "memory.query" in encoded, response
 assert "uib.actions.request" in encoded, response
+assert "governance.precheck" in encoded, response
 assert "XSC-006" in encoded and "NV-P-002" in encoded and "DEL-002" in encoded, response
 PY
 

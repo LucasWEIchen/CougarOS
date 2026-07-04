@@ -48,6 +48,8 @@ interface ICentralBrainGateway {
 
     String evaluatePolicyJson(String traceId, String requestJson);
 
+    String precheckGovernanceJson(String traceId, String requestJson);
+
     String getRuntimeGovernanceJson(String traceId);
 
     String getRecentAuditJson(String traceId, int limit);

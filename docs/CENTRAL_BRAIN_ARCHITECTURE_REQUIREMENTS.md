@@ -50,7 +50,7 @@
 | XSC-002 | Uni Info Bus 语义接口 | Framework 层 | 语义对象和 contract 跨 SoC 一致 | Android client/API | Linux client/API |
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client | Linux daemon/client |
 | XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter | Linux service adapter；adapter registry 初版 |
-| XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit 可移植 | Android runtime integration | Linux runtime integration；JSONL audit persistence sample；QoS fixed-window active prototype；Linux IPC SOA local precheck sample |
+| XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit 可移植 | Android runtime integration + `precheckGovernanceJson` contract | Linux runtime integration；JSONL audit persistence sample；QoS fixed-window active prototype；`/governance/precheck`/`governance-precheck`；Linux IPC SOA local precheck sample |
 | XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Console 已绑定 Binder service sample；system/privileged service integration note 初版；REST 仍为 service 上游 prototype binding | REST active prototype + Unix socket IPC active sample with SOA governance precheck + gRPC contract skeleton，MQTT/SOME-IP/DDS 计划态 |
 
 ## 交付对象与平台要求
@@ -128,12 +128,12 @@
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
 | NV-G-001 | Registry | 展锐负责/生态合作 | 服务注册 | 服务必须注册后被发现和调用 | `runtime_governance.py` service catalog + `/soa/services` |
-| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | `/soa/invoke` 通过 runtime discovery precheck |
+| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | `/soa/invoke` 通过 runtime discovery precheck；`/governance/precheck` 可只检查服务发现结果而不调用服务 |
 | NV-G-003 | Schema/IDL | 展锐负责/生态合作 | 契约管理 | 契约必须版本化和校验 | JSON contract + registry contract metadata |
-| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | `/soa/invoke` 已执行单进程 fixed-window QoS active prototype；Linux IPC 对 `soa.service.invoke` 增加本地 QoS precheck；仍未覆盖量产多进程/多协议限流 |
-| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | `/policy/evaluate` + `/soa/invoke` active prototype |
-| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | `/soa/invoke` 拒绝非 ready service |
-| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/audit/recent` 记录 SOA 调用；`CENTRAL_BRAIN_AUDIT_LOG` 可选 JSONL 恢复最近 50 条；Linux IPC 可用 `CENTRAL_BRAIN_IPC_AUDIT_LOG` 记录 binding precheck |
+| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | `/soa/invoke` 已执行单进程 fixed-window QoS active prototype；`/governance/precheck` 默认以 `consume_qos=false` 返回诊断决策；Linux IPC 对 `soa.service.invoke` 增加本地 QoS precheck；仍未覆盖量产多进程/多协议限流 |
+| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | `/policy/evaluate` + `/soa/invoke` + `/governance/precheck` active prototype |
+| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | `/soa/invoke` 拒绝非 ready service；`/governance/precheck` 暴露 lifecycle 决策 |
+| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/audit/recent` 记录 SOA 与 governance precheck；`CENTRAL_BRAIN_AUDIT_LOG` 可选 JSONL 恢复最近 50 条；Linux IPC 可用 `CENTRAL_BRAIN_IPC_AUDIT_LOG` 记录 binding precheck |
 
 ### Uni Info Bus Protocol Binding
 

@@ -28,6 +28,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /uib/events/recent`
 - `GET /soa/services`
 - `GET /governance/runtime`
+- `POST /governance/precheck`
 - `GET /audit/recent`
 - `GET /bindings`
 - `GET /bindings/detail`
@@ -65,3 +66,5 @@ bash tools/smoke_central_brain_qos.sh
 ```
 
 该脚本验证 `POST /soa/invoke` 对 `npu-inference` 执行 NV-G-004 QoS fixed-window 限流，并把 `qos_rejected` 写入 audit。
+
+`POST /governance/precheck` 用于 XSC-005/NV-G-002/NV-G-004..007 的只检查不调用路径，默认 `consume_qos=false`，因此可供 Android/Linux 集成方在发起真实 SOA 调用前查看 discovery、Policy、Lifecycle 与 QoS 决策，不会 dispatch 到 Driver/HAL、车辆总线或虚拟化层。

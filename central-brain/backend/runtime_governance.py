@@ -260,7 +260,7 @@ class RuntimeGovernance:
             "req_ids": ["FW-U-007", "FW-S-005", "NV-G-005"],
         }
 
-    def precheck(self, request: dict[str, Any]) -> dict[str, Any]:
+    def precheck(self, request: dict[str, Any], consume_qos: bool = True) -> dict[str, Any]:
         service_name = request.get("service", "vehicle-state")
         service = self.discover(service_name)
         if service is None:
@@ -312,7 +312,7 @@ class RuntimeGovernance:
                 },
             }
 
-        qos_decision = self.evaluate_qos(service_name, qos)
+        qos_decision = self.evaluate_qos(service_name, qos, consume=consume_qos)
         return {
             "service": service,
             "policy": policy,
@@ -321,7 +321,7 @@ class RuntimeGovernance:
             "qos_decision": qos_decision,
         }
 
-    def evaluate_qos(self, service_name: str, qos: dict[str, Any]) -> dict[str, Any]:
+    def evaluate_qos(self, service_name: str, qos: dict[str, Any], consume: bool = True) -> dict[str, Any]:
         rate_limit = qos.get("rate_limit") or {}
         max_requests = int(rate_limit.get("max_requests", 0) or 0)
         window_s = float(rate_limit.get("window_s", 0) or 0)
@@ -340,7 +340,7 @@ class RuntimeGovernance:
                 window.popleft()
             current_count = len(window)
             allowed = current_count < max_requests
-            if allowed:
+            if allowed and consume:
                 window.append(now)
 
         return {
@@ -351,6 +351,7 @@ class RuntimeGovernance:
             "max_requests": max_requests,
             "current_count": current_count + 1 if allowed else current_count,
             "retry_after_ms": 0 if allowed else int(window_s * 1000),
+            "consumed": bool(allowed and consume),
             "reason": "QoS window allowed" if allowed else "QoS rate limit exceeded",
             "req_ids": ["NV-G-004"],
         }
@@ -406,7 +407,8 @@ class RuntimeGovernance:
                     service["name"]: service["qos"]
                     for service in SERVICE_CATALOG
                 },
-                "enforced_on": ["POST /soa/invoke"],
+                "enforced_on": ["POST /soa/invoke", "Linux IPC soa.service.invoke pre-forwarding precheck"],
+                "diagnostic_precheck": "POST /governance/precheck defaults to consume_qos=false",
                 "limiter": "in-process fixed window per service",
                 "req_ids": ["NV-G-004"],
             },

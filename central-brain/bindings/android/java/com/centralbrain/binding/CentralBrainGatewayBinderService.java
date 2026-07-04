@@ -110,6 +110,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String precheckGovernanceJson(String traceId, String requestJson) throws RemoteException {
+            return post("/governance/precheck", withTraceId(traceId, requestJson));
+        }
+
+        @Override
         public String getRuntimeGovernanceJson(String traceId) throws RemoteException {
             return get("/governance/runtime", traceId);
         }

@@ -180,7 +180,7 @@ L5 虚拟化层只记录接口约束和部署假设，不开发 Hypervisor、ASI
 - 安全状态：正常、降级、互锁、故障隔离、只读诊断。
 - 数据分域：个人数据、车辆数据、诊断数据、AI 数据、日志/Trace。
 - NPU 隔离：IOMMU、DMA buffer 生命周期、模型签名、固件版本校验。
-- 审计：所有 Action、诊断、OTA、模型调用都写入审计事件；当前 `/soa/invoke` 已写入 Runtime & Governance audit，设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可用 JSONL 恢复最近 50 条记录。
+- 审计：所有 Action、诊断、OTA、模型调用都写入审计事件；当前 `/soa/invoke` 和 `/governance/precheck` 已写入 Runtime & Governance audit，设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可用 JSONL 恢复最近 50 条记录。
 
 ## 可观测性
 

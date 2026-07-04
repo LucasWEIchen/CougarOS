@@ -52,6 +52,8 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
 CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
   python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
 CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
+  python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-precheck
+CENTRAL_BRAIN_IPC_SOCKET=/run/central-brain/gateway.sock \
   python3 /opt/central-brain/appDev/central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 sudo test -s /var/log/central-brain/audit.jsonl || true
 sudo test -s /var/log/central-brain/ipc-audit.jsonl || true
@@ -65,6 +67,9 @@ sudo test -s /var/log/central-brain/ipc-audit.jsonl || true
   preserves Uni Info Bus/SOA semantic operations, applies local Runtime &
   Governance precheck to SOA service invocations, and forwards allowed calls to
   that gateway.
+- `governance-precheck` exposes the same XSC-005/NV-G-002/NV-G-004..007
+  decision envelope for Linux clients without dispatching a service; by default
+  it does not reserve the QoS fixed-window slot.
 - Permission enforcement in this sample is process/user based plus Runtime &
   Governance policy checks. Android permission parity is documented in
   `docs/CENTRAL_BRAIN_PLATFORM_DELTA.md`.

@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "updated": "2026-07-05",
   "transport": {
     "prototype": "http-json",
@@ -137,6 +137,31 @@
       "path": "/governance/runtime",
       "description": "Returns Runtime & Governance state for Registry, Discovery, Schema, active fixed-window QoS, Policy, Lifecycle, and Audit.",
       "req_ids": ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007"]
+    },
+    {
+      "method": "POST",
+      "path": "/governance/precheck",
+      "description": "Runs Runtime & Governance service discovery, Policy/Safety State, Lifecycle, and QoS decision checks without dispatching the service; defaults to consume_qos=false for diagnostic peek.",
+      "request": {
+        "service": "string",
+        "method": "string",
+        "caller_permissions": ["service.read"],
+        "vehicle_state": "parked|driving|diagnostic",
+        "safety_state": "normal|degraded|diagnostic_readonly",
+        "consume_qos": false
+      },
+      "response": {
+        "state": "allowed|rejected",
+        "policy": "object",
+        "lifecycle_state": "ready|planned|unknown",
+        "qos_decision": "object",
+        "dispatch": {
+          "service_invoked": false,
+          "driver_hal": "not-dispatched",
+          "virtualization": "not-developed"
+        }
+      },
+      "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "FW-S-005", "DEL-001", "DEL-002"]
     },
     {
       "method": "POST",

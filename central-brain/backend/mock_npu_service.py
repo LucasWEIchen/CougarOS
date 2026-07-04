@@ -30,7 +30,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.15"
+API_VERSION = "0.1.16"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -339,6 +339,53 @@ def memory_query_payload(request: dict[str, Any]) -> dict[str, Any]:
 
 def governance_payload() -> dict[str, Any]:
     return GOVERNANCE.governance_payload()
+
+
+def governance_precheck_payload(request: dict[str, Any]) -> dict[str, Any]:
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    consume_qos = bool(request.get("consume_qos", False))
+    precheck = GOVERNANCE.precheck(request, consume_qos=consume_qos)
+    service = request.get("service", "vehicle-state")
+    method = request.get("method", "invoke")
+    policy = precheck["policy"]
+    qos_decision = precheck["qos_decision"]
+    allowed = policy["decision"] == "allow" and qos_decision["decision"] == "allow"
+    outcome = "precheck_allowed" if allowed else "precheck_rejected"
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": service,
+            "method": method,
+            "outcome": outcome,
+            "policy_decision": policy["decision"],
+            "lifecycle_state": precheck["lifecycle_state"],
+            "qos_decision": qos_decision["decision"],
+        },
+    )
+    return {
+        "service": service,
+        "method": method,
+        "state": "allowed" if allowed else "rejected",
+        "service_contract": {
+            "version": precheck["service"].get("version") if precheck["service"] else "unknown",
+            "domain": precheck["service"].get("domain") if precheck["service"] else "unknown",
+            "req_ids": precheck["service"].get("req_ids") if precheck["service"] else [],
+        },
+        "policy": policy,
+        "lifecycle_state": precheck["lifecycle_state"],
+        "qos": precheck["qos"],
+        "qos_decision": qos_decision,
+        "dispatch": {
+            "service_invoked": False,
+            "driver_hal": "not-dispatched",
+            "virtualization": "not-developed",
+        },
+        "precheck_mode": {
+            "consume_qos": consume_qos,
+            "default": "diagnostic-peek-without-service-dispatch",
+        },
+        "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "FW-S-005"],
+    }
 
 
 def bindings_payload() -> dict[str, Any]:
@@ -674,6 +721,10 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, inference_payload(request))
         elif path in ("/permission/check", "/policy/evaluate"):
             self.send_json(200, envelope(permission_check_payload(request), request.get("trace_id")))
+        elif path == "/governance/precheck":
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(governance_precheck_payload(request), trace_id))
         elif path in ("/actions/request", "/uib/actions/request"):
             self.send_json(200, envelope(action_request_payload(request), request.get("trace_id")))
         elif path in ("/service/invoke", "/soa/invoke"):

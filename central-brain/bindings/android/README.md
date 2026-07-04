@@ -32,6 +32,7 @@ Brain semantic gateway.
 | `listServicesJson` | `GET /soa/services` | XSC-003, FW-S-001..004 |
 | `invokeServiceJson` | `POST /soa/invoke` | XSC-003, FW-S-005 |
 | `evaluatePolicyJson` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
+| `precheckGovernanceJson` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | `getRuntimeGovernanceJson` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `getRecentAuditJson` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
@@ -72,6 +73,9 @@ Brain semantic gateway.
   They validate policy and expose dispatch boundaries, but they do not run a
   real Skill sandbox, Memory store, Model Runtime Adapter, Driver/HAL, vehicle
   bus, or virtualization path.
+- `precheckGovernanceJson` is a diagnostic Runtime & Governance contract. It
+  checks discovery, Policy, Lifecycle, and QoS decisions without dispatching a
+  service; by default it does not reserve the QoS fixed-window slot.
 
 ## System Service Integration Notes
 

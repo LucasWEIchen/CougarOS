@@ -57,6 +57,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py skill-invoke
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py memory-query
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py action-request
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py governance-precheck
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 bash tools/check_central_brain_binding_artifacts.sh
@@ -75,6 +76,8 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py --socket-path /tmp/central_brain_gateway.sock
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-precheck
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 ```
@@ -104,13 +107,14 @@ bash tools/check_central_brain_delivery_docs.sh
 - `GET /ai/sdk/capabilities`、`POST /agent/plan`、`POST /agent/execute`、`GET /skills`、`POST /skills/{skill_id}/invoke`、`POST /memory/query`：AI SDK/Agent facade、policy-aware task graph、execute/Skill/Memory contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。
 - `POST /soa/invoke`：SOA 服务入口，覆盖 XSC-003、FW-S-004、FW-S-005。
 - `GET /governance/runtime`：Runtime & Governance 状态，覆盖 XSC-005、NV-G-001..007。
+- `POST /governance/precheck`：Runtime & Governance discovery、Policy/Safety State、Lifecycle、QoS 只检查不调用路径，默认不消费 QoS 窗口且不 dispatch 到 Driver/HAL，覆盖 XSC-005、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、DEL-001、DEL-002。
 - `GET /audit/recent`：SOA 调用审计记录；设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可从 JSONL 恢复最近记录，覆盖 XSC-005、NV-G-007、DEL-002。
 - `/soa/invoke` QoS fixed-window 检查：对受控服务执行 NV-G-004 限流，超限时返回 `qos_decision=deny` 并写入 `qos_rejected` audit，覆盖 XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002。
 - `POST /policy/evaluate`：Policy/Safety State 评估入口，覆盖 FW-U-007、FW-S-005、NV-G-005。
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。
 - `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - Android Console Binder path：debug APK 绑定 `CentralBrainGatewayBinderService`，通过 `CentralBrainGatewayClient` 调用 Uni Info Bus State 与 AI SDK/Agent task plan；service sample 仍代理 REST prototype gateway，覆盖 XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
-- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/*`、`/policy/evaluate`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-P-002、NV-P-006、DEL-001。
+- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/*`、`/policy/evaluate`、`/governance/precheck`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-P-002、NV-P-006、DEL-001。
 - Android system/privileged service integration note：`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 记录 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项，覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005；本轮不开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化层。
 - Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*` 和 `audit.*` 本地 IPC envelope；`soa.service.invoke` 在转发到 REST prototype 前执行本地 Runtime & Governance precheck，覆盖 XSC-005、XSC-006、FW-U-003、FW-U-004、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-006、DEL-002。
 - `GET /native/adapters`：Native adapter 注册表，覆盖 XSC-004、NV-F-001、NV-F-003、NV-F-004、NV-F-008、NV-F-009、NV-F-011。

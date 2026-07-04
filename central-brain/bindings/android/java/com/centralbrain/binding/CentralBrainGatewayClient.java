@@ -104,6 +104,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().invokeServiceJson(traceId, requestJson);
     }
 
+    public String precheckGovernanceJson(String traceId, String requestJson) throws RemoteException {
+        return requireGateway().precheckGovernanceJson(traceId, requestJson);
+    }
+
     public String getBindingDetailJson(String traceId) throws RemoteException {
         return requireGateway().getBindingDetailJson(traceId);
     }

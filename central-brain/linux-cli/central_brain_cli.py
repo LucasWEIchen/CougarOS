@@ -117,6 +117,19 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
             "safety_state": "normal",
         },
     ),
+    "governance-precheck": (
+        "POST",
+        "/governance/precheck",
+        {
+            "trace_id": "linux-cli-governance-precheck",
+            "service": "npu-inference",
+            "method": "infer",
+            "caller_permissions": ["ai.infer", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+            "consume_qos": False,
+        },
+    ),
     "event-publish": (
         "POST",
         "/uib/events/publish",
