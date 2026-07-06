@@ -49,6 +49,8 @@ Driver/HAL gap backlog contract 增量新增 `GET /native/driver-gaps`、Android
 
 Linux systemd hardening sample 增量只收紧 `central-brain-backend.service`、`central-brain-governance.service`、`central-brain-linux-ipc.service` 和 `central-brain-linux-grpc.service` 的部署约束，并新增 `tools/check_central_brain_linux_systemd_hardening.sh`；覆盖 DEL-002、DEL-003、DEL-004、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-G-007。该增量只使用 systemd sandbox 配置、普通文件日志目录和 `/run/central-brain` socket 目录，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、共享内存、vendor SDK bridge 或虚拟化代码。
 
+Linux package/profile 静态契约增量新增 `central-brain/deploy/linux/central-brain.package-profile.json` 和 `tools/check_central_brain_linux_package_profile.sh`，覆盖 DEL-002、DEL-003、DEL-004、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-G-007。该增量只校验 Linux 样例的安装根、service identity、env file、runtime/log 目录、systemd unit、hardening 和非目标边界；不新增 package manager 集成、LSM/SELinux/AppArmor policy、真实 gRPC runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus Driver/HAL、Safety Runtime、共享内存、vendor SDK bridge 或虚拟化代码。
+
 ## 驱动接口矩阵
 
 | 接口域 | 图中位置 | Android 期望接口 | Linux 期望接口 | 当前环境能力 | 缺口/新增开发条件 |

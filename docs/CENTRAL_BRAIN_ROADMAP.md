@@ -1,6 +1,6 @@
 # 车载中央大脑路线图与进展
 
-更新时间：2026-07-05
+更新时间：2026-07-06
 
 ## 长期任务拆解
 
@@ -18,7 +18,7 @@
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
-| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check |
+| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check |
 
 ## M0 任务清单
 
@@ -50,6 +50,15 @@
 - 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
+
+### 2026-07-06
+
+- 推进 A9 Linux package/profile 静态契约：
+  - 新增 `central-brain/deploy/linux/central-brain.package-profile.json`，用机器可读清单固定 Linux 样例的安装根、服务身份、环境文件、runtime/log 目录、四个 systemd unit、Req ID、hardening 要求和非目标边界。
+  - 新增 `tools/check_central_brain_linux_package_profile.sh`，验证 package profile、env example 与 backend/governance/IPC/gRPC-RPC unit 的 service identity、`WorkingDirectory`、`EnvironmentFile`、`ExecStart`、`ReadWritePaths`、runtime 目录和 hardening 约束一致。
+  - `tools/check_central_brain_delivery_docs.sh` 纳入 package profile 检查项；交付目标、平台差异、偏差和驱动支持文档同步说明该 profile 是 Linux cockpit-domain 样例，不是量产包管理。
+  - 本轮未新增真实 gRPC runtime、package manager 集成、LSM/SELinux/AppArmor policy、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：DEL-002、DEL-003、DEL-004、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-G-007。
 
 ### 2026-07-05
 

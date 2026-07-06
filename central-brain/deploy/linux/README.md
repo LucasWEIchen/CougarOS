@@ -13,6 +13,9 @@ HAL, SOME/IP, DDS, MQTT, NPU, or virtualization code.
   base URL, Unix socket paths, gRPC/RPC sample host/port, gateway JSONL audit
   log path, shared governance audit log path, IPC fallback audit log path, and
   gRPC/RPC fallback audit log path.
+- `central-brain.package-profile.json`: machine-readable Linux cockpit-domain
+  sample profile for install root, service identity, environment file,
+  runtime/log directories, service units, Req IDs, hardening, and non-goals.
 - `systemd/central-brain-backend.service`: backend semantic gateway service.
 - `systemd/central-brain-governance.service`: Linux Runtime & Governance socket
   sample for shared `governance.precheck` decisions.
@@ -24,6 +27,8 @@ HAL, SOME/IP, DDS, MQTT, NPU, or virtualization code.
 - `../../../tools/check_central_brain_linux_systemd_hardening.sh`: static check
   for service identity, log/runtime write paths, and systemd sandbox directives
   on the Linux delivery units.
+- `../../../tools/check_central_brain_linux_package_profile.sh`: static check
+  that the package profile, env example, and systemd units stay aligned.
 
 ## Integration Path
 
@@ -75,13 +80,15 @@ sudo test -s /var/log/central-brain/grpc-audit.jsonl || true
 Validate the unit hardening contract before installing to a target image:
 
 ```bash
+bash tools/check_central_brain_linux_package_profile.sh
 bash tools/check_central_brain_linux_systemd_hardening.sh
 ```
 
 ## Deployment Assumptions
 
 - The systemd units are samples for Linux delivery, not a production packaging
-  format.
+  format. `central-brain.package-profile.json` is a sample profile for target
+  integration review; it is not a dpkg/rpm recipe or security certification.
 - The systemd units set `NoNewPrivileges`, `PrivateTmp`, `PrivateDevices`,
   `ProtectSystem=strict`, `ProtectHome`, `RestrictSUIDSGID`,
   `LockPersonality`, `PYTHONDONTWRITEBYTECODE`, and explicit
