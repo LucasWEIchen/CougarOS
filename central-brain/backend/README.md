@@ -27,6 +27,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /uib/state`
 - `GET /uib/events/topics`
 - `GET /uib/events/recent`
+- `GET /uib/extensions`
 - `GET /soa/services`
 - `GET /soa/contracts`
 - `GET /governance/runtime`

@@ -30,6 +30,7 @@
 | ISSUE-012 | 交付对象 | 交付对象明确为 Android/Linux 座舱域软件工程师 | 影响文档、示例、验证脚本和平台差异说明 | 已新增 DEL-001..005 和交付目标文档 | Closed |
 | ISSUE-013 | Android system/privileged service 集成 | 目标 AAOS 镜像的签名、priv-app 白名单、SELinux domain、service manager 注册方式和上游 native gateway 形态尚未确定 | 影响 Binder service 从 debug APK sample 迁移到量产 system/privileged service 的边界、权限和部署方式 | 已新增 `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 固定集成约束；目标镜像明确前不提交 framework patch、priv-app 签名配置或 sepolicy patch | Proposed |
 | ISSUE-014 | Shared Runtime & Governance backend deployment | 量产共享治理后端的 Android system service owner、Linux 目标发行版/package format、gRPC runtime/credential 来源和 audit export backend 尚未确定 | 影响 `/governance/deployment-plan` 从 contract 进入真实多进程治理后端的部署形态、身份输入和验证策略 | 暂用 `GET /governance/deployment-plan` 固定 Android system/privileged service、Linux daemon、true gRPC/RPC 三类候选形态；目标平台决策明确前不实现生产治理后端、framework/SELinux patch 或真实 gRPC runtime | Proposed |
+| ISSUE-015 | Uni Info Bus 其他/扩展语义 | FW-U-008 的动态扩展生命周期、schema 发布/撤销、权限审核、插件沙箱和跨 SoC 版本兼容规则尚未明确 | 影响 `/uib/extensions` 从只读 contract 进入真实 extension runtime 或 schema registry 的边界 | 暂用 `GET /uib/extensions` 固定扩展对象必须保留 Uni Info Bus envelope、Runtime & Governance、Protocol Binding 和 no-dispatch 边界；目标扩展生命周期明确前不实现动态 loader、插件沙箱或 schema registry 服务 | Proposed |
 
 ## 新增疑点模板
 

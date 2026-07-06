@@ -31,7 +31,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.28"
+API_VERSION = "0.1.29"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -44,6 +44,47 @@ EVENT_TOPICS = [
     "policy.decision.created",
     "ai.inference.completed",
     "npu.runtime.changed"
+]
+
+UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
+    {
+        "extension_id": "diagnostic.trace.snapshot",
+        "domain": "observability",
+        "semantic_object": "TraceSnapshot",
+        "schema_state": "contract-only",
+        "allowed_bindings": ["android-binder-aidl", "linux-ipc", "linux-grpc-rpc", "rest-http-json"],
+        "governance": {
+            "permissions": ["service.read", "policy.read"],
+            "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+            "audit_required": True,
+        },
+        "dispatch_boundary": {
+            "service_invoked": False,
+            "driver_hal": "not-dispatched",
+            "vehicle_bus": "not-dispatched",
+            "virtualization": "not-developed",
+        },
+        "req_ids": ["XSC-002", "FW-U-008", "XSC-005", "XSC-006"],
+    },
+    {
+        "extension_id": "diagnostic.calibration.marker",
+        "domain": "diagnostic",
+        "semantic_object": "CalibrationMarker",
+        "schema_state": "planned-contract",
+        "allowed_bindings": ["android-binder-aidl", "linux-ipc", "linux-grpc-rpc"],
+        "governance": {
+            "permissions": ["service.read"],
+            "allowed_safety_states": ["diagnostic_readonly"],
+            "audit_required": True,
+        },
+        "dispatch_boundary": {
+            "service_invoked": False,
+            "driver_hal": "not-dispatched",
+            "vehicle_bus": "not-dispatched",
+            "virtualization": "not-developed",
+        },
+        "req_ids": ["XSC-002", "FW-U-008", "APP-009", "APP-010", "XSC-006"],
+    },
 ]
 
 
@@ -207,6 +248,30 @@ def event_topics_payload() -> dict[str, Any]:
             "DDS is reserved for high-rate topic delivery, but this prototype only stores a bounded in-memory recent log.",
         ],
         "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+    }
+
+
+def uib_extensions_payload() -> dict[str, Any]:
+    return {
+        "extensions": UIB_EXTENSION_REGISTRY,
+        "extension_rules": [
+            "Extensions must preserve the Uni Info Bus envelope: trace_id, caller, permission_context, payload, and req_ids.",
+            "Extensions cannot bypass SOA service entry, Runtime & Governance, Policy, Audit, or Protocol Binding.",
+            "This endpoint is read-only contract visibility; it does not load plugins, dispatch services, or access Driver/HAL.",
+        ],
+        "binding_visibility": {
+            "android": "getUibExtensionsJson",
+            "linux_cli": "extensions",
+            "linux_ipc": "uib.extensions.get",
+            "linux_grpc_rpc": "GetUibExtensions",
+        },
+        "summary": {
+            "dynamic_extension_runtime_ready": False,
+            "service_dispatch_triggered": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+        },
+        "req_ids": ["XSC-002", "FW-U-008", "XSC-005", "XSC-006", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002"],
     }
 
 
@@ -737,6 +802,8 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))
+        elif path == "/uib/extensions":
+            self.send_json(200, envelope(uib_extensions_payload()))
         elif path == "/tools":
             self.send_json(200, envelope(tools_payload()))
         elif path == "/ai/sdk/capabilities":

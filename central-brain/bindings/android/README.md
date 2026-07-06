@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, FW-U-008, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
@@ -26,6 +26,7 @@ Brain semantic gateway.
 | `listEventTopicsJson` | `GET /uib/events/topics` | XSC-002, FW-U-003, NV-P-006 |
 | `publishEventJson` | `POST /uib/events/publish` | XSC-002, FW-U-003, NV-P-006 |
 | `getRecentEventsJson` | `GET /uib/events/recent` | XSC-002, FW-U-003, NV-P-006 |
+| `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
 | `executeAgentTaskJson` | `POST /agent/execute` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -109,6 +110,10 @@ Brain semantic gateway.
   Driver/HAL gap backlog, and virtualization constraints for delivery review.
   It does not implement Android system service, true gRPC runtime, production
   packaging, Driver/HAL, Safety Runtime, vehicle bus, or virtualization.
+- `getUibExtensionsJson` exposes FW-U-008 extension registry contract metadata,
+  governance rules, binding visibility, and no-dispatch boundaries. It does
+  not load plugins, dispatch SOA services, access Driver/HAL, or create
+  virtualization work.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it
   does not call HAL, device nodes, vendor SDKs, or Safety Runtime.

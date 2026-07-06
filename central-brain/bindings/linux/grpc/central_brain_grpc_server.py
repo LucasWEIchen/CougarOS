@@ -2,7 +2,7 @@
 """Linux gRPC/RPC contract sample for the Central Brain gateway.
 
 Req IDs: XSC-001, XSC-002, XSC-003, XSC-005, XSC-006, APP-004, FW-U-003,
-FW-U-004, FW-U-006, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007,
+FW-U-004, FW-U-006, FW-U-008, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007,
 NV-P-003, DEL-002.
 
 The current environment does not provide grpcio, so this sample uses a tiny
@@ -48,6 +48,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "ListEventTopics": {"method": "GET", "path": "/uib/events/topics", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
     "PublishEvent": {"method": "POST", "path": "/uib/events/publish", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
     "GetRecentEvents": {"method": "GET", "path": "/uib/events/recent", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
+    "GetUibExtensions": {"method": "GET", "path": "/uib/extensions", "req_ids": ["XSC-002", "FW-U-008", "XSC-005", "XSC-006", "NV-P-003", "DEL-002"]},
     "GetAiSdkCapabilities": {"method": "GET", "path": "/ai/sdk/capabilities", "req_ids": ["XSC-001", "APP-004", "NV-P-003", "DEL-002"]},
     "PlanAgentTask": {"method": "POST", "path": "/agent/plan", "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},
     "ExecuteAgentTask": {"method": "POST", "path": "/agent/execute", "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},

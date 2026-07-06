@@ -21,6 +21,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "service-contracts": ("GET", "/soa/contracts", None),
     "events": ("GET", "/uib/events/topics", None),
     "event-recent": ("GET", "/uib/events/recent", None),
+    "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),
     "governance-migration-check": ("GET", "/governance/migration-check", None),

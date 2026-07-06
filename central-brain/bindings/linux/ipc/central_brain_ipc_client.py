@@ -18,6 +18,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "state": ("uib.state.get", {}),
     "events": ("uib.events.topics", {}),
     "event-recent": ("uib.events.recent", {}),
+    "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),
     "governance": ("governance.runtime.get", {}),

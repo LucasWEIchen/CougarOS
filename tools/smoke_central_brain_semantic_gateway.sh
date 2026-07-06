@@ -67,6 +67,7 @@ checks = [
         "NV-P-006",
     ),
     ("GET", "/uib/events/recent", None, "FW-U-003"),
+    ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
     ("GET", "/governance/runtime", None, "NV-G-005"),
@@ -332,6 +333,16 @@ for method, path, body, req_id in checks:
         events = payload["payload"]["events"]
         assert events, "event recent endpoint did not keep the published event"
         assert events[0]["topic"] == "vehicle.signal.changed", "latest event topic mismatch"
+    if path == "/uib/extensions":
+        extensions = payload["payload"]["extensions"]
+        encoded = json.dumps(payload)
+        assert extensions, "UIB extension registry is empty"
+        assert any(item["extension_id"] == "diagnostic.trace.snapshot" for item in extensions), "missing trace extension"
+        assert payload["payload"]["summary"]["dynamic_extension_runtime_ready"] is False, "extension runtime maturity overstated"
+        assert payload["payload"]["summary"]["service_dispatch_triggered"] is False, "extension query dispatched service"
+        assert payload["payload"]["summary"]["driver_development_triggered"] is False, "extension query triggered driver development"
+        assert payload["payload"]["summary"]["virtualization_development_triggered"] is False, "extension query triggered virtualization development"
+        assert "getUibExtensionsJson" in encoded and "uib.extensions.get" in encoded and "GetUibExtensions" in encoded, "extension binding visibility missing"
     if path == "/audit/recent":
         events = payload["payload"]["events"]
         assert events, "audit endpoint did not record the SOA call"
@@ -345,6 +356,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" events >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-publish >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-recent >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" agent-plan >/dev/null

@@ -18,6 +18,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "state": ("GetState", {}),
     "service-contracts": ("GetServiceContracts", {}),
     "events": ("ListEventTopics", {}),
+    "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",
         {

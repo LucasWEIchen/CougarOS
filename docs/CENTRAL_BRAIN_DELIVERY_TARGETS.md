@@ -19,7 +19,7 @@
 | 模块 | Req ID | Android 交付 | Linux 交付 | 备注 |
 | --- | --- | --- | --- | --- |
 | AI SDK | XSC-001 | Android Binder/AIDL `planAgentTaskJson`、`executeAgentTaskJson`、Skill/Memory contract sample + `/ai/sdk/capabilities` | Linux CLI/IPC `agent-plan`、`agent-execute`、`skill-invoke`、`memory-query` active sample + `/ai/sdk/capabilities` | 黄色小太阳，跨 SoC；当前是 facade/plan/execute/Skill/Memory contract mock，不是真实 SDK library |
-| Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request` 初版 |
+| Uni Info Bus 语义接口 | XSC-002 | Android client + contract + Binder `getUibExtensionsJson` | Linux client + contract + CLI/IPC/gRPC `extensions`/`uib.extensions.get`/`GetUibExtensions` | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/extensions`、`/uib/actions/request` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client + Binder `getServiceContractsJson` | Linux daemon/client + CLI/IPC/gRPC `service-contracts`/`soa.contracts.get`/`GetServiceContracts` | `/soa/services`、`/soa/contracts`、`/soa/invoke` 初版；contract 查询不 dispatch 服务 |
 | AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample + Driver/HAL gap visibility | Linux service adapter + Agent execute/Skill/Memory boundary sample + `driver-gaps` CLI | `GET /native/adapters/detail` 与 `GET /native/driver-gaps`；AIOS Kernel 真实 runtime 仍未实现 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + Console `Precheck` 调用 `precheckGovernanceJson` + Binder `getGovernanceBackendContractJson`/`getGovernanceMigrationCheckJson`/`getGovernanceDeploymentPlanJson` 目标契约、迁移检查与部署计划可见性 | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux shared governance daemon precheck/runtime/audit diagnostics + IPC/gRPC shared governance client precheck/runtime/audit direct diagnostic path + local/REST fallback + `governance-precheck` + `governance-backend-contract` + `governance-migration-check` + `governance-deployment-plan` | `/governance/runtime`、`/governance/precheck`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke`、Linux governance daemon 与 Linux IPC/gRPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；shared governance socket 可直接查询 runtime/audit，且 IPC/gRPC sample 优先使用该 direct path；`/governance/precheck` 默认只检查不消费 QoS；`/governance/backend-contract` 是目标契约，`/governance/migration-check` 是替换 readiness 检查，`/governance/deployment-plan` 是部署形态 contract，均不是量产治理后端 |
@@ -57,6 +57,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py events
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-publish
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-recent
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py extensions
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py service-contracts
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
@@ -127,6 +128,7 @@ Android 版本必须提供：
 
 - 绑定 `CentralBrainGatewayBinderService`。
 - 通过 `CentralBrainGatewayClient.getStateJson` 调用 Uni Info Bus State。
+- 通过 `CentralBrainGatewayClient.getUibExtensionsJson` 查看 FW-U-008 扩展语义 contract、治理规则和 no-dispatch 边界。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
 - 通过 `CentralBrainGatewayClient.executeAgentTaskJson` 验证 Agent execute contract mock，只返回 policy-checked dispatch 边界。
 - 通过 `CentralBrainGatewayClient.invokeSkillJson` 验证 Skill/Tool contract mock，不运行真实 sandbox 或车身总线。
@@ -154,6 +156,7 @@ Android 版本必须提供：
 - `GET /uib/events/topics`
 - `POST /uib/events/publish`
 - `GET /uib/events/recent`
+- `GET /uib/extensions`
 - `GET /ai/sdk/capabilities`
 - `POST /agent/plan`
 - `POST /agent/execute`

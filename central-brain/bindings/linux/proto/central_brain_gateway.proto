@@ -14,6 +14,7 @@ package centralbrain.binding.v1;
 // - FW-U-003 Uni Info Bus Event
 // - FW-U-004 Uni Info Bus Action
 // - FW-U-006 Tool / Skill contract
+// - FW-U-008 Uni Info Bus extension mechanism
 // - NV-P-003 gRPC/RPC binding
 // - NV-P-006 DDS/high-rate topic reservation
 // - DEL-002 Linux synchronized delivery path
@@ -25,6 +26,7 @@ service CentralBrainGateway {
   rpc ListEventTopics(GatewayRequest) returns (GatewayResponse);
   rpc PublishEvent(GatewayRequest) returns (GatewayResponse);
   rpc GetRecentEvents(GatewayRequest) returns (GatewayResponse);
+  rpc GetUibExtensions(GatewayRequest) returns (GatewayResponse);
   rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
   rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);
   rpc ExecuteAgentTask(GatewayRequest) returns (GatewayResponse);

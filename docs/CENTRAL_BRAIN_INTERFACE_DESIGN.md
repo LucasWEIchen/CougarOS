@@ -70,6 +70,7 @@
 | SOA Contract | 服务契约、版本、Policy/Safety State、QoS、Lifecycle | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
 | Context | 车辆/用户/环境上下文 | HTTP/JSON | AIDL + DDS event |
 | Event | Uni Info Bus 事件 topic、发布、recent log | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；高频 topic 预留 DDS |
+| Extension | Uni Info Bus 扩展语义、schema 状态、治理规则和 binding 可见性 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；动态 extension runtime 待后续 |
 | Action | Uni Info Bus 受控动作请求、Policy 检查、执行状态 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；真实车控需 Vehicle Signal/ECU Adapter + Driver/HAL |
 | Agent | 任务规划和执行 | HTTP/JSON active mock | AIDL/gRPC |
 | Skill | 技能声明、调用、生命周期 | HTTP/JSON | AIDL + sandbox IPC |
@@ -198,6 +199,14 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | GET | `/uib/events/recent` | 查询最近 Event 记录，作为订阅语义验证替身 | 是 |
 | GET | `/events/topics` | legacy 兼容入口 | 是 |
 | POST | `/events/publish` | legacy 兼容入口 | 是 |
+
+### Uni Info Bus Extension
+
+| Method | Path | 用途 | 已实现 |
+| --- | --- | --- | --- |
+| GET | `/uib/extensions` | 查询扩展语义对象、schema 状态、治理规则、binding 可见性和 no-dispatch 边界 | 是 |
+
+`/uib/extensions` 覆盖 XSC-002、FW-U-008、XSC-005、XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。该接口只暴露 extension registry contract，明确 `dynamic_extension_runtime_ready=false`、`service_dispatch_triggered=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；Android Binder `getUibExtensionsJson`、Linux IPC `uib.extensions.get` 与 Linux gRPC/RPC `GetUibExtensions` 暴露同一视图，不加载插件、不 dispatch SOA service、不访问 Driver/HAL、车辆总线或虚拟化层。
 
 ### AI/NPU
 

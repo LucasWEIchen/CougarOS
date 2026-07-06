@@ -13,6 +13,7 @@ package com.centralbrain.binding;
  * - FW-U-003 Uni Info Bus Event
  * - FW-U-004 Uni Info Bus Action
  * - FW-U-006 Tool / Skill contract
+ * - FW-U-008 Uni Info Bus extension mechanism
  * - NV-P-002 IPC/Binder binding
  * - NV-P-006 DDS/high-rate topic reservation
  * - KH-003/KH-006 Driver/HAL interface backlog visibility
@@ -29,6 +30,8 @@ interface ICentralBrainGateway {
     String publishEventJson(String traceId, String requestJson);
 
     String getRecentEventsJson(String traceId, int limit);
+
+    String getUibExtensionsJson(String traceId);
 
     String getAiSdkCapabilitiesJson(String traceId);
 

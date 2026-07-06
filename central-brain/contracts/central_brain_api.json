@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -18,7 +18,8 @@
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
-    "linux_ipc_socket": "/tmp/central_brain_gateway.sock"
+    "linux_ipc_socket": "/tmp/central_brain_gateway.sock",
+    "uib_extensions": "GET /uib/extensions exposes read-only Uni Info Bus extension objects, schema state, governance rules, and Android/Linux binding visibility without loading plugins or dispatching services"
   },
   "safety_states": [
     "normal",
@@ -42,61 +43,135 @@
       "method": "GET",
       "path": "/context",
       "description": "Returns Uni Info Bus Context envelope for vehicle, user, and environment.",
-      "req_ids": ["FW-U-001"]
+      "req_ids": [
+        "FW-U-001"
+      ]
     },
     {
       "method": "GET",
       "path": "/uib/context",
       "description": "Architecture-aligned alias for Uni Info Bus Context.",
-      "req_ids": ["XSC-002", "FW-U-001", "NV-P-005"]
+      "req_ids": [
+        "XSC-002",
+        "FW-U-001",
+        "NV-P-005"
+      ]
     },
     {
       "method": "GET",
       "path": "/state",
       "description": "Returns Uni Info Bus State envelope for system, services, NPU, vehicle, and safety state.",
-      "req_ids": ["FW-U-002"]
+      "req_ids": [
+        "FW-U-002"
+      ]
     },
     {
       "method": "GET",
       "path": "/uib/state",
       "description": "Architecture-aligned alias for Uni Info Bus State.",
-      "req_ids": ["XSC-002", "FW-U-002", "NV-P-005"]
+      "req_ids": [
+        "XSC-002",
+        "FW-U-002",
+        "NV-P-005"
+      ]
     },
     {
       "method": "GET",
       "path": "/events/topics",
       "description": "Compatibility endpoint for Uni Info Bus event topics.",
-      "req_ids": ["FW-U-003"]
+      "req_ids": [
+        "FW-U-003"
+      ]
     },
     {
       "method": "POST",
       "path": "/events/publish",
       "description": "Compatibility endpoint for publishing a mock Uni Info Bus event.",
-      "req_ids": ["FW-U-003"]
+      "req_ids": [
+        "FW-U-003"
+      ]
     },
     {
       "method": "GET",
       "path": "/uib/events/topics",
       "description": "Returns Uni Info Bus Event topic contract, delivery model, and binding candidates.",
-      "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-006",
+        "NV-P-006"
+      ]
     },
     {
       "method": "POST",
       "path": "/uib/events/publish",
       "description": "Publishes a bounded-log mock event through the Uni Info Bus Event semantic envelope.",
-      "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-006",
+        "NV-P-006"
+      ]
     },
     {
       "method": "GET",
       "path": "/uib/events/recent",
       "description": "Returns recent Uni Info Bus Event records from the active mock log.",
-      "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-006",
+        "NV-P-006"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/extensions",
+      "description": "Returns read-only Uni Info Bus extension registry entries, schema state, governance rules, binding visibility, and no-dispatch boundaries for FW-U-008.",
+      "response": {
+        "extensions": [
+          {
+            "extension_id": "diagnostic.trace.snapshot",
+            "domain": "observability|diagnostic",
+            "semantic_object": "string",
+            "schema_state": "contract-only|planned-contract",
+            "allowed_bindings": [
+              "android-binder-aidl",
+              "linux-ipc",
+              "linux-grpc-rpc"
+            ],
+            "dispatch_boundary": {
+              "service_invoked": false,
+              "driver_hal": "not-dispatched",
+              "virtualization": "not-developed"
+            }
+          }
+        ],
+        "summary": {
+          "dynamic_extension_runtime_ready": false,
+          "service_dispatch_triggered": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-008",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "POST",
       "path": "/actions/request",
       "description": "Compatibility endpoint for submitting a policy-checked mock Action request.",
-      "req_ids": ["FW-U-004"]
+      "req_ids": [
+        "FW-U-004"
+      ]
     },
     {
       "method": "POST",
@@ -105,8 +180,13 @@
       "request": {
         "action": "string",
         "target": "object",
-        "permissions": ["vehicle.control"],
-        "caller_permissions": ["vehicle.read", "vehicle.control"],
+        "permissions": [
+          "vehicle.control"
+        ],
+        "caller_permissions": [
+          "vehicle.read",
+          "vehicle.control"
+        ],
         "vehicle_state": "parked|driving|diagnostic",
         "safety_state": "normal|degraded|diagnostic_readonly"
       },
@@ -120,19 +200,38 @@
           "virtualization": "not-developed"
         }
       },
-      "req_ids": ["XSC-002", "FW-U-004", "FW-U-007", "XSC-005", "NV-G-005", "NV-P-005"]
+      "req_ids": [
+        "XSC-002",
+        "FW-U-004",
+        "FW-U-007",
+        "XSC-005",
+        "NV-G-005",
+        "NV-P-005"
+      ]
     },
     {
       "method": "POST",
       "path": "/service/invoke",
       "description": "Invokes a mock service through the Uni Info Bus service method entry.",
-      "req_ids": ["FW-U-005", "FW-S-004"]
+      "req_ids": [
+        "FW-U-005",
+        "FW-S-004"
+      ]
     },
     {
       "method": "GET",
       "path": "/soa/services",
       "description": "Returns SOA service entries with contract, permissions, safety state, and runtime registration metadata.",
-      "req_ids": ["XSC-003", "FW-S-001", "FW-S-002", "FW-S-003", "FW-S-004", "NV-G-001", "NV-G-002", "NV-G-003"]
+      "req_ids": [
+        "XSC-003",
+        "FW-S-001",
+        "FW-S-002",
+        "FW-S-003",
+        "FW-S-004",
+        "NV-G-001",
+        "NV-G-002",
+        "NV-G-003"
+      ]
     },
     {
       "method": "GET",
@@ -146,25 +245,67 @@
             "domain": "atomic|foundation|business",
             "contract": "string",
             "semantic_entry": "string",
-            "policy": {"permissions": ["service.read"], "allowed_safety_states": ["normal"]},
-            "dispatch_boundary": {"service_invoked": false, "driver_hal": "not-dispatched", "virtualization": "not-developed"}
+            "policy": {
+              "permissions": [
+                "service.read"
+              ],
+              "allowed_safety_states": [
+                "normal"
+              ]
+            },
+            "dispatch_boundary": {
+              "service_invoked": false,
+              "driver_hal": "not-dispatched",
+              "virtualization": "not-developed"
+            }
           }
         ],
-        "summary": {"service_dispatch_triggered": false}
+        "summary": {
+          "service_dispatch_triggered": false
+        }
       },
-      "req_ids": ["XSC-003", "FW-S-001", "FW-S-002", "FW-S-003", "FW-S-004", "FW-S-005", "NV-G-001", "NV-G-002", "NV-G-003", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-003",
+        "FW-S-001",
+        "FW-S-002",
+        "FW-S-003",
+        "FW-S-004",
+        "FW-S-005",
+        "NV-G-001",
+        "NV-G-002",
+        "NV-G-003",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "POST",
       "path": "/soa/invoke",
       "description": "Architecture-aligned SOA service entry that applies mock Permission, Safety State, Lifecycle, and QoS checks before dispatch.",
-      "req_ids": ["XSC-003", "FW-U-005", "FW-U-007", "FW-S-004", "FW-S-005", "NV-G-004", "NV-G-005"]
+      "req_ids": [
+        "XSC-003",
+        "FW-U-005",
+        "FW-U-007",
+        "FW-S-004",
+        "FW-S-005",
+        "NV-G-004",
+        "NV-G-005"
+      ]
     },
     {
       "method": "GET",
       "path": "/governance/runtime",
       "description": "Returns Runtime & Governance state for Registry, Discovery, Schema, active fixed-window QoS, Policy, Lifecycle, and Audit; Linux IPC/gRPC samples can also resolve this through the shared governance socket before REST fallback.",
-      "req_ids": ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007"]
+      "req_ids": [
+        "XSC-005",
+        "NV-G-001",
+        "NV-G-002",
+        "NV-G-003",
+        "NV-G-004",
+        "NV-G-005",
+        "NV-G-006",
+        "NV-G-007"
+      ]
     },
     {
       "method": "POST",
@@ -173,7 +314,9 @@
       "request": {
         "service": "string",
         "method": "string",
-        "caller_permissions": ["service.read"],
+        "caller_permissions": [
+          "service.read"
+        ],
         "vehicle_state": "parked|driving|diagnostic",
         "safety_state": "normal|degraded|diagnostic_readonly",
         "consume_qos": false
@@ -189,22 +332,55 @@
           "virtualization": "not-developed"
         }
       },
-      "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "FW-S-005", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-005",
+        "NV-G-002",
+        "NV-G-004",
+        "NV-G-005",
+        "NV-G-006",
+        "NV-G-007",
+        "FW-S-005",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "GET",
       "path": "/governance/backend-contract",
       "description": "Returns the target shared Runtime & Governance backend contract for Android Binder, Linux IPC, and Linux gRPC/RPC bindings, including required operations, replacement rules, and non-goal boundaries.",
       "response": {
-        "required_operations": ["governance.precheck", "governance.runtime.get", "audit.recent.get"],
+        "required_operations": [
+          "governance.precheck",
+          "governance.runtime.get",
+          "audit.recent.get"
+        ],
         "binding_contract": {
           "android_binder": "system/privileged Binder service calls the shared governance backend before SOA dispatch",
           "linux_ipc": "Unix socket IPC keeps the same operation envelope when the backend becomes production",
           "linux_grpc_rpc": "true gRPC server keeps the same precheck/runtime/audit operation names"
         },
-        "non_goals": ["Driver/HAL", "Safety Runtime", "vehicle bus", "virtualization"]
+        "non_goals": [
+          "Driver/HAL",
+          "Safety Runtime",
+          "vehicle bus",
+          "virtualization"
+        ]
       },
-      "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-005",
+        "XSC-006",
+        "NV-G-001",
+        "NV-G-002",
+        "NV-G-003",
+        "NV-G-004",
+        "NV-G-005",
+        "NV-G-006",
+        "NV-G-007",
+        "NV-P-002",
+        "NV-P-003",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "GET",
@@ -212,11 +388,40 @@
       "description": "Returns a read-only migration readiness check for replacing the current Runtime & Governance samples with a production shared governance backend, including invariants, binding replacement matrix, open decisions, validation commands, and non-goal boundaries.",
       "response": {
         "production_backend_ready": false,
-        "required_invariants": ["GOV-MIG-001", "GOV-MIG-002", "GOV-MIG-003"],
-        "binding_migration_matrix": ["android-binder-aidl", "linux-ipc", "linux-grpc-rpc"],
-        "non_goals": ["production multi-process backend", "Driver/HAL", "Safety Runtime", "vehicle bus", "virtualization"]
+        "required_invariants": [
+          "GOV-MIG-001",
+          "GOV-MIG-002",
+          "GOV-MIG-003"
+        ],
+        "binding_migration_matrix": [
+          "android-binder-aidl",
+          "linux-ipc",
+          "linux-grpc-rpc"
+        ],
+        "non_goals": [
+          "production multi-process backend",
+          "Driver/HAL",
+          "Safety Runtime",
+          "vehicle bus",
+          "virtualization"
+        ]
       },
-      "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
+      "req_ids": [
+        "XSC-005",
+        "XSC-006",
+        "NV-G-001",
+        "NV-G-002",
+        "NV-G-004",
+        "NV-G-005",
+        "NV-G-006",
+        "NV-G-007",
+        "NV-P-002",
+        "NV-P-003",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003",
+        "DEL-004"
+      ]
     },
     {
       "method": "GET",
@@ -224,35 +429,88 @@
       "description": "Returns the target deployment plan contract for replacing Runtime & Governance samples with Android system service, Linux daemon, and true gRPC/RPC shapes, including required identity inputs, open decisions, invariants, validation commands, and non-goal boundaries.",
       "response": {
         "production_backend_ready": false,
-        "deployment_shapes": ["GOV-DEPLOY-ANDROID-SYSTEM-SERVICE", "GOV-DEPLOY-LINUX-DAEMON", "GOV-DEPLOY-GRPC-RPC"],
-        "common_invariants": ["governance.precheck gates SOA dispatch", "Policy/QoS not duplicated per transport"],
-        "non_goals": ["production multi-process backend", "Driver/HAL", "Safety Runtime", "vehicle bus", "virtualization"]
+        "deployment_shapes": [
+          "GOV-DEPLOY-ANDROID-SYSTEM-SERVICE",
+          "GOV-DEPLOY-LINUX-DAEMON",
+          "GOV-DEPLOY-GRPC-RPC"
+        ],
+        "common_invariants": [
+          "governance.precheck gates SOA dispatch",
+          "Policy/QoS not duplicated per transport"
+        ],
+        "non_goals": [
+          "production multi-process backend",
+          "Driver/HAL",
+          "Safety Runtime",
+          "vehicle bus",
+          "virtualization"
+        ]
       },
-      "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
+      "req_ids": [
+        "XSC-005",
+        "XSC-006",
+        "NV-G-001",
+        "NV-G-002",
+        "NV-G-003",
+        "NV-G-004",
+        "NV-G-005",
+        "NV-G-006",
+        "NV-G-007",
+        "NV-P-002",
+        "NV-P-003",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003",
+        "DEL-004"
+      ]
     },
     {
       "method": "POST",
       "path": "/policy/evaluate",
       "description": "Architecture-aligned Policy entry for Permission and Safety State checks.",
-      "req_ids": ["FW-U-007", "FW-S-005", "NV-G-005"]
+      "req_ids": [
+        "FW-U-007",
+        "FW-S-005",
+        "NV-G-005"
+      ]
     },
     {
       "method": "GET",
       "path": "/audit/recent",
       "description": "Returns recent Runtime & Governance audit records created by SOA calls; optional JSONL persistence is enabled by CENTRAL_BRAIN_AUDIT_LOG. Linux IPC/gRPC samples can also resolve this through the shared governance socket before REST fallback.",
-      "req_ids": ["XSC-005", "NV-G-007", "DEL-002"]
+      "req_ids": [
+        "XSC-005",
+        "NV-G-007",
+        "DEL-002"
+      ]
     },
     {
       "method": "GET",
       "path": "/bindings",
       "description": "Returns Protocol Binding status for active REST, Android Binder/AIDL sample, Linux IPC sample, Linux gRPC/RPC JSON contract sample, and planned MQTT/SOME-IP/DDS paths.",
-      "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006"]
+      "req_ids": [
+        "XSC-006",
+        "NV-P-001",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-004",
+        "NV-P-005",
+        "NV-P-006"
+      ]
     },
     {
       "method": "GET",
       "path": "/bindings/detail",
       "description": "Returns Protocol Binding contract artifacts for Android Binder/AIDL, Android system service integration notes, Linux IPC, and Linux gRPC/RPC sample artifacts.",
-      "req_ids": ["XSC-006", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
+      "req_ids": [
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003",
+        "DEL-004"
+      ]
     },
     {
       "method": "GET",
@@ -263,8 +521,12 @@
           {
             "binding": "android-binder-aidl|linux-ipc|linux-grpc-rpc|rest-http-json|mqtt|someip|dds",
             "current_state": "service-stub-sample|active-sample|grpc-json-active-sample|active-prototype|planned-policy-gated",
-            "blocked_by": ["target platform decision"],
-            "validation": ["string"]
+            "blocked_by": [
+              "target platform decision"
+            ],
+            "validation": [
+              "string"
+            ]
           }
         ],
         "summary": {
@@ -274,7 +536,19 @@
           "service_dispatch_triggered": false
         }
       },
-      "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
+      "req_ids": [
+        "XSC-006",
+        "NV-P-001",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-004",
+        "NV-P-005",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003",
+        "DEL-004"
+      ]
     },
     {
       "method": "GET",
@@ -285,9 +559,15 @@
           {
             "target": "android-debug-console|linux-ipc-daemon-sample|linux-grpc-rpc-sample|driver-hal-gap-backlog",
             "current_state": "debug-apk-binder-sample|active-unix-socket-sample|grpc-json-active-sample|read-only-gap-contract",
-            "ready_for": ["string"],
-            "blocked_by": ["target platform decision"],
-            "validation": ["string"]
+            "ready_for": [
+              "string"
+            ],
+            "blocked_by": [
+              "target platform decision"
+            ],
+            "validation": [
+              "string"
+            ]
           }
         ],
         "summary": {
@@ -299,19 +579,51 @@
           "service_dispatch_triggered": false
         }
       },
-      "req_ids": ["DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006"]
+      "req_ids": [
+        "DEL-001",
+        "DEL-002",
+        "DEL-003",
+        "DEL-004",
+        "DEL-005",
+        "XSC-001",
+        "XSC-002",
+        "XSC-003",
+        "XSC-004",
+        "XSC-005",
+        "XSC-006"
+      ]
     },
     {
       "method": "GET",
       "path": "/native/adapters",
       "description": "Returns Native adapter registry for AIOS Kernel, SOA Service Adapter, Vehicle Signal Adapter, Model Runtime Adapter, and Security/Policy Adapter.",
-      "req_ids": ["XSC-004", "NV-F-001", "NV-F-003", "NV-F-004", "NV-F-008", "NV-F-009", "NV-F-011"]
+      "req_ids": [
+        "XSC-004",
+        "NV-F-001",
+        "NV-F-003",
+        "NV-F-004",
+        "NV-F-008",
+        "NV-F-009",
+        "NV-F-011"
+      ]
     },
     {
       "method": "GET",
       "path": "/native/adapters/detail",
       "description": "Returns Native adapter integration constraints, Android primary path, Linux sync path, and driver/HAL dependency notes.",
-      "req_ids": ["XSC-004", "NV-F-001", "NV-F-003", "NV-F-004", "NV-F-005", "NV-F-008", "NV-F-009", "NV-F-011", "DEL-001", "DEL-002", "DEL-005"]
+      "req_ids": [
+        "XSC-004",
+        "NV-F-001",
+        "NV-F-003",
+        "NV-F-004",
+        "NV-F-005",
+        "NV-F-008",
+        "NV-F-009",
+        "NV-F-011",
+        "DEL-001",
+        "DEL-002",
+        "DEL-005"
+      ]
     },
     {
       "method": "GET",
@@ -333,25 +645,48 @@
           "current_increment": "contract-backlog-only"
         }
       },
-      "req_ids": ["KH-003", "KH-006", "KH-007", "DEL-001", "DEL-002", "DEL-005", "HW-002", "NV-F-011"]
+      "req_ids": [
+        "KH-003",
+        "KH-006",
+        "KH-007",
+        "DEL-001",
+        "DEL-002",
+        "DEL-005",
+        "HW-002",
+        "NV-F-011"
+      ]
     },
     {
       "method": "GET",
       "path": "/tools",
       "description": "Returns mock Tool schemas for AI tool calls.",
-      "req_ids": ["FW-U-006"]
+      "req_ids": [
+        "FW-U-006"
+      ]
     },
     {
       "method": "GET",
       "path": "/ai/sdk/capabilities",
       "description": "Returns AI SDK facade capabilities and the Android/Linux task planning, execute, Skill, and Memory delivery paths.",
-      "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-001",
+        "APP-004",
+        "NV-F-001",
+        "FW-U-006",
+        "FW-U-007",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "POST",
       "path": "/permission/check",
       "description": "Compatibility alias for Policy evaluation during Action/Tool/Service calls.",
-      "req_ids": ["FW-U-007", "FW-S-005", "NV-G-005"]
+      "req_ids": [
+        "FW-U-007",
+        "FW-S-005",
+        "NV-G-005"
+      ]
     },
     {
       "method": "GET",
@@ -391,31 +726,74 @@
       "method": "POST",
       "path": "/agent/plan",
       "description": "Converts a user intent or scene trigger into a policy-aware task graph whose executable steps must route through Uni Info Bus, Tool, Action, or SOA entries.",
-      "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "XSC-002", "XSC-003", "FW-S-005"]
+      "req_ids": [
+        "XSC-001",
+        "APP-004",
+        "NV-F-001",
+        "FW-U-006",
+        "FW-U-007",
+        "XSC-002",
+        "XSC-003",
+        "FW-S-005"
+      ]
     },
     {
       "method": "POST",
       "path": "/agent/execute",
       "description": "Validates a policy-approved task graph and returns execution dispatch boundaries without calling real Skill runtime, Model Runtime Adapter, Driver/HAL, vehicle bus, or virtualization.",
-      "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "FW-U-007", "XSC-005", "NV-G-005", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-001",
+        "APP-004",
+        "NV-F-001",
+        "FW-U-006",
+        "FW-U-007",
+        "XSC-005",
+        "NV-G-005",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "GET",
       "path": "/skills",
       "description": "Returns built-in Skill manifests with sandbox, permissions, Safety State, and semantic entry constraints.",
-      "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-001",
+        "NV-F-001",
+        "FW-U-006",
+        "FW-U-007",
+        "NV-G-005",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "POST",
       "path": "/skills/{skill_id}/invoke",
       "description": "Invokes a sandbox-contract mock Skill after Policy/Safety State evaluation and records audit without direct Driver/HAL or vehicle bus dispatch.",
-      "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-001",
+        "NV-F-001",
+        "FW-U-006",
+        "FW-U-007",
+        "NV-G-005",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "POST",
       "path": "/memory/query",
       "description": "Queries local-only mock vehicle/user memory for task context after Policy/Safety State evaluation; no cloud sync or memory write occurs.",
-      "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "FW-U-007", "NV-G-005", "DEL-001", "DEL-002"]
+      "req_ids": [
+        "XSC-001",
+        "NV-F-001",
+        "FW-U-006",
+        "FW-U-007",
+        "NV-G-005",
+        "DEL-001",
+        "DEL-002"
+      ]
     },
     {
       "method": "POST",
@@ -441,7 +819,9 @@
     "max_requests": "number",
     "current_count": "number",
     "retry_after_ms": "number",
-    "req_ids": ["NV-G-004"]
+    "req_ids": [
+      "NV-G-004"
+    ]
   },
   "semantic_objects": {
     "context": [

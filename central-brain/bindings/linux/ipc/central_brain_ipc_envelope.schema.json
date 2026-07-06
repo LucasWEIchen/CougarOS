@@ -17,6 +17,7 @@
         "uib.events.topics",
         "uib.events.publish",
         "uib.events.recent",
+        "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",
         "agent.plan",

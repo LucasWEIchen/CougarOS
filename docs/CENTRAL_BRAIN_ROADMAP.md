@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 A1 FW-U-008 Uni Info Bus extension registry contract：
+  - 新增 `GET /uib/extensions`，以只读 contract 暴露扩展语义对象、schema 状态、治理规则、binding 可见性和 no-dispatch 边界，避免“其他/扩展”能力绕开 Uni Info Bus、SOA、Runtime & Governance 或 Protocol Binding。
+  - Android Binder/AIDL 新增 `getUibExtensionsJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `extensions`/`uib.extensions.get`/`GetUibExtensions` 可见路径。
+  - 本轮只补 FW-U-008 扩展机制 contract 可查询能力，不实现动态插件 runtime、真实 extension loader、SOA dispatch、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-008、XSC-005、XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - 推进 A9 Android/Linux delivery readiness contract：
   - 新增 `GET /delivery/readiness`，集中暴露 Android debug Console/Binder、Android system service note、Linux CLI、Linux IPC、Linux gRPC/RPC、Linux systemd/package profile、Driver/HAL gap backlog 和虚拟化约束的当前状态、阻塞项、验证命令和非目标边界。
   - Android Binder/AIDL 新增 `getDeliveryReadinessJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `delivery-readiness`/`delivery.readiness.get`/`GetDeliveryReadiness` 可见路径。

@@ -15,6 +15,8 @@ A7 虚拟化与 Safety 接口约束增量只新增 `docs/CENTRAL_BRAIN_VIRTUALIZ
 
 A1 Event active mock 增量只新增 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` 语义入口，以及 Android Binder、Linux IPC、gRPC contract skeleton 的 Event 映射；覆盖 XSC-002、XSC-006、FW-U-003、NV-P-002、NV-P-006、DEL-001、DEL-002。不新增 DDS、高频传感器 topic、共享内存、Driver/HAL、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
 
+FW-U-008 Uni Info Bus extension registry contract 增量只新增 `GET /uib/extensions`、Android Binder/AIDL `getUibExtensionsJson`、Linux CLI/IPC `extensions`/`uib.extensions.get` 和 Linux gRPC/RPC `GetUibExtensions` 映射；覆盖 XSC-002、FW-U-008、XSC-005、XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。该增量只暴露扩展语义对象、schema 状态、治理规则、binding 可见性和 no-dispatch 边界，不加载插件，不 dispatch SOA service，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、车辆总线或虚拟化代码。
+
 A5 Native adapters mock 的 `/native/adapters/detail` 只记录 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界和 Driver/HAL 依赖，不新增驱动代码。
 
 A6 NPU Runtime Adapter 接口约束增量新增 `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` 和 `tools/check_central_brain_npu_interface.sh`，覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005；只固定 Android/Linux runtime contract、状态机、错误码和 Driver/HAL 集成检查点，不新增 NPU driver、HAL、DMA/IOMMU、Safety Runtime、vendor SDK bridge 或虚拟化代码。
