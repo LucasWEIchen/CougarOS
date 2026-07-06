@@ -30,7 +30,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.25"
+API_VERSION = "0.1.26"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -143,6 +143,10 @@ def envelope(payload: dict[str, Any], trace_id: str | None = None, status: str =
 
 def services_payload() -> dict[str, Any]:
     return GOVERNANCE.services_payload()
+
+
+def service_contracts_payload() -> dict[str, Any]:
+    return GOVERNANCE.service_contracts_payload()
 
 
 def context_payload() -> dict[str, Any]:
@@ -693,6 +697,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(state_payload()))
         elif path == "/soa/services":
             self.send_json(200, envelope(services_payload()))
+        elif path == "/soa/contracts":
+            self.send_json(200, envelope(service_contracts_payload()))
         elif path == "/governance/runtime":
             self.send_json(200, envelope(governance_payload()))
         elif path == "/governance/backend-contract":

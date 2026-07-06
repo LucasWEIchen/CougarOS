@@ -56,6 +56,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "QueryMemory": {"method": "POST", "path": "/memory/query", "req_ids": ["XSC-001", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},
     "RequestAction": {"method": "POST", "path": "/uib/actions/request", "req_ids": ["XSC-002", "FW-U-004", "FW-U-007", "XSC-005", "NV-G-005", "NV-P-003", "DEL-002"]},
     "ListServices": {"method": "GET", "path": "/soa/services", "req_ids": ["XSC-003", "FW-S-004", "NV-P-003", "DEL-002"]},
+    "GetServiceContracts": {"method": "GET", "path": "/soa/contracts", "req_ids": ["XSC-003", "FW-S-004", "NV-G-003", "NV-P-003", "DEL-002"]},
     "InvokeService": {"method": "POST", "path": "/soa/invoke", "req_ids": ["XSC-003", "FW-S-005", "NV-G-004", "NV-P-003", "DEL-002"]},
     "EvaluatePolicy": {"method": "POST", "path": "/policy/evaluate", "req_ids": ["XSC-005", "NV-G-005", "NV-P-003", "DEL-002"]},
     "PrecheckGovernance": {"method": "POST", "path": "/governance/precheck", "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "DEL-002"]},

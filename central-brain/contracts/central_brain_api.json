@@ -1,7 +1,7 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.25",
-  "updated": "2026-07-06",
+  "version": "0.1.26",
+  "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback",
@@ -10,7 +10,8 @@
     "shared_governance_backend_contract": "GET /governance/backend-contract describes the target shared governance backend operations for Android Binder, Linux IPC, and Linux gRPC/RPC replacement",
     "shared_governance_migration_check": "GET /governance/migration-check reports production backend replacement invariants, binding readiness, and open decisions without implementing the production backend",
     "shared_governance_deployment_plan": "GET /governance/deployment-plan reports Android system service, Linux daemon, and gRPC/RPC deployment shapes plus open decisions without implementing the production backend",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, and getGovernanceDeploymentPlanJson",
+    "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, and getGovernanceDeploymentPlanJson",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
@@ -130,6 +131,26 @@
       "path": "/soa/services",
       "description": "Returns SOA service entries with contract, permissions, safety state, and runtime registration metadata.",
       "req_ids": ["XSC-003", "FW-S-001", "FW-S-002", "FW-S-003", "FW-S-004", "NV-G-001", "NV-G-002", "NV-G-003"]
+    },
+    {
+      "method": "GET",
+      "path": "/soa/contracts",
+      "description": "Returns SOA service contracts from the Runtime & Governance service catalog with version, domain, policy, safety states, QoS, lifecycle, schema source, and no-dispatch boundaries for Android/Linux binding visibility.",
+      "response": {
+        "contracts": [
+          {
+            "service": "vehicle-state",
+            "version": "0.1.0",
+            "domain": "atomic|foundation|business",
+            "contract": "string",
+            "semantic_entry": "string",
+            "policy": {"permissions": ["service.read"], "allowed_safety_states": ["normal"]},
+            "dispatch_boundary": {"service_invoked": false, "driver_hal": "not-dispatched", "virtualization": "not-developed"}
+          }
+        ],
+        "summary": {"service_dispatch_triggered": false}
+      },
+      "req_ids": ["XSC-003", "FW-S-001", "FW-S-002", "FW-S-003", "FW-S-004", "FW-S-005", "NV-G-001", "NV-G-002", "NV-G-003", "DEL-001", "DEL-002"]
     },
     {
       "method": "POST",

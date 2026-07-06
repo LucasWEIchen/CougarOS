@@ -18,6 +18,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "context": ("GET", "/uib/context", None),
     "state": ("GET", "/uib/state", None),
     "services": ("GET", "/soa/services", None),
+    "service-contracts": ("GET", "/soa/contracts", None),
     "events": ("GET", "/uib/events/topics", None),
     "event-recent": ("GET", "/uib/events/recent", None),
     "governance": ("GET", "/governance/runtime", None),

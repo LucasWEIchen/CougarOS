@@ -96,6 +96,22 @@ CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/binding
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" skill-invoke >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" memory-query >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" action-request >/dev/null
+SERVICE_CONTRACTS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" service-contracts)"
+python3 - "$SERVICE_CONTRACTS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+contract_names = {contract["service"] for contract in payload["contracts"]}
+assert response["status"] == "ok", response
+assert "vehicle-state" in contract_names, response
+assert "npu-inference" in contract_names, response
+assert payload["summary"]["service_dispatch_triggered"] is False, response
+assert "FW-S-004" in encoded and "NV-G-003" in encoded, response
+assert "not-dispatched" in encoded, response
+PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
 import json
@@ -287,6 +303,7 @@ assert "agent.execute" in encoded, response
 assert "skills.invoke" in encoded, response
 assert "memory.query" in encoded, response
 assert "uib.actions.request" in encoded, response
+assert "soa.contracts.get" in encoded, response
 assert "governance.precheck" in encoded, response
 assert "governance.backend.contract.get" in encoded, response
 assert "XSC-006" in encoded and "NV-P-002" in encoded and "DEL-002" in encoded, response

@@ -45,6 +45,8 @@ interface ICentralBrainGateway {
 
     String listServicesJson(String traceId);
 
+    String getServiceContractsJson(String traceId);
+
     String invokeServiceJson(String traceId, String requestJson);
 
     String evaluatePolicyJson(String traceId, String requestJson);

@@ -68,6 +68,7 @@ checks = [
     ),
     ("GET", "/uib/events/recent", None, "FW-U-003"),
     ("GET", "/soa/services", None, "FW-S-004"),
+    ("GET", "/soa/contracts", None, "NV-G-003"),
     ("GET", "/governance/runtime", None, "NV-G-005"),
     ("GET", "/governance/backend-contract", None, "NV-P-003"),
     ("GET", "/governance/migration-check", None, "DEL-004"),
@@ -231,6 +232,15 @@ for method, path, body, req_id in checks:
         assert payload["payload"]["summary"]["driver_development_triggered"] is False, "driver gap endpoint triggered development"
         assert "future HAL/AIDL/vendor bridge" in json.dumps(payload), "Android Driver/HAL target missing"
         assert "future device node/vendor daemon" in json.dumps(payload), "Linux Driver/HAL target missing"
+    if path == "/soa/contracts":
+        contracts = payload["payload"]["contracts"]
+        contract_names = {contract["service"] for contract in contracts}
+        assert "vehicle-state" in contract_names, "SOA contracts missing vehicle-state"
+        assert "npu-inference" in contract_names, "SOA contracts missing npu-inference"
+        assert payload["payload"]["summary"]["service_dispatch_triggered"] is False, "SOA contract query dispatched a service"
+        assert "FW-S-004" in json.dumps(payload), "SOA contracts missing Service Contract Req ID"
+        assert "NV-G-003" in json.dumps(payload), "SOA contracts missing Schema Req ID"
+        assert "not-dispatched" in json.dumps(payload), "SOA contracts missing no-dispatch boundary"
     if path == "/agent/plan":
         task = payload["payload"]["task"]
         assert task["state"] == "planned", "agent plan was not accepted"
@@ -304,6 +314,7 @@ print("semantic gateway smoke ok")
 PY
 
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" state >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" service-contracts >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" events >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-publish >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-recent >/dev/null

@@ -25,6 +25,7 @@
         "skills.invoke",
         "memory.query",
         "soa.services.list",
+        "soa.contracts.get",
         "soa.service.invoke",
         "policy.evaluate",
         "governance.precheck",

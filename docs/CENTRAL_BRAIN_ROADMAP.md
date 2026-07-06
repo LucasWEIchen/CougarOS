@@ -1,6 +1,6 @@
 # 车载中央大脑路线图与进展
 
-更新时间：2026-07-06
+更新时间：2026-07-07
 
 ## 长期任务拆解
 
@@ -10,7 +10,7 @@
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
-| A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
+| A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke + service contract visibility 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
@@ -50,6 +50,14 @@
 - 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
+
+### 2026-07-07
+
+- 推进 A2 SOA service contract 可见性：
+  - 新增 `GET /soa/contracts`，从 `runtime_governance.SERVICE_CATALOG` 暴露服务 contract、版本、domain、Policy/Safety State、QoS、Lifecycle、schema source 和 no-dispatch 边界。
+  - Android Binder/AIDL 新增 `getServiceContractsJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `service-contracts`/`soa.contracts.get`/`GetServiceContracts` 可见路径。
+  - 本轮只补 SOA contract 可查询能力，不 dispatch SOA service，不消费 QoS，不访问 Driver/HAL、车辆总线、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-003、FW-S-001、FW-S-002、FW-S-003、FW-S-004、FW-S-005、NV-G-001、NV-G-002、NV-G-003、NV-P-002、NV-P-003、DEL-001、DEL-002。
 
 ### 2026-07-06
 

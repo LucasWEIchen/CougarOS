@@ -44,6 +44,7 @@ Brain semantic gateway.
 | `skills.invoke` | `POST /skills/{skill_id}/invoke` | XSC-001, FW-U-006, NV-G-005 |
 | `memory.query` | `POST /memory/query` | XSC-001, NV-F-001, FW-U-006 |
 | `soa.services.list` | `GET /soa/services` | XSC-003, FW-S-001..004 |
+| `soa.contracts.get` | `GET /soa/contracts` | XSC-003, FW-S-004, NV-G-003 |
 | `soa.service.invoke` | shared Linux governance daemon precheck with local fallback -> `POST /soa/invoke` | XSC-003, XSC-005, FW-S-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | `policy.evaluate` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
 | `governance.precheck` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
@@ -56,6 +57,8 @@ Brain semantic gateway.
 
 The gRPC/RPC JSON sample maps the same semantic endpoints through
 `CentralBrainGateway.*` RPC names from `proto/central_brain_gateway.proto`.
+`CentralBrainGateway.GetServiceContracts` exposes the same SOA contract catalog
+as Android Binder and Linux IPC without invoking services.
 `CentralBrainGateway.InvokeService` calls the shared Linux governance daemon
 through the same helper as Linux IPC before forwarding allowed SOA calls and
 falls back to local Runtime & Governance when the shared socket is unavailable.
@@ -104,6 +107,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py action-request
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py service-contracts
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-precheck
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-backend-contract
@@ -149,6 +154,8 @@ Call it with the sample client:
 ```bash
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py state
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py service-contracts
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-precheck
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \

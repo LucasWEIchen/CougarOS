@@ -67,6 +67,7 @@
 | --- | --- | --- | --- |
 | System | 健康、版本、能力 | HTTP/JSON | AIDL system/privileged service + REST debug |
 | Registry | 服务注册发现 | HTTP/JSON | AIDL/gRPC/SOME-IP-SD |
+| SOA Contract | 服务契约、版本、Policy/Safety State、QoS、Lifecycle | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
 | Context | 车辆/用户/环境上下文 | HTTP/JSON | AIDL + DDS event |
 | Event | Uni Info Bus 事件 topic、发布、recent log | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；高频 topic 预留 DDS |
 | Action | Uni Info Bus 受控动作请求、Policy 检查、执行状态 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；真实车控需 Vehicle Signal/ECU Adapter + Driver/HAL |
@@ -114,6 +115,16 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | POST | `/actions/request` | legacy 兼容入口 | 是 |
 
 `/uib/actions/request` 覆盖 XSC-002、FW-U-004、FW-U-007、XSC-005、NV-G-005、DEL-001、DEL-002。当前只返回 `execution_mode=policy-checked-mock` 和 `dispatch.driver_hal=not-dispatched`；真实座舱/车控写操作必须后续接入 Vehicle Signal/ECU Adapter、SOA Service Runtime、Driver/HAL 和 Safety Runtime，不允许由 App 或 REST binding 直连底层。
+
+### SOA Service Contract
+
+| Method | Path | 用途 | 已实现 |
+| --- | --- | --- | --- |
+| GET | `/soa/services` | 服务目录、领域、权限、安全状态和 runtime registration metadata | 是 |
+| GET | `/soa/contracts` | 服务 contract、版本、Policy/Safety State、QoS、Lifecycle、schema source 和 no-dispatch 边界 | 是 |
+| POST | `/soa/invoke` | 经 Runtime & Governance precheck 后调用服务 | 是 |
+
+`/soa/contracts` 覆盖 XSC-003、FW-S-001..005、NV-G-001..003、DEL-001、DEL-002。该接口只读取 `runtime_governance.SERVICE_CATALOG`，不 dispatch SOA service，不消费 QoS，不访问 Driver/HAL、车辆总线或虚拟化层；Android Binder、Linux IPC 和 Linux gRPC/RPC 均暴露同一 contract view。
 
 ### Agent
 

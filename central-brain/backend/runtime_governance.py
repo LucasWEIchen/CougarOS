@@ -226,6 +226,55 @@ class RuntimeGovernance:
             "req_ids": ["XSC-003", "FW-S-001", "FW-S-002", "FW-S-003", "FW-S-004", "NV-G-001"],
         }
 
+    def service_contracts_payload(self) -> dict[str, Any]:
+        contracts: list[dict[str, Any]] = []
+        for service in copy.deepcopy(SERVICE_CATALOG):
+            contracts.append(
+                {
+                    "service": service["name"],
+                    "version": service["version"],
+                    "domain": service["domain"],
+                    "contract": service["contract"],
+                    "semantic_entry": service["semantic_entry"],
+                    "lifecycle_state": self.lifecycle.get(service["name"], "unknown"),
+                    "policy": {
+                        "permissions": service["permissions"],
+                        "allowed_safety_states": service["allowed_safety_states"],
+                    },
+                    "qos": service["qos"],
+                    "implementation": service["implementation"],
+                    "schema_source": "runtime_governance.SERVICE_CATALOG",
+                    "dispatch_boundary": {
+                        "service_invoked": False,
+                        "driver_hal": "not-dispatched",
+                        "vehicle_bus": "not-dispatched",
+                        "virtualization": "not-developed",
+                    },
+                    "req_ids": sorted(set(service["req_ids"] + ["XSC-003", "FW-S-004", "NV-G-003"])),
+                }
+            )
+
+        return {
+            "contracts": contracts,
+            "summary": {
+                "contract_count": len(contracts),
+                "schema_source": "runtime_governance.SERVICE_CATALOG",
+                "validation_state": "contract-visible-active-prototype",
+                "service_dispatch_triggered": False,
+            },
+            "domains": {
+                "business": [contract["service"] for contract in contracts if contract["domain"] == "business"],
+                "foundation": [contract["service"] for contract in contracts if contract["domain"] == "foundation"],
+                "atomic": [contract["service"] for contract in contracts if contract["domain"] == "atomic"],
+            },
+            "constraints": [
+                "SOA service contracts are queryable before dispatch and share the Runtime & Governance registry source.",
+                "Contract visibility does not invoke services, consume QoS, access Driver/HAL, call the vehicle bus, or develop virtualization.",
+                "Android Binder, Linux IPC, and Linux gRPC/RPC bindings must expose the same service contract view.",
+            ],
+            "req_ids": ["XSC-003", "FW-S-001", "FW-S-002", "FW-S-003", "FW-S-004", "FW-S-005", "NV-G-001", "NV-G-002", "NV-G-003", "DEL-001", "DEL-002"],
+        }
+
     def discover(self, service_name: str) -> dict[str, Any] | None:
         for service in SERVICE_CATALOG:
             if service["name"] == service_name:

@@ -20,7 +20,7 @@
 | --- | --- | --- | --- | --- |
 | AI SDK | XSC-001 | Android Binder/AIDL `planAgentTaskJson`、`executeAgentTaskJson`、Skill/Memory contract sample + `/ai/sdk/capabilities` | Linux CLI/IPC `agent-plan`、`agent-execute`、`skill-invoke`、`memory-query` active sample + `/ai/sdk/capabilities` | 黄色小太阳，跨 SoC；当前是 facade/plan/execute/Skill/Memory contract mock，不是真实 SDK library |
 | Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request` 初版 |
-| SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
+| SOA 服务入口 | XSC-003 | Android service/client + Binder `getServiceContractsJson` | Linux daemon/client + CLI/IPC/gRPC `service-contracts`/`soa.contracts.get`/`GetServiceContracts` | `/soa/services`、`/soa/contracts`、`/soa/invoke` 初版；contract 查询不 dispatch 服务 |
 | AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample + Driver/HAL gap visibility | Linux service adapter + Agent execute/Skill/Memory boundary sample + `driver-gaps` CLI | `GET /native/adapters/detail` 与 `GET /native/driver-gaps`；AIOS Kernel 真实 runtime 仍未实现 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + Console `Precheck` 调用 `precheckGovernanceJson` + Binder `getGovernanceBackendContractJson`/`getGovernanceMigrationCheckJson`/`getGovernanceDeploymentPlanJson` 目标契约、迁移检查与部署计划可见性 | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux shared governance daemon precheck/runtime/audit diagnostics + IPC/gRPC shared governance client precheck/runtime/audit direct diagnostic path + local/REST fallback + `governance-precheck` + `governance-backend-contract` + `governance-migration-check` + `governance-deployment-plan` | `/governance/runtime`、`/governance/precheck`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke`、Linux governance daemon 与 Linux IPC/gRPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；shared governance socket 可直接查询 runtime/audit，且 IPC/gRPC sample 优先使用该 direct path；`/governance/precheck` 默认只检查不消费 QoS；`/governance/backend-contract` 是目标契约，`/governance/migration-check` 是替换 readiness 检查，`/governance/deployment-plan` 是部署形态 contract，均不是量产治理后端 |
 | Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射和 shared governance backend target/migration/deployment contract | REST active prototype + Unix socket IPC daemon/client active sample with shared governance client precheck/runtime/audit direct diagnostics/backend contract/deployment visibility + Linux gRPC/RPC JSON contract sample with same diagnostics + systemd sample + unit hardening check + package profile check，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；当前 gRPC/RPC sample 因环境无 `grpcio` 使用 JSON TCP wrapper；DDS 不在本轮实现 |
@@ -58,6 +58,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-publish
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-recent
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py service-contracts
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py driver-gaps
@@ -132,6 +133,7 @@ Android 版本必须提供：
 - 通过 `CentralBrainGatewayClient.getGovernanceBackendContractJson` 查看共享 Runtime & Governance 后端目标契约，确认 Binder/IPC/gRPC 未来替换时共用 `governance.precheck`、`governance.runtime.get`、`audit.recent.get` 操作边界。
 - 通过 `CentralBrainGatewayClient.getGovernanceMigrationCheckJson` 查看生产共享治理后端替换 readiness，确认 SOA precheck、不复制 Policy/QoS、runtime/audit 只读诊断和非目标边界。
 - 通过 `CentralBrainGatewayClient.getGovernanceDeploymentPlanJson` 查看共享 Runtime & Governance 后端部署计划，确认 Android system/privileged service、Linux daemon 和 true gRPC/RPC 的目标形态、身份输入和开放决策。
+- 通过 `CentralBrainGatewayClient.getServiceContractsJson` 查看 SOA service contract、版本、Policy/Safety State、QoS、Lifecycle 和 no-dispatch 边界，确认 FW-S-004/NV-G-003 contract 可见性。
 - 通过 `CentralBrainGatewayClient.getDriverHalGapsJson` 查看 KH-003/KH-006/DEL-005 的 Driver/HAL gap backlog；该路径只读，不触发任何驱动开发或 HAL 调用。
 - Binder service sample 内部仍以 REST prototype gateway 作为上游绑定，不代表量产 system service。
 
@@ -143,6 +145,7 @@ Android 版本必须提供：
 - `GET /bindings/detail`
 - `GET /native/adapters/detail`
 - `GET /native/driver-gaps`
+- `GET /soa/contracts`
 - `GET /uib/events/topics`
 - `POST /uib/events/publish`
 - `GET /uib/events/recent`

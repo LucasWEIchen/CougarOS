@@ -12,7 +12,7 @@ Brain semantic gateway.
 - The Android Console debug APK now binds this service sample before calling
   Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
   Memory query, Runtime & Governance precheck, shared governance backend target
-  contract, governance migration readiness, governance deployment plan, and Driver/HAL gap backlog contract mocks. The Binder service
+  contract, governance migration readiness, governance deployment plan, SOA service contract visibility, and Driver/HAL gap backlog contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
   binding.
 
@@ -33,6 +33,7 @@ Brain semantic gateway.
 | `queryMemoryJson` | `POST /memory/query` | XSC-001, NV-F-001, FW-U-006 |
 | `requestActionJson` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `listServicesJson` | `GET /soa/services` | XSC-003, FW-S-001..004 |
+| `getServiceContractsJson` | `GET /soa/contracts` | XSC-003, FW-S-004, NV-G-003 |
 | `invokeServiceJson` | `POST /soa/invoke` | XSC-003, FW-S-005 |
 | `evaluatePolicyJson` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
 | `precheckGovernanceJson` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
@@ -92,6 +93,10 @@ Brain semantic gateway.
   check for that backend replacement. It reports the SOA precheck, Policy/QoS
   ownership, runtime/audit diagnostic, and non-goal invariants and explicitly
   does not implement a production governance backend.
+- `getServiceContractsJson` exposes SOA service contract, version, Policy,
+  Safety State, QoS, Lifecycle, and no-dispatch boundary metadata from the same
+  Runtime & Governance catalog used by `/soa/services`; it does not invoke the
+  service, Driver/HAL, vehicle bus, or virtualization layer.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it
   does not call HAL, device nodes, vendor SDKs, or Safety Runtime.

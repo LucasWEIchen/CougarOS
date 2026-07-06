@@ -100,6 +100,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getServiceContractsJson(String traceId) throws RemoteException {
+            return get("/soa/contracts", traceId);
+        }
+
+        @Override
         public String invokeServiceJson(String traceId, String requestJson) throws RemoteException {
             return post("/soa/invoke", withTraceId(traceId, requestJson));
         }

@@ -100,6 +100,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/soa/services",
         "req_ids": ["XSC-003", "XSC-006", "FW-S-004", "NV-P-002", "DEL-002"],
     },
+    "soa.contracts.get": {
+        "method": "GET",
+        "path": "/soa/contracts",
+        "req_ids": ["XSC-003", "XSC-006", "FW-S-004", "NV-G-003", "NV-P-002", "DEL-002"],
+    },
     "soa.service.invoke": {
         "method": "POST",
         "path": "/soa/invoke",
