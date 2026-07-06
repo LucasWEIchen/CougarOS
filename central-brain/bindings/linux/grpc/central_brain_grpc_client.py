@@ -111,6 +111,8 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     ),
     "governance-backend-contract": ("GetGovernanceBackendContract", {}),
     "governance-migration-check": ("GetGovernanceMigrationCheck", {}),
+    "governance": ("GetRuntimeGovernance", {}),
+    "audit": ("GetRecentAudit", {"limit": 10}),
     "infer": (
         "InvokeService",
         {

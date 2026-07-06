@@ -65,3 +65,58 @@ def precheck_service_via_socket(
         "socket": socket_path,
     }
     return precheck, allowed
+
+
+def _diagnostic_payload_from_socket(
+    socket_path: str,
+    trace_id: str,
+    operation: str,
+    payload: dict[str, Any],
+    req_ids: list[str],
+    source_label: str,
+) -> dict[str, Any]:
+    result = call_governance_socket(socket_path, trace_id, operation, payload, req_ids)
+    if result.get("status") != "ok":
+        message = result.get("error", {}).get("message", f"governance daemon rejected {operation}")
+        raise OSError(message)
+
+    diagnostic = result["payload"]
+    diagnostic["diagnostic_source"] = {
+        "mode": source_label,
+        "socket": socket_path,
+        "operation": operation,
+    }
+    return diagnostic
+
+
+def get_runtime_via_socket(
+    socket_path: str,
+    trace_id: str,
+    req_ids: list[str],
+    source_label: str = "shared-linux-governance-daemon",
+) -> dict[str, Any]:
+    return _diagnostic_payload_from_socket(
+        socket_path,
+        trace_id,
+        "governance.runtime.get",
+        {},
+        req_ids,
+        source_label,
+    )
+
+
+def get_audit_via_socket(
+    socket_path: str,
+    trace_id: str,
+    payload: dict[str, Any],
+    req_ids: list[str],
+    source_label: str = "shared-linux-governance-daemon",
+) -> dict[str, Any]:
+    return _diagnostic_payload_from_socket(
+        socket_path,
+        trace_id,
+        "audit.recent.get",
+        payload,
+        req_ids,
+        source_label,
+    )

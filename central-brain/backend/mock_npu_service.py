@@ -30,7 +30,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.23"
+API_VERSION = "0.1.24"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()

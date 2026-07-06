@@ -142,6 +142,34 @@ assert payload["dispatch"]["service_invoked"] is False, response
 assert payload["qos_decision"]["consumed"] is False, response
 assert "NV-G-004" in json.dumps(payload), response
 PY
+GOVERNANCE_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance)"
+python3 - "$GOVERNANCE_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]
+diagnostic = payload["shared_governance_diagnostic"]
+assert response["status"] == "ok", response
+assert payload["forwarding"] == "shared-governance-socket", response
+assert diagnostic["diagnostic_source"]["operation"] == "governance.runtime.get", response
+assert diagnostic["shared_daemon"]["dispatch"]["service_invoked"] is False, response
+assert "NV-G-001" in json.dumps(diagnostic), response
+PY
+AUDIT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" audit)"
+python3 - "$AUDIT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]
+diagnostic = payload["shared_governance_diagnostic"]
+assert response["status"] == "ok", response
+assert payload["forwarding"] == "shared-governance-socket", response
+assert diagnostic["diagnostic_source"]["operation"] == "audit.recent.get", response
+assert diagnostic["shared_daemon"]["dispatch"]["service_invoked"] is False, response
+assert "NV-G-007" in json.dumps(diagnostic), response
+PY
 python3 - "$GOVERNANCE_SOCKET_PATH" <<'PY'
 import json
 import socket

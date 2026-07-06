@@ -22,6 +22,8 @@ from urllib.error import HTTPError, URLError
 BACKEND_DIR = Path(__file__).resolve().parents[3] / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
+from central_brain_governance_client import get_audit_via_socket
+from central_brain_governance_client import get_runtime_via_socket
 from central_brain_governance_client import precheck_service_via_socket
 from runtime_governance import RuntimeGovernance
 
@@ -209,6 +211,25 @@ def shared_governance_precheck(trace_id: str, payload: dict[str, Any]) -> tuple[
     )
 
 
+def shared_governance_diagnostic(trace_id: str, operation: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+    if not DEFAULT_GOVERNANCE_SOCKET:
+        return None
+    if operation == "governance.runtime.get":
+        return get_runtime_via_socket(
+            DEFAULT_GOVERNANCE_SOCKET,
+            trace_id,
+            ["XSC-005", "XSC-006", "NV-G-001", "NV-G-007", "NV-P-002", "DEL-002"],
+        )
+    if operation == "audit.recent.get":
+        return get_audit_via_socket(
+            DEFAULT_GOVERNANCE_SOCKET,
+            trace_id,
+            payload,
+            ["XSC-005", "XSC-006", "NV-G-007", "NV-P-002", "DEL-002"],
+        )
+    return None
+
+
 def ipc_governance_precheck(trace_id: str, operation: str, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:
     if operation != "soa.service.invoke":
         return None, True
@@ -243,6 +264,25 @@ def validate_envelope(envelope: Any) -> tuple[str, str, dict[str, Any]]:
 
 def call_gateway(base_url: str, trace_id: str, operation: str, payload: dict[str, Any]) -> dict[str, Any]:
     mapping = OPERATION_MAP[operation]
+    diagnostic_fallback_reason = None
+    if operation in {"governance.runtime.get", "audit.recent.get"}:
+        try:
+            diagnostic = shared_governance_diagnostic(trace_id, operation, payload)
+            if diagnostic is not None:
+                return response(
+                    trace_id,
+                    "ok",
+                    {
+                        "operation": operation,
+                        "semantic_path": mapping["path"],
+                        "forwarding": "shared-governance-socket",
+                        "shared_governance_diagnostic": diagnostic,
+                        "req_ids": mapping["req_ids"] + ["XSC-005", "NV-G-007"],
+                    },
+                )
+        except (OSError, TimeoutError, json.JSONDecodeError, KeyError, TypeError) as exc:
+            diagnostic_fallback_reason = f"shared governance daemon unavailable: {exc}"
+
     governance_precheck, can_forward = ipc_governance_precheck(trace_id, operation, payload)
     if governance_precheck is not None and not can_forward:
         return response(
@@ -277,6 +317,7 @@ def call_gateway(base_url: str, trace_id: str, operation: str, payload: dict[str
             "operation": operation,
             "semantic_path": mapping["path"],
             "ipc_governance_precheck": governance_precheck,
+            "shared_governance_diagnostic_fallback": diagnostic_fallback_reason,
             "gateway": gateway_payload,
             "req_ids": mapping["req_ids"],
         },

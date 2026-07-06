@@ -11,8 +11,8 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + Linux shared governance daemon runtime/audit diagnostics |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit diagnostics + backend contract/migration visibility + local fallback；Linux gRPC/RPC JSON contract sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog contract |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
@@ -53,6 +53,12 @@
 
 ### 2026-07-06
 
+- 推进 Linux IPC/gRPC shared governance runtime/audit diagnostic path：
+  - `central_brain_governance_client.py` 新增 `get_runtime_via_socket` 与 `get_audit_via_socket`，让 Linux IPC 与 Linux gRPC/RPC sample 在 `governance.runtime.get`/`GetRuntimeGovernance` 和 `audit.recent.get`/`GetRecentAudit` 上复用同一 shared governance socket envelope。
+  - `central_brain_ipc_daemon.py` 与 `central_brain_grpc_server.py` 对 runtime/audit 只读诊断优先走 shared governance daemon，不可用时回退 REST prototype gateway；SOA `InvokeService` precheck 仍保留 shared precheck + local Runtime & Governance fallback。
+  - Linux IPC/gRPC smoke 现在验证 runtime/audit 诊断经 `forwarding=shared-governance-socket` 返回，且不 dispatch SOA service、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 本轮未新增生产多进程治理后端、真实 gRPC runtime、Android framework/SELinux patch、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-005、XSC-006、NV-G-001、NV-G-002、NV-G-004、NV-G-007、NV-P-002、NV-P-003、DEL-002。
 - 推进 shared Runtime & Governance backend migration readiness check：
   - 新增 `GET /governance/migration-check`，用机器可读 payload 固定生产共享治理后端替换前必须保持的三类不变量：SOA dispatch 必须经 `governance.precheck`、各 transport 不复制 Policy/QoS 逻辑、runtime/audit 诊断只读且不触发 Driver/HAL/车辆总线/虚拟化。
   - Android Binder/AIDL 新增 `getGovernanceMigrationCheckJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `governance-migration-check`/`governance.migration.check`/`GetGovernanceMigrationCheck` 可见路径。

@@ -390,6 +390,8 @@ class RuntimeGovernance:
                 "client_helper": "central-brain/bindings/linux/ipc/central_brain_governance_client.py",
                 "android_path": "ICentralBrainGateway.getGovernanceBackendContractJson -> /governance/backend-contract",
                 "linux_cli": "central_brain_cli.py governance-backend-contract",
+                "linux_ipc_diagnostics": "governance.runtime.get and audit.recent.get can resolve through the shared governance socket before REST fallback",
+                "linux_grpc_rpc_diagnostics": "GetRuntimeGovernance and GetRecentAudit can resolve through the shared governance socket before REST fallback",
             },
             "required_operations": [
                 {
@@ -418,12 +420,12 @@ class RuntimeGovernance:
                     "req_ids": ["DEL-001", "NV-P-002", "XSC-005", "XSC-006"],
                 },
                 "linux_ipc": {
-                    "current": "Unix socket IPC active sample calls the shared governance socket for soa.service.invoke",
+                    "current": "Unix socket IPC active sample calls the shared governance socket for soa.service.invoke plus runtime/audit diagnostics",
                     "target": "same operation envelope backed by the production governance backend",
                     "req_ids": ["DEL-002", "NV-P-002", "XSC-005", "XSC-006"],
                 },
                 "linux_grpc_rpc": {
-                    "current": "JSON TCP wrapper mirrors proto RPC names and reuses the Linux governance socket client",
+                    "current": "JSON TCP wrapper mirrors proto RPC names and reuses the Linux governance socket client for precheck plus runtime/audit diagnostics",
                     "target": "true gRPC server keeps the same precheck/runtime/audit operation names",
                     "req_ids": ["DEL-002", "NV-P-003", "XSC-005", "XSC-006"],
                 },
@@ -451,7 +453,7 @@ class RuntimeGovernance:
                 "linux_shared_socket": "governance.precheck + governance.runtime.get + audit.recent.get",
                 "linux_client_helper": "central_brain_governance_client.py",
                 "android_visibility": "Binder/AIDL getGovernanceMigrationCheckJson",
-                "linux_visibility": "CLI/IPC/gRPC governance-migration-check",
+                "linux_visibility": "CLI/IPC/gRPC governance-migration-check plus IPC/gRPC direct runtime/audit diagnostic path",
             },
             "required_invariants": [
                 {
@@ -484,7 +486,7 @@ class RuntimeGovernance:
                 },
                 {
                     "binding": "linux-ipc",
-                    "current": "Unix socket IPC calls shared governance socket through the reusable client helper",
+                    "current": "Unix socket IPC calls shared governance socket through the reusable client helper for precheck and read-only runtime/audit diagnostics",
                     "target_replacement": "same operation envelope backed by production governance service",
                     "readiness": "sample-ready-for-backend-swap",
                     "open_decisions": ["target distro package format", "service account policy", "audit export backend"],
@@ -492,7 +494,7 @@ class RuntimeGovernance:
                 },
                 {
                     "binding": "linux-grpc-rpc",
-                    "current": "dependency-free JSON TCP sample mirrors proto RPC names and uses the shared governance client helper",
+                    "current": "dependency-free JSON TCP sample mirrors proto RPC names and uses the shared governance client helper for precheck and read-only runtime/audit diagnostics",
                     "target_replacement": "true gRPC server keeps the same governance precheck/runtime/audit operation names",
                     "readiness": "blocked-on-grpc-runtime-tooling",
                     "open_decisions": ["grpcio or C++ gRPC availability", "service credentials", "peer identity mapping"],

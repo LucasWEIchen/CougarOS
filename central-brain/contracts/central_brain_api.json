@@ -1,12 +1,12 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "updated": "2026-07-06",
   "transport": {
     "prototype": "http-json",
-    "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck via reusable governance socket client and local fallback",
-    "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck via reusable governance socket client and local fallback",
-    "linux_governance_socket_sample": "/tmp/central_brain_governance.sock with governance.precheck, governance.runtime.get, and audit.recent.get diagnostics",
+    "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback",
+    "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback",
+    "linux_governance_socket_sample": "/tmp/central_brain_governance.sock with governance.precheck, governance.runtime.get, and audit.recent.get diagnostics used directly by Linux IPC/gRPC samples",
     "shared_governance_backend_contract": "GET /governance/backend-contract describes the target shared governance backend operations for Android Binder, Linux IPC, and Linux gRPC/RPC replacement",
     "shared_governance_migration_check": "GET /governance/migration-check reports production backend replacement invariants, binding readiness, and open decisions without implementing the production backend",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getGovernanceBackendContractJson and getGovernanceMigrationCheckJson",
@@ -139,7 +139,7 @@
     {
       "method": "GET",
       "path": "/governance/runtime",
-      "description": "Returns Runtime & Governance state for Registry, Discovery, Schema, active fixed-window QoS, Policy, Lifecycle, and Audit.",
+      "description": "Returns Runtime & Governance state for Registry, Discovery, Schema, active fixed-window QoS, Policy, Lifecycle, and Audit; Linux IPC/gRPC samples can also resolve this through the shared governance socket before REST fallback.",
       "req_ids": ["XSC-005", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007"]
     },
     {
@@ -203,7 +203,7 @@
     {
       "method": "GET",
       "path": "/audit/recent",
-      "description": "Returns recent Runtime & Governance audit records created by SOA calls; optional JSONL persistence is enabled by CENTRAL_BRAIN_AUDIT_LOG.",
+      "description": "Returns recent Runtime & Governance audit records created by SOA calls; optional JSONL persistence is enabled by CENTRAL_BRAIN_AUDIT_LOG. Linux IPC/gRPC samples can also resolve this through the shared governance socket before REST fallback.",
       "req_ids": ["XSC-005", "NV-G-007", "DEL-002"]
     },
     {

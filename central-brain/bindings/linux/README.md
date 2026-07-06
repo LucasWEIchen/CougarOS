@@ -14,7 +14,8 @@ Brain semantic gateway.
   JSON envelope for a lightweight local IPC daemon.
 - `ipc/central_brain_ipc_daemon.py` is an active Unix socket sample that maps
   IPC envelopes to the architecture-aligned semantic gateway and calls a shared
-  Runtime & Governance socket precheck for `soa.service.invoke` when configured.
+  Runtime & Governance socket precheck for `soa.service.invoke` when configured;
+  runtime and audit diagnostics use the same shared socket before REST fallback.
 - `ipc/central_brain_governance_daemon.py` is a Linux Runtime & Governance
   socket sample for shared `governance.precheck`, `governance.runtime.get`,
   and `audit.recent.get` visibility across local binding processes.
@@ -48,8 +49,8 @@ Brain semantic gateway.
 | `governance.precheck` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | `governance.backend.contract.get` | `GET /governance/backend-contract` | XSC-005, XSC-006, NV-G-001..007, NV-P-002, NV-P-003 |
 | `governance.migration.check` | `GET /governance/migration-check` | XSC-005, XSC-006, NV-G-001, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007, NV-P-002, NV-P-003, DEL-002, DEL-003, DEL-004 |
-| `governance.runtime.get` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
-| `audit.recent.get` | `GET /audit/recent` | XSC-005, NV-G-007 |
+| `governance.runtime.get` | shared governance socket diagnostic, REST fallback to `GET /governance/runtime` | XSC-005, NV-G-001..007 |
+| `audit.recent.get` | shared governance socket diagnostic, REST fallback to `GET /audit/recent` | XSC-005, NV-G-007 |
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
 
 The gRPC/RPC JSON sample maps the same semantic endpoints through
@@ -63,6 +64,9 @@ transport replacement, not a production governance backend implementation.
 `CentralBrainGateway.GetGovernanceMigrationCheck` exposes the same read-only
 replacement readiness check as Binder and Linux IPC; it keeps production
 backend invariants visible without implementing that backend.
+`CentralBrainGateway.GetRuntimeGovernance` and
+`CentralBrainGateway.GetRecentAudit` use the same shared governance client as
+IPC for read-only diagnostics before falling back to the REST prototype gateway.
 
 ## Unix Socket Sample
 
@@ -101,6 +105,10 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-backend-contract
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-migration-check
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py audit
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 ```
@@ -144,6 +152,10 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-migration-check
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py audit
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py infer-denied
 ```
 
@@ -168,8 +180,9 @@ bash tools/check_central_brain_delivery_docs.sh
   `grpcio` is unavailable; target images can replace only the transport while
   keeping the same RPC names, Req IDs, and governance precheck behavior.
 - IPC and gRPC/RPC samples share `central_brain_governance_client.py` for the
-  `governance.precheck` socket envelope, so a future production governance
-  backend can replace that boundary once instead of separately per transport.
+  `governance.precheck`, `governance.runtime.get`, and `audit.recent.get`
+  socket envelopes, so a future production governance backend can replace that
+  boundary once instead of separately per transport.
 - `/governance/backend-contract` and the `governance.backend.contract.get` /
   `GetGovernanceBackendContract` binding operations document that future
   replacement boundary across Binder, IPC, and gRPC/RPC without implementing a

@@ -29,6 +29,8 @@ IPC_DIR = Path(__file__).resolve().parents[1] / "ipc"
 sys.path.insert(0, str(BACKEND_DIR))
 sys.path.insert(0, str(IPC_DIR))
 
+from central_brain_governance_client import get_audit_via_socket
+from central_brain_governance_client import get_runtime_via_socket
 from central_brain_governance_client import precheck_service_via_socket
 from runtime_governance import RuntimeGovernance
 
@@ -152,6 +154,25 @@ def shared_governance_precheck(trace_id: str, payload: dict[str, Any]) -> tuple[
     )
 
 
+def shared_governance_diagnostic(trace_id: str, rpc: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+    if not DEFAULT_GOVERNANCE_SOCKET:
+        return None
+    if rpc == "GetRuntimeGovernance":
+        return get_runtime_via_socket(
+            DEFAULT_GOVERNANCE_SOCKET,
+            trace_id,
+            ["XSC-005", "XSC-006", "NV-G-001", "NV-G-007", "NV-P-003", "DEL-002"],
+        )
+    if rpc == "GetRecentAudit":
+        return get_audit_via_socket(
+            DEFAULT_GOVERNANCE_SOCKET,
+            trace_id,
+            payload,
+            ["XSC-005", "XSC-006", "NV-G-007", "NV-P-003", "DEL-002"],
+        )
+    return None
+
+
 def grpc_governance_precheck(trace_id: str, rpc: str, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:
     if rpc != "InvokeService":
         return None, True
@@ -168,6 +189,26 @@ def grpc_governance_precheck(trace_id: str, rpc: str, payload: dict[str, Any]) -
 
 def call_gateway(base_url: str, trace_id: str, rpc: str, payload: dict[str, Any]) -> dict[str, Any]:
     mapping = RPC_MAP[rpc]
+    diagnostic_fallback_reason = None
+    if rpc in {"GetRuntimeGovernance", "GetRecentAudit"}:
+        try:
+            diagnostic = shared_governance_diagnostic(trace_id, rpc, payload)
+            if diagnostic is not None:
+                return make_response(
+                    trace_id,
+                    "ok",
+                    {
+                        "rpc": rpc,
+                        "semantic_path": mapping["path"],
+                        "forwarding": "shared-governance-socket",
+                        "shared_governance_diagnostic": diagnostic,
+                        "req_ids": mapping["req_ids"] + ["XSC-005", "NV-G-007"],
+                    },
+                    mapping["req_ids"] + ["XSC-005", "NV-G-007"],
+                )
+        except (OSError, TimeoutError, json.JSONDecodeError, KeyError, TypeError) as exc:
+            diagnostic_fallback_reason = f"shared governance daemon unavailable: {exc}"
+
     governance_precheck, can_forward = grpc_governance_precheck(trace_id, rpc, payload)
     if governance_precheck is not None and not can_forward:
         return make_response(
@@ -203,6 +244,7 @@ def call_gateway(base_url: str, trace_id: str, rpc: str, payload: dict[str, Any]
             "rpc": rpc,
             "semantic_path": mapping["path"],
             "grpc_governance_precheck": governance_precheck,
+            "shared_governance_diagnostic_fallback": diagnostic_fallback_reason,
             "gateway": gateway_payload,
             "req_ids": mapping["req_ids"],
         },

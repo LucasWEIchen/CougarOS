@@ -151,6 +151,36 @@ assert gateway_payload["qos_decision"]["consumed"] is False, response
 assert "NV-G-004" in json.dumps(gateway_payload), response
 PY
 
+GOVERNANCE_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance)"
+python3 - "$GOVERNANCE_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+diagnostic = payload["shared_governance_diagnostic"]
+assert response["status"] == "ok", response
+assert payload["forwarding"] == "shared-governance-socket", response
+assert diagnostic["diagnostic_source"]["operation"] == "governance.runtime.get", response
+assert diagnostic["shared_daemon"]["dispatch"]["service_invoked"] is False, response
+assert "NV-G-001" in json.dumps(diagnostic), response
+PY
+
+AUDIT_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" audit)"
+python3 - "$AUDIT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+diagnostic = payload["shared_governance_diagnostic"]
+assert response["status"] == "ok", response
+assert payload["forwarding"] == "shared-governance-socket", response
+assert diagnostic["diagnostic_source"]["operation"] == "audit.recent.get", response
+assert diagnostic["shared_daemon"]["dispatch"]["service_invoked"] is False, response
+assert "NV-G-007" in json.dumps(diagnostic), response
+PY
+
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" infer >/dev/null
 DENIED_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" infer-denied)"
 python3 - "$DENIED_OUTPUT" <<'PY'
