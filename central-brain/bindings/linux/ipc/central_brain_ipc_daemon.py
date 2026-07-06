@@ -150,6 +150,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/bindings",
         "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-002"],
     },
+    "bindings.readiness.get": {
+        "method": "GET",
+        "path": "/bindings/readiness",
+        "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-002", "DEL-003", "DEL-004"],
+    },
 }
 
 

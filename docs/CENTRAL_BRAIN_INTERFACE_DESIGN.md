@@ -78,6 +78,7 @@
 | Vehicle | VSS/VHAL/ECU 信号 | HTTP/JSON | VHAL/AIDL/SOME-IP |
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
 | Observability | Trace、Metric、QoS、Audit、共享治理后端目标契约和迁移检查 | HTTP/JSON | AIDL + file/socket exporter + shared Runtime & Governance backend |
+| Protocol Binding Readiness | Android Binder、Linux IPC、gRPC/RPC、REST、MQTT、SOME/IP、DDS readiness、阻塞项和验证命令 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
 | Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
 
 AI SDK/Agent 入口当前已新增 `GET /ai/sdk/capabilities`、`POST /agent/plan`、`POST /agent/execute`、`GET /skills`、`POST /skills/{skill_id}/invoke` 与 `POST /memory/query` active contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。App 侧只能提交 intent/utterance/task graph 并获得任务图或受控执行边界；任务图中的执行步骤仍必须通过 Uni Info Bus、Tool、Action 或 SOA 服务入口，不能直连 Model Runtime Adapter、NPU vendor SDK 或设备节点。
@@ -173,6 +174,16 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 `GET /governance/migration-check` 覆盖 XSC-005、XSC-006、NV-G-001、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-003、DEL-004。当前返回生产共享治理后端替换前的机器可读 readiness：SOA dispatch 必须经 `governance.precheck`，Android Binder/Linux IPC/Linux gRPC 不得复制 Policy/QoS 逻辑，runtime/audit 诊断保持只读且不能触发 Driver/HAL、车辆总线或虚拟化。该接口明确 `production_backend_ready=false`，只作为迁移检查，不实现量产治理后端。
 
 `GET /governance/deployment-plan` 覆盖 XSC-005、XSC-006、NV-G-001..007、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-003、DEL-004。当前返回共享治理后端目标部署计划：Android system/privileged Binder service、Linux standalone daemon、true gRPC/RPC 三类形态都必须保留相同 governance operation envelope、身份输入和只读诊断边界。该接口同样明确 `production_backend_ready=false`，不实现量产治理后端、真实 gRPC runtime、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+
+### Protocol Binding Readiness
+
+| Method | Path | 用途 | 已实现 |
+| --- | --- | --- | --- |
+| GET | `/bindings` | Protocol Binding 状态列表 | 是 |
+| GET | `/bindings/detail` | Protocol Binding artifact、语义入口和分层约束 | 是 |
+| GET | `/bindings/readiness` | Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS readiness、阻塞项、验证命令和下一步决策 | 是 |
+
+`GET /bindings/readiness` 覆盖 XSC-006、NV-P-001..006、DEL-001、DEL-002、DEL-003、DEL-004。该接口只返回 binding readiness contract，明确 `production_ready=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；Android Binder `getBindingReadinessJson`、Linux IPC `bindings.readiness.get` 与 Linux gRPC/RPC `GetBindingReadiness` 暴露同一视图，不实现真实 gRPC runtime、MQTT broker、SOME/IP stack、DDS broker、Driver/HAL、Safety Runtime 或虚拟化层。
 
 ### Uni Info Bus Event
 
@@ -364,7 +375,7 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 
 | Binding | Artifact | 语义入口 | Req IDs | 状态 |
 | --- | --- | --- | --- | --- |
-| Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java`，并已编入 Android Console debug APK | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/invoke`、`/policy/evaluate`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail` | XSC-001、APP-004、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-P-002、NV-P-005、DEL-001 | Console Binder path + service stub sample；Console 已暴露 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`；execute/Skill/Memory 为 contract mock；service 上游仍代理 REST prototype |
+| Android Binder/AIDL | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayBinderService.java`、`central-brain/bindings/android/java/com/centralbrain/binding/CentralBrainGatewayClient.java`，并已编入 Android Console debug APK | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/invoke`、`/policy/evaluate`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/governance/runtime`、`/bindings/detail`、`/bindings/readiness`、`/native/adapters/detail` | XSC-001、APP-004、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-P-002、NV-P-005、DEL-001 | Console Binder path + service stub sample；Console 已暴露 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`；execute/Skill/Memory 为 contract mock；service 上游仍代理 REST prototype |
 | Linux IPC | `central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json`、`central-brain/bindings/linux/ipc/central_brain_governance_client.py` | `uib.context.get`、`uib.state.get`、`uib.events.*`、`uib.actions.request`、`agent.plan`、`agent.execute`、`skills.*`、`memory.query`、`soa.service.invoke` 通过 shared governance client precheck 后转发、不通时 local fallback、`policy.evaluate`、`governance.precheck`、`governance.backend.contract.get`、`governance.migration.check`、`governance.deployment.plan.get`、`governance.runtime.get`/`audit.recent.get` 通过 shared governance client diagnostic 后回退 REST | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-G-001、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002 | active sample with reusable governance socket client for precheck and read-only runtime/audit diagnostics |
 | Linux gRPC/RPC | `central-brain/bindings/linux/proto/central_brain_gateway.proto`、`central-brain/bindings/linux/ipc/central_brain_governance_client.py`、`central-brain/bindings/linux/grpc/central_brain_grpc_server.py`、`central-brain/bindings/linux/grpc/central_brain_grpc_client.py` | `CentralBrainGateway.GetState`、`RequestAction`、`InvokeService`、`EvaluatePolicy`、`PrecheckGovernance`、`GetGovernanceBackendContract`、`GetGovernanceMigrationCheck`、`GetGovernanceDeploymentPlan`、`GetRuntimeGovernance`、`GetRecentAudit`、`ListBindings`；`InvokeService` 先走同一个 shared governance client -> daemon precheck，不可用时 local fallback；runtime/audit diagnostics 先走 shared governance socket，不可用时 REST fallback | XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、FW-U-004、FW-U-006、NV-G-001、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-003、DEL-002 | JSON TCP contract sample；真实 gRPC runtime 待目标环境提供 `grpcio`/C++ gRPC |
 
@@ -373,6 +384,7 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 ```bash
 bash tools/check_central_brain_binding_artifacts.sh
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-readiness
 ```
 
 ## Native Adapter Contract Mock

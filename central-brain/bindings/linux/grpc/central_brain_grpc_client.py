@@ -142,6 +142,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         },
     ),
     "bindings": ("ListBindings", {}),
+    "binding-readiness": ("GetBindingReadiness", {}),
 }
 
 

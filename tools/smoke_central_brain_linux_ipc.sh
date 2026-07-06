@@ -112,6 +112,24 @@ assert payload["summary"]["service_dispatch_triggered"] is False, response
 assert "FW-S-004" in encoded and "NV-G-003" in encoded, response
 assert "not-dispatched" in encoded, response
 PY
+BINDING_READINESS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" binding-readiness)"
+python3 - "$BINDING_READINESS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+binding_names = {row["binding"] for row in payload["readiness"]}
+assert response["status"] == "ok", response
+assert "linux-ipc" in binding_names, response
+assert "linux-grpc-rpc" in binding_names, response
+assert "android-binder-aidl" in binding_names, response
+assert payload["summary"]["production_ready"] is False, response
+assert payload["summary"]["driver_development_triggered"] is False, response
+assert payload["summary"]["virtualization_development_triggered"] is False, response
+assert "target distro" in encoded and "true gRPC runtime" in encoded, response
+PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
 import json

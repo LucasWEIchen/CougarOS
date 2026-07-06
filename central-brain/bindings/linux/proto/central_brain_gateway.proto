@@ -42,6 +42,7 @@ service CentralBrainGateway {
   rpc GetRuntimeGovernance(GatewayRequest) returns (GatewayResponse);
   rpc GetRecentAudit(GatewayRequest) returns (GatewayResponse);
   rpc ListBindings(GatewayRequest) returns (GatewayResponse);
+  rpc GetBindingReadiness(GatewayRequest) returns (GatewayResponse);
 }
 
 message GatewayRequest {

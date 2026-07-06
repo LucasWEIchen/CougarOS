@@ -116,6 +116,25 @@ assert contracts["summary"]["service_dispatch_triggered"] is False, response
 assert "FW-S-004" in encoded and "NV-G-003" in encoded, response
 assert "not-dispatched" in encoded, response
 PY
+BINDING_READINESS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" binding-readiness)"
+python3 - "$BINDING_READINESS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+readiness = payload["gateway"]["payload"]
+encoded = json.dumps(readiness)
+binding_names = {row["binding"] for row in readiness["readiness"]}
+assert response["status"] == "ok", response
+assert "linux-grpc-rpc" in binding_names, response
+assert "linux-ipc" in binding_names, response
+assert "android-binder-aidl" in binding_names, response
+assert readiness["summary"]["production_ready"] is False, response
+assert readiness["summary"]["driver_development_triggered"] is False, response
+assert readiness["summary"]["virtualization_development_triggered"] is False, response
+assert "target distro" in encoded and "true gRPC runtime" in encoded, response
+PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
 import json

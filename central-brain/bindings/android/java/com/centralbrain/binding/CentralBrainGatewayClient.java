@@ -128,6 +128,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getBindingDetailJson(traceId);
     }
 
+    public String getBindingReadinessJson(String traceId) throws RemoteException {
+        return requireGateway().getBindingReadinessJson(traceId);
+    }
+
     public String getNativeAdaptersDetailJson(String traceId) throws RemoteException {
         return requireGateway().getNativeAdaptersDetailJson(traceId);
     }

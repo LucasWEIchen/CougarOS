@@ -67,6 +67,8 @@ interface ICentralBrainGateway {
 
     String getBindingDetailJson(String traceId);
 
+    String getBindingReadinessJson(String traceId);
+
     String getNativeAdaptersDetailJson(String traceId);
 
     String getDriverHalGapsJson(String traceId);

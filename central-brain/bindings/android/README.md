@@ -12,7 +12,8 @@ Brain semantic gateway.
 - The Android Console debug APK now binds this service sample before calling
   Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
   Memory query, Runtime & Governance precheck, shared governance backend target
-  contract, governance migration readiness, governance deployment plan, SOA service contract visibility, and Driver/HAL gap backlog contract mocks. The Binder service
+  contract, governance migration readiness, governance deployment plan,
+  Protocol Binding readiness, SOA service contract visibility, and Driver/HAL gap backlog contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
   binding.
 
@@ -44,6 +45,7 @@ Brain semantic gateway.
 | `getRecentAuditJson` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `getBindingDetailJson` | `GET /bindings/detail` | XSC-006, NV-P-002 |
+| `getBindingReadinessJson` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-001..004 |
 | `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
 | `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
 
@@ -97,6 +99,10 @@ Brain semantic gateway.
   Safety State, QoS, Lifecycle, and no-dispatch boundary metadata from the same
   Runtime & Governance catalog used by `/soa/services`; it does not invoke the
   service, Driver/HAL, vehicle bus, or virtualization layer.
+- `getBindingReadinessJson` exposes Android Binder, Linux IPC, Linux gRPC/RPC,
+  REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and
+  non-goal boundaries. It does not implement production transports, Driver/HAL,
+  Safety Runtime, vehicle bus, or virtualization.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it
   does not call HAL, device nodes, vendor SDKs, or Safety Runtime.

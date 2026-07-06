@@ -155,6 +155,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getBindingReadinessJson(String traceId) throws RemoteException {
+            return get("/bindings/readiness", traceId);
+        }
+
+        @Override
         public String getNativeAdaptersDetailJson(String traceId) throws RemoteException {
             return get("/native/adapters/detail", traceId);
         }

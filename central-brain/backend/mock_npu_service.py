@@ -30,7 +30,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.26"
+API_VERSION = "0.1.27"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -412,6 +412,10 @@ def binding_detail_payload() -> dict[str, Any]:
     return BINDINGS.detail_payload()
 
 
+def binding_readiness_payload() -> dict[str, Any]:
+    return BINDINGS.readiness_payload()
+
+
 def native_adapters_payload() -> dict[str, Any]:
     return NATIVE_ADAPTERS.list_payload()
 
@@ -713,6 +717,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(bindings_payload()))
         elif path == "/bindings/detail":
             self.send_json(200, envelope(binding_detail_payload()))
+        elif path == "/bindings/readiness":
+            self.send_json(200, envelope(binding_readiness_payload()))
         elif path == "/native/adapters":
             self.send_json(200, envelope(native_adapters_payload()))
         elif path == "/native/adapters/detail":

@@ -66,6 +66,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "GetRuntimeGovernance": {"method": "GET", "path": "/governance/runtime", "req_ids": ["XSC-005", "NV-G-001", "NV-P-003", "DEL-002"]},
     "GetRecentAudit": {"method": "GET", "path": "/audit/recent", "req_ids": ["XSC-005", "NV-G-007", "NV-P-003", "DEL-002"]},
     "ListBindings": {"method": "GET", "path": "/bindings", "req_ids": ["XSC-006", "NV-P-003", "DEL-002"]},
+    "GetBindingReadiness": {"method": "GET", "path": "/bindings/readiness", "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-002", "DEL-003", "DEL-004"]},
 }
 
 

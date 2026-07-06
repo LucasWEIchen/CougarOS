@@ -34,7 +34,8 @@
         "governance.deployment.plan.get",
         "governance.runtime.get",
         "audit.recent.get",
-        "bindings.list"
+        "bindings.list",
+        "bindings.readiness.get"
       ]
     },
     "caller": {

@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -11,6 +11,7 @@
     "shared_governance_migration_check": "GET /governance/migration-check reports production backend replacement invariants, binding readiness, and open decisions without implementing the production backend",
     "shared_governance_deployment_plan": "GET /governance/deployment-plan reports Android system service, Linux daemon, and gRPC/RPC deployment shapes plus open decisions without implementing the production backend",
     "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
+    "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, and getGovernanceDeploymentPlanJson",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
@@ -251,6 +252,28 @@
       "path": "/bindings/detail",
       "description": "Returns Protocol Binding contract artifacts for Android Binder/AIDL, Android system service integration notes, Linux IPC, and Linux gRPC/RPC sample artifacts.",
       "req_ids": ["XSC-006", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
+    },
+    {
+      "method": "GET",
+      "path": "/bindings/readiness",
+      "description": "Returns read-only Protocol Binding readiness across Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS with blockers, validation commands, next decisions, and explicit no-production-transport/no-driver/no-virtualization boundaries.",
+      "response": {
+        "readiness": [
+          {
+            "binding": "android-binder-aidl|linux-ipc|linux-grpc-rpc|rest-http-json|mqtt|someip|dds",
+            "current_state": "service-stub-sample|active-sample|grpc-json-active-sample|active-prototype|planned-policy-gated",
+            "blocked_by": ["target platform decision"],
+            "validation": ["string"]
+          }
+        ],
+        "summary": {
+          "production_ready": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        }
+      },
+      "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
     },
     {
       "method": "GET",

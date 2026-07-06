@@ -17,6 +17,111 @@ BINDING_REQ_IDS = [
     "NV-P-006",
 ]
 
+BINDING_READINESS_ROWS: list[dict[str, Any]] = [
+    {
+        "binding": "android-binder-aidl",
+        "platform": "Android",
+        "current_state": "service-stub-sample",
+        "ready_for": ["debug APK integration", "AIDL contract review", "system-service planning"],
+        "blocked_by": [
+            "target AAOS signing and priv-app policy",
+            "SELinux domain and service manager registration decision",
+            "production shared Runtime & Governance backend owner",
+        ],
+        "validation": [
+            "bash tools/check_central_brain_binding_artifacts.sh",
+            "bash tools/build_central_brain_console.sh",
+            "bash tools/check_central_brain_android_system_service_docs.sh",
+        ],
+        "req_ids": ["XSC-006", "NV-P-002", "DEL-001", "DEL-003", "DEL-004"],
+    },
+    {
+        "binding": "linux-ipc",
+        "platform": "Linux",
+        "current_state": "active-sample",
+        "ready_for": ["Unix socket local integration", "shared governance precheck sample", "systemd sample review"],
+        "blocked_by": [
+            "target distro package format and service identity decision",
+            "production shared governance daemon replacement",
+            "LSM/SELinux/AppArmor policy for target image",
+        ],
+        "validation": [
+            "bash tools/smoke_central_brain_linux_ipc.sh",
+            "bash tools/check_central_brain_linux_package_profile.sh",
+            "bash tools/check_central_brain_linux_systemd_hardening.sh",
+        ],
+        "req_ids": ["XSC-006", "NV-P-002", "XSC-005", "DEL-002", "DEL-003", "DEL-004"],
+    },
+    {
+        "binding": "linux-grpc-rpc",
+        "platform": "Linux",
+        "current_state": "grpc-json-active-sample",
+        "ready_for": ["proto contract review", "JSON TCP contract smoke", "shared governance precheck sample"],
+        "blocked_by": [
+            "grpcio or C++ gRPC target runtime availability",
+            "credential source for production RPC calls",
+            "production shared governance backend replacement",
+        ],
+        "validation": [
+            "bash tools/smoke_central_brain_linux_grpc.sh",
+            "bash tools/check_central_brain_binding_artifacts.sh",
+        ],
+        "req_ids": ["XSC-006", "NV-P-003", "XSC-005", "DEL-002", "DEL-004"],
+    },
+    {
+        "binding": "rest-http-json",
+        "platform": "Android emulator/Linux host",
+        "current_state": "active-prototype",
+        "ready_for": ["semantic gateway smoke", "contract reference", "prototype fallback"],
+        "blocked_by": [
+            "replacement by Android Binder, Linux IPC, or true gRPC in production paths",
+            "service identity and policy source for non-debug deployment",
+        ],
+        "validation": [
+            "bash tools/smoke_central_brain_semantic_gateway.sh",
+            "python3 -m json.tool central-brain/contracts/central_brain_api.json",
+        ],
+        "req_ids": ["XSC-002", "XSC-003", "XSC-005", "XSC-006", "NV-P-005", "DEL-001", "DEL-002"],
+    },
+    {
+        "binding": "mqtt",
+        "platform": "Android/Linux",
+        "current_state": "planned-policy-gated",
+        "ready_for": ["privacy and policy contract discussion"],
+        "blocked_by": [
+            "cloud vehicle-message broker selection",
+            "privacy routing and audit export policy",
+        ],
+        "validation": ["GET /bindings/readiness"],
+        "req_ids": ["XSC-006", "NV-P-004", "DEL-004"],
+    },
+    {
+        "binding": "someip",
+        "platform": "Linux/vehicle network",
+        "current_state": "planned-after-vehicle-network",
+        "ready_for": ["vehicle network integration planning"],
+        "blocked_by": [
+            "target vehicle service discovery stack",
+            "DBC/ARXML or service catalog source",
+        ],
+        "validation": ["GET /bindings/readiness"],
+        "req_ids": ["XSC-006", "NV-P-001", "DEL-004"],
+    },
+    {
+        "binding": "dds",
+        "platform": "Linux/Android native",
+        "current_state": "planned-for-high-rate-topics",
+        "ready_for": ["high-rate event data-plane planning"],
+        "blocked_by": [
+            "DDS vendor/runtime selection",
+            "high-frequency topic QoS and backpressure requirements",
+            "shared memory/Safety Runtime constraints for target platform",
+        ],
+        "validation": ["GET /bindings/readiness"],
+        "req_ids": ["XSC-006", "NV-P-006", "FW-U-003", "DEL-004"],
+    },
+]
+
 BINDING_REGISTRY: list[dict[str, Any]] = [
     {
         "name": "rest-http-json",
@@ -43,6 +148,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "/governance/deployment-plan",
             "/native/driver-gaps",
             "/soa/contracts",
+            "/bindings/readiness",
         ],
         "artifacts": ["central-brain/contracts/central_brain_api.json"],
         "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-S-004", "KH-003", "KH-006", "DEL-005", "NV-G-003", "NV-G-004", "NV-P-005", "NV-P-006"],
@@ -76,6 +182,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "getRecentAuditJson -> /audit/recent",
             "listBindingsJson -> /bindings",
             "getBindingDetailJson -> /bindings/detail",
+            "getBindingReadinessJson -> /bindings/readiness",
             "getNativeAdaptersDetailJson -> /native/adapters/detail",
             "getDriverHalGapsJson -> /native/driver-gaps",
         ],
@@ -116,6 +223,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "governance.runtime.get -> shared governance socket diagnostic with REST gateway fallback",
             "audit.recent.get -> shared governance socket diagnostic with REST gateway fallback",
             "bindings.list -> /bindings",
+            "bindings.readiness.get -> /bindings/readiness",
         ],
         "artifacts": [
             "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
@@ -155,6 +263,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "CentralBrainGateway.GetRuntimeGovernance -> shared governance socket diagnostic with REST gateway fallback",
             "CentralBrainGateway.GetRecentAudit -> shared governance socket diagnostic with REST gateway fallback",
             "CentralBrainGateway.ListBindings -> /bindings",
+            "CentralBrainGateway.GetBindingReadiness -> /bindings/readiness",
         ],
         "artifacts": [
             "central-brain/bindings/linux/proto/central_brain_gateway.proto",
@@ -239,4 +348,36 @@ class ProtocolBindingRegistry:
                 "Virtualization and driver layers are documented integration assumptions only in this increment.",
             ],
             "req_ids": BINDING_REQ_IDS + ["DEL-001", "DEL-002", "DEL-003", "DEL-004"],
+        }
+
+    def readiness_payload(self) -> dict[str, Any]:
+        rows = copy.deepcopy(BINDING_READINESS_ROWS)
+        return {
+            "readiness": rows,
+            "summary": {
+                "production_ready": False,
+                "active_samples": [
+                    row["binding"]
+                    for row in rows
+                    if row["current_state"] in {"active-prototype", "active-sample", "grpc-json-active-sample", "service-stub-sample"}
+                ],
+                "planned_bindings": [
+                    row["binding"]
+                    for row in rows
+                    if row["current_state"].startswith("planned")
+                ],
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "non_goals": [
+                "No production shared governance backend is implemented by this readiness contract.",
+                "No true gRPC runtime, MQTT broker, SOME/IP stack, DDS broker, Driver/HAL, Safety Runtime, vehicle bus, or virtualization code is added.",
+            ],
+            "next_decisions": [
+                "Choose target Linux distro/package format before replacing the package profile sample.",
+                "Choose true gRPC runtime and credential source before replacing the JSON TCP wrapper.",
+                "Choose Android system/privileged service owner, signing, and SELinux shape before framework integration.",
+            ],
+            "req_ids": sorted(set(BINDING_REQ_IDS + ["XSC-005", "DEL-001", "DEL-002", "DEL-003", "DEL-004"])),
         }

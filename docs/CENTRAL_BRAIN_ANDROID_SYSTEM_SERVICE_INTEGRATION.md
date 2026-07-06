@@ -20,7 +20,7 @@ system server 代码、priv-app 签名配置、SELinux policy、Driver/HAL、Saf
 `CentralBrainGatewayBinderService`，并通过 `CentralBrainGatewayClient`
 调用 Uni Info Bus State、AI SDK/Agent task plan、Agent execute、Skill invoke
 与 Memory query contract mock，并提供 Runtime & Governance precheck、shared
-governance backend target contract、migration readiness、deployment plan 与 Driver/HAL gap backlog 只读调试入口。该路径覆盖：
+governance backend target contract、migration readiness、deployment plan、Protocol Binding readiness 与 Driver/HAL gap backlog 只读调试入口。该路径覆盖：
 
 | 组件 | 当前交付 | Req ID |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ governance backend target contract、migration readiness、deployment plan 与 D
 | SOA service entry | `listServicesJson`、`getServiceContractsJson`、`invokeServiceJson` | XSC-003, FW-S-004, FW-S-005, NV-G-003 |
 | Runtime & Governance | `evaluatePolicyJson`、`precheckGovernanceJson`、`getGovernanceBackendContractJson`、`getGovernanceMigrationCheckJson`、`getGovernanceDeploymentPlanJson`、`getRuntimeGovernanceJson`、`getRecentAuditJson` | XSC-005, XSC-006, FW-U-007, NV-G-001, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | Native/Driver visibility | `getNativeAdaptersDetailJson`、`getDriverHalGapsJson` | XSC-004, KH-003, KH-006, DEL-005 |
-| Protocol Binding | AIDL + Binder service/client sample | XSC-006, NV-P-002, NV-P-005, DEL-001 |
+| Protocol Binding | AIDL + Binder service/client sample + `getBindingReadinessJson` | XSC-006, NV-P-001, NV-P-002, NV-P-003, NV-P-004, NV-P-005, NV-P-006, DEL-001, DEL-003, DEL-004 |
 
 当前 service 仍是普通 APK 内的非导出 service，并继续代理 REST prototype gateway。
 它不是量产 Android system service，也不是 Driver/HAL bridge。
@@ -41,6 +41,7 @@ Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL 或虚拟化�
 未来共用的 shared Runtime & Governance backend target contract；
 `getGovernanceMigrationCheckJson` 只返回生产共享治理后端替换 readiness，固定 SOA precheck、Policy/QoS 不复制、runtime/audit 只读诊断和非目标边界，并明确当前不是量产治理后端；
 `getGovernanceDeploymentPlanJson` 只返回 Android system/privileged service、Linux daemon 和 true gRPC/RPC 的部署计划 contract，不提交 framework、SELinux 或 native daemon patch；
+`getBindingReadinessJson` 只返回 Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS 的 readiness、阻塞项、验证命令和非目标边界，不实现量产 transport；
 `getServiceContractsJson` 只返回 SOA service contract、版本、Policy/Safety State、QoS、Lifecycle 和 no-dispatch 边界，不调用 service、Driver/HAL、车辆总线或虚拟化层；
 `getDriverHalGapsJson` 只读返回 gap backlog，不触发 HAL、device node、vendor SDK、
 Safety Runtime 或 Driver/HAL 开发。

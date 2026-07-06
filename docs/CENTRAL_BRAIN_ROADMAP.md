@@ -12,7 +12,7 @@
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke + service contract visibility 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog contract |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 A4 Protocol Binding readiness contract：
+  - 新增 `GET /bindings/readiness`，集中暴露 Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS 的当前状态、阻塞项、验证命令、下一步决策和非目标边界。
+  - Android Binder/AIDL 新增 `getBindingReadinessJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `binding-readiness`/`bindings.readiness.get`/`GetBindingReadiness` 可见路径。
+  - 本轮只补 Protocol Binding readiness 可查询能力，不实现量产 shared governance backend、true gRPC runtime、MQTT/SOME/IP/DDS、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-006、NV-P-001、NV-P-002、NV-P-003、NV-P-004、NV-P-005、NV-P-006、DEL-001、DEL-002、DEL-003、DEL-004。
 - 推进 A2 SOA service contract 可见性：
   - 新增 `GET /soa/contracts`，从 `runtime_governance.SERVICE_CATALOG` 暴露服务 contract、版本、domain、Policy/Safety State、QoS、Lifecycle、schema source 和 no-dispatch 边界。
   - Android Binder/AIDL 新增 `getServiceContractsJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `service-contracts`/`soa.contracts.get`/`GetServiceContracts` 可见路径。

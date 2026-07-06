@@ -22,7 +22,7 @@
 | A1 | Uni Info Bus 语义接口 mock | L2 | Context/State/Event/Action/Service/Tool/Permission contract | App 不再直连后端具体模型接口 |
 | A2 | SOA 服务入口 mock | L2 | Business/Foundation/Atomic/Contract/SafetyState 服务目录 | 所有服务可查询、可通过 `/soa/contracts` 查看 contract/版本/Policy/Safety/QoS/Lifecycle 且不触发 dispatch |
 | A3 | Runtime & Governance mock | L3 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit | 每次调用有注册、策略、生命周期、QoS fixed-window 检查和审计记录；`/governance/precheck` 可只检查不调用；`/governance/backend-contract` 固定共享治理后端目标契约；`/governance/migration-check` 固定生产替换 readiness 不变量；`/governance/deployment-plan` 固定 Android/Linux/gRPC 目标部署形态；可选 JSONL 恢复最近审计；Linux shared governance daemon precheck/runtime/audit diagnostics；IPC/gRPC 共享 governance socket client 复用 precheck 和 runtime/audit 只读诊断 |
-| A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub；Android system/privileged service integration note | REST 仅是 binding，不承载业务语义；Android Binder/Linux IPC/Linux gRPC-RPC 都可查询 SOA service contract、shared governance backend target、migration readiness 和 deployment plan；Linux IPC/gRPC 对 SOA 调用先走 shared governance client -> daemon precheck，不可用时回退本地 precheck；Linux IPC/gRPC 的 runtime/audit diagnostics 先走 shared governance socket，不可用时回退 REST |
+| A4 | Protocol Binding 分层 | L3 | REST binding 重构；IPC/gRPC/MQTT/SOME-IP/DDS adapter stub；Android system/privileged service integration note | REST 仅是 binding，不承载业务语义；Android Binder/Linux IPC/Linux gRPC-RPC 都可查询 SOA service contract、shared governance backend target、migration readiness、deployment plan 和 binding readiness；Linux IPC/gRPC 对 SOA 调用先走 shared governance client -> daemon precheck，不可用时回退本地 precheck；Linux IPC/gRPC 的 runtime/audit diagnostics 先走 shared governance socket，不可用时回退 REST |
 | A5 | Native adapters mock | L3 | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | AI/信号/模型调用均通过 adapter |
 | A6 | Kernel/HAL/NPU 接口文档与缺口补齐 | L4/L6 | Driver/HAL interface support matrix、NPU runtime interface、hardware discovery、`/native/driver-gaps` | 明确当前环境能力、缺口和最小新增开发量，不触发默认驱动开发 |
 | A7 | Hypervisor/Safety 接口约束文档 | L5 | ASIL/QM domain map、跨 VM 通信假设、fallback | 不开发虚拟化功能，只记录集成约束 |
@@ -70,8 +70,8 @@
 | Task ID | Req ID | 任务 | 输出 |
 | --- | --- | --- | --- |
 | A4-T01 | NV-P-005 | REST binding 下沉为 adapter | REST adapter |
-| A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + Linux IPC active sample with shared governance client SOA precheck/runtime/audit diagnostics + shared governance backend target/migration/deployment visibility + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
-| A4-T03 | NV-P-003 | gRPC/RPC adapter stub | JSON TCP contract sample + proto + shared governance client precheck/runtime/audit diagnostics + `GetGovernanceBackendContract` + `GetGovernanceMigrationCheck` + `GetGovernanceDeploymentPlan`；真实 gRPC runtime 待目标环境 |
+| A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + Linux IPC active sample with shared governance client SOA precheck/runtime/audit diagnostics + shared governance backend target/migration/deployment/binding readiness visibility + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
+| A4-T03 | NV-P-003 | gRPC/RPC adapter stub | JSON TCP contract sample + proto + shared governance client precheck/runtime/audit diagnostics + `GetGovernanceBackendContract` + `GetGovernanceMigrationCheck` + `GetGovernanceDeploymentPlan` + `GetBindingReadiness`；真实 gRPC runtime 待目标环境 |
 | A4-T04 | NV-P-004 | MQTT adapter stub | MQTT adapter |
 | A4-T05 | NV-P-001 | SOME/IP mapping design | SOME/IP plan |
 | A4-T06 | NV-P-006 | DDS topic mapping design | DDS plan |

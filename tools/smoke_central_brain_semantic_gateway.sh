@@ -75,6 +75,7 @@ checks = [
     ("GET", "/governance/deployment-plan", None, "DEL-003"),
     ("GET", "/bindings", None, "NV-P-005"),
     ("GET", "/bindings/detail", None, "NV-P-002"),
+    ("GET", "/bindings/readiness", None, "NV-P-003"),
     ("GET", "/native/adapters", None, "NV-F-011"),
     ("GET", "/native/adapters/detail", None, "XSC-004"),
     ("GET", "/native/driver-gaps", None, "DEL-005"),
@@ -217,6 +218,17 @@ for method, path, body, req_id in checks:
         assert "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl" in artifacts
         assert "central-brain/bindings/linux/proto/central_brain_gateway.proto" in artifacts
         assert "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json" in artifacts
+    if path == "/bindings/readiness":
+        readiness = payload["payload"]["readiness"]
+        binding_names = {row["binding"] for row in readiness}
+        assert "android-binder-aidl" in binding_names, "binding readiness missing Android Binder"
+        assert "linux-ipc" in binding_names, "binding readiness missing Linux IPC"
+        assert "linux-grpc-rpc" in binding_names, "binding readiness missing Linux gRPC/RPC"
+        assert "dds" in binding_names, "binding readiness missing DDS planned path"
+        assert payload["payload"]["summary"]["production_ready"] is False, "readiness overstated production maturity"
+        assert payload["payload"]["summary"]["driver_development_triggered"] is False, "readiness triggered driver development"
+        assert payload["payload"]["summary"]["virtualization_development_triggered"] is False, "readiness triggered virtualization development"
+        assert "true gRPC runtime" in json.dumps(payload), "readiness missing gRPC blocker"
     if path == "/native/adapters/detail":
         adapter_names = {adapter["name"] for adapter in payload["payload"]["adapters"]}
         assert "aios-kernel" in adapter_names
@@ -329,6 +341,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" governance-precheck >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
 

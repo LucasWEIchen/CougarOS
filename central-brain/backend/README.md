@@ -36,6 +36,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /audit/recent`
 - `GET /bindings`
 - `GET /bindings/detail`
+- `GET /bindings/readiness`
 - `GET /native/adapters`
 - `GET /native/adapters/detail`
 - `GET /native/driver-gaps`
@@ -67,6 +68,8 @@ bash tools/run_central_brain_backend.sh
 `GET /native/driver-gaps` 覆盖 KH-003、KH-006、KH-007、DEL-005，只返回 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 缺口、触发条件和 Android/Linux 目标接口；`summary.driver_development_triggered=false` 表示本轮没有新增真实 Driver/HAL 开发。
 
 `GET /soa/contracts` 覆盖 XSC-003、FW-S-004、NV-G-003、DEL-001、DEL-002，从 `runtime_governance.SERVICE_CATALOG` 返回服务 contract、版本、Policy/Safety State、QoS、Lifecycle 和 no-dispatch 边界；它只做 contract visibility，不调用 SOA service、Driver/HAL、车辆总线或虚拟化层。
+
+`GET /bindings/readiness` 覆盖 XSC-006、NV-P-001..006、DEL-001、DEL-002、DEL-003、DEL-004，从 `protocol_bindings.py` 返回 Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS readiness、阻塞项、验证命令和下一步决策；它只做 contract visibility，不实现量产 transport、真实 gRPC runtime、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
 
 ## 验证
 
