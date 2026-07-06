@@ -22,6 +22,7 @@ from urllib.error import HTTPError, URLError
 BACKEND_DIR = Path(__file__).resolve().parents[3] / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
+from central_brain_governance_client import precheck_service_via_socket
 from runtime_governance import RuntimeGovernance
 
 
@@ -190,34 +191,12 @@ def shared_governance_precheck(trace_id: str, payload: dict[str, Any]) -> tuple[
     if not DEFAULT_GOVERNANCE_SOCKET:
         return None
 
-    envelope = {
-        "trace_id": trace_id,
-        "operation": "governance.precheck",
-        "payload": {**payload, "consume_qos": payload.get("consume_qos", True)},
-        "req_ids": ["XSC-005", "XSC-006", "NV-P-002", "DEL-002"],
-    }
-    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
-        client.settimeout(3)
-        client.connect(DEFAULT_GOVERNANCE_SOCKET)
-        client.sendall(json.dumps(envelope).encode("utf-8"))
-        client.shutdown(socket.SHUT_WR)
-        chunks = []
-        while True:
-            chunk = client.recv(65536)
-            if not chunk:
-                break
-            chunks.append(chunk)
-    result = json.loads(b"".join(chunks).decode("utf-8"))
-    if result.get("status") != "ok":
-        raise OSError(result.get("error", {}).get("message", "governance daemon rejected precheck"))
-
-    precheck = result["payload"]
-    allowed = precheck["state"] == "allowed"
-    precheck["precheck_source"] = {
-        "mode": "shared-linux-governance-daemon",
-        "socket": DEFAULT_GOVERNANCE_SOCKET,
-    }
-    return precheck, allowed
+    return precheck_service_via_socket(
+        DEFAULT_GOVERNANCE_SOCKET,
+        trace_id,
+        payload,
+        ["XSC-005", "XSC-006", "NV-P-002", "DEL-002"],
+    )
 
 
 def ipc_governance_precheck(trace_id: str, operation: str, payload: dict[str, Any]) -> tuple[dict[str, Any] | None, bool]:

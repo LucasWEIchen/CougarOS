@@ -108,6 +108,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
         "artifacts": [
             "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
             "central-brain/bindings/linux/ipc/central_brain_governance_daemon.py",
+            "central-brain/bindings/linux/ipc/central_brain_governance_client.py",
             "central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py",
             "central-brain/bindings/linux/ipc/central_brain_ipc_client.py",
             "central-brain/bindings/linux/README.md",
@@ -141,6 +142,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
         ],
         "artifacts": [
             "central-brain/bindings/linux/proto/central_brain_gateway.proto",
+            "central-brain/bindings/linux/ipc/central_brain_governance_client.py",
             "central-brain/bindings/linux/grpc/central_brain_grpc_server.py",
             "central-brain/bindings/linux/grpc/central_brain_grpc_client.py",
             "central-brain/deploy/linux/systemd/central-brain-linux-grpc.service",
@@ -211,6 +213,7 @@ class ProtocolBindingRegistry:
                 "Android Binder service sample maps Binder calls to the semantic gateway; REST remains the upstream prototype binding.",
                 "Android system/privileged service integration is documented only; target signing, SELinux, and service manager choices remain platform decisions.",
                 "Linux IPC active sample can use a shared Linux governance daemon for SOA precheck before forwarding allowed service invocations to the semantic gateway; it falls back to local precheck when that socket is unavailable.",
+                "Linux IPC and gRPC/RPC samples call the shared governance socket through one reusable client helper, so transport replacement does not duplicate the Runtime & Governance envelope.",
                 "Linux shared governance daemon also exposes runtime status and recent audit diagnostics over the same Unix socket; these operations do not dispatch services.",
                 "Linux gRPC/RPC sample mirrors the proto GatewayRequest/GatewayResponse fields over a dependency-free JSON TCP wrapper because grpcio is not available in this workspace.",
                 "Linux gRPC/RPC InvokeService uses the same shared governance daemon precheck with local fallback before forwarding allowed SOA calls.",

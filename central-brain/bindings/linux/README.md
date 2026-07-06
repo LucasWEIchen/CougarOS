@@ -18,6 +18,9 @@ Brain semantic gateway.
 - `ipc/central_brain_governance_daemon.py` is a Linux Runtime & Governance
   socket sample for shared `governance.precheck`, `governance.runtime.get`,
   and `audit.recent.get` visibility across local binding processes.
+- `ipc/central_brain_governance_client.py` is the reusable Linux helper used
+  by both IPC and gRPC/RPC samples to call the shared governance socket without
+  duplicating the Runtime & Governance envelope.
 - `ipc/central_brain_ipc_client.py` is a Linux client sample for the same IPC
   envelope.
 - These files do not implement SOME/IP, DDS, MQTT, drivers, HAL, or
@@ -50,8 +53,8 @@ Brain semantic gateway.
 The gRPC/RPC JSON sample maps the same semantic endpoints through
 `CentralBrainGateway.*` RPC names from `proto/central_brain_gateway.proto`.
 `CentralBrainGateway.InvokeService` calls the shared Linux governance daemon
-before forwarding allowed SOA calls and falls back to local Runtime &
-Governance when the shared socket is unavailable.
+through the same helper as Linux IPC before forwarding allowed SOA calls and
+falls back to local Runtime & Governance when the shared socket is unavailable.
 
 ## Unix Socket Sample
 
@@ -148,6 +151,9 @@ bash tools/check_central_brain_delivery_docs.sh
 - The current gRPC/RPC sample mirrors proto fields over JSON TCP because
   `grpcio` is unavailable; target images can replace only the transport while
   keeping the same RPC names, Req IDs, and governance precheck behavior.
+- IPC and gRPC/RPC samples share `central_brain_governance_client.py` for the
+  `governance.precheck` socket envelope, so a future production governance
+  backend can replace that boundary once instead of separately per transport.
 - The current IPC daemon is an active sample, not a full production gateway; it
   applies a shared Linux governance daemon precheck to SOA service invocations
   when `CENTRAL_BRAIN_GOVERNANCE_SOCKET` is configured, falls back to local

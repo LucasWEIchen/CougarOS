@@ -53,6 +53,11 @@
 
 ### 2026-07-06
 
+- 推进 Linux Protocol Binding shared governance client 收敛：
+  - 新增 `central_brain_governance_client.py`，把 Linux IPC 与 Linux gRPC/RPC sample 调用 shared governance socket 的 `governance.precheck` envelope 收敛到同一 client helper。
+  - `central_brain_ipc_daemon.py` 与 `central_brain_grpc_server.py` 继续保留各自 local Runtime & Governance fallback，但 shared daemon 调用路径不再重复实现 socket 读写与 envelope 组装。
+  - Protocol Binding registry、API contract、Linux README、接口设计、偏差和驱动支持边界同步说明该 helper 只是 Linux 本地共享治理样例的 client boundary，不是量产治理后端、真实 gRPC runtime、Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-002。
 - 推进 Linux shared Runtime & Governance daemon 诊断可见性：
   - `central_brain_governance_daemon.py` 在现有 `governance.precheck` 基础上新增 direct socket operation：`governance.runtime.get` 与 `audit.recent.get`，复用 `RuntimeGovernance.governance_payload()` 和 `audit_payload()`。
   - Linux IPC smoke 现在直接连接 shared governance socket，验证 runtime registry/QoS 状态和 precheck 审计事件可通过该 daemon 查询，且不 dispatch SOA service、Driver/HAL 或虚拟化层。
