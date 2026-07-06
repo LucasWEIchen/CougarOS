@@ -22,6 +22,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "event-recent": ("GET", "/uib/events/recent", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),
+    "governance-migration-check": ("GET", "/governance/migration-check", None),
     "audit": ("GET", "/audit/recent", None),
     "bindings": ("GET", "/bindings", None),
     "binding-detail": ("GET", "/bindings/detail", None),

@@ -118,6 +118,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/governance/backend-contract",
         "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-007", "NV-P-002", "DEL-002"],
     },
+    "governance.migration.check": {
+        "method": "GET",
+        "path": "/governance/migration-check",
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-007", "NV-P-002", "DEL-002", "DEL-003", "DEL-004"],
+    },
     "governance.runtime.get": {
         "method": "GET",
         "path": "/governance/runtime",

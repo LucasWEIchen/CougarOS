@@ -30,7 +30,7 @@ from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.22"
+API_VERSION = "0.1.23"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -343,6 +343,10 @@ def governance_payload() -> dict[str, Any]:
 
 def governance_backend_contract_payload() -> dict[str, Any]:
     return GOVERNANCE.backend_contract_payload()
+
+
+def governance_migration_check_payload() -> dict[str, Any]:
+    return GOVERNANCE.migration_check_payload()
 
 
 def governance_precheck_payload(request: dict[str, Any]) -> dict[str, Any]:
@@ -689,6 +693,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(governance_payload()))
         elif path == "/governance/backend-contract":
             self.send_json(200, envelope(governance_backend_contract_payload()))
+        elif path == "/governance/migration-check":
+            self.send_json(200, envelope(governance_migration_check_payload()))
         elif path == "/audit/recent":
             self.send_json(200, envelope(GOVERNANCE.audit_payload()))
         elif path == "/bindings":

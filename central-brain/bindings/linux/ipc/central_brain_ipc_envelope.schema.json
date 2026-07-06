@@ -29,6 +29,7 @@
         "policy.evaluate",
         "governance.precheck",
         "governance.backend.contract.get",
+        "governance.migration.check",
         "governance.runtime.get",
         "audit.recent.get",
         "bindings.list"

@@ -118,6 +118,24 @@ assert "linux_grpc_rpc" in contract["binding_contract"], response
 assert "Driver/HAL" in encoded and "virtualization" in encoded, response
 PY
 
+MIGRATION_CHECK_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-migration-check)"
+python3 - "$MIGRATION_CHECK_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+migration = payload["gateway"]["payload"]
+encoded = json.dumps(migration)
+assert response["status"] == "ok", response
+assert migration["production_backend_ready"] is False, response
+assert "GOV-MIG-001" in encoded, response
+assert "android-binder-aidl" in encoded, response
+assert "linux-ipc" in encoded, response
+assert "linux-grpc-rpc" in encoded, response
+assert "Driver/HAL" in encoded and "virtualization" in encoded, response
+PY
+
 PRECHECK_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-precheck)"
 python3 - "$PRECHECK_OUTPUT" <<'PY'
 import json

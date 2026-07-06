@@ -70,6 +70,7 @@ checks = [
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/governance/runtime", None, "NV-G-005"),
     ("GET", "/governance/backend-contract", None, "NV-P-003"),
+    ("GET", "/governance/migration-check", None, "DEL-004"),
     ("GET", "/bindings", None, "NV-P-005"),
     ("GET", "/bindings/detail", None, "NV-P-002"),
     ("GET", "/native/adapters", None, "NV-F-011"),
@@ -270,6 +271,15 @@ for method, path, body, req_id in checks:
         assert "linux_grpc_rpc" in contract["binding_contract"], "backend contract missing Linux gRPC/RPC binding"
         assert "Driver/HAL" in json.dumps(contract), "backend contract missing Driver/HAL non-goal"
         assert "virtualization" in json.dumps(contract), "backend contract missing virtualization non-goal"
+    if path == "/governance/migration-check":
+        migration = payload["payload"]
+        encoded = json.dumps(migration)
+        assert migration["production_backend_ready"] is False, "migration check must not claim production backend is ready"
+        assert "GOV-MIG-001" in encoded, "migration check missing SOA precheck invariant"
+        assert "android-binder-aidl" in encoded, "migration check missing Android binding readiness"
+        assert "linux-ipc" in encoded, "migration check missing Linux IPC readiness"
+        assert "linux-grpc-rpc" in encoded, "migration check missing Linux gRPC/RPC readiness"
+        assert "Driver/HAL" in encoded and "virtualization" in encoded, "migration check missing non-goal boundaries"
     if path == "/uib/events/recent":
         events = payload["payload"]["events"]
         assert events, "event recent endpoint did not keep the published event"

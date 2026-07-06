@@ -441,6 +441,78 @@ class RuntimeGovernance:
             "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002"],
         }
 
+    def migration_check_payload(self) -> dict[str, Any]:
+        return {
+            "name": "central-brain-governance-backend-migration-check",
+            "state": "readiness-check-contract",
+            "production_backend_ready": False,
+            "current_sample_baseline": {
+                "gateway_contract": "GET /governance/backend-contract",
+                "linux_shared_socket": "governance.precheck + governance.runtime.get + audit.recent.get",
+                "linux_client_helper": "central_brain_governance_client.py",
+                "android_visibility": "Binder/AIDL getGovernanceMigrationCheckJson",
+                "linux_visibility": "CLI/IPC/gRPC governance-migration-check",
+            },
+            "required_invariants": [
+                {
+                    "id": "GOV-MIG-001",
+                    "rule": "All SOA service dispatch remains gated by governance.precheck.",
+                    "status": "sample-enforced-for-linux-ipc-grpc",
+                    "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006"],
+                },
+                {
+                    "id": "GOV-MIG-002",
+                    "rule": "Binding transports depend on the shared governance operation envelope instead of duplicating Policy/QoS logic.",
+                    "status": "linux-helper-enforced-android-target-documented",
+                    "req_ids": ["XSC-006", "NV-P-002", "NV-P-003"],
+                },
+                {
+                    "id": "GOV-MIG-003",
+                    "rule": "Runtime and audit diagnostic operations remain read-only and never dispatch services, Driver/HAL, vehicle bus, or virtualization.",
+                    "status": "sample-enforced",
+                    "req_ids": ["NV-G-001", "NV-G-007", "KH-003", "KH-006", "HV-001", "HV-002", "HV-003"],
+                },
+            ],
+            "binding_migration_matrix": [
+                {
+                    "binding": "android-binder-aidl",
+                    "current": "debug APK Binder service proxies REST prototype gateway",
+                    "target_replacement": "system/privileged Binder service calls production governance backend before SOA dispatch",
+                    "readiness": "contract-visible-not-production-ready",
+                    "open_decisions": ["target AAOS service owner", "signature permission", "SELinux domain", "native gateway process shape"],
+                    "req_ids": ["DEL-001", "DEL-003", "DEL-004", "NV-P-002", "XSC-005", "XSC-006"],
+                },
+                {
+                    "binding": "linux-ipc",
+                    "current": "Unix socket IPC calls shared governance socket through the reusable client helper",
+                    "target_replacement": "same operation envelope backed by production governance service",
+                    "readiness": "sample-ready-for-backend-swap",
+                    "open_decisions": ["target distro package format", "service account policy", "audit export backend"],
+                    "req_ids": ["DEL-002", "DEL-003", "DEL-004", "NV-P-002", "XSC-005", "XSC-006"],
+                },
+                {
+                    "binding": "linux-grpc-rpc",
+                    "current": "dependency-free JSON TCP sample mirrors proto RPC names and uses the shared governance client helper",
+                    "target_replacement": "true gRPC server keeps the same governance precheck/runtime/audit operation names",
+                    "readiness": "blocked-on-grpc-runtime-tooling",
+                    "open_decisions": ["grpcio or C++ gRPC availability", "service credentials", "peer identity mapping"],
+                    "req_ids": ["DEL-002", "NV-P-003", "XSC-005", "XSC-006"],
+                },
+            ],
+            "validation_commands": [
+                "bash tools/check_central_brain_binding_artifacts.sh",
+                "bash tools/smoke_central_brain_semantic_gateway.sh",
+                "bash tools/smoke_central_brain_linux_ipc.sh",
+                "bash tools/smoke_central_brain_linux_grpc.sh",
+                "bash tools/check_central_brain_delivery_docs.sh",
+            ],
+            "non_goals": [
+                "No production multi-process governance backend is implemented by this readiness check.",
+                "No Android framework patch, SELinux policy, true gRPC runtime, package manager integration, Driver/HAL, Safety Runtime, vehicle bus, or virtualization code is added.",
+            ],
+            "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"],
+        }
+
     def governance_payload(self) -> dict[str, Any]:
         return {
             "registry": {
