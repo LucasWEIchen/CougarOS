@@ -58,6 +58,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py memory-query
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py action-request
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py governance-precheck
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py governance-backend-contract
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py binding-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py driver-gaps
@@ -85,6 +86,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-precheck
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-backend-contract
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 ```
 
@@ -98,6 +101,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py state
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py infer-denied
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-backend-contract
 ```
 
 Linux systemd deployment sample：
@@ -127,13 +132,14 @@ bash tools/check_central_brain_linux_systemd_hardening.sh
 - `POST /soa/invoke`：SOA 服务入口，覆盖 XSC-003、FW-S-004、FW-S-005。
 - `GET /governance/runtime`：Runtime & Governance 状态，覆盖 XSC-005、NV-G-001..007。
 - `POST /governance/precheck`：Runtime & Governance discovery、Policy/Safety State、Lifecycle、QoS 只检查不调用路径，默认不消费 QoS 窗口且不 dispatch 到 Driver/HAL，覆盖 XSC-005、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、DEL-001、DEL-002。
+- `GET /governance/backend-contract`：共享 Runtime & Governance 后端目标契约，固定 Android Binder、Linux IPC 和 Linux gRPC/RPC 未来替换时共用的 `governance.precheck`、`governance.runtime.get`、`audit.recent.get` 操作边界，覆盖 XSC-005、XSC-006、NV-G-001..007、NV-P-002、NV-P-003、DEL-001、DEL-002；当前不是量产多进程治理后端。
 - `GET /audit/recent`：SOA 调用审计记录；设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可从 JSONL 恢复最近记录，覆盖 XSC-005、NV-G-007、DEL-002。
 - `/soa/invoke` QoS fixed-window 检查：对受控服务执行 NV-G-004 限流，超限时返回 `qos_decision=deny` 并写入 `qos_rejected` audit，覆盖 XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002。
 - `POST /policy/evaluate`：Policy/Safety State 评估入口，覆盖 FW-U-007、FW-S-005、NV-G-005。
 - `GET /bindings`：Protocol Binding 状态，覆盖 XSC-006、NV-P-001..006。
 - `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - Android Console Binder path：debug APK 绑定 `CentralBrainGatewayBinderService`，通过 `CentralBrainGatewayClient` 调用 Uni Info Bus State 与 AI SDK/Agent task plan；service sample 仍代理 REST prototype gateway，覆盖 XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
-- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/*`、`/policy/evaluate`、`/governance/precheck`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`、`/native/driver-gaps`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-P-002、NV-P-006、KH-003、KH-006、DEL-001、DEL-005。
+- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/*`、`/policy/evaluate`、`/governance/precheck`、`/governance/backend-contract`、`/governance/runtime`、`/bindings/detail`、`/native/adapters/detail`、`/native/driver-gaps`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-P-002、NV-P-006、KH-003、KH-006、DEL-001、DEL-005。
 - Android system/privileged service integration note：`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 记录 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项，覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005；本轮不开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化层。
 - Linux shared governance daemon sample：`central_brain_governance_daemon.py` 通过 Unix socket 提供 `governance.precheck`、`governance.runtime.get` 和 `audit.recent.get`，`central_brain_governance_client.py` 供 Linux IPC/gRPC 复用 shared precheck envelope 并直接查看治理状态/审计，覆盖 XSC-005、XSC-006、NV-G-001、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-002。
 - Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*` 和 `audit.*` 本地 IPC envelope；`soa.service.invoke` 在转发到 REST prototype 前优先通过 shared governance client 执行 Runtime & Governance daemon precheck，不可用时回退本地 precheck，覆盖 XSC-005、XSC-006、FW-U-003、FW-U-004、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-006、DEL-002。

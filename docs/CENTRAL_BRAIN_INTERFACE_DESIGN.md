@@ -76,7 +76,7 @@
 | Policy | 权限、安全状态、隐私路由 | HTTP/JSON | AIDL/native policy engine |
 | Vehicle | VSS/VHAL/ECU 信号 | HTTP/JSON | VHAL/AIDL/SOME-IP |
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
-| Observability | Trace、Metric、QoS、Audit | HTTP/JSON | AIDL + file/socket exporter |
+| Observability | Trace、Metric、QoS、Audit、共享治理后端目标契约 | HTTP/JSON | AIDL + file/socket exporter + shared Runtime & Governance backend |
 | Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
 
 AI SDK/Agent 入口当前已新增 `GET /ai/sdk/capabilities`、`POST /agent/plan`、`POST /agent/execute`、`GET /skills`、`POST /skills/{skill_id}/invoke` 与 `POST /memory/query` active contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。App 侧只能提交 intent/utterance/task graph 并获得任务图或受控执行边界；任务图中的执行步骤仍必须通过 Uni Info Bus、Tool、Action 或 SOA 服务入口，不能直连 Model Runtime Adapter、NPU vendor SDK 或设备节点。
@@ -151,8 +151,11 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | POST | `/policy/evaluate` | 权限与安全状态评估 | 是 |
 | GET | `/policy/permissions` | 权限矩阵 | 否 |
 | GET | `/audit/recent` | 最近治理审计记录；设置 `CENTRAL_BRAIN_AUDIT_LOG` 后可恢复最近 50 条 | 是 |
+| GET | `/governance/backend-contract` | 共享 Runtime & Governance 后端目标契约，固定 Binder/IPC/gRPC 共用的 precheck/runtime/audit 操作和替换规则 | 是 |
 
 当前 A3 QoS 增量不新增独立接口，而是在 `POST /soa/invoke` 内执行 per-service fixed-window 检查。`npu-inference` 样例限制为每 1 秒 2 次；超过窗口时 response payload 中 `state=rejected`、`qos_decision.decision=deny`，并写入 `outcome=qos_rejected` 的 audit。该实现覆盖 XSC-005、NV-G-004、NV-G-007、FW-S-005、DEL-002；它仍是单进程原型，不代表量产多进程/多协议限流后端。
+
+`GET /governance/backend-contract` 覆盖 XSC-005、XSC-006、NV-G-001..007、NV-P-002、NV-P-003、DEL-001、DEL-002。当前返回的是目标契约和替换规则：Android Binder、Linux IPC、Linux gRPC/RPC 后续必须共用 `governance.precheck`、`governance.runtime.get`、`audit.recent.get` 操作边界，不能在各 transport 内复制 Policy/QoS 逻辑。本接口不实现量产多进程治理后端、真实 gRPC runtime、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
 
 ### Uni Info Bus Event
 

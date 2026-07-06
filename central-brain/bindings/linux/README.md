@@ -46,6 +46,7 @@ Brain semantic gateway.
 | `soa.service.invoke` | shared Linux governance daemon precheck with local fallback -> `POST /soa/invoke` | XSC-003, XSC-005, FW-S-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | `policy.evaluate` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
 | `governance.precheck` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
+| `governance.backend.contract.get` | `GET /governance/backend-contract` | XSC-005, XSC-006, NV-G-001..007, NV-P-002, NV-P-003 |
 | `governance.runtime.get` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `audit.recent.get` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
@@ -55,6 +56,9 @@ The gRPC/RPC JSON sample maps the same semantic endpoints through
 `CentralBrainGateway.InvokeService` calls the shared Linux governance daemon
 through the same helper as Linux IPC before forwarding allowed SOA calls and
 falls back to local Runtime & Governance when the shared socket is unavailable.
+`CentralBrainGateway.GetGovernanceBackendContract` exposes the same target
+shared governance backend contract as Binder and Linux IPC; it is metadata for
+transport replacement, not a production governance backend implementation.
 
 ## Unix Socket Sample
 
@@ -89,6 +93,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py action-request
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-precheck
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-backend-contract
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 ```
@@ -128,6 +134,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-precheck
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-backend-contract
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py infer-denied
 ```
 
@@ -154,6 +162,10 @@ bash tools/check_central_brain_delivery_docs.sh
 - IPC and gRPC/RPC samples share `central_brain_governance_client.py` for the
   `governance.precheck` socket envelope, so a future production governance
   backend can replace that boundary once instead of separately per transport.
+- `/governance/backend-contract` and the `governance.backend.contract.get` /
+  `GetGovernanceBackendContract` binding operations document that future
+  replacement boundary across Binder, IPC, and gRPC/RPC without implementing a
+  production governance backend in this sample.
 - The current IPC daemon is an active sample, not a full production gateway; it
   applies a shared Linux governance daemon precheck to SOA service invocations
   when `CENTRAL_BRAIN_GOVERNANCE_SOCKET` is configured, falls back to local

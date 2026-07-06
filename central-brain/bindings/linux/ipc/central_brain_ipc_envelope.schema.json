@@ -28,6 +28,7 @@
         "soa.service.invoke",
         "policy.evaluate",
         "governance.precheck",
+        "governance.backend.contract.get",
         "governance.runtime.get",
         "audit.recent.get",
         "bindings.list"

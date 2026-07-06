@@ -1,13 +1,14 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "updated": "2026-07-06",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck via reusable governance socket client and local fallback",
     "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck via reusable governance socket client and local fallback",
     "linux_governance_socket_sample": "/tmp/central_brain_governance.sock with governance.precheck, governance.runtime.get, and audit.recent.get diagnostics",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
+    "shared_governance_backend_contract": "GET /governance/backend-contract describes the target shared governance backend operations for Android Binder, Linux IPC, and Linux gRPC/RPC replacement",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getGovernanceBackendContractJson",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
@@ -164,6 +165,21 @@
         }
       },
       "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "FW-S-005", "DEL-001", "DEL-002"]
+    },
+    {
+      "method": "GET",
+      "path": "/governance/backend-contract",
+      "description": "Returns the target shared Runtime & Governance backend contract for Android Binder, Linux IPC, and Linux gRPC/RPC bindings, including required operations, replacement rules, and non-goal boundaries.",
+      "response": {
+        "required_operations": ["governance.precheck", "governance.runtime.get", "audit.recent.get"],
+        "binding_contract": {
+          "android_binder": "system/privileged Binder service calls the shared governance backend before SOA dispatch",
+          "linux_ipc": "Unix socket IPC keeps the same operation envelope when the backend becomes production",
+          "linux_grpc_rpc": "true gRPC server keeps the same precheck/runtime/audit operation names"
+        },
+        "non_goals": ["Driver/HAL", "Safety Runtime", "vehicle bus", "virtualization"]
+      },
+      "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002"]
     },
     {
       "method": "POST",

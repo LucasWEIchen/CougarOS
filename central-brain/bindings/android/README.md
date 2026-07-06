@@ -11,9 +11,10 @@ Brain semantic gateway.
   directly.
 - The Android Console debug APK now binds this service sample before calling
   Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
-  Memory query, Runtime & Governance precheck, and Driver/HAL gap backlog
-  contract mocks. The Binder service sample still proxies to the REST semantic
-  gateway as its upstream prototype binding.
+  Memory query, Runtime & Governance precheck, shared governance backend target
+  contract, and Driver/HAL gap backlog contract mocks. The Binder service
+  sample still proxies to the REST semantic gateway as its upstream prototype
+  binding.
 
 ## Mapping
 
@@ -35,6 +36,7 @@ Brain semantic gateway.
 | `invokeServiceJson` | `POST /soa/invoke` | XSC-003, FW-S-005 |
 | `evaluatePolicyJson` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
 | `precheckGovernanceJson` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
+| `getGovernanceBackendContractJson` | `GET /governance/backend-contract` | XSC-005, XSC-006, NV-G-001..007, NV-P-002, NV-P-003 |
 | `getRuntimeGovernanceJson` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `getRecentAuditJson` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
@@ -80,6 +82,10 @@ Brain semantic gateway.
   is now exposed by the Android Console `Precheck` action and checks discovery,
   Policy, Lifecycle, and QoS decisions without dispatching a service; by default
   it does not reserve the QoS fixed-window slot.
+- `getGovernanceBackendContractJson` exposes the target shared Runtime &
+  Governance backend contract that Binder, Linux IPC, and Linux gRPC/RPC must
+  share when the sample transport is replaced. It is metadata only and does not
+  implement a production governance backend.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it
   does not call HAL, device nodes, vendor SDKs, or Safety Runtime.

@@ -35,6 +35,7 @@ service CentralBrainGateway {
   rpc InvokeService(GatewayRequest) returns (GatewayResponse);
   rpc EvaluatePolicy(GatewayRequest) returns (GatewayResponse);
   rpc PrecheckGovernance(GatewayRequest) returns (GatewayResponse);
+  rpc GetGovernanceBackendContract(GatewayRequest) returns (GatewayResponse);
   rpc GetRuntimeGovernance(GatewayRequest) returns (GatewayResponse);
   rpc GetRecentAudit(GatewayRequest) returns (GatewayResponse);
   rpc ListBindings(GatewayRequest) returns (GatewayResponse);

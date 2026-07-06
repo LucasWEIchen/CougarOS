@@ -57,6 +57,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "InvokeService": {"method": "POST", "path": "/soa/invoke", "req_ids": ["XSC-003", "FW-S-005", "NV-G-004", "NV-P-003", "DEL-002"]},
     "EvaluatePolicy": {"method": "POST", "path": "/policy/evaluate", "req_ids": ["XSC-005", "NV-G-005", "NV-P-003", "DEL-002"]},
     "PrecheckGovernance": {"method": "POST", "path": "/governance/precheck", "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "DEL-002"]},
+    "GetGovernanceBackendContract": {"method": "GET", "path": "/governance/backend-contract", "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-007", "NV-P-003", "DEL-002"]},
     "GetRuntimeGovernance": {"method": "GET", "path": "/governance/runtime", "req_ids": ["XSC-005", "NV-G-001", "NV-P-003", "DEL-002"]},
     "GetRecentAudit": {"method": "GET", "path": "/audit/recent", "req_ids": ["XSC-005", "NV-G-007", "NV-P-003", "DEL-002"]},
     "ListBindings": {"method": "GET", "path": "/bindings", "req_ids": ["XSC-006", "NV-P-003", "DEL-002"]},

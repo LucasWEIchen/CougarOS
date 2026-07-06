@@ -11,8 +11,8 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux shared governance daemon runtime/audit diagnostics |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit diagnostics + local fallback；Linux gRPC/RPC JSON contract sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + Linux shared governance daemon runtime/audit diagnostics |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit diagnostics + backend contract visibility + local fallback；Linux gRPC/RPC JSON contract sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog contract |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
@@ -53,6 +53,11 @@
 
 ### 2026-07-06
 
+- 推进 shared Runtime & Governance backend target contract：
+  - 新增 `GET /governance/backend-contract`，用 Runtime & Governance payload 固定未来共享治理后端必须支持的 `governance.precheck`、`governance.runtime.get`、`audit.recent.get` 三类操作、Android Binder/Linux IPC/Linux gRPC-RPC 接入形态、替换规则和非目标边界。
+  - Android Binder/AIDL 新增 `getGovernanceBackendContractJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `governance-backend-contract`/`governance.backend.contract.get`/`GetGovernanceBackendContract` 可见路径。
+  - Protocol Binding registry、API contract、smoke/static checks、接口设计、平台差异、交付目标、偏差和驱动支持边界同步说明该能力是共享治理后端目标契约，不是量产多进程治理后端、真实 gRPC runtime、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-005、XSC-006、NV-G-001、NV-G-002、NV-G-003、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - 推进 Linux Protocol Binding shared governance client 收敛：
   - 新增 `central_brain_governance_client.py`，把 Linux IPC 与 Linux gRPC/RPC sample 调用 shared governance socket 的 `governance.precheck` envelope 收敛到同一 client helper。
   - `central_brain_ipc_daemon.py` 与 `central_brain_grpc_server.py` 继续保留各自 local Runtime & Governance fallback，但 shared daemon 调用路径不再重复实现 socket 读写与 envelope 组装。

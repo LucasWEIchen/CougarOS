@@ -381,6 +381,66 @@ class RuntimeGovernance:
             "req_ids": ["XSC-005", "NV-G-007", "DEL-002"],
         }
 
+    def backend_contract_payload(self) -> dict[str, Any]:
+        return {
+            "name": "central-brain-shared-governance-backend",
+            "state": "target-contract-with-linux-socket-sample",
+            "current_sample": {
+                "linux_socket": "central-brain/bindings/linux/ipc/central_brain_governance_daemon.py",
+                "client_helper": "central-brain/bindings/linux/ipc/central_brain_governance_client.py",
+                "android_path": "ICentralBrainGateway.getGovernanceBackendContractJson -> /governance/backend-contract",
+                "linux_cli": "central_brain_cli.py governance-backend-contract",
+            },
+            "required_operations": [
+                {
+                    "operation": "governance.precheck",
+                    "purpose": "service discovery, Policy/Safety State, Lifecycle, and QoS decision before SOA dispatch",
+                    "dispatch": {"service_invoked": False, "driver_hal": "not-dispatched", "virtualization": "not-developed"},
+                    "req_ids": ["NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006"],
+                },
+                {
+                    "operation": "governance.runtime.get",
+                    "purpose": "registry, discovery, schema, QoS, policy, lifecycle, and audit diagnostics",
+                    "dispatch": {"service_invoked": False, "driver_hal": "not-dispatched", "virtualization": "not-developed"},
+                    "req_ids": ["NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006"],
+                },
+                {
+                    "operation": "audit.recent.get",
+                    "purpose": "recent governance audit visibility for Android/Linux integration tests",
+                    "dispatch": {"service_invoked": False, "driver_hal": "not-dispatched", "virtualization": "not-developed"},
+                    "req_ids": ["NV-G-007", "DEL-001", "DEL-002"],
+                },
+            ],
+            "binding_contract": {
+                "android_binder": {
+                    "current": "debug APK Binder service proxies the REST prototype gateway",
+                    "target": "system/privileged Binder service calls the shared governance backend before SOA dispatch",
+                    "req_ids": ["DEL-001", "NV-P-002", "XSC-005", "XSC-006"],
+                },
+                "linux_ipc": {
+                    "current": "Unix socket IPC active sample calls the shared governance socket for soa.service.invoke",
+                    "target": "same operation envelope backed by the production governance backend",
+                    "req_ids": ["DEL-002", "NV-P-002", "XSC-005", "XSC-006"],
+                },
+                "linux_grpc_rpc": {
+                    "current": "JSON TCP wrapper mirrors proto RPC names and reuses the Linux governance socket client",
+                    "target": "true gRPC server keeps the same precheck/runtime/audit operation names",
+                    "req_ids": ["DEL-002", "NV-P-003", "XSC-005", "XSC-006"],
+                },
+            },
+            "replacement_rules": [
+                "Bindings must depend on the governance operation envelope, not duplicate Policy/QoS logic per transport.",
+                "SOA service dispatch is allowed only after governance.precheck returns allow.",
+                "Diagnostic runtime/audit operations must stay read-only and cannot consume QoS or invoke services.",
+                "Binder caller identity, Linux service identity, and gRPC peer identity are Policy inputs, not Policy replacements.",
+            ],
+            "non_goals": [
+                "No production multi-process governance backend is implemented in this increment.",
+                "No Android framework patch, SELinux policy, true gRPC runtime, Driver/HAL, Safety Runtime, vehicle bus, or virtualization code is added.",
+            ],
+            "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002"],
+        }
+
     def governance_payload(self) -> dict[str, Any]:
         return {
             "registry": {

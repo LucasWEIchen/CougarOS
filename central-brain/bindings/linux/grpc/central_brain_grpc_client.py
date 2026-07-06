@@ -109,6 +109,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "consume_qos": False,
         },
     ),
+    "governance-backend-contract": ("GetGovernanceBackendContract", {}),
     "infer": (
         "InvokeService",
         {

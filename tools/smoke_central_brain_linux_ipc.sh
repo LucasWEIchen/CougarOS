@@ -96,6 +96,23 @@ CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/binding
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" skill-invoke >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" memory-query >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" action-request >/dev/null
+BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-backend-contract)"
+python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+assert response["status"] == "ok", response
+assert "governance.precheck" in encoded, response
+assert "governance.runtime.get" in encoded, response
+assert "audit.recent.get" in encoded, response
+assert "android_binder" in payload["binding_contract"], response
+assert "linux_ipc" in payload["binding_contract"], response
+assert "linux_grpc_rpc" in payload["binding_contract"], response
+assert "Driver/HAL" in encoded and "virtualization" in encoded, response
+PY
 PRECHECK_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-precheck)"
 python3 - "$PRECHECK_OUTPUT" <<'PY'
 import json
@@ -210,6 +227,7 @@ assert "skills.invoke" in encoded, response
 assert "memory.query" in encoded, response
 assert "uib.actions.request" in encoded, response
 assert "governance.precheck" in encoded, response
+assert "governance.backend.contract.get" in encoded, response
 assert "XSC-006" in encoded and "NV-P-002" in encoded and "DEL-002" in encoded, response
 PY
 

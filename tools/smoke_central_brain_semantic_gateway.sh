@@ -69,6 +69,7 @@ checks = [
     ("GET", "/uib/events/recent", None, "FW-U-003"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/governance/runtime", None, "NV-G-005"),
+    ("GET", "/governance/backend-contract", None, "NV-P-003"),
     ("GET", "/bindings", None, "NV-P-005"),
     ("GET", "/bindings/detail", None, "NV-P-002"),
     ("GET", "/native/adapters", None, "NV-F-011"),
@@ -258,6 +259,17 @@ for method, path, body, req_id in checks:
         assert precheck["state"] == "allowed", "governance precheck was not allowed"
         assert precheck["dispatch"]["service_invoked"] is False, "governance precheck dispatched service"
         assert precheck["qos_decision"]["consumed"] is False, "diagnostic precheck consumed QoS window"
+    if path == "/governance/backend-contract":
+        contract = payload["payload"]
+        operations = {item["operation"] for item in contract["required_operations"]}
+        assert "governance.precheck" in operations, "backend contract missing precheck operation"
+        assert "governance.runtime.get" in operations, "backend contract missing runtime diagnostic operation"
+        assert "audit.recent.get" in operations, "backend contract missing audit diagnostic operation"
+        assert "android_binder" in contract["binding_contract"], "backend contract missing Android binding"
+        assert "linux_ipc" in contract["binding_contract"], "backend contract missing Linux IPC binding"
+        assert "linux_grpc_rpc" in contract["binding_contract"], "backend contract missing Linux gRPC/RPC binding"
+        assert "Driver/HAL" in json.dumps(contract), "backend contract missing Driver/HAL non-goal"
+        assert "virtualization" in json.dumps(contract), "backend contract missing virtualization non-goal"
     if path == "/uib/events/recent":
         events = payload["payload"]["events"]
         assert events, "event recent endpoint did not keep the published event"

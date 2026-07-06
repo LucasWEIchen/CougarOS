@@ -20,6 +20,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "event-recent": ("uib.events.recent", {}),
     "services": ("soa.services.list", {}),
     "governance": ("governance.runtime.get", {}),
+    "governance-backend-contract": ("governance.backend.contract.get", {}),
     "audit": ("audit.recent.get", {}),
     "bindings": ("bindings.list", {}),
     "ai-sdk": ("ai.sdk.capabilities", {}),
