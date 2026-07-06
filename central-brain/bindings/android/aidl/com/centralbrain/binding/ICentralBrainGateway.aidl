@@ -55,6 +55,8 @@ interface ICentralBrainGateway {
 
     String getGovernanceMigrationCheckJson(String traceId);
 
+    String getGovernanceDeploymentPlanJson(String traceId);
+
     String getRuntimeGovernanceJson(String traceId);
 
     String getRecentAuditJson(String traceId, int limit);

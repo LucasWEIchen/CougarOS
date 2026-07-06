@@ -49,6 +49,7 @@ Brain semantic gateway.
 | `governance.precheck` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
 | `governance.backend.contract.get` | `GET /governance/backend-contract` | XSC-005, XSC-006, NV-G-001..007, NV-P-002, NV-P-003 |
 | `governance.migration.check` | `GET /governance/migration-check` | XSC-005, XSC-006, NV-G-001, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007, NV-P-002, NV-P-003, DEL-002, DEL-003, DEL-004 |
+| `governance.deployment.plan.get` | `GET /governance/deployment-plan` | XSC-005, XSC-006, NV-G-001..007, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-003, DEL-004 |
 | `governance.runtime.get` | shared governance socket diagnostic, REST fallback to `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `audit.recent.get` | shared governance socket diagnostic, REST fallback to `GET /audit/recent` | XSC-005, NV-G-007 |
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
@@ -64,6 +65,9 @@ transport replacement, not a production governance backend implementation.
 `CentralBrainGateway.GetGovernanceMigrationCheck` exposes the same read-only
 replacement readiness check as Binder and Linux IPC; it keeps production
 backend invariants visible without implementing that backend.
+`CentralBrainGateway.GetGovernanceDeploymentPlan` exposes the Android system
+service, Linux daemon, and true gRPC/RPC deployment-shape contract; it records
+open deployment decisions without implementing the production backend.
 `CentralBrainGateway.GetRuntimeGovernance` and
 `CentralBrainGateway.GetRecentAudit` use the same shared governance client as
 IPC for read-only diagnostics before falling back to the REST prototype gateway.

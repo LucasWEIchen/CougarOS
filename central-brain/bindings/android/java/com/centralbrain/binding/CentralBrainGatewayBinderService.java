@@ -125,6 +125,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getGovernanceDeploymentPlanJson(String traceId) throws RemoteException {
+            return get("/governance/deployment-plan", traceId);
+        }
+
+        @Override
         public String getRuntimeGovernanceJson(String traceId) throws RemoteException {
             return get("/governance/runtime", traceId);
         }

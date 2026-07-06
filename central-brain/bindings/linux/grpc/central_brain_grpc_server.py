@@ -61,6 +61,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "PrecheckGovernance": {"method": "POST", "path": "/governance/precheck", "req_ids": ["XSC-005", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "DEL-002"]},
     "GetGovernanceBackendContract": {"method": "GET", "path": "/governance/backend-contract", "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-007", "NV-P-003", "DEL-002"]},
     "GetGovernanceMigrationCheck": {"method": "GET", "path": "/governance/migration-check", "req_ids": ["XSC-005", "XSC-006", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-007", "NV-P-003", "DEL-002", "DEL-003", "DEL-004"]},
+    "GetGovernanceDeploymentPlan": {"method": "GET", "path": "/governance/deployment-plan", "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-007", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]},
     "GetRuntimeGovernance": {"method": "GET", "path": "/governance/runtime", "req_ids": ["XSC-005", "NV-G-001", "NV-P-003", "DEL-002"]},
     "GetRecentAudit": {"method": "GET", "path": "/audit/recent", "req_ids": ["XSC-005", "NV-G-007", "NV-P-003", "DEL-002"]},
     "ListBindings": {"method": "GET", "path": "/bindings", "req_ids": ["XSC-006", "NV-P-003", "DEL-002"]},

@@ -515,6 +515,60 @@ class RuntimeGovernance:
             "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"],
         }
 
+    def deployment_plan_payload(self) -> dict[str, Any]:
+        return {
+            "name": "central-brain-governance-backend-deployment-plan",
+            "state": "target-deployment-contract",
+            "production_backend_ready": False,
+            "selected_increment": "contract-visible deployment shape; no production backend implementation",
+            "deployment_shapes": [
+                {
+                    "id": "GOV-DEPLOY-ANDROID-SYSTEM-SERVICE",
+                    "platform": "Android",
+                    "target_shape": "system/privileged Binder service fronting the shared Runtime & Governance backend",
+                    "current_sample": "debug APK Binder service proxies the REST prototype gateway",
+                    "required_identity_inputs": ["calling_uid", "package_name", "signature_digest", "android_user", "aidl_method"],
+                    "open_decisions": ["target AAOS service owner", "signature permission", "SELinux domain", "native gateway process shape"],
+                    "non_goals": ["no Android framework patch", "no SELinux policy patch", "no Driver/HAL bridge"],
+                    "req_ids": ["DEL-001", "DEL-003", "DEL-004", "NV-P-002", "XSC-005", "XSC-006"],
+                },
+                {
+                    "id": "GOV-DEPLOY-LINUX-DAEMON",
+                    "platform": "Linux",
+                    "target_shape": "standalone governance daemon using the same precheck/runtime/audit operation envelope",
+                    "current_sample": "Unix socket governance daemon plus reusable Linux governance client helper",
+                    "required_identity_inputs": ["service_account", "peer_uid", "socket_path", "systemd_unit", "audit_log_path"],
+                    "open_decisions": ["target distro package format", "service account policy", "audit export backend", "LSM profile"],
+                    "non_goals": ["no package manager integration", "no AppArmor/SELinux profile", "no Driver/HAL bridge"],
+                    "req_ids": ["DEL-002", "DEL-003", "DEL-004", "NV-P-002", "XSC-005", "XSC-006"],
+                },
+                {
+                    "id": "GOV-DEPLOY-GRPC-RPC",
+                    "platform": "Linux/Android integration",
+                    "target_shape": "true gRPC/RPC service preserving the existing proto RPC names and governance operation envelope",
+                    "current_sample": "dependency-free JSON TCP wrapper because grpcio is unavailable in this workspace",
+                    "required_identity_inputs": ["peer_identity", "service_credentials", "rpc_name", "permission_context"],
+                    "open_decisions": ["grpcio or C++ gRPC availability", "credential source", "peer identity mapping"],
+                    "non_goals": ["no true gRPC runtime in this increment", "no production multi-process backend"],
+                    "req_ids": ["DEL-002", "DEL-004", "NV-P-003", "XSC-005", "XSC-006"],
+                },
+            ],
+            "common_invariants": [
+                "All SOA service dispatch remains gated by governance.precheck.",
+                "Policy, Lifecycle, QoS, and Audit live in the shared Runtime & Governance backend, not in each transport.",
+                "Runtime and audit diagnostics stay read-only and cannot dispatch services or consume QoS.",
+                "Driver/HAL, vehicle bus, Safety Runtime, and virtualization layers remain outside this deployment-plan increment.",
+            ],
+            "validation_commands": [
+                "bash tools/smoke_central_brain_semantic_gateway.sh",
+                "bash tools/smoke_central_brain_linux_ipc.sh",
+                "bash tools/smoke_central_brain_linux_grpc.sh",
+                "bash tools/check_central_brain_binding_artifacts.sh",
+                "bash tools/check_central_brain_delivery_docs.sh",
+            ],
+            "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"],
+        }
+
     def governance_payload(self) -> dict[str, Any]:
         return {
             "registry": {

@@ -31,6 +31,7 @@ bash tools/run_central_brain_backend.sh
 - `POST /governance/precheck`
 - `GET /governance/backend-contract`
 - `GET /governance/migration-check`
+- `GET /governance/deployment-plan`
 - `GET /audit/recent`
 - `GET /bindings`
 - `GET /bindings/detail`

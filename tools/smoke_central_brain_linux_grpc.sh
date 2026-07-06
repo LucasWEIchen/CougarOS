@@ -118,6 +118,25 @@ assert "linux_grpc_rpc" in contract["binding_contract"], response
 assert "Driver/HAL" in encoded and "virtualization" in encoded, response
 PY
 
+DEPLOYMENT_PLAN_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-deployment-plan)"
+python3 - "$DEPLOYMENT_PLAN_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+deployment = payload["gateway"]["payload"]
+encoded = json.dumps(deployment)
+shape_ids = {item["id"] for item in deployment["deployment_shapes"]}
+assert response["status"] == "ok", response
+assert deployment["production_backend_ready"] is False, response
+assert "GOV-DEPLOY-ANDROID-SYSTEM-SERVICE" in shape_ids, response
+assert "GOV-DEPLOY-LINUX-DAEMON" in shape_ids, response
+assert "GOV-DEPLOY-GRPC-RPC" in shape_ids, response
+assert "governance.precheck" in encoded, response
+assert "Driver/HAL" in encoded and "virtualization" in encoded, response
+PY
+
 MIGRATION_CHECK_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-migration-check)"
 python3 - "$MIGRATION_CHECK_OUTPUT" <<'PY'
 import json

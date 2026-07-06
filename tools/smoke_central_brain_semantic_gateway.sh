@@ -71,6 +71,7 @@ checks = [
     ("GET", "/governance/runtime", None, "NV-G-005"),
     ("GET", "/governance/backend-contract", None, "NV-P-003"),
     ("GET", "/governance/migration-check", None, "DEL-004"),
+    ("GET", "/governance/deployment-plan", None, "DEL-003"),
     ("GET", "/bindings", None, "NV-P-005"),
     ("GET", "/bindings/detail", None, "NV-P-002"),
     ("GET", "/native/adapters", None, "NV-F-011"),
@@ -280,6 +281,16 @@ for method, path, body, req_id in checks:
         assert "linux-ipc" in encoded, "migration check missing Linux IPC readiness"
         assert "linux-grpc-rpc" in encoded, "migration check missing Linux gRPC/RPC readiness"
         assert "Driver/HAL" in encoded and "virtualization" in encoded, "migration check missing non-goal boundaries"
+    if path == "/governance/deployment-plan":
+        deployment = payload["payload"]
+        encoded = json.dumps(deployment)
+        shape_ids = {item["id"] for item in deployment["deployment_shapes"]}
+        assert deployment["production_backend_ready"] is False, "deployment plan must not claim production backend is ready"
+        assert "GOV-DEPLOY-ANDROID-SYSTEM-SERVICE" in shape_ids, "deployment plan missing Android system service shape"
+        assert "GOV-DEPLOY-LINUX-DAEMON" in shape_ids, "deployment plan missing Linux daemon shape"
+        assert "GOV-DEPLOY-GRPC-RPC" in shape_ids, "deployment plan missing gRPC/RPC shape"
+        assert "governance.precheck" in encoded, "deployment plan missing governance precheck invariant"
+        assert "Driver/HAL" in encoded and "virtualization" in encoded, "deployment plan missing non-goal boundaries"
     if path == "/uib/events/recent":
         events = payload["payload"]["events"]
         assert events, "event recent endpoint did not keep the published event"

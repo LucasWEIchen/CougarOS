@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "updated": "2026-07-06",
   "transport": {
     "prototype": "http-json",
@@ -9,7 +9,8 @@
     "linux_governance_socket_sample": "/tmp/central_brain_governance.sock with governance.precheck, governance.runtime.get, and audit.recent.get diagnostics used directly by Linux IPC/gRPC samples",
     "shared_governance_backend_contract": "GET /governance/backend-contract describes the target shared governance backend operations for Android Binder, Linux IPC, and Linux gRPC/RPC replacement",
     "shared_governance_migration_check": "GET /governance/migration-check reports production backend replacement invariants, binding readiness, and open decisions without implementing the production backend",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getGovernanceBackendContractJson and getGovernanceMigrationCheckJson",
+    "shared_governance_deployment_plan": "GET /governance/deployment-plan reports Android system service, Linux daemon, and gRPC/RPC deployment shapes plus open decisions without implementing the production backend",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, and getGovernanceDeploymentPlanJson",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
@@ -193,6 +194,18 @@
         "non_goals": ["production multi-process backend", "Driver/HAL", "Safety Runtime", "vehicle bus", "virtualization"]
       },
       "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
+    },
+    {
+      "method": "GET",
+      "path": "/governance/deployment-plan",
+      "description": "Returns the target deployment plan contract for replacing Runtime & Governance samples with Android system service, Linux daemon, and true gRPC/RPC shapes, including required identity inputs, open decisions, invariants, validation commands, and non-goal boundaries.",
+      "response": {
+        "production_backend_ready": false,
+        "deployment_shapes": ["GOV-DEPLOY-ANDROID-SYSTEM-SERVICE", "GOV-DEPLOY-LINUX-DAEMON", "GOV-DEPLOY-GRPC-RPC"],
+        "common_invariants": ["governance.precheck gates SOA dispatch", "Policy/QoS not duplicated per transport"],
+        "non_goals": ["production multi-process backend", "Driver/HAL", "Safety Runtime", "vehicle bus", "virtualization"]
+      },
+      "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
     },
     {
       "method": "POST",

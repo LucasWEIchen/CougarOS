@@ -22,6 +22,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "governance": ("governance.runtime.get", {}),
     "governance-backend-contract": ("governance.backend.contract.get", {}),
     "governance-migration-check": ("governance.migration.check", {}),
+    "governance-deployment-plan": ("governance.deployment.plan.get", {}),
     "audit": ("audit.recent.get", {}),
     "bindings": ("bindings.list", {}),
     "ai-sdk": ("ai.sdk.capabilities", {}),

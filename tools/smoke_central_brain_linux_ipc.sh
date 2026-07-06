@@ -129,6 +129,23 @@ assert "linux-ipc" in encoded, response
 assert "linux-grpc-rpc" in encoded, response
 assert "Driver/HAL" in encoded and "virtualization" in encoded, response
 PY
+DEPLOYMENT_PLAN_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-deployment-plan)"
+python3 - "$DEPLOYMENT_PLAN_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+shape_ids = {item["id"] for item in payload["deployment_shapes"]}
+assert response["status"] == "ok", response
+assert payload["production_backend_ready"] is False, response
+assert "GOV-DEPLOY-ANDROID-SYSTEM-SERVICE" in shape_ids, response
+assert "GOV-DEPLOY-LINUX-DAEMON" in shape_ids, response
+assert "GOV-DEPLOY-GRPC-RPC" in shape_ids, response
+assert "governance.precheck" in encoded, response
+assert "Driver/HAL" in encoded and "virtualization" in encoded, response
+PY
 PRECHECK_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-precheck)"
 python3 - "$PRECHECK_OUTPUT" <<'PY'
 import json
