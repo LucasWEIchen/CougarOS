@@ -11,7 +11,7 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并可触发 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`；Binder contract 提供 `getDriverHalGapsJson`；system service integration note 初版 |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并可触发 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`、`precheckGovernanceJson`、`getDriverHalGapsJson`；system service integration note 初版 |
 | Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Linux CLI 提供 `driver-gaps`；Unix socket IPC daemon/client active sample 已含 execute/Skill/Memory mock；gRPC/RPC JSON contract sample 初版；systemd 部署样例初版 + hardening check + package profile check |
 
 ## 每个核心模块的交付形态
@@ -22,10 +22,10 @@
 | Uni Info Bus 语义接口 | XSC-002 | Android client + contract | Linux client + contract | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/actions/request` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client | Linux daemon/client | `/soa/services`、`/soa/invoke` 初版 |
 | AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample + Driver/HAL gap visibility | Linux service adapter + Agent execute/Skill/Memory boundary sample + `driver-gaps` CLI | `GET /native/adapters/detail` 与 `GET /native/driver-gaps`；AIOS Kernel 真实 runtime 仍未实现 |
-| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + `precheckGovernanceJson` | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux shared governance daemon sample + IPC local SOA precheck fallback + `governance-precheck` | `/governance/runtime`、`/governance/precheck`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke`、Linux governance daemon 与 Linux IPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；`/governance/precheck` 默认只检查不消费 QoS |
+| Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + Console `Precheck` 调用 `precheckGovernanceJson` | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux shared governance daemon sample + IPC local SOA precheck fallback + `governance-precheck` | `/governance/runtime`、`/governance/precheck`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke`、Linux governance daemon 与 Linux IPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；`/governance/precheck` 默认只检查不消费 QoS |
 | Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射 | REST active prototype + Unix socket IPC daemon/client active sample with shared SOA governance precheck + Linux gRPC/RPC JSON contract sample + systemd sample + unit hardening check + package profile check，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；当前 gRPC/RPC sample 因环境无 `grpcio` 使用 JSON TCP wrapper；DDS 不在本轮实现 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge + NPU runtime interface contract | Linux runtime bridge + NPU runtime interface contract | NPU/GPU/Cloud 后端可替换；见 `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
-| Driver/HAL interface | KH-003, KH-006, DEL-005 | Android HAL/AIDL/NDK interface docs + Binder `getDriverHalGapsJson` | Linux device node/ioctl/sysfs/libs docs + CLI `driver-gaps` | 只在缺口处新增开发；NPU 检查点和 Driver/HAL gap backlog 已文档化/可查询 |
+| Driver/HAL interface | KH-003, KH-006, DEL-005 | Android HAL/AIDL/NDK interface docs + Console `Driver Gaps` 调用 Binder `getDriverHalGapsJson` | Linux device node/ioctl/sysfs/libs docs + CLI `driver-gaps` | 只在缺口处新增开发；NPU 检查点和 Driver/HAL gap backlog 已文档化/可查询 |
 | Hypervisor/Safety constraints | HV-001, HV-002, HV-003 | Android domain、Binder identity、Safety State 和 Policy 集成假设 | Linux domain、service identity、IPC fallback 和 Safety State 集成假设 | 只记录接口约束和部署假设，不开发虚拟化 |
 
 ## 交付包要求
@@ -121,8 +121,8 @@ Android 版本必须提供：
 - 通过 `CentralBrainGatewayClient.executeAgentTaskJson` 验证 Agent execute contract mock，只返回 policy-checked dispatch 边界。
 - 通过 `CentralBrainGatewayClient.invokeSkillJson` 验证 Skill/Tool contract mock，不运行真实 sandbox 或车身总线。
 - 通过 `CentralBrainGatewayClient.queryMemoryJson` 验证本地 Memory query contract mock，不允许 cloud sync。
-- Binder contract 同步提供 `precheckGovernanceJson`，用于验证 Runtime & Governance discovery、Policy、Lifecycle、QoS 的只检查不调用路径；当前 Console 主按钮尚不直接触发该 mock。
-- Binder contract 同步提供 `getDriverHalGapsJson`，用于查看 KH-003/KH-006/DEL-005 的 Driver/HAL gap backlog；该路径只读，不触发任何驱动开发或 HAL 调用。
+- 通过 `CentralBrainGatewayClient.precheckGovernanceJson` 验证 Runtime & Governance discovery、Policy、Lifecycle、QoS 的只检查不调用路径。
+- 通过 `CentralBrainGatewayClient.getDriverHalGapsJson` 查看 KH-003/KH-006/DEL-005 的 Driver/HAL gap backlog；该路径只读，不触发任何驱动开发或 HAL 调用。
 - Binder service sample 内部仍以 REST prototype gateway 作为上游绑定，不代表量产 system service。
 
 当前 Android binding service stub sample：

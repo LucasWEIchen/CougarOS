@@ -11,8 +11,9 @@ Brain semantic gateway.
   directly.
 - The Android Console debug APK now binds this service sample before calling
   Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
-  and Memory query contract mocks. The Binder service sample still proxies to
-  the REST semantic gateway as its upstream prototype binding.
+  Memory query, Runtime & Governance precheck, and Driver/HAL gap backlog
+  contract mocks. The Binder service sample still proxies to the REST semantic
+  gateway as its upstream prototype binding.
 
 ## Mapping
 
@@ -76,11 +77,12 @@ Brain semantic gateway.
   boundaries, but they do not run a real Skill sandbox, Memory store, Model
   Runtime Adapter, Driver/HAL, vehicle bus, or virtualization path.
 - `precheckGovernanceJson` is a diagnostic Runtime & Governance contract. It
-  checks discovery, Policy, Lifecycle, and QoS decisions without dispatching a
-  service; by default it does not reserve the QoS fixed-window slot.
+  is now exposed by the Android Console `Precheck` action and checks discovery,
+  Policy, Lifecycle, and QoS decisions without dispatching a service; by default
+  it does not reserve the QoS fixed-window slot.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
-  integration review only; it does not call HAL, device nodes, vendor SDKs, or
-  Safety Runtime.
+  integration review through the Android Console `Driver Gaps` action only; it
+  does not call HAL, device nodes, vendor SDKs, or Safety Runtime.
 
 ## System Service Integration Notes
 

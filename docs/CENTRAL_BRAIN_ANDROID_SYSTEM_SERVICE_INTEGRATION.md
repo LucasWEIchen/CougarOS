@@ -19,7 +19,8 @@ system server 代码、priv-app 签名配置、SELinux policy、Driver/HAL、Saf
 当前 Android Console debug APK 已经绑定
 `CentralBrainGatewayBinderService`，并通过 `CentralBrainGatewayClient`
 调用 Uni Info Bus State、AI SDK/Agent task plan、Agent execute、Skill invoke
-与 Memory query contract mock。该路径覆盖：
+与 Memory query contract mock，并提供 Runtime & Governance precheck 与
+Driver/HAL gap backlog 只读调试入口。该路径覆盖：
 
 | 组件 | 当前交付 | Req ID |
 | --- | --- | --- |
@@ -35,6 +36,9 @@ system server 代码、priv-app 签名配置、SELinux policy、Driver/HAL、Saf
 `executeAgentTaskJson`、`invokeSkillJson` 和 `queryMemoryJson` 当前只验证
 Policy/Safety State、audit 和 contract dispatch 边界，不运行真实 Agent runtime、
 Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL 或虚拟化层。
+`precheckGovernanceJson` 只执行 discovery、Policy、Lifecycle 与 QoS 决策检查；
+`getDriverHalGapsJson` 只读返回 gap backlog，不触发 HAL、device node、vendor SDK、
+Safety Runtime 或 Driver/HAL 开发。
 
 ## 目标 Android 集成形态
 
@@ -113,6 +117,7 @@ Policy 仍由 Runtime & Governance 执行。Binder 身份是输入，不是绕�
 | AIDL contract 可生成 Java | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-006, NV-P-002 |
 | Console APK 可编译 Binder client/service | `bash tools/build_central_brain_console.sh` | DEL-001 |
 | service manifest 存在 Binder action | `tools/check_central_brain_android_system_service_docs.sh` | DEL-003, DEL-004 |
+| Console 可触发 Governance precheck 和 Driver/HAL gaps | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-004, XSC-005, KH-003, KH-006, DEL-005 |
 | 权限/身份/Policy 边界已文档化 | `tools/check_central_brain_android_system_service_docs.sh` | FW-U-007, NV-G-005 |
 | 未新增 Driver/HAL/虚拟化开发 | driver support matrix + deviation table | KH-003, KH-006, HV-001..003 |
 | Driver/HAL gap backlog 可见 | `getDriverHalGapsJson` + `/native/driver-gaps` | KH-003, KH-006, DEL-005 |

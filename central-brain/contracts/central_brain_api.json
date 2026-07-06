@@ -8,7 +8,7 @@
     "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck and local fallback",
     "linux_governance_socket_sample": "/tmp/central_brain_governance.sock",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state and /agent/plan; execute/skills/memory are Binder contract samples",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",

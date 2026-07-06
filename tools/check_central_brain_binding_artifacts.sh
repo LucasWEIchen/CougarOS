@@ -93,6 +93,10 @@ grep -q "Invoke Skill" "$ANDROID_CONSOLE_MAIN"
 grep -q "invokeSkillJson" "$ANDROID_CONSOLE_MAIN"
 grep -q "Query Memory" "$ANDROID_CONSOLE_MAIN"
 grep -q "queryMemoryJson" "$ANDROID_CONSOLE_MAIN"
+grep -q "Precheck" "$ANDROID_CONSOLE_MAIN"
+grep -q "precheckGovernanceJson" "$ANDROID_CONSOLE_MAIN"
+grep -q "Driver Gaps" "$ANDROID_CONSOLE_MAIN"
+grep -q "getDriverHalGapsJson" "$ANDROID_CONSOLE_MAIN"
 if grep -q "Invoke SOA Inference" "$ANDROID_CONSOLE_MAIN"; then
   echo "Android Console main path must use AI SDK/Agent planning, not the old SOA inference button" >&2
   exit 1

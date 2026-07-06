@@ -53,6 +53,12 @@
 
 ### 2026-07-06
 
+- 推进 Android Console Governance/Driver gap Binder 可见性：
+  - `MainActivity` 在现有 `Refresh`、`Plan Agent Task`、`Execute Task`、`Invoke Skill`、`Query Memory` 基础上新增 `Precheck` 与 `Driver Gaps` 调试入口，分别调用 `precheckGovernanceJson` 和 `getDriverHalGapsJson`。
+  - Android Console 现在可直接验证 XSC-005 的 Runtime & Governance 只检查不调用路径，以及 KH-003/KH-006/DEL-005 的 Driver/HAL gap backlog 只读可见性。
+  - 静态绑定检查新增对 Console governance precheck 与 driver gaps 按钮路径的断言，防止 Android 主路径只停留在 contract 文档。
+  - 本轮未新增 Android system service、真实 Driver/HAL、Safety Runtime、车辆总线、NPU vendor SDK、真实共享治理后端或虚拟化层。
+  - 覆盖 Req ID：XSC-004、XSC-005、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、KH-003、KH-006、DEL-001、DEL-005。
 - 推进 A9 Linux package/profile 静态契约：
   - 新增 `central-brain/deploy/linux/central-brain.package-profile.json`，用机器可读清单固定 Linux 样例的安装根、服务身份、环境文件、runtime/log 目录、四个 systemd unit、Req ID、hardening 要求和非目标边界。
   - 新增 `tools/check_central_brain_linux_package_profile.sh`，验证 package profile、env example 与 backend/governance/IPC/gRPC-RPC unit 的 service identity、`WorkingDirectory`、`EnvironmentFile`、`ExecStart`、`ReadWritePaths`、runtime 目录和 hardening 约束一致。

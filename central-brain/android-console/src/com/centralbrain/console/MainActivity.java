@@ -26,6 +26,8 @@ public class MainActivity extends Activity {
     private Button executeButton;
     private Button skillButton;
     private Button memoryButton;
+    private Button governanceButton;
+    private Button driverGapsButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
 
@@ -122,6 +124,21 @@ public class MainActivity extends Activity {
             }
         });
 
+        LinearLayout governanceRow = buttonRow();
+        buttonArea.addView(governanceRow);
+        governanceButton = addButton(governanceRow, "Precheck", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                precheckGovernance();
+            }
+        });
+        driverGapsButton = addButton(governanceRow, "Driver Gaps", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getDriverGaps();
+            }
+        });
+
         detailView = new TextView(this);
         detailView.setTextSize(13);
         detailView.setTextColor(Color.rgb(34, 45, 52));
@@ -195,6 +212,29 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void precheckGovernance() {
+        setBusy(true, "Status: checking Runtime & Governance via Binder");
+        String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],\"vehicle_state\":\"parked\","
+            + "\"safety_state\":\"normal\",\"consume_qos\":false}";
+        gatewayRequest("Governance Precheck (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.precheckGovernanceJson(newTraceId("governance-precheck"), body);
+            }
+        });
+    }
+
+    private void getDriverGaps() {
+        setBusy(true, "Status: loading Driver/HAL gap backlog via Binder");
+        gatewayRequest("Driver/HAL Gaps (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getDriverHalGapsJson(newTraceId("driver-gaps"));
+            }
+        });
+    }
+
     private void bindGateway() {
         setBusy(true, "Status: binding Android gateway service");
         gatewayClient = new CentralBrainGatewayClient(this, new CentralBrainGatewayClient.Callback() {
@@ -203,7 +243,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, or Memory to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Governance, or Driver Gaps to exercise the Android Binder path.");
             }
 
             @Override
@@ -255,6 +295,8 @@ public class MainActivity extends Activity {
         executeButton.setEnabled(enabled);
         skillButton.setEnabled(enabled);
         memoryButton.setEnabled(enabled);
+        governanceButton.setEnabled(enabled);
+        driverGapsButton.setEnabled(enabled);
     }
 
     private LinearLayout buttonRow() {
