@@ -18,7 +18,8 @@ HAL, SOME/IP, DDS, MQTT, NPU, or virtualization code.
   runtime/log directories, service units, Req IDs, hardening, and non-goals.
 - `systemd/central-brain-backend.service`: backend semantic gateway service.
 - `systemd/central-brain-governance.service`: Linux Runtime & Governance socket
-  sample for shared `governance.precheck` decisions.
+  sample for shared `governance.precheck`, `governance.runtime.get`, and
+  `audit.recent.get` diagnostics.
 - `systemd/central-brain-linux-ipc.service`: Unix socket Protocol Binding
   daemon service that uses the governance socket before falling back locally.
 - `systemd/central-brain-linux-grpc.service`: gRPC/RPC contract sample service
@@ -118,7 +119,8 @@ bash tools/check_central_brain_linux_systemd_hardening.sh
   local fallback pre-forwarding governance decisions separately from the backend
   gateway audit.
 - `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG` enables the shared Linux governance
-  socket sample to persist precheck decisions used by IPC binding clients.
+  socket sample to persist precheck decisions used by IPC binding clients and
+  expose them through direct `audit.recent.get` diagnostics.
 - `CENTRAL_BRAIN_GRPC_AUDIT_LOG` enables the Linux gRPC/RPC sample to persist
   local fallback pre-forwarding governance decisions separately from the backend
   gateway and IPC binding audit logs.

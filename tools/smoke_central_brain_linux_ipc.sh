@@ -109,6 +109,59 @@ assert payload["dispatch"]["service_invoked"] is False, response
 assert payload["qos_decision"]["consumed"] is False, response
 assert "NV-G-004" in json.dumps(payload), response
 PY
+python3 - "$GOVERNANCE_SOCKET_PATH" <<'PY'
+import json
+import socket
+import sys
+
+socket_path = sys.argv[1]
+
+def call_governance(operation, payload=None):
+    envelope = {
+        "trace_id": f"linux-governance-smoke-{operation}",
+        "operation": operation,
+        "payload": payload or {},
+        "req_ids": ["XSC-005", "XSC-006", "NV-P-002", "DEL-002"],
+    }
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.connect(socket_path)
+        client.sendall(json.dumps(envelope).encode("utf-8"))
+        client.shutdown(socket.SHUT_WR)
+        response = json.loads(client.recv(1024 * 1024).decode("utf-8"))
+    assert response["status"] == "ok", response
+    return response
+
+direct_precheck = call_governance(
+    "governance.precheck",
+    {
+        "service": "npu-inference",
+        "method": "infer",
+        "caller_permissions": ["ai.infer", "service.read"],
+        "vehicle_state": "parked",
+        "safety_state": "normal",
+        "consume_qos": False,
+    },
+)
+precheck_payload = direct_precheck["payload"]
+assert precheck_payload["state"] == "allowed", direct_precheck
+assert precheck_payload["dispatch"]["service_invoked"] is False, direct_precheck
+assert precheck_payload["precheck_mode"]["source"] == "linux-governance-daemon", direct_precheck
+
+runtime = call_governance("governance.runtime.get")
+runtime_payload = runtime["payload"]
+assert runtime_payload["registry"]["state"] == "ok", runtime
+assert runtime_payload["shared_daemon"]["operation"] == "governance.runtime.get", runtime
+assert runtime_payload["shared_daemon"]["dispatch"]["service_invoked"] is False, runtime
+assert "NV-G-001" in json.dumps(runtime_payload), runtime
+
+audit = call_governance("audit.recent.get", {"limit": 10})
+audit_payload = audit["payload"]
+encoded_audit = json.dumps(audit_payload)
+assert audit_payload["shared_daemon"]["operation"] == "audit.recent.get", audit
+assert "shared_governance_precheck_allowed" in encoded_audit, audit
+assert "linux-governance-daemon" in encoded_audit, audit
+assert "NV-G-007" in encoded_audit, audit
+PY
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" infer >/dev/null
 DENIED_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" infer-denied)"
 python3 - "$DENIED_OUTPUT" <<'PY'

@@ -3,7 +3,7 @@
 `mock_npu_service.py` 是第一阶段后端，用标准库 HTTP server 模拟中央大脑 AI 基座。
 `ai_sdk.py` 承载当前 AI SDK/Agent facade mock，用 intent/utterance 生成 policy-aware task graph，并提供 execute/Skill/Memory contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007。
 `runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、per-service fixed-window QoS 和可选 JSONL 审计持久化。
-`protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、带 shared SOA Runtime & Governance precheck + local fallback 的 Linux IPC active sample、Linux gRPC/RPC JSON contract sample 和 MQTT/SOME-IP/DDS 计划态。
+`protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、带 shared SOA Runtime & Governance precheck/runtime/audit diagnostics + local fallback 的 Linux IPC active sample、Linux gRPC/RPC JSON contract sample 和 MQTT/SOME-IP/DDS 计划态。
 `native_adapters.py` 承载当前 Native adapter 注册表，包括 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界，以及 Driver/HAL gap backlog。
 
 ## 启动

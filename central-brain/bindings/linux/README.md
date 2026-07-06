@@ -16,8 +16,8 @@ Brain semantic gateway.
   IPC envelopes to the architecture-aligned semantic gateway and calls a shared
   Runtime & Governance socket precheck for `soa.service.invoke` when configured.
 - `ipc/central_brain_governance_daemon.py` is a Linux Runtime & Governance
-  socket sample for shared `governance.precheck` decisions across local binding
-  processes.
+  socket sample for shared `governance.precheck`, `governance.runtime.get`,
+  and `audit.recent.get` visibility across local binding processes.
 - `ipc/central_brain_ipc_client.py` is a Linux client sample for the same IPC
   envelope.
 - These files do not implement SOME/IP, DDS, MQTT, drivers, HAL, or
@@ -90,6 +90,11 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 ```
 
+The shared governance socket also accepts direct diagnostic envelopes for
+`governance.runtime.get` and `audit.recent.get`. These operations expose the
+same XSC-005 registry/lifecycle/QoS and NV-G-007 audit state used by SOA
+prechecks without dispatching a service, Driver/HAL, or virtualization layer.
+
 Validate daemon/client behavior:
 
 ```bash
@@ -153,7 +158,8 @@ bash tools/check_central_brain_delivery_docs.sh
   Linux integration tests; it is separate from the backend
   `CENTRAL_BRAIN_AUDIT_LOG` sample.
 - `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG` can persist shared governance daemon
-  decisions for Linux integration tests.
+  precheck decisions and make them visible through direct `audit.recent.get`
+  socket diagnostics for Linux integration tests.
 - `CENTRAL_BRAIN_GRPC_AUDIT_LOG` can persist gRPC/RPC sample local fallback
   precheck decisions separately from the backend and IPC audit logs.
 - SOME/IP and DDS remain separate vehicle-network/high-rate topic bindings and

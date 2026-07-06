@@ -11,8 +11,8 @@
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
 | A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke 初版 |
-| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux shared governance daemon sample |
-| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck + local fallback；Linux gRPC/RPC JSON contract sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
+| A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + Linux shared governance daemon runtime/audit diagnostics |
+| A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit diagnostics + local fallback；Linux gRPC/RPC JSON contract sample；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog contract |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
@@ -53,6 +53,11 @@
 
 ### 2026-07-06
 
+- 推进 Linux shared Runtime & Governance daemon 诊断可见性：
+  - `central_brain_governance_daemon.py` 在现有 `governance.precheck` 基础上新增 direct socket operation：`governance.runtime.get` 与 `audit.recent.get`，复用 `RuntimeGovernance.governance_payload()` 和 `audit_payload()`。
+  - Linux IPC smoke 现在直接连接 shared governance socket，验证 runtime registry/QoS 状态和 precheck 审计事件可通过该 daemon 查询，且不 dispatch SOA service、Driver/HAL 或虚拟化层。
+  - Protocol Binding registry、API contract、Linux README、delivery docs、需求矩阵、偏差和驱动支持边界同步说明该能力仍是 Linux 单机共享治理样例，不是量产多进程治理后端。
+  - 覆盖 Req ID：XSC-005、XSC-006、NV-G-001、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002。
 - 推进 Android Console Governance/Driver gap Binder 可见性：
   - `MainActivity` 在现有 `Refresh`、`Plan Agent Task`、`Execute Task`、`Invoke Skill`、`Query Memory` 基础上新增 `Precheck` 与 `Driver Gaps` 调试入口，分别调用 `precheckGovernanceJson` 和 `getDriverHalGapsJson`。
   - Android Console 现在可直接验证 XSC-005 的 Runtime & Governance 只检查不调用路径，以及 KH-003/KH-006/DEL-005 的 Driver/HAL gap backlog 只读可见性。

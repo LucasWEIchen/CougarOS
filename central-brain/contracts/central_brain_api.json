@@ -1,12 +1,12 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.19",
-  "updated": "2026-07-05",
+  "version": "0.1.20",
+  "updated": "2026-07-06",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck and local fallback",
     "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck and local fallback",
-    "linux_governance_socket_sample": "/tmp/central_brain_governance.sock",
+    "linux_governance_socket_sample": "/tmp/central_brain_governance.sock with governance.precheck, governance.runtime.get, and audit.recent.get diagnostics",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",

@@ -3,7 +3,8 @@
 
 Req IDs: XSC-005, XSC-006, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007, NV-P-002, DEL-002.
 This daemon is a small Linux delivery sample for sharing Runtime & Governance
-precheck decisions across local Protocol Binding processes.
+precheck decisions, runtime status, and recent audit visibility across local
+Protocol Binding processes.
 """
 
 from __future__ import annotations
@@ -47,7 +48,7 @@ def validate_envelope(envelope: Any) -> tuple[str, str, dict[str, Any]]:
     req_ids = envelope.get("req_ids", [])
     if not isinstance(trace_id, str) or not trace_id:
         raise ValueError("trace_id must be a non-empty string")
-    if operation != "governance.precheck":
+    if operation not in {"governance.precheck", "governance.runtime.get", "audit.recent.get"}:
         raise ValueError(f"unsupported operation: {operation}")
     if not isinstance(payload, dict):
         raise ValueError("payload must be an object")
@@ -108,13 +109,53 @@ def governance_precheck(trace_id: str, payload: dict[str, Any]) -> dict[str, Any
     }
 
 
+def governance_runtime(trace_id: str) -> dict[str, Any]:
+    payload = GOVERNANCE.governance_payload()
+    payload["shared_daemon"] = {
+        "trace_id": trace_id,
+        "operation": "governance.runtime.get",
+        "source": "linux-governance-daemon",
+        "socket": DEFAULT_SOCKET_PATH,
+        "dispatch": {
+            "service_invoked": False,
+            "driver_hal": "not-dispatched",
+            "virtualization": "not-developed",
+        },
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-001", "NV-G-007", "NV-P-002", "DEL-002"],
+    }
+    return payload
+
+
+def governance_audit(payload: dict[str, Any]) -> dict[str, Any]:
+    limit = int(payload.get("limit", 20) or 20)
+    limit = max(1, min(limit, 50))
+    audit_payload = GOVERNANCE.audit_payload(limit=limit)
+    audit_payload["shared_daemon"] = {
+        "operation": "audit.recent.get",
+        "source": "linux-governance-daemon",
+        "dispatch": {
+            "service_invoked": False,
+            "driver_hal": "not-dispatched",
+            "virtualization": "not-developed",
+        },
+        "req_ids": ["XSC-005", "XSC-006", "NV-G-007", "NV-P-002", "DEL-002"],
+    }
+    return audit_payload
+
+
 def handle_bytes(raw: bytes) -> dict[str, Any]:
     fallback_trace_id = "unknown"
     try:
         envelope = json.loads(raw.decode("utf-8"))
-        trace_id, _operation, payload = validate_envelope(envelope)
+        trace_id, operation, payload = validate_envelope(envelope)
         fallback_trace_id = trace_id
-        return response(trace_id, "ok", governance_precheck(trace_id, payload))
+        if operation == "governance.precheck":
+            result = governance_precheck(trace_id, payload)
+        elif operation == "governance.runtime.get":
+            result = governance_runtime(trace_id)
+        else:
+            result = governance_audit(payload)
+        return response(trace_id, "ok", result)
     except json.JSONDecodeError as exc:
         return response(fallback_trace_id, "error", {}, {"code": "INVALID_JSON", "message": str(exc)})
     except ValueError as exc:
