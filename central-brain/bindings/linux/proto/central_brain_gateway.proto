@@ -17,6 +17,7 @@ package centralbrain.binding.v1;
 // - NV-P-003 gRPC/RPC binding
 // - NV-P-006 DDS/high-rate topic reservation
 // - DEL-002 Linux synchronized delivery path
+// - DEL-003/004/005 delivery documentation, platform delta, and Driver/HAL visibility
 
 service CentralBrainGateway {
   rpc GetContext(GatewayRequest) returns (GatewayResponse);
@@ -43,6 +44,7 @@ service CentralBrainGateway {
   rpc GetRecentAudit(GatewayRequest) returns (GatewayResponse);
   rpc ListBindings(GatewayRequest) returns (GatewayResponse);
   rpc GetBindingReadiness(GatewayRequest) returns (GatewayResponse);
+  rpc GetDeliveryReadiness(GatewayRequest) returns (GatewayResponse);
 }
 
 message GatewayRequest {

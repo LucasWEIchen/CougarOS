@@ -27,6 +27,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "audit": ("audit.recent.get", {}),
     "bindings": ("bindings.list", {}),
     "binding-readiness": ("bindings.readiness.get", {}),
+    "delivery-readiness": ("delivery.readiness.get", {}),
     "ai-sdk": ("ai.sdk.capabilities", {}),
     "skills": ("skills.list", {}),
     "agent-plan": (

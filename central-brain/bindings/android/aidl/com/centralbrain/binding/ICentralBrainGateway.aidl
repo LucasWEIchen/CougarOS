@@ -17,6 +17,7 @@ package com.centralbrain.binding;
  * - NV-P-006 DDS/high-rate topic reservation
  * - KH-003/KH-006 Driver/HAL interface backlog visibility
  * - DEL-001 Android main delivery path
+ * - DEL-002/003/004/005 Android/Linux delivery readiness visibility
  */
 interface ICentralBrainGateway {
     String getContextJson(String traceId);
@@ -68,6 +69,8 @@ interface ICentralBrainGateway {
     String getBindingDetailJson(String traceId);
 
     String getBindingReadinessJson(String traceId);
+
+    String getDeliveryReadinessJson(String traceId);
 
     String getNativeAdaptersDetailJson(String traceId);
 

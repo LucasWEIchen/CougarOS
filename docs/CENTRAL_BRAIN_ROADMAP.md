@@ -18,7 +18,7 @@
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
-| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check |
+| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` |
 
 ## M0 任务清单
 
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 A9 Android/Linux delivery readiness contract：
+  - 新增 `GET /delivery/readiness`，集中暴露 Android debug Console/Binder、Android system service note、Linux CLI、Linux IPC、Linux gRPC/RPC、Linux systemd/package profile、Driver/HAL gap backlog 和虚拟化约束的当前状态、阻塞项、验证命令和非目标边界。
+  - Android Binder/AIDL 新增 `getDeliveryReadinessJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `delivery-readiness`/`delivery.readiness.get`/`GetDeliveryReadiness` 可见路径。
+  - 本轮只补 Android/Linux 交付 readiness 可查询能力，不实现 Android system service、真实 gRPC runtime、量产包管理、生产共享治理后端、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：DEL-001、DEL-002、DEL-003、DEL-004、DEL-005、XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、NV-P-002、NV-P-003、KH-003、KH-006、KH-007。
 - 推进 A4 Protocol Binding readiness contract：
   - 新增 `GET /bindings/readiness`，集中暴露 Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS 的当前状态、阻塞项、验证命令、下一步决策和非目标边界。
   - Android Binder/AIDL 新增 `getBindingReadinessJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `binding-readiness`/`bindings.readiness.get`/`GetBindingReadiness` 可见路径。

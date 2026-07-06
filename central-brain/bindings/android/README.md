@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001, DEL-005.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
@@ -13,7 +13,7 @@ Brain semantic gateway.
   Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
   Memory query, Runtime & Governance precheck, shared governance backend target
   contract, governance migration readiness, governance deployment plan,
-  Protocol Binding readiness, SOA service contract visibility, and Driver/HAL gap backlog contract mocks. The Binder service
+  Protocol Binding readiness, Android/Linux delivery readiness, SOA service contract visibility, and Driver/HAL gap backlog contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
   binding.
 
@@ -46,6 +46,7 @@ Brain semantic gateway.
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `getBindingDetailJson` | `GET /bindings/detail` | XSC-006, NV-P-002 |
 | `getBindingReadinessJson` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-001..004 |
+| `getDeliveryReadinessJson` | `GET /delivery/readiness` | DEL-001..005, XSC-001..006 |
 | `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
 | `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
 
@@ -103,6 +104,11 @@ Brain semantic gateway.
   REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and
   non-goal boundaries. It does not implement production transports, Driver/HAL,
   Safety Runtime, vehicle bus, or virtualization.
+- `getDeliveryReadinessJson` exposes Android debug Console/Binder, Android
+  system service notes, Linux CLI/IPC/gRPC samples, Linux package profile,
+  Driver/HAL gap backlog, and virtualization constraints for delivery review.
+  It does not implement Android system service, true gRPC runtime, production
+  packaging, Driver/HAL, Safety Runtime, vehicle bus, or virtualization.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it
   does not call HAL, device nodes, vendor SDKs, or Safety Runtime.

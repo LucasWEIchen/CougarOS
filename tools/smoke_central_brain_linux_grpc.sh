@@ -135,6 +135,28 @@ assert readiness["summary"]["driver_development_triggered"] is False, response
 assert readiness["summary"]["virtualization_development_triggered"] is False, response
 assert "target distro" in encoded and "true gRPC runtime" in encoded, response
 PY
+DELIVERY_READINESS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" delivery-readiness)"
+python3 - "$DELIVERY_READINESS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+readiness = payload["gateway"]["payload"]
+encoded = json.dumps(readiness)
+targets = {row["target"] for row in readiness["readiness"]}
+assert response["status"] == "ok", response
+assert "android-debug-console" in targets, response
+assert "linux-ipc-daemon-sample" in targets, response
+assert "linux-grpc-rpc-sample" in targets, response
+assert "driver-hal-gap-backlog" in targets, response
+assert readiness["summary"]["production_ready"] is False, response
+assert readiness["summary"]["android_debug_ready"] is True, response
+assert readiness["summary"]["linux_samples_ready"] is True, response
+assert readiness["summary"]["driver_development_triggered"] is False, response
+assert readiness["summary"]["virtualization_development_triggered"] is False, response
+assert "AAOS signing" in encoded and "target Linux distro" in encoded, response
+PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
 import json

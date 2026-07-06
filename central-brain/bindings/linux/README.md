@@ -55,6 +55,7 @@ Brain semantic gateway.
 | `audit.recent.get` | shared governance socket diagnostic, REST fallback to `GET /audit/recent` | XSC-005, NV-G-007 |
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `bindings.readiness.get` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-002, DEL-003, DEL-004 |
+| `delivery.readiness.get` | `GET /delivery/readiness` | DEL-001..005, XSC-001..006 |
 
 The gRPC/RPC JSON sample maps the same semantic endpoints through
 `CentralBrainGateway.*` RPC names from `proto/central_brain_gateway.proto`.
@@ -75,6 +76,9 @@ open deployment decisions without implementing the production backend.
 `CentralBrainGateway.GetBindingReadiness` exposes Android Binder, Linux IPC,
 Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation
 commands, and non-goal boundaries without implementing production transports.
+`CentralBrainGateway.GetDeliveryReadiness` exposes Android/Linux delivery
+sample status, validation commands, blockers, and non-goal boundaries without
+implementing production services, packaging, Driver/HAL, or virtualization.
 `CentralBrainGateway.GetRuntimeGovernance` and
 `CentralBrainGateway.GetRecentAudit` use the same shared governance client as
 IPC for read-only diagnostics before falling back to the REST prototype gateway.
@@ -120,6 +124,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance-migration-check
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py binding-readiness
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py delivery-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
@@ -171,6 +177,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py binding-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py delivery-readiness
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py audit
@@ -214,6 +222,10 @@ bash tools/check_central_brain_delivery_docs.sh
   `GetBindingReadiness` binding operations document current binding maturity,
   blockers, validation commands, and planned transport non-goals while keeping
   `production_ready=false`.
+- `/delivery/readiness` and the `delivery.readiness.get` /
+  `GetDeliveryReadiness` binding operations document Android/Linux delivery
+  sample maturity, validation bundle, blockers, and non-goal boundaries while
+  keeping `production_ready=false`.
 - The current IPC daemon is an active sample, not a full production gateway; it
   applies a shared Linux governance daemon precheck to SOA service invocations
   when `CENTRAL_BRAIN_GOVERNANCE_SOCKET` is configured, falls back to local

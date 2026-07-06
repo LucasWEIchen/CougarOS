@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -12,6 +12,7 @@
     "shared_governance_deployment_plan": "GET /governance/deployment-plan reports Android system service, Linux daemon, and gRPC/RPC deployment shapes plus open decisions without implementing the production backend",
     "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
+    "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
     "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, and getGovernanceDeploymentPlanJson",
     "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
@@ -274,6 +275,31 @@
         }
       },
       "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-001", "DEL-002", "DEL-003", "DEL-004"]
+    },
+    {
+      "method": "GET",
+      "path": "/delivery/readiness",
+      "description": "Returns Android/Linux delivery readiness across debug APK Binder sample, Android system service notes, Linux CLI/IPC/gRPC samples, systemd/package profile, Driver/HAL gap backlog, and virtualization constraints with blockers, validation commands, and explicit non-goal boundaries.",
+      "response": {
+        "readiness": [
+          {
+            "target": "android-debug-console|linux-ipc-daemon-sample|linux-grpc-rpc-sample|driver-hal-gap-backlog",
+            "current_state": "debug-apk-binder-sample|active-unix-socket-sample|grpc-json-active-sample|read-only-gap-contract",
+            "ready_for": ["string"],
+            "blocked_by": ["target platform decision"],
+            "validation": ["string"]
+          }
+        ],
+        "summary": {
+          "production_ready": false,
+          "android_debug_ready": true,
+          "linux_samples_ready": true,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        }
+      },
+      "req_ids": ["DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006"]
     },
     {
       "method": "GET",

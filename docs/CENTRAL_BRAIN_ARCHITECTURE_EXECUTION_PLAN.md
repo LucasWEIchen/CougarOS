@@ -27,7 +27,7 @@
 | A6 | Kernel/HAL/NPU 接口文档与缺口补齐 | L4/L6 | Driver/HAL interface support matrix、NPU runtime interface、hardware discovery、`/native/driver-gaps` | 明确当前环境能力、缺口和最小新增开发量，不触发默认驱动开发 |
 | A7 | Hypervisor/Safety 接口约束文档 | L5 | ASIL/QM domain map、跨 VM 通信假设、fallback | 不开发虚拟化功能，只记录集成约束 |
 | A8 | 应用层扩展 | L1 | Seat/Agent/Cluster/TBOX/ADAS/Diag App views | App 页面按图中应用域组织 |
-| A9 | Android/Linux 双平台交付 | 全部 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | 座舱域工程师可在 Android 和 Linux 上集成验证 |
+| A9 | Android/Linux 双平台交付 | 全部 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明、delivery readiness contract | 座舱域工程师可在 Android 和 Linux 上集成验证，并可通过 `/delivery/readiness` 查看样例状态、验证命令和阻塞项 |
 
 ## A1 详细任务：Uni Info Bus 语义接口
 
@@ -70,8 +70,8 @@
 | Task ID | Req ID | 任务 | 输出 |
 | --- | --- | --- | --- |
 | A4-T01 | NV-P-005 | REST binding 下沉为 adapter | REST adapter |
-| A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + Linux IPC active sample with shared governance client SOA precheck/runtime/audit diagnostics + shared governance backend target/migration/deployment/binding readiness visibility + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
-| A4-T03 | NV-P-003 | gRPC/RPC adapter stub | JSON TCP contract sample + proto + shared governance client precheck/runtime/audit diagnostics + `GetGovernanceBackendContract` + `GetGovernanceMigrationCheck` + `GetGovernanceDeploymentPlan` + `GetBindingReadiness`；真实 gRPC runtime 待目标环境 |
+| A4-T02 | NV-P-002 | IPC/Binder 设计草案与 Android system/privileged service 集成约束 | AIDL draft + Linux IPC active sample with shared governance client SOA precheck/runtime/audit diagnostics + shared governance backend target/migration/deployment/binding readiness/delivery readiness visibility + `CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` |
+| A4-T03 | NV-P-003 | gRPC/RPC adapter stub | JSON TCP contract sample + proto + shared governance client precheck/runtime/audit diagnostics + `GetGovernanceBackendContract` + `GetGovernanceMigrationCheck` + `GetGovernanceDeploymentPlan` + `GetBindingReadiness` + `GetDeliveryReadiness`；真实 gRPC runtime 待目标环境 |
 | A4-T04 | NV-P-004 | MQTT adapter stub | MQTT adapter |
 | A4-T05 | NV-P-001 | SOME/IP mapping design | SOME/IP plan |
 | A4-T06 | NV-P-006 | DDS topic mapping design | DDS plan |
@@ -110,9 +110,10 @@
 | --- | --- | --- | --- |
 | A9-T01 | DEL-001 | Android 构建、安装、验证脚本 | APK + scripts |
 | A9-T02 | DEL-002 | Linux client/CLI 或 daemon 示例 | Linux delivery sample + systemd hardening check |
-| A9-T03 | DEL-003 | 座舱域工程师集成文档 | Android system service integration guide + Linux deployment guide |
-| A9-T04 | DEL-004 | Android/Linux 平台差异说明 | platform delta doc + Android permission/SELinux assumptions + Linux unit hardening notes |
+| A9-T03 | DEL-003 | 座舱域工程师集成文档 | Android system service integration guide + Linux deployment guide + `/delivery/readiness` validation bundle |
+| A9-T04 | DEL-004 | Android/Linux 平台差异说明 | platform delta doc + Android permission/SELinux assumptions + Linux unit hardening notes + delivery readiness blockers |
 | A9-T05 | XSC-001..006 | 黄色小太阳组件跨 SoC 交付矩阵 | cross-SoC matrix |
+| A9-T06 | DEL-001..005 | Android/Linux delivery readiness 可见性 | `GET /delivery/readiness` + Android `getDeliveryReadinessJson` + Linux `delivery-readiness`/`delivery.readiness.get`/`GetDeliveryReadiness` |
 
 ## 每次开发检查清单
 

@@ -35,7 +35,8 @@
         "governance.runtime.get",
         "audit.recent.get",
         "bindings.list",
-        "bindings.readiness.get"
+        "bindings.readiness.get",
+        "delivery.readiness.get"
       ]
     },
     "caller": {
