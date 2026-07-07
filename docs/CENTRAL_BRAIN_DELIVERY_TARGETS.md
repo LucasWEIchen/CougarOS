@@ -164,6 +164,12 @@ Android 版本必须提供：
 - AIDL/System Service 目标接口草案与 Binder service/client sample。
 - Android system/privileged service 集成约束、权限/SELinux 假设和 Binder identity 到 Policy 的映射说明。
 
+## Event Subscription Cursor/Replay Storage 交付补充
+
+FW-U-003/NV-P-006 的 cursor/replay storage contract 通过 `GET /uib/events/subscriptions/cursor-replay-storage` 对 Android/Linux 同步可见。Android 主路径为 Binder `getEventSubscriptionCursorReplayStorageJson` 与 Console `Sub Cursor`；Linux 同步路径为 CLI `event-subscription-cursor-replay-storage`、IPC `uib.events.subscriptions.cursor.replay.storage` 和 gRPC/RPC `GetEventSubscriptionCursorReplayStorage`。
+
+该交付项只用于 review cursor schema、ack shape、replay window、retention/cleanup、Runtime & Governance audit binding 和 `EV-CRS-001..008` 门禁；不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL 或虚拟化层。
+
 当前 Android Console 主路径：
 
 - 绑定 `CentralBrainGatewayBinderService`。
@@ -175,6 +181,7 @@ Android 版本必须提供：
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionDecisionMatrixJson` 查看 FW-U-003/NV-P-006 Event subscription broker/cursor/backpressure owner decision matrix contract；该路径只返回 `EV-DM-001..007` 决策门禁，不分配量产 owner，不启动 broker、cursor store、callback/watch 或 DDS。
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionActivationChecklistJson` 查看 FW-U-003/NV-P-006 Event subscription broker activation prerequisite evidence checklist；该路径只返回 `EV-ACT-001..008` 激活前门禁和 `activation_allowed=false`，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionCallbackWatchShapeJson` 查看 FW-U-003/NV-P-006 Event subscription Android callback/Linux watch API shape contract；该路径只返回 `EV-CW-001..008` shape 门禁、event/overflow/close envelope 和 `shape_confirmed=false`，不注册 callback，不启动 watch stream、broker、cursor store、SSE/WebSocket、DDS、高频数据面、Driver/HAL 或虚拟化层。
+- 通过 `CentralBrainGatewayClient.getEventSubscriptionCursorReplayStorageJson` 查看 FW-U-003/NV-P-006 Event subscription cursor/replay storage contract；该路径只返回 `EV-CRS-001..008` storage 门禁、cursor schema、ack shape、replay window 和 `cursor_replay_storage_confirmed=false`，不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、callback/watch、SSE/WebSocket、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.getUibExtensionsJson` 查看 FW-U-008 扩展语义 contract、治理规则和 no-dispatch 边界。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
 - 通过 `CentralBrainGatewayClient.executeAgentTaskJson` 验证 Agent execute contract mock，只返回 policy-checked dispatch 边界。
@@ -215,6 +222,7 @@ Android 版本必须提供：
 - `GET /uib/events/subscriptions/decision-matrix`
 - `GET /uib/events/subscriptions/activation-checklist`
 - `GET /uib/events/subscriptions/callback-watch-shape`
+- `GET /uib/events/subscriptions/cursor-replay-storage`
 - `GET /uib/extensions`
 - `GET /ai/sdk/capabilities`
 - `POST /agent/plan`

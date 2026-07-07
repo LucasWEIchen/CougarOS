@@ -37,6 +37,7 @@ Brain semantic gateway.
 | `getEventSubscriptionDecisionMatrixJson` | `GET /uib/events/subscriptions/decision-matrix` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationChecklistJson` | `GET /uib/events/subscriptions/activation-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionCallbackWatchShapeJson` | `GET /uib/events/subscriptions/callback-watch-shape` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionCursorReplayStorageJson` | `GET /uib/events/subscriptions/cursor-replay-storage` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -139,14 +140,15 @@ Brain semantic gateway.
 - `getEventSubscriptionsJson`, `requestEventSubscriptionJson`,
   `cancelEventSubscriptionJson`, `getEventSubscriptionTransportReadinessJson`,
   `getEventSubscriptionDecisionMatrixJson`,
-  `getEventSubscriptionActivationChecklistJson`, and
-  `getEventSubscriptionCallbackWatchShapeJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionActivationChecklistJson`,
+  `getEventSubscriptionCallbackWatchShapeJson`, and
+  `getEventSubscriptionCursorReplayStorageJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
-  callback/watch API shape,
+  callback/watch API shape, cursor/replay storage schema,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, and `Sub Shape`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, and `Sub Cursor`
   actions only. They do not assign production owners, select a transport,
   register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
   Driver/HAL, or create virtualization work.

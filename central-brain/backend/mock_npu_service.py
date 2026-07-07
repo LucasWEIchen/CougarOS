@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.40"
+API_VERSION = "0.1.41"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -66,6 +66,7 @@ EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS = EVENT_SUBSCRIPTION_REQ_IDS + ["DEL-004"]
 EVENT_SUBSCRIPTION_DECISION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_CALLBACK_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+EVENT_SUBSCRIPTION_CURSOR_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -265,6 +266,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "decision_matrix_endpoint": "GET /uib/events/subscriptions/decision-matrix",
                     "activation_checklist_endpoint": "GET /uib/events/subscriptions/activation-checklist",
                     "callback_watch_shape_endpoint": "GET /uib/events/subscriptions/callback-watch-shape",
+                    "cursor_replay_storage_endpoint": "GET /uib/events/subscriptions/cursor-replay-storage",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -364,22 +366,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "shape-open -> contract-only-callback-watch-shape-draft",
                     "side_effects": "no Android callback registration, Linux watch stream, broker dispatch, cursor persistence, or transport runtime is started",
                 },
+                "cursor_replay_storage": {
+                    "endpoint": "GET /uib/events/subscriptions/cursor-replay-storage",
+                    "state_transition": "storage-open -> contract-only-cursor-replay-storage-draft",
+                    "side_effects": "no cursor row, replay index, subscription persistence, broker dispatch, or transport runtime is created",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -439,6 +446,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_decision_matrix": "GET /uib/events/subscriptions/decision-matrix",
             "rest_activation_checklist": "GET /uib/events/subscriptions/activation-checklist",
             "rest_callback_watch_shape": "GET /uib/events/subscriptions/callback-watch-shape",
+            "rest_cursor_replay_storage": "GET /uib/events/subscriptions/cursor-replay-storage",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
@@ -446,6 +454,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "android_binder_decision_matrix": "getEventSubscriptionDecisionMatrixJson",
             "android_binder_activation_checklist": "getEventSubscriptionActivationChecklistJson",
             "android_binder_callback_watch_shape": "getEventSubscriptionCallbackWatchShapeJson",
+            "android_binder_cursor_replay_storage": "getEventSubscriptionCursorReplayStorageJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
@@ -453,6 +462,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_cli_decision_matrix": "event-subscription-decision-matrix",
             "linux_cli_activation_checklist": "event-subscription-activation-checklist",
             "linux_cli_callback_watch_shape": "event-subscription-callback-watch-shape",
+            "linux_cli_cursor_replay_storage": "event-subscription-cursor-replay-storage",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
@@ -460,6 +470,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_ipc_decision_matrix": "uib.events.subscriptions.decision.matrix",
             "linux_ipc_activation_checklist": "uib.events.subscriptions.activation.checklist",
             "linux_ipc_callback_watch_shape": "uib.events.subscriptions.callback.watch.shape",
+            "linux_ipc_cursor_replay_storage": "uib.events.subscriptions.cursor.replay.storage",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
@@ -467,13 +478,16 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_grpc_rpc_decision_matrix": "CentralBrainGateway.GetEventSubscriptionDecisionMatrix",
             "linux_grpc_rpc_activation_checklist": "CentralBrainGateway.GetEventSubscriptionActivationChecklist",
             "linux_grpc_rpc_callback_watch_shape": "CentralBrainGateway.GetEventSubscriptionCallbackWatchShape",
+            "linux_grpc_rpc_cursor_replay_storage": "CentralBrainGateway.GetEventSubscriptionCursorReplayStorage",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
             "active_subscription_count": 0,
             "lifecycle_command_contract_active": True,
+            "cursor_replay_storage_contract_active": True,
             "broker_active": False,
             "subscription_persistence_active": False,
+            "cursor_storage_active": False,
             "callback_registered": False,
             "watch_started": False,
             "dds_runtime_active": False,
@@ -502,7 +516,7 @@ def event_subscription_transport_readiness_payload() -> dict[str, Any]:
         },
         "android_callback_contract": {
             "candidate_operation": "registerEventSubscriptionCallback planned",
-            "current_binder_surface": "getEventSubscriptionTransportReadinessJson and getEventSubscriptionCallbackWatchShapeJson only",
+            "current_binder_surface": "getEventSubscriptionTransportReadinessJson, getEventSubscriptionCallbackWatchShapeJson, and getEventSubscriptionCursorReplayStorageJson only",
             "callback_identity": "Binder UID/PID must map to Runtime & Governance caller identity before activation",
             "lifecycle": ["register", "onEvent", "onOverflow", "onClosed", "unregister"],
             "implemented": False,
@@ -511,7 +525,7 @@ def event_subscription_transport_readiness_payload() -> dict[str, Any]:
             "candidate_cli": "event-subscription-watch planned",
             "candidate_ipc_operation": "uib.events.subscriptions.watch planned",
             "candidate_grpc_rpc": "WatchEventSubscriptions streaming RPC planned",
-            "current_surface": "event-subscription-transport-readiness and event-subscription-callback-watch-shape over CLI/IPC/gRPC",
+            "current_surface": "event-subscription-transport-readiness, event-subscription-callback-watch-shape, and event-subscription-cursor-replay-storage over CLI/IPC/gRPC",
             "implemented": False,
         },
         "transport_candidates": [
@@ -550,7 +564,7 @@ def event_subscription_transport_readiness_payload() -> dict[str, Any]:
             {
                 "gate_id": "EV-TR-002",
                 "name": "cursor-storage-owner-assigned",
-                "required_evidence": "Owner and persistence rules for subscription cursor/replay state assigned.",
+                "required_evidence": "Owner and persistence rules for subscription cursor/replay state assigned and aligned with /uib/events/subscriptions/cursor-replay-storage.",
                 "passed": False,
             },
             {
@@ -764,7 +778,7 @@ def event_subscription_activation_checklist_payload() -> dict[str, Any]:
                 "gate_id": "EV-ACT-003",
                 "area": "cursor-store-persistence",
                 "required_evidence": "Cursor/replay store owner, schema, retention, privacy classification, restart recovery, and cleanup strategy are approved.",
-                "current_evidence": "missing",
+                "current_evidence": "cursor/replay storage contract exists; owner, retention, and persistence evidence missing",
                 "passed": False,
                 "blocks": ["subscription_persistence_active", "cursor_storage_active"],
             },
@@ -824,6 +838,9 @@ def event_subscription_activation_checklist_payload() -> dict[str, Any]:
             "EV-DM-003 backpressure-qos-owner-selected",
             "EV-DM-004 callback-watch-shape-selected",
             "EV-DM-005 transport-choice-selected",
+            "EV-CRS-001 cursor-schema-reviewed",
+            "EV-CRS-002 storage-owner-assigned",
+            "EV-CRS-003 replay-window-retention-reviewed",
         ],
         "api_surface": {
             "rest": "GET /uib/events/subscriptions/activation-checklist",
@@ -866,7 +883,7 @@ def event_subscription_callback_watch_shape_payload() -> dict[str, Any]:
         "shape_state": "contract-only-callback-watch-shape-draft",
         "shape_confirmed": False,
         "android_callback_shape": {
-            "current_binder_surface": "getEventSubscriptionCallbackWatchShapeJson only",
+            "current_binder_surface": "getEventSubscriptionCallbackWatchShapeJson and getEventSubscriptionCursorReplayStorageJson only",
             "planned_registration_method": "registerEventSubscriptionCallback(SubscriptionRequest request, ICentralBrainEventCallback callback)",
             "planned_unregister_method": "unregisterEventSubscriptionCallback(String subscriptionId)",
             "planned_callback_interface": {
@@ -879,7 +896,7 @@ def event_subscription_callback_watch_shape_payload() -> dict[str, Any]:
             "implemented": False,
         },
         "linux_watch_shape": {
-            "current_surface": "event-subscription-callback-watch-shape over CLI/IPC/gRPC",
+            "current_surface": "event-subscription-callback-watch-shape and event-subscription-cursor-replay-storage over CLI/IPC/gRPC",
             "planned_cli": "event-subscription-watch --subscription-id <id> --since-event-id <cursor>",
             "planned_ipc_operations": [
                 "uib.events.subscriptions.watch.open",
@@ -976,6 +993,7 @@ def event_subscription_callback_watch_shape_payload() -> dict[str, Any]:
             "EV-ACT-003 cursor-store-persistence",
             "EV-ACT-004 backpressure-qos-profile",
             "EV-ACT-005 transport-runtime-choice",
+            "EV-CRS-004 reconnect-and-ack-reviewed",
         ],
         "api_surface": {
             "rest": "GET /uib/events/subscriptions/callback-watch-shape",
@@ -1008,6 +1026,153 @@ def event_subscription_callback_watch_shape_payload() -> dict[str, Any]:
             "service_dispatch_triggered": False,
         },
         "req_ids": EVENT_SUBSCRIPTION_CALLBACK_REQ_IDS,
+    }
+
+
+def event_subscription_cursor_replay_storage_payload() -> dict[str, Any]:
+    return {
+        "cursor_replay_state": "contract-only-cursor-replay-storage-draft",
+        "cursor_replay_storage_confirmed": False,
+        "storage_owner_contract": {
+            "production_owner": "TBD-target-platform",
+            "android_owner": "TBD-Android system service owner",
+            "linux_owner": "TBD-Linux daemon owner",
+            "schema_owner": "Runtime & Governance owner TBD",
+            "persistence_owner": "TBD-target-platform",
+            "implemented": False,
+        },
+        "cursor_schema": {
+            "cursor_key": "event_id",
+            "cursor_scope": ["subscription_id", "topic", "source", "caller_identity"],
+            "watermark_fields": ["last_delivered_event_id", "last_acknowledged_event_id", "last_delivery_timestamp_ms"],
+            "request_inputs": ["since_event_id", "since_timestamp_ms", "replay_limit"],
+            "ack_shape": {
+                "subscription_id": "string",
+                "event_id": "string",
+                "ack_state": "delivered|processed|dropped",
+                "trace_id": "string",
+            },
+            "prototype_storage": "not implemented; recent log is in memory only",
+        },
+        "replay_contract": {
+            "replay_window": {
+                "prototype_window": "last-50-events from bounded EVENT_LOG only",
+                "production_window": "TBD after storage owner and privacy retention review",
+                "max_replay_limit": 50,
+            },
+            "resume_results": [
+                "replayed",
+                "cursor_expired",
+                "retention_window_empty",
+                "rejected_by_policy",
+                "storage_unavailable",
+            ],
+            "ordering": "oldest-to-newest for replay after cursor resolution",
+            "deduplication_key": "topic + event_id + source",
+        },
+        "retention_cleanup": {
+            "privacy_classification": "inherits topic payload classification; vehicle signal payloads require adapter owner review",
+            "prototype_retention": "process memory only; lost on restart",
+            "production_retention": "TBD-target-platform",
+            "cleanup_triggers": ["subscription_cancel", "policy_revoked", "retention_expired", "service_shutdown"],
+            "restart_recovery": "not implemented in prototype",
+        },
+        "runtime_governance_binding": {
+            "identity_inputs": ["caller app_id", "permissions", "safety_state", "Binder UID/PID or Linux service identity"],
+            "policy_checks": ["subscribe", "replay", "ack", "cleanup"],
+            "audit_events": ["cursor.created", "cursor.advanced", "cursor.expired", "replay.requested", "replay.rejected"],
+            "qos_binding": "backpressure/QoS owner must approve replay rate and ack timeout before activation",
+            "implemented": False,
+        },
+        "mandatory_gates": [
+            {
+                "gate_id": "EV-CRS-001",
+                "name": "cursor-schema-reviewed",
+                "required_evidence": "Cursor key, scope, watermark, ack shape, and deduplication key are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-CRS-002",
+                "name": "storage-owner-assigned",
+                "required_evidence": "Android owner, Linux owner, persistence owner, and schema owner are assigned.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-CRS-003",
+                "name": "replay-window-retention-reviewed",
+                "required_evidence": "Replay window, retention duration, privacy classification, and cleanup triggers are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-CRS-004",
+                "name": "reconnect-and-ack-reviewed",
+                "required_evidence": "Reconnect, cursor expiry, ack timeout, duplicate delivery, and restart recovery semantics are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-CRS-005",
+                "name": "runtime-governance-audit-reviewed",
+                "required_evidence": "Replay and ack operations are bound to Runtime & Governance identity, Policy, QoS, Lifecycle, and Audit.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-CRS-006",
+                "name": "backpressure-qos-binding-reviewed",
+                "required_evidence": "Replay rate, ack timeout, overflow behavior, and QoS responsibility split are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-CRS-007",
+                "name": "android-linux-contract-parity-proven",
+                "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent cursor/replay metadata.",
+                "passed": True,
+            },
+            {
+                "gate_id": "EV-CRS-008",
+                "name": "no-persistence-runtime-claim",
+                "required_evidence": "Prototype explicitly reports no cursor persistence, no replay index, no broker dispatch, and no transport runtime.",
+                "passed": True,
+            },
+        ],
+        "decision_dependencies": [
+            "EV-DM-002 cursor-storage-owner-selected",
+            "EV-ACT-003 cursor-store-persistence",
+            "EV-CW-004 linux-watch-reconnect-cursor-reviewed",
+            "EV-ACT-004 backpressure-qos-profile",
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/cursor-replay-storage",
+            "android_binder": "getEventSubscriptionCursorReplayStorageJson",
+            "linux_cli": "event-subscription-cursor-replay-storage",
+            "linux_ipc": "uib.events.subscriptions.cursor.replay.storage",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionCursorReplayStorage",
+        },
+        "summary": {
+            "cursor_replay_storage_contract_active": True,
+            "cursor_replay_storage_confirmed": False,
+            "storage_owner_confirmed": False,
+            "schema_owner_confirmed": False,
+            "replay_window_confirmed": False,
+            "retention_policy_confirmed": False,
+            "restart_recovery_confirmed": False,
+            "runtime_governance_binding_evidence_attached": False,
+            "backpressure_qos_evidence_attached": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "cursor_storage_active": False,
+            "replay_index_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "streaming_runtime_implemented": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_CURSOR_REQ_IDS,
     }
 
 
@@ -1767,6 +1932,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_subscription_activation_checklist_payload()))
         elif path == "/uib/events/subscriptions/callback-watch-shape":
             self.send_json(200, envelope(event_subscription_callback_watch_shape_payload()))
+        elif path == "/uib/events/subscriptions/cursor-replay-storage":
+            self.send_json(200, envelope(event_subscription_cursor_replay_storage_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))

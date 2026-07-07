@@ -24,6 +24,7 @@
         "uib.events.subscriptions.decision.matrix",
         "uib.events.subscriptions.activation.checklist",
         "uib.events.subscriptions.callback.watch.shape",
+        "uib.events.subscriptions.cursor.replay.storage",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

@@ -176,6 +176,12 @@
 | HW-001 | UniSOC Automotive-solution | 展锐负责 | 中央计算硬件基线 | 软件架构默认基于 UniSOC 车规方案 | 未实现 |
 | HW-002 | 外置 PCIe NPU 算力卡 | 用户补充需求 | 后端 AI 基座由 PCIe NPU 实现 | 必须映射到 KH-003、KH-006、NV-F-011 | mock + `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` + DRV-GAP-001 + `/hardware/interfaces` 的 `npu-runtime` 空接口 |
 
+## FW-U-003/NV-P-006 当前补充：Event subscription cursor/replay storage
+
+`GET /uib/events/subscriptions/cursor-replay-storage` 是 FW-U-003 Event 与 NV-P-006 DDS/high-rate topic reservation 的 contract-only 增量，用于固定 cursor schema、ack shape、replay window、retention/cleanup、Runtime & Governance audit binding 和 `EV-CRS-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionCursorReplayStorageJson`，Linux 同步路径暴露 `event-subscription-cursor-replay-storage`、`uib.events.subscriptions.cursor.replay.storage` 和 `GetEventSubscriptionCursorReplayStorage`。
+
+该增量只补需求基线中的订阅 cursor/replay 存储接口形状，不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
+
 ## 开发顺序约束
 
 1. 先补齐 L2/L3 的契约和治理骨架，再扩展上层 App。

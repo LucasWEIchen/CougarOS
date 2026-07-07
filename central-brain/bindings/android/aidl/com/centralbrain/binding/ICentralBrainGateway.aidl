@@ -45,6 +45,8 @@ interface ICentralBrainGateway {
 
     String getEventSubscriptionCallbackWatchShapeJson(String traceId);
 
+    String getEventSubscriptionCursorReplayStorageJson(String traceId);
+
     String getUibExtensionsJson(String traceId);
 
     String getAiSdkCapabilitiesJson(String traceId);

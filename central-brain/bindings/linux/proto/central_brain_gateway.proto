@@ -33,6 +33,7 @@ service CentralBrainGateway {
   rpc GetEventSubscriptionDecisionMatrix(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptionActivationChecklist(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptionCallbackWatchShape(GatewayRequest) returns (GatewayResponse);
+  rpc GetEventSubscriptionCursorReplayStorage(GatewayRequest) returns (GatewayResponse);
   rpc GetUibExtensions(GatewayRequest) returns (GatewayResponse);
   rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
   rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);

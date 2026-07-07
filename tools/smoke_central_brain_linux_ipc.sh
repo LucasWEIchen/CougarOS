@@ -105,6 +105,7 @@ assert {"EV-SUB-001", "EV-SUB-002", "EV-SUB-003", "EV-SUB-004", "EV-SUB-005", "E
 for key in [
     "broker_active",
     "subscription_persistence_active",
+    "cursor_storage_active",
     "callback_registered",
     "watch_started",
     "dds_runtime_active",
@@ -120,14 +121,17 @@ assert "getEventSubscriptionsJson" in encoded, response
 assert "requestEventSubscriptionJson" in encoded, response
 assert "cancelEventSubscriptionJson" in encoded, response
 assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, response
+assert "getEventSubscriptionCursorReplayStorageJson" in encoded, response
 assert "uib.events.subscriptions.get" in encoded, response
 assert "uib.events.subscriptions.request" in encoded, response
 assert "uib.events.subscriptions.cancel" in encoded, response
 assert "uib.events.subscriptions.callback.watch.shape" in encoded, response
+assert "uib.events.subscriptions.cursor.replay.storage" in encoded, response
 assert "GetEventSubscriptions" in encoded, response
 assert "RequestEventSubscription" in encoded, response
 assert "CancelEventSubscription" in encoded, response
 assert "GetEventSubscriptionCallbackWatchShape" in encoded, response
+assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
 PY
 EVENT_SUBSCRIBE_REQUEST_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscribe-request)"
@@ -348,6 +352,51 @@ assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, response
 assert "event-subscription-callback-watch-shape" in encoded, response
 assert "uib.events.subscriptions.callback.watch.shape" in encoded, response
 assert "GetEventSubscriptionCallbackWatchShape" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
+EVENT_SUBSCRIPTION_CURSOR_REPLAY_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-cursor-replay-storage)"
+python3 - "$EVENT_SUBSCRIPTION_CURSOR_REPLAY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["cursor_replay_state"] == "contract-only-cursor-replay-storage-draft", response
+assert payload["cursor_replay_storage_confirmed"] is False, response
+assert {"EV-CRS-001", "EV-CRS-002", "EV-CRS-003", "EV-CRS-004", "EV-CRS-005", "EV-CRS-006", "EV-CRS-007", "EV-CRS-008"} <= gate_ids, response
+for key in [
+    "cursor_replay_storage_confirmed",
+    "storage_owner_confirmed",
+    "schema_owner_confirmed",
+    "replay_window_confirmed",
+    "retention_policy_confirmed",
+    "restart_recovery_confirmed",
+    "runtime_governance_binding_evidence_attached",
+    "backpressure_qos_evidence_attached",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "replay_index_active",
+    "callback_registered",
+    "watch_started",
+    "streaming_runtime_implemented",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["cursor_replay_storage_contract_active"] is True, response
+assert "getEventSubscriptionCursorReplayStorageJson" in encoded, response
+assert "event-subscription-cursor-replay-storage" in encoded, response
+assert "uib.events.subscriptions.cursor.replay.storage" in encoded, response
+assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"

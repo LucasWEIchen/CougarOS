@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 FW-U-003/NV-P-006 Event subscription cursor/replay storage contract：
+  - 新增 `GET /uib/events/subscriptions/cursor-replay-storage`，返回 cursor schema、ack shape、replay window、retention/cleanup、Runtime & Governance audit binding 与 `EV-CRS-001..008` 门禁。
+  - Android Binder/AIDL 新增 `getEventSubscriptionCursorReplayStorageJson`，Android Console 新增 `Sub Cursor` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-cursor-replay-storage`、`uib.events.subscriptions.cursor.replay.storage`、`GetEventSubscriptionCursorReplayStorage` 可见路径。
+  - 本轮只完成 cursor/replay storage contract，不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
 - 推进 FW-U-003/NV-P-006 Event subscription callback/watch API shape contract：
   - 新增 `GET /uib/events/subscriptions/callback-watch-shape`，返回 Android planned Binder callback、Linux planned watch lifecycle、event/overflow/close envelope、Runtime & Governance binding、cursor/reconnect 与 no-runtime-registration 八类 `EV-CW-001..008` 门禁。
   - Android Binder/AIDL 新增 `getEventSubscriptionCallbackWatchShapeJson`，Android Console 新增 `Sub Shape` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-callback-watch-shape`、`uib.events.subscriptions.callback.watch.shape`、`GetEventSubscriptionCallbackWatchShape` 可见路径。

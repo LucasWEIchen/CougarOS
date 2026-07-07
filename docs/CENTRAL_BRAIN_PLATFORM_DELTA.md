@@ -18,6 +18,16 @@ Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 `hardware-interfaces`、Linux IPC `hardware.interfaces.get` 与 Linux gRPC/RPC
 `GetHardwareInterfaces` 查询，且不触发真实硬件访问。
 
+Event subscription cursor/replay storage 按 FW-U-003、NV-P-006、XSC-002、XSC-006 在
+`GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder
+`getEventSubscriptionCursorReplayStorageJson`、Linux CLI
+`event-subscription-cursor-replay-storage`、Linux IPC
+`uib.events.subscriptions.cursor.replay.storage` 与 Linux gRPC/RPC
+`GetEventSubscriptionCursorReplayStorage` 查询。该视图只暴露 cursor schema、ack shape、
+replay window、retention/cleanup、Runtime & Governance audit binding 和 `EV-CRS-001..008`
+门禁，不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、
+callback/watch、SSE/WebSocket、DDS、高频数据面、Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC
