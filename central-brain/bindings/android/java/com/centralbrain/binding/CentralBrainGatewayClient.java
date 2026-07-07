@@ -158,6 +158,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getHardwareInterfacesJson(traceId);
     }
 
+    public String getVehicleSignalsJson(String traceId) throws RemoteException {
+        return requireGateway().getVehicleSignalsJson(traceId);
+    }
+
     private ICentralBrainGateway requireGateway() {
         if (gateway == null) {
             throw new IllegalStateException("Central Brain gateway service is not bound");

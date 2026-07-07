@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 NV-F-004/NV-F-005 Vehicle/Body Signal catalog contract：
+  - 新增 `central-brain/backend/vehicle_signals.py` 与 `GET /vehicle/signals`，以只读 VSS-style catalog 暴露 BCM/HVAC/Seat/Door/Light/Powertrain 等信号路径、访问级别、governance tag、Adapter 边界和 Driver/HAL 缺口链接。
+  - Android Binder/AIDL 新增 `getVehicleSignalsJson`，Android Console 新增 `Vehicle Signals` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `vehicle-signals`/`vehicle.signals.list`/`GetVehicleSignals` 可见路径。
+  - 本轮只完成信号目录和 Android/Linux 同步可见性，不加载 DBC/ARXML，不连接 VHAL、SocketCAN、vendor gateway 或真实车辆总线，不访问硬件，不开发 Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、XSC-004、XSC-006、NV-F-004、NV-F-005、FW-U-001、FW-U-002、FW-U-003、FW-U-004、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-005。
 - 推进 Python 原型成熟度总览 contract：
   - 新增 `central-brain/backend/prototype_readiness.py` 与 `GET /prototype/readiness`，集中暴露 AI SDK、Uni Info Bus、SOA、Runtime & Governance、Protocol Binding、Native adapters/Driver-HAL backlog、hardware empty interfaces 的当前成熟度、Android 主路径、Linux 同步路径、开放偏差、开放问题和下一步候选增量。
   - Android Binder/AIDL 新增 `getPrototypeReadinessJson`，Android Console 新增 `Prototype` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `prototype-readiness`/`prototype.readiness.get`/`GetPrototypeReadiness` 可见路径。

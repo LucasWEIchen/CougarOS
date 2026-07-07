@@ -30,15 +30,17 @@ from native_adapters import NativeAdapterRegistry
 from prototype_readiness import PrototypeReadinessRegistry
 from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
+from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.31"
+API_VERSION = "0.1.32"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
 HARDWARE_INTERFACES = HardwareInterfaceRegistry()
 PROTOTYPE_READINESS = PrototypeReadinessRegistry()
+VEHICLE_SIGNALS = VehicleSignalRegistry()
 EVENT_LOG: deque[dict[str, Any]] = deque(maxlen=50)
 EVENT_TOPICS = [
     "vehicle.signal.changed",
@@ -225,10 +227,11 @@ def state_payload() -> dict[str, Any]:
             "services": services_payload()["services"],
             "npu": npu_status(),
             "hardware_interfaces": HARDWARE_INTERFACES.summary_payload(),
+            "vehicle_signal_catalog": VEHICLE_SIGNALS.summary_payload(),
             "vehicle": vehicle_state_payload(),
             "safety_state": "normal"
         },
-        "req_ids": ["FW-U-002", "XSC-004", "HW-002", "DEL-005"]
+        "req_ids": ["FW-U-002", "XSC-004", "HW-002", "NV-F-004", "NV-F-005", "DEL-005"]
     }
 
 
@@ -509,6 +512,10 @@ def native_driver_gaps_payload() -> dict[str, Any]:
 
 def hardware_interfaces_payload() -> dict[str, Any]:
     return HARDWARE_INTERFACES.interfaces_payload()
+
+
+def vehicle_signals_payload() -> dict[str, Any]:
+    return VEHICLE_SIGNALS.catalog_payload()
 
 
 def vehicle_state_payload() -> dict[str, Any]:
@@ -814,6 +821,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(native_driver_gaps_payload()))
         elif path == "/hardware/interfaces":
             self.send_json(200, envelope(hardware_interfaces_payload()))
+        elif path == "/vehicle/signals":
+            self.send_json(200, envelope(vehicle_signals_payload()))
         elif path in ("/events/topics", "/uib/events/topics"):
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/uib/events/recent":

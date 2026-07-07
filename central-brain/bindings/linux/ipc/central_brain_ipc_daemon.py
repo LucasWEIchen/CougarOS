@@ -175,6 +175,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/hardware/interfaces",
         "req_ids": ["XSC-004", "XSC-006", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "NV-P-002", "DEL-002", "DEL-005"],
     },
+    "vehicle.signals.list": {
+        "method": "GET",
+        "path": "/vehicle/signals",
+        "req_ids": ["XSC-002", "XSC-004", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-002", "DEL-002", "DEL-005"],
+    },
 }
 
 

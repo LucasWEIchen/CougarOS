@@ -131,11 +131,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "AIOS Kernel native adapters and Driver/HAL boundary",
         "diagram_group": "native-layer",
         "yellow_sun_portable": True,
-        "current_state": "read-only-registry-and-gap-backlog",
-        "ready_for": ["Driver/HAL ownership review", "Android/Linux adapter planning", "gap triage"],
+        "current_state": "read-only-signal-catalog-and-gap-backlog",
+        "ready_for": ["Vehicle Signal catalog review", "Driver/HAL ownership review", "Android/Linux adapter planning", "gap triage"],
         "not_ready_for": ["vendor HAL calls", "VHAL/DBC integration", "kernel or driver implementation"],
-        "android_primary_surface": "getNativeAdaptersDetailJson, getDriverHalGapsJson",
-        "linux_sync_surface": "native-adapters-detail and driver-gaps over CLI/IPC/gRPC where exposed",
+        "android_primary_surface": "getNativeAdaptersDetailJson, getDriverHalGapsJson, getVehicleSignalsJson",
+        "linux_sync_surface": "native-adapters-detail, driver-gaps, and vehicle-signals over CLI/IPC/gRPC where exposed",
         "open_deviations": ["DEV-004", "DEV-014"],
         "open_issues": [],
         "req_ids": ["XSC-004", "NV-F-004", "NV-F-005", "NV-F-011", "KH-003", "KH-006", "DEL-005"],
@@ -215,8 +215,8 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "vehicle-signal-adapter richer mock contracts",
-                    "reason": "NV-F-004/NV-F-005 remain mock-only and need clearer Android/Linux adapter request/response surfaces.",
+                    "candidate": "vehicle-signal-adapter activation criteria",
+                    "reason": "NV-F-004/NV-F-005 now have a read-only signal catalog; next step is defining read bridge activation criteria for DBC/ARXML, VHAL, SocketCAN, or vendor gateway input.",
                     "req_ids": ["XSC-004", "NV-F-004", "NV-F-005", "DEL-001", "DEL-002"],
                 },
                 {

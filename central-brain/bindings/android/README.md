@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, FW-U-008, HW-002, NV-P-002, NV-P-006, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, FW-U-008, HW-002, NV-F-004, NV-F-005, NV-P-002, NV-P-006, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
@@ -15,7 +15,8 @@ Brain semantic gateway.
   contract, governance migration readiness, governance deployment plan,
   Protocol Binding readiness, Android/Linux delivery readiness, Python
   prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
-  and hardware empty-interface registry contract mocks. The Binder service
+  hardware empty-interface registry, and Vehicle/Body Signal catalog contract
+  mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
   binding.
 
@@ -54,6 +55,7 @@ Brain semantic gateway.
 | `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
 | `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
 | `getHardwareInterfacesJson` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-005 |
+| `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 
 ## Artifacts
 
@@ -132,12 +134,18 @@ Brain semantic gateway.
   only; it returns reserved methods and Android/Linux target paths but does not
   access hardware, call HAL, allocate shared memory, invoke vendor SDKs, or
   create virtualization work.
+- `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
+  Android integration review through the Android Console `Vehicle Signals`
+  action only; it returns VSS-style signal paths, access metadata, adapter
+  boundaries, and DRV-GAP-002 linkage but does not load DBC/ARXML, call VHAL or
+  HAL, connect SocketCAN/vendor gateways, touch a real vehicle bus, or create
+  Driver/HAL or virtualization work.
 
 ## System Service Integration Notes
 
 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` records the Android
 system/privileged service integration constraints for DEL-001, DEL-003,
-DEL-004, DEL-005, XSC-002, XSC-003, XSC-005, XSC-006, HW-002, NV-P-002, NV-P-005,
+DEL-004, DEL-005, XSC-002, XSC-003, XSC-005, XSC-006, HW-002, NV-F-004, NV-F-005, NV-P-002, NV-P-005,
 FW-U-007, FW-S-005, NV-G-005, KH-003, KH-006, and KH-007. It covers target service shapes, manifest permission
 constraints, Binder identity to Policy mapping, SELinux/deployment assumptions,
 and verification checks.

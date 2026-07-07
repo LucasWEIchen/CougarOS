@@ -76,7 +76,7 @@
 | Skill | 技能声明、调用、生命周期 | HTTP/JSON | AIDL + sandbox IPC |
 | Memory | 用户偏好和长期记忆 | HTTP/JSON | AIDL + local encrypted store |
 | Policy | 权限、安全状态、隐私路由 | HTTP/JSON | AIDL/native policy engine |
-| Vehicle | VSS/VHAL/ECU 信号 | HTTP/JSON | VHAL/AIDL/SOME-IP |
+| Vehicle | VSS/VHAL/ECU 信号 | HTTP/JSON active mock for read-only catalog | VHAL/AIDL/SOME-IP |
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
 | Hardware Interfaces | 硬件依赖空接口、reserved methods、Android/Linux 目标路径和触发条件 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；真实 HAL/vendor SDK/native adapter 待后续 |
 | Observability | Trace、Metric、QoS、Audit、共享治理后端目标契约和迁移检查 | HTTP/JSON | AIDL + file/socket exporter + shared Runtime & Governance backend |
@@ -108,9 +108,11 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | Method | Path | 用途 | 已实现 |
 | --- | --- | --- | --- |
 | GET | `/vehicle/state` | 当前车辆信号快照 | 是 |
-| GET | `/vehicle/signals` | 信号 Schema | 否 |
+| GET | `/vehicle/signals` | Vehicle/Body Signal 只读 VSS-style catalog、ECU/Signal Adapter 边界和 Driver/HAL gap 链接 | 是 |
 | GET | `/vehicle/signals/{path}` | 单个信号读取 | 否 |
 | POST | `/vehicle/actions` | legacy 车控动作候选入口 | 否 |
+
+`GET /vehicle/signals` 覆盖 XSC-002、XSC-004、XSC-006、NV-F-004、NV-F-005、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-005。该接口返回 BCM/HVAC/Seat/Door/Light/Powertrain 等 VSS-style signal catalog、访问级别、governance tag、Adapter 边界和 DRV-GAP-002 链接；Android Binder `getVehicleSignalsJson`、Linux CLI `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC `GetVehicleSignals` 暴露同一视图。本接口明确 `dbc_arxml_loaded=false`、`real_vehicle_bus_connected=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；它不是 DBC/ARXML parser、不是 VHAL/HAL bridge、不是 SocketCAN/vendor gateway，也不执行单信号读取或真实车控写操作。
 
 ### Uni Info Bus Action
 

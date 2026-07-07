@@ -83,6 +83,7 @@ checks = [
     ("GET", "/native/adapters/detail", None, "XSC-004"),
     ("GET", "/native/driver-gaps", None, "DEL-005"),
     ("GET", "/hardware/interfaces", None, "HW-002"),
+    ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/ai/sdk/capabilities", None, "XSC-001"),
     (
         "POST",
@@ -295,6 +296,24 @@ for method, path, body, req_id in checks:
         assert "getHardwareInterfacesJson" in json.dumps(hardware), "Android hardware binding visibility missing"
         assert "hardware.interfaces.get" in json.dumps(hardware), "Linux IPC hardware binding visibility missing"
         assert "GetHardwareInterfaces" in json.dumps(hardware), "gRPC hardware binding visibility missing"
+    if path == "/vehicle/signals":
+        vehicle_signals = payload["payload"]
+        encoded = json.dumps(vehicle_signals)
+        signal_paths = {item["path"] for item in vehicle_signals["signals"]}
+        assert "Vehicle.Speed" in signal_paths, "vehicle signal catalog missing Vehicle.Speed"
+        assert "Vehicle.Cabin.HVAC.Station.Row1.Left.Temperature" in signal_paths, "vehicle signal catalog missing HVAC signal"
+        assert "Vehicle.Body.Door.Row1.Left.IsOpen" in signal_paths, "vehicle signal catalog missing door signal"
+        assert vehicle_signals["summary"]["catalog_state"] == "read-only-mock-signal-catalog", "vehicle signal catalog left read-only state"
+        assert vehicle_signals["summary"]["dbc_arxml_loaded"] is False, "vehicle signal catalog loaded DBC/ARXML"
+        assert vehicle_signals["summary"]["real_vehicle_bus_connected"] is False, "vehicle signal catalog touched real vehicle bus"
+        assert vehicle_signals["summary"]["hardware_accessed"] is False, "vehicle signal catalog touched hardware"
+        assert vehicle_signals["summary"]["driver_development_triggered"] is False, "vehicle signal catalog triggered Driver/HAL work"
+        assert vehicle_signals["summary"]["virtualization_development_triggered"] is False, "vehicle signal catalog triggered virtualization work"
+        assert vehicle_signals["summary"]["service_dispatch_triggered"] is False, "vehicle signal catalog dispatched a service"
+        assert "getVehicleSignalsJson" in encoded, "Android vehicle signal binding visibility missing"
+        assert "vehicle.signals.list" in encoded, "Linux IPC vehicle signal binding visibility missing"
+        assert "GetVehicleSignals" in encoded, "gRPC vehicle signal binding visibility missing"
+        assert "DRV-GAP-002" in encoded, "vehicle signal catalog missing vehicle bus driver gap link"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -409,5 +428,6 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interfaces >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 
 echo "linux cli smoke ok"

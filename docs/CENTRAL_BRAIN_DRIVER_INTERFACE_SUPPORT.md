@@ -19,6 +19,8 @@ FW-U-008 Uni Info Bus extension registry contract 增量只新增 `GET /uib/exte
 
 A6/A6.1 Python 原型硬件空接口注册表增量新增 `central-brain/backend/hardware_interfaces.py`、`GET /hardware/interfaces`、Android Binder/AIDL `getHardwareInterfacesJson`、Linux CLI/IPC `hardware-interfaces`/`hardware.interfaces.get` 和 Linux gRPC/RPC `GetHardwareInterfaces` 映射；覆盖 XSC-004、XSC-006、HW-002、KH-001、KH-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。该增量只暴露 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的 reserved methods、Android 主路径、Linux 同步路径和触发条件；`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 是验收条件，不访问 HAL、device node、vendor SDK、DMA/IOMMU、Safety Runtime、车辆总线或虚拟化层。
 
+NV-F-004/NV-F-005 Vehicle/Body Signal catalog contract 增量新增 `central-brain/backend/vehicle_signals.py`、`GET /vehicle/signals`、Android Binder/AIDL `getVehicleSignalsJson`、Linux CLI/IPC `vehicle-signals`/`vehicle.signals.list` 和 Linux gRPC/RPC `GetVehicleSignals` 映射；覆盖 XSC-002、XSC-004、XSC-006、NV-F-004、NV-F-005、FW-U-001、FW-U-002、FW-U-003、FW-U-004、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-005。该增量只暴露 VSS-style read-only signal catalog、ECU/Signal Adapter 边界、Android/Linux 绑定可见性和 DRV-GAP-002 链接；`dbc_arxml_loaded=false`、`real_vehicle_bus_connected=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 是验收条件，不连接 VHAL、SocketCAN、vendor gateway、CAN/Ethernet 总线或 HAL，也不新增 Driver/HAL、Safety Runtime、共享内存、车辆总线或虚拟化代码。
+
 A5 Native adapters mock 的 `/native/adapters/detail` 只记录 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界和 Driver/HAL 依赖，不新增驱动代码。
 
 A6 NPU Runtime Adapter 接口约束增量新增 `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` 和 `tools/check_central_brain_npu_interface.sh`，覆盖 HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005；只固定 Android/Linux runtime contract、状态机、错误码和 Driver/HAL 集成检查点，不新增 NPU driver、HAL、DMA/IOMMU、Safety Runtime、vendor SDK bridge 或虚拟化代码。
@@ -88,7 +90,7 @@ Linux package/profile 静态契约增量新增 `central-brain/deploy/linux/centr
 | Camera | Drivers:Camera, Sensor/Actuator | Android Camera HAL/Camera2 | V4L2 或厂商 SDK | 当前无真实车载 camera | 接入真实摄像头/传感器时新增 adapter |
 | Audio/Mic | Drivers:Audio, Sensor/Actuator | Audio HAL/AAudio/AudioRecord | ALSA/PulseAudio/PipeWire 或厂商 SDK | WSL/AVD 仅具备基础能力 | 语音 Agent 真机验证时补适配 |
 | Ethernet/ETH | Drivers:ETH, Network stack | Android network stack/VHAL 或 vendor net service | Linux netdev/socket/SOME-IP stack | WSL 网络可用于 REST mock | SOME/IP、DDS、TSN/PTP 验证时补环境 |
-| Vehicle bus | ECU Proxy/Signal Adapter | VHAL/AIDL vendor service | CAN SocketCAN、DBC/ARXML parser、vendor gateway | 仅 mock VSS signals | 用户提供 DBC/ARXML/网关后补 adapter |
+| Vehicle bus | ECU Proxy/Signal Adapter | VHAL/AIDL vendor service | CAN SocketCAN、DBC/ARXML parser、vendor gateway | `/vehicle/signals` 只读 VSS-style catalog + mock VSS snapshot；未连接真实 bus | 用户提供 DBC/ARXML/VHAL/SocketCAN/vendor gateway 后补 adapter |
 | Shared memory | Memory management, cross-domain communication | AIDL shared memory/ashmem/HardwareBuffer | POSIX shm/memfd/DMA-BUF | 未使用 | 高频感知/模型数据接入时补设计 |
 | Time sync | Data/Time Sync | Android time service/PTP support if available | PTP/TSN/linuxptp | 未使用 | ADAS/传感器融合验证时补适配 |
 
@@ -119,6 +121,8 @@ NpuDevice.reset(reason)
 `GET /native/driver-gaps` 是当前可查询 backlog，供 Android/Linux 座舱域工程师确认哪些底层接口尚未进入开发。该接口的 `summary.driver_development_triggered=false` 是本轮验收条件，表示只建立缺口记录，不启动真实驱动工作。
 
 `GET /hardware/interfaces` 是当前可查询的硬件依赖空接口目录，供 Android/Linux 座舱域工程师查看未来 Driver/HAL/native adapter 的最小方法形状。该接口的 `summary.hardware_accessed=false`、`summary.driver_development_triggered=false` 和 `summary.virtualization_development_triggered=false` 是本轮验收条件。
+
+`GET /vehicle/signals` 是当前可查询的 Vehicle/Body Signal 只读目录，供 Android/Linux 座舱域工程师确认 NV-F-004/NV-F-005 的信号路径、访问级别、governance tag、ECU/Signal Adapter 边界和 DRV-GAP-002 链接。该接口的 `summary.dbc_arxml_loaded=false`、`summary.real_vehicle_bus_connected=false`、`summary.hardware_accessed=false`、`summary.driver_development_triggered=false` 和 `summary.virtualization_development_triggered=false` 是本轮验收条件。
 
 | ID | 接口域 | 当前环境缺口 | 触发条件 | 最小新增开发量 | 状态 |
 | --- | --- | --- | --- | --- | --- |

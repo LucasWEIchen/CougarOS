@@ -220,6 +220,30 @@ assert hardware["summary"]["driver_development_triggered"] is False, response
 assert hardware["summary"]["virtualization_development_triggered"] is False, response
 assert "hardware.interfaces.get" in encoded and "GetHardwareInterfaces" in encoded, response
 PY
+VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
+python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+vehicle_signals = payload["gateway"]["payload"]
+encoded = json.dumps(vehicle_signals)
+signal_paths = {item["path"] for item in vehicle_signals["signals"]}
+assert response["status"] == "ok", response
+assert "Vehicle.Speed" in signal_paths, response
+assert "Vehicle.Cabin.HVAC.Station.Row1.Left.Temperature" in signal_paths, response
+assert "Vehicle.Body.Door.Row1.Left.IsOpen" in signal_paths, response
+assert vehicle_signals["summary"]["catalog_state"] == "read-only-mock-signal-catalog", response
+assert vehicle_signals["summary"]["dbc_arxml_loaded"] is False, response
+assert vehicle_signals["summary"]["real_vehicle_bus_connected"] is False, response
+assert vehicle_signals["summary"]["hardware_accessed"] is False, response
+assert vehicle_signals["summary"]["driver_development_triggered"] is False, response
+assert vehicle_signals["summary"]["virtualization_development_triggered"] is False, response
+assert vehicle_signals["summary"]["service_dispatch_triggered"] is False, response
+assert "vehicle.signals.list" in encoded and "GetVehicleSignals" in encoded, response
+assert "DRV-GAP-002" in encoded, response
+PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
 import json
@@ -351,6 +375,7 @@ encoded = json.dumps(payload)
 assert response["status"] == "ok", response
 assert "grpc" in encoded, response
 assert "grpc-json-active-sample" in encoded, response
+assert "GetVehicleSignals" in encoded, response
 assert "NV-P-003" in encoded and "DEL-002" in encoded, response
 PY
 

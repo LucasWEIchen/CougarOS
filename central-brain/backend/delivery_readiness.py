@@ -20,6 +20,8 @@ DELIVERY_REQ_IDS = [
     "XSC-005",
     "XSC-006",
     "HW-002",
+    "NV-F-004",
+    "NV-F-005",
     "KH-003",
     "KH-006",
     "KH-007",
@@ -49,7 +51,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "target AAOS image signing and priv-app policy",
             "SELinux domain and service manager registration decision",
         ],
-        "req_ids": ["DEL-001", "DEL-003", "DEL-004", "XSC-001", "XSC-002", "XSC-003", "XSC-005", "XSC-006", "NV-P-002"],
+        "req_ids": ["DEL-001", "DEL-003", "DEL-004", "XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-002"],
     },
     {
         "target": "android-system-service-integration-note",
@@ -72,7 +74,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "artifacts": ["central-brain/linux-cli/central_brain_cli.py"],
         "validation": ["bash tools/smoke_central_brain_semantic_gateway.sh"],
         "blocked_by": ["replacement of REST prototype by target daemon/service boundary"],
-        "req_ids": ["DEL-002", "DEL-003", "DEL-004", "XSC-001", "XSC-002", "XSC-003", "XSC-005", "XSC-006"],
+        "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005"],
     },
     {
         "target": "linux-ipc-daemon-sample",
@@ -89,7 +91,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "target distro service identity and socket path decision",
             "production shared governance daemon replacement",
         ],
-        "req_ids": ["DEL-002", "DEL-003", "DEL-004", "XSC-005", "XSC-006", "NV-P-002"],
+        "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-002"],
     },
     {
         "target": "linux-grpc-rpc-sample",
@@ -106,7 +108,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "grpcio or C++ gRPC runtime availability",
             "production credential source and identity mapping",
         ],
-        "req_ids": ["DEL-002", "DEL-003", "DEL-004", "XSC-005", "XSC-006", "NV-P-003"],
+        "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003"],
     },
     {
         "target": "linux-systemd-package-profile",
@@ -171,6 +173,30 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "target sensor/network/shared-memory/Safety Runtime owner decisions",
         ],
         "req_ids": ["DEL-001", "DEL-002", "DEL-005", "XSC-004", "XSC-006", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007"],
+    },
+    {
+        "target": "vehicle-signal-catalog-contract",
+        "platform": "Android/Linux",
+        "current_state": "read-only-signal-catalog-contract",
+        "ready_for": ["Vehicle/Body Signal catalog review", "future DBC/ARXML or VHAL activation planning", "Android/Linux cockpit-domain inspection"],
+        "artifacts": [
+            "central-brain/backend/vehicle_signals.py",
+            "GET /vehicle/signals",
+            "Android Binder getVehicleSignalsJson",
+            "Linux CLI vehicle-signals",
+            "Linux IPC vehicle.signals.list",
+            "Linux gRPC/RPC GetVehicleSignals",
+        ],
+        "validation": [
+            "bash tools/smoke_central_brain_semantic_gateway.sh",
+            "bash tools/smoke_central_brain_linux_ipc.sh",
+            "bash tools/smoke_central_brain_linux_grpc.sh",
+        ],
+        "blocked_by": [
+            "target vehicle signal catalog, DBC/ARXML, VHAL contract, SocketCAN, or vendor gateway",
+            "Vehicle Signal Adapter owner decision for read bridge activation",
+        ],
+        "req_ids": ["DEL-001", "DEL-002", "DEL-005", "XSC-002", "XSC-004", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-002", "NV-P-003"],
     },
     {
         "target": "virtualization-safety-constraints",

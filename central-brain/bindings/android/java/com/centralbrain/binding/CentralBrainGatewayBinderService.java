@@ -190,6 +190,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         public String getHardwareInterfacesJson(String traceId) throws RemoteException {
             return get("/hardware/interfaces", traceId);
         }
+
+        @Override
+        public String getVehicleSignalsJson(String traceId) throws RemoteException {
+            return get("/vehicle/signals", traceId);
+        }
     };
 
     @Override

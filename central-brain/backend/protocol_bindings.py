@@ -149,13 +149,14 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "/governance/deployment-plan",
             "/native/driver-gaps",
             "/hardware/interfaces",
+            "/vehicle/signals",
             "/soa/contracts",
             "/bindings/readiness",
             "/delivery/readiness",
             "/prototype/readiness",
         ],
         "artifacts": ["central-brain/contracts/central_brain_api.json"],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-003", "NV-G-004", "NV-P-005", "NV-P-006"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-F-004", "NV-F-005", "NV-G-003", "NV-G-004", "NV-P-005", "NV-P-006"],
     },
     {
         "name": "android-binder-aidl",
@@ -193,6 +194,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "getNativeAdaptersDetailJson -> /native/adapters/detail",
             "getDriverHalGapsJson -> /native/driver-gaps",
             "getHardwareInterfacesJson -> /hardware/interfaces",
+            "getVehicleSignalsJson -> /vehicle/signals",
         ],
         "artifacts": [
             "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl",
@@ -201,7 +203,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/android/README.md",
             "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md",
         ],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-007", "FW-U-008", "FW-S-004", "FW-S-005", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-005", "NV-P-006", "DEL-001", "DEL-003", "DEL-004"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-007", "FW-U-008", "FW-S-004", "FW-S-005", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-F-004", "NV-F-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-005", "NV-P-006", "DEL-001", "DEL-003", "DEL-004"],
     },
     {
         "name": "linux-ipc",
@@ -236,6 +238,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "delivery.readiness.get -> /delivery/readiness",
             "prototype.readiness.get -> /prototype/readiness",
             "hardware.interfaces.get -> /hardware/interfaces",
+            "vehicle.signals.list -> /vehicle/signals",
         ],
         "artifacts": [
             "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
@@ -245,7 +248,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/linux/ipc/central_brain_ipc_client.py",
             "central-brain/bindings/linux/README.md",
         ],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-006", "DEL-002"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-F-004", "NV-F-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-006", "DEL-002"],
     },
     {
         "name": "grpc",
@@ -280,6 +283,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "CentralBrainGateway.GetDeliveryReadiness -> /delivery/readiness",
             "CentralBrainGateway.GetPrototypeReadiness -> /prototype/readiness",
             "CentralBrainGateway.GetHardwareInterfaces -> /hardware/interfaces",
+            "CentralBrainGateway.GetVehicleSignals -> /vehicle/signals",
         ],
         "artifacts": [
             "central-brain/bindings/linux/proto/central_brain_gateway.proto",
@@ -288,7 +292,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/linux/grpc/central_brain_grpc_client.py",
             "central-brain/deploy/linux/systemd/central-brain-linux-grpc.service",
         ],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-006", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "NV-P-006", "DEL-002"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-006", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-F-004", "NV-F-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "NV-P-006", "DEL-002"],
     },
     {
         "name": "mqtt",
@@ -360,6 +364,7 @@ class ProtocolBindingRegistry:
                 "The governance deployment plan is exposed at /governance/deployment-plan to keep Android system service, Linux daemon, and gRPC/RPC deployment-shape decisions visible without implementing the production backend.",
                 "The Android/Linux delivery readiness contract is exposed at /delivery/readiness to consolidate sample artifacts, validation commands, blockers, and non-goal boundaries for cockpit-domain engineers.",
                 "The Python prototype readiness contract is exposed at /prototype/readiness to consolidate product, architecture, binding, Driver/HAL, hardware, deviation, and issue status without dispatching services.",
+                "The vehicle signal catalog is exposed at /vehicle/signals as a VSS-style read-only Vehicle Signal Adapter contract; it does not load DBC/ARXML, open VHAL, connect SocketCAN, or dispatch Driver/HAL.",
                 "Linux shared governance daemon also exposes runtime status and recent audit diagnostics over the same Unix socket; IPC/gRPC use that direct path before REST fallback and these operations do not dispatch services.",
                 "Linux gRPC/RPC sample mirrors the proto GatewayRequest/GatewayResponse fields over a dependency-free JSON TCP wrapper because grpcio is not available in this workspace.",
                 "Linux gRPC/RPC InvokeService uses the same shared governance daemon precheck with local fallback before forwarding allowed SOA calls.",

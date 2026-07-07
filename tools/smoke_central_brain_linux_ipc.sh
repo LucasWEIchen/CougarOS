@@ -211,6 +211,29 @@ assert payload["summary"]["driver_development_triggered"] is False, response
 assert payload["summary"]["virtualization_development_triggered"] is False, response
 assert "hardware.interfaces.get" in encoded and "GetHardwareInterfaces" in encoded, response
 PY
+VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
+python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+signal_paths = {item["path"] for item in payload["signals"]}
+assert response["status"] == "ok", response
+assert "Vehicle.Speed" in signal_paths, response
+assert "Vehicle.Cabin.HVAC.Station.Row1.Left.Temperature" in signal_paths, response
+assert "Vehicle.Body.Door.Row1.Left.IsOpen" in signal_paths, response
+assert payload["summary"]["catalog_state"] == "read-only-mock-signal-catalog", response
+assert payload["summary"]["dbc_arxml_loaded"] is False, response
+assert payload["summary"]["real_vehicle_bus_connected"] is False, response
+assert payload["summary"]["hardware_accessed"] is False, response
+assert payload["summary"]["driver_development_triggered"] is False, response
+assert payload["summary"]["virtualization_development_triggered"] is False, response
+assert payload["summary"]["service_dispatch_triggered"] is False, response
+assert "vehicle.signals.list" in encoded and "GetVehicleSignals" in encoded, response
+assert "DRV-GAP-002" in encoded, response
+PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
 import json
@@ -405,6 +428,7 @@ assert "uib.actions.request" in encoded, response
 assert "soa.contracts.get" in encoded, response
 assert "governance.precheck" in encoded, response
 assert "governance.backend.contract.get" in encoded, response
+assert "vehicle.signals.list" in encoded, response
 assert "XSC-006" in encoded and "NV-P-002" in encoded and "DEL-002" in encoded, response
 PY
 
