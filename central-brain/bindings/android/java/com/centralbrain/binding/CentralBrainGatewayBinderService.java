@@ -92,6 +92,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getEventSubscriptionCallbackWatchShapeJson(String traceId) throws RemoteException {
+            return get("/uib/events/subscriptions/callback-watch-shape", traceId);
+        }
+
+        @Override
         public String getUibExtensionsJson(String traceId) throws RemoteException {
             return get("/uib/extensions", traceId);
         }

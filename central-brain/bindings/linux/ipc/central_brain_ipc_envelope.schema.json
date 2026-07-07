@@ -23,6 +23,7 @@
         "uib.events.subscriptions.transport.readiness",
         "uib.events.subscriptions.decision.matrix",
         "uib.events.subscriptions.activation.checklist",
+        "uib.events.subscriptions.callback.watch.shape",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

@@ -77,11 +77,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "Uni Info Bus semantic Context/State/Event/Action/Extension",
         "diagram_group": "middle-layer",
         "yellow_sun_portable": True,
-        "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-and-activation-checklist-contract",
-        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription request/cancel contract review", "callback/watch transport readiness review", "broker/cursor/backpressure owner decision review", "activation evidence checklist review", "extension contract review"],
+        "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-and-callback-watch-shape-contract",
+        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription request/cancel contract review", "callback/watch transport readiness review", "broker/cursor/backpressure owner decision review", "activation evidence checklist review", "callback/watch API shape review", "extension contract review"],
         "not_ready_for": ["real event broker", "SSE/WebSocket push", "DDS high-rate data plane", "plugin runtime loading", "real actuator dispatch"],
-        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getUibExtensionsJson, requestActionJson",
-        "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, extensions, action-request over CLI/IPC/gRPC",
+        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getUibExtensionsJson, requestActionJson",
+        "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, event-subscription-callback-watch-shape, extensions, action-request over CLI/IPC/gRPC",
         "open_deviations": ["DEV-007", "DEV-015"],
         "open_issues": ["ISSUE-015", "ISSUE-018"],
         "req_ids": ["XSC-002", "FW-U-003", "FW-U-004", "FW-U-008", "NV-P-006", "DEL-001", "DEL-002"],
@@ -217,8 +217,8 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "event broker callback/watch API shape draft",
-                    "reason": "FW-U-003/NV-P-006 now expose lifecycle commands, callback/watch transport readiness, owner decision matrix, and activation evidence checklist; the next safe step is an API-shape draft that still avoids runtime activation.",
+                    "candidate": "event subscription cursor/replay storage contract",
+                    "reason": "FW-U-003/NV-P-006 now expose lifecycle commands, callback/watch transport readiness, owner decision matrix, activation evidence checklist, and callback/watch API shape; the next safe step is a cursor/replay storage contract that still avoids runtime activation.",
                     "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "NV-P-002", "NV-P-006", "DEL-001", "DEL-002", "DEL-004"],
                 },
                 {

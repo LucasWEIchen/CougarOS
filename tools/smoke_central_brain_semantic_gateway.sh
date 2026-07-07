@@ -101,6 +101,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/transport-readiness", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/decision-matrix", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-checklist", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/callback-watch-shape", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -434,12 +435,15 @@ for method, path, body, req_id in checks:
         assert "getEventSubscriptionsJson" in encoded, "Android event subscription binding visibility missing"
         assert "requestEventSubscriptionJson" in encoded, "Android event subscription request binding visibility missing"
         assert "cancelEventSubscriptionJson" in encoded, "Android event subscription cancel binding visibility missing"
+        assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, "Android event subscription callback/watch shape binding visibility missing"
         assert "uib.events.subscriptions.get" in encoded, "Linux IPC event subscription binding visibility missing"
         assert "uib.events.subscriptions.request" in encoded, "Linux IPC event subscription request binding visibility missing"
         assert "uib.events.subscriptions.cancel" in encoded, "Linux IPC event subscription cancel binding visibility missing"
+        assert "uib.events.subscriptions.callback.watch.shape" in encoded, "Linux IPC event subscription callback/watch shape binding visibility missing"
         assert "GetEventSubscriptions" in encoded, "gRPC event subscription binding visibility missing"
         assert "RequestEventSubscription" in encoded, "gRPC event subscription request binding visibility missing"
         assert "CancelEventSubscription" in encoded, "gRPC event subscription cancel binding visibility missing"
+        assert "GetEventSubscriptionCallbackWatchShape" in encoded, "gRPC event subscription callback/watch shape binding visibility missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded, "event subscription missing Req IDs"
     if path == "/uib/events/subscriptions/request":
         subscription = payload["payload"]
@@ -585,6 +589,42 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.activation.checklist" in encoded, "Linux IPC event subscription activation checklist binding missing"
         assert "GetEventSubscriptionActivationChecklist" in encoded, "gRPC event subscription activation checklist binding missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation checklist missing Req IDs"
+    if path == "/uib/events/subscriptions/callback-watch-shape":
+        shape = payload["payload"]
+        encoded = json.dumps(shape)
+        gate_ids = {item["gate_id"] for item in shape["mandatory_gates"]}
+        assert shape["shape_state"] == "contract-only-callback-watch-shape-draft", "event subscription callback/watch shape left draft state"
+        assert shape["shape_confirmed"] is False, "event subscription callback/watch shape was confirmed"
+        assert {"EV-CW-001", "EV-CW-002", "EV-CW-003", "EV-CW-004", "EV-CW-005", "EV-CW-006", "EV-CW-007", "EV-CW-008"} <= gate_ids, "event callback/watch shape missing mandatory gates"
+        for key in [
+            "callback_watch_shape_confirmed",
+            "runtime_governance_binding_evidence_attached",
+            "cursor_store_evidence_attached",
+            "backpressure_qos_evidence_attached",
+            "transport_runtime_evidence_attached",
+            "callback_registered",
+            "watch_started",
+            "streaming_runtime_implemented",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert shape["summary"][key] is False, f"event subscription callback/watch shape summary unexpectedly set {key}"
+        assert shape["summary"]["callback_watch_shape_contract_active"] is True, "callback/watch shape contract not active"
+        assert shape["summary"]["android_callback_shape_drafted"] is True, "Android callback shape draft missing"
+        assert shape["summary"]["linux_watch_shape_drafted"] is True, "Linux watch shape draft missing"
+        assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, "Android event subscription callback/watch shape binding missing"
+        assert "event-subscription-callback-watch-shape" in encoded, "Linux CLI event subscription callback/watch shape binding missing"
+        assert "uib.events.subscriptions.callback.watch.shape" in encoded, "Linux IPC event subscription callback/watch shape binding missing"
+        assert "GetEventSubscriptionCallbackWatchShape" in encoded, "gRPC event subscription callback/watch shape binding missing"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription callback/watch shape missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -687,6 +727,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-transport-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-decision-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-callback-watch-shape >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

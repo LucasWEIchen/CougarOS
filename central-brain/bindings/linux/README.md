@@ -42,6 +42,7 @@ Brain semantic gateway.
 | `uib.events.subscriptions.transport.readiness` | `GET /uib/events/subscriptions/transport-readiness` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.decision.matrix` | `GET /uib/events/subscriptions/decision-matrix` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.checklist` | `GET /uib/events/subscriptions/activation-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
+| `uib.events.subscriptions.callback.watch.shape` | `GET /uib/events/subscriptions/callback-watch-shape` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.extensions.get` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
@@ -79,9 +80,10 @@ dispatching services.
 `CentralBrainGateway.GetEventSubscriptions`, `RequestEventSubscription`,
 `CancelEventSubscription`, `GetEventSubscriptionTransportReadiness`, and
 `GetEventSubscriptionDecisionMatrix`, and
-`GetEventSubscriptionActivationChecklist` expose the same FW-U-003/NV-P-006
-Event subscription lifecycle, transport readiness, owner decision matrix, and
-activation evidence checklist contract as Android Binder and Linux IPC without
+`GetEventSubscriptionActivationChecklist`, and
+`GetEventSubscriptionCallbackWatchShape` expose the same FW-U-003/NV-P-006
+Event subscription lifecycle, transport readiness, owner decision matrix,
+activation evidence checklist, and callback/watch API shape contract as Android Binder and Linux IPC without
 assigning production owners, selecting a transport, persisting subscriptions,
 starting a broker, callback/watch path, SSE/WebSocket, DDS runtime, high-rate
 data plane, Driver/HAL, or virtualization work.
@@ -159,6 +161,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-decision-matrix
   CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-activation-checklist
+  CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-callback-watch-shape
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py extensions
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
@@ -249,6 +253,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-decision-matrix
   CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-activation-checklist
+  CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-callback-watch-shape
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-precheck
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
