@@ -258,15 +258,25 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
     {
         "target": "hardware-empty-interface-registry",
         "platform": "Android/Linux",
-        "current_state": "read-only-empty-interface-contract",
-        "ready_for": ["hardware interface review", "future Driver/HAL adapter planning", "Android/Linux cockpit-domain inspection"],
+        "current_state": "read-only-empty-interface-and-activation-checklist-contract",
+        "ready_for": [
+            "hardware interface review",
+            "hardware activation checklist review",
+            "future Driver/HAL adapter planning",
+            "Android/Linux cockpit-domain inspection",
+        ],
         "artifacts": [
             "central-brain/backend/hardware_interfaces.py",
             "GET /hardware/interfaces",
+            "GET /hardware/interfaces/activation-checklist",
             "Android Binder getHardwareInterfacesJson",
+            "Android Binder getHardwareInterfaceActivationChecklistJson",
             "Linux CLI hardware-interfaces",
+            "Linux CLI hardware-interface-activation-checklist",
             "Linux IPC hardware.interfaces.get",
+            "Linux IPC hardware.interfaces.activation.checklist",
             "Linux gRPC/RPC GetHardwareInterfaces",
+            "Linux gRPC/RPC GetHardwareInterfaceActivationChecklist",
         ],
         "validation": [
             "bash tools/smoke_central_brain_semantic_gateway.sh",
@@ -274,6 +284,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "bash tools/smoke_central_brain_linux_grpc.sh",
         ],
         "blocked_by": [
+            "target interface owner, ABI, safety policy, and smoke evidence decisions",
             "real PCIe NPU hardware and vendor SDK",
             "target vehicle signal catalog, DBC/ARXML, VHAL contract, or gateway",
             "target sensor/network/shared-memory/Safety Runtime owner decisions",

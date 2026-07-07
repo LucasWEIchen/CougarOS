@@ -100,6 +100,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "native-adapters-detail": ("GET", "/native/adapters/detail", None),
     "driver-gaps": ("GET", "/native/driver-gaps", None),
     "hardware-interfaces": ("GET", "/hardware/interfaces", None),
+    "hardware-interface-activation-checklist": ("GET", "/hardware/interfaces/activation-checklist", None),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),

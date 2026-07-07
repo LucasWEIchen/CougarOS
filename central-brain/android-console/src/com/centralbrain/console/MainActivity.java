@@ -45,6 +45,7 @@ public class MainActivity extends Activity {
     private Button governanceButton;
     private Button driverGapsButton;
     private Button hardwareInterfacesButton;
+    private Button hardwareActivationChecklistButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -271,6 +272,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getHardwareInterfaces();
+            }
+        });
+        hardwareActivationChecklistButton = addButton(hardwareRow, "HW Gate", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareActivationChecklist();
             }
         });
         prototypeReadinessButton = addButton(hardwareRow, "Prototype", new View.OnClickListener() {
@@ -536,6 +543,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareActivationChecklist() {
+        setBusy(true, "Status: loading hardware activation checklist via Binder");
+        gatewayRequest("Hardware Activation Checklist (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceActivationChecklistJson(newTraceId("hardware-interface-activation-checklist"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -584,7 +601,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -655,6 +672,7 @@ public class MainActivity extends Activity {
         governanceButton.setEnabled(enabled);
         driverGapsButton.setEnabled(enabled);
         hardwareInterfacesButton.setEnabled(enabled);
+        hardwareActivationChecklistButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

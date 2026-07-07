@@ -146,6 +146,7 @@ checks = [
     ("GET", "/native/adapters/detail", None, "XSC-004"),
     ("GET", "/native/driver-gaps", None, "DEL-005"),
     ("GET", "/hardware/interfaces", None, "HW-002"),
+    ("GET", "/hardware/interfaces/activation-checklist", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -367,6 +368,35 @@ for method, path, body, req_id in checks:
         assert "getHardwareInterfacesJson" in json.dumps(hardware), "Android hardware binding visibility missing"
         assert "hardware.interfaces.get" in json.dumps(hardware), "Linux IPC hardware binding visibility missing"
         assert "GetHardwareInterfaces" in json.dumps(hardware), "gRPC hardware binding visibility missing"
+    if path == "/hardware/interfaces/activation-checklist":
+        checklist = payload["payload"]
+        encoded = json.dumps(checklist)
+        gate_ids = {item["gate_id"] for item in checklist["mandatory_gates"]}
+        assert checklist["activation_checklist_state"] == "contract-only-no-hardware-activation", "hardware activation checklist left contract-only state"
+        assert checklist["activation_allowed"] is False, "hardware activation checklist allowed activation"
+        assert {"HW-ACT-001", "HW-ACT-002", "HW-ACT-003", "HW-ACT-004", "HW-ACT-005", "HW-ACT-006", "HW-ACT-007", "HW-ACT-008"} <= gate_ids, "hardware activation checklist missing mandatory gates"
+        assert checklist["owner_decision_shape"]["owner_decision_complete"] is False, "hardware activation owner decisions unexpectedly complete"
+        assert checklist["test_evidence_shape"]["target_hardware_smoke_attached"] is False, "target hardware smoke unexpectedly attached"
+        for key in [
+            "owner_decision_complete",
+            "android_abi_confirmed",
+            "linux_abi_confirmed",
+            "driver_gap_review_complete",
+            "safety_policy_binding_confirmed",
+            "target_hardware_smoke_attached",
+            "activation_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert checklist["summary"][key] is False, f"hardware activation summary unexpectedly set {key}"
+        assert checklist["summary"]["hardware_activation_checklist_active"] is True, "hardware activation checklist not active"
+        assert "getHardwareInterfaceActivationChecklistJson" in encoded, "Android hardware activation binding missing"
+        assert "hardware-interface-activation-checklist" in encoded, "Linux CLI hardware activation binding missing"
+        assert "hardware.interfaces.activation.checklist" in encoded, "Linux IPC hardware activation binding missing"
+        assert "GetHardwareInterfaceActivationChecklist" in encoded, "gRPC hardware activation binding missing"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware activation checklist missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1072,6 +1102,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interfaces >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-activation-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

@@ -61,6 +61,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /native/adapters/detail`
 - `GET /native/driver-gaps`
 - `GET /hardware/interfaces`
+- `GET /hardware/interfaces/activation-checklist`
 - `GET /vehicle/signals`
 - `GET /vehicle/signals/activation`
 - `GET /vehicle/signals/validation`
@@ -92,6 +93,8 @@ bash tools/run_central_brain_backend.sh
 `GET /native/driver-gaps` 覆盖 KH-003、KH-006、KH-007、DEL-005，只返回 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 缺口、触发条件和 Android/Linux 目标接口；`summary.driver_development_triggered=false` 表示本轮没有新增真实 Driver/HAL 开发。
 
 `GET /hardware/interfaces` 覆盖 XSC-004、XSC-006、HW-002、KH-001、KH-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005，只返回硬件依赖空接口、reserved methods、Android 主路径、Linux 同步路径和触发条件；`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有访问真实硬件、没有新增 Driver/HAL、没有开发虚拟化层。
+
+`GET /hardware/interfaces/activation-checklist` 覆盖 XSC-004、XSC-006、HW-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005，只返回硬件接口激活前的 owner、Android ABI、Linux ABI、Driver/HAL gap review、Safety/Policy、smoke evidence 和 rollback/fault 语义门禁；Android Binder `getHardwareInterfaceActivationChecklistJson`、Linux CLI `hardware-interface-activation-checklist`、Linux IPC `hardware.interfaces.activation.checklist` 与 Linux gRPC/RPC `GetHardwareInterfaceActivationChecklist` 暴露同一视图。该接口明确 `activation_allowed=false`、`owner_decision_complete=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`，不打开 device node、不调用 HAL/vendor SDK、不分配共享内存、不访问车辆总线，也不开发虚拟化层。
 
 `GET /vehicle/signals` 覆盖 XSC-002、XSC-004、XSC-006、NV-F-004、NV-F-005、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-005，只返回 Vehicle/Body Signal 只读 VSS-style catalog、访问级别、governance tag、ECU/Signal Adapter 边界和 DRV-GAP-002 链接；`summary.dbc_arxml_loaded=false`、`summary.real_vehicle_bus_connected=false`、`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有加载 DBC/ARXML、没有连接真实车辆总线、没有访问硬件、没有新增 Driver/HAL、没有开发虚拟化层。
 

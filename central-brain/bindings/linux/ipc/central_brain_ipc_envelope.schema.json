@@ -53,6 +53,7 @@
         "delivery.readiness.get",
         "prototype.readiness.get",
         "hardware.interfaces.get",
+        "hardware.interfaces.activation.checklist",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"

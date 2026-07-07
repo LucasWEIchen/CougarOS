@@ -78,7 +78,7 @@
 | Policy | 权限、安全状态、隐私路由 | HTTP/JSON | AIDL/native policy engine |
 | Vehicle | VSS/VHAL/ECU 信号 | HTTP/JSON active mock for read-only catalog | VHAL/AIDL/SOME-IP |
 | AI/NPU | 模型、推理、队列、后端 | HTTP/JSON | AIDL/native daemon/vendor SDK |
-| Hardware Interfaces | 硬件依赖空接口、reserved methods、Android/Linux 目标路径和触发条件 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；真实 HAL/vendor SDK/native adapter 待后续 |
+| Hardware Interfaces | 硬件依赖空接口、reserved methods、Android/Linux 目标路径、触发条件和激活前 owner/ABI/smoke 门禁 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC；真实 HAL/vendor SDK/native adapter 待后续 |
 | Observability | Trace、Metric、QoS、Audit、共享治理后端目标契约和迁移检查 | HTTP/JSON | AIDL + file/socket exporter + shared Runtime & Governance backend |
 | Protocol Binding Readiness | Android Binder、Linux IPC、gRPC/RPC、REST、MQTT、SOME/IP、DDS readiness、阻塞项和验证命令 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
 | Delivery Readiness | Android/Linux 交付样例、验证 bundle、阻塞项和非目标边界 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
@@ -236,6 +236,7 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | --- | --- | --- | --- |
 | GET | `/npu/status` | NPU/runtime 状态 | 是 |
 | GET | `/hardware/interfaces` | 硬件依赖空接口目录；含 NPU runtime reserved methods | 是 |
+| GET | `/hardware/interfaces/activation-checklist` | 硬件接口激活前 owner、ABI、Driver/HAL gap、Safety/Policy 和 smoke evidence 门禁 | 是 |
 | GET | `/models` | 模型列表 | 否 |
 | POST | `/models/load` | 加载模型 | 否 |
 | POST | `/models/unload` | 卸载模型 | 否 |
@@ -248,8 +249,11 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | Method | Path | 用途 | 已实现 |
 | --- | --- | --- | --- |
 | GET | `/hardware/interfaces` | 查询 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的空接口、reserved methods、Android 主路径、Linux 同步路径和触发条件 | 是 |
+| GET | `/hardware/interfaces/activation-checklist` | 查询硬件接口激活前 owner、Android ABI、Linux ABI、Driver/HAL gap review、Safety/Policy、smoke evidence、rollback/fault 语义和 no-hardware-access 门禁 | 是 |
 
 `GET /hardware/interfaces` 覆盖 XSC-004、XSC-006、HW-002、KH-001、KH-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。该接口只返回 `empty-interface-registry`，并明确 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；Android Binder `getHardwareInterfacesJson`、Linux CLI `hardware-interfaces`、Linux IPC `hardware.interfaces.get` 与 Linux gRPC/RPC `GetHardwareInterfaces` 暴露同一视图。本接口不打开 device node、不调用 HAL/vendor SDK、不分配共享内存、不访问车辆总线，也不开发虚拟化层。
+
+`GET /hardware/interfaces/activation-checklist` 覆盖 XSC-004、XSC-006、HW-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。该接口只返回 `HW-ACT-001..008` 激活前门禁和每个硬件空接口的 blocked 状态，并明确 `activation_allowed=false`、`owner_decision_complete=false`、`android_abi_confirmed=false`、`linux_abi_confirmed=false`、`driver_gap_review_complete=false`、`safety_policy_binding_confirmed=false`、`target_hardware_smoke_attached=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；Android Binder `getHardwareInterfaceActivationChecklistJson`、Linux CLI `hardware-interface-activation-checklist`、Linux IPC `hardware.interfaces.activation.checklist` 与 Linux gRPC/RPC `GetHardwareInterfaceActivationChecklist` 暴露同一视图。本接口不激活硬件、不启动服务、不新增 Driver/HAL 或虚拟化开发。
 
 ### Observability
 

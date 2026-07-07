@@ -28,7 +28,7 @@ governance backend target contract、migration readiness、deployment plan、Pro
 | AI SDK/Agent task path | `getAiSdkCapabilitiesJson`、`planAgentTaskJson`、`executeAgentTaskJson`、`listSkillsJson`、`invokeSkillJson`、`queryMemoryJson` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
 | SOA service entry | `listServicesJson`、`getServiceContractsJson`、`invokeServiceJson` | XSC-003, FW-S-004, FW-S-005, NV-G-003 |
 | Runtime & Governance | `evaluatePolicyJson`、`precheckGovernanceJson`、`getGovernanceBackendContractJson`、`getGovernanceMigrationCheckJson`、`getGovernanceDeploymentPlanJson`、`getRuntimeGovernanceJson`、`getRecentAuditJson` | XSC-005, XSC-006, FW-U-007, NV-G-001, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
-| Native/Driver visibility | `getNativeAdaptersDetailJson`、`getDriverHalGapsJson`、`getHardwareInterfacesJson` | XSC-004, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| Native/Driver visibility | `getNativeAdaptersDetailJson`、`getDriverHalGapsJson`、`getHardwareInterfacesJson`、`getHardwareInterfaceActivationChecklistJson` | XSC-004, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | Protocol Binding | AIDL + Binder service/client sample + `getBindingReadinessJson` + `getDeliveryReadinessJson` | XSC-006, NV-P-001, NV-P-002, NV-P-003, NV-P-004, NV-P-005, NV-P-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005 |
 
 当前 service 仍是普通 APK 内的非导出 service，并继续代理 REST prototype gateway。
@@ -48,6 +48,7 @@ Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL 或虚拟化�
 `getDriverHalGapsJson` 只读返回 gap backlog，不触发 HAL、device node、vendor SDK、
 Safety Runtime 或 Driver/HAL 开发。
 `getHardwareInterfacesJson` 只读返回 hardware empty-interface registry，不触发硬件访问、HAL、device node、vendor SDK、shared memory、Safety Runtime、车辆总线或虚拟化开发。
+`getHardwareInterfaceActivationChecklistJson` 只读返回 hardware activation checklist，通过 `/hardware/interfaces/activation-checklist` 暴露 owner、Android ABI、Linux ABI、Driver/HAL gap review、Safety/Policy、target smoke evidence、rollback/fault semantics 和 no-hardware-access 门禁；该路径固定 `activation_allowed=false`，不触发硬件访问、HAL、device node、vendor SDK、shared memory、Safety Runtime、车辆总线、Driver/HAL 或虚拟化开发。
 
 ## 目标 Android 集成形态
 
@@ -126,11 +127,12 @@ Policy 仍由 Runtime & Governance 执行。Binder 身份是输入，不是绕�
 | AIDL contract 可生成 Java | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-006, NV-P-002 |
 | Console APK 可编译 Binder client/service | `bash tools/build_central_brain_console.sh` | DEL-001 |
 | service manifest 存在 Binder action | `tools/check_central_brain_android_system_service_docs.sh` | DEL-003, DEL-004 |
-| Console 可触发 Governance precheck、Driver/HAL gaps 和 Hardware IF | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-004, XSC-005, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| Console 可触发 Governance precheck、Driver/HAL gaps、Hardware IF 和 HW Gate | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-004, XSC-005, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | 权限/身份/Policy 边界已文档化 | `tools/check_central_brain_android_system_service_docs.sh` | FW-U-007, NV-G-005 |
 | 未新增 Driver/HAL/虚拟化开发 | driver support matrix + deviation table | KH-003, KH-006, HV-001..003 |
 | Driver/HAL gap backlog 可见 | `getDriverHalGapsJson` + `/native/driver-gaps` | KH-003, KH-006, DEL-005 |
 | Hardware empty-interface registry 可见 | `getHardwareInterfacesJson` + `/hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| Hardware activation checklist 可见 | `getHardwareInterfaceActivationChecklistJson` + `/hardware/interfaces/activation-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 
 ## 开放风险
 

@@ -15,7 +15,7 @@ Brain semantic gateway.
   contract, governance migration readiness, governance deployment plan,
   Protocol Binding readiness, Android/Linux delivery readiness, Python
   prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
-  hardware empty-interface registry, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, and activation evidence retention checklist contract,
+  hardware empty-interface registry, hardware interface activation checklist, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, and activation evidence retention checklist contract,
   Vehicle/Body Signal catalog, and Vehicle
   Signal read-bridge activation criteria contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
@@ -69,6 +69,7 @@ Brain semantic gateway.
 | `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
 | `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
 | `getHardwareInterfacesJson` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-005 |
+| `getHardwareInterfaceActivationChecklistJson` | `GET /hardware/interfaces/activation-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalActivationJson` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalValidationJson` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
@@ -174,6 +175,13 @@ Brain semantic gateway.
   only; it returns reserved methods and Android/Linux target paths but does not
   access hardware, call HAL, allocate shared memory, invoke vendor SDKs, or
   create virtualization work.
+- `getHardwareInterfaceActivationChecklistJson` exposes the hardware interface
+  activation checklist for Android integration review through the Android
+  Console `HW Gate` action only; it returns owner, ABI, Driver/HAL gap,
+  Safety/Policy, smoke evidence, rollback/fault gates, and keeps
+  `activation_allowed=false`, `hardware_accessed=false`,
+  `driver_development_triggered=false`, and
+  `virtualization_development_triggered=false`.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter

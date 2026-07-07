@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.46"
+API_VERSION = "0.1.47"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -2459,6 +2459,10 @@ def hardware_interfaces_payload() -> dict[str, Any]:
     return HARDWARE_INTERFACES.interfaces_payload()
 
 
+def hardware_interface_activation_checklist_payload() -> dict[str, Any]:
+    return HARDWARE_INTERFACES.activation_checklist_payload()
+
+
 def vehicle_signals_payload() -> dict[str, Any]:
     return VEHICLE_SIGNALS.catalog_payload()
 
@@ -2774,6 +2778,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(native_driver_gaps_payload()))
         elif path == "/hardware/interfaces":
             self.send_json(200, envelope(hardware_interfaces_payload()))
+        elif path == "/hardware/interfaces/activation-checklist":
+            self.send_json(200, envelope(hardware_interface_activation_checklist_payload()))
         elif path == "/vehicle/signals":
             self.send_json(200, envelope(vehicle_signals_payload()))
         elif path == "/vehicle/signals/activation":

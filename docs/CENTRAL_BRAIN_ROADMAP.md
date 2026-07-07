@@ -14,8 +14,8 @@
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 + Vehicle Signal catalog/activation/validation contract |
-| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog + hardware empty-interface registry contract |
-| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` + `/hardware/interfaces` |
+| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog + hardware empty-interface registry contract + hardware activation checklist |
+| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` + `/hardware/interfaces` + `/hardware/interfaces/activation-checklist` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 HW-002/KH-003/KH-006/KH-007 hardware interface activation checklist contract：
+  - 新增 `GET /hardware/interfaces/activation-checklist`，用于在真实 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime 接入前固定 owner、Android ABI、Linux ABI、Driver/HAL gap review、Safety/Policy、smoke test harness、rollback/fault semantics 和 no-hardware-access 八类 `HW-ACT-001..008` 门禁。
+  - Android Binder/AIDL 新增 `getHardwareInterfaceActivationChecklistJson`，Android Console 新增 `HW Gate` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `hardware-interface-activation-checklist`、`hardware.interfaces.activation.checklist`、`GetHardwareInterfaceActivationChecklist` 可见路径。
+  - 本轮只完成硬件激活前门禁 contract，不访问真实硬件，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不新增 Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-004、XSC-006、HW-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 - 推进 FW-U-003/NV-P-006 Event subscription activation evidence retention and owner decision checklist contract：
   - 新增 `GET /uib/events/subscriptions/activation-evidence/retention-checklist`，用于在真实 evidence store 前固定 evidence URI rules、durable store owner、retention policy owner、review workflow owner、gate closure authority、delete/export semantics 与 `EV-AER-001..008` 门禁。
   - Android Binder/AIDL 新增 `getEventSubscriptionActivationEvidenceRetentionChecklistJson`，Android Console 新增 `Sub Retain` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-evidence-retention-checklist`、`uib.events.subscriptions.activation.evidence.retention.checklist`、`GetEventSubscriptionActivationEvidenceRetentionChecklist` 可见路径。

@@ -811,6 +811,42 @@ assert payload["summary"]["driver_development_triggered"] is False, response
 assert payload["summary"]["virtualization_development_triggered"] is False, response
 assert "hardware.interfaces.get" in encoded and "GetHardwareInterfaces" in encoded, response
 PY
+HARDWARE_ACTIVATION_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-activation-checklist)"
+python3 - "$HARDWARE_ACTIVATION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["activation_checklist_state"] == "contract-only-no-hardware-activation", response
+assert payload["activation_allowed"] is False, response
+assert {"HW-ACT-001", "HW-ACT-002", "HW-ACT-003", "HW-ACT-004", "HW-ACT-005", "HW-ACT-006", "HW-ACT-007", "HW-ACT-008"} <= gate_ids, response
+assert payload["owner_decision_shape"]["owner_decision_complete"] is False, response
+assert payload["test_evidence_shape"]["target_hardware_smoke_attached"] is False, response
+for key in [
+    "owner_decision_complete",
+    "android_abi_confirmed",
+    "linux_abi_confirmed",
+    "driver_gap_review_complete",
+    "safety_policy_binding_confirmed",
+    "target_hardware_smoke_attached",
+    "activation_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["hardware_activation_checklist_active"] is True, response
+assert "getHardwareInterfaceActivationChecklistJson" in encoded, response
+assert "hardware-interface-activation-checklist" in encoded, response
+assert "hardware.interfaces.activation.checklist" in encoded, response
+assert "GetHardwareInterfaceActivationChecklist" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json
@@ -1095,6 +1131,7 @@ assert "uib.events.subscriptions.callback.watch.shape" in encoded, response
 assert "uib.events.subscriptions.readiness.rollup" in encoded, response
 assert "governance.precheck" in encoded, response
 assert "governance.backend.contract.get" in encoded, response
+assert "hardware.interfaces.activation.checklist" in encoded, response
 assert "vehicle.signals.list" in encoded, response
 assert "vehicle.signals.activation.get" in encoded, response
 assert "vehicle.signals.validation.get" in encoded, response

@@ -147,11 +147,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "External PCIe NPU, vehicle bus, sensors, Ethernet, shared-memory safety runtime interfaces",
         "diagram_group": "hardware-boundary",
         "yellow_sun_portable": True,
-        "current_state": "empty-interface-registry",
-        "ready_for": ["interface ownership review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
+        "current_state": "empty-interface-registry-with-activation-checklist-contract",
+        "ready_for": ["interface ownership review", "hardware activation checklist review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
         "not_ready_for": ["real PCIe NPU runtime", "DMA/IOMMU access", "Safety Runtime shared-memory bridge"],
-        "android_primary_surface": "getHardwareInterfacesJson",
-        "linux_sync_surface": "hardware-interfaces over CLI/IPC/gRPC",
+        "android_primary_surface": "getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson",
+        "linux_sync_surface": "hardware-interfaces and hardware-interface-activation-checklist over CLI/IPC/gRPC",
         "open_deviations": ["DEV-005", "DEV-016"],
         "open_issues": ["ISSUE-016"],
         "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005", "XSC-004", "XSC-006"],
@@ -217,8 +217,8 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "hardware interface activation checklist",
-                    "reason": "HW-002/KH gaps need explicit owner, ABI, and test-harness criteria before real hardware work starts.",
+                    "candidate": "hardware interface owner decision status rollup",
+                    "reason": "HW-002/KH activation gates now exist; the next safe step is a no-hardware rollup of remaining owner, ABI, safety, Driver/HAL gap, and smoke evidence decisions.",
                     "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005"],
                 },
                 {

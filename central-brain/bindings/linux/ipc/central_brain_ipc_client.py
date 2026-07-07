@@ -91,6 +91,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "delivery-readiness": ("delivery.readiness.get", {}),
     "prototype-readiness": ("prototype.readiness.get", {}),
     "hardware-interfaces": ("hardware.interfaces.get", {}),
+    "hardware-interface-activation-checklist": ("hardware.interfaces.activation.checklist", {}),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

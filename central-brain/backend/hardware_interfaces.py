@@ -187,6 +187,69 @@ EMPTY_INTERFACE_REGISTRY: list[dict[str, Any]] = [
     },
 ]
 
+HARDWARE_ACTIVATION_REQ_IDS = [
+    "XSC-004",
+    "XSC-006",
+    "HW-002",
+    "KH-003",
+    "KH-006",
+    "KH-007",
+    "DEL-001",
+    "DEL-002",
+    "DEL-005",
+]
+
+HARDWARE_ACTIVATION_GATES = [
+    {
+        "gate_id": "HW-ACT-001",
+        "name": "target-interface-owner-assigned",
+        "required_evidence": "Target Android/Linux owner, process boundary, and escalation path are assigned for each hardware interface.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ACT-002",
+        "name": "driver-gap-reviewed",
+        "required_evidence": "Linked DRV-GAP items have target platform evidence and minimal Driver/HAL development decision.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ACT-003",
+        "name": "android-abi-contract-approved",
+        "required_evidence": "Android HAL/AIDL/NDK/vendor SDK ABI, permission model, and Binder identity mapping are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ACT-004",
+        "name": "linux-abi-contract-approved",
+        "required_evidence": "Linux device node, ioctl/sysfs/vendor library, daemon, or IPC ABI and service identity are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ACT-005",
+        "name": "safety-and-policy-binding-approved",
+        "required_evidence": "Safety State, Policy, Runtime & Governance audit, fault fallback, and ASIL/QM assumptions are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ACT-006",
+        "name": "smoke-test-harness-defined",
+        "required_evidence": "No-hardware prototype smoke plus target hardware smoke commands and pass/fail evidence format are defined.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ACT-007",
+        "name": "rollback-and-fault-semantics-approved",
+        "required_evidence": "Timeout, reset, degrade, retry, rollback, and telemetry behavior are approved for target hardware.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ACT-008",
+        "name": "no-hardware-access-in-prototype",
+        "required_evidence": "Prototype exposes activation criteria only and reports no device, HAL, vendor SDK, shared memory, or virtualization access.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -202,6 +265,97 @@ class HardwareInterfaceRegistry:
             "virtualization_development_triggered": False,
             "service_dispatch_triggered": False,
             "req_ids": HARDWARE_REQ_IDS,
+        }
+
+    def activation_checklist_payload(self) -> dict[str, Any]:
+        interfaces = copy.deepcopy(EMPTY_INTERFACE_REGISTRY)
+        gate_ids = [gate["gate_id"] for gate in HARDWARE_ACTIVATION_GATES]
+        per_interface = []
+        for item in interfaces:
+            per_interface.append(
+                {
+                    "interface_id": item["interface_id"],
+                    "name": item["name"],
+                    "implementation_state": item["implementation_state"],
+                    "activation_state": "blocked-pending-target-platform-evidence",
+                    "activation_trigger": item["activation_trigger"],
+                    "driver_gap_ids": item["driver_gap_ids"],
+                    "required_owner_decisions": [
+                        "target_interface_owner",
+                        "android_abi_owner",
+                        "linux_abi_owner",
+                        "driver_hal_gap_owner",
+                        "safety_policy_owner",
+                        "test_harness_owner",
+                    ],
+                    "required_gate_ids": gate_ids,
+                    "android_primary_path": item["android_primary_path"],
+                    "linux_sync_path": item["linux_sync_path"],
+                    "activation_allowed": False,
+                    "hardware_accessed": False,
+                    "driver_development_triggered": False,
+                    "virtualization_development_triggered": False,
+                }
+            )
+
+        return {
+            "activation_checklist_state": "contract-only-no-hardware-activation",
+            "activation_allowed": False,
+            "interfaces": per_interface,
+            "mandatory_gates": copy.deepcopy(HARDWARE_ACTIVATION_GATES),
+            "owner_decision_shape": {
+                "required_fields": [
+                    "interface_id",
+                    "target_owner",
+                    "android_abi_owner",
+                    "linux_abi_owner",
+                    "driver_gap_owner",
+                    "safety_policy_owner",
+                    "test_harness_owner",
+                    "evidence_refs",
+                ],
+                "owner_decision_complete": False,
+            },
+            "test_evidence_shape": {
+                "prototype_smoke_required": [
+                    "GET /hardware/interfaces",
+                    "GET /hardware/interfaces/activation-checklist",
+                    "Android Binder getHardwareInterfaceActivationChecklistJson",
+                    "Linux CLI hardware-interface-activation-checklist",
+                    "Linux IPC hardware.interfaces.activation.checklist",
+                    "Linux gRPC/RPC GetHardwareInterfaceActivationChecklist",
+                ],
+                "target_hardware_smoke_required_before_activation": [
+                    "device-discovery-without-root-bypass",
+                    "permission-denied-negative-test",
+                    "fault-timeout-reset-test",
+                    "audit-trace-export-test",
+                    "android-linux-contract-parity-test",
+                ],
+                "target_hardware_smoke_attached": False,
+            },
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/activation-checklist",
+                "android_binder": "getHardwareInterfaceActivationChecklistJson",
+                "linux_cli": "hardware-interface-activation-checklist",
+                "linux_ipc": "hardware.interfaces.activation.checklist",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceActivationChecklist",
+            },
+            "summary": {
+                "hardware_activation_checklist_active": True,
+                "owner_decision_complete": False,
+                "android_abi_confirmed": False,
+                "linux_abi_confirmed": False,
+                "driver_gap_review_complete": False,
+                "safety_policy_binding_confirmed": False,
+                "target_hardware_smoke_attached": False,
+                "activation_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_ACTIVATION_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

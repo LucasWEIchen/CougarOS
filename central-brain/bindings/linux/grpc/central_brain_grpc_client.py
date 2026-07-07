@@ -207,6 +207,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "delivery-readiness": ("GetDeliveryReadiness", {}),
     "prototype-readiness": ("GetPrototypeReadiness", {}),
     "hardware-interfaces": ("GetHardwareInterfaces", {}),
+    "hardware-interface-activation-checklist": ("GetHardwareInterfaceActivationChecklist", {}),
     "vehicle-signals": ("GetVehicleSignals", {}),
     "vehicle-signal-activation": ("GetVehicleSignalActivation", {}),
     "vehicle-signal-validation": ("GetVehicleSignalValidation", {}),
