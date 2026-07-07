@@ -955,6 +955,49 @@ assert "hardware.interfaces.owner.decision.evidence" in encoded, response
 assert "SubmitHardwareInterfaceOwnerDecisionEvidence" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_STATUS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-status)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+status = payload["gateway"]["payload"]
+encoded = json.dumps(status)
+gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert status["owner_decision_evidence_status_state"] == "contract-only-no-evidence-store", response
+assert status["review_pipeline"]["evidence_store_active"] is False, response
+assert status["review_pipeline"]["review_workflow_active"] is False, response
+assert status["counters"]["persisted_submission_count"] == 0, response
+assert status["counters"]["pending_review_count"] == 0, response
+assert {"HW-OES-001", "HW-OES-002", "HW-OES-003", "HW-OES-004", "HW-OES-005", "HW-OES-006", "HW-OES-007", "HW-OES-008"} <= gate_ids, response
+for key in [
+    "owner_decision_evidence_accepted_for_review",
+    "owner_decision_evidence_persisted",
+    "evidence_store_active",
+    "review_workflow_active",
+    "review_queue_updated",
+    "owner_assigned",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert status["summary"][key] is False, response
+assert status["summary"]["owner_decision_evidence_status_contract_active"] is True, response
+assert status["summary"]["review_status_available"] is True, response
+assert status["summary"]["persisted_submission_count"] == 0, response
+assert status["summary"]["pending_review_count"] == 0, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceStatusJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-status" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.status" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceStatus" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

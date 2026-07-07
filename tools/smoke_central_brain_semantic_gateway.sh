@@ -172,6 +172,7 @@ checks = [
         },
         "HW-002",
     ),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/status", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -491,6 +492,41 @@ for method, path, body, req_id in checks:
         assert "hardware.interfaces.owner.decision.evidence" in encoded, "Linux IPC hardware owner evidence binding missing"
         assert "SubmitHardwareInterfaceOwnerDecisionEvidence" in encoded, "gRPC hardware owner evidence binding missing"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+        assert status["owner_decision_evidence_status_state"] == "contract-only-no-evidence-store", "hardware owner evidence status left no-store state"
+        assert status["review_pipeline"]["evidence_store_active"] is False, "hardware owner evidence status activated an evidence store"
+        assert status["review_pipeline"]["review_workflow_active"] is False, "hardware owner evidence status activated a review workflow"
+        assert status["counters"]["persisted_submission_count"] == 0, "hardware owner evidence status reported persisted submissions"
+        assert status["counters"]["pending_review_count"] == 0, "hardware owner evidence status reported pending reviews"
+        assert {"HW-OES-001", "HW-OES-002", "HW-OES-003", "HW-OES-004", "HW-OES-005", "HW-OES-006", "HW-OES-007", "HW-OES-008"} <= gate_ids, "hardware owner evidence status missing mandatory gates"
+        for key in [
+            "owner_decision_evidence_accepted_for_review",
+            "owner_decision_evidence_persisted",
+            "evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "owner_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"hardware owner evidence status summary unexpectedly set {key}"
+        assert status["summary"]["owner_decision_evidence_status_contract_active"] is True, "hardware owner evidence status contract not active"
+        assert status["summary"]["review_status_available"] is True, "hardware owner evidence status not available"
+        assert status["summary"]["persisted_submission_count"] == 0, "hardware owner evidence status summary reported persisted submissions"
+        assert status["summary"]["pending_review_count"] == 0, "hardware owner evidence status summary reported pending reviews"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceStatusJson" in encoded, "Android hardware owner evidence status binding missing"
+        assert "hardware-interface-owner-decision-evidence-status" in encoded, "Linux CLI hardware owner evidence status binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.status" in encoded, "Linux IPC hardware owner evidence status binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceStatus" in encoded, "gRPC hardware owner evidence status binding missing"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence status missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1199,6 +1235,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-activation-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

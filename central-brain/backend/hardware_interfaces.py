@@ -410,6 +410,59 @@ HARDWARE_OWNER_EVIDENCE_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_STATUS_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_STATUS_GATES = [
+    {
+        "gate_id": "HW-OES-001",
+        "name": "evidence-store-owner-assigned",
+        "required_evidence": "Target platform assigns durable hardware evidence store owner, retention policy, and access control.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OES-002",
+        "name": "review-workflow-owner-assigned",
+        "required_evidence": "Target platform assigns review queue owner, reviewer identity source, and escalation policy.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OES-003",
+        "name": "gate-closure-authority-assigned",
+        "required_evidence": "Target platform assigns authority for closing HW-ODS/HW-ACT/DRV-GAP gates and rollback semantics.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OES-004",
+        "name": "target-smoke-evidence-rules-approved",
+        "required_evidence": "Target hardware smoke URI rules, hash/version rules, and pass/fail evidence format are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OES-005",
+        "name": "no-persisted-submissions-claim",
+        "required_evidence": "Prototype reports zero persisted owner evidence submissions and no evidence-store read path.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-OES-006",
+        "name": "no-review-queue-or-gate-closure-claim",
+        "required_evidence": "Prototype reports no review queue updates, no owner assignment, no gate closure, and no hardware activation permission.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-OES-007",
+        "name": "no-hardware-access-in-status-view",
+        "required_evidence": "Status rollup does not open devices, call HAL/vendor SDK, allocate shared memory, or access Safety Runtime.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-OES-008",
+        "name": "android-linux-status-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent owner evidence status behavior.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -693,6 +746,97 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_REQ_IDS,
+        }
+
+    def owner_decision_evidence_status_payload(self) -> dict[str, Any]:
+        return {
+            "owner_decision_evidence_status_state": "contract-only-no-evidence-store",
+            "status_scope": {
+                "source_endpoint": "POST /hardware/interfaces/owner-decision-evidence",
+                "lookup_mode": "prototype-static-status",
+                "prototype_storage": "not implemented; evidence submissions are validated and discarded after response",
+                "target_gate_scope": ["HW-ODS", "HW-ACT", "HW-ODE", "DRV-GAP"],
+            },
+            "owners": {
+                "evidence_store_owner": "TBD-target-platform",
+                "review_workflow_owner": "TBD-target-platform",
+                "gate_closure_authority": "TBD-target-platform",
+                "target_smoke_evidence_owner": "TBD-target-platform",
+                "rollback_fault_semantics_owner": "TBD-target-platform",
+            },
+            "review_pipeline": {
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "reason": "hardware owner evidence intake is contract-only; this status endpoint exposes that no durable store, owner assignment, or review workflow exists yet",
+            },
+            "counters": {
+                "persisted_submission_count": 0,
+                "pending_review_count": 0,
+                "accepted_for_review_count": 0,
+                "reviewed_submission_count": 0,
+                "assigned_owner_count": 0,
+                "closed_gate_count": 0,
+            },
+            "remaining_decisions": [
+                {
+                    "decision_id": "durable_evidence_store_owner",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["storage location", "service identity", "retention policy", "audit export backend"],
+                },
+                {
+                    "decision_id": "review_workflow_owner",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["review queue backend", "reviewer identity source", "escalation SLA", "rejection semantics"],
+                },
+                {
+                    "decision_id": "gate_closure_authority",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["gate owner", "approval signature", "rollback rule", "Runtime & Governance binding"],
+                },
+                {
+                    "decision_id": "target_smoke_evidence_rules",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["allowed URI schemes", "hash/version rule", "pass/fail evidence format", "hardware lab owner"],
+                },
+            ],
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_STATUS_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/status",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceStatusJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-status",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.status",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceStatus",
+            },
+            "summary": {
+                "owner_decision_evidence_status_contract_active": True,
+                "review_status_available": True,
+                "owner_decision_evidence_contract_active": True,
+                "owner_decision_evidence_accepted_for_review": False,
+                "owner_decision_evidence_persisted": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "persisted_submission_count": 0,
+                "pending_review_count": 0,
+                "accepted_for_review_count": 0,
+                "reviewed_submission_count": 0,
+                "assigned_owner_count": 0,
+                "closed_gate_count": 0,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_STATUS_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

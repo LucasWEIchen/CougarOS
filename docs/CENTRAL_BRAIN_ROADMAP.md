@@ -14,8 +14,8 @@
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 + Vehicle Signal catalog/activation/validation contract |
-| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog + hardware empty-interface registry contract + hardware activation checklist + owner decision status + owner evidence intake |
-| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` + `/hardware/interfaces` + `/hardware/interfaces/activation-checklist` + `/hardware/interfaces/owner-decision-status` + `/hardware/interfaces/owner-decision-evidence` |
+| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog + hardware empty-interface registry contract + hardware activation checklist + owner decision status + owner evidence intake/status |
+| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` + `/hardware/interfaces` + `/hardware/interfaces/activation-checklist` + `/hardware/interfaces/owner-decision-status` + `/hardware/interfaces/owner-decision-evidence` + `/hardware/interfaces/owner-decision-evidence/status` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 HW-002/KH-003/KH-006/KH-007 hardware interface owner decision evidence status contract：
+  - 新增 `GET /hardware/interfaces/owner-decision-evidence/status`，用于查询硬件 owner evidence intake 之后的 no-store/no-review status，返回 `HW-OES-001..008` 门禁、evidence store/review workflow/gate closure authority 待定项、`persisted_submission_count=0`、`pending_review_count=0`、`evidence_store_active=false` 和 `review_workflow_active=false`。
+  - Android Binder/AIDL 新增 `getHardwareInterfaceOwnerDecisionEvidenceStatusJson`，Android Console 新增 `HW EvStatus` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `hardware-interface-owner-decision-evidence-status`、`hardware.interfaces.owner.decision.evidence.status`、`GetHardwareInterfaceOwnerDecisionEvidenceStatus` 可见路径。
+  - 本轮只完成 owner evidence no-store status rollup，不读取 evidence store，不创建 review queue，不分配 owner，不关闭 gate，不允许 activation，不访问真实硬件，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不新增 Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-004、XSC-006、HW-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 - 推进 HW-002/KH-003/KH-006/KH-007 hardware interface owner decision evidence intake contract：
   - 新增 `POST /hardware/interfaces/owner-decision-evidence`，用于提交硬件空接口 owner/ABI/Driver-HAL/Safety/smoke/rollback gate 的 evidence reference envelope，返回 `HW-ODE-001..008` 门禁和 `validated_contract_only`/`rejected_missing_evidence`/`rejected_by_policy` intake 状态。
   - Android Binder/AIDL 新增 `submitHardwareInterfaceOwnerDecisionEvidenceJson`，Android Console 新增 `HW Evidence` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `hardware-interface-owner-decision-evidence`、`hardware.interfaces.owner.decision.evidence`、`SubmitHardwareInterfaceOwnerDecisionEvidence` 可见路径。

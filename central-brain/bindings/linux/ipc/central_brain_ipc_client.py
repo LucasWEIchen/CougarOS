@@ -115,6 +115,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "safety_state": "normal",
         },
     ),
+    "hardware-interface-owner-decision-evidence-status": ("hardware.interfaces.owner.decision.evidence.status", {}),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

@@ -115,6 +115,8 @@ interface ICentralBrainGateway {
 
     String submitHardwareInterfaceOwnerDecisionEvidenceJson(String traceId, String requestJson);
 
+    String getHardwareInterfaceOwnerDecisionEvidenceStatusJson(String traceId);
+
     String getVehicleSignalsJson(String traceId);
 
     String getVehicleSignalActivationJson(String traceId);
