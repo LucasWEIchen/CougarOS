@@ -13,7 +13,7 @@
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke + service contract visibility 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
-| A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
+| A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 + Vehicle Signal catalog/activation/validation contract |
 | A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog + hardware empty-interface registry contract |
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` + `/hardware/interfaces` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 Vehicle Signal read-bridge validation envelope contract：
+  - `GET /vehicle/signals/validation` 新增 schema source metadata、Vehicle Signal Adapter owner、platform ABI owner、Android/Linux parity evidence、DRV-GAP-002 evidence 和 no-write-before-read-bridge 六类校验门禁 `VS-VAL-001..006`。
+  - Android Binder/AIDL 新增 `getVehicleSignalValidationJson`，Android Console 新增 `Signal Check` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `vehicle-signal-validation`/`vehicle.signals.validation.get`/`GetVehicleSignalValidation` 可见路径。
+  - 本轮只完成读桥激活前的 no-hardware validation envelope，不解析 DBC/ARXML，不连接 VHAL、SocketCAN、SOME/IP、vendor gateway 或真实车辆总线，不访问硬件，不开发 Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、XSC-004、XSC-006、NV-F-003、NV-F-004、NV-F-005、NV-P-001、NV-P-002、NV-P-003、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 - 推进 Vehicle Signal read-bridge activation criteria contract：
   - `GET /vehicle/signals/activation` 新增 DBC/ARXML、Android VHAL/vendor AIDL、Linux SocketCAN、vendor gateway/SOME-IP 四类读桥激活准入条件，以及 `VS-ACT-001..005` 必过门禁。
   - Android Binder/AIDL 新增 `getVehicleSignalActivationJson`，Android Console 新增 `Signal Gate` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `vehicle-signal-activation`/`vehicle.signals.activation.get`/`GetVehicleSignalActivation` 可见路径。

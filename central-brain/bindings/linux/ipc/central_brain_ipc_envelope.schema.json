@@ -41,7 +41,8 @@
         "prototype.readiness.get",
         "hardware.interfaces.get",
         "vehicle.signals.list",
-        "vehicle.signals.activation.get"
+        "vehicle.signals.activation.get",
+        "vehicle.signals.validation.get"
       ]
     },
     "caller": {

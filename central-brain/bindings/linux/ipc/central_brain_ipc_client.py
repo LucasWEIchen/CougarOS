@@ -33,6 +33,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "hardware-interfaces": ("hardware.interfaces.get", {}),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
+    "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),
     "ai-sdk": ("ai.sdk.capabilities", {}),
     "skills": ("skills.list", {}),
     "agent-plan": (

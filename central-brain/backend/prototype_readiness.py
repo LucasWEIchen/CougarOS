@@ -133,11 +133,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "AIOS Kernel native adapters and Driver/HAL boundary",
         "diagram_group": "native-layer",
         "yellow_sun_portable": True,
-        "current_state": "read-only-signal-catalog-and-gap-backlog",
-        "ready_for": ["Vehicle Signal catalog review", "Vehicle Signal activation criteria review", "Driver/HAL ownership review", "Android/Linux adapter planning", "gap triage"],
+        "current_state": "read-only-signal-catalog-validation-and-gap-backlog",
+        "ready_for": ["Vehicle Signal catalog review", "Vehicle Signal activation criteria review", "read-bridge validation evidence review", "Driver/HAL ownership review", "Android/Linux adapter planning", "gap triage"],
         "not_ready_for": ["vendor HAL calls", "VHAL/DBC integration", "kernel or driver implementation"],
-        "android_primary_surface": "getNativeAdaptersDetailJson, getDriverHalGapsJson, getVehicleSignalsJson, getVehicleSignalActivationJson",
-        "linux_sync_surface": "native-adapters-detail, driver-gaps, vehicle-signals, and vehicle-signal-activation over CLI/IPC/gRPC where exposed",
+        "android_primary_surface": "getNativeAdaptersDetailJson, getDriverHalGapsJson, getVehicleSignalsJson, getVehicleSignalActivationJson, getVehicleSignalValidationJson",
+        "linux_sync_surface": "native-adapters-detail, driver-gaps, vehicle-signals, vehicle-signal-activation, and vehicle-signal-validation over CLI/IPC/gRPC where exposed",
         "open_deviations": ["DEV-004", "DEV-014"],
         "open_issues": [],
         "req_ids": ["XSC-004", "NV-F-003", "NV-F-004", "NV-F-005", "NV-F-011", "NV-P-001", "KH-003", "KH-006", "KH-007", "DEL-005"],
@@ -216,11 +216,6 @@ class PrototypeReadinessRegistry:
                 }
             ),
             "next_increment_candidates": [
-                {
-                    "candidate": "vehicle signal read bridge validation envelope",
-                    "reason": "The activation criteria now exist; next step is a no-hardware validation envelope for schema source metadata, adapter owner, and parity checks before any bridge is activated.",
-                    "req_ids": ["XSC-004", "NV-F-003", "NV-F-004", "NV-F-005", "DEL-001", "DEL-002"],
-                },
                 {
                     "candidate": "event subscription placeholder contract",
                     "reason": "FW-U-003/NV-P-006 have publish and recent-log paths but no subscription broker contract.",

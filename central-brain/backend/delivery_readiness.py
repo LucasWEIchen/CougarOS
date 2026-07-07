@@ -230,6 +230,35 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "req_ids": ["DEL-001", "DEL-002", "DEL-005", "XSC-002", "XSC-004", "XSC-006", "NV-F-003", "NV-F-004", "NV-F-005", "NV-P-001", "NV-P-002", "NV-P-003", "KH-003", "KH-006", "KH-007"],
     },
     {
+        "target": "vehicle-signal-validation-envelope",
+        "platform": "Android/Linux",
+        "current_state": "metadata-only-not-activated",
+        "ready_for": [
+            "Vehicle Signal schema-source metadata intake checklist review",
+            "adapter owner and ABI owner assignment review",
+            "Android/Linux parity and DRV-GAP-002 evidence planning before any real read bridge work",
+        ],
+        "artifacts": [
+            "central-brain/backend/vehicle_signals.py",
+            "GET /vehicle/signals/validation",
+            "Android Binder getVehicleSignalValidationJson",
+            "Linux CLI vehicle-signal-validation",
+            "Linux IPC vehicle.signals.validation.get",
+            "Linux gRPC/RPC GetVehicleSignalValidation",
+        ],
+        "validation": [
+            "bash tools/smoke_central_brain_semantic_gateway.sh",
+            "bash tools/smoke_central_brain_linux_ipc.sh",
+            "bash tools/smoke_central_brain_linux_grpc.sh",
+        ],
+        "blocked_by": [
+            "target DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, SOME/IP, or vendor gateway source metadata",
+            "Vehicle Signal Adapter owner and platform ABI/API owner assignment",
+            "DRV-GAP-002 owner, ABI, minimal implementation scope, and validation smoke evidence",
+        ],
+        "req_ids": ["DEL-001", "DEL-002", "DEL-005", "XSC-002", "XSC-004", "XSC-006", "NV-F-003", "NV-F-004", "NV-F-005", "NV-P-001", "NV-P-002", "NV-P-003", "KH-003", "KH-006", "KH-007"],
+    },
+    {
         "target": "virtualization-safety-constraints",
         "platform": "Android/Linux",
         "current_state": "documented-non-development-scope",

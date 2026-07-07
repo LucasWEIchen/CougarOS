@@ -57,6 +57,7 @@ Brain semantic gateway.
 | `getHardwareInterfacesJson` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalActivationJson` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
+| `getVehicleSignalValidationJson` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
 
 ## Artifacts
 
@@ -147,6 +148,12 @@ Brain semantic gateway.
   Linux SocketCAN, vendor gateway/SOME-IP inputs and `VS-ACT-001..005` gates,
   but does not activate a bridge, touch a real vehicle bus, or create
   Driver/HAL or virtualization work.
+- `getVehicleSignalValidationJson` exposes the Vehicle Signal read-bridge
+  validation envelope for Android integration review through the Android
+  Console `Signal Check` action only; it returns schema-source metadata,
+  adapter owner, ABI owner, Android/Linux parity, and DRV-GAP-002 evidence
+  gates, but does not parse DBC/ARXML, activate a bridge, touch a real vehicle
+  bus, or create Driver/HAL or virtualization work.
 
 ## System Service Integration Notes
 

@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.32"
+API_VERSION = "0.1.34"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -522,6 +522,10 @@ def vehicle_signal_activation_payload() -> dict[str, Any]:
     return VEHICLE_SIGNALS.activation_payload()
 
 
+def vehicle_signal_validation_payload() -> dict[str, Any]:
+    return VEHICLE_SIGNALS.validation_payload()
+
+
 def vehicle_state_payload() -> dict[str, Any]:
     now = time.time()
     return {
@@ -829,6 +833,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(vehicle_signals_payload()))
         elif path == "/vehicle/signals/activation":
             self.send_json(200, envelope(vehicle_signal_activation_payload()))
+        elif path == "/vehicle/signals/validation":
+            self.send_json(200, envelope(vehicle_signal_validation_payload()))
         elif path in ("/events/topics", "/uib/events/topics"):
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/uib/events/recent":

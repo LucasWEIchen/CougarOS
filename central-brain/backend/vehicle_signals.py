@@ -39,6 +39,8 @@ VEHICLE_SIGNAL_ACTIVATION_REQ_IDS = sorted(
     set(VEHICLE_SIGNAL_REQ_IDS + ["NV-F-003", "NV-P-001", "KH-007"])
 )
 
+VEHICLE_SIGNAL_VALIDATION_REQ_IDS = VEHICLE_SIGNAL_ACTIVATION_REQ_IDS
+
 
 SIGNAL_CATALOG: list[dict[str, Any]] = [
     {
@@ -329,4 +331,129 @@ class VehicleSignalRegistry:
             ],
             "driver_gap_ids": ["DRV-GAP-002"],
             "req_ids": VEHICLE_SIGNAL_ACTIVATION_REQ_IDS,
+        }
+
+    def validation_payload(self) -> dict[str, Any]:
+        return {
+            "validation_state": "metadata-only-not-activated",
+            "read_bridge_activated": False,
+            "schema_source_attached": False,
+            "adapter_owner_confirmed": False,
+            "parity_evidence_attached": False,
+            "drv_gap_002_evidence_attached": False,
+            "validation_envelope": {
+                "schema_source_metadata": {
+                    "accepted_source_types": [
+                        "DBC",
+                        "ARXML",
+                        "Android VHAL",
+                        "vendor AIDL",
+                        "Linux SocketCAN mapping",
+                        "SOME/IP or vendor gateway contract",
+                    ],
+                    "required_fields": [
+                        "source_owner",
+                        "source_version",
+                        "signal_to_vss_mapping_version",
+                        "unit_range_scaling_policy",
+                        "freshness_timeout_policy",
+                        "quality_and_degraded_state_policy",
+                    ],
+                    "current_state": "missing-target-source-metadata",
+                },
+                "adapter_ownership": {
+                    "required_owner": "Vehicle Signal Adapter owner for Android and Linux targets",
+                    "required_abi_owner": "platform ABI/API owner for VHAL/AIDL, SocketCAN, or vendor gateway bridge",
+                    "current_state": "unassigned-in-prototype",
+                },
+                "android_linux_parity": {
+                    "required_evidence": [
+                        "Android Binder method present",
+                        "Linux CLI command present",
+                        "Linux IPC operation present",
+                        "Linux gRPC/RPC name present",
+                        "same Req IDs and no-hardware summary fields across transports",
+                    ],
+                    "current_state": "contract-surface-present-evidence-pending-target-review",
+                },
+                "driver_gap_002": {
+                    "gap_id": "DRV-GAP-002",
+                    "required_evidence": [
+                        "owner",
+                        "ABI or vendor API contract",
+                        "minimal read-only development scope",
+                        "validation smoke command",
+                        "replacement trigger for target Android/Linux platform",
+                    ],
+                    "current_state": "gap-linked-no-driver-work-started",
+                },
+                "write_path_guard": {
+                    "required_evidence": "read bridge validation cannot enable control writes; write/control remains policy-checked /uib/actions/request only",
+                    "current_state": "guard-active-in-contract",
+                },
+            },
+            "mandatory_gates": [
+                {
+                    "gate_id": "VS-VAL-001",
+                    "name": "schema-source-metadata-present",
+                    "evidence_required": "target DBC/ARXML, VHAL/AIDL, SocketCAN, SOME/IP, or vendor gateway source metadata is attached with owner and version",
+                    "passed": False,
+                },
+                {
+                    "gate_id": "VS-VAL-002",
+                    "name": "signal-to-vss-policy-reviewed",
+                    "evidence_required": "signal mapping, units, ranges, freshness, quality, and degraded behavior are reviewed for Android and Linux",
+                    "passed": False,
+                },
+                {
+                    "gate_id": "VS-VAL-003",
+                    "name": "adapter-and-abi-owner-confirmed",
+                    "evidence_required": "Vehicle Signal Adapter owner and platform ABI/API owner are named before read bridge development starts",
+                    "passed": False,
+                },
+                {
+                    "gate_id": "VS-VAL-004",
+                    "name": "android-linux-binding-parity-proven",
+                    "evidence_required": "Binder, CLI, IPC, and gRPC/RPC expose the same validation contract and Req IDs",
+                    "passed": False,
+                },
+                {
+                    "gate_id": "VS-VAL-005",
+                    "name": "drv-gap-002-evidence-recorded",
+                    "evidence_required": "DRV-GAP-002 has owner, ABI, minimal implementation scope, and validation smoke before Driver/HAL work starts",
+                    "passed": False,
+                },
+                {
+                    "gate_id": "VS-VAL-006",
+                    "name": "no-write-before-read-bridge",
+                    "evidence_required": "control writes remain disabled outside /uib/actions/request policy checks",
+                    "passed": True,
+                },
+            ],
+            "summary": {
+                "validation_state": "metadata-only-not-activated",
+                "read_bridge_activated": False,
+                "schema_source_attached": False,
+                "adapter_owner_confirmed": False,
+                "parity_evidence_attached": False,
+                "drv_gap_002_evidence_attached": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "api_surface": {
+                "rest": "GET /vehicle/signals/validation",
+                "android_binder": "getVehicleSignalValidationJson",
+                "linux_cli": "vehicle-signal-validation",
+                "linux_ipc": "vehicle.signals.validation.get",
+                "linux_grpc_rpc": "CentralBrainGateway.GetVehicleSignalValidation",
+            },
+            "non_goals": [
+                "No DBC/ARXML parsing, VHAL/AIDL connection, SocketCAN bridge, SOME/IP bridge, vendor gateway, or Driver/HAL implementation.",
+                "No hardware access, no service dispatch, no virtualization development, and no control-write activation.",
+                "This endpoint records readiness evidence requirements only; it cannot activate a real read bridge.",
+            ],
+            "driver_gap_ids": ["DRV-GAP-002"],
+            "req_ids": VEHICLE_SIGNAL_VALIDATION_REQ_IDS,
         }

@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private Button memoryButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
+    private Button vehicleSignalValidationButton;
     private Button governanceButton;
     private Button driverGapsButton;
     private Button hardwareInterfacesButton;
@@ -127,16 +128,25 @@ public class MainActivity extends Activity {
                 queryMemory();
             }
         });
-        vehicleSignalsButton = addButton(memoryRow, "Vehicle Signals", new View.OnClickListener() {
+
+        LinearLayout signalRow = buttonRow();
+        buttonArea.addView(signalRow);
+        vehicleSignalsButton = addButton(signalRow, "Vehicle Signals", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getVehicleSignals();
             }
         });
-        vehicleSignalActivationButton = addButton(memoryRow, "Signal Gate", new View.OnClickListener() {
+        vehicleSignalActivationButton = addButton(signalRow, "Signal Gate", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getVehicleSignalActivation();
+            }
+        });
+        vehicleSignalValidationButton = addButton(signalRow, "Signal Check", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getVehicleSignalValidation();
             }
         });
 
@@ -306,6 +316,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getVehicleSignalValidation() {
+        setBusy(true, "Status: loading vehicle signal validation envelope via Binder");
+        gatewayRequest("Vehicle Signal Validation (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getVehicleSignalValidationJson(newTraceId("vehicle-signal-validation"));
+            }
+        });
+    }
+
     private void bindGateway() {
         setBusy(true, "Status: binding Android gateway service");
         gatewayClient = new CentralBrainGatewayClient(this, new CentralBrainGatewayClient.Callback() {
@@ -314,7 +334,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Vehicle Signals, Signal Gate, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -368,6 +388,7 @@ public class MainActivity extends Activity {
         memoryButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
+        vehicleSignalValidationButton.setEnabled(enabled);
         governanceButton.setEnabled(enabled);
         driverGapsButton.setEnabled(enabled);
         hardwareInterfacesButton.setEnabled(enabled);

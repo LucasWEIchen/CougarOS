@@ -85,6 +85,7 @@ checks = [
     ("GET", "/hardware/interfaces", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
+    ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
     ("GET", "/ai/sdk/capabilities", None, "XSC-001"),
     (
         "POST",
@@ -244,6 +245,7 @@ for method, path, body, req_id in checks:
         assert "driver-hal-gap-backlog" in target_names, "delivery readiness missing Driver/HAL gap target"
         assert "hardware-empty-interface-registry" in target_names, "delivery readiness missing hardware empty-interface target"
         assert "vehicle-signal-activation-criteria" in target_names, "delivery readiness missing vehicle signal activation target"
+        assert "vehicle-signal-validation-envelope" in target_names, "delivery readiness missing vehicle signal validation target"
         assert payload["payload"]["summary"]["production_ready"] is False, "delivery readiness overstated production maturity"
         assert payload["payload"]["summary"]["android_debug_ready"] is True, "delivery readiness missing Android debug status"
         assert payload["payload"]["summary"]["linux_samples_ready"] is True, "delivery readiness missing Linux sample status"
@@ -271,6 +273,8 @@ for method, path, body, req_id in checks:
         assert "GetPrototypeReadiness" in encoded, "gRPC prototype readiness binding visibility missing"
         assert "getVehicleSignalActivationJson" in encoded, "Android vehicle signal activation readiness missing"
         assert "vehicle-signal-activation" in encoded, "Linux vehicle signal activation readiness missing"
+        assert "getVehicleSignalValidationJson" in encoded, "Android vehicle signal validation readiness missing"
+        assert "vehicle-signal-validation" in encoded, "Linux vehicle signal validation readiness missing"
         assert "DEV-003" in encoded and "ISSUE-014" in encoded, "prototype readiness missing tracked deviation/issue visibility"
     if path == "/native/adapters/detail":
         adapter_names = {adapter["name"] for adapter in payload["payload"]["adapters"]}
@@ -346,6 +350,31 @@ for method, path, body, req_id in checks:
         assert "vehicle.signals.activation.get" in encoded, "Linux IPC vehicle signal activation binding visibility missing"
         assert "GetVehicleSignalActivation" in encoded, "gRPC vehicle signal activation binding visibility missing"
         assert "DRV-GAP-002" in encoded, "vehicle signal activation missing vehicle bus driver gap link"
+    if path == "/vehicle/signals/validation":
+        validation = payload["payload"]
+        encoded = json.dumps(validation)
+        assert validation["validation_state"] == "metadata-only-not-activated", "vehicle signal validation left metadata-only state"
+        assert validation["read_bridge_activated"] is False, "vehicle signal validation enabled a read bridge"
+        gate_ids = {item["gate_id"] for item in validation["mandatory_gates"]}
+        assert {"VS-VAL-001", "VS-VAL-002", "VS-VAL-003", "VS-VAL-004", "VS-VAL-005", "VS-VAL-006"} <= gate_ids, "vehicle signal validation missing mandatory gates"
+        required_sections = {"schema_source_metadata", "adapter_ownership", "android_linux_parity", "driver_gap_002", "write_path_guard"}
+        assert required_sections <= set(validation["validation_envelope"]), "vehicle signal validation missing evidence sections"
+        for key in [
+            "read_bridge_activated",
+            "schema_source_attached",
+            "adapter_owner_confirmed",
+            "parity_evidence_attached",
+            "drv_gap_002_evidence_attached",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert validation["summary"][key] is False, f"validation summary unexpectedly set {key}"
+        assert "getVehicleSignalValidationJson" in encoded, "Android vehicle signal validation binding visibility missing"
+        assert "vehicle.signals.validation.get" in encoded, "Linux IPC vehicle signal validation binding visibility missing"
+        assert "GetVehicleSignalValidation" in encoded, "gRPC vehicle signal validation binding visibility missing"
+        assert "DRV-GAP-002" in encoded, "vehicle signal validation missing vehicle bus driver gap link"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}

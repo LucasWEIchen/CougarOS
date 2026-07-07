@@ -162,6 +162,7 @@ assert "linux-grpc-rpc-sample" in targets, response
 assert "driver-hal-gap-backlog" in targets, response
 assert "hardware-empty-interface-registry" in targets, response
 assert "vehicle-signal-activation-criteria" in targets, response
+assert "vehicle-signal-validation-envelope" in targets, response
 assert payload["summary"]["production_ready"] is False, response
 assert payload["summary"]["android_debug_ready"] is True, response
 assert payload["summary"]["linux_samples_ready"] is True, response
@@ -192,6 +193,7 @@ assert payload["summary"]["virtualization_development_triggered"] is False, resp
 assert payload["summary"]["service_dispatch_triggered"] is False, response
 assert "prototype.readiness.get" in encoded and "GetPrototypeReadiness" in encoded, response
 assert "getVehicleSignalActivationJson" in encoded and "vehicle-signal-activation" in encoded, response
+assert "getVehicleSignalValidationJson" in encoded and "vehicle-signal-validation" in encoded, response
 assert "DEV-003" in encoded and "ISSUE-014" in encoded, response
 PY
 HARDWARE_INTERFACES_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interfaces)"
@@ -266,6 +268,37 @@ for key in [
 assert "getVehicleSignalActivationJson" in encoded, response
 assert "vehicle.signals.activation.get" in encoded, response
 assert "GetVehicleSignalActivation" in encoded, response
+assert "DRV-GAP-002" in encoded, response
+PY
+VEHICLE_SIGNAL_VALIDATION_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signal-validation)"
+python3 - "$VEHICLE_SIGNAL_VALIDATION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["validation_state"] == "metadata-only-not-activated", response
+assert payload["read_bridge_activated"] is False, response
+assert {"VS-VAL-001", "VS-VAL-002", "VS-VAL-003", "VS-VAL-004", "VS-VAL-005", "VS-VAL-006"} <= gate_ids, response
+assert {"schema_source_metadata", "adapter_ownership", "android_linux_parity", "driver_gap_002", "write_path_guard"} <= set(payload["validation_envelope"]), response
+for key in [
+    "read_bridge_activated",
+    "schema_source_attached",
+    "adapter_owner_confirmed",
+    "parity_evidence_attached",
+    "drv_gap_002_evidence_attached",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert "getVehicleSignalValidationJson" in encoded, response
+assert "vehicle.signals.validation.get" in encoded, response
+assert "GetVehicleSignalValidation" in encoded, response
 assert "DRV-GAP-002" in encoded, response
 PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-backend-contract)"
@@ -464,6 +497,7 @@ assert "governance.precheck" in encoded, response
 assert "governance.backend.contract.get" in encoded, response
 assert "vehicle.signals.list" in encoded, response
 assert "vehicle.signals.activation.get" in encoded, response
+assert "vehicle.signals.validation.get" in encoded, response
 assert "XSC-006" in encoded and "NV-P-002" in encoded and "DEL-002" in encoded, response
 PY
 

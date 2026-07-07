@@ -149,6 +149,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "hardware-interfaces": ("GetHardwareInterfaces", {}),
     "vehicle-signals": ("GetVehicleSignals", {}),
     "vehicle-signal-activation": ("GetVehicleSignalActivation", {}),
+    "vehicle-signal-validation": ("GetVehicleSignalValidation", {}),
 }
 
 

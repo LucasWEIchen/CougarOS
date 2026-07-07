@@ -86,4 +86,6 @@ interface ICentralBrainGateway {
     String getVehicleSignalsJson(String traceId);
 
     String getVehicleSignalActivationJson(String traceId);
+
+    String getVehicleSignalValidationJson(String traceId);
 }

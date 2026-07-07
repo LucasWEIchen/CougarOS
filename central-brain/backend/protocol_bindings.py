@@ -151,6 +151,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "/hardware/interfaces",
             "/vehicle/signals",
             "/vehicle/signals/activation",
+            "/vehicle/signals/validation",
             "/soa/contracts",
             "/bindings/readiness",
             "/delivery/readiness",
@@ -197,6 +198,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "getHardwareInterfacesJson -> /hardware/interfaces",
             "getVehicleSignalsJson -> /vehicle/signals",
             "getVehicleSignalActivationJson -> /vehicle/signals/activation",
+            "getVehicleSignalValidationJson -> /vehicle/signals/validation",
         ],
         "artifacts": [
             "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl",
@@ -242,6 +244,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "hardware.interfaces.get -> /hardware/interfaces",
             "vehicle.signals.list -> /vehicle/signals",
             "vehicle.signals.activation.get -> /vehicle/signals/activation",
+            "vehicle.signals.validation.get -> /vehicle/signals/validation",
         ],
         "artifacts": [
             "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
@@ -288,6 +291,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "CentralBrainGateway.GetHardwareInterfaces -> /hardware/interfaces",
             "CentralBrainGateway.GetVehicleSignals -> /vehicle/signals",
             "CentralBrainGateway.GetVehicleSignalActivation -> /vehicle/signals/activation",
+            "CentralBrainGateway.GetVehicleSignalValidation -> /vehicle/signals/validation",
         ],
         "artifacts": [
             "central-brain/bindings/linux/proto/central_brain_gateway.proto",
@@ -370,6 +374,7 @@ class ProtocolBindingRegistry:
                 "The Python prototype readiness contract is exposed at /prototype/readiness to consolidate product, architecture, binding, Driver/HAL, hardware, deviation, and issue status without dispatching services.",
                 "The vehicle signal catalog is exposed at /vehicle/signals as a VSS-style read-only Vehicle Signal Adapter contract; it does not load DBC/ARXML, open VHAL, connect SocketCAN, or dispatch Driver/HAL.",
                 "The vehicle signal read-bridge activation criteria are exposed at /vehicle/signals/activation for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateway review; it does not activate any real bridge or add Driver/HAL code.",
+                "The vehicle signal read-bridge validation envelope is exposed at /vehicle/signals/validation to collect schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence before any bridge can be activated; it does not parse schemas or access hardware.",
                 "Linux shared governance daemon also exposes runtime status and recent audit diagnostics over the same Unix socket; IPC/gRPC use that direct path before REST fallback and these operations do not dispatch services.",
                 "Linux gRPC/RPC sample mirrors the proto GatewayRequest/GatewayResponse fields over a dependency-free JSON TCP wrapper because grpcio is not available in this workspace.",
                 "Linux gRPC/RPC InvokeService uses the same shared governance daemon precheck with local fallback before forwarding allowed SOA calls.",
