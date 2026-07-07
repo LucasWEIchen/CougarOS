@@ -463,6 +463,59 @@ HARDWARE_OWNER_EVIDENCE_STATUS_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_RETENTION_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_RETENTION_GATES = [
+    {
+        "gate_id": "HW-OER-001",
+        "name": "durable-evidence-store-owner-assigned",
+        "required_evidence": "Target platform assigns durable hardware evidence store owner, process boundary, service identity, and audit backend.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OER-002",
+        "name": "evidence-uri-rules-approved",
+        "required_evidence": "Allowed URI/path schemes, immutability, hash/version, safety redaction, and hardware lab artifact rules are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OER-003",
+        "name": "retention-policy-owner-assigned",
+        "required_evidence": "Retention TTL, cleanup trigger, privacy classification, and hardware evidence retention owner are assigned.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OER-004",
+        "name": "review-workflow-owner-assigned",
+        "required_evidence": "Review queue owner, reviewer identity source, escalation policy, and rejection semantics are assigned.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OER-005",
+        "name": "gate-closure-authority-assigned",
+        "required_evidence": "Gate closure authority, approval signature, rollback behavior, and Runtime & Governance audit binding are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OER-006",
+        "name": "delete-export-semantics-approved",
+        "required_evidence": "Deletion, export, redaction, orphaned reference cleanup, and audit export rules are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OER-007",
+        "name": "rollback-fault-closure-evidence-defined",
+        "required_evidence": "Target platform defines rollback/fault closure evidence for NPU, vehicle bus, sensors, Ethernet, shared memory, and Safety Runtime interfaces.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OER-008",
+        "name": "android-linux-retention-closure-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent retention/closure checklist fields without activating storage or gates.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -837,6 +890,182 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_STATUS_REQ_IDS,
+        }
+
+    def owner_decision_evidence_retention_checklist_payload(self) -> dict[str, Any]:
+        return {
+            "retention_closure_checklist_state": "contract-only-retention-closure-checklist-open",
+            "storage_activation_allowed": False,
+            "gate_closure_allowed": False,
+            "owner_decision_complete": False,
+            "scope": {
+                "source_endpoints": [
+                    "POST /hardware/interfaces/owner-decision-evidence",
+                    "GET /hardware/interfaces/owner-decision-evidence/status",
+                ],
+                "target_endpoint": "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+                "purpose": "fix retention, URI, review-owner, gate-closure, approval signature, delete/export, and rollback/fault decisions before any durable hardware evidence store or gate closure workflow is considered",
+                "prototype_storage": "not implemented; this checklist does not persist, dereference, delete, export, review, or close hardware evidence",
+                "target_gate_scope": ["HW-ODS", "HW-ACT", "HW-ODE", "HW-OES", "DRV-GAP"],
+            },
+            "owner_decisions": [
+                {
+                    "decision_id": "HW-OER-001",
+                    "area": "durable-evidence-store-owner",
+                    "required_decision": "Assign the Android/Linux process and data owner for durable hardware owner evidence records.",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["target storage location", "service identity", "audit export backend", "backup/restore policy"],
+                },
+                {
+                    "decision_id": "HW-OER-002",
+                    "area": "evidence-uri-rules",
+                    "required_decision": "Approve allowed URI/path forms for hardware smoke logs, owner approvals, platform decisions, driver gap reviews, and safety reviews.",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["allowed schemes", "artifact immutability", "hardware lab artifact root", "secret and safety-fault redaction rule"],
+                },
+                {
+                    "decision_id": "HW-OER-003",
+                    "area": "retention-policy-owner",
+                    "required_decision": "Assign retention TTL, privacy classification, cleanup, and audit retention owner for hardware evidence.",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["retention duration", "privacy review", "cleanup trigger", "regulatory export need"],
+                },
+                {
+                    "decision_id": "HW-OER-004",
+                    "area": "review-workflow-owner",
+                    "required_decision": "Assign review queue owner, reviewer roles, escalation policy, and rejection semantics.",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["review queue backend", "reviewer identity source", "escalation SLA", "audit trail owner"],
+                },
+                {
+                    "decision_id": "HW-OER-005",
+                    "area": "gate-closure-authority",
+                    "required_decision": "Assign who can close HW-ODS/HW-ACT/HW-ODE/HW-OES/DRV-GAP gates and how closure is audited and rolled back.",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["gate owner", "approval signature", "rollback rule", "Runtime & Governance binding"],
+                },
+                {
+                    "decision_id": "HW-OER-006",
+                    "area": "delete-export-semantics",
+                    "required_decision": "Approve hardware evidence deletion, export, redaction, and orphaned reference behavior.",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["delete authorization", "export format", "redaction policy", "orphaned ref cleanup"],
+                },
+                {
+                    "decision_id": "HW-OER-007",
+                    "area": "rollback-fault-closure-evidence",
+                    "required_decision": "Define minimum rollback, fault, timeout, reset, and safety degradation evidence required before closing hardware gates.",
+                    "current_selection": "TBD-target-platform",
+                    "blocked_by": ["NPU fault semantics", "vehicle bus fallback", "Safety Runtime owner", "target hardware smoke harness"],
+                },
+            ],
+            "evidence_uri_rules": {
+                "allowed_ref_types": [
+                    "doc",
+                    "test_log",
+                    "owner_approval",
+                    "platform_decision",
+                    "driver_gap_review",
+                    "safety_review",
+                    "hardware_smoke_log",
+                ],
+                "required_fields": [
+                    "ref_id",
+                    "type",
+                    "uri_or_path",
+                    "owner",
+                    "summary",
+                    "created_at",
+                    "hash_or_version",
+                    "target_interface_ids",
+                    "target_gate_ids",
+                ],
+                "candidate_allowed_uri_schemes": ["repo-relative", "artifact-store", "audit-log", "platform-decision", "hardware-lab-result"],
+                "disallowed_until_policy_exists": [
+                    "raw cloud URL without privacy route",
+                    "mutable temp file",
+                    "secret-bearing path",
+                    "device node or hardware probe output captured outside Driver/HAL gap review",
+                    "unredacted safety fault dump",
+                ],
+                "uri_rules_confirmed": False,
+            },
+            "retention_policy_shape": {
+                "candidate_retention_classes": [
+                    "hardware-owner-evidence",
+                    "driver-gap-review-record",
+                    "target-hardware-smoke-record",
+                    "rollback-fault-record",
+                ],
+                "minimum_metadata": [
+                    "owner",
+                    "reviewer",
+                    "target_interface_ids",
+                    "target_gate_ids",
+                    "created_at",
+                    "retention_class",
+                    "redaction_state",
+                    "hardware_lab_trace_id",
+                ],
+                "delete_semantics": "TBD-target-platform; prototype does not delete anything because it stores nothing",
+                "export_semantics": "TBD-target-platform; prototype does not export anything because it stores nothing",
+                "retention_policy_confirmed": False,
+            },
+            "closure_policy_shape": {
+                "target_gate_families": ["HW-ODS", "HW-ACT", "HW-ODE", "HW-OES", "DRV-GAP"],
+                "minimum_closure_inputs": [
+                    "evidence_submission_id",
+                    "owner_signature",
+                    "reviewer_identity",
+                    "target_smoke_result",
+                    "rollback_plan",
+                    "fault_semantics",
+                    "Runtime & Governance audit reference",
+                ],
+                "approval_signature_required": True,
+                "rollback_fault_closure_confirmed": False,
+                "gate_closure_authority_confirmed": False,
+                "gate_closure_allowed": False,
+            },
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_RETENTION_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-retention-checklist",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.retention.checklist",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist",
+            },
+            "summary": {
+                "owner_decision_evidence_retention_checklist_active": True,
+                "owner_decision_complete": False,
+                "retention_policy_confirmed": False,
+                "evidence_uri_rules_confirmed": False,
+                "review_workflow_owner_confirmed": False,
+                "gate_closure_authority_confirmed": False,
+                "deletion_export_semantics_confirmed": False,
+                "rollback_fault_closure_confirmed": False,
+                "approval_signature_confirmed": False,
+                "owner_decision_evidence_status_contract_active": True,
+                "owner_decision_evidence_contract_active": True,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "delete_workflow_active": False,
+                "export_workflow_active": False,
+                "persisted_submission_count": 0,
+                "pending_review_count": 0,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "storage_activation_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_RETENTION_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

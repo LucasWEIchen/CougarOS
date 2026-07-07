@@ -232,6 +232,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         },
     ),
     "hardware-interface-owner-decision-evidence-status": ("GetHardwareInterfaceOwnerDecisionEvidenceStatus", {}),
+    "hardware-interface-owner-decision-evidence-retention-checklist": (
+        "GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist",
+        {},
+    ),
     "vehicle-signals": ("GetVehicleSignals", {}),
     "vehicle-signal-activation": ("GetVehicleSignalActivation", {}),
     "vehicle-signal-validation": ("GetVehicleSignalValidation", {}),

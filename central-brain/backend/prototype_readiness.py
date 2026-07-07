@@ -147,11 +147,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "External PCIe NPU, vehicle bus, sensors, Ethernet, shared-memory safety runtime interfaces",
         "diagram_group": "hardware-boundary",
         "yellow_sun_portable": True,
-        "current_state": "empty-interface-registry-with-activation-checklist-owner-decision-status-evidence-intake-and-status-contract",
-        "ready_for": ["interface ownership review", "hardware activation checklist review", "hardware owner decision status review", "hardware owner decision evidence intake contract review", "hardware owner decision evidence status review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
+        "current_state": "empty-interface-registry-with-activation-checklist-owner-decision-status-evidence-intake-status-and-retention-closure-checklist-contract",
+        "ready_for": ["interface ownership review", "hardware activation checklist review", "hardware owner decision status review", "hardware owner decision evidence intake contract review", "hardware owner decision evidence status review", "hardware owner decision evidence retention and closure checklist review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
         "not_ready_for": ["real PCIe NPU runtime", "DMA/IOMMU access", "Safety Runtime shared-memory bridge"],
-        "android_primary_surface": "getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson",
-        "linux_sync_surface": "hardware-interfaces, hardware-interface-activation-checklist, hardware-interface-owner-decision-status, hardware-interface-owner-decision-evidence, and hardware-interface-owner-decision-evidence-status over CLI/IPC/gRPC",
+        "android_primary_surface": "getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson",
+        "linux_sync_surface": "hardware-interfaces, hardware-interface-activation-checklist, hardware-interface-owner-decision-status, hardware-interface-owner-decision-evidence, hardware-interface-owner-decision-evidence-status, and hardware-interface-owner-decision-evidence-retention-checklist over CLI/IPC/gRPC",
         "open_deviations": ["DEV-005", "DEV-016"],
         "open_issues": ["ISSUE-016"],
         "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005", "XSC-004", "XSC-006"],
@@ -217,8 +217,8 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "hardware interface owner evidence retention and closure checklist",
-                    "reason": "HW-002/KH owner evidence intake and status are contract-only; the next safe step is a no-store checklist for durable store owner, URI rules, review owner, and gate closure authority without persistence, owner assignment, gate closure, or hardware activation.",
+                    "candidate": "hardware interface owner evidence replacement trigger checklist",
+                    "reason": "HW-002/KH owner evidence intake/status/retention checklist are contract-only; the next safe step is a no-hardware checklist for replacing empty interfaces with target Driver/HAL adapters only after evidence owner, ABI, smoke, and rollback triggers are approved.",
                     "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005"],
                 },
                 {

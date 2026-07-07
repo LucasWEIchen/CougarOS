@@ -57,6 +57,7 @@
         "hardware.interfaces.owner.decision.status",
         "hardware.interfaces.owner.decision.evidence",
         "hardware.interfaces.owner.decision.evidence.status",
+        "hardware.interfaces.owner.decision.evidence.retention.checklist",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"

@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.50",
+  "version": "0.1.51",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -14,13 +14,13 @@
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
     "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
-    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, and GET /hardware/interfaces/owner-decision-evidence/status expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, and no-store owner evidence review status for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
+    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, and GET /hardware/interfaces/owner-decision-evidence/retention-checklist expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, and retention/closure checklist decisions for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
     "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, POST /uib/events/subscriptions/activation-evidence, GET /uib/events/subscriptions/activation-evidence/status, and GET /uib/events/subscriptions/activation-evidence/retention-checklist expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake/status/retention checklist reference shape, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting evidence or subscriptions, reading an evidence store, updating review queues, creating retention/delete/export workflows, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -2221,6 +2221,171 @@
           "linux_cli": "hardware-interface-owner-decision-evidence-status",
           "linux_ipc": "hardware.interfaces.owner.decision.evidence.status",
           "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceStatus"
+        }
+      },
+      "req_ids": [
+        "XSC-004",
+        "XSC-006",
+        "HW-002",
+        "KH-003",
+        "KH-006",
+        "KH-007",
+        "DEL-001",
+        "DEL-002",
+        "DEL-005"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/hardware/interfaces/owner-decision-evidence/retention-checklist",
+      "description": "Reports the contract-only hardware owner evidence retention and closure checklist without creating an evidence store, reading evidence, creating delete/export workflows, assigning owners, closing gates, activating hardware, or touching Driver/HAL.",
+      "response": {
+        "retention_closure_checklist_state": "contract-only-retention-closure-checklist-open",
+        "storage_activation_allowed": false,
+        "gate_closure_allowed": false,
+        "owner_decision_complete": false,
+        "scope": {
+          "source_endpoints": [
+            "POST /hardware/interfaces/owner-decision-evidence",
+            "GET /hardware/interfaces/owner-decision-evidence/status"
+          ],
+          "target_endpoint": "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+          "purpose": "fix retention, URI, review-owner, gate-closure, approval signature, delete/export, and rollback/fault decisions before any durable hardware evidence store or gate closure workflow is considered",
+          "prototype_storage": "not implemented; this checklist does not persist, dereference, delete, export, review, or close hardware evidence",
+          "target_gate_scope": [
+            "HW-ODS",
+            "HW-ACT",
+            "HW-ODE",
+            "HW-OES",
+            "DRV-GAP"
+          ]
+        },
+        "owner_decisions": [
+          "HW-OER-001 durable-evidence-store-owner",
+          "HW-OER-002 evidence-uri-rules",
+          "HW-OER-003 retention-policy-owner",
+          "HW-OER-004 review-workflow-owner",
+          "HW-OER-005 gate-closure-authority",
+          "HW-OER-006 delete-export-semantics",
+          "HW-OER-007 rollback-fault-closure-evidence"
+        ],
+        "evidence_uri_rules": {
+          "allowed_ref_types": [
+            "doc",
+            "test_log",
+            "owner_approval",
+            "platform_decision",
+            "driver_gap_review",
+            "safety_review",
+            "hardware_smoke_log"
+          ],
+          "required_fields": [
+            "ref_id",
+            "type",
+            "uri_or_path",
+            "owner",
+            "summary",
+            "created_at",
+            "hash_or_version",
+            "target_interface_ids",
+            "target_gate_ids"
+          ],
+          "candidate_allowed_uri_schemes": [
+            "repo-relative",
+            "artifact-store",
+            "audit-log",
+            "platform-decision",
+            "hardware-lab-result"
+          ],
+          "uri_rules_confirmed": false
+        },
+        "retention_policy_shape": {
+          "candidate_retention_classes": [
+            "hardware-owner-evidence",
+            "driver-gap-review-record",
+            "target-hardware-smoke-record",
+            "rollback-fault-record"
+          ],
+          "minimum_metadata": [
+            "owner",
+            "reviewer",
+            "target_interface_ids",
+            "target_gate_ids",
+            "created_at",
+            "retention_class",
+            "redaction_state",
+            "hardware_lab_trace_id"
+          ],
+          "retention_policy_confirmed": false
+        },
+        "closure_policy_shape": {
+          "target_gate_families": [
+            "HW-ODS",
+            "HW-ACT",
+            "HW-ODE",
+            "HW-OES",
+            "DRV-GAP"
+          ],
+          "minimum_closure_inputs": [
+            "evidence_submission_id",
+            "owner_signature",
+            "reviewer_identity",
+            "target_smoke_result",
+            "rollback_plan",
+            "fault_semantics",
+            "Runtime & Governance audit reference"
+          ],
+          "approval_signature_required": true,
+          "rollback_fault_closure_confirmed": false,
+          "gate_closure_authority_confirmed": false,
+          "gate_closure_allowed": false
+        },
+        "mandatory_gates": [
+          "HW-OER-001 durable-evidence-store-owner-assigned",
+          "HW-OER-002 evidence-uri-rules-approved",
+          "HW-OER-003 retention-policy-owner-assigned",
+          "HW-OER-004 review-workflow-owner-assigned",
+          "HW-OER-005 gate-closure-authority-assigned",
+          "HW-OER-006 delete-export-semantics-approved",
+          "HW-OER-007 rollback-fault-closure-evidence-defined",
+          "HW-OER-008 android-linux-retention-closure-contract-parity-proven"
+        ],
+        "summary": {
+          "owner_decision_evidence_retention_checklist_active": true,
+          "owner_decision_complete": false,
+          "retention_policy_confirmed": false,
+          "evidence_uri_rules_confirmed": false,
+          "review_workflow_owner_confirmed": false,
+          "gate_closure_authority_confirmed": false,
+          "deletion_export_semantics_confirmed": false,
+          "rollback_fault_closure_confirmed": false,
+          "approval_signature_confirmed": false,
+          "owner_decision_evidence_status_contract_active": true,
+          "owner_decision_evidence_contract_active": true,
+          "evidence_store_active": false,
+          "review_workflow_active": false,
+          "delete_workflow_active": false,
+          "export_workflow_active": false,
+          "persisted_submission_count": 0,
+          "pending_review_count": 0,
+          "review_queue_updated": false,
+          "owner_assigned": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "activation_allowed": false,
+          "storage_activation_allowed": false,
+          "gate_closure_allowed": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "api_surface": {
+          "rest": "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+          "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson",
+          "linux_cli": "hardware-interface-owner-decision-evidence-retention-checklist",
+          "linux_ipc": "hardware.interfaces.owner.decision.evidence.retention.checklist",
+          "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist"
         }
       },
       "req_ids": [

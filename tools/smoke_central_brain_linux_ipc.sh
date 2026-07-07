@@ -972,6 +972,61 @@ assert "hardware.interfaces.owner.decision.evidence.status" in encoded, response
 assert "GetHardwareInterfaceOwnerDecisionEvidenceStatus" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_RETENTION_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-retention-checklist)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_RETENTION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["retention_closure_checklist_state"] == "contract-only-retention-closure-checklist-open", response
+assert payload["storage_activation_allowed"] is False, response
+assert payload["gate_closure_allowed"] is False, response
+assert payload["owner_decision_complete"] is False, response
+assert payload["evidence_uri_rules"]["uri_rules_confirmed"] is False, response
+assert payload["retention_policy_shape"]["retention_policy_confirmed"] is False, response
+assert {"HW-OER-001", "HW-OER-002", "HW-OER-003", "HW-OER-004", "HW-OER-005", "HW-OER-006", "HW-OER-007", "HW-OER-008"} <= gate_ids, response
+for key in [
+    "owner_decision_complete",
+    "retention_policy_confirmed",
+    "evidence_uri_rules_confirmed",
+    "review_workflow_owner_confirmed",
+    "gate_closure_authority_confirmed",
+    "deletion_export_semantics_confirmed",
+    "rollback_fault_closure_confirmed",
+    "approval_signature_confirmed",
+    "evidence_store_active",
+    "review_workflow_active",
+    "delete_workflow_active",
+    "export_workflow_active",
+    "review_queue_updated",
+    "owner_assigned",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "storage_activation_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["owner_decision_evidence_retention_checklist_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_status_contract_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_contract_active"] is True, response
+assert payload["summary"]["persisted_submission_count"] == 0, response
+assert payload["summary"]["pending_review_count"] == 0, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-retention-checklist" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.retention.checklist" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist" in encoded, response
+assert "HW-OER-006" in encoded and "delete-export-semantics" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

@@ -73,6 +73,7 @@ Brain semantic gateway.
 | `getHardwareInterfaceOwnerDecisionStatusJson` | `GET /hardware/interfaces/owner-decision-status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `submitHardwareInterfaceOwnerDecisionEvidenceJson` | `POST /hardware/interfaces/owner-decision-evidence` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceOwnerDecisionEvidenceStatusJson` | `GET /hardware/interfaces/owner-decision-evidence/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| `getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson` | `GET /hardware/interfaces/owner-decision-evidence/retention-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalActivationJson` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalValidationJson` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
@@ -206,6 +207,13 @@ Brain semantic gateway.
   action only; it reports no durable evidence store, no review workflow, zero
   persisted submissions, zero pending reviews, no owner assignment, no gate
   closure, and no hardware activation.
+- `getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson` exposes the
+  hardware owner evidence retention and closure checklist through the Android
+  Console `HW Retain` action only; it reports durable evidence store, URI rule,
+  retention policy, review workflow, gate closure authority, delete/export, and
+  rollback/fault closure decisions as open while keeping `evidence_store_active=false`,
+  `delete_workflow_active=false`, `export_workflow_active=false`,
+  `gates_closed=false`, `activation_allowed=false`, and `hardware_accessed=false`.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter

@@ -126,6 +126,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         },
     ),
     "hardware-interface-owner-decision-evidence-status": ("GET", "/hardware/interfaces/owner-decision-evidence/status", None),
+    "hardware-interface-owner-decision-evidence-retention-checklist": (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/retention-checklist",
+        None,
+    ),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),

@@ -76,6 +76,7 @@ Brain semantic gateway.
 | `hardware.interfaces.owner.decision.status` | `GET /hardware/interfaces/owner-decision-status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence` | `POST /hardware/interfaces/owner-decision-evidence` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence.status` | `GET /hardware/interfaces/owner-decision-evidence/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
+| `hardware.interfaces.owner.decision.evidence.retention.checklist` | `GET /hardware/interfaces/owner-decision-evidence/retention-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `vehicle.signals.list` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.activation.get` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.validation.get` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
@@ -148,6 +149,11 @@ the same hardware owner evidence no-store status view as Android Binder and
 Linux IPC without reading an evidence store, updating review queues, assigning
 owners, closing gates, activating hardware, or creating Driver/HAL or
 virtualization work.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist`
+exposes the same hardware owner evidence retention and closure checklist as
+Android Binder and Linux IPC without creating durable storage, dereferencing
+evidence URIs, creating delete/export workflows, assigning owners, closing gates,
+activating hardware, or creating Driver/HAL or virtualization work.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

@@ -173,6 +173,7 @@ checks = [
         "HW-002",
     ),
     ("GET", "/hardware/interfaces/owner-decision-evidence/status", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/retention-checklist", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -527,6 +528,54 @@ for method, path, body, req_id in checks:
         assert "hardware.interfaces.owner.decision.evidence.status" in encoded, "Linux IPC hardware owner evidence status binding missing"
         assert "GetHardwareInterfaceOwnerDecisionEvidenceStatus" in encoded, "gRPC hardware owner evidence status binding missing"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence status missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/retention-checklist":
+        retention = payload["payload"]
+        encoded = json.dumps(retention)
+        gate_ids = {item["gate_id"] for item in retention["mandatory_gates"]}
+        assert retention["retention_closure_checklist_state"] == "contract-only-retention-closure-checklist-open", "hardware owner evidence retention checklist left contract-only state"
+        assert retention["storage_activation_allowed"] is False, "hardware owner evidence retention activated storage"
+        assert retention["gate_closure_allowed"] is False, "hardware owner evidence retention allowed gate closure"
+        assert retention["owner_decision_complete"] is False, "hardware owner evidence retention completed owner decision"
+        assert retention["evidence_uri_rules"]["uri_rules_confirmed"] is False, "hardware owner evidence URI rules unexpectedly confirmed"
+        assert retention["retention_policy_shape"]["retention_policy_confirmed"] is False, "hardware owner evidence retention policy unexpectedly confirmed"
+        assert {"HW-OER-001", "HW-OER-002", "HW-OER-003", "HW-OER-004", "HW-OER-005", "HW-OER-006", "HW-OER-007", "HW-OER-008"} <= gate_ids, "hardware owner evidence retention checklist missing mandatory gates"
+        for key in [
+            "owner_decision_complete",
+            "retention_policy_confirmed",
+            "evidence_uri_rules_confirmed",
+            "review_workflow_owner_confirmed",
+            "gate_closure_authority_confirmed",
+            "deletion_export_semantics_confirmed",
+            "rollback_fault_closure_confirmed",
+            "approval_signature_confirmed",
+            "evidence_store_active",
+            "review_workflow_active",
+            "delete_workflow_active",
+            "export_workflow_active",
+            "review_queue_updated",
+            "owner_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "storage_activation_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert retention["summary"][key] is False, f"hardware owner evidence retention summary unexpectedly set {key}"
+        assert retention["summary"]["owner_decision_evidence_retention_checklist_active"] is True, "hardware owner evidence retention checklist not active"
+        assert retention["summary"]["owner_decision_evidence_status_contract_active"] is True, "hardware owner evidence status contract link missing"
+        assert retention["summary"]["owner_decision_evidence_contract_active"] is True, "hardware owner evidence intake contract link missing"
+        assert retention["summary"]["persisted_submission_count"] == 0, "hardware owner evidence retention summary reported persisted submissions"
+        assert retention["summary"]["pending_review_count"] == 0, "hardware owner evidence retention summary reported pending reviews"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson" in encoded, "Android hardware owner evidence retention binding missing"
+        assert "hardware-interface-owner-decision-evidence-retention-checklist" in encoded, "Linux CLI hardware owner evidence retention binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.retention.checklist" in encoded, "Linux IPC hardware owner evidence retention binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist" in encoded, "gRPC hardware owner evidence retention binding missing"
+        assert "HW-OER-006" in encoded and "delete-export-semantics" in encoded, "hardware owner evidence retention missing delete/export gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence retention missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1236,6 +1285,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-retention-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 
