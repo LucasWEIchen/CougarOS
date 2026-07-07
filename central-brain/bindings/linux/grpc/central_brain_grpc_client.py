@@ -74,6 +74,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         },
     ),
     "event-subscription-activation-evidence-status": ("GetEventSubscriptionActivationEvidenceStatus", {}),
+    "event-subscription-activation-evidence-retention-checklist": (
+        "GetEventSubscriptionActivationEvidenceRetentionChecklist",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

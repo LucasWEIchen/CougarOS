@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.45"
+API_VERSION = "0.1.46"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -71,6 +71,7 @@ EVENT_SUBSCRIPTION_BACKPRESSURE_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_READINESS_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_STATUS_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_RETENTION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -275,6 +276,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "readiness_rollup_endpoint": "GET /uib/events/subscriptions/readiness-rollup",
                     "activation_evidence_endpoint": "POST /uib/events/subscriptions/activation-evidence",
                     "activation_evidence_status_endpoint": "GET /uib/events/subscriptions/activation-evidence/status",
+                    "activation_evidence_retention_checklist_endpoint": "GET /uib/events/subscriptions/activation-evidence/retention-checklist",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -399,22 +401,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "intake-visible -> contract-only-no-evidence-store",
                     "side_effects": "no evidence store is read, no review workflow is advanced, no gate state is changed, and no broker/runtime path is activated",
                 },
+                "activation_evidence_retention_checklist": {
+                    "endpoint": "GET /uib/events/subscriptions/activation-evidence/retention-checklist",
+                    "state_transition": "owner-decisions-open -> contract-only-retention-owner-checklist-open",
+                    "side_effects": "no evidence URI is dereferenced, no retention store is created, no delete/export workflow is activated, and no broker/runtime path is activated",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson/submitEventSubscriptionActivationEvidenceJson/getEventSubscriptionActivationEvidenceStatusJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson/submitEventSubscriptionActivationEvidenceJson/getEventSubscriptionActivationEvidenceStatusJson/getEventSubscriptionActivationEvidenceRetentionChecklistJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup/activation.evidence/activation.evidence.status",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup/activation.evidence/activation.evidence.status/activation.evidence.retention.checklist",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup/SubmitEventSubscriptionActivationEvidence/GetEventSubscriptionActivationEvidenceStatus",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup/SubmitEventSubscriptionActivationEvidence/GetEventSubscriptionActivationEvidenceStatus/GetEventSubscriptionActivationEvidenceRetentionChecklist",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -479,6 +486,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_readiness_rollup": "GET /uib/events/subscriptions/readiness-rollup",
             "rest_activation_evidence": "POST /uib/events/subscriptions/activation-evidence",
             "rest_activation_evidence_status": "GET /uib/events/subscriptions/activation-evidence/status",
+            "rest_activation_evidence_retention_checklist": "GET /uib/events/subscriptions/activation-evidence/retention-checklist",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
@@ -491,6 +499,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "android_binder_readiness_rollup": "getEventSubscriptionReadinessRollupJson",
             "android_binder_activation_evidence": "submitEventSubscriptionActivationEvidenceJson",
             "android_binder_activation_evidence_status": "getEventSubscriptionActivationEvidenceStatusJson",
+            "android_binder_activation_evidence_retention_checklist": "getEventSubscriptionActivationEvidenceRetentionChecklistJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
@@ -503,6 +512,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_cli_readiness_rollup": "event-subscription-readiness-rollup",
             "linux_cli_activation_evidence": "event-subscription-activation-evidence",
             "linux_cli_activation_evidence_status": "event-subscription-activation-evidence-status",
+            "linux_cli_activation_evidence_retention_checklist": "event-subscription-activation-evidence-retention-checklist",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
@@ -515,6 +525,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_ipc_readiness_rollup": "uib.events.subscriptions.readiness.rollup",
             "linux_ipc_activation_evidence": "uib.events.subscriptions.activation.evidence",
             "linux_ipc_activation_evidence_status": "uib.events.subscriptions.activation.evidence.status",
+            "linux_ipc_activation_evidence_retention_checklist": "uib.events.subscriptions.activation.evidence.retention.checklist",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
@@ -527,6 +538,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_grpc_rpc_readiness_rollup": "CentralBrainGateway.GetEventSubscriptionReadinessRollup",
             "linux_grpc_rpc_activation_evidence": "CentralBrainGateway.SubmitEventSubscriptionActivationEvidence",
             "linux_grpc_rpc_activation_evidence_status": "CentralBrainGateway.GetEventSubscriptionActivationEvidenceStatus",
+            "linux_grpc_rpc_activation_evidence_retention_checklist": "CentralBrainGateway.GetEventSubscriptionActivationEvidenceRetentionChecklist",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
@@ -537,6 +549,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "readiness_rollup_contract_active": True,
             "activation_evidence_contract_active": True,
             "activation_evidence_status_contract_active": True,
+            "activation_evidence_retention_checklist_active": True,
             "broker_active": False,
             "subscription_persistence_active": False,
             "cursor_storage_active": False,
@@ -544,6 +557,9 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "review_workflow_active": False,
             "persisted_submission_count": 0,
             "pending_review_count": 0,
+            "retention_policy_confirmed": False,
+            "evidence_uri_rules_confirmed": False,
+            "deletion_export_semantics_confirmed": False,
             "backpressure_qos_evidence_confirmed": False,
             "readiness_rollup_confirmed": False,
             "activation_evidence_persisted": False,
@@ -1845,6 +1861,181 @@ def event_subscription_activation_evidence_status_payload() -> dict[str, Any]:
     }
 
 
+def event_subscription_activation_evidence_retention_checklist_payload() -> dict[str, Any]:
+    return {
+        "retention_checklist_state": "contract-only-retention-owner-checklist-open",
+        "storage_activation_allowed": False,
+        "owner_decision_complete": False,
+        "scope": {
+            "source_endpoints": [
+                "POST /uib/events/subscriptions/activation-evidence",
+                "GET /uib/events/subscriptions/activation-evidence/status",
+            ],
+            "target_endpoint": "GET /uib/events/subscriptions/activation-evidence/retention-checklist",
+            "purpose": "fix retention, URI, review-owner, gate-closure, delete, and export decisions before any durable evidence store is considered",
+            "prototype_storage": "not implemented; this checklist does not persist, dereference, delete, export, or review evidence",
+            "target_gate_scope": ["EV-DM", "EV-ACT", "EV-CW", "EV-CRS", "EV-QOS", "EV-RU", "EV-AE", "EV-AES", "DRV-GAP"],
+        },
+        "owner_decisions": [
+            {
+                "decision_id": "EV-AER-001",
+                "area": "durable-evidence-store-owner",
+                "required_decision": "Assign the Android/Linux process and data owner for durable activation evidence records.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["target storage location", "service identity", "audit export backend", "backup/restore policy"],
+            },
+            {
+                "decision_id": "EV-AER-002",
+                "area": "evidence-uri-rules",
+                "required_decision": "Approve allowed URI/path forms for doc, test_log, owner_approval, platform_decision, and driver_gap_review refs.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["allowed schemes", "relative path root", "artifact immutability", "secret redaction rule"],
+            },
+            {
+                "decision_id": "EV-AER-003",
+                "area": "retention-policy-owner",
+                "required_decision": "Assign retention TTL, privacy classification, cleanup, and audit retention owner.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["retention duration", "privacy review", "cleanup trigger", "regulatory export need"],
+            },
+            {
+                "decision_id": "EV-AER-004",
+                "area": "review-workflow-owner",
+                "required_decision": "Assign review queue owner, reviewer roles, escalation policy, and rejection semantics.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["review queue backend", "reviewer identity source", "escalation SLA", "audit trail owner"],
+            },
+            {
+                "decision_id": "EV-AER-005",
+                "area": "gate-closure-authority",
+                "required_decision": "Assign who can close EV-* and DRV-GAP gates and how gate closure is audited and rolled back.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["gate owner", "approval signature", "rollback rule", "Runtime & Governance binding"],
+            },
+            {
+                "decision_id": "EV-AER-006",
+                "area": "delete-export-semantics",
+                "required_decision": "Approve evidence deletion, export, redaction, and orphaned reference behavior.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["delete authorization", "export format", "redaction policy", "orphaned ref cleanup"],
+            },
+        ],
+        "evidence_uri_rules": {
+            "allowed_ref_types": ["doc", "test_log", "owner_approval", "platform_decision", "driver_gap_review"],
+            "required_fields": ["ref_id", "type", "uri_or_path", "owner", "summary", "created_at", "hash_or_version"],
+            "candidate_allowed_uri_schemes": ["repo-relative", "artifact-store", "audit-log", "platform-decision"],
+            "disallowed_until_policy_exists": [
+                "raw cloud URL without privacy route",
+                "mutable temp file",
+                "secret-bearing path",
+                "device node or hardware probe output captured outside Driver/HAL gap review",
+            ],
+            "uri_rules_confirmed": False,
+        },
+        "retention_policy_shape": {
+            "candidate_retention_classes": ["development-evidence", "platform-decision-record", "driver-gap-review-record"],
+            "minimum_metadata": ["owner", "reviewer", "target_gate_ids", "created_at", "retention_class", "redaction_state"],
+            "delete_semantics": "TBD-target-platform; prototype does not delete anything because it stores nothing",
+            "export_semantics": "TBD-target-platform; prototype does not export anything because it stores nothing",
+            "retention_policy_confirmed": False,
+        },
+        "mandatory_gates": [
+            {
+                "gate_id": "EV-AER-001",
+                "name": "durable-evidence-store-owner-assigned",
+                "required_evidence": "Target platform assigns durable evidence store owner, process boundary, service identity, and audit backend.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AER-002",
+                "name": "evidence-uri-rules-approved",
+                "required_evidence": "Allowed URI/path schemes, immutability, hash/version, and secret redaction rules are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AER-003",
+                "name": "retention-policy-owner-assigned",
+                "required_evidence": "Retention TTL, cleanup trigger, privacy classification, and retention owner are assigned.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AER-004",
+                "name": "review-workflow-owner-assigned",
+                "required_evidence": "Review queue owner, reviewer identity source, escalation policy, and rejection semantics are assigned.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AER-005",
+                "name": "gate-closure-authority-assigned",
+                "required_evidence": "Gate closure authority, approval signature, rollback behavior, and Runtime & Governance audit binding are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AER-006",
+                "name": "delete-export-semantics-approved",
+                "required_evidence": "Deletion, export, redaction, orphaned reference cleanup, and audit export rules are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AER-007",
+                "name": "android-linux-retention-contract-parity-proven",
+                "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent retention checklist fields.",
+                "passed": True,
+            },
+            {
+                "gate_id": "EV-AER-008",
+                "name": "no-store-or-gate-closure-claim",
+                "required_evidence": "Prototype reports no evidence store, no review workflow, no delete/export workflow, no gate closure, and no broker activation.",
+                "passed": True,
+            },
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/activation-evidence/retention-checklist",
+            "android_binder": "getEventSubscriptionActivationEvidenceRetentionChecklistJson",
+            "linux_cli": "event-subscription-activation-evidence-retention-checklist",
+            "linux_ipc": "uib.events.subscriptions.activation.evidence.retention.checklist",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationEvidenceRetentionChecklist",
+        },
+        "summary": {
+            "activation_evidence_retention_checklist_active": True,
+            "owner_decision_complete": False,
+            "retention_policy_confirmed": False,
+            "evidence_uri_rules_confirmed": False,
+            "review_workflow_owner_confirmed": False,
+            "gate_closure_authority_confirmed": False,
+            "deletion_export_semantics_confirmed": False,
+            "activation_evidence_status_contract_active": True,
+            "activation_evidence_contract_active": True,
+            "evidence_store_active": False,
+            "review_workflow_active": False,
+            "delete_workflow_active": False,
+            "export_workflow_active": False,
+            "persisted_submission_count": 0,
+            "pending_review_count": 0,
+            "review_queue_updated": False,
+            "gate_state_changed": False,
+            "gates_closed": False,
+            "activation_allowed": False,
+            "broker_activation_ready": False,
+            "production_activation_allowed": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "cursor_storage_active": False,
+            "event_delivery_qos_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_RETENTION_REQ_IDS,
+    }
+
+
 def event_subscription_request_payload(request: dict[str, Any]) -> dict[str, Any]:
     trace_id = request.get("trace_id") or str(uuid.uuid4())
     subscription_id = str(request.get("subscription_id") or f"sub-{uuid.uuid4()}")
@@ -2609,6 +2800,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_subscription_readiness_rollup_payload()))
         elif path == "/uib/events/subscriptions/activation-evidence/status":
             self.send_json(200, envelope(event_subscription_activation_evidence_status_payload()))
+        elif path == "/uib/events/subscriptions/activation-evidence/retention-checklist":
+            self.send_json(200, envelope(event_subscription_activation_evidence_retention_checklist_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))

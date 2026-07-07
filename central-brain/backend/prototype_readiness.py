@@ -77,11 +77,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "Uni Info Bus semantic Context/State/Event/Action/Extension",
         "diagram_group": "middle-layer",
         "yellow_sun_portable": True,
-        "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-and-status-contract",
-        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription request/cancel contract review", "callback/watch transport readiness review", "broker/cursor/backpressure owner decision review", "activation evidence checklist review", "activation evidence intake contract review", "activation evidence review status contract review", "callback/watch API shape review", "cursor/replay storage contract review", "backpressure/QoS evidence contract review", "end-to-end readiness rollup review", "extension contract review"],
+        "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-status-and-retention-checklist-contract",
+        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription request/cancel contract review", "callback/watch transport readiness review", "broker/cursor/backpressure owner decision review", "activation evidence checklist review", "activation evidence intake contract review", "activation evidence review status contract review", "activation evidence retention owner checklist review", "callback/watch API shape review", "cursor/replay storage contract review", "backpressure/QoS evidence contract review", "end-to-end readiness rollup review", "extension contract review"],
         "not_ready_for": ["real event broker", "SSE/WebSocket push", "DDS high-rate data plane", "plugin runtime loading", "real actuator dispatch"],
-        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getUibExtensionsJson, requestActionJson",
-        "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, event-subscription-backpressure-qos-evidence, event-subscription-readiness-rollup, event-subscription-activation-evidence, event-subscription-activation-evidence-status, extensions, action-request over CLI/IPC/gRPC",
+        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getUibExtensionsJson, requestActionJson",
+        "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, event-subscription-backpressure-qos-evidence, event-subscription-readiness-rollup, event-subscription-activation-evidence, event-subscription-activation-evidence-status, event-subscription-activation-evidence-retention-checklist, extensions, action-request over CLI/IPC/gRPC",
         "open_deviations": ["DEV-007", "DEV-015"],
         "open_issues": ["ISSUE-015", "ISSUE-018"],
         "req_ids": ["XSC-002", "FW-U-003", "FW-U-004", "FW-U-008", "NV-P-006", "DEL-001", "DEL-002"],
@@ -217,14 +217,14 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "event subscription activation evidence retention and owner decision checklist",
-                    "reason": "FW-U-003/NV-P-006 now expose evidence intake and read-only review status; the next safe step is a no-store checklist for retention policy, URI rules, evidence owner, and gate-closure authority before any persistent workflow is considered.",
-                    "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "NV-P-002", "NV-P-003", "NV-P-006", "DEL-001", "DEL-002", "DEL-004"],
-                },
-                {
                     "candidate": "hardware interface activation checklist",
                     "reason": "HW-002/KH gaps need explicit owner, ABI, and test-harness criteria before real hardware work starts.",
                     "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005"],
+                },
+                {
+                    "candidate": "event subscription activation evidence decision status rollup",
+                    "reason": "FW-U-003/NV-P-006 now expose intake, review status, and retention checklist; the next event-safe step is a no-store rollup of remaining owner decisions without creating evidence persistence or broker activation.",
+                    "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "NV-P-002", "NV-P-003", "NV-P-006", "DEL-001", "DEL-002", "DEL-004"],
                 },
             ],
             "non_goals": [

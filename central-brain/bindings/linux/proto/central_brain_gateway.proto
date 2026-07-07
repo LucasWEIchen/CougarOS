@@ -38,6 +38,7 @@ service CentralBrainGateway {
   rpc GetEventSubscriptionReadinessRollup(GatewayRequest) returns (GatewayResponse);
   rpc SubmitEventSubscriptionActivationEvidence(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptionActivationEvidenceStatus(GatewayRequest) returns (GatewayResponse);
+  rpc GetEventSubscriptionActivationEvidenceRetentionChecklist(GatewayRequest) returns (GatewayResponse);
   rpc GetUibExtensions(GatewayRequest) returns (GatewayResponse);
   rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
   rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);

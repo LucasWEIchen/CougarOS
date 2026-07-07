@@ -119,6 +119,9 @@ for key in [
     "review_queue_updated",
     "gate_state_changed",
     "gates_closed",
+    "retention_policy_confirmed",
+    "evidence_uri_rules_confirmed",
+    "deletion_export_semantics_confirmed",
     "backpressure_qos_evidence_confirmed",
     "readiness_rollup_confirmed",
     "callback_registered",
@@ -136,6 +139,7 @@ assert subscriptions["summary"]["backpressure_qos_evidence_contract_active"] is 
 assert subscriptions["summary"]["readiness_rollup_contract_active"] is True, response
 assert subscriptions["summary"]["activation_evidence_contract_active"] is True, response
 assert subscriptions["summary"]["activation_evidence_status_contract_active"] is True, response
+assert subscriptions["summary"]["activation_evidence_retention_checklist_active"] is True, response
 assert subscriptions["summary"]["persisted_submission_count"] == 0, response
 assert subscriptions["summary"]["pending_review_count"] == 0, response
 assert "getEventSubscriptionsJson" in encoded, response
@@ -147,6 +151,7 @@ assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, response
 assert "getEventSubscriptionReadinessRollupJson" in encoded, response
 assert "submitEventSubscriptionActivationEvidenceJson" in encoded, response
 assert "getEventSubscriptionActivationEvidenceStatusJson" in encoded, response
+assert "getEventSubscriptionActivationEvidenceRetentionChecklistJson" in encoded, response
 assert "uib.events.subscriptions.get" in encoded, response
 assert "uib.events.subscriptions.request" in encoded, response
 assert "uib.events.subscriptions.cancel" in encoded, response
@@ -156,6 +161,7 @@ assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, response
 assert "uib.events.subscriptions.readiness.rollup" in encoded, response
 assert "uib.events.subscriptions.activation.evidence" in encoded, response
 assert "uib.events.subscriptions.activation.evidence.status" in encoded, response
+assert "uib.events.subscriptions.activation.evidence.retention.checklist" in encoded, response
 assert "GetEventSubscriptions" in encoded, response
 assert "RequestEventSubscription" in encoded, response
 assert "CancelEventSubscription" in encoded, response
@@ -165,6 +171,7 @@ assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
 assert "GetEventSubscriptionReadinessRollup" in encoded, response
 assert "SubmitEventSubscriptionActivationEvidence" in encoded, response
 assert "GetEventSubscriptionActivationEvidenceStatus" in encoded, response
+assert "GetEventSubscriptionActivationEvidenceRetentionChecklist" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
 PY
 EVENT_SUBSCRIBE_REQUEST_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscribe-request)"
@@ -634,6 +641,65 @@ assert "getEventSubscriptionActivationEvidenceStatusJson" in encoded, response
 assert "event-subscription-activation-evidence-status" in encoded, response
 assert "uib.events.subscriptions.activation.evidence.status" in encoded, response
 assert "GetEventSubscriptionActivationEvidenceStatus" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
+EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_RETENTION_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-evidence-retention-checklist)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_RETENTION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+retention = payload["gateway"]["payload"]
+encoded = json.dumps(retention)
+gate_ids = {item["gate_id"] for item in retention["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert retention["retention_checklist_state"] == "contract-only-retention-owner-checklist-open", response
+assert {"EV-AER-001", "EV-AER-002", "EV-AER-003", "EV-AER-004", "EV-AER-005", "EV-AER-006", "EV-AER-007", "EV-AER-008"} <= gate_ids, response
+assert retention["storage_activation_allowed"] is False, response
+assert retention["owner_decision_complete"] is False, response
+assert retention["evidence_uri_rules"]["uri_rules_confirmed"] is False, response
+assert retention["retention_policy_shape"]["retention_policy_confirmed"] is False, response
+for key in [
+    "owner_decision_complete",
+    "retention_policy_confirmed",
+    "evidence_uri_rules_confirmed",
+    "review_workflow_owner_confirmed",
+    "gate_closure_authority_confirmed",
+    "deletion_export_semantics_confirmed",
+    "evidence_store_active",
+    "review_workflow_active",
+    "delete_workflow_active",
+    "export_workflow_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "broker_activation_ready",
+    "production_activation_allowed",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "event_delivery_qos_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert retention["summary"][key] is False, response
+assert retention["summary"]["activation_evidence_retention_checklist_active"] is True, response
+assert retention["summary"]["persisted_submission_count"] == 0, response
+assert retention["summary"]["pending_review_count"] == 0, response
+assert "getEventSubscriptionActivationEvidenceRetentionChecklistJson" in encoded, response
+assert "event-subscription-activation-evidence-retention-checklist" in encoded, response
+assert "uib.events.subscriptions.activation.evidence.retention.checklist" in encoded, response
+assert "GetEventSubscriptionActivationEvidenceRetentionChecklist" in encoded, response
+assert "EV-AER-006" in encoded and "delete-export-semantics" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"

@@ -117,9 +117,9 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003"],
     },
     {
-        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-and-review-status-contract",
+        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-and-retention-checklist-contract",
         "platform": "Android/Linux",
-        "current_state": "contract-only-not-brokered-with-activation-evidence-review-status-blocked",
+        "current_state": "contract-only-not-brokered-with-activation-evidence-retention-owner-decisions-blocked",
         "ready_for": [
             "Uni Info Bus Event subscription lifecycle review",
             "subscribe/cancel command shape review",
@@ -133,6 +133,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "end-to-end readiness blocker rollup review",
             "activation evidence intake reference-shape review",
             "activation evidence review status and no-store/no-workflow review",
+            "activation evidence retention, URI rule, delete/export, and owner decision checklist review",
             "Android Binder and Linux IPC/gRPC parity inspection before a real broker is selected",
         ],
         "artifacts": [
@@ -148,6 +149,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "GET /uib/events/subscriptions/readiness-rollup",
             "POST /uib/events/subscriptions/activation-evidence",
             "GET /uib/events/subscriptions/activation-evidence/status",
+            "GET /uib/events/subscriptions/activation-evidence/retention-checklist",
             "Android Binder getEventSubscriptionsJson",
             "Android Binder requestEventSubscriptionJson",
             "Android Binder cancelEventSubscriptionJson",
@@ -160,6 +162,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Android Binder getEventSubscriptionReadinessRollupJson",
             "Android Binder submitEventSubscriptionActivationEvidenceJson",
             "Android Binder getEventSubscriptionActivationEvidenceStatusJson",
+            "Android Binder getEventSubscriptionActivationEvidenceRetentionChecklistJson",
             "Linux CLI event-subscriptions",
             "Linux CLI event-subscribe-request",
             "Linux CLI event-subscribe-cancel",
@@ -172,6 +175,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux CLI event-subscription-readiness-rollup",
             "Linux CLI event-subscription-activation-evidence",
             "Linux CLI event-subscription-activation-evidence-status",
+            "Linux CLI event-subscription-activation-evidence-retention-checklist",
             "Linux IPC uib.events.subscriptions.get",
             "Linux IPC uib.events.subscriptions.request",
             "Linux IPC uib.events.subscriptions.cancel",
@@ -184,6 +188,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux IPC uib.events.subscriptions.readiness.rollup",
             "Linux IPC uib.events.subscriptions.activation.evidence",
             "Linux IPC uib.events.subscriptions.activation.evidence.status",
+            "Linux IPC uib.events.subscriptions.activation.evidence.retention.checklist",
             "Linux gRPC/RPC GetEventSubscriptions",
             "Linux gRPC/RPC RequestEventSubscription",
             "Linux gRPC/RPC CancelEventSubscription",
@@ -196,6 +201,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux gRPC/RPC GetEventSubscriptionReadinessRollup",
             "Linux gRPC/RPC SubmitEventSubscriptionActivationEvidence",
             "Linux gRPC/RPC GetEventSubscriptionActivationEvidenceStatus",
+            "Linux gRPC/RPC GetEventSubscriptionActivationEvidenceRetentionChecklist",
         ],
         "validation": [
             "bash tools/smoke_central_brain_semantic_gateway.sh",
@@ -204,6 +210,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         ],
         "blocked_by": [
             "subscription broker owner and lifecycle persistence decision",
+            "activation evidence retention owner, URI rule, delete/export, and gate closure authority decision",
             "push transport choice for Android callback, Linux watch, SSE/WebSocket, or DDS",
             "target high-rate topic QoS, replay, and overflow policy",
         ],

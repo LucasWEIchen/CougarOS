@@ -80,6 +80,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         },
     ),
     "event-subscription-activation-evidence-status": ("GET", "/uib/events/subscriptions/activation-evidence/status", None),
+    "event-subscription-activation-evidence-retention-checklist": (
+        "GET",
+        "/uib/events/subscriptions/activation-evidence/retention-checklist",
+        None,
+    ),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),

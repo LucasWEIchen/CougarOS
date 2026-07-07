@@ -70,6 +70,8 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-callback-watch-shape
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-readiness-rollup
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-activation-evidence
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-activation-evidence-status
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-activation-evidence-retention-checklist
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py extensions
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py service-contracts
@@ -119,6 +121,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/b
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-callback-watch-shape
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-readiness-rollup
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-activation-evidence
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-activation-evidence-status
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-activation-evidence-retention-checklist
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interfaces
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py prototype-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signals
@@ -135,6 +139,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-callback-watch-shape
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-readiness-rollup
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-activation-evidence
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-activation-evidence-status
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-activation-evidence-retention-checklist
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interfaces
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py prototype-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signals
@@ -200,6 +206,12 @@ FW-U-003/NV-P-006 的 activation evidence review status contract 通过 `GET /ui
 
 该交付项只用于 review activation evidence intake 之后的 no-store/no-workflow 状态、owner 待定项、`EV-AES-001..006` 门禁、`persisted_submission_count=0` 和 `pending_review_count=0`；它不读取 evidence store，不创建 review queue，不关闭 readiness gate，不允许 broker activation，不访问 Driver/HAL，不新增虚拟化层。
 
+## Event Subscription Activation Evidence Retention Checklist 交付补充
+
+FW-U-003/NV-P-006 的 activation evidence retention checklist contract 通过 `GET /uib/events/subscriptions/activation-evidence/retention-checklist` 对 Android/Linux 同步可见。Android 主路径为 Binder `getEventSubscriptionActivationEvidenceRetentionChecklistJson` 与 Console `Sub Retain`；Linux 同步路径为 CLI `event-subscription-activation-evidence-retention-checklist`、IPC `uib.events.subscriptions.activation.evidence.retention.checklist` 和 gRPC/RPC `GetEventSubscriptionActivationEvidenceRetentionChecklist`。
+
+该交付项只用于 review durable evidence store owner、URI rules、retention policy owner、review workflow owner、gate closure authority、delete/export semantics 和 `EV-AER-001..008` 门禁；它不创建 evidence store，不读取或 dereference evidence URI，不创建 delete/export workflow，不创建 review queue，不关闭 readiness gate，不允许 broker activation，不访问 Driver/HAL，不新增虚拟化层。
+
 当前 Android Console 主路径：
 
 - 绑定 `CentralBrainGatewayBinderService`。
@@ -216,6 +228,7 @@ FW-U-003/NV-P-006 的 activation evidence review status contract 通过 `GET /ui
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionReadinessRollupJson` 查看 FW-U-003/NV-P-006 Event subscription readiness rollup contract；该路径只返回 `EV-RU-001..006` activation blockers、blocked gate summary 和 `readiness_rollup_confirmed=false`，不关闭 gate，不激活 broker、cursor store、callback/watch、SSE/WebSocket、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.submitEventSubscriptionActivationEvidenceJson` 提交 FW-U-003/NV-P-006 Event subscription activation evidence reference contract；该路径只返回 `EV-AE-001..008` intake 门禁、`activation_evidence_persisted=false`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false` 和 `activation_allowed=false`，不持久化 evidence，不关闭 gate，不激活 broker、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionActivationEvidenceStatusJson` 查看 FW-U-003/NV-P-006 Event subscription activation evidence review status contract；该路径只返回 `EV-AES-001..006` status 门禁、`evidence_store_active=false`、`review_workflow_active=false`、`persisted_submission_count=0`、`pending_review_count=0`、`gates_closed=false` 和 `activation_allowed=false`，不读取 evidence store，不创建 review queue，不关闭 gate，不激活 broker、DDS、高频数据面、Driver/HAL 或虚拟化层。
+- 通过 `CentralBrainGatewayClient.getEventSubscriptionActivationEvidenceRetentionChecklistJson` 查看 FW-U-003/NV-P-006 Event subscription activation evidence retention checklist contract；该路径只返回 `EV-AER-001..008` retention 门禁、`owner_decision_complete=false`、`retention_policy_confirmed=false`、`evidence_uri_rules_confirmed=false`、`delete_workflow_active=false`、`export_workflow_active=false`、`gates_closed=false` 和 `activation_allowed=false`，不创建 durable evidence store，不读取 evidence URI，不创建 delete/export workflow，不关闭 gate，不激活 broker、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.getUibExtensionsJson` 查看 FW-U-008 扩展语义 contract、治理规则和 no-dispatch 边界。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
 - 通过 `CentralBrainGatewayClient.executeAgentTaskJson` 验证 Agent execute contract mock，只返回 policy-checked dispatch 边界。
@@ -260,6 +273,8 @@ FW-U-003/NV-P-006 的 activation evidence review status contract 通过 `GET /ui
 - `GET /uib/events/subscriptions/backpressure-qos-evidence`
 - `GET /uib/events/subscriptions/readiness-rollup`
 - `POST /uib/events/subscriptions/activation-evidence`
+- `GET /uib/events/subscriptions/activation-evidence/status`
+- `GET /uib/events/subscriptions/activation-evidence/retention-checklist`
 - `GET /uib/extensions`
 - `GET /ai/sdk/capabilities`
 - `POST /agent/plan`

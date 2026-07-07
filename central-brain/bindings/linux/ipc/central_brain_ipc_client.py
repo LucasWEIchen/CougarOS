@@ -74,6 +74,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         },
     ),
     "event-subscription-activation-evidence-status": ("uib.events.subscriptions.activation.evidence.status", {}),
+    "event-subscription-activation-evidence-retention-checklist": (
+        "uib.events.subscriptions.activation.evidence.retention.checklist",
+        {},
+    ),
     "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),
