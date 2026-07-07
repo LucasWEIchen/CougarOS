@@ -49,6 +49,8 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "PublishEvent": {"method": "POST", "path": "/uib/events/publish", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
     "GetRecentEvents": {"method": "GET", "path": "/uib/events/recent", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
     "GetEventSubscriptions": {"method": "GET", "path": "/uib/events/subscriptions", "req_ids": ["XSC-002", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
+    "RequestEventSubscription": {"method": "POST", "path": "/uib/events/subscriptions/request", "req_ids": ["XSC-002", "XSC-005", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
+    "CancelEventSubscription": {"method": "POST", "path": "/uib/events/subscriptions/cancel", "req_ids": ["XSC-002", "XSC-005", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002"]},
     "GetUibExtensions": {"method": "GET", "path": "/uib/extensions", "req_ids": ["XSC-002", "FW-U-008", "XSC-005", "XSC-006", "NV-P-003", "DEL-002"]},
     "GetAiSdkCapabilities": {"method": "GET", "path": "/ai/sdk/capabilities", "req_ids": ["XSC-001", "APP-004", "NV-P-003", "DEL-002"]},
     "PlanAgentTask": {"method": "POST", "path": "/agent/plan", "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},

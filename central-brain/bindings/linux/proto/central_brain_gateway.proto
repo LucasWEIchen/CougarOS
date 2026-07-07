@@ -27,6 +27,8 @@ service CentralBrainGateway {
   rpc PublishEvent(GatewayRequest) returns (GatewayResponse);
   rpc GetRecentEvents(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptions(GatewayRequest) returns (GatewayResponse);
+  rpc RequestEventSubscription(GatewayRequest) returns (GatewayResponse);
+  rpc CancelEventSubscription(GatewayRequest) returns (GatewayResponse);
   rpc GetUibExtensions(GatewayRequest) returns (GatewayResponse);
   rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
   rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);

@@ -19,6 +19,32 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "service-contracts": ("GetServiceContracts", {}),
     "events": ("ListEventTopics", {}),
     "event-subscriptions": ("GetEventSubscriptions", {}),
+    "event-subscribe-request": (
+        "RequestEventSubscription",
+        {
+            "trace_id": "linux-grpc-event-subscribe-request",
+            "subscription_id": "linux-grpc-contract-sub",
+            "topics": ["vehicle.signal.changed"],
+            "filters": {"source": "linux-grpc-client", "safety_state": "normal"},
+            "cursor": {"replay_limit": 5},
+            "delivery": {"mode": "contract-only", "callback": "not-registered"},
+            "caller": {"app_id": "linux-grpc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
+    "event-subscribe-cancel": (
+        "CancelEventSubscription",
+        {
+            "trace_id": "linux-grpc-event-subscribe-cancel",
+            "subscription_id": "linux-grpc-contract-sub",
+            "caller": {"app_id": "linux-grpc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

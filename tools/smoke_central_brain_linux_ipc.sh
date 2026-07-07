@@ -101,9 +101,12 @@ assert response["status"] == "ok", response
 assert payload["subscription_state"] == "contract-only-not-brokered", response
 assert payload["broker_active"] is False, response
 assert payload["active_subscriptions"] == [], response
-assert {"EV-SUB-001", "EV-SUB-002", "EV-SUB-003", "EV-SUB-004", "EV-SUB-005"} <= gate_ids, response
+assert {"EV-SUB-001", "EV-SUB-002", "EV-SUB-003", "EV-SUB-004", "EV-SUB-005", "EV-SUB-006"} <= gate_ids, response
 for key in [
     "broker_active",
+    "subscription_persistence_active",
+    "callback_registered",
+    "watch_started",
     "dds_runtime_active",
     "sse_websocket_active",
     "high_rate_data_plane_active",
@@ -114,9 +117,72 @@ for key in [
 ]:
     assert payload["summary"][key] is False, response
 assert "getEventSubscriptionsJson" in encoded, response
+assert "requestEventSubscriptionJson" in encoded, response
+assert "cancelEventSubscriptionJson" in encoded, response
 assert "uib.events.subscriptions.get" in encoded, response
+assert "uib.events.subscriptions.request" in encoded, response
+assert "uib.events.subscriptions.cancel" in encoded, response
 assert "GetEventSubscriptions" in encoded, response
+assert "RequestEventSubscription" in encoded, response
+assert "CancelEventSubscription" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
+PY
+EVENT_SUBSCRIBE_REQUEST_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscribe-request)"
+python3 - "$EVENT_SUBSCRIBE_REQUEST_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+assert response["status"] == "ok", response
+assert payload["state"] == "validated_contract_only", response
+assert payload["subscription_record"]["persisted"] is False, response
+assert payload["subscription_record"]["active"] is False, response
+for key in [
+    "subscription_persisted",
+    "broker_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+encoded = json.dumps(payload)
+assert "XSC-005" in encoded and "NV-P-006" in encoded, response
+PY
+EVENT_SUBSCRIBE_CANCEL_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscribe-cancel)"
+python3 - "$EVENT_SUBSCRIBE_CANCEL_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+assert response["status"] == "ok", response
+assert payload["state"] == "cancelled_contract_only", response
+assert payload["lifecycle_transition"]["matched_active_subscription"] is False, response
+assert payload["subscription_record"]["persisted"] is False, response
+for key in [
+    "subscription_persisted",
+    "matched_active_subscription",
+    "broker_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+encoded = json.dumps(payload)
+assert "XSC-005" in encoded and "NV-P-006" in encoded, response
 PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'

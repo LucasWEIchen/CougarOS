@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -18,9 +18,9 @@
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
-    "event_subscription_contract": "GET /uib/events/subscriptions exposes FW-U-003/NV-P-006 lifecycle, cursor, backpressure, governance, and binding parity metadata without starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request and /uib/events/subscriptions/cancel expose FW-U-003/NV-P-006 lifecycle, cursor, backpressure, governance, and binding parity metadata without persisting subscriptions, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -133,7 +133,7 @@
     {
       "method": "GET",
       "path": "/uib/events/subscriptions",
-      "description": "Returns the read-only Uni Info Bus Event subscription placeholder contract for lifecycle, cursor, backpressure, governance, and Android/Linux binding parity without starting a real broker.",
+      "description": "Returns the Uni Info Bus Event subscription lifecycle contract for lifecycle, cursor, backpressure, governance, request/cancel commands, and Android/Linux binding parity without starting a real broker.",
       "response": {
         "subscription_state": "contract-only-not-brokered",
         "broker_active": false,
@@ -163,12 +163,17 @@
           "EV-SUB-002 cursor-and-backpressure-reviewed",
           "EV-SUB-003 governance-policy-audit-bound",
           "EV-SUB-004 android-linux-binding-parity-proven",
-          "EV-SUB-005 no-dds-runtime-claim"
+          "EV-SUB-005 no-dds-runtime-claim",
+          "EV-SUB-006 lifecycle-command-contract-bound"
         ],
         "summary": {
           "subscription_state": "contract-only-not-brokered",
           "active_subscription_count": 0,
+          "lifecycle_command_contract_active": true,
           "broker_active": false,
+          "subscription_persistence_active": false,
+          "callback_registered": false,
+          "watch_started": false,
           "dds_runtime_active": false,
           "sse_websocket_active": false,
           "high_rate_data_plane_active": false,
@@ -179,10 +184,137 @@
         },
         "api_surface": {
           "rest": "GET /uib/events/subscriptions",
+          "rest_request": "POST /uib/events/subscriptions/request",
+          "rest_cancel": "POST /uib/events/subscriptions/cancel",
           "android_binder": "getEventSubscriptionsJson",
+          "android_binder_request": "requestEventSubscriptionJson",
+          "android_binder_cancel": "cancelEventSubscriptionJson",
           "linux_cli": "event-subscriptions",
+          "linux_cli_request": "event-subscribe-request",
+          "linux_cli_cancel": "event-subscribe-cancel",
           "linux_ipc": "uib.events.subscriptions.get",
-          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions"
+          "linux_ipc_request": "uib.events.subscriptions.request",
+          "linux_ipc_cancel": "uib.events.subscriptions.cancel",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
+          "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
+          "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription"
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/uib/events/subscriptions/request",
+      "description": "Validates a Uni Info Bus Event subscription request and returns a contract-only lifecycle result without persisting an active subscription, registering callbacks, or starting a broker.",
+      "request": {
+        "subscription_id": "optional client-generated id",
+        "topics": [
+          "vehicle.signal.changed"
+        ],
+        "filters": {
+          "source": "string",
+          "safety_state": "normal"
+        },
+        "cursor": {
+          "replay_limit": 5
+        },
+        "caller_permissions": [
+          "vehicle.read",
+          "service.read"
+        ]
+      },
+      "response": {
+        "operation": "request",
+        "state": "validated_contract_only|rejected_by_policy",
+        "lifecycle_transition": {
+          "from": "requested",
+          "to": "validated|rejected",
+          "persisted": false,
+          "broker_notified": false
+        },
+        "subscription_record": {
+          "persisted": false,
+          "active": false,
+          "stored_in_broker": false
+        },
+        "summary": {
+          "lifecycle_command_contract_active": true,
+          "subscription_persisted": false,
+          "active_subscription_count": 0,
+          "broker_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/uib/events/subscriptions/cancel",
+      "description": "Validates a Uni Info Bus Event subscription cancel request and returns a contract-only cancellation result without contacting a broker or removing persisted state.",
+      "request": {
+        "subscription_id": "required for a non-rejected contract response",
+        "caller_permissions": [
+          "vehicle.read",
+          "service.read"
+        ]
+      },
+      "response": {
+        "operation": "cancel",
+        "state": "cancelled_contract_only|rejected_missing_subscription_id|rejected_by_policy",
+        "lifecycle_transition": {
+          "from": "requested|validated|active",
+          "to": "cancelled|rejected",
+          "matched_active_subscription": false,
+          "broker_notified": false
+        },
+        "subscription_record": {
+          "persisted": false,
+          "active": false,
+          "removed_from_broker": false
+        },
+        "summary": {
+          "lifecycle_command_contract_active": true,
+          "subscription_persisted": false,
+          "matched_active_subscription": false,
+          "active_subscription_count": 0,
+          "broker_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
         }
       },
       "req_ids": [

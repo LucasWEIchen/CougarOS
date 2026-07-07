@@ -18,6 +18,8 @@
         "uib.events.publish",
         "uib.events.recent",
         "uib.events.subscriptions.get",
+        "uib.events.subscriptions.request",
+        "uib.events.subscriptions.cancel",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

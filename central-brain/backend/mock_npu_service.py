@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.35"
+API_VERSION = "0.1.36"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -50,6 +50,17 @@ EVENT_TOPICS = [
     "policy.decision.created",
     "ai.inference.completed",
     "npu.runtime.changed"
+]
+EVENT_SUBSCRIPTION_REQ_IDS = [
+    "XSC-002",
+    "FW-U-003",
+    "XSC-005",
+    "XSC-006",
+    "NV-P-002",
+    "NV-P-003",
+    "NV-P-006",
+    "DEL-001",
+    "DEL-002",
 ]
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
@@ -244,6 +255,8 @@ def event_topics_payload() -> dict[str, Any]:
                 "delivery": ["publish-ack", "recent-log", "subscription-contract"],
                 "subscription_contract": {
                     "semantic_endpoint": "GET /uib/events/subscriptions",
+                    "request_endpoint": "POST /uib/events/subscriptions/request",
+                    "cancel_endpoint": "POST /uib/events/subscriptions/cancel",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -312,22 +325,34 @@ def event_subscriptions_payload() -> dict[str, Any]:
                 "audit_required": True,
                 "service_dispatch": "not-dispatched",
             },
+            "operation_contracts": {
+                "request": {
+                    "endpoint": "POST /uib/events/subscriptions/request",
+                    "state_transition": "requested -> validated_contract_only|rejected_by_policy",
+                    "side_effects": "no active subscription is persisted and no callback/watch is registered",
+                },
+                "cancel": {
+                    "endpoint": "POST /uib/events/subscriptions/cancel",
+                    "state_transition": "active|requested -> cancelled_contract_only; missing id -> rejected_missing_subscription_id",
+                    "side_effects": "no broker cancellation is sent because no broker exists in prototype",
+                },
+            },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson",
-                "current_state": "read-only-contract; callback registration not implemented",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson",
+                "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get",
-                "current_state": "read-only-contract; watch operation not implemented",
+                "operation": "uib.events.subscriptions.get/request/cancel",
+                "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions",
-                "current_state": "read-only-contract; streaming RPC not implemented",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription",
+                "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
                 "binding": "sse-websocket",
@@ -371,18 +396,38 @@ def event_subscriptions_payload() -> dict[str, Any]:
                 "required_evidence": "Prototype explicitly reports DDS/SSE/WebSocket/broker inactive until target data-plane work starts.",
                 "passed": True,
             },
+            {
+                "gate_id": "EV-SUB-006",
+                "name": "lifecycle-command-contract-bound",
+                "required_evidence": "Subscribe/cancel commands return validated contract-only lifecycle responses without persistence, broker activation, or callback/watch registration.",
+                "passed": True,
+            },
         ],
         "api_surface": {
             "rest": "GET /uib/events/subscriptions",
+            "rest_request": "POST /uib/events/subscriptions/request",
+            "rest_cancel": "POST /uib/events/subscriptions/cancel",
             "android_binder": "getEventSubscriptionsJson",
+            "android_binder_request": "requestEventSubscriptionJson",
+            "android_binder_cancel": "cancelEventSubscriptionJson",
             "linux_cli": "event-subscriptions",
+            "linux_cli_request": "event-subscribe-request",
+            "linux_cli_cancel": "event-subscribe-cancel",
             "linux_ipc": "uib.events.subscriptions.get",
+            "linux_ipc_request": "uib.events.subscriptions.request",
+            "linux_ipc_cancel": "uib.events.subscriptions.cancel",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
+            "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
+            "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
             "active_subscription_count": 0,
+            "lifecycle_command_contract_active": True,
             "broker_active": False,
+            "subscription_persistence_active": False,
+            "callback_registered": False,
+            "watch_started": False,
             "dds_runtime_active": False,
             "sse_websocket_active": False,
             "high_rate_data_plane_active": False,
@@ -391,7 +436,175 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "virtualization_development_triggered": False,
             "service_dispatch_triggered": False,
         },
-        "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "XSC-006", "NV-P-002", "NV-P-003", "NV-P-006", "DEL-001", "DEL-002"],
+        "req_ids": EVENT_SUBSCRIPTION_REQ_IDS,
+    }
+
+
+def event_subscription_request_payload(request: dict[str, Any]) -> dict[str, Any]:
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    subscription_id = str(request.get("subscription_id") or f"sub-{uuid.uuid4()}")
+    raw_topics = request.get("topics") or [request.get("topic") or "vehicle.signal.changed"]
+    topics = raw_topics if isinstance(raw_topics, list) else [str(raw_topics)]
+    requested_permissions = request.get("permissions") or ["vehicle.read"]
+    policy = permission_check_payload(
+        {
+            "permissions": requested_permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        }
+    )
+    allowed = policy["decision"] == "allow"
+    state = "validated_contract_only" if allowed else "rejected_by_policy"
+    lifecycle_to = "validated" if allowed else "rejected"
+
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": "uib-event-subscription",
+            "method": "request",
+            "outcome": state,
+            "policy_decision": policy["decision"],
+            "lifecycle_state": lifecycle_to,
+            "qos_decision": "not-applied",
+        },
+    )
+    return {
+        "operation": "request",
+        "subscription_id": subscription_id,
+        "state": state,
+        "lifecycle_transition": {
+            "from": "requested",
+            "to": lifecycle_to,
+            "persisted": False,
+            "broker_notified": False,
+        },
+        "request_contract": {
+            "topics": topics,
+            "filters": request.get("filters", {"source": "any", "safety_state": request.get("safety_state", "normal")}),
+            "cursor": request.get("cursor", {"replay_limit": 10}),
+            "delivery": request.get("delivery", {"mode": "contract-only", "callback": "not-registered"}),
+            "caller": request.get("caller", {"app_id": "unknown", "role": "contract-client"}),
+        },
+        "validation": {
+            "policy_checked": True,
+            "policy": policy,
+            "cursor_validated": True,
+            "backpressure_profile": "prototype-drop-oldest-after-50-events",
+            "audit_recorded": True,
+        },
+        "subscription_record": {
+            "persisted": False,
+            "active": False,
+            "stored_in_broker": False,
+            "reason": "prototype exposes lifecycle command contract only; active subscription storage is not implemented",
+        },
+        "dispatch": {
+            "service_invoked": False,
+            "driver_hal": "not-dispatched",
+            "vehicle_bus": "not-accessed",
+            "virtualization": "not-developed",
+        },
+        "summary": {
+            "lifecycle_command_contract_active": True,
+            "subscription_persisted": False,
+            "active_subscription_count": 0,
+            "broker_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_REQ_IDS,
+    }
+
+
+def event_subscription_cancel_payload(request: dict[str, Any]) -> dict[str, Any]:
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    subscription_id = str(request.get("subscription_id") or "")
+    requested_permissions = request.get("permissions") or ["vehicle.read"]
+    policy = permission_check_payload(
+        {
+            "permissions": requested_permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        }
+    )
+    allowed = policy["decision"] == "allow"
+    if not subscription_id:
+        state = "rejected_missing_subscription_id"
+        lifecycle_to = "rejected"
+    elif not allowed:
+        state = "rejected_by_policy"
+        lifecycle_to = "rejected"
+    else:
+        state = "cancelled_contract_only"
+        lifecycle_to = "cancelled"
+
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": "uib-event-subscription",
+            "method": "cancel",
+            "outcome": state,
+            "policy_decision": policy["decision"],
+            "lifecycle_state": lifecycle_to,
+            "qos_decision": "not-applied",
+        },
+    )
+    return {
+        "operation": "cancel",
+        "subscription_id": subscription_id or "missing",
+        "state": state,
+        "lifecycle_transition": {
+            "from": "requested|validated|active",
+            "to": lifecycle_to,
+            "matched_active_subscription": False,
+            "broker_notified": False,
+        },
+        "validation": {
+            "policy_checked": True,
+            "policy": policy,
+            "subscription_id_present": bool(subscription_id),
+            "audit_recorded": True,
+        },
+        "subscription_record": {
+            "persisted": False,
+            "active": False,
+            "removed_from_broker": False,
+            "reason": "no active subscription store exists in the prototype",
+        },
+        "dispatch": {
+            "service_invoked": False,
+            "driver_hal": "not-dispatched",
+            "vehicle_bus": "not-accessed",
+            "virtualization": "not-developed",
+        },
+        "summary": {
+            "lifecycle_command_contract_active": True,
+            "subscription_persisted": False,
+            "matched_active_subscription": False,
+            "active_subscription_count": 0,
+            "broker_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_REQ_IDS,
     }
 
 
@@ -1019,6 +1232,14 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(service_invoke_payload(request), trace_id))
         elif path in ("/events/publish", "/uib/events/publish"):
             self.send_json(200, envelope(event_publish_payload(request), request.get("trace_id")))
+        elif path == "/uib/events/subscriptions/request":
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(event_subscription_request_payload(request), trace_id))
+        elif path == "/uib/events/subscriptions/cancel":
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(event_subscription_cancel_payload(request), trace_id))
         elif path == "/agent/plan":
             self.send_json(200, envelope(agent_plan_payload(request), request.get("trace_id")))
         elif path == "/agent/execute":

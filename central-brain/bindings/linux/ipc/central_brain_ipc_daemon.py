@@ -65,6 +65,16 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/uib/events/subscriptions",
         "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
     },
+    "uib.events.subscriptions.request": {
+        "method": "POST",
+        "path": "/uib/events/subscriptions/request",
+        "req_ids": ["XSC-002", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
+    },
+    "uib.events.subscriptions.cancel": {
+        "method": "POST",
+        "path": "/uib/events/subscriptions/cancel",
+        "req_ids": ["XSC-002", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
+    },
     "uib.extensions.get": {
         "method": "GET",
         "path": "/uib/extensions",

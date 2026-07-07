@@ -77,11 +77,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "Uni Info Bus semantic Context/State/Event/Action/Extension",
         "diagram_group": "middle-layer",
         "yellow_sun_portable": True,
-        "current_state": "active-semantic-mock-with-subscription-contract",
-        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription contract review", "extension contract review"],
+        "current_state": "active-semantic-mock-with-subscription-lifecycle-contract",
+        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription request/cancel contract review", "extension contract review"],
         "not_ready_for": ["real event broker", "SSE/WebSocket push", "DDS high-rate data plane", "plugin runtime loading", "real actuator dispatch"],
-        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, getUibExtensionsJson, requestActionJson",
-        "linux_sync_surface": "state, events, event-subscriptions, extensions, action-request over CLI/IPC/gRPC",
+        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getUibExtensionsJson, requestActionJson",
+        "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, extensions, action-request over CLI/IPC/gRPC",
         "open_deviations": ["DEV-007", "DEV-015"],
         "open_issues": ["ISSUE-015", "ISSUE-018"],
         "req_ids": ["XSC-002", "FW-U-003", "FW-U-004", "FW-U-008", "NV-P-006", "DEL-001", "DEL-002"],
@@ -217,8 +217,8 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "event subscription request/cancel lifecycle contract",
-                    "reason": "FW-U-003/NV-P-006 now have a read-only subscription placeholder, but subscribe/cancel commands and broker transport remain unimplemented.",
+                    "candidate": "event callback/watch transport readiness contract",
+                    "reason": "FW-U-003/NV-P-006 now have contract-only subscribe/cancel lifecycle commands, but callback/watch shape, cursor storage, and broker transport remain unimplemented.",
                     "req_ids": ["XSC-002", "FW-U-003", "NV-P-006"],
                 },
                 {

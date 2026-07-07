@@ -33,6 +33,10 @@ interface ICentralBrainGateway {
 
     String getEventSubscriptionsJson(String traceId);
 
+    String requestEventSubscriptionJson(String traceId, String requestJson);
+
+    String cancelEventSubscriptionJson(String traceId, String requestJson);
+
     String getUibExtensionsJson(String traceId);
 
     String getAiSdkCapabilitiesJson(String traceId);

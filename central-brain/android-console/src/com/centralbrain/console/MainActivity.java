@@ -27,6 +27,8 @@ public class MainActivity extends Activity {
     private Button skillButton;
     private Button memoryButton;
     private Button eventSubscriptionsButton;
+    private Button eventSubscriptionRequestButton;
+    private Button eventSubscriptionCancelButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -133,6 +135,21 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptions();
+            }
+        });
+
+        LinearLayout eventRow = buttonRow();
+        buttonArea.addView(eventRow);
+        eventSubscriptionRequestButton = addButton(eventRow, "Sub Req", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                requestEventSubscription();
+            }
+        });
+        eventSubscriptionCancelButton = addButton(eventRow, "Sub Cancel", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cancelEventSubscription();
             }
         });
 
@@ -270,6 +287,38 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void requestEventSubscription() {
+        setBusy(true, "Status: validating event subscription request via Binder");
+        String body = "{\"subscription_id\":\"android-console-contract-sub\","
+            + "\"topics\":[\"vehicle.signal.changed\"],"
+            + "\"filters\":{\"source\":\"android-console\",\"safety_state\":\"normal\"},"
+            + "\"cursor\":{\"replay_limit\":5},"
+            + "\"delivery\":{\"mode\":\"contract-only\",\"callback\":\"not-registered\"},"
+            + "\"caller\":{\"app_id\":\"android-console\",\"role\":\"debug_console\"},"
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],"
+            + "\"vehicle_state\":\"parked\",\"safety_state\":\"normal\"}";
+        gatewayRequest("Event Subscription Request (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.requestEventSubscriptionJson(newTraceId("event-subscribe-request"), body);
+            }
+        });
+    }
+
+    private void cancelEventSubscription() {
+        setBusy(true, "Status: validating event subscription cancel via Binder");
+        String body = "{\"subscription_id\":\"android-console-contract-sub\","
+            + "\"caller\":{\"app_id\":\"android-console\",\"role\":\"debug_console\"},"
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],"
+            + "\"vehicle_state\":\"parked\",\"safety_state\":\"normal\"}";
+        gatewayRequest("Event Subscription Cancel (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.cancelEventSubscriptionJson(newTraceId("event-subscribe-cancel"), body);
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -351,7 +400,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -404,6 +453,8 @@ public class MainActivity extends Activity {
         skillButton.setEnabled(enabled);
         memoryButton.setEnabled(enabled);
         eventSubscriptionsButton.setEnabled(enabled);
+        eventSubscriptionRequestButton.setEnabled(enabled);
+        eventSubscriptionCancelButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

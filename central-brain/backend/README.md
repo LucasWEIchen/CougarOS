@@ -31,6 +31,8 @@ bash tools/run_central_brain_backend.sh
 - `GET /uib/events/topics`
 - `GET /uib/events/recent`
 - `GET /uib/events/subscriptions`
+- `POST /uib/events/subscriptions/request`
+- `POST /uib/events/subscriptions/cancel`
 - `GET /uib/extensions`
 - `GET /soa/services`
 - `GET /soa/contracts`
@@ -87,7 +89,7 @@ bash tools/run_central_brain_backend.sh
 
 `GET /vehicle/signals/validation` 覆盖 XSC-002、XSC-004、XSC-006、NV-F-003、NV-F-004、NV-F-005、NV-P-001、NV-P-002、NV-P-003、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005，只返回 schema source metadata、Vehicle Signal Adapter owner、platform ABI owner、Android/Linux parity evidence、DRV-GAP-002 evidence 和 no-write-before-read-bridge 门禁；`summary.read_bridge_activated=false`、`summary.schema_source_attached=false`、`summary.adapter_owner_confirmed=false`、`summary.parity_evidence_attached=false`、`summary.drv_gap_002_evidence_attached=false`、`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有解析 DBC/ARXML、没有激活真实读桥、没有访问硬件、没有新增 Driver/HAL、没有开发虚拟化层。
 
-`GET /uib/events/subscriptions` 覆盖 XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002，只返回 Event subscription lifecycle、cursor/replay、filter、QoS/backpressure、governance、Android/Linux parity 和 `EV-SUB-001..005` 门禁；`summary.broker_active=false`、`summary.dds_runtime_active=false`、`summary.sse_websocket_active=false`、`summary.high_rate_data_plane_active=false`、`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有启动真实订阅 broker、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL 或虚拟化层。
+`GET /uib/events/subscriptions`、`POST /uib/events/subscriptions/request` 和 `POST /uib/events/subscriptions/cancel` 覆盖 XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002，只返回 Event subscription lifecycle、cursor/replay、filter、QoS/backpressure、governance、request/cancel contract-only 命令、Android/Linux parity 和 `EV-SUB-001..006` 门禁；`summary.subscription_persisted=false`、`summary.broker_active=false`、`summary.callback_registered=false`、`summary.dds_runtime_active=false`、`summary.sse_websocket_active=false`、`summary.high_rate_data_plane_active=false`、`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有启动真实订阅 broker、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL 或虚拟化层。
 
 `GET /soa/contracts` 覆盖 XSC-003、FW-S-004、NV-G-003、DEL-001、DEL-002，从 `runtime_governance.SERVICE_CATALOG` 返回服务 contract、版本、Policy/Safety State、QoS、Lifecycle 和 no-dispatch 边界；它只做 contract visibility，不调用 SOA service、Driver/HAL、车辆总线或虚拟化层。
 
