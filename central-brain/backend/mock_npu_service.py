@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.43"
+API_VERSION = "0.1.44"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -69,6 +69,7 @@ EVENT_SUBSCRIPTION_CALLBACK_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_CURSOR_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_BACKPRESSURE_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_READINESS_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -271,6 +272,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "cursor_replay_storage_endpoint": "GET /uib/events/subscriptions/cursor-replay-storage",
                     "backpressure_qos_evidence_endpoint": "GET /uib/events/subscriptions/backpressure-qos-evidence",
                     "readiness_rollup_endpoint": "GET /uib/events/subscriptions/readiness-rollup",
+                    "activation_evidence_endpoint": "POST /uib/events/subscriptions/activation-evidence",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -385,22 +387,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "fragmented-contract-surfaces -> contract-only-readiness-rollup-blocked",
                     "side_effects": "no readiness gate is auto-passed and no broker, persistence, callback/watch, transport runtime, QoS, Driver/HAL, or virtualization path is activated",
                 },
+                "activation_evidence": {
+                    "endpoint": "POST /uib/events/subscriptions/activation-evidence",
+                    "state_transition": "evidence-submitted -> validated_contract_only|rejected_by_policy|rejected_missing_evidence",
+                    "side_effects": "no evidence is persisted, no review queue is updated, no readiness gate is closed, and no broker/runtime/Driver/HAL path is activated",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson/submitEventSubscriptionActivationEvidenceJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup/activation.evidence",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup/SubmitEventSubscriptionActivationEvidence",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -463,6 +470,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_cursor_replay_storage": "GET /uib/events/subscriptions/cursor-replay-storage",
             "rest_backpressure_qos_evidence": "GET /uib/events/subscriptions/backpressure-qos-evidence",
             "rest_readiness_rollup": "GET /uib/events/subscriptions/readiness-rollup",
+            "rest_activation_evidence": "POST /uib/events/subscriptions/activation-evidence",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
@@ -473,6 +481,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "android_binder_cursor_replay_storage": "getEventSubscriptionCursorReplayStorageJson",
             "android_binder_backpressure_qos_evidence": "getEventSubscriptionBackpressureQosEvidenceJson",
             "android_binder_readiness_rollup": "getEventSubscriptionReadinessRollupJson",
+            "android_binder_activation_evidence": "submitEventSubscriptionActivationEvidenceJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
@@ -483,6 +492,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_cli_cursor_replay_storage": "event-subscription-cursor-replay-storage",
             "linux_cli_backpressure_qos_evidence": "event-subscription-backpressure-qos-evidence",
             "linux_cli_readiness_rollup": "event-subscription-readiness-rollup",
+            "linux_cli_activation_evidence": "event-subscription-activation-evidence",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
@@ -493,6 +503,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_ipc_cursor_replay_storage": "uib.events.subscriptions.cursor.replay.storage",
             "linux_ipc_backpressure_qos_evidence": "uib.events.subscriptions.backpressure.qos.evidence",
             "linux_ipc_readiness_rollup": "uib.events.subscriptions.readiness.rollup",
+            "linux_ipc_activation_evidence": "uib.events.subscriptions.activation.evidence",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
@@ -503,6 +514,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_grpc_rpc_cursor_replay_storage": "CentralBrainGateway.GetEventSubscriptionCursorReplayStorage",
             "linux_grpc_rpc_backpressure_qos_evidence": "CentralBrainGateway.GetEventSubscriptionBackpressureQosEvidence",
             "linux_grpc_rpc_readiness_rollup": "CentralBrainGateway.GetEventSubscriptionReadinessRollup",
+            "linux_grpc_rpc_activation_evidence": "CentralBrainGateway.SubmitEventSubscriptionActivationEvidence",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
@@ -511,11 +523,17 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "cursor_replay_storage_contract_active": True,
             "backpressure_qos_evidence_contract_active": True,
             "readiness_rollup_contract_active": True,
+            "activation_evidence_contract_active": True,
             "broker_active": False,
             "subscription_persistence_active": False,
             "cursor_storage_active": False,
             "backpressure_qos_evidence_confirmed": False,
             "readiness_rollup_confirmed": False,
+            "activation_evidence_persisted": False,
+            "activation_evidence_accepted_for_review": False,
+            "review_queue_updated": False,
+            "gate_state_changed": False,
+            "gates_closed": False,
             "callback_registered": False,
             "watch_started": False,
             "dds_runtime_active": False,
@@ -1493,6 +1511,7 @@ def event_subscription_readiness_rollup_payload() -> dict[str, Any]:
             "EV-CW-001..006 callback/watch runtime evidence",
             "EV-CRS-001..006 cursor/replay storage evidence",
             "EV-QOS-001..006 backpressure/QoS evidence",
+            "POST /uib/events/subscriptions/activation-evidence evidence reference intake contract",
             "DRV-GAP-004/DRV-GAP-005 review if high-rate delivery is selected",
         ],
         "api_surface": {
@@ -1530,6 +1549,167 @@ def event_subscription_readiness_rollup_payload() -> dict[str, Any]:
             "service_dispatch_triggered": False,
         },
         "req_ids": EVENT_SUBSCRIPTION_READINESS_REQ_IDS,
+    }
+
+
+def event_subscription_activation_evidence_payload(request: dict[str, Any]) -> dict[str, Any]:
+    trace_id = request.get("trace_id") or str(uuid.uuid4())
+    submission_id = str(request.get("evidence_submission_id") or f"ev-ae-{uuid.uuid4()}")
+    raw_gate_ids = request.get("target_gate_ids") or request.get("gate_ids") or []
+    target_gate_ids = raw_gate_ids if isinstance(raw_gate_ids, list) else [str(raw_gate_ids)]
+    raw_evidence_refs = request.get("evidence_refs") or request.get("attachments") or []
+    evidence_refs = raw_evidence_refs if isinstance(raw_evidence_refs, list) else [raw_evidence_refs]
+    reviewer = request.get("reviewer") or {"app_id": "unknown", "role": "contract-reviewer"}
+    requested_permissions = request.get("permissions") or ["service.read"]
+    policy = permission_check_payload(
+        {
+            "permissions": requested_permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        }
+    )
+    allowed = policy["decision"] == "allow"
+    has_target_gates = bool(target_gate_ids)
+    has_evidence_refs = bool(evidence_refs)
+    has_reviewer = bool(reviewer.get("app_id") or reviewer.get("name") or reviewer.get("role"))
+
+    if not allowed:
+        state = "rejected_by_policy"
+    elif not has_target_gates or not has_evidence_refs or not has_reviewer:
+        state = "rejected_missing_evidence"
+    else:
+        state = "validated_contract_only"
+
+    GOVERNANCE.record_audit(
+        trace_id,
+        {
+            "service": "uib-event-subscription",
+            "method": "activation-evidence",
+            "outcome": state,
+            "policy_decision": policy["decision"],
+            "lifecycle_state": "validated" if state == "validated_contract_only" else "rejected",
+            "qos_decision": "not-applied",
+        },
+    )
+
+    return {
+        "operation": "activation-evidence",
+        "evidence_submission_id": submission_id,
+        "evidence_intake_state": state,
+        "intake_validated": state == "validated_contract_only",
+        "target_gate_ids": target_gate_ids,
+        "evidence_refs": evidence_refs,
+        "reviewer": reviewer,
+        "evidence_contract": {
+            "required_gate_prefixes": ["EV-DM", "EV-ACT", "EV-CW", "EV-CRS", "EV-QOS", "EV-RU", "DRV-GAP"],
+            "accepted_ref_types": ["doc", "test_log", "owner_approval", "platform_decision", "driver_gap_review"],
+            "required_ref_fields": ["ref_id", "type", "uri_or_path", "owner", "summary"],
+            "storage_owner": "TBD-target-platform",
+            "review_owner": "TBD-target-platform",
+            "prototype_storage": "not implemented; request is validated and discarded after response",
+        },
+        "validation": {
+            "policy_checked": True,
+            "policy": policy,
+            "target_gates_present": has_target_gates,
+            "evidence_refs_present": has_evidence_refs,
+            "reviewer_present": has_reviewer,
+            "audit_recorded": True,
+        },
+        "review_result": {
+            "accepted_for_review": False,
+            "review_queue_updated": False,
+            "evidence_persisted": False,
+            "gate_state_changed": False,
+            "gates_closed": False,
+            "activation_allowed": False,
+            "reason": "prototype exposes activation evidence intake contract only; no evidence store or review workflow is implemented",
+        },
+        "mandatory_gates": [
+            {
+                "gate_id": "EV-AE-001",
+                "name": "target-gates-declared",
+                "required_evidence": "Submission identifies which EV-DM/EV-ACT/EV-CW/EV-CRS/EV-QOS/EV-RU or DRV-GAP gates it claims to support.",
+                "passed": has_target_gates,
+            },
+            {
+                "gate_id": "EV-AE-002",
+                "name": "evidence-reference-shape-present",
+                "required_evidence": "Submission includes evidence_refs with ref_id, type, uri_or_path, owner, and summary fields.",
+                "passed": has_evidence_refs,
+            },
+            {
+                "gate_id": "EV-AE-003",
+                "name": "reviewer-identity-present",
+                "required_evidence": "Submission includes reviewer identity suitable for Runtime & Governance audit.",
+                "passed": has_reviewer,
+            },
+            {
+                "gate_id": "EV-AE-004",
+                "name": "runtime-governance-policy-checked",
+                "required_evidence": "Activation evidence submission is policy checked and audited.",
+                "passed": allowed,
+            },
+            {
+                "gate_id": "EV-AE-005",
+                "name": "evidence-store-owner-assigned",
+                "required_evidence": "Target platform assigns durable evidence store owner and retention policy.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AE-006",
+                "name": "review-workflow-owner-assigned",
+                "required_evidence": "Target platform assigns reviewer workflow owner and gate closure authority.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-AE-007",
+                "name": "no-gate-auto-close-claim",
+                "required_evidence": "Prototype reports no gate state changes and no activation allowed from evidence intake.",
+                "passed": True,
+            },
+            {
+                "gate_id": "EV-AE-008",
+                "name": "android-linux-contract-parity-proven",
+                "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent activation evidence intake behavior.",
+                "passed": True,
+            },
+        ],
+        "api_surface": {
+            "rest": "POST /uib/events/subscriptions/activation-evidence",
+            "android_binder": "submitEventSubscriptionActivationEvidenceJson",
+            "linux_cli": "event-subscription-activation-evidence",
+            "linux_ipc": "uib.events.subscriptions.activation.evidence",
+            "linux_grpc_rpc": "CentralBrainGateway.SubmitEventSubscriptionActivationEvidence",
+        },
+        "summary": {
+            "activation_evidence_contract_active": True,
+            "activation_evidence_validated": state == "validated_contract_only",
+            "activation_evidence_accepted_for_review": False,
+            "activation_evidence_persisted": False,
+            "review_queue_updated": False,
+            "gate_state_changed": False,
+            "gates_closed": False,
+            "activation_allowed": False,
+            "broker_activation_ready": False,
+            "production_activation_allowed": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "cursor_storage_active": False,
+            "event_delivery_qos_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_REQ_IDS,
     }
 
 
@@ -2347,6 +2527,10 @@ class Handler(BaseHTTPRequestHandler):
             trace_id = request.get("trace_id") or str(uuid.uuid4())
             request["trace_id"] = trace_id
             self.send_json(200, envelope(event_subscription_cancel_payload(request), trace_id))
+        elif path == "/uib/events/subscriptions/activation-evidence":
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(event_subscription_activation_evidence_payload(request), trace_id))
         elif path == "/agent/plan":
             self.send_json(200, envelope(agent_plan_payload(request), request.get("trace_id")))
         elif path == "/agent/execute":

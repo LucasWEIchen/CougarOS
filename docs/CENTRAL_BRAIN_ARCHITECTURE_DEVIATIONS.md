@@ -41,6 +41,8 @@
 
 2026-07-07 新增 `GET /uib/events/subscriptions/readiness-rollup`、Android Binder `getEventSubscriptionReadinessRollupJson`、Linux CLI `event-subscription-readiness-rollup`、Linux IPC `uib.events.subscriptions.readiness.rollup` 和 Linux gRPC/RPC `GetEventSubscriptionReadinessRollup`，把 lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage、backpressure/QoS evidence 的 blocked gates 汇总为 `EV-RU-001..006` activation blockers。该补充没有关闭 DEV-007：`readiness_rollup_confirmed=false`、`broker_activation_ready=false`、`production_activation_allowed=false`、`all_required_evidence_complete=false`、`transport_selected=false`、`broker_active=false`、`cursor_storage_active=false`、`event_delivery_qos_active=false`、`callback_registered=false`、`watch_started=false`、`dds_runtime_active=false`、`driver_development_triggered=false` 仍是验收边界。
 
+2026-07-07 新增 `POST /uib/events/subscriptions/activation-evidence`、Android Binder `submitEventSubscriptionActivationEvidenceJson`、Linux CLI `event-subscription-activation-evidence`、Linux IPC `uib.events.subscriptions.activation.evidence` 和 Linux gRPC/RPC `SubmitEventSubscriptionActivationEvidence`，把 activation gate evidence reference envelope、reviewer identity、policy/audit check 和 `EV-AE-001..008` 门禁固定为 contract-only intake。该补充没有关闭 DEV-007：`activation_evidence_persisted=false`、`activation_evidence_accepted_for_review=false`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false`、`activation_allowed=false`、`broker_activation_ready=false`、`broker_active=false`、`driver_development_triggered=false` 仍是验收边界。
+
 ## 新增偏差记录模板
 
 | ID | 偏差 | 涉及需求 | 当前原因 | 风险 | 修正计划 | 状态 |

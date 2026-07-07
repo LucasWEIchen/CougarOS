@@ -27,6 +27,7 @@
         "uib.events.subscriptions.cursor.replay.storage",
         "uib.events.subscriptions.backpressure.qos.evidence",
         "uib.events.subscriptions.readiness.rollup",
+        "uib.events.subscriptions.activation.evidence",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

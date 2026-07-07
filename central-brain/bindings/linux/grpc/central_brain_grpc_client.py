@@ -52,6 +52,27 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "event-subscription-cursor-replay-storage": ("GetEventSubscriptionCursorReplayStorage", {}),
     "event-subscription-backpressure-qos-evidence": ("GetEventSubscriptionBackpressureQosEvidence", {}),
     "event-subscription-readiness-rollup": ("GetEventSubscriptionReadinessRollup", {}),
+    "event-subscription-activation-evidence": (
+        "SubmitEventSubscriptionActivationEvidence",
+        {
+            "trace_id": "linux-grpc-event-subscription-activation-evidence",
+            "evidence_submission_id": "linux-grpc-activation-evidence",
+            "target_gate_ids": ["EV-ACT-001", "EV-RU-001", "DRV-GAP-004"],
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-grpc-evidence-doc",
+                    "type": "doc",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-grpc-client",
+                    "summary": "contract-only evidence reference sample",
+                }
+            ],
+            "reviewer": {"app_id": "linux-grpc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

@@ -43,6 +43,8 @@
 
 2026-07-07 新增 `GET /uib/events/subscriptions/readiness-rollup`、Android `getEventSubscriptionReadinessRollupJson`、Linux `event-subscription-readiness-rollup`、`uib.events.subscriptions.readiness.rollup` 与 `GetEventSubscriptionReadinessRollup`，把 lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage 和 backpressure/QoS evidence 的 blocked gates 聚合为 `EV-RU-001..006` activation blockers。该疑点仍为 Proposed：rollup 只说明 broker/runtime activation 为什么被阻塞，不确认 owner、transport、cursor persistence、QoS evidence、callback/watch runtime 或 Driver/HAL high-rate scope；原型继续报告 `readiness_rollup_confirmed=false`、`broker_activation_ready=false`、`production_activation_allowed=false` 和 `all_required_evidence_complete=false`。
 
+2026-07-07 新增 `POST /uib/events/subscriptions/activation-evidence`、Android `submitEventSubscriptionActivationEvidenceJson`、Linux `event-subscription-activation-evidence`、`uib.events.subscriptions.activation.evidence` 与 `SubmitEventSubscriptionActivationEvidence`，把 activation gate evidence reference envelope、reviewer identity、policy/audit check 和 `EV-AE-001..008` 门禁固定为 contract-only intake。该疑点仍为 Proposed：evidence store owner、review workflow owner、gate closure authority、retention policy 和 target platform evidence URI 规则尚未确认；原型继续报告 `activation_evidence_persisted=false`、`activation_evidence_accepted_for_review=false`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false` 和 `activation_allowed=false`。
+
 ## 新增疑点模板
 
 | ID | 图中位置 | 疑点/风险 | 影响 | 当前建议 | 状态 |

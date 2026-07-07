@@ -48,6 +48,16 @@ owner decision matrix、activation checklist、callback/watch shape、cursor/rep
 backpressure/QoS evidence 的 blocked gates 和 `EV-RU-001..006` blockers，不关闭 gate，
 不激活 broker、cursor、callback/watch、DDS、高频数据面、Driver/HAL 或虚拟化层。
 
+Event subscription activation evidence intake 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`POST /uib/events/subscriptions/activation-evidence`、Android Binder
+`submitEventSubscriptionActivationEvidenceJson`、Linux CLI
+`event-subscription-activation-evidence`、Linux IPC
+`uib.events.subscriptions.activation.evidence` 与 Linux gRPC/RPC
+`SubmitEventSubscriptionActivationEvidence` 查询。该视图只校验 activation gate evidence
+reference envelope、reviewer identity、Runtime & Governance policy/audit check 和
+`EV-AE-001..008` 门禁，不持久化 evidence，不更新 review queue，不关闭 gate，
+不允许 broker activation，不触发 Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC
@@ -158,4 +168,4 @@ bash tools/check_central_brain_android_system_service_docs.sh
 - Android system/privileged service 当前只有集成约束文档，没有 framework patch、priv-app 签名配置或 sepolicy，风险记录见 ISSUE-013。
 - Linux systemd unit 与 package profile 是带最小 hardening 约束的部署样例，不等同量产包管理、LSM 策略或安全认证基线。
 - 当前审计可选 JSONL 持久化并恢复最近 50 条；仍不是量产审计后端，偏差记录见 DEV-006。
-- 当前没有真实 Driver/HAL/NPU/Vehicle bus 接入；`/uib/events/subscriptions`、`/uib/events/subscriptions/request`、`/uib/events/subscriptions/cancel`、`/uib/events/subscriptions/transport-readiness`、`/uib/events/subscriptions/decision-matrix`、`/uib/events/subscriptions/activation-checklist`、`/uib/events/subscriptions/callback-watch-shape`、`/uib/events/subscriptions/cursor-replay-storage`、`/uib/events/subscriptions/backpressure-qos-evidence` 和 `/uib/events/subscriptions/readiness-rollup` 只是 Event subscription lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage、backpressure/QoS evidence 与 readiness blocker rollup contract，不持久化 subscription，不选择 transport，不分配量产 owner，不注册 callback/watch，不启动 broker、SSE/WebSocket、DDS runtime 或高频数据面；`/hardware/interfaces` 只是 empty-interface registry，`/vehicle/signals` 只是 read-only VSS-style catalog，`/vehicle/signals/activation` 只是 read-bridge activation criteria，`/vehicle/signals/validation` 只是 read-bridge validation envelope，不访问 HAL、device node、vendor SDK、shared memory、VHAL、SocketCAN、DBC/ARXML、真实车辆总线或虚拟化层，偏差记录见 DEV-004、DEV-005、DEV-007、DEV-014、DEV-016。
+- 当前没有真实 Driver/HAL/NPU/Vehicle bus 接入；`/uib/events/subscriptions`、`/uib/events/subscriptions/request`、`/uib/events/subscriptions/cancel`、`/uib/events/subscriptions/transport-readiness`、`/uib/events/subscriptions/decision-matrix`、`/uib/events/subscriptions/activation-checklist`、`/uib/events/subscriptions/callback-watch-shape`、`/uib/events/subscriptions/cursor-replay-storage`、`/uib/events/subscriptions/backpressure-qos-evidence`、`/uib/events/subscriptions/readiness-rollup` 和 `/uib/events/subscriptions/activation-evidence` 只是 Event subscription lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage、backpressure/QoS evidence、readiness blocker rollup 与 activation evidence intake contract，不持久化 subscription/evidence，不更新 review queue，不关闭 gate，不选择 transport，不分配量产 owner，不注册 callback/watch，不启动 broker、SSE/WebSocket、DDS runtime 或高频数据面；`/hardware/interfaces` 只是 empty-interface registry，`/vehicle/signals` 只是 read-only VSS-style catalog，`/vehicle/signals/activation` 只是 read-bridge activation criteria，`/vehicle/signals/validation` 只是 read-bridge validation envelope，不访问 HAL、device node、vendor SDK、shared memory、VHAL、SocketCAN、DBC/ARXML、真实车辆总线或虚拟化层，偏差记录见 DEV-004、DEV-005、DEV-007、DEV-014、DEV-016。

@@ -57,6 +57,28 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "event-subscription-cursor-replay-storage": ("GET", "/uib/events/subscriptions/cursor-replay-storage", None),
     "event-subscription-backpressure-qos-evidence": ("GET", "/uib/events/subscriptions/backpressure-qos-evidence", None),
     "event-subscription-readiness-rollup": ("GET", "/uib/events/subscriptions/readiness-rollup", None),
+    "event-subscription-activation-evidence": (
+        "POST",
+        "/uib/events/subscriptions/activation-evidence",
+        {
+            "trace_id": "linux-cli-event-subscription-activation-evidence",
+            "evidence_submission_id": "linux-cli-activation-evidence",
+            "target_gate_ids": ["EV-ACT-001", "EV-RU-001", "DRV-GAP-004"],
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-cli-evidence-doc",
+                    "type": "doc",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-cli",
+                    "summary": "contract-only evidence reference sample",
+                }
+            ],
+            "reviewer": {"app_id": "linux-cli", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),

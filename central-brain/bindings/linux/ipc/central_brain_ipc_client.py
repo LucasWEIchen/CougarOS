@@ -52,6 +52,27 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "event-subscription-cursor-replay-storage": ("uib.events.subscriptions.cursor.replay.storage", {}),
     "event-subscription-backpressure-qos-evidence": ("uib.events.subscriptions.backpressure.qos.evidence", {}),
     "event-subscription-readiness-rollup": ("uib.events.subscriptions.readiness.rollup", {}),
+    "event-subscription-activation-evidence": (
+        "uib.events.subscriptions.activation.evidence",
+        {
+            "trace_id": "linux-ipc-event-subscription-activation-evidence",
+            "evidence_submission_id": "linux-ipc-activation-evidence",
+            "target_gate_ids": ["EV-ACT-001", "EV-RU-001", "DRV-GAP-004"],
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-ipc-evidence-doc",
+                    "type": "doc",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-ipc-client",
+                    "summary": "contract-only evidence reference sample",
+                }
+            ],
+            "reviewer": {"app_id": "linux-ipc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),

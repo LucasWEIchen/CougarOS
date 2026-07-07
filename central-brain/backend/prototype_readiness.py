@@ -77,11 +77,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "Uni Info Bus semantic Context/State/Event/Action/Extension",
         "diagram_group": "middle-layer",
         "yellow_sun_portable": True,
-        "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-and-readiness-rollup-contract",
-        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription request/cancel contract review", "callback/watch transport readiness review", "broker/cursor/backpressure owner decision review", "activation evidence checklist review", "callback/watch API shape review", "cursor/replay storage contract review", "backpressure/QoS evidence contract review", "end-to-end readiness rollup review", "extension contract review"],
+        "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-and-activation-evidence-intake-contract",
+        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription request/cancel contract review", "callback/watch transport readiness review", "broker/cursor/backpressure owner decision review", "activation evidence checklist review", "activation evidence intake contract review", "callback/watch API shape review", "cursor/replay storage contract review", "backpressure/QoS evidence contract review", "end-to-end readiness rollup review", "extension contract review"],
         "not_ready_for": ["real event broker", "SSE/WebSocket push", "DDS high-rate data plane", "plugin runtime loading", "real actuator dispatch"],
-        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, getUibExtensionsJson, requestActionJson",
-        "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, event-subscription-backpressure-qos-evidence, event-subscription-readiness-rollup, extensions, action-request over CLI/IPC/gRPC",
+        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getUibExtensionsJson, requestActionJson",
+        "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, event-subscription-backpressure-qos-evidence, event-subscription-readiness-rollup, event-subscription-activation-evidence, extensions, action-request over CLI/IPC/gRPC",
         "open_deviations": ["DEV-007", "DEV-015"],
         "open_issues": ["ISSUE-015", "ISSUE-018"],
         "req_ids": ["XSC-002", "FW-U-003", "FW-U-004", "FW-U-008", "NV-P-006", "DEL-001", "DEL-002"],
@@ -217,9 +217,9 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "event subscription broker activation evidence intake contract",
-                    "reason": "FW-U-003/NV-P-006 now expose lifecycle commands, callback/watch transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, and readiness rollup; the next safe step is an evidence intake contract that records missing owner/evidence attachments without activating runtime.",
-                    "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "NV-P-002", "NV-P-006", "DEL-001", "DEL-002", "DEL-004"],
+                    "candidate": "event subscription activation evidence review status contract",
+                    "reason": "FW-U-003/NV-P-006 now expose activation evidence intake as contract-only; the next safe step is a read-only review status contract that reports submitted evidence remains unpersisted/unreviewed until target evidence-store and workflow owners are assigned.",
+                    "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "NV-P-002", "NV-P-003", "NV-P-006", "DEL-001", "DEL-002", "DEL-004"],
                 },
                 {
                     "candidate": "hardware interface activation checklist",

@@ -40,6 +40,7 @@ Brain semantic gateway.
 | `getEventSubscriptionCursorReplayStorageJson` | `GET /uib/events/subscriptions/cursor-replay-storage` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionBackpressureQosEvidenceJson` | `GET /uib/events/subscriptions/backpressure-qos-evidence` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionReadinessRollupJson` | `GET /uib/events/subscriptions/readiness-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `submitEventSubscriptionActivationEvidenceJson` | `POST /uib/events/subscriptions/activation-evidence` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -145,11 +146,13 @@ Brain semantic gateway.
   `getEventSubscriptionActivationChecklistJson`,
   `getEventSubscriptionCallbackWatchShapeJson`,
   `getEventSubscriptionCursorReplayStorageJson`, and
-  `getEventSubscriptionBackpressureQosEvidenceJson`, and
-  `getEventSubscriptionReadinessRollupJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionBackpressureQosEvidenceJson`,
+  `getEventSubscriptionReadinessRollupJson`, and
+  `submitEventSubscriptionActivationEvidenceJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
+  activation evidence intake,
   callback/watch API shape, cursor/replay storage schema, overflow schema,
   replay rate, ack timeout, per-caller throttling, Runtime & Governance QoS evidence,
   readiness blockers,

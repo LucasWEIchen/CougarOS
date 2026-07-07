@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionCursorReplayButton;
     private Button eventSubscriptionBackpressureQosButton;
     private Button eventSubscriptionReadinessRollupButton;
+    private Button eventSubscriptionActivationEvidenceButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -205,6 +206,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionReadinessRollup();
+            }
+        });
+        eventSubscriptionActivationEvidenceButton = addButton(eventReadinessRow, "Sub Evidence", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                submitEventSubscriptionActivationEvidence();
             }
         });
 
@@ -444,6 +451,24 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void submitEventSubscriptionActivationEvidence() {
+        setBusy(true, "Status: validating event activation evidence via Binder");
+        String body = "{\"evidence_submission_id\":\"android-console-activation-evidence\","
+            + "\"target_gate_ids\":[\"EV-ACT-001\",\"EV-RU-001\",\"DRV-GAP-004\"],"
+            + "\"evidence_refs\":[{\"ref_id\":\"android-console-evidence-doc\","
+            + "\"type\":\"doc\",\"uri_or_path\":\"docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md\","
+            + "\"owner\":\"android-console\",\"summary\":\"contract-only evidence reference sample\"}],"
+            + "\"reviewer\":{\"app_id\":\"android-console\",\"role\":\"debug_console\"},"
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],"
+            + "\"vehicle_state\":\"parked\",\"safety_state\":\"normal\"}";
+        gatewayRequest("Event Subscription Activation Evidence (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.submitEventSubscriptionActivationEvidenceJson(newTraceId("event-subscription-activation-evidence"), body);
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -525,7 +550,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -587,6 +612,7 @@ public class MainActivity extends Activity {
         eventSubscriptionCursorReplayButton.setEnabled(enabled);
         eventSubscriptionBackpressureQosButton.setEnabled(enabled);
         eventSubscriptionReadinessRollupButton.setEnabled(enabled);
+        eventSubscriptionActivationEvidenceButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);
