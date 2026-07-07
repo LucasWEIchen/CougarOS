@@ -55,6 +55,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "event-subscription-activation-checklist": ("GET", "/uib/events/subscriptions/activation-checklist", None),
     "event-subscription-callback-watch-shape": ("GET", "/uib/events/subscriptions/callback-watch-shape", None),
     "event-subscription-cursor-replay-storage": ("GET", "/uib/events/subscriptions/cursor-replay-storage", None),
+    "event-subscription-backpressure-qos-evidence": ("GET", "/uib/events/subscriptions/backpressure-qos-evidence", None),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),

@@ -182,6 +182,12 @@
 
 该增量只补需求基线中的订阅 cursor/replay 存储接口形状，不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
 
+## FW-U-003/NV-P-006 当前补充：Event subscription backpressure/QoS evidence
+
+`GET /uib/events/subscriptions/backpressure-qos-evidence` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 增量，用于固定 overflow schema、per-caller throttling、per-topic limit、replay rate、ack timeout、Runtime & Governance QoS evidence、高频 transport QoS mapping 和 `EV-QOS-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionBackpressureQosEvidenceJson`，Linux 同步路径暴露 `event-subscription-backpressure-qos-evidence`、`uib.events.subscriptions.backpressure.qos.evidence` 和 `GetEventSubscriptionBackpressureQosEvidence`。
+
+该增量只补需求基线中的订阅 backpressure/QoS evidence 接口形状，不激活事件 QoS，不发送 overflow，不分配 Runtime & Governance QoS owner，不启动 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
+
 ## 开发顺序约束
 
 1. 先补齐 L2/L3 的契约和治理骨架，再扩展上层 App。

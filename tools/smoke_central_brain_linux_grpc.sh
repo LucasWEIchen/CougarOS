@@ -112,6 +112,7 @@ for key in [
     "broker_active",
     "subscription_persistence_active",
     "cursor_storage_active",
+    "backpressure_qos_evidence_confirmed",
     "callback_registered",
     "watch_started",
     "dds_runtime_active",
@@ -123,21 +124,25 @@ for key in [
     "service_dispatch_triggered",
 ]:
     assert subscriptions["summary"][key] is False, response
+assert subscriptions["summary"]["backpressure_qos_evidence_contract_active"] is True, response
 assert "getEventSubscriptionsJson" in encoded, response
 assert "requestEventSubscriptionJson" in encoded, response
 assert "cancelEventSubscriptionJson" in encoded, response
 assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, response
 assert "getEventSubscriptionCursorReplayStorageJson" in encoded, response
+assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, response
 assert "uib.events.subscriptions.get" in encoded, response
 assert "uib.events.subscriptions.request" in encoded, response
 assert "uib.events.subscriptions.cancel" in encoded, response
 assert "uib.events.subscriptions.callback.watch.shape" in encoded, response
 assert "uib.events.subscriptions.cursor.replay.storage" in encoded, response
+assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, response
 assert "GetEventSubscriptions" in encoded, response
 assert "RequestEventSubscription" in encoded, response
 assert "CancelEventSubscription" in encoded, response
 assert "GetEventSubscriptionCallbackWatchShape" in encoded, response
 assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
+assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
 PY
 EVENT_SUBSCRIBE_REQUEST_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscribe-request)"
@@ -410,6 +415,52 @@ assert "getEventSubscriptionCursorReplayStorageJson" in encoded, response
 assert "event-subscription-cursor-replay-storage" in encoded, response
 assert "uib.events.subscriptions.cursor.replay.storage" in encoded, response
 assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
+EVENT_SUBSCRIPTION_BACKPRESSURE_QOS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-backpressure-qos-evidence)"
+python3 - "$EVENT_SUBSCRIPTION_BACKPRESSURE_QOS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+qos = payload["gateway"]["payload"]
+encoded = json.dumps(qos)
+gate_ids = {item["gate_id"] for item in qos["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert qos["backpressure_qos_state"] == "contract-only-backpressure-qos-evidence-draft", response
+assert qos["backpressure_qos_evidence_confirmed"] is False, response
+assert {"EV-QOS-001", "EV-QOS-002", "EV-QOS-003", "EV-QOS-004", "EV-QOS-005", "EV-QOS-006", "EV-QOS-007", "EV-QOS-008"} <= gate_ids, response
+for key in [
+    "backpressure_qos_evidence_confirmed",
+    "overflow_schema_confirmed",
+    "qos_owner_confirmed",
+    "runtime_governance_qos_evidence_attached",
+    "high_rate_qos_mapping_confirmed",
+    "driver_hal_scope_evidence_attached",
+    "event_delivery_qos_active",
+    "overflow_emission_active",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "replay_index_active",
+    "callback_registered",
+    "watch_started",
+    "streaming_runtime_implemented",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert qos["summary"][key] is False, response
+assert qos["summary"]["backpressure_qos_evidence_contract_active"] is True, response
+assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, response
+assert "event-subscription-backpressure-qos-evidence" in encoded, response
+assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, response
+assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
@@ -767,6 +818,7 @@ assert "GetEventSubscriptions" in encoded, response
 assert "GetEventSubscriptionDecisionMatrix" in encoded, response
 assert "GetEventSubscriptionCallbackWatchShape" in encoded, response
 assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
+assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
 assert "GetVehicleSignals" in encoded, response
 assert "GetVehicleSignalActivation" in encoded, response
 assert "GetVehicleSignalValidation" in encoded, response

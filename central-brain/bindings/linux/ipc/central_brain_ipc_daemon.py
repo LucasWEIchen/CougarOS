@@ -100,6 +100,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/uib/events/subscriptions/cursor-replay-storage",
         "req_ids": ["XSC-002", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002", "DEL-004"],
     },
+    "uib.events.subscriptions.backpressure.qos.evidence": {
+        "method": "GET",
+        "path": "/uib/events/subscriptions/backpressure-qos-evidence",
+        "req_ids": ["XSC-002", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002", "DEL-004"],
+    },
     "uib.extensions.get": {
         "method": "GET",
         "path": "/uib/extensions",

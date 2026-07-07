@@ -103,6 +103,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-checklist", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/callback-watch-shape", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/cursor-replay-storage", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/backpressure-qos-evidence", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -423,6 +424,7 @@ for method, path, body, req_id in checks:
             "broker_active",
             "subscription_persistence_active",
             "cursor_storage_active",
+            "backpressure_qos_evidence_confirmed",
             "callback_registered",
             "watch_started",
             "dds_runtime_active",
@@ -434,21 +436,25 @@ for method, path, body, req_id in checks:
             "service_dispatch_triggered",
         ]:
             assert subscriptions["summary"][key] is False, f"event subscription summary unexpectedly set {key}"
+        assert subscriptions["summary"]["backpressure_qos_evidence_contract_active"] is True, "backpressure/QoS evidence contract not active in subscription summary"
         assert "getEventSubscriptionsJson" in encoded, "Android event subscription binding visibility missing"
         assert "requestEventSubscriptionJson" in encoded, "Android event subscription request binding visibility missing"
         assert "cancelEventSubscriptionJson" in encoded, "Android event subscription cancel binding visibility missing"
         assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, "Android event subscription callback/watch shape binding visibility missing"
         assert "getEventSubscriptionCursorReplayStorageJson" in encoded, "Android event subscription cursor/replay storage binding visibility missing"
+        assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, "Android event subscription backpressure/QoS binding visibility missing"
         assert "uib.events.subscriptions.get" in encoded, "Linux IPC event subscription binding visibility missing"
         assert "uib.events.subscriptions.request" in encoded, "Linux IPC event subscription request binding visibility missing"
         assert "uib.events.subscriptions.cancel" in encoded, "Linux IPC event subscription cancel binding visibility missing"
         assert "uib.events.subscriptions.callback.watch.shape" in encoded, "Linux IPC event subscription callback/watch shape binding visibility missing"
         assert "uib.events.subscriptions.cursor.replay.storage" in encoded, "Linux IPC event subscription cursor/replay storage binding visibility missing"
+        assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, "Linux IPC event subscription backpressure/QoS binding visibility missing"
         assert "GetEventSubscriptions" in encoded, "gRPC event subscription binding visibility missing"
         assert "RequestEventSubscription" in encoded, "gRPC event subscription request binding visibility missing"
         assert "CancelEventSubscription" in encoded, "gRPC event subscription cancel binding visibility missing"
         assert "GetEventSubscriptionCallbackWatchShape" in encoded, "gRPC event subscription callback/watch shape binding visibility missing"
         assert "GetEventSubscriptionCursorReplayStorage" in encoded, "gRPC event subscription cursor/replay storage binding visibility missing"
+        assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, "gRPC event subscription backpressure/QoS binding visibility missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded, "event subscription missing Req IDs"
     if path == "/uib/events/subscriptions/request":
         subscription = payload["payload"]
@@ -668,6 +674,44 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.cursor.replay.storage" in encoded, "Linux IPC event subscription cursor/replay storage binding missing"
         assert "GetEventSubscriptionCursorReplayStorage" in encoded, "gRPC event subscription cursor/replay storage binding missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription cursor/replay storage missing Req IDs"
+    if path == "/uib/events/subscriptions/backpressure-qos-evidence":
+        qos = payload["payload"]
+        encoded = json.dumps(qos)
+        gate_ids = {item["gate_id"] for item in qos["mandatory_gates"]}
+        assert qos["backpressure_qos_state"] == "contract-only-backpressure-qos-evidence-draft", "event subscription backpressure/QoS evidence left draft state"
+        assert qos["backpressure_qos_evidence_confirmed"] is False, "event subscription backpressure/QoS evidence was confirmed"
+        assert {"EV-QOS-001", "EV-QOS-002", "EV-QOS-003", "EV-QOS-004", "EV-QOS-005", "EV-QOS-006", "EV-QOS-007", "EV-QOS-008"} <= gate_ids, "event backpressure/QoS evidence missing mandatory gates"
+        for key in [
+            "backpressure_qos_evidence_confirmed",
+            "overflow_schema_confirmed",
+            "qos_owner_confirmed",
+            "runtime_governance_qos_evidence_attached",
+            "high_rate_qos_mapping_confirmed",
+            "driver_hal_scope_evidence_attached",
+            "event_delivery_qos_active",
+            "overflow_emission_active",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "replay_index_active",
+            "callback_registered",
+            "watch_started",
+            "streaming_runtime_implemented",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert qos["summary"][key] is False, f"event subscription backpressure/QoS summary unexpectedly set {key}"
+        assert qos["summary"]["backpressure_qos_evidence_contract_active"] is True, "backpressure/QoS evidence contract not active"
+        assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, "Android event subscription backpressure/QoS binding missing"
+        assert "event-subscription-backpressure-qos-evidence" in encoded, "Linux CLI event subscription backpressure/QoS binding missing"
+        assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, "Linux IPC event subscription backpressure/QoS binding missing"
+        assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, "gRPC event subscription backpressure/QoS binding missing"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription backpressure/QoS evidence missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -772,6 +816,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-callback-watch-shape >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-cursor-replay-storage >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-backpressure-qos-evidence >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.41"
+API_VERSION = "0.1.42"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -67,6 +67,7 @@ EVENT_SUBSCRIPTION_DECISION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_CALLBACK_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_CURSOR_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+EVENT_SUBSCRIPTION_BACKPRESSURE_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -267,6 +268,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "activation_checklist_endpoint": "GET /uib/events/subscriptions/activation-checklist",
                     "callback_watch_shape_endpoint": "GET /uib/events/subscriptions/callback-watch-shape",
                     "cursor_replay_storage_endpoint": "GET /uib/events/subscriptions/cursor-replay-storage",
+                    "backpressure_qos_evidence_endpoint": "GET /uib/events/subscriptions/backpressure-qos-evidence",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -371,22 +373,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "storage-open -> contract-only-cursor-replay-storage-draft",
                     "side_effects": "no cursor row, replay index, subscription persistence, broker dispatch, or transport runtime is created",
                 },
+                "backpressure_qos_evidence": {
+                    "endpoint": "GET /uib/events/subscriptions/backpressure-qos-evidence",
+                    "state_transition": "qos-evidence-open -> contract-only-backpressure-qos-evidence-draft",
+                    "side_effects": "no QoS reservation, overflow dispatch, broker dispatch, high-rate transport, or Driver/HAL path is activated",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -447,6 +454,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_activation_checklist": "GET /uib/events/subscriptions/activation-checklist",
             "rest_callback_watch_shape": "GET /uib/events/subscriptions/callback-watch-shape",
             "rest_cursor_replay_storage": "GET /uib/events/subscriptions/cursor-replay-storage",
+            "rest_backpressure_qos_evidence": "GET /uib/events/subscriptions/backpressure-qos-evidence",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
@@ -455,6 +463,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "android_binder_activation_checklist": "getEventSubscriptionActivationChecklistJson",
             "android_binder_callback_watch_shape": "getEventSubscriptionCallbackWatchShapeJson",
             "android_binder_cursor_replay_storage": "getEventSubscriptionCursorReplayStorageJson",
+            "android_binder_backpressure_qos_evidence": "getEventSubscriptionBackpressureQosEvidenceJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
@@ -463,6 +472,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_cli_activation_checklist": "event-subscription-activation-checklist",
             "linux_cli_callback_watch_shape": "event-subscription-callback-watch-shape",
             "linux_cli_cursor_replay_storage": "event-subscription-cursor-replay-storage",
+            "linux_cli_backpressure_qos_evidence": "event-subscription-backpressure-qos-evidence",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
@@ -471,6 +481,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_ipc_activation_checklist": "uib.events.subscriptions.activation.checklist",
             "linux_ipc_callback_watch_shape": "uib.events.subscriptions.callback.watch.shape",
             "linux_ipc_cursor_replay_storage": "uib.events.subscriptions.cursor.replay.storage",
+            "linux_ipc_backpressure_qos_evidence": "uib.events.subscriptions.backpressure.qos.evidence",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
@@ -479,15 +490,18 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_grpc_rpc_activation_checklist": "CentralBrainGateway.GetEventSubscriptionActivationChecklist",
             "linux_grpc_rpc_callback_watch_shape": "CentralBrainGateway.GetEventSubscriptionCallbackWatchShape",
             "linux_grpc_rpc_cursor_replay_storage": "CentralBrainGateway.GetEventSubscriptionCursorReplayStorage",
+            "linux_grpc_rpc_backpressure_qos_evidence": "CentralBrainGateway.GetEventSubscriptionBackpressureQosEvidence",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
             "active_subscription_count": 0,
             "lifecycle_command_contract_active": True,
             "cursor_replay_storage_contract_active": True,
+            "backpressure_qos_evidence_contract_active": True,
             "broker_active": False,
             "subscription_persistence_active": False,
             "cursor_storage_active": False,
+            "backpressure_qos_evidence_confirmed": False,
             "callback_registered": False,
             "watch_started": False,
             "dds_runtime_active": False,
@@ -516,7 +530,7 @@ def event_subscription_transport_readiness_payload() -> dict[str, Any]:
         },
         "android_callback_contract": {
             "candidate_operation": "registerEventSubscriptionCallback planned",
-            "current_binder_surface": "getEventSubscriptionTransportReadinessJson, getEventSubscriptionCallbackWatchShapeJson, and getEventSubscriptionCursorReplayStorageJson only",
+            "current_binder_surface": "getEventSubscriptionTransportReadinessJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, and getEventSubscriptionBackpressureQosEvidenceJson only",
             "callback_identity": "Binder UID/PID must map to Runtime & Governance caller identity before activation",
             "lifecycle": ["register", "onEvent", "onOverflow", "onClosed", "unregister"],
             "implemented": False,
@@ -525,7 +539,7 @@ def event_subscription_transport_readiness_payload() -> dict[str, Any]:
             "candidate_cli": "event-subscription-watch planned",
             "candidate_ipc_operation": "uib.events.subscriptions.watch planned",
             "candidate_grpc_rpc": "WatchEventSubscriptions streaming RPC planned",
-            "current_surface": "event-subscription-transport-readiness, event-subscription-callback-watch-shape, and event-subscription-cursor-replay-storage over CLI/IPC/gRPC",
+            "current_surface": "event-subscription-transport-readiness, event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, and event-subscription-backpressure-qos-evidence over CLI/IPC/gRPC",
             "implemented": False,
         },
         "transport_candidates": [
@@ -786,7 +800,7 @@ def event_subscription_activation_checklist_payload() -> dict[str, Any]:
                 "gate_id": "EV-ACT-004",
                 "area": "backpressure-qos-profile",
                 "required_evidence": "Overflow event schema, per-caller rate policy, high-rate topic QoS mapping, and Runtime & Governance responsibility split are approved.",
-                "current_evidence": "missing",
+                "current_evidence": "backpressure/QoS evidence contract exists; owner, overflow emission, and runtime QoS evidence missing",
                 "passed": False,
                 "blocks": ["high_rate_data_plane_active", "dds_runtime_active"],
             },
@@ -841,6 +855,8 @@ def event_subscription_activation_checklist_payload() -> dict[str, Any]:
             "EV-CRS-001 cursor-schema-reviewed",
             "EV-CRS-002 storage-owner-assigned",
             "EV-CRS-003 replay-window-retention-reviewed",
+            "EV-QOS-001 overflow-schema-reviewed",
+            "EV-QOS-004 runtime-governance-qos-owner-assigned",
         ],
         "api_surface": {
             "rest": "GET /uib/events/subscriptions/activation-checklist",
@@ -883,7 +899,7 @@ def event_subscription_callback_watch_shape_payload() -> dict[str, Any]:
         "shape_state": "contract-only-callback-watch-shape-draft",
         "shape_confirmed": False,
         "android_callback_shape": {
-            "current_binder_surface": "getEventSubscriptionCallbackWatchShapeJson and getEventSubscriptionCursorReplayStorageJson only",
+            "current_binder_surface": "getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, and getEventSubscriptionBackpressureQosEvidenceJson only",
             "planned_registration_method": "registerEventSubscriptionCallback(SubscriptionRequest request, ICentralBrainEventCallback callback)",
             "planned_unregister_method": "unregisterEventSubscriptionCallback(String subscriptionId)",
             "planned_callback_interface": {
@@ -896,7 +912,7 @@ def event_subscription_callback_watch_shape_payload() -> dict[str, Any]:
             "implemented": False,
         },
         "linux_watch_shape": {
-            "current_surface": "event-subscription-callback-watch-shape and event-subscription-cursor-replay-storage over CLI/IPC/gRPC",
+            "current_surface": "event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, and event-subscription-backpressure-qos-evidence over CLI/IPC/gRPC",
             "planned_cli": "event-subscription-watch --subscription-id <id> --since-event-id <cursor>",
             "planned_ipc_operations": [
                 "uib.events.subscriptions.watch.open",
@@ -1173,6 +1189,155 @@ def event_subscription_cursor_replay_storage_payload() -> dict[str, Any]:
             "service_dispatch_triggered": False,
         },
         "req_ids": EVENT_SUBSCRIPTION_CURSOR_REQ_IDS,
+    }
+
+
+def event_subscription_backpressure_qos_evidence_payload() -> dict[str, Any]:
+    return {
+        "backpressure_qos_state": "contract-only-backpressure-qos-evidence-draft",
+        "backpressure_qos_evidence_confirmed": False,
+        "policy_owner_contract": {
+            "production_owner": "TBD-target-platform",
+            "runtime_governance_owner": "Runtime & Governance owner TBD",
+            "android_owner": "TBD-Android system service owner",
+            "linux_owner": "TBD-Linux daemon owner",
+            "high_rate_transport_owner": "TBD-only if DDS/SSE/WebSocket/high-rate data plane is selected",
+            "implemented": False,
+        },
+        "overflow_schema": {
+            "event_type": "subscription.overflow planned",
+            "fields": {
+                "trace_id": "string",
+                "subscription_id": "string",
+                "topic": "string",
+                "overflow_reason": "client_backpressure|broker_backpressure|cursor_expired|qos_limit|transport_unavailable",
+                "qos_bucket": "best_effort|interactive|safety_observed|high_rate_planned",
+                "dropped_event_count": "integer",
+                "last_delivered_event_id": "string",
+                "resume_hint": "since_event_id|restart_subscription|reduce_rate",
+                "policy_decision_id": "string",
+                "req_ids": EVENT_SUBSCRIPTION_BACKPRESSURE_REQ_IDS,
+            },
+            "prototype_emission": "not implemented; schema only",
+        },
+        "qos_policy_contract": {
+            "per_caller_limit": "TBD by Runtime & Governance owner; prototype evidence missing",
+            "per_topic_limit": "TBD after topic frequency and selected transport are known",
+            "replay_rate_limit": "TBD with cursor/replay storage owner",
+            "ack_timeout_ms": "TBD with callback/watch owner",
+            "overflow_actions": ["emit_overflow", "drop_oldest", "pause_delivery", "reject_subscription"],
+            "retry_budget": "TBD-target-platform",
+            "audit_events": [
+                "subscription.qos.checked",
+                "subscription.qos.throttled",
+                "subscription.overflow.emitted",
+                "subscription.replay.rate_limited",
+            ],
+            "implemented": False,
+        },
+        "runtime_governance_binding": {
+            "required_inputs": ["caller_identity", "permissions", "safety_state", "topic", "qos_profile", "transport"],
+            "policy_checks": ["subscribe", "deliver", "ack", "replay", "overflow", "cancel"],
+            "qos_evidence_source": "not attached; fixed-window SOA QoS prototype does not yet govern event stream delivery",
+            "audit_required": True,
+            "implemented": False,
+        },
+        "high_rate_boundary": {
+            "dds_mapping_required": True,
+            "someip_tsn_ptp_review_required": True,
+            "shared_memory_review_required": True,
+            "driver_gap_refs": ["DRV-GAP-004", "DRV-GAP-005"],
+            "current_scope": "no high-rate data-plane; no DDS runtime; no Driver/HAL or shared-memory path",
+        },
+        "mandatory_gates": [
+            {
+                "gate_id": "EV-QOS-001",
+                "name": "overflow-schema-reviewed",
+                "required_evidence": "Overflow event fields, reason codes, resume hints, and audit mapping are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-QOS-002",
+                "name": "per-caller-rate-policy-reviewed",
+                "required_evidence": "Per-caller and per-topic rate limits are approved for Android Binder, Linux IPC, and future gRPC/RPC paths.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-QOS-003",
+                "name": "replay-rate-and-ack-timeout-reviewed",
+                "required_evidence": "Replay rate, ack timeout, duplicate delivery, and retry budget are aligned with cursor/replay storage.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-QOS-004",
+                "name": "runtime-governance-qos-owner-assigned",
+                "required_evidence": "Runtime & Governance owner confirms event delivery QoS evidence source and audit ownership.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-QOS-005",
+                "name": "high-rate-transport-qos-mapping-reviewed",
+                "required_evidence": "DDS/SSE/WebSocket/SOME-IP/TSN mapping is reviewed before high-rate delivery is activated.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-QOS-006",
+                "name": "driver-hal-high-rate-scope-reviewed",
+                "required_evidence": "DRV-GAP-004 and DRV-GAP-005 review is attached before shared memory, TSN/PTP, or Safety Runtime paths are used.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-QOS-007",
+                "name": "android-linux-contract-parity-proven",
+                "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent backpressure/QoS evidence fields.",
+                "passed": True,
+            },
+            {
+                "gate_id": "EV-QOS-008",
+                "name": "no-runtime-qos-activation-claim",
+                "required_evidence": "Prototype explicitly reports no event QoS activation, no overflow emission, no broker, no DDS runtime, and no Driver/HAL access.",
+                "passed": True,
+            },
+        ],
+        "decision_dependencies": [
+            "EV-DM-003 backpressure-qos-owner-selected",
+            "EV-ACT-004 backpressure-qos-profile",
+            "EV-CW-005 overflow-close-semantics-reviewed",
+            "EV-CRS-006 backpressure-qos-binding-reviewed",
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/backpressure-qos-evidence",
+            "android_binder": "getEventSubscriptionBackpressureQosEvidenceJson",
+            "linux_cli": "event-subscription-backpressure-qos-evidence",
+            "linux_ipc": "uib.events.subscriptions.backpressure.qos.evidence",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionBackpressureQosEvidence",
+        },
+        "summary": {
+            "backpressure_qos_evidence_contract_active": True,
+            "backpressure_qos_evidence_confirmed": False,
+            "overflow_schema_confirmed": False,
+            "qos_owner_confirmed": False,
+            "runtime_governance_qos_evidence_attached": False,
+            "high_rate_qos_mapping_confirmed": False,
+            "driver_hal_scope_evidence_attached": False,
+            "event_delivery_qos_active": False,
+            "overflow_emission_active": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "cursor_storage_active": False,
+            "replay_index_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "streaming_runtime_implemented": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_BACKPRESSURE_REQ_IDS,
     }
 
 
@@ -1934,6 +2099,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_subscription_callback_watch_shape_payload()))
         elif path == "/uib/events/subscriptions/cursor-replay-storage":
             self.send_json(200, envelope(event_subscription_cursor_replay_storage_payload()))
+        elif path == "/uib/events/subscriptions/backpressure-qos-evidence":
+            self.send_json(200, envelope(event_subscription_backpressure_qos_evidence_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))

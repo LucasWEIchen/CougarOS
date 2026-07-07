@@ -38,6 +38,7 @@ Brain semantic gateway.
 | `getEventSubscriptionActivationChecklistJson` | `GET /uib/events/subscriptions/activation-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionCallbackWatchShapeJson` | `GET /uib/events/subscriptions/callback-watch-shape` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionCursorReplayStorageJson` | `GET /uib/events/subscriptions/cursor-replay-storage` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionBackpressureQosEvidenceJson` | `GET /uib/events/subscriptions/backpressure-qos-evidence` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -141,16 +142,18 @@ Brain semantic gateway.
   `cancelEventSubscriptionJson`, `getEventSubscriptionTransportReadinessJson`,
   `getEventSubscriptionDecisionMatrixJson`,
   `getEventSubscriptionActivationChecklistJson`,
-  `getEventSubscriptionCallbackWatchShapeJson`, and
-  `getEventSubscriptionCursorReplayStorageJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionCallbackWatchShapeJson`,
+  `getEventSubscriptionCursorReplayStorageJson`, and
+  `getEventSubscriptionBackpressureQosEvidenceJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
-  callback/watch API shape, cursor/replay storage schema,
+  callback/watch API shape, cursor/replay storage schema, overflow schema,
+  replay rate, ack timeout, per-caller throttling, Runtime & Governance QoS evidence,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, and `Sub Cursor`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, and `Sub QoS`
   actions only. They do not assign production owners, select a transport,
-  register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
+  activate event QoS, register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
   Driver/HAL, or create virtualization work.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it

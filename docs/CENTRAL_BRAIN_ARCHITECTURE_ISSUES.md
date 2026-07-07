@@ -39,6 +39,8 @@
 
 2026-07-07 新增 `GET /uib/events/subscriptions/cursor-replay-storage`、Android `getEventSubscriptionCursorReplayStorageJson`、Linux `event-subscription-cursor-replay-storage`、`uib.events.subscriptions.cursor.replay.storage` 与 `GetEventSubscriptionCursorReplayStorage`，把 cursor schema、ack shape、replay window、retention/cleanup、Runtime & Governance audit binding 拆成 `EV-CRS-001..008` 门禁。该疑点仍为 Proposed：cursor storage owner、persistence owner、privacy retention、ack timeout、restart recovery 与 replay rate/QoS owner 尚未确认，原型继续报告 `cursor_replay_storage_confirmed=false` 和 `cursor_storage_active=false`。
 
+2026-07-07 新增 `GET /uib/events/subscriptions/backpressure-qos-evidence`、Android `getEventSubscriptionBackpressureQosEvidenceJson`、Linux `event-subscription-backpressure-qos-evidence`、`uib.events.subscriptions.backpressure.qos.evidence` 与 `GetEventSubscriptionBackpressureQosEvidence`，把 overflow schema、per-caller throttling、replay rate、ack timeout、Runtime & Governance QoS evidence、高频 transport QoS mapping 和 Driver/HAL high-rate scope 拆成 `EV-QOS-001..008` 门禁。该疑点仍为 Proposed：backpressure/QoS owner、overflow emission owner、event-delivery QoS evidence source、DDS/SSE/WebSocket QoS mapping、DRV-GAP-004/005 评审和 activation evidence owner 尚未确认，原型继续报告 `backpressure_qos_evidence_confirmed=false`、`event_delivery_qos_active=false` 和 `overflow_emission_active=false`。
+
 ## 新增疑点模板
 
 | ID | 图中位置 | 疑点/风险 | 影响 | 当前建议 | 状态 |

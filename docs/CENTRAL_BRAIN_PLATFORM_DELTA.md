@@ -28,6 +28,16 @@ replay window、retention/cleanup、Runtime & Governance audit binding 和 `EV-C
 门禁，不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、
 callback/watch、SSE/WebSocket、DDS、高频数据面、Driver/HAL 或虚拟化层。
 
+Event subscription backpressure/QoS evidence 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/backpressure-qos-evidence`、Android Binder
+`getEventSubscriptionBackpressureQosEvidenceJson`、Linux CLI
+`event-subscription-backpressure-qos-evidence`、Linux IPC
+`uib.events.subscriptions.backpressure.qos.evidence` 与 Linux gRPC/RPC
+`GetEventSubscriptionBackpressureQosEvidence` 查询。该视图只暴露 overflow schema、per-caller
+throttling、replay rate、ack timeout、Runtime & Governance QoS evidence、高频 transport
+QoS mapping 和 `EV-QOS-001..008` 门禁，不激活事件 QoS，不发送 overflow，不启动 broker、
+SSE/WebSocket、DDS、高频数据面、Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC

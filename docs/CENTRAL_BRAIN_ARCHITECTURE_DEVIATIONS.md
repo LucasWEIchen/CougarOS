@@ -37,6 +37,8 @@
 
 2026-07-07 新增 `GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder `getEventSubscriptionCursorReplayStorageJson`、Linux CLI `event-subscription-cursor-replay-storage`、Linux IPC `uib.events.subscriptions.cursor.replay.storage` 和 Linux gRPC/RPC `GetEventSubscriptionCursorReplayStorage`，补齐 cursor schema、ack shape、replay window、retention/cleanup 与 `EV-CRS-001..008` contract。该补充没有关闭 DEV-007：`cursor_replay_storage_confirmed=false`、`subscription_persistence_active=false`、`cursor_storage_active=false`、`replay_index_active=false`、`broker_active=false`、`callback_registered=false`、`watch_started=false` 仍是验收边界。
 
+2026-07-07 新增 `GET /uib/events/subscriptions/backpressure-qos-evidence`、Android Binder `getEventSubscriptionBackpressureQosEvidenceJson`、Linux CLI `event-subscription-backpressure-qos-evidence`、Linux IPC `uib.events.subscriptions.backpressure.qos.evidence` 和 Linux gRPC/RPC `GetEventSubscriptionBackpressureQosEvidence`，补齐 overflow schema、per-caller throttling、replay rate、ack timeout、Runtime & Governance QoS evidence 和 `EV-QOS-001..008` contract。该补充没有关闭 DEV-007：`backpressure_qos_evidence_confirmed=false`、`event_delivery_qos_active=false`、`overflow_emission_active=false`、`broker_active=false`、`dds_runtime_active=false`、`high_rate_data_plane_active=false`、`driver_development_triggered=false` 仍是验收边界。
+
 ## 新增偏差记录模板
 
 | ID | 偏差 | 涉及需求 | 当前原因 | 风险 | 修正计划 | 状态 |

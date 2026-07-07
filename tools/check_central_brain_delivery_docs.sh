@@ -78,6 +78,8 @@ require_text "central-brain/deploy/linux/README.md" "check_central_brain_linux_p
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "CENTRAL_BRAIN_PLATFORM_DELTA.md"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "event-subscription-backpressure-qos-evidence"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "getEventSubscriptionBackpressureQosEvidenceJson"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "check_central_brain_android_system_service_docs.sh"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "check_central_brain_linux_systemd_hardening.sh"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "check_central_brain_linux_package_profile.sh"

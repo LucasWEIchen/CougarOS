@@ -25,6 +25,7 @@
         "uib.events.subscriptions.activation.checklist",
         "uib.events.subscriptions.callback.watch.shape",
         "uib.events.subscriptions.cursor.replay.storage",
+        "uib.events.subscriptions.backpressure.qos.evidence",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

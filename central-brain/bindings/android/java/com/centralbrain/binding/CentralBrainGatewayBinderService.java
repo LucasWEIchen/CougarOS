@@ -102,6 +102,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getEventSubscriptionBackpressureQosEvidenceJson(String traceId) throws RemoteException {
+            return get("/uib/events/subscriptions/backpressure-qos-evidence", traceId);
+        }
+
+        @Override
         public String getUibExtensionsJson(String traceId) throws RemoteException {
             return get("/uib/extensions", traceId);
         }
