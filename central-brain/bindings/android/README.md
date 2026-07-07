@@ -15,7 +15,8 @@ Brain semantic gateway.
   contract, governance migration readiness, governance deployment plan,
   Protocol Binding readiness, Android/Linux delivery readiness, Python
   prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
-  hardware empty-interface registry, Vehicle/Body Signal catalog, and Vehicle
+  hardware empty-interface registry, Event subscription placeholder contract,
+  Vehicle/Body Signal catalog, and Vehicle
   Signal read-bridge activation criteria contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
   binding.
@@ -29,6 +30,7 @@ Brain semantic gateway.
 | `listEventTopicsJson` | `GET /uib/events/topics` | XSC-002, FW-U-003, NV-P-006 |
 | `publishEventJson` | `POST /uib/events/publish` | XSC-002, FW-U-003, NV-P-006 |
 | `getRecentEventsJson` | `GET /uib/events/recent` | XSC-002, FW-U-003, NV-P-006 |
+| `getEventSubscriptionsJson` | `GET /uib/events/subscriptions` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -128,6 +130,11 @@ Brain semantic gateway.
   governance rules, binding visibility, and no-dispatch boundaries. It does
   not load plugins, dispatch SOA services, access Driver/HAL, or create
   virtualization work.
+- `getEventSubscriptionsJson` exposes FW-U-003/NV-P-006 Event subscription
+  lifecycle, cursor, backpressure, governance, binding parity, and no-broker
+  boundaries through the Android Console `Event Subs` action only. It does not
+  register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
+  Driver/HAL, or create virtualization work.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it
   does not call HAL, device nodes, vendor SDKs, or Safety Runtime.

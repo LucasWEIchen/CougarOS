@@ -60,6 +60,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/uib/events/recent",
         "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
     },
+    "uib.events.subscriptions.get": {
+        "method": "GET",
+        "path": "/uib/events/subscriptions",
+        "req_ids": ["XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002"],
+    },
     "uib.extensions.get": {
         "method": "GET",
         "path": "/uib/extensions",

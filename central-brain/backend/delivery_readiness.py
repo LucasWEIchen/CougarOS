@@ -113,6 +113,34 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003"],
     },
     {
+        "target": "event-subscription-placeholder-contract",
+        "platform": "Android/Linux",
+        "current_state": "contract-only-not-brokered",
+        "ready_for": [
+            "Uni Info Bus Event subscription lifecycle review",
+            "cursor, replay, and backpressure contract review",
+            "Android Binder and Linux IPC/gRPC parity inspection before a real broker is selected",
+        ],
+        "artifacts": [
+            "GET /uib/events/subscriptions",
+            "Android Binder getEventSubscriptionsJson",
+            "Linux CLI event-subscriptions",
+            "Linux IPC uib.events.subscriptions.get",
+            "Linux gRPC/RPC GetEventSubscriptions",
+        ],
+        "validation": [
+            "bash tools/smoke_central_brain_semantic_gateway.sh",
+            "bash tools/smoke_central_brain_linux_ipc.sh",
+            "bash tools/smoke_central_brain_linux_grpc.sh",
+        ],
+        "blocked_by": [
+            "subscription broker owner and lifecycle persistence decision",
+            "push transport choice for Android callback, Linux watch, SSE/WebSocket, or DDS",
+            "target high-rate topic QoS, replay, and overflow policy",
+        ],
+        "req_ids": ["DEL-001", "DEL-002", "XSC-002", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-003", "NV-P-006"],
+    },
+    {
         "target": "linux-systemd-package-profile",
         "platform": "Linux",
         "current_state": "sample-profile-and-hardening-check",

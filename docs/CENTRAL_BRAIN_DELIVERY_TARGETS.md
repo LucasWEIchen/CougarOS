@@ -11,15 +11,15 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并可触发 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`、`precheckGovernanceJson`、`getDriverHalGapsJson`、`getHardwareInterfacesJson`、`getPrototypeReadinessJson`、`getVehicleSignalsJson`、`getVehicleSignalActivationJson`、`getVehicleSignalValidationJson`；system service integration note 初版 |
-| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Linux CLI 提供 `driver-gaps`、`hardware-interfaces`、`prototype-readiness`、`vehicle-signals`、`vehicle-signal-activation` 和 `vehicle-signal-validation`；Unix socket IPC daemon/client active sample 已含 execute/Skill/Memory mock、`prototype.readiness.get`、`vehicle.signals.list`、`vehicle.signals.activation.get` 与 `vehicle.signals.validation.get`；gRPC/RPC JSON contract sample 已含 `GetPrototypeReadiness`、`GetVehicleSignals`、`GetVehicleSignalActivation` 与 `GetVehicleSignalValidation`；systemd 部署样例初版 + hardening check + package profile check |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并可触发 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`、`getEventSubscriptionsJson`、`precheckGovernanceJson`、`getDriverHalGapsJson`、`getHardwareInterfacesJson`、`getPrototypeReadinessJson`、`getVehicleSignalsJson`、`getVehicleSignalActivationJson`、`getVehicleSignalValidationJson`；system service integration note 初版 |
+| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Linux CLI 提供 `event-subscriptions`、`driver-gaps`、`hardware-interfaces`、`prototype-readiness`、`vehicle-signals`、`vehicle-signal-activation` 和 `vehicle-signal-validation`；Unix socket IPC daemon/client active sample 已含 execute/Skill/Memory mock、`uib.events.subscriptions.get`、`prototype.readiness.get`、`vehicle.signals.list`、`vehicle.signals.activation.get` 与 `vehicle.signals.validation.get`；gRPC/RPC JSON contract sample 已含 `GetEventSubscriptions`、`GetPrototypeReadiness`、`GetVehicleSignals`、`GetVehicleSignalActivation` 与 `GetVehicleSignalValidation`；systemd 部署样例初版 + hardening check + package profile check |
 
 ## 每个核心模块的交付形态
 
 | 模块 | Req ID | Android 交付 | Linux 交付 | 备注 |
 | --- | --- | --- | --- | --- |
 | AI SDK | XSC-001 | Android Binder/AIDL `planAgentTaskJson`、`executeAgentTaskJson`、Skill/Memory contract sample + `/ai/sdk/capabilities` | Linux CLI/IPC `agent-plan`、`agent-execute`、`skill-invoke`、`memory-query` active sample + `/ai/sdk/capabilities` | 黄色小太阳，跨 SoC；当前是 facade/plan/execute/Skill/Memory contract mock，不是真实 SDK library |
-| Uni Info Bus 语义接口 | XSC-002 | Android client + contract + Binder `getUibExtensionsJson`/`getVehicleSignalActivationJson`/`getVehicleSignalValidationJson` | Linux client + contract + CLI/IPC/gRPC `extensions`/`uib.extensions.get`/`GetUibExtensions` + `vehicle-signal-activation`/`vehicle.signals.activation.get`/`GetVehicleSignalActivation` + `vehicle-signal-validation`/`vehicle.signals.validation.get`/`GetVehicleSignalValidation` | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/extensions`、`/uib/actions/request`、`/vehicle/signals/activation`、`/vehicle/signals/validation` 初版 |
+| Uni Info Bus 语义接口 | XSC-002 | Android client + contract + Binder `getEventSubscriptionsJson`/`getUibExtensionsJson`/`getVehicleSignalActivationJson`/`getVehicleSignalValidationJson` | Linux client + contract + CLI/IPC/gRPC `event-subscriptions`/`uib.events.subscriptions.get`/`GetEventSubscriptions` + `extensions`/`uib.extensions.get`/`GetUibExtensions` + `vehicle-signal-activation`/`vehicle.signals.activation.get`/`GetVehicleSignalActivation` + `vehicle-signal-validation`/`vehicle.signals.validation.get`/`GetVehicleSignalValidation` | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/events/subscriptions`、`/uib/extensions`、`/uib/actions/request`、`/vehicle/signals/activation`、`/vehicle/signals/validation` 初版；订阅为 contract-only，不启动 broker/DDS |
 | SOA 服务入口 | XSC-003 | Android service/client + Binder `getServiceContractsJson` | Linux daemon/client + CLI/IPC/gRPC `service-contracts`/`soa.contracts.get`/`GetServiceContracts` | `/soa/services`、`/soa/contracts`、`/soa/invoke` 初版；contract 查询不 dispatch 服务 |
 | AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample + Driver/HAL gap visibility + hardware empty-interface visibility + Vehicle Signal catalog/activation/validation visibility | Linux service adapter + Agent execute/Skill/Memory boundary sample + `driver-gaps`/`hardware-interfaces`/`vehicle-signals`/`vehicle-signal-activation`/`vehicle-signal-validation` CLI | `GET /native/adapters/detail`、`GET /native/driver-gaps`、`GET /hardware/interfaces`、`GET /vehicle/signals`、`GET /vehicle/signals/activation` 与 `GET /vehicle/signals/validation`；AIOS Kernel 真实 runtime 仍未实现 |
 | Vehicle/Body Signal catalog | NV-F-004, NV-F-005 | Binder `getVehicleSignalsJson` + Console `Vehicle Signals` 调试入口 | Linux CLI/IPC/gRPC `vehicle-signals`/`vehicle.signals.list`/`GetVehicleSignals` | `GET /vehicle/signals` 只读 VSS-style catalog；不加载 DBC/ARXML，不连接 VHAL/SocketCAN/vendor gateway，不触发 Driver/HAL 开发 |
@@ -61,6 +61,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py events
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-publish
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-recent
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscriptions
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py extensions
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py service-contracts
@@ -101,6 +102,7 @@ Linux IPC `infer-denied` 样例用于验证 Unix socket binding 在转发到 RES
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py audit
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscriptions
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interfaces
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py prototype-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signals
@@ -108,6 +110,7 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/b
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signal-validation
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py audit
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscriptions
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interfaces
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py prototype-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signals
@@ -147,6 +150,7 @@ Android 版本必须提供：
 
 - 绑定 `CentralBrainGatewayBinderService`。
 - 通过 `CentralBrainGatewayClient.getStateJson` 调用 Uni Info Bus State。
+- 通过 `CentralBrainGatewayClient.getEventSubscriptionsJson` 查看 FW-U-003/NV-P-006 Event subscription lifecycle、cursor、backpressure、governance 和 no-broker/no-DDS 边界。
 - 通过 `CentralBrainGatewayClient.getUibExtensionsJson` 查看 FW-U-008 扩展语义 contract、治理规则和 no-dispatch 边界。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
 - 通过 `CentralBrainGatewayClient.executeAgentTaskJson` 验证 Agent execute contract mock，只返回 policy-checked dispatch 边界。
@@ -180,6 +184,7 @@ Android 版本必须提供：
 - `GET /uib/events/topics`
 - `POST /uib/events/publish`
 - `GET /uib/events/recent`
+- `GET /uib/events/subscriptions`
 - `GET /uib/extensions`
 - `GET /ai/sdk/capabilities`
 - `POST /agent/plan`

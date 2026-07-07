@@ -88,6 +88,36 @@ CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/binding
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" events >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-publish >/dev/null
 CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-recent >/dev/null
+EVENT_SUBSCRIPTIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscriptions)"
+python3 - "$EVENT_SUBSCRIPTIONS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["subscription_state"] == "contract-only-not-brokered", response
+assert payload["broker_active"] is False, response
+assert payload["active_subscriptions"] == [], response
+assert {"EV-SUB-001", "EV-SUB-002", "EV-SUB-003", "EV-SUB-004", "EV-SUB-005"} <= gate_ids, response
+for key in [
+    "broker_active",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert "getEventSubscriptionsJson" in encoded, response
+assert "uib.events.subscriptions.get" in encoded, response
+assert "GetEventSubscriptions" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
@@ -493,6 +523,7 @@ assert "skills.invoke" in encoded, response
 assert "memory.query" in encoded, response
 assert "uib.actions.request" in encoded, response
 assert "soa.contracts.get" in encoded, response
+assert "uib.events.subscriptions.get" in encoded, response
 assert "governance.precheck" in encoded, response
 assert "governance.backend.contract.get" in encoded, response
 assert "vehicle.signals.list" in encoded, response

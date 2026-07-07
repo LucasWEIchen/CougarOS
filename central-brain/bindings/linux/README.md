@@ -36,6 +36,7 @@ Brain semantic gateway.
 | `uib.events.topics` | `GET /uib/events/topics` | XSC-002, FW-U-003, NV-P-006 |
 | `uib.events.publish` | `POST /uib/events/publish` | XSC-002, FW-U-003, NV-P-006 |
 | `uib.events.recent` | `GET /uib/events/recent` | XSC-002, FW-U-003, NV-P-006 |
+| `uib.events.subscriptions.get` | `GET /uib/events/subscriptions` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002 |
 | `uib.extensions.get` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
@@ -70,6 +71,10 @@ as Android Binder and Linux IPC without invoking services.
 `CentralBrainGateway.GetUibExtensions` exposes the same FW-U-008 extension
 registry contract as Android Binder and Linux IPC without loading plugins or
 dispatching services.
+`CentralBrainGateway.GetEventSubscriptions` exposes the same FW-U-003/NV-P-006
+Event subscription placeholder contract as Android Binder and Linux IPC without
+starting a broker, callback/watch path, SSE/WebSocket, DDS runtime, high-rate
+data plane, Driver/HAL, or virtualization work.
 `CentralBrainGateway.InvokeService` calls the shared Linux governance daemon
 through the same helper as Linux IPC before forwarding allowed SOA calls and
 falls back to local Runtime & Governance when the shared socket is unavailable.
@@ -132,6 +137,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py state
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-publish
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscriptions
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py extensions
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
@@ -210,6 +217,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py service-contracts
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py extensions
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscriptions
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-precheck
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \

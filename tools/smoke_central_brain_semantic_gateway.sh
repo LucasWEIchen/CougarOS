@@ -67,6 +67,7 @@ checks = [
         "NV-P-006",
     ),
     ("GET", "/uib/events/recent", None, "FW-U-003"),
+    ("GET", "/uib/events/subscriptions", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -375,6 +376,29 @@ for method, path, body, req_id in checks:
         assert "vehicle.signals.validation.get" in encoded, "Linux IPC vehicle signal validation binding visibility missing"
         assert "GetVehicleSignalValidation" in encoded, "gRPC vehicle signal validation binding visibility missing"
         assert "DRV-GAP-002" in encoded, "vehicle signal validation missing vehicle bus driver gap link"
+    if path == "/uib/events/subscriptions":
+        subscriptions = payload["payload"]
+        encoded = json.dumps(subscriptions)
+        assert subscriptions["subscription_state"] == "contract-only-not-brokered", "event subscription left contract-only state"
+        assert subscriptions["broker_active"] is False, "event subscription started a broker"
+        assert subscriptions["active_subscriptions"] == [], "event subscription contract created active subscriptions"
+        gate_ids = {item["gate_id"] for item in subscriptions["mandatory_gates"]}
+        assert {"EV-SUB-001", "EV-SUB-002", "EV-SUB-003", "EV-SUB-004", "EV-SUB-005"} <= gate_ids, "event subscription missing mandatory gates"
+        for key in [
+            "broker_active",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert subscriptions["summary"][key] is False, f"event subscription summary unexpectedly set {key}"
+        assert "getEventSubscriptionsJson" in encoded, "Android event subscription binding visibility missing"
+        assert "uib.events.subscriptions.get" in encoded, "Linux IPC event subscription binding visibility missing"
+        assert "GetEventSubscriptions" in encoded, "gRPC event subscription binding visibility missing"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded, "event subscription missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -471,6 +495,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" events >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-publish >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-recent >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscriptions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

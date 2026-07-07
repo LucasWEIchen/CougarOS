@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.34",
+  "version": "0.1.35",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -18,8 +18,9 @@
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "event_subscription_contract": "GET /uib/events/subscriptions exposes FW-U-003/NV-P-006 lifecycle, cursor, backpressure, governance, and binding parity metadata without starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -127,6 +128,73 @@
         "FW-U-003",
         "XSC-006",
         "NV-P-006"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/subscriptions",
+      "description": "Returns the read-only Uni Info Bus Event subscription placeholder contract for lifecycle, cursor, backpressure, governance, and Android/Linux binding parity without starting a real broker.",
+      "response": {
+        "subscription_state": "contract-only-not-brokered",
+        "broker_active": false,
+        "active_subscriptions": [],
+        "subscription_contract": {
+          "lifecycle_states": [
+            "requested",
+            "validated",
+            "active",
+            "paused",
+            "resumed",
+            "cancelled",
+            "expired",
+            "rejected"
+          ],
+          "cursor_contract": {
+            "cursor_key": "event_id",
+            "prototype_retention": "last-50-events"
+          },
+          "backpressure": {
+            "prototype_policy": "drop-oldest-after-50-events",
+            "production_policy": "TBD after DDS/SSE/WebSocket transport selection"
+          }
+        },
+        "mandatory_gates": [
+          "EV-SUB-001 semantic-envelope-preserved",
+          "EV-SUB-002 cursor-and-backpressure-reviewed",
+          "EV-SUB-003 governance-policy-audit-bound",
+          "EV-SUB-004 android-linux-binding-parity-proven",
+          "EV-SUB-005 no-dds-runtime-claim"
+        ],
+        "summary": {
+          "subscription_state": "contract-only-not-brokered",
+          "active_subscription_count": 0,
+          "broker_active": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "api_surface": {
+          "rest": "GET /uib/events/subscriptions",
+          "android_binder": "getEventSubscriptionsJson",
+          "linux_cli": "event-subscriptions",
+          "linux_ipc": "uib.events.subscriptions.get",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions"
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002"
       ]
     },
     {
@@ -1122,7 +1190,8 @@
       "Vehicle.SignalChanged",
       "AI.ModelLoaded",
       "Service.HealthChanged",
-      "Diagnostics.DtcChanged"
+      "Diagnostics.DtcChanged",
+      "Event.Subscription"
     ],
     "action": [
       "Cabin.SetTemperature",

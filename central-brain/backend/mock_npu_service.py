@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.34"
+API_VERSION = "0.1.35"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -241,8 +241,9 @@ def event_topics_payload() -> dict[str, Any]:
             {
                 "name": topic,
                 "mode": "active-mock",
-                "delivery": ["publish-ack", "recent-log"],
+                "delivery": ["publish-ack", "recent-log", "subscription-contract"],
                 "subscription_contract": {
+                    "semantic_endpoint": "GET /uib/events/subscriptions",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -256,6 +257,141 @@ def event_topics_payload() -> dict[str, Any]:
             "DDS is reserved for high-rate topic delivery, but this prototype only stores a bounded in-memory recent log.",
         ],
         "req_ids": ["XSC-002", "FW-U-003", "XSC-006", "NV-P-006"]
+    }
+
+
+def event_subscriptions_payload() -> dict[str, Any]:
+    return {
+        "subscription_state": "contract-only-not-brokered",
+        "broker_active": False,
+        "active_subscriptions": [],
+        "subscription_contract": {
+            "lifecycle_states": [
+                "requested",
+                "validated",
+                "active",
+                "paused",
+                "resumed",
+                "cancelled",
+                "expired",
+                "rejected",
+            ],
+            "request_shape": {
+                "subscription_id": "client-generated-or-gateway-assigned string",
+                "topics": ["vehicle.signal.changed"],
+                "filters": {
+                    "topic": "string or glob",
+                    "source": "string",
+                    "safety_state": "normal|degraded|diagnostic_readonly",
+                    "qos_profile": "best_effort|reliable_planned",
+                },
+                "cursor": {
+                    "since_event_id": "optional event_id",
+                    "since_timestamp_ms": "optional epoch millis",
+                    "replay_limit": "1..50 for prototype recent-log replay",
+                },
+                "caller": {
+                    "app_id": "string",
+                    "permissions": ["vehicle.read", "service.read"],
+                },
+            },
+            "cursor_contract": {
+                "cursor_key": "event_id",
+                "ordering": "newest-first in prototype recent log",
+                "resume_inputs": ["since_event_id", "since_timestamp_ms"],
+                "prototype_retention": "last-50-events",
+            },
+            "backpressure": {
+                "prototype_policy": "drop-oldest-after-50-events",
+                "production_policy": "TBD after DDS/SSE/WebSocket transport selection",
+                "overflow_signal": "subscription.overflow planned",
+            },
+            "governance": {
+                "policy_checked": True,
+                "required_permissions": ["vehicle.read", "service.read"],
+                "audit_required": True,
+                "service_dispatch": "not-dispatched",
+            },
+        },
+        "transport_candidates": [
+            {
+                "binding": "android-binder-aidl",
+                "operation": "getEventSubscriptionsJson",
+                "current_state": "read-only-contract; callback registration not implemented",
+            },
+            {
+                "binding": "linux-ipc",
+                "operation": "uib.events.subscriptions.get",
+                "current_state": "read-only-contract; watch operation not implemented",
+            },
+            {
+                "binding": "linux-grpc-rpc",
+                "operation": "CentralBrainGateway.GetEventSubscriptions",
+                "current_state": "read-only-contract; streaming RPC not implemented",
+            },
+            {
+                "binding": "sse-websocket",
+                "operation": "planned push transport",
+                "current_state": "not selected",
+            },
+            {
+                "binding": "dds",
+                "operation": "planned high-rate topic data plane",
+                "current_state": "not implemented in prototype",
+            },
+        ],
+        "mandatory_gates": [
+            {
+                "gate_id": "EV-SUB-001",
+                "name": "semantic-envelope-preserved",
+                "required_evidence": "All subscription events retain trace_id, topic, event_id, source, safety_state, payload, and req_ids.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-SUB-002",
+                "name": "cursor-and-backpressure-reviewed",
+                "required_evidence": "Cursor resume, replay, overflow, and retention rules approved for the selected production transport.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-SUB-003",
+                "name": "governance-policy-audit-bound",
+                "required_evidence": "Runtime & Governance policy, lifecycle, QoS, and audit owner confirmed for subscribe/cancel operations.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-SUB-004",
+                "name": "android-linux-binding-parity-proven",
+                "required_evidence": "Android Binder and Linux IPC/gRPC contract, smoke, and docs expose equivalent fields.",
+                "passed": True,
+            },
+            {
+                "gate_id": "EV-SUB-005",
+                "name": "no-dds-runtime-claim",
+                "required_evidence": "Prototype explicitly reports DDS/SSE/WebSocket/broker inactive until target data-plane work starts.",
+                "passed": True,
+            },
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions",
+            "android_binder": "getEventSubscriptionsJson",
+            "linux_cli": "event-subscriptions",
+            "linux_ipc": "uib.events.subscriptions.get",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
+        },
+        "summary": {
+            "subscription_state": "contract-only-not-brokered",
+            "active_subscription_count": 0,
+            "broker_active": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "XSC-006", "NV-P-002", "NV-P-003", "NV-P-006", "DEL-001", "DEL-002"],
     }
 
 
@@ -837,6 +973,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(vehicle_signal_validation_payload()))
         elif path in ("/events/topics", "/uib/events/topics"):
             self.send_json(200, envelope(event_topics_payload()))
+        elif path == "/uib/events/subscriptions":
+            self.send_json(200, envelope(event_subscriptions_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))

@@ -77,13 +77,13 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "Uni Info Bus semantic Context/State/Event/Action/Extension",
         "diagram_group": "middle-layer",
         "yellow_sun_portable": True,
-        "current_state": "active-semantic-mock",
-        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "extension contract review"],
-        "not_ready_for": ["DDS high-rate data plane", "plugin runtime loading", "real actuator dispatch"],
-        "android_primary_surface": "getStateJson, listEventTopicsJson, getUibExtensionsJson, requestActionJson",
-        "linux_sync_surface": "state, events, extensions, action-request over CLI/IPC/gRPC",
+        "current_state": "active-semantic-mock-with-subscription-contract",
+        "ready_for": ["semantic gateway smoke", "bounded event-log validation", "event subscription contract review", "extension contract review"],
+        "not_ready_for": ["real event broker", "SSE/WebSocket push", "DDS high-rate data plane", "plugin runtime loading", "real actuator dispatch"],
+        "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, getUibExtensionsJson, requestActionJson",
+        "linux_sync_surface": "state, events, event-subscriptions, extensions, action-request over CLI/IPC/gRPC",
         "open_deviations": ["DEV-007", "DEV-015"],
-        "open_issues": ["ISSUE-015"],
+        "open_issues": ["ISSUE-015", "ISSUE-018"],
         "req_ids": ["XSC-002", "FW-U-003", "FW-U-004", "FW-U-008", "NV-P-006", "DEL-001", "DEL-002"],
     },
     {
@@ -217,8 +217,8 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "event subscription placeholder contract",
-                    "reason": "FW-U-003/NV-P-006 have publish and recent-log paths but no subscription broker contract.",
+                    "candidate": "event subscription request/cancel lifecycle contract",
+                    "reason": "FW-U-003/NV-P-006 now have a read-only subscription placeholder, but subscribe/cancel commands and broker transport remain unimplemented.",
                     "req_ids": ["XSC-002", "FW-U-003", "NV-P-006"],
                 },
                 {

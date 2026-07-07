@@ -93,6 +93,37 @@ PY
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" state >/dev/null
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" events >/dev/null
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-publish >/dev/null
+EVENT_SUBSCRIPTIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscriptions)"
+python3 - "$EVENT_SUBSCRIPTIONS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+subscriptions = payload["gateway"]["payload"]
+encoded = json.dumps(subscriptions)
+gate_ids = {item["gate_id"] for item in subscriptions["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert subscriptions["subscription_state"] == "contract-only-not-brokered", response
+assert subscriptions["broker_active"] is False, response
+assert subscriptions["active_subscriptions"] == [], response
+assert {"EV-SUB-001", "EV-SUB-002", "EV-SUB-003", "EV-SUB-004", "EV-SUB-005"} <= gate_ids, response
+for key in [
+    "broker_active",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert subscriptions["summary"][key] is False, response
+assert "getEventSubscriptionsJson" in encoded, response
+assert "uib.events.subscriptions.get" in encoded, response
+assert "GetEventSubscriptions" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
@@ -444,6 +475,7 @@ encoded = json.dumps(payload)
 assert response["status"] == "ok", response
 assert "grpc" in encoded, response
 assert "grpc-json-active-sample" in encoded, response
+assert "GetEventSubscriptions" in encoded, response
 assert "GetVehicleSignals" in encoded, response
 assert "GetVehicleSignalActivation" in encoded, response
 assert "GetVehicleSignalValidation" in encoded, response
