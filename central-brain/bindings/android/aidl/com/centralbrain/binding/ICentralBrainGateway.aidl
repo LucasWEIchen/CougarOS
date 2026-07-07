@@ -16,7 +16,7 @@ package com.centralbrain.binding;
  * - FW-U-008 Uni Info Bus extension mechanism
  * - NV-P-002 IPC/Binder binding
  * - NV-P-006 DDS/high-rate topic reservation
- * - KH-003/KH-006 Driver/HAL interface backlog visibility
+ * - HW-002, KH-001/KH-002/KH-003/KH-006/KH-007 hardware empty-interface backlog visibility
  * - DEL-001 Android main delivery path
  * - DEL-002/003/004/005 Android/Linux delivery readiness visibility
  */
@@ -78,4 +78,6 @@ interface ICentralBrainGateway {
     String getNativeAdaptersDetailJson(String traceId);
 
     String getDriverHalGapsJson(String traceId);
+
+    String getHardwareInterfacesJson(String traceId);
 }

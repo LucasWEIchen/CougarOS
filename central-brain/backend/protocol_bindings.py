@@ -148,12 +148,13 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "/governance/migration-check",
             "/governance/deployment-plan",
             "/native/driver-gaps",
+            "/hardware/interfaces",
             "/soa/contracts",
             "/bindings/readiness",
             "/delivery/readiness",
         ],
         "artifacts": ["central-brain/contracts/central_brain_api.json"],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "KH-003", "KH-006", "DEL-005", "NV-G-003", "NV-G-004", "NV-P-005", "NV-P-006"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-003", "NV-G-004", "NV-P-005", "NV-P-006"],
     },
     {
         "name": "android-binder-aidl",
@@ -189,6 +190,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "getDeliveryReadinessJson -> /delivery/readiness",
             "getNativeAdaptersDetailJson -> /native/adapters/detail",
             "getDriverHalGapsJson -> /native/driver-gaps",
+            "getHardwareInterfacesJson -> /hardware/interfaces",
         ],
         "artifacts": [
             "central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl",
@@ -197,7 +199,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/android/README.md",
             "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md",
         ],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-007", "FW-U-008", "FW-S-004", "FW-S-005", "KH-003", "KH-006", "DEL-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-005", "NV-P-006", "DEL-001", "DEL-003", "DEL-004"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-007", "FW-U-008", "FW-S-004", "FW-S-005", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-005", "NV-P-006", "DEL-001", "DEL-003", "DEL-004"],
     },
     {
         "name": "linux-ipc",
@@ -230,6 +232,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "bindings.list -> /bindings",
             "bindings.readiness.get -> /bindings/readiness",
             "delivery.readiness.get -> /delivery/readiness",
+            "hardware.interfaces.get -> /hardware/interfaces",
         ],
         "artifacts": [
             "central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
@@ -239,7 +242,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/linux/ipc/central_brain_ipc_client.py",
             "central-brain/bindings/linux/README.md",
         ],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-006", "DEL-002"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-002", "NV-P-006", "DEL-002"],
     },
     {
         "name": "grpc",
@@ -272,6 +275,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "CentralBrainGateway.ListBindings -> /bindings",
             "CentralBrainGateway.GetBindingReadiness -> /bindings/readiness",
             "CentralBrainGateway.GetDeliveryReadiness -> /delivery/readiness",
+            "CentralBrainGateway.GetHardwareInterfaces -> /hardware/interfaces",
         ],
         "artifacts": [
             "central-brain/bindings/linux/proto/central_brain_gateway.proto",
@@ -280,7 +284,7 @@ BINDING_REGISTRY: list[dict[str, Any]] = [
             "central-brain/bindings/linux/grpc/central_brain_grpc_client.py",
             "central-brain/deploy/linux/systemd/central-brain-linux-grpc.service",
         ],
-        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-006", "FW-U-008", "FW-S-004", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "NV-P-006", "DEL-002"],
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "APP-004", "FW-U-003", "FW-U-004", "FW-U-006", "FW-U-008", "FW-S-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-005", "NV-G-002", "NV-G-003", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007", "NV-P-003", "NV-P-006", "DEL-002"],
     },
     {
         "name": "mqtt",
@@ -355,8 +359,9 @@ class ProtocolBindingRegistry:
                 "Linux gRPC/RPC sample mirrors the proto GatewayRequest/GatewayResponse fields over a dependency-free JSON TCP wrapper because grpcio is not available in this workspace.",
                 "Linux gRPC/RPC InvokeService uses the same shared governance daemon precheck with local fallback before forwarding allowed SOA calls.",
                 "Virtualization and driver layers are documented integration assumptions only in this increment.",
+                "The hardware empty-interface catalog is exposed at /hardware/interfaces for Android and Linux bindings; it does not open devices, call HALs, allocate shared memory, or perform virtualization work.",
             ],
-            "req_ids": BINDING_REQ_IDS + ["DEL-001", "DEL-002", "DEL-003", "DEL-004"],
+            "req_ids": BINDING_REQ_IDS + ["XSC-004", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005"],
         }
 
     def readiness_payload(self) -> dict[str, Any]:
@@ -381,7 +386,7 @@ class ProtocolBindingRegistry:
             },
             "non_goals": [
                 "No production shared governance backend is implemented by this readiness contract.",
-                "No true gRPC runtime, MQTT broker, SOME/IP stack, DDS broker, Driver/HAL, Safety Runtime, vehicle bus, or virtualization code is added.",
+                "No true gRPC runtime, MQTT broker, SOME/IP stack, DDS broker, Driver/HAL, Safety Runtime, vehicle bus, hardware access, or virtualization code is added.",
             ],
             "next_decisions": [
                 "Choose target Linux distro/package format before replacing the package profile sample.",

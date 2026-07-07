@@ -25,16 +25,18 @@ from ai_sdk import plan_payload as ai_sdk_plan_payload
 from ai_sdk import skill_invoke_payload as ai_sdk_skill_invoke_payload
 from ai_sdk import skills_payload as ai_sdk_skills_payload
 from delivery_readiness import delivery_readiness_payload as delivery_readiness_contract_payload
+from hardware_interfaces import HardwareInterfaceRegistry
 from native_adapters import NativeAdapterRegistry
 from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.29"
+API_VERSION = "0.1.30"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
+HARDWARE_INTERFACES = HardwareInterfaceRegistry()
 EVENT_LOG: deque[dict[str, Any]] = deque(maxlen=50)
 EVENT_TOPICS = [
     "vehicle.signal.changed",
@@ -220,10 +222,11 @@ def state_payload() -> dict[str, Any]:
             "system": health_payload(),
             "services": services_payload()["services"],
             "npu": npu_status(),
+            "hardware_interfaces": HARDWARE_INTERFACES.summary_payload(),
             "vehicle": vehicle_state_payload(),
             "safety_state": "normal"
         },
-        "req_ids": ["FW-U-002"]
+        "req_ids": ["FW-U-002", "XSC-004", "HW-002", "DEL-005"]
     }
 
 
@@ -496,6 +499,10 @@ def native_adapters_detail_payload() -> dict[str, Any]:
 
 def native_driver_gaps_payload() -> dict[str, Any]:
     return NATIVE_ADAPTERS.driver_gap_payload()
+
+
+def hardware_interfaces_payload() -> dict[str, Any]:
+    return HARDWARE_INTERFACES.interfaces_payload()
 
 
 def vehicle_state_payload() -> dict[str, Any]:
@@ -797,6 +804,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(native_adapters_detail_payload()))
         elif path == "/native/driver-gaps":
             self.send_json(200, envelope(native_driver_gaps_payload()))
+        elif path == "/hardware/interfaces":
+            self.send_json(200, envelope(hardware_interfaces_payload()))
         elif path in ("/events/topics", "/uib/events/topics"):
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/uib/events/recent":

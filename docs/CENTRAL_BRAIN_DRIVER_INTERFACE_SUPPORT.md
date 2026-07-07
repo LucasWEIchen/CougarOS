@@ -1,7 +1,7 @@
 # 驱动层接口支持矩阵
 
 版本：0.1
-日期：2026-07-04
+日期：2026-07-07
 
 ## 范围声明
 
@@ -16,6 +16,8 @@ A7 虚拟化与 Safety 接口约束增量只新增 `docs/CENTRAL_BRAIN_VIRTUALIZ
 A1 Event active mock 增量只新增 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` 语义入口，以及 Android Binder、Linux IPC、gRPC contract skeleton 的 Event 映射；覆盖 XSC-002、XSC-006、FW-U-003、NV-P-002、NV-P-006、DEL-001、DEL-002。不新增 DDS、高频传感器 topic、共享内存、Driver/HAL、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
 
 FW-U-008 Uni Info Bus extension registry contract 增量只新增 `GET /uib/extensions`、Android Binder/AIDL `getUibExtensionsJson`、Linux CLI/IPC `extensions`/`uib.extensions.get` 和 Linux gRPC/RPC `GetUibExtensions` 映射；覆盖 XSC-002、FW-U-008、XSC-005、XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。该增量只暴露扩展语义对象、schema 状态、治理规则、binding 可见性和 no-dispatch 边界，不加载插件，不 dispatch SOA service，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、车辆总线或虚拟化代码。
+
+A6/A6.1 Python 原型硬件空接口注册表增量新增 `central-brain/backend/hardware_interfaces.py`、`GET /hardware/interfaces`、Android Binder/AIDL `getHardwareInterfacesJson`、Linux CLI/IPC `hardware-interfaces`/`hardware.interfaces.get` 和 Linux gRPC/RPC `GetHardwareInterfaces` 映射；覆盖 XSC-004、XSC-006、HW-002、KH-001、KH-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。该增量只暴露 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的 reserved methods、Android 主路径、Linux 同步路径和触发条件；`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 是验收条件，不访问 HAL、device node、vendor SDK、DMA/IOMMU、Safety Runtime、车辆总线或虚拟化层。
 
 A5 Native adapters mock 的 `/native/adapters/detail` 只记录 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界和 Driver/HAL 依赖，不新增驱动代码。
 
@@ -39,7 +41,7 @@ AI SDK/Agent execute、Skill 和 Memory contract mock 增量新增 `POST /agent/
 
 Android Console execute/Skill/Memory 调试路径增量只修改 `MainActivity` 与静态检查，使 debug APK 通过 Binder `executeAgentTaskJson`、`invokeSkillJson` 和 `queryMemoryJson` 直接触发已有 contract mock；覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、XSC-006、NV-P-002、NV-P-005、DEL-001。该增量不新增真实 Agent runtime、Skill sandbox、Memory store、Model Runtime Adapter、NPU vendor SDK、Driver/HAL、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
 
-Android Console Governance/Driver gap 可见性增量只修改 `MainActivity` 与静态检查，使 debug APK 通过 Binder `precheckGovernanceJson` 和 `getDriverHalGapsJson` 直接触发已有 Runtime & Governance precheck 与 Driver/HAL gap backlog contract；覆盖 XSC-004、XSC-005、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、KH-003、KH-006、DEL-001、DEL-005。该增量只执行只读/只检查 contract，不 dispatch SOA service，不访问 HAL、device node、vendor SDK、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化层，也不新增真实驱动开发量。
+Android Console Governance/Driver gap/Hardware IF 可见性增量只修改 `MainActivity` 与静态检查，使 debug APK 通过 Binder `precheckGovernanceJson`、`getDriverHalGapsJson` 和 `getHardwareInterfacesJson` 直接触发已有 Runtime & Governance precheck、Driver/HAL gap backlog contract 与 hardware empty-interface registry；覆盖 XSC-004、XSC-005、XSC-006、HW-002、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、KH-003、KH-006、KH-007、DEL-001、DEL-005。该增量只执行只读/只检查 contract，不 dispatch SOA service，不访问 HAL、device node、vendor SDK、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化层，也不新增真实驱动开发量。
 
 Linux IPC Runtime & Governance precheck 增量只在 `central_brain_ipc_daemon.py` 内复用 `runtime_governance.py`，对 `soa.service.invoke` 执行 service discovery、Policy/Safety State、Lifecycle、QoS 和 IPC audit，并新增 `CENTRAL_BRAIN_IPC_AUDIT_LOG` Linux 部署样例；覆盖 XSC-005、XSC-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、DEL-002、DEL-004。该增量只作用于 Unix socket binding 的语义转发边界，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、多进程治理后端或虚拟化代码。
 
@@ -68,6 +70,8 @@ Android/Linux delivery readiness contract 增量新增 `GET /delivery/readiness`
 Linux gRPC/RPC contract sample 增量新增 `central_brain_grpc_server.py`、`central_brain_grpc_client.py`、`central-brain-linux-grpc.service`、`CENTRAL_BRAIN_GRPC_PORT`、`CENTRAL_BRAIN_GRPC_AUDIT_LOG` 和 `tools/smoke_central_brain_linux_grpc.sh`，覆盖 XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-003、DEL-002、DEL-004。该增量只用标准库 TCP JSON wrapper 验证 gRPC proto contract、Req ID、`InvokeService` shared governance precheck 和 local fallback；当前环境无 `grpcio`，不新增真实 gRPC runtime、Driver/HAL、Safety Runtime、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。
 
 Driver/HAL gap backlog contract 增量新增 `GET /native/driver-gaps`、Android Binder/AIDL `getDriverHalGapsJson`、Linux CLI `driver-gaps`，并把 `driver_hal_gap_backlog` 纳入 `/native/adapters/detail`；覆盖 KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005、HW-002、NV-F-002、NV-F-004、NV-F-005、NV-F-006、NV-F-011、NV-P-001、NV-P-006、HV-001..003。该增量只记录 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的触发条件、Android/Linux 目标接口和最小新增开发量，不新增 NPU/GPU/Camera/Audio/ETH/Vehicle bus Driver/HAL、Safety Runtime、共享内存、vendor SDK bridge 或虚拟化代码。
+
+Hardware empty-interface registry contract 增量新增 `GET /hardware/interfaces`、Android Binder/AIDL `getHardwareInterfacesJson`、Linux CLI `hardware-interfaces`、Linux IPC `hardware.interfaces.get` 和 Linux gRPC/RPC `GetHardwareInterfaces`；覆盖 XSC-004、XSC-006、HW-002、KH-001、KH-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。该接口是 Driver/HAL gap backlog 的工程预留面：它列出 reserved methods、request/response contract、Android primary path、Linux sync path 和 activation trigger，但所有 side effects 都是 `none-in-prototype`，且不新增任何真实驱动、HAL、vendor SDK、Safety Runtime、共享内存、车辆总线或虚拟化代码。
 
 Linux systemd hardening sample 增量只收紧 `central-brain-backend.service`、`central-brain-governance.service`、`central-brain-linux-ipc.service` 和 `central-brain-linux-grpc.service` 的部署约束，并新增 `tools/check_central_brain_linux_systemd_hardening.sh`；覆盖 DEL-002、DEL-003、DEL-004、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-G-007。该增量只使用 systemd sandbox 配置、普通文件日志目录和 `/run/central-brain` socket 目录，不访问 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，不新增 Driver/HAL、Safety Runtime、共享内存、vendor SDK bridge 或虚拟化代码。
 
@@ -111,6 +115,8 @@ NpuDevice.reset(reason)
 ## 当前 Driver/HAL gap backlog
 
 `GET /native/driver-gaps` 是当前可查询 backlog，供 Android/Linux 座舱域工程师确认哪些底层接口尚未进入开发。该接口的 `summary.driver_development_triggered=false` 是本轮验收条件，表示只建立缺口记录，不启动真实驱动工作。
+
+`GET /hardware/interfaces` 是当前可查询的硬件依赖空接口目录，供 Android/Linux 座舱域工程师查看未来 Driver/HAL/native adapter 的最小方法形状。该接口的 `summary.hardware_accessed=false`、`summary.driver_development_triggered=false` 和 `summary.virtualization_development_triggered=false` 是本轮验收条件。
 
 | ID | 接口域 | 当前环境缺口 | 触发条件 | 最小新增开发量 | 状态 |
 | --- | --- | --- | --- | --- | --- |

@@ -81,6 +81,7 @@ checks = [
     ("GET", "/native/adapters", None, "NV-F-011"),
     ("GET", "/native/adapters/detail", None, "XSC-004"),
     ("GET", "/native/driver-gaps", None, "DEL-005"),
+    ("GET", "/hardware/interfaces", None, "HW-002"),
     ("GET", "/ai/sdk/capabilities", None, "XSC-001"),
     (
         "POST",
@@ -238,6 +239,7 @@ for method, path, body, req_id in checks:
         assert "linux-ipc-daemon-sample" in target_names, "delivery readiness missing Linux IPC target"
         assert "linux-grpc-rpc-sample" in target_names, "delivery readiness missing Linux gRPC/RPC target"
         assert "driver-hal-gap-backlog" in target_names, "delivery readiness missing Driver/HAL gap target"
+        assert "hardware-empty-interface-registry" in target_names, "delivery readiness missing hardware empty-interface target"
         assert payload["payload"]["summary"]["production_ready"] is False, "delivery readiness overstated production maturity"
         assert payload["payload"]["summary"]["android_debug_ready"] is True, "delivery readiness missing Android debug status"
         assert payload["payload"]["summary"]["linux_samples_ready"] is True, "delivery readiness missing Linux sample status"
@@ -260,6 +262,19 @@ for method, path, body, req_id in checks:
         assert payload["payload"]["summary"]["driver_development_triggered"] is False, "driver gap endpoint triggered development"
         assert "future HAL/AIDL/vendor bridge" in json.dumps(payload), "Android Driver/HAL target missing"
         assert "future device node/vendor daemon" in json.dumps(payload), "Linux Driver/HAL target missing"
+    if path == "/hardware/interfaces":
+        hardware = payload["payload"]
+        interface_ids = {item["interface_id"] for item in hardware["interfaces"]}
+        assert "npu-runtime" in interface_ids, "hardware interfaces missing NPU runtime stub"
+        assert "vehicle-bus" in interface_ids, "hardware interfaces missing vehicle bus stub"
+        assert "shared-memory-safety-runtime" in interface_ids, "hardware interfaces missing safety runtime stub"
+        assert hardware["summary"]["implementation_state"] == "empty-interface-registry", "hardware interfaces left empty-interface state"
+        assert hardware["summary"]["hardware_accessed"] is False, "hardware endpoint touched hardware"
+        assert hardware["summary"]["driver_development_triggered"] is False, "hardware endpoint triggered driver development"
+        assert hardware["summary"]["virtualization_development_triggered"] is False, "hardware endpoint triggered virtualization development"
+        assert "getHardwareInterfacesJson" in json.dumps(hardware), "Android hardware binding visibility missing"
+        assert "hardware.interfaces.get" in json.dumps(hardware), "Linux IPC hardware binding visibility missing"
+        assert "GetHardwareInterfaces" in json.dumps(hardware), "gRPC hardware binding visibility missing"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -372,5 +387,6 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" delivery-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interfaces >/dev/null
 
 echo "linux cli smoke ok"

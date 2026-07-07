@@ -14,8 +14,8 @@
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
 | A5 | Native adapters mock | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | adapter registry 初版 |
-| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog contract |
-| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` |
+| A6 | Kernel/HAL/NPU 设计落地 | Driver/HAL/NPU runtime design、PCIe 接入路径 | NPU runtime interface + driver gap backlog + hardware empty-interface registry contract |
+| A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` + `/hardware/interfaces` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` |
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 A6/A6.1 Python 原型硬件空接口注册表：
+  - 新增 `central-brain/backend/hardware_interfaces.py` 与 `GET /hardware/interfaces`，覆盖外置 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 五类硬件依赖空接口。
+  - Android Binder/AIDL 新增 `getHardwareInterfacesJson`，Android Console 新增 `Hardware IF` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `hardware-interfaces`/`hardware.interfaces.get`/`GetHardwareInterfaces` 可见路径。
+  - 本轮只完成 Python 原型中的接口预留和 Android/Linux 同步可见性，不访问真实硬件，不开发 Driver/HAL、vendor SDK、Safety Runtime、共享内存、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-004、XSC-006、HW-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005、NV-F-011、NV-P-002、NV-P-003。
 - 推进 A1 FW-U-008 Uni Info Bus extension registry contract：
   - 新增 `GET /uib/extensions`，以只读 contract 暴露扩展语义对象、schema 状态、治理规则、binding 可见性和 no-dispatch 边界，避免“其他/扩展”能力绕开 Uni Info Bus、SOA、Runtime & Governance 或 Protocol Binding。
   - Android Binder/AIDL 新增 `getUibExtensionsJson`；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `extensions`/`uib.extensions.get`/`GetUibExtensions` 可见路径。

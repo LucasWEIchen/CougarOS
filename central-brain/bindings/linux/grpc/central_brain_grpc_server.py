@@ -69,6 +69,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "ListBindings": {"method": "GET", "path": "/bindings", "req_ids": ["XSC-006", "NV-P-003", "DEL-002"]},
     "GetBindingReadiness": {"method": "GET", "path": "/bindings/readiness", "req_ids": ["XSC-006", "NV-P-001", "NV-P-002", "NV-P-003", "NV-P-004", "NV-P-005", "NV-P-006", "DEL-002", "DEL-003", "DEL-004"]},
     "GetDeliveryReadiness": {"method": "GET", "path": "/delivery/readiness", "req_ids": ["DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-P-003"]},
+    "GetHardwareInterfaces": {"method": "GET", "path": "/hardware/interfaces", "req_ids": ["XSC-004", "XSC-006", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "NV-P-003", "DEL-002", "DEL-005"]},
 }
 
 

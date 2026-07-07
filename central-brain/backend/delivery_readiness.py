@@ -19,6 +19,10 @@ DELIVERY_REQ_IDS = [
     "XSC-004",
     "XSC-005",
     "XSC-006",
+    "HW-002",
+    "KH-003",
+    "KH-006",
+    "KH-007",
 ]
 
 
@@ -142,6 +146,31 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "target vehicle signal catalog, DBC/ARXML, or VHAL contract",
         ],
         "req_ids": ["DEL-005", "XSC-004", "KH-003", "KH-006", "KH-007", "HW-002", "NV-F-011"],
+    },
+    {
+        "target": "hardware-empty-interface-registry",
+        "platform": "Android/Linux",
+        "current_state": "read-only-empty-interface-contract",
+        "ready_for": ["hardware interface review", "future Driver/HAL adapter planning", "Android/Linux cockpit-domain inspection"],
+        "artifacts": [
+            "central-brain/backend/hardware_interfaces.py",
+            "GET /hardware/interfaces",
+            "Android Binder getHardwareInterfacesJson",
+            "Linux CLI hardware-interfaces",
+            "Linux IPC hardware.interfaces.get",
+            "Linux gRPC/RPC GetHardwareInterfaces",
+        ],
+        "validation": [
+            "bash tools/smoke_central_brain_semantic_gateway.sh",
+            "bash tools/smoke_central_brain_linux_ipc.sh",
+            "bash tools/smoke_central_brain_linux_grpc.sh",
+        ],
+        "blocked_by": [
+            "real PCIe NPU hardware and vendor SDK",
+            "target vehicle signal catalog, DBC/ARXML, VHAL contract, or gateway",
+            "target sensor/network/shared-memory/Safety Runtime owner decisions",
+        ],
+        "req_ids": ["DEL-001", "DEL-002", "DEL-005", "XSC-004", "XSC-006", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007"],
     },
     {
         "target": "virtualization-safety-constraints",

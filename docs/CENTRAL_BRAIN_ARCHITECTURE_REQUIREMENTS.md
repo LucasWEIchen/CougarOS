@@ -36,9 +36,9 @@
 | L1 | 应用层 | 承载客户开发的 Apps/Services，以及平台提供的 AI SDK | 部分原型 |
 | L2 | Framework 层 | 必须包含 Uni Info Bus 语义接口和 SOA 服务入口 | 文档化，未完整实现 |
 | L3 | Native 层 | 必须包含 AIOS Kernel、Signal/Service/Runtime/Policy/Model adapters，以及 Runtime & Governance、Protocol Binding | mock 后端仅覆盖极小子集 |
-| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用；新增开发仅限当前环境缺口 | 驱动接口矩阵 + NPU runtime interface 初版 + `/native/driver-gaps` |
+| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用；新增开发仅限当前环境缺口 | 驱动接口矩阵 + NPU runtime interface 初版 + `/native/driver-gaps` + `/hardware/interfaces` 空接口注册表 |
 | L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信的接口约束；不开发虚拟化功能 | `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 初版 |
-| L6 | 硬件层 | 基线硬件为 UniSOC Automotive-solution，并扩展接入外置 PCIe NPU | 未实现，仅 mock |
+| L6 | 硬件层 | 基线硬件为 UniSOC Automotive-solution，并扩展接入外置 PCIe NPU | 未实现真实硬件，仅 Python 原型 mock + hardware empty-interface registry |
 
 ## 跨 SoC 黄色小太阳组件
 
@@ -49,7 +49,7 @@
 | XSC-001 | AI SDK | 应用层 | SDK API 稳定，底层 runtime 可替换 | Android Binder/AIDL contract sample + Console `planAgentTaskJson`/`executeAgentTaskJson`/`invokeSkillJson`/`queryMemoryJson` debug path + `/ai/sdk/capabilities` + `/agent/plan` + `/agent/execute` + Skill/Memory contract mock | Linux CLI/IPC active sample + `/ai/sdk/capabilities` + `/agent/plan` + `/agent/execute` + Skill/Memory contract mock |
 | XSC-002 | Uni Info Bus 语义接口 | Framework 层 | 语义对象和 contract 跨 SoC 一致 | Android client/API + Binder `getUibExtensionsJson` | Linux client/API + CLI/IPC/gRPC `extensions`/`uib.extensions.get`/`GetUibExtensions` |
 | XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client + Binder `getServiceContractsJson` | Linux daemon/client + CLI/IPC/gRPC `service-contracts`/`soa.contracts.get`/`GetServiceContracts` |
-| XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter + Console `Driver Gaps` 调试入口调用 `getDriverHalGapsJson` contract visibility | Linux service adapter；adapter registry 初版；`driver-gaps` CLI 可查 Driver/HAL backlog |
+| XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter + Console `Driver Gaps`/`Hardware IF` 调试入口调用 `getDriverHalGapsJson`/`getHardwareInterfacesJson` contract visibility | Linux service adapter；adapter registry 初版；`driver-gaps` 和 `hardware-interfaces` CLI 可查 Driver/HAL backlog 与硬件空接口 |
 | XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit 可移植 | Android runtime integration + Console `Precheck` 调试入口调用 `precheckGovernanceJson` contract + Binder `getGovernanceBackendContractJson`/`getGovernanceMigrationCheckJson`/`getGovernanceDeploymentPlanJson` 目标契约、迁移检查与部署计划可见性 | Linux runtime integration；JSONL audit persistence sample；QoS fixed-window active prototype；`/governance/precheck`/`governance-precheck`；`/governance/backend-contract`/`governance-backend-contract`；`/governance/migration-check`/`governance-migration-check`；`/governance/deployment-plan`/`governance-deployment-plan`；Linux shared governance daemon 提供 precheck/runtime/audit diagnostics；IPC/gRPC 通过 shared governance client 复用 precheck envelope、runtime/audit diagnostic envelope + fallback |
 | XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Console 已绑定 Binder service sample；system/privileged service integration note 初版；Binder contract 暴露 shared governance backend target、migration readiness、deployment plan、binding readiness 和 delivery readiness；REST 仍为 service 上游 prototype binding | REST active prototype + Unix socket IPC active sample with shared governance client precheck/runtime/audit direct diagnostics/backend contract/migration/deployment/binding readiness/delivery readiness visibility + Linux gRPC/RPC JSON contract sample with same diagnostics + systemd hardening sample + Linux package profile check，MQTT/SOME-IP/DDS 计划态 |
 
@@ -153,11 +153,11 @@
 | --- | --- | --- | --- | --- | --- |
 | KH-001 | 文件系统管理/网络协议栈/... | 芯片原有 | OS 基础能力 | 上层不得重造基础 OS 能力 | 依赖宿主/Android |
 | KH-002 | 内存管理 | 芯片原有 | 内存管理 | NPU/ADAS/多媒体需考虑共享内存与隔离 | 未实现 |
-| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 仅在当前 Android/Linux 环境能力不足时新增开发；必须明确驱动接口支持矩阵 | 驱动接口矩阵 + NPU runtime interface 初版；`/native/driver-gaps` 记录触发条件和最小新增开发量；真实 driver 未实现 |
+| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 仅在当前 Android/Linux 环境能力不足时新增开发；必须明确驱动接口支持矩阵 | 驱动接口矩阵 + NPU runtime interface 初版；`/native/driver-gaps` 记录触发条件和最小新增开发量；`/hardware/interfaces` 暴露空接口 reserved methods；真实 driver 未实现 |
 | KH-004 | 其他 | 芯片原有 | 底层扩展 | 需后续明确 | 未实现 |
 | KH-005 | Libs | 芯片原有 | 基础库 | 需记录依赖库边界 | 未实现 |
-| KH-006 | HAL | 芯片原有 | 硬件抽象层 | NPU、传感器、车身信号需 HAL 边界 | NPU HAL 边界文档化；Driver/HAL gap backlog 暴露 Android/Linux 目标接口；真实 HAL 未实现 |
-| KH-007 | Safety Runtime | 芯片原有 | 安全运行时 | ASIL/QM 策略必须落到 runtime | Safety/NPU fault state 约束文档化；shared-memory-safety-runtime gap 记录触发条件；真实 Safety Runtime 未实现 |
+| KH-006 | HAL | 芯片原有 | 硬件抽象层 | NPU、传感器、车身信号需 HAL 边界 | NPU HAL 边界文档化；Driver/HAL gap backlog 和 `/hardware/interfaces` 暴露 Android/Linux 目标接口；真实 HAL 未实现 |
+| KH-007 | Safety Runtime | 芯片原有 | 安全运行时 | ASIL/QM 策略必须落到 runtime | Safety/NPU fault state 约束文档化；`shared-memory-safety-runtime` gap 和 `/hardware/interfaces` 记录空接口与触发条件；真实 Safety Runtime 未实现 |
 | KH-008 | Libs | 芯片原有 | 另一组基础库 | 图中重复 Libs 需确认含义，见 ISSUE-007 | 未实现 |
 | KH-009 | 进程&线程调度/中断与异常管理/系统调用接口/... | 芯片原有 | OS 调度和异常 | 真实 NPU/ADAS 接入必须定义异常恢复 | 未实现 |
 
@@ -174,7 +174,7 @@
 | Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
 | --- | --- | --- | --- | --- | --- |
 | HW-001 | UniSOC Automotive-solution | 展锐负责 | 中央计算硬件基线 | 软件架构默认基于 UniSOC 车规方案 | 未实现 |
-| HW-002 | 外置 PCIe NPU 算力卡 | 用户补充需求 | 后端 AI 基座由 PCIe NPU 实现 | 必须映射到 KH-003、KH-006、NV-F-011 | mock + `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` + DRV-GAP-001 |
+| HW-002 | 外置 PCIe NPU 算力卡 | 用户补充需求 | 后端 AI 基座由 PCIe NPU 实现 | 必须映射到 KH-003、KH-006、NV-F-011 | mock + `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` + DRV-GAP-001 + `/hardware/interfaces` 的 `npu-runtime` 空接口 |
 
 ## 开发顺序约束
 

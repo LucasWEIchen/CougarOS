@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, NV-P-002, NV-P-003, NV-P-006, DEL-002.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, HW-002, KH-003, KH-006, KH-007, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-005.
 - `proto/central_brain_gateway.proto` defines the gRPC/RPC surface.
 - `grpc/central_brain_grpc_server.py` and `grpc/central_brain_grpc_client.py`
   are dependency-free JSON TCP samples that mirror the proto request/response
@@ -57,6 +57,7 @@ Brain semantic gateway.
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `bindings.readiness.get` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-002, DEL-003, DEL-004 |
 | `delivery.readiness.get` | `GET /delivery/readiness` | DEL-001..005, XSC-001..006 |
+| `hardware.interfaces.get` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 
 The gRPC/RPC JSON sample maps the same semantic endpoints through
 `CentralBrainGateway.*` RPC names from `proto/central_brain_gateway.proto`.
@@ -83,6 +84,9 @@ commands, and non-goal boundaries without implementing production transports.
 `CentralBrainGateway.GetDeliveryReadiness` exposes Android/Linux delivery
 sample status, validation commands, blockers, and non-goal boundaries without
 implementing production services, packaging, Driver/HAL, or virtualization.
+`CentralBrainGateway.GetHardwareInterfaces` exposes the same hardware
+empty-interface registry as Android Binder and Linux IPC without touching
+devices, HALs, shared memory, vehicle bus, or virtualization APIs.
 `CentralBrainGateway.GetRuntimeGovernance` and
 `CentralBrainGateway.GetRecentAudit` use the same shared governance client as
 IPC for read-only diagnostics before falling back to the REST prototype gateway.
@@ -132,6 +136,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py binding-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py delivery-readiness
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interfaces
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
@@ -186,6 +192,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py binding-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py delivery-readiness
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interfaces
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \

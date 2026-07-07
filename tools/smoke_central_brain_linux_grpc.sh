@@ -167,12 +167,33 @@ assert "android-debug-console" in targets, response
 assert "linux-ipc-daemon-sample" in targets, response
 assert "linux-grpc-rpc-sample" in targets, response
 assert "driver-hal-gap-backlog" in targets, response
+assert "hardware-empty-interface-registry" in targets, response
 assert readiness["summary"]["production_ready"] is False, response
 assert readiness["summary"]["android_debug_ready"] is True, response
 assert readiness["summary"]["linux_samples_ready"] is True, response
 assert readiness["summary"]["driver_development_triggered"] is False, response
 assert readiness["summary"]["virtualization_development_triggered"] is False, response
 assert "AAOS signing" in encoded and "target Linux distro" in encoded, response
+PY
+HARDWARE_INTERFACES_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interfaces)"
+python3 - "$HARDWARE_INTERFACES_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+hardware = payload["gateway"]["payload"]
+encoded = json.dumps(hardware)
+interface_ids = {item["interface_id"] for item in hardware["interfaces"]}
+assert response["status"] == "ok", response
+assert "npu-runtime" in interface_ids, response
+assert "vehicle-bus" in interface_ids, response
+assert "shared-memory-safety-runtime" in interface_ids, response
+assert hardware["summary"]["implementation_state"] == "empty-interface-registry", response
+assert hardware["summary"]["hardware_accessed"] is False, response
+assert hardware["summary"]["driver_development_triggered"] is False, response
+assert hardware["summary"]["virtualization_development_triggered"] is False, response
+assert "hardware.interfaces.get" in encoded and "GetHardwareInterfaces" in encoded, response
 PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'

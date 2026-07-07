@@ -51,6 +51,9 @@ do
 done
 
 require_text "$DRIVER_DOC" "CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
+require_text "$DRIVER_DOC" "/hardware/interfaces"
 require_text "$REQUIREMENTS_DOC" "CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
+require_text "$REQUIREMENTS_DOC" "/hardware/interfaces"
+require_text "$DOC" "/hardware/interfaces"
 
 echo "Central Brain NPU runtime interface check passed"

@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, FW-U-008, NV-P-002, NV-P-006, KH-003, KH-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, FW-U-008, HW-002, NV-P-002, NV-P-006, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005.
 - This is a Binder service/client sample. It does not replace Uni Info Bus or
   SOA semantics, and it does not access drivers, HAL, or virtualization
   directly.
@@ -13,7 +13,7 @@ Brain semantic gateway.
   Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
   Memory query, Runtime & Governance precheck, shared governance backend target
   contract, governance migration readiness, governance deployment plan,
-  Protocol Binding readiness, Android/Linux delivery readiness, SOA service contract visibility, and Driver/HAL gap backlog contract mocks. The Binder service
+  Protocol Binding readiness, Android/Linux delivery readiness, SOA service contract visibility, Driver/HAL gap backlog, and hardware empty-interface registry contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
   binding.
 
@@ -50,6 +50,7 @@ Brain semantic gateway.
 | `getDeliveryReadinessJson` | `GET /delivery/readiness` | DEL-001..005, XSC-001..006 |
 | `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
 | `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
+| `getHardwareInterfacesJson` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-005 |
 
 ## Artifacts
 
@@ -117,13 +118,18 @@ Brain semantic gateway.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
   integration review through the Android Console `Driver Gaps` action only; it
   does not call HAL, device nodes, vendor SDKs, or Safety Runtime.
+- `getHardwareInterfacesJson` exposes the hardware empty-interface registry for
+  Android integration review through the Android Console `Hardware IF` action
+  only; it returns reserved methods and Android/Linux target paths but does not
+  access hardware, call HAL, allocate shared memory, invoke vendor SDKs, or
+  create virtualization work.
 
 ## System Service Integration Notes
 
 `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` records the Android
 system/privileged service integration constraints for DEL-001, DEL-003,
-DEL-004, DEL-005, XSC-002, XSC-003, XSC-005, XSC-006, NV-P-002, NV-P-005,
-FW-U-007, FW-S-005, NV-G-005, KH-003, and KH-006. It covers target service shapes, manifest permission
+DEL-004, DEL-005, XSC-002, XSC-003, XSC-005, XSC-006, HW-002, NV-P-002, NV-P-005,
+FW-U-007, FW-S-005, NV-G-005, KH-003, KH-006, and KH-007. It covers target service shapes, manifest permission
 constraints, Binder identity to Policy mapping, SELinux/deployment assumptions,
 and verification checks.
 

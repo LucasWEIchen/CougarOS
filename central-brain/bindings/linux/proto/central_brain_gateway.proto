@@ -47,6 +47,7 @@ service CentralBrainGateway {
   rpc ListBindings(GatewayRequest) returns (GatewayResponse);
   rpc GetBindingReadiness(GatewayRequest) returns (GatewayResponse);
   rpc GetDeliveryReadiness(GatewayRequest) returns (GatewayResponse);
+  rpc GetHardwareInterfaces(GatewayRequest) returns (GatewayResponse);
 }
 
 message GatewayRequest {

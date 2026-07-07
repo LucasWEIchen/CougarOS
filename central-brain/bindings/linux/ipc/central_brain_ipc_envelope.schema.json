@@ -37,7 +37,8 @@
         "audit.recent.get",
         "bindings.list",
         "bindings.readiness.get",
-        "delivery.readiness.get"
+        "delivery.readiness.get",
+        "hardware.interfaces.get"
       ]
     },
     "caller": {

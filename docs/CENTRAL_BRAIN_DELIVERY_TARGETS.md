@@ -1,7 +1,7 @@
 # Android/Linux 座舱域交付目标
 
 版本：0.1
-日期：2026-07-04
+日期：2026-07-07
 
 ## 交付对象
 
@@ -11,8 +11,8 @@
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
 | --- | --- | --- | --- |
-| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并可触发 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`、`precheckGovernanceJson`、`getDriverHalGapsJson`；system service integration note 初版 |
-| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Linux CLI 提供 `driver-gaps`；Unix socket IPC daemon/client active sample 已含 execute/Skill/Memory mock；gRPC/RPC JSON contract sample 初版；systemd 部署样例初版 + hardening check + package profile check |
+| Android | 主路径 | App、SDK client、AIDL/Binder 设计、Android system/privileged service 集成约束、模拟器/设备验证 | Console 已绑定 Binder service sample，并可触发 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`、`precheckGovernanceJson`、`getDriverHalGapsJson`、`getHardwareInterfacesJson`；system service integration note 初版 |
+| Linux | 同步交付 | CLI/client、daemon 形态、systemd/进程部署、IPC/REST/gRPC 集成、驱动接口说明 | CLI smoke 初版；Linux CLI 提供 `driver-gaps` 和 `hardware-interfaces`；Unix socket IPC daemon/client active sample 已含 execute/Skill/Memory mock；gRPC/RPC JSON contract sample 初版；systemd 部署样例初版 + hardening check + package profile check |
 
 ## 每个核心模块的交付形态
 
@@ -21,11 +21,11 @@
 | AI SDK | XSC-001 | Android Binder/AIDL `planAgentTaskJson`、`executeAgentTaskJson`、Skill/Memory contract sample + `/ai/sdk/capabilities` | Linux CLI/IPC `agent-plan`、`agent-execute`、`skill-invoke`、`memory-query` active sample + `/ai/sdk/capabilities` | 黄色小太阳，跨 SoC；当前是 facade/plan/execute/Skill/Memory contract mock，不是真实 SDK library |
 | Uni Info Bus 语义接口 | XSC-002 | Android client + contract + Binder `getUibExtensionsJson` | Linux client + contract + CLI/IPC/gRPC `extensions`/`uib.extensions.get`/`GetUibExtensions` | `/uib/context`、`/uib/state`、`/uib/events/*`、`/uib/extensions`、`/uib/actions/request` 初版 |
 | SOA 服务入口 | XSC-003 | Android service/client + Binder `getServiceContractsJson` | Linux daemon/client + CLI/IPC/gRPC `service-contracts`/`soa.contracts.get`/`GetServiceContracts` | `/soa/services`、`/soa/contracts`、`/soa/invoke` 初版；contract 查询不 dispatch 服务 |
-| AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample + Driver/HAL gap visibility | Linux service adapter + Agent execute/Skill/Memory boundary sample + `driver-gaps` CLI | `GET /native/adapters/detail` 与 `GET /native/driver-gaps`；AIOS Kernel 真实 runtime 仍未实现 |
+| AIOS Kernel | XSC-004 | Native service adapter + Agent execute/Skill/Memory boundary sample + Driver/HAL gap visibility + hardware empty-interface visibility | Linux service adapter + Agent execute/Skill/Memory boundary sample + `driver-gaps`/`hardware-interfaces` CLI | `GET /native/adapters/detail`、`GET /native/driver-gaps` 与 `GET /hardware/interfaces`；AIOS Kernel 真实 runtime 仍未实现 |
 | Runtime & Governance | XSC-005 | Registry/Policy/Lifecycle/QoS integration + Console `Precheck` 调用 `precheckGovernanceJson` + Binder `getGovernanceBackendContractJson`/`getGovernanceMigrationCheckJson`/`getGovernanceDeploymentPlanJson` 目标契约、迁移检查与部署计划可见性 | daemon modules + JSONL audit persistence sample + QoS fixed-window sample + Linux shared governance daemon precheck/runtime/audit diagnostics + IPC/gRPC shared governance client precheck/runtime/audit direct diagnostic path + local/REST fallback + `governance-precheck` + `governance-backend-contract` + `governance-migration-check` + `governance-deployment-plan` | `/governance/runtime`、`/governance/precheck`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/policy/evaluate`、`/audit/recent` active prototype；`CENTRAL_BRAIN_AUDIT_LOG` 可恢复最近审计；`/soa/invoke`、Linux governance daemon 与 Linux IPC/gRPC `soa.service.invoke` 执行 NV-G-004 QoS 检查；shared governance socket 可直接查询 runtime/audit，且 IPC/gRPC sample 优先使用该 direct path；`/governance/precheck` 默认只检查不消费 QoS；`/governance/backend-contract` 是目标契约，`/governance/migration-check` 是替换 readiness 检查，`/governance/deployment-plan` 是部署形态 contract，均不是量产治理后端 |
 | Protocol Binding | XSC-006 | Console Binder client path + Binder/AIDL service stub sample + Android system/privileged service integration note，service 上游仍代理 REST prototype，含 Event 语义映射和 shared governance backend target/migration/deployment/binding readiness/delivery readiness contract | REST active prototype + Unix socket IPC daemon/client active sample with shared governance client precheck/runtime/audit direct diagnostics/backend contract/deployment/binding readiness/delivery readiness visibility + Linux gRPC/RPC JSON contract sample with same diagnostics + systemd sample + unit hardening check + package profile check，含 Event 语义映射；MQTT/SOME-IP/DDS 计划态 | `/bindings/detail` 返回 binding artifact、sample 状态和 Req ID；`/bindings/readiness` 返回 Android Binder/Linux IPC/Linux gRPC/REST/MQTT/SOME-IP/DDS readiness、阻塞项和验证命令；`/delivery/readiness` 汇总 Android/Linux 交付样例、验证 bundle、阻塞项和非目标边界；当前 gRPC/RPC sample 因环境无 `grpcio` 使用 JSON TCP wrapper；DDS 不在本轮实现 |
 | Model Runtime Adapter | NV-F-011 | Android native/runtime bridge + NPU runtime interface contract | Linux runtime bridge + NPU runtime interface contract | NPU/GPU/Cloud 后端可替换；见 `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
-| Driver/HAL interface | KH-003, KH-006, DEL-005 | Android HAL/AIDL/NDK interface docs + Console `Driver Gaps` 调用 Binder `getDriverHalGapsJson` | Linux device node/ioctl/sysfs/libs docs + CLI `driver-gaps` | 只在缺口处新增开发；NPU 检查点和 Driver/HAL gap backlog 已文档化/可查询 |
+| Driver/HAL interface | KH-003, KH-006, DEL-005 | Android HAL/AIDL/NDK interface docs + Console `Driver Gaps`/`Hardware IF` 调用 Binder `getDriverHalGapsJson`/`getHardwareInterfacesJson` | Linux device node/ioctl/sysfs/libs docs + CLI `driver-gaps`/`hardware-interfaces` | 只在缺口处新增开发；NPU 检查点、Driver/HAL gap backlog 和 hardware empty-interface registry 已文档化/可查询 |
 | Hypervisor/Safety constraints | HV-001, HV-002, HV-003 | Android domain、Binder identity、Safety State 和 Policy 集成假设 | Linux domain、service identity、IPC fallback 和 Safety State 集成假设 | 只记录接口约束和部署假设，不开发虚拟化 |
 
 ## 交付包要求
@@ -65,6 +65,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py delivery-readiness
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py driver-gaps
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interfaces
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py ai-sdk
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py agent-plan
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py agent-execute
@@ -92,8 +93,10 @@ Linux IPC `infer-denied` 样例用于验证 Unix socket binding 在转发到 RES
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py infer-denied
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py audit
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interfaces
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py audit
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interfaces
 ```
 
 Linux systemd 部署样例：
@@ -141,6 +144,7 @@ Android 版本必须提供：
 - 通过 `CentralBrainGatewayClient.getDeliveryReadinessJson` 查看 Android debug Console/Binder、Android system service note、Linux CLI/IPC/gRPC、Linux systemd/package profile、Driver/HAL gap backlog 和虚拟化约束的交付 readiness、验证 bundle、阻塞项和非目标边界。
 - 通过 `CentralBrainGatewayClient.getServiceContractsJson` 查看 SOA service contract、版本、Policy/Safety State、QoS、Lifecycle 和 no-dispatch 边界，确认 FW-S-004/NV-G-003 contract 可见性。
 - 通过 `CentralBrainGatewayClient.getDriverHalGapsJson` 查看 KH-003/KH-006/DEL-005 的 Driver/HAL gap backlog；该路径只读，不触发任何驱动开发或 HAL 调用。
+- 通过 `CentralBrainGatewayClient.getHardwareInterfacesJson` 查看 HW-002/KH-003/KH-006/KH-007/DEL-005 的硬件依赖空接口目录；该路径只读，返回 `hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。
 - Binder service sample 内部仍以 REST prototype gateway 作为上游绑定，不代表量产 system service。
 
 当前 Android binding service stub sample：
@@ -170,6 +174,7 @@ Android 版本必须提供：
 - `GET /governance/deployment-plan`
 - `GET /bindings/readiness`
 - `GET /delivery/readiness`
+- `GET /hardware/interfaces`
 
 当前 Android system/privileged service integration note：
 

@@ -1,13 +1,13 @@
 # NPU Runtime Adapter 接口约束
 
 版本：0.1
-日期：2026-07-04
+日期：2026-07-07
 
 ## 范围声明
 
 本文覆盖外置 PCIe NPU 从 Uni Info Bus/SOA 到 Model Runtime Adapter、Driver/HAL 的接口约束，映射 Req ID：HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 
-本轮不开发 NPU driver、HAL、DMA、IOMMU、Safety Runtime 或虚拟化层；只固定 Android/Linux 座舱域工程师后续集成时必须满足的 contract、状态机、错误码和验证入口。真实硬件、vendor SDK、driver ABI 或目标 SoC 明确后，才按缺口新增最小开发量。
+本轮不开发 NPU driver、HAL、DMA、IOMMU、Safety Runtime 或虚拟化层；只固定 Android/Linux 座舱域工程师后续集成时必须满足的 contract、状态机、错误码和验证入口。`GET /hardware/interfaces` 中的 `npu-runtime` 是当前 Python 原型的 NPU 空接口预留，真实硬件、vendor SDK、driver ABI 或目标 SoC 明确后，才按缺口新增最小开发量。
 
 ## 分层边界
 
@@ -99,6 +99,7 @@ Model Runtime Adapter 接收的推理请求必须保留 Uni Info Bus/SOA 的治�
 ## 当前项目状态
 
 - `GET /npu/status` 仍是 mock runtime 状态，不表示真实 driver/HAL 可用。
+- `GET /hardware/interfaces` 的 `npu-runtime` 只暴露 reserved methods 和 Android/Linux 目标路径，`hardware_accessed=false`，不表示 HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 可用。
 - `npu-inference` SOA service 已通过 Runtime & Governance precheck，但底层仍调用 mock 推理。
 - `Model Runtime Adapter` 已在 `/native/adapters/detail` 中登记 Android/Linux 交付边界。
 - 真实 NPU 接入前，DEV-005 保持 Open；新增驱动开发只在硬件、SDK、driver ABI 明确后触发。

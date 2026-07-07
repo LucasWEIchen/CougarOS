@@ -1,25 +1,28 @@
 # Android/Linux 平台差异说明
 
 版本：0.1
-日期：2026-07-04
+日期：2026-07-07
 
 ## 范围
 
 本文件覆盖 DEL-001、DEL-002、DEL-003、DEL-004，以及跨 SoC 组件
-XSC-001、XSC-002、XSC-003、XSC-005、XSC-006 的 Android 主开发路径与 Linux 同步交付路径差异。
+XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006 的 Android 主开发路径与 Linux 同步交付路径差异。
 
 虚拟化层不开发；相关内容只作为 HV-001..003 的部署假设，详见
 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`。驱动层不默认新增开发；
 Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 `docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` 维护，并可通过
 `GET /native/driver-gaps`、Android Binder `getDriverHalGapsJson` 与 Linux CLI
-`driver-gaps` 查询。
+`driver-gaps` 查询。硬件依赖空接口按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces`、Android Binder `getHardwareInterfacesJson`、Linux CLI
+`hardware-interfaces`、Linux IPC `hardware.interfaces.get` 与 Linux gRPC/RPC
+`GetHardwareInterfaces` 查询，且不触发真实硬件访问。
 
 ## 差异矩阵
 
 | 维度 | Android 主开发路径 | Linux 同步交付路径 | 当前交付状态 | Req ID |
 | --- | --- | --- | --- | --- |
-| 应用入口 | Android Console APK 和后续 AI SDK client；Console 已通过 Binder 暴露 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`、`precheckGovernanceJson`、`getGovernanceDeploymentPlanJson`、`getBindingReadinessJson`、`getDeliveryReadinessJson`、`getDriverHalGapsJson` | CLI/client，无 UI 最低样例；CLI/IPC 暴露 `agent-plan`、`agent-execute`、`skill-invoke`、`memory-query`、`governance-precheck`、`governance-deployment-plan`、`binding-readiness`、`delivery-readiness`、`driver-gaps` | Console + CLI 初版；AI SDK/Agent plan + execute/Skill/Memory contract mock；Governance precheck、deployment plan、Protocol Binding readiness、Delivery readiness 与 Driver/HAL gap backlog 可见 | DEL-001, DEL-002, DEL-003, DEL-004, DEL-005, XSC-001, XSC-004, XSC-005, XSC-006, APP-004, FW-U-006 |
+| 应用入口 | Android Console APK 和后续 AI SDK client；Console 已通过 Binder 暴露 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`、`precheckGovernanceJson`、`getGovernanceDeploymentPlanJson`、`getBindingReadinessJson`、`getDeliveryReadinessJson`、`getDriverHalGapsJson`、`getHardwareInterfacesJson` | CLI/client，无 UI 最低样例；CLI/IPC 暴露 `agent-plan`、`agent-execute`、`skill-invoke`、`memory-query`、`governance-precheck`、`governance-deployment-plan`、`binding-readiness`、`delivery-readiness`、`driver-gaps`、`hardware-interfaces` | Console + CLI 初版；AI SDK/Agent plan + execute/Skill/Memory contract mock；Governance precheck、deployment plan、Protocol Binding readiness、Delivery readiness、Driver/HAL gap backlog 与 hardware empty-interface registry 可见 | DEL-001, DEL-002, DEL-003, DEL-004, DEL-005, XSC-001, XSC-004, XSC-005, XSC-006, APP-004, FW-U-006, HW-002, KH-003, KH-006, KH-007 |
 | Uni Info Bus | App/client 调用 `/uib/*`，Binder sample 暴露 `getContextJson`、`getStateJson` | CLI 和 Unix socket IPC operation 映射 `uib.context.get`、`uib.state.get` | active prototype | XSC-002, FW-U-001, FW-U-002 |
 | SOA 服务入口 | Binder sample 暴露服务目录和 invoke 方法，当前代理语义网关 | CLI、Unix socket IPC 和 systemd gateway sample | active prototype + Linux unit sample | XSC-003, FW-S-004, FW-S-005 |
 | Runtime & Governance | 通过 `/policy/evaluate`、`/governance/precheck`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/governance/runtime`、`/audit/recent` 验证；Console `Precheck` 按钮通过 Binder `precheckGovernanceJson` 直接触发只检查不调用路径；Binder `getGovernanceBackendContractJson`/`getGovernanceMigrationCheckJson`/`getGovernanceDeploymentPlanJson` 可查共享治理后端目标契约、替换 readiness 和部署计划 | 同一 contract；Linux CLI/IPC 提供 `governance-precheck`/`governance.precheck`、`governance-backend-contract`/`governance.backend.contract.get`、`governance-migration-check`/`governance.migration.check` 和 `governance-deployment-plan`/`governance.deployment.plan.get`；Linux IPC/gRPC 对 `soa.service.invoke` 优先通过 reusable shared governance client 调用 governance daemon precheck，不可用时回退本地 precheck；shared governance socket 可直接查询 `governance.runtime.get` 和 `audit.recent.get` | active prototype；`/governance/precheck` 默认不消费 QoS 且不 dispatch 服务；`/governance/backend-contract` 是目标契约；`/governance/migration-check` 是 readiness contract；`/governance/deployment-plan` 是部署形态 contract；Linux governance daemon/client 是共享 socket 样例，不是量产治理后端 | XSC-005, NV-G-001..007 |
@@ -27,7 +30,7 @@ Driver/HAL 缺口仍按 DEL-005、KH-003、KH-006 在
 | 服务部署 | Debug APK 内置 Binder sample；量产目标为 AAOS system/privileged service 约束 | `central-brain-backend.service` + `central-brain-governance.service` + `central-brain-linux-ipc.service` + `central-brain-linux-grpc.service` 样例，含 unit hardening check 与 `central-brain.package-profile.json` | Android system service integration note + Linux systemd sample + hardening/package profile check | DEL-001, DEL-002, DEL-003, DEL-004 |
 | 权限模型 | Android app permission、Binder caller identity、signature permission、Runtime & Governance policy | Linux service user/group、Unix socket mode、Runtime & Governance policy | Android 权限/SELinux 假设文档化，未接入真实系统权限 | FW-U-007, FW-S-005, NV-G-005, DEL-004 |
 | 日志与审计 | Android logcat + `/audit/recent`；可通过服务配置指定 `CENTRAL_BRAIN_AUDIT_LOG` | journald + `/audit/recent`；可指定 gateway JSONL audit log 路径、shared governance audit log、IPC fallback audit log | JSONL 持久化样例已可验证，量产仍需轮转/导出/权限加固 | XSC-005, NV-G-007, DEL-002, DEL-004 |
-| Driver/HAL | Android HAL/AIDL/NDK/vendor SDK bridge，当前不新增驱动；Console `Driver Gaps` 按钮通过 Binder `getDriverHalGapsJson` 可查 gap backlog | Linux device node/ioctl/sysfs/vendor lib，当前不新增驱动；CLI `driver-gaps` 可查 gap backlog | 接口矩阵 + `/native/driver-gaps` contract | DEL-005, KH-003, KH-006 |
+| Driver/HAL | Android HAL/AIDL/NDK/vendor SDK bridge，当前不新增驱动；Console `Driver Gaps` 和 `Hardware IF` 按钮通过 Binder `getDriverHalGapsJson`/`getHardwareInterfacesJson` 可查 gap backlog 和空接口目录 | Linux device node/ioctl/sysfs/vendor lib，当前不新增驱动；CLI `driver-gaps`/`hardware-interfaces`、IPC `hardware.interfaces.get` 和 gRPC/RPC `GetHardwareInterfaces` 可查 gap backlog 与空接口目录 | 接口矩阵 + `/native/driver-gaps` contract + `/hardware/interfaces` empty-interface registry | DEL-005, KH-003, KH-006, KH-007, HW-002, XSC-004, XSC-006 |
 | 虚拟化 | 只记录 Hypervisor/ASIL/QM 接口约束 | 只记录跨 VM 通信假设和 fallback | 非开发范围 | HV-001..003 |
 
 ## 虚拟化与 Safety 约束
@@ -89,4 +92,4 @@ bash tools/check_central_brain_android_system_service_docs.sh
 - Android system/privileged service 当前只有集成约束文档，没有 framework patch、priv-app 签名配置或 sepolicy，风险记录见 ISSUE-013。
 - Linux systemd unit 与 package profile 是带最小 hardening 约束的部署样例，不等同量产包管理、LSM 策略或安全认证基线。
 - 当前审计可选 JSONL 持久化并恢复最近 50 条；仍不是量产审计后端，偏差记录见 DEV-006。
-- 当前没有真实 Driver/HAL/NPU/Vehicle bus 接入，偏差记录见 DEV-004、DEV-005、DEV-014。
+- 当前没有真实 Driver/HAL/NPU/Vehicle bus 接入；`/hardware/interfaces` 只是 empty-interface registry，不访问 HAL、device node、vendor SDK、shared memory 或虚拟化层，偏差记录见 DEV-004、DEV-005、DEV-014、DEV-016。

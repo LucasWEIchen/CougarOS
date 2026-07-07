@@ -7,6 +7,7 @@
 - `contracts/`：Android 前端、中间层和后端之间的服务契约。
 - `backend/`：WSL 本地 mock NPU 后端，模拟 PCIe NPU runtime。
 - `backend/ai_sdk.py`：AI SDK/Agent facade mock，输出 policy-aware task graph。
+- `backend/hardware_interfaces.py`：硬件依赖空接口注册表，覆盖 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的预留方法和 no-hardware-access 边界。
 - `backend/native_adapters.py`：Native adapter 注册表，表达 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 的 Android/Linux 交付边界和 Driver/HAL gap backlog。
 - `bindings/`：Android Binder/AIDL service/client sample、Linux IPC/gRPC 等协议绑定契约、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample。
 - `deploy/linux/`：Linux systemd 部署样例、环境模板和平台部署说明。
@@ -67,6 +68,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py delivery-readiness
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py native-adapters-detail
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py driver-gaps
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interfaces
 bash tools/check_central_brain_binding_artifacts.sh
 bash tools/check_central_brain_delivery_docs.sh
 bash tools/check_central_brain_android_system_service_docs.sh
@@ -101,6 +103,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py delivery-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interfaces
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py audit
@@ -128,6 +132,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py binding-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py delivery-readiness
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interfaces
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
@@ -173,12 +179,13 @@ bash tools/check_central_brain_linux_systemd_hardening.sh
 - `GET /bindings/detail`：Protocol Binding artifact 详情，覆盖 XSC-006、NV-P-002、NV-P-003、DEL-001、DEL-002。
 - `GET /bindings/readiness`：Protocol Binding readiness，返回 Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS 的当前状态、阻塞项、验证命令和非目标边界，覆盖 XSC-006、NV-P-001..006、DEL-001、DEL-002、DEL-003、DEL-004；当前明确 `production_ready=false`，不实现量产 transport。
 - `GET /delivery/readiness`：Android/Linux delivery readiness，返回 Android debug Console/Binder、Android system service note、Linux CLI、Linux IPC、Linux gRPC/RPC、Linux systemd/package profile、Driver/HAL gap backlog 和虚拟化约束的交付状态、验证 bundle、阻塞项和非目标边界，覆盖 DEL-001..005、XSC-001..006；当前明确 `production_ready=false`，不实现 Android system service、真实 gRPC runtime、量产包管理、生产共享治理后端、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+- `GET /hardware/interfaces`：硬件依赖空接口注册表，返回 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的 reserved methods、Android 主路径、Linux 同步路径和触发条件，覆盖 XSC-004、XSC-006、HW-002、KH-001、KH-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005；当前明确 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
 - Android Console Binder path：debug APK 绑定 `CentralBrainGatewayBinderService`，通过 `CentralBrainGatewayClient` 调用 Uni Info Bus State 与 AI SDK/Agent task plan；service sample 仍代理 REST prototype gateway，覆盖 XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
-- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/*`、`/policy/evaluate`、`/governance/precheck`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/governance/runtime`、`/bindings/detail`、`/bindings/readiness`、`/delivery/readiness`、`/native/adapters/detail`、`/native/driver-gaps`，含 `getUibExtensionsJson`、`getServiceContractsJson`、`getBindingReadinessJson` 和 `getDeliveryReadinessJson`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、FW-U-008、FW-S-004、NV-G-003、NV-P-002、NV-P-006、KH-003、KH-006、DEL-001、DEL-002、DEL-003、DEL-004、DEL-005。
+- Android Binder service/client sample：`ICentralBrainGateway` 映射 `/uib/*`、`/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute`、`/skills`、`/memory/query`、`/soa/*`、`/policy/evaluate`、`/governance/precheck`、`/governance/backend-contract`、`/governance/migration-check`、`/governance/deployment-plan`、`/governance/runtime`、`/bindings/detail`、`/bindings/readiness`、`/delivery/readiness`、`/native/adapters/detail`、`/native/driver-gaps`、`/hardware/interfaces`，含 `getUibExtensionsJson`、`getServiceContractsJson`、`getBindingReadinessJson`、`getDeliveryReadinessJson` 和 `getHardwareInterfacesJson`，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、FW-U-008、FW-S-004、HW-002、NV-G-003、NV-P-002、NV-P-006、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-003、DEL-004、DEL-005。
 - Android system/privileged service integration note：`docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md` 记录 manifest/signature permission、Binder identity 到 Policy、SELinux/deployment 假设和验证检查项，覆盖 DEL-001、DEL-003、DEL-004、XSC-002、XSC-003、XSC-005、XSC-006、NV-P-002、NV-P-005、FW-U-007、FW-S-005、NV-G-005；本轮不开发 Android framework patch、priv-app 签名配置、SELinux policy、Driver/HAL 或虚拟化层。
 - Linux shared governance daemon sample：`central_brain_governance_daemon.py` 通过 Unix socket 提供 `governance.precheck`、`governance.runtime.get` 和 `audit.recent.get`，`central_brain_governance_client.py` 供 Linux IPC/gRPC 复用 shared precheck envelope 并直接查看治理状态/审计，覆盖 XSC-005、XSC-006、NV-G-001、NV-G-002、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-002、NV-P-003、DEL-002。
-- Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*`、`bindings.*`、`delivery.*` 和 `audit.*` 本地 IPC envelope；`soa.contracts.get` 暴露 SOA contract，`bindings.readiness.get` 暴露 Protocol Binding readiness，`delivery.readiness.get` 暴露 Android/Linux delivery readiness，`soa.service.invoke` 在转发到 REST prototype 前优先通过 shared governance client 执行 Runtime & Governance daemon precheck，不可用时回退本地 precheck，`governance.runtime.get` 与 `audit.recent.get` 先走同一 shared diagnostic socket 再回退 REST，覆盖 XSC-003、XSC-005、XSC-006、FW-U-003、FW-U-004、FW-S-004、NV-G-001、NV-G-002、NV-G-003、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-001..006、DEL-002、DEL-003、DEL-004、DEL-005。
-- Linux gRPC/RPC JSON contract sample：`central_brain_gateway.proto`、`central_brain_grpc_server.py` 和 `central_brain_grpc_client.py` 验证 GatewayRequest/GatewayResponse、RPC 名称映射、`GetUibExtensions`、`GetServiceContracts`、`GetBindingReadiness`、`GetDeliveryReadiness`、`InvokeService` shared governance client precheck，以及 `GetRuntimeGovernance`/`GetRecentAudit` shared diagnostic path；当前环境无 `grpcio`，所以使用标准库 JSON TCP wrapper，覆盖 XSC-001、XSC-002、XSC-003、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、FW-U-008、FW-S-004、NV-G-003、NV-P-003、DEL-002、DEL-003、DEL-004。
+- Linux Unix socket IPC sample：`uib.*`、`soa.*`、`policy.*`、`governance.*`、`bindings.*`、`delivery.*`、`hardware.interfaces.get` 和 `audit.*` 本地 IPC envelope；`soa.contracts.get` 暴露 SOA contract，`bindings.readiness.get` 暴露 Protocol Binding readiness，`delivery.readiness.get` 暴露 Android/Linux delivery readiness，`hardware.interfaces.get` 暴露硬件依赖空接口，`soa.service.invoke` 在转发到 REST prototype 前优先通过 shared governance client 执行 Runtime & Governance daemon precheck，不可用时回退本地 precheck，`governance.runtime.get` 与 `audit.recent.get` 先走同一 shared diagnostic socket 再回退 REST，覆盖 XSC-003、XSC-004、XSC-005、XSC-006、FW-U-003、FW-U-004、FW-S-004、HW-002、KH-003、KH-006、KH-007、NV-G-001、NV-G-002、NV-G-003、NV-G-004、NV-G-005、NV-G-006、NV-G-007、NV-P-001..006、DEL-002、DEL-003、DEL-004、DEL-005。
+- Linux gRPC/RPC JSON contract sample：`central_brain_gateway.proto`、`central_brain_grpc_server.py` 和 `central_brain_grpc_client.py` 验证 GatewayRequest/GatewayResponse、RPC 名称映射、`GetUibExtensions`、`GetServiceContracts`、`GetBindingReadiness`、`GetDeliveryReadiness`、`GetHardwareInterfaces`、`InvokeService` shared governance client precheck，以及 `GetRuntimeGovernance`/`GetRecentAudit` shared diagnostic path；当前环境无 `grpcio`，所以使用标准库 JSON TCP wrapper，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、APP-004、FW-U-003、FW-U-004、FW-U-006、FW-U-008、FW-S-004、HW-002、NV-G-003、NV-P-003、KH-003、KH-006、KH-007、DEL-002、DEL-003、DEL-004、DEL-005。
 - `GET /native/adapters`：Native adapter 注册表，覆盖 XSC-004、NV-F-001、NV-F-003、NV-F-004、NV-F-008、NV-F-009、NV-F-011。
 - `GET /native/adapters/detail`：Android/Linux 原生适配交付边界与 Driver/HAL 依赖说明，覆盖 XSC-004、DEL-001、DEL-002、DEL-005。
 - `GET /native/driver-gaps`：Driver/HAL gap backlog，列出 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的触发条件与最小新增开发量；Android Binder `getDriverHalGapsJson` 和 Linux CLI `driver-gaps` 共用该 contract，覆盖 KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。

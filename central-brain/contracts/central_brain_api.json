@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.29",
+  "version": "0.1.30",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -13,8 +13,9 @@
     "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, and getGovernanceDeploymentPlanJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, and /native/driver-gaps through Binder contract samples",
+    "hardware_empty_interfaces": "GET /hardware/interfaces exposes hardware-dependent empty interfaces for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, and getHardwareInterfacesJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, /native/driver-gaps, and /hardware/interfaces through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -557,7 +558,7 @@
       "response": {
         "readiness": [
           {
-            "target": "android-debug-console|linux-ipc-daemon-sample|linux-grpc-rpc-sample|driver-hal-gap-backlog",
+            "target": "android-debug-console|linux-ipc-daemon-sample|linux-grpc-rpc-sample|driver-hal-gap-backlog|hardware-empty-interface-registry",
             "current_state": "debug-apk-binder-sample|active-unix-socket-sample|grpc-json-active-sample|read-only-gap-contract",
             "ready_for": [
               "string"
@@ -654,6 +655,50 @@
         "DEL-005",
         "HW-002",
         "NV-F-011"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/hardware/interfaces",
+      "description": "Returns hardware-dependent empty interface contracts for the Python prototype without opening devices, invoking HALs, allocating shared memory, or performing virtualization work.",
+      "response": {
+        "interfaces": [
+          {
+            "interface_id": "npu-runtime|vehicle-bus|camera-audio-sensors|ethernet-someip-dds-tsn|shared-memory-safety-runtime",
+            "implementation_state": "empty-interface",
+            "hardware_dependency": "string",
+            "android_primary_path": "future platform HAL/native adapter path",
+            "linux_sync_path": "future Linux adapter path",
+            "reserved_methods": [
+              {
+                "name": "string",
+                "request_contract": "string",
+                "response_contract": "string",
+                "side_effects": "none-in-prototype"
+              }
+            ]
+          }
+        ],
+        "summary": {
+          "implementation_state": "empty-interface-registry",
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        }
+      },
+      "req_ids": [
+        "XSC-004",
+        "XSC-006",
+        "HW-002",
+        "KH-001",
+        "KH-002",
+        "KH-003",
+        "KH-006",
+        "KH-007",
+        "DEL-001",
+        "DEL-002",
+        "DEL-005"
       ]
     },
     {

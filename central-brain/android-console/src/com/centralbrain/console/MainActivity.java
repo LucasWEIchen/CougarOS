@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private Button memoryButton;
     private Button governanceButton;
     private Button driverGapsButton;
+    private Button hardwareInterfacesButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
 
@@ -139,6 +140,15 @@ public class MainActivity extends Activity {
             }
         });
 
+        LinearLayout hardwareRow = buttonRow();
+        buttonArea.addView(hardwareRow);
+        hardwareInterfacesButton = addButton(hardwareRow, "Hardware IF", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareInterfaces();
+            }
+        });
+
         detailView = new TextView(this);
         detailView.setTextSize(13);
         detailView.setTextColor(Color.rgb(34, 45, 52));
@@ -235,6 +245,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareInterfaces() {
+        setBusy(true, "Status: loading hardware empty interfaces via Binder");
+        gatewayRequest("Hardware Empty Interfaces (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfacesJson(newTraceId("hardware-interfaces"));
+            }
+        });
+    }
+
     private void bindGateway() {
         setBusy(true, "Status: binding Android gateway service");
         gatewayClient = new CentralBrainGatewayClient(this, new CentralBrainGatewayClient.Callback() {
@@ -243,7 +263,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Governance, or Driver Gaps to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Governance, Driver Gaps, or Hardware IF to exercise the Android Binder path.");
             }
 
             @Override
@@ -297,6 +317,7 @@ public class MainActivity extends Activity {
         memoryButton.setEnabled(enabled);
         governanceButton.setEnabled(enabled);
         driverGapsButton.setEnabled(enabled);
+        hardwareInterfacesButton.setEnabled(enabled);
     }
 
     private LinearLayout buttonRow() {

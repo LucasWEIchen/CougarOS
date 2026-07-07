@@ -160,12 +160,32 @@ assert "android-debug-console" in targets, response
 assert "linux-ipc-daemon-sample" in targets, response
 assert "linux-grpc-rpc-sample" in targets, response
 assert "driver-hal-gap-backlog" in targets, response
+assert "hardware-empty-interface-registry" in targets, response
 assert payload["summary"]["production_ready"] is False, response
 assert payload["summary"]["android_debug_ready"] is True, response
 assert payload["summary"]["linux_samples_ready"] is True, response
 assert payload["summary"]["driver_development_triggered"] is False, response
 assert payload["summary"]["virtualization_development_triggered"] is False, response
 assert "AAOS signing" in encoded and "target Linux distro" in encoded, response
+PY
+HARDWARE_INTERFACES_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interfaces)"
+python3 - "$HARDWARE_INTERFACES_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+interface_ids = {item["interface_id"] for item in payload["interfaces"]}
+assert response["status"] == "ok", response
+assert "npu-runtime" in interface_ids, response
+assert "vehicle-bus" in interface_ids, response
+assert "shared-memory-safety-runtime" in interface_ids, response
+assert payload["summary"]["implementation_state"] == "empty-interface-registry", response
+assert payload["summary"]["hardware_accessed"] is False, response
+assert payload["summary"]["driver_development_triggered"] is False, response
+assert payload["summary"]["virtualization_development_triggered"] is False, response
+assert "hardware.interfaces.get" in encoded and "GetHardwareInterfaces" in encoded, response
 PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" governance-backend-contract)"
 python3 - "$BACKEND_CONTRACT_OUTPUT" <<'PY'
