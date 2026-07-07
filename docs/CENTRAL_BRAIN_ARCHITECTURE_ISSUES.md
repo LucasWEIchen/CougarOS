@@ -41,6 +41,8 @@
 
 2026-07-07 新增 `GET /uib/events/subscriptions/backpressure-qos-evidence`、Android `getEventSubscriptionBackpressureQosEvidenceJson`、Linux `event-subscription-backpressure-qos-evidence`、`uib.events.subscriptions.backpressure.qos.evidence` 与 `GetEventSubscriptionBackpressureQosEvidence`，把 overflow schema、per-caller throttling、replay rate、ack timeout、Runtime & Governance QoS evidence、高频 transport QoS mapping 和 Driver/HAL high-rate scope 拆成 `EV-QOS-001..008` 门禁。该疑点仍为 Proposed：backpressure/QoS owner、overflow emission owner、event-delivery QoS evidence source、DDS/SSE/WebSocket QoS mapping、DRV-GAP-004/005 评审和 activation evidence owner 尚未确认，原型继续报告 `backpressure_qos_evidence_confirmed=false`、`event_delivery_qos_active=false` 和 `overflow_emission_active=false`。
 
+2026-07-07 新增 `GET /uib/events/subscriptions/readiness-rollup`、Android `getEventSubscriptionReadinessRollupJson`、Linux `event-subscription-readiness-rollup`、`uib.events.subscriptions.readiness.rollup` 与 `GetEventSubscriptionReadinessRollup`，把 lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage 和 backpressure/QoS evidence 的 blocked gates 聚合为 `EV-RU-001..006` activation blockers。该疑点仍为 Proposed：rollup 只说明 broker/runtime activation 为什么被阻塞，不确认 owner、transport、cursor persistence、QoS evidence、callback/watch runtime 或 Driver/HAL high-rate scope；原型继续报告 `readiness_rollup_confirmed=false`、`broker_activation_ready=false`、`production_activation_allowed=false` 和 `all_required_evidence_complete=false`。
+
 ## 新增疑点模板
 
 | ID | 图中位置 | 疑点/风险 | 影响 | 当前建议 | 状态 |

@@ -104,6 +104,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/callback-watch-shape", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/cursor-replay-storage", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/backpressure-qos-evidence", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/readiness-rollup", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -425,6 +426,7 @@ for method, path, body, req_id in checks:
             "subscription_persistence_active",
             "cursor_storage_active",
             "backpressure_qos_evidence_confirmed",
+            "readiness_rollup_confirmed",
             "callback_registered",
             "watch_started",
             "dds_runtime_active",
@@ -437,24 +439,28 @@ for method, path, body, req_id in checks:
         ]:
             assert subscriptions["summary"][key] is False, f"event subscription summary unexpectedly set {key}"
         assert subscriptions["summary"]["backpressure_qos_evidence_contract_active"] is True, "backpressure/QoS evidence contract not active in subscription summary"
+        assert subscriptions["summary"]["readiness_rollup_contract_active"] is True, "readiness rollup contract not active in subscription summary"
         assert "getEventSubscriptionsJson" in encoded, "Android event subscription binding visibility missing"
         assert "requestEventSubscriptionJson" in encoded, "Android event subscription request binding visibility missing"
         assert "cancelEventSubscriptionJson" in encoded, "Android event subscription cancel binding visibility missing"
         assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, "Android event subscription callback/watch shape binding visibility missing"
         assert "getEventSubscriptionCursorReplayStorageJson" in encoded, "Android event subscription cursor/replay storage binding visibility missing"
         assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, "Android event subscription backpressure/QoS binding visibility missing"
+        assert "getEventSubscriptionReadinessRollupJson" in encoded, "Android event subscription readiness rollup binding visibility missing"
         assert "uib.events.subscriptions.get" in encoded, "Linux IPC event subscription binding visibility missing"
         assert "uib.events.subscriptions.request" in encoded, "Linux IPC event subscription request binding visibility missing"
         assert "uib.events.subscriptions.cancel" in encoded, "Linux IPC event subscription cancel binding visibility missing"
         assert "uib.events.subscriptions.callback.watch.shape" in encoded, "Linux IPC event subscription callback/watch shape binding visibility missing"
         assert "uib.events.subscriptions.cursor.replay.storage" in encoded, "Linux IPC event subscription cursor/replay storage binding visibility missing"
         assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, "Linux IPC event subscription backpressure/QoS binding visibility missing"
+        assert "uib.events.subscriptions.readiness.rollup" in encoded, "Linux IPC event subscription readiness rollup binding visibility missing"
         assert "GetEventSubscriptions" in encoded, "gRPC event subscription binding visibility missing"
         assert "RequestEventSubscription" in encoded, "gRPC event subscription request binding visibility missing"
         assert "CancelEventSubscription" in encoded, "gRPC event subscription cancel binding visibility missing"
         assert "GetEventSubscriptionCallbackWatchShape" in encoded, "gRPC event subscription callback/watch shape binding visibility missing"
         assert "GetEventSubscriptionCursorReplayStorage" in encoded, "gRPC event subscription cursor/replay storage binding visibility missing"
         assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, "gRPC event subscription backpressure/QoS binding visibility missing"
+        assert "GetEventSubscriptionReadinessRollup" in encoded, "gRPC event subscription readiness rollup binding visibility missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded, "event subscription missing Req IDs"
     if path == "/uib/events/subscriptions/request":
         subscription = payload["payload"]
@@ -712,6 +718,47 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, "Linux IPC event subscription backpressure/QoS binding missing"
         assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, "gRPC event subscription backpressure/QoS binding missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription backpressure/QoS evidence missing Req IDs"
+    if path == "/uib/events/subscriptions/readiness-rollup":
+        rollup = payload["payload"]
+        encoded = json.dumps(rollup)
+        section_ids = {item["section_id"] for item in rollup["readiness_sections"]}
+        blocker_ids = {item["blocker_id"] for item in rollup["activation_blockers"]}
+        assert rollup["readiness_rollup_state"] == "contract-only-readiness-rollup-blocked", "event subscription readiness rollup unexpectedly unblocked"
+        assert rollup["readiness_rollup_confirmed"] is False, "event subscription readiness rollup was confirmed"
+        assert {"EV-ROLLUP-LIFECYCLE", "EV-ROLLUP-TRANSPORT", "EV-ROLLUP-OWNER-DECISIONS", "EV-ROLLUP-ACTIVATION", "EV-ROLLUP-CALLBACK-WATCH", "EV-ROLLUP-CURSOR-REPLAY", "EV-ROLLUP-BACKPRESSURE-QOS"} <= section_ids, "event subscription readiness rollup missing sections"
+        assert {"EV-RU-001", "EV-RU-002", "EV-RU-003", "EV-RU-004", "EV-RU-005", "EV-RU-006"} <= blocker_ids, "event subscription readiness rollup missing blockers"
+        for key in [
+            "readiness_rollup_confirmed",
+            "broker_activation_ready",
+            "production_activation_allowed",
+            "all_required_evidence_complete",
+            "transport_selected",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "replay_index_active",
+            "event_delivery_qos_active",
+            "overflow_emission_active",
+            "callback_registered",
+            "watch_started",
+            "streaming_runtime_implemented",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert rollup["summary"][key] is False, f"event subscription readiness rollup summary unexpectedly set {key}"
+        assert rollup["summary"]["readiness_rollup_contract_active"] is True, "readiness rollup contract not active"
+        assert rollup["summary"]["blocked_gate_count"] > 0, "readiness rollup did not report blocked gates"
+        assert "getEventSubscriptionReadinessRollupJson" in encoded, "Android event subscription readiness rollup binding missing"
+        assert "event-subscription-readiness-rollup" in encoded, "Linux CLI event subscription readiness rollup binding missing"
+        assert "uib.events.subscriptions.readiness.rollup" in encoded, "Linux IPC event subscription readiness rollup binding missing"
+        assert "GetEventSubscriptionReadinessRollup" in encoded, "gRPC event subscription readiness rollup binding missing"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "event subscription readiness rollup missing driver gap evidence link"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription readiness rollup missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -817,6 +864,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-callback-watch-shape >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-cursor-replay-storage >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-backpressure-qos-evidence >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-readiness-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

@@ -113,6 +113,7 @@ for key in [
     "subscription_persistence_active",
     "cursor_storage_active",
     "backpressure_qos_evidence_confirmed",
+    "readiness_rollup_confirmed",
     "callback_registered",
     "watch_started",
     "dds_runtime_active",
@@ -125,24 +126,28 @@ for key in [
 ]:
     assert subscriptions["summary"][key] is False, response
 assert subscriptions["summary"]["backpressure_qos_evidence_contract_active"] is True, response
+assert subscriptions["summary"]["readiness_rollup_contract_active"] is True, response
 assert "getEventSubscriptionsJson" in encoded, response
 assert "requestEventSubscriptionJson" in encoded, response
 assert "cancelEventSubscriptionJson" in encoded, response
 assert "getEventSubscriptionCallbackWatchShapeJson" in encoded, response
 assert "getEventSubscriptionCursorReplayStorageJson" in encoded, response
 assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, response
+assert "getEventSubscriptionReadinessRollupJson" in encoded, response
 assert "uib.events.subscriptions.get" in encoded, response
 assert "uib.events.subscriptions.request" in encoded, response
 assert "uib.events.subscriptions.cancel" in encoded, response
 assert "uib.events.subscriptions.callback.watch.shape" in encoded, response
 assert "uib.events.subscriptions.cursor.replay.storage" in encoded, response
 assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, response
+assert "uib.events.subscriptions.readiness.rollup" in encoded, response
 assert "GetEventSubscriptions" in encoded, response
 assert "RequestEventSubscription" in encoded, response
 assert "CancelEventSubscription" in encoded, response
 assert "GetEventSubscriptionCallbackWatchShape" in encoded, response
 assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
 assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
+assert "GetEventSubscriptionReadinessRollup" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
 PY
 EVENT_SUBSCRIBE_REQUEST_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscribe-request)"
@@ -461,6 +466,55 @@ assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, response
 assert "event-subscription-backpressure-qos-evidence" in encoded, response
 assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, response
 assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
+EVENT_SUBSCRIPTION_READINESS_ROLLUP_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-readiness-rollup)"
+python3 - "$EVENT_SUBSCRIPTION_READINESS_ROLLUP_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+rollup = payload["gateway"]["payload"]
+encoded = json.dumps(rollup)
+section_ids = {item["section_id"] for item in rollup["readiness_sections"]}
+blocker_ids = {item["blocker_id"] for item in rollup["activation_blockers"]}
+assert response["status"] == "ok", response
+assert rollup["readiness_rollup_state"] == "contract-only-readiness-rollup-blocked", response
+assert rollup["readiness_rollup_confirmed"] is False, response
+assert {"EV-ROLLUP-LIFECYCLE", "EV-ROLLUP-TRANSPORT", "EV-ROLLUP-OWNER-DECISIONS", "EV-ROLLUP-ACTIVATION", "EV-ROLLUP-CALLBACK-WATCH", "EV-ROLLUP-CURSOR-REPLAY", "EV-ROLLUP-BACKPRESSURE-QOS"} <= section_ids, response
+assert {"EV-RU-001", "EV-RU-002", "EV-RU-003", "EV-RU-004", "EV-RU-005", "EV-RU-006"} <= blocker_ids, response
+for key in [
+    "readiness_rollup_confirmed",
+    "broker_activation_ready",
+    "production_activation_allowed",
+    "all_required_evidence_complete",
+    "transport_selected",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "replay_index_active",
+    "event_delivery_qos_active",
+    "overflow_emission_active",
+    "callback_registered",
+    "watch_started",
+    "streaming_runtime_implemented",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert rollup["summary"][key] is False, response
+assert rollup["summary"]["readiness_rollup_contract_active"] is True, response
+assert rollup["summary"]["blocked_gate_count"] > 0, response
+assert "getEventSubscriptionReadinessRollupJson" in encoded, response
+assert "event-subscription-readiness-rollup" in encoded, response
+assert "uib.events.subscriptions.readiness.rollup" in encoded, response
+assert "GetEventSubscriptionReadinessRollup" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
@@ -819,6 +873,7 @@ assert "GetEventSubscriptionDecisionMatrix" in encoded, response
 assert "GetEventSubscriptionCallbackWatchShape" in encoded, response
 assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
 assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
+assert "GetEventSubscriptionReadinessRollup" in encoded, response
 assert "GetVehicleSignals" in encoded, response
 assert "GetVehicleSignalActivation" in encoded, response
 assert "GetVehicleSignalValidation" in encoded, response

@@ -39,6 +39,8 @@
 
 2026-07-07 新增 `GET /uib/events/subscriptions/backpressure-qos-evidence`、Android Binder `getEventSubscriptionBackpressureQosEvidenceJson`、Linux CLI `event-subscription-backpressure-qos-evidence`、Linux IPC `uib.events.subscriptions.backpressure.qos.evidence` 和 Linux gRPC/RPC `GetEventSubscriptionBackpressureQosEvidence`，补齐 overflow schema、per-caller throttling、replay rate、ack timeout、Runtime & Governance QoS evidence 和 `EV-QOS-001..008` contract。该补充没有关闭 DEV-007：`backpressure_qos_evidence_confirmed=false`、`event_delivery_qos_active=false`、`overflow_emission_active=false`、`broker_active=false`、`dds_runtime_active=false`、`high_rate_data_plane_active=false`、`driver_development_triggered=false` 仍是验收边界。
 
+2026-07-07 新增 `GET /uib/events/subscriptions/readiness-rollup`、Android Binder `getEventSubscriptionReadinessRollupJson`、Linux CLI `event-subscription-readiness-rollup`、Linux IPC `uib.events.subscriptions.readiness.rollup` 和 Linux gRPC/RPC `GetEventSubscriptionReadinessRollup`，把 lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage、backpressure/QoS evidence 的 blocked gates 汇总为 `EV-RU-001..006` activation blockers。该补充没有关闭 DEV-007：`readiness_rollup_confirmed=false`、`broker_activation_ready=false`、`production_activation_allowed=false`、`all_required_evidence_complete=false`、`transport_selected=false`、`broker_active=false`、`cursor_storage_active=false`、`event_delivery_qos_active=false`、`callback_registered=false`、`watch_started=false`、`dds_runtime_active=false`、`driver_development_triggered=false` 仍是验收边界。
+
 ## 新增偏差记录模板
 
 | ID | 偏差 | 涉及需求 | 当前原因 | 风险 | 修正计划 | 状态 |

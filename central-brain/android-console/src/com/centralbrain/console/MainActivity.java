@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionCallbackShapeButton;
     private Button eventSubscriptionCursorReplayButton;
     private Button eventSubscriptionBackpressureQosButton;
+    private Button eventSubscriptionReadinessRollupButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -195,6 +196,15 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionBackpressureQosEvidence();
+            }
+        });
+
+        LinearLayout eventReadinessRow = buttonRow();
+        buttonArea.addView(eventReadinessRow);
+        eventSubscriptionReadinessRollupButton = addButton(eventReadinessRow, "Sub Ready", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionReadinessRollup();
             }
         });
 
@@ -424,6 +434,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionReadinessRollup() {
+        setBusy(true, "Status: loading event readiness rollup via Binder");
+        gatewayRequest("Event Subscription Readiness Rollup (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionReadinessRollupJson(newTraceId("event-subscription-readiness-rollup"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -505,7 +525,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -566,6 +586,7 @@ public class MainActivity extends Activity {
         eventSubscriptionCallbackShapeButton.setEnabled(enabled);
         eventSubscriptionCursorReplayButton.setEnabled(enabled);
         eventSubscriptionBackpressureQosButton.setEnabled(enabled);
+        eventSubscriptionReadinessRollupButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

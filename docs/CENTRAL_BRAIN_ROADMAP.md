@@ -9,7 +9,7 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle + transport readiness + decision matrix + activation checklist + callback/watch shape + cursor/replay storage + backpressure/QoS evidence contract；Android/Linux 主路径初版 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle + transport readiness + decision matrix + activation checklist + callback/watch shape + cursor/replay storage + backpressure/QoS evidence + readiness rollup contract；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke + service contract visibility 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 FW-U-003/NV-P-006 Event subscription end-to-end readiness rollup contract：
+  - 新增 `GET /uib/events/subscriptions/readiness-rollup`，聚合 lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage、backpressure/QoS evidence 的阻塞门禁，返回 `EV-RU-001..006` activation blockers 和 blocked gate summary。
+  - Android Binder/AIDL 新增 `getEventSubscriptionReadinessRollupJson`，Android Console 新增 `Sub Ready` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-readiness-rollup`、`uib.events.subscriptions.readiness.rollup`、`GetEventSubscriptionReadinessRollup` 可见路径。
+  - 本轮只完成 readiness rollup contract，不自动通过任何 gate，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
 - 推进 FW-U-003/NV-P-006 Event subscription backpressure/QoS evidence contract：
   - 新增 `GET /uib/events/subscriptions/backpressure-qos-evidence`，返回 overflow schema、per-caller throttling、per-topic limit、replay rate、ack timeout、Runtime & Governance QoS evidence binding、高频 transport QoS mapping 与 `EV-QOS-001..008` 门禁。
   - Android Binder/AIDL 新增 `getEventSubscriptionBackpressureQosEvidenceJson`，Android Console 新增 `Sub QoS` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-backpressure-qos-evidence`、`uib.events.subscriptions.backpressure.qos.evidence`、`GetEventSubscriptionBackpressureQosEvidence` 可见路径。

@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.42",
+  "version": "0.1.43",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -18,9 +18,9 @@
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
-    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, and GET /uib/events/subscriptions/backpressure-qos-evidence expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, callback/watch API shape, and binding parity metadata without selecting a transport, assigning production owners, persisting subscriptions, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, and GET /uib/events/subscriptions/readiness-rollup expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting subscriptions, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -184,7 +184,9 @@
           "cursor_replay_storage_contract_active": true,
           "cursor_storage_active": false,
           "backpressure_qos_evidence_contract_active": true,
-          "backpressure_qos_evidence_confirmed": false
+          "backpressure_qos_evidence_confirmed": false,
+          "readiness_rollup_contract_active": true,
+          "readiness_rollup_confirmed": false
         },
         "api_surface": {
           "rest": "GET /uib/events/subscriptions",
@@ -195,6 +197,7 @@
           "rest_activation_checklist": "GET /uib/events/subscriptions/activation-checklist",
           "rest_callback_watch_shape": "GET /uib/events/subscriptions/callback-watch-shape",
           "rest_backpressure_qos_evidence": "GET /uib/events/subscriptions/backpressure-qos-evidence",
+          "rest_readiness_rollup": "GET /uib/events/subscriptions/readiness-rollup",
           "android_binder": "getEventSubscriptionsJson",
           "android_binder_request": "requestEventSubscriptionJson",
           "android_binder_cancel": "cancelEventSubscriptionJson",
@@ -203,6 +206,7 @@
           "android_binder_activation_checklist": "getEventSubscriptionActivationChecklistJson",
           "android_binder_callback_watch_shape": "getEventSubscriptionCallbackWatchShapeJson",
           "android_binder_backpressure_qos_evidence": "getEventSubscriptionBackpressureQosEvidenceJson",
+          "android_binder_readiness_rollup": "getEventSubscriptionReadinessRollupJson",
           "linux_cli": "event-subscriptions",
           "linux_cli_request": "event-subscribe-request",
           "linux_cli_cancel": "event-subscribe-cancel",
@@ -211,6 +215,7 @@
           "linux_cli_activation_checklist": "event-subscription-activation-checklist",
           "linux_cli_callback_watch_shape": "event-subscription-callback-watch-shape",
           "linux_cli_backpressure_qos_evidence": "event-subscription-backpressure-qos-evidence",
+          "linux_cli_readiness_rollup": "event-subscription-readiness-rollup",
           "linux_ipc": "uib.events.subscriptions.get",
           "linux_ipc_request": "uib.events.subscriptions.request",
           "linux_ipc_cancel": "uib.events.subscriptions.cancel",
@@ -219,6 +224,7 @@
           "linux_ipc_activation_checklist": "uib.events.subscriptions.activation.checklist",
           "linux_ipc_callback_watch_shape": "uib.events.subscriptions.callback.watch.shape",
           "linux_ipc_backpressure_qos_evidence": "uib.events.subscriptions.backpressure.qos.evidence",
+          "linux_ipc_readiness_rollup": "uib.events.subscriptions.readiness.rollup",
           "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
           "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
           "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
@@ -227,6 +233,7 @@
           "linux_grpc_rpc_activation_checklist": "CentralBrainGateway.GetEventSubscriptionActivationChecklist",
           "linux_grpc_rpc_callback_watch_shape": "CentralBrainGateway.GetEventSubscriptionCallbackWatchShape",
           "linux_grpc_rpc_backpressure_qos_evidence": "CentralBrainGateway.GetEventSubscriptionBackpressureQosEvidence",
+          "linux_grpc_rpc_readiness_rollup": "CentralBrainGateway.GetEventSubscriptionReadinessRollup",
           "rest_cursor_replay_storage": "GET /uib/events/subscriptions/cursor-replay-storage",
           "android_binder_cursor_replay_storage": "getEventSubscriptionCursorReplayStorageJson",
           "linux_cli_cursor_replay_storage": "event-subscription-cursor-replay-storage",
@@ -839,6 +846,84 @@
           "linux_cli": "event-subscription-backpressure-qos-evidence",
           "linux_ipc": "uib.events.subscriptions.backpressure.qos.evidence",
           "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionBackpressureQosEvidence"
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/subscriptions/readiness-rollup",
+      "description": "Returns the end-to-end readiness rollup for Uni Info Bus Event subscriptions by summarizing lifecycle, transport, owner decisions, activation evidence, callback/watch shape, cursor/replay storage, and backpressure/QoS blockers without activating a broker or data plane.",
+      "response": {
+        "readiness_rollup_state": "contract-only-readiness-rollup-blocked",
+        "readiness_rollup_confirmed": false,
+        "production_activation_allowed": false,
+        "readiness_sections": [
+          "EV-ROLLUP-LIFECYCLE",
+          "EV-ROLLUP-TRANSPORT",
+          "EV-ROLLUP-OWNER-DECISIONS",
+          "EV-ROLLUP-ACTIVATION",
+          "EV-ROLLUP-CALLBACK-WATCH",
+          "EV-ROLLUP-CURSOR-REPLAY",
+          "EV-ROLLUP-BACKPRESSURE-QOS"
+        ],
+        "activation_blockers": [
+          "EV-RU-001 broker-owner-and-process-boundary",
+          "EV-RU-002 runtime-governance-binding",
+          "EV-RU-003 cursor-replay-persistence",
+          "EV-RU-004 backpressure-qos-evidence",
+          "EV-RU-005 callback-watch-transport-runtime",
+          "EV-RU-006 high-rate-driver-hal-scope"
+        ],
+        "next_evidence_required": [
+          "EV-DM-001..005 owner and transport decisions",
+          "EV-ACT-001..006 activation evidence attachments",
+          "EV-CW-001..006 callback/watch runtime evidence",
+          "EV-CRS-001..006 cursor/replay storage evidence",
+          "EV-QOS-001..006 backpressure/QoS evidence",
+          "DRV-GAP-004/DRV-GAP-005 review if high-rate delivery is selected"
+        ],
+        "summary": {
+          "readiness_rollup_contract_active": true,
+          "readiness_rollup_confirmed": false,
+          "broker_activation_ready": false,
+          "production_activation_allowed": false,
+          "all_required_evidence_complete": false,
+          "transport_selected": false,
+          "broker_active": false,
+          "subscription_persistence_active": false,
+          "cursor_storage_active": false,
+          "replay_index_active": false,
+          "event_delivery_qos_active": false,
+          "overflow_emission_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "streaming_runtime_implemented": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "api_surface": {
+          "rest": "GET /uib/events/subscriptions/readiness-rollup",
+          "android_binder": "getEventSubscriptionReadinessRollupJson",
+          "linux_cli": "event-subscription-readiness-rollup",
+          "linux_ipc": "uib.events.subscriptions.readiness.rollup",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionReadinessRollup"
         }
       },
       "req_ids": [

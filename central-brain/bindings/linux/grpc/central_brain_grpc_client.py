@@ -51,6 +51,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "event-subscription-callback-watch-shape": ("GetEventSubscriptionCallbackWatchShape", {}),
     "event-subscription-cursor-replay-storage": ("GetEventSubscriptionCursorReplayStorage", {}),
     "event-subscription-backpressure-qos-evidence": ("GetEventSubscriptionBackpressureQosEvidence", {}),
+    "event-subscription-readiness-rollup": ("GetEventSubscriptionReadinessRollup", {}),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",
