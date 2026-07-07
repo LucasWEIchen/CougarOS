@@ -40,6 +40,7 @@ Brain semantic gateway.
 | `uib.events.subscriptions.request` | `POST /uib/events/subscriptions/request` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-006, DEL-002 |
 | `uib.events.subscriptions.cancel` | `POST /uib/events/subscriptions/cancel` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-006, DEL-002 |
 | `uib.events.subscriptions.transport.readiness` | `GET /uib/events/subscriptions/transport-readiness` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
+| `uib.events.subscriptions.decision.matrix` | `GET /uib/events/subscriptions/decision-matrix` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.extensions.get` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
@@ -75,10 +76,11 @@ as Android Binder and Linux IPC without invoking services.
 registry contract as Android Binder and Linux IPC without loading plugins or
 dispatching services.
 `CentralBrainGateway.GetEventSubscriptions`, `RequestEventSubscription`,
-`CancelEventSubscription`, and `GetEventSubscriptionTransportReadiness` expose
-the same FW-U-003/NV-P-006 Event subscription lifecycle and transport readiness
-contract as Android Binder and Linux IPC without selecting a transport,
-persisting subscriptions, starting a broker, callback/watch path,
+`CancelEventSubscription`, `GetEventSubscriptionTransportReadiness`, and
+`GetEventSubscriptionDecisionMatrix` expose the same FW-U-003/NV-P-006 Event
+subscription lifecycle, transport readiness, and owner decision matrix contract
+as Android Binder and Linux IPC without assigning production owners, selecting
+a transport, persisting subscriptions, starting a broker, callback/watch path,
 SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization
 work.
 `CentralBrainGateway.InvokeService` calls the shared Linux governance daemon
@@ -151,6 +153,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscribe-cancel
   CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-transport-readiness
+  CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-decision-matrix
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py extensions
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
@@ -237,6 +241,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscribe-cancel
   CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-transport-readiness
+  CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-decision-matrix
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-precheck
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \

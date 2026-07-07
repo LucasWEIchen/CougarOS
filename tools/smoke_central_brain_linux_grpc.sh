@@ -228,6 +228,48 @@ assert "uib.events.subscriptions.transport.readiness" in encoded, response
 assert "GetEventSubscriptionTransportReadiness" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_DECISION_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-decision-matrix)"
+python3 - "$EVENT_SUBSCRIPTION_DECISION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+matrix = payload["gateway"]["payload"]
+encoded = json.dumps(matrix)
+gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert matrix["decision_state"] == "contract-only-owner-matrix-open", response
+assert matrix["production_activation_allowed"] is False, response
+assert {"EV-DM-001", "EV-DM-002", "EV-DM-003", "EV-DM-004", "EV-DM-005", "EV-DM-006", "EV-DM-007"} <= gate_ids, response
+for key in [
+    "production_activation_allowed",
+    "all_required_owners_assigned",
+    "broker_owner_confirmed",
+    "cursor_storage_owner_confirmed",
+    "backpressure_qos_owner_confirmed",
+    "callback_watch_shape_confirmed",
+    "transport_choice_confirmed",
+    "broker_active",
+    "subscription_persistence_active",
+    "callback_registered",
+    "watch_started",
+    "cursor_storage_active",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert matrix["summary"][key] is False, response
+assert "getEventSubscriptionDecisionMatrixJson" in encoded, response
+assert "event-subscription-decision-matrix" in encoded, response
+assert "uib.events.subscriptions.decision.matrix" in encoded, response
+assert "GetEventSubscriptionDecisionMatrix" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
@@ -580,6 +622,7 @@ assert response["status"] == "ok", response
 assert "grpc" in encoded, response
 assert "grpc-json-active-sample" in encoded, response
 assert "GetEventSubscriptions" in encoded, response
+assert "GetEventSubscriptionDecisionMatrix" in encoded, response
 assert "GetVehicleSignals" in encoded, response
 assert "GetVehicleSignalActivation" in encoded, response
 assert "GetVehicleSignalValidation" in encoded, response

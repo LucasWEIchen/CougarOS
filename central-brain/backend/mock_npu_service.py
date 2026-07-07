@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.37"
+API_VERSION = "0.1.38"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -63,6 +63,7 @@ EVENT_SUBSCRIPTION_REQ_IDS = [
     "DEL-002",
 ]
 EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS = EVENT_SUBSCRIPTION_REQ_IDS + ["DEL-004"]
+EVENT_SUBSCRIPTION_DECISION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -259,6 +260,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "request_endpoint": "POST /uib/events/subscriptions/request",
                     "cancel_endpoint": "POST /uib/events/subscriptions/cancel",
                     "transport_readiness_endpoint": "GET /uib/events/subscriptions/transport-readiness",
+                    "decision_matrix_endpoint": "GET /uib/events/subscriptions/decision-matrix",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -343,22 +345,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "not-selected -> contract-only-no-transport-selected",
                     "side_effects": "no broker, callback, watch, SSE/WebSocket, or DDS runtime is started",
                 },
+                "decision_matrix": {
+                    "endpoint": "GET /uib/events/subscriptions/decision-matrix",
+                    "state_transition": "owner-decisions-open -> contract-only-owner-matrix-open",
+                    "side_effects": "no owner assignment is activated and no broker, cursor store, callback, watch, or DDS runtime is started",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -415,22 +422,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_request": "POST /uib/events/subscriptions/request",
             "rest_cancel": "POST /uib/events/subscriptions/cancel",
             "rest_transport_readiness": "GET /uib/events/subscriptions/transport-readiness",
+            "rest_decision_matrix": "GET /uib/events/subscriptions/decision-matrix",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
             "android_binder_transport_readiness": "getEventSubscriptionTransportReadinessJson",
+            "android_binder_decision_matrix": "getEventSubscriptionDecisionMatrixJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
             "linux_cli_transport_readiness": "event-subscription-transport-readiness",
+            "linux_cli_decision_matrix": "event-subscription-decision-matrix",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
             "linux_ipc_transport_readiness": "uib.events.subscriptions.transport.readiness",
+            "linux_ipc_decision_matrix": "uib.events.subscriptions.decision.matrix",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
             "linux_grpc_rpc_transport_readiness": "CentralBrainGateway.GetEventSubscriptionTransportReadiness",
+            "linux_grpc_rpc_decision_matrix": "CentralBrainGateway.GetEventSubscriptionDecisionMatrix",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
@@ -565,6 +577,141 @@ def event_subscription_transport_readiness_payload() -> dict[str, Any]:
             "service_dispatch_triggered": False,
         },
         "req_ids": EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS,
+    }
+
+
+def event_subscription_decision_matrix_payload() -> dict[str, Any]:
+    return {
+        "decision_state": "contract-only-owner-matrix-open",
+        "production_activation_allowed": False,
+        "decision_matrix": [
+            {
+                "decision_id": "EV-DM-001",
+                "area": "subscription-broker-owner",
+                "required_decision": "Select the process owner for validating, storing, and dispatching Event subscriptions on Android and Linux.",
+                "candidate_owners": ["android-system-service", "linux-central-brain-daemon", "shared-runtime-governance-backend"],
+                "current_selection": "TBD-target-platform",
+                "blocking_evidence": ["owner acceptance", "process boundary", "Policy/Audit integration point"],
+                "activation_effect": "would allow broker design only after all mandatory gates pass",
+            },
+            {
+                "decision_id": "EV-DM-002",
+                "area": "cursor-storage-owner",
+                "required_decision": "Assign the owner and storage class for cursor, replay, expiry, and reconnect state.",
+                "candidate_owners": ["runtime-governance-store", "event-broker-store", "platform-local-store"],
+                "current_selection": "TBD-target-platform",
+                "blocking_evidence": ["retention policy", "restart recovery rule", "privacy/logging review"],
+                "activation_effect": "would allow cursor persistence only after storage ABI and retention are approved",
+            },
+            {
+                "decision_id": "EV-DM-003",
+                "area": "backpressure-qos-owner",
+                "required_decision": "Assign overflow, rate limiting, priority, and QoS profile ownership between Runtime & Governance and transport.",
+                "candidate_owners": ["runtime-governance-qos", "dds-qos-profile", "broker-local-overflow-policy"],
+                "current_selection": "TBD-target-platform",
+                "blocking_evidence": ["overflow event schema", "per-caller rate policy", "high-rate topic QoS mapping"],
+                "activation_effect": "would allow backpressure enforcement only after policy owner is confirmed",
+            },
+            {
+                "decision_id": "EV-DM-004",
+                "area": "android-callback-linux-watch-shape",
+                "required_decision": "Approve Android callback identity/lifecycle and Linux watch reconnect semantics.",
+                "candidate_owners": ["android-platform-service-owner", "linux-daemon-owner", "binding-api-owner"],
+                "current_selection": "TBD-target-platform",
+                "blocking_evidence": ["Binder UID/PID identity map", "watch socket lifecycle", "unregister/close behavior"],
+                "activation_effect": "would allow callback/watch API design, not runtime activation",
+            },
+            {
+                "decision_id": "EV-DM-005",
+                "area": "transport-selection",
+                "required_decision": "Choose debug push and high-rate data-plane transport candidates without bypassing Uni Info Bus semantics.",
+                "candidate_owners": ["sse-websocket-debug-owner", "dds-runtime-owner", "someip-dds-platform-owner"],
+                "current_selection": "TBD-target-platform",
+                "blocking_evidence": ["transport security model", "DDS/SSE/WebSocket availability", "Driver/HAL gap review"],
+                "activation_effect": "would allow transport-specific prototype planning only after owner decisions are closed",
+            },
+        ],
+        "activation_sequence": [
+            "Close EV-DM-001 broker owner before designing a live broker.",
+            "Close EV-DM-002 cursor storage before persisting or replaying subscriptions.",
+            "Close EV-DM-003 backpressure/QoS owner before allowing high-rate topics.",
+            "Close EV-DM-004 callback/watch shape before adding Android callback or Linux watch operations.",
+            "Close EV-DM-005 transport selection before enabling SSE/WebSocket, DDS, or other data-plane runtime.",
+        ],
+        "mandatory_gates": [
+            {
+                "gate_id": "EV-DM-001",
+                "name": "broker-owner-selected",
+                "required_evidence": "Android and Linux broker process owner, lifecycle owner, and governance integration point are confirmed.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-DM-002",
+                "name": "cursor-storage-owner-selected",
+                "required_evidence": "Cursor/replay storage owner, retention, expiry, restart recovery, and privacy boundary are confirmed.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-DM-003",
+                "name": "backpressure-qos-owner-selected",
+                "required_evidence": "Runtime & Governance and transport responsibilities for overflow, QoS, and rate limits are assigned.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-DM-004",
+                "name": "callback-watch-shape-selected",
+                "required_evidence": "Android callback and Linux watch lifecycle, identity, reconnect, and close semantics are approved.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-DM-005",
+                "name": "transport-choice-selected",
+                "required_evidence": "SSE/WebSocket, DDS, or another transport is selected with security, QoS, and Driver/HAL gap review.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-DM-006",
+                "name": "android-linux-parity-proven",
+                "required_evidence": "Android Binder, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same decision matrix fields.",
+                "passed": True,
+            },
+            {
+                "gate_id": "EV-DM-007",
+                "name": "no-runtime-activation-claim",
+                "required_evidence": "Prototype reports no owner activation, no broker, no cursor store, no callback/watch, no SSE/WebSocket, and no DDS runtime.",
+                "passed": True,
+            },
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/decision-matrix",
+            "android_binder": "getEventSubscriptionDecisionMatrixJson",
+            "linux_cli": "event-subscription-decision-matrix",
+            "linux_ipc": "uib.events.subscriptions.decision.matrix",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionDecisionMatrix",
+        },
+        "summary": {
+            "decision_matrix_active": True,
+            "production_activation_allowed": False,
+            "all_required_owners_assigned": False,
+            "broker_owner_confirmed": False,
+            "cursor_storage_owner_confirmed": False,
+            "backpressure_qos_owner_confirmed": False,
+            "callback_watch_shape_confirmed": False,
+            "transport_choice_confirmed": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "cursor_storage_active": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_DECISION_REQ_IDS,
     }
 
 
@@ -1318,6 +1465,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_subscriptions_payload()))
         elif path == "/uib/events/subscriptions/transport-readiness":
             self.send_json(200, envelope(event_subscription_transport_readiness_payload()))
+        elif path == "/uib/events/subscriptions/decision-matrix":
+            self.send_json(200, envelope(event_subscription_decision_matrix_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))

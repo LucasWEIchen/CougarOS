@@ -99,6 +99,7 @@ checks = [
         "NV-P-006",
     ),
     ("GET", "/uib/events/subscriptions/transport-readiness", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/decision-matrix", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -512,6 +513,40 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.transport.readiness" in encoded, "Linux IPC event subscription transport readiness binding missing"
         assert "GetEventSubscriptionTransportReadiness" in encoded, "gRPC event subscription transport readiness binding missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription transport readiness missing Req IDs"
+    if path == "/uib/events/subscriptions/decision-matrix":
+        matrix = payload["payload"]
+        encoded = json.dumps(matrix)
+        gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+        assert matrix["decision_state"] == "contract-only-owner-matrix-open", "event subscription decision matrix unexpectedly closed"
+        assert matrix["production_activation_allowed"] is False, "event subscription decision matrix allowed activation"
+        assert {"EV-DM-001", "EV-DM-002", "EV-DM-003", "EV-DM-004", "EV-DM-005", "EV-DM-006", "EV-DM-007"} <= gate_ids, "event decision matrix missing mandatory gates"
+        for key in [
+            "production_activation_allowed",
+            "all_required_owners_assigned",
+            "broker_owner_confirmed",
+            "cursor_storage_owner_confirmed",
+            "backpressure_qos_owner_confirmed",
+            "callback_watch_shape_confirmed",
+            "transport_choice_confirmed",
+            "broker_active",
+            "subscription_persistence_active",
+            "callback_registered",
+            "watch_started",
+            "cursor_storage_active",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert matrix["summary"][key] is False, f"event subscription decision matrix summary unexpectedly set {key}"
+        assert "getEventSubscriptionDecisionMatrixJson" in encoded, "Android event subscription decision matrix binding missing"
+        assert "event-subscription-decision-matrix" in encoded, "Linux CLI event subscription decision matrix binding missing"
+        assert "uib.events.subscriptions.decision.matrix" in encoded, "Linux IPC event subscription decision matrix binding missing"
+        assert "GetEventSubscriptionDecisionMatrix" in encoded, "gRPC event subscription decision matrix binding missing"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription decision matrix missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -612,6 +647,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscribe-request >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscribe-cancel >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-transport-readiness >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-decision-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

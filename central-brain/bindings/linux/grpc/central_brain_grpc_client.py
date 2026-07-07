@@ -46,6 +46,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         },
     ),
     "event-subscription-transport-readiness": ("GetEventSubscriptionTransportReadiness", {}),
+    "event-subscription-decision-matrix": ("GetEventSubscriptionDecisionMatrix", {}),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

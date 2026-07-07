@@ -21,6 +21,7 @@
         "uib.events.subscriptions.request",
         "uib.events.subscriptions.cancel",
         "uib.events.subscriptions.transport.readiness",
+        "uib.events.subscriptions.decision.matrix",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",
