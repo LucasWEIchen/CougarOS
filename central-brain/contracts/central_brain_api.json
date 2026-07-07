@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.38",
+  "version": "0.1.39",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -18,9 +18,9 @@
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
-    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, and GET /uib/events/subscriptions/decision-matrix expose FW-U-003/NV-P-006 lifecycle, cursor, backpressure, governance, callback/watch transport readiness, owner decision matrix, and binding parity metadata without selecting a transport, assigning production owners, persisting subscriptions, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, and GET /uib/events/subscriptions/activation-checklist expose FW-U-003/NV-P-006 lifecycle, cursor, backpressure, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, and binding parity metadata without selecting a transport, assigning production owners, persisting subscriptions, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -188,26 +188,31 @@
           "rest_cancel": "POST /uib/events/subscriptions/cancel",
           "rest_transport_readiness": "GET /uib/events/subscriptions/transport-readiness",
           "rest_decision_matrix": "GET /uib/events/subscriptions/decision-matrix",
+          "rest_activation_checklist": "GET /uib/events/subscriptions/activation-checklist",
           "android_binder": "getEventSubscriptionsJson",
           "android_binder_request": "requestEventSubscriptionJson",
           "android_binder_cancel": "cancelEventSubscriptionJson",
           "android_binder_transport_readiness": "getEventSubscriptionTransportReadinessJson",
           "android_binder_decision_matrix": "getEventSubscriptionDecisionMatrixJson",
+          "android_binder_activation_checklist": "getEventSubscriptionActivationChecklistJson",
           "linux_cli": "event-subscriptions",
           "linux_cli_request": "event-subscribe-request",
           "linux_cli_cancel": "event-subscribe-cancel",
           "linux_cli_transport_readiness": "event-subscription-transport-readiness",
           "linux_cli_decision_matrix": "event-subscription-decision-matrix",
+          "linux_cli_activation_checklist": "event-subscription-activation-checklist",
           "linux_ipc": "uib.events.subscriptions.get",
           "linux_ipc_request": "uib.events.subscriptions.request",
           "linux_ipc_cancel": "uib.events.subscriptions.cancel",
           "linux_ipc_transport_readiness": "uib.events.subscriptions.transport.readiness",
           "linux_ipc_decision_matrix": "uib.events.subscriptions.decision.matrix",
+          "linux_ipc_activation_checklist": "uib.events.subscriptions.activation.checklist",
           "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
           "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
           "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
           "linux_grpc_rpc_transport_readiness": "CentralBrainGateway.GetEventSubscriptionTransportReadiness",
-          "linux_grpc_rpc_decision_matrix": "CentralBrainGateway.GetEventSubscriptionDecisionMatrix"
+          "linux_grpc_rpc_decision_matrix": "CentralBrainGateway.GetEventSubscriptionDecisionMatrix",
+          "linux_grpc_rpc_activation_checklist": "CentralBrainGateway.GetEventSubscriptionActivationChecklist"
         }
       },
       "req_ids": [
@@ -461,6 +466,76 @@
           "linux_cli": "event-subscription-decision-matrix",
           "linux_ipc": "uib.events.subscriptions.decision.matrix",
           "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionDecisionMatrix"
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/subscriptions/activation-checklist",
+      "description": "Returns the activation prerequisite evidence checklist for Uni Info Bus Event broker rollout without activating a broker, cursor store, callback/watch, transport runtime, Driver/HAL, or virtualization path.",
+      "response": {
+        "activation_state": "contract-only-activation-blocked",
+        "activation_allowed": false,
+        "checklist": [
+          "EV-ACT-001 broker-owner-evidence",
+          "EV-ACT-002 runtime-governance-binding",
+          "EV-ACT-003 cursor-store-persistence",
+          "EV-ACT-004 backpressure-qos-profile",
+          "EV-ACT-005 transport-runtime-choice",
+          "EV-ACT-006 driver-hal-and-high-rate-scope",
+          "EV-ACT-007 android-linux-contract-parity",
+          "EV-ACT-008 no-runtime-activation-claim"
+        ],
+        "decision_dependencies": [
+          "EV-DM-001 broker-owner-selected",
+          "EV-DM-002 cursor-storage-owner-selected",
+          "EV-DM-003 backpressure-qos-owner-selected",
+          "EV-DM-004 callback-watch-shape-selected",
+          "EV-DM-005 transport-choice-selected"
+        ],
+        "summary": {
+          "activation_checklist_active": true,
+          "activation_allowed": false,
+          "production_activation_allowed": false,
+          "required_evidence_complete": false,
+          "broker_owner_evidence_attached": false,
+          "runtime_governance_binding_evidence_attached": false,
+          "cursor_store_evidence_attached": false,
+          "backpressure_qos_evidence_attached": false,
+          "transport_runtime_evidence_attached": false,
+          "driver_hal_scope_evidence_attached": false,
+          "transport_selected": false,
+          "broker_active": false,
+          "subscription_persistence_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "cursor_storage_active": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "api_surface": {
+          "rest": "GET /uib/events/subscriptions/activation-checklist",
+          "android_binder": "getEventSubscriptionActivationChecklistJson",
+          "linux_cli": "event-subscription-activation-checklist",
+          "linux_ipc": "uib.events.subscriptions.activation.checklist",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationChecklist"
         }
       },
       "req_ids": [

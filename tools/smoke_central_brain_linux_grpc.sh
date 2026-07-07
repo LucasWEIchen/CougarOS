@@ -270,6 +270,51 @@ assert "uib.events.subscriptions.decision.matrix" in encoded, response
 assert "GetEventSubscriptionDecisionMatrix" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-checklist)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+checklist = payload["gateway"]["payload"]
+encoded = json.dumps(checklist)
+gate_ids = {item["gate_id"] for item in checklist["checklist"]}
+assert response["status"] == "ok", response
+assert checklist["activation_state"] == "contract-only-activation-blocked", response
+assert checklist["activation_allowed"] is False, response
+assert {"EV-ACT-001", "EV-ACT-002", "EV-ACT-003", "EV-ACT-004", "EV-ACT-005", "EV-ACT-006", "EV-ACT-007", "EV-ACT-008"} <= gate_ids, response
+for key in [
+    "activation_allowed",
+    "production_activation_allowed",
+    "required_evidence_complete",
+    "broker_owner_evidence_attached",
+    "runtime_governance_binding_evidence_attached",
+    "cursor_store_evidence_attached",
+    "backpressure_qos_evidence_attached",
+    "transport_runtime_evidence_attached",
+    "driver_hal_scope_evidence_attached",
+    "transport_selected",
+    "broker_active",
+    "subscription_persistence_active",
+    "callback_registered",
+    "watch_started",
+    "cursor_storage_active",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert checklist["summary"][key] is False, response
+assert "getEventSubscriptionActivationChecklistJson" in encoded, response
+assert "event-subscription-activation-checklist" in encoded, response
+assert "uib.events.subscriptions.activation.checklist" in encoded, response
+assert "GetEventSubscriptionActivationChecklist" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

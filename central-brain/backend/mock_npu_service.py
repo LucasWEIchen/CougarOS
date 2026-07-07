@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.38"
+API_VERSION = "0.1.39"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -64,6 +64,7 @@ EVENT_SUBSCRIPTION_REQ_IDS = [
 ]
 EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS = EVENT_SUBSCRIPTION_REQ_IDS + ["DEL-004"]
 EVENT_SUBSCRIPTION_DECISION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+EVENT_SUBSCRIPTION_ACTIVATION_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -261,6 +262,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "cancel_endpoint": "POST /uib/events/subscriptions/cancel",
                     "transport_readiness_endpoint": "GET /uib/events/subscriptions/transport-readiness",
                     "decision_matrix_endpoint": "GET /uib/events/subscriptions/decision-matrix",
+                    "activation_checklist_endpoint": "GET /uib/events/subscriptions/activation-checklist",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -350,22 +352,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "owner-decisions-open -> contract-only-owner-matrix-open",
                     "side_effects": "no owner assignment is activated and no broker, cursor store, callback, watch, or DDS runtime is started",
                 },
+                "activation_checklist": {
+                    "endpoint": "GET /uib/events/subscriptions/activation-checklist",
+                    "state_transition": "activation-evidence-open -> contract-only-activation-blocked",
+                    "side_effects": "no broker activation, cursor persistence, callback/watch registration, transport runtime, or Driver/HAL path is started",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -423,26 +430,31 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_cancel": "POST /uib/events/subscriptions/cancel",
             "rest_transport_readiness": "GET /uib/events/subscriptions/transport-readiness",
             "rest_decision_matrix": "GET /uib/events/subscriptions/decision-matrix",
+            "rest_activation_checklist": "GET /uib/events/subscriptions/activation-checklist",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
             "android_binder_transport_readiness": "getEventSubscriptionTransportReadinessJson",
             "android_binder_decision_matrix": "getEventSubscriptionDecisionMatrixJson",
+            "android_binder_activation_checklist": "getEventSubscriptionActivationChecklistJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
             "linux_cli_transport_readiness": "event-subscription-transport-readiness",
             "linux_cli_decision_matrix": "event-subscription-decision-matrix",
+            "linux_cli_activation_checklist": "event-subscription-activation-checklist",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
             "linux_ipc_transport_readiness": "uib.events.subscriptions.transport.readiness",
             "linux_ipc_decision_matrix": "uib.events.subscriptions.decision.matrix",
+            "linux_ipc_activation_checklist": "uib.events.subscriptions.activation.checklist",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
             "linux_grpc_rpc_transport_readiness": "CentralBrainGateway.GetEventSubscriptionTransportReadiness",
             "linux_grpc_rpc_decision_matrix": "CentralBrainGateway.GetEventSubscriptionDecisionMatrix",
+            "linux_grpc_rpc_activation_checklist": "CentralBrainGateway.GetEventSubscriptionActivationChecklist",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
@@ -712,6 +724,128 @@ def event_subscription_decision_matrix_payload() -> dict[str, Any]:
             "service_dispatch_triggered": False,
         },
         "req_ids": EVENT_SUBSCRIPTION_DECISION_REQ_IDS,
+    }
+
+
+def event_subscription_activation_checklist_payload() -> dict[str, Any]:
+    return {
+        "activation_state": "contract-only-activation-blocked",
+        "activation_allowed": False,
+        "checklist": [
+            {
+                "gate_id": "EV-ACT-001",
+                "area": "broker-owner-evidence",
+                "required_evidence": "Signed owner acceptance for Android system service path, Linux daemon path, lifecycle owner, and failover behavior.",
+                "current_evidence": "missing",
+                "passed": False,
+                "blocks": ["broker_active", "production_activation_allowed"],
+            },
+            {
+                "gate_id": "EV-ACT-002",
+                "area": "runtime-governance-binding",
+                "required_evidence": "Subscribe, cancel, callback/watch, overflow, and replay operations are bound to Runtime & Governance identity, Policy, QoS, Lifecycle, and Audit.",
+                "current_evidence": "contract-only precheck surfaces exist; production owner evidence missing",
+                "passed": False,
+                "blocks": ["service_dispatch_triggered", "callback_registered", "watch_started"],
+            },
+            {
+                "gate_id": "EV-ACT-003",
+                "area": "cursor-store-persistence",
+                "required_evidence": "Cursor/replay store owner, schema, retention, privacy classification, restart recovery, and cleanup strategy are approved.",
+                "current_evidence": "missing",
+                "passed": False,
+                "blocks": ["subscription_persistence_active", "cursor_storage_active"],
+            },
+            {
+                "gate_id": "EV-ACT-004",
+                "area": "backpressure-qos-profile",
+                "required_evidence": "Overflow event schema, per-caller rate policy, high-rate topic QoS mapping, and Runtime & Governance responsibility split are approved.",
+                "current_evidence": "missing",
+                "passed": False,
+                "blocks": ["high_rate_data_plane_active", "dds_runtime_active"],
+            },
+            {
+                "gate_id": "EV-ACT-005",
+                "area": "transport-runtime-choice",
+                "required_evidence": "Android Binder callback, Linux watch, SSE/WebSocket, DDS, or other selected transport has security model, lifecycle, reconnect, and teardown evidence.",
+                "current_evidence": "missing",
+                "passed": False,
+                "blocks": ["transport_selected", "callback_registered", "watch_started", "sse_websocket_active", "dds_runtime_active"],
+            },
+            {
+                "gate_id": "EV-ACT-006",
+                "area": "driver-hal-and-high-rate-scope",
+                "required_evidence": "DRV-GAP-004/DRV-GAP-005 scope review is attached before DDS, TSN/PTP, shared memory, or Safety Runtime is used.",
+                "current_evidence": "not required while no high-rate transport is selected",
+                "passed": False,
+                "blocks": ["driver_development_triggered", "hardware_accessed"],
+            },
+            {
+                "gate_id": "EV-ACT-007",
+                "area": "android-linux-contract-parity",
+                "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, API contract, docs, and smoke tests expose equivalent activation checklist fields.",
+                "current_evidence": "provided by this prototype increment",
+                "passed": True,
+                "blocks": [],
+            },
+            {
+                "gate_id": "EV-ACT-008",
+                "area": "no-runtime-activation-claim",
+                "required_evidence": "Prototype explicitly reports no broker, no cursor store, no callback/watch, no transport runtime, no Driver/HAL access, and no virtualization development.",
+                "current_evidence": "provided by this prototype increment",
+                "passed": True,
+                "blocks": [],
+            },
+        ],
+        "required_artifacts_before_activation": [
+            "broker owner sign-off and process boundary",
+            "Runtime & Governance identity/Policy/QoS/Audit binding evidence",
+            "cursor store ABI, retention, privacy, and recovery plan",
+            "backpressure and overflow event schema",
+            "selected transport runtime security and lifecycle evidence",
+            "Android Binder callback or Linux watch API review if callback/watch is selected",
+            "DRV-GAP-004/DRV-GAP-005 review if DDS/high-rate/shared-memory path is selected",
+        ],
+        "decision_dependencies": [
+            "EV-DM-001 broker-owner-selected",
+            "EV-DM-002 cursor-storage-owner-selected",
+            "EV-DM-003 backpressure-qos-owner-selected",
+            "EV-DM-004 callback-watch-shape-selected",
+            "EV-DM-005 transport-choice-selected",
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/activation-checklist",
+            "android_binder": "getEventSubscriptionActivationChecklistJson",
+            "linux_cli": "event-subscription-activation-checklist",
+            "linux_ipc": "uib.events.subscriptions.activation.checklist",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationChecklist",
+        },
+        "summary": {
+            "activation_checklist_active": True,
+            "activation_allowed": False,
+            "production_activation_allowed": False,
+            "required_evidence_complete": False,
+            "broker_owner_evidence_attached": False,
+            "runtime_governance_binding_evidence_attached": False,
+            "cursor_store_evidence_attached": False,
+            "backpressure_qos_evidence_attached": False,
+            "transport_runtime_evidence_attached": False,
+            "driver_hal_scope_evidence_attached": False,
+            "transport_selected": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "cursor_storage_active": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_ACTIVATION_REQ_IDS,
     }
 
 
@@ -1467,6 +1601,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_subscription_transport_readiness_payload()))
         elif path == "/uib/events/subscriptions/decision-matrix":
             self.send_json(200, envelope(event_subscription_decision_matrix_payload()))
+        elif path == "/uib/events/subscriptions/activation-checklist":
+            self.send_json(200, envelope(event_subscription_activation_checklist_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))

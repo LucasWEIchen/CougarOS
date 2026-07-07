@@ -100,6 +100,7 @@ checks = [
     ),
     ("GET", "/uib/events/subscriptions/transport-readiness", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/decision-matrix", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-checklist", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -547,6 +548,43 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.decision.matrix" in encoded, "Linux IPC event subscription decision matrix binding missing"
         assert "GetEventSubscriptionDecisionMatrix" in encoded, "gRPC event subscription decision matrix binding missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription decision matrix missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-checklist":
+        checklist = payload["payload"]
+        encoded = json.dumps(checklist)
+        gate_ids = {item["gate_id"] for item in checklist["checklist"]}
+        assert checklist["activation_state"] == "contract-only-activation-blocked", "event subscription activation checklist unexpectedly opened"
+        assert checklist["activation_allowed"] is False, "event subscription activation checklist allowed activation"
+        assert {"EV-ACT-001", "EV-ACT-002", "EV-ACT-003", "EV-ACT-004", "EV-ACT-005", "EV-ACT-006", "EV-ACT-007", "EV-ACT-008"} <= gate_ids, "event activation checklist missing mandatory gates"
+        for key in [
+            "activation_allowed",
+            "production_activation_allowed",
+            "required_evidence_complete",
+            "broker_owner_evidence_attached",
+            "runtime_governance_binding_evidence_attached",
+            "cursor_store_evidence_attached",
+            "backpressure_qos_evidence_attached",
+            "transport_runtime_evidence_attached",
+            "driver_hal_scope_evidence_attached",
+            "transport_selected",
+            "broker_active",
+            "subscription_persistence_active",
+            "callback_registered",
+            "watch_started",
+            "cursor_storage_active",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert checklist["summary"][key] is False, f"event subscription activation checklist summary unexpectedly set {key}"
+        assert "getEventSubscriptionActivationChecklistJson" in encoded, "Android event subscription activation checklist binding missing"
+        assert "event-subscription-activation-checklist" in encoded, "Linux CLI event subscription activation checklist binding missing"
+        assert "uib.events.subscriptions.activation.checklist" in encoded, "Linux IPC event subscription activation checklist binding missing"
+        assert "GetEventSubscriptionActivationChecklist" in encoded, "gRPC event subscription activation checklist binding missing"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation checklist missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -648,6 +686,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscribe-cancel >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-transport-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-decision-matrix >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

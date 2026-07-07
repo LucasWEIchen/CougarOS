@@ -19,12 +19,12 @@ system server 代码、priv-app 签名配置、SELinux policy、Driver/HAL、Saf
 当前 Android Console debug APK 已经绑定
 `CentralBrainGatewayBinderService`，并通过 `CentralBrainGatewayClient`
 调用 Uni Info Bus State、AI SDK/Agent task plan、Agent execute、Skill invoke
-与 Memory query contract mock，并提供 Event subscription lifecycle command、transport readiness and owner decision matrix contract、Runtime & Governance precheck、shared
+与 Memory query contract mock，并提供 Event subscription lifecycle command、transport readiness、owner decision matrix and activation checklist contract、Runtime & Governance precheck、shared
 governance backend target contract、migration readiness、deployment plan、Protocol Binding readiness、Android/Linux delivery readiness、Driver/HAL gap backlog 与 hardware empty-interface registry 只读调试入口。该路径覆盖：
 
 | 组件 | 当前交付 | Req ID |
 | --- | --- | --- |
-| Uni Info Bus client path | `getStateJson`、`getContextJson`、`listEventTopicsJson`、`publishEventJson`、`getRecentEventsJson`、`getEventSubscriptionsJson`、`requestEventSubscriptionJson`、`cancelEventSubscriptionJson`、`getEventSubscriptionTransportReadinessJson`、`getEventSubscriptionDecisionMatrixJson` | XSC-002, FW-U-001, FW-U-002, FW-U-003, NV-P-006 |
+| Uni Info Bus client path | `getStateJson`、`getContextJson`、`listEventTopicsJson`、`publishEventJson`、`getRecentEventsJson`、`getEventSubscriptionsJson`、`requestEventSubscriptionJson`、`cancelEventSubscriptionJson`、`getEventSubscriptionTransportReadinessJson`、`getEventSubscriptionDecisionMatrixJson`、`getEventSubscriptionActivationChecklistJson` | XSC-002, FW-U-001, FW-U-002, FW-U-003, NV-P-006 |
 | AI SDK/Agent task path | `getAiSdkCapabilitiesJson`、`planAgentTaskJson`、`executeAgentTaskJson`、`listSkillsJson`、`invokeSkillJson`、`queryMemoryJson` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
 | SOA service entry | `listServicesJson`、`getServiceContractsJson`、`invokeServiceJson` | XSC-003, FW-S-004, FW-S-005, NV-G-003 |
 | Runtime & Governance | `evaluatePolicyJson`、`precheckGovernanceJson`、`getGovernanceBackendContractJson`、`getGovernanceMigrationCheckJson`、`getGovernanceDeploymentPlanJson`、`getRuntimeGovernanceJson`、`getRecentAuditJson` | XSC-005, XSC-006, FW-U-007, NV-G-001, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |
@@ -44,7 +44,7 @@ Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL 或虚拟化�
 `getBindingReadinessJson` 只返回 Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS 的 readiness、阻塞项、验证命令和非目标边界，不实现量产 transport；
 `getDeliveryReadinessJson` 只返回 Android debug Console/Binder、Android system service note、Linux CLI/IPC/gRPC、Linux systemd/package profile、Driver/HAL gap backlog、hardware empty-interface registry 和虚拟化约束的交付 readiness、验证 bundle、阻塞项和非目标边界，不实现 Android system service、真实 gRPC runtime、量产包管理或 Driver/HAL；
 `getServiceContractsJson` 只返回 SOA service contract、版本、Policy/Safety State、QoS、Lifecycle 和 no-dispatch 边界，不调用 service、Driver/HAL、车辆总线或虚拟化层；
-`getEventSubscriptionsJson`、`requestEventSubscriptionJson`、`cancelEventSubscriptionJson`、`getEventSubscriptionTransportReadinessJson` 和 `getEventSubscriptionDecisionMatrixJson` 只返回 Event subscription lifecycle、cursor、backpressure、governance、request/cancel contract-only 命令、callback/watch transport readiness、broker/cursor/backpressure owner decision matrix 和 Android/Linux binding parity；这些契约不持久化 subscription，不选择 transport，不分配量产 owner，不注册 callback，不启动 broker、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL 或虚拟化层；
+`getEventSubscriptionsJson`、`requestEventSubscriptionJson`、`cancelEventSubscriptionJson`、`getEventSubscriptionTransportReadinessJson`、`getEventSubscriptionDecisionMatrixJson` 和 `getEventSubscriptionActivationChecklistJson` 只返回 Event subscription lifecycle、cursor、backpressure、governance、request/cancel contract-only 命令、callback/watch transport readiness、broker/cursor/backpressure owner decision matrix、activation evidence gates 和 Android/Linux binding parity；这些契约不持久化 subscription，不选择 transport，不分配量产 owner，不注册 callback，不启动 broker、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL 或虚拟化层；
 `getDriverHalGapsJson` 只读返回 gap backlog，不触发 HAL、device node、vendor SDK、
 Safety Runtime 或 Driver/HAL 开发。
 `getHardwareInterfacesJson` 只读返回 hardware empty-interface registry，不触发硬件访问、HAL、device node、vendor SDK、shared memory、Safety Runtime、车辆总线或虚拟化开发。

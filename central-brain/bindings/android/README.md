@@ -15,7 +15,7 @@ Brain semantic gateway.
   contract, governance migration readiness, governance deployment plan,
   Protocol Binding readiness, Android/Linux delivery readiness, Python
   prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
-  hardware empty-interface registry, Event subscription lifecycle command, transport readiness, and owner decision matrix contract,
+  hardware empty-interface registry, Event subscription lifecycle command, transport readiness, owner decision matrix, and activation checklist contract,
   Vehicle/Body Signal catalog, and Vehicle
   Signal read-bridge activation criteria contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
@@ -35,6 +35,7 @@ Brain semantic gateway.
 | `cancelEventSubscriptionJson` | `POST /uib/events/subscriptions/cancel` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-006, DEL-001, DEL-002 |
 | `getEventSubscriptionTransportReadinessJson` | `GET /uib/events/subscriptions/transport-readiness` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionDecisionMatrixJson` | `GET /uib/events/subscriptions/decision-matrix` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionActivationChecklistJson` | `GET /uib/events/subscriptions/activation-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -136,12 +137,13 @@ Brain semantic gateway.
   virtualization work.
 - `getEventSubscriptionsJson`, `requestEventSubscriptionJson`,
   `cancelEventSubscriptionJson`, `getEventSubscriptionTransportReadinessJson`,
-  and `getEventSubscriptionDecisionMatrixJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionDecisionMatrixJson`, and
+  `getEventSubscriptionActivationChecklistJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
-  broker/cursor/backpressure owner decision matrix,
+  broker/cursor/backpressure owner decision matrix, activation evidence gates,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, and `Sub Matrix`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, and `Sub Gate`
   actions only. They do not assign production owners, select a transport,
   register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
   Driver/HAL, or create virtualization work.

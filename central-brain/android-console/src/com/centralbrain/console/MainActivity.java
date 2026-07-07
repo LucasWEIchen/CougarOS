@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionCancelButton;
     private Button eventSubscriptionTransportButton;
     private Button eventSubscriptionDecisionButton;
+    private Button eventSubscriptionActivationButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -164,6 +165,15 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionDecisionMatrix();
+            }
+        });
+
+        LinearLayout eventGateRow = buttonRow();
+        buttonArea.addView(eventGateRow);
+        eventSubscriptionActivationButton = addButton(eventGateRow, "Sub Gate", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionActivationChecklist();
             }
         });
 
@@ -353,6 +363,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionActivationChecklist() {
+        setBusy(true, "Status: loading event broker activation gates via Binder");
+        gatewayRequest("Event Subscription Activation Checklist (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionActivationChecklistJson(newTraceId("event-subscription-activation"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -491,6 +511,7 @@ public class MainActivity extends Activity {
         eventSubscriptionCancelButton.setEnabled(enabled);
         eventSubscriptionTransportButton.setEnabled(enabled);
         eventSubscriptionDecisionButton.setEnabled(enabled);
+        eventSubscriptionActivationButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);
