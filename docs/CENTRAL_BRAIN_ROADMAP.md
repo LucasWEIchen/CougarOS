@@ -9,7 +9,7 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle command contract；Android/Linux 主路径初版 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle + transport readiness contract；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke + service contract visibility 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 FW-U-003/NV-P-006 Event subscription callback/watch transport readiness contract：
+  - 新增 `GET /uib/events/subscriptions/transport-readiness`，返回 callback/watch lifecycle、broker owner、cursor storage owner、backpressure/QoS owner、SSE/WebSocket/DDS transport candidates 和 `EV-TR-001..006` 门禁。
+  - Android Binder/AIDL 新增 `getEventSubscriptionTransportReadinessJson`，Android Console 新增 `Sub Link` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-transport-readiness`、`uib.events.subscriptions.transport.readiness`、`GetEventSubscriptionTransportReadiness` 可见路径。
+  - 本轮只完成订阅 transport readiness contract，不选择 transport，不启动真实订阅 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
 - 推进 FW-U-003/NV-P-006 Event subscription request/cancel lifecycle command contract：
   - 新增 `POST /uib/events/subscriptions/request` 与 `POST /uib/events/subscriptions/cancel`，返回 request/cancel lifecycle validation、Policy/Audit 结果和 no-persistence/no-broker/no-callback/no-DDS 边界。
   - Android Binder/AIDL 新增 `requestEventSubscriptionJson` 与 `cancelEventSubscriptionJson`，Android Console 新增 `Sub Req`/`Sub Cancel` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscribe-request`/`event-subscribe-cancel`、`uib.events.subscriptions.request`/`uib.events.subscriptions.cancel`、`RequestEventSubscription`/`CancelEventSubscription` 可见路径。

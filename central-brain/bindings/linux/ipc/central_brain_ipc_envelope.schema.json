@@ -20,6 +20,7 @@
         "uib.events.subscriptions.get",
         "uib.events.subscriptions.request",
         "uib.events.subscriptions.cancel",
+        "uib.events.subscriptions.transport.readiness",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

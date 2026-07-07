@@ -86,6 +86,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().cancelEventSubscriptionJson(traceId, requestJson);
     }
 
+    public String getEventSubscriptionTransportReadinessJson(String traceId) throws RemoteException {
+        return requireGateway().getEventSubscriptionTransportReadinessJson(traceId);
+    }
+
     public String getUibExtensionsJson(String traceId) throws RemoteException {
         return requireGateway().getUibExtensionsJson(traceId);
     }

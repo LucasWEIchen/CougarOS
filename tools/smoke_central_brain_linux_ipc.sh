@@ -184,6 +184,41 @@ for key in [
 encoded = json.dumps(payload)
 assert "XSC-005" in encoded and "NV-P-006" in encoded, response
 PY
+EVENT_SUBSCRIPTION_TRANSPORT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-transport-readiness)"
+python3 - "$EVENT_SUBSCRIPTION_TRANSPORT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["readiness_state"] == "contract-only-no-transport-selected", response
+assert payload["transport_selected"] is False, response
+assert {"EV-TR-001", "EV-TR-002", "EV-TR-003", "EV-TR-004", "EV-TR-005", "EV-TR-006"} <= gate_ids, response
+for key in [
+    "transport_selected",
+    "broker_active",
+    "subscription_persistence_active",
+    "callback_registered",
+    "watch_started",
+    "cursor_storage_active",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert "getEventSubscriptionTransportReadinessJson" in encoded, response
+assert "event-subscription-transport-readiness" in encoded, response
+assert "uib.events.subscriptions.transport.readiness" in encoded, response
+assert "GetEventSubscriptionTransportReadiness" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

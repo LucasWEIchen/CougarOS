@@ -192,6 +192,42 @@ for key in [
 encoded = json.dumps(cancellation)
 assert "XSC-005" in encoded and "NV-P-006" in encoded, response
 PY
+EVENT_SUBSCRIPTION_TRANSPORT_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-transport-readiness)"
+python3 - "$EVENT_SUBSCRIPTION_TRANSPORT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+readiness = payload["gateway"]["payload"]
+encoded = json.dumps(readiness)
+gate_ids = {item["gate_id"] for item in readiness["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert readiness["readiness_state"] == "contract-only-no-transport-selected", response
+assert readiness["transport_selected"] is False, response
+assert {"EV-TR-001", "EV-TR-002", "EV-TR-003", "EV-TR-004", "EV-TR-005", "EV-TR-006"} <= gate_ids, response
+for key in [
+    "transport_selected",
+    "broker_active",
+    "subscription_persistence_active",
+    "callback_registered",
+    "watch_started",
+    "cursor_storage_active",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert readiness["summary"][key] is False, response
+assert "getEventSubscriptionTransportReadinessJson" in encoded, response
+assert "event-subscription-transport-readiness" in encoded, response
+assert "uib.events.subscriptions.transport.readiness" in encoded, response
+assert "GetEventSubscriptionTransportReadiness" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

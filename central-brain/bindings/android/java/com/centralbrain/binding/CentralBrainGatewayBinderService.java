@@ -77,6 +77,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getEventSubscriptionTransportReadinessJson(String traceId) throws RemoteException {
+            return get("/uib/events/subscriptions/transport-readiness", traceId);
+        }
+
+        @Override
         public String getUibExtensionsJson(String traceId) throws RemoteException {
             return get("/uib/extensions", traceId);
         }

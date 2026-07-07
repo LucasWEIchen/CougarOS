@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionsButton;
     private Button eventSubscriptionRequestButton;
     private Button eventSubscriptionCancelButton;
+    private Button eventSubscriptionTransportButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -150,6 +151,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 cancelEventSubscription();
+            }
+        });
+        eventSubscriptionTransportButton = addButton(eventRow, "Sub Link", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionTransportReadiness();
             }
         });
 
@@ -319,6 +326,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionTransportReadiness() {
+        setBusy(true, "Status: loading event callback/watch readiness via Binder");
+        gatewayRequest("Event Subscription Transport Readiness (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionTransportReadinessJson(newTraceId("event-subscription-transport"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -400,7 +417,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -455,6 +472,7 @@ public class MainActivity extends Activity {
         eventSubscriptionsButton.setEnabled(enabled);
         eventSubscriptionRequestButton.setEnabled(enabled);
         eventSubscriptionCancelButton.setEnabled(enabled);
+        eventSubscriptionTransportButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

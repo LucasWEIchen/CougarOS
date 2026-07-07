@@ -98,6 +98,7 @@ checks = [
         },
         "NV-P-006",
     ),
+    ("GET", "/uib/events/subscriptions/transport-readiness", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -483,6 +484,34 @@ for method, path, body, req_id in checks:
             assert cancellation["summary"][key] is False, f"event subscription cancel summary unexpectedly set {key}"
         encoded = json.dumps(cancellation)
         assert "XSC-005" in encoded and "NV-P-006" in encoded, "event subscription cancel missing Req IDs"
+    if path == "/uib/events/subscriptions/transport-readiness":
+        readiness = payload["payload"]
+        encoded = json.dumps(readiness)
+        gate_ids = {item["gate_id"] for item in readiness["mandatory_gates"]}
+        assert readiness["readiness_state"] == "contract-only-no-transport-selected", "event subscription transport readiness selected transport"
+        assert readiness["transport_selected"] is False, "event subscription transport was selected"
+        assert {"EV-TR-001", "EV-TR-002", "EV-TR-003", "EV-TR-004", "EV-TR-005", "EV-TR-006"} <= gate_ids, "event transport readiness missing mandatory gates"
+        for key in [
+            "transport_selected",
+            "broker_active",
+            "subscription_persistence_active",
+            "callback_registered",
+            "watch_started",
+            "cursor_storage_active",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert readiness["summary"][key] is False, f"event subscription transport readiness summary unexpectedly set {key}"
+        assert "getEventSubscriptionTransportReadinessJson" in encoded, "Android event subscription transport readiness binding missing"
+        assert "event-subscription-transport-readiness" in encoded, "Linux CLI event subscription transport readiness binding missing"
+        assert "uib.events.subscriptions.transport.readiness" in encoded, "Linux IPC event subscription transport readiness binding missing"
+        assert "GetEventSubscriptionTransportReadiness" in encoded, "gRPC event subscription transport readiness binding missing"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription transport readiness missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -582,6 +611,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscriptions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscribe-request >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscribe-cancel >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-transport-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

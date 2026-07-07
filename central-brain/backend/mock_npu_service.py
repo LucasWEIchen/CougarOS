@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.36"
+API_VERSION = "0.1.37"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -62,6 +62,7 @@ EVENT_SUBSCRIPTION_REQ_IDS = [
     "DEL-001",
     "DEL-002",
 ]
+EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS = EVENT_SUBSCRIPTION_REQ_IDS + ["DEL-004"]
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -257,6 +258,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "semantic_endpoint": "GET /uib/events/subscriptions",
                     "request_endpoint": "POST /uib/events/subscriptions/request",
                     "cancel_endpoint": "POST /uib/events/subscriptions/cancel",
+                    "transport_readiness_endpoint": "GET /uib/events/subscriptions/transport-readiness",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -336,22 +338,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "active|requested -> cancelled_contract_only; missing id -> rejected_missing_subscription_id",
                     "side_effects": "no broker cancellation is sent because no broker exists in prototype",
                 },
+                "transport_readiness": {
+                    "endpoint": "GET /uib/events/subscriptions/transport-readiness",
+                    "state_transition": "not-selected -> contract-only-no-transport-selected",
+                    "side_effects": "no broker, callback, watch, SSE/WebSocket, or DDS runtime is started",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -407,18 +414,23 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest": "GET /uib/events/subscriptions",
             "rest_request": "POST /uib/events/subscriptions/request",
             "rest_cancel": "POST /uib/events/subscriptions/cancel",
+            "rest_transport_readiness": "GET /uib/events/subscriptions/transport-readiness",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
+            "android_binder_transport_readiness": "getEventSubscriptionTransportReadinessJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
+            "linux_cli_transport_readiness": "event-subscription-transport-readiness",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
+            "linux_ipc_transport_readiness": "uib.events.subscriptions.transport.readiness",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
+            "linux_grpc_rpc_transport_readiness": "CentralBrainGateway.GetEventSubscriptionTransportReadiness",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
@@ -437,6 +449,122 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "service_dispatch_triggered": False,
         },
         "req_ids": EVENT_SUBSCRIPTION_REQ_IDS,
+    }
+
+
+def event_subscription_transport_readiness_payload() -> dict[str, Any]:
+    return {
+        "readiness_state": "contract-only-no-transport-selected",
+        "transport_selected": False,
+        "owner_decisions": {
+            "subscription_broker_owner": "TBD-target-platform",
+            "cursor_storage_owner": "TBD-target-platform",
+            "backpressure_qos_owner": "Runtime & Governance owner TBD",
+            "android_callback_owner": "TBD-Android platform service owner",
+            "linux_watch_owner": "TBD-Linux daemon owner",
+            "dds_runtime_owner": "TBD-only if high-rate topic data plane is selected",
+        },
+        "android_callback_contract": {
+            "candidate_operation": "registerEventSubscriptionCallback planned",
+            "current_binder_surface": "getEventSubscriptionTransportReadinessJson only",
+            "callback_identity": "Binder UID/PID must map to Runtime & Governance caller identity before activation",
+            "lifecycle": ["register", "onEvent", "onOverflow", "onClosed", "unregister"],
+            "implemented": False,
+        },
+        "linux_watch_contract": {
+            "candidate_cli": "event-subscription-watch planned",
+            "candidate_ipc_operation": "uib.events.subscriptions.watch planned",
+            "candidate_grpc_rpc": "WatchEventSubscriptions streaming RPC planned",
+            "current_surface": "event-subscription-transport-readiness over CLI/IPC/gRPC",
+            "implemented": False,
+        },
+        "transport_candidates": [
+            {
+                "transport": "android-binder-callback",
+                "purpose": "same-device Android app/service callback path",
+                "implemented": False,
+                "blocked_by": ["target system service owner", "Binder callback lifecycle", "identity to Policy mapping"],
+            },
+            {
+                "transport": "linux-ipc-watch",
+                "purpose": "same-SoC Linux daemon/client watch path",
+                "implemented": False,
+                "blocked_by": ["watch socket lifecycle", "cursor storage", "overflow and reconnect semantics"],
+            },
+            {
+                "transport": "sse-websocket",
+                "purpose": "debug or tool push transport",
+                "implemented": False,
+                "blocked_by": ["target debug tool requirements", "auth and privacy routing", "backpressure policy"],
+            },
+            {
+                "transport": "dds",
+                "purpose": "high-rate topic data plane candidate for NV-P-006",
+                "implemented": False,
+                "blocked_by": ["DDS vendor/runtime selection", "QoS profile mapping", "shared memory/Safety Runtime constraints"],
+            },
+        ],
+        "mandatory_gates": [
+            {
+                "gate_id": "EV-TR-001",
+                "name": "callback-watch-shape-reviewed",
+                "required_evidence": "Android Binder callback and Linux watch lifecycle reviewed with app/service identity semantics.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-TR-002",
+                "name": "cursor-storage-owner-assigned",
+                "required_evidence": "Owner and persistence rules for subscription cursor/replay state assigned.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-TR-003",
+                "name": "broker-owner-assigned",
+                "required_evidence": "Subscription broker owner and process boundary selected for Android and Linux.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-TR-004",
+                "name": "backpressure-qos-owner-assigned",
+                "required_evidence": "Runtime & Governance QoS/backpressure owner and overflow event contract assigned.",
+                "passed": False,
+            },
+            {
+                "gate_id": "EV-TR-005",
+                "name": "android-linux-parity-proven",
+                "required_evidence": "Android Binder, Linux IPC, and Linux gRPC/RPC expose equivalent transport-readiness metadata.",
+                "passed": True,
+            },
+            {
+                "gate_id": "EV-TR-006",
+                "name": "no-runtime-activation-claim",
+                "required_evidence": "Prototype reports no selected transport, no active broker, no registered callback, and no DDS/SSE/WebSocket runtime.",
+                "passed": True,
+            },
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/transport-readiness",
+            "android_binder": "getEventSubscriptionTransportReadinessJson",
+            "linux_cli": "event-subscription-transport-readiness",
+            "linux_ipc": "uib.events.subscriptions.transport.readiness",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionTransportReadiness",
+        },
+        "summary": {
+            "transport_selected": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "cursor_storage_active": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS,
     }
 
 
@@ -1188,6 +1316,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/uib/events/subscriptions":
             self.send_json(200, envelope(event_subscriptions_payload()))
+        elif path == "/uib/events/subscriptions/transport-readiness":
+            self.send_json(200, envelope(event_subscription_transport_readiness_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))
