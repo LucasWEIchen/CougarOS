@@ -93,6 +93,28 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "hardware-interfaces": ("hardware.interfaces.get", {}),
     "hardware-interface-activation-checklist": ("hardware.interfaces.activation.checklist", {}),
     "hardware-interface-owner-decision-status": ("hardware.interfaces.owner.decision.status", {}),
+    "hardware-interface-owner-decision-evidence": (
+        "hardware.interfaces.owner.decision.evidence",
+        {
+            "trace_id": "linux-ipc-hardware-owner-decision-evidence",
+            "evidence_submission_id": "linux-ipc-hw-owner-evidence",
+            "target_interface_ids": ["npu-runtime"],
+            "target_gate_ids": ["HW-ODS-001", "HW-ODS-006", "DRV-GAP-001"],
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-ipc-hw-owner-doc",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-ipc-client",
+                    "summary": "contract-only hardware owner evidence reference",
+                }
+            ],
+            "reviewer": {"app_id": "linux-ipc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

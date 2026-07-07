@@ -7,7 +7,7 @@
 
 本文覆盖外置 PCIe NPU 从 Uni Info Bus/SOA 到 Model Runtime Adapter、Driver/HAL 的接口约束，映射 Req ID：HW-002、NV-F-011、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 
-本轮不开发 NPU driver、HAL、DMA、IOMMU、Safety Runtime 或虚拟化层；只固定 Android/Linux 座舱域工程师后续集成时必须满足的 contract、状态机、错误码和验证入口。`GET /hardware/interfaces` 中的 `npu-runtime` 是当前 Python 原型的 NPU 空接口预留，`GET /hardware/interfaces/activation-checklist` 是激活前 owner、ABI、Driver/HAL gap、Safety/Policy、smoke evidence 和 rollback/fault 门禁，`GET /hardware/interfaces/owner-decision-status` 是 target owner、Android ABI owner、Linux ABI owner、Driver/HAL gap owner、Safety/Policy owner、target smoke evidence owner 和 rollback/fault semantics owner 的未决状态汇总；真实硬件、vendor SDK、driver ABI 或目标 SoC 明确后，才按缺口新增最小开发量。
+本轮不开发 NPU driver、HAL、DMA、IOMMU、Safety Runtime 或虚拟化层；只固定 Android/Linux 座舱域工程师后续集成时必须满足的 contract、状态机、错误码和验证入口。`GET /hardware/interfaces` 中的 `npu-runtime` 是当前 Python 原型的 NPU 空接口预留，`GET /hardware/interfaces/activation-checklist` 是激活前 owner、ABI、Driver/HAL gap、Safety/Policy、smoke evidence 和 rollback/fault 门禁，`GET /hardware/interfaces/owner-decision-status` 是 target owner、Android ABI owner、Linux ABI owner、Driver/HAL gap owner、Safety/Policy owner、target smoke evidence owner 和 rollback/fault semantics owner 的未决状态汇总，`POST /hardware/interfaces/owner-decision-evidence` 是 no-store owner/smoke/ABI/Driver-HAL/Safety gate evidence reference intake；真实硬件、vendor SDK、driver ABI 或目标 SoC 明确后，才按缺口新增最小开发量。
 
 ## 分层边界
 
@@ -102,6 +102,7 @@ Model Runtime Adapter 接收的推理请求必须保留 Uni Info Bus/SOA 的治�
 - `GET /hardware/interfaces` 的 `npu-runtime` 只暴露 reserved methods 和 Android/Linux 目标路径，`hardware_accessed=false`，不表示 HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 可用。
 - `GET /hardware/interfaces/activation-checklist` 只暴露 `HW-ACT-001..008` 激活前门禁，`activation_allowed=false`、`owner_decision_complete=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`，不表示 PCIe NPU、HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 已可用。
 - `GET /hardware/interfaces/owner-decision-status` 只暴露 `HW-ODS-001..008` owner 决策状态，`all_required_owners_assigned=false`、`target_hardware_smoke_attached=false`、`rollback_fault_semantics_confirmed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`，不表示 PCIe NPU、HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 已可用。
+- `POST /hardware/interfaces/owner-decision-evidence` 只校验 `HW-ODE-001..008` evidence intake envelope，`owner_decision_evidence_persisted=false`、`review_queue_updated=false`、`owner_assigned=false`、`gate_state_changed=false`、`gates_closed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`，不表示 evidence store、review workflow、PCIe NPU、HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 已可用。
 - `npu-inference` SOA service 已通过 Runtime & Governance precheck，但底层仍调用 mock 推理。
 - `Model Runtime Adapter` 已在 `/native/adapters/detail` 中登记 Android/Linux 交付边界。
 - 真实 NPU 接入前，DEV-005 保持 Open；新增驱动开发只在硬件、SDK、driver ABI 明确后触发。

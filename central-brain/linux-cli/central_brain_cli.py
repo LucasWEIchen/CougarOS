@@ -102,6 +102,29 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "hardware-interfaces": ("GET", "/hardware/interfaces", None),
     "hardware-interface-activation-checklist": ("GET", "/hardware/interfaces/activation-checklist", None),
     "hardware-interface-owner-decision-status": ("GET", "/hardware/interfaces/owner-decision-status", None),
+    "hardware-interface-owner-decision-evidence": (
+        "POST",
+        "/hardware/interfaces/owner-decision-evidence",
+        {
+            "trace_id": "linux-cli-hardware-owner-decision-evidence",
+            "evidence_submission_id": "linux-cli-hw-owner-evidence",
+            "target_interface_ids": ["npu-runtime"],
+            "target_gate_ids": ["HW-ODS-001", "HW-ODS-006", "DRV-GAP-001"],
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-cli-hw-owner-doc",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-cli",
+                    "summary": "contract-only hardware owner evidence reference",
+                }
+            ],
+            "reviewer": {"app_id": "linux-cli", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),

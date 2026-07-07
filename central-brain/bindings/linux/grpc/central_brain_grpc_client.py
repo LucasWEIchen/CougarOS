@@ -209,6 +209,28 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "hardware-interfaces": ("GetHardwareInterfaces", {}),
     "hardware-interface-activation-checklist": ("GetHardwareInterfaceActivationChecklist", {}),
     "hardware-interface-owner-decision-status": ("GetHardwareInterfaceOwnerDecisionStatus", {}),
+    "hardware-interface-owner-decision-evidence": (
+        "SubmitHardwareInterfaceOwnerDecisionEvidence",
+        {
+            "trace_id": "linux-grpc-hardware-owner-decision-evidence",
+            "evidence_submission_id": "linux-grpc-hw-owner-evidence",
+            "target_interface_ids": ["npu-runtime"],
+            "target_gate_ids": ["HW-ODS-001", "HW-ODS-006", "DRV-GAP-001"],
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-grpc-hw-owner-doc",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-grpc-client",
+                    "summary": "contract-only hardware owner evidence reference",
+                }
+            ],
+            "reviewer": {"app_id": "linux-grpc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-signals": ("GetVehicleSignals", {}),
     "vehicle-signal-activation": ("GetVehicleSignalActivation", {}),
     "vehicle-signal-validation": ("GetVehicleSignalValidation", {}),

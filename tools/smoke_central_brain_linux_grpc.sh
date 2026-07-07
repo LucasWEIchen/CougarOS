@@ -910,6 +910,51 @@ assert "hardware.interfaces.owner.decision.status" in encoded, response
 assert "GetHardwareInterfaceOwnerDecisionStatus" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+evidence = payload["gateway"]["payload"]
+encoded = json.dumps(evidence)
+gate_ids = {item["gate_id"] for item in evidence["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert evidence["operation"] == "hardware-owner-decision-evidence", response
+assert evidence["evidence_intake_state"] == "validated_contract_only", response
+assert evidence["intake_validated"] is True, response
+assert evidence["unknown_interface_ids"] == [], response
+assert evidence["invalid_evidence_ref_indexes"] == [], response
+assert evidence["validation"]["evidence_refs_shape_valid"] is True, response
+assert {"HW-ODE-001", "HW-ODE-002", "HW-ODE-003", "HW-ODE-004", "HW-ODE-005", "HW-ODE-006", "HW-ODE-007", "HW-ODE-008"} <= gate_ids, response
+assert evidence["review_result"]["accepted_for_review"] is False, response
+assert evidence["review_result"]["evidence_persisted"] is False, response
+assert evidence["review_result"]["review_queue_updated"] is False, response
+assert evidence["review_result"]["owner_assigned"] is False, response
+assert evidence["review_result"]["gates_closed"] is False, response
+for key in [
+    "owner_decision_evidence_accepted_for_review",
+    "owner_decision_evidence_persisted",
+    "review_queue_updated",
+    "owner_assigned",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert evidence["summary"][key] is False, response
+assert evidence["summary"]["owner_decision_evidence_contract_active"] is True, response
+assert evidence["summary"]["owner_decision_evidence_validated"] is True, response
+assert "submitHardwareInterfaceOwnerDecisionEvidenceJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence" in encoded, response
+assert "SubmitHardwareInterfaceOwnerDecisionEvidence" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

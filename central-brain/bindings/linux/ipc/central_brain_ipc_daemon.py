@@ -250,6 +250,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/hardware/interfaces/owner-decision-status",
         "req_ids": ["XSC-004", "XSC-006", "HW-002", "KH-003", "KH-006", "KH-007", "NV-P-002", "DEL-002", "DEL-005"],
     },
+    "hardware.interfaces.owner.decision.evidence": {
+        "method": "POST",
+        "path": "/hardware/interfaces/owner-decision-evidence",
+        "req_ids": ["XSC-004", "XSC-006", "HW-002", "KH-003", "KH-006", "KH-007", "NV-P-002", "DEL-002", "DEL-005"],
+    },
     "vehicle.signals.list": {
         "method": "GET",
         "path": "/vehicle/signals",

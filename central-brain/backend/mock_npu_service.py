@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.48"
+API_VERSION = "0.1.49"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -2467,6 +2467,32 @@ def hardware_interface_owner_decision_status_payload() -> dict[str, Any]:
     return HARDWARE_INTERFACES.owner_decision_status_payload()
 
 
+def hardware_interface_owner_decision_evidence_payload(request: dict[str, Any]) -> dict[str, Any]:
+    requested_permissions = request.get("permissions") or ["service.read"]
+    policy = permission_check_payload(
+        {
+            "permissions": requested_permissions,
+            "caller_permissions": request.get("caller_permissions", ["vehicle.read", "service.read"]),
+            "vehicle_state": request.get("vehicle_state", "parked"),
+            "safety_state": request.get("safety_state", "normal"),
+            "allowed_safety_states": ["normal", "degraded", "diagnostic_readonly"],
+        }
+    )
+    payload = HARDWARE_INTERFACES.owner_decision_evidence_payload(request, policy)
+    GOVERNANCE.record_audit(
+        request.get("trace_id") or str(uuid.uuid4()),
+        {
+            "service": "hardware-interface",
+            "method": "owner-decision-evidence",
+            "outcome": payload["evidence_intake_state"],
+            "policy_decision": policy["decision"],
+            "lifecycle_state": "validated" if payload["intake_validated"] else "rejected",
+            "qos_decision": "not-applied",
+        },
+    )
+    return payload
+
+
 def vehicle_signals_payload() -> dict[str, Any]:
     return VEHICLE_SIGNALS.catalog_payload()
 
@@ -2870,6 +2896,10 @@ class Handler(BaseHTTPRequestHandler):
             trace_id = request.get("trace_id") or str(uuid.uuid4())
             request["trace_id"] = trace_id
             self.send_json(200, envelope(event_subscription_activation_evidence_payload(request), trace_id))
+        elif path == "/hardware/interfaces/owner-decision-evidence":
+            trace_id = request.get("trace_id") or str(uuid.uuid4())
+            request["trace_id"] = trace_id
+            self.send_json(200, envelope(hardware_interface_owner_decision_evidence_payload(request), trace_id))
         elif path == "/agent/plan":
             self.send_json(200, envelope(agent_plan_payload(request), request.get("trace_id")))
         elif path == "/agent/execute":

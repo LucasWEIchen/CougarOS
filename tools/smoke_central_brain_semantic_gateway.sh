@@ -148,6 +148,30 @@ checks = [
     ("GET", "/hardware/interfaces", None, "HW-002"),
     ("GET", "/hardware/interfaces/activation-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-status", None, "HW-002"),
+    (
+        "POST",
+        "/hardware/interfaces/owner-decision-evidence",
+        {
+            "trace_id": "smoke-hardware-owner-decision-evidence",
+            "evidence_submission_id": "smoke-hw-owner-evidence",
+            "target_interface_ids": ["npu-runtime"],
+            "target_gate_ids": ["HW-ODS-001", "HW-ODS-006", "DRV-GAP-001"],
+            "evidence_refs": [
+                {
+                    "ref_id": "smoke-hw-owner-doc",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "semantic-gateway-smoke",
+                    "summary": "contract-only hardware owner evidence reference",
+                }
+            ],
+            "reviewer": {"app_id": "semantic-gateway-smoke", "role": "test"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -430,6 +454,43 @@ for method, path, body, req_id in checks:
         assert "hardware.interfaces.owner.decision.status" in encoded, "Linux IPC hardware owner status binding missing"
         assert "GetHardwareInterfaceOwnerDecisionStatus" in encoded, "gRPC hardware owner status binding missing"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner status missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence":
+        evidence = payload["payload"]
+        encoded = json.dumps(evidence)
+        gate_ids = {item["gate_id"] for item in evidence["mandatory_gates"]}
+        assert evidence["operation"] == "hardware-owner-decision-evidence", "hardware owner evidence operation mismatch"
+        assert evidence["evidence_intake_state"] == "validated_contract_only", "hardware owner evidence was not contract validated"
+        assert evidence["intake_validated"] is True, "hardware owner evidence intake not validated"
+        assert evidence["unknown_interface_ids"] == [], "hardware owner evidence reported unknown interface ids"
+        assert evidence["invalid_evidence_ref_indexes"] == [], "hardware owner evidence reported invalid reference shape"
+        assert evidence["validation"]["evidence_refs_shape_valid"] is True, "hardware owner evidence reference shape not validated"
+        assert {"HW-ODE-001", "HW-ODE-002", "HW-ODE-003", "HW-ODE-004", "HW-ODE-005", "HW-ODE-006", "HW-ODE-007", "HW-ODE-008"} <= gate_ids, "hardware owner evidence missing mandatory gates"
+        assert evidence["review_result"]["accepted_for_review"] is False, "hardware owner evidence was accepted for review"
+        assert evidence["review_result"]["evidence_persisted"] is False, "hardware owner evidence was persisted"
+        assert evidence["review_result"]["review_queue_updated"] is False, "hardware owner evidence updated a review queue"
+        assert evidence["review_result"]["owner_assigned"] is False, "hardware owner evidence assigned an owner"
+        assert evidence["review_result"]["gates_closed"] is False, "hardware owner evidence closed gates"
+        for key in [
+            "owner_decision_evidence_accepted_for_review",
+            "owner_decision_evidence_persisted",
+            "review_queue_updated",
+            "owner_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert evidence["summary"][key] is False, f"hardware owner evidence summary unexpectedly set {key}"
+        assert evidence["summary"]["owner_decision_evidence_contract_active"] is True, "hardware owner evidence contract not active"
+        assert evidence["summary"]["owner_decision_evidence_validated"] is True, "hardware owner evidence contract not validated"
+        assert "submitHardwareInterfaceOwnerDecisionEvidenceJson" in encoded, "Android hardware owner evidence binding missing"
+        assert "hardware-interface-owner-decision-evidence" in encoded, "Linux CLI hardware owner evidence binding missing"
+        assert "hardware.interfaces.owner.decision.evidence" in encoded, "Linux IPC hardware owner evidence binding missing"
+        assert "SubmitHardwareInterfaceOwnerDecisionEvidence" in encoded, "gRPC hardware owner evidence binding missing"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1137,6 +1198,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interfaces >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-activation-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

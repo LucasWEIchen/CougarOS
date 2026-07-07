@@ -12,6 +12,7 @@ virtualization APIs in the Python prototype.
 from __future__ import annotations
 
 import copy
+import uuid
 from typing import Any
 
 
@@ -356,6 +357,59 @@ HARDWARE_OWNER_DECISION_ITEMS = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_REQ_IDS = HARDWARE_OWNER_DECISION_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_GATES = [
+    {
+        "gate_id": "HW-ODE-001",
+        "name": "target-interfaces-declared",
+        "required_evidence": "Submission identifies which hardware empty interfaces the evidence claims to support.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODE-002",
+        "name": "target-gates-declared",
+        "required_evidence": "Submission identifies which HW-ODS/HW-ACT/DRV-GAP gates it claims to support.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODE-003",
+        "name": "evidence-reference-shape-present",
+        "required_evidence": "Submission includes evidence_refs with ref_id, type, uri_or_path, owner, and summary fields.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODE-004",
+        "name": "reviewer-identity-present",
+        "required_evidence": "Submission includes reviewer identity suitable for Runtime & Governance audit.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODE-005",
+        "name": "runtime-governance-policy-checked",
+        "required_evidence": "Owner decision evidence submission is policy checked and audited.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODE-006",
+        "name": "evidence-store-owner-assigned",
+        "required_evidence": "Target platform assigns durable evidence store owner, retention policy, and access control.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODE-007",
+        "name": "no-gate-auto-close-claim",
+        "required_evidence": "Prototype reports no owner assignment, gate state changes, or activation allowed from evidence intake.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ODE-008",
+        "name": "android-linux-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent owner evidence intake behavior.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -531,6 +585,114 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_DECISION_REQ_IDS,
+        }
+
+    def owner_decision_evidence_payload(self, request: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
+        interface_ids = {item["interface_id"] for item in EMPTY_INTERFACE_REGISTRY}
+        raw_interface_ids = request.get("target_interface_ids") or request.get("interface_ids") or []
+        target_interface_ids = raw_interface_ids if isinstance(raw_interface_ids, list) else [str(raw_interface_ids)]
+        raw_gate_ids = request.get("target_gate_ids") or request.get("gate_ids") or []
+        target_gate_ids = raw_gate_ids if isinstance(raw_gate_ids, list) else [str(raw_gate_ids)]
+        raw_evidence_refs = request.get("evidence_refs") or request.get("attachments") or []
+        evidence_refs = raw_evidence_refs if isinstance(raw_evidence_refs, list) else [raw_evidence_refs]
+        raw_reviewer = request.get("reviewer") or {"app_id": "unknown", "role": "contract-reviewer"}
+        reviewer = raw_reviewer if isinstance(raw_reviewer, dict) else {"name": str(raw_reviewer), "role": "contract-reviewer"}
+        submission_id = str(request.get("evidence_submission_id") or f"hw-ode-{uuid.uuid4()}")
+        unknown_interface_ids = [item for item in target_interface_ids if item not in interface_ids]
+        required_ref_fields = ["ref_id", "type", "uri_or_path", "owner", "summary"]
+        invalid_evidence_ref_indexes = [
+            index
+            for index, evidence_ref in enumerate(evidence_refs)
+            if not isinstance(evidence_ref, dict) or not all(evidence_ref.get(field) for field in required_ref_fields)
+        ]
+        allowed = policy["decision"] == "allow"
+        has_target_interfaces = bool(target_interface_ids) and not unknown_interface_ids
+        has_target_gates = bool(target_gate_ids)
+        has_evidence_refs = bool(evidence_refs) and not invalid_evidence_ref_indexes
+        has_reviewer = bool(reviewer.get("app_id") or reviewer.get("name") or reviewer.get("role"))
+
+        if not allowed:
+            state = "rejected_by_policy"
+        elif not has_target_interfaces or not has_target_gates or not has_evidence_refs or not has_reviewer:
+            state = "rejected_missing_evidence"
+        else:
+            state = "validated_contract_only"
+
+        mandatory_gates = copy.deepcopy(HARDWARE_OWNER_EVIDENCE_GATES)
+        gate_passes = {
+            "HW-ODE-001": has_target_interfaces,
+            "HW-ODE-002": has_target_gates,
+            "HW-ODE-003": has_evidence_refs,
+            "HW-ODE-004": has_reviewer,
+            "HW-ODE-005": allowed,
+        }
+        for gate in mandatory_gates:
+            if gate["gate_id"] in gate_passes:
+                gate["passed"] = gate_passes[gate["gate_id"]]
+
+        return {
+            "operation": "hardware-owner-decision-evidence",
+            "evidence_submission_id": submission_id,
+            "evidence_intake_state": state,
+            "intake_validated": state == "validated_contract_only",
+            "target_interface_ids": target_interface_ids,
+            "unknown_interface_ids": unknown_interface_ids,
+            "target_gate_ids": target_gate_ids,
+            "evidence_refs": evidence_refs,
+            "invalid_evidence_ref_indexes": invalid_evidence_ref_indexes,
+            "reviewer": reviewer,
+            "evidence_contract": {
+                "required_gate_prefixes": ["HW-ODS", "HW-ACT", "DRV-GAP"],
+                "accepted_ref_types": ["doc", "test_log", "owner_approval", "platform_decision", "driver_gap_review", "safety_review"],
+                "required_ref_fields": required_ref_fields,
+                "storage_owner": "TBD-target-platform",
+                "review_owner": "TBD-target-platform",
+                "prototype_storage": "not implemented; request is validated and discarded after response",
+            },
+            "validation": {
+                "policy_checked": True,
+                "policy": policy,
+                "target_interfaces_present": has_target_interfaces,
+                "target_gates_present": has_target_gates,
+                "evidence_refs_present": has_evidence_refs,
+                "evidence_refs_shape_valid": has_evidence_refs,
+                "reviewer_present": has_reviewer,
+                "audit_recorded": True,
+            },
+            "review_result": {
+                "accepted_for_review": False,
+                "review_queue_updated": False,
+                "evidence_persisted": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "reason": "prototype exposes hardware owner evidence intake contract only; no evidence store, owner assignment, or review workflow is implemented",
+            },
+            "mandatory_gates": mandatory_gates,
+            "api_surface": {
+                "rest": "POST /hardware/interfaces/owner-decision-evidence",
+                "android_binder": "submitHardwareInterfaceOwnerDecisionEvidenceJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence",
+                "linux_grpc_rpc": "CentralBrainGateway.SubmitHardwareInterfaceOwnerDecisionEvidence",
+            },
+            "summary": {
+                "owner_decision_evidence_contract_active": True,
+                "owner_decision_evidence_validated": state == "validated_contract_only",
+                "owner_decision_evidence_accepted_for_review": False,
+                "owner_decision_evidence_persisted": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

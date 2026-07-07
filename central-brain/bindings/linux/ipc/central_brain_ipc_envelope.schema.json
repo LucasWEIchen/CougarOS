@@ -55,6 +55,7 @@
         "hardware.interfaces.get",
         "hardware.interfaces.activation.checklist",
         "hardware.interfaces.owner.decision.status",
+        "hardware.interfaces.owner.decision.evidence",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"
