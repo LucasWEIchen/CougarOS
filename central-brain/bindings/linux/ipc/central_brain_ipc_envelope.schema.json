@@ -40,7 +40,8 @@
         "delivery.readiness.get",
         "prototype.readiness.get",
         "hardware.interfaces.get",
-        "vehicle.signals.list"
+        "vehicle.signals.list",
+        "vehicle.signals.activation.get"
       ]
     },
     "caller": {

@@ -8,7 +8,7 @@
 `prototype_readiness.py` 承载 Python prototype readiness contract，汇总模块成熟度、Android/Linux 绑定可见性、开放偏差、开放问题和下一步候选增量。
 `native_adapters.py` 承载当前 Native adapter 注册表，包括 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界，以及 Driver/HAL gap backlog。
 `hardware_interfaces.py` 承载硬件依赖空接口注册表，列出 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的 reserved methods、Android 主路径、Linux 同步路径和 no-hardware-access 边界。
-`vehicle_signals.py` 承载 Vehicle/Body Signal 只读目录 contract，列出 VSS-style signal catalog、ECU/Signal Adapter 边界、Android/Linux 绑定可见性和 DRV-GAP-002 链接。
+`vehicle_signals.py` 承载 Vehicle/Body Signal 只读目录与读桥激活准入 contract，列出 VSS-style signal catalog、ECU/Signal Adapter 边界、Android/Linux 绑定可见性、activation gates 和 DRV-GAP-002 链接。
 
 ## 启动
 
@@ -49,6 +49,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /native/driver-gaps`
 - `GET /hardware/interfaces`
 - `GET /vehicle/signals`
+- `GET /vehicle/signals/activation`
 - `GET /ai/sdk/capabilities`
 - `GET /skills`
 - `GET /vehicle/state`
@@ -79,6 +80,8 @@ bash tools/run_central_brain_backend.sh
 `GET /hardware/interfaces` 覆盖 XSC-004、XSC-006、HW-002、KH-001、KH-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005，只返回硬件依赖空接口、reserved methods、Android 主路径、Linux 同步路径和触发条件；`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有访问真实硬件、没有新增 Driver/HAL、没有开发虚拟化层。
 
 `GET /vehicle/signals` 覆盖 XSC-002、XSC-004、XSC-006、NV-F-004、NV-F-005、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-005，只返回 Vehicle/Body Signal 只读 VSS-style catalog、访问级别、governance tag、ECU/Signal Adapter 边界和 DRV-GAP-002 链接；`summary.dbc_arxml_loaded=false`、`summary.real_vehicle_bus_connected=false`、`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有加载 DBC/ARXML、没有连接真实车辆总线、没有访问硬件、没有新增 Driver/HAL、没有开发虚拟化层。
+
+`GET /vehicle/signals/activation` 覆盖 XSC-002、XSC-004、XSC-006、NV-F-003、NV-F-004、NV-F-005、NV-P-001、NV-P-002、NV-P-003、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005，只返回 DBC/ARXML、Android VHAL/vendor AIDL、Linux SocketCAN、vendor gateway/SOME-IP 读桥激活准入条件和 `VS-ACT-001..005` 门禁；`summary.read_bridge_activated=false`、`summary.hardware_accessed=false`、`summary.driver_development_triggered=false`、`summary.virtualization_development_triggered=false` 表示本轮没有激活真实读桥、没有访问硬件、没有新增 Driver/HAL、没有开发虚拟化层。
 
 `GET /soa/contracts` 覆盖 XSC-003、FW-S-004、NV-G-003、DEL-001、DEL-002，从 `runtime_governance.SERVICE_CATALOG` 返回服务 contract、版本、Policy/Safety State、QoS、Lifecycle 和 no-dispatch 边界；它只做 contract visibility，不调用 SOA service、Driver/HAL、车辆总线或虚拟化层。
 

@@ -32,6 +32,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "prototype-readiness": ("prototype.readiness.get", {}),
     "hardware-interfaces": ("hardware.interfaces.get", {}),
     "vehicle-signals": ("vehicle.signals.list", {}),
+    "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "ai-sdk": ("ai.sdk.capabilities", {}),
     "skills": ("skills.list", {}),
     "agent-plan": (

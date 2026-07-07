@@ -72,6 +72,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "GetPrototypeReadiness": {"method": "GET", "path": "/prototype/readiness", "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005"]},
     "GetHardwareInterfaces": {"method": "GET", "path": "/hardware/interfaces", "req_ids": ["XSC-004", "XSC-006", "HW-002", "KH-001", "KH-002", "KH-003", "KH-006", "KH-007", "NV-P-003", "DEL-002", "DEL-005"]},
     "GetVehicleSignals": {"method": "GET", "path": "/vehicle/signals", "req_ids": ["XSC-002", "XSC-004", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003", "DEL-002", "DEL-005"]},
+    "GetVehicleSignalActivation": {"method": "GET", "path": "/vehicle/signals/activation", "req_ids": ["XSC-002", "XSC-004", "XSC-006", "NV-F-003", "NV-F-004", "NV-F-005", "NV-P-001", "NV-P-003", "DEL-002", "DEL-005"]},
 }
 
 

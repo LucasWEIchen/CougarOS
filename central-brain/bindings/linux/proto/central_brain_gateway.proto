@@ -50,6 +50,7 @@ service CentralBrainGateway {
   rpc GetPrototypeReadiness(GatewayRequest) returns (GatewayResponse);
   rpc GetHardwareInterfaces(GatewayRequest) returns (GatewayResponse);
   rpc GetVehicleSignals(GatewayRequest) returns (GatewayResponse);
+  rpc GetVehicleSignalActivation(GatewayRequest) returns (GatewayResponse);
 }
 
 message GatewayRequest {

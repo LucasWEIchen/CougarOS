@@ -84,6 +84,7 @@ checks = [
     ("GET", "/native/driver-gaps", None, "DEL-005"),
     ("GET", "/hardware/interfaces", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
+    ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/ai/sdk/capabilities", None, "XSC-001"),
     (
         "POST",
@@ -242,6 +243,7 @@ for method, path, body, req_id in checks:
         assert "linux-grpc-rpc-sample" in target_names, "delivery readiness missing Linux gRPC/RPC target"
         assert "driver-hal-gap-backlog" in target_names, "delivery readiness missing Driver/HAL gap target"
         assert "hardware-empty-interface-registry" in target_names, "delivery readiness missing hardware empty-interface target"
+        assert "vehicle-signal-activation-criteria" in target_names, "delivery readiness missing vehicle signal activation target"
         assert payload["payload"]["summary"]["production_ready"] is False, "delivery readiness overstated production maturity"
         assert payload["payload"]["summary"]["android_debug_ready"] is True, "delivery readiness missing Android debug status"
         assert payload["payload"]["summary"]["linux_samples_ready"] is True, "delivery readiness missing Linux sample status"
@@ -267,6 +269,8 @@ for method, path, body, req_id in checks:
         assert "getPrototypeReadinessJson" in encoded, "Android prototype readiness binding visibility missing"
         assert "prototype.readiness.get" in encoded, "Linux IPC prototype readiness binding visibility missing"
         assert "GetPrototypeReadiness" in encoded, "gRPC prototype readiness binding visibility missing"
+        assert "getVehicleSignalActivationJson" in encoded, "Android vehicle signal activation readiness missing"
+        assert "vehicle-signal-activation" in encoded, "Linux vehicle signal activation readiness missing"
         assert "DEV-003" in encoded and "ISSUE-014" in encoded, "prototype readiness missing tracked deviation/issue visibility"
     if path == "/native/adapters/detail":
         adapter_names = {adapter["name"] for adapter in payload["payload"]["adapters"]}
@@ -314,6 +318,34 @@ for method, path, body, req_id in checks:
         assert "vehicle.signals.list" in encoded, "Linux IPC vehicle signal binding visibility missing"
         assert "GetVehicleSignals" in encoded, "gRPC vehicle signal binding visibility missing"
         assert "DRV-GAP-002" in encoded, "vehicle signal catalog missing vehicle bus driver gap link"
+    if path == "/vehicle/signals/activation":
+        activation = payload["payload"]
+        encoded = json.dumps(activation)
+        assert activation["activation_state"] == "criteria-only-not-activated", "vehicle signal activation left criteria-only state"
+        assert activation["read_bridge_activated"] is False, "vehicle signal activation enabled a read bridge"
+        option_types = {item["source_type"] for item in activation["activation_options"]}
+        assert "dbc-arxml" in option_types, "activation criteria missing DBC/ARXML option"
+        assert "android-vhal-or-vendor-aidl" in option_types, "activation criteria missing Android VHAL/vendor AIDL option"
+        assert "linux-socketcan" in option_types, "activation criteria missing Linux SocketCAN option"
+        assert "vendor-gateway-or-someip" in option_types, "activation criteria missing vendor gateway option"
+        gate_ids = {item["gate_id"] for item in activation["mandatory_gates"]}
+        assert {"VS-ACT-001", "VS-ACT-002", "VS-ACT-003", "VS-ACT-004", "VS-ACT-005"} <= gate_ids, "activation criteria missing mandatory gates"
+        for key in [
+            "read_bridge_activated",
+            "dbc_arxml_loaded",
+            "vhal_connected",
+            "socketcan_connected",
+            "vendor_gateway_connected",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert activation["summary"][key] is False, f"activation summary unexpectedly set {key}"
+        assert "getVehicleSignalActivationJson" in encoded, "Android vehicle signal activation binding visibility missing"
+        assert "vehicle.signals.activation.get" in encoded, "Linux IPC vehicle signal activation binding visibility missing"
+        assert "GetVehicleSignalActivation" in encoded, "gRPC vehicle signal activation binding visibility missing"
+        assert "DRV-GAP-002" in encoded, "vehicle signal activation missing vehicle bus driver gap link"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -429,5 +461,6 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interfaces >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 
 echo "linux cli smoke ok"

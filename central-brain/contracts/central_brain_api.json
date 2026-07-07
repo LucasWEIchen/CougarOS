@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -16,8 +16,9 @@
     "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
     "hardware_empty_interfaces": "GET /hardware/interfaces exposes hardware-dependent empty interfaces for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, and getVehicleSignalsJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, and /vehicle/signals through Binder contract samples",
+    "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, and getVehicleSignalActivationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, and /vehicle/signals/activation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -830,6 +831,63 @@
         "FW-U-004",
         "NV-P-002",
         "NV-P-003",
+        "DEL-001",
+        "DEL-002",
+        "DEL-005"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/vehicle/signals/activation",
+      "description": "Returns Vehicle Signal Adapter read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without opening a real bus or adding Driver/HAL code.",
+      "response": {
+        "activation_state": "criteria-only-not-activated",
+        "read_bridge_activated": false,
+        "activation_options": [
+          {
+            "source_type": "dbc-arxml|android-vhal-or-vendor-aidl|linux-socketcan|vendor-gateway-or-someip",
+            "driver_development_triggered": false
+          }
+        ],
+        "mandatory_gates": [
+          "VS-ACT-001 schema-source-accepted",
+          "VS-ACT-002 policy-and-safety-mapping",
+          "VS-ACT-003 android-linux-contract-parity",
+          "VS-ACT-004 no-write-before-read-bridge",
+          "VS-ACT-005 driver-hal-scope-review"
+        ],
+        "summary": {
+          "read_bridge_activated": false,
+          "dbc_arxml_loaded": false,
+          "vhal_connected": false,
+          "socketcan_connected": false,
+          "vendor_gateway_connected": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "api_surface": {
+          "rest": "GET /vehicle/signals/activation",
+          "android_binder": "getVehicleSignalActivationJson",
+          "linux_cli": "vehicle-signal-activation",
+          "linux_ipc": "vehicle.signals.activation.get",
+          "linux_grpc_rpc": "CentralBrainGateway.GetVehicleSignalActivation"
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "XSC-004",
+        "XSC-006",
+        "NV-F-003",
+        "NV-F-004",
+        "NV-F-005",
+        "NV-P-001",
+        "NV-P-002",
+        "NV-P-003",
+        "KH-003",
+        "KH-006",
+        "KH-007",
         "DEL-001",
         "DEL-002",
         "DEL-005"

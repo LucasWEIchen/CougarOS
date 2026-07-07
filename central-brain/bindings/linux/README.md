@@ -5,7 +5,7 @@ Brain semantic gateway.
 
 ## Scope
 
-- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, HW-002, KH-003, KH-006, KH-007, NV-F-004, NV-F-005, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-005.
+- Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, APP-004, FW-U-003, FW-U-004, FW-U-006, HW-002, KH-003, KH-006, KH-007, NV-F-003, NV-F-004, NV-F-005, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-005.
 - `proto/central_brain_gateway.proto` defines the gRPC/RPC surface.
 - `grpc/central_brain_grpc_server.py` and `grpc/central_brain_grpc_client.py`
   are dependency-free JSON TCP samples that mirror the proto request/response
@@ -60,6 +60,7 @@ Brain semantic gateway.
 | `prototype.readiness.get` | `GET /prototype/readiness` | XSC-001..006, DEL-001..005 |
 | `hardware.interfaces.get` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `vehicle.signals.list` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-002, DEL-005 |
+| `vehicle.signals.activation.get` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 
 The gRPC/RPC JSON sample maps the same semantic endpoints through
 `CentralBrainGateway.*` RPC names from `proto/central_brain_gateway.proto`.
@@ -97,6 +98,10 @@ devices, HALs, shared memory, vehicle bus, or virtualization APIs.
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle
 bus, or creating Driver/HAL or virtualization work.
+`CentralBrainGateway.GetVehicleSignalActivation` exposes the same Vehicle
+Signal read-bridge activation criteria as Android Binder and Linux IPC without
+loading DBC/ARXML, connecting VHAL/SocketCAN/vendor gateways, touching a real
+vehicle bus, or creating Driver/HAL or virtualization work.
 `CentralBrainGateway.GetRuntimeGovernance` and
 `CentralBrainGateway.GetRecentAudit` use the same shared governance client as
 IPC for read-only diagnostics before falling back to the REST prototype gateway.
@@ -152,6 +157,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interfaces
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signals
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signal-activation
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py governance
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
@@ -212,6 +219,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interfaces
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signals
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signal-activation
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \

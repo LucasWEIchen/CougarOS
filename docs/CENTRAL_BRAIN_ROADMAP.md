@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 Vehicle Signal read-bridge activation criteria contract：
+  - `GET /vehicle/signals/activation` 新增 DBC/ARXML、Android VHAL/vendor AIDL、Linux SocketCAN、vendor gateway/SOME-IP 四类读桥激活准入条件，以及 `VS-ACT-001..005` 必过门禁。
+  - Android Binder/AIDL 新增 `getVehicleSignalActivationJson`，Android Console 新增 `Signal Gate` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `vehicle-signal-activation`/`vehicle.signals.activation.get`/`GetVehicleSignalActivation` 可见路径。
+  - 本轮只完成读桥激活准入 contract，不加载 DBC/ARXML，不连接 VHAL、SocketCAN、vendor gateway 或真实车辆总线，不访问硬件，不开发 Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、XSC-004、XSC-006、NV-F-003、NV-F-004、NV-F-005、NV-P-001、NV-P-002、NV-P-003、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 - 推进 NV-F-004/NV-F-005 Vehicle/Body Signal catalog contract：
   - 新增 `central-brain/backend/vehicle_signals.py` 与 `GET /vehicle/signals`，以只读 VSS-style catalog 暴露 BCM/HVAC/Seat/Door/Light/Powertrain 等信号路径、访问级别、governance tag、Adapter 边界和 Driver/HAL 缺口链接。
   - Android Binder/AIDL 新增 `getVehicleSignalsJson`，Android Console 新增 `Vehicle Signals` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `vehicle-signals`/`vehicle.signals.list`/`GetVehicleSignals` 可见路径。

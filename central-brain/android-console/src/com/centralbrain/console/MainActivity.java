@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
     private Button skillButton;
     private Button memoryButton;
     private Button vehicleSignalsButton;
+    private Button vehicleSignalActivationButton;
     private Button governanceButton;
     private Button driverGapsButton;
     private Button hardwareInterfacesButton;
@@ -130,6 +131,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getVehicleSignals();
+            }
+        });
+        vehicleSignalActivationButton = addButton(memoryRow, "Signal Gate", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getVehicleSignalActivation();
             }
         });
 
@@ -289,6 +296,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getVehicleSignalActivation() {
+        setBusy(true, "Status: loading vehicle signal activation gates via Binder");
+        gatewayRequest("Vehicle Signal Activation (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getVehicleSignalActivationJson(newTraceId("vehicle-signal-activation"));
+            }
+        });
+    }
+
     private void bindGateway() {
         setBusy(true, "Status: binding Android gateway service");
         gatewayClient = new CentralBrainGatewayClient(this, new CentralBrainGatewayClient.Callback() {
@@ -297,7 +314,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Vehicle Signals, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Vehicle Signals, Signal Gate, Governance, Driver Gaps, Hardware IF, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -350,6 +367,7 @@ public class MainActivity extends Activity {
         skillButton.setEnabled(enabled);
         memoryButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
+        vehicleSignalActivationButton.setEnabled(enabled);
         governanceButton.setEnabled(enabled);
         driverGapsButton.setEnabled(enabled);
         hardwareInterfacesButton.setEnabled(enabled);

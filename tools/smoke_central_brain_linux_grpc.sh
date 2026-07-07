@@ -168,6 +168,7 @@ assert "linux-ipc-daemon-sample" in targets, response
 assert "linux-grpc-rpc-sample" in targets, response
 assert "driver-hal-gap-backlog" in targets, response
 assert "hardware-empty-interface-registry" in targets, response
+assert "vehicle-signal-activation-criteria" in targets, response
 assert readiness["summary"]["production_ready"] is False, response
 assert readiness["summary"]["android_debug_ready"] is True, response
 assert readiness["summary"]["linux_samples_ready"] is True, response
@@ -198,6 +199,7 @@ assert readiness["summary"]["driver_development_triggered"] is False, response
 assert readiness["summary"]["virtualization_development_triggered"] is False, response
 assert readiness["summary"]["service_dispatch_triggered"] is False, response
 assert "prototype.readiness.get" in encoded and "GetPrototypeReadiness" in encoded, response
+assert "getVehicleSignalActivationJson" in encoded and "vehicle-signal-activation" in encoded, response
 assert "DEV-003" in encoded and "ISSUE-014" in encoded, response
 PY
 HARDWARE_INTERFACES_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interfaces)"
@@ -242,6 +244,39 @@ assert vehicle_signals["summary"]["driver_development_triggered"] is False, resp
 assert vehicle_signals["summary"]["virtualization_development_triggered"] is False, response
 assert vehicle_signals["summary"]["service_dispatch_triggered"] is False, response
 assert "vehicle.signals.list" in encoded and "GetVehicleSignals" in encoded, response
+assert "DRV-GAP-002" in encoded, response
+PY
+VEHICLE_SIGNAL_ACTIVATION_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signal-activation)"
+python3 - "$VEHICLE_SIGNAL_ACTIVATION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+activation = payload["gateway"]["payload"]
+encoded = json.dumps(activation)
+option_types = {item["source_type"] for item in activation["activation_options"]}
+gate_ids = {item["gate_id"] for item in activation["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert activation["activation_state"] == "criteria-only-not-activated", response
+assert activation["read_bridge_activated"] is False, response
+assert {"dbc-arxml", "android-vhal-or-vendor-aidl", "linux-socketcan", "vendor-gateway-or-someip"} <= option_types, response
+assert {"VS-ACT-001", "VS-ACT-002", "VS-ACT-003", "VS-ACT-004", "VS-ACT-005"} <= gate_ids, response
+for key in [
+    "read_bridge_activated",
+    "dbc_arxml_loaded",
+    "vhal_connected",
+    "socketcan_connected",
+    "vendor_gateway_connected",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert activation["summary"][key] is False, response
+assert "getVehicleSignalActivationJson" in encoded, response
+assert "vehicle.signals.activation.get" in encoded, response
+assert "GetVehicleSignalActivation" in encoded, response
 assert "DRV-GAP-002" in encoded, response
 PY
 BACKEND_CONTRACT_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" governance-backend-contract)"
@@ -376,6 +411,7 @@ assert response["status"] == "ok", response
 assert "grpc" in encoded, response
 assert "grpc-json-active-sample" in encoded, response
 assert "GetVehicleSignals" in encoded, response
+assert "GetVehicleSignalActivation" in encoded, response
 assert "NV-P-003" in encoded and "DEL-002" in encoded, response
 PY
 

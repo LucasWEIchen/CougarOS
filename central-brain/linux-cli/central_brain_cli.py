@@ -37,6 +37,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "driver-gaps": ("GET", "/native/driver-gaps", None),
     "hardware-interfaces": ("GET", "/hardware/interfaces", None),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
+    "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "ai-sdk": ("GET", "/ai/sdk/capabilities", None),
     "skills": ("GET", "/skills", None),
     "agent-plan": (

@@ -518,6 +518,10 @@ def vehicle_signals_payload() -> dict[str, Any]:
     return VEHICLE_SIGNALS.catalog_payload()
 
 
+def vehicle_signal_activation_payload() -> dict[str, Any]:
+    return VEHICLE_SIGNALS.activation_payload()
+
+
 def vehicle_state_payload() -> dict[str, Any]:
     now = time.time()
     return {
@@ -823,6 +827,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(hardware_interfaces_payload()))
         elif path == "/vehicle/signals":
             self.send_json(200, envelope(vehicle_signals_payload()))
+        elif path == "/vehicle/signals/activation":
+            self.send_json(200, envelope(vehicle_signal_activation_payload()))
         elif path in ("/events/topics", "/uib/events/topics"):
             self.send_json(200, envelope(event_topics_payload()))
         elif path == "/uib/events/recent":
