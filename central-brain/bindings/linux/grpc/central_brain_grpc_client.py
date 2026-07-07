@@ -73,6 +73,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "safety_state": "normal",
         },
     ),
+    "event-subscription-activation-evidence-status": ("GetEventSubscriptionActivationEvidenceStatus", {}),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

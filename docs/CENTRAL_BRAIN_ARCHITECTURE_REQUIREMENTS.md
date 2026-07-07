@@ -200,6 +200,12 @@
 
 该增量只补需求基线中的 evidence intake 接口形状，不持久化 evidence，不更新 review queue，不关闭 readiness gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
 
+## FW-U-003/NV-P-006 当前补充：Event subscription activation evidence review status
+
+`GET /uib/events/subscriptions/activation-evidence/status` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 只读状态增量，用于固定 activation evidence intake 之后的 review status 语义：当前 Python 原型没有 durable evidence store、没有 review workflow、没有 gate closure authority、没有 retention policy owner，因此返回 `EV-AES-001..006` 门禁、`persisted_submission_count=0`、`pending_review_count=0`、`evidence_store_active=false`、`review_workflow_active=false`、`gates_closed=false` 和 `activation_allowed=false`。Android 主路径暴露 `getEventSubscriptionActivationEvidenceStatusJson`，Linux 同步路径暴露 `event-subscription-activation-evidence-status`、`uib.events.subscriptions.activation.evidence.status` 和 `GetEventSubscriptionActivationEvidenceStatus`。
+
+该增量只补需求基线中的 evidence review status 接口形状，不读取 evidence store，不创建 review queue，不关闭 readiness gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
+
 ## 开发顺序约束
 
 1. 先补齐 L2/L3 的契约和治理骨架，再扩展上层 App。

@@ -43,6 +43,8 @@
 
 2026-07-07 新增 `POST /uib/events/subscriptions/activation-evidence`、Android Binder `submitEventSubscriptionActivationEvidenceJson`、Linux CLI `event-subscription-activation-evidence`、Linux IPC `uib.events.subscriptions.activation.evidence` 和 Linux gRPC/RPC `SubmitEventSubscriptionActivationEvidence`，把 activation gate evidence reference envelope、reviewer identity、policy/audit check 和 `EV-AE-001..008` 门禁固定为 contract-only intake。该补充没有关闭 DEV-007：`activation_evidence_persisted=false`、`activation_evidence_accepted_for_review=false`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false`、`activation_allowed=false`、`broker_activation_ready=false`、`broker_active=false`、`driver_development_triggered=false` 仍是验收边界。
 
+2026-07-07 新增 `GET /uib/events/subscriptions/activation-evidence/status`、Android Binder `getEventSubscriptionActivationEvidenceStatusJson`、Linux CLI `event-subscription-activation-evidence-status`、Linux IPC `uib.events.subscriptions.activation.evidence.status` 和 Linux gRPC/RPC `GetEventSubscriptionActivationEvidenceStatus`，把 activation evidence intake 之后的只读 review status 固定为 contract-only no-store/no-workflow 状态。该补充没有关闭 DEV-007：`activation_evidence_status_contract_active=true` 只表示状态接口可查，`evidence_store_active=false`、`review_workflow_active=false`、`persisted_submission_count=0`、`pending_review_count=0`、`review_queue_updated=false`、`gates_closed=false`、`activation_allowed=false`、`broker_active=false`、`driver_development_triggered=false` 仍是验收边界。
+
 ## 新增偏差记录模板
 
 | ID | 偏差 | 涉及需求 | 当前原因 | 风险 | 修正计划 | 状态 |

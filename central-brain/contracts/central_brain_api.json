@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.44",
+  "version": "0.1.45",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -18,9 +18,9 @@
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
-    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, and POST /uib/events/subscriptions/activation-evidence expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake reference shape, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting evidence or subscriptions, updating review queues, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, POST /uib/events/subscriptions/activation-evidence, and GET /uib/events/subscriptions/activation-evidence/status expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake/status reference shape, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting evidence or subscriptions, reading an evidence store, updating review queues, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -133,7 +133,7 @@
     {
       "method": "GET",
       "path": "/uib/events/subscriptions",
-      "description": "Returns the Uni Info Bus Event subscription lifecycle contract for lifecycle, cursor/replay storage, backpressure, governance, request/cancel commands, readiness rollup, activation evidence intake, and Android/Linux binding parity without starting a real broker.",
+      "description": "Returns the Uni Info Bus Event subscription lifecycle contract for lifecycle, cursor/replay storage, backpressure, governance, request/cancel commands, readiness rollup, activation evidence intake, review status, and Android/Linux binding parity without starting a real broker.",
       "response": {
         "subscription_state": "contract-only-not-brokered",
         "broker_active": false,
@@ -192,7 +192,12 @@
           "activation_evidence_persisted": false,
           "review_queue_updated": false,
           "gate_state_changed": false,
-          "gates_closed": false
+          "gates_closed": false,
+          "activation_evidence_status_contract_active": true,
+          "evidence_store_active": false,
+          "review_workflow_active": false,
+          "persisted_submission_count": 0,
+          "pending_review_count": 0
         },
         "api_surface": {
           "rest": "GET /uib/events/subscriptions",
@@ -249,7 +254,12 @@
           "android_binder_activation_evidence": "submitEventSubscriptionActivationEvidenceJson",
           "linux_cli_activation_evidence": "event-subscription-activation-evidence",
           "linux_ipc_activation_evidence": "uib.events.subscriptions.activation.evidence",
-          "linux_grpc_rpc_activation_evidence": "CentralBrainGateway.SubmitEventSubscriptionActivationEvidence"
+          "linux_grpc_rpc_activation_evidence": "CentralBrainGateway.SubmitEventSubscriptionActivationEvidence",
+          "rest_activation_evidence_status": "GET /uib/events/subscriptions/activation-evidence/status",
+          "android_binder_activation_evidence_status": "getEventSubscriptionActivationEvidenceStatusJson",
+          "linux_cli_activation_evidence_status": "event-subscription-activation-evidence-status",
+          "linux_ipc_activation_evidence_status": "uib.events.subscriptions.activation.evidence.status",
+          "linux_grpc_rpc_activation_evidence_status": "CentralBrainGateway.GetEventSubscriptionActivationEvidenceStatus"
         }
       },
       "req_ids": [
@@ -904,7 +914,8 @@
           "EV-CRS-001..006 cursor/replay storage evidence",
           "EV-QOS-001..006 backpressure/QoS evidence",
           "DRV-GAP-004/DRV-GAP-005 review if high-rate delivery is selected",
-          "POST /uib/events/subscriptions/activation-evidence evidence reference intake contract"
+          "POST /uib/events/subscriptions/activation-evidence evidence reference intake contract",
+          "GET /uib/events/subscriptions/activation-evidence/status review status contract"
         ],
         "summary": {
           "readiness_rollup_contract_active": true,
@@ -936,7 +947,8 @@
           "linux_cli": "event-subscription-readiness-rollup",
           "linux_ipc": "uib.events.subscriptions.readiness.rollup",
           "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionReadinessRollup",
-          "activation_evidence_intake": "POST /uib/events/subscriptions/activation-evidence"
+          "activation_evidence_intake": "POST /uib/events/subscriptions/activation-evidence",
+          "activation_evidence_status": "GET /uib/events/subscriptions/activation-evidence/status"
         }
       },
       "req_ids": [
@@ -1054,6 +1066,88 @@
           "activation_evidence_validated": true,
           "activation_evidence_accepted_for_review": false,
           "activation_evidence_persisted": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "activation_allowed": false,
+          "broker_activation_ready": false,
+          "production_activation_allowed": false,
+          "broker_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/subscriptions/activation-evidence/status",
+      "description": "Returns the read-only review status for Uni Info Bus Event subscription activation evidence, explicitly reporting that the Python prototype has no durable evidence store, no review workflow, no gate closure authority, and no broker activation permission.",
+      "response": {
+        "review_status_state": "contract-only-no-evidence-store",
+        "status_scope": {
+          "source_endpoint": "POST /uib/events/subscriptions/activation-evidence",
+          "lookup_mode": "prototype-static-status",
+          "prototype_storage": "not implemented; evidence submissions are validated and discarded after response"
+        },
+        "owners": {
+          "evidence_store_owner": "TBD-target-platform",
+          "review_workflow_owner": "TBD-target-platform",
+          "gate_closure_authority": "TBD-target-platform",
+          "retention_policy_owner": "TBD-target-platform"
+        },
+        "review_pipeline": {
+          "evidence_store_active": false,
+          "review_workflow_active": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "activation_allowed": false
+        },
+        "counters": {
+          "persisted_submission_count": 0,
+          "pending_review_count": 0,
+          "accepted_for_review_count": 0,
+          "reviewed_submission_count": 0,
+          "closed_gate_count": 0
+        },
+        "mandatory_gates": [
+          "EV-AES-001 evidence-store-owner-assigned",
+          "EV-AES-002 review-workflow-owner-assigned",
+          "EV-AES-003 retention-policy-approved",
+          "EV-AES-004 no-persisted-submissions-claim",
+          "EV-AES-005 no-review-queue-or-gate-closure-claim",
+          "EV-AES-006 android-linux-status-contract-parity-proven"
+        ],
+        "api_surface": {
+          "rest": "GET /uib/events/subscriptions/activation-evidence/status",
+          "android_binder": "getEventSubscriptionActivationEvidenceStatusJson",
+          "linux_cli": "event-subscription-activation-evidence-status",
+          "linux_ipc": "uib.events.subscriptions.activation.evidence.status",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationEvidenceStatus"
+        },
+        "summary": {
+          "activation_evidence_status_contract_active": true,
+          "review_status_available": true,
+          "activation_evidence_accepted_for_review": false,
+          "activation_evidence_persisted": false,
+          "evidence_store_active": false,
+          "review_workflow_active": false,
+          "persisted_submission_count": 0,
+          "pending_review_count": 0,
           "review_queue_updated": false,
           "gate_state_changed": false,
           "gates_closed": false,

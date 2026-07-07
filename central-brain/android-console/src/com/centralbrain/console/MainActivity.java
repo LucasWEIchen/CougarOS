@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionBackpressureQosButton;
     private Button eventSubscriptionReadinessRollupButton;
     private Button eventSubscriptionActivationEvidenceButton;
+    private Button eventSubscriptionActivationEvidenceStatusButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -212,6 +213,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 submitEventSubscriptionActivationEvidence();
+            }
+        });
+        eventSubscriptionActivationEvidenceStatusButton = addButton(eventReadinessRow, "Sub Review", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionActivationEvidenceStatus();
             }
         });
 
@@ -469,6 +476,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionActivationEvidenceStatus() {
+        setBusy(true, "Status: loading event activation evidence review status via Binder");
+        gatewayRequest("Event Subscription Activation Evidence Status (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionActivationEvidenceStatusJson(newTraceId("event-subscription-activation-evidence-status"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -613,6 +630,7 @@ public class MainActivity extends Activity {
         eventSubscriptionBackpressureQosButton.setEnabled(enabled);
         eventSubscriptionReadinessRollupButton.setEnabled(enabled);
         eventSubscriptionActivationEvidenceButton.setEnabled(enabled);
+        eventSubscriptionActivationEvidenceStatusButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

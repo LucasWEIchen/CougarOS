@@ -28,6 +28,7 @@
         "uib.events.subscriptions.backpressure.qos.evidence",
         "uib.events.subscriptions.readiness.rollup",
         "uib.events.subscriptions.activation.evidence",
+        "uib.events.subscriptions.activation.evidence.status",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

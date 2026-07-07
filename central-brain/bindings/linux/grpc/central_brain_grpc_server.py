@@ -59,6 +59,7 @@ RPC_MAP: dict[str, dict[str, Any]] = {
     "GetEventSubscriptionBackpressureQosEvidence": {"method": "GET", "path": "/uib/events/subscriptions/backpressure-qos-evidence", "req_ids": ["XSC-002", "XSC-005", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002", "DEL-004"]},
     "GetEventSubscriptionReadinessRollup": {"method": "GET", "path": "/uib/events/subscriptions/readiness-rollup", "req_ids": ["XSC-002", "XSC-005", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002", "DEL-004"]},
     "SubmitEventSubscriptionActivationEvidence": {"method": "POST", "path": "/uib/events/subscriptions/activation-evidence", "req_ids": ["XSC-002", "XSC-005", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002", "DEL-004"]},
+    "GetEventSubscriptionActivationEvidenceStatus": {"method": "GET", "path": "/uib/events/subscriptions/activation-evidence/status", "req_ids": ["XSC-002", "XSC-005", "FW-U-003", "NV-P-003", "NV-P-006", "DEL-002", "DEL-004"]},
     "GetUibExtensions": {"method": "GET", "path": "/uib/extensions", "req_ids": ["XSC-002", "FW-U-008", "XSC-005", "XSC-006", "NV-P-003", "DEL-002"]},
     "GetAiSdkCapabilities": {"method": "GET", "path": "/ai/sdk/capabilities", "req_ids": ["XSC-001", "APP-004", "NV-P-003", "DEL-002"]},
     "PlanAgentTask": {"method": "POST", "path": "/agent/plan", "req_ids": ["XSC-001", "APP-004", "NV-F-001", "FW-U-006", "NV-P-003", "DEL-002"]},

@@ -128,6 +128,7 @@ checks = [
         },
         "NV-P-006",
     ),
+    ("GET", "/uib/events/subscriptions/activation-evidence/status", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -469,6 +470,11 @@ for method, path, body, req_id in checks:
         assert subscriptions["summary"]["backpressure_qos_evidence_contract_active"] is True, "backpressure/QoS evidence contract not active in subscription summary"
         assert subscriptions["summary"]["readiness_rollup_contract_active"] is True, "readiness rollup contract not active in subscription summary"
         assert subscriptions["summary"]["activation_evidence_contract_active"] is True, "activation evidence contract not active in subscription summary"
+        assert subscriptions["summary"]["activation_evidence_status_contract_active"] is True, "activation evidence status contract not active in subscription summary"
+        assert subscriptions["summary"]["evidence_store_active"] is False, "subscription summary unexpectedly activated evidence store"
+        assert subscriptions["summary"]["review_workflow_active"] is False, "subscription summary unexpectedly activated review workflow"
+        assert subscriptions["summary"]["persisted_submission_count"] == 0, "subscription summary reported persisted evidence"
+        assert subscriptions["summary"]["pending_review_count"] == 0, "subscription summary reported pending review"
         assert "getEventSubscriptionsJson" in encoded, "Android event subscription binding visibility missing"
         assert "requestEventSubscriptionJson" in encoded, "Android event subscription request binding visibility missing"
         assert "cancelEventSubscriptionJson" in encoded, "Android event subscription cancel binding visibility missing"
@@ -477,6 +483,7 @@ for method, path, body, req_id in checks:
         assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, "Android event subscription backpressure/QoS binding visibility missing"
         assert "getEventSubscriptionReadinessRollupJson" in encoded, "Android event subscription readiness rollup binding visibility missing"
         assert "submitEventSubscriptionActivationEvidenceJson" in encoded, "Android event subscription activation evidence binding visibility missing"
+        assert "getEventSubscriptionActivationEvidenceStatusJson" in encoded, "Android event subscription activation evidence status binding visibility missing"
         assert "uib.events.subscriptions.get" in encoded, "Linux IPC event subscription binding visibility missing"
         assert "uib.events.subscriptions.request" in encoded, "Linux IPC event subscription request binding visibility missing"
         assert "uib.events.subscriptions.cancel" in encoded, "Linux IPC event subscription cancel binding visibility missing"
@@ -485,6 +492,7 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, "Linux IPC event subscription backpressure/QoS binding visibility missing"
         assert "uib.events.subscriptions.readiness.rollup" in encoded, "Linux IPC event subscription readiness rollup binding visibility missing"
         assert "uib.events.subscriptions.activation.evidence" in encoded, "Linux IPC event subscription activation evidence binding visibility missing"
+        assert "uib.events.subscriptions.activation.evidence.status" in encoded, "Linux IPC event subscription activation evidence status binding visibility missing"
         assert "GetEventSubscriptions" in encoded, "gRPC event subscription binding visibility missing"
         assert "RequestEventSubscription" in encoded, "gRPC event subscription request binding visibility missing"
         assert "CancelEventSubscription" in encoded, "gRPC event subscription cancel binding visibility missing"
@@ -493,6 +501,7 @@ for method, path, body, req_id in checks:
         assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, "gRPC event subscription backpressure/QoS binding visibility missing"
         assert "GetEventSubscriptionReadinessRollup" in encoded, "gRPC event subscription readiness rollup binding visibility missing"
         assert "SubmitEventSubscriptionActivationEvidence" in encoded, "gRPC event subscription activation evidence binding visibility missing"
+        assert "GetEventSubscriptionActivationEvidenceStatus" in encoded, "gRPC event subscription activation evidence status binding visibility missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded, "event subscription missing Req IDs"
     if path == "/uib/events/subscriptions/request":
         subscription = payload["payload"]
@@ -832,6 +841,51 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.activation.evidence" in encoded, "Linux IPC activation evidence binding missing"
         assert "SubmitEventSubscriptionActivationEvidence" in encoded, "gRPC activation evidence binding missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation evidence missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+        assert status["review_status_state"] == "contract-only-no-evidence-store", "activation evidence status claimed a store"
+        assert {"EV-AES-001", "EV-AES-002", "EV-AES-003", "EV-AES-004", "EV-AES-005", "EV-AES-006"} <= gate_ids, "event activation evidence status missing mandatory gates"
+        assert status["review_pipeline"]["evidence_store_active"] is False, "activation evidence status activated evidence store"
+        assert status["review_pipeline"]["review_workflow_active"] is False, "activation evidence status activated review workflow"
+        assert status["review_pipeline"]["gates_closed"] is False, "activation evidence status closed gates"
+        assert status["counters"]["persisted_submission_count"] == 0, "activation evidence status reported persisted submissions"
+        assert status["counters"]["pending_review_count"] == 0, "activation evidence status reported pending reviews"
+        for key in [
+            "activation_evidence_accepted_for_review",
+            "activation_evidence_persisted",
+            "evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "broker_activation_ready",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"event subscription activation evidence status summary unexpectedly set {key}"
+        assert status["summary"]["activation_evidence_status_contract_active"] is True, "activation evidence status contract not active"
+        assert status["summary"]["persisted_submission_count"] == 0, "activation evidence status summary reported persisted submissions"
+        assert status["summary"]["pending_review_count"] == 0, "activation evidence status summary reported pending reviews"
+        assert "getEventSubscriptionActivationEvidenceStatusJson" in encoded, "Android activation evidence status binding missing"
+        assert "event-subscription-activation-evidence-status" in encoded, "Linux CLI activation evidence status binding missing"
+        assert "uib.events.subscriptions.activation.evidence.status" in encoded, "Linux IPC activation evidence status binding missing"
+        assert "GetEventSubscriptionActivationEvidenceStatus" in encoded, "gRPC activation evidence status binding missing"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation evidence status missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -939,6 +993,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-backpressure-qos-evidence >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-readiness-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

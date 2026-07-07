@@ -45,6 +45,8 @@
 
 2026-07-07 新增 `POST /uib/events/subscriptions/activation-evidence`、Android `submitEventSubscriptionActivationEvidenceJson`、Linux `event-subscription-activation-evidence`、`uib.events.subscriptions.activation.evidence` 与 `SubmitEventSubscriptionActivationEvidence`，把 activation gate evidence reference envelope、reviewer identity、policy/audit check 和 `EV-AE-001..008` 门禁固定为 contract-only intake。该疑点仍为 Proposed：evidence store owner、review workflow owner、gate closure authority、retention policy 和 target platform evidence URI 规则尚未确认；原型继续报告 `activation_evidence_persisted=false`、`activation_evidence_accepted_for_review=false`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false` 和 `activation_allowed=false`。
 
+2026-07-07 新增 `GET /uib/events/subscriptions/activation-evidence/status`、Android `getEventSubscriptionActivationEvidenceStatusJson`、Linux `event-subscription-activation-evidence-status`、`uib.events.subscriptions.activation.evidence.status` 与 `GetEventSubscriptionActivationEvidenceStatus`，把 activation evidence intake 之后的 read-only review status 固定为 `EV-AES-001..006` contract。该疑点仍为 Proposed：durable evidence store owner、review workflow owner、gate closure authority、retention policy、audit export 和 target platform evidence URI 规则尚未确认；原型继续报告 `evidence_store_active=false`、`review_workflow_active=false`、`persisted_submission_count=0`、`pending_review_count=0`、`review_queue_updated=false`、`gates_closed=false` 和 `activation_allowed=false`。
+
 ## 新增疑点模板
 
 | ID | 图中位置 | 疑点/风险 | 影响 | 当前建议 | 状态 |

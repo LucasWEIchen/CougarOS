@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 FW-U-003/NV-P-006 Event subscription activation evidence review status contract：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/status`，用于查询 activation evidence intake 之后的 contract-only review status，返回 `EV-AES-001..006` 门禁、owner 待定项、`persisted_submission_count=0`、`pending_review_count=0`、`evidence_store_active=false` 和 `review_workflow_active=false`。
+  - Android Binder/AIDL 新增 `getEventSubscriptionActivationEvidenceStatusJson`，Android Console 新增 `Sub Review` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-evidence-status`、`uib.events.subscriptions.activation.evidence.status`、`GetEventSubscriptionActivationEvidenceStatus` 可见路径。
+  - 本轮只完成 activation evidence review status contract，不读取 evidence store，不创建 review queue，不关闭 readiness gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
 - 推进 FW-U-003/NV-P-006 Event subscription activation evidence intake contract：
   - 新增 `POST /uib/events/subscriptions/activation-evidence`，用于提交 broker/runtime activation gate 的 evidence reference envelope，返回 `EV-AE-001..008` 门禁和 `validated_contract_only`/`rejected_missing_evidence`/`rejected_by_policy` intake 状态。
   - Android Binder/AIDL 新增 `submitEventSubscriptionActivationEvidenceJson`，Android Console 新增 `Sub Evidence` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-evidence`、`uib.events.subscriptions.activation.evidence`、`SubmitEventSubscriptionActivationEvidence` 可见路径。

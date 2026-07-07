@@ -58,6 +58,17 @@ reference envelope、reviewer identity、Runtime & Governance policy/audit check
 `EV-AE-001..008` 门禁，不持久化 evidence，不更新 review queue，不关闭 gate，
 不允许 broker activation，不触发 Driver/HAL 或虚拟化层。
 
+Event subscription activation evidence review status 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/activation-evidence/status`、Android Binder
+`getEventSubscriptionActivationEvidenceStatusJson`、Linux CLI
+`event-subscription-activation-evidence-status`、Linux IPC
+`uib.events.subscriptions.activation.evidence.status` 与 Linux gRPC/RPC
+`GetEventSubscriptionActivationEvidenceStatus` 查询。该视图只报告 activation evidence
+intake 后仍无 durable evidence store、review workflow、gate closure authority 或 retention
+policy，并固定 `EV-AES-001..006`、`persisted_submission_count=0` 和
+`pending_review_count=0`；不读取 evidence store，不创建 review queue，不关闭 gate，
+不允许 broker activation，不触发 Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC

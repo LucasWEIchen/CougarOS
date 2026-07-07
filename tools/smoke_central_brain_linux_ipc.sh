@@ -106,6 +106,8 @@ for key in [
     "broker_active",
     "subscription_persistence_active",
     "cursor_storage_active",
+    "evidence_store_active",
+    "review_workflow_active",
     "activation_evidence_accepted_for_review",
     "activation_evidence_persisted",
     "review_queue_updated",
@@ -127,6 +129,9 @@ for key in [
 assert payload["summary"]["backpressure_qos_evidence_contract_active"] is True, response
 assert payload["summary"]["readiness_rollup_contract_active"] is True, response
 assert payload["summary"]["activation_evidence_contract_active"] is True, response
+assert payload["summary"]["activation_evidence_status_contract_active"] is True, response
+assert payload["summary"]["persisted_submission_count"] == 0, response
+assert payload["summary"]["pending_review_count"] == 0, response
 assert "getEventSubscriptionsJson" in encoded, response
 assert "requestEventSubscriptionJson" in encoded, response
 assert "cancelEventSubscriptionJson" in encoded, response
@@ -135,6 +140,7 @@ assert "getEventSubscriptionCursorReplayStorageJson" in encoded, response
 assert "getEventSubscriptionBackpressureQosEvidenceJson" in encoded, response
 assert "getEventSubscriptionReadinessRollupJson" in encoded, response
 assert "submitEventSubscriptionActivationEvidenceJson" in encoded, response
+assert "getEventSubscriptionActivationEvidenceStatusJson" in encoded, response
 assert "uib.events.subscriptions.get" in encoded, response
 assert "uib.events.subscriptions.request" in encoded, response
 assert "uib.events.subscriptions.cancel" in encoded, response
@@ -143,6 +149,7 @@ assert "uib.events.subscriptions.cursor.replay.storage" in encoded, response
 assert "uib.events.subscriptions.backpressure.qos.evidence" in encoded, response
 assert "uib.events.subscriptions.readiness.rollup" in encoded, response
 assert "uib.events.subscriptions.activation.evidence" in encoded, response
+assert "uib.events.subscriptions.activation.evidence.status" in encoded, response
 assert "GetEventSubscriptions" in encoded, response
 assert "RequestEventSubscription" in encoded, response
 assert "CancelEventSubscription" in encoded, response
@@ -151,6 +158,7 @@ assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
 assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
 assert "GetEventSubscriptionReadinessRollup" in encoded, response
 assert "SubmitEventSubscriptionActivationEvidence" in encoded, response
+assert "GetEventSubscriptionActivationEvidenceStatus" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded, response
 PY
 EVENT_SUBSCRIBE_REQUEST_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscribe-request)"
@@ -557,6 +565,58 @@ assert "submitEventSubscriptionActivationEvidenceJson" in encoded, response
 assert "event-subscription-activation-evidence" in encoded, response
 assert "uib.events.subscriptions.activation.evidence" in encoded, response
 assert "SubmitEventSubscriptionActivationEvidence" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
+EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_STATUS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-evidence-status)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["review_status_state"] == "contract-only-no-evidence-store", response
+assert {"EV-AES-001", "EV-AES-002", "EV-AES-003", "EV-AES-004", "EV-AES-005", "EV-AES-006"} <= gate_ids, response
+assert payload["review_pipeline"]["evidence_store_active"] is False, response
+assert payload["review_pipeline"]["review_workflow_active"] is False, response
+assert payload["review_pipeline"]["gates_closed"] is False, response
+assert payload["counters"]["persisted_submission_count"] == 0, response
+assert payload["counters"]["pending_review_count"] == 0, response
+for key in [
+    "activation_evidence_accepted_for_review",
+    "activation_evidence_persisted",
+    "evidence_store_active",
+    "review_workflow_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "broker_activation_ready",
+    "production_activation_allowed",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "event_delivery_qos_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["activation_evidence_status_contract_active"] is True, response
+assert payload["summary"]["persisted_submission_count"] == 0, response
+assert payload["summary"]["pending_review_count"] == 0, response
+assert "getEventSubscriptionActivationEvidenceStatusJson" in encoded, response
+assert "event-subscription-activation-evidence-status" in encoded, response
+assert "uib.events.subscriptions.activation.evidence.status" in encoded, response
+assert "GetEventSubscriptionActivationEvidenceStatus" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
