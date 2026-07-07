@@ -147,6 +147,7 @@ checks = [
     ("GET", "/native/driver-gaps", None, "DEL-005"),
     ("GET", "/hardware/interfaces", None, "HW-002"),
     ("GET", "/hardware/interfaces/activation-checklist", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-status", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -397,6 +398,38 @@ for method, path, body, req_id in checks:
         assert "hardware.interfaces.activation.checklist" in encoded, "Linux IPC hardware activation binding missing"
         assert "GetHardwareInterfaceActivationChecklist" in encoded, "gRPC hardware activation binding missing"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware activation checklist missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["decision_gates"]}
+        open_gate_ids = set(status["rollup"]["open_gate_ids"])
+        assert status["owner_decision_status_state"] == "contract-only-owner-decisions-open", "hardware owner status left contract-only state"
+        assert status["activation_allowed"] is False, "hardware owner status allowed activation"
+        assert {"HW-ODS-001", "HW-ODS-002", "HW-ODS-003", "HW-ODS-004", "HW-ODS-005", "HW-ODS-006", "HW-ODS-007", "HW-ODS-008"} <= gate_ids, "hardware owner status missing mandatory gates"
+        assert {"HW-ODS-001", "HW-ODS-002", "HW-ODS-003", "HW-ODS-004", "HW-ODS-005", "HW-ODS-006", "HW-ODS-007"} <= open_gate_ids, "hardware owner status missing open gates"
+        assert status["rollup"]["blocked_interface_count"] == len(status["interfaces"]), "hardware owner status blocked count mismatch"
+        for key in [
+            "all_required_owners_assigned",
+            "target_interface_owner_assigned",
+            "android_abi_owner_assigned",
+            "linux_abi_owner_assigned",
+            "driver_gap_owner_assigned",
+            "safety_policy_owner_assigned",
+            "target_hardware_smoke_attached",
+            "rollback_fault_semantics_confirmed",
+            "activation_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"hardware owner status summary unexpectedly set {key}"
+        assert status["summary"]["owner_decision_status_active"] is True, "hardware owner status not active"
+        assert "getHardwareInterfaceOwnerDecisionStatusJson" in encoded, "Android hardware owner status binding missing"
+        assert "hardware-interface-owner-decision-status" in encoded, "Linux CLI hardware owner status binding missing"
+        assert "hardware.interfaces.owner.decision.status" in encoded, "Linux IPC hardware owner status binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionStatus" in encoded, "gRPC hardware owner status binding missing"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner status missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1103,6 +1136,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interfaces >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-activation-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

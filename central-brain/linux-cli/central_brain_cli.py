@@ -101,6 +101,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "driver-gaps": ("GET", "/native/driver-gaps", None),
     "hardware-interfaces": ("GET", "/hardware/interfaces", None),
     "hardware-interface-activation-checklist": ("GET", "/hardware/interfaces/activation-checklist", None),
+    "hardware-interface-owner-decision-status": ("GET", "/hardware/interfaces/owner-decision-status", None),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),

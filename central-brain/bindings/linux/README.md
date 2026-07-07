@@ -73,6 +73,7 @@ Brain semantic gateway.
 | `prototype.readiness.get` | `GET /prototype/readiness` | XSC-001..006, DEL-001..005 |
 | `hardware.interfaces.get` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.activation.checklist` | `GET /hardware/interfaces/activation-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
+| `hardware.interfaces.owner.decision.status` | `GET /hardware/interfaces/owner-decision-status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `vehicle.signals.list` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.activation.get` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.validation.get` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
@@ -131,6 +132,10 @@ devices, HALs, shared memory, vehicle bus, or virtualization APIs.
 hardware activation checklist as Android Binder and Linux IPC without
 activating hardware, opening device nodes, dispatching services, or creating
 Driver/HAL or virtualization work.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionStatus` exposes the same
+hardware owner decision rollup as Android Binder and Linux IPC without assigning
+owners, closing activation gates, opening device nodes, dispatching services, or
+creating Driver/HAL or virtualization work.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle
@@ -225,6 +230,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-activation-checklist
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-status
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signals
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signal-activation
@@ -317,6 +324,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-activation-checklist
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-status
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signals
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signal-activation
@@ -382,6 +391,14 @@ bash tools/check_central_brain_delivery_docs.sh
   `GetHardwareInterfaceActivationChecklist` binding operations document
   HW-002/KH owner, ABI, Driver/HAL gap, Safety/Policy, smoke evidence, and
   rollback/fault gates while keeping `activation_allowed=false`,
+  `hardware_accessed=false`, `driver_development_triggered=false`, and
+  `virtualization_development_triggered=false`.
+- `/hardware/interfaces/owner-decision-status` and the
+  `hardware.interfaces.owner.decision.status` /
+  `GetHardwareInterfaceOwnerDecisionStatus` binding operations document
+  HW-002/KH target owner, Android ABI owner, Linux ABI owner, Driver/HAL gap
+  owner, Safety/Policy owner, target smoke evidence owner, and rollback/fault
+  semantics owner status while keeping `activation_allowed=false`,
   `hardware_accessed=false`, `driver_development_triggered=false`, and
   `virtualization_development_triggered=false`.
 - The current IPC daemon is an active sample, not a full production gateway; it

@@ -250,6 +250,112 @@ HARDWARE_ACTIVATION_GATES = [
     },
 ]
 
+HARDWARE_OWNER_DECISION_REQ_IDS = HARDWARE_ACTIVATION_REQ_IDS
+
+HARDWARE_OWNER_DECISION_GATES = [
+    {
+        "gate_id": "HW-ODS-001",
+        "name": "target-interface-owner-open",
+        "required_decision": "Assign the target interface owner and escalation path for each hardware interface.",
+        "status": "open",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODS-002",
+        "name": "android-abi-owner-open",
+        "required_decision": "Assign the Android HAL/AIDL/NDK/vendor SDK ABI owner and permission model reviewer.",
+        "status": "open",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODS-003",
+        "name": "linux-abi-owner-open",
+        "required_decision": "Assign the Linux device node, ioctl/sysfs/vendor library, daemon, or IPC ABI owner.",
+        "status": "open",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODS-004",
+        "name": "driver-gap-owner-open",
+        "required_decision": "Assign owner review for linked Driver/HAL gap IDs and minimal new development decisions.",
+        "status": "open",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODS-005",
+        "name": "safety-policy-owner-open",
+        "required_decision": "Assign Safety/Policy owner for fault isolation, ASIL/QM assumptions, and audit behavior.",
+        "status": "open",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODS-006",
+        "name": "target-smoke-evidence-open",
+        "required_decision": "Attach target hardware smoke evidence owner and pass/fail evidence format.",
+        "status": "open",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODS-007",
+        "name": "rollback-fault-semantics-open",
+        "required_decision": "Assign owner for timeout, reset, degrade, retry, rollback, and telemetry semantics.",
+        "status": "open",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ODS-008",
+        "name": "no-hardware-access-in-prototype",
+        "required_decision": "Keep this Python prototype contract-only until target evidence is reviewed.",
+        "status": "satisfied-by-prototype-boundary",
+        "passed": True,
+    },
+]
+
+HARDWARE_OWNER_DECISION_ITEMS = [
+    {
+        "decision_id": "target_interface_owner",
+        "gate_id": "HW-ODS-001",
+        "owner_status": "open",
+        "required_owner": "target Android/Linux hardware-interface owner",
+    },
+    {
+        "decision_id": "android_abi_owner",
+        "gate_id": "HW-ODS-002",
+        "owner_status": "open",
+        "required_owner": "Android HAL/AIDL/NDK/vendor SDK ABI owner",
+    },
+    {
+        "decision_id": "linux_abi_owner",
+        "gate_id": "HW-ODS-003",
+        "owner_status": "open",
+        "required_owner": "Linux device node/ioctl/sysfs/vendor daemon ABI owner",
+    },
+    {
+        "decision_id": "driver_hal_gap_owner",
+        "gate_id": "HW-ODS-004",
+        "owner_status": "open",
+        "required_owner": "Driver/HAL gap reviewer",
+    },
+    {
+        "decision_id": "safety_policy_owner",
+        "gate_id": "HW-ODS-005",
+        "owner_status": "open",
+        "required_owner": "Safety/Policy binding owner",
+    },
+    {
+        "decision_id": "target_smoke_evidence_owner",
+        "gate_id": "HW-ODS-006",
+        "owner_status": "open",
+        "required_owner": "target hardware smoke evidence owner",
+    },
+    {
+        "decision_id": "rollback_fault_semantics_owner",
+        "gate_id": "HW-ODS-007",
+        "owner_status": "open",
+        "required_owner": "rollback and fault semantics owner",
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -356,6 +462,75 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_ACTIVATION_REQ_IDS,
+        }
+
+    def owner_decision_status_payload(self) -> dict[str, Any]:
+        interfaces = copy.deepcopy(EMPTY_INTERFACE_REGISTRY)
+        open_gate_ids = [gate["gate_id"] for gate in HARDWARE_OWNER_DECISION_GATES if not gate["passed"]]
+        per_interface = []
+        for item in interfaces:
+            per_interface.append(
+                {
+                    "interface_id": item["interface_id"],
+                    "name": item["name"],
+                    "implementation_state": item["implementation_state"],
+                    "decision_state": "blocked-owner-decisions-open",
+                    "activation_trigger": item["activation_trigger"],
+                    "driver_gap_ids": item["driver_gap_ids"],
+                    "owner_decisions": copy.deepcopy(HARDWARE_OWNER_DECISION_ITEMS),
+                    "open_gate_ids": open_gate_ids,
+                    "android_primary_path": item["android_primary_path"],
+                    "linux_sync_path": item["linux_sync_path"],
+                    "activation_allowed": False,
+                    "hardware_accessed": False,
+                    "driver_development_triggered": False,
+                    "virtualization_development_triggered": False,
+                }
+            )
+
+        return {
+            "owner_decision_status_state": "contract-only-owner-decisions-open",
+            "activation_allowed": False,
+            "interfaces": per_interface,
+            "decision_gates": copy.deepcopy(HARDWARE_OWNER_DECISION_GATES),
+            "rollup": {
+                "open_decision_count": len(HARDWARE_OWNER_DECISION_ITEMS) * len(interfaces),
+                "open_gate_ids": open_gate_ids,
+                "blocked_interface_count": len(interfaces),
+                "blocking_sources": [
+                    "target_interface_owner",
+                    "android_abi_owner",
+                    "linux_abi_owner",
+                    "driver_hal_gap_owner",
+                    "safety_policy_owner",
+                    "target_smoke_evidence_owner",
+                    "rollback_fault_semantics_owner",
+                ],
+            },
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-status",
+                "android_binder": "getHardwareInterfaceOwnerDecisionStatusJson",
+                "linux_cli": "hardware-interface-owner-decision-status",
+                "linux_ipc": "hardware.interfaces.owner.decision.status",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionStatus",
+            },
+            "summary": {
+                "owner_decision_status_active": True,
+                "all_required_owners_assigned": False,
+                "target_interface_owner_assigned": False,
+                "android_abi_owner_assigned": False,
+                "linux_abi_owner_assigned": False,
+                "driver_gap_owner_assigned": False,
+                "safety_policy_owner_assigned": False,
+                "target_hardware_smoke_attached": False,
+                "rollback_fault_semantics_confirmed": False,
+                "activation_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_DECISION_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

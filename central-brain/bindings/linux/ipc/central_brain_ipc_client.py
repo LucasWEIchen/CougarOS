@@ -92,6 +92,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "prototype-readiness": ("prototype.readiness.get", {}),
     "hardware-interfaces": ("hardware.interfaces.get", {}),
     "hardware-interface-activation-checklist": ("hardware.interfaces.activation.checklist", {}),
+    "hardware-interface-owner-decision-status": ("hardware.interfaces.owner.decision.status", {}),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

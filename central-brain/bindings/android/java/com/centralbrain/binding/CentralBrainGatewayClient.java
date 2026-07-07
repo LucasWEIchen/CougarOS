@@ -214,6 +214,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getHardwareInterfaceActivationChecklistJson(traceId);
     }
 
+    public String getHardwareInterfaceOwnerDecisionStatusJson(String traceId) throws RemoteException {
+        return requireGateway().getHardwareInterfaceOwnerDecisionStatusJson(traceId);
+    }
+
     public String getVehicleSignalsJson(String traceId) throws RemoteException {
         return requireGateway().getVehicleSignalsJson(traceId);
     }

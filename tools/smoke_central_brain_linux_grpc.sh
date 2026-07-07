@@ -870,6 +870,46 @@ assert "hardware.interfaces.activation.checklist" in encoded, response
 assert "GetHardwareInterfaceActivationChecklist" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_STATUS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-status)"
+python3 - "$HARDWARE_OWNER_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+status = payload["gateway"]["payload"]
+encoded = json.dumps(status)
+gate_ids = {item["gate_id"] for item in status["decision_gates"]}
+open_gate_ids = set(status["rollup"]["open_gate_ids"])
+assert response["status"] == "ok", response
+assert status["owner_decision_status_state"] == "contract-only-owner-decisions-open", response
+assert status["activation_allowed"] is False, response
+assert {"HW-ODS-001", "HW-ODS-002", "HW-ODS-003", "HW-ODS-004", "HW-ODS-005", "HW-ODS-006", "HW-ODS-007", "HW-ODS-008"} <= gate_ids, response
+assert {"HW-ODS-001", "HW-ODS-002", "HW-ODS-003", "HW-ODS-004", "HW-ODS-005", "HW-ODS-006", "HW-ODS-007"} <= open_gate_ids, response
+assert status["rollup"]["blocked_interface_count"] == len(status["interfaces"]), response
+for key in [
+    "all_required_owners_assigned",
+    "target_interface_owner_assigned",
+    "android_abi_owner_assigned",
+    "linux_abi_owner_assigned",
+    "driver_gap_owner_assigned",
+    "safety_policy_owner_assigned",
+    "target_hardware_smoke_attached",
+    "rollback_fault_semantics_confirmed",
+    "activation_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert status["summary"][key] is False, response
+assert status["summary"]["owner_decision_status_active"] is True, response
+assert "getHardwareInterfaceOwnerDecisionStatusJson" in encoded, response
+assert "hardware-interface-owner-decision-status" in encoded, response
+assert "hardware.interfaces.owner.decision.status" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionStatus" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json
@@ -1097,6 +1137,7 @@ assert "GetEventSubscriptionCursorReplayStorage" in encoded, response
 assert "GetEventSubscriptionBackpressureQosEvidence" in encoded, response
 assert "GetEventSubscriptionReadinessRollup" in encoded, response
 assert "GetHardwareInterfaceActivationChecklist" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionStatus" in encoded, response
 assert "GetVehicleSignals" in encoded, response
 assert "GetVehicleSignalActivation" in encoded, response
 assert "GetVehicleSignalValidation" in encoded, response

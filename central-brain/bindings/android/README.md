@@ -70,6 +70,7 @@ Brain semantic gateway.
 | `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
 | `getHardwareInterfacesJson` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceActivationChecklistJson` | `GET /hardware/interfaces/activation-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| `getHardwareInterfaceOwnerDecisionStatusJson` | `GET /hardware/interfaces/owner-decision-status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalActivationJson` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalValidationJson` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
@@ -181,6 +182,13 @@ Brain semantic gateway.
   Safety/Policy, smoke evidence, rollback/fault gates, and keeps
   `activation_allowed=false`, `hardware_accessed=false`,
   `driver_development_triggered=false`, and
+  `virtualization_development_triggered=false`.
+- `getHardwareInterfaceOwnerDecisionStatusJson` exposes the hardware owner
+  decision rollup through the Android Console `HW Owner` action only; it keeps
+  target owner, Android ABI owner, Linux ABI owner, Driver/HAL gap owner,
+  Safety/Policy owner, target smoke evidence owner, and rollback/fault
+  semantics owner open, and keeps `activation_allowed=false`,
+  `hardware_accessed=false`, `driver_development_triggered=false`, and
   `virtualization_development_triggered=false`.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`

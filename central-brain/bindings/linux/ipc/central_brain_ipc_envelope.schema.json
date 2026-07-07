@@ -54,6 +54,7 @@
         "prototype.readiness.get",
         "hardware.interfaces.get",
         "hardware.interfaces.activation.checklist",
+        "hardware.interfaces.owner.decision.status",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"
