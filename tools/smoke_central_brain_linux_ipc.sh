@@ -168,6 +168,30 @@ assert payload["summary"]["driver_development_triggered"] is False, response
 assert payload["summary"]["virtualization_development_triggered"] is False, response
 assert "AAOS signing" in encoded and "target Linux distro" in encoded, response
 PY
+PROTOTYPE_READINESS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" prototype-readiness)"
+python3 - "$PROTOTYPE_READINESS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+module_ids = {row["module_id"] for row in payload["modules"]}
+assert response["status"] == "ok", response
+assert "ai-sdk-agent-facade" in module_ids, response
+assert "uni-info-bus" in module_ids, response
+assert "runtime-governance" in module_ids, response
+assert "protocol-binding" in module_ids, response
+assert "hardware-empty-interfaces" in module_ids, response
+assert payload["summary"]["python_prototype_ready_for_contract_demo"] is True, response
+assert payload["summary"]["production_ready"] is False, response
+assert payload["summary"]["hardware_accessed"] is False, response
+assert payload["summary"]["driver_development_triggered"] is False, response
+assert payload["summary"]["virtualization_development_triggered"] is False, response
+assert payload["summary"]["service_dispatch_triggered"] is False, response
+assert "prototype.readiness.get" in encoded and "GetPrototypeReadiness" in encoded, response
+assert "DEV-003" in encoded and "ISSUE-014" in encoded, response
+PY
 HARDWARE_INTERFACES_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interfaces)"
 python3 - "$HARDWARE_INTERFACES_OUTPUT" <<'PY'
 import json

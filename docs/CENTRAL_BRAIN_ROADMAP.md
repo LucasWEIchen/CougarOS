@@ -18,7 +18,7 @@
 | A6.1 | 驱动接口支持矩阵 | Android/Linux 驱动能力、缺口、最小新增开发量 | 初版完成 + `/native/driver-gaps` + `/hardware/interfaces` |
 | A7 | Hypervisor/Safety 接口约束 | ASIL/QM domain map、跨 VM 通信假设；不开发虚拟化 | 接口约束初版 |
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path |
-| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` |
+| A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
 
 ## M0 任务清单
 
@@ -53,6 +53,11 @@
 
 ### 2026-07-07
 
+- 推进 Python 原型成熟度总览 contract：
+  - 新增 `central-brain/backend/prototype_readiness.py` 与 `GET /prototype/readiness`，集中暴露 AI SDK、Uni Info Bus、SOA、Runtime & Governance、Protocol Binding、Native adapters/Driver-HAL backlog、hardware empty interfaces 的当前成熟度、Android 主路径、Linux 同步路径、开放偏差、开放问题和下一步候选增量。
+  - Android Binder/AIDL 新增 `getPrototypeReadinessJson`，Android Console 新增 `Prototype` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `prototype-readiness`/`prototype.readiness.get`/`GetPrototypeReadiness` 可见路径。
+  - 本轮只补项目/产品/架构状态总览，不 dispatch SOA service，不访问真实硬件，不开发 Driver/HAL、vendor SDK、Safety Runtime、共享内存、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、DEL-001、DEL-002、DEL-003、DEL-004、DEL-005、HW-002、KH-003、KH-006、KH-007。
 - 推进 A6/A6.1 Python 原型硬件空接口注册表：
   - 新增 `central-brain/backend/hardware_interfaces.py` 与 `GET /hardware/interfaces`，覆盖外置 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 五类硬件依赖空接口。
   - Android Binder/AIDL 新增 `getHardwareInterfacesJson`，Android Console 新增 `Hardware IF` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `hardware-interfaces`/`hardware.interfaces.get`/`GetHardwareInterfaces` 可见路径。

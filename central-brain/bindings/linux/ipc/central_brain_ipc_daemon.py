@@ -165,6 +165,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/delivery/readiness",
         "req_ids": ["DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-P-002"],
     },
+    "prototype.readiness.get": {
+        "method": "GET",
+        "path": "/prototype/readiness",
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "NV-P-002", "DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005"],
+    },
     "hardware.interfaces.get": {
         "method": "GET",
         "path": "/hardware/interfaces",

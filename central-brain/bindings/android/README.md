@@ -13,7 +13,9 @@ Brain semantic gateway.
   Uni Info Bus State, AI SDK/Agent task planning, Agent execute, Skill invoke,
   Memory query, Runtime & Governance precheck, shared governance backend target
   contract, governance migration readiness, governance deployment plan,
-  Protocol Binding readiness, Android/Linux delivery readiness, SOA service contract visibility, Driver/HAL gap backlog, and hardware empty-interface registry contract mocks. The Binder service
+  Protocol Binding readiness, Android/Linux delivery readiness, Python
+  prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
+  and hardware empty-interface registry contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
   binding.
 
@@ -48,6 +50,7 @@ Brain semantic gateway.
 | `getBindingDetailJson` | `GET /bindings/detail` | XSC-006, NV-P-002 |
 | `getBindingReadinessJson` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-001..004 |
 | `getDeliveryReadinessJson` | `GET /delivery/readiness` | DEL-001..005, XSC-001..006 |
+| `getPrototypeReadinessJson` | `GET /prototype/readiness` | XSC-001..006, DEL-001..005 |
 | `getNativeAdaptersDetailJson` | `GET /native/adapters/detail` | XSC-004, NV-F-001, NV-F-003, NV-F-011 |
 | `getDriverHalGapsJson` | `GET /native/driver-gaps` | KH-003, KH-006, DEL-005 |
 | `getHardwareInterfacesJson` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-005 |
@@ -111,6 +114,12 @@ Brain semantic gateway.
   Driver/HAL gap backlog, and virtualization constraints for delivery review.
   It does not implement Android system service, true gRPC runtime, production
   packaging, Driver/HAL, Safety Runtime, vehicle bus, or virtualization.
+- `getPrototypeReadinessJson` exposes the Python prototype module maturity view
+  for Android integration review through the Android Console `Prototype`
+  action. It lists module state, Android/Linux binding visibility, deviations,
+  issues, next increment candidates, and no-goal boundaries without dispatching
+  services, touching hardware, creating Driver/HAL scope, or creating
+  virtualization work.
 - `getUibExtensionsJson` exposes FW-U-008 extension registry contract metadata,
   governance rules, binding visibility, and no-dispatch boundaries. It does
   not load plugins, dispatch SOA services, access Driver/HAL, or create

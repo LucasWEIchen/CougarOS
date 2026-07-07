@@ -57,6 +57,7 @@ Brain semantic gateway.
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `bindings.readiness.get` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-002, DEL-003, DEL-004 |
 | `delivery.readiness.get` | `GET /delivery/readiness` | DEL-001..005, XSC-001..006 |
+| `prototype.readiness.get` | `GET /prototype/readiness` | XSC-001..006, DEL-001..005 |
 | `hardware.interfaces.get` | `GET /hardware/interfaces` | XSC-004, XSC-006, HW-002, KH-001, KH-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 
 The gRPC/RPC JSON sample maps the same semantic endpoints through
@@ -84,6 +85,10 @@ commands, and non-goal boundaries without implementing production transports.
 `CentralBrainGateway.GetDeliveryReadiness` exposes Android/Linux delivery
 sample status, validation commands, blockers, and non-goal boundaries without
 implementing production services, packaging, Driver/HAL, or virtualization.
+`CentralBrainGateway.GetPrototypeReadiness` exposes the Python prototype
+module maturity view, Android/Linux binding visibility, deviations, issues,
+and next increment candidates without dispatching services, touching hardware,
+creating Driver/HAL scope, or creating virtualization work.
 `CentralBrainGateway.GetHardwareInterfaces` exposes the same hardware
 empty-interface registry as Android Binder and Linux IPC without touching
 devices, HALs, shared memory, vehicle bus, or virtualization APIs.
@@ -136,6 +141,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py binding-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py delivery-readiness
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py prototype-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interfaces
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
@@ -193,6 +200,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py delivery-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py prototype-readiness
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interfaces
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance
@@ -242,6 +251,13 @@ bash tools/check_central_brain_delivery_docs.sh
   `GetDeliveryReadiness` binding operations document Android/Linux delivery
   sample maturity, validation bundle, blockers, and non-goal boundaries while
   keeping `production_ready=false`.
+- `/prototype/readiness` and the `prototype.readiness.get` /
+  `GetPrototypeReadiness` binding operations document Python prototype module
+  maturity, Android/Linux binding visibility, deviations, issues, next
+  increment candidates, and non-goal boundaries while keeping
+  `production_ready=false`, `hardware_accessed=false`,
+  `driver_development_triggered=false`, and
+  `virtualization_development_triggered=false`.
 - The current IPC daemon is an active sample, not a full production gateway; it
   applies a shared Linux governance daemon precheck to SOA service invocations
   when `CENTRAL_BRAIN_GOVERNANCE_SOCKET` is configured, falls back to local

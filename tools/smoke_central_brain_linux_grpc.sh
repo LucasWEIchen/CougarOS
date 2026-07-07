@@ -175,6 +175,31 @@ assert readiness["summary"]["driver_development_triggered"] is False, response
 assert readiness["summary"]["virtualization_development_triggered"] is False, response
 assert "AAOS signing" in encoded and "target Linux distro" in encoded, response
 PY
+PROTOTYPE_READINESS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" prototype-readiness)"
+python3 - "$PROTOTYPE_READINESS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+readiness = payload["gateway"]["payload"]
+encoded = json.dumps(readiness)
+module_ids = {row["module_id"] for row in readiness["modules"]}
+assert response["status"] == "ok", response
+assert "ai-sdk-agent-facade" in module_ids, response
+assert "uni-info-bus" in module_ids, response
+assert "runtime-governance" in module_ids, response
+assert "protocol-binding" in module_ids, response
+assert "hardware-empty-interfaces" in module_ids, response
+assert readiness["summary"]["python_prototype_ready_for_contract_demo"] is True, response
+assert readiness["summary"]["production_ready"] is False, response
+assert readiness["summary"]["hardware_accessed"] is False, response
+assert readiness["summary"]["driver_development_triggered"] is False, response
+assert readiness["summary"]["virtualization_development_triggered"] is False, response
+assert readiness["summary"]["service_dispatch_triggered"] is False, response
+assert "prototype.readiness.get" in encoded and "GetPrototypeReadiness" in encoded, response
+assert "DEV-003" in encoded and "ISSUE-014" in encoded, response
+PY
 HARDWARE_INTERFACES_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interfaces)"
 python3 - "$HARDWARE_INTERFACES_OUTPUT" <<'PY'
 import json

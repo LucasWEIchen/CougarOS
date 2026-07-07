@@ -82,6 +82,7 @@
 | Observability | Trace、Metric、QoS、Audit、共享治理后端目标契约和迁移检查 | HTTP/JSON | AIDL + file/socket exporter + shared Runtime & Governance backend |
 | Protocol Binding Readiness | Android Binder、Linux IPC、gRPC/RPC、REST、MQTT、SOME/IP、DDS readiness、阻塞项和验证命令 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
 | Delivery Readiness | Android/Linux 交付样例、验证 bundle、阻塞项和非目标边界 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
+| Prototype Readiness | Python 原型模块成熟度、Android/Linux 绑定可见性、偏差、问题和下一步候选增量 | HTTP/JSON active mock | AIDL + Linux IPC + gRPC |
 | Native Adapters | AIOS Kernel、Service Adapter、Vehicle Signal、Model Runtime Adapter | HTTP/JSON registry mock | Binder/native service + Unix socket/gRPC daemon + HAL/vendor SDK bridge |
 
 AI SDK/Agent 入口当前已新增 `GET /ai/sdk/capabilities`、`POST /agent/plan`、`POST /agent/execute`、`GET /skills`、`POST /skills/{skill_id}/invoke` 与 `POST /memory/query` active contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007、DEL-001、DEL-002。App 侧只能提交 intent/utterance/task graph 并获得任务图或受控执行边界；任务图中的执行步骤仍必须通过 Uni Info Bus、Tool、Action 或 SOA 服务入口，不能直连 Model Runtime Adapter、NPU vendor SDK 或设备节点。
@@ -186,10 +187,13 @@ Policy 输入，不能替代 Runtime & Governance 的权限、安全状态和审
 | GET | `/bindings/detail` | Protocol Binding artifact、语义入口和分层约束 | 是 |
 | GET | `/bindings/readiness` | Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS readiness、阻塞项、验证命令和下一步决策 | 是 |
 | GET | `/delivery/readiness` | Android/Linux 交付样例、验证 bundle、阻塞项和非目标边界 | 是 |
+| GET | `/prototype/readiness` | Python 原型模块成熟度、Android/Linux 绑定可见性、偏差、问题、下一步候选增量和非目标边界 | 是 |
 
 `GET /bindings/readiness` 覆盖 XSC-006、NV-P-001..006、DEL-001、DEL-002、DEL-003、DEL-004。该接口只返回 binding readiness contract，明确 `production_ready=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；Android Binder `getBindingReadinessJson`、Linux IPC `bindings.readiness.get` 与 Linux gRPC/RPC `GetBindingReadiness` 暴露同一视图，不实现真实 gRPC runtime、MQTT broker、SOME/IP stack、DDS broker、Driver/HAL、Safety Runtime 或虚拟化层。
 
 `GET /delivery/readiness` 覆盖 DEL-001、DEL-002、DEL-003、DEL-004、DEL-005、XSC-001..006。该接口汇总 Android debug Console/Binder、Android system service note、Linux CLI、Linux IPC、Linux gRPC/RPC、Linux systemd/package profile、Driver/HAL gap backlog、hardware empty-interface registry 和虚拟化约束的当前状态、验证命令、阻塞项和非目标边界；Android Binder `getDeliveryReadinessJson`、Linux IPC `delivery.readiness.get` 与 Linux gRPC/RPC `GetDeliveryReadiness` 暴露同一视图。该接口明确 `production_ready=false`，不 dispatch SOA service，不消费 QoS，不实现 Android system service、真实 gRPC runtime、量产包管理、生产共享治理后端、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+
+`GET /prototype/readiness` 覆盖 XSC-001..006、DEL-001..005、HW-002、KH-003、KH-006、KH-007。该接口汇总 Python 原型中 AI SDK、Uni Info Bus、SOA、Runtime & Governance、Protocol Binding、Native adapters/Driver-HAL backlog 和 hardware empty-interface registry 的成熟度状态，并列出 Android 主路径、Linux 同步路径、开放偏差、开放问题和下一步候选增量；Android Binder `getPrototypeReadinessJson`、Linux CLI `prototype-readiness`、Linux IPC `prototype.readiness.get` 与 Linux gRPC/RPC `GetPrototypeReadiness` 暴露同一视图。该接口明确 `production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`，只作为产品/架构/交付状态总览，不实现新 runtime、不 dispatch SOA service、不访问 Driver/HAL、车辆总线或虚拟化层。
 
 ### Uni Info Bus Event
 

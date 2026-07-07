@@ -78,6 +78,7 @@ checks = [
     ("GET", "/bindings/detail", None, "NV-P-002"),
     ("GET", "/bindings/readiness", None, "NV-P-003"),
     ("GET", "/delivery/readiness", None, "DEL-003"),
+    ("GET", "/prototype/readiness", None, "DEL-003"),
     ("GET", "/native/adapters", None, "NV-F-011"),
     ("GET", "/native/adapters/detail", None, "XSC-004"),
     ("GET", "/native/driver-gaps", None, "DEL-005"),
@@ -247,6 +248,25 @@ for method, path, body, req_id in checks:
         assert payload["payload"]["summary"]["virtualization_development_triggered"] is False, "delivery readiness triggered virtualization development"
         assert "AAOS signing" in json.dumps(payload), "delivery readiness missing Android blocker"
         assert "target Linux distro" in json.dumps(payload), "delivery readiness missing Linux distro blocker"
+    if path == "/prototype/readiness":
+        readiness = payload["payload"]
+        module_ids = {row["module_id"] for row in readiness["modules"]}
+        assert "ai-sdk-agent-facade" in module_ids, "prototype readiness missing AI SDK module"
+        assert "uni-info-bus" in module_ids, "prototype readiness missing Uni Info Bus module"
+        assert "runtime-governance" in module_ids, "prototype readiness missing governance module"
+        assert "protocol-binding" in module_ids, "prototype readiness missing Protocol Binding module"
+        assert "hardware-empty-interfaces" in module_ids, "prototype readiness missing hardware empty-interface module"
+        assert readiness["summary"]["python_prototype_ready_for_contract_demo"] is True, "prototype readiness missing contract-demo status"
+        assert readiness["summary"]["production_ready"] is False, "prototype readiness overstated production maturity"
+        assert readiness["summary"]["hardware_accessed"] is False, "prototype readiness touched hardware"
+        assert readiness["summary"]["driver_development_triggered"] is False, "prototype readiness triggered driver development"
+        assert readiness["summary"]["virtualization_development_triggered"] is False, "prototype readiness triggered virtualization development"
+        assert readiness["summary"]["service_dispatch_triggered"] is False, "prototype readiness dispatched a service"
+        encoded = json.dumps(readiness)
+        assert "getPrototypeReadinessJson" in encoded, "Android prototype readiness binding visibility missing"
+        assert "prototype.readiness.get" in encoded, "Linux IPC prototype readiness binding visibility missing"
+        assert "GetPrototypeReadiness" in encoded, "gRPC prototype readiness binding visibility missing"
+        assert "DEV-003" in encoded and "ISSUE-014" in encoded, "prototype readiness missing tracked deviation/issue visibility"
     if path == "/native/adapters/detail":
         adapter_names = {adapter["name"] for adapter in payload["payload"]["adapters"]}
         assert "aios-kernel" in adapter_names
@@ -385,6 +405,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" delivery-readiness >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" prototype-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" native-adapters-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" driver-gaps >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interfaces >/dev/null

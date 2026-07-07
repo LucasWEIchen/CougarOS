@@ -27,16 +27,18 @@ from ai_sdk import skills_payload as ai_sdk_skills_payload
 from delivery_readiness import delivery_readiness_payload as delivery_readiness_contract_payload
 from hardware_interfaces import HardwareInterfaceRegistry
 from native_adapters import NativeAdapterRegistry
+from prototype_readiness import PrototypeReadinessRegistry
 from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.30"
+API_VERSION = "0.1.31"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
 HARDWARE_INTERFACES = HardwareInterfaceRegistry()
+PROTOTYPE_READINESS = PrototypeReadinessRegistry()
 EVENT_LOG: deque[dict[str, Any]] = deque(maxlen=50)
 EVENT_TOPICS = [
     "vehicle.signal.changed",
@@ -489,6 +491,10 @@ def delivery_readiness_payload() -> dict[str, Any]:
     return delivery_readiness_contract_payload()
 
 
+def prototype_readiness_payload() -> dict[str, Any]:
+    return PROTOTYPE_READINESS.readiness_payload()
+
+
 def native_adapters_payload() -> dict[str, Any]:
     return NATIVE_ADAPTERS.list_payload()
 
@@ -798,6 +804,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(binding_readiness_payload()))
         elif path == "/delivery/readiness":
             self.send_json(200, envelope(delivery_readiness_payload()))
+        elif path == "/prototype/readiness":
+            self.send_json(200, envelope(prototype_readiness_payload()))
         elif path == "/native/adapters":
             self.send_json(200, envelope(native_adapters_payload()))
         elif path == "/native/adapters/detail":

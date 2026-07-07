@@ -5,6 +5,7 @@
 `runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、per-service fixed-window QoS 和可选 JSONL 审计持久化。
 `protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、带 shared SOA Runtime & Governance precheck/runtime/audit direct diagnostics + fallback 的 Linux IPC active sample、Linux gRPC/RPC JSON contract sample 和 MQTT/SOME-IP/DDS 计划态。
 `delivery_readiness.py` 承载 Android/Linux delivery readiness contract，汇总交付样例、验证命令、阻塞项和非目标边界。
+`prototype_readiness.py` 承载 Python prototype readiness contract，汇总模块成熟度、Android/Linux 绑定可见性、开放偏差、开放问题和下一步候选增量。
 `native_adapters.py` 承载当前 Native adapter 注册表，包括 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter、Security/Policy Adapter 的 Android/Linux 交付边界，以及 Driver/HAL gap backlog。
 `hardware_interfaces.py` 承载硬件依赖空接口注册表，列出 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的 reserved methods、Android 主路径、Linux 同步路径和 no-hardware-access 边界。
 
@@ -41,6 +42,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /bindings/detail`
 - `GET /bindings/readiness`
 - `GET /delivery/readiness`
+- `GET /prototype/readiness`
 - `GET /native/adapters`
 - `GET /native/adapters/detail`
 - `GET /native/driver-gaps`
@@ -79,6 +81,8 @@ bash tools/run_central_brain_backend.sh
 `GET /bindings/readiness` 覆盖 XSC-006、NV-P-001..006、DEL-001、DEL-002、DEL-003、DEL-004，从 `protocol_bindings.py` 返回 Android Binder、Linux IPC、Linux gRPC/RPC、REST、MQTT、SOME/IP、DDS readiness、阻塞项、验证命令和下一步决策；它只做 contract visibility，不实现量产 transport、真实 gRPC runtime、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
 
 `GET /delivery/readiness` 覆盖 DEL-001、DEL-002、DEL-003、DEL-004、DEL-005、XSC-001..006，从 `delivery_readiness.py` 返回 Android debug Console/Binder、Android system service note、Linux CLI、Linux IPC、Linux gRPC/RPC、Linux systemd/package profile、Driver/HAL gap backlog 和虚拟化约束的交付状态、验证命令和阻塞项；它只做交付 metadata visibility，不实现 Android system service、真实 gRPC runtime、量产包管理、生产共享治理后端、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+
+`GET /prototype/readiness` 覆盖 XSC-001..006、DEL-001..005、HW-002、KH-003、KH-006、KH-007，从 `prototype_readiness.py` 返回 Python 原型模块成熟度、Android 主路径、Linux 同步路径、开放偏差、开放问题和下一步候选增量；它只做产品/架构/交付状态总览，明确 `production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。
 
 ## 验证
 

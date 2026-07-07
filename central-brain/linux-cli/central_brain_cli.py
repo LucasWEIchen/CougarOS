@@ -31,6 +31,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "binding-detail": ("GET", "/bindings/detail", None),
     "binding-readiness": ("GET", "/bindings/readiness", None),
     "delivery-readiness": ("GET", "/delivery/readiness", None),
+    "prototype-readiness": ("GET", "/prototype/readiness", None),
     "native-adapters": ("GET", "/native/adapters", None),
     "native-adapters-detail": ("GET", "/native/adapters/detail", None),
     "driver-gaps": ("GET", "/native/driver-gaps", None),

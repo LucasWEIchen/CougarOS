@@ -75,6 +75,8 @@ interface ICentralBrainGateway {
 
     String getDeliveryReadinessJson(String traceId);
 
+    String getPrototypeReadinessJson(String traceId);
+
     String getNativeAdaptersDetailJson(String traceId);
 
     String getDriverHalGapsJson(String traceId);

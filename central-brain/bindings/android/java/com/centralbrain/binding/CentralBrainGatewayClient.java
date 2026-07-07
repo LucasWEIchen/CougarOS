@@ -142,6 +142,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getDeliveryReadinessJson(traceId);
     }
 
+    public String getPrototypeReadinessJson(String traceId) throws RemoteException {
+        return requireGateway().getPrototypeReadinessJson(traceId);
+    }
+
     public String getNativeAdaptersDetailJson(String traceId) throws RemoteException {
         return requireGateway().getNativeAdaptersDetailJson(traceId);
     }

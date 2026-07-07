@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "updated": "2026-07-07",
   "transport": {
     "prototype": "http-json",
@@ -13,9 +13,10 @@
     "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
+    "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
     "hardware_empty_interfaces": "GET /hardware/interfaces exposes hardware-dependent empty interfaces for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, and getHardwareInterfacesJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, /native/driver-gaps, and /hardware/interfaces through Binder contract samples",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, and getHardwareInterfacesJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /governance/precheck, /native/driver-gaps, /hardware/interfaces, and /prototype/readiness through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -592,6 +593,52 @@
         "XSC-004",
         "XSC-005",
         "XSC-006"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/prototype/readiness",
+      "description": "Returns Python prototype module maturity across AI SDK, Uni Info Bus, SOA, Runtime & Governance, Protocol Binding, Native adapters, Driver/HAL gap backlog, and hardware empty interfaces with Android/Linux binding visibility, deviations, issues, next increment candidates, and explicit no-hardware/no-driver/no-virtualization boundaries.",
+      "response": {
+        "maturity_view": "python-prototype-contract-demo",
+        "architecture_baseline": "user-provided Central Brain architecture diagram is the binding requirement baseline",
+        "modules": [
+          {
+            "module_id": "ai-sdk-agent-facade|uni-info-bus|soa-service-entry|runtime-governance|protocol-binding|native-adapters-driver-hal|hardware-empty-interfaces",
+            "current_state": "active-contract-mock|active-semantic-mock|active-policy-checked-mock|active-prototype|sample-proxy-surfaces|read-only-registry-and-gap-backlog|empty-interface-registry",
+            "android_primary_surface": "string",
+            "linux_sync_surface": "string",
+            "open_deviations": [
+              "DEV-001"
+            ],
+            "open_issues": [
+              "ISSUE-014"
+            ]
+          }
+        ],
+        "summary": {
+          "python_prototype_ready_for_contract_demo": true,
+          "production_ready": false,
+          "android_primary_path_ready": true,
+          "linux_sync_path_ready": true,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        }
+      },
+      "req_ids": [
+        "XSC-001",
+        "XSC-002",
+        "XSC-003",
+        "XSC-004",
+        "XSC-005",
+        "XSC-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003",
+        "DEL-004",
+        "DEL-005"
       ]
     },
     {
