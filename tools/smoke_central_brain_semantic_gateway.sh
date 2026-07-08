@@ -240,6 +240,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1218,6 +1224,71 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus" in encoded, "gRPC hardware approval decision dry-run status binding missing"
         assert "HW-APS-005" in encoded and "last-approval-decision-result-not-stored" in encoded, "hardware approval decision dry-run status missing last-result gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval decision dry-run status missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency":
+        audit = payload["payload"]
+        encoded = json.dumps(audit)
+        gate_ids = {item["gate_id"] for item in audit["mandatory_gates"]}
+        assert audit["approval_decision_dry_run_audit_consistency_state"] == "contract-only-approval-decision-dry-run-audit-consistency", "hardware approval decision dry-run audit wrong state"
+        assert audit["approval_decision_dry_run_audit_consistency_active"] is True, "hardware approval decision dry-run audit inactive"
+        assert audit["consistency_checked"] is True, "hardware approval decision dry-run audit did not check consistency"
+        assert audit["consistency_passed"] is True, "hardware approval decision dry-run audit failed consistency"
+        assert audit["no_store_consistent"] is True, "hardware approval decision dry-run audit lost no-store consistency"
+        assert audit["decision_dry_run_rejection_consistent"] is True, "hardware approval decision dry-run audit lost rejection consistency"
+        assert audit["approval_authority_audit_consistent"] is True, "hardware approval decision dry-run audit lost authority consistency"
+        assert audit["adapter_load_blocked_consistent"] is True, "hardware approval decision dry-run audit lost blocker consistency"
+        assert audit["gate_sets_cross_checked"] is True, "hardware approval decision dry-run audit did not cross-check gates"
+        assert audit["source_surfaces"]["approval_decision_dry_run"]["called_by_audit_consistency"] is False, "hardware approval decision dry-run audit called POST"
+        assert audit["source_surfaces"]["approval_decision_dry_run_status"]["post_called_by_status"] is False, "hardware approval decision dry-run audit saw status POST call"
+        assert audit["source_surfaces"]["approval_decision_dry_run_status"]["persisted_approval_decision_count"] == 0, "hardware approval decision dry-run audit saw persisted decisions"
+        assert audit["source_surfaces"]["approval_authority_audit_consistency"]["adapter_load_blocked_consistent"] is True, "hardware approval decision dry-run audit lost approval authority blocker consistency"
+        assert audit["source_surfaces"]["adapter_load_blocker_rollup"]["adapter_load_ready"] is False, "hardware approval decision dry-run audit saw adapter load ready"
+        assert {"HW-APA-001", "HW-APA-002", "HW-APA-003", "HW-APA-004", "HW-APA-005", "HW-APA-006", "HW-APA-007", "HW-APA-008"} <= gate_ids, "hardware approval decision dry-run audit missing mandatory gates"
+        for key in [
+            "decision_dry_run_post_called_by_audit_consistency",
+            "decision_dry_run_post_called_by_status",
+            "last_approval_decision_result_available",
+            "approval_decision_persisted",
+            "approval_decision_review_queue_updated",
+            "approval_decision_evidence_store_active",
+            "approval_decision_passed",
+            "approval_record_available",
+            "approval_record_persisted",
+            "approval_review_queue_updated",
+            "approval_evidence_store_active",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert audit["summary"][key] is False, f"hardware approval decision dry-run audit summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_audit_consistency_active",
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_status_active",
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_active",
+            "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active",
+            "owner_decision_evidence_adapter_load_approval_authority_status_active",
+            "owner_decision_evidence_adapter_load_blocker_rollup_active",
+            "consistency_passed",
+            "no_store_consistent",
+            "decision_dry_run_rejection_consistent",
+            "approval_authority_audit_consistent",
+            "adapter_load_blocked_consistent",
+            "gate_sets_cross_checked",
+            "approval_decisions_open",
+        ]:
+            assert audit["summary"][key] is True, f"hardware approval decision dry-run audit summary did not set {key}"
+        assert audit["summary"]["persisted_approval_decision_count"] == 0, "hardware approval decision dry-run audit summary persisted decisions"
+        assert audit["summary"]["pending_approval_decision_review_count"] == 0, "hardware approval decision dry-run audit summary created reviews"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson" in encoded, "Android hardware approval decision dry-run audit binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency" in encoded, "Linux CLI hardware approval decision dry-run audit binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.audit.consistency" in encoded, "Linux IPC hardware approval decision dry-run audit binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency" in encoded, "gRPC hardware approval decision dry-run audit binding missing"
+        assert "HW-APA-003" in encoded and "approval-decision-dry-run-rejection-consistent" in encoded, "hardware approval decision dry-run audit missing rejection gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval decision dry-run audit missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1993,6 +2064,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

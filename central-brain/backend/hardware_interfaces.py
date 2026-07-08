@@ -1099,6 +1099,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_STATUS_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_GATES = [
+    {
+        "gate_id": "HW-APA-001",
+        "name": "approval-decision-audit-surfaces-bound",
+        "required_evidence": "Audit consistency view links approval decision dry-run, decision dry-run status, approval authority audit/status, and blocker rollup surfaces without calling POST paths.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APA-002",
+        "name": "approval-decision-status-no-store-consistent",
+        "required_evidence": "Decision dry-run status reports no last result, zero persisted approval decisions, no review queue, and no approval decision evidence store.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APA-003",
+        "name": "approval-decision-dry-run-rejection-consistent",
+        "required_evidence": "Approval decision dry-run contract remains a blocked contract-only rejection until approval authority and adapter-load blockers are cleared.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APA-004",
+        "name": "approval-authority-audit-consistent",
+        "required_evidence": "Approval authority audit consistency still reports no-store approval status, open approval decisions, and blocked adapter load.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APA-005",
+        "name": "adapter-load-blocked-consistent",
+        "required_evidence": "Decision status, approval authority audit, and blocker rollup agree that adapter load and activation are blocked.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APA-006",
+        "name": "gate-families-cross-checked",
+        "required_evidence": "HW-APD, HW-APS, HW-AAC, HW-AAS, HW-ALB, and HW-APA gate families are visible for review.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APA-007",
+        "name": "android-linux-approval-decision-audit-parity",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose equivalent approval decision audit consistency behavior.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APA-008",
+        "name": "no-side-effect-driver-or-virtualization-trigger",
+        "required_evidence": "Audit consistency view does not persist decisions, update review queues, read evidence stores, close gates, access hardware, call HAL/vendor SDK, dispatch services, or trigger virtualization work.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -3561,6 +3614,310 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_STATUS_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_decision_dry_run_audit_consistency_payload(self) -> dict[str, Any]:
+        decision_status = self.owner_decision_evidence_adapter_load_approval_decision_dry_run_status_payload()
+        approval_status = self.owner_decision_evidence_adapter_load_approval_authority_status_payload()
+        approval_audit = self.owner_decision_evidence_adapter_load_approval_authority_audit_consistency_payload()
+        blocker_rollup = self.owner_decision_evidence_adapter_load_blocker_rollup_payload()
+        open_blocker_ids = [
+            item["blocker_id"]
+            for item in blocker_rollup["blocker_groups"]
+            if item["state"] in ("open", "enforced")
+        ]
+        open_decision_ids = approval_status["source_surfaces"]["approval_authority_checklist"]["open_decision_ids"]
+        gate_sets = {
+            "approval_decision_dry_run": [gate["gate_id"] for gate in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_GATES],
+            "approval_decision_dry_run_status": [
+                gate["gate_id"] for gate in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_STATUS_GATES
+            ],
+            "approval_authority_audit_consistency": [
+                gate["gate_id"] for gate in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_AUDIT_CONSISTENCY_GATES
+            ],
+            "approval_authority_status": [
+                gate["gate_id"] for gate in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_STATUS_GATES
+            ],
+            "adapter_load_blocker_rollup": [
+                gate["gate_id"] for gate in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_GATES
+            ],
+            "approval_decision_audit_consistency": [
+                gate["gate_id"]
+                for gate in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_GATES
+            ],
+        }
+        no_store_consistent = (
+            decision_status["last_approval_decision_result_available"] is False
+            and decision_status["persisted_approval_decision_count"] == 0
+            and decision_status["pending_approval_decision_review_count"] == 0
+            and decision_status["approval_decision_review_queue_updated"] is False
+            and decision_status["approval_decision_evidence_store_active"] is False
+            and decision_status["approval_decision_persisted"] is False
+            and decision_status["source_surfaces"]["approval_decision_dry_run"]["called_by_status"] is False
+            and decision_status["source_surfaces"]["approval_decision_dry_run"]["last_result_persisted"] is False
+        )
+        decision_dry_run_rejection_consistent = (
+            decision_status["source_surfaces"]["approval_decision_dry_run"]["expected_rejected_state"]
+            == "rejected_blocked_contract_only"
+            and decision_status["approval_decision_dry_run_allowed_to_load_adapter"] is False
+            and decision_status["adapter_load_allowed"] is False
+        )
+        approval_authority_audit_consistent = (
+            approval_audit["consistency_passed"] is True
+            and approval_audit["approval_status_no_store_consistent"] is True
+            and approval_audit["approval_decisions_open_consistent"] is True
+            and approval_audit["adapter_load_blocked_consistent"] is True
+            and approval_status["approval_record_available"] is False
+            and approval_status["approval_evidence_store_active"] is False
+        )
+        adapter_load_blocked_consistent = (
+            decision_status["adapter_load_still_blocked"] is True
+            and decision_status["summary"]["adapter_load_blocked_consistent"] is True
+            and blocker_rollup["adapter_load_ready"] is False
+            and blocker_rollup["all_blockers_cleared"] is False
+            and approval_audit["adapter_load_blocked_consistent"] is True
+        )
+        gate_sets_cross_checked = all(gate_sets.values())
+        no_side_effects_consistent = all(
+            decision_status["summary"][key] is False
+            for key in [
+                "decision_dry_run_post_called_by_status",
+                "approval_decision_persisted",
+                "approval_decision_review_queue_updated",
+                "approval_decision_evidence_store_active",
+                "approval_record_persisted",
+                "approval_review_queue_updated",
+                "approval_evidence_store_active",
+                "review_queue_updated",
+                "gate_state_changed",
+                "gates_closed",
+                "adapter_load_allowed",
+                "adapter_activation_allowed",
+                "hardware_access_allowed",
+                "hardware_accessed",
+                "driver_development_triggered",
+                "virtualization_development_triggered",
+                "service_dispatch_triggered",
+            ]
+        )
+        consistency_passed = (
+            no_store_consistent
+            and decision_dry_run_rejection_consistent
+            and approval_authority_audit_consistent
+            and adapter_load_blocked_consistent
+            and gate_sets_cross_checked
+            and no_side_effects_consistent
+        )
+        consistency_checks = [
+            {
+                "check_id": "HW-APA-CHECK-001",
+                "name": "approval-decision-audit-sources-bound",
+                "sources": [
+                    "POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run",
+                    "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status",
+                    "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency",
+                    "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status",
+                    "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                ],
+                "passed": True,
+            },
+            {
+                "check_id": "HW-APA-CHECK-002",
+                "name": "approval-decision-no-store-consistent",
+                "observed": {
+                    "last_approval_decision_result_available": decision_status[
+                        "last_approval_decision_result_available"
+                    ],
+                    "persisted_approval_decision_count": decision_status["persisted_approval_decision_count"],
+                    "pending_approval_decision_review_count": decision_status[
+                        "pending_approval_decision_review_count"
+                    ],
+                    "decision_dry_run_post_called_by_status": decision_status["summary"][
+                        "decision_dry_run_post_called_by_status"
+                    ],
+                },
+                "passed": no_store_consistent,
+            },
+            {
+                "check_id": "HW-APA-CHECK-003",
+                "name": "approval-decision-dry-run-rejection-consistent",
+                "observed": {
+                    "expected_rejected_state": decision_status["source_surfaces"]["approval_decision_dry_run"][
+                        "expected_rejected_state"
+                    ],
+                    "adapter_load_allowed": decision_status["adapter_load_allowed"],
+                    "approval_decision_dry_run_allowed_to_load_adapter": decision_status[
+                        "approval_decision_dry_run_allowed_to_load_adapter"
+                    ],
+                },
+                "passed": decision_dry_run_rejection_consistent,
+            },
+            {
+                "check_id": "HW-APA-CHECK-004",
+                "name": "approval-authority-and-blocker-consistency",
+                "observed": {
+                    "approval_authority_audit_consistent": approval_authority_audit_consistent,
+                    "adapter_load_blocked_consistent": adapter_load_blocked_consistent,
+                    "open_decision_ids": open_decision_ids,
+                    "open_blocker_ids": open_blocker_ids,
+                },
+                "passed": approval_authority_audit_consistent and adapter_load_blocked_consistent,
+            },
+            {
+                "check_id": "HW-APA-CHECK-005",
+                "name": "audit-view-has-no-side-effects",
+                "observed": {
+                    "decision_dry_run_post_called_by_audit_consistency": False,
+                    "approval_decision_persisted": False,
+                    "approval_decision_review_queue_updated": False,
+                    "approval_decision_evidence_store_active": False,
+                    "driver_development_triggered": False,
+                    "virtualization_development_triggered": False,
+                },
+                "passed": no_side_effects_consistent,
+            },
+        ]
+
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency",
+            "approval_decision_dry_run_audit_consistency_state": "contract-only-approval-decision-dry-run-audit-consistency",
+            "approval_decision_dry_run_audit_consistency_active": True,
+            "consistency_checked": True,
+            "consistency_passed": consistency_passed,
+            "no_store_consistent": no_store_consistent,
+            "decision_dry_run_rejection_consistent": decision_dry_run_rejection_consistent,
+            "approval_authority_audit_consistent": approval_authority_audit_consistent,
+            "adapter_load_blocked_consistent": adapter_load_blocked_consistent,
+            "gate_sets_cross_checked": gate_sets_cross_checked,
+            "decision_dry_run_post_called_by_audit_consistency": False,
+            "approval_decision_persisted": False,
+            "approval_decision_review_queue_updated": False,
+            "approval_decision_evidence_store_active": False,
+            "adapter_load_allowed": False,
+            "adapter_activation_allowed": False,
+            "hardware_access_allowed": False,
+            "gate_closure_allowed": False,
+            "source_surfaces": {
+                "approval_decision_dry_run": {
+                    "endpoint": "POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run",
+                    "called_by_audit_consistency": False,
+                    "expected_rejected_state": "rejected_blocked_contract_only",
+                    "result_retention": "discarded-after-response",
+                },
+                "approval_decision_dry_run_status": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status",
+                    "state": decision_status["approval_decision_dry_run_status_state"],
+                    "status_active": decision_status["approval_decision_dry_run_status_active"],
+                    "last_approval_decision_result_available": decision_status[
+                        "last_approval_decision_result_available"
+                    ],
+                    "persisted_approval_decision_count": decision_status["persisted_approval_decision_count"],
+                    "pending_approval_decision_review_count": decision_status[
+                        "pending_approval_decision_review_count"
+                    ],
+                    "called_by_audit_consistency": True,
+                    "post_called_by_status": decision_status["summary"]["decision_dry_run_post_called_by_status"],
+                },
+                "approval_authority_audit_consistency": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency",
+                    "state": approval_audit["approval_authority_audit_consistency_state"],
+                    "consistency_passed": approval_audit["consistency_passed"],
+                    "approval_status_no_store_consistent": approval_audit["approval_status_no_store_consistent"],
+                    "approval_decisions_open_consistent": approval_audit["approval_decisions_open_consistent"],
+                    "adapter_load_blocked_consistent": approval_audit["adapter_load_blocked_consistent"],
+                },
+                "approval_authority_status": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status",
+                    "state": approval_status["approval_authority_status_state"],
+                    "approval_record_available": approval_status["approval_record_available"],
+                    "persisted_approval_record_count": approval_status["persisted_approval_record_count"],
+                    "pending_approval_review_count": approval_status["pending_approval_review_count"],
+                    "approval_decisions_open": approval_status["approval_decisions_open"],
+                    "open_decision_ids": open_decision_ids,
+                },
+                "adapter_load_blocker_rollup": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                    "state": blocker_rollup["adapter_load_blocker_rollup_state"],
+                    "adapter_load_ready": blocker_rollup["adapter_load_ready"],
+                    "all_blockers_cleared": blocker_rollup["all_blockers_cleared"],
+                    "open_blocker_ids": open_blocker_ids,
+                },
+            },
+            "consistency_checks": consistency_checks,
+            "gate_sets": gate_sets,
+            "mandatory_gates": copy.deepcopy(
+                HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_GATES
+            ),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.audit.consistency",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_decision_dry_run_audit_consistency_active": True,
+                "owner_decision_evidence_adapter_load_approval_decision_dry_run_status_active": True,
+                "owner_decision_evidence_adapter_load_approval_decision_dry_run_active": True,
+                "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active": True,
+                "owner_decision_evidence_adapter_load_approval_authority_status_active": True,
+                "owner_decision_evidence_adapter_load_blocker_rollup_active": True,
+                "consistency_passed": consistency_passed,
+                "no_store_consistent": no_store_consistent,
+                "decision_dry_run_rejection_consistent": decision_dry_run_rejection_consistent,
+                "approval_authority_audit_consistent": approval_authority_audit_consistent,
+                "adapter_load_blocked_consistent": adapter_load_blocked_consistent,
+                "gate_sets_cross_checked": gate_sets_cross_checked,
+                "decision_dry_run_post_called_by_audit_consistency": False,
+                "decision_dry_run_post_called_by_status": False,
+                "last_approval_decision_result_available": False,
+                "persisted_approval_decision_count": 0,
+                "pending_approval_decision_review_count": 0,
+                "approval_decision_persisted": False,
+                "approval_decision_review_queue_updated": False,
+                "approval_decision_evidence_store_active": False,
+                "approval_decision_passed": False,
+                "approval_record_available": False,
+                "approval_record_persisted": False,
+                "approval_review_queue_updated": False,
+                "approval_evidence_store_active": False,
+                "persisted_approval_record_count": 0,
+                "pending_approval_review_count": 0,
+                "approval_decisions_open": approval_status["approval_decisions_open"],
+                "approval_authority_assigned": False,
+                "approval_policy_confirmed": False,
+                "approval_signature_rules_confirmed": False,
+                "approval_rbac_confirmed": False,
+                "approval_workflow_active": False,
+                "owner_decision_complete": False,
+                "all_blockers_cleared": False,
+                "adapter_load_ready": False,
+                "adapter_candidate_recorded": False,
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+                "load_policy_confirmed": False,
+                "replacement_policy_confirmed": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

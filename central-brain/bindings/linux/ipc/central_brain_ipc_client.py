@@ -208,6 +208,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.status",
         {},
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency": (
+        "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.audit.consistency",
+        {},
+    ),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

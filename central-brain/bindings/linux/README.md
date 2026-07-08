@@ -89,6 +89,7 @@ Brain semantic gateway.
 | `hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.audit.consistency` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run` | `POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.status` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
+| `hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.audit.consistency` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `vehicle.signals.list` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.activation.get` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.validation.get` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
@@ -223,6 +224,12 @@ exposes the same approval decision dry-run no-store status as Android Binder and
 Linux IPC. It reports no last approval decision result, zero persisted approval
 decisions, no approval decision review queue, no evidence store, and no dry-run
 POST call from the status path.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency`
+exposes the same approval decision dry-run audit consistency as Android Binder
+and Linux IPC. It cross-checks decision dry-run/status, approval authority
+audit/status, and blocker rollup with `HW-APA-001..008` and does not call the
+dry-run POST path, persist approval decisions, load adapters, access hardware,
+trigger Driver/HAL, or implement virtualization.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

@@ -62,6 +62,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -410,7 +411,16 @@ public class MainActivity extends Activity {
                 getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus();
             }
         });
-        prototypeReadinessButton = addButton(hardwareApprovalDecisionRow, "Prototype", new View.OnClickListener() {
+
+        LinearLayout hardwareApprovalDecisionAuditRow = buttonRow();
+        buttonArea.addView(hardwareApprovalDecisionAuditRow);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyButton = addButton(hardwareApprovalDecisionAuditRow, "HW ApDAudit", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency();
+            }
+        });
+        prototypeReadinessButton = addButton(hardwareApprovalDecisionAuditRow, "Prototype", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getPrototypeReadiness();
@@ -884,6 +894,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency() {
+        setBusy(true, "Status: loading hardware owner evidence adapter load approval decision dry-run audit consistency via Binder");
+        gatewayRequest("Hardware Owner Evidence Adapter Load Approval Decision Dry-Run Audit Consistency (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -1020,6 +1040,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

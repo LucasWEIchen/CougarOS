@@ -98,6 +98,7 @@ require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-a
 require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status"
 require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run"
 require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status"
+require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency"
 require_text "$DOC" "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson"
 require_text "$DOC" "com.centralbrain.permission.BIND_GATEWAY"
 require_text "$DOC" "Binder UID"
