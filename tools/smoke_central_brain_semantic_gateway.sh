@@ -258,6 +258,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1497,6 +1503,103 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix" in encoded, "gRPC hardware approval reviewer matrix binding missing"
         assert "HW-APR-007" in encoded and "android-linux-reviewer-matrix-parity" in encoded, "hardware approval reviewer matrix missing synchronized binding gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval reviewer matrix missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist":
+        handoff_checklist = payload["payload"]
+        encoded = json.dumps(handoff_checklist)
+        gate_ids = {item["gate_id"] for item in handoff_checklist["mandatory_gates"]}
+        schema_fields = {item["field"] for item in handoff_checklist["handoff_packet_schema"]}
+        assert handoff_checklist["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist", "hardware approval reviewer handoff wrong operation"
+        assert handoff_checklist["approval_reviewer_evidence_handoff_state"] == "contract-only-reviewer-evidence-handoff-blocked", "hardware approval reviewer handoff wrong state"
+        assert handoff_checklist["approval_reviewer_evidence_handoff_checklist_active"] is True, "hardware approval reviewer handoff inactive"
+        assert handoff_checklist["handoff_checklist_complete"] is True, "hardware approval reviewer handoff incomplete"
+        assert handoff_checklist["handoff_ready"] is False, "hardware approval reviewer handoff unexpectedly ready"
+        assert handoff_checklist["evidence_handoff_allowed"] is False, "hardware approval reviewer handoff allowed evidence handoff"
+        assert handoff_checklist["approval_review_allowed"] is False, "hardware approval reviewer handoff allowed approval review"
+        assert handoff_checklist["retention_review_allowed"] is False, "hardware approval reviewer handoff allowed retention review"
+        assert handoff_checklist["gate_closure_allowed"] is False, "hardware approval reviewer handoff allowed gate closure"
+        assert handoff_checklist["adapter_load_allowed"] is False, "hardware approval reviewer handoff allowed adapter load"
+        assert handoff_checklist["required_handoff_packet_count"] == 11, "hardware approval reviewer handoff lost required packet count"
+        assert handoff_checklist["missing_handoff_packet_count"] == 11, "hardware approval reviewer handoff lost missing packet count"
+        assert len(handoff_checklist["handoff_rows"]) == 11, "hardware approval reviewer handoff lost rows"
+        assert {
+            "reviewer_identity",
+            "source_blocker_reference",
+            "evidence_reference_uri",
+            "owner_signature_reference",
+            "acceptance_rule",
+            "retention_policy_reference",
+            "audit_export_reference",
+            "rollback_fault_note",
+        } <= schema_fields, "hardware approval reviewer handoff missing schema fields"
+        assert all(item["state"] == "missing" for item in handoff_checklist["handoff_rows"]), "hardware approval reviewer handoff attached rows"
+        assert all(item["handoff_packet_attached"] is False for item in handoff_checklist["handoff_rows"]), "hardware approval reviewer handoff packet was attached"
+        assert all(item["evidence_handoff_ready"] is False for item in handoff_checklist["handoff_rows"]), "hardware approval reviewer handoff row became ready"
+        assert all(item["blocks_approval_review"] and item["blocks_retention_review"] for item in handoff_checklist["handoff_rows"]), "hardware approval reviewer handoff rows do not block review"
+        assert all(item["blocks_gate_closure"] and item["blocks_adapter_load"] for item in handoff_checklist["handoff_rows"]), "hardware approval reviewer handoff rows do not block gate/load"
+        assert all(item["passed"] for item in handoff_checklist["source_surface_checks"]), "hardware approval reviewer handoff source checks failed"
+        assert {
+            "HW-ARH-001",
+            "HW-ARH-002",
+            "HW-ARH-003",
+            "HW-ARH-004",
+            "HW-ARH-005",
+            "HW-ARH-006",
+            "HW-ARH-007",
+            "HW-ARH-008",
+        } <= gate_ids, "hardware approval reviewer handoff missing mandatory gates"
+        source = handoff_checklist["source_surfaces"]["approval_decision_reviewer_matrix"]
+        assert source["matrix_complete"] is True, "hardware approval reviewer handoff lost reviewer matrix source"
+        assert source["unassigned_reviewer_count"] == 11, "hardware approval reviewer handoff lost reviewer count"
+        assert source["review_ready"] is False, "hardware approval reviewer handoff reviewer matrix became ready"
+        assert source["approval_review_allowed"] is False, "hardware approval reviewer handoff source allowed approval review"
+        assert source["retention_review_allowed"] is False, "hardware approval reviewer handoff source allowed retention review"
+        for key in [
+            "handoff_ready",
+            "evidence_handoff_allowed",
+            "approval_review_allowed",
+            "retention_review_allowed",
+            "gate_closure_allowed",
+            "approval_decision_closure_allowed",
+            "handoff_packet_attached",
+            "reviewer_identity_confirmed",
+            "evidence_reference_uri_confirmed",
+            "owner_signature_reference_confirmed",
+            "acceptance_rule_confirmed",
+            "retention_policy_reference_confirmed",
+            "audit_export_reference_confirmed",
+            "rollback_fault_note_confirmed",
+            "approval_decision_persisted",
+            "approval_decision_review_queue_updated",
+            "approval_decision_evidence_store_active",
+            "approval_evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert handoff_checklist["summary"][key] is False, f"hardware approval reviewer handoff summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_checklist_active",
+            "owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_active",
+            "handoff_checklist_complete",
+            "no_side_effects_consistent",
+        ]:
+            assert handoff_checklist["summary"][key] is True, f"hardware approval reviewer handoff summary did not set {key}"
+        assert handoff_checklist["summary"]["required_handoff_packet_count"] == 11, "hardware approval reviewer handoff summary lost required packet count"
+        assert handoff_checklist["summary"]["missing_handoff_packet_count"] == 11, "hardware approval reviewer handoff summary lost missing packet count"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson" in encoded, "Android hardware approval reviewer handoff binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist" in encoded, "Linux CLI hardware approval reviewer handoff binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.checklist" in encoded, "Linux IPC hardware approval reviewer handoff binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklist" in encoded, "gRPC hardware approval reviewer handoff binding missing"
+        assert "HW-ARH-007" in encoded and "android-linux-evidence-handoff-parity" in encoded, "hardware approval reviewer handoff missing synchronized binding gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval reviewer handoff missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -2275,6 +2378,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

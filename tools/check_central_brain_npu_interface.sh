@@ -85,7 +85,11 @@ require_text "$REQUIREMENTS_DOC" "/hardware/interfaces/owner-decision-evidence/a
 require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix"
 require_text "$DRIVER_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix"
 require_text "$REQUIREMENTS_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix"
+require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist"
+require_text "$DRIVER_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist"
+require_text "$REQUIREMENTS_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist"
 require_text "$REQUIREMENTS_DOC" "HW-APM-001"
 require_text "$REQUIREMENTS_DOC" "HW-APR-001"
+require_text "$REQUIREMENTS_DOC" "HW-ARH-001"
 
 echo "Central Brain NPU runtime interface check passed"

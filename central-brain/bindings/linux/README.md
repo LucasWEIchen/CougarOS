@@ -244,6 +244,12 @@ schema, evidence store, review workflow, target smoke, rollback/fault,
 Driver/HAL gap, audit export, and gate closure reviewers with `HW-APR-001..008`
 and does not assign reviewers, close gates, persist approval decisions, load
 adapters, access hardware, trigger Driver/HAL, or implement virtualization.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklist`
+exposes the same approval reviewer evidence handoff checklist as Android Binder
+and Linux IPC. It lists required handoff packet fields and 11 missing
+reviewer-owned evidence packets with `HW-ARH-001..008` and does not attach or
+persist evidence, create review queues, close gates, load adapters, access
+hardware, trigger Driver/HAL, or implement virtualization.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

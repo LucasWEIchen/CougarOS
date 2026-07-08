@@ -73,6 +73,7 @@
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.audit.consistency",
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.closure.blocker.matrix",
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix",
+        "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.checklist",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"

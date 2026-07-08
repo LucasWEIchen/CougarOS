@@ -321,6 +321,12 @@ Brain semantic gateway.
   rollback/fault, Driver/HAL gap, audit export, and gate closure reviewers with
   `HW-APR-001..008` while keeping reviewers unassigned, closure, adapter load,
   hardware access, Driver/HAL, and virtualization disabled.
+- `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson`
+  exposes the approval reviewer evidence handoff checklist through the Android
+  Console `HW ApHand` action only; it lists required handoff packet fields and
+  11 missing reviewer-owned packets with `HW-ARH-001..008` while keeping
+  evidence unpersisted, review queues inactive, gates open, adapter load,
+  hardware access, Driver/HAL, and virtualization disabled.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter

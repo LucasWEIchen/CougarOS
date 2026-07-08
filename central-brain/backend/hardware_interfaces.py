@@ -1478,6 +1478,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWERS = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_GATES = [
+    {
+        "gate_id": "HW-ARH-001",
+        "name": "reviewer-evidence-handoff-surface-bound",
+        "required_evidence": "Evidence handoff checklist binds to the approval decision reviewer matrix and inherits its unassigned/no-store/no-load state.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ARH-002",
+        "name": "handoff-packet-schema-visible",
+        "required_evidence": "Each reviewer handoff row exposes required packet fields for identity, source blocker, evidence references, acceptance rule, retention, audit, and rollback/fault notes.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ARH-003",
+        "name": "authority-policy-signature-handoff-blocked",
+        "required_evidence": "Approval authority, policy, signature, and RBAC handoff packets remain missing until reviewers are assigned.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ARH-004",
+        "name": "record-evidence-store-handoff-blocked",
+        "required_evidence": "Approval record schema and approval evidence store handoff packets remain missing and no evidence store is created.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ARH-005",
+        "name": "workflow-audit-gate-handoff-blocked",
+        "required_evidence": "Review workflow, audit export, and gate closure handoff packets remain missing and no review queue is created.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ARH-006",
+        "name": "target-driver-fault-handoff-blocked",
+        "required_evidence": "Target smoke, rollback/fault, and Driver/HAL gap closure handoff packets remain missing and linked to existing open driver gaps.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ARH-007",
+        "name": "android-linux-evidence-handoff-parity",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same evidence handoff checklist.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ARH-008",
+        "name": "no-side-effect-evidence-handoff",
+        "required_evidence": "Evidence handoff checklist does not attach evidence, persist records, create stores, update queues, close gates, load adapters, access hardware, call Driver/HAL, or trigger virtualization.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -4622,6 +4675,233 @@ class HardwareInterfaceRegistry:
                 "no_side_effects_consistent": no_side_effects_consistent,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWER_MATRIX_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_payload(self) -> dict[str, Any]:
+        reviewer_matrix = self.owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_payload()
+        handoff_packet_schema = [
+            {
+                "field": "reviewer_identity",
+                "required": True,
+                "state": "missing",
+                "purpose": "Named reviewer identity and platform role allowed to accept this handoff.",
+            },
+            {
+                "field": "source_blocker_reference",
+                "required": True,
+                "state": "missing",
+                "purpose": "Source approval decision closure blocker id, dependency, and required decision text.",
+            },
+            {
+                "field": "evidence_reference_uri",
+                "required": True,
+                "state": "missing",
+                "purpose": "Stable evidence URI reference; the prototype records the required shape only and does not dereference it.",
+            },
+            {
+                "field": "owner_signature_reference",
+                "required": True,
+                "state": "missing",
+                "purpose": "Owner/reviewer signature or RBAC proof that the target platform must provide.",
+            },
+            {
+                "field": "acceptance_rule",
+                "required": True,
+                "state": "missing",
+                "purpose": "Rule that decides whether the reviewer can accept, reject, or request more evidence.",
+            },
+            {
+                "field": "retention_policy_reference",
+                "required": True,
+                "state": "missing",
+                "purpose": "Evidence retention/export/delete policy reference for the handoff packet.",
+            },
+            {
+                "field": "audit_export_reference",
+                "required": True,
+                "state": "missing",
+                "purpose": "Audit export artifact or audit backend reference required before gate closure.",
+            },
+            {
+                "field": "rollback_fault_note",
+                "required": True,
+                "state": "missing",
+                "purpose": "Rollback/fault impact note for target hardware or Driver/HAL dependent handoffs.",
+            },
+        ]
+        handoff_rows = []
+        for index, reviewer in enumerate(reviewer_matrix["reviewer_rows"], start=1):
+            handoff_rows.append(
+                {
+                    "handoff_id": f"HW-ARH-HAND-{index:03d}",
+                    "reviewer_id": reviewer["reviewer_id"],
+                    "role": reviewer["role"],
+                    "review_scope": reviewer["review_scope"],
+                    "source_blocker_id": reviewer["source_blocker_id"],
+                    "source_dependency": reviewer["source_dependency"],
+                    "source_blocker_state": reviewer["source_blocker_state"],
+                    "source_gate_ids": copy.deepcopy(reviewer["source_gate_ids"]),
+                    "driver_gap_ids": copy.deepcopy(reviewer["driver_gap_ids"]),
+                    "required_packet_fields": [item["field"] for item in handoff_packet_schema],
+                    "state": "missing",
+                    "handoff_packet_attached": False,
+                    "reviewer_identity_confirmed": False,
+                    "evidence_reference_uri_confirmed": False,
+                    "owner_signature_reference_confirmed": False,
+                    "acceptance_rule_confirmed": False,
+                    "retention_policy_reference_confirmed": False,
+                    "audit_export_reference_confirmed": False,
+                    "rollback_fault_note_confirmed": False,
+                    "evidence_handoff_ready": False,
+                    "blocks_approval_review": True,
+                    "blocks_retention_review": True,
+                    "blocks_gate_closure": True,
+                    "blocks_adapter_load": True,
+                }
+            )
+        source_surface_checks = [
+            {
+                "check_id": "HW-ARH-CHECK-001",
+                "name": "reviewer-matrix-bound",
+                "source": "approval_decision_reviewer_matrix",
+                "passed": reviewer_matrix["approval_decision_reviewer_matrix_active"] is True
+                and reviewer_matrix["matrix_complete"] is True,
+            },
+            {
+                "check_id": "HW-ARH-CHECK-002",
+                "name": "all-reviewers-unassigned",
+                "source": "reviewer_matrix.reviewer_rows",
+                "passed": all(item["state"] == "unassigned" for item in reviewer_matrix["reviewer_rows"]),
+            },
+            {
+                "check_id": "HW-ARH-CHECK-003",
+                "name": "handoff-packets-missing",
+                "source": "handoff_rows",
+                "passed": all(item["state"] == "missing" for item in handoff_rows),
+            },
+            {
+                "check_id": "HW-ARH-CHECK-004",
+                "name": "no-side-effects-inherited",
+                "source": "reviewer_matrix.summary",
+                "passed": reviewer_matrix["summary"]["no_side_effects_consistent"] is True,
+            },
+            {
+                "check_id": "HW-ARH-CHECK-005",
+                "name": "android-linux-evidence-handoff-surface-bound",
+                "source": "api_surface",
+                "passed": True,
+            },
+        ]
+        no_side_effects_consistent = reviewer_matrix["summary"]["no_side_effects_consistent"] is True and all(
+            reviewer_matrix["summary"][key] is False
+            for key in [
+                "approval_decision_persisted",
+                "approval_decision_review_queue_updated",
+                "approval_decision_evidence_store_active",
+                "approval_evidence_store_active",
+                "review_workflow_active",
+                "review_queue_updated",
+                "gate_state_changed",
+                "gates_closed",
+                "adapter_load_allowed",
+                "adapter_activation_allowed",
+                "hardware_access_allowed",
+                "hardware_accessed",
+                "driver_development_triggered",
+                "virtualization_development_triggered",
+                "service_dispatch_triggered",
+            ]
+        )
+        checklist_complete = all(item["state"] == "missing" for item in handoff_rows) and all(
+            item["passed"] for item in source_surface_checks
+        )
+
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist",
+            "approval_reviewer_evidence_handoff_state": "contract-only-reviewer-evidence-handoff-blocked",
+            "approval_reviewer_evidence_handoff_checklist_active": True,
+            "handoff_checklist_complete": checklist_complete,
+            "handoff_ready": False,
+            "evidence_handoff_allowed": False,
+            "approval_review_allowed": False,
+            "retention_review_allowed": False,
+            "gate_closure_allowed": False,
+            "adapter_load_allowed": False,
+            "required_handoff_packet_count": len(handoff_rows),
+            "missing_handoff_packet_count": len(handoff_rows),
+            "handoff_packet_schema": handoff_packet_schema,
+            "handoff_rows": handoff_rows,
+            "source_surfaces": {
+                "approval_decision_reviewer_matrix": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix",
+                    "state": reviewer_matrix["approval_decision_reviewer_matrix_state"],
+                    "matrix_complete": reviewer_matrix["matrix_complete"],
+                    "unassigned_reviewer_count": reviewer_matrix["unassigned_reviewer_count"],
+                    "review_ready": reviewer_matrix["review_ready"],
+                    "approval_review_allowed": reviewer_matrix["approval_review_allowed"],
+                    "retention_review_allowed": reviewer_matrix["retention_review_allowed"],
+                }
+            },
+            "source_surface_checks": source_surface_checks,
+            "mandatory_gates": copy.deepcopy(
+                HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_GATES
+            ),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.checklist",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklist",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_checklist_active": True,
+                "owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_active": True,
+                "handoff_checklist_complete": checklist_complete,
+                "required_handoff_packet_count": len(handoff_rows),
+                "missing_handoff_packet_count": len(handoff_rows),
+                "handoff_ready": False,
+                "evidence_handoff_allowed": False,
+                "approval_review_allowed": False,
+                "retention_review_allowed": False,
+                "gate_closure_allowed": False,
+                "approval_decision_closure_allowed": False,
+                "approval_authority_reviewer_assigned": False,
+                "approval_policy_reviewer_assigned": False,
+                "signature_rbac_reviewer_assigned": False,
+                "approval_record_schema_reviewer_assigned": False,
+                "approval_evidence_store_reviewer_assigned": False,
+                "review_workflow_reviewer_assigned": False,
+                "target_smoke_reviewer_assigned": False,
+                "rollback_fault_reviewer_assigned": False,
+                "driver_hal_gap_reviewer_assigned": False,
+                "audit_export_reviewer_assigned": False,
+                "gate_closure_reviewer_assigned": False,
+                "handoff_packet_attached": False,
+                "reviewer_identity_confirmed": False,
+                "evidence_reference_uri_confirmed": False,
+                "owner_signature_reference_confirmed": False,
+                "acceptance_rule_confirmed": False,
+                "retention_policy_reference_confirmed": False,
+                "audit_export_reference_confirmed": False,
+                "rollback_fault_note_confirmed": False,
+                "approval_decision_persisted": False,
+                "approval_decision_review_queue_updated": False,
+                "approval_decision_evidence_store_active": False,
+                "approval_evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+                "no_side_effects_consistent": no_side_effects_consistent,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

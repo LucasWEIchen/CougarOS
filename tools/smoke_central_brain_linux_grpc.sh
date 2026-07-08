@@ -2008,6 +2008,102 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionRevi
 assert "HW-APR-007" in encoded and "android-linux-reviewer-matrix-parity" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+handoff = payload["gateway"]["payload"]
+encoded = json.dumps(handoff)
+gate_ids = {item["gate_id"] for item in handoff["mandatory_gates"]}
+schema_fields = {item["field"] for item in handoff["handoff_packet_schema"]}
+assert response["status"] == "ok", response
+assert handoff["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist", response
+assert handoff["approval_reviewer_evidence_handoff_state"] == "contract-only-reviewer-evidence-handoff-blocked", response
+assert handoff["approval_reviewer_evidence_handoff_checklist_active"] is True, response
+assert handoff["handoff_checklist_complete"] is True, response
+assert handoff["handoff_ready"] is False, response
+assert handoff["evidence_handoff_allowed"] is False, response
+assert handoff["approval_review_allowed"] is False, response
+assert handoff["retention_review_allowed"] is False, response
+assert handoff["gate_closure_allowed"] is False, response
+assert handoff["adapter_load_allowed"] is False, response
+assert handoff["required_handoff_packet_count"] == 11, response
+assert handoff["missing_handoff_packet_count"] == 11, response
+assert len(handoff["handoff_rows"]) == 11, response
+assert {
+    "reviewer_identity",
+    "source_blocker_reference",
+    "evidence_reference_uri",
+    "owner_signature_reference",
+    "acceptance_rule",
+    "retention_policy_reference",
+    "audit_export_reference",
+    "rollback_fault_note",
+} <= schema_fields, response
+assert all(item["state"] == "missing" for item in handoff["handoff_rows"]), response
+assert all(item["handoff_packet_attached"] is False for item in handoff["handoff_rows"]), response
+assert all(item["evidence_handoff_ready"] is False for item in handoff["handoff_rows"]), response
+assert all(item["blocks_approval_review"] and item["blocks_retention_review"] for item in handoff["handoff_rows"]), response
+assert all(item["blocks_gate_closure"] and item["blocks_adapter_load"] for item in handoff["handoff_rows"]), response
+assert all(item["passed"] for item in handoff["source_surface_checks"]), response
+assert {"HW-ARH-001", "HW-ARH-002", "HW-ARH-003", "HW-ARH-004", "HW-ARH-005", "HW-ARH-006", "HW-ARH-007", "HW-ARH-008"} <= gate_ids, response
+source = handoff["source_surfaces"]["approval_decision_reviewer_matrix"]
+assert source["matrix_complete"] is True, response
+assert source["unassigned_reviewer_count"] == 11, response
+assert source["review_ready"] is False, response
+assert source["approval_review_allowed"] is False, response
+assert source["retention_review_allowed"] is False, response
+for key in [
+    "handoff_ready",
+    "evidence_handoff_allowed",
+    "approval_review_allowed",
+    "retention_review_allowed",
+    "gate_closure_allowed",
+    "approval_decision_closure_allowed",
+    "handoff_packet_attached",
+    "reviewer_identity_confirmed",
+    "evidence_reference_uri_confirmed",
+    "owner_signature_reference_confirmed",
+    "acceptance_rule_confirmed",
+    "retention_policy_reference_confirmed",
+    "audit_export_reference_confirmed",
+    "rollback_fault_note_confirmed",
+    "approval_decision_persisted",
+    "approval_decision_review_queue_updated",
+    "approval_decision_evidence_store_active",
+    "approval_evidence_store_active",
+    "review_workflow_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert handoff["summary"][key] is False, response
+for key in [
+    "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_checklist_active",
+    "owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_active",
+    "handoff_checklist_complete",
+    "no_side_effects_consistent",
+]:
+    assert handoff["summary"][key] is True, response
+assert handoff["summary"]["required_handoff_packet_count"] == 11, response
+assert handoff["summary"]["missing_handoff_packet_count"] == 11, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.checklist" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklist" in encoded, response
+assert "HW-ARH-007" in encoded and "android-linux-evidence-handoff-parity" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json
