@@ -202,6 +202,7 @@ checks = [
         "HW-002",
     ),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -871,6 +872,42 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus" in encoded, "gRPC hardware adapter load dry-run status binding missing"
         assert "HW-ALS-004" in encoded and "last-result-not-stored" in encoded, "hardware adapter load dry-run status missing last-result gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load dry-run status missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency":
+        consistency = payload["payload"]
+        encoded = json.dumps(consistency)
+        gate_ids = {item["gate_id"] for item in consistency["mandatory_gates"]}
+        assert consistency["audit_consistency_state"] == "contract-only-consistent-blocked", "hardware adapter load dry-run audit consistency left blocked state"
+        assert consistency["consistency_checked"] is True, "hardware adapter load dry-run audit consistency not checked"
+        assert consistency["consistency_passed"] is True, "hardware adapter load dry-run audit consistency failed"
+        assert consistency["no_store_consistent"] is True, "hardware adapter load dry-run audit no-store check failed"
+        assert consistency["blocker_rollup_consistent"] is True, "hardware adapter load dry-run blocker rollup check failed"
+        assert consistency["dry_run_rejection_consistent"] is True, "hardware adapter load dry-run rejection check failed"
+        assert consistency["source_surfaces"]["dry_run_request"]["called_by_audit_consistency_view"] is False, "hardware audit consistency called dry-run POST"
+        assert consistency["source_surfaces"]["dry_run_status"]["persisted_dry_run_count"] == 0, "hardware audit consistency saw persisted dry-run records"
+        assert consistency["source_surfaces"]["blocker_rollup"]["adapter_load_ready"] is False, "hardware audit consistency lost blocker rollup readiness"
+        assert {"HW-ALC-001", "HW-ALC-002", "HW-ALC-003", "HW-ALC-004", "HW-ALC-005", "HW-ALC-006", "HW-ALC-007", "HW-ALC-008"} <= gate_ids, "hardware adapter load dry-run audit consistency missing mandatory gates"
+        for key in [
+            "owner_decision_complete",
+            "all_blockers_cleared",
+            "adapter_load_ready",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert consistency["summary"][key] is False, f"hardware adapter load dry-run audit consistency summary unexpectedly set {key}"
+        assert consistency["summary"]["owner_decision_evidence_adapter_load_dry_run_audit_consistency_active"] is True, "hardware adapter load dry-run audit consistency summary not active"
+        assert consistency["summary"]["consistency_passed"] is True, "hardware adapter load dry-run audit consistency summary failed"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson" in encoded, "Android hardware adapter load dry-run audit consistency binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency" in encoded, "Linux CLI hardware adapter load dry-run audit consistency binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.audit.consistency" in encoded, "Linux IPC hardware adapter load dry-run audit consistency binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency" in encoded, "gRPC hardware adapter load dry-run audit consistency binding missing"
+        assert "HW-ALC-004" in encoded and "dry-run-rejection-contract-consistent" in encoded, "hardware adapter load dry-run audit consistency missing rejection gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load dry-run audit consistency missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1586,6 +1623,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

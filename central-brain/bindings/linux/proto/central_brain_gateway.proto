@@ -72,6 +72,7 @@ service CentralBrainGateway {
   rpc GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup(GatewayRequest) returns (GatewayResponse);
   rpc DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad(GatewayRequest) returns (GatewayResponse);
   rpc GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus(GatewayRequest) returns (GatewayResponse);
+  rpc GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency(GatewayRequest) returns (GatewayResponse);
   rpc GetVehicleSignals(GatewayRequest) returns (GatewayResponse);
   rpc GetVehicleSignalActivation(GatewayRequest) returns (GatewayResponse);
   rpc GetVehicleSignalValidation(GatewayRequest) returns (GatewayResponse);

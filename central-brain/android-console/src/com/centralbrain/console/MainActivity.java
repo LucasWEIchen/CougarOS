@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadBlockerButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadDryRunButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadDryRunStatusButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -349,7 +350,16 @@ public class MainActivity extends Activity {
                 getHardwareOwnerDecisionEvidenceAdapterLoadDryRunStatus();
             }
         });
-        prototypeReadinessButton = addButton(hardwareLoadRow, "Prototype", new View.OnClickListener() {
+
+        LinearLayout hardwareAuditRow = buttonRow();
+        buttonArea.addView(hardwareAuditRow);
+        hardwareOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyButton = addButton(hardwareAuditRow, "HW DryAudit", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency();
+            }
+        });
+        prototypeReadinessButton = addButton(hardwareAuditRow, "Prototype", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getPrototypeReadiness();
@@ -737,6 +747,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency() {
+        setBusy(true, "Status: loading hardware owner evidence adapter load dry-run audit consistency via Binder");
+        gatewayRequest("Hardware Owner Evidence Adapter Load Dry-Run Audit Consistency (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -785,7 +805,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -866,6 +886,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadBlockerButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadDryRunButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadDryRunStatusButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

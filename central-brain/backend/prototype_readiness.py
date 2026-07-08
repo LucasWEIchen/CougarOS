@@ -147,11 +147,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "External PCIe NPU, vehicle bus, sensors, Ethernet, shared-memory safety runtime interfaces",
         "diagram_group": "hardware-boundary",
         "yellow_sun_portable": True,
-        "current_state": "empty-interface-registry-with-activation-checklist-owner-decision-status-evidence-intake-status-retention-closure-replacement-trigger-selected-adapter-readiness-adapter-load-blocker-rollup-adapter-load-dry-run-and-dry-run-status-contract",
-        "ready_for": ["interface ownership review", "hardware activation checklist review", "hardware owner decision status review", "hardware owner decision evidence intake contract review", "hardware owner decision evidence status review", "hardware owner decision evidence retention and closure checklist review", "hardware owner evidence replacement trigger checklist review", "hardware owner evidence selected-adapter readiness checklist review", "hardware owner evidence adapter load blocker rollup review", "hardware owner evidence adapter load dry-run review", "hardware owner evidence adapter load dry-run no-store status review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
+        "current_state": "empty-interface-registry-with-activation-checklist-owner-decision-status-evidence-intake-status-retention-closure-replacement-trigger-selected-adapter-readiness-adapter-load-blocker-rollup-adapter-load-dry-run-status-and-audit-consistency-contract",
+        "ready_for": ["interface ownership review", "hardware activation checklist review", "hardware owner decision status review", "hardware owner decision evidence intake contract review", "hardware owner decision evidence status review", "hardware owner decision evidence retention and closure checklist review", "hardware owner evidence replacement trigger checklist review", "hardware owner evidence selected-adapter readiness checklist review", "hardware owner evidence adapter load blocker rollup review", "hardware owner evidence adapter load dry-run review", "hardware owner evidence adapter load dry-run no-store status review", "hardware owner evidence adapter load dry-run audit consistency review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
         "not_ready_for": ["real PCIe NPU runtime", "DMA/IOMMU access", "Safety Runtime shared-memory bridge"],
-        "android_primary_surface": "getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson",
-        "linux_sync_surface": "hardware-interfaces, hardware-interface-activation-checklist, hardware-interface-owner-decision-status, hardware-interface-owner-decision-evidence, hardware-interface-owner-decision-evidence-status, hardware-interface-owner-decision-evidence-retention-checklist, hardware-interface-owner-decision-evidence-replacement-trigger-checklist, hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist, hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup, hardware-interface-owner-decision-evidence-adapter-load-dry-run, and hardware-interface-owner-decision-evidence-adapter-load-dry-run-status over CLI/IPC/gRPC",
+        "android_primary_surface": "getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson",
+        "linux_sync_surface": "hardware-interfaces, hardware-interface-activation-checklist, hardware-interface-owner-decision-status, hardware-interface-owner-decision-evidence, hardware-interface-owner-decision-evidence-status, hardware-interface-owner-decision-evidence-retention-checklist, hardware-interface-owner-decision-evidence-replacement-trigger-checklist, hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist, hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup, hardware-interface-owner-decision-evidence-adapter-load-dry-run, hardware-interface-owner-decision-evidence-adapter-load-dry-run-status, and hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency over CLI/IPC/gRPC",
         "open_deviations": ["DEV-005", "DEV-016"],
         "open_issues": ["ISSUE-016"],
         "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005", "XSC-004", "XSC-006"],
@@ -217,14 +217,14 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "hardware interface adapter-load dry-run status no-store counter view",
-                    "reason": "Adapter-load dry-run remains contract-only; the next safe step is a read-only status surface that proves no request, last result, review queue, evidence, adapter load, or hardware access was persisted.",
-                    "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005"],
-                },
-                {
                     "candidate": "event subscription activation evidence decision status rollup",
                     "reason": "FW-U-003/NV-P-006 now expose intake, review status, and retention checklist; the next event-safe step is a no-store rollup of remaining owner decisions without creating evidence persistence or broker activation.",
                     "req_ids": ["XSC-002", "FW-U-003", "XSC-005", "NV-P-002", "NV-P-003", "NV-P-006", "DEL-001", "DEL-002", "DEL-004"],
+                },
+                {
+                    "candidate": "hardware interface adapter-load approval authority decision checklist",
+                    "reason": "Adapter-load blocker, dry-run, no-store status, and audit consistency are now visible; a later hardware-safe step is an approval-authority checklist that remains read-only and does not load adapters or touch hardware.",
+                    "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005"],
                 },
             ],
             "non_goals": [

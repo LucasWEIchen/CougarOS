@@ -1331,6 +1331,49 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus" in enc
 assert "HW-ALS-004" in encoded and "last-result-not-stored" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_AUDIT_CONSISTENCY_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_AUDIT_CONSISTENCY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["audit_consistency_state"] == "contract-only-consistent-blocked", response
+assert payload["consistency_checked"] is True, response
+assert payload["consistency_passed"] is True, response
+assert payload["no_store_consistent"] is True, response
+assert payload["blocker_rollup_consistent"] is True, response
+assert payload["dry_run_rejection_consistent"] is True, response
+assert payload["source_surfaces"]["dry_run_request"]["called_by_audit_consistency_view"] is False, response
+assert payload["source_surfaces"]["dry_run_status"]["persisted_dry_run_count"] == 0, response
+assert payload["source_surfaces"]["blocker_rollup"]["adapter_load_ready"] is False, response
+assert {"HW-ALC-001", "HW-ALC-002", "HW-ALC-003", "HW-ALC-004", "HW-ALC-005", "HW-ALC-006", "HW-ALC-007", "HW-ALC-008"} <= gate_ids, response
+for key in [
+    "owner_decision_complete",
+    "all_blockers_cleared",
+    "adapter_load_ready",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["owner_decision_evidence_adapter_load_dry_run_audit_consistency_active"] is True, response
+assert payload["summary"]["consistency_passed"] is True, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.audit.consistency" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency" in encoded, response
+assert "HW-ALC-004" in encoded and "dry-run-rejection-contract-consistent" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json
