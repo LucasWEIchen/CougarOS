@@ -328,6 +328,19 @@ acceptance record store、review workflow、audit retention、rollback/fault、D
 它不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence，不创建 evidence store，不更新 review queue，不关闭 gate，
 不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load approval reviewer evidence handoff acceptance closure readiness checklist 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist`、Android Binder
+`getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson`、Android Console `HW ApHClose`、
+Linux CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-checklist`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.checklist` 与 Linux gRPC/RPC
+`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklist` 调用。该 checklist 只汇总 acceptance authority、
+acceptance record store、review workflow、audit retention、rollback/fault、Driver/HAL acceptance、gate closure authority 和 handoff packet presence 的 closure readiness 阻塞项，
+暴露 `HW-AHE-001..008`、`closure_readiness_complete=true`、`closure_ready=false`、`required_closure_check_count=8`、`closure_blocker_count=8`、
+`ready_closure_check_count=0`、`decision_rollup_consistent=true`、`accepted_handoff_packet_count=0`、`acceptance_record_persisted_count=0`、
+`adapter_load_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。
+它不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence，不创建 evidence store，不更新 review queue，不关闭 gate，
+不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 Event subscription cursor/replay storage 按 FW-U-003、NV-P-006、XSC-002、XSC-006 在
 `GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder
 `getEventSubscriptionCursorReplayStorageJson`、Linux CLI

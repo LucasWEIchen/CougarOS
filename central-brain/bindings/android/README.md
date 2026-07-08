@@ -345,6 +345,12 @@ Brain semantic gateway.
   acceptance decision rows with `HW-AHD-001..008` while keeping acceptance
   records unpersisted, review queues inactive, gates open, adapter load,
   hardware access, Driver/HAL, and virtualization disabled.
+- `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson`
+  exposes the approval reviewer evidence handoff acceptance closure readiness
+  checklist through the Android Console `HW ApHClose` action only; it reports 8
+  blocked closure readiness checks with `HW-AHE-001..008` while keeping
+  acceptance records unpersisted, review queues inactive, gates open, adapter
+  load, hardware access, Driver/HAL, and virtualization disabled.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter

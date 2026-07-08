@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.70"
+API_VERSION = "0.1.71"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -2845,6 +2845,10 @@ def hardware_interface_owner_decision_evidence_adapter_load_approval_reviewer_ev
     return HARDWARE_INTERFACES.owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_decision_rollup_payload()
 
 
+def hardware_interface_owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_closure_readiness_checklist_payload() -> dict[str, Any]:
+    return HARDWARE_INTERFACES.owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_closure_readiness_checklist_payload()
+
+
 def hardware_interface_owner_decision_evidence_adapter_load_dry_run_status_payload() -> dict[str, Any]:
     return HARDWARE_INTERFACES.owner_decision_evidence_adapter_load_dry_run_status_payload()
 
@@ -3220,6 +3224,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_audit_consistency_payload()))
         elif path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup":
             self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_decision_rollup_payload()))
+        elif path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist":
+            self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_closure_readiness_checklist_payload()))
         elif path == "/vehicle/signals":
             self.send_json(200, envelope(vehicle_signals_payload()))
         elif path == "/vehicle/signals/activation":
