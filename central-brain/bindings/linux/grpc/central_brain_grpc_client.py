@@ -291,6 +291,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatus",
         {},
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-audit-consistency": (
+        "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistency",
+        {},
+    ),
     "vehicle-signals": ("GetVehicleSignals", {}),
     "vehicle-signal-activation": ("GetVehicleSignalActivation", {}),
     "vehicle-signal-validation": ("GetVehicleSignalValidation", {}),

@@ -86,6 +86,7 @@ Brain semantic gateway.
 | `hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.audit.consistency` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.status` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
+| `hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.audit.consistency` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `vehicle.signals.list` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.activation.get` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.validation.get` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
@@ -203,6 +204,11 @@ exposes the same approval authority no-store status as Android Binder and
 Linux IPC without persisting approval records, creating evidence stores,
 updating review queues, closing gates, loading adapters, accessing hardware,
 or creating Driver/HAL or virtualization work.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistency`
+exposes the same approval authority audit consistency view as Android Binder
+and Linux IPC without calling dry-run POST paths, persisting approval records,
+creating evidence stores, updating review queues, closing gates, loading
+adapters, accessing hardware, or creating Driver/HAL or virtualization work.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

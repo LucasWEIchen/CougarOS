@@ -83,6 +83,7 @@ Brain semantic gateway.
 | `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalActivationJson` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalValidationJson` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
@@ -276,6 +277,12 @@ Brain semantic gateway.
   `persisted_approval_record_count=0`, `pending_approval_review_count=0`,
   `approval_decision_passed=false`, and `hardware_accessed=false` without
   creating evidence stores, updating review queues, closing gates, loading
+  adapters, or creating Driver/HAL or virtualization work.
+- `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson`
+  exposes the approval authority audit consistency view through the Android
+  Console `HW ApAudit` action only; it cross-checks approval checklist,
+  approval status, dry-run audit consistency, blocker rollup, and `HW-AAC`
+  gates without persisting approval records, updating review queues, loading
   adapters, or creating Driver/HAL or virtualization work.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`

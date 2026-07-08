@@ -206,6 +206,7 @@ checks = [
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1015,6 +1016,61 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatus" in encoded, "gRPC hardware approval authority status binding missing"
         assert "HW-AAS-002" in encoded and "zero-persisted-approval-records" in encoded, "hardware approval authority status missing zero records gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval authority status missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency":
+        consistency = payload["payload"]
+        encoded = json.dumps(consistency)
+        gate_ids = {item["gate_id"] for item in consistency["mandatory_gates"]}
+        check_ids = {item["check_id"] for item in consistency["consistency_checks"]}
+        assert consistency["approval_authority_audit_consistency_state"] == "contract-only-approval-authority-consistent-blocked", "hardware approval authority audit consistency left blocked state"
+        assert consistency["consistency_checked"] is True, "hardware approval authority audit consistency did not run"
+        assert consistency["consistency_passed"] is True, "hardware approval authority audit consistency failed"
+        assert consistency["approval_status_no_store_consistent"] is True, "hardware approval authority audit consistency lost no-store status"
+        assert consistency["approval_decisions_open_consistent"] is True, "hardware approval authority audit consistency closed decisions"
+        assert consistency["adapter_load_blocked_consistent"] is True, "hardware approval authority audit consistency unblocked adapter load"
+        assert consistency["dry_run_audit_consistency_passed"] is True, "hardware approval authority audit consistency lost dry-run audit source"
+        assert consistency["source_surfaces"]["adapter_load_dry_run_audit_consistency"]["called_by_approval_authority_audit_consistency"] is True, "hardware approval authority audit consistency did not bind dry-run audit source"
+        assert consistency["source_surfaces"]["approval_authority_checklist"]["called_by_approval_authority_audit_consistency"] is True, "hardware approval authority audit consistency did not bind checklist source"
+        assert consistency["source_surfaces"]["approval_authority_status"]["called_by_approval_authority_audit_consistency"] is True, "hardware approval authority audit consistency did not bind status source"
+        assert consistency["source_surfaces"]["approval_authority_status"]["persisted_approval_record_count"] == 0, "hardware approval authority audit consistency saw persisted approval records"
+        assert {"HW-AAC-001", "HW-AAC-002", "HW-AAC-003", "HW-AAC-004", "HW-AAC-005", "HW-AAC-006", "HW-AAC-007", "HW-AAC-008"} <= gate_ids, "hardware approval authority audit consistency missing mandatory gates"
+        assert {"HW-AAC-CHECK-001", "HW-AAC-CHECK-002", "HW-AAC-CHECK-003", "HW-AAC-CHECK-004", "HW-AAC-CHECK-005"} <= check_ids, "hardware approval authority audit consistency missing checks"
+        for key in [
+            "approval_record_available",
+            "approval_review_queue_updated",
+            "approval_evidence_store_active",
+            "approval_decision_passed",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_workflow_active",
+            "approval_record_persisted",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert consistency["summary"][key] is False, f"hardware approval authority audit consistency summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active",
+            "owner_decision_evidence_adapter_load_approval_authority_status_active",
+            "owner_decision_evidence_adapter_load_approval_authority_checklist_active",
+            "owner_decision_evidence_adapter_load_dry_run_audit_consistency_active",
+            "consistency_passed",
+            "approval_status_no_store_consistent",
+            "approval_decisions_open_consistent",
+            "adapter_load_blocked_consistent",
+            "dry_run_audit_consistency_passed",
+        ]:
+            assert consistency["summary"][key] is True, f"hardware approval authority audit consistency summary did not set {key}"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson" in encoded, "Android hardware approval authority audit consistency binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-audit-consistency" in encoded, "Linux CLI hardware approval authority audit consistency binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.audit.consistency" in encoded, "Linux IPC hardware approval authority audit consistency binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistency" in encoded, "gRPC hardware approval authority audit consistency binding missing"
+        assert "HW-AAC-002" in encoded and "approval-status-no-store-consistent" in encoded, "hardware approval authority audit consistency missing no-store gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval authority audit consistency missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1787,6 +1843,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 
