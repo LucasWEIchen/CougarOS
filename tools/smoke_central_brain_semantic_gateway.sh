@@ -207,6 +207,33 @@ checks = [
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency", None, "HW-002"),
+    (
+        "POST",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run",
+        {
+            "approval_decision_request_id": "semantic-smoke-hw-approval-decision-dry-run",
+            "selected_interface_id": "npu-runtime",
+            "selected_adapter_id": "target-platform-npu-adapter",
+            "adapter_version": "0.0.0-contract",
+            "approval_decision": "approve_adapter_load",
+            "approval_authority": "target-platform-approval-authority",
+            "approval_signature": "contract-only-signature-placeholder",
+            "evidence_refs": [
+                {
+                    "ref_id": "semantic-smoke-hw-approval-decision-evidence",
+                    "type": "approval_authority",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "semantic-gateway-smoke",
+                    "summary": "contract-only approval decision dry-run evidence reference",
+                }
+            ],
+            "requested_by": {"app_id": "semantic-gateway-smoke", "role": "test"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1071,6 +1098,63 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistency" in encoded, "gRPC hardware approval authority audit consistency binding missing"
         assert "HW-AAC-002" in encoded and "approval-status-no-store-consistent" in encoded, "hardware approval authority audit consistency missing no-store gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval authority audit consistency missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run":
+        decision = payload["payload"]
+        encoded = json.dumps(decision)
+        gate_ids = {item["gate_id"] for item in decision["mandatory_gates"]}
+        assert decision["approval_decision_dry_run_state"] == "rejected_blocked_contract_only", "hardware approval decision dry-run did not reject contract-only"
+        assert decision["approval_decision_dry_run_validated"] is True, "hardware approval decision dry-run did not validate sample shape"
+        assert decision["approval_decision"] == "approve_adapter_load", "hardware approval decision dry-run lost decision intent"
+        assert decision["approval_authority_ready"] is False, "hardware approval decision dry-run unexpectedly approved authority"
+        assert decision["approval_signature_present"] is True, "hardware approval decision dry-run lost signature marker"
+        assert decision["adapter_load_blocked"] is True, "hardware approval decision dry-run did not bind blocker rollup"
+        assert decision["validation"]["request_shape_valid"] is True, "hardware approval decision dry-run request shape invalid"
+        assert decision["validation"]["approval_status_no_store_bound"] is True, "hardware approval decision dry-run did not bind no-store status"
+        assert {"HW-APD-001", "HW-APD-002", "HW-APD-003", "HW-APD-004", "HW-APD-005", "HW-APD-006", "HW-APD-007", "HW-APD-008"} <= gate_ids, "hardware approval decision dry-run missing mandatory gates"
+        for key in [
+            "approval_authority_ready",
+            "approval_record_available",
+            "approval_record_persisted",
+            "approval_decision_persisted",
+            "approval_review_queue_updated",
+            "approval_evidence_store_active",
+            "approval_decision_passed",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_workflow_active",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert decision["summary"][key] is False, f"hardware approval decision dry-run summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_active",
+            "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active",
+            "owner_decision_evidence_adapter_load_approval_authority_status_active",
+            "owner_decision_evidence_adapter_load_approval_authority_checklist_active",
+            "owner_decision_evidence_adapter_load_blocker_rollup_active",
+            "request_shape_valid",
+            "approval_decision_dry_run_validated",
+            "policy_allowed",
+            "approval_status_no_store_consistent",
+            "approval_decisions_open",
+            "adapter_load_blocked_consistent",
+        ]:
+            assert decision["summary"][key] is True, f"hardware approval decision dry-run summary did not set {key}"
+        assert decision["decision_dry_run_result"]["allowed_to_persist_approval"] is False, "hardware approval decision dry-run allowed approval persistence"
+        assert decision["decision_dry_run_result"]["allowed_to_load_adapter"] is False, "hardware approval decision dry-run allowed adapter load"
+        assert decision["decision_dry_run_result"]["hardware_accessed"] is False, "hardware approval decision dry-run touched hardware"
+        assert "dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson" in encoded, "Android hardware approval decision dry-run binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run" in encoded, "Linux CLI hardware approval decision dry-run binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run" in encoded, "Linux IPC hardware approval decision dry-run binding missing"
+        assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision" in encoded, "gRPC hardware approval decision dry-run binding missing"
+        assert "HW-APD-006" in encoded and "blocked-contract-only-rejection" in encoded, "hardware approval decision dry-run missing blocked rejection gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval decision dry-run missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1844,6 +1928,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

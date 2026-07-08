@@ -15,7 +15,7 @@ Brain semantic gateway.
   contract, governance migration readiness, governance deployment plan,
   Protocol Binding readiness, Android/Linux delivery readiness, Python
   prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
-  hardware empty-interface registry, hardware interface activation checklist, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, activation evidence retention checklist contract, activation evidence decision status rollup contract, hardware owner evidence replacement trigger checklist contract, selected-adapter readiness checklist contract, adapter load blocker rollup contract, adapter-load dry-run contract, adapter-load dry-run status contract, adapter-load dry-run audit consistency contract, adapter-load approval authority checklist contract, and adapter-load approval authority no-store status contract,
+  hardware empty-interface registry, hardware interface activation checklist, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, activation evidence retention checklist contract, activation evidence decision status rollup contract, hardware owner evidence replacement trigger checklist contract, selected-adapter readiness checklist contract, adapter load blocker rollup contract, adapter-load dry-run contract, adapter-load dry-run status contract, adapter-load dry-run audit consistency contract, adapter-load approval authority checklist contract, adapter-load approval authority no-store status contract, adapter-load approval authority audit consistency contract, and adapter-load approval decision dry-run contract,
   Vehicle/Body Signal catalog, and Vehicle
   Signal read-bridge activation criteria contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
@@ -84,6 +84,7 @@ Brain semantic gateway.
 | `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| `dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson` | `POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalActivationJson` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalValidationJson` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
@@ -284,6 +285,14 @@ Brain semantic gateway.
   approval status, dry-run audit consistency, blocker rollup, and `HW-AAC`
   gates without persisting approval records, updating review queues, loading
   adapters, or creating Driver/HAL or virtualization work.
+- `dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson`
+  exposes the approval decision dry-run through the Android Console `HW ApDec`
+  action only; it validates approval decision request shape, authority,
+  signature, requester, and approval evidence refs, then returns
+  `approval_decision_dry_run_state=rejected_blocked_contract_only` while keeping
+  `approval_record_persisted=false`, `approval_decision_persisted=false`,
+  `approval_review_queue_updated=false`, `approval_evidence_store_active=false`,
+  `adapter_load_allowed=false`, and `hardware_accessed=false`.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter

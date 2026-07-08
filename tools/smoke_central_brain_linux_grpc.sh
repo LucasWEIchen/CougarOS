@@ -1642,6 +1642,68 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAud
 assert "HW-AAC-002" in encoded and "approval-status-no-store-consistent" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+decision = payload["gateway"]["payload"]
+encoded = json.dumps(decision)
+gate_ids = {item["gate_id"] for item in decision["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert decision["approval_decision_dry_run_state"] == "rejected_blocked_contract_only", response
+assert decision["approval_decision_dry_run_validated"] is True, response
+assert decision["approval_decision"] == "approve_adapter_load", response
+assert decision["approval_authority_ready"] is False, response
+assert decision["approval_signature_present"] is True, response
+assert decision["adapter_load_blocked"] is True, response
+assert decision["validation"]["request_shape_valid"] is True, response
+assert decision["validation"]["approval_status_no_store_bound"] is True, response
+assert {"HW-APD-001", "HW-APD-002", "HW-APD-003", "HW-APD-004", "HW-APD-005", "HW-APD-006", "HW-APD-007", "HW-APD-008"} <= gate_ids, response
+for key in [
+    "approval_authority_ready",
+    "approval_record_available",
+    "approval_record_persisted",
+    "approval_decision_persisted",
+    "approval_review_queue_updated",
+    "approval_evidence_store_active",
+    "approval_decision_passed",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert decision["summary"][key] is False, response
+for key in [
+    "owner_decision_evidence_adapter_load_approval_decision_dry_run_active",
+    "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active",
+    "owner_decision_evidence_adapter_load_approval_authority_status_active",
+    "owner_decision_evidence_adapter_load_approval_authority_checklist_active",
+    "owner_decision_evidence_adapter_load_blocker_rollup_active",
+    "request_shape_valid",
+    "approval_decision_dry_run_validated",
+    "policy_allowed",
+    "approval_status_no_store_consistent",
+    "approval_decisions_open",
+    "adapter_load_blocked_consistent",
+]:
+    assert decision["summary"][key] is True, response
+assert decision["decision_dry_run_result"]["allowed_to_persist_approval"] is False, response
+assert decision["decision_dry_run_result"]["allowed_to_load_adapter"] is False, response
+assert decision["decision_dry_run_result"]["hardware_accessed"] is False, response
+assert "dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run" in encoded, response
+assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision" in encoded, response
+assert "HW-APD-006" in encoded and "blocked-contract-only-rejection" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

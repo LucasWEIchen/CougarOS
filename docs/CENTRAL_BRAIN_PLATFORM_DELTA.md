@@ -211,6 +211,21 @@ approval checklist、approval authority no-store status、adapter-load dry-run a
 不加载 adapter，不激活 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，
 不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load approval decision dry-run 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run`、Android Binder
+`dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson`、Android Console `HW ApDec`、
+Linux CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run` 与 Linux gRPC/RPC
+`DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision` 调用。该 dry-run 只校验 selected interface、
+adapter identity、approval decision、approval authority/signature、requester 和 evidence refs，并绑定 approval
+checklist/status/audit 与 blocker rollup，固定 `HW-APD-001..008`、
+`approval_decision_dry_run_state=rejected_blocked_contract_only`、`approval_authority_ready=false`、
+`approval_record_persisted=false`、`approval_decision_persisted=false`、`approval_review_queue_updated=false`、
+`approval_evidence_store_active=false`、`adapter_load_allowed=false`、`hardware_accessed=false`、
+`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不持久化 approval decision，
+不创建 evidence store，不更新 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 adapter，
+不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 Event subscription cursor/replay storage 按 FW-U-003、NV-P-006、XSC-002、XSC-006 在
 `GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder
 `getEventSubscriptionCursorReplayStorageJson`、Linux CLI

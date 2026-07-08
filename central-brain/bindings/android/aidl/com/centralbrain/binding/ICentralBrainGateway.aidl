@@ -139,6 +139,8 @@ interface ICentralBrainGateway {
 
     String getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson(String traceId);
 
+    String dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson(String traceId, String requestJson);
+
     String getVehicleSignalsJson(String traceId);
 
     String getVehicleSignalActivationJson(String traceId);

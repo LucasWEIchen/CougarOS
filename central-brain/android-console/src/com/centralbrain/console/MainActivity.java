@@ -60,6 +60,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -393,7 +394,16 @@ public class MainActivity extends Activity {
                 getHardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistency();
             }
         });
-        prototypeReadinessButton = addButton(hardwareApprovalAuditRow, "Prototype", new View.OnClickListener() {
+
+        LinearLayout hardwareApprovalDecisionRow = buttonRow();
+        buttonArea.addView(hardwareApprovalDecisionRow);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton = addButton(hardwareApprovalDecisionRow, "HW ApDec", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dryRunHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecision();
+            }
+        });
+        prototypeReadinessButton = addButton(hardwareApprovalDecisionRow, "Prototype", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getPrototypeReadiness();
@@ -831,6 +841,32 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void dryRunHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecision() {
+        setBusy(true, "Status: running hardware owner evidence adapter load approval decision dry-run via Binder");
+        String body = "{\"approval_decision_request_id\":\"android-console-hw-approval-decision-dry-run\","
+                + "\"selected_interface_id\":\"npu-runtime\","
+                + "\"selected_adapter_id\":\"target-platform-npu-adapter\","
+                + "\"adapter_version\":\"0.0.0-contract\","
+                + "\"approval_decision\":\"approve_adapter_load\","
+                + "\"approval_authority\":\"target-platform-approval-authority\","
+                + "\"approval_signature\":\"contract-only-signature-placeholder\","
+                + "\"evidence_refs\":[{\"ref_id\":\"android-console-hw-approval-decision-evidence\","
+                + "\"type\":\"approval_authority\","
+                + "\"uri_or_path\":\"docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md\","
+                + "\"owner\":\"android-console\","
+                + "\"summary\":\"contract-only approval decision dry-run evidence reference\"}],"
+                + "\"requested_by\":{\"app_id\":\"central-brain-console\",\"role\":\"debug_console\"},"
+                + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],"
+                + "\"vehicle_state\":\"parked\","
+                + "\"safety_state\":\"normal\"}";
+        gatewayRequest("Hardware Owner Evidence Adapter Load Approval Decision Dry-Run (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run"), body);
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -879,7 +915,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -965,6 +1001,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

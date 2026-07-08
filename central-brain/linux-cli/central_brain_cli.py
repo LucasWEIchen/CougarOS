@@ -200,6 +200,32 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency",
         None,
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run": (
+        "POST",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run",
+        {
+            "approval_decision_request_id": "linux-cli-hw-approval-decision-dry-run",
+            "selected_interface_id": "npu-runtime",
+            "selected_adapter_id": "target-platform-npu-adapter",
+            "adapter_version": "0.0.0-contract",
+            "approval_decision": "approve_adapter_load",
+            "approval_authority": "target-platform-approval-authority",
+            "approval_signature": "contract-only-signature-placeholder",
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-cli-hw-approval-decision-evidence",
+                    "type": "approval_authority",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-cli",
+                    "summary": "contract-only approval decision dry-run evidence reference",
+                }
+            ],
+            "requested_by": {"app_id": "linux-cli", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),
