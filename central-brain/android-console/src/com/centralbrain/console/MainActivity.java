@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistencyButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -473,6 +474,15 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getHardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadiness();
+            }
+        });
+
+        LinearLayout hardwareApprovalClosureAuditRow = buttonRow();
+        buttonArea.addView(hardwareApprovalClosureAuditRow);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyButton = addButton(hardwareApprovalClosureAuditRow, "HW ApHCAud", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency();
             }
         });
 
@@ -1032,6 +1042,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency() {
+        setBusy(true, "Status: loading hardware owner evidence adapter load approval reviewer evidence handoff acceptance closure readiness audit consistency via Binder");
+        gatewayRequest("Hardware Owner Evidence Adapter Load Approval Reviewer Evidence Handoff Acceptance Closure Readiness Audit Consistency (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -1176,6 +1196,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistencyButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

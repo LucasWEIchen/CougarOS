@@ -288,6 +288,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1967,6 +1973,75 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklist" in encoded, "gRPC hardware approval reviewer handoff acceptance closure readiness binding missing"
         assert "HW-AHE-007" in encoded and "android-linux-closure-readiness-parity" in encoded, "hardware approval reviewer handoff acceptance closure readiness missing synchronized binding gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval reviewer handoff acceptance closure readiness missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency":
+        closure_audit = payload["payload"]
+        encoded = json.dumps(closure_audit)
+        gate_ids = {item["gate_id"] for item in closure_audit["mandatory_gates"]}
+        audit_ids = {item["audit_id"] for item in closure_audit["closure_readiness_audit_rows"]}
+        assert closure_audit["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency", "hardware approval reviewer handoff acceptance closure readiness audit wrong operation"
+        assert closure_audit["approval_reviewer_evidence_handoff_acceptance_closure_readiness_audit_state"] == "contract-only-handoff-acceptance-closure-readiness-audit-consistent", "hardware approval reviewer handoff acceptance closure readiness audit wrong state"
+        assert closure_audit["approval_reviewer_evidence_handoff_acceptance_closure_readiness_audit_consistency_active"] is True, "hardware approval reviewer handoff acceptance closure readiness audit inactive"
+        assert closure_audit["consistency_passed"] is True, "hardware approval reviewer handoff acceptance closure readiness audit failed consistency"
+        assert closure_audit["closure_readiness_checklist_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost checklist consistency"
+        assert closure_audit["closure_check_count_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost count consistency"
+        assert closure_audit["closure_blocker_state_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost blocker consistency"
+        assert closure_audit["decision_rollup_closure_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost rollup consistency"
+        assert closure_audit["no_store_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost no-store consistency"
+        assert closure_audit["no_review_gate_load_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost no-review/gate/load consistency"
+        assert closure_audit["no_side_effects_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost no-side-effect consistency"
+        assert closure_audit["source_surfaces_bound"] is True, "hardware approval reviewer handoff acceptance closure readiness audit source surfaces unbound"
+        assert closure_audit["closure_readiness_complete"] is True, "hardware approval reviewer handoff acceptance closure readiness audit incomplete"
+        assert closure_audit["closure_ready"] is False, "hardware approval reviewer handoff acceptance closure readiness audit became ready"
+        assert closure_audit["closure_blocker_count"] == 8, "hardware approval reviewer handoff acceptance closure readiness audit lost blockers"
+        assert closure_audit["required_closure_check_count"] == 8, "hardware approval reviewer handoff acceptance closure readiness audit lost required checks"
+        assert closure_audit["ready_closure_check_count"] == 0, "hardware approval reviewer handoff acceptance closure readiness audit unexpectedly passed checks"
+        assert all(item["consistent"] is True for item in closure_audit["closure_readiness_audit_rows"]), "hardware approval reviewer handoff acceptance closure readiness audit row inconsistent"
+        assert all(item["blocks_adapter_load"] is True for item in closure_audit["closure_readiness_audit_rows"]), "hardware approval reviewer handoff acceptance closure readiness audit failed to block adapter load"
+        assert {
+            "HW-AHF-001",
+            "HW-AHF-002",
+            "HW-AHF-003",
+            "HW-AHF-004",
+            "HW-AHF-005",
+            "HW-AHF-006",
+            "HW-AHF-007",
+            "HW-AHF-008",
+        } <= gate_ids, "hardware approval reviewer handoff acceptance closure readiness audit missing mandatory gates"
+        assert {
+            "HW-AHF-AUDIT-001",
+            "HW-AHF-AUDIT-002",
+            "HW-AHF-AUDIT-003",
+            "HW-AHF-AUDIT-004",
+            "HW-AHF-AUDIT-005",
+            "HW-AHF-AUDIT-006",
+            "HW-AHF-AUDIT-007",
+            "HW-AHF-AUDIT-008",
+        } <= audit_ids, "hardware approval reviewer handoff acceptance closure readiness audit missing rows"
+        sources = closure_audit["source_surfaces"]
+        assert sources["approval_reviewer_evidence_handoff_acceptance_closure_readiness_checklist"]["closure_readiness_complete"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost closure source"
+        assert sources["approval_reviewer_evidence_handoff_acceptance_decision_rollup"]["decision_rollup_consistent"] is True, "hardware approval reviewer handoff acceptance closure readiness audit lost rollup source"
+        for key in [
+            "closure_ready",
+            "handoff_acceptance_allowed",
+            "evidence_handoff_allowed",
+            "approval_review_allowed",
+            "retention_review_allowed",
+            "gate_closure_allowed",
+            "adapter_load_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert closure_audit["summary"][key] is False, f"hardware approval reviewer handoff acceptance closure readiness audit summary unexpectedly set {key}"
+        assert closure_audit["summary"]["consistency_passed"] is True, "hardware approval reviewer handoff acceptance closure readiness audit summary failed"
+        assert closure_audit["summary"]["closure_blocker_count"] == 8, "hardware approval reviewer handoff acceptance closure readiness audit summary lost blocker count"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson" in encoded, "Android hardware approval reviewer handoff acceptance closure readiness audit binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency" in encoded, "Linux CLI hardware approval reviewer handoff acceptance closure readiness audit binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.audit.consistency" in encoded, "Linux IPC hardware approval reviewer handoff acceptance closure readiness audit binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency" in encoded, "gRPC hardware approval reviewer handoff acceptance closure readiness audit binding missing"
+        assert "HW-AHF-007" in encoded and "android-linux-closure-readiness-audit-parity" in encoded, "hardware approval reviewer handoff acceptance closure readiness audit missing synchronized binding gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval reviewer handoff acceptance closure readiness audit missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -2750,6 +2825,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-decision-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

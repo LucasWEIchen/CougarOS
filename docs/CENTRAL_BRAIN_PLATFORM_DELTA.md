@@ -341,6 +341,18 @@ acceptance record store、review workflow、audit retention、rollback/fault、D
 它不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence，不创建 evidence store，不更新 review queue，不关闭 gate，
 不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load approval reviewer evidence handoff acceptance closure readiness audit consistency 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency`、Android Binder
+`getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson`、Android Console `HW ApHCAud`、
+Linux CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.audit.consistency` 与 Linux gRPC/RPC
+`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency` 调用。该 audit 只校验 closure readiness checklist、
+closure blocker state、decision rollup、Android/Linux parity、no-store/no-review-gate-load 和 no-side-effect counters，暴露 `HW-AHF-001..008`、
+`consistency_passed=true`、`closure_readiness_checklist_consistent=true`、`closure_ready=false`、`required_closure_check_count=8`、`closure_blocker_count=8`、
+`ready_closure_check_count=0`、`adapter_load_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。
+它不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence，不创建 evidence store，不更新 review queue，不关闭 gate，
+不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 Event subscription cursor/replay storage 按 FW-U-003、NV-P-006、XSC-002、XSC-006 在
 `GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder
 `getEventSubscriptionCursorReplayStorageJson`、Linux CLI
