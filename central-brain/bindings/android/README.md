@@ -307,6 +307,13 @@ Brain semantic gateway.
   approval authority audit/status, and blocker rollup with `HW-APA-001..008`
   while keeping the dry-run POST uncalled, approval decisions unpersisted,
   adapter load, hardware access, Driver/HAL, and virtualization disabled.
+- `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson`
+  exposes the approval decision closure blocker matrix through the Android
+  Console `HW ApBlock` action only; it lists approval authority, policy,
+  signature/RBAC, approval record schema, evidence store, review workflow,
+  target smoke, rollback, fault model, Driver/HAL gap closure, audit owner, and
+  gate closure blockers with `HW-APM-001..008` while keeping closure, adapter
+  load, hardware access, Driver/HAL, and virtualization disabled.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter

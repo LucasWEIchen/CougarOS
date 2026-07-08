@@ -1152,6 +1152,166 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKER_MATRIX_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKER_MATRIX_GATES = [
+    {
+        "gate_id": "HW-APM-001",
+        "name": "closure-blocker-matrix-surface-bound",
+        "required_evidence": "Closure blocker matrix links approval decision audit/status, approval authority audit/status, and adapter-load blocker rollup surfaces.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APM-002",
+        "name": "approval-authority-policy-blockers-recorded",
+        "required_evidence": "Approval authority and approval policy dependencies remain machine-readable open blockers.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APM-003",
+        "name": "signature-rbac-blockers-recorded",
+        "required_evidence": "Owner signature source and RBAC mapping dependencies remain machine-readable open blockers.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APM-004",
+        "name": "approval-record-evidence-review-blockers-recorded",
+        "required_evidence": "Approval record schema, evidence store owner, and review workflow dependencies remain machine-readable open blockers.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APM-005",
+        "name": "target-smoke-rollback-fault-blockers-recorded",
+        "required_evidence": "Target smoke evidence, rollback plan, and fault model dependencies remain machine-readable open blockers.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APM-006",
+        "name": "driver-audit-gate-closure-blockers-recorded",
+        "required_evidence": "Driver/HAL gap closure evidence, audit owner, and gate closure authority dependencies remain machine-readable open blockers.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APM-007",
+        "name": "android-linux-closure-blocker-parity",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same closure blocker matrix.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APM-008",
+        "name": "no-side-effect-closure-matrix",
+        "required_evidence": "Closure blocker matrix does not persist approval decisions, update review queues, close gates, load adapters, access hardware, call Driver/HAL, or trigger virtualization.",
+        "passed": True,
+    },
+]
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKERS = [
+    {
+        "blocker_id": "HW-APM-BLK-001",
+        "dependency": "approval_authority",
+        "required_decision": "Assign the target platform role allowed to approve adapter load closure.",
+        "source_surface": "approval_authority_checklist",
+        "source_gate_ids": ["HW-ALA-002", "HW-AAS-004", "HW-AAC-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-002",
+        "dependency": "approval_policy",
+        "required_decision": "Confirm the Runtime & Governance policy that can move decision dry-run from rejected to closure review.",
+        "source_surface": "approval_authority_checklist",
+        "source_gate_ids": ["HW-ALA-003", "HW-APD-006", "HW-APA-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-003",
+        "dependency": "owner_signature_source",
+        "required_decision": "Confirm approval signature source, signing identity, and audit-verifiable reviewer identity.",
+        "source_surface": "approval_authority_checklist",
+        "source_gate_ids": ["HW-ALA-004", "HW-APD-005"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-004",
+        "dependency": "rbac_mapping",
+        "required_decision": "Map Android Binder identity and Linux service identity to the approval authority RBAC role.",
+        "source_surface": "approval_authority_checklist",
+        "source_gate_ids": ["HW-ALA-004", "HW-APM-007"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-005",
+        "dependency": "approval_record_schema",
+        "required_decision": "Approve durable approval record fields, versioning, hash/signature metadata, and replay rules.",
+        "source_surface": "approval_authority_status",
+        "source_gate_ids": ["HW-AAS-002", "HW-APS-002"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-006",
+        "dependency": "approval_evidence_store_owner",
+        "required_decision": "Assign durable approval evidence store owner, allowed URI scheme, retention, and export path.",
+        "source_surface": "approval_authority_status",
+        "source_gate_ids": ["HW-AAS-003", "HW-OER-001", "HW-OER-002", "HW-OER-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-007",
+        "dependency": "review_workflow_owner",
+        "required_decision": "Assign approval review workflow owner, queue semantics, rejection path, and SLA.",
+        "source_surface": "approval_authority_status",
+        "source_gate_ids": ["HW-AAS-003", "HW-OER-004", "HW-APS-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-008",
+        "dependency": "target_smoke_evidence",
+        "required_decision": "Attach target hardware smoke evidence for discovery, denied access, timeout/reset, and audit export.",
+        "source_surface": "adapter_load_blocker_rollup",
+        "source_gate_ids": ["HW-ACT-006", "HW-ODS-006", "HW-OET-007", "HW-OEA-006"],
+        "driver_gap_ids": ["DRV-GAP-001"],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-009",
+        "dependency": "rollback_plan",
+        "required_decision": "Confirm rollback-to-empty-interface plan and gate rollback behavior after failed adapter load.",
+        "source_surface": "adapter_load_blocker_rollup",
+        "source_gate_ids": ["HW-ACT-007", "HW-OER-007", "HW-OET-005", "HW-OEA-007"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-010",
+        "dependency": "fault_model",
+        "required_decision": "Review Safety/Policy fault model for adapter timeout, reset, degraded state, and fault isolation.",
+        "source_surface": "adapter_load_blocker_rollup",
+        "source_gate_ids": ["HW-ACT-005", "HW-OET-006", "HW-OEA-005"],
+        "driver_gap_ids": ["DRV-GAP-005"],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-011",
+        "dependency": "driver_hal_gap_closure_evidence",
+        "required_decision": "Attach Driver/HAL gap closure evidence for target NPU runtime, device access, and vendor SDK bridge.",
+        "source_surface": "adapter_load_blocker_rollup",
+        "source_gate_ids": ["HW-ACT-002", "HW-ODS-004", "HW-OET-003", "HW-OEA-003"],
+        "driver_gap_ids": ["DRV-GAP-001", "DRV-GAP-005"],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-012",
+        "dependency": "audit_owner",
+        "required_decision": "Assign audit export owner and acceptance rule for approval decision closure evidence.",
+        "source_surface": "approval_decision_audit_consistency",
+        "source_gate_ids": ["HW-APA-001", "HW-APA-006", "HW-APM-001"],
+        "driver_gap_ids": [],
+    },
+    {
+        "blocker_id": "HW-APM-BLK-013",
+        "dependency": "gate_closure_authority",
+        "required_decision": "Assign authority allowed to close approval decision, evidence, Driver/HAL, smoke, rollback, and fault gates.",
+        "source_surface": "approval_decision_audit_consistency",
+        "source_gate_ids": ["HW-OER-005", "HW-APD-007", "HW-APA-008"],
+        "driver_gap_ids": [],
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -3918,6 +4078,217 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_payload(self) -> dict[str, Any]:
+        decision_status = self.owner_decision_evidence_adapter_load_approval_decision_dry_run_status_payload()
+        decision_audit = self.owner_decision_evidence_adapter_load_approval_decision_dry_run_audit_consistency_payload()
+        approval_status = self.owner_decision_evidence_adapter_load_approval_authority_status_payload()
+        approval_audit = self.owner_decision_evidence_adapter_load_approval_authority_audit_consistency_payload()
+        blocker_rollup = self.owner_decision_evidence_adapter_load_blocker_rollup_payload()
+        open_blocker_ids = [
+            item["blocker_id"]
+            for item in blocker_rollup["blocker_groups"]
+            if item["state"] in ("open", "enforced")
+        ]
+        open_decision_ids = approval_status["source_surfaces"]["approval_authority_checklist"]["open_decision_ids"]
+        closure_blockers = []
+        for item in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKERS:
+            closure_blockers.append(
+                {
+                    **copy.deepcopy(item),
+                    "state": "open",
+                    "owner_confirmed": False,
+                    "evidence_attached": False,
+                    "reviewed": False,
+                    "ready_for_closure": False,
+                    "blocks_adapter_load": True,
+                    "blocks_gate_closure": True,
+                }
+            )
+        blockers_by_dependency = {
+            item["dependency"]: {
+                "blocker_id": item["blocker_id"],
+                "state": item["state"],
+                "ready_for_closure": item["ready_for_closure"],
+            }
+            for item in closure_blockers
+        }
+        source_surface_checks = [
+            {
+                "check_id": "HW-APM-CHECK-001",
+                "name": "approval-decision-audit-bound",
+                "source": "approval_decision_dry_run_audit_consistency",
+                "passed": decision_audit["consistency_passed"] is True,
+            },
+            {
+                "check_id": "HW-APM-CHECK-002",
+                "name": "approval-decision-status-no-store-bound",
+                "source": "approval_decision_dry_run_status",
+                "passed": decision_status["last_approval_decision_result_available"] is False
+                and decision_status["persisted_approval_decision_count"] == 0,
+            },
+            {
+                "check_id": "HW-APM-CHECK-003",
+                "name": "approval-authority-status-open-bound",
+                "source": "approval_authority_status",
+                "passed": approval_status["approval_decisions_open"] is True
+                and approval_status["approval_record_available"] is False,
+            },
+            {
+                "check_id": "HW-APM-CHECK-004",
+                "name": "approval-authority-audit-bound",
+                "source": "approval_authority_audit_consistency",
+                "passed": approval_audit["adapter_load_blocked_consistent"] is True,
+            },
+            {
+                "check_id": "HW-APM-CHECK-005",
+                "name": "adapter-load-blocker-rollup-bound",
+                "source": "adapter_load_blocker_rollup",
+                "passed": blocker_rollup["adapter_load_ready"] is False
+                and blocker_rollup["all_blockers_cleared"] is False,
+            },
+        ]
+        no_side_effects_consistent = all(
+            decision_audit["summary"][key] is False
+            for key in [
+                "decision_dry_run_post_called_by_audit_consistency",
+                "approval_decision_persisted",
+                "approval_decision_review_queue_updated",
+                "approval_decision_evidence_store_active",
+                "review_queue_updated",
+                "gate_state_changed",
+                "gates_closed",
+                "adapter_load_allowed",
+                "adapter_activation_allowed",
+                "hardware_access_allowed",
+                "hardware_accessed",
+                "driver_development_triggered",
+                "virtualization_development_triggered",
+                "service_dispatch_triggered",
+            ]
+        )
+        matrix_complete = all(item["state"] == "open" for item in closure_blockers) and all(
+            item["passed"] for item in source_surface_checks
+        )
+
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix",
+            "approval_decision_closure_blocker_matrix_state": "contract-only-approval-decision-closure-blockers-open",
+            "approval_decision_closure_blocker_matrix_active": True,
+            "matrix_complete": matrix_complete,
+            "closure_ready": False,
+            "closure_allowed": False,
+            "approval_decision_closure_allowed": False,
+            "approval_decision_closure_status": "blocked_contract_only",
+            "unresolved_blocker_count": len(closure_blockers),
+            "open_blocker_ids": [item["blocker_id"] for item in closure_blockers],
+            "open_decision_ids": open_decision_ids,
+            "adapter_load_blocker_ids": open_blocker_ids,
+            "closure_blockers": closure_blockers,
+            "blockers_by_dependency": blockers_by_dependency,
+            "source_surfaces": {
+                "approval_decision_dry_run_audit_consistency": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency",
+                    "state": decision_audit["approval_decision_dry_run_audit_consistency_state"],
+                    "consistency_passed": decision_audit["consistency_passed"],
+                    "no_store_consistent": decision_audit["no_store_consistent"],
+                    "decision_dry_run_rejection_consistent": decision_audit[
+                        "decision_dry_run_rejection_consistent"
+                    ],
+                },
+                "approval_decision_dry_run_status": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status",
+                    "state": decision_status["approval_decision_dry_run_status_state"],
+                    "last_approval_decision_result_available": decision_status[
+                        "last_approval_decision_result_available"
+                    ],
+                    "persisted_approval_decision_count": decision_status["persisted_approval_decision_count"],
+                    "pending_approval_decision_review_count": decision_status[
+                        "pending_approval_decision_review_count"
+                    ],
+                },
+                "approval_authority_status": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status",
+                    "state": approval_status["approval_authority_status_state"],
+                    "approval_record_available": approval_status["approval_record_available"],
+                    "approval_decisions_open": approval_status["approval_decisions_open"],
+                    "open_decision_ids": open_decision_ids,
+                },
+                "approval_authority_audit_consistency": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency",
+                    "state": approval_audit["approval_authority_audit_consistency_state"],
+                    "consistency_passed": approval_audit["consistency_passed"],
+                    "approval_decisions_open_consistent": approval_audit["approval_decisions_open_consistent"],
+                    "adapter_load_blocked_consistent": approval_audit["adapter_load_blocked_consistent"],
+                },
+                "adapter_load_blocker_rollup": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                    "state": blocker_rollup["adapter_load_blocker_rollup_state"],
+                    "adapter_load_ready": blocker_rollup["adapter_load_ready"],
+                    "all_blockers_cleared": blocker_rollup["all_blockers_cleared"],
+                    "open_blocker_ids": open_blocker_ids,
+                },
+            },
+            "source_surface_checks": source_surface_checks,
+            "mandatory_gates": copy.deepcopy(
+                HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKER_MATRIX_GATES
+            ),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.closure.blocker.matrix",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_active": True,
+                "owner_decision_evidence_adapter_load_approval_decision_dry_run_audit_consistency_active": True,
+                "owner_decision_evidence_adapter_load_approval_decision_dry_run_status_active": True,
+                "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active": True,
+                "owner_decision_evidence_adapter_load_approval_authority_status_active": True,
+                "owner_decision_evidence_adapter_load_blocker_rollup_active": True,
+                "matrix_complete": matrix_complete,
+                "unresolved_blocker_count": len(closure_blockers),
+                "closure_ready": False,
+                "closure_allowed": False,
+                "approval_decision_closure_allowed": False,
+                "approval_authority_assigned": False,
+                "approval_policy_confirmed": False,
+                "approval_signature_rules_confirmed": False,
+                "approval_rbac_confirmed": False,
+                "approval_record_schema_confirmed": False,
+                "approval_record_available": False,
+                "approval_record_persisted": False,
+                "approval_evidence_store_owner_confirmed": False,
+                "approval_evidence_store_active": False,
+                "review_workflow_owner_confirmed": False,
+                "review_workflow_active": False,
+                "target_smoke_evidence_attached": False,
+                "rollback_plan_confirmed": False,
+                "fault_model_confirmed": False,
+                "driver_hal_gap_closure_evidence_attached": False,
+                "audit_owner_confirmed": False,
+                "gate_closure_authority_confirmed": False,
+                "decision_dry_run_post_called_by_closure_matrix": False,
+                "approval_decision_persisted": False,
+                "approval_decision_review_queue_updated": False,
+                "approval_decision_evidence_store_active": False,
+                "approval_decision_passed": False,
+                "approval_decisions_open": approval_status["approval_decisions_open"],
+                "no_side_effects_consistent": no_side_effects_consistent,
+                "all_blockers_cleared": False,
+                "adapter_load_ready": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKER_MATRIX_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

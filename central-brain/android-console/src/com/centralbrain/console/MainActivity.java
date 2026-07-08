@@ -63,6 +63,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -420,7 +421,16 @@ public class MainActivity extends Activity {
                 getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency();
             }
         });
-        prototypeReadinessButton = addButton(hardwareApprovalDecisionAuditRow, "Prototype", new View.OnClickListener() {
+
+        LinearLayout hardwareApprovalClosureRow = buttonRow();
+        buttonArea.addView(hardwareApprovalClosureRow);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixButton = addButton(hardwareApprovalClosureRow, "HW ApBlock", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix();
+            }
+        });
+        prototypeReadinessButton = addButton(hardwareApprovalClosureRow, "Prototype", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getPrototypeReadiness();
@@ -900,6 +910,16 @@ public class MainActivity extends Activity {
             @Override
             public String run(CentralBrainGatewayClient client) throws RemoteException {
                 return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency"));
+            }
+        });
+    }
+
+    private void getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix() {
+        setBusy(true, "Status: loading hardware owner evidence adapter load approval decision closure blocker matrix via Binder");
+        gatewayRequest("Hardware Owner Evidence Adapter Load Approval Decision Closure Blocker Matrix (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix"));
             }
         });
     }

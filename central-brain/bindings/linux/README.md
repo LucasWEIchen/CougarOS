@@ -230,6 +230,13 @@ and Linux IPC. It cross-checks decision dry-run/status, approval authority
 audit/status, and blocker rollup with `HW-APA-001..008` and does not call the
 dry-run POST path, persist approval decisions, load adapters, access hardware,
 trigger Driver/HAL, or implement virtualization.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix`
+exposes the same approval decision closure blocker matrix as Android Binder and
+Linux IPC. It lists approval authority, policy, signature/RBAC, approval record
+schema, evidence store, review workflow, target smoke, rollback, fault model,
+Driver/HAL gap closure, audit owner, and gate closure blockers with
+`HW-APM-001..008` and does not close gates, persist approval decisions, load
+adapters, access hardware, trigger Driver/HAL, or implement virtualization.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

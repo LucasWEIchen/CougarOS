@@ -246,6 +246,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1289,6 +1295,110 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency" in encoded, "gRPC hardware approval decision dry-run audit binding missing"
         assert "HW-APA-003" in encoded and "approval-decision-dry-run-rejection-consistent" in encoded, "hardware approval decision dry-run audit missing rejection gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval decision dry-run audit missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix":
+        matrix = payload["payload"]
+        encoded = json.dumps(matrix)
+        gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+        dependency_ids = set(matrix["blockers_by_dependency"])
+        assert matrix["approval_decision_closure_blocker_matrix_state"] == "contract-only-approval-decision-closure-blockers-open", "hardware approval closure blocker matrix wrong state"
+        assert matrix["approval_decision_closure_blocker_matrix_active"] is True, "hardware approval closure blocker matrix inactive"
+        assert matrix["matrix_complete"] is True, "hardware approval closure blocker matrix incomplete"
+        assert matrix["closure_ready"] is False, "hardware approval closure blocker matrix unexpectedly closure-ready"
+        assert matrix["closure_allowed"] is False, "hardware approval closure blocker matrix allowed closure"
+        assert matrix["approval_decision_closure_allowed"] is False, "hardware approval closure blocker matrix allowed approval decision closure"
+        assert matrix["approval_decision_closure_status"] == "blocked_contract_only", "hardware approval closure blocker matrix wrong closure status"
+        assert matrix["unresolved_blocker_count"] == 13, "hardware approval closure blocker matrix lost blocker count"
+        assert len(matrix["closure_blockers"]) == 13, "hardware approval closure blocker matrix lost blockers"
+        assert all(item["state"] == "open" for item in matrix["closure_blockers"]), "hardware approval closure blocker matrix has non-open blocker"
+        assert all(item["blocks_adapter_load"] and item["blocks_gate_closure"] for item in matrix["closure_blockers"]), "hardware approval closure blocker matrix blockers are not enforced"
+        assert all(item["passed"] for item in matrix["source_surface_checks"]), "hardware approval closure blocker matrix source checks failed"
+        assert {
+            "HW-APM-001",
+            "HW-APM-002",
+            "HW-APM-003",
+            "HW-APM-004",
+            "HW-APM-005",
+            "HW-APM-006",
+            "HW-APM-007",
+            "HW-APM-008",
+        } <= gate_ids, "hardware approval closure blocker matrix missing mandatory gates"
+        assert {
+            "approval_authority",
+            "approval_policy",
+            "owner_signature_source",
+            "rbac_mapping",
+            "approval_record_schema",
+            "approval_evidence_store_owner",
+            "review_workflow_owner",
+            "target_smoke_evidence",
+            "rollback_plan",
+            "fault_model",
+            "driver_hal_gap_closure_evidence",
+            "audit_owner",
+            "gate_closure_authority",
+        } <= dependency_ids, "hardware approval closure blocker matrix missing dependency blockers"
+        assert matrix["source_surfaces"]["approval_decision_dry_run_audit_consistency"]["consistency_passed"] is True, "hardware approval closure blocker matrix lost decision audit source"
+        assert matrix["source_surfaces"]["approval_decision_dry_run_status"]["persisted_approval_decision_count"] == 0, "hardware approval closure blocker matrix saw persisted decisions"
+        assert matrix["source_surfaces"]["approval_authority_status"]["approval_decisions_open"] is True, "hardware approval closure blocker matrix lost approval-open source"
+        assert matrix["source_surfaces"]["approval_authority_audit_consistency"]["adapter_load_blocked_consistent"] is True, "hardware approval closure blocker matrix lost approval audit source"
+        assert matrix["source_surfaces"]["adapter_load_blocker_rollup"]["adapter_load_ready"] is False, "hardware approval closure blocker matrix saw adapter load ready"
+        for key in [
+            "closure_ready",
+            "closure_allowed",
+            "approval_decision_closure_allowed",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_signature_rules_confirmed",
+            "approval_rbac_confirmed",
+            "approval_record_schema_confirmed",
+            "approval_record_available",
+            "approval_record_persisted",
+            "approval_evidence_store_owner_confirmed",
+            "approval_evidence_store_active",
+            "review_workflow_owner_confirmed",
+            "review_workflow_active",
+            "target_smoke_evidence_attached",
+            "rollback_plan_confirmed",
+            "fault_model_confirmed",
+            "driver_hal_gap_closure_evidence_attached",
+            "audit_owner_confirmed",
+            "gate_closure_authority_confirmed",
+            "decision_dry_run_post_called_by_closure_matrix",
+            "approval_decision_persisted",
+            "approval_decision_review_queue_updated",
+            "approval_decision_evidence_store_active",
+            "approval_decision_passed",
+            "all_blockers_cleared",
+            "adapter_load_ready",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert matrix["summary"][key] is False, f"hardware approval closure blocker matrix summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_active",
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_audit_consistency_active",
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_status_active",
+            "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active",
+            "owner_decision_evidence_adapter_load_approval_authority_status_active",
+            "owner_decision_evidence_adapter_load_blocker_rollup_active",
+            "matrix_complete",
+            "approval_decisions_open",
+            "no_side_effects_consistent",
+        ]:
+            assert matrix["summary"][key] is True, f"hardware approval closure blocker matrix summary did not set {key}"
+        assert matrix["summary"]["unresolved_blocker_count"] == 13, "hardware approval closure blocker matrix summary lost blocker count"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson" in encoded, "Android hardware approval closure blocker matrix binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix" in encoded, "Linux CLI hardware approval closure blocker matrix binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.closure.blocker.matrix" in encoded, "Linux IPC hardware approval closure blocker matrix binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix" in encoded, "gRPC hardware approval closure blocker matrix binding missing"
+        assert "HW-APM-007" in encoded and "android-linux-closure-blocker-parity" in encoded, "hardware approval closure blocker matrix missing synchronized binding gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval closure blocker matrix missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -2065,6 +2175,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

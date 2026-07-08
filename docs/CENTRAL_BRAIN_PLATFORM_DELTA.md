@@ -250,6 +250,19 @@ approval authority audit/status 和 blocker rollup，固定 `HW-APA-001..008`、
 不持久化 approval decision，不创建 evidence store，不更新 review queue，不关闭 gate，不选择 adapter，不加载 adapter，
 不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load approval decision closure blocker matrix 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix`、Android Binder
+`getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson`、Android Console `HW ApBlock`、
+Linux CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.closure.blocker.matrix` 与 Linux gRPC/RPC
+`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix` 调用。该 matrix 只把 approval authority、approval policy、
+owner signature source、RBAC mapping、approval record schema、evidence store owner、review workflow、target smoke evidence、rollback plan、
+fault model、Driver/HAL gap closure evidence、audit owner 和 gate closure authority 固定为 `HW-APM-001..008` 开放阻塞项，报告
+`closure_ready=false`、`approval_decision_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false`、
+`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不调用 dry-run POST，不持久化 approval decision，
+不创建 evidence store，不更新 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，
+不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 Event subscription cursor/replay storage 按 FW-U-003、NV-P-006、XSC-002、XSC-006 在
 `GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder
 `getEventSubscriptionCursorReplayStorageJson`、Linux CLI

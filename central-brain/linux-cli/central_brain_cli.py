@@ -236,6 +236,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency",
         None,
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix": (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix",
+        None,
+    ),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),
