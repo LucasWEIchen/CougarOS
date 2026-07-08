@@ -30,6 +30,7 @@
         "uib.events.subscriptions.activation.evidence",
         "uib.events.subscriptions.activation.evidence.status",
         "uib.events.subscriptions.activation.evidence.retention.checklist",
+        "uib.events.subscriptions.activation.evidence.decision.status.rollup",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

@@ -126,6 +126,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getEventSubscriptionActivationEvidenceRetentionChecklistJson(traceId);
     }
 
+    public String getEventSubscriptionActivationEvidenceDecisionStatusRollupJson(String traceId) throws RemoteException {
+        return requireGateway().getEventSubscriptionActivationEvidenceDecisionStatusRollupJson(traceId);
+    }
+
     public String getUibExtensionsJson(String traceId) throws RemoteException {
         return requireGateway().getUibExtensionsJson(traceId);
     }

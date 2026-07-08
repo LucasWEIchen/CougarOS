@@ -39,6 +39,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionActivationEvidenceButton;
     private Button eventSubscriptionActivationEvidenceStatusButton;
     private Button eventSubscriptionActivationEvidenceRetentionButton;
+    private Button eventSubscriptionActivationEvidenceDecisionStatusButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -237,6 +238,15 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionActivationEvidenceRetentionChecklist();
+            }
+        });
+
+        LinearLayout eventEvidenceDecisionRow = buttonRow();
+        buttonArea.addView(eventEvidenceDecisionRow);
+        eventSubscriptionActivationEvidenceDecisionStatusButton = addButton(eventEvidenceDecisionRow, "Sub Decide", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionActivationEvidenceDecisionStatusRollup();
             }
         });
 
@@ -589,6 +599,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionActivationEvidenceDecisionStatusRollup() {
+        setBusy(true, "Status: loading event activation evidence decision status via Binder");
+        gatewayRequest("Event Subscription Activation Evidence Decision Status Rollup (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionActivationEvidenceDecisionStatusRollupJson(newTraceId("event-subscription-activation-evidence-decision-status-rollup"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -805,7 +825,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -870,6 +890,7 @@ public class MainActivity extends Activity {
         eventSubscriptionActivationEvidenceButton.setEnabled(enabled);
         eventSubscriptionActivationEvidenceStatusButton.setEnabled(enabled);
         eventSubscriptionActivationEvidenceRetentionButton.setEnabled(enabled);
+        eventSubscriptionActivationEvidenceDecisionStatusButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

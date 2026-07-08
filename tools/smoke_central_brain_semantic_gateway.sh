@@ -130,6 +130,7 @@ checks = [
     ),
     ("GET", "/uib/events/subscriptions/activation-evidence/status", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/retention-checklist", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/decision-status-rollup", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -1017,6 +1018,7 @@ for method, path, body, req_id in checks:
         assert subscriptions["summary"]["activation_evidence_contract_active"] is True, "activation evidence contract not active in subscription summary"
         assert subscriptions["summary"]["activation_evidence_status_contract_active"] is True, "activation evidence status contract not active in subscription summary"
         assert subscriptions["summary"]["activation_evidence_retention_checklist_active"] is True, "activation evidence retention checklist not active in subscription summary"
+        assert subscriptions["summary"]["activation_evidence_decision_status_rollup_active"] is True, "activation evidence decision status rollup not active in subscription summary"
         assert subscriptions["summary"]["evidence_store_active"] is False, "subscription summary unexpectedly activated evidence store"
         assert subscriptions["summary"]["review_workflow_active"] is False, "subscription summary unexpectedly activated review workflow"
         assert subscriptions["summary"]["persisted_submission_count"] == 0, "subscription summary reported persisted evidence"
@@ -1031,6 +1033,7 @@ for method, path, body, req_id in checks:
         assert "submitEventSubscriptionActivationEvidenceJson" in encoded, "Android event subscription activation evidence binding visibility missing"
         assert "getEventSubscriptionActivationEvidenceStatusJson" in encoded, "Android event subscription activation evidence status binding visibility missing"
         assert "getEventSubscriptionActivationEvidenceRetentionChecklistJson" in encoded, "Android event subscription activation evidence retention binding visibility missing"
+        assert "getEventSubscriptionActivationEvidenceDecisionStatusRollupJson" in encoded, "Android event subscription activation evidence decision status binding visibility missing"
         assert "uib.events.subscriptions.get" in encoded, "Linux IPC event subscription binding visibility missing"
         assert "uib.events.subscriptions.request" in encoded, "Linux IPC event subscription request binding visibility missing"
         assert "uib.events.subscriptions.cancel" in encoded, "Linux IPC event subscription cancel binding visibility missing"
@@ -1041,6 +1044,7 @@ for method, path, body, req_id in checks:
         assert "uib.events.subscriptions.activation.evidence" in encoded, "Linux IPC event subscription activation evidence binding visibility missing"
         assert "uib.events.subscriptions.activation.evidence.status" in encoded, "Linux IPC event subscription activation evidence status binding visibility missing"
         assert "uib.events.subscriptions.activation.evidence.retention.checklist" in encoded, "Linux IPC event subscription activation evidence retention binding visibility missing"
+        assert "uib.events.subscriptions.activation.evidence.decision.status.rollup" in encoded, "Linux IPC event subscription activation evidence decision status binding visibility missing"
         assert "GetEventSubscriptions" in encoded, "gRPC event subscription binding visibility missing"
         assert "RequestEventSubscription" in encoded, "gRPC event subscription request binding visibility missing"
         assert "CancelEventSubscription" in encoded, "gRPC event subscription cancel binding visibility missing"
@@ -1051,6 +1055,7 @@ for method, path, body, req_id in checks:
         assert "SubmitEventSubscriptionActivationEvidence" in encoded, "gRPC event subscription activation evidence binding visibility missing"
         assert "GetEventSubscriptionActivationEvidenceStatus" in encoded, "gRPC event subscription activation evidence status binding visibility missing"
         assert "GetEventSubscriptionActivationEvidenceRetentionChecklist" in encoded, "gRPC event subscription activation evidence retention binding visibility missing"
+        assert "GetEventSubscriptionActivationEvidenceDecisionStatusRollup" in encoded, "gRPC event subscription activation evidence decision status binding visibility missing"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded, "event subscription missing Req IDs"
     if path == "/uib/events/subscriptions/request":
         subscription = payload["payload"]
@@ -1486,6 +1491,55 @@ for method, path, body, req_id in checks:
         assert "GetEventSubscriptionActivationEvidenceRetentionChecklist" in encoded, "gRPC activation evidence retention binding missing"
         assert "EV-AER-006" in encoded and "delete-export-semantics" in encoded, "activation evidence retention checklist missing delete/export semantics"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation evidence retention missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/decision-status-rollup":
+        decision = payload["payload"]
+        encoded = json.dumps(decision)
+        gate_ids = {item["gate_id"] for item in decision["mandatory_gates"]}
+        assert decision["decision_status_rollup_state"] == "contract-only-decision-status-blocked", "activation evidence decision status rollup left contract-only blocked state"
+        assert decision["decision_status_consistent"] is True, "activation evidence decision status rollup is inconsistent"
+        assert decision["decision_status_passed"] is False, "activation evidence decision status unexpectedly passed"
+        assert decision["source_surfaces"]["activation_evidence_intake"]["called_by_decision_status_rollup"] is False, "decision status rollup called activation evidence intake"
+        assert {"EV-AED-001", "EV-AED-002", "EV-AED-003", "EV-AED-004", "EV-AED-005", "EV-AED-006", "EV-AED-007", "EV-AED-008"} <= gate_ids, "activation evidence decision status rollup missing gates"
+        for key in [
+            "decision_status_passed",
+            "owner_decision_complete",
+            "activation_evidence_intake_called",
+            "activation_evidence_persisted",
+            "evidence_store_active",
+            "review_workflow_active",
+            "delete_workflow_active",
+            "export_workflow_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "broker_activation_ready",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert decision["summary"][key] is False, f"activation evidence decision status summary unexpectedly set {key}"
+        assert decision["summary"]["activation_evidence_decision_status_rollup_active"] is True, "activation evidence decision status rollup not active"
+        assert decision["summary"]["decision_status_consistent"] is True, "activation evidence decision status summary inconsistent"
+        assert decision["summary"]["persisted_submission_count"] == 0, "activation evidence decision status reported persisted submissions"
+        assert decision["summary"]["pending_review_count"] == 0, "activation evidence decision status reported pending reviews"
+        assert "getEventSubscriptionActivationEvidenceDecisionStatusRollupJson" in encoded, "Android activation evidence decision status binding missing"
+        assert "event-subscription-activation-evidence-decision-status-rollup" in encoded, "Linux CLI activation evidence decision status binding missing"
+        assert "uib.events.subscriptions.activation.evidence.decision.status.rollup" in encoded, "Linux IPC activation evidence decision status binding missing"
+        assert "GetEventSubscriptionActivationEvidenceDecisionStatusRollup" in encoded, "gRPC activation evidence decision status binding missing"
+        assert "EV-AED-006" in encoded and "activation-approval-policy" in encoded, "activation evidence decision status missing approval policy blocker"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation evidence decision status missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -1595,6 +1649,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence-retention-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence-decision-status-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

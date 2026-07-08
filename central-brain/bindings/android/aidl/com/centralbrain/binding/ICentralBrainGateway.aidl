@@ -57,6 +57,8 @@ interface ICentralBrainGateway {
 
     String getEventSubscriptionActivationEvidenceRetentionChecklistJson(String traceId);
 
+    String getEventSubscriptionActivationEvidenceDecisionStatusRollupJson(String traceId);
+
     String getUibExtensionsJson(String traceId);
 
     String getAiSdkCapabilitiesJson(String traceId);

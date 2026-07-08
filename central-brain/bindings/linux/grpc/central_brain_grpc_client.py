@@ -78,6 +78,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetEventSubscriptionActivationEvidenceRetentionChecklist",
         {},
     ),
+    "event-subscription-activation-evidence-decision-status-rollup": (
+        "GetEventSubscriptionActivationEvidenceDecisionStatusRollup",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

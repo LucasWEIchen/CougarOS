@@ -684,6 +684,62 @@ assert "GetEventSubscriptionActivationEvidenceRetentionChecklist" in encoded, re
 assert "EV-AER-006" in encoded and "delete-export-semantics" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_DECISION_STATUS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-evidence-decision-status-rollup)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_EVIDENCE_DECISION_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["decision_status_rollup_state"] == "contract-only-decision-status-blocked", response
+assert payload["decision_status_consistent"] is True, response
+assert payload["decision_status_passed"] is False, response
+assert payload["source_surfaces"]["activation_evidence_intake"]["called_by_decision_status_rollup"] is False, response
+assert {"EV-AED-001", "EV-AED-002", "EV-AED-003", "EV-AED-004", "EV-AED-005", "EV-AED-006", "EV-AED-007", "EV-AED-008"} <= gate_ids, response
+for key in [
+    "decision_status_passed",
+    "owner_decision_complete",
+    "activation_evidence_intake_called",
+    "activation_evidence_persisted",
+    "evidence_store_active",
+    "review_workflow_active",
+    "delete_workflow_active",
+    "export_workflow_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "broker_activation_ready",
+    "production_activation_allowed",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "event_delivery_qos_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["activation_evidence_decision_status_rollup_active"] is True, response
+assert payload["summary"]["decision_status_consistent"] is True, response
+assert payload["summary"]["persisted_submission_count"] == 0, response
+assert payload["summary"]["pending_review_count"] == 0, response
+assert "getEventSubscriptionActivationEvidenceDecisionStatusRollupJson" in encoded, response
+assert "event-subscription-activation-evidence-decision-status-rollup" in encoded, response
+assert "uib.events.subscriptions.activation.evidence.decision.status.rollup" in encoded, response
+assert "GetEventSubscriptionActivationEvidenceDecisionStatusRollup" in encoded, response
+assert "EV-AED-006" in encoded and "activation-approval-policy" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

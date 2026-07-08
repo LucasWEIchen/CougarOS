@@ -49,6 +49,7 @@ Brain semantic gateway.
 | `uib.events.subscriptions.activation.evidence` | `POST /uib/events/subscriptions/activation-evidence` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.evidence.status` | `GET /uib/events/subscriptions/activation-evidence/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.evidence.retention.checklist` | `GET /uib/events/subscriptions/activation-evidence/retention-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
+| `uib.events.subscriptions.activation.evidence.decision.status.rollup` | `GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.extensions.get` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
@@ -101,12 +102,13 @@ dispatching services.
 `GetEventSubscriptionCallbackWatchShape`,
 `GetEventSubscriptionCursorReplayStorage`, and
 `GetEventSubscriptionBackpressureQosEvidence`, and
-`GetEventSubscriptionReadinessRollup` and
-`SubmitEventSubscriptionActivationEvidence` and
-`GetEventSubscriptionActivationEvidenceStatus` and
-`GetEventSubscriptionActivationEvidenceRetentionChecklist` expose the same FW-U-003/NV-P-006
+`GetEventSubscriptionReadinessRollup`,
+`SubmitEventSubscriptionActivationEvidence`,
+`GetEventSubscriptionActivationEvidenceStatus`,
+`GetEventSubscriptionActivationEvidenceRetentionChecklist`, and
+`GetEventSubscriptionActivationEvidenceDecisionStatusRollup` expose the same FW-U-003/NV-P-006
 Event subscription lifecycle, transport readiness, owner decision matrix,
-activation evidence intake/review/retention checklist,
+activation evidence intake/review/retention checklist/decision status rollup,
 activation evidence checklist, callback/watch API shape, cursor/replay storage,
 backpressure/QoS evidence, readiness rollup, and activation evidence review status contracts as Android Binder and Linux IPC without
 assigning production owners, selecting a transport, persisting subscriptions,
@@ -253,6 +255,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-activation-evidence-retention-checklist
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
+  python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py event-subscription-activation-evidence-decision-status-rollup
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py extensions
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock \
   python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py agent-plan
@@ -360,6 +364,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-activation-evidence-status
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-activation-evidence-retention-checklist
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
+  python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py event-subscription-activation-evidence-decision-status-rollup
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
   python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py governance-precheck
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 \
