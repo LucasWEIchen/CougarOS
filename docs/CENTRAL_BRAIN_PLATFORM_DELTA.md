@@ -263,6 +263,19 @@ fault model、Driver/HAL gap closure evidence、audit owner 和 gate closure aut
 不创建 evidence store，不更新 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，
 不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load approval decision reviewer matrix 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix`、Android Binder
+`getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson`、Android Console `HW ApRev`、
+Linux CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix` 与 Linux gRPC/RPC
+`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix` 调用。该 matrix 只把 approval authority、approval policy、
+signature/RBAC、approval record schema、approval evidence store、review workflow、target smoke、rollback/fault、Driver/HAL gap、
+audit export 和 gate closure reviewer 固定为 `HW-APR-001..008` 未分配项，报告 `unassigned_reviewer_count=11`、`review_ready=false`、
+`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、
+`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不分配 reviewer，
+不持久化 approval decision，不创建 evidence store，不更新 review queue，不关闭 gate，不选择 adapter，不加载 adapter，
+不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 Event subscription cursor/replay storage 按 FW-U-003、NV-P-006、XSC-002、XSC-006 在
 `GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder
 `getEventSubscriptionCursorReplayStorageJson`、Linux CLI

@@ -237,6 +237,13 @@ schema, evidence store, review workflow, target smoke, rollback, fault model,
 Driver/HAL gap closure, audit owner, and gate closure blockers with
 `HW-APM-001..008` and does not close gates, persist approval decisions, load
 adapters, access hardware, trigger Driver/HAL, or implement virtualization.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix`
+exposes the same approval decision reviewer matrix as Android Binder and Linux
+IPC. It lists approval authority, policy, signature/RBAC, approval record
+schema, evidence store, review workflow, target smoke, rollback/fault,
+Driver/HAL gap, audit export, and gate closure reviewers with `HW-APR-001..008`
+and does not assign reviewers, close gates, persist approval decisions, load
+adapters, access hardware, trigger Driver/HAL, or implement virtualization.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

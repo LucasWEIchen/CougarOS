@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.65",
+  "version": "0.1.66",
   "updated": "2026-07-08",
   "transport": {
     "prototype": "http-json",
@@ -14,13 +14,13 @@
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
     "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
-    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, GET /hardware/interfaces/owner-decision-evidence/retention-checklist, GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, and GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, retention/closure checklist decisions, replacement trigger checklist decisions, selected-adapter readiness evidence, adapter-load blockers, adapter-load approval dry-run rejection, no-store dry-run status/last-result visibility, dry-run audit consistency, approval-authority decisions, approval-authority no-store status, approval-authority audit consistency, approval decision dry-run rejection, approval decision dry-run no-store status, approval decision dry-run audit consistency, and approval decision closure blocker matrix for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
+    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, GET /hardware/interfaces/owner-decision-evidence/retention-checklist, GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, and GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, retention/closure checklist decisions, replacement trigger checklist decisions, selected-adapter readiness evidence, adapter-load blockers, adapter-load approval dry-run rejection, no-store dry-run status/last-result visibility, dry-run audit consistency, approval-authority decisions, approval-authority no-store status, approval-authority audit consistency, approval decision dry-run rejection, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, and approval decision reviewer matrix for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
     "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, POST /uib/events/subscriptions/activation-evidence, GET /uib/events/subscriptions/activation-evidence/status, GET /uib/events/subscriptions/activation-evidence/retention-checklist, and GET /uib/events/subscriptions/activation-evidence/decision-status-rollup expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake/status/retention checklist/decision status reference shape, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting evidence or subscriptions, reading an evidence store, updating review queues, creating retention/delete/export workflows, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /uib/events/subscriptions/activation-evidence/decision-status-rollup, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /uib/events/subscriptions/activation-evidence/decision-status-rollup, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -5084,6 +5084,582 @@
         "DEL-002",
         "DEL-005"
       ]
+    },
+    {
+      "method": "GET",
+      "path": "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix",
+      "description": "Reports unassigned approval decision closure reviewers as a machine-readable no-store/no-load matrix without assigning reviewers, creating review queues, persisting evidence, closing gates, loading adapters, accessing hardware, or triggering Driver/HAL or virtualization work.",
+      "response": {
+        "operation": "hardware-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix",
+        "approval_decision_reviewer_matrix_state": "contract-only-approval-decision-reviewers-unassigned",
+        "approval_decision_reviewer_matrix_active": true,
+        "matrix_complete": true,
+        "review_ready": false,
+        "approval_review_allowed": false,
+        "retention_review_allowed": false,
+        "gate_closure_allowed": false,
+        "adapter_load_allowed": false,
+        "approval_decision_reviewer_matrix_status": "blocked_contract_only",
+        "unassigned_reviewer_count": 11,
+        "open_reviewer_ids": [
+          "HW-APR-REV-001",
+          "HW-APR-REV-002",
+          "HW-APR-REV-003",
+          "HW-APR-REV-004",
+          "HW-APR-REV-005",
+          "HW-APR-REV-006",
+          "HW-APR-REV-007",
+          "HW-APR-REV-008",
+          "HW-APR-REV-009",
+          "HW-APR-REV-010",
+          "HW-APR-REV-011"
+        ],
+        "source_closure_blocker_ids": [
+          "HW-APM-BLK-001",
+          "HW-APM-BLK-002",
+          "HW-APM-BLK-003",
+          "HW-APM-BLK-005",
+          "HW-APM-BLK-006",
+          "HW-APM-BLK-007",
+          "HW-APM-BLK-008",
+          "HW-APM-BLK-009",
+          "HW-APM-BLK-011",
+          "HW-APM-BLK-012",
+          "HW-APM-BLK-013"
+        ],
+        "reviewer_rows": [
+          {
+            "reviewer_id": "HW-APR-REV-001",
+            "role": "approval_authority_reviewer",
+            "blocked_by_dependency": "approval_authority",
+            "source_blocker_id": "HW-APM-BLK-001",
+            "required_assignment": "Assign the target platform role allowed to review approval authority closure.",
+            "review_scope": "approval-authority",
+            "source_gate_ids": [
+              "HW-ALA-002",
+              "HW-AAS-004",
+              "HW-AAC-003"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "approval_authority",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-002",
+            "role": "approval_policy_reviewer",
+            "blocked_by_dependency": "approval_policy",
+            "source_blocker_id": "HW-APM-BLK-002",
+            "required_assignment": "Assign the Runtime & Governance reviewer for the approval policy that can move dry-run into closure review.",
+            "review_scope": "approval-policy",
+            "source_gate_ids": [
+              "HW-ALA-003",
+              "HW-APD-006",
+              "HW-APA-003"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "approval_policy",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-003",
+            "role": "signature_rbac_reviewer",
+            "blocked_by_dependency": "owner_signature_source",
+            "source_blocker_id": "HW-APM-BLK-003",
+            "required_assignment": "Assign reviewer for owner signature source, signing identity, Android Binder identity, and Linux service identity RBAC mapping.",
+            "review_scope": "signature-rbac",
+            "source_gate_ids": [
+              "HW-ALA-004",
+              "HW-APD-005",
+              "HW-APM-007"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "owner_signature_source",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-004",
+            "role": "approval_record_schema_reviewer",
+            "blocked_by_dependency": "approval_record_schema",
+            "source_blocker_id": "HW-APM-BLK-005",
+            "required_assignment": "Assign reviewer for durable approval record fields, versioning, hashes, signatures, and replay rules.",
+            "review_scope": "approval-record-schema",
+            "source_gate_ids": [
+              "HW-AAS-002",
+              "HW-APS-002"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "approval_record_schema",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-005",
+            "role": "approval_evidence_store_reviewer",
+            "blocked_by_dependency": "approval_evidence_store_owner",
+            "source_blocker_id": "HW-APM-BLK-006",
+            "required_assignment": "Assign reviewer for durable approval evidence store ownership, allowed URI schemes, retention, export, and deletion semantics.",
+            "review_scope": "approval-evidence-retention",
+            "source_gate_ids": [
+              "HW-AAS-003",
+              "HW-OER-001",
+              "HW-OER-002",
+              "HW-OER-003"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "approval_evidence_store_owner",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-006",
+            "role": "review_workflow_reviewer",
+            "blocked_by_dependency": "review_workflow_owner",
+            "source_blocker_id": "HW-APM-BLK-007",
+            "required_assignment": "Assign reviewer for approval review workflow owner, queue semantics, rejection path, and SLA.",
+            "review_scope": "approval-review-workflow",
+            "source_gate_ids": [
+              "HW-AAS-003",
+              "HW-OER-004",
+              "HW-APS-003"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "review_workflow_owner",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-007",
+            "role": "target_smoke_reviewer",
+            "blocked_by_dependency": "target_smoke_evidence",
+            "source_blocker_id": "HW-APM-BLK-008",
+            "required_assignment": "Assign reviewer for target hardware smoke evidence, denied access behavior, timeout/reset cases, and audit export artifacts.",
+            "review_scope": "target-smoke-evidence",
+            "source_gate_ids": [
+              "HW-ACT-006",
+              "HW-ODS-006",
+              "HW-OET-007",
+              "HW-OEA-006"
+            ],
+            "driver_gap_ids": [
+              "DRV-GAP-001"
+            ],
+            "source_blocker_state": "open",
+            "source_dependency": "target_smoke_evidence",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-008",
+            "role": "rollback_fault_reviewer",
+            "blocked_by_dependency": "rollback_plan",
+            "source_blocker_id": "HW-APM-BLK-009",
+            "required_assignment": "Assign reviewer for rollback-to-empty-interface plan, gate rollback behavior, adapter timeout/reset, degraded state, and fault isolation.",
+            "review_scope": "rollback-and-fault-model",
+            "source_gate_ids": [
+              "HW-ACT-007",
+              "HW-OER-007",
+              "HW-OET-005",
+              "HW-OEA-007",
+              "HW-ACT-005",
+              "HW-OET-006",
+              "HW-OEA-005"
+            ],
+            "driver_gap_ids": [
+              "DRV-GAP-005"
+            ],
+            "source_blocker_state": "open",
+            "source_dependency": "rollback_plan",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-009",
+            "role": "driver_hal_gap_reviewer",
+            "blocked_by_dependency": "driver_hal_gap_closure_evidence",
+            "source_blocker_id": "HW-APM-BLK-011",
+            "required_assignment": "Assign reviewer for Driver/HAL gap closure evidence covering target NPU runtime, device access, and vendor SDK bridge.",
+            "review_scope": "driver-hal-gap-closure",
+            "source_gate_ids": [
+              "HW-ACT-002",
+              "HW-ODS-004",
+              "HW-OET-003",
+              "HW-OEA-003"
+            ],
+            "driver_gap_ids": [
+              "DRV-GAP-001",
+              "DRV-GAP-005"
+            ],
+            "source_blocker_state": "open",
+            "source_dependency": "driver_hal_gap_closure_evidence",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-010",
+            "role": "audit_export_reviewer",
+            "blocked_by_dependency": "audit_owner",
+            "source_blocker_id": "HW-APM-BLK-012",
+            "required_assignment": "Assign reviewer for audit export owner and acceptance rule for approval decision closure evidence.",
+            "review_scope": "audit-export",
+            "source_gate_ids": [
+              "HW-APA-001",
+              "HW-APA-006",
+              "HW-APM-001"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "audit_owner",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          },
+          {
+            "reviewer_id": "HW-APR-REV-011",
+            "role": "gate_closure_reviewer",
+            "blocked_by_dependency": "gate_closure_authority",
+            "source_blocker_id": "HW-APM-BLK-013",
+            "required_assignment": "Assign reviewer authorized to accept approval decision, evidence, Driver/HAL, smoke, rollback, fault, and gate closure responsibilities.",
+            "review_scope": "gate-closure-authority",
+            "source_gate_ids": [
+              "HW-OER-005",
+              "HW-APD-007",
+              "HW-APA-008"
+            ],
+            "driver_gap_ids": [],
+            "source_blocker_state": "open",
+            "source_dependency": "gate_closure_authority",
+            "state": "unassigned",
+            "owner_confirmed": false,
+            "evidence_attached": false,
+            "review_ready": false,
+            "approval_review_allowed": false,
+            "retention_review_allowed": false,
+            "blocks_approval_review": true,
+            "blocks_retention_review": true,
+            "blocks_gate_closure": true,
+            "blocks_adapter_load": true
+          }
+        ],
+        "reviewers_by_role": {
+          "approval_authority_reviewer": {
+            "reviewer_id": "HW-APR-REV-001",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-001",
+            "review_ready": false
+          },
+          "approval_policy_reviewer": {
+            "reviewer_id": "HW-APR-REV-002",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-002",
+            "review_ready": false
+          },
+          "signature_rbac_reviewer": {
+            "reviewer_id": "HW-APR-REV-003",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-003",
+            "review_ready": false
+          },
+          "approval_record_schema_reviewer": {
+            "reviewer_id": "HW-APR-REV-004",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-005",
+            "review_ready": false
+          },
+          "approval_evidence_store_reviewer": {
+            "reviewer_id": "HW-APR-REV-005",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-006",
+            "review_ready": false
+          },
+          "review_workflow_reviewer": {
+            "reviewer_id": "HW-APR-REV-006",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-007",
+            "review_ready": false
+          },
+          "target_smoke_reviewer": {
+            "reviewer_id": "HW-APR-REV-007",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-008",
+            "review_ready": false
+          },
+          "rollback_fault_reviewer": {
+            "reviewer_id": "HW-APR-REV-008",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-009",
+            "review_ready": false
+          },
+          "driver_hal_gap_reviewer": {
+            "reviewer_id": "HW-APR-REV-009",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-011",
+            "review_ready": false
+          },
+          "audit_export_reviewer": {
+            "reviewer_id": "HW-APR-REV-010",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-012",
+            "review_ready": false
+          },
+          "gate_closure_reviewer": {
+            "reviewer_id": "HW-APR-REV-011",
+            "state": "unassigned",
+            "source_blocker_id": "HW-APM-BLK-013",
+            "review_ready": false
+          }
+        },
+        "source_surfaces": {
+          "approval_decision_closure_blocker_matrix": {
+            "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix",
+            "state": "contract-only-approval-decision-closure-blockers-open",
+            "matrix_complete": true,
+            "closure_ready": false,
+            "approval_decision_closure_allowed": false,
+            "unresolved_blocker_count": 13,
+            "open_blocker_ids": [
+              "HW-APM-BLK-001",
+              "HW-APM-BLK-002",
+              "HW-APM-BLK-003",
+              "HW-APM-BLK-004",
+              "HW-APM-BLK-005",
+              "HW-APM-BLK-006",
+              "HW-APM-BLK-007",
+              "HW-APM-BLK-008",
+              "HW-APM-BLK-009",
+              "HW-APM-BLK-010",
+              "HW-APM-BLK-011",
+              "HW-APM-BLK-012",
+              "HW-APM-BLK-013"
+            ]
+          }
+        },
+        "source_surface_checks": [
+          {
+            "check_id": "HW-APR-CHECK-001",
+            "name": "closure-blocker-matrix-bound",
+            "source": "approval_decision_closure_blocker_matrix",
+            "passed": true
+          },
+          {
+            "check_id": "HW-APR-CHECK-002",
+            "name": "all-source-blockers-open",
+            "source": "closure_blockers",
+            "passed": true
+          },
+          {
+            "check_id": "HW-APR-CHECK-003",
+            "name": "no-side-effects-inherited",
+            "source": "closure_blocker_matrix.summary",
+            "passed": true
+          },
+          {
+            "check_id": "HW-APR-CHECK-004",
+            "name": "android-linux-reviewer-surface-bound",
+            "source": "api_surface",
+            "passed": true
+          }
+        ],
+        "mandatory_gates": [
+          {
+            "gate_id": "HW-APR-001",
+            "name": "reviewer-matrix-surface-bound",
+            "required_evidence": "Reviewer matrix binds to the approval decision closure blocker matrix and inherits its no-store/no-load state.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-APR-002",
+            "name": "approval-authority-reviewer-open",
+            "required_evidence": "Approval authority, policy, signature, and RBAC reviewer responsibilities remain explicitly unassigned.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-APR-003",
+            "name": "approval-record-evidence-reviewer-open",
+            "required_evidence": "Approval record schema and evidence store reviewer responsibilities remain explicitly unassigned.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-APR-004",
+            "name": "review-workflow-reviewer-open",
+            "required_evidence": "Review workflow, audit export, and gate closure reviewer responsibilities remain explicitly unassigned.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-APR-005",
+            "name": "target-smoke-rollback-fault-reviewer-open",
+            "required_evidence": "Target smoke, rollback, and fault model reviewer responsibilities remain explicitly unassigned.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-APR-006",
+            "name": "driver-hal-gap-reviewer-open",
+            "required_evidence": "Driver/HAL gap closure reviewer responsibility remains explicitly unassigned and linked to DRV-GAP-001/005.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-APR-007",
+            "name": "android-linux-reviewer-matrix-parity",
+            "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same reviewer matrix.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-APR-008",
+            "name": "no-side-effect-reviewer-matrix",
+            "required_evidence": "Reviewer matrix does not assign reviewers, persist decisions, create evidence stores, update review queues, close gates, load adapters, access hardware, call Driver/HAL, or trigger virtualization.",
+            "passed": true
+          }
+        ],
+        "api_surface": {
+          "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix",
+          "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson",
+          "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix",
+          "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix",
+          "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix"
+        },
+        "summary": {
+          "owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_active": true,
+          "owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_active": true,
+          "matrix_complete": true,
+          "unassigned_reviewer_count": 11,
+          "review_ready": false,
+          "approval_review_allowed": false,
+          "retention_review_allowed": false,
+          "approval_decision_closure_allowed": false,
+          "approval_authority_reviewer_assigned": false,
+          "approval_policy_reviewer_assigned": false,
+          "signature_rbac_reviewer_assigned": false,
+          "approval_record_schema_reviewer_assigned": false,
+          "approval_evidence_store_reviewer_assigned": false,
+          "review_workflow_reviewer_assigned": false,
+          "target_smoke_reviewer_assigned": false,
+          "rollback_fault_reviewer_assigned": false,
+          "driver_hal_gap_reviewer_assigned": false,
+          "audit_export_reviewer_assigned": false,
+          "gate_closure_reviewer_assigned": false,
+          "approval_record_schema_confirmed": false,
+          "approval_evidence_store_owner_confirmed": false,
+          "review_workflow_owner_confirmed": false,
+          "target_smoke_evidence_attached": false,
+          "driver_hal_gap_closure_evidence_attached": false,
+          "audit_owner_confirmed": false,
+          "gate_closure_authority_confirmed": false,
+          "approval_decision_persisted": false,
+          "approval_decision_review_queue_updated": false,
+          "approval_decision_evidence_store_active": false,
+          "approval_evidence_store_active": false,
+          "review_workflow_active": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "adapter_load_allowed": false,
+          "adapter_activation_allowed": false,
+          "hardware_access_allowed": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false,
+          "no_side_effects_consistent": true
+        },
+        "req_ids": [
+          "XSC-004",
+          "XSC-006",
+          "HW-002",
+          "KH-003",
+          "KH-006",
+          "KH-007",
+          "DEL-001",
+          "DEL-002",
+          "DEL-005"
+        ]
+      }
     },
     {
       "method": "GET",

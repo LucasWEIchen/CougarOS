@@ -1890,6 +1890,82 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClos
 assert "HW-APM-007" in encoded and "android-linux-closure-blocker-parity" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWER_MATRIX_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWER_MATRIX_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+roles = {item["role"] for item in payload["reviewer_rows"]}
+assert response["status"] == "ok", response
+assert payload["approval_decision_reviewer_matrix_state"] == "contract-only-approval-decision-reviewers-unassigned", response
+assert payload["approval_decision_reviewer_matrix_active"] is True, response
+assert payload["matrix_complete"] is True, response
+assert payload["review_ready"] is False, response
+assert payload["approval_review_allowed"] is False, response
+assert payload["retention_review_allowed"] is False, response
+assert payload["gate_closure_allowed"] is False, response
+assert payload["adapter_load_allowed"] is False, response
+assert payload["unassigned_reviewer_count"] == 11, response
+assert len(payload["reviewer_rows"]) == 11, response
+assert all(item["state"] == "unassigned" for item in payload["reviewer_rows"]), response
+assert all(item["source_blocker_state"] == "open" for item in payload["reviewer_rows"]), response
+assert all(item["blocks_adapter_load"] and item["blocks_gate_closure"] for item in payload["reviewer_rows"]), response
+assert all(item["passed"] for item in payload["source_surface_checks"]), response
+assert {"HW-APR-001", "HW-APR-002", "HW-APR-003", "HW-APR-004", "HW-APR-005", "HW-APR-006", "HW-APR-007", "HW-APR-008"} <= gate_ids, response
+assert {
+    "approval_authority_reviewer",
+    "approval_policy_reviewer",
+    "signature_rbac_reviewer",
+    "approval_record_schema_reviewer",
+    "approval_evidence_store_reviewer",
+    "review_workflow_reviewer",
+    "target_smoke_reviewer",
+    "rollback_fault_reviewer",
+    "driver_hal_gap_reviewer",
+    "audit_export_reviewer",
+    "gate_closure_reviewer",
+} <= roles, response
+assert payload["source_surfaces"]["approval_decision_closure_blocker_matrix"]["matrix_complete"] is True, response
+assert payload["source_surfaces"]["approval_decision_closure_blocker_matrix"]["approval_decision_closure_allowed"] is False, response
+for key in [
+    "review_ready",
+    "approval_review_allowed",
+    "retention_review_allowed",
+    "approval_decision_closure_allowed",
+    "approval_decision_persisted",
+    "approval_decision_review_queue_updated",
+    "approval_decision_evidence_store_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+for key in [
+    "owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_active",
+    "owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_active",
+    "matrix_complete",
+    "no_side_effects_consistent",
+]:
+    assert payload["summary"][key] is True, response
+assert payload["summary"]["unassigned_reviewer_count"] == 11, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix" in encoded, response
+assert "HW-APR-007" in encoded and "android-linux-reviewer-matrix-parity" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

@@ -1312,6 +1312,172 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKERS = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWER_MATRIX_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWER_MATRIX_GATES = [
+    {
+        "gate_id": "HW-APR-001",
+        "name": "reviewer-matrix-surface-bound",
+        "required_evidence": "Reviewer matrix binds to the approval decision closure blocker matrix and inherits its no-store/no-load state.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APR-002",
+        "name": "approval-authority-reviewer-open",
+        "required_evidence": "Approval authority, policy, signature, and RBAC reviewer responsibilities remain explicitly unassigned.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APR-003",
+        "name": "approval-record-evidence-reviewer-open",
+        "required_evidence": "Approval record schema and evidence store reviewer responsibilities remain explicitly unassigned.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APR-004",
+        "name": "review-workflow-reviewer-open",
+        "required_evidence": "Review workflow, audit export, and gate closure reviewer responsibilities remain explicitly unassigned.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APR-005",
+        "name": "target-smoke-rollback-fault-reviewer-open",
+        "required_evidence": "Target smoke, rollback, and fault model reviewer responsibilities remain explicitly unassigned.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APR-006",
+        "name": "driver-hal-gap-reviewer-open",
+        "required_evidence": "Driver/HAL gap closure reviewer responsibility remains explicitly unassigned and linked to DRV-GAP-001/005.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APR-007",
+        "name": "android-linux-reviewer-matrix-parity",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same reviewer matrix.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-APR-008",
+        "name": "no-side-effect-reviewer-matrix",
+        "required_evidence": "Reviewer matrix does not assign reviewers, persist decisions, create evidence stores, update review queues, close gates, load adapters, access hardware, call Driver/HAL, or trigger virtualization.",
+        "passed": True,
+    },
+]
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWERS = [
+    {
+        "reviewer_id": "HW-APR-REV-001",
+        "role": "approval_authority_reviewer",
+        "blocked_by_dependency": "approval_authority",
+        "source_blocker_id": "HW-APM-BLK-001",
+        "required_assignment": "Assign the target platform role allowed to review approval authority closure.",
+        "review_scope": "approval-authority",
+        "source_gate_ids": ["HW-ALA-002", "HW-AAS-004", "HW-AAC-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-002",
+        "role": "approval_policy_reviewer",
+        "blocked_by_dependency": "approval_policy",
+        "source_blocker_id": "HW-APM-BLK-002",
+        "required_assignment": "Assign the Runtime & Governance reviewer for the approval policy that can move dry-run into closure review.",
+        "review_scope": "approval-policy",
+        "source_gate_ids": ["HW-ALA-003", "HW-APD-006", "HW-APA-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-003",
+        "role": "signature_rbac_reviewer",
+        "blocked_by_dependency": "owner_signature_source",
+        "source_blocker_id": "HW-APM-BLK-003",
+        "required_assignment": "Assign reviewer for owner signature source, signing identity, Android Binder identity, and Linux service identity RBAC mapping.",
+        "review_scope": "signature-rbac",
+        "source_gate_ids": ["HW-ALA-004", "HW-APD-005", "HW-APM-007"],
+        "driver_gap_ids": [],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-004",
+        "role": "approval_record_schema_reviewer",
+        "blocked_by_dependency": "approval_record_schema",
+        "source_blocker_id": "HW-APM-BLK-005",
+        "required_assignment": "Assign reviewer for durable approval record fields, versioning, hashes, signatures, and replay rules.",
+        "review_scope": "approval-record-schema",
+        "source_gate_ids": ["HW-AAS-002", "HW-APS-002"],
+        "driver_gap_ids": [],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-005",
+        "role": "approval_evidence_store_reviewer",
+        "blocked_by_dependency": "approval_evidence_store_owner",
+        "source_blocker_id": "HW-APM-BLK-006",
+        "required_assignment": "Assign reviewer for durable approval evidence store ownership, allowed URI schemes, retention, export, and deletion semantics.",
+        "review_scope": "approval-evidence-retention",
+        "source_gate_ids": ["HW-AAS-003", "HW-OER-001", "HW-OER-002", "HW-OER-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-006",
+        "role": "review_workflow_reviewer",
+        "blocked_by_dependency": "review_workflow_owner",
+        "source_blocker_id": "HW-APM-BLK-007",
+        "required_assignment": "Assign reviewer for approval review workflow owner, queue semantics, rejection path, and SLA.",
+        "review_scope": "approval-review-workflow",
+        "source_gate_ids": ["HW-AAS-003", "HW-OER-004", "HW-APS-003"],
+        "driver_gap_ids": [],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-007",
+        "role": "target_smoke_reviewer",
+        "blocked_by_dependency": "target_smoke_evidence",
+        "source_blocker_id": "HW-APM-BLK-008",
+        "required_assignment": "Assign reviewer for target hardware smoke evidence, denied access behavior, timeout/reset cases, and audit export artifacts.",
+        "review_scope": "target-smoke-evidence",
+        "source_gate_ids": ["HW-ACT-006", "HW-ODS-006", "HW-OET-007", "HW-OEA-006"],
+        "driver_gap_ids": ["DRV-GAP-001"],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-008",
+        "role": "rollback_fault_reviewer",
+        "blocked_by_dependency": "rollback_plan",
+        "source_blocker_id": "HW-APM-BLK-009",
+        "required_assignment": "Assign reviewer for rollback-to-empty-interface plan, gate rollback behavior, adapter timeout/reset, degraded state, and fault isolation.",
+        "review_scope": "rollback-and-fault-model",
+        "source_gate_ids": ["HW-ACT-007", "HW-OER-007", "HW-OET-005", "HW-OEA-007", "HW-ACT-005", "HW-OET-006", "HW-OEA-005"],
+        "driver_gap_ids": ["DRV-GAP-005"],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-009",
+        "role": "driver_hal_gap_reviewer",
+        "blocked_by_dependency": "driver_hal_gap_closure_evidence",
+        "source_blocker_id": "HW-APM-BLK-011",
+        "required_assignment": "Assign reviewer for Driver/HAL gap closure evidence covering target NPU runtime, device access, and vendor SDK bridge.",
+        "review_scope": "driver-hal-gap-closure",
+        "source_gate_ids": ["HW-ACT-002", "HW-ODS-004", "HW-OET-003", "HW-OEA-003"],
+        "driver_gap_ids": ["DRV-GAP-001", "DRV-GAP-005"],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-010",
+        "role": "audit_export_reviewer",
+        "blocked_by_dependency": "audit_owner",
+        "source_blocker_id": "HW-APM-BLK-012",
+        "required_assignment": "Assign reviewer for audit export owner and acceptance rule for approval decision closure evidence.",
+        "review_scope": "audit-export",
+        "source_gate_ids": ["HW-APA-001", "HW-APA-006", "HW-APM-001"],
+        "driver_gap_ids": [],
+    },
+    {
+        "reviewer_id": "HW-APR-REV-011",
+        "role": "gate_closure_reviewer",
+        "blocked_by_dependency": "gate_closure_authority",
+        "source_blocker_id": "HW-APM-BLK-013",
+        "required_assignment": "Assign reviewer authorized to accept approval decision, evidence, Driver/HAL, smoke, rollback, fault, and gate closure responsibilities.",
+        "review_scope": "gate-closure-authority",
+        "source_gate_ids": ["HW-OER-005", "HW-APD-007", "HW-APA-008"],
+        "driver_gap_ids": [],
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -4289,6 +4455,173 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_CLOSURE_BLOCKER_MATRIX_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_payload(self) -> dict[str, Any]:
+        closure_matrix = self.owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_payload()
+        closure_blockers_by_id = {
+            item["blocker_id"]: item
+            for item in closure_matrix["closure_blockers"]
+        }
+        reviewer_rows = []
+        for item in HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWERS:
+            source_blocker = closure_blockers_by_id[item["source_blocker_id"]]
+            reviewer_rows.append(
+                {
+                    **copy.deepcopy(item),
+                    "source_blocker_state": source_blocker["state"],
+                    "source_dependency": source_blocker["dependency"],
+                    "state": "unassigned",
+                    "owner_confirmed": False,
+                    "evidence_attached": False,
+                    "review_ready": False,
+                    "approval_review_allowed": False,
+                    "retention_review_allowed": False,
+                    "blocks_approval_review": True,
+                    "blocks_retention_review": True,
+                    "blocks_gate_closure": True,
+                    "blocks_adapter_load": True,
+                }
+            )
+        reviewers_by_role = {
+            item["role"]: {
+                "reviewer_id": item["reviewer_id"],
+                "state": item["state"],
+                "source_blocker_id": item["source_blocker_id"],
+                "review_ready": item["review_ready"],
+            }
+            for item in reviewer_rows
+        }
+        source_surface_checks = [
+            {
+                "check_id": "HW-APR-CHECK-001",
+                "name": "closure-blocker-matrix-bound",
+                "source": "approval_decision_closure_blocker_matrix",
+                "passed": closure_matrix["approval_decision_closure_blocker_matrix_active"] is True
+                and closure_matrix["matrix_complete"] is True,
+            },
+            {
+                "check_id": "HW-APR-CHECK-002",
+                "name": "all-source-blockers-open",
+                "source": "closure_blockers",
+                "passed": all(item["state"] == "open" for item in closure_matrix["closure_blockers"]),
+            },
+            {
+                "check_id": "HW-APR-CHECK-003",
+                "name": "no-side-effects-inherited",
+                "source": "closure_blocker_matrix.summary",
+                "passed": closure_matrix["summary"]["no_side_effects_consistent"] is True,
+            },
+            {
+                "check_id": "HW-APR-CHECK-004",
+                "name": "android-linux-reviewer-surface-bound",
+                "source": "api_surface",
+                "passed": True,
+            },
+        ]
+        no_side_effects_consistent = closure_matrix["summary"]["no_side_effects_consistent"] is True and all(
+            closure_matrix["summary"][key] is False
+            for key in [
+                "decision_dry_run_post_called_by_closure_matrix",
+                "approval_decision_persisted",
+                "approval_decision_review_queue_updated",
+                "approval_decision_evidence_store_active",
+                "adapter_load_allowed",
+                "adapter_activation_allowed",
+                "hardware_access_allowed",
+                "hardware_accessed",
+                "driver_development_triggered",
+                "virtualization_development_triggered",
+                "service_dispatch_triggered",
+            ]
+        )
+        matrix_complete = all(item["state"] == "unassigned" for item in reviewer_rows) and all(
+            item["passed"] for item in source_surface_checks
+        )
+
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix",
+            "approval_decision_reviewer_matrix_state": "contract-only-approval-decision-reviewers-unassigned",
+            "approval_decision_reviewer_matrix_active": True,
+            "matrix_complete": matrix_complete,
+            "review_ready": False,
+            "approval_review_allowed": False,
+            "retention_review_allowed": False,
+            "gate_closure_allowed": False,
+            "adapter_load_allowed": False,
+            "approval_decision_reviewer_matrix_status": "blocked_contract_only",
+            "unassigned_reviewer_count": len(reviewer_rows),
+            "open_reviewer_ids": [item["reviewer_id"] for item in reviewer_rows],
+            "source_closure_blocker_ids": [item["source_blocker_id"] for item in reviewer_rows],
+            "reviewer_rows": reviewer_rows,
+            "reviewers_by_role": reviewers_by_role,
+            "source_surfaces": {
+                "approval_decision_closure_blocker_matrix": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix",
+                    "state": closure_matrix["approval_decision_closure_blocker_matrix_state"],
+                    "matrix_complete": closure_matrix["matrix_complete"],
+                    "closure_ready": closure_matrix["closure_ready"],
+                    "approval_decision_closure_allowed": closure_matrix["approval_decision_closure_allowed"],
+                    "unresolved_blocker_count": closure_matrix["unresolved_blocker_count"],
+                    "open_blocker_ids": closure_matrix["open_blocker_ids"],
+                }
+            },
+            "source_surface_checks": source_surface_checks,
+            "mandatory_gates": copy.deepcopy(
+                HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWER_MATRIX_GATES
+            ),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_active": True,
+                "owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_active": True,
+                "matrix_complete": matrix_complete,
+                "unassigned_reviewer_count": len(reviewer_rows),
+                "review_ready": False,
+                "approval_review_allowed": False,
+                "retention_review_allowed": False,
+                "approval_decision_closure_allowed": False,
+                "approval_authority_reviewer_assigned": False,
+                "approval_policy_reviewer_assigned": False,
+                "signature_rbac_reviewer_assigned": False,
+                "approval_record_schema_reviewer_assigned": False,
+                "approval_evidence_store_reviewer_assigned": False,
+                "review_workflow_reviewer_assigned": False,
+                "target_smoke_reviewer_assigned": False,
+                "rollback_fault_reviewer_assigned": False,
+                "driver_hal_gap_reviewer_assigned": False,
+                "audit_export_reviewer_assigned": False,
+                "gate_closure_reviewer_assigned": False,
+                "approval_record_schema_confirmed": False,
+                "approval_evidence_store_owner_confirmed": False,
+                "review_workflow_owner_confirmed": False,
+                "target_smoke_evidence_attached": False,
+                "driver_hal_gap_closure_evidence_attached": False,
+                "audit_owner_confirmed": False,
+                "gate_closure_authority_confirmed": False,
+                "approval_decision_persisted": False,
+                "approval_decision_review_queue_updated": False,
+                "approval_decision_evidence_store_active": False,
+                "approval_evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+                "no_side_effects_consistent": no_side_effects_consistent,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_REVIEWER_MATRIX_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

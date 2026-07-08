@@ -252,6 +252,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1399,6 +1405,98 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix" in encoded, "gRPC hardware approval closure blocker matrix binding missing"
         assert "HW-APM-007" in encoded and "android-linux-closure-blocker-parity" in encoded, "hardware approval closure blocker matrix missing synchronized binding gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval closure blocker matrix missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix":
+        reviewer_matrix = payload["payload"]
+        encoded = json.dumps(reviewer_matrix)
+        gate_ids = {item["gate_id"] for item in reviewer_matrix["mandatory_gates"]}
+        roles = {item["role"] for item in reviewer_matrix["reviewer_rows"]}
+        assert reviewer_matrix["approval_decision_reviewer_matrix_state"] == "contract-only-approval-decision-reviewers-unassigned", "hardware approval reviewer matrix wrong state"
+        assert reviewer_matrix["approval_decision_reviewer_matrix_active"] is True, "hardware approval reviewer matrix inactive"
+        assert reviewer_matrix["matrix_complete"] is True, "hardware approval reviewer matrix incomplete"
+        assert reviewer_matrix["review_ready"] is False, "hardware approval reviewer matrix unexpectedly review-ready"
+        assert reviewer_matrix["approval_review_allowed"] is False, "hardware approval reviewer matrix allowed approval review"
+        assert reviewer_matrix["retention_review_allowed"] is False, "hardware approval reviewer matrix allowed retention review"
+        assert reviewer_matrix["gate_closure_allowed"] is False, "hardware approval reviewer matrix allowed gate closure"
+        assert reviewer_matrix["adapter_load_allowed"] is False, "hardware approval reviewer matrix allowed adapter load"
+        assert reviewer_matrix["approval_decision_reviewer_matrix_status"] == "blocked_contract_only", "hardware approval reviewer matrix wrong status"
+        assert reviewer_matrix["unassigned_reviewer_count"] == 11, "hardware approval reviewer matrix lost reviewer count"
+        assert len(reviewer_matrix["reviewer_rows"]) == 11, "hardware approval reviewer matrix lost rows"
+        assert all(item["state"] == "unassigned" for item in reviewer_matrix["reviewer_rows"]), "hardware approval reviewer matrix assigned reviewers"
+        assert all(item["source_blocker_state"] == "open" for item in reviewer_matrix["reviewer_rows"]), "hardware approval reviewer matrix lost open source blocker state"
+        assert all(item["blocks_adapter_load"] and item["blocks_gate_closure"] for item in reviewer_matrix["reviewer_rows"]), "hardware approval reviewer matrix blockers are not enforced"
+        assert all(item["passed"] for item in reviewer_matrix["source_surface_checks"]), "hardware approval reviewer matrix source checks failed"
+        assert {
+            "HW-APR-001",
+            "HW-APR-002",
+            "HW-APR-003",
+            "HW-APR-004",
+            "HW-APR-005",
+            "HW-APR-006",
+            "HW-APR-007",
+            "HW-APR-008",
+        } <= gate_ids, "hardware approval reviewer matrix missing mandatory gates"
+        assert {
+            "approval_authority_reviewer",
+            "approval_policy_reviewer",
+            "signature_rbac_reviewer",
+            "approval_record_schema_reviewer",
+            "approval_evidence_store_reviewer",
+            "review_workflow_reviewer",
+            "target_smoke_reviewer",
+            "rollback_fault_reviewer",
+            "driver_hal_gap_reviewer",
+            "audit_export_reviewer",
+            "gate_closure_reviewer",
+        } <= roles, "hardware approval reviewer matrix missing reviewer roles"
+        assert reviewer_matrix["source_surfaces"]["approval_decision_closure_blocker_matrix"]["matrix_complete"] is True, "hardware approval reviewer matrix lost closure source matrix"
+        assert reviewer_matrix["source_surfaces"]["approval_decision_closure_blocker_matrix"]["approval_decision_closure_allowed"] is False, "hardware approval reviewer matrix allowed closure source"
+        for key in [
+            "review_ready",
+            "approval_review_allowed",
+            "retention_review_allowed",
+            "approval_decision_closure_allowed",
+            "approval_authority_reviewer_assigned",
+            "approval_policy_reviewer_assigned",
+            "signature_rbac_reviewer_assigned",
+            "approval_record_schema_reviewer_assigned",
+            "approval_evidence_store_reviewer_assigned",
+            "review_workflow_reviewer_assigned",
+            "target_smoke_reviewer_assigned",
+            "rollback_fault_reviewer_assigned",
+            "driver_hal_gap_reviewer_assigned",
+            "audit_export_reviewer_assigned",
+            "gate_closure_reviewer_assigned",
+            "approval_decision_persisted",
+            "approval_decision_review_queue_updated",
+            "approval_decision_evidence_store_active",
+            "approval_evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert reviewer_matrix["summary"][key] is False, f"hardware approval reviewer matrix summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_decision_reviewer_matrix_active",
+            "owner_decision_evidence_adapter_load_approval_decision_closure_blocker_matrix_active",
+            "matrix_complete",
+            "no_side_effects_consistent",
+        ]:
+            assert reviewer_matrix["summary"][key] is True, f"hardware approval reviewer matrix summary did not set {key}"
+        assert reviewer_matrix["summary"]["unassigned_reviewer_count"] == 11, "hardware approval reviewer matrix summary lost reviewer count"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson" in encoded, "Android hardware approval reviewer matrix binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix" in encoded, "Linux CLI hardware approval reviewer matrix binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix" in encoded, "Linux IPC hardware approval reviewer matrix binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix" in encoded, "gRPC hardware approval reviewer matrix binding missing"
+        assert "HW-APR-007" in encoded and "android-linux-reviewer-matrix-parity" in encoded, "hardware approval reviewer matrix missing synchronized binding gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval reviewer matrix missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -2176,6 +2274,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

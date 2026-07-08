@@ -314,6 +314,13 @@ Brain semantic gateway.
   target smoke, rollback, fault model, Driver/HAL gap closure, audit owner, and
   gate closure blockers with `HW-APM-001..008` while keeping closure, adapter
   load, hardware access, Driver/HAL, and virtualization disabled.
+- `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson`
+  exposes the approval decision reviewer matrix through the Android Console
+  `HW ApRev` action only; it lists approval authority, policy, signature/RBAC,
+  approval record schema, evidence store, review workflow, target smoke,
+  rollback/fault, Driver/HAL gap, audit export, and gate closure reviewers with
+  `HW-APR-001..008` while keeping reviewers unassigned, closure, adapter load,
+  hardware access, Driver/HAL, and virtualization disabled.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter

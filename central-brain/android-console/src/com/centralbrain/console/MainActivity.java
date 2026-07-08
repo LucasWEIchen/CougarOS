@@ -64,6 +64,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -430,7 +431,16 @@ public class MainActivity extends Activity {
                 getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix();
             }
         });
-        prototypeReadinessButton = addButton(hardwareApprovalClosureRow, "Prototype", new View.OnClickListener() {
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixButton = addButton(hardwareApprovalClosureRow, "HW ApRev", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix();
+            }
+        });
+
+        LinearLayout readinessRow = buttonRow();
+        buttonArea.addView(readinessRow);
+        prototypeReadinessButton = addButton(readinessRow, "Prototype", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getPrototypeReadiness();
@@ -924,6 +934,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix() {
+        setBusy(true, "Status: loading hardware owner evidence adapter load approval decision reviewer matrix via Binder");
+        gatewayRequest("Hardware Owner Evidence Adapter Load Approval Decision Reviewer Matrix (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -972,7 +992,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
