@@ -675,6 +675,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_GATES = [
+    {
+        "gate_id": "HW-ALD-001",
+        "name": "dry-run-request-shape-valid",
+        "required_evidence": "Request declares selected_interface_id, selected_adapter_id, adapter_version, requested_by, and immutable evidence_refs.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALD-002",
+        "name": "adapter-load-blocker-rollup-bound",
+        "required_evidence": "Dry-run decision is bound to the adapter-load blocker rollup before any adapter load is considered.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALD-003",
+        "name": "target-interface-known",
+        "required_evidence": "selected_interface_id maps to a registered hardware empty interface.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALD-004",
+        "name": "selected-adapter-declared",
+        "required_evidence": "selected_adapter_id and adapter_version are declared without loading or probing the adapter.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALD-005",
+        "name": "approval-evidence-refs-present",
+        "required_evidence": "Evidence refs identify owner approval, Driver/HAL gap review, Safety/Policy review, smoke, and rollback artifacts.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALD-006",
+        "name": "runtime-governance-policy-checked",
+        "required_evidence": "Runtime & Governance policy/audit context is checked before dry-run rejection is returned.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALD-007",
+        "name": "open-blockers-enforced",
+        "required_evidence": "Open owner, ABI, evidence-store, replacement, selected-adapter, Safety/Policy, smoke, and rollback blockers reject the request.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALD-008",
+        "name": "no-adapter-load-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose the dry-run without loading or activating an adapter.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -1656,6 +1709,176 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_dry_run_payload(self, request: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]:
+        interface_ids = {item["interface_id"] for item in EMPTY_INTERFACE_REGISTRY}
+        selected_interface_id = str(request.get("selected_interface_id") or request.get("interface_id") or "")
+        selected_adapter_id = str(request.get("selected_adapter_id") or request.get("adapter_id") or "")
+        adapter_version = str(request.get("adapter_version") or request.get("version") or "")
+        raw_evidence_refs = request.get("evidence_refs") or request.get("attachments") or []
+        evidence_refs = raw_evidence_refs if isinstance(raw_evidence_refs, list) else [raw_evidence_refs]
+        raw_requested_by = request.get("requested_by") or request.get("reviewer") or request.get("caller") or {}
+        requested_by = raw_requested_by if isinstance(raw_requested_by, dict) else {"name": str(raw_requested_by)}
+        dry_run_request_id = str(request.get("dry_run_request_id") or f"hw-ald-{uuid.uuid4()}")
+        required_ref_fields = ["ref_id", "type", "uri_or_path", "owner", "summary"]
+        invalid_evidence_ref_indexes = [
+            index
+            for index, evidence_ref in enumerate(evidence_refs)
+            if not isinstance(evidence_ref, dict) or not all(evidence_ref.get(field) for field in required_ref_fields)
+        ]
+        known_interface = bool(selected_interface_id) and selected_interface_id in interface_ids
+        has_adapter_identity = bool(selected_adapter_id and adapter_version)
+        has_evidence_refs = bool(evidence_refs) and not invalid_evidence_ref_indexes
+        has_requester = bool(requested_by.get("app_id") or requested_by.get("name") or requested_by.get("role"))
+        policy_allowed = policy["decision"] == "allow"
+        request_shape_valid = known_interface and has_adapter_identity and has_evidence_refs and has_requester
+        blocker_rollup = self.owner_decision_evidence_adapter_load_blocker_rollup_payload()
+        open_blocker_ids = [
+            item["blocker_id"]
+            for item in blocker_rollup["blocker_groups"]
+            if item["state"] in ("open", "enforced")
+        ]
+
+        if not policy_allowed:
+            state = "rejected_by_policy"
+        elif not request_shape_valid:
+            state = "rejected_missing_request_shape"
+        else:
+            state = "rejected_blocked_contract_only"
+
+        mandatory_gates = copy.deepcopy(HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_GATES)
+        gate_passes = {
+            "HW-ALD-001": request_shape_valid,
+            "HW-ALD-003": known_interface,
+            "HW-ALD-004": has_adapter_identity,
+            "HW-ALD-005": has_evidence_refs,
+            "HW-ALD-006": policy_allowed,
+        }
+        for gate in mandatory_gates:
+            if gate["gate_id"] in gate_passes:
+                gate["passed"] = gate_passes[gate["gate_id"]]
+
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-dry-run",
+            "dry_run_request_id": dry_run_request_id,
+            "adapter_load_dry_run_state": state,
+            "dry_run_validated": request_shape_valid and policy_allowed,
+            "adapter_load_blocked": True,
+            "adapter_load_allowed": False,
+            "adapter_activation_allowed": False,
+            "hardware_access_allowed": False,
+            "gate_closure_allowed": False,
+            "selected_interface_id": selected_interface_id,
+            "selected_adapter_id": selected_adapter_id,
+            "adapter_version": adapter_version,
+            "unknown_interface_id": None if known_interface else selected_interface_id or None,
+            "evidence_refs": evidence_refs,
+            "invalid_evidence_ref_indexes": invalid_evidence_ref_indexes,
+            "requested_by": requested_by,
+            "request_contract": {
+                "required_fields": [
+                    "selected_interface_id",
+                    "selected_adapter_id",
+                    "adapter_version",
+                    "requested_by",
+                    "evidence_refs",
+                ],
+                "accepted_evidence_ref_types": [
+                    "owner_approval",
+                    "driver_gap_review",
+                    "safety_review",
+                    "smoke_result",
+                    "rollback_plan",
+                    "platform_decision",
+                ],
+                "required_ref_fields": required_ref_fields,
+                "prototype_persistence": "not implemented; dry-run request is validated and discarded after response",
+            },
+            "blocker_rollup_reference": {
+                "source_endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                "adapter_load_blocker_rollup_state": blocker_rollup["adapter_load_blocker_rollup_state"],
+                "adapter_load_ready": blocker_rollup["adapter_load_ready"],
+                "all_blockers_cleared": blocker_rollup["all_blockers_cleared"],
+                "open_blocker_ids": open_blocker_ids,
+                "source_checklists": [item["source"] for item in blocker_rollup["source_checklists"]],
+                "mandatory_gate_ids": [item["gate_id"] for item in blocker_rollup["mandatory_gates"]],
+            },
+            "validation": {
+                "policy_checked": True,
+                "policy": policy,
+                "selected_interface_known": known_interface,
+                "adapter_identity_present": has_adapter_identity,
+                "evidence_refs_present": has_evidence_refs,
+                "evidence_refs_shape_valid": has_evidence_refs,
+                "requested_by_present": has_requester,
+                "request_shape_valid": request_shape_valid,
+                "audit_recorded": True,
+            },
+            "dry_run_result": {
+                "state": state,
+                "allowed_to_load_adapter": False,
+                "allowed_to_activate_adapter": False,
+                "allowed_to_access_hardware": False,
+                "allowed_to_close_gates": False,
+                "review_queue_updated": False,
+                "evidence_persisted": False,
+                "adapter_selected": False,
+                "adapter_loaded": False,
+                "adapter_activated": False,
+                "hardware_accessed": False,
+                "reason": "adapter-load dry-run is contract-only and rejected while blocker rollup reports open owner, evidence, replacement, selected-adapter, Safety/Policy, smoke, rollback, and no-hardware gates",
+            },
+            "mandatory_gates": mandatory_gates,
+            "api_surface": {
+                "rest": "POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run",
+                "android_binder": "dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-dry-run",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run",
+                "linux_grpc_rpc": "CentralBrainGateway.DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_dry_run_active": True,
+                "owner_decision_evidence_adapter_load_blocker_rollup_active": True,
+                "owner_decision_evidence_selected_adapter_readiness_checklist_active": True,
+                "owner_decision_evidence_replacement_trigger_checklist_active": True,
+                "owner_decision_evidence_retention_checklist_active": True,
+                "owner_decision_evidence_status_contract_active": True,
+                "owner_decision_evidence_contract_active": True,
+                "request_shape_valid": request_shape_valid,
+                "dry_run_validated": request_shape_valid and policy_allowed,
+                "policy_allowed": policy_allowed,
+                "owner_decision_complete": False,
+                "all_blockers_cleared": False,
+                "adapter_load_ready": False,
+                "adapter_candidate_recorded": False,
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+                "load_policy_confirmed": False,
+                "replacement_policy_confirmed": False,
+                "replacement_allowed": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

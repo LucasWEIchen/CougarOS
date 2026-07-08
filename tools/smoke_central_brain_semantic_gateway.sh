@@ -177,6 +177,30 @@ checks = [
     ("GET", "/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup", None, "HW-002"),
+    (
+        "POST",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run",
+        {
+            "dry_run_request_id": "semantic-smoke-hw-adapter-load-dry-run",
+            "selected_interface_id": "npu-runtime",
+            "selected_adapter_id": "target-platform-npu-adapter",
+            "adapter_version": "0.0.0-contract",
+            "evidence_refs": [
+                {
+                    "ref_id": "semantic-smoke-hw-adapter-load-approval",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "semantic-gateway-smoke",
+                    "summary": "contract-only adapter-load dry-run approval reference",
+                }
+            ],
+            "requested_by": {"app_id": "semantic-gateway-smoke", "role": "test"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -758,6 +782,43 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup" in encoded, "gRPC hardware adapter load blocker binding missing"
         assert "HW-ALB-006" in encoded and "safety-policy-smoke-rollback" in encoded, "hardware adapter load blocker missing safety/smoke/rollback gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load blocker missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run":
+        dry_run = payload["payload"]
+        encoded = json.dumps(dry_run)
+        gate_ids = {item["gate_id"] for item in dry_run["mandatory_gates"]}
+        assert dry_run["adapter_load_dry_run_state"] == "rejected_blocked_contract_only", "hardware adapter load dry-run left blocked state"
+        assert dry_run["dry_run_validated"] is True, "hardware adapter load dry-run request not validated"
+        assert dry_run["adapter_load_blocked"] is True, "hardware adapter load dry-run not blocked"
+        assert dry_run["adapter_load_allowed"] is False, "hardware adapter load dry-run unexpectedly allowed adapter load"
+        assert dry_run["adapter_activation_allowed"] is False, "hardware adapter load dry-run unexpectedly allowed activation"
+        assert dry_run["hardware_access_allowed"] is False, "hardware adapter load dry-run unexpectedly allowed hardware access"
+        assert dry_run["gate_closure_allowed"] is False, "hardware adapter load dry-run unexpectedly allowed gate closure"
+        assert dry_run["blocker_rollup_reference"]["adapter_load_ready"] is False, "hardware adapter load dry-run lost blocker rollup readiness"
+        assert dry_run["blocker_rollup_reference"]["all_blockers_cleared"] is False, "hardware adapter load dry-run lost blocker rollup blocked status"
+        assert {"HW-ALD-001", "HW-ALD-002", "HW-ALD-003", "HW-ALD-004", "HW-ALD-005", "HW-ALD-006", "HW-ALD-007", "HW-ALD-008"} <= gate_ids, "hardware adapter load dry-run missing mandatory gates"
+        for key in [
+            "owner_decision_complete",
+            "all_blockers_cleared",
+            "adapter_load_ready",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert dry_run["summary"][key] is False, f"hardware adapter load dry-run summary unexpectedly set {key}"
+        assert dry_run["summary"]["owner_decision_evidence_adapter_load_dry_run_active"] is True, "hardware adapter load dry-run summary not active"
+        assert dry_run["summary"]["request_shape_valid"] is True, "hardware adapter load dry-run request shape not valid"
+        assert dry_run["summary"]["dry_run_validated"] is True, "hardware adapter load dry-run summary not validated"
+        assert "dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson" in encoded, "Android hardware adapter load dry-run binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-dry-run" in encoded, "Linux CLI hardware adapter load dry-run binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run" in encoded, "Linux IPC hardware adapter load dry-run binding missing"
+        assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad" in encoded, "gRPC hardware adapter load dry-run binding missing"
+        assert "HW-ALD-007" in encoded and "open-blockers-enforced" in encoded, "hardware adapter load dry-run missing blocker gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load dry-run missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1471,6 +1532,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-replacement-trigger-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

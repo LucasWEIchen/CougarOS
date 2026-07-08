@@ -1257,6 +1257,53 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup" in en
 assert "HW-ALB-006" in encoded and "safety-policy-smoke-rollback" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+dry_run = payload["gateway"]["payload"]
+encoded = json.dumps(dry_run)
+gate_ids = {item["gate_id"] for item in dry_run["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert dry_run["adapter_load_dry_run_state"] == "rejected_blocked_contract_only", response
+assert dry_run["dry_run_validated"] is True, response
+assert dry_run["adapter_load_blocked"] is True, response
+assert dry_run["adapter_load_allowed"] is False, response
+assert dry_run["adapter_activation_allowed"] is False, response
+assert dry_run["hardware_access_allowed"] is False, response
+assert dry_run["gate_closure_allowed"] is False, response
+assert dry_run["selected_interface_id"] == "npu-runtime", response
+assert dry_run["blocker_rollup_reference"]["adapter_load_ready"] is False, response
+assert dry_run["blocker_rollup_reference"]["all_blockers_cleared"] is False, response
+assert {"HW-ALD-001", "HW-ALD-002", "HW-ALD-003", "HW-ALD-004", "HW-ALD-005", "HW-ALD-006", "HW-ALD-007", "HW-ALD-008"} <= gate_ids, response
+for key in [
+    "owner_decision_complete",
+    "all_blockers_cleared",
+    "adapter_load_ready",
+    "adapter_candidate_recorded",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert dry_run["summary"][key] is False, response
+assert dry_run["summary"]["owner_decision_evidence_adapter_load_dry_run_active"] is True, response
+assert dry_run["summary"]["request_shape_valid"] is True, response
+assert dry_run["summary"]["dry_run_validated"] is True, response
+assert "dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-dry-run" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run" in encoded, response
+assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad" in encoded, response
+assert "HW-ALD-007" in encoded and "open-blockers-enforced" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

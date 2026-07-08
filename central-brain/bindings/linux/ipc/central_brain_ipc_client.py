@@ -132,6 +132,29 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "hardware.interfaces.owner.decision.evidence.adapter.load.blocker.rollup",
         {},
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-dry-run": (
+        "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run",
+        {
+            "trace_id": "linux-ipc-hardware-owner-evidence-adapter-load-dry-run",
+            "dry_run_request_id": "linux-ipc-hw-adapter-load-dry-run",
+            "selected_interface_id": "npu-runtime",
+            "selected_adapter_id": "target-platform-npu-adapter",
+            "adapter_version": "0.0.0-contract",
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-ipc-hw-adapter-load-approval",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-ipc-client",
+                    "summary": "contract-only adapter-load dry-run approval reference",
+                }
+            ],
+            "requested_by": {"app_id": "linux-ipc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

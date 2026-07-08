@@ -125,6 +125,8 @@ interface ICentralBrainGateway {
 
     String getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson(String traceId);
 
+    String dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson(String traceId, String requestJson);
+
     String getVehicleSignalsJson(String traceId);
 
     String getVehicleSignalActivationJson(String traceId);

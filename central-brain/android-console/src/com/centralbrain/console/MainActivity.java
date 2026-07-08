@@ -53,6 +53,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceReplacementButton;
     private Button hardwareOwnerDecisionEvidenceSelectedAdapterButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadBlockerButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadDryRunButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -333,6 +334,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getHardwareOwnerDecisionEvidenceAdapterLoadBlockerRollup();
+            }
+        });
+        hardwareOwnerDecisionEvidenceAdapterLoadDryRunButton = addButton(hardwareLoadRow, "HW DryRun", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dryRunHardwareOwnerDecisionEvidenceAdapterLoad();
             }
         });
         prototypeReadinessButton = addButton(hardwareLoadRow, "Prototype", new View.OnClickListener() {
@@ -690,6 +697,29 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void dryRunHardwareOwnerDecisionEvidenceAdapterLoad() {
+        setBusy(true, "Status: running hardware owner evidence adapter load dry-run via Binder");
+        String body = "{\"dry_run_request_id\":\"android-console-hw-adapter-load-dry-run\","
+                + "\"selected_interface_id\":\"npu-runtime\","
+                + "\"selected_adapter_id\":\"target-platform-npu-adapter\","
+                + "\"adapter_version\":\"0.0.0-contract\","
+                + "\"evidence_refs\":[{\"ref_id\":\"android-console-hw-adapter-load-approval\","
+                + "\"type\":\"owner_approval\","
+                + "\"uri_or_path\":\"docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md\","
+                + "\"owner\":\"android-console\","
+                + "\"summary\":\"contract-only adapter-load dry-run approval reference\"}],"
+                + "\"requested_by\":{\"app_id\":\"central-brain-console\",\"role\":\"debug_console\"},"
+                + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],"
+                + "\"vehicle_state\":\"parked\","
+                + "\"safety_state\":\"normal\"}";
+        gatewayRequest("Hardware Owner Evidence Adapter Load Dry-Run (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-dry-run"), body);
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -738,7 +768,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -817,6 +847,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceReplacementButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceSelectedAdapterButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadBlockerButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceAdapterLoadDryRunButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

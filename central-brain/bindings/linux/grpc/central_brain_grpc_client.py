@@ -248,6 +248,29 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup",
         {},
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-dry-run": (
+        "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad",
+        {
+            "trace_id": "linux-grpc-hardware-owner-evidence-adapter-load-dry-run",
+            "dry_run_request_id": "linux-grpc-hw-adapter-load-dry-run",
+            "selected_interface_id": "npu-runtime",
+            "selected_adapter_id": "target-platform-npu-adapter",
+            "adapter_version": "0.0.0-contract",
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-grpc-hw-adapter-load-approval",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-grpc-client",
+                    "summary": "contract-only adapter-load dry-run approval reference",
+                }
+            ],
+            "requested_by": {"app_id": "linux-grpc-client", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-signals": ("GetVehicleSignals", {}),
     "vehicle-signal-activation": ("GetVehicleSignalActivation", {}),
     "vehicle-signal-validation": ("GetVehicleSignalValidation", {}),

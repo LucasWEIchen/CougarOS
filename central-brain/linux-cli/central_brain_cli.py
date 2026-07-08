@@ -146,6 +146,30 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
         None,
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-dry-run": (
+        "POST",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run",
+        {
+            "trace_id": "linux-cli-hardware-owner-evidence-adapter-load-dry-run",
+            "dry_run_request_id": "linux-cli-hw-adapter-load-dry-run",
+            "selected_interface_id": "npu-runtime",
+            "selected_adapter_id": "target-platform-npu-adapter",
+            "adapter_version": "0.0.0-contract",
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-cli-hw-adapter-load-approval",
+                    "type": "owner_approval",
+                    "uri_or_path": "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md",
+                    "owner": "linux-cli",
+                    "summary": "contract-only adapter-load dry-run approval reference",
+                }
+            ],
+            "requested_by": {"app_id": "linux-cli", "role": "debug_console"},
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),

@@ -242,6 +242,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson(traceId);
     }
 
+    public String dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson(String traceId, String requestJson) throws RemoteException {
+        return requireGateway().dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson(traceId, requestJson);
+    }
+
     public String getVehicleSignalsJson(String traceId) throws RemoteException {
         return requireGateway().getVehicleSignalsJson(traceId);
     }
