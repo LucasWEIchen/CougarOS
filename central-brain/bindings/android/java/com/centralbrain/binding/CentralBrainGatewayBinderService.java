@@ -282,6 +282,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson(String traceId) throws RemoteException {
+            return get("/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist", traceId);
+        }
+
+        @Override
         public String getVehicleSignalsJson(String traceId) throws RemoteException {
             return get("/vehicle/signals", traceId);
         }

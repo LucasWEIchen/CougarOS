@@ -174,6 +174,7 @@ checks = [
     ),
     ("GET", "/hardware/interfaces/owner-decision-evidence/status", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/retention-checklist", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -576,6 +577,60 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist" in encoded, "gRPC hardware owner evidence retention binding missing"
         assert "HW-OER-006" in encoded and "delete-export-semantics" in encoded, "hardware owner evidence retention missing delete/export gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence retention missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist":
+        replacement = payload["payload"]
+        encoded = json.dumps(replacement)
+        gate_ids = {item["gate_id"] for item in replacement["mandatory_gates"]}
+        assert replacement["replacement_trigger_checklist_state"] == "contract-only-replacement-trigger-checklist-open", "hardware owner evidence replacement checklist left contract-only state"
+        assert replacement["replacement_allowed"] is False, "hardware owner evidence replacement allowed adapter replacement"
+        assert replacement["adapter_activation_allowed"] is False, "hardware owner evidence replacement activated an adapter"
+        assert replacement["gate_closure_allowed"] is False, "hardware owner evidence replacement allowed gate closure"
+        assert replacement["owner_decision_complete"] is False, "hardware owner evidence replacement completed owner decision"
+        assert replacement["replacement_policy_shape"]["replacement_policy_confirmed"] is False, "replacement policy unexpectedly confirmed"
+        assert replacement["replacement_policy_shape"]["adapter_readiness_criteria_confirmed"] is False, "adapter readiness criteria unexpectedly confirmed"
+        assert replacement["rollback_policy_shape"]["rollback_to_empty_interface_plan_confirmed"] is False, "rollback-to-empty-interface plan unexpectedly confirmed"
+        assert {"HW-OET-001", "HW-OET-002", "HW-OET-003", "HW-OET-004", "HW-OET-005", "HW-OET-006", "HW-OET-007", "HW-OET-008"} <= gate_ids, "hardware owner evidence replacement checklist missing mandatory gates"
+        assert all(item["replacement_allowed"] is False for item in replacement["replacement_targets"]), "replacement target allowed replacement"
+        assert all(item["adapter_activation_allowed"] is False for item in replacement["replacement_targets"]), "replacement target allowed adapter activation"
+        assert all(item["driver_hal_development_triggered"] is False for item in replacement["replacement_targets"]), "replacement target triggered Driver/HAL work"
+        for key in [
+            "owner_decision_complete",
+            "replacement_policy_confirmed",
+            "replacement_target_selected",
+            "adapter_readiness_criteria_confirmed",
+            "driver_hal_gap_closure_evidence_confirmed",
+            "android_linux_abi_replacement_parity_confirmed",
+            "rollback_to_empty_interface_plan_confirmed",
+            "safety_policy_replacement_review_confirmed",
+            "smoke_harness_replacement_evidence_confirmed",
+            "evidence_store_active",
+            "review_workflow_active",
+            "delete_workflow_active",
+            "export_workflow_active",
+            "review_queue_updated",
+            "owner_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "replacement_allowed",
+            "adapter_activation_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert replacement["summary"][key] is False, f"hardware owner evidence replacement summary unexpectedly set {key}"
+        assert replacement["summary"]["owner_decision_evidence_replacement_trigger_checklist_active"] is True, "hardware owner evidence replacement checklist not active"
+        assert replacement["summary"]["owner_decision_evidence_retention_checklist_active"] is True, "hardware owner evidence retention contract link missing"
+        assert replacement["summary"]["owner_decision_evidence_status_contract_active"] is True, "hardware owner evidence status contract link missing"
+        assert replacement["summary"]["owner_decision_evidence_contract_active"] is True, "hardware owner evidence intake contract link missing"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson" in encoded, "Android hardware owner evidence replacement binding missing"
+        assert "hardware-interface-owner-decision-evidence-replacement-trigger-checklist" in encoded, "Linux CLI hardware owner evidence replacement binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist" in encoded, "Linux IPC hardware owner evidence replacement binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist" in encoded, "gRPC hardware owner evidence replacement binding missing"
+        assert "HW-OET-005" in encoded and "rollback-to-empty-interface" in encoded, "hardware owner evidence replacement missing rollback gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence replacement missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1286,6 +1341,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-retention-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-replacement-trigger-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

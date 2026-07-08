@@ -1027,6 +1027,67 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist" in encoded,
 assert "HW-OER-006" in encoded and "delete-export-semantics" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_REPLACEMENT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-replacement-trigger-checklist)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_REPLACEMENT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["replacement_trigger_checklist_state"] == "contract-only-replacement-trigger-checklist-open", response
+assert payload["replacement_allowed"] is False, response
+assert payload["adapter_activation_allowed"] is False, response
+assert payload["gate_closure_allowed"] is False, response
+assert payload["owner_decision_complete"] is False, response
+assert payload["replacement_policy_shape"]["replacement_policy_confirmed"] is False, response
+assert payload["replacement_policy_shape"]["adapter_readiness_criteria_confirmed"] is False, response
+assert payload["rollback_policy_shape"]["rollback_to_empty_interface_plan_confirmed"] is False, response
+assert {"HW-OET-001", "HW-OET-002", "HW-OET-003", "HW-OET-004", "HW-OET-005", "HW-OET-006", "HW-OET-007", "HW-OET-008"} <= gate_ids, response
+assert all(item["replacement_allowed"] is False for item in payload["replacement_targets"]), response
+assert all(item["adapter_activation_allowed"] is False for item in payload["replacement_targets"]), response
+assert all(item["driver_hal_development_triggered"] is False for item in payload["replacement_targets"]), response
+for key in [
+    "owner_decision_complete",
+    "replacement_policy_confirmed",
+    "replacement_target_selected",
+    "adapter_readiness_criteria_confirmed",
+    "driver_hal_gap_closure_evidence_confirmed",
+    "android_linux_abi_replacement_parity_confirmed",
+    "rollback_to_empty_interface_plan_confirmed",
+    "safety_policy_replacement_review_confirmed",
+    "smoke_harness_replacement_evidence_confirmed",
+    "evidence_store_active",
+    "review_workflow_active",
+    "delete_workflow_active",
+    "export_workflow_active",
+    "review_queue_updated",
+    "owner_assigned",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "replacement_allowed",
+    "adapter_activation_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["owner_decision_evidence_replacement_trigger_checklist_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_retention_checklist_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_status_contract_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_contract_active"] is True, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-replacement-trigger-checklist" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist" in encoded, response
+assert "HW-OET-005" in encoded and "rollback-to-empty-interface" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

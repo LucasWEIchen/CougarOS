@@ -1,7 +1,7 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.51",
-  "updated": "2026-07-07",
+  "version": "0.1.52",
+  "updated": "2026-07-08",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback",
@@ -14,13 +14,13 @@
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
     "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
-    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, and GET /hardware/interfaces/owner-decision-evidence/retention-checklist expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, and retention/closure checklist decisions for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
+    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, GET /hardware/interfaces/owner-decision-evidence/retention-checklist, and GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, retention/closure checklist decisions, and replacement trigger checklist decisions for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware",
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
     "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, POST /uib/events/subscriptions/activation-evidence, GET /uib/events/subscriptions/activation-evidence/status, and GET /uib/events/subscriptions/activation-evidence/retention-checklist expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake/status/retention checklist reference shape, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting evidence or subscriptions, reading an evidence store, updating review queues, creating retention/delete/export workflows, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -2386,6 +2386,149 @@
           "linux_cli": "hardware-interface-owner-decision-evidence-retention-checklist",
           "linux_ipc": "hardware.interfaces.owner.decision.evidence.retention.checklist",
           "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist"
+        }
+      },
+      "req_ids": [
+        "XSC-004",
+        "XSC-006",
+        "HW-002",
+        "KH-003",
+        "KH-006",
+        "KH-007",
+        "DEL-001",
+        "DEL-002",
+        "DEL-005"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+      "description": "Reports the contract-only hardware owner evidence replacement trigger checklist before any empty hardware interface can be replaced by a real adapter, without activating adapters, closing gates, accessing hardware, or touching Driver/HAL.",
+      "response": {
+        "replacement_trigger_checklist_state": "contract-only-replacement-trigger-checklist-open",
+        "replacement_allowed": false,
+        "adapter_activation_allowed": false,
+        "gate_closure_allowed": false,
+        "owner_decision_complete": false,
+        "scope": {
+          "source_endpoints": [
+            "GET /hardware/interfaces",
+            "GET /hardware/interfaces/activation-checklist",
+            "GET /hardware/interfaces/owner-decision-status",
+            "POST /hardware/interfaces/owner-decision-evidence",
+            "GET /hardware/interfaces/owner-decision-evidence/status",
+            "GET /hardware/interfaces/owner-decision-evidence/retention-checklist"
+          ],
+          "target_endpoint": "GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+          "purpose": "fix target-interface selection, adapter readiness, Driver/HAL gap closure evidence, Android/Linux ABI parity, rollback-to-empty-interface plan, Safety/Policy review, and smoke harness evidence before replacing an empty hardware interface with a real adapter",
+          "prototype_storage": "not implemented; this checklist does not persist, dereference, delete, export, review, close, replace, or activate hardware evidence",
+          "target_gate_scope": [
+            "HW-ODS",
+            "HW-ACT",
+            "HW-ODE",
+            "HW-OES",
+            "HW-OER",
+            "DRV-GAP"
+          ]
+        },
+        "replacement_targets": [
+          {
+            "interface_id": "npu-runtime|vehicle-bus|camera-audio-sensors|ethernet-someip-dds-tsn|shared-memory-safety-runtime",
+            "current_state": "empty-interface",
+            "replacement_candidate": "TBD-target-platform-adapter",
+            "replacement_trigger": "requires target owner, Android/Linux ABI owner, Driver/HAL gap closure evidence, Safety/Policy review, smoke harness evidence, and rollback-to-empty-interface plan",
+            "replacement_allowed": false,
+            "adapter_activation_allowed": false,
+            "driver_hal_development_triggered": false
+          }
+        ],
+        "replacement_policy_shape": {
+          "required_trigger_inputs": [
+            "target_interface_id",
+            "adapter_owner",
+            "android_abi_owner",
+            "linux_abi_owner",
+            "driver_hal_gap_closure_evidence",
+            "safety_policy_replacement_review",
+            "target_hardware_smoke_evidence",
+            "rollback_to_empty_interface_plan",
+            "Runtime & Governance audit reference"
+          ],
+          "disallowed_without_owner_decision": [
+            "device-node-open",
+            "vendor-sdk-call",
+            "HAL-binding",
+            "shared-memory-allocation",
+            "vehicle-bus-connection",
+            "adapter-activation",
+            "gate-closure"
+          ],
+          "replacement_policy_confirmed": false,
+          "adapter_readiness_criteria_confirmed": false,
+          "driver_hal_gap_closure_evidence_confirmed": false,
+          "android_linux_abi_replacement_parity_confirmed": false,
+          "safety_policy_replacement_review_confirmed": false,
+          "smoke_harness_replacement_evidence_confirmed": false
+        },
+        "rollback_policy_shape": {
+          "rollback_required": true,
+          "minimum_inputs": [
+            "empty-interface fallback contract",
+            "adapter disable switch owner",
+            "fault isolation behavior",
+            "audit rollback marker",
+            "target smoke failure semantics"
+          ],
+          "rollback_to_empty_interface_plan_confirmed": false,
+          "gate_closure_allowed": false
+        },
+        "mandatory_gates": [
+          "HW-OET-001 replacement-target-interface-selected",
+          "HW-OET-002 adapter-readiness-criteria-approved",
+          "HW-OET-003 driver-hal-gap-closure-evidence-required",
+          "HW-OET-004 android-linux-abi-replacement-parity-approved",
+          "HW-OET-005 rollback-to-empty-interface-plan-approved",
+          "HW-OET-006 safety-policy-replacement-review-required",
+          "HW-OET-007 smoke-harness-replacement-evidence-required",
+          "HW-OET-008 no-auto-replacement-contract-parity-proven"
+        ],
+        "api_surface": {
+          "rest": "GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+          "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson",
+          "linux_cli": "hardware-interface-owner-decision-evidence-replacement-trigger-checklist",
+          "linux_ipc": "hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist",
+          "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist"
+        },
+        "summary": {
+          "owner_decision_evidence_replacement_trigger_checklist_active": true,
+          "owner_decision_complete": false,
+          "replacement_policy_confirmed": false,
+          "replacement_target_selected": false,
+          "adapter_readiness_criteria_confirmed": false,
+          "driver_hal_gap_closure_evidence_confirmed": false,
+          "android_linux_abi_replacement_parity_confirmed": false,
+          "rollback_to_empty_interface_plan_confirmed": false,
+          "safety_policy_replacement_review_confirmed": false,
+          "smoke_harness_replacement_evidence_confirmed": false,
+          "owner_decision_evidence_retention_checklist_active": true,
+          "owner_decision_evidence_status_contract_active": true,
+          "owner_decision_evidence_contract_active": true,
+          "evidence_store_active": false,
+          "review_workflow_active": false,
+          "delete_workflow_active": false,
+          "export_workflow_active": false,
+          "review_queue_updated": false,
+          "owner_assigned": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "activation_allowed": false,
+          "replacement_allowed": false,
+          "adapter_activation_allowed": false,
+          "gate_closure_allowed": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
         }
       },
       "req_ids": [

@@ -516,6 +516,59 @@ HARDWARE_OWNER_EVIDENCE_RETENTION_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_REPLACEMENT_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_REPLACEMENT_GATES = [
+    {
+        "gate_id": "HW-OET-001",
+        "name": "replacement-target-interface-selected",
+        "required_evidence": "Target platform selects which empty hardware interface is allowed to leave placeholder state.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OET-002",
+        "name": "adapter-readiness-criteria-approved",
+        "required_evidence": "Native adapter, Model Runtime Adapter, Vehicle Signal Adapter, or protocol adapter readiness criteria are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OET-003",
+        "name": "driver-hal-gap-closure-evidence-required",
+        "required_evidence": "Driver/HAL gap closure evidence is required before replacing the empty-interface contract.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OET-004",
+        "name": "android-linux-abi-replacement-parity-approved",
+        "required_evidence": "Android Binder/AIDL and Linux CLI/IPC/gRPC replacement ABI parity criteria are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OET-005",
+        "name": "rollback-to-empty-interface-plan-approved",
+        "required_evidence": "Rollback plan can restore the contract-only empty-interface path if the real adapter fails.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OET-006",
+        "name": "safety-policy-replacement-review-required",
+        "required_evidence": "Safety Runtime, Runtime & Governance policy, and fault semantics review is required before adapter replacement.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OET-007",
+        "name": "smoke-harness-replacement-evidence-required",
+        "required_evidence": "Target hardware smoke harness evidence is required for the selected interface and rollback path.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OET-008",
+        "name": "no-auto-replacement-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose the replacement trigger checklist without activating any real adapter.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -1066,6 +1119,120 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_RETENTION_REQ_IDS,
+        }
+
+    def owner_decision_evidence_replacement_trigger_checklist_payload(self) -> dict[str, Any]:
+        replacement_targets = [
+            {
+                "interface_id": item["interface_id"],
+                "current_state": item["implementation_state"],
+                "replacement_candidate": item["interface_id"] in {"npu-runtime", "vehicle-bus", "camera-audio-sensors", "ethernet-protocols", "shared-memory-safety-runtime"},
+                "replacement_trigger": "requires target owner, Android/Linux ABI owner, Driver/HAL gap closure evidence, Safety/Policy review, smoke harness evidence, and rollback-to-empty-interface plan",
+                "replacement_allowed": False,
+                "adapter_activation_allowed": False,
+                "driver_hal_development_triggered": False,
+            }
+            for item in EMPTY_INTERFACE_REGISTRY
+        ]
+        return {
+            "replacement_trigger_checklist_state": "contract-only-replacement-trigger-checklist-open",
+            "replacement_allowed": False,
+            "adapter_activation_allowed": False,
+            "gate_closure_allowed": False,
+            "owner_decision_complete": False,
+            "scope": {
+                "source_endpoints": [
+                    "GET /hardware/interfaces",
+                    "GET /hardware/interfaces/activation-checklist",
+                    "GET /hardware/interfaces/owner-decision-status",
+                    "POST /hardware/interfaces/owner-decision-evidence",
+                    "GET /hardware/interfaces/owner-decision-evidence/status",
+                    "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+                ],
+                "target_endpoint": "GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+                "purpose": "make the future trigger for replacing empty hardware interfaces with real adapters explicit before any Driver/HAL, vendor SDK, Safety Runtime, vehicle bus, shared memory, or NPU hardware integration starts",
+                "prototype_replacement": "not implemented; this checklist does not replace an interface, load an adapter, open hardware, close a gate, or start Driver/HAL work",
+                "target_gate_scope": ["HW-ODS", "HW-ACT", "HW-ODE", "HW-OES", "HW-OER", "DRV-GAP"],
+            },
+            "replacement_targets": replacement_targets,
+            "replacement_policy_shape": {
+                "required_trigger_inputs": [
+                    "selected_interface_id",
+                    "target_owner",
+                    "android_abi_owner",
+                    "linux_abi_owner",
+                    "driver_hal_gap_closure_evidence",
+                    "safety_policy_review",
+                    "target_hardware_smoke_result",
+                    "rollback_to_empty_interface_plan",
+                    "Runtime & Governance audit reference",
+                ],
+                "disallowed_trigger_inputs": [
+                    "raw device node probe",
+                    "unreviewed vendor SDK call",
+                    "platform-specific ABI without Linux parity",
+                    "hardware lab artifact without immutable evidence reference",
+                    "gate closure request without rollback plan",
+                ],
+                "replacement_policy_confirmed": False,
+                "adapter_readiness_criteria_confirmed": False,
+                "driver_hal_gap_closure_evidence_confirmed": False,
+                "android_linux_abi_replacement_parity_confirmed": False,
+                "safety_policy_replacement_review_confirmed": False,
+                "smoke_harness_replacement_evidence_confirmed": False,
+            },
+            "rollback_policy_shape": {
+                "rollback_to_empty_interface_required": True,
+                "minimum_rollback_inputs": [
+                    "previous_empty_interface_contract_version",
+                    "adapter_disable_switch",
+                    "fault_semantics",
+                    "safe degraded response",
+                    "audit evidence reference",
+                ],
+                "rollback_to_empty_interface_plan_confirmed": False,
+                "gate_closure_allowed": False,
+            },
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_REPLACEMENT_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-replacement-trigger-checklist",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist",
+            },
+            "summary": {
+                "owner_decision_evidence_replacement_trigger_checklist_active": True,
+                "owner_decision_complete": False,
+                "replacement_policy_confirmed": False,
+                "replacement_target_selected": False,
+                "adapter_readiness_criteria_confirmed": False,
+                "driver_hal_gap_closure_evidence_confirmed": False,
+                "android_linux_abi_replacement_parity_confirmed": False,
+                "rollback_to_empty_interface_plan_confirmed": False,
+                "safety_policy_replacement_review_confirmed": False,
+                "smoke_harness_replacement_evidence_confirmed": False,
+                "owner_decision_evidence_retention_checklist_active": True,
+                "owner_decision_evidence_status_contract_active": True,
+                "owner_decision_evidence_contract_active": True,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "delete_workflow_active": False,
+                "export_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "replacement_allowed": False,
+                "adapter_activation_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_REPLACEMENT_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

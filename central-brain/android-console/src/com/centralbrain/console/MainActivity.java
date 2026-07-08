@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceButton;
     private Button hardwareOwnerDecisionEvidenceStatusButton;
     private Button hardwareOwnerDecisionEvidenceRetentionButton;
+    private Button hardwareOwnerDecisionEvidenceReplacementButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -309,6 +310,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getHardwareOwnerDecisionEvidenceRetentionChecklist();
+            }
+        });
+        hardwareOwnerDecisionEvidenceReplacementButton = addButton(hardwareEvidenceRow, "HW Replace", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceReplacementTriggerChecklist();
             }
         });
         prototypeReadinessButton = addButton(hardwareEvidenceRow, "Prototype", new View.OnClickListener() {
@@ -636,6 +643,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareOwnerDecisionEvidenceReplacementTriggerChecklist() {
+        setBusy(true, "Status: loading hardware owner evidence replacement trigger checklist via Binder");
+        gatewayRequest("Hardware Owner Evidence Replacement Trigger Checklist (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson(newTraceId("hardware-interface-owner-decision-evidence-replacement-trigger-checklist"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -684,7 +701,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -760,6 +777,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceStatusButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceRetentionButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceReplacementButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

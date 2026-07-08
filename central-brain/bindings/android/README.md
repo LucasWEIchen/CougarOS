@@ -15,7 +15,7 @@ Brain semantic gateway.
   contract, governance migration readiness, governance deployment plan,
   Protocol Binding readiness, Android/Linux delivery readiness, Python
   prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
-  hardware empty-interface registry, hardware interface activation checklist, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, and activation evidence retention checklist contract,
+  hardware empty-interface registry, hardware interface activation checklist, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, activation evidence retention checklist contract, and hardware owner evidence replacement trigger checklist contract,
   Vehicle/Body Signal catalog, and Vehicle
   Signal read-bridge activation criteria contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
@@ -74,6 +74,7 @@ Brain semantic gateway.
 | `submitHardwareInterfaceOwnerDecisionEvidenceJson` | `POST /hardware/interfaces/owner-decision-evidence` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceOwnerDecisionEvidenceStatusJson` | `GET /hardware/interfaces/owner-decision-evidence/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson` | `GET /hardware/interfaces/owner-decision-evidence/retention-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| `getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson` | `GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | `getVehicleSignalsJson` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalActivationJson` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
 | `getVehicleSignalValidationJson` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-001, DEL-002, DEL-005 |
@@ -214,6 +215,14 @@ Brain semantic gateway.
   rollback/fault closure decisions as open while keeping `evidence_store_active=false`,
   `delete_workflow_active=false`, `export_workflow_active=false`,
   `gates_closed=false`, `activation_allowed=false`, and `hardware_accessed=false`.
+- `getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson`
+  exposes the hardware owner evidence replacement trigger checklist through the
+  Android Console `HW Replace` action only; it reports replacement target,
+  adapter readiness, Driver/HAL gap closure evidence, Android/Linux ABI parity,
+  rollback-to-empty-interface plan, Safety/Policy review, and smoke harness
+  decisions as open while keeping `replacement_allowed=false`,
+  `adapter_activation_allowed=false`, `gate_closure_allowed=false`,
+  `activation_allowed=false`, and `hardware_accessed=false`.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter
