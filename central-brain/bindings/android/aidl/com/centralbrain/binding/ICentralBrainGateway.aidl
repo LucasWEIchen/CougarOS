@@ -123,6 +123,8 @@ interface ICentralBrainGateway {
 
     String getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson(String traceId);
 
+    String getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson(String traceId);
+
     String getVehicleSignalsJson(String traceId);
 
     String getVehicleSignalActivationJson(String traceId);

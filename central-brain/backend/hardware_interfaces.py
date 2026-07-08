@@ -622,6 +622,59 @@ HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_GATES = [
+    {
+        "gate_id": "HW-ALB-001",
+        "name": "source-checklists-bound",
+        "required_evidence": "Activation checklist, owner decision status, evidence status, retention checklist, replacement trigger checklist, and selected-adapter readiness checklist are all linked before adapter load review.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALB-002",
+        "name": "target-owner-and-abi-open",
+        "required_evidence": "Target owner, Android ABI owner, Linux ABI owner, and selected adapter owner decisions remain open.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALB-003",
+        "name": "evidence-store-review-open",
+        "required_evidence": "Durable evidence store, review workflow, review queue, and gate closure authority are not active.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALB-004",
+        "name": "replacement-trigger-open",
+        "required_evidence": "Empty-interface replacement target, adapter readiness criteria, Driver/HAL gap closure evidence, and rollback plan are not approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALB-005",
+        "name": "selected-adapter-readiness-open",
+        "required_evidence": "Selected adapter candidate, adapter contract, parity evidence, safety fault model, smoke harness, and rollback review are not complete.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALB-006",
+        "name": "safety-policy-smoke-rollback-open",
+        "required_evidence": "Safety/Policy owner, target hardware smoke evidence, fault semantics, and rollback evidence are still unresolved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALB-007",
+        "name": "android-linux-binding-parity-visible",
+        "required_evidence": "Android Binder/AIDL, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose equivalent no-load blocker rollup fields.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALB-008",
+        "name": "no-adapter-load-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose the blocker rollup without loading, activating, replacing, or dispatching a real adapter.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -1420,6 +1473,189 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_blocker_rollup_payload(self) -> dict[str, Any]:
+        per_interface_blockers = [
+            {
+                "interface_id": item["interface_id"],
+                "interface_name": item["name"],
+                "current_state": item["implementation_state"],
+                "driver_gap_ids": item["driver_gap_ids"],
+                "required_reserved_methods": [method["name"] for method in item["reserved_methods"]],
+                "owner_decision_complete": False,
+                "selected_adapter_ready": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "adapter_load_blocked": True,
+                "blockers": [
+                    "target owner and ABI owner decisions remain open",
+                    "Driver/HAL gap closure evidence is missing",
+                    "Safety/Policy fault model and rollback semantics are not reviewed",
+                    "target hardware smoke harness evidence is missing",
+                    "durable evidence store and review workflow are not active",
+                    "selected adapter readiness is not complete",
+                ],
+            }
+            for item in EMPTY_INTERFACE_REGISTRY
+        ]
+        return {
+            "adapter_load_blocker_rollup_state": "contract-only-adapter-load-blockers-open",
+            "adapter_load_blocker_rollup_active": True,
+            "adapter_load_ready": False,
+            "adapter_load_allowed": False,
+            "adapter_activation_allowed": False,
+            "hardware_access_allowed": False,
+            "gate_closure_allowed": False,
+            "owner_decision_complete": False,
+            "all_blockers_cleared": False,
+            "scope": {
+                "source_endpoints": [
+                    "GET /hardware/interfaces/activation-checklist",
+                    "GET /hardware/interfaces/owner-decision-status",
+                    "GET /hardware/interfaces/owner-decision-evidence/status",
+                    "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+                    "GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+                    "GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist",
+                ],
+                "target_endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                "purpose": "aggregate every open hardware owner, evidence, replacement, and selected-adapter blocker that prevents loading or activating a real adapter",
+                "prototype_adapter_load": "not implemented; this rollup never selects, loads, activates, replaces, smokes, or dispatches a real adapter",
+                "target_gate_scope": ["HW-ACT", "HW-ODS", "HW-OES", "HW-OER", "HW-OET", "HW-OEA", "HW-ALB", "DRV-GAP"],
+            },
+            "source_checklists": [
+                {
+                    "source": "activation-checklist",
+                    "source_endpoint": "GET /hardware/interfaces/activation-checklist",
+                    "gate_prefix": "HW-ACT",
+                    "blocker_summary": "activation owner, ABI, Driver/HAL gap review, Safety/Policy, smoke harness, and rollback gates remain open",
+                    "required_before_adapter_load": True,
+                },
+                {
+                    "source": "owner-decision-status",
+                    "source_endpoint": "GET /hardware/interfaces/owner-decision-status",
+                    "gate_prefix": "HW-ODS",
+                    "blocker_summary": "target owner, Android ABI owner, Linux ABI owner, Driver/HAL gap owner, Safety/Policy owner, target smoke owner, and rollback owner remain unresolved",
+                    "required_before_adapter_load": True,
+                },
+                {
+                    "source": "owner-evidence-status",
+                    "source_endpoint": "GET /hardware/interfaces/owner-decision-evidence/status",
+                    "gate_prefix": "HW-OES",
+                    "blocker_summary": "durable evidence store, review workflow, review queue, and gate closure authority are not active",
+                    "required_before_adapter_load": True,
+                },
+                {
+                    "source": "owner-evidence-retention-checklist",
+                    "source_endpoint": "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+                    "gate_prefix": "HW-OER",
+                    "blocker_summary": "URI rules, retention, delete/export semantics, gate closure, and rollback/fault closure evidence remain unconfirmed",
+                    "required_before_adapter_load": True,
+                },
+                {
+                    "source": "replacement-trigger-checklist",
+                    "source_endpoint": "GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+                    "gate_prefix": "HW-OET",
+                    "blocker_summary": "replacement target, adapter readiness criteria, Driver/HAL gap closure evidence, ABI parity, rollback, Safety/Policy, and smoke evidence remain unapproved",
+                    "required_before_adapter_load": True,
+                },
+                {
+                    "source": "selected-adapter-readiness-checklist",
+                    "source_endpoint": "GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist",
+                    "gate_prefix": "HW-OEA",
+                    "blocker_summary": "selected adapter candidate, owner, interface contract, parity evidence, Safety/Policy fault model, smoke harness, and rollback review remain incomplete",
+                    "required_before_adapter_load": True,
+                },
+            ],
+            "blocker_groups": [
+                {
+                    "blocker_id": "owner-and-abi",
+                    "state": "open",
+                    "required_gates": ["HW-ACT-001", "HW-ACT-003", "HW-ACT-004", "HW-ODS-001", "HW-ODS-002", "HW-ODS-003"],
+                    "adapter_load_allowed": False,
+                },
+                {
+                    "blocker_id": "driver-hal-gap-evidence",
+                    "state": "open",
+                    "required_gates": ["HW-ACT-002", "HW-ODS-004", "HW-OET-003", "HW-OEA-003"],
+                    "adapter_load_allowed": False,
+                },
+                {
+                    "blocker_id": "evidence-store-and-review",
+                    "state": "open",
+                    "required_gates": ["HW-OES-001", "HW-OES-002", "HW-OER-001", "HW-OER-004", "HW-OER-005"],
+                    "adapter_load_allowed": False,
+                },
+                {
+                    "blocker_id": "replacement-and-selected-adapter",
+                    "state": "open",
+                    "required_gates": ["HW-OET-001", "HW-OET-002", "HW-OET-004", "HW-OEA-001", "HW-OEA-002", "HW-OEA-004"],
+                    "adapter_load_allowed": False,
+                },
+                {
+                    "blocker_id": "safety-smoke-rollback",
+                    "state": "open",
+                    "required_gates": ["HW-ACT-005", "HW-ACT-006", "HW-ACT-007", "HW-OET-005", "HW-OET-006", "HW-OET-007", "HW-OEA-005", "HW-OEA-006", "HW-OEA-007"],
+                    "adapter_load_allowed": False,
+                },
+                {
+                    "blocker_id": "no-hardware-policy",
+                    "state": "enforced",
+                    "required_gates": ["HW-ACT-008", "HW-OET-008", "HW-OEA-008", "HW-ALB-008"],
+                    "adapter_load_allowed": False,
+                    "hardware_access_allowed": False,
+                },
+            ],
+            "per_interface_blockers": per_interface_blockers,
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.blocker.rollup",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_blocker_rollup_active": True,
+                "owner_decision_evidence_selected_adapter_readiness_checklist_active": True,
+                "owner_decision_evidence_replacement_trigger_checklist_active": True,
+                "owner_decision_evidence_retention_checklist_active": True,
+                "owner_decision_evidence_status_contract_active": True,
+                "owner_decision_evidence_contract_active": True,
+                "activation_checklist_active": True,
+                "owner_decision_status_contract_active": True,
+                "owner_decision_complete": False,
+                "all_blockers_cleared": False,
+                "adapter_load_ready": False,
+                "adapter_candidate_recorded": False,
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+                "load_policy_confirmed": False,
+                "replacement_policy_confirmed": False,
+                "replacement_allowed": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

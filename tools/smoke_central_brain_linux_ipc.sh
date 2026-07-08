@@ -1156,6 +1156,77 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessCheckli
 assert "HW-OEA-007" in encoded and "rollback-to-empty-interface" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_BLOCKER_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+source_names = {item["source"] for item in payload["source_checklists"]}
+assert response["status"] == "ok", response
+assert payload["adapter_load_blocker_rollup_state"] == "contract-only-adapter-load-blockers-open", response
+assert payload["adapter_load_blocker_rollup_active"] is True, response
+assert payload["adapter_load_ready"] is False, response
+assert payload["adapter_load_allowed"] is False, response
+assert payload["adapter_activation_allowed"] is False, response
+assert payload["hardware_access_allowed"] is False, response
+assert payload["gate_closure_allowed"] is False, response
+assert payload["owner_decision_complete"] is False, response
+assert payload["all_blockers_cleared"] is False, response
+assert {"HW-ALB-001", "HW-ALB-002", "HW-ALB-003", "HW-ALB-004", "HW-ALB-005", "HW-ALB-006", "HW-ALB-007", "HW-ALB-008"} <= gate_ids, response
+assert {"activation-checklist", "owner-decision-status", "owner-evidence-status", "owner-evidence-retention-checklist", "replacement-trigger-checklist", "selected-adapter-readiness-checklist"} <= source_names, response
+assert all(item["adapter_load_allowed"] is False for item in payload["per_interface_blockers"]), response
+assert all(item["adapter_activation_allowed"] is False for item in payload["per_interface_blockers"]), response
+assert all(item["hardware_access_allowed"] is False for item in payload["per_interface_blockers"]), response
+assert all(item["adapter_load_blocked"] is True for item in payload["per_interface_blockers"]), response
+for key in [
+    "owner_decision_complete",
+    "all_blockers_cleared",
+    "adapter_load_ready",
+    "adapter_candidate_recorded",
+    "adapter_owner_assigned",
+    "adapter_interface_contract_approved",
+    "driver_hal_gap_evidence_attached",
+    "android_linux_binding_parity_approved",
+    "safety_policy_fault_model_reviewed",
+    "smoke_harness_plan_attached",
+    "rollback_to_empty_interface_reviewed",
+    "load_policy_confirmed",
+    "replacement_policy_confirmed",
+    "replacement_allowed",
+    "evidence_store_active",
+    "review_workflow_active",
+    "review_queue_updated",
+    "owner_assigned",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["owner_decision_evidence_adapter_load_blocker_rollup_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_selected_adapter_readiness_checklist_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_replacement_trigger_checklist_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_retention_checklist_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_status_contract_active"] is True, response
+assert payload["summary"]["owner_decision_evidence_contract_active"] is True, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.blocker.rollup" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup" in encoded, response
+assert "HW-ALB-006" in encoded and "safety-policy-smoke-rollback" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

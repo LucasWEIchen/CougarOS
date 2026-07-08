@@ -176,6 +176,7 @@ checks = [
     ("GET", "/hardware/interfaces/owner-decision-evidence/retention-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -693,6 +694,70 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklist" in encoded, "gRPC hardware selected adapter binding missing"
         assert "HW-OEA-007" in encoded and "rollback-to-empty-interface" in encoded, "hardware selected adapter missing rollback gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware selected adapter missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup":
+        rollup = payload["payload"]
+        encoded = json.dumps(rollup)
+        gate_ids = {item["gate_id"] for item in rollup["mandatory_gates"]}
+        assert rollup["adapter_load_blocker_rollup_state"] == "contract-only-adapter-load-blockers-open", "hardware adapter load blocker rollup left contract-only state"
+        assert rollup["adapter_load_blocker_rollup_active"] is True, "hardware adapter load blocker rollup not active"
+        assert rollup["adapter_load_ready"] is False, "hardware adapter load unexpectedly ready"
+        assert rollup["adapter_load_allowed"] is False, "hardware adapter load unexpectedly allowed"
+        assert rollup["adapter_activation_allowed"] is False, "hardware adapter activation unexpectedly allowed"
+        assert rollup["hardware_access_allowed"] is False, "hardware access unexpectedly allowed"
+        assert rollup["gate_closure_allowed"] is False, "gate closure unexpectedly allowed"
+        assert rollup["owner_decision_complete"] is False, "owner decision unexpectedly complete"
+        assert rollup["all_blockers_cleared"] is False, "all blockers unexpectedly cleared"
+        assert {"HW-ALB-001", "HW-ALB-002", "HW-ALB-003", "HW-ALB-004", "HW-ALB-005", "HW-ALB-006", "HW-ALB-007", "HW-ALB-008"} <= gate_ids, "hardware adapter load blocker rollup missing mandatory gates"
+        source_names = {item["source"] for item in rollup["source_checklists"]}
+        assert {"activation-checklist", "owner-decision-status", "owner-evidence-status", "owner-evidence-retention-checklist", "replacement-trigger-checklist", "selected-adapter-readiness-checklist"} <= source_names, "hardware adapter load rollup missing source checklists"
+        assert all(item["adapter_load_allowed"] is False for item in rollup["per_interface_blockers"]), "per-interface blocker allowed adapter load"
+        assert all(item["adapter_activation_allowed"] is False for item in rollup["per_interface_blockers"]), "per-interface blocker allowed adapter activation"
+        assert all(item["hardware_access_allowed"] is False for item in rollup["per_interface_blockers"]), "per-interface blocker allowed hardware access"
+        assert all(item["adapter_load_blocked"] is True for item in rollup["per_interface_blockers"]), "per-interface blocker not marked blocked"
+        for key in [
+            "owner_decision_complete",
+            "all_blockers_cleared",
+            "adapter_load_ready",
+            "adapter_candidate_recorded",
+            "adapter_owner_assigned",
+            "adapter_interface_contract_approved",
+            "driver_hal_gap_evidence_attached",
+            "android_linux_binding_parity_approved",
+            "safety_policy_fault_model_reviewed",
+            "smoke_harness_plan_attached",
+            "rollback_to_empty_interface_reviewed",
+            "load_policy_confirmed",
+            "replacement_policy_confirmed",
+            "replacement_allowed",
+            "evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "owner_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert rollup["summary"][key] is False, f"hardware adapter load blocker rollup summary unexpectedly set {key}"
+        assert rollup["summary"]["owner_decision_evidence_adapter_load_blocker_rollup_active"] is True, "hardware adapter load blocker rollup summary not active"
+        assert rollup["summary"]["owner_decision_evidence_selected_adapter_readiness_checklist_active"] is True, "hardware selected adapter contract link missing"
+        assert rollup["summary"]["owner_decision_evidence_replacement_trigger_checklist_active"] is True, "hardware replacement contract link missing"
+        assert rollup["summary"]["owner_decision_evidence_retention_checklist_active"] is True, "hardware retention contract link missing"
+        assert rollup["summary"]["owner_decision_evidence_status_contract_active"] is True, "hardware status contract link missing"
+        assert rollup["summary"]["owner_decision_evidence_contract_active"] is True, "hardware evidence contract link missing"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson" in encoded, "Android hardware adapter load blocker binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup" in encoded, "Linux CLI hardware adapter load blocker binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.blocker.rollup" in encoded, "Linux IPC hardware adapter load blocker binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup" in encoded, "gRPC hardware adapter load blocker binding missing"
+        assert "HW-ALB-006" in encoded and "safety-policy-smoke-rollback" in encoded, "hardware adapter load blocker missing safety/smoke/rollback gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load blocker missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1405,6 +1470,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-retention-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-replacement-trigger-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 
