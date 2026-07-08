@@ -2104,6 +2104,82 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvid
 assert "HW-ARH-007" in encoded and "android-linux-evidence-handoff-parity" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-status)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+acceptance = payload["gateway"]["payload"]
+encoded = json.dumps(acceptance)
+gate_ids = {item["gate_id"] for item in acceptance["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert acceptance["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-status", response
+assert acceptance["approval_reviewer_evidence_handoff_acceptance_state"] == "contract-only-handoff-acceptance-blocked", response
+assert acceptance["approval_reviewer_evidence_handoff_acceptance_status_active"] is True, response
+assert acceptance["acceptance_status_complete"] is True, response
+assert acceptance["handoff_ready"] is False, response
+assert acceptance["handoff_acceptance_ready"] is False, response
+assert acceptance["handoff_acceptance_allowed"] is False, response
+assert acceptance["evidence_handoff_allowed"] is False, response
+assert acceptance["approval_review_allowed"] is False, response
+assert acceptance["retention_review_allowed"] is False, response
+assert acceptance["gate_closure_allowed"] is False, response
+assert acceptance["adapter_load_allowed"] is False, response
+assert acceptance["required_acceptance_count"] == 11, response
+assert acceptance["blocked_acceptance_count"] == 11, response
+assert acceptance["accepted_handoff_packet_count"] == 0, response
+assert acceptance["acceptance_record_persisted_count"] == 0, response
+assert acceptance["missing_handoff_packet_count"] == 11, response
+assert len(acceptance["acceptance_rows"]) == 11, response
+assert all(item["state"] == "blocked_missing_handoff_packet" for item in acceptance["acceptance_rows"]), response
+assert all(item["handoff_packet_attached"] is False for item in acceptance["acceptance_rows"]), response
+assert all(item["handoff_packet_acceptance_ready"] is False for item in acceptance["acceptance_rows"]), response
+assert all(item["handoff_packet_accepted"] is False for item in acceptance["acceptance_rows"]), response
+assert all(item["acceptance_record_persisted"] is False for item in acceptance["acceptance_rows"]), response
+assert all(item["blocks_gate_closure"] and item["blocks_adapter_load"] for item in acceptance["acceptance_rows"]), response
+assert all(item["passed"] for item in acceptance["source_surface_checks"]), response
+assert {"HW-AHA-001", "HW-AHA-002", "HW-AHA-003", "HW-AHA-004", "HW-AHA-005", "HW-AHA-006", "HW-AHA-007", "HW-AHA-008"} <= gate_ids, response
+source = acceptance["source_surfaces"]["approval_reviewer_evidence_handoff_checklist"]
+assert source["handoff_checklist_complete"] is True, response
+assert source["required_handoff_packet_count"] == 11, response
+assert source["missing_handoff_packet_count"] == 11, response
+assert source["handoff_ready"] is False, response
+for key in [
+    "handoff_acceptance_allowed",
+    "evidence_handoff_allowed",
+    "approval_review_allowed",
+    "retention_review_allowed",
+    "gate_closure_allowed",
+    "handoff_packet_accepted",
+    "acceptance_rule_accepted",
+    "acceptance_record_persisted_count",
+    "approval_decision_persisted",
+    "review_queue_updated",
+    "adapter_load_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert acceptance["summary"][key] in (False, 0), response
+for key in [
+    "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_status_active",
+    "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_checklist_active",
+    "acceptance_status_complete",
+    "no_side_effects_consistent",
+]:
+    assert acceptance["summary"][key] is True, response
+assert acceptance["summary"]["blocked_acceptance_count"] == 11, response
+assert acceptance["summary"]["accepted_handoff_packet_count"] == 0, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatusJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-status" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.status" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatus" in encoded, response
+assert "HW-AHA-007" in encoded and "android-linux-handoff-acceptance-parity" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

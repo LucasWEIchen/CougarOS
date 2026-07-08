@@ -74,6 +74,7 @@
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.closure.blocker.matrix",
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix",
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.checklist",
+        "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.status",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"

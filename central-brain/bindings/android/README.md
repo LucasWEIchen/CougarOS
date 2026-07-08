@@ -327,6 +327,12 @@ Brain semantic gateway.
   11 missing reviewer-owned packets with `HW-ARH-001..008` while keeping
   evidence unpersisted, review queues inactive, gates open, adapter load,
   hardware access, Driver/HAL, and virtualization disabled.
+- `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatusJson`
+  exposes the approval reviewer evidence handoff acceptance status through the
+  Android Console `HW ApHStat` action only; it reports 11 blocked handoff packet
+  acceptance rows with `HW-AHA-001..008` while keeping acceptance records
+  unpersisted, review queues inactive, gates open, adapter load, hardware
+  access, Driver/HAL, and virtualization disabled.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter
