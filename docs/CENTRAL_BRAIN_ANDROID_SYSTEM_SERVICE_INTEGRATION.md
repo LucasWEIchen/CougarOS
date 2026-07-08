@@ -128,7 +128,7 @@ Policy 仍由 Runtime & Governance 执行。Binder 身份是输入，不是绕�
 | AIDL contract 可生成 Java | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-006, NV-P-002 |
 | Console APK 可编译 Binder client/service | `bash tools/build_central_brain_console.sh` | DEL-001 |
 | service manifest 存在 Binder action | `tools/check_central_brain_android_system_service_docs.sh` | DEL-003, DEL-004 |
-| Console 可触发 Governance precheck、Driver/HAL gaps、Hardware IF、HW Gate、HW Owner、HW Evidence、HW EvStatus、HW Retain 和 HW Replace | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-004, XSC-005, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| Console 可触发 Governance precheck、Driver/HAL gaps、Hardware IF、HW Gate、HW Owner、HW Evidence、HW EvStatus、HW Retain、HW Replace 和 HW Adapter | `bash tools/check_central_brain_binding_artifacts.sh` | XSC-004, XSC-005, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | 权限/身份/Policy 边界已文档化 | `tools/check_central_brain_android_system_service_docs.sh` | FW-U-007, NV-G-005 |
 | 未新增 Driver/HAL/虚拟化开发 | driver support matrix + deviation table | KH-003, KH-006, HV-001..003 |
 | Driver/HAL gap backlog 可见 | `getDriverHalGapsJson` + `/native/driver-gaps` | KH-003, KH-006, DEL-005 |
@@ -136,6 +136,7 @@ Policy 仍由 Runtime & Governance 执行。Binder 身份是输入，不是绕�
 | Hardware activation checklist 可见 | `getHardwareInterfaceActivationChecklistJson` + `/hardware/interfaces/activation-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | Hardware owner evidence retention/closure checklist 可见 | `getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson` + `/hardware/interfaces/owner-decision-evidence/retention-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 | Hardware owner evidence replacement trigger checklist 可见 | `getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson` + `/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
+| Hardware owner evidence selected-adapter readiness checklist 可见 | `getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson` + `/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist`；不选择、不加载、不激活 adapter，不触发 Driver/HAL | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-005 |
 
 ## 开放风险
 

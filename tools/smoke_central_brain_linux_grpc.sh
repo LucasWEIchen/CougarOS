@@ -1116,6 +1116,75 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist" in
 assert "HW-OET-005" in encoded and "rollback-to-empty-interface" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+selected = payload["gateway"]["payload"]
+encoded = json.dumps(selected)
+gate_ids = {item["gate_id"] for item in selected["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert selected["selected_adapter_readiness_checklist_state"] == "contract-only-selected-adapter-readiness-checklist-open", response
+assert selected["adapter_candidate_recorded"] is False, response
+assert selected["adapter_load_allowed"] is False, response
+assert selected["adapter_activation_allowed"] is False, response
+assert selected["hardware_access_allowed"] is False, response
+assert selected["gate_closure_allowed"] is False, response
+assert selected["owner_decision_complete"] is False, response
+assert selected["adapter_evidence_shape"]["adapter_owner_assigned"] is False, response
+assert selected["adapter_evidence_shape"]["adapter_interface_contract_approved"] is False, response
+assert selected["adapter_evidence_shape"]["driver_hal_gap_evidence_attached"] is False, response
+assert selected["adapter_load_policy_shape"]["load_policy_confirmed"] is False, response
+assert {"HW-OEA-001", "HW-OEA-002", "HW-OEA-003", "HW-OEA-004", "HW-OEA-005", "HW-OEA-006", "HW-OEA-007", "HW-OEA-008"} <= gate_ids, response
+assert all(item["adapter_candidate_recorded"] is False for item in selected["selected_adapter_candidates"]), response
+assert all(item["adapter_load_allowed"] is False for item in selected["selected_adapter_candidates"]), response
+assert all(item["adapter_activation_allowed"] is False for item in selected["selected_adapter_candidates"]), response
+assert all(item["hardware_access_allowed"] is False for item in selected["selected_adapter_candidates"]), response
+assert all(item["driver_hal_development_triggered"] is False for item in selected["selected_adapter_candidates"]), response
+for key in [
+    "owner_decision_complete",
+    "adapter_candidate_recorded",
+    "adapter_owner_assigned",
+    "adapter_interface_contract_approved",
+    "driver_hal_gap_evidence_attached",
+    "android_linux_binding_parity_approved",
+    "safety_policy_fault_model_reviewed",
+    "smoke_harness_plan_attached",
+    "rollback_to_empty_interface_reviewed",
+    "load_policy_confirmed",
+    "evidence_store_active",
+    "review_workflow_active",
+    "review_queue_updated",
+    "owner_assigned",
+    "gate_state_changed",
+    "gates_closed",
+    "activation_allowed",
+    "replacement_allowed",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert selected["summary"][key] is False, response
+assert selected["summary"]["owner_decision_evidence_selected_adapter_readiness_checklist_active"] is True, response
+assert selected["summary"]["owner_decision_evidence_replacement_trigger_checklist_active"] is True, response
+assert selected["summary"]["owner_decision_evidence_retention_checklist_active"] is True, response
+assert selected["summary"]["owner_decision_evidence_status_contract_active"] is True, response
+assert selected["summary"]["owner_decision_evidence_contract_active"] is True, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklist" in encoded, response
+assert "HW-OEA-007" in encoded and "rollback-to-empty-interface" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

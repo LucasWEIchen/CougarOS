@@ -124,6 +124,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist",
         {},
     ),
+    "hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist": (
+        "hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist",
+        {},
+    ),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

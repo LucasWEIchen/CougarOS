@@ -175,6 +175,7 @@ checks = [
     ("GET", "/hardware/interfaces/owner-decision-evidence/status", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/retention-checklist", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -631,6 +632,67 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist" in encoded, "gRPC hardware owner evidence replacement binding missing"
         assert "HW-OET-005" in encoded and "rollback-to-empty-interface" in encoded, "hardware owner evidence replacement missing rollback gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware owner evidence replacement missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist":
+        selected = payload["payload"]
+        encoded = json.dumps(selected)
+        gate_ids = {item["gate_id"] for item in selected["mandatory_gates"]}
+        assert selected["selected_adapter_readiness_checklist_state"] == "contract-only-selected-adapter-readiness-checklist-open", "hardware selected adapter checklist left contract-only state"
+        assert selected["adapter_candidate_recorded"] is False, "selected adapter candidate unexpectedly recorded"
+        assert selected["adapter_load_allowed"] is False, "selected adapter checklist allowed adapter load"
+        assert selected["adapter_activation_allowed"] is False, "selected adapter checklist allowed adapter activation"
+        assert selected["hardware_access_allowed"] is False, "selected adapter checklist allowed hardware access"
+        assert selected["gate_closure_allowed"] is False, "selected adapter checklist allowed gate closure"
+        assert selected["owner_decision_complete"] is False, "selected adapter checklist completed owner decision"
+        assert selected["adapter_evidence_shape"]["adapter_owner_assigned"] is False, "adapter owner unexpectedly assigned"
+        assert selected["adapter_evidence_shape"]["adapter_interface_contract_approved"] is False, "adapter contract unexpectedly approved"
+        assert selected["adapter_evidence_shape"]["driver_hal_gap_evidence_attached"] is False, "Driver/HAL evidence unexpectedly attached"
+        assert selected["adapter_load_policy_shape"]["load_policy_confirmed"] is False, "adapter load policy unexpectedly confirmed"
+        assert {"HW-OEA-001", "HW-OEA-002", "HW-OEA-003", "HW-OEA-004", "HW-OEA-005", "HW-OEA-006", "HW-OEA-007", "HW-OEA-008"} <= gate_ids, "hardware selected adapter checklist missing mandatory gates"
+        assert all(item["adapter_candidate_recorded"] is False for item in selected["selected_adapter_candidates"]), "adapter candidate was recorded"
+        assert all(item["adapter_load_allowed"] is False for item in selected["selected_adapter_candidates"]), "adapter candidate allowed load"
+        assert all(item["adapter_activation_allowed"] is False for item in selected["selected_adapter_candidates"]), "adapter candidate allowed activation"
+        assert all(item["hardware_access_allowed"] is False for item in selected["selected_adapter_candidates"]), "adapter candidate allowed hardware access"
+        assert all(item["driver_hal_development_triggered"] is False for item in selected["selected_adapter_candidates"]), "adapter candidate triggered Driver/HAL work"
+        for key in [
+            "owner_decision_complete",
+            "adapter_candidate_recorded",
+            "adapter_owner_assigned",
+            "adapter_interface_contract_approved",
+            "driver_hal_gap_evidence_attached",
+            "android_linux_binding_parity_approved",
+            "safety_policy_fault_model_reviewed",
+            "smoke_harness_plan_attached",
+            "rollback_to_empty_interface_reviewed",
+            "load_policy_confirmed",
+            "evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "owner_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "replacement_allowed",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert selected["summary"][key] is False, f"hardware selected adapter summary unexpectedly set {key}"
+        assert selected["summary"]["owner_decision_evidence_selected_adapter_readiness_checklist_active"] is True, "hardware selected adapter checklist not active"
+        assert selected["summary"]["owner_decision_evidence_replacement_trigger_checklist_active"] is True, "hardware replacement contract link missing"
+        assert selected["summary"]["owner_decision_evidence_retention_checklist_active"] is True, "hardware retention contract link missing"
+        assert selected["summary"]["owner_decision_evidence_status_contract_active"] is True, "hardware status contract link missing"
+        assert selected["summary"]["owner_decision_evidence_contract_active"] is True, "hardware owner evidence contract link missing"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson" in encoded, "Android hardware selected adapter binding missing"
+        assert "hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist" in encoded, "Linux CLI hardware selected adapter binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist" in encoded, "Linux IPC hardware selected adapter binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklist" in encoded, "gRPC hardware selected adapter binding missing"
+        assert "HW-OEA-007" in encoded and "rollback-to-empty-interface" in encoded, "hardware selected adapter missing rollback gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware selected adapter missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1342,6 +1404,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-retention-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-replacement-trigger-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

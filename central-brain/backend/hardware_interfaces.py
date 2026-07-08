@@ -569,6 +569,59 @@ HARDWARE_OWNER_EVIDENCE_REPLACEMENT_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_GATES = [
+    {
+        "gate_id": "HW-OEA-001",
+        "name": "selected-adapter-owner-assigned",
+        "required_evidence": "Target platform assigns the owner for the selected real adapter candidate and its lifecycle boundary.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OEA-002",
+        "name": "selected-adapter-interface-contract-approved",
+        "required_evidence": "Selected adapter method contracts, error model, lifecycle states, and compatibility with the empty-interface contract are approved.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OEA-003",
+        "name": "selected-adapter-driver-hal-gap-evidence-attached",
+        "required_evidence": "Driver/HAL gap closure evidence or target platform waiver is attached for the selected adapter candidate.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OEA-004",
+        "name": "selected-adapter-android-linux-binding-parity-approved",
+        "required_evidence": "Android Binder/AIDL and Linux CLI/IPC/gRPC selected-adapter readiness contracts expose equivalent evidence fields.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OEA-005",
+        "name": "selected-adapter-safety-policy-fault-model-reviewed",
+        "required_evidence": "Runtime & Governance policy, Safety Runtime state, fault model, and safe degraded behavior are reviewed for the selected adapter.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OEA-006",
+        "name": "selected-adapter-smoke-harness-plan-attached",
+        "required_evidence": "Target hardware smoke harness, lab artifact rules, immutable evidence references, and pass/fail criteria are attached.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OEA-007",
+        "name": "selected-adapter-rollback-to-empty-interface-reviewed",
+        "required_evidence": "Rollback plan can disable the selected adapter and restore the previous empty-interface response contract.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-OEA-008",
+        "name": "no-adapter-load-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose selected-adapter readiness without loading or activating an adapter.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -1233,6 +1286,140 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_REPLACEMENT_REQ_IDS,
+        }
+
+    def owner_decision_evidence_selected_adapter_readiness_checklist_payload(self) -> dict[str, Any]:
+        selected_adapter_candidates = [
+            {
+                "interface_id": item["interface_id"],
+                "interface_name": item["name"],
+                "current_state": item["implementation_state"],
+                "selected_adapter_id": "TBD-target-platform-adapter",
+                "adapter_candidate_recorded": False,
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "driver_hal_development_triggered": False,
+                "required_reserved_methods": [method["name"] for method in item["reserved_methods"]],
+                "driver_gap_ids": item["driver_gap_ids"],
+            }
+            for item in EMPTY_INTERFACE_REGISTRY
+        ]
+        return {
+            "selected_adapter_readiness_checklist_state": "contract-only-selected-adapter-readiness-checklist-open",
+            "adapter_candidate_recorded": False,
+            "adapter_load_allowed": False,
+            "adapter_activation_allowed": False,
+            "hardware_access_allowed": False,
+            "gate_closure_allowed": False,
+            "owner_decision_complete": False,
+            "scope": {
+                "source_endpoints": [
+                    "GET /hardware/interfaces",
+                    "GET /hardware/interfaces/activation-checklist",
+                    "GET /hardware/interfaces/owner-decision-status",
+                    "POST /hardware/interfaces/owner-decision-evidence",
+                    "GET /hardware/interfaces/owner-decision-evidence/status",
+                    "GET /hardware/interfaces/owner-decision-evidence/retention-checklist",
+                    "GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
+                ],
+                "target_endpoint": "GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist",
+                "purpose": "make the evidence required after a target platform proposes a real adapter candidate explicit before any adapter is loaded, activated, or allowed to replace an empty hardware interface",
+                "prototype_adapter_selection": "not implemented; this checklist does not select, load, activate, smoke, or dispatch a real adapter",
+                "target_gate_scope": ["HW-OET", "HW-OEA", "HW-ODS", "HW-ACT", "DRV-GAP"],
+            },
+            "selected_adapter_candidates": selected_adapter_candidates,
+            "adapter_evidence_shape": {
+                "required_evidence_refs": [
+                    "adapter_owner_record",
+                    "adapter_interface_contract",
+                    "driver_hal_gap_closure_or_waiver",
+                    "android_binder_aidl_parity_record",
+                    "linux_cli_ipc_grpc_parity_record",
+                    "safety_policy_fault_model_review",
+                    "target_hardware_smoke_harness_plan",
+                    "rollback_to_empty_interface_plan",
+                    "Runtime & Governance audit reference",
+                ],
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+            },
+            "adapter_load_policy_shape": {
+                "load_policy_confirmed": False,
+                "allowed_load_inputs": [
+                    "selected_interface_id",
+                    "selected_adapter_id",
+                    "adapter_version",
+                    "signed_owner_decision",
+                    "evidence_refs",
+                    "rollback_switch",
+                ],
+                "disallowed_load_inputs": [
+                    "direct device node probe",
+                    "unreviewed vendor SDK init",
+                    "adapter activation without Linux parity evidence",
+                    "gate closure without rollback evidence",
+                    "hardware smoke result without immutable evidence reference",
+                ],
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+            },
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklist",
+            },
+            "summary": {
+                "owner_decision_evidence_selected_adapter_readiness_checklist_active": True,
+                "owner_decision_evidence_replacement_trigger_checklist_active": True,
+                "owner_decision_evidence_retention_checklist_active": True,
+                "owner_decision_evidence_status_contract_active": True,
+                "owner_decision_evidence_contract_active": True,
+                "owner_decision_complete": False,
+                "adapter_candidate_recorded": False,
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+                "load_policy_confirmed": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "replacement_allowed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_SELECTED_ADAPTER_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

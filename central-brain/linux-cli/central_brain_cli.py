@@ -136,6 +136,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist",
         None,
     ),
+    "hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist": (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist",
+        None,
+    ),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),

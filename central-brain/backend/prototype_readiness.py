@@ -147,11 +147,11 @@ PROTOTYPE_MODULES: list[dict[str, Any]] = [
         "architecture_component": "External PCIe NPU, vehicle bus, sensors, Ethernet, shared-memory safety runtime interfaces",
         "diagram_group": "hardware-boundary",
         "yellow_sun_portable": True,
-        "current_state": "empty-interface-registry-with-activation-checklist-owner-decision-status-evidence-intake-status-retention-closure-and-replacement-trigger-checklist-contract",
-        "ready_for": ["interface ownership review", "hardware activation checklist review", "hardware owner decision status review", "hardware owner decision evidence intake contract review", "hardware owner decision evidence status review", "hardware owner decision evidence retention and closure checklist review", "hardware owner evidence replacement trigger checklist review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
+        "current_state": "empty-interface-registry-with-activation-checklist-owner-decision-status-evidence-intake-status-retention-closure-replacement-trigger-and-selected-adapter-readiness-checklist-contract",
+        "ready_for": ["interface ownership review", "hardware activation checklist review", "hardware owner decision status review", "hardware owner decision evidence intake contract review", "hardware owner decision evidence status review", "hardware owner decision evidence retention and closure checklist review", "hardware owner evidence replacement trigger checklist review", "hardware owner evidence selected-adapter readiness checklist review", "future HAL/vendor SDK scoping", "no-hardware smoke validation"],
         "not_ready_for": ["real PCIe NPU runtime", "DMA/IOMMU access", "Safety Runtime shared-memory bridge"],
-        "android_primary_surface": "getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson",
-        "linux_sync_surface": "hardware-interfaces, hardware-interface-activation-checklist, hardware-interface-owner-decision-status, hardware-interface-owner-decision-evidence, hardware-interface-owner-decision-evidence-status, hardware-interface-owner-decision-evidence-retention-checklist, and hardware-interface-owner-decision-evidence-replacement-trigger-checklist over CLI/IPC/gRPC",
+        "android_primary_surface": "getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson",
+        "linux_sync_surface": "hardware-interfaces, hardware-interface-activation-checklist, hardware-interface-owner-decision-status, hardware-interface-owner-decision-evidence, hardware-interface-owner-decision-evidence-status, hardware-interface-owner-decision-evidence-retention-checklist, hardware-interface-owner-decision-evidence-replacement-trigger-checklist, and hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist over CLI/IPC/gRPC",
         "open_deviations": ["DEV-005", "DEV-016"],
         "open_issues": ["ISSUE-016"],
         "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005", "XSC-004", "XSC-006"],
@@ -217,8 +217,8 @@ class PrototypeReadinessRegistry:
             ),
             "next_increment_candidates": [
                 {
-                    "candidate": "hardware interface selected-adapter readiness evidence checklist",
-                    "reason": "HW-002/KH owner evidence replacement trigger checklist is contract-only; the next safe step is a no-hardware checklist for evidence required after a replacement candidate is selected but before any adapter is loaded.",
+                    "candidate": "hardware interface adapter load blocker rollup",
+                    "reason": "Selected-adapter readiness remains contract-only; the next safe step is a no-hardware rollup that explains why adapter load is still blocked without loading or activating an adapter.",
                     "req_ids": ["HW-002", "KH-003", "KH-006", "KH-007", "DEL-005"],
                 },
                 {

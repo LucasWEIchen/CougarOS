@@ -59,6 +59,7 @@
         "hardware.interfaces.owner.decision.evidence.status",
         "hardware.interfaces.owner.decision.evidence.retention.checklist",
         "hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist",
+        "hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"

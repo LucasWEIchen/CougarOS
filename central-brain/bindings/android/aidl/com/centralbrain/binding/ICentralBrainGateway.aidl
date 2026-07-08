@@ -121,6 +121,8 @@ interface ICentralBrainGateway {
 
     String getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson(String traceId);
 
+    String getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson(String traceId);
+
     String getVehicleSignalsJson(String traceId);
 
     String getVehicleSignalActivationJson(String traceId);
