@@ -1637,6 +1637,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTAN
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_DECISION_ROLLUP_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_DECISION_ROLLUP_GATES = [
+    {
+        "gate_id": "HW-AHD-001",
+        "name": "handoff-acceptance-decision-rollup-surfaces-bound",
+        "required_evidence": "Decision rollup binds to reviewer handoff checklist, handoff acceptance status, and acceptance audit consistency views.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHD-002",
+        "name": "acceptance-authority-decision-blocked",
+        "required_evidence": "Acceptance authority remains unconfirmed until target approval owner and handoff acceptance rules are supplied.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHD-003",
+        "name": "acceptance-record-store-decision-blocked",
+        "required_evidence": "Acceptance record store and durable evidence store remain unconfirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHD-004",
+        "name": "review-workflow-decision-blocked",
+        "required_evidence": "Approval review workflow and queue owner remain unconfirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHD-005",
+        "name": "audit-retention-decision-blocked",
+        "required_evidence": "Audit retention owner, export backend, and retention policy remain unconfirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHD-006",
+        "name": "driver-hal-acceptance-decision-blocked",
+        "required_evidence": "Driver/HAL gap closure reviewer and target hardware smoke evidence remain unconfirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHD-007",
+        "name": "android-linux-decision-rollup-parity",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same decision rollup view.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHD-008",
+        "name": "no-side-effect-decision-rollup",
+        "required_evidence": "Decision rollup does not accept packets, persist decisions, create stores, update queues, close gates, load adapters, access hardware, call Driver/HAL, or trigger virtualization.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -5416,6 +5469,305 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_AUDIT_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_decision_rollup_payload(
+        self,
+    ) -> dict[str, Any]:
+        handoff_checklist = self.owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_payload()
+        acceptance_status = self.owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_status_payload()
+        audit_consistency = (
+            self.owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_audit_consistency_payload()
+        )
+        handoff_summary = handoff_checklist["summary"]
+        acceptance_summary = acceptance_status["summary"]
+        audit_summary = audit_consistency["summary"]
+        decision_rows = [
+            {
+                "decision_id": "HW-AHD-DEC-001",
+                "gate_id": "HW-AHD-002",
+                "decision": "acceptance_authority",
+                "owner": "target-platform-acceptance-authority",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_acceptance_status",
+                "source_blocker": "handoff_acceptance_allowed=false",
+                "decision_confirmed": False,
+                "required_before": ["handoff_acceptance", "approval_review"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+            {
+                "decision_id": "HW-AHD-DEC-002",
+                "gate_id": "HW-AHD-003",
+                "decision": "acceptance_record_store",
+                "owner": "target-platform-evidence-store-owner",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_acceptance_status",
+                "source_blocker": "acceptance_record_persisted_count=0",
+                "decision_confirmed": False,
+                "required_before": ["acceptance_record_persistence", "audit_retention"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+            {
+                "decision_id": "HW-AHD-DEC-003",
+                "gate_id": "HW-AHD-004",
+                "decision": "review_workflow_owner",
+                "owner": "target-platform-review-workflow-owner",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_acceptance_status",
+                "source_blocker": "review_workflow_active=false",
+                "decision_confirmed": False,
+                "required_before": ["approval_review", "retention_review"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+            {
+                "decision_id": "HW-AHD-DEC-004",
+                "gate_id": "HW-AHD-005",
+                "decision": "audit_retention_owner",
+                "owner": "target-platform-audit-retention-owner",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_acceptance_audit_consistency",
+                "source_blocker": "audit_retention_owner_unconfirmed",
+                "decision_confirmed": False,
+                "required_before": ["audit_export", "retention_review"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+            {
+                "decision_id": "HW-AHD-DEC-005",
+                "gate_id": "HW-AHD-005",
+                "decision": "rollback_fault_acceptance_owner",
+                "owner": "target-platform-rollback-fault-owner",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_acceptance_status",
+                "source_blocker": "rollback_fault_note_accepted=false",
+                "decision_confirmed": False,
+                "required_before": ["fault_review", "gate_closure"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+            {
+                "decision_id": "HW-AHD-DEC-006",
+                "gate_id": "HW-AHD-006",
+                "decision": "driver_hal_acceptance_reviewer",
+                "owner": "target-platform-driver-hal-gap-reviewer",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_acceptance_status",
+                "source_blocker": "target_hardware_and_driver_gap_evidence_missing",
+                "decision_confirmed": False,
+                "required_before": ["driver_hal_gap_closure", "adapter_load"],
+                "driver_gap_ids": ["DRV-GAP-001", "DRV-GAP-005"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+            {
+                "decision_id": "HW-AHD-DEC-007",
+                "gate_id": "HW-AHD-007",
+                "decision": "gate_closure_authority",
+                "owner": "target-platform-gate-closure-authority",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_acceptance_audit_consistency",
+                "source_blocker": "gate_closure_allowed=false",
+                "decision_confirmed": False,
+                "required_before": ["gate_closure", "adapter_activation"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+            {
+                "decision_id": "HW-AHD-DEC-008",
+                "gate_id": "HW-AHD-008",
+                "decision": "handoff_packet_presence_and_acceptance",
+                "owner": "target-platform-reviewer-evidence-owner",
+                "state": "blocked_unconfirmed_owner_or_evidence",
+                "source_surface": "approval_reviewer_evidence_handoff_checklist",
+                "source_blocker": "missing_handoff_packet_count=11",
+                "decision_confirmed": False,
+                "required_before": ["handoff_acceptance", "approval_review", "adapter_load"],
+                "blocks_handoff_acceptance": True,
+                "blocks_gate_closure": True,
+                "blocks_adapter_load": True,
+            },
+        ]
+        blocked_decision_count = sum(1 for item in decision_rows if item["decision_confirmed"] is False)
+        source_surfaces_bound = (
+            handoff_checklist["approval_reviewer_evidence_handoff_checklist_active"] is True
+            and acceptance_status["approval_reviewer_evidence_handoff_acceptance_status_active"] is True
+            and audit_consistency["approval_reviewer_evidence_handoff_acceptance_audit_consistency_active"] is True
+            and audit_consistency["consistency_passed"] is True
+        )
+        no_side_effects_consistent = audit_summary["no_side_effects_consistent"] is True and all(
+            audit_summary[key] is False
+            for key in [
+                "approval_decision_persisted",
+                "approval_decision_review_queue_updated",
+                "approval_decision_evidence_store_active",
+                "approval_evidence_store_active",
+                "review_workflow_active",
+                "review_queue_updated",
+                "gate_state_changed",
+                "gates_closed",
+                "adapter_load_allowed",
+                "adapter_activation_allowed",
+                "hardware_access_allowed",
+                "hardware_accessed",
+                "driver_development_triggered",
+                "virtualization_development_triggered",
+                "service_dispatch_triggered",
+            ]
+        )
+        decision_rollup_consistent = (
+            source_surfaces_bound
+            and blocked_decision_count == len(decision_rows)
+            and handoff_summary["missing_handoff_packet_count"] == acceptance_summary["missing_handoff_packet_count"]
+            and acceptance_summary["blocked_acceptance_count"] == audit_summary["blocked_acceptance_count"]
+            and audit_summary["accepted_handoff_packet_count"] == 0
+            and audit_summary["acceptance_record_persisted_count"] == 0
+            and no_side_effects_consistent
+        )
+
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-decision-rollup",
+            "approval_reviewer_evidence_handoff_acceptance_decision_rollup_state": "contract-only-handoff-acceptance-decision-blocked",
+            "approval_reviewer_evidence_handoff_acceptance_decision_rollup_active": True,
+            "decision_rollup_complete": True,
+            "decision_rollup_consistent": decision_rollup_consistent,
+            "source_surfaces_bound": source_surfaces_bound,
+            "acceptance_authority_confirmed": False,
+            "acceptance_record_store_confirmed": False,
+            "review_workflow_owner_confirmed": False,
+            "audit_retention_owner_confirmed": False,
+            "rollback_fault_acceptance_owner_confirmed": False,
+            "driver_hal_acceptance_reviewer_confirmed": False,
+            "gate_closure_authority_confirmed": False,
+            "handoff_packet_presence_confirmed": False,
+            "acceptance_decision_ready": False,
+            "handoff_acceptance_allowed": False,
+            "evidence_handoff_allowed": False,
+            "approval_review_allowed": False,
+            "retention_review_allowed": False,
+            "gate_closure_allowed": False,
+            "adapter_load_allowed": False,
+            "required_decision_count": len(decision_rows),
+            "blocked_decision_count": blocked_decision_count,
+            "required_handoff_packet_count": handoff_summary["required_handoff_packet_count"],
+            "missing_handoff_packet_count": handoff_summary["missing_handoff_packet_count"],
+            "required_acceptance_count": acceptance_summary["required_acceptance_count"],
+            "blocked_acceptance_count": acceptance_summary["blocked_acceptance_count"],
+            "accepted_handoff_packet_count": acceptance_summary["accepted_handoff_packet_count"],
+            "acceptance_record_persisted_count": acceptance_summary["acceptance_record_persisted_count"],
+            "decision_rows": decision_rows,
+            "source_surfaces": {
+                "approval_reviewer_evidence_handoff_checklist": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist",
+                    "state": handoff_checklist["approval_reviewer_evidence_handoff_state"],
+                    "handoff_checklist_complete": handoff_checklist["handoff_checklist_complete"],
+                    "required_handoff_packet_count": handoff_checklist["required_handoff_packet_count"],
+                    "missing_handoff_packet_count": handoff_checklist["missing_handoff_packet_count"],
+                    "handoff_ready": handoff_checklist["handoff_ready"],
+                    "evidence_handoff_allowed": handoff_checklist["evidence_handoff_allowed"],
+                    "adapter_load_allowed": handoff_checklist["adapter_load_allowed"],
+                },
+                "approval_reviewer_evidence_handoff_acceptance_status": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status",
+                    "state": acceptance_status["approval_reviewer_evidence_handoff_acceptance_state"],
+                    "acceptance_status_complete": acceptance_status["acceptance_status_complete"],
+                    "required_acceptance_count": acceptance_status["required_acceptance_count"],
+                    "blocked_acceptance_count": acceptance_status["blocked_acceptance_count"],
+                    "accepted_handoff_packet_count": acceptance_status["accepted_handoff_packet_count"],
+                    "acceptance_record_persisted_count": acceptance_status["acceptance_record_persisted_count"],
+                    "handoff_acceptance_allowed": acceptance_status["handoff_acceptance_allowed"],
+                    "approval_review_allowed": acceptance_status["approval_review_allowed"],
+                    "adapter_load_allowed": acceptance_status["adapter_load_allowed"],
+                },
+                "approval_reviewer_evidence_handoff_acceptance_audit_consistency": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/audit-consistency",
+                    "state": audit_consistency["approval_reviewer_evidence_handoff_acceptance_audit_state"],
+                    "consistency_passed": audit_consistency["consistency_passed"],
+                    "no_store_consistent": audit_consistency["no_store_consistent"],
+                    "no_review_gate_load_consistent": audit_consistency["no_review_gate_load_consistent"],
+                    "no_side_effects_consistent": audit_consistency["no_side_effects_consistent"],
+                    "adapter_load_allowed": audit_consistency["adapter_load_allowed"],
+                },
+            },
+            "mandatory_gates": copy.deepcopy(
+                HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_DECISION_ROLLUP_GATES
+            ),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-decision-rollup",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.decision.rollup",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollup",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_decision_rollup_active": True,
+                "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_audit_consistency_active": True,
+                "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_status_active": True,
+                "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_checklist_active": True,
+                "decision_rollup_complete": True,
+                "decision_rollup_consistent": decision_rollup_consistent,
+                "source_surfaces_bound": source_surfaces_bound,
+                "acceptance_authority_confirmed": False,
+                "acceptance_record_store_confirmed": False,
+                "review_workflow_owner_confirmed": False,
+                "audit_retention_owner_confirmed": False,
+                "rollback_fault_acceptance_owner_confirmed": False,
+                "driver_hal_acceptance_reviewer_confirmed": False,
+                "gate_closure_authority_confirmed": False,
+                "handoff_packet_presence_confirmed": False,
+                "acceptance_decision_ready": False,
+                "required_decision_count": len(decision_rows),
+                "blocked_decision_count": blocked_decision_count,
+                "required_handoff_packet_count": handoff_summary["required_handoff_packet_count"],
+                "missing_handoff_packet_count": handoff_summary["missing_handoff_packet_count"],
+                "required_acceptance_count": acceptance_summary["required_acceptance_count"],
+                "blocked_acceptance_count": acceptance_summary["blocked_acceptance_count"],
+                "accepted_handoff_packet_count": acceptance_summary["accepted_handoff_packet_count"],
+                "acceptance_record_persisted_count": acceptance_summary["acceptance_record_persisted_count"],
+                "handoff_ready": False,
+                "handoff_acceptance_ready": False,
+                "handoff_acceptance_allowed": False,
+                "evidence_handoff_allowed": False,
+                "approval_review_allowed": False,
+                "retention_review_allowed": False,
+                "gate_closure_allowed": False,
+                "approval_decision_closure_allowed": False,
+                "handoff_packet_attached": False,
+                "handoff_packet_accepted": False,
+                "reviewer_identity_accepted": False,
+                "evidence_reference_uri_accepted": False,
+                "owner_signature_reference_accepted": False,
+                "acceptance_rule_accepted": False,
+                "retention_policy_reference_accepted": False,
+                "audit_export_reference_accepted": False,
+                "rollback_fault_note_accepted": False,
+                "approval_decision_persisted": False,
+                "approval_decision_review_queue_updated": False,
+                "approval_decision_evidence_store_active": False,
+                "approval_evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+                "no_side_effects_consistent": no_side_effects_consistent,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_DECISION_ROLLUP_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

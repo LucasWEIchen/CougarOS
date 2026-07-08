@@ -276,6 +276,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1786,6 +1792,81 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistency" in encoded, "gRPC hardware approval reviewer handoff acceptance audit binding missing"
         assert "HW-AHC-007" in encoded and "android-linux-acceptance-audit-parity" in encoded, "hardware approval reviewer handoff acceptance audit missing synchronized binding gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval reviewer handoff acceptance audit missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup":
+        rollup = payload["payload"]
+        encoded = json.dumps(rollup)
+        gate_ids = {item["gate_id"] for item in rollup["mandatory_gates"]}
+        assert rollup["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-decision-rollup", "hardware approval reviewer handoff acceptance decision rollup wrong operation"
+        assert rollup["approval_reviewer_evidence_handoff_acceptance_decision_rollup_state"] == "contract-only-handoff-acceptance-decision-blocked", "hardware approval reviewer handoff acceptance decision rollup wrong state"
+        assert rollup["approval_reviewer_evidence_handoff_acceptance_decision_rollup_active"] is True, "hardware approval reviewer handoff acceptance decision rollup inactive"
+        assert rollup["decision_rollup_complete"] is True, "hardware approval reviewer handoff acceptance decision rollup incomplete"
+        assert rollup["decision_rollup_consistent"] is True, "hardware approval reviewer handoff acceptance decision rollup inconsistent"
+        assert rollup["source_surfaces_bound"] is True, "hardware approval reviewer handoff acceptance decision rollup source surfaces unbound"
+        assert rollup["required_decision_count"] == 8, "hardware approval reviewer handoff acceptance decision rollup lost required decisions"
+        assert rollup["blocked_decision_count"] == 8, "hardware approval reviewer handoff acceptance decision rollup lost blocked decisions"
+        assert rollup["required_handoff_packet_count"] == 11, "hardware approval reviewer handoff acceptance decision rollup lost required handoff count"
+        assert rollup["missing_handoff_packet_count"] == 11, "hardware approval reviewer handoff acceptance decision rollup lost missing handoff count"
+        assert rollup["required_acceptance_count"] == 11, "hardware approval reviewer handoff acceptance decision rollup lost required acceptance count"
+        assert rollup["blocked_acceptance_count"] == 11, "hardware approval reviewer handoff acceptance decision rollup lost blocked acceptance count"
+        assert rollup["accepted_handoff_packet_count"] == 0, "hardware approval reviewer handoff acceptance decision rollup accepted packets"
+        assert rollup["acceptance_record_persisted_count"] == 0, "hardware approval reviewer handoff acceptance decision rollup persisted records"
+        assert all(item["decision_confirmed"] is False for item in rollup["decision_rows"]), "hardware approval reviewer handoff acceptance decision rollup confirmed a decision"
+        assert all(item["blocks_adapter_load"] is True for item in rollup["decision_rows"]), "hardware approval reviewer handoff acceptance decision rollup failed to block adapter load"
+        assert {
+            "HW-AHD-001",
+            "HW-AHD-002",
+            "HW-AHD-003",
+            "HW-AHD-004",
+            "HW-AHD-005",
+            "HW-AHD-006",
+            "HW-AHD-007",
+            "HW-AHD-008",
+        } <= gate_ids, "hardware approval reviewer handoff acceptance decision rollup missing mandatory gates"
+        sources = rollup["source_surfaces"]
+        assert sources["approval_reviewer_evidence_handoff_checklist"]["missing_handoff_packet_count"] == 11, "hardware approval reviewer handoff acceptance decision rollup lost checklist source"
+        assert sources["approval_reviewer_evidence_handoff_acceptance_status"]["blocked_acceptance_count"] == 11, "hardware approval reviewer handoff acceptance decision rollup lost acceptance source"
+        assert sources["approval_reviewer_evidence_handoff_acceptance_audit_consistency"]["consistency_passed"] is True, "hardware approval reviewer handoff acceptance decision rollup lost audit source"
+        for key in [
+            "acceptance_authority_confirmed",
+            "acceptance_record_store_confirmed",
+            "review_workflow_owner_confirmed",
+            "audit_retention_owner_confirmed",
+            "rollback_fault_acceptance_owner_confirmed",
+            "driver_hal_acceptance_reviewer_confirmed",
+            "gate_closure_authority_confirmed",
+            "handoff_packet_presence_confirmed",
+            "acceptance_decision_ready",
+            "handoff_acceptance_allowed",
+            "evidence_handoff_allowed",
+            "approval_review_allowed",
+            "retention_review_allowed",
+            "gate_closure_allowed",
+            "approval_decision_closure_allowed",
+            "approval_decision_persisted",
+            "approval_decision_review_queue_updated",
+            "approval_decision_evidence_store_active",
+            "approval_evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert rollup["summary"][key] is False, f"hardware approval reviewer handoff acceptance decision rollup summary unexpectedly set {key}"
+        assert rollup["summary"]["decision_rollup_consistent"] is True, "hardware approval reviewer handoff acceptance decision rollup summary inconsistent"
+        assert rollup["summary"]["blocked_decision_count"] == 8, "hardware approval reviewer handoff acceptance decision rollup summary lost blocked count"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupJson" in encoded, "Android hardware approval reviewer handoff acceptance decision rollup binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-decision-rollup" in encoded, "Linux CLI hardware approval reviewer handoff acceptance decision rollup binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.decision.rollup" in encoded, "Linux IPC hardware approval reviewer handoff acceptance decision rollup binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollup" in encoded, "gRPC hardware approval reviewer handoff acceptance decision rollup binding missing"
+        assert "HW-AHD-007" in encoded and "android-linux-decision-rollup-parity" in encoded, "hardware approval reviewer handoff acceptance decision rollup missing synchronized binding gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval reviewer handoff acceptance decision rollup missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -2567,6 +2648,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-decision-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

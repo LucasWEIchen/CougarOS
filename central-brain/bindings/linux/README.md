@@ -262,6 +262,12 @@ as Android Binder and Linux IPC. It cross-checks checklist/status/parity and
 no-side-effect counters with `HW-AHC-001..008` and does not accept handoff
 packets, persist acceptance records, create review queues, close gates, load
 adapters, access hardware, trigger Driver/HAL, or implement virtualization.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollup`
+exposes the same approval reviewer evidence handoff acceptance decision rollup
+as Android Binder and Linux IPC. It reports 8 blocked acceptance decision rows
+with `HW-AHD-001..008` and does not accept handoff packets, persist acceptance
+records, create review queues, close gates, load adapters, access hardware,
+trigger Driver/HAL, or implement virtualization.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle
