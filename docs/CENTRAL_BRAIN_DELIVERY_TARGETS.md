@@ -42,6 +42,8 @@
 
 本轮新增 adapter-load approval authority checklist 交付面：Android Console `HW Approve` 调用 Binder `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson`，REST 路径为 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist`；Linux CLI 为 `hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist`，Linux IPC operation 为 `hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist`，Linux gRPC/RPC 为 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklist`。该交付面只报告 `HW-ALA-001..008` approval authority、approval policy、signature/RBAC、durable evidence workflow、target smoke/rollback/fault evidence 和 no-load parity 决策状态，固定 `approval_authority_assigned=false`、`approval_policy_confirmed=false`、`approval_record_persisted=false`、`adapter_load_allowed=false` 和 `driver_development_triggered=false`，不持久化 approval、不关闭 gate、不加载 adapter、不激活硬件、不新增 Driver/HAL 或虚拟化层。
 
+本轮新增 adapter-load approval authority no-store status 交付面：Android Console `HW ApStat` 调用 Binder `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson`，REST 路径为 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status`；Linux CLI 为 `hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status`，Linux IPC operation 为 `hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.status`，Linux gRPC/RPC 为 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatus`。该交付面只报告 `HW-AAS-001..008` approval record/status 的 no-store 状态，固定 `approval_record_available=false`、`persisted_approval_record_count=0`、`pending_approval_review_count=0`、`approval_decision_passed=false`、`adapter_load_allowed=false` 和 `driver_development_triggered=false`，不持久化 approval record、不创建 evidence store、不更新 review queue、不关闭 gate、不加载 adapter、不激活硬件、不新增 Driver/HAL 或虚拟化层。
+
 ## 交付包要求
 
 每个阶段交付必须包含：
@@ -105,6 +107,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-status
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py vehicle-signals
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py vehicle-signal-activation
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py vehicle-signal-validation
@@ -160,6 +163,7 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/b
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-status
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py prototype-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signals
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signal-activation
@@ -191,6 +195,7 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-status
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py prototype-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signals
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signal-activation

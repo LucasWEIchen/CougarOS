@@ -887,6 +887,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_STATUS_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_STATUS_GATES = [
+    {
+        "gate_id": "HW-AAS-001",
+        "name": "approval-authority-status-surface-bound",
+        "required_evidence": "Status view links to the adapter-load approval authority checklist and reports its open state.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AAS-002",
+        "name": "zero-persisted-approval-records",
+        "required_evidence": "No adapter-load approval records are persisted in the Python prototype.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AAS-003",
+        "name": "no-approval-review-queue",
+        "required_evidence": "No approval review queue, durable evidence store, or gate closure workflow is created.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AAS-004",
+        "name": "approval-decisions-still-open",
+        "required_evidence": "Approval authority, policy, signature/RBAC, evidence workflow, and target smoke decisions remain open.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AAS-005",
+        "name": "adapter-load-still-blocked",
+        "required_evidence": "Approval status agrees with the checklist that adapter load, activation, and gate closure are still blocked.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AAS-006",
+        "name": "android-linux-approval-status-parity-visible",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose equivalent approval status fields.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AAS-007",
+        "name": "no-hardware-access-in-approval-status",
+        "required_evidence": "Approval status view does not open devices, call HAL/vendor SDK, allocate shared memory, or access Safety Runtime.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AAS-008",
+        "name": "no-driver-or-virtualization-trigger",
+        "required_evidence": "Approval status view does not trigger Driver/HAL, Safety Runtime, vehicle bus, service dispatch, or virtualization work.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -2505,6 +2558,160 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_authority_status_payload(self) -> dict[str, Any]:
+        checklist = self.owner_decision_evidence_adapter_load_approval_authority_checklist_payload()
+        open_gate_ids = [
+            item["gate_id"]
+            for item in checklist["mandatory_gates"]
+            if item["passed"] is False
+        ]
+        open_decision_ids = [
+            item["decision_id"]
+            for item in checklist["approval_authority_decisions"]
+            if item["current_selection"].startswith("TBD")
+        ]
+        no_store_consistent = (
+            checklist["approval_record_persisted"] is False
+            and checklist["approval_workflow_active"] is False
+            and checklist["summary"]["evidence_store_active"] is False
+            and checklist["summary"]["review_workflow_active"] is False
+            and checklist["summary"]["review_queue_updated"] is False
+        )
+        approval_decisions_open = (
+            checklist["approval_authority_assigned"] is False
+            and checklist["approval_policy_confirmed"] is False
+            and checklist["approval_signature_rules_confirmed"] is False
+            and checklist["approval_rbac_confirmed"] is False
+            and len(open_decision_ids) >= 5
+        )
+        adapter_load_still_blocked = (
+            checklist["adapter_load_allowed"] is False
+            and checklist["adapter_activation_allowed"] is False
+            and checklist["hardware_access_allowed"] is False
+            and checklist["gate_closure_allowed"] is False
+        )
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-authority-status",
+            "approval_authority_status_state": "contract-only-approval-authority-status-open",
+            "approval_authority_checklist_available": True,
+            "approval_record_available": False,
+            "persisted_approval_record_count": 0,
+            "pending_approval_review_count": 0,
+            "approval_review_queue_updated": False,
+            "approval_evidence_store_active": False,
+            "approval_decision_passed": False,
+            "approval_authority_assigned": checklist["approval_authority_assigned"],
+            "approval_policy_confirmed": checklist["approval_policy_confirmed"],
+            "approval_signature_rules_confirmed": checklist["approval_signature_rules_confirmed"],
+            "approval_rbac_confirmed": checklist["approval_rbac_confirmed"],
+            "approval_workflow_active": checklist["approval_workflow_active"],
+            "approval_record_persisted": checklist["approval_record_persisted"],
+            "adapter_load_allowed": checklist["adapter_load_allowed"],
+            "adapter_activation_allowed": checklist["adapter_activation_allowed"],
+            "hardware_access_allowed": checklist["hardware_access_allowed"],
+            "gate_closure_allowed": checklist["gate_closure_allowed"],
+            "no_store_consistent": no_store_consistent,
+            "approval_decisions_open": approval_decisions_open,
+            "adapter_load_still_blocked": adapter_load_still_blocked,
+            "source_surfaces": {
+                "approval_authority_checklist": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist",
+                    "state": checklist["approval_authority_checklist_state"],
+                    "called_by_approval_authority_status": True,
+                    "open_gate_ids": open_gate_ids,
+                    "open_decision_ids": open_decision_ids,
+                },
+                "approval_record_store": {
+                    "state": "not-implemented-contract-only",
+                    "persisted_approval_record_count": 0,
+                    "pending_approval_review_count": 0,
+                    "approval_review_queue_updated": False,
+                    "approval_evidence_store_active": False,
+                },
+            },
+            "status_checks": [
+                {
+                    "check_id": "HW-AAS-CHECK-001",
+                    "name": "checklist-open-state-visible",
+                    "observed": checklist["approval_authority_checklist_state"],
+                    "passed": checklist["approval_authority_checklist_state"] == "contract-only-approval-authority-checklist-open",
+                },
+                {
+                    "check_id": "HW-AAS-CHECK-002",
+                    "name": "no-approval-records",
+                    "observed": {
+                        "approval_record_available": False,
+                        "persisted_approval_record_count": 0,
+                        "approval_record_persisted": checklist["approval_record_persisted"],
+                    },
+                    "passed": no_store_consistent,
+                },
+                {
+                    "check_id": "HW-AAS-CHECK-003",
+                    "name": "approval-decisions-open",
+                    "observed": open_decision_ids,
+                    "passed": approval_decisions_open,
+                },
+                {
+                    "check_id": "HW-AAS-CHECK-004",
+                    "name": "adapter-load-blocked",
+                    "observed": {
+                        "adapter_load_allowed": checklist["adapter_load_allowed"],
+                        "adapter_activation_allowed": checklist["adapter_activation_allowed"],
+                        "hardware_access_allowed": checklist["hardware_access_allowed"],
+                        "gate_closure_allowed": checklist["gate_closure_allowed"],
+                    },
+                    "passed": adapter_load_still_blocked,
+                },
+            ],
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_STATUS_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.status",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatus",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_authority_status_active": True,
+                "owner_decision_evidence_adapter_load_approval_authority_checklist_active": True,
+                "approval_authority_checklist_available": True,
+                "approval_record_available": False,
+                "persisted_approval_record_count": 0,
+                "pending_approval_review_count": 0,
+                "approval_review_queue_updated": False,
+                "approval_evidence_store_active": False,
+                "approval_decision_passed": False,
+                "no_store_consistent": no_store_consistent,
+                "approval_decisions_open": approval_decisions_open,
+                "adapter_load_still_blocked": adapter_load_still_blocked,
+                "approval_authority_assigned": False,
+                "approval_policy_confirmed": False,
+                "approval_signature_rules_confirmed": False,
+                "approval_rbac_confirmed": False,
+                "approval_workflow_active": False,
+                "approval_record_persisted": False,
+                "owner_decision_complete": False,
+                "all_blockers_cleared": False,
+                "adapter_load_ready": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_STATUS_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

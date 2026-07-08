@@ -205,6 +205,7 @@ checks = [
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -957,6 +958,63 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklist" in encoded, "gRPC hardware approval authority binding missing"
         assert "approval without durable evidence record" in encoded, "hardware approval authority checklist missing durable evidence rule"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval authority checklist missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+        assert status["approval_authority_status_state"] == "contract-only-approval-authority-status-open", "hardware approval authority status left open state"
+        assert status["approval_authority_checklist_available"] is True, "hardware approval authority status lost checklist source"
+        assert status["approval_record_available"] is False, "hardware approval authority status found approval record"
+        assert status["persisted_approval_record_count"] == 0, "hardware approval authority status persisted records"
+        assert status["pending_approval_review_count"] == 0, "hardware approval authority status created pending review"
+        assert status["approval_review_queue_updated"] is False, "hardware approval authority status updated review queue"
+        assert status["approval_evidence_store_active"] is False, "hardware approval authority status activated evidence store"
+        assert status["approval_decision_passed"] is False, "hardware approval authority status passed approval"
+        assert status["no_store_consistent"] is True, "hardware approval authority status lost no-store consistency"
+        assert status["approval_decisions_open"] is True, "hardware approval authority status closed approval decisions"
+        assert status["adapter_load_still_blocked"] is True, "hardware approval authority status unblocked adapter load"
+        assert status["source_surfaces"]["approval_authority_checklist"]["called_by_approval_authority_status"] is True, "hardware approval authority status did not bind checklist source"
+        assert status["source_surfaces"]["approval_record_store"]["state"] == "not-implemented-contract-only", "hardware approval authority status changed approval record store"
+        assert {"HW-AAS-001", "HW-AAS-002", "HW-AAS-003", "HW-AAS-004", "HW-AAS-005", "HW-AAS-006", "HW-AAS-007", "HW-AAS-008"} <= gate_ids, "hardware approval authority status missing mandatory gates"
+        for key in [
+            "approval_record_available",
+            "approval_review_queue_updated",
+            "approval_evidence_store_active",
+            "approval_decision_passed",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_signature_rules_confirmed",
+            "approval_rbac_confirmed",
+            "approval_workflow_active",
+            "approval_record_persisted",
+            "owner_decision_complete",
+            "all_blockers_cleared",
+            "adapter_load_ready",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"hardware approval authority status summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_authority_status_active",
+            "owner_decision_evidence_adapter_load_approval_authority_checklist_active",
+            "approval_authority_checklist_available",
+            "no_store_consistent",
+            "approval_decisions_open",
+            "adapter_load_still_blocked",
+        ]:
+            assert status["summary"][key] is True, f"hardware approval authority status summary did not set {key}"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson" in encoded, "Android hardware approval authority status binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status" in encoded, "Linux CLI hardware approval authority status binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.status" in encoded, "Linux IPC hardware approval authority status binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatus" in encoded, "gRPC hardware approval authority status binding missing"
+        assert "HW-AAS-002" in encoded and "zero-persisted-approval-records" in encoded, "hardware approval authority status missing zero records gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval authority status missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1728,6 +1786,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

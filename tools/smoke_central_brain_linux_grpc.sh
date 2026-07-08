@@ -1519,6 +1519,71 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChe
 assert "approval without durable evidence record" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_STATUS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+status = payload["gateway"]["payload"]
+encoded = json.dumps(status)
+gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert status["approval_authority_status_state"] == "contract-only-approval-authority-status-open", response
+assert status["approval_authority_checklist_available"] is True, response
+assert status["approval_record_available"] is False, response
+assert status["persisted_approval_record_count"] == 0, response
+assert status["pending_approval_review_count"] == 0, response
+assert status["approval_review_queue_updated"] is False, response
+assert status["approval_evidence_store_active"] is False, response
+assert status["approval_decision_passed"] is False, response
+assert status["no_store_consistent"] is True, response
+assert status["approval_decisions_open"] is True, response
+assert status["adapter_load_still_blocked"] is True, response
+assert status["source_surfaces"]["approval_authority_checklist"]["called_by_approval_authority_status"] is True, response
+assert status["source_surfaces"]["approval_record_store"]["state"] == "not-implemented-contract-only", response
+assert {"HW-AAS-001", "HW-AAS-002", "HW-AAS-003", "HW-AAS-004", "HW-AAS-005", "HW-AAS-006", "HW-AAS-007", "HW-AAS-008"} <= gate_ids, response
+for key in [
+    "approval_record_available",
+    "approval_review_queue_updated",
+    "approval_evidence_store_active",
+    "approval_decision_passed",
+    "approval_authority_assigned",
+    "approval_policy_confirmed",
+    "approval_signature_rules_confirmed",
+    "approval_rbac_confirmed",
+    "approval_workflow_active",
+    "approval_record_persisted",
+    "owner_decision_complete",
+    "all_blockers_cleared",
+    "adapter_load_ready",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert status["summary"][key] is False, response
+for key in [
+    "owner_decision_evidence_adapter_load_approval_authority_status_active",
+    "owner_decision_evidence_adapter_load_approval_authority_checklist_active",
+    "approval_authority_checklist_available",
+    "no_store_consistent",
+    "approval_decisions_open",
+    "adapter_load_still_blocked",
+]:
+    assert status["summary"][key] is True, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.status" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatus" in encoded, response
+assert "HW-AAS-002" in encoded and "zero-persisted-approval-records" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json
