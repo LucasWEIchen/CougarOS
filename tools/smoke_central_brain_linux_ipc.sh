@@ -1430,6 +1430,60 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsisten
 assert "HW-ALC-004" in encoded and "dry-run-rejection-contract-consistent" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+decision_ids = {item["decision_id"] for item in payload["approval_authority_decisions"]}
+assert response["status"] == "ok", response
+assert payload["approval_authority_checklist_state"] == "contract-only-approval-authority-checklist-open", response
+assert payload["approval_authority_assigned"] is False, response
+assert payload["approval_policy_confirmed"] is False, response
+assert payload["approval_signature_rules_confirmed"] is False, response
+assert payload["approval_rbac_confirmed"] is False, response
+assert payload["approval_workflow_active"] is False, response
+assert payload["approval_record_persisted"] is False, response
+assert payload["adapter_load_allowed"] is False, response
+assert payload["hardware_access_allowed"] is False, response
+assert payload["source_surfaces"]["adapter_load_dry_run_request"]["called_by_approval_authority_checklist"] is False, response
+assert payload["source_surfaces"]["adapter_load_dry_run_status"]["persisted_dry_run_count"] == 0, response
+assert payload["source_surfaces"]["adapter_load_dry_run_audit_consistency"]["consistency_passed"] is True, response
+assert {"HW-ALA-001", "HW-ALA-002", "HW-ALA-003", "HW-ALA-004", "HW-ALA-005", "HW-ALA-006", "HW-ALA-007", "HW-ALA-008"} <= gate_ids, response
+assert {"HW-ALA-002", "HW-ALA-003", "HW-ALA-004", "HW-ALA-005", "HW-ALA-006"} <= decision_ids, response
+for key in [
+    "approval_authority_assigned",
+    "approval_policy_confirmed",
+    "approval_signature_rules_confirmed",
+    "approval_rbac_confirmed",
+    "approval_workflow_active",
+    "approval_record_persisted",
+    "owner_decision_complete",
+    "all_blockers_cleared",
+    "adapter_load_ready",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["owner_decision_evidence_adapter_load_approval_authority_checklist_active"] is True, response
+assert payload["summary"]["dry_run_audit_consistency_passed"] is True, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklist" in encoded, response
+assert "approval without durable evidence record" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

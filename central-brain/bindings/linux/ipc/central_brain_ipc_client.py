@@ -167,6 +167,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.audit.consistency",
         {},
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist": (
+        "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist",
+        {},
+    ),
     "vehicle-signals": ("vehicle.signals.list", {}),
     "vehicle-signal-activation": ("vehicle.signals.activation.get", {}),
     "vehicle-signal-validation": ("vehicle.signals.validation.get", {}),

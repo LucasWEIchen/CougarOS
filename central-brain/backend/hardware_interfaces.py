@@ -834,6 +834,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_AUDIT_CONSISTENCY_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_GATES = [
+    {
+        "gate_id": "HW-ALA-001",
+        "name": "approval-source-surfaces-bound",
+        "required_evidence": "Approval authority checklist links blocker rollup, dry-run request, dry-run status, and audit consistency surfaces.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALA-002",
+        "name": "adapter-load-approval-authority-assigned",
+        "required_evidence": "Target platform assigns who can approve adapter load for each hardware empty interface and selected adapter.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALA-003",
+        "name": "adapter-load-approval-policy-confirmed",
+        "required_evidence": "Target platform approves the policy that turns dry-run rejection into a real adapter load authorization.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALA-004",
+        "name": "approval-signature-and-rbac-confirmed",
+        "required_evidence": "Owner signature, reviewer role, RBAC input, and Runtime & Governance audit binding are confirmed.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALA-005",
+        "name": "evidence-store-and-review-workflow-ready",
+        "required_evidence": "Durable evidence store, review queue, retention, delete/export, and gate closure workflow are ready.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALA-006",
+        "name": "target-smoke-rollback-fault-evidence-ready",
+        "required_evidence": "Target hardware smoke, rollback, fault model, Driver/HAL gap closure, and Safety/Policy review evidence are attached.",
+        "passed": False,
+    },
+    {
+        "gate_id": "HW-ALA-007",
+        "name": "android-linux-approval-authority-parity-visible",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose equivalent approval authority checklist fields.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALA-008",
+        "name": "no-adapter-load-or-hardware-access",
+        "required_evidence": "Approval authority checklist does not call dry-run POST, persist approvals, load adapters, access hardware, or trigger Driver/HAL or virtualization work.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -2272,6 +2325,186 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_AUDIT_CONSISTENCY_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_authority_checklist_payload(self) -> dict[str, Any]:
+        blocker_rollup = self.owner_decision_evidence_adapter_load_blocker_rollup_payload()
+        status = self.owner_decision_evidence_adapter_load_dry_run_status_payload()
+        audit = self.owner_decision_evidence_adapter_load_dry_run_audit_consistency_payload()
+        open_blocker_ids = [
+            item["blocker_id"]
+            for item in blocker_rollup["blocker_groups"]
+            if item["state"] in ("open", "enforced")
+        ]
+        approval_authority_decisions = [
+            {
+                "decision_id": "HW-ALA-002",
+                "area": "adapter-load-approval-authority",
+                "required_decision": "Assign the platform role and owner allowed to approve loading a selected hardware adapter.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["target owner", "Android/Linux ABI owner", "selected adapter owner", "escalation path"],
+            },
+            {
+                "decision_id": "HW-ALA-003",
+                "area": "approval-policy",
+                "required_decision": "Approve the policy that can move adapter-load dry-run from rejected to load-authorized on target hardware.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["all blockers cleared", "Driver/HAL gap closure", "Safety/Policy review", "Runtime & Governance rule"],
+            },
+            {
+                "decision_id": "HW-ALA-004",
+                "area": "signature-rbac-audit",
+                "required_decision": "Confirm approval signature format, reviewer identity source, RBAC inputs, and audit export route.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["approval signature", "reviewer role source", "RBAC mapping", "audit backend"],
+            },
+            {
+                "decision_id": "HW-ALA-005",
+                "area": "durable-review-workflow",
+                "required_decision": "Confirm evidence store, review queue, retention/delete/export, and gate closure workflow before approvals can be stored.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["durable store", "review queue", "retention policy", "gate closure authority"],
+            },
+            {
+                "decision_id": "HW-ALA-006",
+                "area": "target-smoke-rollback-fault-evidence",
+                "required_decision": "Attach target smoke result, rollback switch, fault semantics, Driver/HAL gap closure, and Safety/Policy evidence.",
+                "current_selection": "TBD-target-platform",
+                "blocked_by": ["target smoke harness", "rollback plan", "fault model", "Driver/HAL evidence"],
+            },
+        ]
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-authority-checklist",
+            "approval_authority_checklist_state": "contract-only-approval-authority-checklist-open",
+            "approval_authority_assigned": False,
+            "approval_policy_confirmed": False,
+            "approval_signature_rules_confirmed": False,
+            "approval_rbac_confirmed": False,
+            "approval_workflow_active": False,
+            "approval_record_persisted": False,
+            "adapter_load_allowed": False,
+            "adapter_activation_allowed": False,
+            "hardware_access_allowed": False,
+            "gate_closure_allowed": False,
+            "scope": {
+                "source_endpoints": [
+                    "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                    "POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run",
+                    "GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status",
+                    "GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency",
+                ],
+                "target_endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist",
+                "purpose": "make the target-platform approval authority, signature, RBAC, evidence, and policy requirements explicit before any adapter-load dry-run can become a real adapter load approval",
+                "prototype_approval": "not implemented; this checklist does not call the dry-run POST endpoint, persist approval records, close gates, load adapters, access hardware, or trigger Driver/HAL work",
+                "target_gate_scope": ["HW-ALB", "HW-ALD", "HW-ALS", "HW-ALC", "HW-ALA", "HW-OEA", "HW-OET", "DRV-GAP"],
+            },
+            "source_surfaces": {
+                "adapter_load_blocker_rollup": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                    "state": blocker_rollup["adapter_load_blocker_rollup_state"],
+                    "adapter_load_ready": blocker_rollup["adapter_load_ready"],
+                    "all_blockers_cleared": blocker_rollup["all_blockers_cleared"],
+                    "open_blocker_ids": open_blocker_ids,
+                },
+                "adapter_load_dry_run_request": {
+                    "endpoint": "POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run",
+                    "called_by_approval_authority_checklist": False,
+                    "approval_record_persisted": False,
+                },
+                "adapter_load_dry_run_status": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status",
+                    "state": status["adapter_load_dry_run_status_state"],
+                    "last_result_available": status["last_result_available"],
+                    "persisted_dry_run_count": status["persisted_dry_run_count"],
+                },
+                "adapter_load_dry_run_audit_consistency": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency",
+                    "state": audit["audit_consistency_state"],
+                    "consistency_passed": audit["consistency_passed"],
+                    "called_by_approval_authority_checklist": True,
+                    "side_effects": "read-only call to local contract payload; no dry-run POST, persistence, adapter load, hardware access, or Driver/HAL trigger",
+                },
+            },
+            "approval_policy_shape": {
+                "required_approval_inputs": [
+                    "selected_interface_id",
+                    "selected_adapter_id",
+                    "adapter_version",
+                    "all_blockers_cleared",
+                    "approval_authority",
+                    "approval_signature",
+                    "runtime_governance_policy_reference",
+                    "target_hardware_smoke_result",
+                    "rollback_plan",
+                    "fault_model",
+                    "driver_hal_gap_closure_evidence",
+                    "android_linux_binding_parity_record",
+                ],
+                "disallowed_until_confirmed": [
+                    "direct device node probe",
+                    "unreviewed vendor SDK init",
+                    "approval without durable evidence record",
+                    "approval without rollback path",
+                    "approval without Android/Linux parity evidence",
+                    "gate closure without Runtime & Governance audit reference",
+                ],
+                "approval_policy_confirmed": False,
+                "approval_signature_rules_confirmed": False,
+                "approval_rbac_confirmed": False,
+                "approval_workflow_active": False,
+            },
+            "approval_authority_decisions": approval_authority_decisions,
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklist",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_authority_checklist_active": True,
+                "owner_decision_evidence_adapter_load_dry_run_audit_consistency_active": True,
+                "owner_decision_evidence_adapter_load_dry_run_status_active": True,
+                "owner_decision_evidence_adapter_load_dry_run_active": True,
+                "owner_decision_evidence_adapter_load_blocker_rollup_active": True,
+                "dry_run_audit_consistency_passed": audit["consistency_passed"],
+                "approval_authority_assigned": False,
+                "approval_policy_confirmed": False,
+                "approval_signature_rules_confirmed": False,
+                "approval_rbac_confirmed": False,
+                "approval_workflow_active": False,
+                "approval_record_persisted": False,
+                "owner_decision_complete": False,
+                "all_blockers_cleared": False,
+                "adapter_load_ready": False,
+                "adapter_candidate_recorded": False,
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+                "load_policy_confirmed": False,
+                "replacement_policy_confirmed": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_AUTHORITY_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

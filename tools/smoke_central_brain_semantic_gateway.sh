@@ -204,6 +204,7 @@ checks = [
     ),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status", None, "HW-002"),
     ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency", None, "HW-002"),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -909,6 +910,53 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency" in encoded, "gRPC hardware adapter load dry-run audit consistency binding missing"
         assert "HW-ALC-004" in encoded and "dry-run-rejection-contract-consistent" in encoded, "hardware adapter load dry-run audit consistency missing rejection gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load dry-run audit consistency missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist":
+        approval = payload["payload"]
+        encoded = json.dumps(approval)
+        gate_ids = {item["gate_id"] for item in approval["mandatory_gates"]}
+        decision_ids = {item["decision_id"] for item in approval["approval_authority_decisions"]}
+        assert approval["approval_authority_checklist_state"] == "contract-only-approval-authority-checklist-open", "hardware adapter load approval authority checklist left open state"
+        assert approval["approval_authority_assigned"] is False, "hardware adapter load approval authority unexpectedly assigned"
+        assert approval["approval_policy_confirmed"] is False, "hardware adapter load approval policy unexpectedly confirmed"
+        assert approval["approval_signature_rules_confirmed"] is False, "hardware adapter load approval signature rules unexpectedly confirmed"
+        assert approval["approval_rbac_confirmed"] is False, "hardware adapter load approval RBAC unexpectedly confirmed"
+        assert approval["approval_workflow_active"] is False, "hardware adapter load approval workflow unexpectedly active"
+        assert approval["approval_record_persisted"] is False, "hardware adapter load approval record unexpectedly persisted"
+        assert approval["adapter_load_allowed"] is False, "hardware adapter load approval checklist allowed adapter load"
+        assert approval["hardware_access_allowed"] is False, "hardware adapter load approval checklist allowed hardware access"
+        assert approval["source_surfaces"]["adapter_load_dry_run_request"]["called_by_approval_authority_checklist"] is False, "hardware approval checklist called dry-run POST"
+        assert approval["source_surfaces"]["adapter_load_dry_run_status"]["persisted_dry_run_count"] == 0, "hardware approval checklist saw persisted dry-run records"
+        assert approval["source_surfaces"]["adapter_load_dry_run_audit_consistency"]["consistency_passed"] is True, "hardware approval checklist lost audit consistency"
+        assert {"HW-ALA-001", "HW-ALA-002", "HW-ALA-003", "HW-ALA-004", "HW-ALA-005", "HW-ALA-006", "HW-ALA-007", "HW-ALA-008"} <= gate_ids, "hardware adapter load approval authority checklist missing mandatory gates"
+        assert {"HW-ALA-002", "HW-ALA-003", "HW-ALA-004", "HW-ALA-005", "HW-ALA-006"} <= decision_ids, "hardware adapter load approval authority checklist missing decisions"
+        for key in [
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_signature_rules_confirmed",
+            "approval_rbac_confirmed",
+            "approval_workflow_active",
+            "approval_record_persisted",
+            "owner_decision_complete",
+            "all_blockers_cleared",
+            "adapter_load_ready",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert approval["summary"][key] is False, f"hardware approval authority checklist summary unexpectedly set {key}"
+        assert approval["summary"]["owner_decision_evidence_adapter_load_approval_authority_checklist_active"] is True, "hardware approval authority checklist summary not active"
+        assert approval["summary"]["dry_run_audit_consistency_passed"] is True, "hardware approval authority checklist audit consistency did not pass"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson" in encoded, "Android hardware approval authority binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist" in encoded, "Linux CLI hardware approval authority binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist" in encoded, "Linux IPC hardware approval authority binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklist" in encoded, "gRPC hardware approval authority binding missing"
+        assert "approval without durable evidence record" in encoded, "hardware approval authority checklist missing durable evidence rule"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval authority checklist missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1679,6 +1727,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

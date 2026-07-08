@@ -40,6 +40,8 @@
 
 本轮新增 adapter-load dry-run audit consistency 交付面：Android Console `HW DryAudit` 调用 Binder `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson`，REST 路径为 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency`；Linux CLI 为 `hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency`，Linux IPC operation 为 `hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.audit.consistency`，Linux gRPC/RPC 为 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency`。该交付面只报告 `HW-ALC-001..008` no-store audit consistency、dry-run/status/blocker rollup/gate family cross-check，固定 `consistency_passed=true`、`no_store_consistent=true`、`blocker_rollup_consistent=true`、`dry_run_rejection_consistent=true`、`adapter_load_allowed=false` 和 `driver_development_triggered=false`，不调用 dry-run POST、不保存请求或结果、不加载 adapter、不激活硬件、不新增 Driver/HAL 或虚拟化层。
 
+本轮新增 adapter-load approval authority checklist 交付面：Android Console `HW Approve` 调用 Binder `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson`，REST 路径为 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist`；Linux CLI 为 `hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist`，Linux IPC operation 为 `hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist`，Linux gRPC/RPC 为 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklist`。该交付面只报告 `HW-ALA-001..008` approval authority、approval policy、signature/RBAC、durable evidence workflow、target smoke/rollback/fault evidence 和 no-load parity 决策状态，固定 `approval_authority_assigned=false`、`approval_policy_confirmed=false`、`approval_record_persisted=false`、`adapter_load_allowed=false` 和 `driver_development_triggered=false`，不持久化 approval、不关闭 gate、不加载 adapter、不激活硬件、不新增 Driver/HAL 或虚拟化层。
+
 ## 交付包要求
 
 每个阶段交付必须包含：
@@ -101,6 +103,8 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-dry-run
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-status
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py vehicle-signals
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py vehicle-signal-activation
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py vehicle-signal-validation
@@ -154,6 +158,8 @@ CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/b
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-status
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency
+CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py prototype-readiness
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signals
 CENTRAL_BRAIN_IPC_SOCKET=/tmp/central_brain_gateway.sock python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py vehicle-signal-activation
@@ -183,6 +189,8 @@ CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-status
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency
+CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py prototype-readiness
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signals
 CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT=18788 python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py vehicle-signal-activation

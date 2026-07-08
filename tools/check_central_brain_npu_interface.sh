@@ -61,5 +61,8 @@ require_text "$REQUIREMENTS_DOC" "/hardware/interfaces/owner-decision-evidence/a
 require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency"
 require_text "$DRIVER_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency"
 require_text "$REQUIREMENTS_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency"
+require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist"
+require_text "$DRIVER_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist"
+require_text "$REQUIREMENTS_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist"
 
 echo "Central Brain NPU runtime interface check passed"
