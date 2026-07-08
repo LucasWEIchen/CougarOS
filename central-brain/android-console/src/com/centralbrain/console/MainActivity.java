@@ -61,6 +61,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -401,6 +402,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 dryRunHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecision();
+            }
+        });
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusButton = addButton(hardwareApprovalDecisionRow, "HW ApDStat", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus();
             }
         });
         prototypeReadinessButton = addButton(hardwareApprovalDecisionRow, "Prototype", new View.OnClickListener() {
@@ -867,6 +874,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus() {
+        setBusy(true, "Status: loading hardware owner evidence adapter load approval decision dry-run status via Binder");
+        gatewayRequest("Hardware Owner Evidence Adapter Load Approval Decision Dry-Run Status (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -1002,6 +1019,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

@@ -234,6 +234,12 @@ checks = [
         },
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -1155,6 +1161,63 @@ for method, path, body, req_id in checks:
         assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision" in encoded, "gRPC hardware approval decision dry-run binding missing"
         assert "HW-APD-006" in encoded and "blocked-contract-only-rejection" in encoded, "hardware approval decision dry-run missing blocked rejection gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval decision dry-run missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+        assert status["approval_decision_dry_run_status_state"] == "contract-only-approval-decision-dry-run-status-no-store", "hardware approval decision dry-run status wrong state"
+        assert status["approval_decision_dry_run_status_active"] is True, "hardware approval decision dry-run status inactive"
+        assert status["last_approval_decision_result_available"] is False, "hardware approval decision dry-run status unexpectedly had last result"
+        assert status["persisted_approval_decision_count"] == 0, "hardware approval decision dry-run status persisted decisions"
+        assert status["pending_approval_decision_review_count"] == 0, "hardware approval decision dry-run status created review queue"
+        assert status["source_surfaces"]["approval_decision_dry_run"]["called_by_status"] is False, "hardware approval decision dry-run status called POST"
+        assert status["source_surfaces"]["approval_decision_dry_run"]["last_result_persisted"] is False, "hardware approval decision dry-run status persisted last result"
+        assert status["source_surfaces"]["approval_authority_status"]["persisted_approval_record_count"] == 0, "hardware approval decision dry-run status saw persisted approval record"
+        assert status["source_surfaces"]["approval_authority_audit_consistency"]["adapter_load_blocked_consistent"] is True, "hardware approval decision dry-run status lost blocked consistency"
+        assert {"HW-APS-001", "HW-APS-002", "HW-APS-003", "HW-APS-004", "HW-APS-005", "HW-APS-006", "HW-APS-007", "HW-APS-008"} <= gate_ids, "hardware approval decision dry-run status missing mandatory gates"
+        for key in [
+            "last_approval_decision_result_available",
+            "approval_decision_review_queue_updated",
+            "approval_decision_evidence_store_active",
+            "approval_decision_persisted",
+            "approval_decision_passed",
+            "approval_decision_dry_run_allowed_to_load_adapter",
+            "decision_dry_run_post_called_by_status",
+            "approval_record_available",
+            "approval_record_persisted",
+            "approval_review_queue_updated",
+            "approval_evidence_store_active",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"hardware approval decision dry-run status summary unexpectedly set {key}"
+        for key in [
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_status_active",
+            "owner_decision_evidence_adapter_load_approval_decision_dry_run_active",
+            "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active",
+            "owner_decision_evidence_adapter_load_approval_authority_status_active",
+            "owner_decision_evidence_adapter_load_blocker_rollup_active",
+            "no_store_consistent",
+            "approval_decisions_open",
+            "approval_status_no_store_consistent",
+            "approval_decisions_open_consistent",
+            "adapter_load_blocked_consistent",
+        ]:
+            assert status["summary"][key] is True, f"hardware approval decision dry-run status summary did not set {key}"
+        assert status["summary"]["persisted_approval_decision_count"] == 0, "hardware approval decision dry-run status summary persisted decisions"
+        assert status["summary"]["pending_approval_decision_review_count"] == 0, "hardware approval decision dry-run status summary created reviews"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson" in encoded, "Android hardware approval decision dry-run status binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status" in encoded, "Linux CLI hardware approval decision dry-run status binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.status" in encoded, "Linux IPC hardware approval decision dry-run status binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus" in encoded, "gRPC hardware approval decision dry-run status binding missing"
+        assert "HW-APS-005" in encoded and "last-approval-decision-result-not-stored" in encoded, "hardware approval decision dry-run status missing last-result gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware approval decision dry-run status missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1929,6 +1992,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-authority-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

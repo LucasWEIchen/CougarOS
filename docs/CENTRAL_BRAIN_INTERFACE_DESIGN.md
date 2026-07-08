@@ -483,6 +483,8 @@ A4 增量把 REST 明确下沉为 `NV-P-005` prototype binding，并新增 Andro
 
 HW-APD 增量把 `POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run` 作为 approval authority audit 后的决策请求干跑入口加入同一绑定族。Android 主路径为 `dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson` 和 Console `HW ApDec`，Linux 同步路径为 CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run`、IPC `hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run` 和 gRPC/RPC `DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision`。该入口只校验 approval decision request shape 并返回 blocked contract-only 结果，不持久化 approval decision、不更新 review queue、不关闭 gate、不选择或加载 adapter、不访问硬件、不触发 Driver/HAL 或虚拟化开发。
 
+HW-APS 增量把 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status` 作为 approval decision dry-run 后的 no-store status 加入同一绑定族。Android 主路径为 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson` 和 Console `HW ApDStat`，Linux 同步路径为 CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status`、IPC `hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.status` 和 gRPC/RPC `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus`。该入口只报告 last approval decision result 不可用、approval decision persisted count 为 0、无 approval decision review queue、无 evidence store 和 `decision_dry_run_post_called_by_status=false`，不调用 dry-run POST、不持久化 approval decision、不更新 review queue、不关闭 gate、不选择或加载 adapter、不访问硬件、不触发 Driver/HAL 或虚拟化开发。
+
 验证命令：
 
 ```bash

@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.62"
+API_VERSION = "0.1.63"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -2813,6 +2813,10 @@ def hardware_interface_owner_decision_evidence_adapter_load_approval_decision_dr
     return payload
 
 
+def hardware_interface_owner_decision_evidence_adapter_load_approval_decision_dry_run_status_payload() -> dict[str, Any]:
+    return HARDWARE_INTERFACES.owner_decision_evidence_adapter_load_approval_decision_dry_run_status_payload()
+
+
 def hardware_interface_owner_decision_evidence_adapter_load_dry_run_status_payload() -> dict[str, Any]:
     return HARDWARE_INTERFACES.owner_decision_evidence_adapter_load_dry_run_status_payload()
 
@@ -3172,6 +3176,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_approval_authority_status_payload()))
         elif path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency":
             self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_approval_authority_audit_consistency_payload()))
+        elif path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status":
+            self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_approval_decision_dry_run_status_payload()))
         elif path == "/vehicle/signals":
             self.send_json(200, envelope(vehicle_signals_payload()))
         elif path == "/vehicle/signals/activation":

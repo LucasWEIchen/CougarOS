@@ -1704,6 +1704,66 @@ assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision"
 assert "HW-APD-006" in encoded and "blocked-contract-only-rejection" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_STATUS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_DECISION_DRY_RUN_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+status = payload["gateway"]["payload"]
+encoded = json.dumps(status)
+gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert status["approval_decision_dry_run_status_state"] == "contract-only-approval-decision-dry-run-status-no-store", response
+assert status["approval_decision_dry_run_status_active"] is True, response
+assert status["last_approval_decision_result_available"] is False, response
+assert status["persisted_approval_decision_count"] == 0, response
+assert status["pending_approval_decision_review_count"] == 0, response
+assert status["source_surfaces"]["approval_decision_dry_run"]["called_by_status"] is False, response
+assert status["source_surfaces"]["approval_decision_dry_run"]["last_result_persisted"] is False, response
+assert status["source_surfaces"]["approval_authority_status"]["persisted_approval_record_count"] == 0, response
+assert {"HW-APS-001", "HW-APS-002", "HW-APS-003", "HW-APS-004", "HW-APS-005", "HW-APS-006", "HW-APS-007", "HW-APS-008"} <= gate_ids, response
+for key in [
+    "last_approval_decision_result_available",
+    "approval_decision_review_queue_updated",
+    "approval_decision_evidence_store_active",
+    "approval_decision_persisted",
+    "approval_decision_passed",
+    "approval_decision_dry_run_allowed_to_load_adapter",
+    "decision_dry_run_post_called_by_status",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert status["summary"][key] is False, response
+for key in [
+    "owner_decision_evidence_adapter_load_approval_decision_dry_run_status_active",
+    "owner_decision_evidence_adapter_load_approval_decision_dry_run_active",
+    "owner_decision_evidence_adapter_load_approval_authority_audit_consistency_active",
+    "owner_decision_evidence_adapter_load_approval_authority_status_active",
+    "owner_decision_evidence_adapter_load_blocker_rollup_active",
+    "no_store_consistent",
+    "approval_decisions_open",
+    "approval_status_no_store_consistent",
+    "approval_decisions_open_consistent",
+    "adapter_load_blocked_consistent",
+]:
+    assert status["summary"][key] is True, response
+assert status["summary"]["persisted_approval_decision_count"] == 0, response
+assert status["summary"]["pending_approval_decision_review_count"] == 0, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.status" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus" in encoded, response
+assert "HW-APS-005" in encoded and "last-approval-decision-result-not-stored" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

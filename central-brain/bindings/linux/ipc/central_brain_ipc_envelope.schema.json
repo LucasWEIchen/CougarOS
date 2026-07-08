@@ -69,6 +69,7 @@
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.status",
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.audit.consistency",
         "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run",
+        "hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.status",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"
