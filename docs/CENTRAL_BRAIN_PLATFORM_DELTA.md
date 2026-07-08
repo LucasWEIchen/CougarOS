@@ -141,6 +141,19 @@ adapter version、requested_by 和 evidence refs 的 envelope，并强制返回
 不替换 adapter，不激活 adapter，不关闭 gate，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，
 不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load dry-run status 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status`、Android Binder
+`getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson`、Linux CLI
+`hardware-interface-owner-decision-evidence-adapter-load-dry-run-status`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.status` 与 Linux gRPC/RPC
+`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus` 调用。该 status 只报告 no-store counters 和
+last-result shape，固定 `last_result_available=false`、`persisted_dry_run_count=0`、
+`pending_review_count=0`、`review_queue_updated=false`、`evidence_persisted=false`、
+`adapter_load_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和
+`virtualization_development_triggered=false`。它不保存请求或结果，不创建 evidence store，不创建 review queue，
+不选择 adapter，不加载 adapter，不激活 adapter，不关闭 gate，不打开 device node，不调用 HAL/vendor SDK，
+不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 Event subscription cursor/replay storage 按 FW-U-003、NV-P-006、XSC-002、XSC-006 在
 `GET /uib/events/subscriptions/cursor-replay-storage`、Android Binder
 `getEventSubscriptionCursorReplayStorageJson`、Linux CLI

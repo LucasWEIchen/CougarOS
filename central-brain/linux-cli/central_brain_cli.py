@@ -170,6 +170,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
             "safety_state": "normal",
         },
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-dry-run-status": (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status",
+        None,
+    ),
     "vehicle-signals": ("GET", "/vehicle/signals", None),
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),

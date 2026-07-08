@@ -81,6 +81,7 @@ Brain semantic gateway.
 | `hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist` | `GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence.adapter.load.blocker.rollup` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `hardware.interfaces.owner.decision.evidence.adapter.load.dry.run` | `POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
+| `hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.status` | `GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status` | XSC-004, XSC-006, HW-002, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
 | `vehicle.signals.list` | `GET /vehicle/signals` | XSC-002, XSC-004, XSC-006, NV-F-004, NV-F-005, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.activation.get` | `GET /vehicle/signals/activation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, DEL-002, DEL-005 |
 | `vehicle.signals.validation.get` | `GET /vehicle/signals/validation` | XSC-002, XSC-004, XSC-006, NV-F-003, NV-F-004, NV-F-005, NV-P-001, NV-P-002, NV-P-003, KH-003, KH-006, KH-007, DEL-002, DEL-005 |
@@ -177,6 +178,11 @@ exposes the same adapter-load approval dry-run as Android Binder and Linux IPC
 without selecting adapters, loading adapters, replacing adapters, activating
 adapters, accessing hardware, closing gates, persisting evidence, updating
 review queues, or creating Driver/HAL or virtualization work.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus`
+exposes the same adapter-load dry-run no-store status as Android Binder and
+Linux IPC without storing requests or last results, creating review queues,
+loading adapters, accessing hardware, or creating Driver/HAL or virtualization
+work.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

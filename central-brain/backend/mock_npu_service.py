@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.55"
+API_VERSION = "0.1.56"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -2539,6 +2539,10 @@ def hardware_interface_owner_decision_evidence_adapter_load_dry_run_payload(requ
     return payload
 
 
+def hardware_interface_owner_decision_evidence_adapter_load_dry_run_status_payload() -> dict[str, Any]:
+    return HARDWARE_INTERFACES.owner_decision_evidence_adapter_load_dry_run_status_payload()
+
+
 def vehicle_signals_payload() -> dict[str, Any]:
     return VEHICLE_SIGNALS.catalog_payload()
 
@@ -2868,6 +2872,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(hardware_interface_owner_decision_evidence_selected_adapter_readiness_checklist_payload()))
         elif path == "/hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup":
             self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_blocker_rollup_payload()))
+        elif path == "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status":
+            self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_dry_run_status_payload()))
         elif path == "/vehicle/signals":
             self.send_json(200, envelope(vehicle_signals_payload()))
         elif path == "/vehicle/signals/activation":

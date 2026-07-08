@@ -55,5 +55,8 @@ require_text "$DRIVER_DOC" "/hardware/interfaces"
 require_text "$REQUIREMENTS_DOC" "CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
 require_text "$REQUIREMENTS_DOC" "/hardware/interfaces"
 require_text "$DOC" "/hardware/interfaces"
+require_text "$DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status"
+require_text "$DRIVER_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status"
+require_text "$REQUIREMENTS_DOC" "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status"
 
 echo "Central Brain NPU runtime interface check passed"

@@ -201,6 +201,7 @@ checks = [
         },
         "HW-002",
     ),
+    ("GET", "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status", None, "HW-002"),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -819,6 +820,57 @@ for method, path, body, req_id in checks:
         assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad" in encoded, "gRPC hardware adapter load dry-run binding missing"
         assert "HW-ALD-007" in encoded and "open-blockers-enforced" in encoded, "hardware adapter load dry-run missing blocker gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load dry-run missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+        assert status["adapter_load_dry_run_status_state"] == "contract-only-no-store-status", "hardware adapter load dry-run status left no-store state"
+        assert status["last_result_available"] is False, "hardware adapter load dry-run status unexpectedly has a last result"
+        assert status["persisted_dry_run_count"] == 0, "hardware adapter load dry-run status persisted dry-run records"
+        assert status["pending_review_count"] == 0, "hardware adapter load dry-run status created review work"
+        assert status["review_queue_updated"] is False, "hardware adapter load dry-run status updated review queue"
+        assert status["evidence_persisted"] is False, "hardware adapter load dry-run status persisted evidence"
+        assert status["blocker_rollup_reference"]["adapter_load_ready"] is False, "hardware adapter load dry-run status lost blocker rollup readiness"
+        assert status["blocker_rollup_reference"]["all_blockers_cleared"] is False, "hardware adapter load dry-run status lost blocker rollup blocked status"
+        assert {"HW-ALS-001", "HW-ALS-002", "HW-ALS-003", "HW-ALS-004", "HW-ALS-005", "HW-ALS-006", "HW-ALS-007", "HW-ALS-008"} <= gate_ids, "hardware adapter load dry-run status missing mandatory gates"
+        for key in [
+            "request_payload_stored",
+            "last_result_stored",
+            "evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "owner_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "adapter_selected",
+            "adapter_loaded",
+            "adapter_activated",
+            "hardware_accessed",
+        ]:
+            assert status["no_store_invariants"][key] is False, f"hardware adapter load dry-run status invariant unexpectedly set {key}"
+        for key in [
+            "owner_decision_complete",
+            "all_blockers_cleared",
+            "adapter_load_ready",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "gate_closure_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"hardware adapter load dry-run status summary unexpectedly set {key}"
+        assert status["summary"]["owner_decision_evidence_adapter_load_dry_run_status_active"] is True, "hardware adapter load dry-run status summary not active"
+        assert status["summary"]["last_result_available"] is False, "hardware adapter load dry-run status summary unexpectedly has last result"
+        assert status["summary"]["persisted_dry_run_count"] == 0, "hardware adapter load dry-run status summary persisted dry-run records"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson" in encoded, "Android hardware adapter load dry-run status binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-dry-run-status" in encoded, "Linux CLI hardware adapter load dry-run status binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.status" in encoded, "Linux IPC hardware adapter load dry-run status binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus" in encoded, "gRPC hardware adapter load dry-run status binding missing"
+        assert "HW-ALS-004" in encoded and "last-result-not-stored" in encoded, "hardware adapter load dry-run status missing last-result gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware adapter load dry-run status missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -1533,6 +1585,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

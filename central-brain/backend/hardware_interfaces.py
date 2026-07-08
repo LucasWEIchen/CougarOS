@@ -728,6 +728,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_GATES = [
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_STATUS_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_STATUS_GATES = [
+    {
+        "gate_id": "HW-ALS-001",
+        "name": "dry-run-status-endpoint-bound",
+        "required_evidence": "A read-only status endpoint exists for adapter-load dry-run side-effect inspection.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALS-002",
+        "name": "no-persisted-dry-run-records",
+        "required_evidence": "Prototype reports zero persisted dry-run requests and no durable last-result storage.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALS-003",
+        "name": "no-review-queue-or-evidence-store",
+        "required_evidence": "Status view reports no evidence store, review workflow, or review queue side effects.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALS-004",
+        "name": "last-result-not-stored",
+        "required_evidence": "Status view returns the last-result shape only and confirms no persisted last result is available.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALS-005",
+        "name": "adapter-load-blocker-rollup-still-open",
+        "required_evidence": "Status view remains bound to the adapter-load blocker rollup and reports blockers still open.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALS-006",
+        "name": "android-linux-status-contract-parity-proven",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent dry-run status behavior.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALS-007",
+        "name": "no-hardware-access-in-status-view",
+        "required_evidence": "Status view does not open devices, call HAL/vendor SDK, allocate shared memory, or access Safety Runtime.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-ALS-008",
+        "name": "no-driver-or-virtualization-trigger",
+        "required_evidence": "Status view does not trigger Driver/HAL, Safety Runtime, vehicle bus, service dispatch, or virtualization work.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -1879,6 +1932,119 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_dry_run_status_payload(self) -> dict[str, Any]:
+        blocker_rollup = self.owner_decision_evidence_adapter_load_blocker_rollup_payload()
+        open_blocker_ids = [
+            item["blocker_id"]
+            for item in blocker_rollup["blocker_groups"]
+            if item["state"] in ("open", "enforced")
+        ]
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-dry-run-status",
+            "adapter_load_dry_run_status_state": "contract-only-no-store-status",
+            "last_result_available": False,
+            "last_result_state": "not-persisted-no-last-result",
+            "persisted_dry_run_count": 0,
+            "pending_review_count": 0,
+            "review_queue_updated": False,
+            "evidence_persisted": False,
+            "adapter_load_allowed": False,
+            "adapter_activation_allowed": False,
+            "hardware_access_allowed": False,
+            "gate_closure_allowed": False,
+            "status_contract": {
+                "source_request_endpoint": "POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run",
+                "source_blocker_endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup",
+                "prototype_persistence": "not implemented; dry-run requests are validated and discarded after response",
+                "last_result_storage": "not implemented; status returns only no-store counters and the expected last-result shape",
+            },
+            "last_result_shape": {
+                "fields": [
+                    "dry_run_request_id",
+                    "adapter_load_dry_run_state",
+                    "dry_run_validated",
+                    "selected_interface_id",
+                    "selected_adapter_id",
+                    "adapter_version",
+                    "blocker_rollup_reference",
+                    "dry_run_result",
+                    "summary",
+                ],
+                "expected_terminal_states": [
+                    "rejected_blocked_contract_only",
+                    "rejected_missing_request_shape",
+                    "rejected_by_policy",
+                ],
+                "persisted_last_result_available": False,
+            },
+            "blocker_rollup_reference": {
+                "adapter_load_blocker_rollup_state": blocker_rollup["adapter_load_blocker_rollup_state"],
+                "adapter_load_ready": blocker_rollup["adapter_load_ready"],
+                "all_blockers_cleared": blocker_rollup["all_blockers_cleared"],
+                "open_blocker_ids": open_blocker_ids,
+                "mandatory_gate_ids": [item["gate_id"] for item in blocker_rollup["mandatory_gates"]],
+            },
+            "no_store_invariants": {
+                "request_payload_stored": False,
+                "last_result_stored": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "adapter_selected": False,
+                "adapter_loaded": False,
+                "adapter_activated": False,
+                "hardware_accessed": False,
+            },
+            "mandatory_gates": copy.deepcopy(HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_STATUS_GATES),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-dry-run-status",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.status",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_dry_run_status_active": True,
+                "owner_decision_evidence_adapter_load_dry_run_active": True,
+                "owner_decision_evidence_adapter_load_blocker_rollup_active": True,
+                "last_result_available": False,
+                "persisted_dry_run_count": 0,
+                "pending_review_count": 0,
+                "owner_decision_complete": False,
+                "all_blockers_cleared": False,
+                "adapter_load_ready": False,
+                "adapter_candidate_recorded": False,
+                "adapter_owner_assigned": False,
+                "adapter_interface_contract_approved": False,
+                "driver_hal_gap_evidence_attached": False,
+                "android_linux_binding_parity_approved": False,
+                "safety_policy_fault_model_reviewed": False,
+                "smoke_harness_plan_attached": False,
+                "rollback_to_empty_interface_reviewed": False,
+                "load_policy_confirmed": False,
+                "replacement_policy_confirmed": False,
+                "evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "owner_assigned": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "activation_allowed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "gate_closure_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_STATUS_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

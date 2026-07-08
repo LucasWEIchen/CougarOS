@@ -271,6 +271,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "safety_state": "normal",
         },
     ),
+    "hardware-interface-owner-decision-evidence-adapter-load-dry-run-status": (
+        "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus",
+        {},
+    ),
     "vehicle-signals": ("GetVehicleSignals", {}),
     "vehicle-signal-activation": ("GetVehicleSignalActivation", {}),
     "vehicle-signal-validation": ("GetVehicleSignalValidation", {}),

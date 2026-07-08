@@ -62,6 +62,7 @@
         "hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist",
         "hardware.interfaces.owner.decision.evidence.adapter.load.blocker.rollup",
         "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run",
+        "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.status",
         "vehicle.signals.list",
         "vehicle.signals.activation.get",
         "vehicle.signals.validation.get"

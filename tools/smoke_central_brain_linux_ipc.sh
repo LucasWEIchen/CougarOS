@@ -1273,6 +1273,64 @@ assert "DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad" in encoded, res
 assert "HW-ALD-007" in encoded and "open-blockers-enforced" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_STATUS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-adapter-load-dry-run-status)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_DRY_RUN_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["adapter_load_dry_run_status_state"] == "contract-only-no-store-status", response
+assert payload["last_result_available"] is False, response
+assert payload["persisted_dry_run_count"] == 0, response
+assert payload["pending_review_count"] == 0, response
+assert payload["review_queue_updated"] is False, response
+assert payload["evidence_persisted"] is False, response
+assert payload["blocker_rollup_reference"]["adapter_load_ready"] is False, response
+assert payload["blocker_rollup_reference"]["all_blockers_cleared"] is False, response
+assert {"HW-ALS-001", "HW-ALS-002", "HW-ALS-003", "HW-ALS-004", "HW-ALS-005", "HW-ALS-006", "HW-ALS-007", "HW-ALS-008"} <= gate_ids, response
+for key in [
+    "request_payload_stored",
+    "last_result_stored",
+    "evidence_store_active",
+    "review_workflow_active",
+    "review_queue_updated",
+    "owner_assigned",
+    "gate_state_changed",
+    "gates_closed",
+    "adapter_selected",
+    "adapter_loaded",
+    "adapter_activated",
+    "hardware_accessed",
+]:
+    assert payload["no_store_invariants"][key] is False, response
+for key in [
+    "owner_decision_complete",
+    "all_blockers_cleared",
+    "adapter_load_ready",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "gate_closure_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["owner_decision_evidence_adapter_load_dry_run_status_active"] is True, response
+assert payload["summary"]["last_result_available"] is False, response
+assert payload["summary"]["persisted_dry_run_count"] == 0, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-dry-run-status" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.status" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus" in encoded, response
+assert "HW-ALS-004" in encoded and "last-result-not-stored" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json
