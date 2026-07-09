@@ -236,6 +236,12 @@
 
 该增量只补需求基线中的 approval authority audit consistency 接口形状，不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
 
+## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision blocker rollup
+
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval decision 阻塞汇总增量，用于在 approval authority audit consistency 之后把仍阻止真实 approval dry-run、approval result store、review queue、gate closure、broker activation、DRV-GAP-004/005 owner 和 Android/Linux parity 的原因固定为 `EV-ADB-001..008`。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionBlockerRollupJson`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-blocker-rollup`、`uib.events.subscriptions.activation.approval.decision.blocker.rollup` 和 `GetEventSubscriptionActivationApprovalDecisionBlockerRollup`。
+
+该增量只补需求基线中的 approval decision blocker rollup 接口形状，固定 `approval_decision_ready=false`、`approval_dry_run_allowed=false`、`approval_result_store_created=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
+
 ## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface activation checklist
 
 `GET /hardware/interfaces/activation-checklist` 是硬件依赖空接口从 contract-only 走向目标平台集成前的门禁清单，用于固定 `HW-ACT-001..008`：target interface owner、Driver/HAL gap review、Android ABI、Linux ABI、Safety/Policy binding、smoke test harness、rollback/fault semantics 和 no-hardware-access 证据。Android 主路径暴露 `getHardwareInterfaceActivationChecklistJson`，Linux 同步路径暴露 `hardware-interface-activation-checklist`、`hardware.interfaces.activation.checklist` 和 `GetHardwareInterfaceActivationChecklist`。

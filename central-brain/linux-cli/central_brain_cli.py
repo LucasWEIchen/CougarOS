@@ -105,6 +105,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency",
         None,
     ),
+    "event-subscription-activation-approval-decision-blocker-rollup": (
+        "GET",
+        "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+        None,
+    ),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),

@@ -34,6 +34,7 @@
         "uib.events.subscriptions.activation.approval.dry.run.status",
         "uib.events.subscriptions.activation.approval.authority.checklist",
         "uib.events.subscriptions.activation.approval.authority.audit.consistency",
+        "uib.events.subscriptions.activation.approval.decision.blocker.rollup",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

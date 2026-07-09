@@ -53,6 +53,7 @@ Brain semantic gateway.
 | `uib.events.subscriptions.activation.approval.dry.run.status` | `GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.approval.authority.checklist` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.approval.authority.audit.consistency` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
+| `uib.events.subscriptions.activation.approval.decision.blocker.rollup` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.extensions.get` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
@@ -117,11 +118,12 @@ dispatching services.
 `GetEventSubscriptionActivationEvidenceRetentionChecklist`, and
 `GetEventSubscriptionActivationEvidenceDecisionStatusRollup`, and
 `GetEventSubscriptionActivationApprovalDryRunStatus`,
-`GetEventSubscriptionActivationApprovalAuthorityChecklist`, and
-`GetEventSubscriptionActivationApprovalAuthorityAuditConsistency` expose the same FW-U-003/NV-P-006
+`GetEventSubscriptionActivationApprovalAuthorityChecklist`,
+`GetEventSubscriptionActivationApprovalAuthorityAuditConsistency`, and
+`GetEventSubscriptionActivationApprovalDecisionBlockerRollup` expose the same FW-U-003/NV-P-006
 Event subscription lifecycle, transport readiness, owner decision matrix,
 activation evidence intake/review/retention checklist/decision status rollup,
-approval dry-run status, approval authority checklist, approval authority audit consistency, activation evidence checklist, callback/watch API shape, cursor/replay storage,
+approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, activation evidence checklist, callback/watch API shape, cursor/replay storage,
 backpressure/QoS evidence, readiness rollup, and activation evidence review status contracts as Android Binder and Linux IPC without
 assigning production owners, selecting a transport, persisting subscriptions,
 calling approval dry-run POST, saving dry-run results, activating event QoS, closing readiness gates, starting a broker, callback/watch path, SSE/WebSocket, DDS runtime, high-rate
@@ -218,6 +220,11 @@ exposes the same approval authority audit consistency view as Android Binder
 and Linux IPC without calling dry-run POST paths, persisting approval records,
 creating evidence stores, updating review queues, closing gates, loading
 adapters, accessing hardware, or creating Driver/HAL or virtualization work.
+`CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionBlockerRollup`
+exposes the same Event subscription approval decision blocker rollup as Android
+Binder and Linux IPC without calling approval dry-run POST paths, persisting
+approval results, creating review queues, closing gates, starting broker/DDS
+runtime, accessing hardware, or creating Driver/HAL or virtualization work.
 `CentralBrainGateway.DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision`
 exposes the same approval decision dry-run request as Android Binder and Linux
 IPC. It validates the selected interface, adapter identity, approval decision,

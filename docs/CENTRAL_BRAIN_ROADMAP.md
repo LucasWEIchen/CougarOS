@@ -53,6 +53,12 @@
 
 ### 2026-07-09
 
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval decision blocker rollup contract：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup`，用于在 approval authority audit consistency 之后只读汇总仍阻止真实 approval dry-run command、review queue、gate closure 和 broker activation 的 `EV-ADB-001..008` 决策阻塞项。
+  - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionBlockerRollupJson`，Android Console 新增 `Sub ApBlock` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-blocker-rollup`、`uib.events.subscriptions.activation.approval.decision.blocker.rollup`、`GetEventSubscriptionActivationApprovalDecisionBlockerRollup` 可见路径。
+  - 本轮只完成 activation approval decision blocker rollup 只读视图，不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
+
 - 推进 FW-U-003/NV-P-006 Event subscription activation approval authority audit consistency contract：
   - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency`，用于只读核对 approval authority checklist、approval dry-run status、activation evidence decision status rollup、authority item/blocker counters、Android/Linux parity 和 no-store/no-side-effect 约束，并固定 `EV-AAC-001..008` 门禁。
   - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson`，Android Console 新增 `Sub ApAudit` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-authority-audit-consistency`、`uib.events.subscriptions.activation.approval.authority.audit.consistency`、`GetEventSubscriptionActivationApprovalAuthorityAuditConsistency` 可见路径。

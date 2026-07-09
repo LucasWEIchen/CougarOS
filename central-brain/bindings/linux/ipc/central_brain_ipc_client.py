@@ -94,6 +94,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "uib.events.subscriptions.activation.approval.authority.audit.consistency",
         {},
     ),
+    "event-subscription-activation-approval-decision-blocker-rollup": (
+        "uib.events.subscriptions.activation.approval.decision.blocker.rollup",
+        {},
+    ),
     "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),
