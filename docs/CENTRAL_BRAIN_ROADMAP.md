@@ -651,3 +651,9 @@
   - 静态绑定检查新增对 Console `Plan Agent Task` 与 `planAgentTaskJson` 的断言，防止 App 主路径回退到直按 SOA 推理。
   - 本轮未开发 AI SDK 真库、Agent execute、Skill sandbox、Memory store、真实 Model Runtime Adapter、Driver/HAL、Safety Runtime 或虚拟化层。
   - 覆盖 Req ID：XSC-001、APP-004、XSC-002、XSC-003、XSC-006、NV-P-002、NV-P-005、DEL-001。
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval decision owner handoff evidence acceptance decision rollup：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup`，汇总 `EV-AHI-001..010` still-blocked acceptance decision gates。
+  - Android 主路径新增 Binder `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson` 与 Console `Sub ApHDec`。
+  - Linux 同步路径新增 CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup`、IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup` 和 gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollup`。
+  - 本轮只做 contract-only read-only rollup，不接受 packet，不创建 evidence/acceptance/review store，不关闭 gate，不激活 broker/DDS/high-rate data plane，不开发 Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。

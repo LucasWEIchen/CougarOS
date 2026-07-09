@@ -177,6 +177,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -4136,6 +4137,75 @@ for method, path, body, req_id in checks:
         assert "EV-AHH-001" in encoded and "EV-AHH-010" in encoded and "EV-AHG-010" in encoded and "EV-AHF-010" in encoded and "EV-AHE-010" in encoded and "EV-AHD-010" in encoded, "activation approval decision owner handoff evidence acceptance audit missing gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance audit missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance audit missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup":
+        rollup = payload["payload"]
+        encoded = json.dumps(rollup)
+        gate_ids = {item["gate_id"] for item in rollup["mandatory_gates"]}
+        assert rollup["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup", "activation approval decision owner handoff evidence acceptance decision rollup operation mismatch"
+        assert rollup["approval_decision_owner_handoff_evidence_acceptance_decision_rollup_state"] == "contract-only-handoff-evidence-acceptance-decision-blocked", "activation approval decision owner handoff evidence acceptance decision rollup wrong state"
+        assert rollup["approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active"] is True, "activation approval decision owner handoff evidence acceptance decision rollup inactive"
+        assert rollup["decision_rollup_complete"] is True, "activation approval decision owner handoff evidence acceptance decision rollup incomplete"
+        assert rollup["decision_rollup_consistent"] is True, "activation approval decision owner handoff evidence acceptance decision rollup inconsistent"
+        assert rollup["source_surfaces_bound"] is True, "activation approval decision owner handoff evidence acceptance decision rollup source surfaces unbound"
+        assert {"EV-AHI-001", "EV-AHI-002", "EV-AHI-003", "EV-AHI-004", "EV-AHI-005", "EV-AHI-006", "EV-AHI-007", "EV-AHI-008", "EV-AHI-009", "EV-AHI-010"} <= gate_ids, "activation approval decision owner handoff evidence acceptance decision rollup missing EV-AHI gates"
+        assert len(rollup["decision_rows"]) == 10, "activation approval decision owner handoff evidence acceptance decision row count changed"
+        for item in rollup["decision_rows"]:
+            assert item["decision_confirmed"] is False, f"activation approval decision owner handoff evidence acceptance decision unexpectedly confirmed {item['gate_id']}"
+            assert item["blocks_handoff_acceptance"] is True, f"activation approval decision owner handoff evidence acceptance decision lost handoff block {item['gate_id']}"
+            assert item["blocks_gate_closure"] is True, f"activation approval decision owner handoff evidence acceptance decision lost gate block {item['gate_id']}"
+            assert item["blocks_broker_activation"] is True, f"activation approval decision owner handoff evidence acceptance decision lost broker block {item['gate_id']}"
+            assert item["source_acceptance_gate_id"].startswith("EV-AHG-"), f"activation approval decision owner handoff evidence acceptance decision source acceptance missing {item['gate_id']}"
+            assert item["source_audit_gate_id"].startswith("EV-AHH-"), f"activation approval decision owner handoff evidence acceptance decision source audit missing {item['gate_id']}"
+        for key in [
+            "activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active",
+            "activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency_active",
+            "activation_approval_decision_owner_handoff_evidence_acceptance_status_active",
+            "decision_rollup_complete",
+            "decision_rollup_consistent",
+            "source_surfaces_bound",
+            "source_acceptance_audit_bound",
+            "source_acceptance_status_bound",
+            "source_handoff_evidence_readiness_matrix_bound",
+            "no_store_consistent",
+            "no_post_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert rollup["summary"][key] is True, f"activation approval decision owner handoff evidence acceptance decision rollup summary did not set {key}"
+        for key in [
+            "acceptance_decision_ready",
+            "handoff_evidence_acceptance_allowed",
+            "handoff_evidence_ready",
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "approval_review_allowed",
+            "gate_closure_allowed",
+            "owner_assignments_persisted",
+            "owner_handoff_queue_updated",
+            "evidence_packets_attached",
+            "evidence_store_created",
+            "review_queue_updated",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert rollup["summary"][key] is False, f"activation approval decision owner handoff evidence acceptance decision rollup summary unexpectedly set {key}"
+        assert rollup["summary"]["required_decision_count"] == 10, "activation approval decision owner handoff evidence acceptance decision required decision count changed"
+        assert rollup["summary"]["blocked_decision_count"] == 10, "activation approval decision owner handoff evidence acceptance decision blocked decision count changed"
+        assert rollup["summary"]["accepted_evidence_packet_count"] == 0, "activation approval decision owner handoff evidence acceptance decision accepted packet count changed"
+        assert rollup["summary"]["acceptance_record_persisted_count"] == 0, "activation approval decision owner handoff evidence acceptance decision persisted record count changed"
+        assert rollup["summary"]["missing_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence acceptance decision missing packet count changed"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson" in encoded, "Android activation approval decision owner handoff evidence acceptance decision binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup" in encoded, "Linux CLI activation approval decision owner handoff evidence acceptance decision binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup" in encoded, "Linux IPC activation approval decision owner handoff evidence acceptance decision binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollup" in encoded, "gRPC activation approval decision owner handoff evidence acceptance decision binding missing"
+        assert "EV-AHI-001" in encoded and "EV-AHI-010" in encoded and "EV-AHH-010" in encoded and "EV-AHG-010" in encoded and "EV-AHE-010" in encoded, "activation approval decision owner handoff evidence acceptance decision missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance decision missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance decision missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
