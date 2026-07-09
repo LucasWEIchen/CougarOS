@@ -175,6 +175,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3956,6 +3957,102 @@ for method, path, body, req_id in checks:
         assert "EV-AHF-001" in encoded and "EV-AHF-010" in encoded and "EV-AHE-010" in encoded and "EV-AHD-010" in encoded and "EV-ACH-010" in encoded and "EV-ACB-010" in encoded, "activation approval decision owner handoff evidence readiness audit missing gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence readiness audit missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence readiness audit missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status":
+        acceptance = payload["payload"]
+        encoded = json.dumps(acceptance)
+        gate_ids = {item["gate_id"] for item in acceptance["mandatory_gates"]}
+        assert acceptance["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status", "activation approval decision owner handoff evidence acceptance operation mismatch"
+        assert acceptance["approval_decision_owner_handoff_evidence_acceptance_status_state"] == "contract-only-handoff-evidence-acceptance-blocked", "activation approval decision owner handoff evidence acceptance wrong state"
+        assert acceptance["approval_decision_owner_handoff_evidence_acceptance_status_active"] is True, "activation approval decision owner handoff evidence acceptance inactive"
+        assert {"EV-AHG-001", "EV-AHG-002", "EV-AHG-003", "EV-AHG-004", "EV-AHG-005", "EV-AHG-006", "EV-AHG-007", "EV-AHG-008", "EV-AHG-009", "EV-AHG-010"} <= gate_ids, "activation approval decision owner handoff evidence acceptance missing EV-AHG gates"
+        audit_source = acceptance["source_surfaces"]["handoff_evidence_readiness_audit_consistency"]
+        matrix_source = acceptance["source_surfaces"]["handoff_evidence_readiness_matrix"]
+        assert audit_source["active"] is True and audit_source["consistent"] is True, "activation approval decision owner handoff evidence acceptance audit source not bound"
+        assert matrix_source["active"] is True and matrix_source["complete"] is True and matrix_source["missing_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence acceptance matrix source not bound"
+        assert len(acceptance["acceptance_items"]) == 10, "activation approval decision owner handoff evidence acceptance item count changed"
+        for item in acceptance["acceptance_items"]:
+            assert item["acceptance_state"] == "blocked-missing-evidence-packet", f"activation approval decision owner handoff evidence acceptance item not blocked {item['gate_id']}"
+            assert item["acceptance_allowed"] is False, f"activation approval decision owner handoff evidence acceptance allowed item {item['gate_id']}"
+            assert item["accepted"] is False, f"activation approval decision owner handoff evidence acceptance accepted item {item['gate_id']}"
+            assert item["acceptance_record_persisted"] is False, f"activation approval decision owner handoff evidence acceptance persisted item {item['gate_id']}"
+            assert item["evidence_attached"] is False, f"activation approval decision owner handoff evidence acceptance attached evidence {item['gate_id']}"
+            assert item["evidence_persisted"] is False, f"activation approval decision owner handoff evidence acceptance persisted evidence {item['gate_id']}"
+            assert item["review_queue_updated"] is False, f"activation approval decision owner handoff evidence acceptance queued review {item['gate_id']}"
+            assert item["source_audit_gate_id"].startswith("EV-AHF-"), f"activation approval decision owner handoff evidence acceptance source audit missing {item['gate_id']}"
+            assert item["source_evidence_id"].startswith("EV-AHE-"), f"activation approval decision owner handoff evidence acceptance source evidence missing {item['gate_id']}"
+            assert item["source_decision_gate_id"].startswith("EV-AHD-"), f"activation approval decision owner handoff evidence acceptance source decision missing {item['gate_id']}"
+            assert item["source_handoff_id"].startswith("EV-ACH-"), f"activation approval decision owner handoff evidence acceptance source handoff missing {item['gate_id']}"
+            assert item["source_blocker_id"].startswith("EV-ACB-"), f"activation approval decision owner handoff evidence acceptance source blocker missing {item['gate_id']}"
+        for key in [
+            "activation_approval_decision_owner_handoff_evidence_acceptance_status_active",
+            "acceptance_status_complete",
+            "acceptance_status_consistent",
+            "source_handoff_evidence_readiness_audit_bound",
+            "source_handoff_evidence_readiness_matrix_bound",
+            "source_handoff_evidence_readiness_audit_consistent",
+            "no_store_consistent",
+            "no_post_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert acceptance["summary"][key] is True, f"activation approval decision owner handoff evidence acceptance summary did not set {key}"
+        for key in [
+            "handoff_evidence_acceptance_allowed",
+            "handoff_evidence_ready",
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "owner_assignments_persisted",
+            "owner_handoff_queue_updated",
+            "evidence_packets_attached",
+            "evidence_store_created",
+            "evidence_store_active",
+            "decision_dry_run_post_called_by_handoff_evidence_acceptance_status",
+            "approval_result_store_created",
+            "approval_result_store_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert acceptance["summary"][key] is False, f"activation approval decision owner handoff evidence acceptance summary unexpectedly set {key}"
+        assert acceptance["summary"]["handoff_evidence_acceptance_status_state"] == "contract-only-handoff-evidence-acceptance-blocked", "activation approval decision owner handoff evidence acceptance summary wrong state"
+        assert acceptance["summary"]["decision"] == "blocked-by-missing-handoff-evidence-packets", "activation approval decision owner handoff evidence acceptance decision changed"
+        assert acceptance["summary"]["required_acceptance_count"] == 10, "activation approval decision owner handoff evidence acceptance required count changed"
+        assert acceptance["summary"]["blocked_acceptance_count"] == 10, "activation approval decision owner handoff evidence acceptance blocked count changed"
+        assert acceptance["summary"]["accepted_evidence_packet_count"] == 0, "activation approval decision owner handoff evidence acceptance accepted packet count changed"
+        assert acceptance["summary"]["acceptance_record_persisted_count"] == 0, "activation approval decision owner handoff evidence acceptance persisted record count changed"
+        assert acceptance["summary"]["required_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence acceptance required packet count changed"
+        assert acceptance["summary"]["missing_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence acceptance missing packet count changed"
+        assert acceptance["summary"]["attached_evidence_count"] == 0, "activation approval decision owner handoff evidence acceptance attached evidence changed"
+        assert acceptance["summary"]["persisted_evidence_packet_count"] == 0, "activation approval decision owner handoff evidence acceptance persisted evidence changed"
+        assert acceptance["summary"]["evidence_uri_count"] == 0, "activation approval decision owner handoff evidence acceptance evidence URI count changed"
+        assert acceptance["summary"]["evidence_hash_count"] == 0, "activation approval decision owner handoff evidence acceptance evidence hash count changed"
+        assert acceptance["summary"]["owner_signature_count"] == 0, "activation approval decision owner handoff evidence acceptance owner signature count changed"
+        assert acceptance["summary"]["persisted_dry_run_request_count"] == 0, "activation approval decision owner handoff evidence acceptance persisted requests"
+        assert acceptance["summary"]["persisted_dry_run_result_count"] == 0, "activation approval decision owner handoff evidence acceptance persisted results"
+        assert acceptance["summary"]["persisted_approval_decision_count"] == 0, "activation approval decision owner handoff evidence acceptance persisted decisions"
+        assert acceptance["summary"]["pending_approval_decision_review_count"] == 0, "activation approval decision owner handoff evidence acceptance queued reviews"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusJson" in encoded, "Android activation approval decision owner handoff evidence acceptance binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status" in encoded, "Linux CLI activation approval decision owner handoff evidence acceptance binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.status" in encoded, "Linux IPC activation approval decision owner handoff evidence acceptance binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatus" in encoded, "gRPC activation approval decision owner handoff evidence acceptance binding missing"
+        assert "EV-AHG-001" in encoded and "EV-AHG-010" in encoded and "EV-AHF-010" in encoded and "EV-AHE-010" in encoded and "EV-AHD-010" in encoded and "EV-ACH-010" in encoded and "EV-ACB-010" in encoded, "activation approval decision owner handoff evidence acceptance missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -4079,6 +4176,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-decision-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null
