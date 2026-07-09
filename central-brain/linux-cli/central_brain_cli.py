@@ -110,6 +110,37 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
         None,
     ),
+    "event-subscription-activation-approval-decision-dry-run": (
+        "POST",
+        "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+        {
+            "trace_id": "linux-cli-event-subscription-activation-approval-decision-dry-run",
+            "approval_request_id": "linux-cli-approval-decision-dry-run",
+            "source_decision_blocker_rollup_ref": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+            "target_gate_ids": ["EV-ADB-001", "EV-ADB-002", "EV-ADB-006", "DRV-GAP-004"],
+            "approval_decision": "approve_activation",
+            "approval_authority": {
+                "authority_id": "linux-cli-approver",
+                "role": "debug_console",
+                "signature_ref": "contract-only-signature",
+            },
+            "reviewer": {"app_id": "linux-cli", "role": "debug_console"},
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-cli-blocker-rollup",
+                    "type": "api",
+                    "uri_or_path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+                    "owner": "linux-cli",
+                    "summary": "contract-only blocker rollup reference",
+                }
+            ],
+            "rollback_plan_ref": "contract-only-rollback-plan",
+            "runtime_governance_policy_ref": "runtime-governance-policy:event-subscription-approval",
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),

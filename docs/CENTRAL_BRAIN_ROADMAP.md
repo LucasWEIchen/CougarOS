@@ -9,7 +9,7 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle + transport readiness + decision matrix + activation checklist + callback/watch shape + cursor/replay storage + backpressure/QoS evidence + readiness rollup + activation evidence intake/status/retention checklist/decision status rollup/approval dry-run status/approval authority checklist/audit consistency contract；Android/Linux 主路径初版 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle + transport readiness + decision matrix + activation checklist + callback/watch shape + cursor/replay storage + backpressure/QoS evidence + readiness rollup + activation evidence intake/status/retention checklist/decision status rollup/approval dry-run status/approval authority checklist/audit consistency/decision blocker rollup/decision dry-run request contract；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke + service contract visibility 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
@@ -53,10 +53,16 @@
 
 ### 2026-07-09
 
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval decision dry-run request contract：
+  - 新增 `POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run`，用于校验 activation approval decision dry-run 请求 envelope，绑定上一轮 `EV-ADB-001..008` blocker rollup，并固定返回 blocked/no-store 的 `EV-ADD-001..008` 门禁结果。
+  - Android Binder/AIDL 新增 `dryRunEventSubscriptionActivationApprovalDecisionJson`，Android Console 新增 `Sub ApDec` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-dry-run`、`uib.events.subscriptions.activation.approval.decision.dry.run`、`DryRunEventSubscriptionActivationApprovalDecision` 可见路径。
+  - 本轮只完成 activation approval decision dry-run request contract，不持久化请求或结果，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
+
 - 推进 FW-U-003/NV-P-006 Event subscription activation approval decision blocker rollup contract：
   - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup`，用于在 approval authority audit consistency 之后只读汇总仍阻止真实 approval dry-run command、review queue、gate closure 和 broker activation 的 `EV-ADB-001..008` 决策阻塞项。
   - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionBlockerRollupJson`，Android Console 新增 `Sub ApBlock` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-blocker-rollup`、`uib.events.subscriptions.activation.approval.decision.blocker.rollup`、`GetEventSubscriptionActivationApprovalDecisionBlockerRollup` 可见路径。
-  - 本轮只完成 activation approval decision blocker rollup 只读视图，不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 本轮只完成 activation approval decision blocker rollup 只读视图，不持久化 approval decision，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
   - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
 
 - 推进 FW-U-003/NV-P-006 Event subscription activation approval authority audit consistency contract：

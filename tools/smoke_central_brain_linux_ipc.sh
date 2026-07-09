@@ -941,6 +941,53 @@ assert "GetEventSubscriptionActivationApprovalDecisionBlockerRollup" in encoded,
 assert "EV-ADB-007" in encoded and "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-dry-run)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["approval_decision_dry_run_state"] == "rejected_blocked_contract_only", response
+assert payload["approval_decision_dry_run_active"] is True, response
+assert payload["approval_decision_dry_run_validated"] is True, response
+assert {"EV-ADD-001", "EV-ADD-002", "EV-ADD-003", "EV-ADD-004", "EV-ADD-005", "EV-ADD-006", "EV-ADD-007", "EV-ADD-008"} <= gate_ids, response
+assert payload["source_decision_blocker_rollup"]["open_blocker_count"] > 0, response
+assert payload["request_validation"]["request_shape_valid"] is True, response
+assert payload["request_validation"]["policy_allowed"] is True, response
+assert payload["request_validation"]["source_decision_blocker_rollup_bound"] is True, response
+assert payload["request_validation"]["rejected_by_open_blockers"] is True, response
+assert payload["summary"]["activation_approval_decision_dry_run_active"] is True, response
+assert payload["summary"]["rejected_blocked_contract_only"] is True, response
+assert payload["summary"]["approval_command_surface_ready"] is True, response
+for key in [
+    "approval_decision_ready",
+    "approval_dry_run_allowed",
+    "approval_result_store_created",
+    "dry_run_request_persisted",
+    "dry_run_result_persisted",
+    "approval_decision_persisted",
+    "review_queue_updated",
+    "gates_closed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "broker_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert "dryRunEventSubscriptionActivationApprovalDecisionJson" in encoded, response
+assert "event-subscription-activation-approval-decision-dry-run" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.dry.run" in encoded, response
+assert "DryRunEventSubscriptionActivationApprovalDecision" in encoded, response
+assert "EV-ADB-001" in encoded and "EV-ADD-004" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

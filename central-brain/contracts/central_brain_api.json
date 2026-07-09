@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.81",
+  "version": "0.1.82",
   "updated": "2026-07-09",
   "transport": {
     "prototype": "http-json",
@@ -1442,7 +1442,7 @@
     {
       "method": "GET",
       "path": "/uib/events/subscriptions/activation-evidence/approval-dry-run/status",
-      "description": "Returns the contract-only no-store activation approval dry-run status after the activation evidence decision rollup without invoking approval dry-run POST, persisting results, updating review queues, closing gates, or activating a broker.",
+      "description": "Returns the contract-only no-store activation approval dry-run status after the activation evidence decision rollup; a blocked decision dry-run request contract exists, but no result store, review queue update, gate closure, or broker activation is available.",
       "response": {
         "operation": "event-subscription-activation-approval-dry-run-status",
         "approval_dry_run_status_state": "contract-only-approval-dry-run-no-store-status",
@@ -1482,7 +1482,7 @@
           "gates_closed": false,
           "activation_allowed": false,
           "broker_activation_ready": false,
-          "reason": "prototype exposes approval dry-run status only; there is no approval dry-run POST, result store, review queue, or gate closure workflow"
+          "reason": "prototype exposes a blocked/no-store approval decision dry-run request contract but no result store, review queue, gate closure workflow, or broker activation path"
         },
         "approval_request_shape": {
           "candidate_fields": [
@@ -1501,7 +1501,7 @@
             "test_log",
             "driver_gap_review"
           ],
-          "prototype_accepts_request": false,
+          "prototype_accepts_request": true,
           "prototype_persists_request": false
         },
         "blocking_decisions": [
@@ -2194,7 +2194,7 @@
     {
       "method": "GET",
       "path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
-      "description": "Returns the contract-only activation approval decision blocker rollup after authority audit consistency, explaining why future approval dry-run command and broker activation remain blocked without persistence, review queue update, gate closure, Driver/HAL work, or virtualization work.",
+      "description": "Returns the activation approval decision blocker rollup after authority audit consistency and approval dry-run status checks; the new decision dry-run POST remains rejected/no-store until authority, policy, result-store, review-queue, gate, broker, and Driver/HAL blockers are closed.",
       "response": {
         "operation": "event-subscription-activation-approval-decision-blocker-rollup",
         "approval_decision_blocker_rollup_state": "contract-only-approval-decision-blocked",
@@ -2284,10 +2284,10 @@
           {
             "blocker_id": "EV-ADB-006",
             "area": "approval-dry-run-command-surface",
-            "source": "GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status",
-            "current_state": "no-approval-dry-run-post-contract",
+            "source": "POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+            "current_state": "decision-dry-run-request-contract-rejects-no-store",
             "blocks": [
-              "approval-command-execution",
+              "approval-decision-execution",
               "approval-result-persistence"
             ],
             "open": true
@@ -2348,7 +2348,7 @@
           {
             "gate_id": "EV-ADB-006",
             "name": "approval-command-surface-resolved",
-            "required_evidence": "A future approval dry-run command surface has an approved no-store/result schema and stays governed.",
+            "required_evidence": "Approval decision dry-run request contract rejects while authority, policy, result-store, review-queue, gate-closure, broker, and Driver/HAL blockers remain open.",
             "passed": false
           },
           {
@@ -2393,6 +2393,255 @@
           "review_queue_owner_assigned": false,
           "review_queue_updated": false,
           "gate_closure_authority_assigned": false,
+          "gates_closed": false,
+          "broker_activation_owner_assigned": false,
+          "broker_activation_ready": false,
+          "broker_activation_allowed": false,
+          "activation_allowed": false,
+          "production_activation_allowed": false,
+          "broker_active": false,
+          "subscription_persistence_active": false,
+          "cursor_storage_active": false,
+          "event_delivery_qos_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "req_ids": [
+          "XSC-002",
+          "FW-U-003",
+          "XSC-005",
+          "XSC-006",
+          "NV-P-002",
+          "NV-P-003",
+          "NV-P-006",
+          "DEL-001",
+          "DEL-002",
+          "DEL-004"
+        ]
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+      "description": "Validates the contract-only activation approval decision dry-run request shape, binds it to the approval decision blocker rollup, and rejects while preserving no-store, no-review-queue, no-gate-close, no-broker, no-Driver/HAL, and no-virtualization invariants.",
+      "request": {
+        "trace_id": "contract-event-subscription-activation-approval-decision-dry-run",
+        "approval_request_id": "contract-approval-decision-dry-run",
+        "source_decision_blocker_rollup_ref": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+        "target_gate_ids": [
+          "EV-ADB-001",
+          "EV-ADB-002",
+          "EV-ADB-006",
+          "DRV-GAP-004"
+        ],
+        "approval_decision": "approve_activation",
+        "approval_authority": {
+          "authority_id": "contract-approver",
+          "role": "contract-reviewer",
+          "signature_ref": "contract-only-signature"
+        },
+        "reviewer": {
+          "app_id": "contract-sample",
+          "role": "contract-reviewer"
+        },
+        "evidence_refs": [
+          {
+            "ref_id": "contract-blocker-rollup",
+            "type": "api",
+            "uri_or_path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+            "owner": "contract-sample",
+            "summary": "contract-only blocker rollup reference"
+          }
+        ],
+        "rollback_plan_ref": "contract-only-rollback-plan",
+        "runtime_governance_policy_ref": "runtime-governance-policy:event-subscription-approval",
+        "caller_permissions": [
+          "vehicle.read",
+          "service.read"
+        ],
+        "vehicle_state": "parked",
+        "safety_state": "normal"
+      },
+      "response": {
+        "operation": "event-subscription-activation-approval-decision-dry-run",
+        "approval_decision_dry_run_state": "rejected_blocked_contract_only",
+        "approval_decision_dry_run_active": true,
+        "approval_decision_dry_run_validated": true,
+        "source_decision_blocker_rollup": {
+          "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+          "active": true,
+          "decision_blocker_rollup_complete": true,
+          "required_blocker_count": 8,
+          "open_blocker_count": 7,
+          "open_blocker_ids": [
+            "EV-ADB-001",
+            "EV-ADB-002",
+            "EV-ADB-003",
+            "EV-ADB-004",
+            "EV-ADB-005",
+            "EV-ADB-006",
+            "EV-ADB-007"
+          ]
+        },
+        "request_contract": {
+          "required_fields": [
+            "approval_request_id",
+            "source_decision_blocker_rollup_ref",
+            "target_gate_ids",
+            "approval_decision",
+            "approval_authority",
+            "reviewer",
+            "evidence_refs",
+            "rollback_plan_ref",
+            "runtime_governance_policy_ref"
+          ],
+          "accepted_approval_decisions": [
+            "approve_activation",
+            "reject_activation",
+            "request_more_evidence"
+          ],
+          "required_ref_types": [
+            "platform_decision",
+            "owner_approval",
+            "test_log",
+            "driver_gap_review"
+          ],
+          "prototype_persists_request": false,
+          "prototype_persists_result": false,
+          "prototype_closes_gates": false,
+          "prototype_activates_broker": false
+        },
+        "request_validation": {
+          "request_shape_valid": true,
+          "missing_required_fields": [],
+          "invalid_fields": [],
+          "policy_allowed": true,
+          "source_decision_blocker_rollup_bound": true,
+          "rejected_by_open_blockers": true
+        },
+        "dry_run_result": {
+          "decision": "blocked",
+          "result_code": "rejected_blocked_contract_only",
+          "reason": "approval decision dry-run remains blocked until EV-ADB blockers are closed by target-platform owners",
+          "open_blocker_ids": [
+            "EV-ADB-001",
+            "EV-ADB-002",
+            "EV-ADB-003",
+            "EV-ADB-004",
+            "EV-ADB-005",
+            "EV-ADB-006",
+            "EV-ADB-007"
+          ],
+          "approval_decision_persisted": false,
+          "approval_result_store_created": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "broker_activation_allowed": false,
+          "activation_allowed": false
+        },
+        "mandatory_gates": [
+          {
+            "gate_id": "EV-ADD-001",
+            "name": "source-decision-blocker-rollup-bound",
+            "required_evidence": "Approval decision dry-run request reads the blocker rollup before evaluating any approval request.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADD-002",
+            "name": "approval-request-shape-valid",
+            "required_evidence": "Request includes approval id, source blocker rollup reference, target gates, decision, authority, reviewer, evidence refs, rollback plan, and governance policy refs.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADD-003",
+            "name": "runtime-governance-policy-allowed",
+            "required_evidence": "Runtime & Governance policy accepts the caller, vehicle state, and safety state for this dry-run request.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADD-004",
+            "name": "approval-decision-blockers-cleared",
+            "required_evidence": "EV-ADB blocker rollup reports zero open blockers before approval decision can pass.",
+            "passed": false
+          },
+          {
+            "gate_id": "EV-ADD-005",
+            "name": "no-store-request-result",
+            "required_evidence": "Dry-run request and result are not persisted and no last-result record is created.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADD-006",
+            "name": "no-review-gate-broker-side-effect",
+            "required_evidence": "Dry-run does not update review queues, close gates, activate broker/runtime paths, dispatch services, or start DDS/SSE/WebSocket/high-rate data planes.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADD-007",
+            "name": "android-linux-decision-dry-run-parity",
+            "required_evidence": "REST, Android Binder/Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent dry-run request fields.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADD-008",
+            "name": "no-driver-hal-virtualization-trigger",
+            "required_evidence": "Dry-run request never touches hardware, Driver/HAL, shared memory, Safety Runtime, or virtualization.",
+            "passed": true
+          }
+        ],
+        "api_surface": {
+          "rest": "POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+          "android_binder": "dryRunEventSubscriptionActivationApprovalDecisionJson",
+          "linux_cli": "event-subscription-activation-approval-decision-dry-run",
+          "linux_ipc": "uib.events.subscriptions.activation.approval.decision.dry.run",
+          "linux_grpc_rpc": "CentralBrainGateway.DryRunEventSubscriptionActivationApprovalDecision"
+        },
+        "summary": {
+          "activation_approval_decision_dry_run_active": true,
+          "source_decision_blocker_rollup_bound": true,
+          "decision_blocker_rollup_complete": true,
+          "required_blocker_count": 8,
+          "open_blocker_count": 7,
+          "request_shape_valid": true,
+          "policy_allowed": true,
+          "approval_decision_dry_run_validated": true,
+          "rejected_blocked_contract_only": true,
+          "approval_decision_ready": false,
+          "approval_dry_run_allowed": false,
+          "approval_command_surface_ready": true,
+          "approval_authority_ready": false,
+          "approval_authority_assigned": false,
+          "approval_policy_confirmed": false,
+          "approval_signature_rbac_confirmed": false,
+          "approval_result_store_active": false,
+          "approval_result_store_created": false,
+          "dry_run_request_persisted": false,
+          "dry_run_result_persisted": false,
+          "approval_decision_persisted": false,
+          "review_queue_owner_assigned": false,
+          "review_queue_updated": false,
+          "gate_closure_authority_assigned": false,
+          "gate_state_changed": false,
           "gates_closed": false,
           "broker_activation_owner_assigned": false,
           "broker_activation_ready": false,

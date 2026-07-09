@@ -135,6 +135,38 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup", None, "NV-P-006"),
+    (
+        "POST",
+        "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+        {
+            "trace_id": "smoke-event-subscription-activation-approval-decision-dry-run",
+            "approval_request_id": "smoke-approval-decision-dry-run",
+            "source_decision_blocker_rollup_ref": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+            "target_gate_ids": ["EV-ADB-001", "EV-ADB-002", "EV-ADB-006", "DRV-GAP-004"],
+            "approval_decision": "approve_activation",
+            "approval_authority": {
+                "authority_id": "semantic-gateway-smoke-approver",
+                "role": "test",
+                "signature_ref": "contract-only-signature",
+            },
+            "reviewer": {"app_id": "semantic-gateway-smoke", "role": "test"},
+            "evidence_refs": [
+                {
+                    "ref_id": "smoke-blocker-rollup",
+                    "type": "api",
+                    "uri_or_path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+                    "owner": "semantic-gateway-smoke",
+                    "summary": "contract-only blocker rollup reference",
+                }
+            ],
+            "rollback_plan_ref": "contract-only-rollback-plan",
+            "runtime_governance_policy_ref": "runtime-governance-policy:event-subscription-approval",
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+        "NV-P-006",
+    ),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3198,6 +3230,72 @@ for method, path, body, req_id in checks:
         assert "GetEventSubscriptionActivationApprovalAuthorityAuditConsistency" in encoded, "gRPC activation approval authority audit binding missing"
         assert "EV-AAC-006" in encoded and "no-store" in encoded, "activation approval authority audit missing no-store finding"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval authority audit missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run":
+        dry_run = payload["payload"]
+        encoded = json.dumps(dry_run)
+        gate_ids = {item["gate_id"] for item in dry_run["mandatory_gates"]}
+        assert dry_run["operation"] == "event-subscription-activation-approval-decision-dry-run", "activation approval decision dry-run operation mismatch"
+        assert dry_run["approval_decision_dry_run_state"] == "rejected_blocked_contract_only", "activation approval decision dry-run did not reject as blocked"
+        assert dry_run["approval_decision_dry_run_active"] is True, "activation approval decision dry-run is not active"
+        assert dry_run["approval_decision_dry_run_validated"] is True, "activation approval decision dry-run request shape was not validated"
+        assert dry_run["source_decision_blocker_rollup"]["active"] is True, "activation approval decision dry-run lost blocker rollup source"
+        assert dry_run["source_decision_blocker_rollup"]["open_blocker_count"] > 0, "activation approval decision dry-run unexpectedly has no open blockers"
+        assert {"EV-ADD-001", "EV-ADD-002", "EV-ADD-003", "EV-ADD-004", "EV-ADD-005", "EV-ADD-006", "EV-ADD-007", "EV-ADD-008"} <= gate_ids, "activation approval decision dry-run missing EV-ADD gates"
+        assert dry_run["request_validation"]["request_shape_valid"] is True, "activation approval decision dry-run request shape invalid"
+        assert dry_run["request_validation"]["policy_allowed"] is True, "activation approval decision dry-run policy unexpectedly denied"
+        assert dry_run["request_validation"]["source_decision_blocker_rollup_bound"] is True, "activation approval decision dry-run not bound to blocker rollup"
+        assert dry_run["request_validation"]["rejected_by_open_blockers"] is True, "activation approval decision dry-run not rejected by blockers"
+        assert dry_run["dry_run_result"]["result_code"] == "rejected_blocked_contract_only", "activation approval decision dry-run result mismatch"
+        for key in [
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "approval_authority_ready",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_signature_rbac_confirmed",
+            "approval_result_store_active",
+            "approval_result_store_created",
+            "dry_run_request_persisted",
+            "dry_run_result_persisted",
+            "approval_decision_persisted",
+            "review_queue_owner_assigned",
+            "review_queue_updated",
+            "gate_closure_authority_assigned",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_owner_assigned",
+            "broker_activation_ready",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert dry_run["summary"][key] is False, f"activation approval decision dry-run summary unexpectedly set {key}"
+        assert dry_run["summary"]["activation_approval_decision_dry_run_active"] is True, "activation approval decision dry-run summary not active"
+        assert dry_run["summary"]["source_decision_blocker_rollup_bound"] is True, "activation approval decision dry-run summary not bound to blocker rollup"
+        assert dry_run["summary"]["request_shape_valid"] is True, "activation approval decision dry-run summary shape invalid"
+        assert dry_run["summary"]["policy_allowed"] is True, "activation approval decision dry-run summary policy denied"
+        assert dry_run["summary"]["approval_decision_dry_run_validated"] is True, "activation approval decision dry-run summary not validated"
+        assert dry_run["summary"]["rejected_blocked_contract_only"] is True, "activation approval decision dry-run summary not rejected as blocked"
+        assert dry_run["summary"]["approval_command_surface_ready"] is True, "activation approval decision dry-run command surface not reported"
+        assert "dryRunEventSubscriptionActivationApprovalDecisionJson" in encoded, "Android activation approval decision dry-run binding missing"
+        assert "event-subscription-activation-approval-decision-dry-run" in encoded, "Linux CLI activation approval decision dry-run binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.dry.run" in encoded, "Linux IPC activation approval decision dry-run binding missing"
+        assert "DryRunEventSubscriptionActivationApprovalDecision" in encoded, "gRPC activation approval decision dry-run binding missing"
+        assert "EV-ADB-001" in encoded and "EV-ADD-004" in encoded, "activation approval decision dry-run missing blocker/gate references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision dry-run missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}

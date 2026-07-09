@@ -98,6 +98,36 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetEventSubscriptionActivationApprovalDecisionBlockerRollup",
         {},
     ),
+    "event-subscription-activation-approval-decision-dry-run": (
+        "DryRunEventSubscriptionActivationApprovalDecision",
+        {
+            "trace_id": "linux-grpc-event-subscription-activation-approval-decision-dry-run",
+            "approval_request_id": "linux-grpc-approval-decision-dry-run",
+            "source_decision_blocker_rollup_ref": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+            "target_gate_ids": ["EV-ADB-001", "EV-ADB-002", "EV-ADB-006", "DRV-GAP-004"],
+            "approval_decision": "approve_activation",
+            "approval_authority": {
+                "authority_id": "linux-grpc-approver",
+                "role": "debug_console",
+                "signature_ref": "contract-only-signature",
+            },
+            "reviewer": {"app_id": "linux-grpc-client", "role": "debug_console"},
+            "evidence_refs": [
+                {
+                    "ref_id": "linux-grpc-blocker-rollup",
+                    "type": "api",
+                    "uri_or_path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+                    "owner": "linux-grpc-client",
+                    "summary": "contract-only blocker rollup reference",
+                }
+            ],
+            "rollback_plan_ref": "contract-only-rollback-plan",
+            "runtime_governance_policy_ref": "runtime-governance-policy:event-subscription-approval",
+            "caller_permissions": ["vehicle.read", "service.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

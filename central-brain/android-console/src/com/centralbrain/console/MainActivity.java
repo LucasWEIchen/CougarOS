@@ -44,6 +44,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionActivationApprovalAuthorityChecklistButton;
     private Button eventSubscriptionActivationApprovalAuthorityAuditConsistencyButton;
     private Button eventSubscriptionActivationApprovalDecisionBlockerRollupButton;
+    private Button eventSubscriptionActivationApprovalDecisionDryRunButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -297,6 +298,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionActivationApprovalDecisionBlockerRollup();
+            }
+        });
+        eventSubscriptionActivationApprovalDecisionDryRunButton = addButton(eventApprovalDecisionRow, "Sub ApDec", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dryRunEventSubscriptionActivationApprovalDecision();
             }
         });
 
@@ -840,6 +847,29 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void dryRunEventSubscriptionActivationApprovalDecision() {
+        setBusy(true, "Status: dry-running blocked event activation approval decision via Binder");
+        String body = "{\"approval_request_id\":\"android-console-approval-decision-dry-run\","
+            + "\"source_decision_blocker_rollup_ref\":\"GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup\","
+            + "\"target_gate_ids\":[\"EV-ADB-001\",\"EV-ADB-002\",\"EV-ADB-006\",\"DRV-GAP-004\"],"
+            + "\"approval_decision\":\"approve_activation\","
+            + "\"approval_authority\":{\"authority_id\":\"android-console-approver\",\"role\":\"debug_console\",\"signature_ref\":\"contract-only-signature\"},"
+            + "\"reviewer\":{\"app_id\":\"android-console\",\"role\":\"debug_console\"},"
+            + "\"evidence_refs\":[{\"ref_id\":\"android-console-blocker-rollup\","
+            + "\"type\":\"api\",\"uri_or_path\":\"/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup\","
+            + "\"owner\":\"android-console\",\"summary\":\"contract-only blocker rollup reference\"}],"
+            + "\"rollback_plan_ref\":\"contract-only-rollback-plan\","
+            + "\"runtime_governance_policy_ref\":\"runtime-governance-policy:event-subscription-approval\","
+            + "\"caller_permissions\":[\"vehicle.read\",\"service.read\"],"
+            + "\"vehicle_state\":\"parked\",\"safety_state\":\"normal\"}";
+        gatewayRequest("Event Subscription Activation Approval Decision Dry-Run (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.dryRunEventSubscriptionActivationApprovalDecisionJson(newTraceId("event-subscription-activation-approval-decision-dry-run"), body);
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -1262,7 +1292,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Sub ApDec, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -1332,6 +1362,7 @@ public class MainActivity extends Activity {
         eventSubscriptionActivationApprovalAuthorityChecklistButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalAuthorityAuditConsistencyButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalDecisionBlockerRollupButton.setEnabled(enabled);
+        eventSubscriptionActivationApprovalDecisionDryRunButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);
