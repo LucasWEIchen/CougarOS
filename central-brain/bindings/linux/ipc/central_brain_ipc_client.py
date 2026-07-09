@@ -82,6 +82,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "uib.events.subscriptions.activation.evidence.decision.status.rollup",
         {},
     ),
+    "event-subscription-activation-approval-dry-run-status": (
+        "uib.events.subscriptions.activation.approval.dry.run.status",
+        {},
+    ),
     "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),

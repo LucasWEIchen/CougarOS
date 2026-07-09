@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "updated": "2026-07-09",
   "transport": {
     "prototype": "http-json",
@@ -18,14 +18,43 @@
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
-    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, POST /uib/events/subscriptions/activation-evidence, GET /uib/events/subscriptions/activation-evidence/status, GET /uib/events/subscriptions/activation-evidence/retention-checklist, and GET /uib/events/subscriptions/activation-evidence/decision-status-rollup expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake/status/retention checklist/decision status reference shape, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting evidence or subscriptions, reading an evidence store, updating review queues, creating retention/delete/export workflows, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollupJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /uib/events/subscriptions/activation-evidence/decision-status-rollup, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist via HW ApHClose, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency via HW ApHCAud, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup via HW ApHCRoll, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist via HW ApHCRev, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup via HW ApHRvRoll, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary via HW ApHReady",
+    "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, POST /uib/events/subscriptions/activation-evidence, GET /uib/events/subscriptions/activation-evidence/status, GET /uib/events/subscriptions/activation-evidence/retention-checklist, GET /uib/events/subscriptions/activation-evidence/decision-status-rollup, and GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake/status/retention checklist/decision status rollup, activation approval dry-run no-store status, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, invoking approval dry-run, persisting evidence/results/subscriptions, reading an evidence store, updating review queues, creating retention/delete/export workflows, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollupJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson, getEventSubscriptionActivationApprovalDryRunStatusJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /uib/events/subscriptions/activation-evidence/decision-status-rollup, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist via HW ApHClose, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency via HW ApHCAud, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup via HW ApHCRoll, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist via HW ApHCRev, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup via HW ApHRvRoll, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary via HW ApHReady, Sub ApStat",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
     "linux_ipc_socket": "/tmp/central_brain_gateway.sock",
-    "uib_extensions": "GET /uib/extensions exposes read-only Uni Info Bus extension objects, schema state, governance rules, and Android/Linux binding visibility without loading plugins or dispatching services"
+    "uib_extensions": "GET /uib/extensions exposes read-only Uni Info Bus extension objects, schema state, governance rules, and Android/Linux binding visibility without loading plugins or dispatching services",
+    "event_subscription_activation_approval_dry_run_status": {
+      "rest": "GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status",
+      "android_binder": "getEventSubscriptionActivationApprovalDryRunStatusJson",
+      "android_console": "Sub ApStat",
+      "linux_cli": "event-subscription-activation-approval-dry-run-status",
+      "linux_ipc": "uib.events.subscriptions.activation.approval.dry.run.status",
+      "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDryRunStatus",
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ],
+      "non_goals": [
+        "approval dry-run POST invocation",
+        "approval request/result persistence",
+        "review queue update",
+        "gate closure",
+        "broker activation",
+        "Driver/HAL development",
+        "virtualization development"
+      ]
+    }
   },
   "safety_states": [
     "normal",
@@ -1367,6 +1396,247 @@
           "virtualization_development_triggered": false,
           "service_dispatch_triggered": false
         }
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/subscriptions/activation-evidence/approval-dry-run/status",
+      "description": "Returns the contract-only no-store activation approval dry-run status after the activation evidence decision rollup without invoking approval dry-run POST, persisting results, updating review queues, closing gates, or activating a broker.",
+      "response": {
+        "operation": "event-subscription-activation-approval-dry-run-status",
+        "approval_dry_run_status_state": "contract-only-approval-dry-run-no-store-status",
+        "approval_dry_run_status_active": true,
+        "source_decision_status_rollup": {
+          "endpoint": "GET /uib/events/subscriptions/activation-evidence/decision-status-rollup",
+          "active": true,
+          "decision_status_consistent": true,
+          "decision_status_passed": false,
+          "owner_decision_complete": false,
+          "blocking_decision_ids": [
+            "EV-AED-002",
+            "EV-AED-003",
+            "EV-AED-004",
+            "EV-AED-005",
+            "EV-AED-006"
+          ],
+          "source_gate_ids": [
+            "EV-AED-001",
+            "EV-AED-002",
+            "EV-AED-003",
+            "EV-AED-004",
+            "EV-AED-005",
+            "EV-AED-006",
+            "EV-AED-007",
+            "EV-AED-008"
+          ]
+        },
+        "dry_run_status": {
+          "approval_dry_run_invoked": false,
+          "last_result_available": false,
+          "persisted_dry_run_count": 0,
+          "pending_approval_count": 0,
+          "approved_gate_count": 0,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "activation_allowed": false,
+          "broker_activation_ready": false,
+          "reason": "prototype exposes approval dry-run status only; there is no approval dry-run POST, result store, review queue, or gate closure workflow"
+        },
+        "approval_request_shape": {
+          "candidate_fields": [
+            "approval_request_id",
+            "source_decision_status_rollup_ref",
+            "target_gate_ids",
+            "approval_authority",
+            "reviewer",
+            "evidence_refs",
+            "rollback_plan_ref",
+            "runtime_governance_policy_ref"
+          ],
+          "required_ref_types": [
+            "platform_decision",
+            "owner_approval",
+            "test_log",
+            "driver_gap_review"
+          ],
+          "prototype_accepts_request": false,
+          "prototype_persists_request": false
+        },
+        "blocking_decisions": [
+          {
+            "decision_id": "EV-AAS-DECISION-001",
+            "area": "approval-authority",
+            "required_decision": "Assign the authority that can approve event subscription broker/runtime activation.",
+            "current_state": "TBD-target-platform",
+            "resolved": false
+          },
+          {
+            "decision_id": "EV-AAS-DECISION-002",
+            "area": "approval-policy",
+            "required_decision": "Define which EV-* and DRV-GAP gates must be closed before approval dry-run can pass.",
+            "current_state": "blocked-by-EV-AED",
+            "resolved": false
+          },
+          {
+            "decision_id": "EV-AAS-DECISION-003",
+            "area": "approval-result-store",
+            "required_decision": "Assign whether approval dry-run results are persisted, audited, exported, and retained.",
+            "current_state": "not-implemented",
+            "resolved": false
+          },
+          {
+            "decision_id": "EV-AAS-DECISION-004",
+            "area": "review-queue-owner",
+            "required_decision": "Assign review queue owner and escalation semantics for failed approval dry-runs.",
+            "current_state": "TBD-target-platform",
+            "resolved": false
+          },
+          {
+            "decision_id": "EV-AAS-DECISION-005",
+            "area": "gate-closure-authority",
+            "required_decision": "Assign who can close activation gates and how rollback is audited.",
+            "current_state": "TBD-target-platform",
+            "resolved": false
+          },
+          {
+            "decision_id": "EV-AAS-DECISION-006",
+            "area": "broker-runtime-activation-owner",
+            "required_decision": "Assign broker process owner, Android service path, Linux daemon path, and activation identity.",
+            "current_state": "TBD-target-platform",
+            "resolved": false
+          },
+          {
+            "decision_id": "EV-AAS-DECISION-007",
+            "area": "high-rate-driver-gap-review",
+            "required_decision": "Confirm DRV-GAP-004/005 handling before DDS, SOME/IP, TSN/PTP, shared memory, or Safety Runtime are used.",
+            "current_state": "blocked-contract-only",
+            "resolved": false
+          },
+          {
+            "decision_id": "EV-AAS-DECISION-008",
+            "area": "android-linux-parity",
+            "required_decision": "Keep Android and Linux approval dry-run status surfaces equivalent before adding a real dry-run command.",
+            "current_state": "contract-bound",
+            "resolved": true
+          }
+        ],
+        "mandatory_gates": [
+          {
+            "gate_id": "EV-AAS-001",
+            "name": "decision-status-rollup-bound",
+            "required_evidence": "Approval dry-run status is derived from GET /uib/events/subscriptions/activation-evidence/decision-status-rollup without invoking POST endpoints.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAS-002",
+            "name": "approval-dry-run-request-shape-declared",
+            "required_evidence": "Target platform defines the approval dry-run input envelope before any activation gate can be closed.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAS-003",
+            "name": "last-result-no-store-status-declared",
+            "required_evidence": "Prototype reports no persisted approval dry-run request or last-result record.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAS-004",
+            "name": "approval-authority-assigned",
+            "required_evidence": "Target platform assigns who can approve activation evidence and broker/runtime activation.",
+            "passed": false
+          },
+          {
+            "gate_id": "EV-AAS-005",
+            "name": "gate-closure-policy-assigned",
+            "required_evidence": "Target platform assigns gate closure authority, rollback semantics, and audit export path.",
+            "passed": false
+          },
+          {
+            "gate_id": "EV-AAS-006",
+            "name": "broker-activation-policy-assigned",
+            "required_evidence": "Target platform assigns broker activation policy, service identity, and runtime deployment boundary.",
+            "passed": false
+          },
+          {
+            "gate_id": "EV-AAS-007",
+            "name": "android-linux-approval-dry-run-status-parity",
+            "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent approval dry-run status fields.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAS-008",
+            "name": "no-side-effect-status",
+            "required_evidence": "Status endpoint reports no dry-run POST call, no persistence, no review queue update, no gate closure, no broker activation, no Driver/HAL, and no virtualization trigger.",
+            "passed": true
+          }
+        ],
+        "api_surface": {
+          "rest": "GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status",
+          "android_binder": "getEventSubscriptionActivationApprovalDryRunStatusJson",
+          "linux_cli": "event-subscription-activation-approval-dry-run-status",
+          "linux_ipc": "uib.events.subscriptions.activation.approval.dry.run.status",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDryRunStatus"
+        },
+        "summary": {
+          "activation_approval_dry_run_status_active": true,
+          "source_decision_status_rollup_bound": true,
+          "decision_status_consistent": true,
+          "decision_status_passed": false,
+          "owner_decision_complete": false,
+          "approval_dry_run_invoked": false,
+          "last_result_available": false,
+          "persisted_dry_run_count": 0,
+          "pending_approval_count": 0,
+          "approved_gate_count": 0,
+          "blocking_decision_count": 5,
+          "approval_authority_assigned": false,
+          "approval_policy_confirmed": false,
+          "approval_result_store_active": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "activation_allowed": false,
+          "broker_activation_ready": false,
+          "production_activation_allowed": false,
+          "broker_active": false,
+          "subscription_persistence_active": false,
+          "cursor_storage_active": false,
+          "event_delivery_qos_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "req_ids": [
+          "XSC-002",
+          "FW-U-003",
+          "XSC-005",
+          "XSC-006",
+          "NV-P-002",
+          "NV-P-003",
+          "NV-P-006",
+          "DEL-001",
+          "DEL-002",
+          "DEL-004"
+        ]
       },
       "req_ids": [
         "XSC-002",

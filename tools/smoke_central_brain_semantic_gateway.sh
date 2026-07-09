@@ -131,6 +131,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/status", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/retention-checklist", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/decision-status-rollup", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-dry-run/status", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3018,6 +3019,56 @@ for method, path, body, req_id in checks:
         assert "GetEventSubscriptionActivationEvidenceDecisionStatusRollup" in encoded, "gRPC activation evidence decision status binding missing"
         assert "EV-AED-006" in encoded and "activation-approval-policy" in encoded, "activation evidence decision status missing approval policy blocker"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation evidence decision status missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-dry-run/status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+        assert status["approval_dry_run_status_state"] == "contract-only-approval-dry-run-no-store-status", "activation approval dry-run status left no-store contract state"
+        assert status["approval_dry_run_status_active"] is True, "activation approval dry-run status is not active"
+        assert status["source_decision_status_rollup"]["active"] is True, "activation approval dry-run status lost decision rollup source"
+        assert status["source_decision_status_rollup"]["decision_status_passed"] is False, "activation approval dry-run status unexpectedly passed source decision status"
+        assert {"EV-AAS-001", "EV-AAS-002", "EV-AAS-003", "EV-AAS-004", "EV-AAS-005", "EV-AAS-006", "EV-AAS-007", "EV-AAS-008"} <= gate_ids, "activation approval dry-run status missing gates"
+        for key in [
+            "decision_status_passed",
+            "owner_decision_complete",
+            "approval_dry_run_invoked",
+            "last_result_available",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_result_store_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "broker_activation_ready",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"activation approval dry-run status summary unexpectedly set {key}"
+        assert status["summary"]["activation_approval_dry_run_status_active"] is True, "activation approval dry-run status summary not active"
+        assert status["summary"]["source_decision_status_rollup_bound"] is True, "activation approval dry-run status not bound to decision status rollup"
+        assert status["summary"]["decision_status_consistent"] is True, "activation approval dry-run status source inconsistent"
+        assert status["summary"]["persisted_dry_run_count"] == 0, "activation approval dry-run status reported persisted dry-runs"
+        assert status["summary"]["pending_approval_count"] == 0, "activation approval dry-run status reported pending approvals"
+        assert status["summary"]["approved_gate_count"] == 0, "activation approval dry-run status reported approved gates"
+        assert "getEventSubscriptionActivationApprovalDryRunStatusJson" in encoded, "Android activation approval dry-run status binding missing"
+        assert "event-subscription-activation-approval-dry-run-status" in encoded, "Linux CLI activation approval dry-run status binding missing"
+        assert "uib.events.subscriptions.activation.approval.dry.run.status" in encoded, "Linux IPC activation approval dry-run status binding missing"
+        assert "GetEventSubscriptionActivationApprovalDryRunStatus" in encoded, "gRPC activation approval dry-run status binding missing"
+        assert "EV-AAS-004" in encoded and "approval-authority" in encoded, "activation approval dry-run status missing approval authority blocker"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval dry-run status missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}

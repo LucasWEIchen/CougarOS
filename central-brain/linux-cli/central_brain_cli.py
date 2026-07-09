@@ -90,6 +90,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/uib/events/subscriptions/activation-evidence/decision-status-rollup",
         None,
     ),
+    "event-subscription-activation-approval-dry-run-status": (
+        "GET",
+        "/uib/events/subscriptions/activation-evidence/approval-dry-run/status",
+        None,
+    ),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),

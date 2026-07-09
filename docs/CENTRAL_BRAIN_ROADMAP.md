@@ -9,7 +9,7 @@
 | M0 | 建立方向、文档、原型骨架 | 产品设计、架构设计、资料纪要、Android 原型、mock NPU 后端 | 已完成 |
 | M0.1 | PM 级需求拆解和接口设计 | 需求拆解、接口设计、KaKaClaw 参考产品概念映射 | 已完成 |
 | A0 | 架构图需求基线化 | 需求矩阵、偏差表、疑点表、按图执行计划 | 已完成 |
-| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle + transport readiness + decision matrix + activation checklist + callback/watch shape + cursor/replay storage + backpressure/QoS evidence + readiness rollup + activation evidence intake/status/retention checklist/decision status rollup contract；Android/Linux 主路径初版 |
+| A1 | Uni Info Bus 语义接口 mock | Context/State/Event/Action/Service/Tool/Permission contract 与 client | Event + Action active mock；Event subscription lifecycle + transport readiness + decision matrix + activation checklist + callback/watch shape + cursor/replay storage + backpressure/QoS evidence + readiness rollup + activation evidence intake/status/retention checklist/decision status rollup/approval dry-run status contract；Android/Linux 主路径初版 |
 | A2 | SOA 服务入口 mock | Business/Foundation/Atomic/Contract/Safety State | SOA invoke + service contract visibility 初版 |
 | A3 | Runtime & Governance mock | Registry、Discovery、Schema、QoS、Policy、Lifecycle、Audit | active prototype + JSONL audit persistence sample + fixed-window QoS + `/governance/precheck` + `/governance/backend-contract` + `/governance/migration-check` + `/governance/deployment-plan` + Linux shared governance daemon runtime/audit diagnostics used by IPC/gRPC |
 | A4 | Protocol Binding 分层 | REST 下沉为 binding，IPC/gRPC/MQTT/SOME-IP/DDS stub | Linux IPC active sample with shared governance precheck/runtime/audit direct diagnostics + backend contract/migration/deployment/binding readiness visibility + fallback；Linux gRPC/RPC JSON contract sample with same shared diagnostics；Android Binder service stub sample；Android Console Binder path；Android system service integration note；Event semantic mapping |
@@ -52,6 +52,12 @@
 ## 最近进展
 
 ### 2026-07-09
+
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval dry-run status contract：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status`，用于在真实 approval dry-run request/workflow 前报告 no-store status、last-result shape、source decision status rollup 绑定和 `EV-AAS-001..008` 门禁。
+  - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDryRunStatusJson`，Android Console 新增 `Sub ApStat` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-dry-run-status`、`uib.events.subscriptions.activation.approval.dry.run.status`、`GetEventSubscriptionActivationApprovalDryRunStatus` 可见路径。
+  - 本轮只完成 activation approval dry-run no-store status 只读视图，不调用 approval dry-run POST，不持久化请求或结果，不创建 result store/evidence store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
 
 - 推进 HW-002/KH-003/KH-006/KH-007 hardware interface owner decision evidence adapter-load closure handoff readiness summary contract：
   - 新增 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary`，用于把 reviewer assignment audit decision rollup 后仍未闭合的 handoff 依赖汇总为只读 readiness summary，并固定 `HW-AHK-001..008` 门禁。

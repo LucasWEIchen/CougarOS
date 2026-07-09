@@ -495,6 +495,22 @@ activation evidence intake/status、retention checklist 和 `EV-AED-001..008` �
 不读取 evidence URI，不创建 review queue 或 delete/export workflow，不关闭 readiness gate，
 不激活 broker，不触发 Driver/HAL 或虚拟化层。
 
+Event subscription activation approval dry-run status 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status`、Android Binder
+`getEventSubscriptionActivationApprovalDryRunStatusJson`、Android Console `Sub ApStat`、Linux CLI
+`event-subscription-activation-approval-dry-run-status`、Linux IPC
+`uib.events.subscriptions.activation.approval.dry.run.status` 与 Linux gRPC/RPC
+`GetEventSubscriptionActivationApprovalDryRunStatus` 查询。该视图只报告 activation approval
+dry-run 的 no-store status、last-result shape 和 `EV-AAS-001..008` 门禁；
+固定 `approval_dry_run_invoked=false`、`last_result_available=false`、
+`persisted_dry_run_count=0`、`pending_approval_count=0`、
+`approval_authority_assigned=false`、`approval_policy_confirmed=false`、
+`approval_result_store_active=false`、`review_queue_updated=false`、`gates_closed=false`、
+`activation_allowed=false`、`broker_active=false`、`driver_development_triggered=false`
+和 `virtualization_development_triggered=false`。它不调用 approval dry-run POST，不保存请求或结果，
+不创建 approval review queue，不关闭 readiness gate，不激活 broker、DDS runtime、高频数据面、
+Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC

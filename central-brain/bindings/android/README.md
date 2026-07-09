@@ -15,7 +15,7 @@ Brain semantic gateway.
   contract, governance migration readiness, governance deployment plan,
   Protocol Binding readiness, Android/Linux delivery readiness, Python
   prototype readiness, SOA service contract visibility, Driver/HAL gap backlog,
-  hardware empty-interface registry, hardware interface activation checklist, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, activation evidence retention checklist contract, activation evidence decision status rollup contract, hardware owner evidence replacement trigger checklist contract, selected-adapter readiness checklist contract, adapter load blocker rollup contract, adapter-load dry-run contract, adapter-load dry-run status contract, adapter-load dry-run audit consistency contract, adapter-load approval authority checklist contract, adapter-load approval authority no-store status contract, adapter-load approval authority audit consistency contract, and adapter-load approval decision dry-run contract,
+  hardware empty-interface registry, hardware interface activation checklist, Event subscription lifecycle command, transport readiness, owner decision matrix, activation checklist, callback/watch shape, cursor/replay storage, backpressure/QoS evidence, readiness rollup contract, activation evidence review status contract, activation evidence retention checklist contract, activation evidence decision status rollup contract, activation approval dry-run status contract, hardware owner evidence replacement trigger checklist contract, selected-adapter readiness checklist contract, adapter load blocker rollup contract, adapter-load dry-run contract, adapter-load dry-run status contract, adapter-load dry-run audit consistency contract, adapter-load approval authority checklist contract, adapter-load approval authority no-store status contract, adapter-load approval authority audit consistency contract, and adapter-load approval decision dry-run contract,
   Vehicle/Body Signal catalog, and Vehicle
   Signal read-bridge activation criteria contract mocks. The Binder service
   sample still proxies to the REST semantic gateway as its upstream prototype
@@ -44,6 +44,7 @@ Brain semantic gateway.
 | `getEventSubscriptionActivationEvidenceStatusJson` | `GET /uib/events/subscriptions/activation-evidence/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationEvidenceRetentionChecklistJson` | `GET /uib/events/subscriptions/activation-evidence/retention-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson` | `GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionActivationApprovalDryRunStatusJson` | `GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -168,22 +169,23 @@ Brain semantic gateway.
   `getEventSubscriptionCallbackWatchShapeJson`,
   `getEventSubscriptionCursorReplayStorageJson`, and
   `getEventSubscriptionBackpressureQosEvidenceJson`,
-  `getEventSubscriptionReadinessRollupJson`, and
-  `submitEventSubscriptionActivationEvidenceJson` and
+  `getEventSubscriptionReadinessRollupJson`,
+  `submitEventSubscriptionActivationEvidenceJson`,
   `getEventSubscriptionActivationEvidenceStatusJson`,
-  `getEventSubscriptionActivationEvidenceRetentionChecklistJson`, and
-  `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionActivationEvidenceRetentionChecklistJson`,
+  `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson`, and
+  `getEventSubscriptionActivationApprovalDryRunStatusJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
-  activation evidence intake, review status, retention checklist, and decision status rollup,
+  activation evidence intake, review status, retention checklist, decision status rollup, and approval dry-run status,
   callback/watch API shape, cursor/replay storage schema, overflow schema,
   replay rate, ack timeout, per-caller throttling, Runtime & Governance QoS evidence,
   readiness blockers,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, and `Sub Retain`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, and `Sub ApStat`
   actions only. They do not assign production owners, select a transport,
-  create durable evidence stores, create review queues, create delete/export workflows,
+  call approval dry-run POST, save dry-run results, create durable evidence stores, create review queues, create delete/export workflows,
   activate event QoS, close readiness gates, register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
   Driver/HAL, or create virtualization work.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android
