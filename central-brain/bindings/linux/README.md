@@ -58,6 +58,7 @@ Brain semantic gateway.
 | `uib.events.subscriptions.activation.approval.decision.dry.run.status` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
+| `uib.events.subscriptions.activation.approval.decision.owner.handoff.checklist` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.extensions.get` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
@@ -127,11 +128,12 @@ dispatching services.
 `GetEventSubscriptionActivationApprovalDecisionBlockerRollup`,
 `DryRunEventSubscriptionActivationApprovalDecision`, and
 `GetEventSubscriptionActivationApprovalDecisionDryRunStatus`, and
-`GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency`, and
-`GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix` expose the same FW-U-003/NV-P-006
+`GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency`,
+`GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix`, and
+`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist` expose the same FW-U-003/NV-P-006
 Event subscription lifecycle, transport readiness, owner decision matrix,
 activation evidence intake/review/retention checklist/decision status rollup,
-approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, approval decision dry-run request, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, activation evidence checklist, callback/watch API shape, cursor/replay storage,
+approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, approval decision dry-run request, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, approval decision owner handoff checklist, activation evidence checklist, callback/watch API shape, cursor/replay storage,
 backpressure/QoS evidence, readiness rollup, and activation evidence review status contracts as Android Binder and Linux IPC without
 assigning production owners, selecting a transport, persisting subscriptions,
 passing approval dry-run, saving dry-run results, activating event QoS, closing readiness gates, starting a broker, callback/watch path, SSE/WebSocket, DDS runtime, high-rate
@@ -268,6 +270,16 @@ request/result/approval decision counters, and keeps
 `decision_dry_run_post_called_by_closure_blocker_matrix=false` without updating
 review queues, closing gates, starting broker/DDS runtime, accessing hardware,
 creating Driver/HAL work, or implementing virtualization.
+`CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist`
+exposes the same Event subscription approval decision owner handoff checklist
+as Android Binder and Linux IPC. The Linux CLI command is
+`event-subscription-activation-approval-decision-owner-handoff-checklist`. It
+reports `EV-ACH-001..010`, ten unresolved owner handoff slots, zero assigned
+owners, zero attached evidence, and keeps
+`decision_dry_run_post_called_by_owner_handoff_checklist=false` without
+assigning owners, updating owner handoff or review queues, closing gates,
+starting broker/DDS runtime, accessing hardware, creating Driver/HAL work, or
+implementing virtualization.
 `CentralBrainGateway.DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision`
 exposes the same approval decision dry-run request as Android Binder and Linux
 IPC. It validates the selected interface, adapter identity, approval decision,

@@ -48,6 +48,7 @@ service CentralBrainGateway {
   rpc GetEventSubscriptionActivationApprovalDecisionDryRunStatus(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix(GatewayRequest) returns (GatewayResponse);
+  rpc GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist(GatewayRequest) returns (GatewayResponse);
   rpc GetUibExtensions(GatewayRequest) returns (GatewayResponse);
   rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
   rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);

@@ -140,6 +140,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix",
         {},
     ),
+    "event-subscription-activation-approval-decision-owner-handoff-checklist": (
+        "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

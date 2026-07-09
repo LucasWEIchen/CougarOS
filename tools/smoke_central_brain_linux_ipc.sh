@@ -1166,6 +1166,101 @@ assert "EV-ADA-001" in encoded and "EV-ACB-010" in encoded, response
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_CHECKLIST_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-owner-handoff-checklist)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_CHECKLIST_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "event-subscription-activation-approval-decision-owner-handoff-checklist", response
+assert payload["approval_decision_owner_handoff_checklist_state"] == "contract-only-owner-handoff-blocked", response
+assert payload["approval_decision_owner_handoff_checklist_active"] is True, response
+assert {"EV-ACH-001", "EV-ACH-002", "EV-ACH-003", "EV-ACH-004", "EV-ACH-005", "EV-ACH-006", "EV-ACH-007", "EV-ACH-008", "EV-ACH-009", "EV-ACH-010"} <= gate_ids, response
+source = payload["source_surfaces"]["closure_blocker_matrix"]
+assert source["active"] is True, response
+assert source["complete"] is True, response
+assert source["closure_ready"] is False, response
+assert source["open_closure_blocker_count"] == 10, response
+assert "EV-ACB-010" in source["open_closure_blocker_ids"], response
+assert len(payload["owner_handoffs"]) == 10, response
+for item in payload["owner_handoffs"]:
+    assert item["handoff_state"] == "owner-unassigned", response
+    assert item["escalation_state"] == "blocked-waiting-owner-assignment", response
+    assert item["android_linux_parity_required"] is True, response
+    for key in [
+        "handoff_ready",
+        "owner_assigned",
+        "evidence_attached",
+        "assignment_persisted",
+        "review_queue_updated",
+    ]:
+        assert item[key] is False, response
+    assert item["open"] is True, response
+for key in [
+    "activation_approval_decision_owner_handoff_checklist_active",
+    "owner_handoff_checklist_complete",
+    "source_closure_blocker_matrix_bound",
+    "source_closure_blocker_matrix_complete",
+    "no_store_consistent",
+    "no_side_effects_consistent",
+]:
+    assert payload["summary"][key] is True, response
+for key in [
+    "source_closure_ready",
+    "owner_handoff_ready",
+    "owner_assignments_persisted",
+    "owner_handoff_queue_updated",
+    "decision_dry_run_post_called_by_owner_handoff_checklist",
+    "closure_ready",
+    "approval_decision_closure_allowed",
+    "approval_decision_ready",
+    "approval_dry_run_allowed",
+    "approval_result_store_created",
+    "approval_result_store_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "production_activation_allowed",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "event_delivery_qos_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["owner_handoff_checklist_state"] == "contract-only-owner-handoff-blocked", response
+assert payload["summary"]["source_open_closure_blocker_count"] == 10, response
+assert payload["summary"]["required_owner_handoff_count"] == 10, response
+assert payload["summary"]["open_owner_handoff_count"] == 10, response
+assert payload["summary"]["assigned_owner_count"] == 0, response
+assert payload["summary"]["unassigned_owner_count"] == 10, response
+assert payload["summary"]["attached_evidence_count"] == 0, response
+assert payload["summary"]["persisted_dry_run_request_count"] == 0, response
+assert payload["summary"]["persisted_dry_run_result_count"] == 0, response
+assert payload["summary"]["persisted_approval_decision_count"] == 0, response
+assert payload["summary"]["pending_approval_decision_review_count"] == 0, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-checklist" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.checklist" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist" in encoded, response
+assert "EV-ACB-001" in encoded and "EV-ACH-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
