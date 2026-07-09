@@ -128,6 +128,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "safety_state": "normal",
         },
     ),
+    "event-subscription-activation-approval-decision-dry-run-status": (
+        "GetEventSubscriptionActivationApprovalDecisionDryRunStatus",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

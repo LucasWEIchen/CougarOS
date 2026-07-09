@@ -1012,6 +1012,65 @@ assert "DryRunEventSubscriptionActivationApprovalDecision" in encoded, response
 assert "EV-ADB-001" in encoded and "EV-ADD-004" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_STATUS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-approval-decision-dry-run-status)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_STATUS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+status = payload["gateway"]["payload"]
+encoded = json.dumps(status)
+gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert status["operation"] == "event-subscription-activation-approval-decision-dry-run-status", response
+assert status["approval_decision_dry_run_status_state"] == "contract-only-approval-decision-dry-run-status-no-store", response
+assert status["approval_decision_dry_run_status_active"] is True, response
+assert status["source_decision_dry_run_contract"]["contract_surface_active"] is True, response
+assert status["source_decision_dry_run_contract"]["status_invokes_post"] is False, response
+assert status["source_decision_blocker_rollup"]["active"] is True, response
+assert status["source_decision_blocker_rollup"]["open_blocker_count"] > 0, response
+assert {"EV-ADS-001", "EV-ADS-002", "EV-ADS-003", "EV-ADS-004", "EV-ADS-005", "EV-ADS-006", "EV-ADS-007", "EV-ADS-008"} <= gate_ids, response
+assert status["last_result_status"]["last_approval_decision_result_available"] is False, response
+assert status["last_result_status"]["persisted_dry_run_request_count"] == 0, response
+assert status["last_result_status"]["persisted_dry_run_result_count"] == 0, response
+assert status["last_result_status"]["persisted_approval_decision_count"] == 0, response
+assert status["last_result_status"]["approval_result_store_created"] is False, response
+assert status["last_result_status"]["review_queue_updated"] is False, response
+assert status["last_result_status"]["gates_closed"] is False, response
+assert status["summary"]["activation_approval_decision_dry_run_status_active"] is True, response
+assert status["summary"]["source_decision_dry_run_contract_bound"] is True, response
+assert status["summary"]["source_decision_blocker_rollup_bound"] is True, response
+assert status["summary"]["decision_dry_run_post_called_by_status"] is False, response
+assert status["summary"]["persisted_dry_run_request_count"] == 0, response
+assert status["summary"]["persisted_dry_run_result_count"] == 0, response
+assert status["summary"]["persisted_approval_decision_count"] == 0, response
+for key in [
+    "approval_decision_status_passed",
+    "approval_decision_ready",
+    "approval_dry_run_allowed",
+    "approval_result_store_created",
+    "dry_run_request_persisted",
+    "dry_run_result_persisted",
+    "approval_decision_persisted",
+    "review_queue_updated",
+    "gates_closed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "broker_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert status["summary"][key] is False, response
+assert "getEventSubscriptionActivationApprovalDecisionDryRunStatusJson" in encoded, response
+assert "event-subscription-activation-approval-decision-dry-run-status" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.dry.run.status" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionDryRunStatus" in encoded, response
+assert "EV-ADB-001" in encoded and "EV-ADS-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

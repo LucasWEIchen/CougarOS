@@ -49,6 +49,7 @@ Brain semantic gateway.
 | `getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationApprovalDecisionBlockerRollupJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `dryRunEventSubscriptionActivationApprovalDecisionJson` | `POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionActivationApprovalDecisionDryRunStatusJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -181,17 +182,18 @@ Brain semantic gateway.
   `getEventSubscriptionActivationApprovalDryRunStatusJson`,
   `getEventSubscriptionActivationApprovalAuthorityChecklistJson`,
   `getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson`, and
-  `getEventSubscriptionActivationApprovalDecisionBlockerRollupJson`, and
-  `dryRunEventSubscriptionActivationApprovalDecisionJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionActivationApprovalDecisionBlockerRollupJson`,
+  `dryRunEventSubscriptionActivationApprovalDecisionJson`, and
+  `getEventSubscriptionActivationApprovalDecisionDryRunStatusJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
-  activation evidence intake, review status, retention checklist, decision status rollup, approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, and approval decision dry-run request,
+  activation evidence intake, review status, retention checklist, decision status rollup, approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, approval decision dry-run request, and approval decision dry-run no-store status,
   callback/watch API shape, cursor/replay storage schema, overflow schema,
   replay rate, ack timeout, per-caller throttling, Runtime & Governance QoS evidence,
   readiness blockers,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, `Sub ApStat`, `Sub ApAuth`, `Sub ApAudit`, `Sub ApBlock`, and `Sub ApDec`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, `Sub ApStat`, `Sub ApAuth`, `Sub ApAudit`, `Sub ApBlock`, `Sub ApDec`, and `Sub ApDStat`
   actions only. They do not assign production owners, select a transport,
   pass approval dry-run, assign approval authority, save dry-run results, create durable evidence stores, create approval result stores, create review queues, create delete/export workflows,
   activate event QoS, close readiness gates, register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
@@ -314,6 +316,13 @@ Brain semantic gateway.
   `rejected_blocked_contract_only`, and does not persist request/result state,
   create approval result stores, update review queues, close gates, start
   broker/DDS/high-rate data plane, or create Driver/HAL or virtualization work.
+- `getEventSubscriptionActivationApprovalDecisionDryRunStatusJson` exposes the
+  Event subscription approval decision dry-run no-store status through the
+  Android Console `Sub ApDStat` action only; it reports
+  `EV-ADS-001..008`, no last approval decision result, zero persisted
+  dry-run requests/results/approval decisions, and no dry-run POST call from
+  status while keeping stores, queues, gates, broker/DDS/high-rate data plane,
+  Driver/HAL, and virtualization inactive.
 - `dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson`
   exposes the approval decision dry-run through the Android Console `HW ApDec`
   action only; it validates approval decision request shape, authority,

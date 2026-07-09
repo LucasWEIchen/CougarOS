@@ -157,6 +157,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getEventSubscriptionActivationApprovalDecisionDryRunStatusJson(String traceId) throws RemoteException {
+            return get("/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status", traceId);
+        }
+
+        @Override
         public String getUibExtensionsJson(String traceId) throws RemoteException {
             return get("/uib/extensions", traceId);
         }

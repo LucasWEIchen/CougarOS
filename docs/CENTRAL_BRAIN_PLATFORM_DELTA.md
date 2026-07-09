@@ -567,6 +567,17 @@ Event subscription activation approval decision dry-run request 按 FW-U-003、N
 `driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不保存请求或结果，不创建 result store/review queue，
 不关闭 gate，不激活 broker/DDS/high-rate data plane，不触发 Driver/HAL 或虚拟化层。
 
+Event subscription activation approval decision dry-run status 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status`、Android Binder
+`getEventSubscriptionActivationApprovalDecisionDryRunStatusJson`、Android Console `Sub ApDStat`、Linux CLI
+`event-subscription-activation-approval-decision-dry-run-status`、Linux IPC
+`uib.events.subscriptions.activation.approval.decision.dry.run.status` 与 Linux gRPC/RPC
+`GetEventSubscriptionActivationApprovalDecisionDryRunStatus` 查询。该 status 只报告 `EV-ADS-001..008` no-store decision status 和 source blocker rollup binding；固定
+`last_approval_decision_result_available=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、`persisted_approval_decision_count=0`、
+`decision_dry_run_post_called_by_status=false`、`approval_result_store_created=false`、`review_queue_updated=false`、`gates_closed=false`、
+`broker_activation_allowed=false`、`activation_allowed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不调用 dry-run POST，
+不保存 last-result/request/result/approval decision，不创建 result store/review queue，不关闭 gate，不激活 broker/DDS/high-rate data plane，不触发 Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC

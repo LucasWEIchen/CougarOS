@@ -141,6 +141,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
             "safety_state": "normal",
         },
     ),
+    "event-subscription-activation-approval-decision-dry-run-status": (
+        "GET",
+        "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status",
+        None,
+    ),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),

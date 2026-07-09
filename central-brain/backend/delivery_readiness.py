@@ -117,7 +117,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003"],
     },
     {
-        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-audit-consistency-decision-blocker-rollup-and-decision-dry-run-contract",
+        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-audit-consistency-decision-blocker-rollup-decision-dry-run-contract-and-decision-dry-run-status",
         "platform": "Android/Linux",
         "current_state": "contract-only-not-brokered-with-activation-evidence-retention-owner-decisions-blocked",
         "ready_for": [
@@ -140,6 +140,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "activation approval authority audit consistency review",
             "activation approval decision blocker rollup review",
             "activation approval decision dry-run request-shape review",
+            "activation approval decision dry-run no-store status review",
             "Android Binder and Linux IPC/gRPC parity inspection before a real broker is selected",
         ],
         "artifacts": [
@@ -162,6 +163,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency",
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
             "POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+            "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status",
             "Android Binder getEventSubscriptionsJson",
             "Android Binder requestEventSubscriptionJson",
             "Android Binder cancelEventSubscriptionJson",
@@ -200,6 +202,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux CLI event-subscription-activation-approval-authority-audit-consistency",
             "Linux CLI event-subscription-activation-approval-decision-blocker-rollup",
             "Linux CLI event-subscription-activation-approval-decision-dry-run",
+            "Linux CLI event-subscription-activation-approval-decision-dry-run-status",
             "Linux IPC uib.events.subscriptions.get",
             "Linux IPC uib.events.subscriptions.request",
             "Linux IPC uib.events.subscriptions.cancel",

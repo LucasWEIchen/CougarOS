@@ -128,6 +128,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
             "safety_state": "normal",
         },
     ),
+    "event-subscription-activation-approval-decision-dry-run-status": (
+        "uib.events.subscriptions.activation.approval.decision.dry.run.status",
+        {},
+    ),
     "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),

@@ -167,6 +167,7 @@ checks = [
         },
         "NV-P-006",
     ),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3296,6 +3297,74 @@ for method, path, body, req_id in checks:
         assert "DryRunEventSubscriptionActivationApprovalDecision" in encoded, "gRPC activation approval decision dry-run binding missing"
         assert "EV-ADB-001" in encoded and "EV-ADD-004" in encoded, "activation approval decision dry-run missing blocker/gate references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision dry-run missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status":
+        status = payload["payload"]
+        encoded = json.dumps(status)
+        gate_ids = {item["gate_id"] for item in status["mandatory_gates"]}
+        assert status["operation"] == "event-subscription-activation-approval-decision-dry-run-status", "activation approval decision dry-run status operation mismatch"
+        assert status["approval_decision_dry_run_status_state"] == "contract-only-approval-decision-dry-run-status-no-store", "activation approval decision dry-run status wrong state"
+        assert status["approval_decision_dry_run_status_active"] is True, "activation approval decision dry-run status inactive"
+        assert status["source_decision_dry_run_contract"]["contract_surface_active"] is True, "activation approval decision dry-run status lost dry-run contract source"
+        assert status["source_decision_dry_run_contract"]["status_invokes_post"] is False, "activation approval decision dry-run status called POST"
+        assert status["source_decision_blocker_rollup"]["active"] is True, "activation approval decision dry-run status lost blocker rollup source"
+        assert status["source_decision_blocker_rollup"]["open_blocker_count"] > 0, "activation approval decision dry-run status unexpectedly has no open blockers"
+        assert {"EV-ADS-001", "EV-ADS-002", "EV-ADS-003", "EV-ADS-004", "EV-ADS-005", "EV-ADS-006", "EV-ADS-007", "EV-ADS-008"} <= gate_ids, "activation approval decision dry-run status missing EV-ADS gates"
+        assert status["last_result_status"]["last_approval_decision_result_available"] is False, "activation approval decision dry-run status found last result"
+        assert status["last_result_status"]["persisted_dry_run_request_count"] == 0, "activation approval decision dry-run status persisted request"
+        assert status["last_result_status"]["persisted_dry_run_result_count"] == 0, "activation approval decision dry-run status persisted result"
+        assert status["last_result_status"]["persisted_approval_decision_count"] == 0, "activation approval decision dry-run status persisted approval decision"
+        assert status["last_result_status"]["approval_result_store_created"] is False, "activation approval decision dry-run status created result store"
+        assert status["last_result_status"]["review_queue_updated"] is False, "activation approval decision dry-run status updated review queue"
+        assert status["last_result_status"]["gates_closed"] is False, "activation approval decision dry-run status closed gates"
+        assert status["last_result_status"]["broker_activation_allowed"] is False, "activation approval decision dry-run status allowed broker activation"
+        for key in [
+            "approval_decision_status_passed",
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "approval_authority_ready",
+            "approval_result_store_active",
+            "approval_result_store_created",
+            "dry_run_request_persisted",
+            "dry_run_result_persisted",
+            "approval_decision_persisted",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert status["summary"][key] is False, f"activation approval decision dry-run status summary unexpectedly set {key}"
+        for key in [
+            "activation_approval_decision_dry_run_status_active",
+            "source_decision_dry_run_contract_bound",
+            "source_decision_blocker_rollup_bound",
+            "decision_blocker_rollup_complete",
+        ]:
+            assert status["summary"][key] is True, f"activation approval decision dry-run status summary did not set {key}"
+        assert status["summary"]["persisted_dry_run_request_count"] == 0, "activation approval decision dry-run status summary persisted requests"
+        assert status["summary"]["persisted_dry_run_result_count"] == 0, "activation approval decision dry-run status summary persisted results"
+        assert status["summary"]["persisted_approval_decision_count"] == 0, "activation approval decision dry-run status summary persisted decisions"
+        assert status["summary"]["decision_dry_run_post_called_by_status"] is False, "activation approval decision dry-run status summary called POST"
+        assert "getEventSubscriptionActivationApprovalDecisionDryRunStatusJson" in encoded, "Android activation approval decision dry-run status binding missing"
+        assert "event-subscription-activation-approval-decision-dry-run-status" in encoded, "Linux CLI activation approval decision dry-run status binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.dry.run.status" in encoded, "Linux IPC activation approval decision dry-run status binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionDryRunStatus" in encoded, "gRPC activation approval decision dry-run status binding missing"
+        assert "EV-ADB-001" in encoded and "EV-ADS-005" in encoded, "activation approval decision dry-run status missing blocker/status gate references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision dry-run status missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -3409,6 +3478,9 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-authority-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-authority-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-blocker-rollup >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

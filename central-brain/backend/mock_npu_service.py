@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.82"
+API_VERSION = "0.1.83"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -78,6 +78,7 @@ EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_AUTHORITY_CHECKLIST_REQ_IDS = EVENT_SUBSC
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_AUTHORITY_AUDIT_CONSISTENCY_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_BLOCKER_ROLLUP_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_STATUS_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -289,6 +290,7 @@ def event_topics_payload() -> dict[str, Any]:
                     "activation_approval_authority_audit_consistency_endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency",
                     "activation_approval_decision_blocker_rollup_endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
                     "activation_approval_decision_dry_run_endpoint": "POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+                    "activation_approval_decision_dry_run_status_endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status",
                     "filter_fields": ["topic", "source", "safety_state"],
                     "delivery_cursor": "event_id",
                     "backpressure": "drop-oldest-after-50-events",
@@ -448,22 +450,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "approval-decision-requested -> rejected_blocked_contract_only",
                     "side_effects": "request shape is validated without persisting request/result state, updating review queues, closing gates, activating broker/runtime paths, or touching Driver/HAL",
                 },
+                "activation_approval_decision_dry_run_status": {
+                    "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status",
+                    "state_transition": "decision-dry-run-contract-visible -> contract-only-approval-decision-dry-run-status-no-store",
+                    "side_effects": "status reads only contract metadata and blocker rollup state; it does not call the decision dry-run POST, persist last-result state, update review queues, close gates, activate broker/runtime paths, or touch Driver/HAL",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson/submitEventSubscriptionActivationEvidenceJson/getEventSubscriptionActivationEvidenceStatusJson/getEventSubscriptionActivationEvidenceRetentionChecklistJson/getEventSubscriptionActivationEvidenceDecisionStatusRollupJson/getEventSubscriptionActivationApprovalDryRunStatusJson/getEventSubscriptionActivationApprovalAuthorityChecklistJson/getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionBlockerRollupJson/dryRunEventSubscriptionActivationApprovalDecisionJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson/submitEventSubscriptionActivationEvidenceJson/getEventSubscriptionActivationEvidenceStatusJson/getEventSubscriptionActivationEvidenceRetentionChecklistJson/getEventSubscriptionActivationEvidenceDecisionStatusRollupJson/getEventSubscriptionActivationApprovalDryRunStatusJson/getEventSubscriptionActivationApprovalAuthorityChecklistJson/getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionBlockerRollupJson/dryRunEventSubscriptionActivationApprovalDecisionJson/getEventSubscriptionActivationApprovalDecisionDryRunStatusJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup/activation.evidence/activation.evidence.status/activation.evidence.retention.checklist/activation.evidence.decision.status.rollup/activation.approval.dry.run.status/activation.approval.authority.checklist/activation.approval.authority.audit.consistency/activation.approval.decision.blocker.rollup/activation.approval.decision.dry.run",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup/activation.evidence/activation.evidence.status/activation.evidence.retention.checklist/activation.evidence.decision.status.rollup/activation.approval.dry.run.status/activation.approval.authority.checklist/activation.approval.authority.audit.consistency/activation.approval.decision.blocker.rollup/activation.approval.decision.dry.run/activation.approval.decision.dry.run.status",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup/SubmitEventSubscriptionActivationEvidence/GetEventSubscriptionActivationEvidenceStatus/GetEventSubscriptionActivationEvidenceRetentionChecklist/GetEventSubscriptionActivationEvidenceDecisionStatusRollup/GetEventSubscriptionActivationApprovalDryRunStatus/GetEventSubscriptionActivationApprovalAuthorityChecklist/GetEventSubscriptionActivationApprovalAuthorityAuditConsistency/GetEventSubscriptionActivationApprovalDecisionBlockerRollup/DryRunEventSubscriptionActivationApprovalDecision",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup/SubmitEventSubscriptionActivationEvidence/GetEventSubscriptionActivationEvidenceStatus/GetEventSubscriptionActivationEvidenceRetentionChecklist/GetEventSubscriptionActivationEvidenceDecisionStatusRollup/GetEventSubscriptionActivationApprovalDryRunStatus/GetEventSubscriptionActivationApprovalAuthorityChecklist/GetEventSubscriptionActivationApprovalAuthorityAuditConsistency/GetEventSubscriptionActivationApprovalDecisionBlockerRollup/DryRunEventSubscriptionActivationApprovalDecision/GetEventSubscriptionActivationApprovalDecisionDryRunStatus",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -535,6 +542,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_activation_approval_authority_audit_consistency": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency",
             "rest_activation_approval_decision_blocker_rollup": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
             "rest_activation_approval_decision_dry_run": "POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+            "rest_activation_approval_decision_dry_run_status": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
@@ -554,6 +562,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "android_binder_activation_approval_authority_audit_consistency": "getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson",
             "android_binder_activation_approval_decision_blocker_rollup": "getEventSubscriptionActivationApprovalDecisionBlockerRollupJson",
             "android_binder_activation_approval_decision_dry_run": "dryRunEventSubscriptionActivationApprovalDecisionJson",
+            "android_binder_activation_approval_decision_dry_run_status": "getEventSubscriptionActivationApprovalDecisionDryRunStatusJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
@@ -573,6 +582,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_cli_activation_approval_authority_audit_consistency": "event-subscription-activation-approval-authority-audit-consistency",
             "linux_cli_activation_approval_decision_blocker_rollup": "event-subscription-activation-approval-decision-blocker-rollup",
             "linux_cli_activation_approval_decision_dry_run": "event-subscription-activation-approval-decision-dry-run",
+            "linux_cli_activation_approval_decision_dry_run_status": "event-subscription-activation-approval-decision-dry-run-status",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
@@ -592,6 +602,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_ipc_activation_approval_authority_audit_consistency": "uib.events.subscriptions.activation.approval.authority.audit.consistency",
             "linux_ipc_activation_approval_decision_blocker_rollup": "uib.events.subscriptions.activation.approval.decision.blocker.rollup",
             "linux_ipc_activation_approval_decision_dry_run": "uib.events.subscriptions.activation.approval.decision.dry.run",
+            "linux_ipc_activation_approval_decision_dry_run_status": "uib.events.subscriptions.activation.approval.decision.dry.run.status",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
@@ -611,6 +622,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_grpc_rpc_activation_approval_authority_audit_consistency": "CentralBrainGateway.GetEventSubscriptionActivationApprovalAuthorityAuditConsistency",
             "linux_grpc_rpc_activation_approval_decision_blocker_rollup": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionBlockerRollup",
             "linux_grpc_rpc_activation_approval_decision_dry_run": "CentralBrainGateway.DryRunEventSubscriptionActivationApprovalDecision",
+            "linux_grpc_rpc_activation_approval_decision_dry_run_status": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionDryRunStatus",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
@@ -628,6 +640,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "activation_approval_authority_audit_consistency_active": True,
             "activation_approval_decision_blocker_rollup_active": True,
             "activation_approval_decision_dry_run_active": True,
+            "activation_approval_decision_dry_run_status_active": True,
             "broker_active": False,
             "subscription_persistence_active": False,
             "cursor_storage_active": False,
@@ -3508,6 +3521,168 @@ def event_subscription_activation_approval_decision_dry_run_payload(request: dic
     return payload
 
 
+def event_subscription_activation_approval_decision_dry_run_status_payload() -> dict[str, Any]:
+    blocker_rollup = event_subscription_activation_approval_decision_blocker_rollup_payload()
+    open_blocker_ids = [
+        blocker["blocker_id"]
+        for blocker in blocker_rollup["decision_blockers"]
+        if blocker["open"]
+    ]
+
+    mandatory_gates = [
+        {
+            "gate_id": "EV-ADS-001",
+            "name": "decision-dry-run-contract-bound",
+            "required_evidence": "Status is bound to POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run request contract metadata.",
+            "passed": True,
+        },
+        {
+            "gate_id": "EV-ADS-002",
+            "name": "decision-blocker-rollup-bound",
+            "required_evidence": "Status reads the EV-ADB blocker rollup before reporting approval decision readiness.",
+            "passed": True,
+        },
+        {
+            "gate_id": "EV-ADS-003",
+            "name": "last-result-no-store-shape-declared",
+            "required_evidence": "Status declares last-result fields without creating a durable approval decision result store.",
+            "passed": True,
+        },
+        {
+            "gate_id": "EV-ADS-004",
+            "name": "zero-persisted-request-result-counts",
+            "required_evidence": "Dry-run request, dry-run result, and approval decision persisted counters remain zero.",
+            "passed": True,
+        },
+        {
+            "gate_id": "EV-ADS-005",
+            "name": "no-review-queue-gate-broker-side-effect",
+            "required_evidence": "Status does not update review queues, close gates, allow broker activation, or start runtime transports.",
+            "passed": True,
+        },
+        {
+            "gate_id": "EV-ADS-006",
+            "name": "open-blockers-keep-approval-blocked",
+            "required_evidence": "EV-ADB blocker rollup must report zero open blockers before approval decision status can pass.",
+            "passed": len(open_blocker_ids) == 0,
+        },
+        {
+            "gate_id": "EV-ADS-007",
+            "name": "android-linux-status-parity",
+            "required_evidence": "REST, Android Binder/Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent no-store status fields.",
+            "passed": True,
+        },
+        {
+            "gate_id": "EV-ADS-008",
+            "name": "no-driver-hal-virtualization-trigger",
+            "required_evidence": "Status never touches hardware, Driver/HAL, shared memory, Safety Runtime, or virtualization.",
+            "passed": True,
+        },
+    ]
+
+    return {
+        "operation": "event-subscription-activation-approval-decision-dry-run-status",
+        "approval_decision_dry_run_status_state": "contract-only-approval-decision-dry-run-status-no-store",
+        "approval_decision_dry_run_status_active": True,
+        "source_decision_dry_run_contract": {
+            "endpoint": "POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+            "operation": "event-subscription-activation-approval-decision-dry-run",
+            "contract_surface_active": True,
+            "expected_rejected_state": "rejected_blocked_contract_only",
+            "status_invokes_post": False,
+            "required_fields": [
+                "approval_request_id",
+                "source_decision_blocker_rollup_ref",
+                "target_gate_ids",
+                "approval_decision",
+                "approval_authority",
+                "reviewer",
+                "evidence_refs",
+                "rollback_plan_ref",
+                "runtime_governance_policy_ref",
+            ],
+        },
+        "source_decision_blocker_rollup": {
+            "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+            "active": blocker_rollup["summary"]["activation_approval_decision_blocker_rollup_active"],
+            "decision_blocker_rollup_complete": blocker_rollup["summary"]["decision_blocker_rollup_complete"],
+            "required_blocker_count": blocker_rollup["summary"]["required_blocker_count"],
+            "open_blocker_count": blocker_rollup["summary"]["open_blocker_count"],
+            "open_blocker_ids": open_blocker_ids,
+        },
+        "last_result_status": {
+            "last_approval_decision_result_available": False,
+            "last_result_ref": None,
+            "last_result_state": "not-created",
+            "persisted_dry_run_request_count": 0,
+            "persisted_dry_run_result_count": 0,
+            "persisted_approval_decision_count": 0,
+            "pending_approval_decision_review_count": 0,
+            "approved_gate_count": 0,
+            "approval_decision_passed": False,
+            "approval_result_store_active": False,
+            "approval_result_store_created": False,
+            "review_queue_updated": False,
+            "gate_state_changed": False,
+            "gates_closed": False,
+            "broker_activation_allowed": False,
+            "activation_allowed": False,
+        },
+        "mandatory_gates": mandatory_gates,
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status",
+            "android_binder": "getEventSubscriptionActivationApprovalDecisionDryRunStatusJson",
+            "linux_cli": "event-subscription-activation-approval-decision-dry-run-status",
+            "linux_ipc": "uib.events.subscriptions.activation.approval.decision.dry.run.status",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionDryRunStatus",
+        },
+        "summary": {
+            "activation_approval_decision_dry_run_status_active": True,
+            "source_decision_dry_run_contract_bound": True,
+            "source_decision_blocker_rollup_bound": True,
+            "decision_blocker_rollup_complete": blocker_rollup["summary"]["decision_blocker_rollup_complete"],
+            "required_blocker_count": blocker_rollup["summary"]["required_blocker_count"],
+            "open_blocker_count": blocker_rollup["summary"]["open_blocker_count"],
+            "last_approval_decision_result_available": False,
+            "persisted_dry_run_request_count": 0,
+            "persisted_dry_run_result_count": 0,
+            "persisted_approval_decision_count": 0,
+            "pending_approval_decision_review_count": 0,
+            "approved_gate_count": 0,
+            "decision_dry_run_post_called_by_status": False,
+            "approval_decision_status_passed": False,
+            "approval_decision_ready": False,
+            "approval_dry_run_allowed": False,
+            "approval_authority_ready": False,
+            "approval_result_store_active": False,
+            "approval_result_store_created": False,
+            "dry_run_request_persisted": False,
+            "dry_run_result_persisted": False,
+            "approval_decision_persisted": False,
+            "review_queue_updated": False,
+            "gate_state_changed": False,
+            "gates_closed": False,
+            "broker_activation_allowed": False,
+            "activation_allowed": False,
+            "production_activation_allowed": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "cursor_storage_active": False,
+            "event_delivery_qos_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_STATUS_REQ_IDS,
+    }
+
+
 def event_subscription_request_payload(request: dict[str, Any]) -> dict[str, Any]:
     trace_id = request.get("trace_id") or str(uuid.uuid4())
     subscription_id = str(request.get("subscription_id") or f"sub-{uuid.uuid4()}")
@@ -4524,6 +4699,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_subscription_activation_approval_authority_audit_consistency_payload()))
         elif path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup":
             self.send_json(200, envelope(event_subscription_activation_approval_decision_blocker_rollup_payload()))
+        elif path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status":
+            self.send_json(200, envelope(event_subscription_activation_approval_decision_dry_run_status_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))
