@@ -53,6 +53,12 @@
 
 ### 2026-07-09
 
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval decision owner handoff decision rollup contract：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup`，用于从 owner handoff audit consistency 和 owner handoff checklist 只读汇总 approval decision 仍被未分配 owner、缺少 handoff evidence、无 review queue/result store、无 gate closure authority、以及 DRV-GAP-004/005 高频 transport 决策阻塞，并固定 `EV-AHD-001..010` decision gates。
+  - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson`，Android Console 新增 `Sub ApHRoll` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-owner-handoff-decision-rollup`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup`、`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup` 可见路径。
+  - 本轮只完成 activation approval decision owner handoff decision rollup 只读视图，不分配 owner，不附加 evidence，不调用 decision dry-run POST，不持久化 handoff/request/result/approval/review state，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
+
 - 推进 FW-U-003/NV-P-006 Event subscription activation approval decision owner handoff audit consistency contract：
   - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency`，用于只读核对 `EV-ACH-001..010` owner handoff 与 `EV-ACB-001..010` closure blocker 的数量、source binding、open state、owner assignment、evidence attachment、no-store、Android/Linux parity、no-POST 和 no-side-effect 一致性，并固定 `EV-AHA-001..010` audit gates。
   - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson`，Android Console 新增 `Sub ApHAud` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-owner-handoff-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency`、`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency` 可见路径。

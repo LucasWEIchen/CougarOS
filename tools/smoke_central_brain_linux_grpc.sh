@@ -1382,6 +1382,103 @@ assert "EV-ACH-001" in encoded and "EV-AHA-010" in encoded and "EV-ACB-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_DECISION_ROLLUP_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-approval-decision-owner-handoff-decision-rollup)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_DECISION_ROLLUP_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+rollup = payload["gateway"]["payload"]
+encoded = json.dumps(rollup)
+gate_ids = {item["gate_id"] for item in rollup["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert rollup["operation"] == "event-subscription-activation-approval-decision-owner-handoff-decision-rollup", response
+assert rollup["approval_decision_owner_handoff_decision_rollup_state"] == "contract-only-owner-handoff-decision-blocked", response
+assert rollup["approval_decision_owner_handoff_decision_rollup_active"] is True, response
+assert {"EV-AHD-001", "EV-AHD-002", "EV-AHD-003", "EV-AHD-004", "EV-AHD-005", "EV-AHD-006", "EV-AHD-007", "EV-AHD-008", "EV-AHD-009", "EV-AHD-010"} <= gate_ids, response
+audit_source = rollup["source_surfaces"]["owner_handoff_audit_consistency"]
+checklist_source = rollup["source_surfaces"]["owner_handoff_checklist"]
+assert audit_source["active"] is True and audit_source["consistent"] is True, response
+assert audit_source["owner_handoff_ready"] is False, response
+assert checklist_source["active"] is True and checklist_source["complete"] is True, response
+assert checklist_source["owner_handoff_ready"] is False, response
+assert "EV-ACH-010" in audit_source["open_owner_handoff_ids"], response
+assert "EV-ACH-010" in checklist_source["open_owner_handoff_ids"], response
+assert len(rollup["decision_items"]) == 10, response
+for item in rollup["decision_items"]:
+    assert item["decision_state"] == "blocked", response
+    assert item["decision_blocked"] is True, response
+    assert item["open"] is True, response
+    assert item["owner_assigned"] is False, response
+    assert item["evidence_attached"] is False, response
+    assert item["review_queue_updated"] is False, response
+for key in [
+    "activation_approval_decision_owner_handoff_decision_rollup_active",
+    "decision_rollup_complete",
+    "decision_rollup_consistent",
+    "source_owner_handoff_audit_bound",
+    "source_owner_handoff_checklist_bound",
+    "owner_handoff_audit_consistent",
+    "owner_handoff_checklist_complete",
+    "owner_handoff_decision_blocked",
+    "no_store_consistent",
+    "no_post_consistent",
+    "no_side_effects_consistent",
+]:
+    assert rollup["summary"][key] is True, response
+for key in [
+    "owner_handoff_decision_ready",
+    "approval_decision_ready",
+    "approval_dry_run_allowed",
+    "handoff_evidence_ready",
+    "owner_assignments_persisted",
+    "owner_handoff_queue_updated",
+    "decision_dry_run_post_called_by_owner_handoff_decision_rollup",
+    "approval_result_store_created",
+    "approval_result_store_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "production_activation_allowed",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "event_delivery_qos_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert rollup["summary"][key] is False, response
+assert rollup["summary"]["owner_handoff_decision_rollup_state"] == "contract-only-owner-handoff-decision-blocked", response
+assert rollup["summary"]["decision"] == "blocked-by-unassigned-owners-and-missing-evidence", response
+assert rollup["summary"]["required_decision_count"] == 10, response
+assert rollup["summary"]["blocked_decision_count"] == 10, response
+assert rollup["summary"]["required_owner_handoff_count"] == 10, response
+assert rollup["summary"]["open_owner_handoff_count"] == 10, response
+assert rollup["summary"]["assigned_owner_count"] == 0, response
+assert rollup["summary"]["unassigned_owner_count"] == 10, response
+assert rollup["summary"]["attached_evidence_count"] == 0, response
+assert rollup["summary"]["persisted_dry_run_request_count"] == 0, response
+assert rollup["summary"]["persisted_dry_run_result_count"] == 0, response
+assert rollup["summary"]["persisted_approval_decision_count"] == 0, response
+assert rollup["summary"]["pending_approval_decision_review_count"] == 0, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-decision-rollup" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup" in encoded, response
+assert "EV-ACH-001" in encoded and "EV-AHA-010" in encoded and "EV-AHD-010" in encoded and "EV-ACB-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

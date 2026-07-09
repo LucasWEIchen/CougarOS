@@ -148,6 +148,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency",
         {},
     ),
+    "event-subscription-activation-approval-decision-owner-handoff-decision-rollup": (
+        "uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup",
+        {},
+    ),
     "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),

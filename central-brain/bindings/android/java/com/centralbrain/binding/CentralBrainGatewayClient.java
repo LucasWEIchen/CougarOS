@@ -170,6 +170,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson(traceId);
     }
 
+    public String getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson(String traceId) throws RemoteException {
+        return requireGateway().getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson(traceId);
+    }
+
     public String getUibExtensionsJson(String traceId) throws RemoteException {
         return requireGateway().getUibExtensionsJson(traceId);
     }
