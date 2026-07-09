@@ -578,6 +578,20 @@ Event subscription activation approval decision dry-run status 按 FW-U-003、NV
 `broker_activation_allowed=false`、`activation_allowed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不调用 dry-run POST，
 不保存 last-result/request/result/approval decision，不创建 result store/review queue，不关闭 gate，不激活 broker/DDS/high-rate data plane，不触发 Driver/HAL 或虚拟化层。
 
+Event subscription activation approval decision dry-run audit consistency 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency`、Android Binder
+`getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson`、Android Console `Sub ApDAudit`、Linux CLI
+`event-subscription-activation-approval-decision-dry-run-audit-consistency`、Linux IPC
+`uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency` 与 Linux gRPC/RPC
+`GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency` 查询。该 audit consistency 只报告 `EV-ADA-001..008`，只读核对 decision blocker rollup、
+decision dry-run request contract、decision dry-run no-store status、Android/Linux parity、zero persisted counters 和 no-side-effect 边界；固定
+`consistency_passed=true`、`source_decision_dry_run_contract_bound=true`、`source_decision_blocker_rollup_bound=true`、`blocker_count_consistent=true`、
+`no_store_consistent=true`、`decision_dry_run_rejection_consistent=true`、`android_linux_parity_consistent=true`、`no_side_effects_consistent=true`、
+`decision_dry_run_post_called_by_audit_consistency=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、
+`persisted_approval_decision_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、
+`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不调用 dry-run POST，不保存 request/result/approval decision，
+不创建 result store/review queue，不关闭 gate，不激活 broker/DDS/high-rate data plane，不触发 Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC

@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.83",
+  "version": "0.1.84",
   "updated": "2026-07-09",
   "transport": {
     "prototype": "http-json",
@@ -3377,6 +3377,257 @@
           "pending_approval_decision_review_count": 0,
           "approved_gate_count": 0,
           "decision_dry_run_post_called_by_status": false,
+          "approval_decision_status_passed": false,
+          "approval_decision_ready": false,
+          "approval_dry_run_allowed": false,
+          "approval_authority_ready": false,
+          "approval_result_store_active": false,
+          "approval_result_store_created": false,
+          "dry_run_request_persisted": false,
+          "dry_run_result_persisted": false,
+          "approval_decision_persisted": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "broker_activation_allowed": false,
+          "activation_allowed": false,
+          "production_activation_allowed": false,
+          "broker_active": false,
+          "subscription_persistence_active": false,
+          "cursor_storage_active": false,
+          "event_delivery_qos_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "req_ids": [
+          "XSC-002",
+          "FW-U-003",
+          "XSC-005",
+          "XSC-006",
+          "NV-P-002",
+          "NV-P-003",
+          "NV-P-006",
+          "DEL-001",
+          "DEL-002",
+          "DEL-004"
+        ]
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency",
+      "description": "Returns the contract-only audit consistency view for Event subscription activation approval decision dry-run/status and blocker rollup without calling the POST dry-run path, persisting request/result/approval state, updating review queues, closing gates, activating broker/runtime paths, touching Driver/HAL, or implementing virtualization.",
+      "response": {
+        "operation": "event-subscription-activation-approval-decision-dry-run-audit-consistency",
+        "approval_decision_dry_run_audit_state": "contract-only-approval-decision-dry-run-audit-consistent",
+        "approval_decision_dry_run_audit_consistency_active": true,
+        "source_surfaces": {
+          "decision_dry_run_contract": {
+            "endpoint": "POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run",
+            "active": true,
+            "post_called_by_audit_consistency": false,
+            "expected_rejected_state": "rejected_blocked_contract_only",
+            "required_fields": [
+              "approval_request_id",
+              "source_decision_blocker_rollup_ref",
+              "target_gate_ids",
+              "approval_decision",
+              "approval_authority",
+              "reviewer",
+              "evidence_refs",
+              "rollback_plan_ref",
+              "runtime_governance_policy_ref"
+            ]
+          },
+          "decision_dry_run_status": {
+            "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status",
+            "active": true,
+            "gate_ids": [
+              "EV-ADS-001",
+              "EV-ADS-002",
+              "EV-ADS-003",
+              "EV-ADS-004",
+              "EV-ADS-005",
+              "EV-ADS-006",
+              "EV-ADS-007",
+              "EV-ADS-008"
+            ],
+            "post_called_by_status": false,
+            "last_approval_decision_result_available": false,
+            "persisted_dry_run_request_count": 0,
+            "persisted_dry_run_result_count": 0,
+            "persisted_approval_decision_count": 0
+          },
+          "decision_blocker_rollup": {
+            "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup",
+            "active": true,
+            "required_blocker_count": 8,
+            "open_blocker_count": 7,
+            "open_blocker_ids": [
+              "EV-ADB-001",
+              "EV-ADB-002",
+              "EV-ADB-003",
+              "EV-ADB-004",
+              "EV-ADB-005",
+              "EV-ADB-006",
+              "EV-ADB-007"
+            ]
+          }
+        },
+        "audit_findings": [
+          {
+            "finding_id": "EV-ADA-AUD-001",
+            "area": "source-status",
+            "expected": "Dry-run no-store status endpoint is active and read-only.",
+            "observed": "active",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-ADA-AUD-002",
+            "area": "source-dry-run-contract",
+            "expected": "Audit is bound to POST dry-run contract metadata without invoking POST.",
+            "observed": "bound-no-post",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-ADA-AUD-003",
+            "area": "source-blocker-rollup",
+            "expected": "EV-ADB blocker rollup is complete and still reports open blockers.",
+            "observed": "7 open blockers",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-ADA-AUD-004",
+            "area": "blocker-count",
+            "expected": "Status and blocker rollup expose the same required/open blocker counts.",
+            "observed": "7/8 open",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-ADA-AUD-005",
+            "area": "no-store",
+            "expected": "No request, result, last-result, approval decision, or review count is persisted.",
+            "observed": "no-store",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-ADA-AUD-006",
+            "area": "decision-rejection",
+            "expected": "Dry-run remains rejected/blocked while EV-ADB blockers are open.",
+            "observed": "blocked",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-ADA-AUD-007",
+            "area": "android-linux-parity",
+            "expected": "REST, Android Binder/Console, Linux CLI, Linux IPC, and Linux gRPC names are paired.",
+            "observed": "paired",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-ADA-AUD-008",
+            "area": "no-side-effect",
+            "expected": "Audit does not close gates, activate broker, touch hardware, dispatch services, or trigger Driver/HAL/virtualization.",
+            "observed": "no-side-effects",
+            "consistent": true
+          }
+        ],
+        "mandatory_gates": [
+          {
+            "gate_id": "EV-ADA-001",
+            "name": "source-status-bound",
+            "required_evidence": "Audit reads dry-run no-store status without invoking POST endpoints.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADA-002",
+            "name": "source-dry-run-contract-bound-no-post",
+            "required_evidence": "Audit binds the POST dry-run request contract metadata while keeping post_called_by_audit_consistency false.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADA-003",
+            "name": "source-blocker-rollup-bound",
+            "required_evidence": "Audit reads the EV-ADB blocker rollup and sees the complete blocked decision state.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADA-004",
+            "name": "blocker-count-consistent",
+            "required_evidence": "Status open blocker counters match EV-ADB blocker rollup counters.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADA-005",
+            "name": "no-store-counters-consistent",
+            "required_evidence": "Request/result/approval decision/last-result/review counters remain zero or unavailable.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADA-006",
+            "name": "decision-rejection-consistent",
+            "required_evidence": "Dry-run rejection remains consistent while EV-ADB blockers are open.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADA-007",
+            "name": "android-linux-audit-parity",
+            "required_evidence": "REST, Android Binder/Console, Linux CLI, Linux IPC, Linux gRPC/RPC, docs, and smoke tests expose equivalent audit fields.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-ADA-008",
+            "name": "no-side-effect-audit",
+            "required_evidence": "Audit performs no persistence, review queue update, gate closure, broker activation, hardware access, Driver/HAL work, service dispatch, or virtualization work.",
+            "passed": true
+          }
+        ],
+        "api_surface": {
+          "rest": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency",
+          "android_binder": "getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson",
+          "linux_cli": "event-subscription-activation-approval-decision-dry-run-audit-consistency",
+          "linux_ipc": "uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency"
+        },
+        "summary": {
+          "activation_approval_decision_dry_run_audit_consistency_active": true,
+          "consistency_passed": true,
+          "source_status_bound": true,
+          "source_decision_dry_run_contract_bound": true,
+          "source_decision_blocker_rollup_bound": true,
+          "blocker_count_consistent": true,
+          "no_store_consistent": true,
+          "decision_dry_run_rejection_consistent": true,
+          "android_linux_parity_consistent": true,
+          "no_side_effects_consistent": true,
+          "decision_dry_run_post_called_by_audit_consistency": false,
+          "last_approval_decision_result_available": false,
+          "persisted_dry_run_request_count": 0,
+          "persisted_dry_run_result_count": 0,
+          "persisted_approval_decision_count": 0,
+          "pending_approval_decision_review_count": 0,
+          "decision_blocker_rollup_complete": true,
+          "required_blocker_count": 8,
+          "open_blocker_count": 7,
           "approval_decision_status_passed": false,
           "approval_decision_ready": false,
           "approval_dry_run_allowed": false,

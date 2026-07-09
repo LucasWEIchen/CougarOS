@@ -168,6 +168,7 @@ checks = [
         "NV-P-006",
     ),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3365,6 +3366,72 @@ for method, path, body, req_id in checks:
         assert "GetEventSubscriptionActivationApprovalDecisionDryRunStatus" in encoded, "gRPC activation approval decision dry-run status binding missing"
         assert "EV-ADB-001" in encoded and "EV-ADS-005" in encoded, "activation approval decision dry-run status missing blocker/status gate references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision dry-run status missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency":
+        audit = payload["payload"]
+        encoded = json.dumps(audit)
+        gate_ids = {item["gate_id"] for item in audit["mandatory_gates"]}
+        assert audit["operation"] == "event-subscription-activation-approval-decision-dry-run-audit-consistency", "activation approval decision dry-run audit operation mismatch"
+        assert audit["approval_decision_dry_run_audit_state"] == "contract-only-approval-decision-dry-run-audit-consistent", "activation approval decision dry-run audit wrong state"
+        assert audit["approval_decision_dry_run_audit_consistency_active"] is True, "activation approval decision dry-run audit inactive"
+        assert {"EV-ADA-001", "EV-ADA-002", "EV-ADA-003", "EV-ADA-004", "EV-ADA-005", "EV-ADA-006", "EV-ADA-007", "EV-ADA-008"} <= gate_ids, "activation approval decision dry-run audit missing EV-ADA gates"
+        assert audit["source_surfaces"]["decision_dry_run_contract"]["post_called_by_audit_consistency"] is False, "activation approval decision dry-run audit called POST"
+        assert audit["source_surfaces"]["decision_dry_run_status"]["post_called_by_status"] is False, "activation approval decision dry-run audit saw status POST call"
+        assert audit["source_surfaces"]["decision_dry_run_status"]["persisted_dry_run_request_count"] == 0, "activation approval decision dry-run audit saw persisted requests"
+        assert audit["source_surfaces"]["decision_dry_run_status"]["persisted_dry_run_result_count"] == 0, "activation approval decision dry-run audit saw persisted results"
+        assert audit["source_surfaces"]["decision_dry_run_status"]["persisted_approval_decision_count"] == 0, "activation approval decision dry-run audit saw persisted approval decisions"
+        assert audit["source_surfaces"]["decision_blocker_rollup"]["open_blocker_count"] > 0, "activation approval decision dry-run audit unexpectedly has no open blockers"
+        for key in [
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "approval_result_store_created",
+            "dry_run_request_persisted",
+            "dry_run_result_persisted",
+            "approval_decision_persisted",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert audit["summary"][key] is False, f"activation approval decision dry-run audit summary unexpectedly set {key}"
+        for key in [
+            "activation_approval_decision_dry_run_audit_consistency_active",
+            "consistency_passed",
+            "source_status_bound",
+            "source_decision_dry_run_contract_bound",
+            "source_decision_blocker_rollup_bound",
+            "blocker_count_consistent",
+            "no_store_consistent",
+            "decision_dry_run_rejection_consistent",
+            "android_linux_parity_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert audit["summary"][key] is True, f"activation approval decision dry-run audit summary did not set {key}"
+        assert audit["summary"]["decision_dry_run_post_called_by_audit_consistency"] is False, "activation approval decision dry-run audit summary called POST"
+        assert audit["summary"]["persisted_dry_run_request_count"] == 0, "activation approval decision dry-run audit summary persisted requests"
+        assert audit["summary"]["persisted_dry_run_result_count"] == 0, "activation approval decision dry-run audit summary persisted results"
+        assert audit["summary"]["persisted_approval_decision_count"] == 0, "activation approval decision dry-run audit summary persisted decisions"
+        assert audit["summary"]["open_blocker_count"] > 0, "activation approval decision dry-run audit summary lost open blockers"
+        assert "getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson" in encoded, "Android activation approval decision dry-run audit binding missing"
+        assert "event-subscription-activation-approval-decision-dry-run-audit-consistency" in encoded, "Linux CLI activation approval decision dry-run audit binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency" in encoded, "Linux IPC activation approval decision dry-run audit binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency" in encoded, "gRPC activation approval decision dry-run audit binding missing"
+        assert "EV-ADS-001" in encoded and "EV-ADA-005" in encoded, "activation approval decision dry-run audit missing status/audit gate references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision dry-run audit missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -3481,6 +3548,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-blocker-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

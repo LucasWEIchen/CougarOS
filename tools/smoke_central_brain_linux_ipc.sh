@@ -1046,6 +1046,69 @@ assert "GetEventSubscriptionActivationApprovalDecisionDryRunStatus" in encoded, 
 assert "EV-ADB-001" in encoded and "EV-ADS-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-dry-run-audit-consistency)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_DRY_RUN_AUDIT_CONSISTENCY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "event-subscription-activation-approval-decision-dry-run-audit-consistency", response
+assert payload["approval_decision_dry_run_audit_state"] == "contract-only-approval-decision-dry-run-audit-consistent", response
+assert payload["approval_decision_dry_run_audit_consistency_active"] is True, response
+assert {"EV-ADA-001", "EV-ADA-002", "EV-ADA-003", "EV-ADA-004", "EV-ADA-005", "EV-ADA-006", "EV-ADA-007", "EV-ADA-008"} <= gate_ids, response
+assert payload["source_surfaces"]["decision_dry_run_contract"]["post_called_by_audit_consistency"] is False, response
+assert payload["source_surfaces"]["decision_dry_run_status"]["post_called_by_status"] is False, response
+assert payload["source_surfaces"]["decision_dry_run_status"]["persisted_dry_run_request_count"] == 0, response
+assert payload["source_surfaces"]["decision_dry_run_status"]["persisted_dry_run_result_count"] == 0, response
+assert payload["source_surfaces"]["decision_dry_run_status"]["persisted_approval_decision_count"] == 0, response
+assert payload["source_surfaces"]["decision_blocker_rollup"]["open_blocker_count"] > 0, response
+for key in [
+    "approval_decision_ready",
+    "approval_dry_run_allowed",
+    "approval_result_store_created",
+    "dry_run_request_persisted",
+    "dry_run_result_persisted",
+    "approval_decision_persisted",
+    "review_queue_updated",
+    "gates_closed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "broker_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+for key in [
+    "activation_approval_decision_dry_run_audit_consistency_active",
+    "consistency_passed",
+    "source_status_bound",
+    "source_decision_dry_run_contract_bound",
+    "source_decision_blocker_rollup_bound",
+    "blocker_count_consistent",
+    "no_store_consistent",
+    "decision_dry_run_rejection_consistent",
+    "android_linux_parity_consistent",
+    "no_side_effects_consistent",
+]:
+    assert payload["summary"][key] is True, response
+assert payload["summary"]["decision_dry_run_post_called_by_audit_consistency"] is False, response
+assert payload["summary"]["persisted_dry_run_request_count"] == 0, response
+assert payload["summary"]["persisted_dry_run_result_count"] == 0, response
+assert payload["summary"]["persisted_approval_decision_count"] == 0, response
+assert payload["summary"]["open_blocker_count"] > 0, response
+assert "getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson" in encoded, response
+assert "event-subscription-activation-approval-decision-dry-run-audit-consistency" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency" in encoded, response
+assert "EV-ADS-001" in encoded and "EV-ADA-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
