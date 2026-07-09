@@ -117,7 +117,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003"],
     },
     {
-        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-audit-consistency-decision-blocker-rollup-decision-dry-run-contract-decision-dry-run-status-decision-dry-run-audit-consistency-closure-blocker-matrix-owner-handoff-checklist-owner-handoff-audit-consistency-owner-handoff-decision-rollup-and-owner-handoff-evidence-readiness-matrix",
+        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-audit-consistency-decision-blocker-rollup-decision-dry-run-contract-decision-dry-run-status-decision-dry-run-audit-consistency-closure-blocker-matrix-owner-handoff-checklist-owner-handoff-audit-consistency-owner-handoff-decision-rollup-owner-handoff-evidence-readiness-matrix-and-owner-handoff-evidence-readiness-audit-consistency",
         "platform": "Android/Linux",
         "current_state": "contract-only-not-brokered-with-activation-evidence-retention-owner-decisions-blocked",
         "ready_for": [
@@ -147,6 +147,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "activation approval decision owner handoff audit consistency review",
             "activation approval decision owner handoff decision rollup review",
             "activation approval decision owner handoff evidence readiness matrix review",
+            "activation approval decision owner handoff evidence readiness audit consistency review",
             "Android Binder and Linux IPC/gRPC parity inspection before a real broker is selected",
         ],
         "artifacts": [
@@ -176,6 +177,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency",
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup",
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix",
+            "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency",
             "Android Binder getEventSubscriptionsJson",
             "Android Binder requestEventSubscriptionJson",
             "Android Binder cancelEventSubscriptionJson",
@@ -202,6 +204,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Android Binder getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson",
             "Android Binder getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson",
             "Android Binder getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson",
+            "Android Binder getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyJson",
             "Linux CLI event-subscriptions",
             "Linux CLI event-subscribe-request",
             "Linux CLI event-subscribe-cancel",
@@ -228,6 +231,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux CLI event-subscription-activation-approval-decision-owner-handoff-audit-consistency",
             "Linux CLI event-subscription-activation-approval-decision-owner-handoff-decision-rollup",
             "Linux CLI event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix",
+            "Linux CLI event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-audit-consistency",
             "Linux IPC uib.events.subscriptions.get",
             "Linux IPC uib.events.subscriptions.request",
             "Linux IPC uib.events.subscriptions.cancel",
@@ -254,6 +258,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux IPC uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency",
             "Linux IPC uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup",
             "Linux IPC uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix",
+            "Linux IPC uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.audit.consistency",
             "Linux gRPC/RPC GetEventSubscriptions",
             "Linux gRPC/RPC RequestEventSubscription",
             "Linux gRPC/RPC CancelEventSubscription",
@@ -280,6 +285,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency",
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup",
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix",
+            "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistency",
         ],
         "validation": [
             "bash tools/smoke_central_brain_semantic_gateway.sh",
