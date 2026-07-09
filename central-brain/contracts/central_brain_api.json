@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.79",
+  "version": "0.1.80",
   "updated": "2026-07-09",
   "transport": {
     "prototype": "http-json",
@@ -1890,6 +1890,231 @@
           "last_result_available": false,
           "persisted_dry_run_count": 0,
           "pending_approval_count": 0,
+          "approval_result_store_created": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "activation_allowed": false,
+          "broker_activation_ready": false,
+          "production_activation_allowed": false,
+          "broker_active": false,
+          "subscription_persistence_active": false,
+          "cursor_storage_active": false,
+          "event_delivery_qos_active": false,
+          "callback_registered": false,
+          "watch_started": false,
+          "dds_runtime_active": false,
+          "sse_websocket_active": false,
+          "high_rate_data_plane_active": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "req_ids": [
+          "XSC-002",
+          "FW-U-003",
+          "XSC-005",
+          "XSC-006",
+          "NV-P-002",
+          "NV-P-003",
+          "NV-P-006",
+          "DEL-001",
+          "DEL-002",
+          "DEL-004"
+        ]
+      },
+      "req_ids": [
+        "XSC-002",
+        "FW-U-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-P-002",
+        "NV-P-003",
+        "NV-P-006",
+        "DEL-001",
+        "DEL-002",
+        "DEL-004"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency",
+      "description": "Returns the contract-only activation approval authority audit consistency view across authority checklist, approval dry-run status, decision status rollup, Android/Linux parity, and no-side-effect counters without approval dry-run, persistence, review queue update, gate closure, broker activation, Driver/HAL work, or virtualization work.",
+      "response": {
+        "operation": "event-subscription-activation-approval-authority-audit-consistency",
+        "approval_authority_audit_state": "contract-only-approval-authority-audit-consistent",
+        "approval_authority_audit_consistency_active": true,
+        "source_surfaces": {
+          "authority_checklist": {
+            "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist",
+            "active": true,
+            "authority_gate_ids": [
+              "EV-AAA-001",
+              "EV-AAA-002",
+              "EV-AAA-003",
+              "EV-AAA-004",
+              "EV-AAA-005",
+              "EV-AAA-006",
+              "EV-AAA-007",
+              "EV-AAA-008"
+            ],
+            "required_authority_item_count": 8,
+            "unresolved_authority_item_count": 8
+          },
+          "approval_dry_run_status": {
+            "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status",
+            "active": true,
+            "approval_dry_run_invoked": false,
+            "persisted_dry_run_count": 0
+          },
+          "decision_status_rollup": {
+            "endpoint": "GET /uib/events/subscriptions/activation-evidence/decision-status-rollup",
+            "consistent": true,
+            "passed": false,
+            "activation_allowed": false
+          }
+        },
+        "audit_findings": [
+          {
+            "finding_id": "EV-AAC-AUD-001",
+            "area": "source-authority-checklist",
+            "expected": "Authority checklist endpoint is active and still read-only.",
+            "observed": "active",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-AAC-AUD-002",
+            "area": "source-approval-dry-run-status",
+            "expected": "Approval dry-run status is bound without invoking a POST command.",
+            "observed": "bound-no-post",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-AAC-AUD-003",
+            "area": "source-decision-status-rollup",
+            "expected": "Decision status rollup is internally consistent and still blocked.",
+            "observed": "consistent-blocked",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-AAC-AUD-004",
+            "area": "authority-item-count",
+            "expected": "Authority item count matches summary and all authority items remain unresolved.",
+            "observed": "8/8 unresolved",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-AAC-AUD-005",
+            "area": "blocker-state",
+            "expected": "Approval authority remains not ready while open decisions still block activation and parity is already resolved.",
+            "observed": "7 blocking decisions open",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-AAC-AUD-006",
+            "area": "no-store",
+            "expected": "No dry-run result, approval result store, or review queue state exists.",
+            "observed": "no-store",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-AAC-AUD-007",
+            "area": "android-linux-parity",
+            "expected": "REST, Android Binder, Linux CLI, Linux IPC, and Linux gRPC names are paired.",
+            "observed": "paired",
+            "consistent": true
+          },
+          {
+            "finding_id": "EV-AAC-AUD-008",
+            "area": "no-side-effect",
+            "expected": "Audit endpoint does not close gates, activate broker, touch hardware, or trigger Driver/HAL/virtualization.",
+            "observed": "no-side-effects",
+            "consistent": true
+          }
+        ],
+        "mandatory_gates": [
+          {
+            "gate_id": "EV-AAC-001",
+            "name": "source-authority-checklist-bound",
+            "required_evidence": "Audit reads the authority checklist without invoking POST endpoints.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAC-002",
+            "name": "source-approval-dry-run-status-bound",
+            "required_evidence": "Audit reads approval dry-run no-store status without invoking a dry-run command.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAC-003",
+            "name": "source-decision-status-rollup-bound",
+            "required_evidence": "Audit binds the upstream activation evidence decision status rollup.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAC-004",
+            "name": "authority-item-count-consistent",
+            "required_evidence": "Authority item count, unresolved item count, and summary counters match.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAC-005",
+            "name": "blocker-state-consistent",
+            "required_evidence": "Approval authority remains blocked while open decisions stay open and parity remains resolved.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAC-006",
+            "name": "no-store-audit-consistent",
+            "required_evidence": "Audit confirms no dry-run result store, approval result store, or review queue state exists.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAC-007",
+            "name": "android-linux-audit-parity",
+            "required_evidence": "REST, Android Binder/Console, Linux CLI/IPC/gRPC, docs, and smoke tests expose equivalent audit fields.",
+            "passed": true
+          },
+          {
+            "gate_id": "EV-AAC-008",
+            "name": "no-side-effect-audit",
+            "required_evidence": "Audit performs no persistence, gate closure, broker activation, hardware access, Driver/HAL work, or virtualization work.",
+            "passed": true
+          }
+        ],
+        "api_surface": {
+          "rest": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency",
+          "android_binder": "getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson",
+          "linux_cli": "event-subscription-activation-approval-authority-audit-consistency",
+          "linux_ipc": "uib.events.subscriptions.activation.approval.authority.audit.consistency",
+          "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationApprovalAuthorityAuditConsistency"
+        },
+        "summary": {
+          "activation_approval_authority_audit_consistency_active": true,
+          "consistency_passed": true,
+          "source_authority_checklist_bound": true,
+          "source_approval_dry_run_status_bound": true,
+          "source_decision_status_rollup_bound": true,
+          "authority_item_count_consistent": true,
+          "authority_blocker_state_consistent": true,
+          "approval_no_store_consistent": true,
+          "android_linux_parity_consistent": true,
+          "no_side_effects_consistent": true,
+          "approval_authority_ready": false,
+          "approval_authority_assigned": false,
+          "approval_policy_confirmed": false,
+          "approval_signature_rbac_confirmed": false,
+          "approval_result_store_active": false,
+          "review_queue_owner_assigned": false,
+          "gate_closure_authority_assigned": false,
+          "broker_activation_owner_assigned": false,
+          "driver_gap_review_owner_assigned": false,
+          "required_authority_item_count": 8,
+          "unresolved_authority_item_count": 8,
+          "blocking_decision_count": 7,
+          "approval_dry_run_invoked": false,
+          "persisted_dry_run_count": 0,
           "approval_result_store_created": false,
           "review_queue_updated": false,
           "gate_state_changed": false,

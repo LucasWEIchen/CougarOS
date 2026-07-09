@@ -797,6 +797,106 @@ assert "GetEventSubscriptionActivationApprovalDryRunStatus" in encoded, response
 assert "EV-AAS-004" in encoded and "approval-authority" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_AUTHORITY_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-authority-checklist)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_AUTHORITY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["approval_authority_checklist_state"] == "contract-only-approval-authority-blocked", response
+assert payload["approval_authority_checklist_active"] is True, response
+assert payload["source_approval_dry_run_status"]["active"] is True, response
+assert payload["source_approval_dry_run_status"]["approval_dry_run_invoked"] is False, response
+assert {"EV-AAA-001", "EV-AAA-002", "EV-AAA-003", "EV-AAA-004", "EV-AAA-005", "EV-AAA-006", "EV-AAA-007", "EV-AAA-008"} <= gate_ids, response
+assert payload["summary"]["activation_approval_authority_checklist_active"] is True, response
+assert payload["summary"]["source_approval_dry_run_status_bound"] is True, response
+assert payload["summary"]["approval_authority_checklist_complete"] is True, response
+assert payload["summary"]["required_authority_item_count"] == payload["summary"]["unresolved_authority_item_count"], response
+for key in [
+    "approval_authority_ready",
+    "approval_authority_assigned",
+    "approval_policy_confirmed",
+    "approval_signature_rbac_confirmed",
+    "approval_result_store_active",
+    "review_queue_owner_assigned",
+    "gate_closure_authority_assigned",
+    "broker_activation_owner_assigned",
+    "driver_gap_review_owner_assigned",
+    "approval_dry_run_invoked",
+    "approval_result_store_created",
+    "review_queue_updated",
+    "gates_closed",
+    "activation_allowed",
+    "broker_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert "getEventSubscriptionActivationApprovalAuthorityChecklistJson" in encoded, response
+assert "event-subscription-activation-approval-authority-checklist" in encoded, response
+assert "uib.events.subscriptions.activation.approval.authority.checklist" in encoded, response
+assert "GetEventSubscriptionActivationApprovalAuthorityChecklist" in encoded, response
+assert "EV-AAA-004" in encoded and "signature-rbac" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_AUTHORITY_AUDIT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-authority-audit-consistency)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_AUTHORITY_AUDIT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+finding_ids = {item["finding_id"] for item in payload["audit_findings"]}
+assert response["status"] == "ok", response
+assert payload["approval_authority_audit_state"] == "contract-only-approval-authority-audit-consistent", response
+assert payload["approval_authority_audit_consistency_active"] is True, response
+assert {"EV-AAC-001", "EV-AAC-002", "EV-AAC-003", "EV-AAC-004", "EV-AAC-005", "EV-AAC-006", "EV-AAC-007", "EV-AAC-008"} <= gate_ids, response
+assert {"EV-AAC-AUD-001", "EV-AAC-AUD-002", "EV-AAC-AUD-003", "EV-AAC-AUD-004", "EV-AAC-AUD-005", "EV-AAC-AUD-006", "EV-AAC-AUD-007", "EV-AAC-AUD-008"} <= finding_ids, response
+assert all(item["consistent"] is True for item in payload["audit_findings"]), response
+for key in [
+    "activation_approval_authority_audit_consistency_active",
+    "consistency_passed",
+    "source_authority_checklist_bound",
+    "source_approval_dry_run_status_bound",
+    "source_decision_status_rollup_bound",
+    "authority_item_count_consistent",
+    "authority_blocker_state_consistent",
+    "approval_no_store_consistent",
+    "android_linux_parity_consistent",
+    "no_side_effects_consistent",
+]:
+    assert payload["summary"][key] is True, response
+for key in [
+    "approval_authority_ready",
+    "approval_dry_run_invoked",
+    "approval_result_store_created",
+    "review_queue_updated",
+    "gates_closed",
+    "activation_allowed",
+    "broker_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["required_authority_item_count"] == payload["summary"]["unresolved_authority_item_count"], response
+assert payload["summary"]["persisted_dry_run_count"] == 0, response
+assert "getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson" in encoded, response
+assert "event-subscription-activation-approval-authority-audit-consistency" in encoded, response
+assert "uib.events.subscriptions.activation.approval.authority.audit.consistency" in encoded, response
+assert "GetEventSubscriptionActivationApprovalAuthorityAuditConsistency" in encoded, response
+assert "EV-AAC-006" in encoded and "no-store" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

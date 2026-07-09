@@ -132,6 +132,8 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/retention-checklist", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/decision-status-rollup", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-dry-run/status", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3069,6 +3071,132 @@ for method, path, body, req_id in checks:
         assert "GetEventSubscriptionActivationApprovalDryRunStatus" in encoded, "gRPC activation approval dry-run status binding missing"
         assert "EV-AAS-004" in encoded and "approval-authority" in encoded, "activation approval dry-run status missing approval authority blocker"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval dry-run status missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist":
+        authority = payload["payload"]
+        encoded = json.dumps(authority)
+        gate_ids = {item["gate_id"] for item in authority["mandatory_gates"]}
+        unresolved_items = [item for item in authority["authority_items"] if not item["ready"]]
+        assert authority["operation"] == "event-subscription-activation-approval-authority-checklist", "activation approval authority checklist operation mismatch"
+        assert authority["approval_authority_checklist_state"] == "contract-only-approval-authority-blocked", "activation approval authority checklist left blocked contract state"
+        assert authority["approval_authority_checklist_active"] is True, "activation approval authority checklist is not active"
+        assert authority["source_approval_dry_run_status"]["active"] is True, "activation approval authority checklist lost dry-run status source"
+        assert authority["source_approval_dry_run_status"]["approval_dry_run_invoked"] is False, "activation approval authority checklist invoked dry-run"
+        assert {"EV-AAA-001", "EV-AAA-002", "EV-AAA-003", "EV-AAA-004", "EV-AAA-005", "EV-AAA-006", "EV-AAA-007", "EV-AAA-008"} <= gate_ids, "activation approval authority checklist missing gates"
+        assert len(unresolved_items) == len(authority["authority_items"]), "activation approval authority checklist unexpectedly resolved an item"
+        for key in [
+            "approval_authority_ready",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_signature_rbac_confirmed",
+            "approval_result_store_active",
+            "review_queue_owner_assigned",
+            "gate_closure_authority_assigned",
+            "broker_activation_owner_assigned",
+            "driver_gap_review_owner_assigned",
+            "approval_dry_run_invoked",
+            "last_result_available",
+            "approval_result_store_created",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "broker_activation_ready",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert authority["summary"][key] is False, f"activation approval authority checklist summary unexpectedly set {key}"
+        assert authority["summary"]["activation_approval_authority_checklist_active"] is True, "activation approval authority checklist summary not active"
+        assert authority["summary"]["source_approval_dry_run_status_bound"] is True, "activation approval authority checklist not bound to dry-run status"
+        assert authority["summary"]["approval_authority_checklist_complete"] is True, "activation approval authority checklist not complete"
+        assert authority["summary"]["required_authority_item_count"] == len(authority["authority_items"]), "activation approval authority checklist item count mismatch"
+        assert authority["summary"]["unresolved_authority_item_count"] == len(unresolved_items), "activation approval authority checklist unresolved item count mismatch"
+        assert authority["summary"]["persisted_dry_run_count"] == 0, "activation approval authority checklist reported persisted dry-runs"
+        assert authority["summary"]["pending_approval_count"] == 0, "activation approval authority checklist reported pending approvals"
+        assert "getEventSubscriptionActivationApprovalAuthorityChecklistJson" in encoded, "Android activation approval authority checklist binding missing"
+        assert "event-subscription-activation-approval-authority-checklist" in encoded, "Linux CLI activation approval authority checklist binding missing"
+        assert "uib.events.subscriptions.activation.approval.authority.checklist" in encoded, "Linux IPC activation approval authority checklist binding missing"
+        assert "GetEventSubscriptionActivationApprovalAuthorityChecklist" in encoded, "gRPC activation approval authority checklist binding missing"
+        assert "EV-AAA-004" in encoded and "signature-rbac" in encoded, "activation approval authority checklist missing signature/RBAC blocker"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval authority checklist missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval authority checklist missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency":
+        audit = payload["payload"]
+        encoded = json.dumps(audit)
+        gate_ids = {item["gate_id"] for item in audit["mandatory_gates"]}
+        finding_ids = {item["finding_id"] for item in audit["audit_findings"]}
+        assert audit["operation"] == "event-subscription-activation-approval-authority-audit-consistency", "activation approval authority audit operation mismatch"
+        assert audit["approval_authority_audit_state"] == "contract-only-approval-authority-audit-consistent", "activation approval authority audit left consistent state"
+        assert audit["approval_authority_audit_consistency_active"] is True, "activation approval authority audit is not active"
+        assert {"EV-AAC-001", "EV-AAC-002", "EV-AAC-003", "EV-AAC-004", "EV-AAC-005", "EV-AAC-006", "EV-AAC-007", "EV-AAC-008"} <= gate_ids, "activation approval authority audit missing gates"
+        assert {"EV-AAC-AUD-001", "EV-AAC-AUD-002", "EV-AAC-AUD-003", "EV-AAC-AUD-004", "EV-AAC-AUD-005", "EV-AAC-AUD-006", "EV-AAC-AUD-007", "EV-AAC-AUD-008"} <= finding_ids, "activation approval authority audit missing findings"
+        assert all(item["consistent"] is True for item in audit["audit_findings"]), "activation approval authority audit findings inconsistent"
+        for key in [
+            "approval_authority_ready",
+            "approval_authority_assigned",
+            "approval_policy_confirmed",
+            "approval_signature_rbac_confirmed",
+            "approval_result_store_active",
+            "review_queue_owner_assigned",
+            "gate_closure_authority_assigned",
+            "broker_activation_owner_assigned",
+            "driver_gap_review_owner_assigned",
+            "approval_dry_run_invoked",
+            "approval_result_store_created",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "activation_allowed",
+            "broker_activation_ready",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert audit["summary"][key] is False, f"activation approval authority audit summary unexpectedly set {key}"
+        for key in [
+            "activation_approval_authority_audit_consistency_active",
+            "consistency_passed",
+            "source_authority_checklist_bound",
+            "source_approval_dry_run_status_bound",
+            "source_decision_status_rollup_bound",
+            "authority_item_count_consistent",
+            "authority_blocker_state_consistent",
+            "approval_no_store_consistent",
+            "android_linux_parity_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert audit["summary"][key] is True, f"activation approval authority audit summary did not set {key}"
+        assert audit["summary"]["required_authority_item_count"] == audit["summary"]["unresolved_authority_item_count"], "activation approval authority audit unexpectedly resolved an authority item"
+        assert audit["summary"]["blocking_decision_count"] > 0, "activation approval authority audit lost blocker count"
+        assert audit["summary"]["persisted_dry_run_count"] == 0, "activation approval authority audit reported persisted dry-runs"
+        assert "getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson" in encoded, "Android activation approval authority audit binding missing"
+        assert "event-subscription-activation-approval-authority-audit-consistency" in encoded, "Linux CLI activation approval authority audit binding missing"
+        assert "uib.events.subscriptions.activation.approval.authority.audit.consistency" in encoded, "Linux IPC activation approval authority audit binding missing"
+        assert "GetEventSubscriptionActivationApprovalAuthorityAuditConsistency" in encoded, "gRPC activation approval authority audit binding missing"
+        assert "EV-AAC-006" in encoded and "no-store" in encoded, "activation approval authority audit missing no-store finding"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval authority audit missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -3179,6 +3307,9 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence-retention-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-evidence-decision-status-rollup >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-dry-run-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-authority-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-authority-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

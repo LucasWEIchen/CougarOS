@@ -230,6 +230,12 @@
 
 该增量只补需求基线中的 approval authority checklist 接口形状，不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
 
+## FW-U-003/NV-P-006 当前补充：Event subscription activation approval authority audit consistency
+
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval authority 审计一致性增量，用于只读核对 approval authority checklist、approval dry-run status、activation evidence decision status rollup、authority item/blocker counters、Android/Linux parity 和 no-store/no-side-effect 约束，并固定 `EV-AAC-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson`，Linux 同步路径暴露 `event-subscription-activation-approval-authority-audit-consistency`、`uib.events.subscriptions.activation.approval.authority.audit.consistency` 和 `GetEventSubscriptionActivationApprovalAuthorityAuditConsistency`。
+
+该增量只补需求基线中的 approval authority audit consistency 接口形状，不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
+
 ## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface activation checklist
 
 `GET /hardware/interfaces/activation-checklist` 是硬件依赖空接口从 contract-only 走向目标平台集成前的门禁清单，用于固定 `HW-ACT-001..008`：target interface owner、Driver/HAL gap review、Android ABI、Linux ABI、Safety/Policy binding、smoke test harness、rollback/fault semantics 和 no-hardware-access 证据。Android 主路径暴露 `getHardwareInterfaceActivationChecklistJson`，Linux 同步路径暴露 `hardware-interface-activation-checklist`、`hardware.interfaces.activation.checklist` 和 `GetHardwareInterfaceActivationChecklist`。

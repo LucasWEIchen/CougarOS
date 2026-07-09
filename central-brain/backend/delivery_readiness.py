@@ -117,7 +117,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003"],
     },
     {
-        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-and-approval-dry-run-status-contract",
+        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-approval-dry-run-status-and-approval-authority-audit-consistency-contract",
         "platform": "Android/Linux",
         "current_state": "contract-only-not-brokered-with-activation-evidence-retention-owner-decisions-blocked",
         "ready_for": [
@@ -137,6 +137,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "activation evidence decision status rollup review",
             "activation approval dry-run no-store status review",
             "activation approval authority checklist review",
+            "activation approval authority audit consistency review",
             "Android Binder and Linux IPC/gRPC parity inspection before a real broker is selected",
         ],
         "artifacts": [
@@ -156,6 +157,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "GET /uib/events/subscriptions/activation-evidence/decision-status-rollup",
             "GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status",
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist",
+            "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency",
             "Android Binder getEventSubscriptionsJson",
             "Android Binder requestEventSubscriptionJson",
             "Android Binder cancelEventSubscriptionJson",
@@ -172,6 +174,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Android Binder getEventSubscriptionActivationEvidenceDecisionStatusRollupJson",
             "Android Binder getEventSubscriptionActivationApprovalDryRunStatusJson",
             "Android Binder getEventSubscriptionActivationApprovalAuthorityChecklistJson",
+            "Android Binder getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson",
             "Linux CLI event-subscriptions",
             "Linux CLI event-subscribe-request",
             "Linux CLI event-subscribe-cancel",
@@ -188,6 +191,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux CLI event-subscription-activation-evidence-decision-status-rollup",
             "Linux CLI event-subscription-activation-approval-dry-run-status",
             "Linux CLI event-subscription-activation-approval-authority-checklist",
+            "Linux CLI event-subscription-activation-approval-authority-audit-consistency",
             "Linux IPC uib.events.subscriptions.get",
             "Linux IPC uib.events.subscriptions.request",
             "Linux IPC uib.events.subscriptions.cancel",
@@ -204,6 +208,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux IPC uib.events.subscriptions.activation.evidence.decision.status.rollup",
             "Linux IPC uib.events.subscriptions.activation.approval.dry.run.status",
             "Linux IPC uib.events.subscriptions.activation.approval.authority.checklist",
+            "Linux IPC uib.events.subscriptions.activation.approval.authority.audit.consistency",
             "Linux gRPC/RPC GetEventSubscriptions",
             "Linux gRPC/RPC RequestEventSubscription",
             "Linux gRPC/RPC CancelEventSubscription",
@@ -220,6 +225,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux gRPC/RPC GetEventSubscriptionActivationEvidenceDecisionStatusRollup",
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDryRunStatus",
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalAuthorityChecklist",
+            "Linux gRPC/RPC GetEventSubscriptionActivationApprovalAuthorityAuditConsistency",
         ],
         "validation": [
             "bash tools/smoke_central_brain_semantic_gateway.sh",

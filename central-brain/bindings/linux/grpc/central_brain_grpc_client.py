@@ -90,6 +90,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetEventSubscriptionActivationApprovalAuthorityChecklist",
         {},
     ),
+    "event-subscription-activation-approval-authority-audit-consistency": (
+        "GetEventSubscriptionActivationApprovalAuthorityAuditConsistency",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

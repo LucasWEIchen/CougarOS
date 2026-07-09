@@ -42,6 +42,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionActivationEvidenceDecisionStatusButton;
     private Button eventSubscriptionActivationApprovalDryRunStatusButton;
     private Button eventSubscriptionActivationApprovalAuthorityChecklistButton;
+    private Button eventSubscriptionActivationApprovalAuthorityAuditConsistencyButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -280,6 +281,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionActivationApprovalAuthorityChecklist();
+            }
+        });
+        eventSubscriptionActivationApprovalAuthorityAuditConsistencyButton = addButton(eventEvidenceDecisionRow, "Sub ApAudit", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionActivationApprovalAuthorityAuditConsistency();
             }
         });
 
@@ -803,6 +810,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionActivationApprovalAuthorityAuditConsistency() {
+        setBusy(true, "Status: loading event activation approval authority audit via Binder");
+        gatewayRequest("Event Subscription Activation Approval Authority Audit (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson(newTraceId("event-subscription-activation-approval-authority-audit"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -1225,7 +1242,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, or Prototype to exercise the Android Binder path.");
             }
 
             @Override

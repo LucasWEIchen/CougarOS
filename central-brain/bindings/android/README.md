@@ -46,6 +46,7 @@ Brain semantic gateway.
 | `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson` | `GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationApprovalDryRunStatusJson` | `GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationApprovalAuthorityChecklistJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -174,18 +175,19 @@ Brain semantic gateway.
   `submitEventSubscriptionActivationEvidenceJson`,
   `getEventSubscriptionActivationEvidenceStatusJson`,
   `getEventSubscriptionActivationEvidenceRetentionChecklistJson`,
-  `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson`, and
-  `getEventSubscriptionActivationApprovalDryRunStatusJson`, and
-  `getEventSubscriptionActivationApprovalAuthorityChecklistJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson`,
+  `getEventSubscriptionActivationApprovalDryRunStatusJson`,
+  `getEventSubscriptionActivationApprovalAuthorityChecklistJson`, and
+  `getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
-  activation evidence intake, review status, retention checklist, decision status rollup, approval dry-run status, and approval authority checklist,
+  activation evidence intake, review status, retention checklist, decision status rollup, approval dry-run status, approval authority checklist, and approval authority audit consistency,
   callback/watch API shape, cursor/replay storage schema, overflow schema,
   replay rate, ack timeout, per-caller throttling, Runtime & Governance QoS evidence,
   readiness blockers,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, `Sub ApStat`, and `Sub ApAuth`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, `Sub ApStat`, `Sub ApAuth`, and `Sub ApAudit`
   actions only. They do not assign production owners, select a transport,
   call approval dry-run POST, assign approval authority, save dry-run results, create durable evidence stores, create approval result stores, create review queues, create delete/export workflows,
   activate event QoS, close readiness gates, register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
