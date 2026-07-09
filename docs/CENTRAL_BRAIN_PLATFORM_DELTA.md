@@ -632,6 +632,13 @@ Event subscription activation approval decision owner handoff decision rollup �
 `uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup` 与 Linux gRPC/RPC
 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup` 查询。该 decision rollup 只汇总 `EV-AHD-001..010` blocked decisions；固定 `owner_handoff_decision_blocked=true`、`approval_decision_ready=false`、`blocked_decision_count=10`、`unassigned_owner_count=10`、`attached_evidence_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不分配 owner，不附加 evidence，不调用 dry-run POST，不保存 handoff/request/result/approval decision，不创建 result store/review queue，不关闭 gate，不激活 broker/DDS/high-rate data plane，不触发 Driver/HAL 或虚拟化层。
 
+Event subscription activation approval decision owner handoff evidence readiness matrix 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix`、Android Binder
+`getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson`、Android Console `Sub ApHEv`、Linux CLI
+`event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix`、Linux IPC
+`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix` 与 Linux gRPC/RPC
+`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix` 查询。该 matrix 只汇总 `EV-AHE-001..010` missing evidence packets；固定 `handoff_evidence_ready=false`、`approval_decision_ready=false`、`missing_evidence_packet_count=10`、`attached_evidence_count=0`、`persisted_evidence_packet_count=0`、`evidence_uri_count=0`、`owner_signature_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不分配 owner，不附加 evidence，不调用 dry-run POST，不保存 evidence/request/result/approval decision，不创建 evidence store 或 result store/review queue，不关闭 gate，不激活 broker/DDS/high-rate data plane，不触发 Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC

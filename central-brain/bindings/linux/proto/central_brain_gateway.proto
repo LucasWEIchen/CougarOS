@@ -51,6 +51,7 @@ service CentralBrainGateway {
   rpc GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency(GatewayRequest) returns (GatewayResponse);
   rpc GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup(GatewayRequest) returns (GatewayResponse);
+  rpc GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix(GatewayRequest) returns (GatewayResponse);
   rpc GetUibExtensions(GatewayRequest) returns (GatewayResponse);
   rpc GetAiSdkCapabilities(GatewayRequest) returns (GatewayResponse);
   rpc PlanAgentTask(GatewayRequest) returns (GatewayResponse);

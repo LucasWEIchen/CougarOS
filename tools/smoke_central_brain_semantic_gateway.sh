@@ -173,6 +173,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3758,6 +3759,106 @@ for method, path, body, req_id in checks:
         assert "EV-ACH-001" in encoded and "EV-AHA-010" in encoded and "EV-AHD-010" in encoded and "EV-ACB-010" in encoded, "activation approval decision owner handoff decision rollup missing gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff decision rollup missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff decision rollup missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix":
+        matrix = payload["payload"]
+        encoded = json.dumps(matrix)
+        gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+        assert matrix["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix", "activation approval decision owner handoff evidence readiness matrix operation mismatch"
+        assert matrix["approval_decision_owner_handoff_evidence_readiness_matrix_state"] == "contract-only-handoff-evidence-missing", "activation approval decision owner handoff evidence readiness matrix wrong state"
+        assert matrix["approval_decision_owner_handoff_evidence_readiness_matrix_active"] is True, "activation approval decision owner handoff evidence readiness matrix inactive"
+        assert {"EV-AHE-001", "EV-AHE-002", "EV-AHE-003", "EV-AHE-004", "EV-AHE-005", "EV-AHE-006", "EV-AHE-007", "EV-AHE-008", "EV-AHE-009", "EV-AHE-010"} <= gate_ids, "activation approval decision owner handoff evidence readiness matrix missing EV-AHE gates"
+        source = matrix["source_surfaces"]["owner_handoff_decision_rollup"]
+        assert source["active"] is True and source["complete"] is True and source["consistent"] is True, "activation approval decision owner handoff evidence readiness source rollup not bound"
+        assert source["decision_blocked"] is True, "activation approval decision owner handoff evidence readiness source rollup unexpectedly unblocked"
+        assert "EV-AHD-010" in source["decision_gate_ids"], "activation approval decision owner handoff evidence readiness source missing EV-AHD"
+        assert "EV-ACH-010" in source["open_owner_handoff_ids"], "activation approval decision owner handoff evidence readiness source missing EV-ACH"
+        assert len(matrix["evidence_packets"]) == 10, "activation approval decision owner handoff evidence readiness packet count changed"
+        for packet in matrix["evidence_packets"]:
+            assert packet["packet_state"] == "missing", f"activation approval decision owner handoff evidence packet unexpectedly present {packet['evidence_id']}"
+            assert packet["readiness_state"] == "blocked-missing-owner-and-evidence", f"activation approval decision owner handoff evidence readiness state changed {packet['evidence_id']}"
+            assert packet["open"] is True, f"activation approval decision owner handoff evidence packet unexpectedly closed {packet['evidence_id']}"
+            for key in [
+                "owner_assigned",
+                "evidence_attached",
+                "evidence_uri_present",
+                "evidence_hash_present",
+                "owner_signature_present",
+                "evidence_persisted",
+                "review_queue_updated",
+            ]:
+                assert packet[key] is False, f"activation approval decision owner handoff evidence packet unexpectedly set {key} for {packet['evidence_id']}"
+            assert packet["source_decision_gate_id"].startswith("EV-AHD-"), f"activation approval decision owner handoff evidence packet missing source decision {packet['evidence_id']}"
+            assert packet["source_handoff_id"].startswith("EV-ACH-"), f"activation approval decision owner handoff evidence packet missing source handoff {packet['evidence_id']}"
+            assert packet["source_blocker_id"].startswith("EV-ACB-"), f"activation approval decision owner handoff evidence packet missing source blocker {packet['evidence_id']}"
+        for key in [
+            "activation_approval_decision_owner_handoff_evidence_readiness_matrix_active",
+            "readiness_matrix_complete",
+            "readiness_matrix_consistent",
+            "source_owner_handoff_decision_rollup_bound",
+            "source_owner_handoff_decision_rollup_consistent",
+            "source_owner_handoff_decision_blocked",
+            "no_store_consistent",
+            "no_post_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert matrix["summary"][key] is True, f"activation approval decision owner handoff evidence readiness matrix summary did not set {key}"
+        for key in [
+            "handoff_evidence_ready",
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "owner_assignments_persisted",
+            "owner_handoff_queue_updated",
+            "evidence_packets_attached",
+            "evidence_store_created",
+            "evidence_store_active",
+            "decision_dry_run_post_called_by_handoff_evidence_readiness_matrix",
+            "approval_result_store_created",
+            "approval_result_store_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert matrix["summary"][key] is False, f"activation approval decision owner handoff evidence readiness matrix summary unexpectedly set {key}"
+        assert matrix["summary"]["handoff_evidence_readiness_matrix_state"] == "contract-only-handoff-evidence-missing", "activation approval decision owner handoff evidence readiness matrix summary wrong state"
+        assert matrix["summary"]["decision"] == "blocked-by-missing-handoff-evidence-packets", "activation approval decision owner handoff evidence readiness matrix decision changed"
+        assert matrix["summary"]["required_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence readiness matrix required packet count changed"
+        assert matrix["summary"]["missing_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence readiness matrix missing packet count changed"
+        assert matrix["summary"]["attached_evidence_count"] == 0, "activation approval decision owner handoff evidence readiness matrix attached evidence changed"
+        assert matrix["summary"]["persisted_evidence_packet_count"] == 0, "activation approval decision owner handoff evidence readiness matrix persisted evidence changed"
+        assert matrix["summary"]["evidence_uri_count"] == 0, "activation approval decision owner handoff evidence readiness matrix evidence URI count changed"
+        assert matrix["summary"]["evidence_hash_count"] == 0, "activation approval decision owner handoff evidence readiness matrix evidence hash count changed"
+        assert matrix["summary"]["owner_signature_count"] == 0, "activation approval decision owner handoff evidence readiness matrix owner signature count changed"
+        assert matrix["summary"]["required_owner_handoff_count"] == 10, "activation approval decision owner handoff evidence readiness matrix required handoff count changed"
+        assert matrix["summary"]["open_owner_handoff_count"] == 10, "activation approval decision owner handoff evidence readiness matrix open handoff count changed"
+        assert matrix["summary"]["assigned_owner_count"] == 0, "activation approval decision owner handoff evidence readiness matrix assigned owners changed"
+        assert matrix["summary"]["unassigned_owner_count"] == 10, "activation approval decision owner handoff evidence readiness matrix unassigned owners changed"
+        assert matrix["summary"]["persisted_dry_run_request_count"] == 0, "activation approval decision owner handoff evidence readiness matrix persisted requests"
+        assert matrix["summary"]["persisted_dry_run_result_count"] == 0, "activation approval decision owner handoff evidence readiness matrix persisted results"
+        assert matrix["summary"]["persisted_approval_decision_count"] == 0, "activation approval decision owner handoff evidence readiness matrix persisted decisions"
+        assert matrix["summary"]["pending_approval_decision_review_count"] == 0, "activation approval decision owner handoff evidence readiness matrix queued reviews"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson" in encoded, "Android activation approval decision owner handoff evidence readiness matrix binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix" in encoded, "Linux CLI activation approval decision owner handoff evidence readiness matrix binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix" in encoded, "Linux IPC activation approval decision owner handoff evidence readiness matrix binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix" in encoded, "gRPC activation approval decision owner handoff evidence readiness matrix binding missing"
+        assert "EV-AHE-001" in encoded and "EV-AHE-010" in encoded and "EV-AHD-010" in encoded and "EV-ACH-010" in encoded and "EV-ACB-010" in encoded, "activation approval decision owner handoff evidence readiness matrix missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence readiness matrix missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence readiness matrix missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -3879,6 +3980,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-decision-rollup >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

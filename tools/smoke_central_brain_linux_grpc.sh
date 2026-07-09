@@ -1479,6 +1479,111 @@ assert "EV-ACH-001" in encoded and "EV-AHA-010" in encoded and "EV-AHD-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_READINESS_MATRIX_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_READINESS_MATRIX_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+matrix = payload["gateway"]["payload"]
+encoded = json.dumps(matrix)
+gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert matrix["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix", response
+assert matrix["approval_decision_owner_handoff_evidence_readiness_matrix_state"] == "contract-only-handoff-evidence-missing", response
+assert matrix["approval_decision_owner_handoff_evidence_readiness_matrix_active"] is True, response
+assert {"EV-AHE-001", "EV-AHE-002", "EV-AHE-003", "EV-AHE-004", "EV-AHE-005", "EV-AHE-006", "EV-AHE-007", "EV-AHE-008", "EV-AHE-009", "EV-AHE-010"} <= gate_ids, response
+source = matrix["source_surfaces"]["owner_handoff_decision_rollup"]
+assert source["active"] is True and source["complete"] is True and source["consistent"] is True, response
+assert source["decision_blocked"] is True, response
+assert "EV-AHD-010" in source["decision_gate_ids"], response
+assert "EV-ACH-010" in source["open_owner_handoff_ids"], response
+assert len(matrix["evidence_packets"]) == 10, response
+for packet in matrix["evidence_packets"]:
+    assert packet["packet_state"] == "missing", response
+    assert packet["readiness_state"] == "blocked-missing-owner-and-evidence", response
+    assert packet["open"] is True, response
+    assert packet["owner_assigned"] is False, response
+    assert packet["evidence_attached"] is False, response
+    assert packet["evidence_uri_present"] is False, response
+    assert packet["evidence_hash_present"] is False, response
+    assert packet["owner_signature_present"] is False, response
+    assert packet["evidence_persisted"] is False, response
+    assert packet["review_queue_updated"] is False, response
+    assert packet["source_decision_gate_id"].startswith("EV-AHD-"), response
+    assert packet["source_handoff_id"].startswith("EV-ACH-"), response
+    assert packet["source_blocker_id"].startswith("EV-ACB-"), response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_readiness_matrix_active",
+    "readiness_matrix_complete",
+    "readiness_matrix_consistent",
+    "source_owner_handoff_decision_rollup_bound",
+    "source_owner_handoff_decision_rollup_consistent",
+    "source_owner_handoff_decision_blocked",
+    "no_store_consistent",
+    "no_post_consistent",
+    "no_side_effects_consistent",
+]:
+    assert matrix["summary"][key] is True, response
+for key in [
+    "handoff_evidence_ready",
+    "approval_decision_ready",
+    "approval_dry_run_allowed",
+    "owner_assignments_persisted",
+    "owner_handoff_queue_updated",
+    "evidence_packets_attached",
+    "evidence_store_created",
+    "evidence_store_active",
+    "decision_dry_run_post_called_by_handoff_evidence_readiness_matrix",
+    "approval_result_store_created",
+    "approval_result_store_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "production_activation_allowed",
+    "broker_active",
+    "subscription_persistence_active",
+    "cursor_storage_active",
+    "event_delivery_qos_active",
+    "callback_registered",
+    "watch_started",
+    "dds_runtime_active",
+    "sse_websocket_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert matrix["summary"][key] is False, response
+assert matrix["summary"]["handoff_evidence_readiness_matrix_state"] == "contract-only-handoff-evidence-missing", response
+assert matrix["summary"]["decision"] == "blocked-by-missing-handoff-evidence-packets", response
+assert matrix["summary"]["required_evidence_packet_count"] == 10, response
+assert matrix["summary"]["missing_evidence_packet_count"] == 10, response
+assert matrix["summary"]["attached_evidence_count"] == 0, response
+assert matrix["summary"]["persisted_evidence_packet_count"] == 0, response
+assert matrix["summary"]["evidence_uri_count"] == 0, response
+assert matrix["summary"]["evidence_hash_count"] == 0, response
+assert matrix["summary"]["owner_signature_count"] == 0, response
+assert matrix["summary"]["required_owner_handoff_count"] == 10, response
+assert matrix["summary"]["open_owner_handoff_count"] == 10, response
+assert matrix["summary"]["assigned_owner_count"] == 0, response
+assert matrix["summary"]["unassigned_owner_count"] == 10, response
+assert matrix["summary"]["persisted_dry_run_request_count"] == 0, response
+assert matrix["summary"]["persisted_dry_run_result_count"] == 0, response
+assert matrix["summary"]["persisted_approval_decision_count"] == 0, response
+assert matrix["summary"]["pending_approval_decision_review_count"] == 0, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix" in encoded, response
+assert "EV-AHE-001" in encoded and "EV-AHE-010" in encoded and "EV-AHD-010" in encoded and "EV-ACH-010" in encoded and "EV-ACB-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

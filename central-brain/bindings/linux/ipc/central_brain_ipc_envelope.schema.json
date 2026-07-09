@@ -42,6 +42,7 @@
         "uib.events.subscriptions.activation.approval.decision.owner.handoff.checklist",
         "uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency",
         "uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup",
+        "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",

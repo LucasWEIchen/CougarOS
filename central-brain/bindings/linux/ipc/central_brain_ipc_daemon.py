@@ -185,6 +185,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup",
         "req_ids": ["XSC-002", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002", "DEL-004"],
     },
+    "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix": {
+        "method": "GET",
+        "path": "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix",
+        "req_ids": ["XSC-002", "XSC-005", "XSC-006", "FW-U-003", "NV-P-002", "NV-P-006", "DEL-002", "DEL-004"],
+    },
     "uib.extensions.get": {
         "method": "GET",
         "path": "/uib/extensions",

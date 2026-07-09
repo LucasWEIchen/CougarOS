@@ -132,11 +132,12 @@ dispatching services.
 `GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency`,
 `GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix`,
 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist`,
-`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency`, and
-`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup` expose the same FW-U-003/NV-P-006
+`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency`,
+`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup`, and
+`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix` expose the same FW-U-003/NV-P-006
 Event subscription lifecycle, transport readiness, owner decision matrix,
 activation evidence intake/review/retention checklist/decision status rollup,
-approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, approval decision dry-run request, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, approval decision owner handoff checklist, owner handoff audit consistency, owner handoff decision rollup, activation evidence checklist, callback/watch API shape, cursor/replay storage,
+approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, approval decision dry-run request, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, approval decision owner handoff checklist, owner handoff audit consistency, owner handoff decision rollup, owner handoff evidence readiness matrix, activation evidence checklist, callback/watch API shape, cursor/replay storage,
 backpressure/QoS evidence, readiness rollup, and activation evidence review status contracts as Android Binder and Linux IPC without
 assigning production owners, selecting a transport, persisting subscriptions,
 passing approval dry-run, saving dry-run results, activating event QoS, closing readiness gates, starting a broker, callback/watch path, SSE/WebSocket, DDS runtime, high-rate
@@ -302,6 +303,14 @@ It reports `EV-AHD-001..010`, ten blocked owner/evidence/review/gate/transport
 decisions, zero assigned owners, zero attached evidence, and keeps review
 queues, gates, broker/DDS runtime, hardware access, Driver/HAL work, and
 virtualization inactive.
+`CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix`
+exposes the same Event subscription approval decision owner handoff evidence
+readiness matrix as Android Binder and Linux IPC. The Linux CLI command is
+`event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix`.
+It reports `EV-AHE-001..010`, ten missing evidence packets, zero evidence URI,
+zero owner signatures, and keeps evidence stores, review queues, gates,
+broker/DDS runtime, hardware access, Driver/HAL work, and virtualization
+inactive.
 `CentralBrainGateway.DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision`
 exposes the same approval decision dry-run request as Android Binder and Linux
 IPC. It validates the selected interface, adapter identity, approval decision,

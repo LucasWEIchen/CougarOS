@@ -53,6 +53,12 @@
 
 ### 2026-07-09
 
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval decision owner handoff evidence readiness matrix contract：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix`，用于从 owner handoff decision rollup 只读派生 `EV-AHE-001..010` handoff evidence packets，列出 approval decision 进入 review 前仍缺失的 evidence URI、hash、owner signature、evidence store 和 review queue 条件。
+  - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson`，Android Console 新增 `Sub ApHEv` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix`、`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix` 可见路径。
+  - 本轮只完成 handoff evidence readiness matrix 只读视图，不分配 owner，不附加 evidence，不调用 decision dry-run POST，不持久化 evidence/request/result/approval/review state，不创建 evidence store 或 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
+
 - 推进 FW-U-003/NV-P-006 Event subscription activation approval decision owner handoff decision rollup contract：
   - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup`，用于从 owner handoff audit consistency 和 owner handoff checklist 只读汇总 approval decision 仍被未分配 owner、缺少 handoff evidence、无 review queue/result store、无 gate closure authority、以及 DRV-GAP-004/005 高频 transport 决策阻塞，并固定 `EV-AHD-001..010` decision gates。
   - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson`，Android Console 新增 `Sub ApHRoll` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-owner-handoff-decision-rollup`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup`、`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup` 可见路径。
