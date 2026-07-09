@@ -1,6 +1,6 @@
 # 车载中央大脑路线图与进展
 
-更新时间：2026-07-08
+更新时间：2026-07-09
 
 ## 长期任务拆解
 
@@ -50,6 +50,14 @@
 - 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
+
+### 2026-07-09
+
+- 推进 HW-002/KH-003/KH-006/KH-007 hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance closure decision reviewer assignment checklist contract：
+  - 新增 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist`，用于把 closure readiness decision rollup 后仍需确认的 reviewer assignment 拆成 8 个未分配项，并固定 `HW-AHH-001..008` 门禁。
+  - Android Binder/AIDL 新增 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson`，Android Console 新增 `HW ApHCRev` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-checklist`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.checklist`、`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist` 可见路径。
+  - 本轮只完成 closure decision reviewer assignment checklist 只读视图，不分配 reviewer，不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence，不创建 evidence store，不更新 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 adapter，不访问真实硬件，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不新增 Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
+  - 覆盖 Req ID：XSC-004、XSC-006、HW-002、KH-003、KH-006、KH-007、DEL-001、DEL-002、DEL-005。
 
 ### 2026-07-08
 

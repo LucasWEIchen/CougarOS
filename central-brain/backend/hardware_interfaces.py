@@ -1849,6 +1849,59 @@ HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTAN
     },
 ]
 
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_REQ_IDS = HARDWARE_OWNER_EVIDENCE_REQ_IDS
+
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_GATES = [
+    {
+        "gate_id": "HW-AHH-001",
+        "name": "closure-decision-reviewer-assignment-surfaces-bound",
+        "required_evidence": "Reviewer assignment checklist binds the closure readiness decision rollup without creating a review workflow.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHH-002",
+        "name": "closure-readiness-authority-reviewer-unassigned",
+        "required_evidence": "Closure readiness authority reviewer remains unassigned until target platform ownership is confirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHH-003",
+        "name": "acceptance-authority-reviewer-unassigned",
+        "required_evidence": "Acceptance authority reviewer remains unassigned until acceptance policy ownership is confirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHH-004",
+        "name": "acceptance-record-store-reviewer-unassigned",
+        "required_evidence": "Acceptance record store reviewer remains unassigned until durable evidence storage ownership is confirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHH-005",
+        "name": "review-workflow-audit-retention-reviewer-unassigned",
+        "required_evidence": "Review workflow and audit retention reviewers remain unassigned until retention and export ownership is confirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHH-006",
+        "name": "driver-hal-gate-closure-reviewer-unassigned",
+        "required_evidence": "Driver/HAL acceptance and gate closure reviewers remain unassigned until platform integration owners are confirmed.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHH-007",
+        "name": "android-linux-closure-decision-reviewer-assignment-parity",
+        "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same closure decision reviewer assignment checklist.",
+        "passed": True,
+    },
+    {
+        "gate_id": "HW-AHH-008",
+        "name": "no-side-effect-closure-decision-reviewer-assignment",
+        "required_evidence": "Reviewer assignment checklist does not assign reviewers, accept packets, persist records, create stores, update queues, close gates, load adapters, access hardware, call Driver/HAL, dispatch services, or trigger virtualization.",
+        "passed": True,
+    },
+]
+
 
 class HardwareInterfaceRegistry:
     """Read-only registry for hardware-dependent empty interfaces."""
@@ -6811,6 +6864,219 @@ class HardwareInterfaceRegistry:
                 "service_dispatch_triggered": False,
             },
             "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_READINESS_DECISION_ROLLUP_REQ_IDS,
+        }
+
+    def owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist_payload(
+        self,
+    ) -> dict[str, Any]:
+        decision_rollup = (
+            self.owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_rollup_payload()
+        )
+        decision_summary = decision_rollup["summary"]
+        source_decision_rollup_bound = (
+            decision_rollup["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_rollup_active"]
+            is True
+            and decision_summary["decision_rollup_consistent"] is True
+            and decision_summary["closure_decision_ready"] is False
+            and decision_summary["blocked_decision_count"] == 8
+        )
+        reviewer_assignment_rows = [
+            {
+                "assignment_id": "HW-AHH-REVIEWER-001",
+                "gate_id": "HW-AHH-001",
+                "source_decision_id": "HW-AHG-DECISION-001",
+                "reviewer_scope": "closure-readiness-decision-surface-owner",
+                "required_reviewer": "target-architecture-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+            {
+                "assignment_id": "HW-AHH-REVIEWER-002",
+                "gate_id": "HW-AHH-002",
+                "source_decision_id": "HW-AHG-DECISION-002",
+                "reviewer_scope": "closure-readiness-authority-reviewer",
+                "required_reviewer": "closure-readiness-authority-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+            {
+                "assignment_id": "HW-AHH-REVIEWER-003",
+                "gate_id": "HW-AHH-003",
+                "source_decision_id": "HW-AHG-DECISION-003",
+                "reviewer_scope": "acceptance-authority-reviewer",
+                "required_reviewer": "acceptance-policy-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+            {
+                "assignment_id": "HW-AHH-REVIEWER-004",
+                "gate_id": "HW-AHH-004",
+                "source_decision_id": "HW-AHG-DECISION-004",
+                "reviewer_scope": "acceptance-record-store-reviewer",
+                "required_reviewer": "durable-evidence-store-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+            {
+                "assignment_id": "HW-AHH-REVIEWER-005",
+                "gate_id": "HW-AHH-005",
+                "source_decision_id": "HW-AHG-DECISION-005",
+                "reviewer_scope": "review-workflow-and-audit-retention-reviewer",
+                "required_reviewer": "review-workflow-audit-retention-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+            {
+                "assignment_id": "HW-AHH-REVIEWER-006",
+                "gate_id": "HW-AHH-006",
+                "source_decision_id": "HW-AHG-DECISION-006",
+                "reviewer_scope": "rollback-fault-and-driver-hal-reviewer",
+                "required_reviewer": "rollback-fault-driver-hal-acceptance-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+            {
+                "assignment_id": "HW-AHH-REVIEWER-007",
+                "gate_id": "HW-AHH-007",
+                "source_decision_id": "HW-AHG-DECISION-007",
+                "reviewer_scope": "android-linux-parity-reviewer",
+                "required_reviewer": "android-linux-binding-parity-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+            {
+                "assignment_id": "HW-AHH-REVIEWER-008",
+                "gate_id": "HW-AHH-008",
+                "source_decision_id": "HW-AHG-DECISION-008",
+                "reviewer_scope": "gate-closure-and-no-side-effect-reviewer",
+                "required_reviewer": "gate-closure-no-side-effect-owner",
+                "assignment_state": "unassigned",
+                "reviewer_assigned": False,
+                "blocks_adapter_load": True,
+            },
+        ]
+        assigned_reviewer_count = sum(1 for item in reviewer_assignment_rows if item["reviewer_assigned"] is True)
+        unassigned_reviewer_count = len(reviewer_assignment_rows) - assigned_reviewer_count
+        reviewer_assignment_checklist_complete = (
+            source_decision_rollup_bound
+            and len(reviewer_assignment_rows) == 8
+            and unassigned_reviewer_count == 8
+            and all(item["blocks_adapter_load"] is True for item in reviewer_assignment_rows)
+        )
+        no_assignment_side_effects = all(
+            decision_summary[key] is False
+            for key in [
+                "handoff_acceptance_allowed",
+                "evidence_handoff_allowed",
+                "approval_review_allowed",
+                "retention_review_allowed",
+                "gate_closure_allowed",
+                "approval_decision_closure_allowed",
+                "approval_decision_persisted",
+                "approval_decision_review_queue_updated",
+                "approval_decision_evidence_store_active",
+                "approval_evidence_store_active",
+                "review_workflow_active",
+                "review_queue_updated",
+                "gate_state_changed",
+                "gates_closed",
+                "adapter_load_allowed",
+                "adapter_activation_allowed",
+                "hardware_access_allowed",
+                "hardware_accessed",
+                "driver_development_triggered",
+                "virtualization_development_triggered",
+                "service_dispatch_triggered",
+            ]
+        )
+
+        return {
+            "operation": "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-checklist",
+            "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_state": "contract-only-handoff-acceptance-closure-readiness-decision-reviewers-unassigned",
+            "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist_active": True,
+            "reviewer_assignment_checklist_complete": reviewer_assignment_checklist_complete,
+            "reviewer_assignment_ready": False,
+            "reviewer_assignment_allowed": False,
+            "source_decision_rollup_bound": source_decision_rollup_bound,
+            "required_reviewer_assignment_count": len(reviewer_assignment_rows),
+            "assigned_reviewer_count": assigned_reviewer_count,
+            "unassigned_reviewer_count": unassigned_reviewer_count,
+            "closure_decision_ready": False,
+            "closure_ready": False,
+            "blocked_decision_count": decision_summary["blocked_decision_count"],
+            "closure_blocker_count": decision_summary["closure_blocker_count"],
+            "accepted_handoff_packet_count": decision_summary["accepted_handoff_packet_count"],
+            "acceptance_record_persisted_count": decision_summary["acceptance_record_persisted_count"],
+            "reviewer_assignment_rows": reviewer_assignment_rows,
+            "source_surfaces": {
+                "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_rollup": {
+                    "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup",
+                    "decision_rollup_complete": decision_rollup["decision_rollup_complete"],
+                    "decision_rollup_consistent": decision_rollup["decision_rollup_consistent"],
+                    "closure_decision_ready": decision_rollup["closure_decision_ready"],
+                    "blocked_decision_count": decision_rollup["blocked_decision_count"],
+                }
+            },
+            "mandatory_gates": copy.deepcopy(
+                HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_GATES
+            ),
+            "api_surface": {
+                "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist",
+                "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson",
+                "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-checklist",
+                "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.checklist",
+                "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist",
+            },
+            "summary": {
+                "owner_decision_evidence_adapter_load_approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist_active": True,
+                "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist_active": True,
+                "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_rollup_active": True,
+                "reviewer_assignment_checklist_complete": reviewer_assignment_checklist_complete,
+                "reviewer_assignment_ready": False,
+                "reviewer_assignment_allowed": False,
+                "source_decision_rollup_bound": source_decision_rollup_bound,
+                "required_reviewer_assignment_count": len(reviewer_assignment_rows),
+                "assigned_reviewer_count": assigned_reviewer_count,
+                "unassigned_reviewer_count": unassigned_reviewer_count,
+                "closure_decision_ready": False,
+                "closure_ready": False,
+                "blocked_decision_count": decision_summary["blocked_decision_count"],
+                "closure_blocker_count": decision_summary["closure_blocker_count"],
+                "accepted_handoff_packet_count": decision_summary["accepted_handoff_packet_count"],
+                "acceptance_record_persisted_count": decision_summary["acceptance_record_persisted_count"],
+                "reviewer_assignments_persisted": False,
+                "reviewer_assignment_queue_updated": False,
+                "handoff_acceptance_allowed": False,
+                "evidence_handoff_allowed": False,
+                "approval_review_allowed": False,
+                "retention_review_allowed": False,
+                "gate_closure_allowed": False,
+                "approval_decision_closure_allowed": False,
+                "approval_decision_persisted": False,
+                "approval_decision_review_queue_updated": False,
+                "approval_decision_evidence_store_active": False,
+                "approval_evidence_store_active": False,
+                "review_workflow_active": False,
+                "review_queue_updated": False,
+                "gate_state_changed": False,
+                "gates_closed": False,
+                "adapter_load_allowed": False,
+                "adapter_activation_allowed": False,
+                "hardware_access_allowed": False,
+                "hardware_accessed": False,
+                "driver_development_triggered": False,
+                "virtualization_development_triggered": False,
+                "service_dispatch_triggered": False,
+                "no_assignment_side_effects": no_assignment_side_effects,
+            },
+            "req_ids": HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_REQ_IDS,
         }
 
     def interfaces_payload(self) -> dict[str, Any]:

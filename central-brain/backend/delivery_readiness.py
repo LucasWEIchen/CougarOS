@@ -264,7 +264,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
     {
         "target": "hardware-empty-interface-registry",
         "platform": "Android/Linux",
-        "current_state": "read-only-empty-interface-activation-checklist-owner-decision-status-evidence-intake-status-retention-closure-replacement-trigger-selected-adapter-readiness-adapter-load-blocker-rollup-adapter-load-dry-run-status-audit-consistency-approval-authority-audit-consistency-approval-decision-dry-run-status-audit-consistency-closure-blocker-matrix-reviewer-matrix-evidence-handoff-checklist-handoff-acceptance-status-handoff-acceptance-audit-consistency-handoff-acceptance-decision-rollup-handoff-acceptance-closure-readiness-checklist-closure-readiness-audit-consistency-and-closure-readiness-decision-rollup-contract",
+        "current_state": "read-only-empty-interface-activation-checklist-owner-decision-status-evidence-intake-status-retention-closure-replacement-trigger-selected-adapter-readiness-adapter-load-blocker-rollup-adapter-load-dry-run-status-audit-consistency-approval-authority-audit-consistency-approval-decision-dry-run-status-audit-consistency-closure-blocker-matrix-reviewer-matrix-evidence-handoff-checklist-handoff-acceptance-status-handoff-acceptance-audit-consistency-handoff-acceptance-decision-rollup-handoff-acceptance-closure-readiness-checklist-closure-readiness-audit-consistency-closure-readiness-decision-rollup-and-closure-decision-reviewer-assignment-checklist-contract",
         "ready_for": [
             "hardware interface review",
             "hardware activation checklist review",
@@ -293,6 +293,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "hardware owner evidence adapter load approval reviewer evidence handoff acceptance closure readiness checklist review",
             "hardware owner evidence adapter load approval reviewer evidence handoff acceptance closure readiness audit consistency review",
             "hardware owner evidence adapter load approval reviewer evidence handoff acceptance closure readiness decision rollup review",
+            "hardware owner evidence adapter load approval reviewer evidence handoff acceptance closure readiness decision reviewer assignment checklist review",
             "future Driver/HAL adapter planning",
             "Android/Linux cockpit-domain inspection",
         ],
@@ -351,6 +352,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Android Binder getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson",
             "Android Binder getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson",
             "Android Binder getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollupJson",
+            "Android Binder getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson",
             "Linux CLI hardware-interfaces",
             "Linux CLI hardware-interface-activation-checklist",
             "Linux CLI hardware-interface-owner-decision-status",
@@ -378,6 +380,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux CLI hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-checklist",
             "Linux CLI hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency",
             "Linux CLI hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-rollup",
+            "Linux CLI hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-checklist",
             "Linux IPC hardware.interfaces.get",
             "Linux IPC hardware.interfaces.activation.checklist",
             "Linux IPC hardware.interfaces.owner.decision.status",
@@ -405,6 +408,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux IPC hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.checklist",
             "Linux IPC hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.audit.consistency",
             "Linux IPC hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.rollup",
+            "Linux IPC hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.checklist",
             "Linux gRPC/RPC GetHardwareInterfaces",
             "Linux gRPC/RPC GetHardwareInterfaceActivationChecklist",
             "Linux gRPC/RPC GetHardwareInterfaceOwnerDecisionStatus",
@@ -432,6 +436,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux gRPC/RPC GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklist",
             "Linux gRPC/RPC GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency",
             "Linux gRPC/RPC GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollup",
+            "Linux gRPC/RPC GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist",
         ],
         "validation": [
             "bash tools/smoke_central_brain_semantic_gateway.sh",
