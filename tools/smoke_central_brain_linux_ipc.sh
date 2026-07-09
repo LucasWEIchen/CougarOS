@@ -1953,6 +1953,86 @@ assert "EV-AHJ-001" in encoded and "EV-AHJ-010" in encoded and "EV-AHI-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_AUDIT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-audit-consistency)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_AUDIT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-audit-consistency", response
+assert payload["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_audit_consistency_state"] == "contract-only-handoff-evidence-acceptance-closure-audit-consistent", response
+assert payload["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_audit_consistency_active"] is True, response
+assert payload["consistency_passed"] is True, response
+assert {"EV-AHK-001", "EV-AHK-002", "EV-AHK-003", "EV-AHK-004", "EV-AHK-005", "EV-AHK-006", "EV-AHK-007", "EV-AHK-008", "EV-AHK-009", "EV-AHK-010"} <= gate_ids, response
+assert len(payload["audit_items"]) == 10, response
+for item in payload["audit_items"]:
+    assert item["passed"] is True, response
+    assert item["closure_still_blocked"] is True, response
+    assert item["source_closure_gate_id"].startswith("EV-AHJ-"), response
+    assert item["source_decision_gate_id"].startswith("EV-AHI-"), response
+    assert item["source_acceptance_gate_id"].startswith("EV-AHG-"), response
+    assert item["source_audit_gate_id"].startswith("EV-AHH-"), response
+    assert item["source_evidence_id"].startswith("EV-AHE-"), response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_audit_consistency_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active",
+    "consistency_passed",
+    "source_surfaces_bound",
+    "source_closure_readiness_checklist_bound",
+    "source_decision_rollup_bound",
+    "source_acceptance_audit_bound",
+    "source_acceptance_status_bound",
+    "source_evidence_readiness_bound",
+    "closure_check_count_consistent",
+    "closure_blocker_state_consistent",
+    "android_linux_parity_consistent",
+    "no_store_consistent",
+    "no_post_consistent",
+    "no_side_effects_consistent",
+]:
+    assert payload["summary"][key] is True, response
+for key in [
+    "closure_ready",
+    "closure_allowed",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "handoff_evidence_acceptance_allowed",
+    "approval_decision_ready",
+    "owner_assignments_persisted",
+    "owner_handoff_queue_updated",
+    "evidence_packets_attached",
+    "evidence_store_created",
+    "review_queue_updated",
+    "gates_closed",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["required_audit_count"] == 10, response
+assert payload["summary"]["required_closure_check_count"] == 10, response
+assert payload["summary"]["open_closure_check_count"] == 10, response
+assert payload["summary"]["blocked_decision_count"] == 10, response
+assert payload["summary"]["blocked_acceptance_count"] == 10, response
+assert payload["summary"]["accepted_evidence_packet_count"] == 0, response
+assert payload["summary"]["acceptance_record_persisted_count"] == 0, response
+assert payload["summary"]["missing_evidence_packet_count"] == 10, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistencyJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-audit-consistency" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.audit.consistency" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistency" in encoded, response
+assert "EV-AHK-001" in encoded and "EV-AHK-010" in encoded and "EV-AHJ-010" in encoded and "EV-AHI-010" in encoded and "EV-AHH-010" in encoded and "EV-AHG-010" in encoded and "EV-AHE-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
