@@ -45,6 +45,7 @@ Brain semantic gateway.
 | `getEventSubscriptionActivationEvidenceRetentionChecklistJson` | `GET /uib/events/subscriptions/activation-evidence/retention-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson` | `GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationApprovalDryRunStatusJson` | `GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionActivationApprovalAuthorityChecklistJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -174,18 +175,19 @@ Brain semantic gateway.
   `getEventSubscriptionActivationEvidenceStatusJson`,
   `getEventSubscriptionActivationEvidenceRetentionChecklistJson`,
   `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson`, and
-  `getEventSubscriptionActivationApprovalDryRunStatusJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionActivationApprovalDryRunStatusJson`, and
+  `getEventSubscriptionActivationApprovalAuthorityChecklistJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
-  activation evidence intake, review status, retention checklist, decision status rollup, and approval dry-run status,
+  activation evidence intake, review status, retention checklist, decision status rollup, approval dry-run status, and approval authority checklist,
   callback/watch API shape, cursor/replay storage schema, overflow schema,
   replay rate, ack timeout, per-caller throttling, Runtime & Governance QoS evidence,
   readiness blockers,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, and `Sub ApStat`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, `Sub ApStat`, and `Sub ApAuth`
   actions only. They do not assign production owners, select a transport,
-  call approval dry-run POST, save dry-run results, create durable evidence stores, create review queues, create delete/export workflows,
+  call approval dry-run POST, assign approval authority, save dry-run results, create durable evidence stores, create approval result stores, create review queues, create delete/export workflows,
   activate event QoS, close readiness gates, register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
   Driver/HAL, or create virtualization work.
 - `getDriverHalGapsJson` exposes the Driver/HAL gap backlog for Android

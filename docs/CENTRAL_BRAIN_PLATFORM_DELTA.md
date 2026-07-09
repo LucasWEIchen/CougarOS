@@ -508,6 +508,25 @@ dry-run 的 no-store status、last-result shape 和 `EV-AAS-001..008` 门禁；
 `approval_result_store_active=false`、`review_queue_updated=false`、`gates_closed=false`、
 `activation_allowed=false`、`broker_active=false`、`driver_development_triggered=false`
 和 `virtualization_development_triggered=false`。它不调用 approval dry-run POST，不保存请求或结果，
+不创建 review queue、不关闭 readiness gate、不激活 broker，不触发 Driver/HAL 或虚拟化层。
+
+Event subscription activation approval authority checklist 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist`、Android Binder
+`getEventSubscriptionActivationApprovalAuthorityChecklistJson`、Android Console `Sub ApAuth`、Linux CLI
+`event-subscription-activation-approval-authority-checklist`、Linux IPC
+`uib.events.subscriptions.activation.approval.authority.checklist` 与 Linux gRPC/RPC
+`GetEventSubscriptionActivationApprovalAuthorityChecklist` 查询。该视图只报告 activation approval
+authority checklist 和 `EV-AAA-001..008` 门禁；固定
+`approval_authority_ready=false`、`approval_authority_assigned=false`、
+`approval_policy_confirmed=false`、`approval_signature_rbac_confirmed=false`、
+`approval_result_store_active=false`、`review_queue_owner_assigned=false`、
+`gate_closure_authority_assigned=false`、`broker_activation_owner_assigned=false`、
+`driver_gap_review_owner_assigned=false`、`approval_dry_run_invoked=false`、
+`approval_result_store_created=false`、`review_queue_updated=false`、`gates_closed=false`、
+`activation_allowed=false`、`broker_active=false`、`driver_development_triggered=false`
+和 `virtualization_development_triggered=false`。它不调用 approval dry-run POST，不分配 approval
+authority，不创建 approval result store，不更新 review queue，不关闭 readiness gate，不激活 broker，
+不触发 Driver/HAL 或虚拟化层。
 不创建 approval review queue，不关闭 readiness gate，不激活 broker、DDS runtime、高频数据面、
 Driver/HAL 或虚拟化层。
 

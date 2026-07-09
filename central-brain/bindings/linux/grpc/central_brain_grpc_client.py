@@ -86,6 +86,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetEventSubscriptionActivationApprovalDryRunStatus",
         {},
     ),
+    "event-subscription-activation-approval-authority-checklist": (
+        "GetEventSubscriptionActivationApprovalAuthorityChecklist",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",
