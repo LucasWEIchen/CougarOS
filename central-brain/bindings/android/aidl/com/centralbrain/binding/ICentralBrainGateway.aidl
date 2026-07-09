@@ -73,6 +73,8 @@ interface ICentralBrainGateway {
 
     String getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson(String traceId);
 
+    String getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson(String traceId);
+
     String getUibExtensionsJson(String traceId);
 
     String getAiSdkCapabilitiesJson(String traceId);

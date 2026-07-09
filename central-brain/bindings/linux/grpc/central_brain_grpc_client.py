@@ -136,6 +136,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency",
         {},
     ),
+    "event-subscription-activation-approval-decision-closure-blocker-matrix": (
+        "GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

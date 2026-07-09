@@ -169,6 +169,7 @@ checks = [
     ),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3432,6 +3433,65 @@ for method, path, body, req_id in checks:
         assert "GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency" in encoded, "gRPC activation approval decision dry-run audit binding missing"
         assert "EV-ADS-001" in encoded and "EV-ADA-005" in encoded, "activation approval decision dry-run audit missing status/audit gate references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision dry-run audit missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix":
+        matrix = payload["payload"]
+        encoded = json.dumps(matrix)
+        gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+        assert matrix["operation"] == "event-subscription-activation-approval-decision-closure-blocker-matrix", "activation approval decision closure blocker matrix operation mismatch"
+        assert matrix["approval_decision_closure_blocker_matrix_state"] == "contract-only-approval-decision-closure-blocked", "activation approval decision closure blocker matrix wrong state"
+        assert matrix["approval_decision_closure_blocker_matrix_active"] is True, "activation approval decision closure blocker matrix inactive"
+        assert {"EV-ACB-001", "EV-ACB-002", "EV-ACB-003", "EV-ACB-004", "EV-ACB-005", "EV-ACB-006", "EV-ACB-007", "EV-ACB-008", "EV-ACB-009", "EV-ACB-010"} <= gate_ids, "activation approval decision closure blocker matrix missing EV-ACB gates"
+        assert matrix["source_surfaces"]["decision_dry_run_audit_consistency"]["post_called_by_audit_consistency"] is False, "activation approval decision closure matrix source audit called POST"
+        assert matrix["source_surfaces"]["decision_blocker_rollup"]["open_blocker_count"] > 0, "activation approval decision closure matrix lost source blockers"
+        for key in [
+            "closure_ready",
+            "approval_decision_closure_allowed",
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "approval_result_store_created",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert matrix["summary"][key] is False, f"activation approval decision closure blocker matrix summary unexpectedly set {key}"
+        for key in [
+            "activation_approval_decision_closure_blocker_matrix_active",
+            "closure_blocker_matrix_complete",
+            "source_decision_dry_run_audit_consistency_bound",
+            "source_decision_dry_run_audit_consistency_passed",
+            "source_decision_blocker_rollup_bound",
+            "no_store_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert matrix["summary"][key] is True, f"activation approval decision closure blocker matrix summary did not set {key}"
+        assert matrix["summary"]["decision_dry_run_post_called_by_closure_blocker_matrix"] is False, "activation approval decision closure blocker matrix called POST"
+        assert matrix["summary"]["persisted_dry_run_request_count"] == 0, "activation approval decision closure blocker matrix persisted requests"
+        assert matrix["summary"]["persisted_dry_run_result_count"] == 0, "activation approval decision closure blocker matrix persisted results"
+        assert matrix["summary"]["persisted_approval_decision_count"] == 0, "activation approval decision closure blocker matrix persisted decisions"
+        assert matrix["summary"]["open_closure_blocker_count"] == 10, "activation approval decision closure blocker matrix blocker count changed"
+        assert "getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson" in encoded, "Android activation approval decision closure blocker matrix binding missing"
+        assert "event-subscription-activation-approval-decision-closure-blocker-matrix" in encoded, "Linux CLI activation approval decision closure blocker matrix binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix" in encoded, "Linux IPC activation approval decision closure blocker matrix binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix" in encoded, "gRPC activation approval decision closure blocker matrix binding missing"
+        assert "EV-ADA-001" in encoded and "EV-ACB-010" in encoded, "activation approval decision closure blocker matrix missing source/closure gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision closure blocker matrix missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision closure blocker matrix missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -3549,6 +3609,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run-status >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-closure-blocker-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

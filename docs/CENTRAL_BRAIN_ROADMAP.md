@@ -53,6 +53,12 @@
 
 ### 2026-07-09
 
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval decision closure blocker matrix contract：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix`，用于在 decision dry-run audit consistency 之后列明 approval authority、approval policy、signature/RBAC、approval result store、review queue owner、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux closure parity evidence 和 high-rate transport activation evidence 十个 `EV-ACB-001..010` closure blockers。
+  - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson`，Android Console 新增 `Sub ApClose` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-closure-blocker-matrix`、`uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix`、`GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix` 可见路径。
+  - 本轮只完成 activation approval decision closure blocker matrix 只读视图，不调用 decision dry-run POST，不持久化 request/result/approval decision，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动真实订阅 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
+
 - 推进 FW-U-003/NV-P-006 Event subscription activation approval decision dry-run audit consistency contract：
   - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency`，用于只读交叉核对 decision blocker rollup、decision dry-run request contract、decision dry-run no-store status、Android/Linux parity、zero persisted counters 和 no-side-effect 边界，并固定 `EV-ADA-001..008` 门禁。
   - Android Binder/AIDL 新增 `getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson`，Android Console 新增 `Sub ApDAudit` 调试入口；Linux CLI、Linux IPC active sample 与 Linux gRPC/RPC JSON contract sample 新增 `event-subscription-activation-approval-decision-dry-run-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency`、`GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency` 可见路径。

@@ -140,6 +140,7 @@ CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/cen
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-activation-approval-decision-dry-run
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-activation-approval-decision-dry-run-status
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-activation-approval-decision-dry-run-audit-consistency
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py event-subscription-activation-approval-decision-closure-blocker-matrix
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py extensions
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py audit
 CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 python3 central-brain/linux-cli/central_brain_cli.py service-contracts
@@ -372,6 +373,12 @@ FW-U-003/NV-P-006 的 activation evidence retention checklist contract 通过 `G
 
 该交付项只用于 review durable evidence store owner、URI rules、retention policy owner、review workflow owner、gate closure authority、delete/export semantics 和 `EV-AER-001..008` 门禁；它不创建 evidence store，不读取或 dereference evidence URI，不创建 delete/export workflow，不创建 review queue，不关闭 readiness gate，不允许 broker activation，不访问 Driver/HAL，不新增虚拟化层。
 
+## Event Subscription Activation Approval Decision Closure Blocker Matrix 交付补充
+
+FW-U-003/NV-P-006 的 activation approval decision closure blocker matrix contract 通过 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix` 对 Android/Linux 同步可见。Android 主路径为 Binder `getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson` 与 Console `Sub ApClose`；Linux 同步路径为 CLI `event-subscription-activation-approval-decision-closure-blocker-matrix`、IPC `uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix` 和 gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix`。
+
+该交付项只用于 review approval authority、approval policy、signature/RBAC、approval result store、review queue owner、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux closure parity evidence 和 high-rate transport activation evidence 的 `EV-ACB-001..010` closure blockers；它不调用 decision dry-run POST，不持久化 request/result/approval decision，不创建 approval result store，不更新 review queue，不关闭 readiness gate，不允许 broker activation，不访问 Driver/HAL，不新增虚拟化层。
+
 当前 Android Console 主路径：
 
 - 绑定 `CentralBrainGatewayBinderService`。
@@ -390,6 +397,7 @@ FW-U-003/NV-P-006 的 activation evidence retention checklist contract 通过 `G
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionActivationEvidenceStatusJson` 查看 FW-U-003/NV-P-006 Event subscription activation evidence review status contract；该路径只返回 `EV-AES-001..006` status 门禁、`evidence_store_active=false`、`review_workflow_active=false`、`persisted_submission_count=0`、`pending_review_count=0`、`gates_closed=false` 和 `activation_allowed=false`，不读取 evidence store，不创建 review queue，不关闭 gate，不激活 broker、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionActivationEvidenceRetentionChecklistJson` 查看 FW-U-003/NV-P-006 Event subscription activation evidence retention checklist contract；该路径只返回 `EV-AER-001..008` retention 门禁、`owner_decision_complete=false`、`retention_policy_confirmed=false`、`evidence_uri_rules_confirmed=false`、`delete_workflow_active=false`、`export_workflow_active=false`、`gates_closed=false` 和 `activation_allowed=false`，不创建 durable evidence store，不读取 evidence URI，不创建 delete/export workflow，不关闭 gate，不激活 broker、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.getEventSubscriptionActivationEvidenceDecisionStatusRollupJson` 查看 FW-U-003/NV-P-006 Event subscription activation evidence decision status rollup contract；该路径只返回 `EV-AED-001..008` 决策门禁、`decision_status_consistent=true`、`decision_status_passed=false`、`owner_decision_complete=false`、`activation_evidence_intake_called=false`、`activation_evidence_persisted=false`、`review_queue_updated=false`、`gates_closed=false` 和 `activation_allowed=false`，不调用 activation evidence POST，不创建 durable evidence store，不读取 evidence URI，不创建 review queue 或 delete/export workflow，不关闭 gate，不激活 broker、DDS、高频数据面、Driver/HAL 或虚拟化层。
+- 通过 `CentralBrainGatewayClient.getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson` 查看 FW-U-003/NV-P-006 Event subscription activation approval decision closure blocker matrix contract；该路径只返回 `EV-ACB-001..010` closure blockers、`closure_ready=false`、`open_closure_blocker_count=10`、`decision_dry_run_post_called_by_closure_blocker_matrix=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、`persisted_approval_decision_count=0`、`review_queue_updated=false`、`gates_closed=false` 和 `activation_allowed=false`，不调用 decision dry-run POST，不创建 approval result store，不更新 review queue，不关闭 gate，不激活 broker、DDS、高频数据面、Driver/HAL 或虚拟化层。
 - 通过 `CentralBrainGatewayClient.getUibExtensionsJson` 查看 FW-U-008 扩展语义 contract、治理规则和 no-dispatch 边界。
 - 通过 `CentralBrainGatewayClient.planAgentTaskJson` 调用 AI SDK/Agent task plan。
 - 通过 `CentralBrainGatewayClient.executeAgentTaskJson` 验证 Agent execute contract mock，只返回 policy-checked dispatch 边界。

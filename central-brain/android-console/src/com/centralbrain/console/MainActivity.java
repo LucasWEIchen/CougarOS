@@ -47,6 +47,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionActivationApprovalDecisionDryRunButton;
     private Button eventSubscriptionActivationApprovalDecisionDryRunStatusButton;
     private Button eventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyButton;
+    private Button eventSubscriptionActivationApprovalDecisionClosureBlockerMatrixButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -318,6 +319,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency();
+            }
+        });
+        eventSubscriptionActivationApprovalDecisionClosureBlockerMatrixButton = addButton(eventApprovalDecisionRow, "Sub ApClose", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix();
             }
         });
 
@@ -904,6 +911,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix() {
+        setBusy(true, "Status: loading event activation approval decision closure blocker matrix via Binder");
+        gatewayRequest("Event Subscription Activation Approval Decision Closure Blocker Matrix (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson(newTraceId("event-subscription-activation-approval-decision-closure-blocker-matrix"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -1326,7 +1343,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Sub ApDec, Sub ApDStat, Sub ApDAudit, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Sub ApDec, Sub ApDStat, Sub ApDAudit, Sub ApClose, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -1399,6 +1416,7 @@ public class MainActivity extends Activity {
         eventSubscriptionActivationApprovalDecisionDryRunButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalDecisionDryRunStatusButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyButton.setEnabled(enabled);
+        eventSubscriptionActivationApprovalDecisionClosureBlockerMatrixButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

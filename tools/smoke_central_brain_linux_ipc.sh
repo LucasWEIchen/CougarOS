@@ -1109,6 +1109,63 @@ assert "GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency" in
 assert "EV-ADS-001" in encoded and "EV-ADA-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_CLOSURE_BLOCKER_MATRIX_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-closure-blocker-matrix)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_CLOSURE_BLOCKER_MATRIX_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "event-subscription-activation-approval-decision-closure-blocker-matrix", response
+assert payload["approval_decision_closure_blocker_matrix_state"] == "contract-only-approval-decision-closure-blocked", response
+assert payload["approval_decision_closure_blocker_matrix_active"] is True, response
+assert {"EV-ACB-001", "EV-ACB-002", "EV-ACB-003", "EV-ACB-004", "EV-ACB-005", "EV-ACB-006", "EV-ACB-007", "EV-ACB-008", "EV-ACB-009", "EV-ACB-010"} <= gate_ids, response
+assert payload["source_surfaces"]["decision_dry_run_audit_consistency"]["post_called_by_audit_consistency"] is False, response
+assert payload["source_surfaces"]["decision_blocker_rollup"]["open_blocker_count"] > 0, response
+for key in [
+    "closure_ready",
+    "approval_decision_closure_allowed",
+    "approval_decision_ready",
+    "approval_dry_run_allowed",
+    "approval_result_store_created",
+    "review_queue_updated",
+    "gates_closed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "broker_active",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+for key in [
+    "activation_approval_decision_closure_blocker_matrix_active",
+    "closure_blocker_matrix_complete",
+    "source_decision_dry_run_audit_consistency_bound",
+    "source_decision_dry_run_audit_consistency_passed",
+    "source_decision_blocker_rollup_bound",
+    "no_store_consistent",
+    "no_side_effects_consistent",
+]:
+    assert payload["summary"][key] is True, response
+assert payload["summary"]["decision_dry_run_post_called_by_closure_blocker_matrix"] is False, response
+assert payload["summary"]["persisted_dry_run_request_count"] == 0, response
+assert payload["summary"]["persisted_dry_run_result_count"] == 0, response
+assert payload["summary"]["persisted_approval_decision_count"] == 0, response
+assert payload["summary"]["open_closure_blocker_count"] == 10, response
+assert "getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson" in encoded, response
+assert "event-subscription-activation-approval-decision-closure-blocker-matrix" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix" in encoded, response
+assert "EV-ADA-001" in encoded and "EV-ACB-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
