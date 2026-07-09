@@ -108,6 +108,8 @@ require_text "$DOC" "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprova
 require_text "$DOC" "HW ApHRvA"
 require_text "$DOC" "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson"
 require_text "$DOC" "HW ApHRvRoll"
+require_text "$DOC" "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson"
+require_text "$DOC" "HW ApHReady"
 require_text "$DOC" "/governance/precheck"
 require_text "$DOC" "shared Runtime & Governance backend target contract"
 require_text "$DOC" "migration readiness"

@@ -2654,6 +2654,55 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvid
 assert "HW-AHJ-007" in encoded and "android-linux-reviewer-assignment-audit-decision-rollup-parity" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_SUMMARY_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_SUMMARY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+handoff_readiness = payload["gateway"]["payload"]
+encoded = json.dumps(handoff_readiness)
+gate_ids = {item["gate_id"] for item in handoff_readiness["mandatory_gates"]}
+dependency_ids = {item["dependency_id"] for item in handoff_readiness["handoff_dependencies"]}
+summary = handoff_readiness["summary"]
+assert response["status"] == "ok", response
+assert handoff_readiness["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary", response
+assert handoff_readiness["closure_handoff_readiness_summary_state"] == "contract-only-closure-handoff-readiness-blocked", response
+assert handoff_readiness["closure_handoff_readiness_summary_active"] is True, response
+assert summary["closure_handoff_readiness_complete"] is True and summary["closure_handoff_ready"] is False and summary["handoff_ready"] is False, response
+assert summary["source_decision_rollup_bound"] is True and summary["decision_rollup_consistent"] is True, response
+assert summary["reviewer_assignment_decision_blocked"] is True, response
+assert summary["adapter_load_decision"] == "blocked-by-unassigned-reviewers", response
+assert summary["required_handoff_dependency_count"] == 8 and summary["open_handoff_dependency_count"] == 8, response
+assert summary["assigned_reviewer_count"] == 0 and summary["unassigned_reviewer_count"] == 8, response
+assert {"HW-AHK-001", "HW-AHK-002", "HW-AHK-003", "HW-AHK-004", "HW-AHK-005", "HW-AHK-006", "HW-AHK-007", "HW-AHK-008"} <= gate_ids, response
+assert {"HW-AHK-HANDOFF-001", "HW-AHK-HANDOFF-002", "HW-AHK-HANDOFF-003", "HW-AHK-HANDOFF-004", "HW-AHK-HANDOFF-005", "HW-AHK-HANDOFF-006", "HW-AHK-HANDOFF-007", "HW-AHK-HANDOFF-008"} <= dependency_ids, response
+for key in [
+    "reviewer_assignment_ready",
+    "reviewer_assignment_allowed",
+    "reviewer_assignments_persisted",
+    "reviewer_assignment_queue_updated",
+    "handoff_acceptance_allowed",
+    "evidence_handoff_allowed",
+    "approval_review_allowed",
+    "retention_review_allowed",
+    "gate_closure_allowed",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert summary[key] is False, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary" in encoded, response
+assert "HW-AHK-007" in encoded and "android-linux-closure-handoff-readiness-summary-parity" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

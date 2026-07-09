@@ -1,11 +1,11 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.76",
+  "version": "0.1.77",
   "updated": "2026-07-09",
   "transport": {
     "prototype": "http-json",
-    "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback; hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.checklist maps to closure readiness checklist, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.audit.consistency, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.rollup, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.checklist, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup maps to reviewer assignment audit decision rollup",
-    "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback; GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklist maps to closure readiness checklist, GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency and GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollup, and GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist, and GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup",
+    "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback; hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.checklist maps to closure readiness checklist, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.audit.consistency, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.rollup, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.checklist, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup maps to reviewer assignment audit decision rollup, and hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary maps to closure handoff readiness summary",
+    "linux_grpc_rpc_sample": "dependency-free JSON TCP wrapper mirroring the gRPC proto contract with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback; GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklist maps to closure readiness checklist, GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency and GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollup, and GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist, GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup, and GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary",
     "linux_governance_socket_sample": "/tmp/central_brain_governance.sock with governance.precheck, governance.runtime.get, and audit.recent.get diagnostics used directly by Linux IPC/gRPC samples",
     "shared_governance_backend_contract": "GET /governance/backend-contract describes the target shared governance backend operations for Android Binder, Linux IPC, and Linux gRPC/RPC replacement",
     "shared_governance_migration_check": "GET /governance/migration-check reports production backend replacement invariants, binding readiness, and open decisions without implementing the production backend",
@@ -14,13 +14,13 @@
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
     "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
-    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, GET /hardware/interfaces/owner-decision-evidence/retention-checklist, GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/audit-consistency, and GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, retention/closure checklist decisions, replacement trigger checklist decisions, selected-adapter readiness evidence, adapter-load blockers, adapter-load approval dry-run rejection, no-store dry-run status/last-result visibility, dry-run audit consistency, approval-authority decisions, approval-authority no-store status, approval-authority audit consistency, approval decision dry-run rejection, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, approval decision reviewer matrix, approval reviewer evidence handoff checklist, approval reviewer evidence handoff acceptance status, approval reviewer evidence handoff acceptance audit consistency, and approval reviewer evidence handoff acceptance decision rollup for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist closure readiness checklist keeps adapter load blocked and no Driver/HAL or virtualization triggered, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency validates closure readiness audit consistency and reports closure readiness decision rollup for the blocked adapter-load approval reviewer evidence handoff acceptance path; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist reports closure decision reviewer assignment checklist while keeping every reviewer unassigned, no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants explicit; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup reports reviewer assignment audit decision rollup while preserving no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants",
+    "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, GET /hardware/interfaces/owner-decision-evidence/retention-checklist, GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/audit-consistency, and GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, retention/closure checklist decisions, replacement trigger checklist decisions, selected-adapter readiness evidence, adapter-load blockers, adapter-load approval dry-run rejection, no-store dry-run status/last-result visibility, dry-run audit consistency, approval-authority decisions, approval-authority no-store status, approval-authority audit consistency, approval decision dry-run rejection, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, approval decision reviewer matrix, approval reviewer evidence handoff checklist, approval reviewer evidence handoff acceptance status, approval reviewer evidence handoff acceptance audit consistency, and approval reviewer evidence handoff acceptance decision rollup for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist closure readiness checklist keeps adapter load blocked and no Driver/HAL or virtualization triggered, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency validates closure readiness audit consistency and reports closure readiness decision rollup for the blocked adapter-load approval reviewer evidence handoff acceptance path; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist reports closure decision reviewer assignment checklist while keeping every reviewer unassigned, no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants explicit; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup reports reviewer assignment audit decision rollup while preserving no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary reports closure handoff readiness summary while keeping every handoff dependency blocked, no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants explicit",
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
     "vehicle_signal_validation": "GET /vehicle/signals/validation exposes the no-hardware read-bridge validation envelope for schema-source metadata, adapter ownership, Android/Linux parity, and DRV-GAP-002 evidence without parsing schemas or activating a bridge",
     "event_subscription_contract": "GET /uib/events/subscriptions plus POST /uib/events/subscriptions/request, POST /uib/events/subscriptions/cancel, GET /uib/events/subscriptions/transport-readiness, GET /uib/events/subscriptions/decision-matrix, GET /uib/events/subscriptions/activation-checklist, GET /uib/events/subscriptions/callback-watch-shape, GET /uib/events/subscriptions/cursor-replay-storage, GET /uib/events/subscriptions/backpressure-qos-evidence, GET /uib/events/subscriptions/readiness-rollup, POST /uib/events/subscriptions/activation-evidence, GET /uib/events/subscriptions/activation-evidence/status, GET /uib/events/subscriptions/activation-evidence/retention-checklist, and GET /uib/events/subscriptions/activation-evidence/decision-status-rollup expose FW-U-003/NV-P-006 lifecycle, cursor/replay storage, backpressure/QoS evidence, governance, callback/watch transport readiness, owner decision matrix, activation evidence gates, activation evidence intake/status/retention checklist/decision status reference shape, callback/watch API shape, end-to-end readiness blockers, and binding parity metadata without selecting a transport, assigning production owners, persisting evidence or subscriptions, reading an evidence store, updating review queues, creating retention/delete/export workflows, closing gates, creating cursor storage, activating event QoS, registering callbacks, starting a broker, SSE/WebSocket, DDS runtime, high-rate data plane, Driver/HAL, or virtualization work",
-    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollupJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson",
-    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /uib/events/subscriptions/activation-evidence/decision-status-rollup, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist via HW ApHClose, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency via HW ApHCAud, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup via HW ApHCRoll, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist via HW ApHCRev, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup via HW ApHRvRoll",
+    "android_binder_sample": "AIDL service/client sample proxying the semantic gateway, including getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getServiceContractsJson, getGovernanceBackendContractJson, getGovernanceMigrationCheckJson, getGovernanceDeploymentPlanJson, getPrototypeReadinessJson, getHardwareInterfacesJson, getHardwareInterfaceActivationChecklistJson, getHardwareInterfaceOwnerDecisionStatusJson, submitHardwareInterfaceOwnerDecisionEvidenceJson, getHardwareInterfaceOwnerDecisionEvidenceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson, dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatusJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupJson, getVehicleSignalsJson, getVehicleSignalActivationJson, and getVehicleSignalValidationJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollupJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson, getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson",
+    "android_console_path": "debug APK binds CentralBrainGatewayBinderService before invoking /uib/state, /agent/plan, /agent/execute, /skills/{skill_id}/invoke, /memory/query, /uib/events/subscriptions, /uib/events/subscriptions/request, /uib/events/subscriptions/cancel, /uib/events/subscriptions/transport-readiness, /uib/events/subscriptions/decision-matrix, /uib/events/subscriptions/activation-checklist, /uib/events/subscriptions/callback-watch-shape, /uib/events/subscriptions/cursor-replay-storage, /uib/events/subscriptions/backpressure-qos-evidence, /uib/events/subscriptions/readiness-rollup, /uib/events/subscriptions/activation-evidence, /uib/events/subscriptions/activation-evidence/status, /uib/events/subscriptions/activation-evidence/retention-checklist, /uib/events/subscriptions/activation-evidence/decision-status-rollup, /governance/precheck, /native/driver-gaps, /hardware/interfaces, /hardware/interfaces/activation-checklist, /hardware/interfaces/owner-decision-status, /hardware/interfaces/owner-decision-evidence, /hardware/interfaces/owner-decision-evidence/status, /hardware/interfaces/owner-decision-evidence/retention-checklist, /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup, /prototype/readiness, /vehicle/signals, /vehicle/signals/activation, and /vehicle/signals/validation through Binder contract samples, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist via HW ApHClose, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency via HW ApHCAud, /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup via HW ApHCRoll, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist via HW ApHCRev, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup via HW ApHRvRoll, and /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary via HW ApHReady",
     "android_system_service_integration": "docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md documents system/privileged service constraints, Binder identity policy mapping, and SELinux assumptions",
     "android_emulator_base_url": "http://10.0.2.2:8787",
     "host_base_url": "http://127.0.0.1:8787",
@@ -8902,6 +8902,266 @@
           "driver_development_triggered": false,
           "virtualization_development_triggered": false,
           "service_dispatch_triggered": false
+        },
+        "req_ids": [
+          "XSC-004",
+          "XSC-006",
+          "HW-002",
+          "KH-003",
+          "KH-006",
+          "KH-007",
+          "DEL-001",
+          "DEL-002",
+          "DEL-005"
+        ]
+      },
+      "req_ids": [
+        "XSC-004",
+        "XSC-006",
+        "HW-002",
+        "KH-003",
+        "KH-006",
+        "KH-007",
+        "DEL-001",
+        "DEL-002",
+        "DEL-005"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary",
+      "description": "Reports contract-only closure handoff readiness summary after reviewer assignment audit decision rollup, keeping all handoff dependencies blocked and preserving no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-Driver/HAL, and no-virtualization invariants.",
+      "response": {
+        "operation": "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary",
+        "closure_handoff_readiness_summary_state": "contract-only-closure-handoff-readiness-blocked",
+        "closure_handoff_readiness_summary_active": true,
+        "source_decision_rollup_bound": true,
+        "decision_rollup_consistent": true,
+        "closure_handoff_readiness_complete": true,
+        "closure_handoff_ready": false,
+        "handoff_ready": false,
+        "adapter_load_decision": "blocked-by-unassigned-reviewers",
+        "reviewer_assignment_decision_blocked": true,
+        "required_handoff_dependency_count": 8,
+        "open_handoff_dependency_count": 8,
+        "assigned_reviewer_count": 0,
+        "unassigned_reviewer_count": 8,
+        "reviewer_assignment_ready": false,
+        "reviewer_assignment_allowed": false,
+        "reviewer_assignments_persisted": false,
+        "reviewer_assignment_queue_updated": false,
+        "handoff_acceptance_allowed": false,
+        "evidence_handoff_allowed": false,
+        "approval_review_allowed": false,
+        "retention_review_allowed": false,
+        "gate_closure_allowed": false,
+        "approval_decision_closure_allowed": false,
+        "approval_decision_persisted": false,
+        "approval_decision_review_queue_updated": false,
+        "approval_decision_evidence_store_active": false,
+        "approval_evidence_store_active": false,
+        "review_workflow_active": false,
+        "review_queue_updated": false,
+        "gate_state_changed": false,
+        "gates_closed": false,
+        "adapter_load_allowed": false,
+        "adapter_activation_allowed": false,
+        "hardware_access_allowed": false,
+        "hardware_accessed": false,
+        "driver_development_triggered": false,
+        "virtualization_development_triggered": false,
+        "service_dispatch_triggered": false,
+        "handoff_dependencies": [
+          {
+            "dependency_id": "HW-AHK-HANDOFF-001",
+            "gate_id": "HW-AHK-001",
+            "source_decision_id": "HW-AHJ-DECISION-001",
+            "source_gate_id": "HW-AHJ-001",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "Closure handoff readiness summary binds the reviewer assignment audit decision rollup without creating stores, queues, or reviewer assignments."
+          },
+          {
+            "dependency_id": "HW-AHK-HANDOFF-002",
+            "gate_id": "HW-AHK-002",
+            "source_decision_id": "HW-AHJ-DECISION-002",
+            "source_gate_id": "HW-AHJ-002",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "Reviewer assignment audit decision rollup remains complete, consistent, and blocked by unassigned reviewers."
+          },
+          {
+            "dependency_id": "HW-AHK-HANDOFF-003",
+            "gate_id": "HW-AHK-003",
+            "source_decision_id": "HW-AHJ-DECISION-003",
+            "source_gate_id": "HW-AHJ-003",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "Eight closure handoff dependencies are summarized and all remain blocked before adapter load can move out of the empty-interface boundary."
+          },
+          {
+            "dependency_id": "HW-AHK-HANDOFF-004",
+            "gate_id": "HW-AHK-004",
+            "source_decision_id": "HW-AHJ-DECISION-004",
+            "source_gate_id": "HW-AHJ-004",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "Closure handoff readiness reports zero assigned reviewers, eight unassigned reviewers, and adapter load blocked by reviewer assignment."
+          },
+          {
+            "dependency_id": "HW-AHK-HANDOFF-005",
+            "gate_id": "HW-AHK-005",
+            "source_decision_id": "HW-AHJ-DECISION-005",
+            "source_gate_id": "HW-AHJ-005",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "Closure handoff readiness summary does not persist assignments, acceptance records, approvals, decisions, or evidence."
+          },
+          {
+            "dependency_id": "HW-AHK-HANDOFF-006",
+            "gate_id": "HW-AHK-006",
+            "source_decision_id": "HW-AHJ-DECISION-006",
+            "source_gate_id": "HW-AHJ-006",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "Closure handoff readiness summary does not update review queues, close gates, select adapters, load adapters, activate adapters, or access hardware."
+          },
+          {
+            "dependency_id": "HW-AHK-HANDOFF-007",
+            "gate_id": "HW-AHK-007",
+            "source_decision_id": "HW-AHJ-DECISION-007",
+            "source_gate_id": "HW-AHJ-007",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same closure handoff readiness summary."
+          },
+          {
+            "dependency_id": "HW-AHK-HANDOFF-008",
+            "gate_id": "HW-AHK-008",
+            "source_decision_id": "HW-AHJ-DECISION-008",
+            "source_gate_id": "HW-AHJ-008",
+            "dependency_state": "blocked",
+            "handoff_ready": false,
+            "blocks_adapter_load": true,
+            "required_closure_handoff": "Closure handoff readiness summary does not assign reviewers, accept packets, persist records, create stores, update queues, close gates, load adapters, access hardware, call Driver/HAL, dispatch services, or trigger virtualization."
+          }
+        ],
+        "source_surfaces": {
+          "reviewer_assignment_audit_decision_rollup": {
+            "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup",
+            "decision_rollup_complete": true,
+            "decision_rollup_consistent": true,
+            "reviewer_assignment_decision_blocked": true,
+            "adapter_load_decision": "blocked-by-unassigned-reviewers"
+          }
+        },
+        "mandatory_gates": [
+          {
+            "gate_id": "HW-AHK-001",
+            "name": "closure-handoff-readiness-summary-surfaces-bound",
+            "required_evidence": "Closure handoff readiness summary binds the reviewer assignment audit decision rollup without creating stores, queues, or reviewer assignments.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHK-002",
+            "name": "source-decision-rollup-consistency-bound",
+            "required_evidence": "Reviewer assignment audit decision rollup remains complete, consistent, and blocked by unassigned reviewers.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHK-003",
+            "name": "closure-handoff-dependencies-summarized",
+            "required_evidence": "Eight closure handoff dependencies are summarized and all remain blocked before adapter load can move out of the empty-interface boundary.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHK-004",
+            "name": "reviewer-assignment-handoff-blocker-carried-forward",
+            "required_evidence": "Closure handoff readiness reports zero assigned reviewers, eight unassigned reviewers, and adapter load blocked by reviewer assignment.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHK-005",
+            "name": "no-store-closure-handoff-readiness-summary",
+            "required_evidence": "Closure handoff readiness summary does not persist assignments, acceptance records, approvals, decisions, or evidence.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHK-006",
+            "name": "no-review-gate-load-closure-handoff-readiness-summary",
+            "required_evidence": "Closure handoff readiness summary does not update review queues, close gates, select adapters, load adapters, activate adapters, or access hardware.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHK-007",
+            "name": "android-linux-closure-handoff-readiness-summary-parity",
+            "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same closure handoff readiness summary.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHK-008",
+            "name": "no-side-effect-closure-handoff-readiness-summary",
+            "required_evidence": "Closure handoff readiness summary does not assign reviewers, accept packets, persist records, create stores, update queues, close gates, load adapters, access hardware, call Driver/HAL, dispatch services, or trigger virtualization.",
+            "passed": true
+          }
+        ],
+        "api_surface": {
+          "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary",
+          "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson",
+          "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary",
+          "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary",
+          "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary"
+        },
+        "summary": {
+          "closure_handoff_readiness_summary_active": true,
+          "closure_handoff_readiness_state": "contract-only-closure-handoff-readiness-blocked",
+          "source_decision_rollup_bound": true,
+          "decision_rollup_consistent": true,
+          "closure_handoff_readiness_complete": true,
+          "closure_handoff_ready": false,
+          "handoff_ready": false,
+          "adapter_load_decision": "blocked-by-unassigned-reviewers",
+          "reviewer_assignment_decision_blocked": true,
+          "required_handoff_dependency_count": 8,
+          "open_handoff_dependency_count": 8,
+          "assigned_reviewer_count": 0,
+          "unassigned_reviewer_count": 8,
+          "reviewer_assignment_ready": false,
+          "reviewer_assignment_allowed": false,
+          "reviewer_assignments_persisted": false,
+          "reviewer_assignment_queue_updated": false,
+          "handoff_acceptance_allowed": false,
+          "evidence_handoff_allowed": false,
+          "approval_review_allowed": false,
+          "retention_review_allowed": false,
+          "gate_closure_allowed": false,
+          "approval_decision_closure_allowed": false,
+          "approval_decision_persisted": false,
+          "approval_decision_review_queue_updated": false,
+          "approval_decision_evidence_store_active": false,
+          "approval_evidence_store_active": false,
+          "review_workflow_active": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "adapter_load_allowed": false,
+          "adapter_activation_allowed": false,
+          "hardware_access_allowed": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false,
+          "android_linux_closure_handoff_readiness_summary_parity": true,
+          "no_store_handoff_readiness_summary": true,
+          "no_review_gate_load_handoff_readiness_summary": true,
+          "no_side_effects_handoff_readiness_summary": true
         },
         "req_ids": [
           "XSC-004",

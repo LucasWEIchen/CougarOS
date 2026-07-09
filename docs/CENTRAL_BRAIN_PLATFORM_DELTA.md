@@ -392,6 +392,17 @@ assignment count、blocked assignment state、no-store、no-review/gate/load、A
 它不分配 reviewer，不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence/reviewer assignment，不创建 evidence store，不更新 review queue，不关闭 gate，
 不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load closure handoff readiness summary 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary`、Android Binder
+`getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson`、Android Console `HW ApHReady`、
+Linux CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary` 与 Linux gRPC/RPC
+`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary` 调用。该 summary 只汇总 reviewer assignment audit decision rollup 后仍开放的 handoff dependencies，暴露 `HW-AHK-001..008`、`closure_handoff_readiness_complete=true`、`closure_handoff_ready=false`、`handoff_ready=false`、
+`required_handoff_dependency_count=8`、`open_handoff_dependency_count=8`、`reviewer_assignment_decision_blocked=true`、`adapter_load_decision=blocked-by-unassigned-reviewers`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=8`、
+`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`handoff_acceptance_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。
+它不分配 reviewer，不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence/reviewer assignment，不创建 evidence store，不更新 review queue，不关闭 gate，
+不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 硬件接口 owner evidence adapter-load approval reviewer evidence handoff acceptance closure readiness decision reviewer assignment audit decision rollup 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup`、Android Binder
 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson`、Android Console `HW ApHRvRoll`、

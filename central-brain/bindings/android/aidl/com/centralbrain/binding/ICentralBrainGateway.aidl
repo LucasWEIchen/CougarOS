@@ -169,6 +169,8 @@ interface ICentralBrainGateway {
 
     String getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson(String traceId);
 
+    String getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson(String traceId);
+
     String getVehicleSignalsJson(String traceId);
 
     String getVehicleSignalActivationJson(String traceId);

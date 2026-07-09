@@ -75,6 +75,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupButton;
+    private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -514,6 +515,15 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getHardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup();
+            }
+        });
+
+        LinearLayout hardwareApprovalClosureHandoffRow = buttonRow();
+        buttonArea.addView(hardwareApprovalClosureHandoffRow);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryButton = addButton(hardwareApprovalClosureHandoffRow, "HW ApHReady", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getHardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary();
             }
         });
 
@@ -1123,6 +1133,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getHardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary() {
+        setBusy(true, "Status: loading hardware owner evidence adapter load approval reviewer evidence handoff acceptance closure handoff readiness summary via Binder");
+        gatewayRequest("Hardware Owner Evidence Adapter Load Approval Reviewer Evidence Handoff Acceptance Closure Handoff Readiness Summary (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson(newTraceId("hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary"));
+            }
+        });
+    }
+
     private void getPrototypeReadiness() {
         setBusy(true, "Status: loading Python prototype readiness via Binder");
         gatewayRequest("Prototype Readiness (Binder)", new GatewayCall() {
@@ -1272,6 +1292,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupButton.setEnabled(enabled);
+        hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

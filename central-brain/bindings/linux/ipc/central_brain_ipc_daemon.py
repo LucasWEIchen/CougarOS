@@ -390,6 +390,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup",
         "req_ids": ["XSC-004", "XSC-006", "HW-002", "KH-003", "KH-006", "KH-007", "NV-P-002", "DEL-002", "DEL-005"],
     },
+    "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary": {
+        "method": "GET",
+        "path": "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary",
+        "req_ids": ["XSC-004", "XSC-006", "HW-002", "KH-003", "KH-006", "KH-007", "NV-P-002", "DEL-002", "DEL-005"],
+    },
     "vehicle.signals.list": {
         "method": "GET",
         "path": "/vehicle/signals",
