@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixButton;
     private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyButton;
     private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusButton;
+    private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -373,6 +374,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatus();
+            }
+        });
+        eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyButton = addButton(eventApprovalEvidenceRow, "Sub ApHAcAud", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistency();
             }
         });
 
@@ -1029,6 +1036,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistency() {
+        setBusy(true, "Status: loading event activation approval decision owner handoff evidence acceptance audit consistency via Binder");
+        gatewayRequest("Event Subscription Activation Approval Decision Owner Handoff Evidence Acceptance Audit Consistency (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson(newTraceId("event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -1531,6 +1548,7 @@ public class MainActivity extends Activity {
         eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusButton.setEnabled(enabled);
+        eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

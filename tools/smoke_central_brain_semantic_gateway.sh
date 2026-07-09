@@ -176,6 +176,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -4053,6 +4054,88 @@ for method, path, body, req_id in checks:
         assert "EV-AHG-001" in encoded and "EV-AHG-010" in encoded and "EV-AHF-010" in encoded and "EV-AHE-010" in encoded and "EV-AHD-010" in encoded and "EV-ACH-010" in encoded and "EV-ACB-010" in encoded, "activation approval decision owner handoff evidence acceptance missing gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency":
+        audit = payload["payload"]
+        encoded = json.dumps(audit)
+        gate_ids = {item["gate_id"] for item in audit["mandatory_gates"]}
+        assert audit["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency", "activation approval decision owner handoff evidence acceptance audit operation mismatch"
+        assert audit["approval_decision_owner_handoff_evidence_acceptance_audit_consistency_state"] == "contract-only-handoff-evidence-acceptance-audit-consistent", "activation approval decision owner handoff evidence acceptance audit wrong state"
+        assert audit["approval_decision_owner_handoff_evidence_acceptance_audit_consistency_active"] is True, "activation approval decision owner handoff evidence acceptance audit inactive"
+        assert {"EV-AHH-001", "EV-AHH-002", "EV-AHH-003", "EV-AHH-004", "EV-AHH-005", "EV-AHH-006", "EV-AHH-007", "EV-AHH-008", "EV-AHH-009", "EV-AHH-010"} <= gate_ids, "activation approval decision owner handoff evidence acceptance audit missing EV-AHH gates"
+        assert len(audit["audit_items"]) == 10, "activation approval decision owner handoff evidence acceptance audit item count changed"
+        for item in audit["audit_items"]:
+            assert item["result"] == "consistent", f"activation approval decision owner handoff evidence acceptance audit item inconsistent {item['gate_id']}"
+            assert item["passed"] is True, f"activation approval decision owner handoff evidence acceptance audit item failed {item['gate_id']}"
+            assert item["acceptance_still_blocked"] is True, f"activation approval decision owner handoff evidence acceptance audit unblocked {item['gate_id']}"
+            assert item["source_acceptance_gate_id"].startswith("EV-AHG-"), f"activation approval decision owner handoff evidence acceptance audit source acceptance missing {item['gate_id']}"
+            assert item["source_readiness_audit_gate_id"].startswith("EV-AHF-"), f"activation approval decision owner handoff evidence acceptance audit source readiness missing {item['gate_id']}"
+            assert item["source_evidence_id"].startswith("EV-AHE-"), f"activation approval decision owner handoff evidence acceptance audit source evidence missing {item['gate_id']}"
+            assert item["source_decision_gate_id"].startswith("EV-AHD-"), f"activation approval decision owner handoff evidence acceptance audit source decision missing {item['gate_id']}"
+            assert item["source_handoff_id"].startswith("EV-ACH-"), f"activation approval decision owner handoff evidence acceptance audit source handoff missing {item['gate_id']}"
+            assert item["source_blocker_id"].startswith("EV-ACB-"), f"activation approval decision owner handoff evidence acceptance audit source blocker missing {item['gate_id']}"
+        for key in [
+            "activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency_active",
+            "consistency_passed",
+            "source_acceptance_status_bound",
+            "source_handoff_evidence_readiness_audit_bound",
+            "acceptance_status_consistent",
+            "handoff_evidence_readiness_audit_consistent",
+            "acceptance_count_consistent",
+            "blocked_acceptance_state_consistent",
+            "android_linux_parity_consistent",
+            "no_store_consistent",
+            "no_post_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert audit["summary"][key] is True, f"activation approval decision owner handoff evidence acceptance audit summary did not set {key}"
+        for key in [
+            "handoff_evidence_acceptance_allowed",
+            "handoff_evidence_ready",
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "owner_assignments_persisted",
+            "owner_handoff_queue_updated",
+            "evidence_packets_attached",
+            "evidence_store_created",
+            "evidence_store_active",
+            "decision_dry_run_post_called_by_handoff_evidence_acceptance_audit_consistency",
+            "approval_result_store_created",
+            "approval_result_store_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert audit["summary"][key] is False, f"activation approval decision owner handoff evidence acceptance audit summary unexpectedly set {key}"
+        assert audit["summary"]["required_audit_count"] == 10, "activation approval decision owner handoff evidence acceptance audit required audit count changed"
+        assert audit["summary"]["blocked_acceptance_count"] == 10, "activation approval decision owner handoff evidence acceptance audit blocked count changed"
+        assert audit["summary"]["accepted_evidence_packet_count"] == 0, "activation approval decision owner handoff evidence acceptance audit accepted packet count changed"
+        assert audit["summary"]["acceptance_record_persisted_count"] == 0, "activation approval decision owner handoff evidence acceptance audit persisted record count changed"
+        assert audit["summary"]["missing_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence acceptance audit missing packet count changed"
+        assert audit["summary"]["attached_evidence_count"] == 0, "activation approval decision owner handoff evidence acceptance audit attached evidence changed"
+        assert audit["summary"]["persisted_evidence_packet_count"] == 0, "activation approval decision owner handoff evidence acceptance audit persisted evidence changed"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson" in encoded, "Android activation approval decision owner handoff evidence acceptance audit binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency" in encoded, "Linux CLI activation approval decision owner handoff evidence acceptance audit binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.audit.consistency" in encoded, "Linux IPC activation approval decision owner handoff evidence acceptance audit binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistency" in encoded, "gRPC activation approval decision owner handoff evidence acceptance audit binding missing"
+        assert "EV-AHH-001" in encoded and "EV-AHH-010" in encoded and "EV-AHG-010" in encoded and "EV-AHF-010" in encoded and "EV-AHE-010" in encoded and "EV-AHD-010" in encoded, "activation approval decision owner handoff evidence acceptance audit missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance audit missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance audit missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
