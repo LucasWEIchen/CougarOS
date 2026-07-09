@@ -301,6 +301,13 @@ IPC. It reports `HW-AHI-001..008`, source checklist binding, assignment counts,
 unassigned blocker state, no persisted assignments, no review queue/gate/load
 effects, and does not accept handoff packets, close gates, load adapters, access
 hardware, trigger Driver/HAL, or implement virtualization.
+`CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup`
+exposes the same approval reviewer evidence handoff acceptance closure readiness
+decision reviewer assignment audit decision rollup as Android Binder and Linux
+IPC. It reports `HW-AHJ-001..008`, a blocked adapter load decision caused by
+unassigned reviewers, no persisted assignments, no review queue/gate/load
+effects, and does not accept handoff packets, close gates, load adapters, access
+hardware, trigger Driver/HAL, or implement virtualization.
 `CentralBrainGateway.GetVehicleSignals` exposes the same read-only Vehicle/Body
 Signal catalog as Android Binder and Linux IPC without loading DBC/ARXML,
 calling VHAL/HAL, connecting SocketCAN/vendor gateways, touching a real vehicle

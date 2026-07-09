@@ -312,6 +312,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -2267,6 +2273,61 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency" in encoded, "gRPC hardware closure decision reviewer assignment audit binding missing"
         assert "HW-AHI-007" in encoded and "android-linux-reviewer-assignment-audit-parity" in encoded, "hardware closure decision reviewer assignment audit missing synchronized binding gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware closure decision reviewer assignment audit missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup":
+        decision_rollup = payload["payload"]
+        encoded = json.dumps(decision_rollup)
+        gate_ids = {item["gate_id"] for item in decision_rollup["mandatory_gates"]}
+        decision_ids = {item["decision_id"] for item in decision_rollup["decision_rows"]}
+        summary = decision_rollup["summary"]
+        assert decision_rollup["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup", "hardware closure decision reviewer assignment audit decision rollup wrong operation"
+        assert decision_rollup["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_state"] == "contract-only-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-blocked", "hardware closure decision reviewer assignment audit decision rollup wrong state"
+        assert decision_rollup["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_active"] is True, "hardware closure decision reviewer assignment audit decision rollup inactive"
+        assert summary["decision_rollup_complete"] is True and summary["decision_rollup_consistent"] is True, "hardware closure decision reviewer assignment audit decision rollup inconsistent"
+        assert summary["source_reviewer_assignment_audit_bound"] is True and summary["reviewer_assignment_audit_consistent"] is True, "hardware closure decision reviewer assignment audit decision rollup lost audit source"
+        assert summary["reviewer_assignment_decision_blocked"] is True, "hardware closure decision reviewer assignment audit decision unexpectedly allowed"
+        assert summary["adapter_load_decision"] == "blocked-by-unassigned-reviewers", "hardware closure decision reviewer assignment audit decision rollup wrong adapter decision"
+        assert summary["required_decision_count"] == 8 and summary["blocked_decision_count"] == 8, "hardware closure decision reviewer assignment audit decision rollup wrong decision counts"
+        assert summary["assigned_reviewer_count"] == 0 and summary["unassigned_reviewer_count"] == 8, "hardware closure decision reviewer assignment audit decision rollup reviewer counts changed"
+        assert {
+            "HW-AHJ-001",
+            "HW-AHJ-002",
+            "HW-AHJ-003",
+            "HW-AHJ-004",
+            "HW-AHJ-005",
+            "HW-AHJ-006",
+            "HW-AHJ-007",
+            "HW-AHJ-008",
+        } <= gate_ids, "hardware closure decision reviewer assignment audit decision rollup missing mandatory gates"
+        assert {
+            "HW-AHJ-DECISION-001",
+            "HW-AHJ-DECISION-002",
+            "HW-AHJ-DECISION-003",
+            "HW-AHJ-DECISION-004",
+            "HW-AHJ-DECISION-005",
+            "HW-AHJ-DECISION-006",
+            "HW-AHJ-DECISION-007",
+            "HW-AHJ-DECISION-008",
+        } <= decision_ids, "hardware closure decision reviewer assignment audit decision rollup missing decision rows"
+        for key in [
+            "reviewer_assignment_ready",
+            "reviewer_assignment_allowed",
+            "reviewer_assignments_persisted",
+            "reviewer_assignment_queue_updated",
+            "handoff_acceptance_allowed",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert summary[key] is False, f"hardware closure decision reviewer assignment audit decision rollup unexpectedly set {key}"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson" in encoded, "Android hardware closure decision reviewer assignment audit decision rollup binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup" in encoded, "Linux CLI hardware closure decision reviewer assignment audit decision rollup binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup" in encoded, "Linux IPC hardware closure decision reviewer assignment audit decision rollup binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup" in encoded, "gRPC hardware closure decision reviewer assignment audit decision rollup binding missing"
+        assert "HW-AHJ-007" in encoded and "android-linux-reviewer-assignment-audit-decision-rollup-parity" in encoded, "hardware closure decision reviewer assignment audit decision rollup missing synchronized binding gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware closure decision reviewer assignment audit decision rollup missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -3054,6 +3115,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 
