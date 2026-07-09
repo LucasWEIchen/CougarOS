@@ -53,6 +53,7 @@ Brain semantic gateway.
 | `getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+| `getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
 | `getUibExtensionsJson` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
 | `getAiSdkCapabilitiesJson` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `planAgentTaskJson` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |
@@ -189,17 +190,18 @@ Brain semantic gateway.
   `dryRunEventSubscriptionActivationApprovalDecisionJson`,
   `getEventSubscriptionActivationApprovalDecisionDryRunStatusJson`, and
   `getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson`,
-  `getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson`, and
-  `getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson` expose FW-U-003/NV-P-006 Event
+  `getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson`,
+  `getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson`, and
+  `getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson` expose FW-U-003/NV-P-006 Event
   subscription lifecycle, cursor, backpressure, governance, binding parity,
   request/cancel contract-only commands, callback/watch transport readiness,
   broker/cursor/backpressure owner decision matrix, activation evidence gates,
-  activation evidence intake, review status, retention checklist, decision status rollup, approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, approval decision dry-run request, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, and approval decision owner handoff checklist,
+  activation evidence intake, review status, retention checklist, decision status rollup, approval dry-run status, approval authority checklist, approval authority audit consistency, approval decision blocker rollup, approval decision dry-run request, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, approval decision owner handoff checklist, and owner handoff audit consistency,
   callback/watch API shape, cursor/replay storage schema, overflow schema,
   replay rate, ack timeout, per-caller throttling, Runtime & Governance QoS evidence,
   readiness blockers,
   and no-persistence/no-broker/no-runtime boundaries through the Android
-  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, `Sub ApStat`, `Sub ApAuth`, `Sub ApAudit`, `Sub ApBlock`, `Sub ApDec`, `Sub ApDStat`, `Sub ApDAudit`, `Sub ApClose`, and `Sub ApHand`
+  Console `Event Subs`, `Sub Req`, `Sub Cancel`, `Sub Link`, `Sub Matrix`, `Sub Gate`, `Sub Shape`, `Sub Cursor`, `Sub QoS`, `Sub Ready`, `Sub Evidence`, `Sub Review`, `Sub Retain`, `Sub Decide`, `Sub ApStat`, `Sub ApAuth`, `Sub ApAudit`, `Sub ApBlock`, `Sub ApDec`, `Sub ApDStat`, `Sub ApDAudit`, `Sub ApClose`, `Sub ApHand`, and `Sub ApHAud`
   actions only. They do not assign production owners, select a transport,
   pass approval dry-run, assign approval authority, save dry-run results, create durable evidence stores, create approval result stores, create review queues, create delete/export workflows,
   activate event QoS, close readiness gates, register callbacks, start SSE/WebSocket, start DDS, dispatch services, access
@@ -353,6 +355,14 @@ Brain semantic gateway.
   `decision_dry_run_post_called_by_owner_handoff_checklist=false` while keeping
   owner assignment persistence, review queues, gates, broker/DDS/high-rate data
   plane, Driver/HAL, and virtualization inactive.
+- `getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson`
+  exposes the Event subscription approval decision owner handoff audit
+  consistency through the Android Console `Sub ApHAud` action only; it reports
+  `EV-AHA-001..010`, handoff/closure count parity, source binding, zero
+  assigned owners, zero attached evidence, and
+  `decision_dry_run_post_called_by_owner_handoff_audit_consistency=false` while
+  keeping owner assignment persistence, review queues, gates,
+  broker/DDS/high-rate data plane, Driver/HAL, and virtualization inactive.
 - `dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson`
   exposes the approval decision dry-run through the Android Console `HW ApDec`
   action only; it validates approval decision request shape, authority,

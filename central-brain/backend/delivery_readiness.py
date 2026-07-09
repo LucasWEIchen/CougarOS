@@ -117,7 +117,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
         "req_ids": ["DEL-002", "DEL-003", "DEL-004", "DEL-005", "XSC-004", "XSC-005", "XSC-006", "NV-F-004", "NV-F-005", "NV-P-003"],
     },
     {
-        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-audit-consistency-decision-blocker-rollup-decision-dry-run-contract-decision-dry-run-status-decision-dry-run-audit-consistency-closure-blocker-matrix-and-owner-handoff-checklist",
+        "target": "event-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-review-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-audit-consistency-decision-blocker-rollup-decision-dry-run-contract-decision-dry-run-status-decision-dry-run-audit-consistency-closure-blocker-matrix-owner-handoff-checklist-and-owner-handoff-audit-consistency",
         "platform": "Android/Linux",
         "current_state": "contract-only-not-brokered-with-activation-evidence-retention-owner-decisions-blocked",
         "ready_for": [
@@ -144,6 +144,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "activation approval decision dry-run audit consistency review",
             "activation approval decision closure blocker matrix review",
             "activation approval decision owner handoff checklist review",
+            "activation approval decision owner handoff audit consistency review",
             "Android Binder and Linux IPC/gRPC parity inspection before a real broker is selected",
         ],
         "artifacts": [
@@ -170,6 +171,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency",
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix",
             "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist",
+            "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency",
             "Android Binder getEventSubscriptionsJson",
             "Android Binder requestEventSubscriptionJson",
             "Android Binder cancelEventSubscriptionJson",
@@ -193,6 +195,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Android Binder getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson",
             "Android Binder getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson",
             "Android Binder getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson",
+            "Android Binder getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson",
             "Linux CLI event-subscriptions",
             "Linux CLI event-subscribe-request",
             "Linux CLI event-subscribe-cancel",
@@ -216,6 +219,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux CLI event-subscription-activation-approval-decision-dry-run-audit-consistency",
             "Linux CLI event-subscription-activation-approval-decision-closure-blocker-matrix",
             "Linux CLI event-subscription-activation-approval-decision-owner-handoff-checklist",
+            "Linux CLI event-subscription-activation-approval-decision-owner-handoff-audit-consistency",
             "Linux IPC uib.events.subscriptions.get",
             "Linux IPC uib.events.subscriptions.request",
             "Linux IPC uib.events.subscriptions.cancel",
@@ -239,6 +243,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux IPC uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency",
             "Linux IPC uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix",
             "Linux IPC uib.events.subscriptions.activation.approval.decision.owner.handoff.checklist",
+            "Linux IPC uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency",
             "Linux gRPC/RPC GetEventSubscriptions",
             "Linux gRPC/RPC RequestEventSubscription",
             "Linux gRPC/RPC CancelEventSubscription",
@@ -262,6 +267,7 @@ DELIVERY_READINESS_ROWS: list[dict[str, Any]] = [
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency",
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix",
             "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist",
+            "Linux gRPC/RPC GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency",
         ],
         "validation": [
             "bash tools/smoke_central_brain_semantic_gateway.sh",

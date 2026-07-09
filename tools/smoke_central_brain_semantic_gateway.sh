@@ -171,6 +171,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -3581,6 +3582,91 @@ for method, path, body, req_id in checks:
         assert "EV-ACB-001" in encoded and "EV-ACH-010" in encoded, "activation approval decision owner handoff checklist missing source/handoff gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff checklist missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff checklist missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency":
+        audit = payload["payload"]
+        encoded = json.dumps(audit)
+        gate_ids = {item["gate_id"] for item in audit["mandatory_gates"]}
+        assert audit["operation"] == "event-subscription-activation-approval-decision-owner-handoff-audit-consistency", "activation approval decision owner handoff audit operation mismatch"
+        assert audit["approval_decision_owner_handoff_audit_consistency_state"] == "contract-only-owner-handoff-audit-consistent", "activation approval decision owner handoff audit wrong state"
+        assert audit["approval_decision_owner_handoff_audit_consistency_active"] is True, "activation approval decision owner handoff audit inactive"
+        assert {"EV-AHA-001", "EV-AHA-002", "EV-AHA-003", "EV-AHA-004", "EV-AHA-005", "EV-AHA-006", "EV-AHA-007", "EV-AHA-008", "EV-AHA-009", "EV-AHA-010"} <= gate_ids, "activation approval decision owner handoff audit missing EV-AHA gates"
+        owner_source = audit["source_surfaces"]["owner_handoff_checklist"]
+        closure_source = audit["source_surfaces"]["closure_blocker_matrix"]
+        assert owner_source["active"] is True and owner_source["complete"] is True, "activation approval decision owner handoff audit owner source not bound"
+        assert owner_source["owner_handoff_ready"] is False, "activation approval decision owner handoff audit owner source unexpectedly ready"
+        assert owner_source["required_owner_handoff_count"] == 10 and owner_source["open_owner_handoff_count"] == 10, "activation approval decision owner handoff audit owner source count changed"
+        assert "EV-ACH-010" in owner_source["open_owner_handoff_ids"], "activation approval decision owner handoff audit missing source EV-ACH"
+        assert closure_source["active"] is True and closure_source["complete"] is True, "activation approval decision owner handoff audit closure source not bound"
+        assert closure_source["closure_ready"] is False, "activation approval decision owner handoff audit closure source unexpectedly ready"
+        assert closure_source["open_closure_blocker_count"] == 10, "activation approval decision owner handoff audit source closure count changed"
+        assert "EV-ACB-010" in closure_source["open_closure_blocker_ids"], "activation approval decision owner handoff audit missing source EV-ACB"
+        for key in [
+            "activation_approval_decision_owner_handoff_audit_consistency_active",
+            "consistency_passed",
+            "source_owner_handoff_checklist_bound",
+            "source_closure_blocker_matrix_bound",
+            "owner_handoff_count_consistent",
+            "source_closure_blocker_binding_consistent",
+            "open_handoff_state_consistent",
+            "owner_assignment_absent_consistent",
+            "evidence_attachment_absent_consistent",
+            "no_store_consistent",
+            "no_review_queue_gate_runtime_consistent",
+            "android_linux_parity_consistent",
+            "no_post_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert audit["summary"][key] is True, f"activation approval decision owner handoff audit summary did not set {key}"
+        for key in [
+            "owner_handoff_ready",
+            "owner_assignments_persisted",
+            "owner_handoff_queue_updated",
+            "decision_dry_run_post_called_by_owner_handoff_audit_consistency",
+            "closure_ready",
+            "approval_decision_closure_allowed",
+            "approval_decision_ready",
+            "approval_dry_run_allowed",
+            "approval_result_store_created",
+            "approval_result_store_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "production_activation_allowed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert audit["summary"][key] is False, f"activation approval decision owner handoff audit summary unexpectedly set {key}"
+        assert audit["summary"]["owner_handoff_audit_consistency_state"] == "contract-only-owner-handoff-audit-consistent", "activation approval decision owner handoff audit summary wrong state"
+        assert audit["summary"]["source_open_closure_blocker_count"] == 10, "activation approval decision owner handoff audit source blocker count changed"
+        assert audit["summary"]["required_owner_handoff_count"] == 10, "activation approval decision owner handoff audit required handoff count changed"
+        assert audit["summary"]["open_owner_handoff_count"] == 10, "activation approval decision owner handoff audit open handoff count changed"
+        assert audit["summary"]["assigned_owner_count"] == 0, "activation approval decision owner handoff audit assigned owners changed"
+        assert audit["summary"]["unassigned_owner_count"] == 10, "activation approval decision owner handoff audit unassigned owners changed"
+        assert audit["summary"]["attached_evidence_count"] == 0, "activation approval decision owner handoff audit attached evidence changed"
+        assert audit["summary"]["persisted_dry_run_request_count"] == 0, "activation approval decision owner handoff audit persisted requests"
+        assert audit["summary"]["persisted_dry_run_result_count"] == 0, "activation approval decision owner handoff audit persisted results"
+        assert audit["summary"]["persisted_approval_decision_count"] == 0, "activation approval decision owner handoff audit persisted decisions"
+        assert audit["summary"]["pending_approval_decision_review_count"] == 0, "activation approval decision owner handoff audit queued reviews"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson" in encoded, "Android activation approval decision owner handoff audit binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-audit-consistency" in encoded, "Linux CLI activation approval decision owner handoff audit binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency" in encoded, "Linux IPC activation approval decision owner handoff audit binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency" in encoded, "gRPC activation approval decision owner handoff audit binding missing"
+        assert "EV-ACH-001" in encoded and "EV-AHA-010" in encoded and "EV-ACB-010" in encoded, "activation approval decision owner handoff audit missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff audit missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff audit missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -3700,6 +3786,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-dry-run-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-closure-blocker-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

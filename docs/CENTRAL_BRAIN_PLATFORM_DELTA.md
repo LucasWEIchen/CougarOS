@@ -618,6 +618,13 @@ required evidence type、Android/Linux parity requirement 和 escalation state�
 不保存 handoff/request/result/approval decision，不创建 result store/review queue，不关闭 gate，不激活 broker/DDS/high-rate data plane，
 不触发 Driver/HAL 或虚拟化层。
 
+Event subscription activation approval decision owner handoff audit consistency 按 FW-U-003、NV-P-006、XSC-002、XSC-005、XSC-006 在
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency`、Android Binder
+`getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson`、Android Console `Sub ApHAud`、Linux CLI
+`event-subscription-activation-approval-decision-owner-handoff-audit-consistency`、Linux IPC
+`uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency` 与 Linux gRPC/RPC
+`GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency` 查询。该 audit consistency 只核对 `EV-ACH-001..010` handoff checklist 与 `EV-ACB-001..010` closure blocker matrix 的数量、source binding、open state、owner assignment、evidence attachment、no-store、Android/Linux parity 和 no-side-effect；固定 `consistency_passed=true`、`owner_handoff_ready=false`、`assigned_owner_count=0`、`unassigned_owner_count=10`、`attached_evidence_count=0`、`owner_assignments_persisted=false`、`owner_handoff_queue_updated=false`、`decision_dry_run_post_called_by_owner_handoff_audit_consistency=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。它不分配 owner，不附加 evidence，不调用 dry-run POST，不保存 handoff/request/result/approval decision，不创建 result store/review queue，不关闭 gate，不激活 broker/DDS/high-rate data plane，不触发 Driver/HAL 或虚拟化层。
+
 Vehicle/Body Signal 只读目录按 NV-F-004、NV-F-005、XSC-004、DEL-005 在
 `GET /vehicle/signals`、Android Binder `getVehicleSignalsJson`、Linux CLI
 `vehicle-signals`、Linux IPC `vehicle.signals.list` 与 Linux gRPC/RPC

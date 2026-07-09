@@ -40,6 +40,7 @@
         "uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency",
         "uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix",
         "uib.events.subscriptions.activation.approval.decision.owner.handoff.checklist",
+        "uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency",
         "uib.extensions.get",
         "uib.actions.request",
         "ai.sdk.capabilities",
