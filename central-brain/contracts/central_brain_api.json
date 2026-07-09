@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.74",
+  "version": "0.1.75",
   "updated": "2026-07-09",
   "transport": {
     "prototype": "http-json",
@@ -8514,6 +8514,156 @@
     },
     {
       "method": "GET",
+      "path": "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency",
+      "description": "Reports contract-only audit consistency for the closure decision reviewer assignment checklist, validating source checklist binding, assignment counts, unassigned blocker state, no-store behavior, no review queue/gate/load behavior, Android/Linux parity, and no side effects without assigning reviewers, accepting packets, persisting records, closing gates, loading adapters, accessing hardware, or triggering Driver/HAL or virtualization work.",
+      "response": {
+        "operation": "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency",
+        "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_state": "contract-only-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistent",
+        "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active": true,
+        "consistency_passed": true,
+        "source_reviewer_assignment_checklist_bound": true,
+        "reviewer_assignment_checklist_consistent": true,
+        "reviewer_assignment_count_consistent": true,
+        "reviewer_assignment_blocker_state_consistent": true,
+        "no_store_consistent": true,
+        "no_review_queue_gate_load_consistent": true,
+        "no_side_effects_consistent": true,
+        "android_linux_reviewer_assignment_audit_parity": true,
+        "required_reviewer_assignment_count": 8,
+        "assigned_reviewer_count": 0,
+        "unassigned_reviewer_count": 8,
+        "reviewer_assignment_ready": false,
+        "reviewer_assignment_allowed": false,
+        "reviewer_assignments_persisted": false,
+        "reviewer_assignment_queue_updated": false,
+        "gate_closure_allowed": false,
+        "adapter_load_allowed": false,
+        "hardware_accessed": false,
+        "driver_development_triggered": false,
+        "virtualization_development_triggered": false,
+        "source_surfaces": {
+          "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist": {
+            "endpoint": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist",
+            "reviewer_assignment_checklist_complete": true,
+            "reviewer_assignment_ready": false,
+            "assigned_reviewer_count": 0,
+            "unassigned_reviewer_count": 8
+          }
+        },
+        "mandatory_gates": [
+          {
+            "gate_id": "HW-AHI-001",
+            "name": "reviewer-assignment-audit-surfaces-bound",
+            "required_evidence": "Reviewer assignment audit binds the closure decision reviewer assignment checklist without creating a review workflow.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHI-002",
+            "name": "reviewer-assignment-checklist-consistency",
+            "required_evidence": "Reviewer assignment checklist remains complete and ready=false while all required reviewers remain unassigned.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHI-003",
+            "name": "reviewer-assignment-count-consistency",
+            "required_evidence": "Reviewer assignment audit reports eight required assignments, zero assigned reviewers, and eight unassigned reviewers.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHI-004",
+            "name": "reviewer-assignment-blocker-state-consistency",
+            "required_evidence": "Every reviewer assignment row remains unassigned and continues blocking adapter load.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHI-005",
+            "name": "no-store-reviewer-assignment-audit",
+            "required_evidence": "Reviewer assignment audit does not persist reviewer assignments, acceptance records, approvals, or evidence.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHI-006",
+            "name": "no-review-gate-load-reviewer-assignment-audit",
+            "required_evidence": "Reviewer assignment audit does not update review queues, close gates, select adapters, load adapters, or access hardware.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHI-007",
+            "name": "android-linux-reviewer-assignment-audit-parity",
+            "required_evidence": "REST, Android Binder, Android Console, Linux CLI, Linux IPC, and Linux gRPC/RPC expose the same reviewer assignment audit consistency view.",
+            "passed": true
+          },
+          {
+            "gate_id": "HW-AHI-008",
+            "name": "no-side-effect-reviewer-assignment-audit",
+            "required_evidence": "Reviewer assignment audit does not assign reviewers, accept packets, persist records, create stores, update queues, close gates, load adapters, access hardware, call Driver/HAL, dispatch services, or trigger virtualization.",
+            "passed": true
+          }
+        ],
+        "api_surface": {
+          "rest": "GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency",
+          "android_binder": "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson",
+          "linux_cli": "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency",
+          "linux_ipc": "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.consistency",
+          "linux_grpc_rpc": "CentralBrainGateway.GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency"
+        },
+        "summary": {
+          "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active": true,
+          "approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist_active": true,
+          "consistency_passed": true,
+          "source_reviewer_assignment_checklist_bound": true,
+          "reviewer_assignment_checklist_consistent": true,
+          "reviewer_assignment_count_consistent": true,
+          "reviewer_assignment_blocker_state_consistent": true,
+          "no_store_consistent": true,
+          "no_review_queue_gate_load_consistent": true,
+          "no_side_effects_consistent": true,
+          "android_linux_reviewer_assignment_audit_parity": true,
+          "reviewer_assignment_checklist_complete": true,
+          "reviewer_assignment_ready": false,
+          "reviewer_assignment_allowed": false,
+          "required_reviewer_assignment_count": 8,
+          "assigned_reviewer_count": 0,
+          "unassigned_reviewer_count": 8,
+          "reviewer_assignments_persisted": false,
+          "reviewer_assignment_queue_updated": false,
+          "handoff_acceptance_allowed": false,
+          "evidence_handoff_allowed": false,
+          "approval_review_allowed": false,
+          "retention_review_allowed": false,
+          "gate_closure_allowed": false,
+          "approval_decision_closure_allowed": false,
+          "approval_decision_persisted": false,
+          "approval_decision_review_queue_updated": false,
+          "approval_decision_evidence_store_active": false,
+          "approval_evidence_store_active": false,
+          "review_workflow_active": false,
+          "review_queue_updated": false,
+          "gate_state_changed": false,
+          "gates_closed": false,
+          "adapter_load_allowed": false,
+          "adapter_activation_allowed": false,
+          "hardware_access_allowed": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "service_dispatch_triggered": false
+        },
+        "req_ids": [
+          "XSC-004",
+          "XSC-006",
+          "HW-002",
+          "KH-003",
+          "KH-006",
+          "KH-007",
+          "DEL-001",
+          "DEL-002",
+          "DEL-005"
+        ]
+      }
+    },
+    {
+      "method": "GET",
       "path": "/tools",
       "description": "Returns mock Tool schemas for AI tool calls.",
       "req_ids": [
@@ -8912,5 +9062,6 @@
       "ai.infer",
       "ota.manage"
     ]
-  }
+  },
+  "transports": {}
 }

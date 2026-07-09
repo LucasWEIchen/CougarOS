@@ -306,6 +306,12 @@ checks = [
         None,
         "HW-002",
     ),
+    (
+        "GET",
+        "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency",
+        None,
+        "HW-002",
+    ),
     ("GET", "/vehicle/signals", None, "NV-F-004"),
     ("GET", "/vehicle/signals/activation", None, "NV-F-005"),
     ("GET", "/vehicle/signals/validation", None, "NV-F-005"),
@@ -2193,6 +2199,74 @@ for method, path, body, req_id in checks:
         assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist" in encoded, "gRPC hardware closure decision reviewer assignment binding missing"
         assert "HW-AHH-007" in encoded and "android-linux-closure-decision-reviewer-assignment-parity" in encoded, "hardware closure decision reviewer assignment missing synchronized binding gate"
         assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware closure decision reviewer assignment missing Req IDs"
+    if path == "/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency":
+        reviewer_assignment_audit = payload["payload"]
+        encoded = json.dumps(reviewer_assignment_audit)
+        gate_ids = {item["gate_id"] for item in reviewer_assignment_audit["mandatory_gates"]}
+        assert reviewer_assignment_audit["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency", "hardware closure decision reviewer assignment audit wrong operation"
+        assert reviewer_assignment_audit["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_state"] == "contract-only-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistent", "hardware closure decision reviewer assignment audit wrong state"
+        assert reviewer_assignment_audit["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active"] is True, "hardware closure decision reviewer assignment audit inactive"
+        assert reviewer_assignment_audit["consistency_passed"] is True, "hardware closure decision reviewer assignment audit consistency failed"
+        assert reviewer_assignment_audit["source_reviewer_assignment_checklist_bound"] is True, "hardware closure decision reviewer assignment audit lost source checklist"
+        assert reviewer_assignment_audit["reviewer_assignment_checklist_consistent"] is True, "hardware closure decision reviewer assignment audit checklist inconsistent"
+        assert reviewer_assignment_audit["reviewer_assignment_count_consistent"] is True, "hardware closure decision reviewer assignment audit count inconsistent"
+        assert reviewer_assignment_audit["reviewer_assignment_blocker_state_consistent"] is True, "hardware closure decision reviewer assignment audit blocker state inconsistent"
+        assert reviewer_assignment_audit["no_store_consistent"] is True, "hardware closure decision reviewer assignment audit no-store inconsistent"
+        assert reviewer_assignment_audit["no_review_queue_gate_load_consistent"] is True, "hardware closure decision reviewer assignment audit queue/gate/load state inconsistent"
+        assert reviewer_assignment_audit["no_side_effects_consistent"] is True, "hardware closure decision reviewer assignment audit side effects detected"
+        assert reviewer_assignment_audit["android_linux_reviewer_assignment_audit_parity"] is True, "hardware closure decision reviewer assignment audit parity failed"
+        assert reviewer_assignment_audit["required_reviewer_assignment_count"] == 8, "hardware closure decision reviewer assignment audit wrong required count"
+        assert reviewer_assignment_audit["assigned_reviewer_count"] == 0, "hardware closure decision reviewer assignment audit assigned reviewers"
+        assert reviewer_assignment_audit["unassigned_reviewer_count"] == 8, "hardware closure decision reviewer assignment audit lost unassigned reviewers"
+        assert {
+            "HW-AHI-001",
+            "HW-AHI-002",
+            "HW-AHI-003",
+            "HW-AHI-004",
+            "HW-AHI-005",
+            "HW-AHI-006",
+            "HW-AHI-007",
+            "HW-AHI-008",
+        } <= gate_ids, "hardware closure decision reviewer assignment audit missing mandatory gates"
+        source = reviewer_assignment_audit["source_surfaces"]["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist"]
+        assert source["reviewer_assignment_checklist_complete"] is True, "hardware closure decision reviewer assignment audit lost source checklist completeness"
+        assert source["reviewer_assignment_ready"] is False, "hardware closure decision reviewer assignment audit source became ready"
+        assert source["assigned_reviewer_count"] == 0, "hardware closure decision reviewer assignment audit source assigned reviewers"
+        assert source["unassigned_reviewer_count"] == 8, "hardware closure decision reviewer assignment audit source lost unassigned reviewers"
+        for key in [
+            "reviewer_assignment_ready",
+            "reviewer_assignment_allowed",
+            "reviewer_assignments_persisted",
+            "reviewer_assignment_queue_updated",
+            "handoff_acceptance_allowed",
+            "evidence_handoff_allowed",
+            "approval_review_allowed",
+            "retention_review_allowed",
+            "gate_closure_allowed",
+            "approval_decision_closure_allowed",
+            "approval_decision_persisted",
+            "approval_decision_review_queue_updated",
+            "approval_decision_evidence_store_active",
+            "approval_evidence_store_active",
+            "review_workflow_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "adapter_load_allowed",
+            "adapter_activation_allowed",
+            "hardware_access_allowed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert reviewer_assignment_audit["summary"][key] is False, f"hardware closure decision reviewer assignment audit summary unexpectedly set {key}"
+        assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson" in encoded, "Android hardware closure decision reviewer assignment audit binding missing"
+        assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency" in encoded, "Linux CLI hardware closure decision reviewer assignment audit binding missing"
+        assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.consistency" in encoded, "Linux IPC hardware closure decision reviewer assignment audit binding missing"
+        assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency" in encoded, "gRPC hardware closure decision reviewer assignment audit binding missing"
+        assert "HW-AHI-007" in encoded and "android-linux-reviewer-assignment-audit-parity" in encoded, "hardware closure decision reviewer assignment audit missing synchronized binding gate"
+        assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, "hardware closure decision reviewer assignment audit missing Req IDs"
     if path == "/vehicle/signals":
         vehicle_signals = payload["payload"]
         encoded = json.dumps(vehicle_signals)
@@ -2979,6 +3053,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signals >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" vehicle-signal-activation >/dev/null
 

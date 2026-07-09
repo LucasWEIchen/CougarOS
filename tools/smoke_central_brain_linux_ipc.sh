@@ -2492,6 +2492,72 @@ assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvid
 assert "HW-AHH-007" in encoded and "android-linux-closure-decision-reviewer-assignment-parity" in encoded, response
 assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
 PY
+HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_AUDIT_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency)"
+python3 - "$HARDWARE_OWNER_EVIDENCE_ADAPTER_LOAD_APPROVAL_REVIEWER_EVIDENCE_HANDOFF_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_AUDIT_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "hardware-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency", response
+assert payload["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_state"] == "contract-only-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistent", response
+assert payload["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active"] is True, response
+assert payload["consistency_passed"] is True, response
+assert payload["source_reviewer_assignment_checklist_bound"] is True, response
+assert payload["reviewer_assignment_checklist_consistent"] is True, response
+assert payload["reviewer_assignment_count_consistent"] is True, response
+assert payload["reviewer_assignment_blocker_state_consistent"] is True, response
+assert payload["no_store_consistent"] is True, response
+assert payload["no_review_queue_gate_load_consistent"] is True, response
+assert payload["no_side_effects_consistent"] is True, response
+assert payload["android_linux_reviewer_assignment_audit_parity"] is True, response
+assert payload["required_reviewer_assignment_count"] == 8, response
+assert payload["assigned_reviewer_count"] == 0, response
+assert payload["unassigned_reviewer_count"] == 8, response
+assert {"HW-AHI-001", "HW-AHI-002", "HW-AHI-003", "HW-AHI-004", "HW-AHI-005", "HW-AHI-006", "HW-AHI-007", "HW-AHI-008"} <= gate_ids, response
+source = payload["source_surfaces"]["approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist"]
+assert source["reviewer_assignment_checklist_complete"] is True, response
+assert source["reviewer_assignment_ready"] is False, response
+assert source["assigned_reviewer_count"] == 0, response
+assert source["unassigned_reviewer_count"] == 8, response
+for key in [
+    "reviewer_assignment_ready",
+    "reviewer_assignment_allowed",
+    "reviewer_assignments_persisted",
+    "reviewer_assignment_queue_updated",
+    "handoff_acceptance_allowed",
+    "evidence_handoff_allowed",
+    "approval_review_allowed",
+    "retention_review_allowed",
+    "gate_closure_allowed",
+    "approval_decision_closure_allowed",
+    "approval_decision_persisted",
+    "approval_decision_review_queue_updated",
+    "approval_decision_evidence_store_active",
+    "approval_evidence_store_active",
+    "review_workflow_active",
+    "review_queue_updated",
+    "gate_state_changed",
+    "gates_closed",
+    "adapter_load_allowed",
+    "adapter_activation_allowed",
+    "hardware_access_allowed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert "getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson" in encoded, response
+assert "hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency" in encoded, response
+assert "hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.consistency" in encoded, response
+assert "GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency" in encoded, response
+assert "HW-AHI-007" in encoded and "android-linux-reviewer-assignment-audit-parity" in encoded, response
+assert "HW-002" in encoded and "KH-003" in encoded and "DEL-005" in encoded, response
+PY
 VEHICLE_SIGNALS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" vehicle-signals)"
 python3 - "$VEHICLE_SIGNALS_OUTPUT" <<'PY'
 import json

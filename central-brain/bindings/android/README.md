@@ -371,6 +371,13 @@ Brain semantic gateway.
   assignments, no persisted assignments, no review queue update, and keeps
   gates open, adapter load, hardware access, Driver/HAL, and virtualization
   disabled.
+- `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson`
+  exposes the approval reviewer evidence handoff acceptance closure readiness
+  decision reviewer assignment audit consistency view through the Android
+  Console `HW ApHRvA` action only; it reports `HW-AHI-001..008`, source
+  checklist binding, assignment counts, unassigned blocker state, no persisted
+  assignments, no review queue/gate/load effects, and keeps hardware,
+  Driver/HAL, and virtualization disabled.
 - `getVehicleSignalsJson` exposes the Vehicle/Body Signal read-only catalog for
   Android integration review through the Android Console `Vehicle Signals`
   action only; it returns VSS-style signal paths, access metadata, adapter
