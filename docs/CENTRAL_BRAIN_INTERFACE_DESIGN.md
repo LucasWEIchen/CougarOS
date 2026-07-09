@@ -619,3 +619,11 @@ bash tools/smoke_central_brain_semantic_gateway.sh
 3. Android Console 增加服务目录、车辆信号、推理、Trace 四个视图。
 4. 为所有 mock API 增加 `trace_id`。
 5. 增加 smoke test：验证 `/health`、`/services`、`/vehicle/state`、`/policy/evaluate`、`/ai/infer`。
+
+## EV-AHJ Event Subscription Closure Readiness Checklist
+
+`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist` 覆盖 XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。该接口从 EV-AHI acceptance decision rollup 派生 `EV-AHJ-001..010` closure readiness checklist，向 Android/Linux 座舱域工程师说明 acceptance authority、acceptance record store、review workflow、audit retention、evidence packet presence、gate closure authority、broker activation owner、DRV-GAP-004/005 和 Android/Linux parity evidence 仍未满足。
+
+Android 主路径为 Binder `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson` 与 Console `Sub ApHClose`；Linux 同步路径为 CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist`、IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist` 和 gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist`。
+
+该接口固定 `closure_readiness_checklist_complete=true`、`closure_readiness_consistent=true`、`closure_ready=false`、`required_closure_check_count=10`、`open_closure_check_count=10`、`blocked_decision_count=10`、`blocked_acceptance_count=10`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`missing_evidence_packet_count=10`、`approval_review_allowed=false`、`gate_closure_allowed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。它不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不持久化 evidence/request/result/approval/handoff/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不激活 broker、DDS 或高频数据面，不访问 Driver/HAL，不开发虚拟化层。

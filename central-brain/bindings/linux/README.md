@@ -768,3 +768,11 @@ bash tools/check_central_brain_delivery_docs.sh
 - Agent execute, Skill invoke, and Memory query are contract mocks that expose
   AIOS Kernel/Tool/Memory boundaries without running real Skill sandbox,
   persistent Memory store, Driver/HAL, vehicle bus, or virtualization code.
+
+## Event Subscription EV-AHJ Closure Readiness
+
+- CLI: `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist`
+- IPC: `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist`
+- gRPC/RPC: `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist`
+
+All three Linux bindings call the same REST prototype path, `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist`, and return the `EV-AHJ-001..010` contract-only closure readiness checklist. The response keeps `closure_ready=false`, `open_closure_check_count=10`, `accepted_evidence_packet_count=0`, `acceptance_record_persisted_count=0`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`. It does not accept packets, persist state, update queues, close gates, activate broker/DDS/high-rate transport, touch hardware, or dispatch services.

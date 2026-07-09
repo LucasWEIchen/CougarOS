@@ -178,6 +178,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -4206,6 +4207,78 @@ for method, path, body, req_id in checks:
         assert "EV-AHI-001" in encoded and "EV-AHI-010" in encoded and "EV-AHH-010" in encoded and "EV-AHG-010" in encoded and "EV-AHE-010" in encoded, "activation approval decision owner handoff evidence acceptance decision missing gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance decision missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance decision missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist":
+        checklist = payload["payload"]
+        encoded = json.dumps(checklist)
+        gate_ids = {item["gate_id"] for item in checklist["mandatory_gates"]}
+        assert checklist["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist", "activation approval decision owner handoff evidence acceptance closure readiness wrong operation"
+        assert checklist["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_state"] == "contract-only-handoff-evidence-acceptance-closure-not-ready", "activation approval decision owner handoff evidence acceptance closure readiness wrong state"
+        assert checklist["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active"] is True, "activation approval decision owner handoff evidence acceptance closure readiness inactive"
+        assert checklist["closure_readiness_checklist_complete"] is True, "activation approval decision owner handoff evidence acceptance closure readiness incomplete"
+        assert checklist["closure_readiness_consistent"] is True, "activation approval decision owner handoff evidence acceptance closure readiness inconsistent"
+        assert checklist["source_surfaces_bound"] is True, "activation approval decision owner handoff evidence acceptance closure readiness source surfaces unbound"
+        assert checklist["closure_ready"] is False, "activation approval decision owner handoff evidence acceptance closure readiness unexpectedly ready"
+        assert {"EV-AHJ-001", "EV-AHJ-002", "EV-AHJ-003", "EV-AHJ-004", "EV-AHJ-005", "EV-AHJ-006", "EV-AHJ-007", "EV-AHJ-008", "EV-AHJ-009", "EV-AHJ-010"} <= gate_ids, "activation approval decision owner handoff evidence acceptance closure readiness missing EV-AHJ gates"
+        assert len(checklist["closure_items"]) == 10, "activation approval decision owner handoff evidence acceptance closure readiness item count changed"
+        for item in checklist["closure_items"]:
+            assert item["ready"] is False, f"activation approval decision owner handoff evidence acceptance closure readiness item unexpectedly ready {item['gate_id']}"
+            assert item["blocks_gate_closure"] is True, f"activation approval decision owner handoff evidence acceptance closure readiness lost gate block {item['gate_id']}"
+            assert item["blocks_broker_activation"] is True, f"activation approval decision owner handoff evidence acceptance closure readiness lost broker block {item['gate_id']}"
+            assert item["source_decision_gate_id"].startswith("EV-AHI-"), f"activation approval decision owner handoff evidence acceptance closure readiness missing EV-AHI source {item['gate_id']}"
+            assert item["source_acceptance_gate_id"].startswith("EV-AHG-"), f"activation approval decision owner handoff evidence acceptance closure readiness missing EV-AHG source {item['gate_id']}"
+            assert item["source_audit_gate_id"].startswith("EV-AHH-"), f"activation approval decision owner handoff evidence acceptance closure readiness missing EV-AHH source {item['gate_id']}"
+            assert item["source_evidence_id"].startswith("EV-AHE-"), f"activation approval decision owner handoff evidence acceptance closure readiness missing EV-AHE source {item['gate_id']}"
+        for key in [
+            "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active",
+            "activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active",
+            "closure_readiness_checklist_complete",
+            "closure_readiness_consistent",
+            "source_surfaces_bound",
+            "source_decision_rollup_bound",
+            "source_acceptance_audit_bound",
+            "source_acceptance_status_bound",
+            "source_handoff_evidence_readiness_matrix_bound",
+            "no_store_consistent",
+            "no_post_consistent",
+            "no_side_effects_consistent",
+        ]:
+            assert checklist["summary"][key] is True, f"activation approval decision owner handoff evidence acceptance closure readiness summary did not set {key}"
+        for key in [
+            "closure_ready",
+            "closure_allowed",
+            "approval_review_allowed",
+            "gate_closure_allowed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "handoff_evidence_acceptance_allowed",
+            "approval_decision_ready",
+            "owner_assignments_persisted",
+            "owner_handoff_queue_updated",
+            "evidence_packets_attached",
+            "evidence_store_created",
+            "review_queue_updated",
+            "gates_closed",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert checklist["summary"][key] is False, f"activation approval decision owner handoff evidence acceptance closure readiness summary unexpectedly set {key}"
+        assert checklist["summary"]["required_closure_check_count"] == 10, "activation approval decision owner handoff evidence acceptance closure readiness required count changed"
+        assert checklist["summary"]["open_closure_check_count"] == 10, "activation approval decision owner handoff evidence acceptance closure readiness open count changed"
+        assert checklist["summary"]["blocked_decision_count"] == 10, "activation approval decision owner handoff evidence acceptance closure readiness blocked decision count changed"
+        assert checklist["summary"]["blocked_acceptance_count"] == 10, "activation approval decision owner handoff evidence acceptance closure readiness blocked acceptance count changed"
+        assert checklist["summary"]["accepted_evidence_packet_count"] == 0, "activation approval decision owner handoff evidence acceptance closure readiness accepted packet count changed"
+        assert checklist["summary"]["acceptance_record_persisted_count"] == 0, "activation approval decision owner handoff evidence acceptance closure readiness persisted record count changed"
+        assert checklist["summary"]["missing_evidence_packet_count"] == 10, "activation approval decision owner handoff evidence acceptance closure readiness missing packet count changed"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson" in encoded, "Android activation approval decision owner handoff evidence acceptance closure readiness binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist" in encoded, "Linux CLI activation approval decision owner handoff evidence acceptance closure readiness binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist" in encoded, "Linux IPC activation approval decision owner handoff evidence acceptance closure readiness binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist" in encoded, "gRPC activation approval decision owner handoff evidence acceptance closure readiness binding missing"
+        assert "EV-AHJ-001" in encoded and "EV-AHJ-010" in encoded and "EV-AHI-010" in encoded and "EV-AHH-010" in encoded and "EV-AHG-010" in encoded and "EV-AHE-010" in encoded, "activation approval decision owner handoff evidence acceptance closure readiness missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance closure readiness missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance closure readiness missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -4330,6 +4403,9 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

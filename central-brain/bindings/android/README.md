@@ -553,3 +553,7 @@ and verification checks.
 The note is intentionally documentation-only in this increment. It does not add
 Android framework patches, priv-app signing config, sepolicy, Driver/HAL code,
 Safety Runtime code, or virtualization code.
+
+## Event Subscription EV-AHJ Closure Readiness
+
+- `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson` exposes `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist` through the Android Console `Sub ApHClose` action. It reports `EV-AHJ-001..010`, `closure_ready=false`, `open_closure_check_count=10`, zero accepted evidence packets, zero persisted acceptance records, no review queue update, open gates, no broker activation, no Driver/HAL access, and no virtualization work. Req IDs: XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-001, DEL-004.

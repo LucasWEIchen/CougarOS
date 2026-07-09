@@ -1879,6 +1879,80 @@ assert "EV-AHI-001" in encoded and "EV-AHI-010" in encoded and "EV-AHH-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_CHECKLIST_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_CHECKLIST_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist", response
+assert payload["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_state"] == "contract-only-handoff-evidence-acceptance-closure-not-ready", response
+assert payload["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active"] is True, response
+assert payload["closure_readiness_checklist_complete"] is True, response
+assert payload["closure_readiness_consistent"] is True, response
+assert payload["source_surfaces_bound"] is True, response
+assert payload["closure_ready"] is False, response
+assert {"EV-AHJ-001", "EV-AHJ-002", "EV-AHJ-003", "EV-AHJ-004", "EV-AHJ-005", "EV-AHJ-006", "EV-AHJ-007", "EV-AHJ-008", "EV-AHJ-009", "EV-AHJ-010"} <= gate_ids, response
+assert len(payload["closure_items"]) == 10, response
+for item in payload["closure_items"]:
+    assert item["ready"] is False, response
+    assert item["blocks_gate_closure"] is True, response
+    assert item["blocks_broker_activation"] is True, response
+    assert item["source_decision_gate_id"].startswith("EV-AHI-"), response
+    assert item["source_acceptance_gate_id"].startswith("EV-AHG-"), response
+    assert item["source_audit_gate_id"].startswith("EV-AHH-"), response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active",
+    "closure_readiness_checklist_complete",
+    "closure_readiness_consistent",
+    "source_surfaces_bound",
+    "source_decision_rollup_bound",
+    "source_acceptance_audit_bound",
+    "source_acceptance_status_bound",
+    "source_handoff_evidence_readiness_matrix_bound",
+    "no_store_consistent",
+    "no_post_consistent",
+    "no_side_effects_consistent",
+]:
+    assert payload["summary"][key] is True, response
+for key in [
+    "closure_ready",
+    "closure_allowed",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "handoff_evidence_acceptance_allowed",
+    "approval_decision_ready",
+    "evidence_packets_attached",
+    "review_queue_updated",
+    "gates_closed",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["required_closure_check_count"] == 10, response
+assert payload["summary"]["open_closure_check_count"] == 10, response
+assert payload["summary"]["blocked_decision_count"] == 10, response
+assert payload["summary"]["accepted_evidence_packet_count"] == 0, response
+assert payload["summary"]["acceptance_record_persisted_count"] == 0, response
+assert payload["summary"]["missing_evidence_packet_count"] == 10, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist" in encoded, response
+assert "EV-AHJ-001" in encoded and "EV-AHJ-010" in encoded and "EV-AHI-010" in encoded and "EV-AHH-010" in encoded and "EV-AHG-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

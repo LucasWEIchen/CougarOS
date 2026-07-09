@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.93"
+API_VERSION = "0.1.94"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -89,6 +89,7 @@ EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_READINESS
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_STATUS_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_AUDIT_CONSISTENCY_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_DECISION_ROLLUP_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_CHECKLIST_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -516,22 +517,27 @@ def event_subscriptions_payload() -> dict[str, Any]:
                     "state_transition": "contract-only-handoff-evidence-acceptance-audit-consistent -> contract-only-handoff-evidence-acceptance-decision-blocked",
                     "side_effects": "handoff evidence acceptance decision rollup reads only acceptance audit/status and readiness state; it does not accept packets, attach evidence, assign owners, call POST, persist evidence/review/approval state, close gates, activate broker/runtime paths, dispatch services, touch Driver/HAL, or develop virtualization",
                 },
+                "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist": {
+                    "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist",
+                    "state_transition": "contract-only-handoff-evidence-acceptance-decision-blocked -> contract-only-handoff-evidence-acceptance-closure-not-ready",
+                    "side_effects": "handoff evidence acceptance closure readiness reads only the acceptance decision rollup, acceptance audit/status, and readiness matrix; it does not accept packets, attach evidence, assign owners, call POST, persist evidence/review/approval state, close gates, activate broker/runtime paths, dispatch services, touch Driver/HAL, or develop virtualization",
+                },
             },
         },
         "transport_candidates": [
             {
                 "binding": "android-binder-aidl",
-                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson/submitEventSubscriptionActivationEvidenceJson/getEventSubscriptionActivationEvidenceStatusJson/getEventSubscriptionActivationEvidenceRetentionChecklistJson/getEventSubscriptionActivationEvidenceDecisionStatusRollupJson/getEventSubscriptionActivationApprovalDryRunStatusJson/getEventSubscriptionActivationApprovalAuthorityChecklistJson/getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionBlockerRollupJson/dryRunEventSubscriptionActivationApprovalDecisionJson/getEventSubscriptionActivationApprovalDecisionDryRunStatusJson/getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson",
+                "operation": "getEventSubscriptionsJson/requestEventSubscriptionJson/cancelEventSubscriptionJson/getEventSubscriptionTransportReadinessJson/getEventSubscriptionDecisionMatrixJson/getEventSubscriptionActivationChecklistJson/getEventSubscriptionCallbackWatchShapeJson/getEventSubscriptionCursorReplayStorageJson/getEventSubscriptionBackpressureQosEvidenceJson/getEventSubscriptionReadinessRollupJson/submitEventSubscriptionActivationEvidenceJson/getEventSubscriptionActivationEvidenceStatusJson/getEventSubscriptionActivationEvidenceRetentionChecklistJson/getEventSubscriptionActivationEvidenceDecisionStatusRollupJson/getEventSubscriptionActivationApprovalDryRunStatusJson/getEventSubscriptionActivationApprovalAuthorityChecklistJson/getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionBlockerRollupJson/dryRunEventSubscriptionActivationApprovalDecisionJson/getEventSubscriptionActivationApprovalDecisionDryRunStatusJson/getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson/getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson",
                 "current_state": "contract-only lifecycle commands; callback registration not implemented",
             },
             {
                 "binding": "linux-ipc",
-                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup/activation.evidence/activation.evidence.status/activation.evidence.retention.checklist/activation.evidence.decision.status.rollup/activation.approval.dry.run.status/activation.approval.authority.checklist/activation.approval.authority.audit.consistency/activation.approval.decision.blocker.rollup/activation.approval.decision.dry.run/activation.approval.decision.dry.run.status/activation.approval.decision.dry.run.audit.consistency/activation.approval.decision.closure.blocker.matrix/activation.approval.decision.owner.handoff.checklist/activation.approval.decision.owner.handoff.audit.consistency/activation.approval.decision.owner.handoff.decision.rollup/activation.approval.decision.owner.handoff.evidence.readiness.matrix/activation.approval.decision.owner.handoff.evidence.readiness.audit.consistency/activation.approval.decision.owner.handoff.evidence.acceptance.status/activation.approval.decision.owner.handoff.evidence.acceptance.audit.consistency/activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup",
+                "operation": "uib.events.subscriptions.get/request/cancel/transport.readiness/decision.matrix/activation.checklist/callback.watch.shape/cursor.replay.storage/backpressure.qos.evidence/readiness.rollup/activation.evidence/activation.evidence.status/activation.evidence.retention.checklist/activation.evidence.decision.status.rollup/activation.approval.dry.run.status/activation.approval.authority.checklist/activation.approval.authority.audit.consistency/activation.approval.decision.blocker.rollup/activation.approval.decision.dry.run/activation.approval.decision.dry.run.status/activation.approval.decision.dry.run.audit.consistency/activation.approval.decision.closure.blocker.matrix/activation.approval.decision.owner.handoff.checklist/activation.approval.decision.owner.handoff.audit.consistency/activation.approval.decision.owner.handoff.decision.rollup/activation.approval.decision.owner.handoff.evidence.readiness.matrix/activation.approval.decision.owner.handoff.evidence.readiness.audit.consistency/activation.approval.decision.owner.handoff.evidence.acceptance.status/activation.approval.decision.owner.handoff.evidence.acceptance.audit.consistency/activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup/activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist",
                 "current_state": "contract-only lifecycle commands; watch operation not implemented",
             },
             {
                 "binding": "linux-grpc-rpc",
-                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup/SubmitEventSubscriptionActivationEvidence/GetEventSubscriptionActivationEvidenceStatus/GetEventSubscriptionActivationEvidenceRetentionChecklist/GetEventSubscriptionActivationEvidenceDecisionStatusRollup/GetEventSubscriptionActivationApprovalDryRunStatus/GetEventSubscriptionActivationApprovalAuthorityChecklist/GetEventSubscriptionActivationApprovalAuthorityAuditConsistency/GetEventSubscriptionActivationApprovalDecisionBlockerRollup/DryRunEventSubscriptionActivationApprovalDecision/GetEventSubscriptionActivationApprovalDecisionDryRunStatus/GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency/GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistency/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatus/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistency/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollup",
+                "operation": "CentralBrainGateway.GetEventSubscriptions/RequestEventSubscription/CancelEventSubscription/GetEventSubscriptionTransportReadiness/GetEventSubscriptionDecisionMatrix/GetEventSubscriptionActivationChecklist/GetEventSubscriptionCallbackWatchShape/GetEventSubscriptionCursorReplayStorage/GetEventSubscriptionBackpressureQosEvidence/GetEventSubscriptionReadinessRollup/SubmitEventSubscriptionActivationEvidence/GetEventSubscriptionActivationEvidenceStatus/GetEventSubscriptionActivationEvidenceRetentionChecklist/GetEventSubscriptionActivationEvidenceDecisionStatusRollup/GetEventSubscriptionActivationApprovalDryRunStatus/GetEventSubscriptionActivationApprovalAuthorityChecklist/GetEventSubscriptionActivationApprovalAuthorityAuditConsistency/GetEventSubscriptionActivationApprovalDecisionBlockerRollup/DryRunEventSubscriptionActivationApprovalDecision/GetEventSubscriptionActivationApprovalDecisionDryRunStatus/GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency/GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistency/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatus/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistency/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollup/GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist",
                 "current_state": "contract-only lifecycle commands; streaming RPC not implemented",
             },
             {
@@ -614,6 +620,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "rest_activation_approval_decision_owner_handoff_evidence_acceptance_status": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status",
             "rest_activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency",
             "rest_activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup",
+            "rest_activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist",
             "android_binder": "getEventSubscriptionsJson",
             "android_binder_request": "requestEventSubscriptionJson",
             "android_binder_cancel": "cancelEventSubscriptionJson",
@@ -644,6 +651,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "android_binder_activation_approval_decision_owner_handoff_evidence_acceptance_status": "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusJson",
             "android_binder_activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency": "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson",
             "android_binder_activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup": "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson",
+            "android_binder_activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist": "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson",
             "linux_cli": "event-subscriptions",
             "linux_cli_request": "event-subscribe-request",
             "linux_cli_cancel": "event-subscribe-cancel",
@@ -674,6 +682,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_cli_activation_approval_decision_owner_handoff_evidence_acceptance_status": "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status",
             "linux_cli_activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency": "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency",
             "linux_cli_activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup": "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup",
+            "linux_cli_activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist": "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist",
             "linux_ipc": "uib.events.subscriptions.get",
             "linux_ipc_request": "uib.events.subscriptions.request",
             "linux_ipc_cancel": "uib.events.subscriptions.cancel",
@@ -704,6 +713,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_ipc_activation_approval_decision_owner_handoff_evidence_acceptance_status": "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.status",
             "linux_ipc_activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency": "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.audit.consistency",
             "linux_ipc_activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup": "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup",
+            "linux_ipc_activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist": "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist",
             "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptions",
             "linux_grpc_rpc_request": "CentralBrainGateway.RequestEventSubscription",
             "linux_grpc_rpc_cancel": "CentralBrainGateway.CancelEventSubscription",
@@ -734,6 +744,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "linux_grpc_rpc_activation_approval_decision_owner_handoff_evidence_acceptance_status": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatus",
             "linux_grpc_rpc_activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistency",
             "linux_grpc_rpc_activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollup",
+            "linux_grpc_rpc_activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist",
         },
         "summary": {
             "subscription_state": "contract-only-not-brokered",
@@ -762,6 +773,7 @@ def event_subscriptions_payload() -> dict[str, Any]:
             "activation_approval_decision_owner_handoff_evidence_acceptance_status_active": True,
             "activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency_active": True,
             "activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active": True,
+            "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active": True,
             "broker_active": False,
             "subscription_persistence_active": False,
             "cursor_storage_active": False,
@@ -5988,6 +6000,264 @@ def event_subscription_activation_approval_decision_owner_handoff_evidence_accep
     }
 
 
+def event_subscription_activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_payload() -> dict[str, Any]:
+    decision_rollup = event_subscription_activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_payload()
+    acceptance_audit = event_subscription_activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency_payload()
+    acceptance_status = event_subscription_activation_approval_decision_owner_handoff_evidence_acceptance_status_payload()
+    readiness_matrix = event_subscription_activation_approval_decision_owner_handoff_evidence_readiness_matrix_payload()
+    rollup_summary = decision_rollup["summary"]
+    audit_summary = acceptance_audit["summary"]
+    status_summary = acceptance_status["summary"]
+    matrix_summary = readiness_matrix["summary"]
+
+    closure_items = []
+    closure_checks = [
+        ("acceptance-authority", "acceptance_authority_confirmed", "EV-AHI-001"),
+        ("acceptance-record-store", "acceptance_record_store_confirmed", "EV-AHI-002"),
+        ("approval-review-workflow", "review_workflow_owner_confirmed", "EV-AHI-003"),
+        ("audit-retention-owner", "audit_retention_owner_confirmed", "EV-AHI-004"),
+        ("evidence-packet-presence", "evidence_packet_presence_confirmed", "EV-AHI-005"),
+        ("evidence-uri-hash-signature-rules", "evidence_uri_rules_confirmed", "EV-AHI-006"),
+        ("owner-signature-rules", "owner_signature_rule_confirmed", "EV-AHI-007"),
+        ("gate-closure-authority", "gate_closure_authority_confirmed", "EV-AHI-008"),
+        ("broker-activation-owner", "broker_activation_owner_confirmed", "EV-AHI-009"),
+        ("driver-gap-review-owner", "driver_gap_review_owner_confirmed", "EV-AHI-010"),
+    ]
+    for index, (name, source_field, source_decision_gate_id) in enumerate(closure_checks, start=1):
+        closure_items.append(
+            {
+                "closure_check_id": f"EV-AHJ-CHK-{index:03d}",
+                "gate_id": f"EV-AHJ-{index:03d}",
+                "name": name,
+                "source_decision_gate_id": source_decision_gate_id,
+                "source_acceptance_gate_id": f"EV-AHG-{index:03d}",
+                "source_audit_gate_id": f"EV-AHH-{index:03d}",
+                "source_evidence_id": f"EV-AHE-{index:03d}",
+                "source_decision_field": source_field,
+                "state": "blocked_missing_acceptance_decision_and_evidence_packet",
+                "ready": False,
+                "required_before": ["approval_review", "gate_closure", "broker_activation"],
+                "blocks_approval_review": True,
+                "blocks_gate_closure": True,
+                "blocks_broker_activation": True,
+            }
+        )
+
+    required_closure_check_count = len(closure_items)
+    open_closure_check_count = sum(1 for item in closure_items if not item["ready"])
+    no_store_consistent = all(
+        [
+            rollup_summary["no_store_consistent"],
+            audit_summary["no_store_consistent"],
+            rollup_summary["accepted_evidence_packet_count"] == 0,
+            rollup_summary["acceptance_record_persisted_count"] == 0,
+            rollup_summary["persisted_evidence_packet_count"] == 0,
+            not rollup_summary["evidence_store_created"],
+            not rollup_summary["evidence_store_active"],
+            not rollup_summary["approval_result_store_created"],
+            not rollup_summary["approval_result_store_active"],
+            not rollup_summary["review_queue_updated"],
+        ]
+    )
+    no_post_consistent = all(
+        [
+            rollup_summary["no_post_consistent"],
+            audit_summary["no_post_consistent"],
+            not rollup_summary["decision_dry_run_post_called_by_handoff_evidence_acceptance_decision_rollup"],
+        ]
+    )
+    no_side_effects_consistent = all(
+        [
+            rollup_summary["no_side_effects_consistent"],
+            audit_summary["no_side_effects_consistent"],
+            not rollup_summary["owner_assignments_persisted"],
+            not rollup_summary["owner_handoff_queue_updated"],
+            not rollup_summary["evidence_packets_attached"],
+            not rollup_summary["gate_state_changed"],
+            not rollup_summary["gates_closed"],
+            not rollup_summary["broker_activation_allowed"],
+            not rollup_summary["activation_allowed"],
+            not rollup_summary["hardware_accessed"],
+            not rollup_summary["driver_development_triggered"],
+            not rollup_summary["virtualization_development_triggered"],
+            not rollup_summary["service_dispatch_triggered"],
+        ]
+    )
+    source_surfaces_bound = all(
+        [
+            decision_rollup["approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active"],
+            acceptance_audit["approval_decision_owner_handoff_evidence_acceptance_audit_consistency_active"],
+            acceptance_status["approval_decision_owner_handoff_evidence_acceptance_status_active"],
+            readiness_matrix["approval_decision_owner_handoff_evidence_readiness_matrix_active"],
+            rollup_summary["decision_rollup_consistent"],
+            audit_summary["consistency_passed"],
+            status_summary["acceptance_status_consistent"],
+            matrix_summary["readiness_matrix_consistent"],
+        ]
+    )
+    closure_readiness_consistent = all(
+        [
+            source_surfaces_bound,
+            open_closure_check_count == required_closure_check_count,
+            rollup_summary["blocked_decision_count"] == required_closure_check_count,
+            status_summary["blocked_acceptance_count"] == required_closure_check_count,
+            matrix_summary["missing_evidence_packet_count"] == required_closure_check_count,
+            no_store_consistent,
+            no_post_consistent,
+            no_side_effects_consistent,
+        ]
+    )
+
+    return {
+        "operation": "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist",
+        "approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_state": "contract-only-handoff-evidence-acceptance-closure-not-ready",
+        "approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active": True,
+        "closure_readiness_checklist_complete": True,
+        "closure_readiness_consistent": closure_readiness_consistent,
+        "source_surfaces_bound": source_surfaces_bound,
+        "closure_ready": False,
+        "closure_allowed": False,
+        "approval_review_allowed": False,
+        "gate_closure_allowed": False,
+        "broker_activation_allowed": False,
+        "required_closure_check_count": required_closure_check_count,
+        "open_closure_check_count": open_closure_check_count,
+        "ready_closure_check_count": required_closure_check_count - open_closure_check_count,
+        "required_decision_count": rollup_summary["required_decision_count"],
+        "blocked_decision_count": rollup_summary["blocked_decision_count"],
+        "required_acceptance_count": status_summary["required_acceptance_count"],
+        "blocked_acceptance_count": status_summary["blocked_acceptance_count"],
+        "accepted_evidence_packet_count": rollup_summary["accepted_evidence_packet_count"],
+        "acceptance_record_persisted_count": rollup_summary["acceptance_record_persisted_count"],
+        "required_evidence_packet_count": matrix_summary["required_evidence_packet_count"],
+        "missing_evidence_packet_count": matrix_summary["missing_evidence_packet_count"],
+        "attached_evidence_count": matrix_summary["attached_evidence_count"],
+        "persisted_evidence_packet_count": matrix_summary["persisted_evidence_packet_count"],
+        "closure_items": closure_items,
+        "source_surfaces": {
+            "handoff_evidence_acceptance_decision_rollup": {
+                "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup",
+                "active": decision_rollup["approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active"],
+                "consistent": rollup_summary["decision_rollup_consistent"],
+                "blocked_decision_count": rollup_summary["blocked_decision_count"],
+                "acceptance_decision_ready": rollup_summary["acceptance_decision_ready"],
+            },
+            "handoff_evidence_acceptance_audit_consistency": {
+                "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency",
+                "active": acceptance_audit["approval_decision_owner_handoff_evidence_acceptance_audit_consistency_active"],
+                "consistent": audit_summary["consistency_passed"],
+                "no_store_consistent": audit_summary["no_store_consistent"],
+                "no_side_effects_consistent": audit_summary["no_side_effects_consistent"],
+            },
+            "handoff_evidence_acceptance_status": {
+                "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status",
+                "active": acceptance_status["approval_decision_owner_handoff_evidence_acceptance_status_active"],
+                "consistent": status_summary["acceptance_status_consistent"],
+                "blocked_acceptance_count": status_summary["blocked_acceptance_count"],
+            },
+            "handoff_evidence_readiness_matrix": {
+                "endpoint": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix",
+                "active": readiness_matrix["approval_decision_owner_handoff_evidence_readiness_matrix_active"],
+                "consistent": matrix_summary["readiness_matrix_consistent"],
+                "missing_evidence_packet_count": matrix_summary["missing_evidence_packet_count"],
+            },
+        },
+        "driver_hal_gap_refs": decision_rollup["driver_hal_gap_refs"],
+        "mandatory_gates": [
+            {
+                "gate_id": item["gate_id"],
+                "source_decision_gate_id": item["source_decision_gate_id"],
+                "source_acceptance_gate_id": item["source_acceptance_gate_id"],
+                "source_audit_gate_id": item["source_audit_gate_id"],
+                "ready": item["ready"],
+                "blocks_gate_closure": item["blocks_gate_closure"],
+                "blocks_broker_activation": item["blocks_broker_activation"],
+            }
+            for item in closure_items
+        ],
+        "api_surface": {
+            "rest": "GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist",
+            "android_binder": "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson",
+            "linux_cli": "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist",
+            "linux_ipc": "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist",
+            "linux_grpc_rpc": "CentralBrainGateway.GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist",
+        },
+        "summary": {
+            "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active": True,
+            "activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active": True,
+            "handoff_evidence_acceptance_closure_readiness_checklist_state": "contract-only-handoff-evidence-acceptance-closure-not-ready",
+            "closure_readiness_checklist_complete": True,
+            "closure_readiness_consistent": closure_readiness_consistent,
+            "source_surfaces_bound": source_surfaces_bound,
+            "source_decision_rollup_bound": True,
+            "source_acceptance_audit_bound": True,
+            "source_acceptance_status_bound": True,
+            "source_handoff_evidence_readiness_matrix_bound": True,
+            "closure_ready": False,
+            "closure_allowed": False,
+            "approval_review_allowed": False,
+            "gate_closure_allowed": False,
+            "broker_activation_allowed": False,
+            "activation_allowed": False,
+            "required_closure_check_count": required_closure_check_count,
+            "open_closure_check_count": open_closure_check_count,
+            "ready_closure_check_count": required_closure_check_count - open_closure_check_count,
+            "required_decision_count": rollup_summary["required_decision_count"],
+            "blocked_decision_count": rollup_summary["blocked_decision_count"],
+            "required_acceptance_count": status_summary["required_acceptance_count"],
+            "blocked_acceptance_count": status_summary["blocked_acceptance_count"],
+            "accepted_evidence_packet_count": rollup_summary["accepted_evidence_packet_count"],
+            "acceptance_record_persisted_count": rollup_summary["acceptance_record_persisted_count"],
+            "required_evidence_packet_count": matrix_summary["required_evidence_packet_count"],
+            "missing_evidence_packet_count": matrix_summary["missing_evidence_packet_count"],
+            "attached_evidence_count": matrix_summary["attached_evidence_count"],
+            "persisted_evidence_packet_count": matrix_summary["persisted_evidence_packet_count"],
+            "evidence_uri_count": matrix_summary["evidence_uri_count"],
+            "evidence_hash_count": matrix_summary["evidence_hash_count"],
+            "owner_signature_count": matrix_summary["owner_signature_count"],
+            "decision": "blocked-by-missing-acceptance-closure-readiness",
+            "decision_blocker_summary": "acceptance decision rollup is consistent but closure readiness remains blocked by missing authority, record store, review workflow, evidence packet, gate closure, broker activation, and Driver/HAL gap decisions",
+            "handoff_evidence_acceptance_allowed": False,
+            "handoff_evidence_ready": False,
+            "approval_decision_ready": False,
+            "approval_dry_run_allowed": False,
+            "owner_assignments_persisted": False,
+            "owner_handoff_queue_updated": False,
+            "evidence_packets_attached": False,
+            "evidence_store_created": False,
+            "evidence_store_active": False,
+            "decision_dry_run_post_called_by_handoff_evidence_acceptance_closure_readiness_checklist": False,
+            "persisted_dry_run_request_count": 0,
+            "persisted_dry_run_result_count": 0,
+            "persisted_approval_decision_count": 0,
+            "pending_approval_decision_review_count": 0,
+            "approval_result_store_created": False,
+            "approval_result_store_active": False,
+            "review_queue_updated": False,
+            "gate_state_changed": False,
+            "gates_closed": False,
+            "production_activation_allowed": False,
+            "broker_active": False,
+            "subscription_persistence_active": False,
+            "cursor_storage_active": False,
+            "event_delivery_qos_active": False,
+            "callback_registered": False,
+            "watch_started": False,
+            "dds_runtime_active": False,
+            "sse_websocket_active": False,
+            "high_rate_data_plane_active": False,
+            "no_store_consistent": no_store_consistent,
+            "no_post_consistent": no_post_consistent,
+            "no_side_effects_consistent": no_side_effects_consistent,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "req_ids": EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_CHECKLIST_REQ_IDS,
+    }
+
+
 def event_subscription_request_payload(request: dict[str, Any]) -> dict[str, Any]:
     trace_id = request.get("trace_id") or str(uuid.uuid4())
     subscription_id = str(request.get("subscription_id") or f"sub-{uuid.uuid4()}")
@@ -7026,6 +7296,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(event_subscription_activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency_payload()))
         elif path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup":
             self.send_json(200, envelope(event_subscription_activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_payload()))
+        elif path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist":
+            self.send_json(200, envelope(event_subscription_activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_payload()))
         elif path == "/uib/events/recent":
             limit = int(query.get("limit", ["20"])[0])
             self.send_json(200, envelope(event_recent_payload(limit)))

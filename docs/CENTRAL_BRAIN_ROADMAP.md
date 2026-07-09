@@ -657,3 +657,9 @@
   - Linux 同步路径新增 CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup`、IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup` 和 gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollup`。
   - 本轮只做 contract-only read-only rollup，不接受 packet，不创建 evidence/acceptance/review store，不关闭 gate，不激活 broker/DDS/high-rate data plane，不开发 Driver/HAL 或虚拟化层。
   - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
+- 推进 FW-U-003/NV-P-006 Event subscription activation approval decision owner handoff evidence acceptance closure readiness checklist：
+  - 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist`，枚举 `EV-AHJ-001..010` closure readiness blockers。
+  - Android 主路径新增 Binder `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson` 与 Console `Sub ApHClose`。
+  - Linux 同步路径新增 CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist`、IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist` 和 gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist`。
+  - 本轮只做 contract-only read-only checklist，不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不创建 evidence/acceptance/review/result store，不关闭 gate，不激活 broker/DDS/high-rate data plane，不开发 Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004。
