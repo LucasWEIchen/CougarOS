@@ -328,6 +328,18 @@ acceptance record store、review workflow、audit retention、rollback/fault、D
 它不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence，不创建 evidence store，不更新 review queue，不关闭 gate，
 不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
 
+硬件接口 owner evidence adapter-load approval reviewer evidence handoff acceptance closure readiness decision rollup 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
+`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup`、Android Binder
+`getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollupJson`、Android Console `HW ApHCRoll`、
+Linux CLI `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-rollup`、Linux IPC
+`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.rollup` 与 Linux gRPC/RPC
+`GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollup` 调用。该 rollup 只汇总 closure readiness audit、closure blockers、
+acceptance decision blockers、Android/Linux parity、no-store/no-review-gate-load 和 no-side-effect counters，暴露 `HW-AHG-001..008`、
+`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`closure_readiness_audit_consistent=true`、`closure_ready=false`、`closure_decision_ready=false`、
+`blocked_decision_count=8`、`closure_blocker_count=8`、`adapter_load_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。
+它不接收或接受 evidence handoff packet，不持久化 acceptance record/approval/evidence，不创建 evidence store，不更新 review queue，不关闭 gate，
+不选择 adapter，不加载 adapter，不打开 device node，不调用 HAL/vendor SDK，不分配 shared memory，不 dispatch service，不触发 Driver/HAL 或虚拟化层。
+
 硬件接口 owner evidence adapter-load approval reviewer evidence handoff acceptance closure readiness checklist 按 HW-002、KH-003、KH-006、KH-007、DEL-005 在
 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist`、Android Binder
 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson`、Android Console `HW ApHClose`、
