@@ -601,3 +601,11 @@ FW-U-003/NV-P-006 的 EV-AE..EV-AHS closure chain 现在通过既有 `GET /proto
 
 - 通过 `CentralBrainGatewayClient.getPrototypeReadinessJson` 查看 Android 主路径的 EV-AE..EV-AHS closure chain readiness summary。
 - 通过 Linux `prototype-readiness`、`prototype.readiness.get` 或 `GetPrototypeReadiness` 查看同一 `event_subscription_activation_closure_chain_summary` payload。
+
+## Python Prototype Handoff Manifest 交付补充
+
+`central-brain/contracts/central_brain_prototype_handoff_manifest.json` 和 `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md` 是当前 Python prototype 面向 Android/Linux 座舱域工程师的静态交付索引，覆盖 XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、DEL-001、DEL-002、DEL-003、DEL-004、DEL-005。
+
+该 manifest 固定 `prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。Android 交付索引包括 `getPrototypeReadinessJson`、`getDeliveryReadinessJson`、`getBindingReadinessJson`、`getDriverHalGapsJson` 和 `getHardwareInterfacesJson`；Linux 交付索引包括 `prototype-readiness`、`delivery-readiness`、`binding-readiness`、`driver-gaps`、`hardware-interfaces`、`prototype.readiness.get`、`delivery.readiness.get`、`bindings.readiness.get`、`native.driver.gaps.get`、`hardware.interfaces.get`、`GetPrototypeReadiness`、`GetDeliveryReadiness`、`GetBindingReadiness`、`GetDriverHalGaps` 和 `GetHardwareInterfaces`。
+
+该 manifest 只做交付索引，不新增 runtime endpoint，不调用 POST，不持久化状态，不分配 owner/reviewer，不接受 evidence，不关闭 gate，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。

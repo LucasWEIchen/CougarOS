@@ -397,3 +397,7 @@ bash tools/check_central_brain_linux_systemd_hardening.sh
 ### Event Subscription Closure Chain Readiness Summary
 
 `GET /prototype/readiness` includes `event_subscription_activation_closure_chain_summary`, a compact EV-AE..EV-AHS closure-chain audit view exposed through Android `getPrototypeReadinessJson`, Linux `prototype-readiness`, IPC `prototype.readiness.get`, and gRPC/RPC `GetPrototypeReadiness`. It reports 30 stages, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, `event_subscription_activation_closure_chain_ready=false`, Android/Linux parity, no-store/no-POST/no-side-effect invariants, and the remaining blockers including DRV-GAP-004/DRV-GAP-005 owners. It does not call POST, assign owners/reviewers, persist state, close gates, activate broker/DDS/high-rate transport, touch hardware, trigger Driver/HAL, dispatch services, or implement virtualization.
+
+### Prototype Handoff Manifest
+
+`central-brain/contracts/central_brain_prototype_handoff_manifest.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md` provide the static Android/Linux handoff index for cockpit-domain engineers. The manifest points to the Android Binder/Console artifacts, Linux CLI/IPC/gRPC samples, readiness surfaces, validation commands, Driver/HAL gap entry points, and remaining production blockers. It is documentation/contract delivery only and keeps `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.

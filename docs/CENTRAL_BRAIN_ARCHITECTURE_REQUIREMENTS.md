@@ -575,3 +575,10 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - `GET /prototype/readiness` now includes `event_subscription_activation_closure_chain_summary` as a compact audit view for the EV-AE..EV-AHS event subscription activation closure chain. This is the required closure-chain summary for the architecture baseline after EV-AHS and does not replace the individual EV-AE..EV-AHS contract surfaces.
 - Android primary delivery remains Binder `getPrototypeReadinessJson` plus the existing EV-AE..EV-AHS Binder/Console methods. Linux synchronized delivery remains CLI `prototype-readiness`, IPC `prototype.readiness.get`, and gRPC/RPC `GetPrototypeReadiness`.
 - The summary must keep `event_subscription_activation_closure_chain_stage_count=30`, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, `event_subscription_activation_closure_chain_ready=false`, Android/Linux parity, no-store, no-POST, no-side-effect, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+
+### 2026-07-10 prototype handoff manifest trace
+
+- Req IDs: XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、DEL-001、DEL-002、DEL-003、DEL-004、DEL-005.
+- `central-brain/contracts/central_brain_prototype_handoff_manifest.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md` are the static Android/Linux prototype handoff index for cockpit-domain engineers.
+- The manifest must report `prototype_handoff_ready=true`, `production_ready=false`, Android primary path ready, Linux synchronized path ready, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+- The manifest is documentation/contract delivery only; it must not add runtime endpoints, call POST, persist state, close gates, activate broker/DDS/high-rate transport, access hardware, implement Driver/HAL, or implement virtualization.

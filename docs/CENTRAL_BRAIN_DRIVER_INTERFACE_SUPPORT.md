@@ -333,3 +333,9 @@ NpuDevice.reset(reason)
 `GET /prototype/readiness` 中的 `event_subscription_activation_closure_chain_summary` 只是 EV-AE..EV-AHS closure chain 的只读 maturity/audit 汇总。该汇总引用 DRV-GAP-004/DRV-GAP-005 作为 high-rate transport 和 shared memory/Safety Runtime owner 缺口，但不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory，不修改 Driver/HAL backlog 状态。
 
 该汇总固定 `event_subscription_activation_closure_chain_stage_count=30`、`event_subscription_activation_closure_chain_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；Android `getPrototypeReadinessJson` 与 Linux `prototype-readiness`/`prototype.readiness.get`/`GetPrototypeReadiness` 必须保持同一 Driver/HAL 边界。
+
+## Prototype Handoff Manifest Driver/HAL Boundary
+
+`central-brain/contracts/central_brain_prototype_handoff_manifest.json` 只是 Android/Linux prototype delivery handoff index。它引用 `GET /native/driver-gaps` 和 `GET /hardware/interfaces` 作为 Driver/HAL gap 与 hardware empty-interface 的交付入口，但不改变任何 gap 状态，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory。
+
+该 manifest 固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；若目标平台后续要求真实 Driver/HAL、vendor SDK、shared memory 或 DDS/TSN/PTP 支持，必须先在 DRV-GAP backlog 中记录 owner、ABI、smoke evidence 和 acceptance gates。

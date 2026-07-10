@@ -53,6 +53,12 @@
 
 ### 2026-07-10
 
+- 推进 DEL-001..005 / XSC-001..006 Python prototype delivery handoff manifest：
+  - 新增 `central-brain/contracts/central_brain_prototype_handoff_manifest.json` 与 `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md`，把 Android Binder/Console、Linux CLI/IPC/gRPC、contract、部署样例、验证命令和开放偏差/问题整理成座舱域工程师交付索引。
+  - Manifest 固定 `prototype_handoff_ready=true`、`production_ready=false`、Android 主路径 ready、Linux 同步路径 ready、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。
+  - 本轮只做静态交付 manifest，不新增 runtime endpoint，不调用 POST，不持久化状态，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、DEL-001、DEL-002、DEL-003、DEL-004、DEL-005。
+
 - 推进 XSC-002/FW-U-003/NV-P-006 Event subscription activation closure chain readiness summary：
   - 在既有 `GET /prototype/readiness` 中新增 `event_subscription_activation_closure_chain_summary`，把 `EV-AE..EV-AHS` 的 activation evidence、approval、handoff、reviewer assignment、closure handoff 与 blocker matrix 串成 30 个阶段的只读闭环链汇总，不新增深层 endpoint。
   - Android 主路径通过 Binder `getPrototypeReadinessJson` 暴露该汇总，并引用既有 EV-AE..EV-AHS Binder/Console surfaces；Linux 同步路径通过 CLI `prototype-readiness`、IPC `prototype.readiness.get` 和 gRPC/RPC `GetPrototypeReadiness` 暴露同一 payload。
