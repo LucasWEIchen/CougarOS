@@ -188,6 +188,10 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
         "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist",
         {},
     ),
+    "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency": (
+        "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency",
+        {},
+    ),
     "extensions": ("GetUibExtensions", {}),
     "event-publish": (
         "PublishEvent",

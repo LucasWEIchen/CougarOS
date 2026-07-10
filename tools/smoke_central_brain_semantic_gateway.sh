@@ -182,6 +182,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -4536,6 +4537,68 @@ for method, path, body, req_id in checks:
         assert "EV-AHM-001" in encoded and "EV-AHM-010" in encoded and "EV-AHL-010" in encoded and "EV-AHK-010" in encoded and "EV-AHJ-010" in encoded and "EV-AHG-010" in encoded and "EV-AHE-010" in encoded, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment missing gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency":
+        audit = payload["payload"]
+        encoded = json.dumps(audit)
+        gate_ids = {item["gate_id"] for item in audit["mandatory_gates"]}
+        assert audit["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency", "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit wrong operation"
+        assert audit["state"] == "contract-only-handoff-evidence-acceptance-closure-reviewer-assignment-audit-consistent", "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit wrong state"
+        assert audit["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active"] is True, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit inactive"
+        assert audit["consistency_passed"] is True, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit failed"
+        assert audit["source_reviewer_assignment_checklist_bound"] is True, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit lost source checklist"
+        assert audit["reviewer_assignment_count_consistent"] is True, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit count inconsistent"
+        assert audit["reviewer_assignment_blocker_state_consistent"] is True, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit blocker state inconsistent"
+        assert audit["reviewer_assignment_ready"] is False, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit unexpectedly ready"
+        assert audit["assigned_reviewer_count"] == 0, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit assigned reviewers"
+        assert audit["unassigned_reviewer_count"] == 10, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit unassigned count changed"
+        assert len(audit["audit_items"]) == 10, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit items changed"
+        assert {"EV-AHN-001", "EV-AHN-002", "EV-AHN-003", "EV-AHN-004", "EV-AHN-005", "EV-AHN-006", "EV-AHN-007", "EV-AHN-008", "EV-AHN-009", "EV-AHN-010"} <= gate_ids, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit missing EV-AHN gates"
+        for item in audit["audit_items"]:
+            assert item["passed"] is True, f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit failed {item['gate_id']}"
+            assert item["reviewer_assignment_still_blocked"] is True, f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit lost block {item['gate_id']}"
+            assert item["reviewer_assigned"] is False, f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit assigned {item['gate_id']}"
+            assert item["assignment_persisted"] is False, f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit persisted {item['gate_id']}"
+            assert item["queue_updated"] is False, f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit updated queue {item['gate_id']}"
+            assert item["source_assignment_gate_id"].startswith("EV-AHM-"), f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit missing EV-AHM source {item['gate_id']}"
+        for key in [
+            "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active",
+            "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_checklist_active",
+            "consistency_passed",
+            "source_reviewer_assignment_checklist_bound",
+            "reviewer_assignment_count_consistent",
+            "reviewer_assignment_blocker_state_consistent",
+            "no_store_consistent",
+            "no_post_consistent",
+            "no_queue_gate_broker_consistent",
+            "no_side_effects_consistent",
+            "android_linux_reviewer_assignment_audit_parity",
+        ]:
+            assert audit["summary"][key] is True, f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit summary did not set {key}"
+        for key in [
+            "reviewer_assignment_ready",
+            "reviewer_assignments_persisted",
+            "reviewer_assignment_queue_updated",
+            "approval_review_allowed",
+            "gate_closure_allowed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "review_queue_updated",
+            "gates_closed",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert audit["summary"][key] is False, f"activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit summary unexpectedly set {key}"
+        assert audit["summary"]["assigned_reviewer_count"] == 0, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit summary assigned reviewers"
+        assert audit["summary"]["unassigned_reviewer_count"] == 10, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit summary unassigned count changed"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson" in encoded, "Android activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency" in encoded, "Linux CLI activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.consistency" in encoded, "Linux IPC activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency" in encoded, "gRPC activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit binding missing"
+        assert "EV-AHN-001" in encoded and "EV-AHN-010" in encoded and "EV-AHM-010" in encoded and "EV-AHL-010" in encoded, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -4665,6 +4728,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-checklist >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null

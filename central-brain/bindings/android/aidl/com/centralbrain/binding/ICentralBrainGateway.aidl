@@ -99,6 +99,8 @@ interface ICentralBrainGateway {
 
     String getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson(String traceId);
 
+    String getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson(String traceId);
+
     String getUibExtensionsJson(String traceId);
 
     String getAiSdkCapabilitiesJson(String traceId);

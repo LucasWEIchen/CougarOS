@@ -216,6 +216,11 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
         "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist",
         None,
     ),
+    "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency": (
+        "GET",
+        "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency",
+        None,
+    ),
     "extensions": ("GET", "/uib/extensions", None),
     "governance": ("GET", "/governance/runtime", None),
     "governance-backend-contract": ("GET", "/governance/backend-contract", None),
