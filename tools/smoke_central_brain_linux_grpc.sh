@@ -2444,6 +2444,80 @@ assert "EV-AHP-001" in encoded and "EV-AHP-010" in encoded and "EV-AHO-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_AUDIT_CONSISTENCY_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-consistency)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_AUDIT_CONSISTENCY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+audit = payload["gateway"]["payload"]
+encoded = json.dumps(audit)
+gate_ids = {item["gate_id"] for item in audit["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert audit["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-consistency", response
+assert audit["state"] == "contract-only-handoff-evidence-acceptance-closure-handoff-readiness-audit-consistent", response
+assert audit["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_consistency_active"] is True, response
+assert audit["consistency_passed"] is True, response
+assert audit["source_closure_handoff_readiness_summary_bound"] is True, response
+assert audit["closure_handoff_dependency_count_consistent"] is True and audit["closure_handoff_blocker_state_consistent"] is True, response
+assert audit["closure_handoff_ready"] is False and audit["handoff_ready"] is False, response
+assert audit["required_handoff_dependency_count"] == 10 and audit["open_handoff_dependency_count"] == 10, response
+assert audit["assigned_reviewer_count"] == 0 and audit["unassigned_reviewer_count"] == 10, response
+assert {"EV-AHQ-001", "EV-AHQ-002", "EV-AHQ-003", "EV-AHQ-004", "EV-AHQ-005", "EV-AHQ-006", "EV-AHQ-007", "EV-AHQ-008", "EV-AHQ-009", "EV-AHQ-010"} <= gate_ids, response
+assert len(audit["audit_items"]) == 10, response
+for item in audit["audit_items"]:
+    assert item["handoff_dependency_still_blocked"] is True, response
+    assert item["reviewer_assigned"] is False, response
+    assert item["assignment_persisted"] is False and item["queue_updated"] is False, response
+    assert item["source_handoff_gate_id"].startswith("EV-AHP-"), response
+    assert item["source_decision_gate_id"].startswith("EV-AHO-"), response
+    assert item["source_audit_gate_id"].startswith("EV-AHN-"), response
+    assert item["source_assignment_gate_id"].startswith("EV-AHM-"), response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_consistency_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_summary_active",
+    "consistency_passed",
+    "source_closure_handoff_readiness_summary_bound",
+    "closure_handoff_dependency_count_consistent",
+    "closure_handoff_blocker_state_consistent",
+    "no_store_consistent",
+    "no_post_consistent",
+    "no_queue_gate_broker_consistent",
+    "no_side_effects_consistent",
+    "android_linux_closure_handoff_readiness_audit_parity",
+]:
+    assert audit["summary"][key] is True, response
+for key in [
+    "closure_handoff_ready",
+    "handoff_ready",
+    "reviewer_assignment_ready",
+    "reviewer_assignment_decision_ready",
+    "reviewer_assignments_persisted",
+    "reviewer_assignment_queue_updated",
+    "handoff_evidence_acceptance_allowed",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "review_queue_updated",
+    "gates_closed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert audit["summary"][key] is False, response
+assert audit["summary"]["required_handoff_dependency_count"] == 10 and audit["summary"]["open_handoff_dependency_count"] == 10, response
+assert audit["summary"]["assigned_reviewer_count"] == 0 and audit["summary"]["unassigned_reviewer_count"] == 10, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditConsistencyJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-consistency" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.consistency" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditConsistency" in encoded, response
+assert "EV-AHQ-001" in encoded and "EV-AHQ-010" in encoded and "EV-AHP-010" in encoded and "EV-AHO-010" in encoded and "EV-AHN-010" in encoded and "EV-AHM-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
