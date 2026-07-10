@@ -17,8 +17,11 @@
 - `linux-cli/`：Linux 同步交付 CLI 示例，调用同一套 Uni Info Bus/SOA 语义入口。
 - `../docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`：Android system/privileged service 集成约束，记录 DEL-001/003/004 与 NV-P-002 目标部署假设。
 - `../docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`：Hypervisor/Safety 接口约束，记录 HV-001..003 非开发范围。
+- `../docs/CENTRAL_BRAIN_PROTOTYPE_USAGE.md`：Python 原型使用说明，覆盖后端启动、Android Console、Linux CLI/IPC/gRPC、验证命令和 Driver/HAL/虚拟化边界。
 
 ## 第一阶段运行方式
+
+完整使用说明见 `../docs/CENTRAL_BRAIN_PROTOTYPE_USAGE.md`。
 
 启动后端：
 
