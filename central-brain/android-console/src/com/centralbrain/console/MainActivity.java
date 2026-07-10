@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
     private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupButton;
     private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistButton;
     private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistencyButton;
+    private Button eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollupButton;
     private Button vehicleSignalsButton;
     private Button vehicleSignalActivationButton;
     private Button vehicleSignalValidationButton;
@@ -404,6 +405,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistency();
+            }
+        });
+        eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollupButton = addButton(eventApprovalEvidenceAcceptanceClosureRow, "Sub ApHClR", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollup();
             }
         });
 
@@ -1100,6 +1107,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollup() {
+        setBusy(true, "Status: loading event activation approval decision owner handoff evidence acceptance closure readiness decision rollup via Binder");
+        gatewayRequest("Event Subscription Activation Approval Decision Owner Handoff Evidence Acceptance Closure Readiness Decision Rollup (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollupJson(newTraceId("event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup"));
+            }
+        });
+    }
+
     private void precheckGovernance() {
         setBusy(true, "Status: checking Runtime & Governance via Binder");
         String body = "{\"service\":\"vehicle-state\",\"method\":\"getState\","
@@ -1606,6 +1623,7 @@ public class MainActivity extends Activity {
         eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistButton.setEnabled(enabled);
         eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistencyButton.setEnabled(enabled);
+        eventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollupButton.setEnabled(enabled);
         vehicleSignalsButton.setEnabled(enabled);
         vehicleSignalActivationButton.setEnabled(enabled);
         vehicleSignalValidationButton.setEnabled(enabled);

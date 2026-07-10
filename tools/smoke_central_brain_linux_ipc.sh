@@ -2033,6 +2033,93 @@ assert "EV-AHK-001" in encoded and "EV-AHK-010" in encoded and "EV-AHJ-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_DECISION_ROLLUP_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_DECISION_ROLLUP_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup", response
+assert payload["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_rollup_state"] == "contract-only-handoff-evidence-acceptance-closure-decision-blocked", response
+assert payload["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_rollup_active"] is True, response
+assert payload["decision_rollup_complete"] is True, response
+assert payload["decision_rollup_consistent"] is True, response
+assert {"EV-AHL-001", "EV-AHL-002", "EV-AHL-003", "EV-AHL-004", "EV-AHL-005", "EV-AHL-006", "EV-AHL-007", "EV-AHL-008", "EV-AHL-009", "EV-AHL-010"} <= gate_ids, response
+for item in payload["mandatory_gates"]:
+    assert item["consistent"] is True, response
+    assert item["blocks_gate_closure"] is True, response
+    assert item["blocks_approval_review"] is True, response
+    assert item["blocks_broker_activation"] is True, response
+    assert item["source_closure_gate_id"].startswith("EV-AHJ-"), response
+    assert item["source_decision_gate_id"].startswith("EV-AHI-"), response
+    assert item["source_acceptance_gate_id"].startswith("EV-AHG-"), response
+    assert item["source_audit_gate_id"].startswith("EV-AHK-"), response
+    assert item["source_evidence_id"].startswith("EV-AHE-"), response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_rollup_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_audit_consistency_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active",
+    "decision_rollup_complete",
+    "decision_rollup_consistent",
+    "closure_readiness_audit_consistent",
+    "source_surfaces_bound",
+    "no_store_decision_rollup",
+    "no_post_decision_rollup",
+    "no_side_effects_consistent",
+    "closure_ready_decision_blocked",
+    "evidence_acceptance_decision_blocked",
+]:
+    assert payload["summary"][key] is True, response
+for key in [
+    "closure_ready",
+    "closure_allowed",
+    "closure_decision_ready",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "handoff_evidence_acceptance_allowed",
+    "approval_decision_ready",
+    "owner_assignments_persisted",
+    "owner_handoff_queue_updated",
+    "evidence_packets_attached",
+    "evidence_store_created",
+    "review_queue_updated",
+    "gates_closed",
+    "high_rate_data_plane_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+    "approval_result_store_created",
+    "decision_dry_run_post_called_by_handoff_evidence_acceptance_closure_readiness_decision_rollup",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["required_decision_count"] == 10, response
+assert payload["summary"]["blocked_decision_count"] == 10, response
+assert payload["summary"]["required_closure_check_count"] == 10, response
+assert payload["summary"]["open_closure_check_count"] == 10, response
+assert payload["summary"]["blocked_acceptance_count"] == 10, response
+assert payload["summary"]["accepted_evidence_packet_count"] == 0, response
+assert payload["summary"]["acceptance_record_persisted_count"] == 0, response
+assert payload["summary"]["missing_evidence_packet_count"] == 10, response
+assert payload["summary"]["persisted_dry_run_request_count"] == 0, response
+assert payload["summary"]["persisted_dry_run_result_count"] == 0, response
+assert payload["summary"]["persisted_approval_decision_count"] == 0, response
+assert payload["summary"]["persisted_evidence_packet_count"] == 0, response
+assert payload["summary"]["attached_evidence_count"] == 0, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollupJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.rollup" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollup" in encoded, response
+assert "EV-AHL-001" in encoded and "EV-AHL-010" in encoded and "EV-AHK-010" in encoded and "EV-AHJ-010" in encoded and "EV-AHI-010" in encoded and "EV-AHG-010" in encoded and "EV-AHE-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
