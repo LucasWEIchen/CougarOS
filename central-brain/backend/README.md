@@ -290,3 +290,9 @@ bash tools/smoke_central_brain_qos.sh
 - Android Binder: `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson`.
 - Linux CLI/IPC/gRPC: `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix`, `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix`, `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix`.
 - The endpoint is read-only and does not assign reviewers or owners, persist evidence or review state, update queues, close gates, activate broker/DDS/high-rate transport, touch hardware, trigger Driver/HAL, or implement virtualization.
+
+### EV-AE..EV-AHS closure chain readiness summary
+
+- `GET /prototype/readiness` returns `event_subscription_activation_closure_chain_summary` for the EV-AE..EV-AHS event subscription activation closure chain.
+- The summary reports 30 stages, `event_subscription_activation_closure_chain_stage_count=30`, `event_subscription_activation_closure_chain_ready=false`, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, Android/Linux binding parity, no-store/no-POST/no-side-effect consistency, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
+- This is a backend readiness audit summary only; it does not create a broker, evidence store, review queue, gate closer, Driver/HAL path, service dispatcher, or virtualization path.

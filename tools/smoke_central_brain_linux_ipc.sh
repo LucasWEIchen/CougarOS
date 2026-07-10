@@ -2712,6 +2712,21 @@ assert "prototype.readiness.get" in encoded and "GetPrototypeReadiness" in encod
 assert "getVehicleSignalActivationJson" in encoded and "vehicle-signal-activation" in encoded, response
 assert "getVehicleSignalValidationJson" in encoded and "vehicle-signal-validation" in encoded, response
 assert "DEV-003" in encoded and "ISSUE-014" in encoded, response
+closure_chain = payload["event_subscription_activation_closure_chain_summary"]
+stage_ids = {stage["stage_id"] for stage in closure_chain["stages"]}
+assert payload["summary"]["event_subscription_activation_closure_chain_summary_active"] is True, response
+assert payload["summary"]["event_subscription_activation_closure_chain_complete"] is True, response
+assert payload["summary"]["event_subscription_activation_closure_chain_ready"] is False, response
+assert payload["summary"]["event_subscription_activation_closure_chain_stage_count"] == 30, response
+assert payload["summary"]["event_subscription_activation_closure_chain_android_linux_parity"] is True, response
+assert payload["summary"]["event_subscription_activation_closure_chain_no_store_consistent"] is True, response
+assert payload["summary"]["event_subscription_activation_closure_chain_no_side_effects_consistent"] is True, response
+assert {"EV-AE", "EV-AHS"} <= stage_ids, response
+assert closure_chain["summary"]["first_gate"] == "EV-AE-001", response
+assert closure_chain["summary"]["last_gate"] == "EV-AHS-010", response
+assert closure_chain["summary"]["driver_development_triggered"] is False, response
+assert closure_chain["summary"]["virtualization_development_triggered"] is False, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 PY
 HARDWARE_INTERFACES_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" hardware-interfaces)"
 python3 - "$HARDWARE_INTERFACES_OUTPUT" <<'PY'

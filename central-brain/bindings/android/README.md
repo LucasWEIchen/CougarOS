@@ -593,3 +593,9 @@ Safety Runtime code, or virtualization code.
 ## Event Subscription EV-AHS Closure Blocker Matrix
 
 - `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson` exposes `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix` through the Android Console `Sub ApHReadyB` action. It reports `EV-AHS-001..010`, `closure_blocker_matrix_complete=true`, `closure_blocker_matrix_consistent=true`, `closure_handoff_closure_ready=false`, ten open blockers, zero closed blockers, no Driver/HAL access, and no virtualization work. Req IDs: XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004.
+
+## Event Subscription Closure Chain Readiness Summary
+
+- `getPrototypeReadinessJson` exposes `GET /prototype/readiness` and now includes `event_subscription_activation_closure_chain_summary` for EV-AE..EV-AHS.
+- Android Console users should treat this as the compact closure-chain readiness view: it reports `event_subscription_activation_closure_chain_stage_count=30`, `event_subscription_activation_closure_chain_ready=false`, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, no-store/no-POST/no-side-effect consistency, no Driver/HAL access, and no virtualization work.
+- This Android path is read-only and does not assign owners or reviewers, accept evidence, persist state, close gates, activate broker/DDS/high-rate transport, or dispatch services.

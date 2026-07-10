@@ -699,3 +699,11 @@ Android 主路径为 Binder `getEventSubscriptionActivationApprovalDecisionOwner
 - Linux: `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix`, `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix`, `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix`
 - Payload: `EV-AHS-001..010` blocker items derived from `EV-AHR-001..010`, with `closure_blocker_matrix_complete=true`, `closure_blocker_matrix_consistent=true`, `closure_handoff_closure_ready=false`, `open_blocker_count=10`, `closed_blocker_count=0`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
 - Scope: read-only contract surface; no POST, persistence, queue, gate, broker, hardware, Driver/HAL, or virtualization work.
+
+### EV-AE..EV-AHS prototype readiness closure chain summary
+
+- REST: `GET /prototype/readiness`
+- Android: `getPrototypeReadinessJson`
+- Linux: `prototype-readiness`, `prototype.readiness.get`, `GetPrototypeReadiness`
+- Payload: `event_subscription_activation_closure_chain_summary` with `source_range=EV-AE..EV-AHS`, 30 stage ids, `event_subscription_activation_closure_chain_stage_count=30`, `event_subscription_activation_closure_chain_ready=false`, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, Android/Linux binding parity, no-store/no-POST/no-side-effect consistency, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+- Scope: read-only readiness summary over existing EV-AE..EV-AHS surfaces; no new deep endpoint, no owner/reviewer assignment, no evidence persistence, no queue/gate/broker activation, no hardware, no Driver/HAL, and no virtualization work.

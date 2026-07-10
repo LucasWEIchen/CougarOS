@@ -848,3 +848,11 @@ All three Linux bindings call the same REST prototype path, `GET /uib/events/sub
 - gRPC/RPC: `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix`
 
 All three Linux bindings call the same REST prototype path, `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix`, and return the `EV-AHS-001..010` contract-only closure blocker matrix. The response keeps `closure_blocker_matrix_complete=true`, `closure_blocker_matrix_consistent=true`, `closure_handoff_closure_ready=false`, ten open blockers, zero closed blockers, zero assigned reviewers, `driver_development_triggered=false`, and `virtualization_development_triggered=false`. It does not assign reviewers or owners, accept packets, persist state, update queues, close gates, activate broker/DDS/high-rate transport, touch hardware, or dispatch services.
+
+## Event Subscription Closure Chain Readiness Summary
+
+- CLI: `prototype-readiness`
+- IPC: `prototype.readiness.get`
+- gRPC/RPC: `GetPrototypeReadiness`
+
+All three Linux bindings expose `event_subscription_activation_closure_chain_summary` inside `GET /prototype/readiness`. The payload covers EV-AE..EV-AHS with `event_subscription_activation_closure_chain_stage_count=30`, `event_subscription_activation_closure_chain_ready=false`, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, Android/Linux binding parity, no-store/no-POST/no-side-effect consistency, `driver_development_triggered=false`, and `virtualization_development_triggered=false`. It is a read-only readiness summary and does not assign owners or reviewers, accept evidence, persist state, close gates, activate broker/DDS/high-rate transport, touch hardware, or dispatch services.

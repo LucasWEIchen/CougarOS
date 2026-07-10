@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.103",
+  "version": "0.1.104",
   "updated": "2026-07-10",
   "transport": {
     "prototype": "http-json",
@@ -13,7 +13,7 @@
     "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
-    "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
+    "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, EV-AE..EV-AHS event subscription activation closure chain summary, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
     "hardware_empty_interfaces": "GET /hardware/interfaces plus GET /hardware/interfaces/activation-checklist, GET /hardware/interfaces/owner-decision-status, POST /hardware/interfaces/owner-decision-evidence, GET /hardware/interfaces/owner-decision-evidence/status, GET /hardware/interfaces/owner-decision-evidence/retention-checklist, GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist, GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup, POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency, POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/audit-consistency, and GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup expose hardware-dependent empty interfaces, activation gate criteria, unresolved owner/ABI/Driver-HAL/Safety/smoke/rollback decisions, no-store owner evidence reference intake, no-store owner evidence review status, retention/closure checklist decisions, replacement trigger checklist decisions, selected-adapter readiness evidence, adapter-load blockers, adapter-load approval dry-run rejection, no-store dry-run status/last-result visibility, dry-run audit consistency, approval-authority decisions, approval-authority no-store status, approval-authority audit consistency, approval decision dry-run rejection, approval decision dry-run no-store status, approval decision dry-run audit consistency, approval decision closure blocker matrix, approval decision reviewer matrix, approval reviewer evidence handoff checklist, approval reviewer evidence handoff acceptance status, approval reviewer evidence handoff acceptance audit consistency, and approval reviewer evidence handoff acceptance decision rollup for PCIe NPU, vehicle bus, camera/audio/sensors, Ethernet/SOME-IP/DDS/TSN, shared memory, and Safety Runtime without touching hardware; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist closure readiness checklist keeps adapter load blocked and no Driver/HAL or virtualization triggered, GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency validates closure readiness audit consistency and reports closure readiness decision rollup for the blocked adapter-load approval reviewer evidence handoff acceptance path; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist reports closure decision reviewer assignment checklist while keeping every reviewer unassigned, no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants explicit; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup reports reviewer assignment audit decision rollup while preserving no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants; GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary reports closure handoff readiness summary while keeping every handoff dependency blocked, no-store, no-review-queue, no-gate-close, no-adapter-load, no-hardware, no-driver, and no-virtualization invariants explicit",
     "vehicle_signal_catalog": "GET /vehicle/signals exposes a read-only VSS-style Vehicle/Body Signal catalog for NV-F-004/NV-F-005 with Android/Linux binding visibility, without loading DBC/ARXML, touching VHAL/HAL, or triggering Driver/HAL development",
     "vehicle_signal_activation": "GET /vehicle/signals/activation exposes read-bridge activation criteria for DBC/ARXML, Android VHAL/vendor AIDL, Linux SocketCAN, and vendor gateways without activating real Driver/HAL",
@@ -15299,7 +15299,7 @@
     {
       "method": "GET",
       "path": "/prototype/readiness",
-      "description": "Returns Python prototype module maturity across AI SDK, Uni Info Bus, SOA, Runtime & Governance, Protocol Binding, Native adapters, Driver/HAL gap backlog, and hardware empty interfaces with Android/Linux binding visibility, deviations, issues, next increment candidates, and explicit no-hardware/no-driver/no-virtualization boundaries.",
+      "description": "Returns Python prototype module maturity across AI SDK, Uni Info Bus, SOA, Runtime & Governance, Protocol Binding, Native adapters, Driver/HAL gap backlog, hardware empty interfaces, and the EV-AE..EV-AHS event subscription activation closure chain summary with Android/Linux binding visibility, deviations, issues, next increment candidates, and explicit no-hardware/no-driver/no-virtualization boundaries.",
       "response": {
         "maturity_view": "python-prototype-contract-demo",
         "architecture_baseline": "user-provided Central Brain architecture diagram is the binding requirement baseline",
@@ -15340,7 +15340,7 @@
             "architecture_component": "Uni Info Bus semantic Context/State/Event/Action/Extension",
             "diagram_group": "middle-layer",
             "yellow_sun_portable": true,
-            "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-checklist-approval-authority-audit-consistency-approval-decision-blocker-rollup-approval-decision-dry-run-contract-approval-decision-dry-run-status-approval-decision-dry-run-audit-consistency-approval-decision-closure-blocker-matrix-approval-decision-owner-handoff-checklist-approval-decision-owner-handoff-audit-consistency-approval-decision-owner-handoff-decision-rollup-approval-decision-owner-handoff-evidence-readiness-matrix-approval-decision-owner-handoff-evidence-readiness-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-status-approval-decision-owner-handoff-evidence-acceptance-audit-consistency-and-approval-decision-owner-handoff-evidence-acceptance-decision-rollup",
+            "current_state": "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-checklist-approval-authority-audit-consistency-approval-decision-blocker-rollup-approval-decision-dry-run-contract-approval-decision-dry-run-status-approval-decision-dry-run-audit-consistency-approval-decision-closure-blocker-matrix-approval-decision-owner-handoff-checklist-approval-decision-owner-handoff-audit-consistency-approval-decision-owner-handoff-decision-rollup-approval-decision-owner-handoff-evidence-readiness-matrix-approval-decision-owner-handoff-evidence-readiness-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-status-approval-decision-owner-handoff-evidence-acceptance-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-decision-rollup-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-checklist-reviewer-assignment-audit-consistency-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary-closure-handoff-readiness-audit-consistency-closure-handoff-readiness-audit-decision-rollup-and-closure-blocker-matrix",
             "ready_for": [
               "semantic gateway smoke",
               "bounded event-log validation",
@@ -15368,6 +15368,15 @@
               "activation approval decision owner handoff evidence acceptance status review",
               "activation approval decision owner handoff evidence acceptance audit consistency review",
               "activation approval decision owner handoff evidence acceptance decision rollup review",
+              "activation approval decision owner handoff evidence acceptance closure readiness checklist review",
+              "activation approval decision owner handoff evidence acceptance closure readiness audit consistency review",
+              "activation approval decision owner handoff evidence acceptance closure readiness decision rollup review",
+              "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment checklist review",
+              "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit consistency review",
+              "activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit decision rollup review",
+              "activation approval decision owner handoff evidence acceptance closure handoff readiness summary review",
+              "activation approval decision owner handoff evidence acceptance closure handoff readiness audit consistency review",
+              "activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup review",
               "callback/watch API shape review",
               "cursor/replay storage contract review",
               "backpressure/QoS evidence contract review",
@@ -15381,8 +15390,8 @@
               "plugin runtime loading",
               "real actuator dispatch"
             ],
-            "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getEventSubscriptionActivationApprovalDryRunStatusJson, getEventSubscriptionActivationApprovalAuthorityChecklistJson, getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionBlockerRollupJson, dryRunEventSubscriptionActivationApprovalDecisionJson, getEventSubscriptionActivationApprovalDecisionDryRunStatusJson, getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson, getUibExtensionsJson, requestActionJson",
-            "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, event-subscription-backpressure-qos-evidence, event-subscription-readiness-rollup, event-subscription-activation-evidence, event-subscription-activation-evidence-status, event-subscription-activation-evidence-retention-checklist, event-subscription-activation-evidence-decision-status-rollup, event-subscription-activation-approval-dry-run-status, event-subscription-activation-approval-authority-checklist, event-subscription-activation-approval-authority-audit-consistency, event-subscription-activation-approval-decision-blocker-rollup, event-subscription-activation-approval-decision-dry-run, event-subscription-activation-approval-decision-dry-run-status, event-subscription-activation-approval-decision-dry-run-audit-consistency, event-subscription-activation-approval-decision-closure-blocker-matrix, event-subscription-activation-approval-decision-owner-handoff-checklist, event-subscription-activation-approval-decision-owner-handoff-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-decision-rollup, event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix, event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup, extensions, action-request over CLI/IPC/gRPC",
+            "android_primary_surface": "getStateJson, listEventTopicsJson, getEventSubscriptionsJson, requestEventSubscriptionJson, cancelEventSubscriptionJson, getEventSubscriptionTransportReadinessJson, getEventSubscriptionDecisionMatrixJson, getEventSubscriptionActivationChecklistJson, getEventSubscriptionCallbackWatchShapeJson, getEventSubscriptionCursorReplayStorageJson, getEventSubscriptionBackpressureQosEvidenceJson, getEventSubscriptionReadinessRollupJson, submitEventSubscriptionActivationEvidenceJson, getEventSubscriptionActivationEvidenceStatusJson, getEventSubscriptionActivationEvidenceRetentionChecklistJson, getEventSubscriptionActivationEvidenceDecisionStatusRollupJson, getEventSubscriptionActivationApprovalDryRunStatusJson, getEventSubscriptionActivationApprovalAuthorityChecklistJson, getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionBlockerRollupJson, dryRunEventSubscriptionActivationApprovalDecisionJson, getEventSubscriptionActivationApprovalDecisionDryRunStatusJson, getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollupJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditConsistencyJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupJson, getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson, getUibExtensionsJson, requestActionJson",
+            "linux_sync_surface": "state, events, event-subscriptions, event-subscribe-request, event-subscribe-cancel, event-subscription-transport-readiness, event-subscription-decision-matrix, event-subscription-activation-checklist, event-subscription-callback-watch-shape, event-subscription-cursor-replay-storage, event-subscription-backpressure-qos-evidence, event-subscription-readiness-rollup, event-subscription-activation-evidence, event-subscription-activation-evidence-status, event-subscription-activation-evidence-retention-checklist, event-subscription-activation-evidence-decision-status-rollup, event-subscription-activation-approval-dry-run-status, event-subscription-activation-approval-authority-checklist, event-subscription-activation-approval-authority-audit-consistency, event-subscription-activation-approval-decision-blocker-rollup, event-subscription-activation-approval-decision-dry-run, event-subscription-activation-approval-decision-dry-run-status, event-subscription-activation-approval-decision-dry-run-audit-consistency, event-subscription-activation-approval-decision-closure-blocker-matrix, event-subscription-activation-approval-decision-owner-handoff-checklist, event-subscription-activation-approval-decision-owner-handoff-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-decision-rollup, event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix, event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-checklist, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-consistency, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup, event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix, extensions, action-request over CLI/IPC/gRPC",
             "open_deviations": [
               "DEV-007",
               "DEV-015"
@@ -15611,7 +15620,7 @@
           "module_count": 7,
           "state_counts": {
             "active-contract-mock": 1,
-            "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-checklist-approval-authority-audit-consistency-approval-decision-blocker-rollup-approval-decision-dry-run-contract-approval-decision-dry-run-status-approval-decision-dry-run-audit-consistency-approval-decision-closure-blocker-matrix-approval-decision-owner-handoff-checklist-approval-decision-owner-handoff-audit-consistency-approval-decision-owner-handoff-decision-rollup-approval-decision-owner-handoff-evidence-readiness-matrix-approval-decision-owner-handoff-evidence-readiness-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-status-approval-decision-owner-handoff-evidence-acceptance-audit-consistency-and-approval-decision-owner-handoff-evidence-acceptance-decision-rollup": 1,
+            "active-semantic-mock-with-subscription-lifecycle-transport-readiness-decision-matrix-activation-checklist-callback-watch-shape-cursor-replay-storage-backpressure-qos-evidence-readiness-rollup-activation-evidence-intake-status-retention-checklist-decision-status-rollup-approval-dry-run-status-approval-authority-checklist-approval-authority-audit-consistency-approval-decision-blocker-rollup-approval-decision-dry-run-contract-approval-decision-dry-run-status-approval-decision-dry-run-audit-consistency-approval-decision-closure-blocker-matrix-approval-decision-owner-handoff-checklist-approval-decision-owner-handoff-audit-consistency-approval-decision-owner-handoff-decision-rollup-approval-decision-owner-handoff-evidence-readiness-matrix-approval-decision-owner-handoff-evidence-readiness-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-status-approval-decision-owner-handoff-evidence-acceptance-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-decision-rollup-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-audit-consistency-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-checklist-reviewer-assignment-audit-consistency-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary-closure-handoff-readiness-audit-consistency-closure-handoff-readiness-audit-decision-rollup-and-closure-blocker-matrix": 1,
             "active-policy-checked-mock": 1,
             "active-prototype": 1,
             "sample-proxy-surfaces": 1,
@@ -15622,10 +15631,271 @@
           "production_ready": false,
           "android_primary_path_ready": true,
           "linux_sync_path_ready": true,
+          "event_subscription_activation_closure_chain_summary_active": true,
+          "event_subscription_activation_closure_chain_complete": true,
+          "event_subscription_activation_closure_chain_ready": false,
+          "event_subscription_activation_closure_chain_stage_count": 30,
+          "event_subscription_activation_closure_chain_open_blocker_count": 10,
+          "event_subscription_activation_closure_chain_closed_blocker_count": 0,
+          "event_subscription_activation_closure_chain_android_linux_parity": true,
+          "event_subscription_activation_closure_chain_no_store_consistent": true,
+          "event_subscription_activation_closure_chain_no_side_effects_consistent": true,
           "hardware_accessed": false,
           "driver_development_triggered": false,
           "virtualization_development_triggered": false,
           "service_dispatch_triggered": false
+        },
+        "event_subscription_activation_closure_chain_summary": {
+          "chain_id": "event-subscription-activation-closure-chain",
+          "state": "contract-only-closure-chain-blocked",
+          "source_range": "EV-AE..EV-AHS",
+          "req_ids": [
+            "XSC-002",
+            "XSC-005",
+            "XSC-006",
+            "FW-U-003",
+            "NV-P-002",
+            "NV-P-003",
+            "NV-P-006",
+            "DEL-001",
+            "DEL-002",
+            "DEL-003",
+            "DEL-004"
+          ],
+          "rest_family": "GET/POST /uib/events/subscriptions/activation-evidence/... through EV-AHS closure blocker matrix",
+          "android_primary_surface": "getPrototypeReadinessJson plus existing EV-AE..EV-AHS Binder/Console methods",
+          "linux_cli_surface": "prototype-readiness plus existing event-subscription-activation-* CLI commands",
+          "linux_ipc_surface": "prototype.readiness.get plus existing uib.events.subscriptions.activation.* operations",
+          "linux_grpc_rpc_surface": "CentralBrainGateway.GetPrototypeReadiness plus existing Get/Submit/DryRun EventSubscriptionActivation* RPCs",
+          "stage_count": 30,
+          "stages": [
+            {
+              "stage_id": "EV-AE",
+              "gate_range": "EV-AE-001..008",
+              "surface": "activation-evidence intake",
+              "state": "contract-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-AES",
+              "gate_range": "EV-AES-001..006",
+              "surface": "activation-evidence status",
+              "state": "read-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-AER",
+              "gate_range": "EV-AER-001..008",
+              "surface": "activation-evidence retention checklist",
+              "state": "read-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-AED",
+              "gate_range": "EV-AED-001..008",
+              "surface": "activation-evidence decision status rollup",
+              "state": "read-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-AAS",
+              "gate_range": "EV-AAS-001..008",
+              "surface": "activation approval dry-run status",
+              "state": "read-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-AAA",
+              "gate_range": "EV-AAA-001..008",
+              "surface": "activation approval authority checklist",
+              "state": "read-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-AAC",
+              "gate_range": "EV-AAC-001..008",
+              "surface": "activation approval authority audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-ADB",
+              "gate_range": "EV-ADB-001..008",
+              "surface": "activation approval decision blocker rollup",
+              "state": "read-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-ADD",
+              "gate_range": "EV-ADD-001..008",
+              "surface": "activation approval decision dry-run request",
+              "state": "contract-only-post-rejected-blocked"
+            },
+            {
+              "stage_id": "EV-ADS",
+              "gate_range": "EV-ADS-001..008",
+              "surface": "activation approval decision dry-run status",
+              "state": "read-only-no-store-blocked"
+            },
+            {
+              "stage_id": "EV-ADA",
+              "gate_range": "EV-ADA-001..008",
+              "surface": "activation approval decision dry-run audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-ACB",
+              "gate_range": "EV-ACB-001..010",
+              "surface": "activation approval decision closure blocker matrix",
+              "state": "read-only-closure-blocked"
+            },
+            {
+              "stage_id": "EV-ACH",
+              "gate_range": "EV-ACH-001..010",
+              "surface": "activation approval decision owner handoff checklist",
+              "state": "read-only-owner-handoff-blocked"
+            },
+            {
+              "stage_id": "EV-AHA",
+              "gate_range": "EV-AHA-001..010",
+              "surface": "activation approval decision owner handoff audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-AHD",
+              "gate_range": "EV-AHD-001..010",
+              "surface": "activation approval decision owner handoff decision rollup",
+              "state": "read-only-decision-blocked"
+            },
+            {
+              "stage_id": "EV-AHE",
+              "gate_range": "EV-AHE-001..010",
+              "surface": "owner handoff evidence readiness matrix",
+              "state": "read-only-evidence-missing-blocked"
+            },
+            {
+              "stage_id": "EV-AHF",
+              "gate_range": "EV-AHF-001..010",
+              "surface": "owner handoff evidence readiness audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-AHG",
+              "gate_range": "EV-AHG-001..010",
+              "surface": "owner handoff evidence acceptance status",
+              "state": "read-only-acceptance-blocked"
+            },
+            {
+              "stage_id": "EV-AHH",
+              "gate_range": "EV-AHH-001..010",
+              "surface": "owner handoff evidence acceptance audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-AHI",
+              "gate_range": "EV-AHI-001..010",
+              "surface": "owner handoff evidence acceptance decision rollup",
+              "state": "read-only-decision-blocked"
+            },
+            {
+              "stage_id": "EV-AHJ",
+              "gate_range": "EV-AHJ-001..010",
+              "surface": "closure readiness checklist",
+              "state": "read-only-closure-blocked"
+            },
+            {
+              "stage_id": "EV-AHK",
+              "gate_range": "EV-AHK-001..010",
+              "surface": "closure readiness audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-AHL",
+              "gate_range": "EV-AHL-001..010",
+              "surface": "closure readiness decision rollup",
+              "state": "read-only-decision-blocked"
+            },
+            {
+              "stage_id": "EV-AHM",
+              "gate_range": "EV-AHM-001..010",
+              "surface": "closure decision reviewer assignment checklist",
+              "state": "read-only-reviewer-assignment-blocked"
+            },
+            {
+              "stage_id": "EV-AHN",
+              "gate_range": "EV-AHN-001..010",
+              "surface": "reviewer assignment audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-AHO",
+              "gate_range": "EV-AHO-001..010",
+              "surface": "reviewer assignment audit decision rollup",
+              "state": "read-only-decision-blocked"
+            },
+            {
+              "stage_id": "EV-AHP",
+              "gate_range": "EV-AHP-001..010",
+              "surface": "closure handoff readiness summary",
+              "state": "read-only-handoff-blocked"
+            },
+            {
+              "stage_id": "EV-AHQ",
+              "gate_range": "EV-AHQ-001..010",
+              "surface": "closure handoff readiness audit consistency",
+              "state": "read-only-audit-consistent-blocked"
+            },
+            {
+              "stage_id": "EV-AHR",
+              "gate_range": "EV-AHR-001..010",
+              "surface": "closure handoff readiness audit decision rollup",
+              "state": "read-only-decision-blocked"
+            },
+            {
+              "stage_id": "EV-AHS",
+              "gate_range": "EV-AHS-001..010",
+              "surface": "closure handoff readiness audit decision closure blocker matrix",
+              "state": "read-only-closure-blocked"
+            }
+          ],
+          "summary": {
+            "closure_chain_summary_active": true,
+            "closure_chain_complete": true,
+            "closure_chain_ready": false,
+            "first_gate": "EV-AE-001",
+            "last_gate": "EV-AHS-010",
+            "android_linux_binding_parity": true,
+            "no_store_consistent": true,
+            "no_post_consistent": true,
+            "no_side_effects_consistent": true,
+            "approval_review_allowed": false,
+            "gate_closure_allowed": false,
+            "broker_activation_allowed": false,
+            "activation_allowed": false,
+            "broker_active": false,
+            "high_rate_data_plane_active": false,
+            "assigned_reviewer_count": 0,
+            "unassigned_reviewer_count": 10,
+            "accepted_evidence_packet_count": 0,
+            "acceptance_record_persisted_count": 0,
+            "review_queue_updated": false,
+            "gates_closed": false,
+            "hardware_accessed": false,
+            "driver_development_triggered": false,
+            "virtualization_development_triggered": false,
+            "service_dispatch_triggered": false
+          },
+          "remaining_blockers": [
+            "closure handoff decision owner not assigned",
+            "approval review authority not confirmed",
+            "gate closure authority not confirmed",
+            "broker activation owner not assigned",
+            "acceptance record store not selected",
+            "review queue owner not selected",
+            "Android/Linux parity evidence not accepted",
+            "DRV-GAP-004 and DRV-GAP-005 owners not confirmed",
+            "virtualization boundary acceptance remains documentation-only",
+            "no-side-effect closure decision remains blocked"
+          ],
+          "validation_commands": [
+            "bash tools/smoke_central_brain_semantic_gateway.sh",
+            "bash tools/smoke_central_brain_linux_ipc.sh",
+            "bash tools/smoke_central_brain_linux_grpc.sh",
+            "bash tools/check_central_brain_binding_artifacts.sh",
+            "bash tools/check_central_brain_delivery_docs.sh"
+          ]
         },
         "api_surface": {
           "rest": "GET /prototype/readiness",
@@ -15664,17 +15934,19 @@
         ],
         "next_increment_candidates": [
           {
-            "candidate": "event subscription activation approval decision owner handoff evidence acceptance closure readiness checklist",
-            "reason": "Owner handoff evidence acceptance decision rollup is now visible; a later event-safe step can enumerate closure-readiness prerequisites without accepting packets, creating stores or review queues, closing gates, broker activation, Driver/HAL, or virtualization work.",
+            "candidate": "prototype delivery handoff manifest",
+            "reason": "The EV-AE..EV-AHS closure chain is now summarized in prototype readiness; a later delivery-safe step can produce a final Android/Linux handoff manifest and validation index without adding runtime side effects.",
             "req_ids": [
               "XSC-002",
               "FW-U-003",
               "XSC-005",
+              "XSC-006",
               "NV-P-002",
               "NV-P-003",
               "NV-P-006",
               "DEL-001",
               "DEL-002",
+              "DEL-003",
               "DEL-004"
             ]
           },

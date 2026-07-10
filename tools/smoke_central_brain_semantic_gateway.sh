@@ -568,6 +568,21 @@ for method, path, body, req_id in checks:
         assert "getVehicleSignalValidationJson" in encoded, "Android vehicle signal validation readiness missing"
         assert "vehicle-signal-validation" in encoded, "Linux vehicle signal validation readiness missing"
         assert "DEV-003" in encoded and "ISSUE-014" in encoded, "prototype readiness missing tracked deviation/issue visibility"
+        closure_chain = readiness["event_subscription_activation_closure_chain_summary"]
+        stage_ids = {stage["stage_id"] for stage in closure_chain["stages"]}
+        assert readiness["summary"]["event_subscription_activation_closure_chain_summary_active"] is True, "prototype readiness missing event closure chain summary"
+        assert readiness["summary"]["event_subscription_activation_closure_chain_complete"] is True, "prototype readiness closure chain not complete"
+        assert readiness["summary"]["event_subscription_activation_closure_chain_ready"] is False, "prototype readiness overstated event closure chain readiness"
+        assert readiness["summary"]["event_subscription_activation_closure_chain_stage_count"] == 30, "prototype readiness event closure chain stage count drifted"
+        assert readiness["summary"]["event_subscription_activation_closure_chain_android_linux_parity"] is True, "prototype readiness missing event closure chain Android/Linux parity"
+        assert readiness["summary"]["event_subscription_activation_closure_chain_no_store_consistent"] is True, "prototype readiness event closure chain no-store invariant missing"
+        assert readiness["summary"]["event_subscription_activation_closure_chain_no_side_effects_consistent"] is True, "prototype readiness event closure chain side-effect invariant missing"
+        assert {"EV-AE", "EV-AHS"} <= stage_ids, "prototype readiness event closure chain missing EV-AE or EV-AHS"
+        assert closure_chain["summary"]["first_gate"] == "EV-AE-001", "prototype readiness event closure chain first gate drifted"
+        assert closure_chain["summary"]["last_gate"] == "EV-AHS-010", "prototype readiness event closure chain last gate drifted"
+        assert closure_chain["summary"]["driver_development_triggered"] is False, "prototype readiness event closure chain triggered driver development"
+        assert closure_chain["summary"]["virtualization_development_triggered"] is False, "prototype readiness event closure chain triggered virtualization development"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "prototype readiness event closure chain missing high-rate Driver/HAL gap references"
     if path == "/native/adapters/detail":
         adapter_names = {adapter["name"] for adapter in payload["payload"]["adapters"]}
         assert "aios-kernel" in adapter_names
