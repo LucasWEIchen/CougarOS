@@ -2582,6 +2582,74 @@ assert "EV-AHR-001" in encoded and "EV-AHR-010" in encoded and "EV-AHQ-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_AUDIT_DECISION_ROLLUP_CLOSURE_BLOCKER_MATRIX_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_AUDIT_DECISION_ROLLUP_CLOSURE_BLOCKER_MATRIX_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+matrix = payload["gateway"]["payload"]
+encoded = json.dumps(matrix)
+gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert matrix["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix", response
+assert matrix["state"] == "contract-only-handoff-evidence-acceptance-closure-handoff-readiness-audit-decision-closure-blocked", response
+assert matrix["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_closure_blocker_matrix_active"] is True, response
+assert matrix["closure_blocker_matrix_complete"] is True and matrix["closure_blocker_matrix_consistent"] is True, response
+assert matrix["source_closure_handoff_readiness_audit_decision_rollup_bound"] is True, response
+assert matrix["required_blocker_count"] == 10 and matrix["open_blocker_count"] == 10 and matrix["closed_blocker_count"] == 0, response
+assert matrix["assigned_reviewer_count"] == 0 and matrix["unassigned_reviewer_count"] == 10, response
+assert {"EV-AHS-001", "EV-AHS-002", "EV-AHS-003", "EV-AHS-004", "EV-AHS-005", "EV-AHS-006", "EV-AHS-007", "EV-AHS-008", "EV-AHS-009", "EV-AHS-010"} <= gate_ids, response
+assert len(matrix["blocker_items"]) == 10, response
+for item in matrix["blocker_items"]:
+    assert item["blocker_state"] == "open", response
+    assert item["closure_blocked"] is True and item["blocker_ready_to_close"] is False, response
+    assert item["source_decision_gate_id"].startswith("EV-AHR-"), response
+    assert item["source_audit_gate_id"].startswith("EV-AHQ-"), response
+    assert item["source_handoff_gate_id"].startswith("EV-AHP-"), response
+    assert item["source_assignment_gate_id"].startswith("EV-AHM-"), response
+    assert item["owner_assigned"] is False and item["reviewer_assigned"] is False, response
+    assert item["assignment_persisted"] is False and item["queue_updated"] is False and item["gate_closed"] is False, response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_closure_blocker_matrix_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_active",
+    "source_closure_handoff_readiness_audit_decision_rollup_bound",
+    "closure_blocker_matrix_complete",
+    "closure_blocker_matrix_consistent",
+    "closure_handoff_audit_decision_blocked",
+    "no_side_effects_consistent",
+    "android_linux_closure_blocker_matrix_parity",
+]:
+    assert matrix["summary"][key] is True, response
+for key in [
+    "closure_handoff_closure_ready",
+    "closure_handoff_ready",
+    "handoff_ready",
+    "reviewer_assignments_persisted",
+    "reviewer_assignment_queue_updated",
+    "handoff_evidence_acceptance_allowed",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "review_queue_updated",
+    "gates_closed",
+    "broker_active",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert matrix["summary"][key] is False, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix" in encoded, response
+assert "EV-AHS-001" in encoded and "EV-AHS-010" in encoded and "EV-AHR-010" in encoded and "EV-AHQ-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json

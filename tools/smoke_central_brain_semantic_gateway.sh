@@ -187,6 +187,7 @@ checks = [
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency", None, "NV-P-006"),
     ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup", None, "NV-P-006"),
+    ("GET", "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix", None, "NV-P-006"),
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
@@ -4931,6 +4932,86 @@ for method, path, body, req_id in checks:
         assert "EV-AHR-001" in encoded and "EV-AHR-010" in encoded and "EV-AHQ-010" in encoded and "EV-AHP-010" in encoded, "activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup missing gate references"
         assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup missing Driver/HAL gap references"
         assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup missing Req IDs"
+    if path == "/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix":
+        matrix = payload["payload"]
+        encoded = json.dumps(matrix)
+        gate_ids = {item["gate_id"] for item in matrix["mandatory_gates"]}
+        assert matrix["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix", "activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup closure blocker matrix wrong operation"
+        assert matrix["state"] == "contract-only-handoff-evidence-acceptance-closure-handoff-readiness-audit-decision-closure-blocked", "activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup closure blocker matrix wrong state"
+        assert matrix["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_closure_blocker_matrix_active"] is True, "activation approval decision owner handoff evidence acceptance closure blocker matrix inactive"
+        assert matrix["source_closure_handoff_readiness_audit_decision_rollup_bound"] is True, "activation approval decision owner handoff evidence acceptance closure blocker matrix source rollup unbound"
+        assert matrix["closure_blocker_matrix_complete"] is True and matrix["closure_blocker_matrix_consistent"] is True, "activation approval decision owner handoff evidence acceptance closure blocker matrix inconsistent"
+        assert matrix["closure_handoff_audit_decision_blocked"] is True and matrix["closure_handoff_closure_ready"] is False, "activation approval decision owner handoff evidence acceptance closure blocker matrix unexpectedly ready"
+        assert matrix["required_blocker_count"] == 10 and matrix["open_blocker_count"] == 10 and matrix["closed_blocker_count"] == 0, "activation approval decision owner handoff evidence acceptance closure blocker counts changed"
+        assert matrix["assigned_reviewer_count"] == 0 and matrix["unassigned_reviewer_count"] == 10, "activation approval decision owner handoff evidence acceptance closure blocker reviewer count changed"
+        assert {"EV-AHS-001", "EV-AHS-002", "EV-AHS-003", "EV-AHS-004", "EV-AHS-005", "EV-AHS-006", "EV-AHS-007", "EV-AHS-008", "EV-AHS-009", "EV-AHS-010"} <= gate_ids, "activation approval decision owner handoff evidence acceptance closure blocker matrix missing EV-AHS gates"
+        assert len(matrix["blocker_items"]) == 10, "activation approval decision owner handoff evidence acceptance closure blocker item count changed"
+        for item in matrix["blocker_items"]:
+            assert item["blocker_state"] == "open", f"activation approval decision owner handoff evidence acceptance closure blocker closed {item['gate_id']}"
+            assert item["closure_blocked"] is True and item["blocker_ready_to_close"] is False, f"activation approval decision owner handoff evidence acceptance closure blocker ready {item['gate_id']}"
+            assert item["source_decision_gate_id"].startswith("EV-AHR-"), f"activation approval decision owner handoff evidence acceptance closure blocker missing EV-AHR source {item['gate_id']}"
+            assert item["source_audit_gate_id"].startswith("EV-AHQ-"), f"activation approval decision owner handoff evidence acceptance closure blocker missing EV-AHQ source {item['gate_id']}"
+            assert item["source_handoff_gate_id"].startswith("EV-AHP-"), f"activation approval decision owner handoff evidence acceptance closure blocker missing EV-AHP source {item['gate_id']}"
+            assert item["source_assignment_gate_id"].startswith("EV-AHM-"), f"activation approval decision owner handoff evidence acceptance closure blocker missing EV-AHM source {item['gate_id']}"
+            assert item["owner_assigned"] is False and item["reviewer_assigned"] is False, f"activation approval decision owner handoff evidence acceptance closure blocker assigned {item['gate_id']}"
+            assert item["assignment_persisted"] is False and item["queue_updated"] is False and item["gate_closed"] is False, f"activation approval decision owner handoff evidence acceptance closure blocker side effect {item['gate_id']}"
+        for key in [
+            "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_closure_blocker_matrix_active",
+            "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_active",
+            "source_closure_handoff_readiness_audit_decision_rollup_bound",
+            "closure_blocker_matrix_complete",
+            "closure_blocker_matrix_consistent",
+            "closure_handoff_audit_decision_blocked",
+            "no_side_effects_consistent",
+            "android_linux_closure_blocker_matrix_parity",
+        ]:
+            assert matrix["summary"][key] is True, f"activation approval decision owner handoff evidence acceptance closure blocker matrix did not set {key}"
+        for key in [
+            "closure_handoff_closure_ready",
+            "closure_handoff_ready",
+            "handoff_ready",
+            "reviewer_assignment_ready",
+            "reviewer_assignment_decision_ready",
+            "reviewer_assignments_persisted",
+            "reviewer_assignment_queue_updated",
+            "handoff_evidence_acceptance_allowed",
+            "handoff_evidence_ready",
+            "approval_review_allowed",
+            "gate_closure_allowed",
+            "broker_activation_allowed",
+            "activation_allowed",
+            "owner_assignments_persisted",
+            "owner_handoff_queue_updated",
+            "evidence_packets_attached",
+            "evidence_store_created",
+            "evidence_store_active",
+            "approval_result_store_created",
+            "approval_result_store_active",
+            "review_queue_updated",
+            "gate_state_changed",
+            "gates_closed",
+            "broker_active",
+            "subscription_persistence_active",
+            "cursor_storage_active",
+            "event_delivery_qos_active",
+            "callback_registered",
+            "watch_started",
+            "dds_runtime_active",
+            "sse_websocket_active",
+            "high_rate_data_plane_active",
+            "hardware_accessed",
+            "driver_development_triggered",
+            "virtualization_development_triggered",
+            "service_dispatch_triggered",
+        ]:
+            assert matrix["summary"][key] is False, f"activation approval decision owner handoff evidence acceptance closure blocker matrix unexpectedly set {key}"
+        assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson" in encoded, "Android activation approval decision owner handoff evidence acceptance closure blocker matrix binding missing"
+        assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix" in encoded, "Linux CLI activation approval decision owner handoff evidence acceptance closure blocker matrix binding missing"
+        assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix" in encoded, "Linux IPC activation approval decision owner handoff evidence acceptance closure blocker matrix binding missing"
+        assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix" in encoded, "gRPC activation approval decision owner handoff evidence acceptance closure blocker matrix binding missing"
+        assert "EV-AHS-001" in encoded and "EV-AHS-010" in encoded and "EV-AHR-010" in encoded and "EV-AHQ-010" in encoded, "activation approval decision owner handoff evidence acceptance closure blocker matrix missing gate references"
+        assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, "activation approval decision owner handoff evidence acceptance closure blocker matrix missing Driver/HAL gap references"
+        assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, "event subscription activation approval decision owner handoff evidence acceptance closure blocker matrix missing Req IDs"
     if path == "/soa/contracts":
         contracts = payload["payload"]["contracts"]
         contract_names = {contract["service"] for contract in contracts}
@@ -5065,6 +5146,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-consistency >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" extensions >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" infer >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" ai-sdk >/dev/null
