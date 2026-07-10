@@ -356,6 +356,7 @@ git diff --check
 - `central-brain/contracts/central_brain_prototype_handoff_manifest.json`：原型 handoff manifest。
 - `central-brain/contracts/central_brain_prototype_completion_audit.json`：当前 Python 原型完成审计。
 - `central-brain/contracts/central_brain_prototype_closure_plan.json`：闭环计划与剩余生产化边界。
+- `docs/CENTRAL_BRAIN_PROTOTYPE_MODULE_INTERFACE_MAP.md`：原型模块、接口族和模块关系总览。
 - `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md`：handoff 文档。
 - `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md`：完成审计文档。
 - `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md`：原型 closure plan。

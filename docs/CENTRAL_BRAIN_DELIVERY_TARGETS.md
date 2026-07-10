@@ -97,6 +97,7 @@
 每个阶段交付必须包含：
 
 - 接口文档：contract、字段、错误码、权限、安全状态。
+- 模块/接口关系说明：`CENTRAL_BRAIN_PROTOTYPE_MODULE_INTERFACE_MAP.md` 必须说明当前 Python 原型模块清单、接口族、Android 主路径、Linux 同步路径和硬件空接口边界。
 - Android 使用说明：构建、安装、运行、日志、验证命令。
 - Linux 使用说明：启动、配置、CLI/API、日志、验证命令。
 - 平台差异说明：IPC、权限、服务部署、日志路径、驱动接口差异。
