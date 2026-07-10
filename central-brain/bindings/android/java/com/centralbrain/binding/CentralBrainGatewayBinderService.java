@@ -362,6 +362,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getPrototypeCompletionSummaryJson(String traceId) throws RemoteException {
+            return get("/prototype/completion-summary", traceId);
+        }
+
+        @Override
         public String listBindingsJson(String traceId) throws RemoteException {
             return get("/bindings", traceId);
         }

@@ -312,6 +312,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "governance": ("GetRuntimeGovernance", {}),
     "audit": ("GetRecentAudit", {"limit": 10}),
     "observability-readiness": ("GetObservabilityReadiness", {}),
+    "prototype-completion-summary": ("GetPrototypeCompletionSummary", {}),
     "infer": (
         "InvokeService",
         {

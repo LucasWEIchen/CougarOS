@@ -2,7 +2,7 @@
   "manifest_name": "central-brain-python-prototype-handoff",
   "manifest_version": "0.1.0",
   "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.106",
+  "baseline_api_contract_version": "0.1.107",
   "baseline_commit": "2884438c",
   "status": {
     "prototype_handoff_ready": true,
@@ -12,7 +12,8 @@
     "hardware_accessed": false,
     "driver_development_triggered": false,
     "virtualization_development_triggered": false,
-    "service_dispatch_triggered": false
+    "service_dispatch_triggered": false,
+    "python_prototype_current_scope_complete": true
   },
   "req_ids": [
     "XSC-001",
@@ -33,7 +34,8 @@
     "delivery_readiness": "GET /delivery/readiness",
     "binding_readiness": "GET /bindings/readiness",
     "driver_gap_backlog": "GET /native/driver-gaps",
-    "hardware_empty_interfaces": "GET /hardware/interfaces"
+    "hardware_empty_interfaces": "GET /hardware/interfaces",
+    "prototype_completion_summary": "GET /prototype/completion-summary"
   },
   "android_delivery": {
     "primary_artifacts": [
@@ -46,6 +48,7 @@
     ],
     "primary_methods": [
       "getPrototypeReadinessJson",
+      "getPrototypeCompletionSummaryJson",
       "getObservabilityReadinessJson",
       "getDeliveryReadinessJson",
       "getBindingReadinessJson",
@@ -67,6 +70,7 @@
     ],
     "primary_commands": [
       "prototype-readiness",
+      "prototype-completion-summary",
       "observability-readiness",
       "delivery-readiness",
       "binding-readiness",
@@ -75,6 +79,7 @@
     ],
     "ipc_operations": [
       "prototype.readiness.get",
+      "prototype.completion.summary.get",
       "observability.readiness.get",
       "delivery.readiness.get",
       "bindings.readiness.get",
@@ -83,6 +88,7 @@
     ],
     "grpc_rpc_methods": [
       "GetPrototypeReadiness",
+      "GetPrototypeCompletionSummary",
       "GetObservabilityReadiness",
       "GetDeliveryReadiness",
       "GetBindingReadiness",
@@ -105,6 +111,7 @@
     "bash tools/smoke_central_brain_linux_ipc.sh",
     "bash tools/smoke_central_brain_linux_grpc.sh",
     "bash tools/build_central_brain_console.sh",
+    "GET /prototype/completion-summary",
     "git diff --check"
   ],
   "handoff_invariants": {
@@ -134,7 +141,16 @@
     "ISSUE-018"
   ],
   "next_handoff_step": {
-    "candidate": "run final current-scope completion audit consistency check",
-    "description": "PY-CL-001/FW-S-006 is covered by GET /soa/extensions/closure-summary and PY-CL-002/NV-F-012 is covered by GET /observability/readiness; next align final completion audit evidence without implementing hardware, Driver/HAL, broker runtime, or virtualization"
+    "candidate": "handoff current Python prototype to Android/Linux cockpit-domain engineers and plan production target integration separately",
+    "description": "Current Python prototype scope is complete through GET /prototype/completion-summary; target hardware, Driver/HAL, production observability, broker runtime, Android system service deployment, and virtualization remain separate production planning work."
+  },
+  "current_scope_completion_evidence": {
+    "endpoint": "GET /prototype/completion-summary",
+    "android_console": "Complete",
+    "current_python_prototype_complete": true,
+    "production_ready": false,
+    "hardware_accessed": false,
+    "driver_development_triggered": false,
+    "virtualization_development_triggered": false
   }
 }

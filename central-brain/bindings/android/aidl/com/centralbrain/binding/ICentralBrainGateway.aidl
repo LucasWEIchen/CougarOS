@@ -151,6 +151,8 @@ interface ICentralBrainGateway {
 
     String getObservabilityReadinessJson(String traceId);
 
+    String getPrototypeCompletionSummaryJson(String traceId);
+
     String listBindingsJson(String traceId);
 
     String getBindingDetailJson(String traceId);

@@ -363,3 +363,9 @@ NpuDevice.reset(reason)
 `GET /observability/readiness` 是 `PY-CL-002` / `NV-F-012` 的只读 observability closure surface。Android 主路径为 Binder `getObservabilityReadinessJson` 与 Console `Observability`；Linux 同步路径为 CLI `observability-readiness`、IPC `observability.readiness.get` 和 gRPC/RPC `GetObservabilityReadiness`。
 
 该接口只聚合 `/audit/recent`、`CENTRAL_BRAIN_AUDIT_LOG` JSONL audit persistence sample、`/delivery/readiness`、`/prototype/readiness` 和 `/governance/runtime`，不打开 device node，不调用 HAL/vendor SDK，不采集 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory trace，不启动 metric daemon，也不新增 Driver/HAL 开发量。`production_log_backend_ready=false`、`metric_daemon_ready=false`、`hardware_trace_capture_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false` 是验收条件。
+
+## Prototype Completion Summary Driver/HAL Boundary
+
+`GET /prototype/completion-summary` 是当前 Python prototype 的只读 completion summary。Android 主路径为 Binder `getPrototypeCompletionSummaryJson` 与 Console `Complete`；Linux 同步路径为 CLI `prototype-completion-summary`、IPC `prototype.completion.summary.get` 和 gRPC/RPC `GetPrototypeCompletionSummary`。
+
+该接口只聚合 closure plan、completion audit、handoff manifest、SOA extension closure、observability readiness、delivery readiness、prototype readiness 和 binding readiness，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory，不新增 Driver/HAL 开发量。`python_prototype_current_scope_complete=true` 只表示当前 Python 原型范围完成；`production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false` 仍是验收边界。

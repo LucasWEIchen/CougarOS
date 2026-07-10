@@ -507,6 +507,7 @@ checks = [
     ),
     ("GET", "/audit/recent", None, "NV-G-007"),
     ("GET", "/observability/readiness", None, "NV-F-012"),
+    ("GET", "/prototype/completion-summary", None, "XSC-001"),
 ]
 
 for method, path, body, req_id in checks:
@@ -5155,6 +5156,28 @@ for method, path, body, req_id in checks:
         assert "observability.readiness.get" in encoded, "Linux IPC observability readiness binding missing"
         assert "GetObservabilityReadiness" in encoded, "Linux gRPC/RPC observability readiness binding missing"
         assert "NV-F-012" in encoded and "NV-G-007" in encoded and "DEL-004" in encoded, "observability readiness missing Req IDs"
+    if path == "/prototype/completion-summary":
+        summary = payload["payload"]["summary"]
+        encoded = json.dumps(payload)
+        assert summary["prototype_completion_summary_active"] is True, "prototype completion summary inactive"
+        assert summary["python_prototype_current_scope_complete"] is True, "current Python prototype scope not complete"
+        assert summary["current_python_prototype_implementation_actions_complete"] is True, "implementation actions not complete"
+        assert summary["current_python_prototype_audit_actions_complete"] is True, "audit actions not complete"
+        assert summary["py_cl_001_resolved"] is True, "PY-CL-001 not resolved"
+        assert summary["py_cl_002_resolved"] is True, "PY-CL-002 not resolved"
+        assert summary["prototype_handoff_ready"] is True, "prototype handoff not ready"
+        assert summary["production_ready"] is False, "completion summary overstated production readiness"
+        assert summary["remaining_current_python_prototype_implementation_action_count"] == 0, "implementation action count not closed"
+        assert summary["remaining_current_python_prototype_audit_action_count"] == 0, "audit action count not closed"
+        assert summary["service_dispatch_triggered"] is False, "completion summary dispatched service"
+        assert summary["hardware_accessed"] is False, "completion summary accessed hardware"
+        assert summary["driver_development_triggered"] is False, "completion summary triggered Driver/HAL"
+        assert summary["virtualization_development_triggered"] is False, "completion summary triggered virtualization"
+        assert "getPrototypeCompletionSummaryJson" in encoded, "Android completion summary binding missing"
+        assert "prototype-completion-summary" in encoded, "Linux CLI completion summary missing"
+        assert "prototype.completion.summary.get" in encoded, "Linux IPC completion summary missing"
+        assert "GetPrototypeCompletionSummary" in encoded, "Linux gRPC/RPC completion summary missing"
+        assert "FW-S-006" in encoded and "NV-F-012" in encoded and "DEL-005" in encoded, "completion summary missing Req IDs"
 
 print("semantic gateway smoke ok")
 PY
@@ -5216,6 +5239,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" governance-precheck >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" observability-readiness >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" prototype-completion-summary >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" delivery-readiness >/dev/null

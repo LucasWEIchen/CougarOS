@@ -84,6 +84,7 @@ Brain semantic gateway.
 | `governance.runtime.get` | shared governance socket diagnostic, REST fallback to `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `audit.recent.get` | shared governance socket diagnostic, REST fallback to `GET /audit/recent` | XSC-005, NV-G-007 |
 | `observability.readiness.get` | `GET /observability/readiness` | NV-F-012, XSC-005, XSC-006, NV-G-007, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-003, DEL-004 |
+| `prototype.completion.summary.get` | `GET /prototype/completion-summary` | XSC-001..006, DEL-001..005, FW-S-006, NV-F-012 |
 | `bindings.list` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `bindings.readiness.get` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-002, DEL-003, DEL-004 |
 | `delivery.readiness.get` | `GET /delivery/readiness` | DEL-001..005, XSC-001..006 |
@@ -118,6 +119,9 @@ as Android Binder and Linux IPC without invoking services.
 observability readiness closure as Android Binder and Linux IPC without
 starting a production log backend, metric daemon, hardware trace capture,
 Driver/HAL, or virtualization work.
+`CentralBrainGateway.GetPrototypeCompletionSummary` exposes the same
+current-scope completion summary as Android Binder and Linux IPC without
+touching hardware, Driver/HAL, service dispatch, or virtualization work.
 `CentralBrainGateway.GetUibExtensions` exposes the same FW-U-008 extension
 registry contract as Android Binder and Linux IPC without loading plugins or
 dispatching services.

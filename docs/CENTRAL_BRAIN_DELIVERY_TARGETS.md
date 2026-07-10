@@ -614,13 +614,13 @@ FW-U-003/NV-P-006 的 EV-AE..EV-AHS closure chain 现在通过既有 `GET /proto
 
 `central-brain/contracts/central_brain_prototype_completion_audit.json` 和 `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` 是当前 Python prototype 的 current-state completion matrix。审计覆盖 XSC-001..006、DEL-001..005、APP-004、FW-U-001..008、FW-S-001..005、NV-F-001/NV-F-003/NV-F-004/NV-F-005/NV-F-008/NV-F-009/NV-F-011、NV-G-001..007、NV-P-002/NV-P-003/NV-P-005/NV-P-006、HW-002、KH-003、KH-006、KH-007。
 
-该 audit 固定 `completion_audit_ready=true`、`python_prototype_current_scope_complete=false`、`prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。它只做证据矩阵，不新增 runtime endpoint，不调用 POST，不持久化状态，不分配 owner/reviewer，不接受 evidence，不关闭 gate，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+该 audit 当前固定 `completion_audit_ready=true`、`python_prototype_current_scope_complete=true`、`prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。它只做证据矩阵和 completion summary，不调用 POST，不持久化状态，不分配 owner/reviewer，不接受 evidence，不关闭 gate，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。
 
 ## Python Prototype Closure Plan 交付补充
 
 `central-brain/contracts/central_brain_prototype_closure_plan.json` 和 `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` 是逐 Req ID closure plan，覆盖 APP-001..010、FW-U-001..008、FW-S-001..006、NV-F-001..012、NV-G-001..007、NV-P-001..007、KH-001..009、HV-001..003、HW-001..002、XSC-001..006、DEL-001..005。
 
-该 plan 固定 `closure_plan_ready=true`、`python_prototype_current_scope_complete=false`、`prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。`PY-CL-001` / `FW-S-006` 已由 `GET /soa/extensions/closure-summary` 关闭；`PY-CL-002` / `NV-F-012` 已由 `GET /observability/readiness` 关闭。其余 customer app、target OS/hardware、真实传感器/时间同步/联网/智驾/协议运行时和虚拟化项均是 production-only 或 target-platform blocker。
+该 plan 当前固定 `closure_plan_ready=true`、`python_prototype_current_scope_complete=true`、`prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。`PY-CL-001` / `FW-S-006` 已由 `GET /soa/extensions/closure-summary` 关闭；`PY-CL-002` / `NV-F-012` 已由 `GET /observability/readiness` 关闭；最终状态由 `GET /prototype/completion-summary` 固化。其余 customer app、target OS/hardware、真实传感器/时间同步/联网/智驾/协议运行时和虚拟化项均是 production-only 或 target-platform blocker。
 
 ## SOA Extension Closure Summary 交付补充
 
@@ -637,3 +637,11 @@ Android 主路径：Binder `getSoaExtensionClosureSummaryJson`，Console `SOA Ex
 Android 主路径：Binder `getObservabilityReadinessJson`，Console `Observability`。Linux 同步路径：CLI `observability-readiness`，IPC `observability.readiness.get`，gRPC/RPC `GetObservabilityReadiness`。
 
 该交付面不实现 production log backend，不启动 metric daemon，不采集 hardware trace，不 dispatch service，不访问硬件，不开发 Driver/HAL，也不实现虚拟化。
+
+## Python Prototype Completion Summary 交付补充
+
+`GET /prototype/completion-summary` 是当前 Python prototype 的 current-scope completion handoff surface，供 Android/Linux 座舱域工程师确认 closure plan、completion audit、handoff manifest、SOA extension closure、observability readiness、delivery readiness、prototype readiness 和 binding readiness 已经形成完成证据闭环。
+
+Android 主路径：Binder `getPrototypeCompletionSummaryJson`，Console `Complete`。Linux 同步路径：CLI `prototype-completion-summary`，IPC `prototype.completion.summary.get`，gRPC/RPC `GetPrototypeCompletionSummary`。
+
+该交付面固定 `prototype_completion_summary_active=true`、`python_prototype_current_scope_complete=true`、`current_python_prototype_implementation_actions_complete=true`、`current_python_prototype_audit_actions_complete=true`、`prototype_handoff_ready=true`、`production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。它不调用 POST，不分配 owner/reviewer，不持久化 completion/approval/handoff/review/evidence state，不关闭 production gate，不 dispatch service，不访问硬件，不开发 Driver/HAL，也不实现虚拟化。

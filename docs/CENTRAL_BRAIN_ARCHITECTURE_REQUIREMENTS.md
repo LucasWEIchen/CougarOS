@@ -587,14 +587,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 
 - Req IDs: XSC-001..006、DEL-001..005、APP-004、FW-U-001..008、FW-S-001..005、NV-F-001/NV-F-003/NV-F-004/NV-F-005/NV-F-008/NV-F-009/NV-F-011、NV-G-001..007、NV-P-002/NV-P-003/NV-P-005/NV-P-006、HW-002、KH-003、KH-006、KH-007.
 - `central-brain/contracts/central_brain_prototype_completion_audit.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` are the current-state completion matrix for the Python prototype.
-- The audit must report `completion_audit_ready=true`, `python_prototype_current_scope_complete=false`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+- The audit must report `completion_audit_ready=true`, `python_prototype_current_scope_complete=true`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false` after `GET /prototype/completion-summary` is delivered.
 - The audit is evidence-only; it must not add runtime endpoints, call POST, persist state, close gates, activate broker/DDS/high-rate transport, access hardware, implement Driver/HAL, or implement virtualization.
 
 ### 2026-07-10 prototype closure plan trace
 
 - Req IDs: APP-001..010、FW-U-001..008、FW-S-001..006、NV-F-001..012、NV-G-001..007、NV-P-001..007、KH-001..009、HV-001..003、HW-001..002、XSC-001..006、DEL-001..005.
 - `central-brain/contracts/central_brain_prototype_closure_plan.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` split all architecture Req IDs into delivered current-prototype surfaces, current Python prototype closure actions, and production-only or target-platform blockers.
-- The plan must keep `closure_plan_ready=true`, `python_prototype_current_scope_complete=false`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+- The plan must keep `closure_plan_ready=true`, `python_prototype_current_scope_complete=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false` after final current-scope closure.
 - Current Python prototype closure actions are `PY-CL-001` for `FW-S-006` extension service coverage and `PY-CL-002` for `NV-F-012` observability coverage. Customer apps, target OS/hardware, real sensors/time sync/connected/ADAS/SOME-IP/MQTT/big-data channels, and virtualization remain outside current Python prototype implementation scope unless a read-only placeholder is missing.
 
 ### 2026-07-10 FW-S-006 SOA extension service closure summary
@@ -613,3 +613,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Linux synchronized delivery: CLI `observability-readiness`, IPC `observability.readiness.get`, and gRPC/RPC `GetObservabilityReadiness`.
 - The surface must report `observability_readiness_active=true`, `nv_f_012_closure_ready=true`, `py_cl_002_resolved=true`, `audit_recent_bound=true`, `jsonl_audit_persistence_sample_bound=true`, `delivery_readiness_bound=true`, `prototype_readiness_bound=true`, `production_log_backend_ready=false`, `metric_daemon_ready=false`, `hardware_trace_capture_ready=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
 - Boundary: this closes the current Python prototype observability classification only. It does not implement a production log backend, metric daemon, hardware trace capture, retention/export policy, fleet observability backend, Driver/HAL, or virtualization.
+
+### 2026-07-10 prototype completion summary trace
+
+- Req IDs: `XSC-001`..`XSC-006`、`DEL-001`..`DEL-005`、`FW-S-006`、`NV-F-012`、`NV-G-007`、`NV-P-002`、`NV-P-003`、`HW-002`、`KH-003`、`KH-006`、`KH-007`.
+- `GET /prototype/completion-summary` marks the current Python prototype scope complete by binding `central_brain_prototype_closure_plan.json`, `central_brain_prototype_completion_audit.json`, `central_brain_prototype_handoff_manifest.json`, `GET /soa/extensions/closure-summary`, `GET /observability/readiness`, `GET /delivery/readiness`, `GET /prototype/readiness`, and `GET /bindings/readiness`.
+- Android primary delivery: Binder `getPrototypeCompletionSummaryJson` and Console `Complete`.
+- Linux synchronized delivery: CLI `prototype-completion-summary`, IPC `prototype.completion.summary.get`, and gRPC/RPC `GetPrototypeCompletionSummary`.
+- The surface must report `prototype_completion_summary_active=true`, `python_prototype_current_scope_complete=true`, `current_python_prototype_implementation_actions_complete=true`, `current_python_prototype_audit_actions_complete=true`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+- Boundary: this is a current Python prototype completion claim only. It does not implement target hardware integration, production Android system service deployment, production Linux packaging, production observability, real event broker/DDS/high-rate data plane, Driver/HAL, Safety Runtime, or virtualization.

@@ -360,6 +360,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/observability/readiness",
         "req_ids": ["NV-F-012", "XSC-005", "XSC-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"],
     },
+    "prototype.completion.summary.get": {
+        "method": "GET",
+        "path": "/prototype/completion-summary",
+        "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006", "DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005", "FW-S-006", "NV-F-012", "NV-G-007", "NV-P-002", "NV-P-003", "HW-002", "KH-003", "KH-006", "KH-007"],
+    },
     "bindings.list": {
         "method": "GET",
         "path": "/bindings",

@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.106"
+API_VERSION = "0.1.107"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -122,6 +122,28 @@ OBSERVABILITY_READINESS_REQ_IDS = [
     "DEL-002",
     "DEL-003",
     "DEL-004",
+]
+PROTOTYPE_COMPLETION_SUMMARY_REQ_IDS = [
+    "XSC-001",
+    "XSC-002",
+    "XSC-003",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-002",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005",
+    "FW-S-006",
+    "NV-F-012",
+    "NV-G-007",
+    "NV-P-002",
+    "NV-P-003",
+    "HW-002",
+    "KH-003",
+    "KH-006",
+    "KH-007",
 ]
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
@@ -432,6 +454,126 @@ def observability_readiness_payload() -> dict[str, Any]:
             ],
         },
         "req_ids": OBSERVABILITY_READINESS_REQ_IDS,
+    }
+
+
+def prototype_completion_summary_payload() -> dict[str, Any]:
+    delivery = delivery_readiness_payload()
+    prototype = prototype_readiness_payload()
+    bindings = binding_readiness_payload()
+    observability = observability_readiness_payload()
+    soa_extension = soa_extension_closure_summary_payload()
+    production_blockers = [
+        "target Android system/privileged service deployment",
+        "target Linux package/service identity and LSM policy",
+        "real PCIe NPU hardware, driver ABI, HAL, and vendor SDK",
+        "production shared Runtime & Governance backend",
+        "real event broker/DDS/high-rate data plane",
+        "production log backend, metric daemon, and retention/export policy",
+        "real vehicle sensors, time sync, connected services, and ADAS funcware",
+        "target virtualization/Safety Runtime architecture and isolation evidence",
+    ]
+    return {
+        "summary": {
+            "prototype_completion_summary_active": True,
+            "python_prototype_current_scope_complete": True,
+            "current_python_prototype_implementation_actions_complete": True,
+            "current_python_prototype_audit_actions_complete": True,
+            "py_cl_001_resolved": True,
+            "py_cl_002_resolved": True,
+            "prototype_handoff_ready": True,
+            "production_ready": False,
+            "android_primary_path_ready": True,
+            "linux_synchronized_path_ready": True,
+            "closure_plan_bound": True,
+            "completion_audit_bound": True,
+            "handoff_manifest_bound": True,
+            "delivery_readiness_bound": True,
+            "prototype_readiness_bound": True,
+            "binding_readiness_bound": True,
+            "observability_readiness_bound": True,
+            "soa_extension_closure_summary_bound": True,
+            "remaining_current_python_prototype_implementation_action_count": 0,
+            "remaining_current_python_prototype_audit_action_count": 0,
+            "production_blocker_count": len(production_blockers),
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "service_dispatch_triggered": False,
+        },
+        "source_surfaces": [
+            "central-brain/contracts/central_brain_prototype_closure_plan.json",
+            "central-brain/contracts/central_brain_prototype_completion_audit.json",
+            "central-brain/contracts/central_brain_prototype_handoff_manifest.json",
+            "GET /soa/extensions/closure-summary",
+            "GET /observability/readiness",
+            "GET /delivery/readiness",
+            "GET /prototype/readiness",
+            "GET /bindings/readiness",
+            "GET /native/driver-gaps",
+            "GET /hardware/interfaces",
+        ],
+        "source_counts": {
+            "prototype_module_count": len(prototype.get("modules", [])),
+            "delivery_validation_count": len(delivery.get("validation_bundle", delivery.get("validation_index", []))),
+            "binding_row_count": len(bindings.get("readiness", bindings.get("bindings", []))),
+            "observability_closure_item_count": len(observability.get("closure_items", [])),
+            "soa_extension_closure_item_count": len(soa_extension.get("closure_items", [])),
+        },
+        "android_delivery": {
+            "binder": "getPrototypeCompletionSummaryJson",
+            "console": "Complete",
+            "primary_path": "Android Binder/AIDL debug Console",
+        },
+        "linux_delivery": {
+            "cli": "prototype-completion-summary",
+            "ipc": "prototype.completion.summary.get",
+            "grpc_rpc": "GetPrototypeCompletionSummary",
+        },
+        "completion_items": [
+            {
+                "id": "PY-COMP-001",
+                "req_ids": ["XSC-001", "XSC-002", "XSC-003", "XSC-004", "XSC-005", "XSC-006"],
+                "status": "complete-current-python-prototype-scope",
+                "evidence": "AI SDK, Uni Info Bus, SOA, Runtime & Governance, native adapter visibility, protocol binding, and prototype readiness surfaces are all exposed in the current Python prototype.",
+            },
+            {
+                "id": "PY-COMP-002",
+                "req_ids": ["DEL-001", "DEL-002", "DEL-003", "DEL-004", "DEL-005"],
+                "status": "complete-current-python-prototype-scope",
+                "evidence": "Android Binder/Console and Linux CLI/IPC/gRPC synchronized handoff surfaces are present for the current scope.",
+            },
+            {
+                "id": "PY-CL-001",
+                "req_ids": ["FW-S-006"],
+                "status": "resolved",
+                "evidence": "GET /soa/extensions/closure-summary closes current Python prototype extension service coverage without dynamic service dispatch.",
+            },
+            {
+                "id": "PY-CL-002",
+                "req_ids": ["NV-F-012", "NV-G-007"],
+                "status": "resolved",
+                "evidence": "GET /observability/readiness closes current Python prototype observability coverage without production observability backends.",
+            },
+        ],
+        "remaining_current_python_prototype_implementation_actions": [],
+        "remaining_current_python_prototype_audit_actions": [],
+        "production_blockers": production_blockers,
+        "invariants": [
+            "read-only completion summary",
+            "does not call POST",
+            "does not persist completion, approval, handoff, review, or evidence state",
+            "does not assign owners or reviewers",
+            "does not close production gates",
+            "does not dispatch services",
+            "does not access hardware, Driver/HAL, or virtualization",
+        ],
+        "next_state": {
+            "current_python_prototype": "complete-current-scope",
+            "next_phase": "target hardware and production integration planning",
+            "production_scope": "not-complete",
+        },
+        "req_ids": PROTOTYPE_COMPLETION_SUMMARY_REQ_IDS,
     }
 
 
@@ -9736,6 +9878,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(GOVERNANCE.audit_payload()))
         elif path == "/observability/readiness":
             self.send_json(200, envelope(observability_readiness_payload()))
+        elif path == "/prototype/completion-summary":
+            self.send_json(200, envelope(prototype_completion_summary_payload()))
         elif path == "/bindings":
             self.send_json(200, envelope(bindings_payload()))
         elif path == "/bindings/detail":

@@ -254,6 +254,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "governance-deployment-plan": ("GET", "/governance/deployment-plan", None),
     "audit": ("GET", "/audit/recent", None),
     "observability-readiness": ("GET", "/observability/readiness", None),
+    "prototype-completion-summary": ("GET", "/prototype/completion-summary", None),
     "bindings": ("GET", "/bindings", None),
     "binding-detail": ("GET", "/bindings/detail", None),
     "binding-readiness": ("GET", "/bindings/readiness", None),

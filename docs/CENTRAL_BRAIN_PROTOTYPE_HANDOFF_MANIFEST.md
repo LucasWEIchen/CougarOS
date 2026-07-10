@@ -6,7 +6,7 @@ This document is the cockpit-domain engineer handoff index for the current Centr
 
 - Manifest: `central-brain/contracts/central_brain_prototype_handoff_manifest.json`
 - Baseline API contract: `central-brain/contracts/central_brain_api.json`
-- Baseline API version: `0.1.106`
+- Baseline API version: `0.1.107`
 - Baseline commit: `2884438c`
 - Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005
 
@@ -60,6 +60,12 @@ The Linux path remains sample CLI/IPC/gRPC delivery. It does not activate produc
 `GET /observability/readiness` is the current `PY-CL-002` / `NV-F-012` handoff surface. It is visible through Android Binder `getObservabilityReadinessJson` / Console `Observability` and Linux `observability-readiness` / `observability.readiness.get` / `GetObservabilityReadiness`.
 
 This handoff surface is read-only. It does not implement a production log backend, metric daemon, hardware trace capture, Driver/HAL, or virtualization.
+
+## Completion Summary Handoff
+
+`GET /prototype/completion-summary` is the current-scope completion handoff surface. It is visible through Android Binder `getPrototypeCompletionSummaryJson` / Console `Complete` and Linux `prototype-completion-summary` / `prototype.completion.summary.get` / `GetPrototypeCompletionSummary`.
+
+This surface reports `python_prototype_current_scope_complete=true`, `prototype_handoff_ready=true`, and `production_ready=false`. The current Python prototype is complete for handoff to Android/Linux cockpit-domain engineers, while target hardware, production Driver/HAL, production observability, real broker/DDS/high-rate data plane, Android system service deployment, and virtualization remain separate production planning work.
 
 ## Validation Index
 

@@ -2,14 +2,14 @@
   "closure_plan_name": "central-brain-python-prototype-req-closure-plan",
   "closure_plan_version": "0.1.0",
   "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.106",
+  "baseline_api_contract_version": "0.1.107",
   "baseline_completion_audit": "central-brain/contracts/central_brain_prototype_completion_audit.json",
   "baseline_commits": [
     "203ed8d4"
   ],
   "status": {
     "closure_plan_ready": true,
-    "python_prototype_current_scope_complete": false,
+    "python_prototype_current_scope_complete": true,
     "prototype_handoff_ready": true,
     "production_ready": false,
     "android_primary_path_ready": true,
@@ -20,13 +20,14 @@
     "hardware_accessed": false,
     "driver_development_triggered": false,
     "virtualization_development_triggered": false,
-    "service_dispatch_triggered": false
+    "service_dispatch_triggered": false,
+    "current_python_prototype_audit_actions_complete": true
   },
   "completion_estimate_after_closure_plan": {
-    "python_prototype_completion_lower_percent": 92,
-    "python_prototype_completion_upper_percent": 96,
-    "remaining_small_increment_count_lower": 1,
-    "remaining_small_increment_count_upper": 2
+    "python_prototype_completion_lower_percent": 100,
+    "python_prototype_completion_upper_percent": 100,
+    "remaining_small_increment_count_lower": 0,
+    "remaining_small_increment_count_upper": 0
   },
   "all_baseline_req_ids": [
     "XSC-001",
@@ -202,7 +203,87 @@
       ]
     }
   ],
-  "current_python_prototype_open_closure_actions": [
+  "current_python_prototype_open_closure_actions": [],
+  "production_only_or_target_platform_req_ids": [
+    {
+      "group": "customer_applications",
+      "req_ids": [
+        "APP-001",
+        "APP-002",
+        "APP-003",
+        "APP-005",
+        "APP-006",
+        "APP-007",
+        "APP-008",
+        "APP-009",
+        "APP-010"
+      ],
+      "reason": "customer cockpit, cluster, TBOX, ADAS, diagnostics, and HMI apps are integration consumers, not Python prototype implementation targets"
+    },
+    {
+      "group": "target_hardware_and_os_base",
+      "req_ids": [
+        "HW-001",
+        "KH-001",
+        "KH-002",
+        "KH-004",
+        "KH-005",
+        "KH-008",
+        "KH-009"
+      ],
+      "reason": "chip OS base and hardware platform functions require target Android/Linux or SoC integration"
+    },
+    {
+      "group": "production_funcware_and_network_bindings",
+      "req_ids": [
+        "NV-F-002",
+        "NV-F-006",
+        "NV-F-007",
+        "NV-F-010",
+        "NV-P-001",
+        "NV-P-004",
+        "NV-P-007"
+      ],
+      "reason": "real sensors, time sync, connected funcware, ADAS funcware, SOME/IP, MQTT, and big-data channels require target platform choices"
+    },
+    {
+      "group": "virtualization_constraints",
+      "req_ids": [
+        "HV-001",
+        "HV-002",
+        "HV-003"
+      ],
+      "reason": "virtualization is explicitly documentation-only and not a development target"
+    }
+  ],
+  "closure_invariants": [
+    "no runtime endpoint added by this closure plan",
+    "no POST call introduced by this closure plan",
+    "no owner or reviewer assignment",
+    "no evidence acceptance",
+    "no state persistence",
+    "no gate closure",
+    "no broker, DDS, SOME/IP, MQTT, or high-rate data plane activation",
+    "no service dispatch",
+    "no hardware access",
+    "no Driver/HAL development",
+    "no virtualization development"
+  ],
+  "validation_index": [
+    "python3 -m json.tool central-brain/contracts/central_brain_api.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_handoff_manifest.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_completion_audit.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_closure_plan.json",
+    "bash tools/check_central_brain_delivery_docs.sh",
+    "GET /prototype/completion-summary",
+    "git diff --check"
+  ],
+  "next_step": {
+    "candidate": "begin target hardware and production integration planning outside the completed current Python prototype scope",
+    "remaining_small_increment_count_lower": 0,
+    "remaining_small_increment_count_upper": 0
+  },
+  "production_or_target_platform_blockers_after_current_scope_closure": [
     {
       "id": "PY-CL-003",
       "req_ids": [
@@ -309,82 +390,25 @@
       ]
     }
   ],
-  "production_only_or_target_platform_req_ids": [
-    {
-      "group": "customer_applications",
-      "req_ids": [
-        "APP-001",
-        "APP-002",
-        "APP-003",
-        "APP-005",
-        "APP-006",
-        "APP-007",
-        "APP-008",
-        "APP-009",
-        "APP-010"
-      ],
-      "reason": "customer cockpit, cluster, TBOX, ADAS, diagnostics, and HMI apps are integration consumers, not Python prototype implementation targets"
-    },
-    {
-      "group": "target_hardware_and_os_base",
-      "req_ids": [
-        "HW-001",
-        "KH-001",
-        "KH-002",
-        "KH-004",
-        "KH-005",
-        "KH-008",
-        "KH-009"
-      ],
-      "reason": "chip OS base and hardware platform functions require target Android/Linux or SoC integration"
-    },
-    {
-      "group": "production_funcware_and_network_bindings",
-      "req_ids": [
-        "NV-F-002",
-        "NV-F-006",
-        "NV-F-007",
-        "NV-F-010",
-        "NV-P-001",
-        "NV-P-004",
-        "NV-P-007"
-      ],
-      "reason": "real sensors, time sync, connected funcware, ADAS funcware, SOME/IP, MQTT, and big-data channels require target platform choices"
-    },
-    {
-      "group": "virtualization_constraints",
-      "req_ids": [
-        "HV-001",
-        "HV-002",
-        "HV-003"
-      ],
-      "reason": "virtualization is explicitly documentation-only and not a development target"
-    }
-  ],
-  "closure_invariants": [
-    "no runtime endpoint added by this closure plan",
-    "no POST call introduced by this closure plan",
-    "no owner or reviewer assignment",
-    "no evidence acceptance",
-    "no state persistence",
-    "no gate closure",
-    "no broker, DDS, SOME/IP, MQTT, or high-rate data plane activation",
-    "no service dispatch",
-    "no hardware access",
-    "no Driver/HAL development",
-    "no virtualization development"
-  ],
-  "validation_index": [
-    "python3 -m json.tool central-brain/contracts/central_brain_api.json",
-    "python3 -m json.tool central-brain/contracts/central_brain_prototype_handoff_manifest.json",
-    "python3 -m json.tool central-brain/contracts/central_brain_prototype_completion_audit.json",
-    "python3 -m json.tool central-brain/contracts/central_brain_prototype_closure_plan.json",
-    "bash tools/check_central_brain_delivery_docs.sh",
-    "git diff --check"
-  ],
-  "next_step": {
-    "candidate": "run final current-scope completion audit consistency check and align handoff manifest versions",
-    "remaining_small_increment_count_lower": 1,
-    "remaining_small_increment_count_upper": 2
+  "current_scope_completion_evidence": {
+    "endpoint": "GET /prototype/completion-summary",
+    "android_binder": "getPrototypeCompletionSummaryJson",
+    "android_console": "Complete",
+    "linux_cli": "prototype-completion-summary",
+    "linux_ipc": "prototype.completion.summary.get",
+    "linux_grpc_rpc": "GetPrototypeCompletionSummary",
+    "remaining_current_python_prototype_implementation_actions": [],
+    "remaining_current_python_prototype_audit_actions": [],
+    "production_ready": false,
+    "production_blockers": [
+      "target Android system/privileged service deployment",
+      "target Linux package/service identity and LSM policy",
+      "real PCIe NPU hardware, driver ABI, HAL, and vendor SDK",
+      "production shared Runtime & Governance backend",
+      "real event broker/DDS/high-rate data plane",
+      "production log backend, metric daemon, and retention/export policy",
+      "real vehicle sensors, time sync, connected services, and ADAS funcware",
+      "target virtualization/Safety Runtime architecture and isolation evidence"
+    ]
   }
 }

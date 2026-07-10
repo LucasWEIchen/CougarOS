@@ -2694,6 +2694,33 @@ assert summary["virtualization_development_triggered"] is False, response
 assert "NV-F-012" in encoded and "NV-G-007" in encoded and "DEL-004" in encoded, response
 assert "observability.readiness.get" in encoded and "GetObservabilityReadiness" in encoded, response
 PY
+PROTOTYPE_COMPLETION_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" prototype-completion-summary)"
+python3 - "$PROTOTYPE_COMPLETION_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+summary = payload["summary"]
+encoded = json.dumps(payload)
+assert response["status"] == "ok", response
+assert summary["prototype_completion_summary_active"] is True, response
+assert summary["python_prototype_current_scope_complete"] is True, response
+assert summary["current_python_prototype_implementation_actions_complete"] is True, response
+assert summary["current_python_prototype_audit_actions_complete"] is True, response
+assert summary["py_cl_001_resolved"] is True, response
+assert summary["py_cl_002_resolved"] is True, response
+assert summary["prototype_handoff_ready"] is True, response
+assert summary["production_ready"] is False, response
+assert summary["remaining_current_python_prototype_implementation_action_count"] == 0, response
+assert summary["remaining_current_python_prototype_audit_action_count"] == 0, response
+assert summary["service_dispatch_triggered"] is False, response
+assert summary["hardware_accessed"] is False, response
+assert summary["driver_development_triggered"] is False, response
+assert summary["virtualization_development_triggered"] is False, response
+assert "prototype.completion.summary.get" in encoded and "GetPrototypeCompletionSummary" in encoded, response
+assert "FW-S-006" in encoded and "NV-F-012" in encoded and "DEL-005" in encoded, response
+PY
 BINDING_READINESS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" binding-readiness)"
 python3 - "$BINDING_READINESS_OUTPUT" <<'PY'
 import json

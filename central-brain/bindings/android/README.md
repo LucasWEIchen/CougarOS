@@ -80,6 +80,7 @@ Brain semantic gateway.
 | `getRuntimeGovernanceJson` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `getRecentAuditJson` | `GET /audit/recent` | XSC-005, NV-G-007 |
 | `getObservabilityReadinessJson` | `GET /observability/readiness` | NV-F-012, XSC-005, XSC-006, NV-G-007, DEL-001 |
+| `getPrototypeCompletionSummaryJson` | `GET /prototype/completion-summary` | XSC-001..006, DEL-001..005, FW-S-006, NV-F-012 |
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `getBindingDetailJson` | `GET /bindings/detail` | XSC-006, NV-P-002 |
 | `getBindingReadinessJson` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-001..004 |
@@ -181,6 +182,11 @@ Brain semantic gateway.
   persistence, delivery readiness, prototype readiness, and governance runtime
   diagnostics. It does not implement a production log backend, metric daemon,
   hardware trace capture, Driver/HAL, or virtualization.
+- `getPrototypeCompletionSummaryJson` exposes the Android main path for
+  `GET /prototype/completion-summary` through the Console `Complete` action.
+  It marks `python_prototype_current_scope_complete=true` for the current
+  Python prototype only and keeps production readiness, hardware access,
+  Driver/HAL, service dispatch, and virtualization disabled.
 - `getUibExtensionsJson` exposes FW-U-008 extension registry contract metadata,
   governance rules, binding visibility, and no-dispatch boundaries. It does
   not load plugins, dispatch SOA services, access Driver/HAL, or create

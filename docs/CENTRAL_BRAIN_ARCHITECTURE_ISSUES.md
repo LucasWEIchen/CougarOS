@@ -172,3 +172,5 @@
 2026-07-10 `GET /soa/extensions/closure-summary` 用 read-only closure summary 解决 `PY-CL-001` / `FW-S-006` 当前原型覆盖判断。ISSUE-015 仍为 Proposed：真实动态扩展生命周期、schema 发布/撤销、权限审核、插件沙箱、跨 SoC 版本兼容规则和量产 extension runtime owner 尚未确认；当前接口只提供 closure evidence，不加载插件或动态 schema registry。
 
 2026-07-10 `GET /observability/readiness` 用 read-only readiness summary 解决 `PY-CL-002` / `NV-F-012` 当前原型覆盖判断。生产观测性仍为待决问题：production log backend owner、metric daemon owner、hardware trace capture source、retention/export policy、fleet observability backend、Android system service log权限、Linux service identity 和 target privacy/security policy 尚未确认；当前接口只提供 closure evidence，不采集硬件 trace，不启动 metric daemon，不创建生产日志后端，不新增 Driver/HAL 或虚拟化开发。
+
+2026-07-10 `GET /prototype/completion-summary` 用 read-only completion summary 关闭当前 Python 原型范围。它不解决生产待决问题：真实 PCIe NPU、Driver/HAL ABI、vendor SDK、Android system service owner/sepolicy、Linux production package owner、real event broker/DDS/high-rate data plane、production observability backend、target Safety Runtime 和 virtualization owner 仍需后续项目阶段确认。

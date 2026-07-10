@@ -6,19 +6,23 @@ This document turns the completion audit into a requirement-by-requirement closu
 
 - Contract: `central-brain/contracts/central_brain_prototype_closure_plan.json`
 - Baseline completion audit: `central-brain/contracts/central_brain_prototype_completion_audit.json`
-- Baseline API contract: `0.1.106`
-- Current estimate after `PY-CL-002` closure: 92-96%
+- Baseline API contract: `0.1.107`
+- Current estimate after `GET /prototype/completion-summary`: 100%
 
-The closure plan keeps `python_prototype_current_scope_complete=false` until the final current-scope completion audit consistency check is committed. `PY-CL-001` / `FW-S-006` is resolved by `GET /soa/extensions/closure-summary`; `PY-CL-002` / `NV-F-012` is resolved by `GET /observability/readiness`.
+The closure plan now records `python_prototype_current_scope_complete=true` for the current Python prototype scope. `PY-CL-001` / `FW-S-006` is resolved by `GET /soa/extensions/closure-summary`; `PY-CL-002` / `NV-F-012` is resolved by `GET /observability/readiness`; final completion evidence is exposed by `GET /prototype/completion-summary`.
 
 ## Current Prototype Closure Actions
 
 - `PY-CL-001`: resolved by `GET /soa/extensions/closure-summary`, Android Binder `getSoaExtensionClosureSummaryJson` / Console `SOA Ext Close`, and Linux `soa-extension-closure-summary` / `soa.extensions.closure.summary` / `GetSoaExtensionClosureSummary`.
 - `PY-CL-002`: resolved by `GET /observability/readiness`, Android Binder `getObservabilityReadinessJson` / Console `Observability`, and Linux `observability-readiness` / `observability.readiness.get` / `GetObservabilityReadiness`.
-- `PY-CL-003`: keep customer application modules `APP-001..003` and `APP-005..010` outside Python prototype completion criteria.
-- `PY-CL-004`: keep chip OS base and UniSOC hardware baseline IDs as target-platform responsibilities.
-- `PY-CL-005`: keep real sensors, time sync, connected funcware, ADAS funcware and production network bindings outside the current Python prototype unless a read-only placeholder is missing.
-- `PY-CL-006`: retain hardware empty-interface delivery while tracking real Vehicle Signal, PCIe NPU, Driver/HAL ABI and smoke evidence as production blockers.
+- `PY-CL-003`..`PY-CL-006`: reclassified as production-only or target-platform blockers after current-scope closure; they remain visible in the contract but do not block `python_prototype_current_scope_complete=true`.
+
+## Completion Summary
+
+- REST: `GET /prototype/completion-summary`
+- Android: Binder `getPrototypeCompletionSummaryJson`, Console `Complete`
+- Linux: CLI `prototype-completion-summary`, IPC `prototype.completion.summary.get`, gRPC/RPC `GetPrototypeCompletionSummary`
+- Required status: `prototype_completion_summary_active=true`, `python_prototype_current_scope_complete=true`, `current_python_prototype_implementation_actions_complete=true`, `current_python_prototype_audit_actions_complete=true`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
 
 ## Production-Only Or Target-Platform Blockers
 

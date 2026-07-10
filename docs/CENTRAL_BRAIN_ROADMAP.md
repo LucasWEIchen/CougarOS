@@ -53,6 +53,12 @@
 
 ### 2026-07-10
 
+- 推进 XSC/DEL current-scope prototype completion summary：
+  - 新增 `GET /prototype/completion-summary`，把 closure plan、completion audit、handoff manifest、SOA extension closure、observability readiness、delivery readiness、prototype readiness 和 binding readiness 聚合成只读 current-scope completion evidence，明确 `python_prototype_current_scope_complete=true`。
+  - Android 主路径新增 Binder `getPrototypeCompletionSummaryJson` 与 Console `Complete`；Linux 同步路径新增 CLI `prototype-completion-summary`、IPC `prototype.completion.summary.get` 和 gRPC/RPC `GetPrototypeCompletionSummary`。
+  - 本轮只做 read-only completion summary，不调用 POST，不分配 owner/reviewer，不持久化 completion/approval/handoff/review/evidence state，不关闭 production gate，不 dispatch service，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：`XSC-001`..`XSC-006`、`DEL-001`..`DEL-005`、`FW-S-006`、`NV-F-012`、`NV-G-007`、`NV-P-002`、`NV-P-003`、`HW-002`、`KH-003`、`KH-006`、`KH-007`。
+
 - 推进 `PY-CL-002` / `NV-F-012` observability readiness closure：
   - 新增 `GET /observability/readiness`，把 `/audit/recent`、`CENTRAL_BRAIN_AUDIT_LOG` JSONL audit persistence sample、`/delivery/readiness`、`/prototype/readiness` 和 `/governance/runtime` 聚合为只读 observability closure evidence，明确 `py_cl_002_resolved=true`。
   - Android 主路径新增 Binder `getObservabilityReadinessJson` 与 Console `Observability`；Linux 同步路径新增 CLI `observability-readiness`、IPC `observability.readiness.get` 和 gRPC/RPC `GetObservabilityReadiness`。
@@ -73,7 +79,7 @@
 
 - 推进 XSC/DEL/APP/FW/NV/HW/KH current-state Python prototype completion audit：
   - 新增 `central-brain/contracts/central_brain_prototype_completion_audit.json` 与 `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md`，按当前 artifact 审计跨 SoC 组件、Android/Linux 交付、AI SDK、Uni Info Bus、SOA、Runtime & Governance、Protocol Binding、Vehicle Signal、NPU/Driver/HAL empty-interface 的完成状态。
-  - 审计结论固定 `completion_audit_ready=true`、`python_prototype_current_scope_complete=false`、`prototype_handoff_ready=true`、`production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。
+  - 审计结论当前由 `GET /prototype/completion-summary` 更新为 `completion_audit_ready=true`、`python_prototype_current_scope_complete=true`、`prototype_handoff_ready=true`、`production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。
   - 本轮只做静态 completion audit，不新增 runtime endpoint，不调用 POST，不持久化状态，不关闭 gate，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。
   - 覆盖 Req ID：XSC-001..006、DEL-001..005、APP-004、FW-U-001..008、FW-S-001..005、NV-F-001/NV-F-003/NV-F-004/NV-F-005/NV-F-008/NV-F-009/NV-F-011、NV-G-001..007、NV-P-002/NV-P-003/NV-P-005/NV-P-006、HW-002、KH-003、KH-006、KH-007。
 
