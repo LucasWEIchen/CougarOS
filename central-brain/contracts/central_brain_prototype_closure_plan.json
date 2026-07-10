@@ -1,0 +1,381 @@
+{
+  "closure_plan_name": "central-brain-python-prototype-req-closure-plan",
+  "closure_plan_version": "0.1.0",
+  "updated": "2026-07-10",
+  "baseline_api_contract_version": "0.1.104",
+  "baseline_completion_audit": "central-brain/contracts/central_brain_prototype_completion_audit.json",
+  "baseline_commits": [
+    "203ed8d4"
+  ],
+  "status": {
+    "closure_plan_ready": true,
+    "python_prototype_current_scope_complete": false,
+    "prototype_handoff_ready": true,
+    "production_ready": false,
+    "android_primary_path_ready": true,
+    "linux_synchronized_path_ready": true,
+    "hardware_accessed": false,
+    "driver_development_triggered": false,
+    "virtualization_development_triggered": false,
+    "service_dispatch_triggered": false
+  },
+  "completion_estimate_after_closure_plan": {
+    "python_prototype_completion_lower_percent": 84,
+    "python_prototype_completion_upper_percent": 90,
+    "remaining_small_increment_count_lower": 3,
+    "remaining_small_increment_count_upper": 6
+  },
+  "all_baseline_req_ids": [
+    "XSC-001",
+    "XSC-002",
+    "XSC-003",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-002",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005",
+    "APP-001",
+    "APP-002",
+    "APP-003",
+    "APP-004",
+    "APP-005",
+    "APP-006",
+    "APP-007",
+    "APP-008",
+    "APP-009",
+    "APP-010",
+    "FW-U-001",
+    "FW-U-002",
+    "FW-U-003",
+    "FW-U-004",
+    "FW-U-005",
+    "FW-U-006",
+    "FW-U-007",
+    "FW-U-008",
+    "FW-S-001",
+    "FW-S-002",
+    "FW-S-003",
+    "FW-S-004",
+    "FW-S-005",
+    "FW-S-006",
+    "NV-F-001",
+    "NV-F-002",
+    "NV-F-003",
+    "NV-F-004",
+    "NV-F-005",
+    "NV-F-006",
+    "NV-F-007",
+    "NV-F-008",
+    "NV-F-009",
+    "NV-F-010",
+    "NV-F-011",
+    "NV-F-012",
+    "NV-G-001",
+    "NV-G-002",
+    "NV-G-003",
+    "NV-G-004",
+    "NV-G-005",
+    "NV-G-006",
+    "NV-G-007",
+    "NV-P-001",
+    "NV-P-002",
+    "NV-P-003",
+    "NV-P-004",
+    "NV-P-005",
+    "NV-P-006",
+    "NV-P-007",
+    "KH-001",
+    "KH-002",
+    "KH-003",
+    "KH-004",
+    "KH-005",
+    "KH-006",
+    "KH-007",
+    "KH-008",
+    "KH-009",
+    "HV-001",
+    "HV-002",
+    "HV-003",
+    "HW-001",
+    "HW-002"
+  ],
+  "current_python_prototype_delivered_req_ids": [
+    "XSC-001",
+    "XSC-002",
+    "XSC-003",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-002",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005",
+    "APP-004",
+    "FW-U-001",
+    "FW-U-002",
+    "FW-U-003",
+    "FW-U-004",
+    "FW-U-005",
+    "FW-U-006",
+    "FW-U-007",
+    "FW-U-008",
+    "FW-S-001",
+    "FW-S-002",
+    "FW-S-003",
+    "FW-S-004",
+    "FW-S-005",
+    "NV-F-001",
+    "NV-F-003",
+    "NV-F-004",
+    "NV-F-005",
+    "NV-F-008",
+    "NV-F-009",
+    "NV-F-011",
+    "NV-G-001",
+    "NV-G-002",
+    "NV-G-003",
+    "NV-G-004",
+    "NV-G-005",
+    "NV-G-006",
+    "NV-G-007",
+    "NV-P-002",
+    "NV-P-003",
+    "NV-P-005",
+    "NV-P-006",
+    "HW-002",
+    "KH-003",
+    "KH-006",
+    "KH-007",
+    "HV-001",
+    "HV-002",
+    "HV-003"
+  ],
+  "current_python_prototype_open_closure_actions": [
+    {
+      "id": "PY-CL-001",
+      "req_ids": [
+        "FW-S-006"
+      ],
+      "classification": "current_python_prototype_closure_action",
+      "action": "Decide whether FW-S-006 extension service is already covered by SOA service contract visibility plus /uib/extensions, or add a small read-only extension-service closure summary.",
+      "evidence_required": [
+        "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md classification",
+        "central-brain/contracts/central_brain_api.json evidence or explicit production-only note",
+        "Android/Linux delivery note if a new surface is added"
+      ],
+      "must_not_do": [
+        "no service dispatch",
+        "no new service implementation",
+        "no Driver/HAL",
+        "no virtualization"
+      ]
+    },
+    {
+      "id": "PY-CL-002",
+      "req_ids": [
+        "NV-F-012"
+      ],
+      "classification": "current_python_prototype_closure_action",
+      "action": "Decide whether NV-F-012 Trace/Logging/Metric is sufficiently represented by /audit/recent, JSONL audit persistence, delivery readiness, and prototype readiness, or add a small read-only observability readiness summary.",
+      "evidence_required": [
+        "audit persistence smoke or explicit observability readiness surface",
+        "Android/Linux visibility statement",
+        "Driver/HAL no-access boundary"
+      ],
+      "must_not_do": [
+        "no production log backend",
+        "no metric daemon",
+        "no hardware trace capture",
+        "no Driver/HAL",
+        "no virtualization"
+      ]
+    },
+    {
+      "id": "PY-CL-003",
+      "req_ids": [
+        "APP-001",
+        "APP-002",
+        "APP-003",
+        "APP-005",
+        "APP-006",
+        "APP-007",
+        "APP-008",
+        "APP-009",
+        "APP-010"
+      ],
+      "classification": "scope_closure_required_not_implementation",
+      "action": "Keep customer application modules outside the Python prototype completion criteria while retaining AI SDK, Agent, Policy, SOA, and Driver/HAL entry points for integration.",
+      "evidence_required": [
+        "completion audit out-of-scope section",
+        "handoff documentation for integration engineers",
+        "roadmap note that customer apps are not prototype deliverables"
+      ],
+      "must_not_do": [
+        "no cockpit production app",
+        "no ADAS app",
+        "no TBOX app",
+        "no customer HMI implementation"
+      ]
+    },
+    {
+      "id": "PY-CL-004",
+      "req_ids": [
+        "KH-001",
+        "KH-002",
+        "KH-004",
+        "KH-005",
+        "KH-008",
+        "KH-009",
+        "HW-001"
+      ],
+      "classification": "target_platform_closure_required_not_implementation",
+      "action": "Keep chip OS base, memory management, duplicated Libs, scheduler, syscall, and UniSOC hardware baseline as target-platform responsibilities unless a missing interface must be documented.",
+      "evidence_required": [
+        "Driver/HAL support matrix",
+        "platform delta",
+        "virtualization/safety constraints for relevant safety assumptions"
+      ],
+      "must_not_do": [
+        "no OS base implementation",
+        "no scheduler implementation",
+        "no memory manager",
+        "no virtualization"
+      ]
+    },
+    {
+      "id": "PY-CL-005",
+      "req_ids": [
+        "NV-F-002",
+        "NV-F-006",
+        "NV-F-007",
+        "NV-F-010",
+        "NV-P-001",
+        "NV-P-004",
+        "NV-P-007"
+      ],
+      "classification": "production_or_target_platform_blocker",
+      "action": "Keep real sensors, time sync, connected funcware, ADAS funcware, SOME/IP, MQTT, and big-data channels out of the current Python prototype unless a read-only capability or binding readiness placeholder is missing.",
+      "evidence_required": [
+        "bindings readiness planned state",
+        "Driver/HAL gap backlog",
+        "architecture issues for target platform decisions"
+      ],
+      "must_not_do": [
+        "no real sensor capture",
+        "no SOME/IP runtime",
+        "no MQTT runtime",
+        "no real DDS data plane",
+        "no Driver/HAL"
+      ]
+    },
+    {
+      "id": "PY-CL-006",
+      "req_ids": [
+        "NV-F-004",
+        "NV-F-005",
+        "HW-002",
+        "KH-003",
+        "KH-006",
+        "KH-007"
+      ],
+      "classification": "delivered_empty_interface_with_production_blocker",
+      "action": "Retain read-only Vehicle Signal and NPU/Driver/HAL empty-interface delivery while tracking real VHAL, SocketCAN, DBC/ARXML, PCIe NPU, vendor SDK, Driver/HAL ABI, and target smoke evidence as production blockers.",
+      "evidence_required": [
+        "GET /vehicle/signals",
+        "GET /vehicle/signals/activation",
+        "GET /vehicle/signals/validation",
+        "GET /native/driver-gaps",
+        "GET /hardware/interfaces",
+        "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
+      ],
+      "must_not_do": [
+        "no device node access",
+        "no HAL/vendor SDK call",
+        "no PCIe NPU access",
+        "no vehicle bus access"
+      ]
+    }
+  ],
+  "production_only_or_target_platform_req_ids": [
+    {
+      "group": "customer_applications",
+      "req_ids": [
+        "APP-001",
+        "APP-002",
+        "APP-003",
+        "APP-005",
+        "APP-006",
+        "APP-007",
+        "APP-008",
+        "APP-009",
+        "APP-010"
+      ],
+      "reason": "customer cockpit, cluster, TBOX, ADAS, diagnostics, and HMI apps are integration consumers, not Python prototype implementation targets"
+    },
+    {
+      "group": "target_hardware_and_os_base",
+      "req_ids": [
+        "HW-001",
+        "KH-001",
+        "KH-002",
+        "KH-004",
+        "KH-005",
+        "KH-008",
+        "KH-009"
+      ],
+      "reason": "chip OS base and hardware platform functions require target Android/Linux or SoC integration"
+    },
+    {
+      "group": "production_funcware_and_network_bindings",
+      "req_ids": [
+        "NV-F-002",
+        "NV-F-006",
+        "NV-F-007",
+        "NV-F-010",
+        "NV-P-001",
+        "NV-P-004",
+        "NV-P-007"
+      ],
+      "reason": "real sensors, time sync, connected funcware, ADAS funcware, SOME/IP, MQTT, and big-data channels require target platform choices"
+    },
+    {
+      "group": "virtualization_constraints",
+      "req_ids": [
+        "HV-001",
+        "HV-002",
+        "HV-003"
+      ],
+      "reason": "virtualization is explicitly documentation-only and not a development target"
+    }
+  ],
+  "closure_invariants": [
+    "no runtime endpoint added by this closure plan",
+    "no POST call introduced by this closure plan",
+    "no owner or reviewer assignment",
+    "no evidence acceptance",
+    "no state persistence",
+    "no gate closure",
+    "no broker, DDS, SOME/IP, MQTT, or high-rate data plane activation",
+    "no service dispatch",
+    "no hardware access",
+    "no Driver/HAL development",
+    "no virtualization development"
+  ],
+  "validation_index": [
+    "python3 -m json.tool central-brain/contracts/central_brain_api.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_handoff_manifest.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_completion_audit.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_closure_plan.json",
+    "bash tools/check_central_brain_delivery_docs.sh",
+    "git diff --check"
+  ],
+  "next_step": {
+    "candidate": "resolve PY-CL-001 and PY-CL-002 with either explicit production-only notes or small read-only closure summaries",
+    "remaining_small_increment_count_lower": 3,
+    "remaining_small_increment_count_upper": 6
+  }
+}

@@ -4,6 +4,7 @@
   "updated": "2026-07-10",
   "baseline_api_contract_version": "0.1.104",
   "baseline_handoff_manifest": "central-brain/contracts/central_brain_prototype_handoff_manifest.json",
+  "closure_plan": "central-brain/contracts/central_brain_prototype_closure_plan.json",
   "baseline_commits": [
     "2884438c",
     "978f92d7"
@@ -324,6 +325,7 @@
     "python3 -m json.tool central-brain/contracts/central_brain_api.json",
     "python3 -m json.tool central-brain/contracts/central_brain_prototype_handoff_manifest.json",
     "python3 -m json.tool central-brain/contracts/central_brain_prototype_completion_audit.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_closure_plan.json",
     "python3 -m json.tool central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
     "bash tools/check_central_brain_binding_artifacts.sh",
     "bash tools/check_central_brain_delivery_docs.sh",
@@ -335,8 +337,10 @@
     "git diff --check"
   ],
   "next_step": {
-    "candidate": "close remaining prototype audit gaps or mark production blockers explicitly out of prototype scope",
+    "candidate": "resolve PY-CL-001 and PY-CL-002 from central_brain_prototype_closure_plan.json",
     "blocking_decisions": [
+      "FW-S-006 extension service closure classification",
+      "NV-F-012 observability closure classification",
       "real PCIe NPU hardware and vendor SDK",
       "production Android system service owner and sepolicy",
       "real event broker/runtime owner",

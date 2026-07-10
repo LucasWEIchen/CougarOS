@@ -405,3 +405,7 @@ bash tools/check_central_brain_linux_systemd_hardening.sh
 ### Prototype Completion Audit
 
 `central-brain/contracts/central_brain_prototype_completion_audit.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` provide the current-state completion matrix for the Python prototype. The audit marks the prototype as handoff-ready but not production-ready, keeps `python_prototype_current_scope_complete=false`, and records remaining production blockers without triggering Driver/HAL, hardware access, service dispatch, broker/DDS activation, or virtualization.
+
+### Prototype Closure Plan
+
+`central-brain/contracts/central_brain_prototype_closure_plan.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` split all architecture Req IDs into delivered prototype surfaces, current Python prototype closure actions, and production-only or target-platform blockers. The plan keeps the next work focused on `FW-S-006` extension service closure and `NV-F-012` observability closure while preserving Android/Linux parity, hardware empty interfaces, and no virtualization development.

@@ -90,6 +90,7 @@
     "python3 -m json.tool central-brain/contracts/central_brain_api.json",
     "python3 -m json.tool central-brain/contracts/central_brain_prototype_handoff_manifest.json",
     "python3 -m json.tool central-brain/contracts/central_brain_prototype_completion_audit.json",
+    "python3 -m json.tool central-brain/contracts/central_brain_prototype_closure_plan.json",
     "python3 -m json.tool central-brain/bindings/linux/ipc/central_brain_ipc_envelope.schema.json",
     "python3 -m py_compile central-brain/backend/mock_npu_service.py central-brain/backend/protocol_bindings.py central-brain/backend/delivery_readiness.py central-brain/backend/prototype_readiness.py central-brain/linux-cli/central_brain_cli.py central-brain/bindings/linux/ipc/central_brain_ipc_daemon.py central-brain/bindings/linux/ipc/central_brain_ipc_client.py central-brain/bindings/linux/grpc/central_brain_grpc_server.py central-brain/bindings/linux/grpc/central_brain_grpc_client.py",
     "bash tools/check_central_brain_binding_artifacts.sh",
@@ -128,7 +129,7 @@
     "ISSUE-018"
   ],
   "next_handoff_step": {
-    "candidate": "close remaining prototype audit gaps or mark production blockers explicitly out of prototype scope",
-    "description": "use central_brain_prototype_completion_audit.json as the current-state completion matrix without implementing hardware, Driver/HAL, broker runtime, or virtualization"
+    "candidate": "resolve prototype closure plan actions PY-CL-001 and PY-CL-002",
+    "description": "use central_brain_prototype_closure_plan.json to separate current Python prototype closure actions from production-only blockers without implementing hardware, Driver/HAL, broker runtime, or virtualization"
   }
 }

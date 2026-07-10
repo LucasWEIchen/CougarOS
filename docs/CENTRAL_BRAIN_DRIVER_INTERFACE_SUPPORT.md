@@ -345,3 +345,9 @@ NpuDevice.reset(reason)
 `central-brain/contracts/central_brain_prototype_completion_audit.json` 是 current-state evidence matrix，不是 Driver/HAL 实现计划。它把 HW-002、KH-003、KH-006、KH-007 和 DEL-005 标记为 `empty_interfaces_and_gap_backlog_delivered`，同时保留真实 PCIe NPU、vendor SDK、Driver/HAL ABI、target smoke evidence 和 Safety Runtime acceptance 为 remaining gap。
 
 该 audit 固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；它不改变 DRV-GAP-001/002/003/004/005 backlog，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory。
+
+## Prototype Closure Plan Driver/HAL Boundary
+
+`central-brain/contracts/central_brain_prototype_closure_plan.json` 是逐 Req ID closure plan，不是 Driver/HAL implementation plan。它把 `HW-002`、`KH-003`、`KH-006` 和 `KH-007` 保持为 empty-interface 与 gap-backlog 已交付状态，同时把 `HW-001`、`KH-001`、`KH-002`、`KH-004`、`KH-005`、`KH-008` 和 `KH-009` 标为 target-platform closure，不进入当前 Python 原型实现范围。
+
+该 plan 固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；它不改变 DRV-GAP-001/002/003/004/005 backlog，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory。

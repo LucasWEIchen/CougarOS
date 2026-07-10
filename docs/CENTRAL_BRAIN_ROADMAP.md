@@ -53,6 +53,12 @@
 
 ### 2026-07-10
 
+- 推进 all-baseline-Req-ID Python prototype closure plan：
+  - 新增 `central-brain/contracts/central_brain_prototype_closure_plan.json` 与 `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md`，把 APP/FW/NV/KH/HV/HW/XSC/DEL 全部 Req ID 分成已交付原型面、当前 Python 原型 closure action、production-only 或 target-platform blocker。
+  - 当前原型剩余 closure action 固定为 `PY-CL-001` `FW-S-006` extension service coverage 与 `PY-CL-002` `NV-F-012` observability coverage；customer apps、target OS/hardware、real sensors/time sync/connected/ADAS/SOME-IP/MQTT/big-data 和虚拟化被明确排除在当前 Python 原型实现范围外。
+  - 本轮只做静态 closure plan，不新增 runtime endpoint，不调用 POST，不持久化状态，不关闭 gate，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：APP-001..010、FW-U-001..008、FW-S-001..006、NV-F-001..012、NV-G-001..007、NV-P-001..007、KH-001..009、HV-001..003、HW-001..002、XSC-001..006、DEL-001..005。
+
 - 推进 XSC/DEL/APP/FW/NV/HW/KH current-state Python prototype completion audit：
   - 新增 `central-brain/contracts/central_brain_prototype_completion_audit.json` 与 `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md`，按当前 artifact 审计跨 SoC 组件、Android/Linux 交付、AI SDK、Uni Info Bus、SOA、Runtime & Governance、Protocol Binding、Vehicle Signal、NPU/Driver/HAL empty-interface 的完成状态。
   - 审计结论固定 `completion_audit_ready=true`、`python_prototype_current_scope_complete=false`、`prototype_handoff_ready=true`、`production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。

@@ -589,3 +589,10 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - `central-brain/contracts/central_brain_prototype_completion_audit.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` are the current-state completion matrix for the Python prototype.
 - The audit must report `completion_audit_ready=true`, `python_prototype_current_scope_complete=false`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
 - The audit is evidence-only; it must not add runtime endpoints, call POST, persist state, close gates, activate broker/DDS/high-rate transport, access hardware, implement Driver/HAL, or implement virtualization.
+
+### 2026-07-10 prototype closure plan trace
+
+- Req IDs: APP-001..010、FW-U-001..008、FW-S-001..006、NV-F-001..012、NV-G-001..007、NV-P-001..007、KH-001..009、HV-001..003、HW-001..002、XSC-001..006、DEL-001..005.
+- `central-brain/contracts/central_brain_prototype_closure_plan.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` split all architecture Req IDs into delivered current-prototype surfaces, current Python prototype closure actions, and production-only or target-platform blockers.
+- The plan must keep `closure_plan_ready=true`, `python_prototype_current_scope_complete=false`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+- Current Python prototype closure actions are `PY-CL-001` for `FW-S-006` extension service coverage and `PY-CL-002` for `NV-F-012` observability coverage. Customer apps, target OS/hardware, real sensors/time sync/connected/ADAS/SOME-IP/MQTT/big-data channels, and virtualization remain outside current Python prototype implementation scope unless a read-only placeholder is missing.
