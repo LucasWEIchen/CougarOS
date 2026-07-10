@@ -2328,6 +2328,80 @@ assert "EV-AHO-001" in encoded and "EV-AHO-010" in encoded and "EV-AHN-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_SUMMARY_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_SUMMARY_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+encoded = json.dumps(payload)
+gate_ids = {item["gate_id"] for item in payload["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert payload["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary", response
+assert payload["state"] == "contract-only-handoff-evidence-acceptance-closure-handoff-readiness-blocked", response
+assert payload["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_summary_active"] is True, response
+assert payload["source_decision_rollup_bound"] is True and payload["decision_rollup_consistent"] is True, response
+assert payload["closure_handoff_readiness_complete"] is True, response
+assert payload["closure_handoff_ready"] is False and payload["handoff_ready"] is False, response
+assert payload["activation_decision"] == "blocked-by-unassigned-reviewers", response
+assert payload["reviewer_assignment_decision_blocked"] is True, response
+assert payload["required_handoff_dependency_count"] == 10 and payload["open_handoff_dependency_count"] == 10, response
+assert payload["assigned_reviewer_count"] == 0 and payload["unassigned_reviewer_count"] == 10, response
+assert {"EV-AHP-001", "EV-AHP-002", "EV-AHP-003", "EV-AHP-004", "EV-AHP-005", "EV-AHP-006", "EV-AHP-007", "EV-AHP-008", "EV-AHP-009", "EV-AHP-010"} <= gate_ids, response
+assert len(payload["handoff_dependencies"]) == 10, response
+for item in payload["handoff_dependencies"]:
+    assert item["dependency_state"] == "blocked", response
+    assert item["handoff_ready"] is False, response
+    assert item["blocks_approval_review"] is True, response
+    assert item["blocks_gate_closure"] is True, response
+    assert item["blocks_broker_activation"] is True, response
+    assert item["source_gate_id"].startswith("EV-AHO-"), response
+    assert item["source_audit_gate_id"].startswith("EV-AHN-"), response
+    assert item["source_assignment_gate_id"].startswith("EV-AHM-"), response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_summary_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_active",
+    "source_decision_rollup_bound",
+    "decision_rollup_consistent",
+    "closure_handoff_readiness_complete",
+    "reviewer_assignment_decision_blocked",
+    "android_linux_closure_handoff_readiness_summary_parity",
+    "no_store_handoff_readiness_summary",
+    "no_queue_gate_broker_handoff_readiness_summary",
+    "no_side_effects_handoff_readiness_summary",
+]:
+    assert payload["summary"][key] is True, response
+for key in [
+    "closure_handoff_ready",
+    "handoff_ready",
+    "reviewer_assignment_ready",
+    "reviewer_assignment_decision_ready",
+    "reviewer_assignments_persisted",
+    "reviewer_assignment_queue_updated",
+    "handoff_evidence_acceptance_allowed",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "review_queue_updated",
+    "gates_closed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert payload["summary"][key] is False, response
+assert payload["summary"]["required_handoff_dependency_count"] == 10 and payload["summary"]["open_handoff_dependency_count"] == 10, response
+assert payload["summary"]["assigned_reviewer_count"] == 0 and payload["summary"]["unassigned_reviewer_count"] == 10, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary" in encoded, response
+assert "EV-AHP-001" in encoded and "EV-AHP-010" in encoded and "EV-AHO-010" in encoded and "EV-AHN-010" in encoded and "EV-AHM-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
