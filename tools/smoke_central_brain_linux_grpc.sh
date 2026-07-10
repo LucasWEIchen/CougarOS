@@ -2518,6 +2518,70 @@ assert "EV-AHQ-001" in encoded and "EV-AHQ-010" in encoded and "EV-AHP-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_AUDIT_DECISION_ROLLUP_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_HANDOFF_READINESS_AUDIT_DECISION_ROLLUP_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+rollup = payload["gateway"]["payload"]
+encoded = json.dumps(rollup)
+gate_ids = {item["gate_id"] for item in rollup["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert rollup["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup", response
+assert rollup["state"] == "contract-only-handoff-evidence-acceptance-closure-handoff-readiness-audit-decision-blocked", response
+assert rollup["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_active"] is True, response
+assert rollup["decision_rollup_complete"] is True and rollup["decision_rollup_consistent"] is True, response
+assert rollup["closure_handoff_audit_decision_blocked"] is True and rollup["closure_handoff_audit_decision_ready"] is False, response
+assert rollup["required_decision_count"] == 10 and rollup["blocked_decision_count"] == 10, response
+assert rollup["passed_audit_count"] == 10 and rollup["failed_audit_count"] == 0, response
+assert rollup["assigned_reviewer_count"] == 0 and rollup["unassigned_reviewer_count"] == 10, response
+assert {"EV-AHR-001", "EV-AHR-002", "EV-AHR-003", "EV-AHR-004", "EV-AHR-005", "EV-AHR-006", "EV-AHR-007", "EV-AHR-008", "EV-AHR-009", "EV-AHR-010"} <= gate_ids, response
+assert len(rollup["decision_items"]) == 10, response
+for item in rollup["decision_items"]:
+    assert item["decision_state"] == "blocked", response
+    assert item["decision_ready"] is False, response
+    assert item["source_audit_gate_id"].startswith("EV-AHQ-"), response
+    assert item["source_handoff_gate_id"].startswith("EV-AHP-"), response
+    assert item["source_decision_gate_id"].startswith("EV-AHO-"), response
+    assert item["reviewer_assigned"] is False and item["assignment_persisted"] is False and item["queue_updated"] is False, response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_decision_rollup_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_closure_handoff_readiness_audit_consistency_active",
+    "source_closure_handoff_readiness_audit_bound",
+    "closure_handoff_readiness_audit_consistent",
+    "decision_rollup_complete",
+    "decision_rollup_consistent",
+    "closure_handoff_audit_decision_blocked",
+]:
+    assert rollup["summary"][key] is True, response
+for key in [
+    "closure_handoff_audit_decision_ready",
+    "closure_handoff_ready",
+    "handoff_ready",
+    "reviewer_assignments_persisted",
+    "reviewer_assignment_queue_updated",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "review_queue_updated",
+    "gates_closed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert rollup["summary"][key] is False, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollup" in encoded, response
+assert "EV-AHR-001" in encoded and "EV-AHR-010" in encoded and "EV-AHQ-010" in encoded and "EV-AHP-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
