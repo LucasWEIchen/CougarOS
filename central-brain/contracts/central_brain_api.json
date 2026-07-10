@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.105",
+  "version": "0.1.106",
   "updated": "2026-07-10",
   "transport": {
     "prototype": "http-json",
@@ -12,6 +12,7 @@
     "shared_governance_deployment_plan": "GET /governance/deployment-plan reports Android system service, Linux daemon, and gRPC/RPC deployment shapes plus open decisions without implementing the production backend",
     "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
     "soa_extension_closure_summary": "GET /soa/extensions/closure-summary resolves PY-CL-001/FW-S-006 by joining SOA service contracts and Uni Info Bus extension registry visibility with Android Binder getSoaExtensionClosureSummaryJson, Linux CLI soa-extension-closure-summary, Linux IPC soa.extensions.closure.summary, and Linux gRPC/RPC GetSoaExtensionClosureSummary; it remains read-only, no-dispatch, no-hardware, no-Driver/HAL, and no-virtualization",
+    "observability_readiness": "GET /observability/readiness resolves PY-CL-002/NV-F-012 by joining /audit/recent, CENTRAL_BRAIN_AUDIT_LOG JSONL persistence sample, /delivery/readiness, /prototype/readiness, and /governance/runtime with Android Binder getObservabilityReadinessJson, Android Console Observability, Linux CLI observability-readiness, Linux IPC observability.readiness.get, and Linux gRPC/RPC GetObservabilityReadiness; it remains read-only and does not implement production_log_backend_ready, metric_daemon_ready, hardware_trace_capture_ready, service dispatch, hardware access, Driver/HAL, or virtualization",
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
     "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, EV-AE..EV-AHS event subscription activation closure chain summary, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
@@ -13428,6 +13429,52 @@
         "XSC-005",
         "NV-G-007",
         "DEL-002"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/observability/readiness",
+      "description": "Returns a read-only NV-F-012 observability readiness and PY-CL-002 closure summary by joining Runtime & Governance audit, optional JSONL audit persistence, delivery readiness, prototype readiness, and governance runtime diagnostics without starting a production log backend, metric daemon, hardware trace capture, service dispatch, Driver/HAL, or virtualization work.",
+      "response": {
+        "summary": {
+          "observability_readiness_active": true,
+          "nv_f_012_closure_ready": true,
+          "py_cl_002_resolved": true,
+          "audit_recent_bound": true,
+          "jsonl_audit_persistence_sample_bound": true,
+          "delivery_readiness_bound": true,
+          "prototype_readiness_bound": true,
+          "runtime_governance_bound": true,
+          "android_linux_binding_parity": true,
+          "production_log_backend_ready": false,
+          "metric_daemon_ready": false,
+          "hardware_trace_capture_ready": false,
+          "service_dispatch_triggered": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false
+        },
+        "android_delivery": {
+          "binder": "getObservabilityReadinessJson",
+          "console": "Observability"
+        },
+        "linux_delivery": {
+          "cli": "observability-readiness",
+          "ipc": "observability.readiness.get",
+          "grpc_rpc": "GetObservabilityReadiness"
+        }
+      },
+      "req_ids": [
+        "NV-F-012",
+        "XSC-005",
+        "XSC-006",
+        "NV-G-007",
+        "NV-P-002",
+        "NV-P-003",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003",
+        "DEL-004"
       ]
     },
     {

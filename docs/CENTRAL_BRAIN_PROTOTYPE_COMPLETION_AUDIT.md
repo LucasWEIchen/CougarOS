@@ -5,12 +5,12 @@ This current-state audit records what the Python prototype proves today and what
 ## Summary
 
 - Audit artifact: `central-brain/contracts/central_brain_prototype_completion_audit.json`
-- Baseline API contract: `0.1.105`
+- Baseline API contract: `0.1.106`
 - Baseline handoff manifest: `central-brain/contracts/central_brain_prototype_handoff_manifest.json`
 - Current state: Python prototype is handoff-ready, not production-ready.
-- Estimated current-scope completion after `PY-CL-001`: 86-92%.
+- Estimated current-scope completion after `PY-CL-002`: 92-96%.
 
-The audit keeps `python_prototype_current_scope_complete=false` because `NV-F-012` observability coverage still needs a closure decision, and real PCIe NPU hardware, production Android system service deployment, real Driver/HAL, real event broker/DDS/high-rate data plane, evidence/review/gate workflow, and virtualization remain unimplemented or explicitly outside scope.
+The audit keeps `python_prototype_current_scope_complete=false` until the final current-scope consistency pass is committed. `NV-F-012` observability coverage is now represented by `GET /observability/readiness`; real PCIe NPU hardware, production Android system service deployment, real Driver/HAL, real event broker/DDS/high-rate data plane, evidence/review/gate workflow, production logging/metric backends, and virtualization remain unimplemented or explicitly outside scope.
 
 ## Delivered Prototype Evidence
 
@@ -22,6 +22,7 @@ The audit marks the following groups as delivered for prototype handoff:
 - FW-U-001..008 Uni Info Bus semantic surfaces.
 - FW-S-001..005 SOA service contract and policy/safety-state entry surfaces.
 - NV-G-001..007 Runtime & Governance prototype surfaces.
+- NV-F-012 observability readiness surface through audit/readiness/governance diagnostics.
 - NV-P-002, NV-P-003, NV-P-005 and NV-P-006 Android Binder/Linux IPC/gRPC/REST/DDS-reservation binding surfaces.
 - HW-002, KH-003, KH-006 and KH-007 hardware empty interfaces and Driver/HAL gap backlog.
 
@@ -33,6 +34,7 @@ The following remain open by design:
 - ISSUE-013, ISSUE-014, ISSUE-016, ISSUE-017 and ISSUE-018 for Android system service, shared governance backend, hardware empty-interface replacement, vehicle signal read bridge, and event subscription activation.
 - Customer application modules APP-001..003 and APP-005..010 are not implemented in this Python prototype.
 - Real sensors, ADAS funcware, connected funcware, SOME/IP/MQTT/real DDS and OS base capabilities require target platform decisions.
+- Production log backend, metric daemon, hardware trace capture, retention/export policy and fleet observability ownership remain production blockers.
 
 ## Validation
 

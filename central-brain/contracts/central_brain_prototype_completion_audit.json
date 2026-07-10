@@ -2,7 +2,7 @@
   "audit_name": "central-brain-python-prototype-completion-audit",
   "audit_version": "0.1.0",
   "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.105",
+  "baseline_api_contract_version": "0.1.106",
   "baseline_handoff_manifest": "central-brain/contracts/central_brain_prototype_handoff_manifest.json",
   "closure_plan": "central-brain/contracts/central_brain_prototype_closure_plan.json",
   "baseline_commits": [
@@ -22,10 +22,10 @@
     "service_dispatch_triggered": false
   },
   "completion_estimate": {
-    "python_prototype_completion_lower_percent": 86,
-    "python_prototype_completion_upper_percent": 92,
-    "remaining_small_increment_count_lower": 2,
-    "remaining_small_increment_count_upper": 5
+    "python_prototype_completion_lower_percent": 92,
+    "python_prototype_completion_upper_percent": 96,
+    "remaining_small_increment_count_lower": 1,
+    "remaining_small_increment_count_upper": 2
   },
   "audit_scope_req_ids": [
     "XSC-001",
@@ -60,6 +60,7 @@
     "NV-F-008",
     "NV-F-009",
     "NV-F-011",
+    "NV-F-012",
     "NV-G-001",
     "NV-G-002",
     "NV-G-003",
@@ -200,6 +201,26 @@
       "remaining_gap": "production governance backend owner, credentials, persistent audit backend, and Android system service ownership remain open"
     },
     {
+      "group": "observability_trace_logging_metric",
+      "req_ids": [
+        "NV-F-012",
+        "XSC-005",
+        "XSC-006",
+        "NV-G-007"
+      ],
+      "state": "read_only_observability_readiness_delivered",
+      "evidence": [
+        "GET /observability/readiness",
+        "GET /audit/recent",
+        "CENTRAL_BRAIN_AUDIT_LOG JSONL sample",
+        "Android Binder getObservabilityReadinessJson",
+        "Linux CLI observability-readiness",
+        "Linux IPC observability.readiness.get",
+        "Linux gRPC/RPC GetObservabilityReadiness"
+      ],
+      "remaining_gap": "production log backend, metric daemon, hardware trace capture, target retention policy, and fleet observability ownership remain production blockers"
+    },
+    {
       "group": "protocol_binding",
       "req_ids": [
         "XSC-006",
@@ -276,7 +297,6 @@
         "NV-F-006",
         "NV-F-007",
         "NV-F-010",
-        "NV-F-012",
         "NV-P-001",
         "NV-P-004",
         "NV-P-007"
@@ -337,9 +357,8 @@
     "git diff --check"
   ],
   "next_step": {
-    "candidate": "resolve PY-CL-002 from central_brain_prototype_closure_plan.json",
+    "candidate": "run final current-scope completion audit consistency check and align handoff manifest versions",
     "blocking_decisions": [
-      "NV-F-012 observability closure classification",
       "real PCIe NPU hardware and vendor SDK",
       "production Android system service owner and sepolicy",
       "real event broker/runtime owner",

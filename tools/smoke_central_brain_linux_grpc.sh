@@ -2713,6 +2713,34 @@ assert summary["virtualization_development_triggered"] is False, response
 assert "FW-S-006" in encoded and "XSC-003" in encoded and "DEL-003" in encoded, response
 assert "soa.extensions.closure.summary" in encoded and "GetSoaExtensionClosureSummary" in encoded, response
 PY
+OBSERVABILITY_READINESS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" observability-readiness)"
+python3 - "$OBSERVABILITY_READINESS_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+readiness = payload["gateway"]["payload"]
+summary = readiness["summary"]
+encoded = json.dumps(readiness)
+assert response["status"] == "ok", response
+assert summary["observability_readiness_active"] is True, response
+assert summary["nv_f_012_closure_ready"] is True, response
+assert summary["py_cl_002_resolved"] is True, response
+assert summary["audit_recent_bound"] is True, response
+assert summary["jsonl_audit_persistence_sample_bound"] is True, response
+assert summary["delivery_readiness_bound"] is True, response
+assert summary["prototype_readiness_bound"] is True, response
+assert summary["production_log_backend_ready"] is False, response
+assert summary["metric_daemon_ready"] is False, response
+assert summary["hardware_trace_capture_ready"] is False, response
+assert summary["service_dispatch_triggered"] is False, response
+assert summary["hardware_accessed"] is False, response
+assert summary["driver_development_triggered"] is False, response
+assert summary["virtualization_development_triggered"] is False, response
+assert "NV-F-012" in encoded and "NV-G-007" in encoded and "DEL-004" in encoded, response
+assert "observability.readiness.get" in encoded and "GetObservabilityReadiness" in encoded, response
+PY
 BINDING_READINESS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" binding-readiness)"
 python3 - "$BINDING_READINESS_OUTPUT" <<'PY'
 import json

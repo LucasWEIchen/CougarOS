@@ -221,6 +221,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "governance-migration-check": ("governance.migration.check", {}),
     "governance-deployment-plan": ("governance.deployment.plan.get", {}),
     "audit": ("audit.recent.get", {}),
+    "observability-readiness": ("observability.readiness.get", {}),
     "bindings": ("bindings.list", {}),
     "binding-readiness": ("bindings.readiness.get", {}),
     "delivery-readiness": ("delivery.readiness.get", {}),

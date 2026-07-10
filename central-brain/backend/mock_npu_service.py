@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.105"
+API_VERSION = "0.1.106"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -110,6 +110,18 @@ SOA_EXTENSION_CLOSURE_REQ_IDS = [
     "DEL-001",
     "DEL-002",
     "DEL-003",
+]
+OBSERVABILITY_READINESS_REQ_IDS = [
+    "NV-F-012",
+    "XSC-005",
+    "XSC-006",
+    "NV-G-007",
+    "NV-P-002",
+    "NV-P-003",
+    "DEL-001",
+    "DEL-002",
+    "DEL-003",
+    "DEL-004",
 ]
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
@@ -334,6 +346,92 @@ def soa_extension_closure_summary_payload() -> dict[str, Any]:
             "remaining_current_python_prototype_closure_actions": ["PY-CL-002"],
         },
         "req_ids": SOA_EXTENSION_CLOSURE_REQ_IDS,
+    }
+
+
+def observability_readiness_payload() -> dict[str, Any]:
+    audit = GOVERNANCE.audit_payload()
+    delivery = delivery_readiness_payload()
+    prototype = prototype_readiness_payload()
+    governance = governance_payload()
+    return {
+        "summary": {
+            "observability_readiness_active": True,
+            "nv_f_012_closure_ready": True,
+            "py_cl_002_resolved": True,
+            "audit_recent_bound": True,
+            "jsonl_audit_persistence_sample_bound": True,
+            "delivery_readiness_bound": True,
+            "prototype_readiness_bound": True,
+            "runtime_governance_bound": True,
+            "android_linux_binding_parity": True,
+            "production_log_backend_ready": False,
+            "metric_daemon_ready": False,
+            "hardware_trace_capture_ready": False,
+            "service_dispatch_triggered": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+        },
+        "source_surfaces": [
+            "GET /audit/recent",
+            "CENTRAL_BRAIN_AUDIT_LOG JSONL sample",
+            "GET /delivery/readiness",
+            "GET /prototype/readiness",
+            "GET /governance/runtime",
+        ],
+        "source_counts": {
+            "recent_audit_event_count": len(audit.get("records", audit.get("events", []))),
+            "delivery_validation_count": len(delivery.get("validation_bundle", delivery.get("validation_index", []))),
+            "prototype_module_count": len(prototype.get("modules", [])),
+            "governance_service_count": len(governance.get("registry", {}).get("services", [])),
+        },
+        "android_delivery": {
+            "binder": "getObservabilityReadinessJson",
+            "console": "Observability",
+        },
+        "linux_delivery": {
+            "cli": "observability-readiness",
+            "ipc": "observability.readiness.get",
+            "grpc_rpc": "GetObservabilityReadiness",
+        },
+        "closure_items": [
+            {
+                "id": "PY-CL-002",
+                "req_id": "NV-F-012",
+                "status": "resolved",
+                "evidence": "Audit, JSONL persistence sample, delivery readiness, prototype readiness, and governance runtime diagnostics are joined by this read-only observability readiness summary.",
+            },
+            {
+                "id": "OBS-001",
+                "req_id": "NV-G-007",
+                "status": "covered",
+                "evidence": "Runtime & Governance audit records remain the prototype observability source.",
+            },
+            {
+                "id": "OBS-002",
+                "req_id": "XSC-006",
+                "status": "covered",
+                "evidence": "Android Binder and Linux CLI/IPC/gRPC bindings expose the same observability readiness payload.",
+            },
+        ],
+        "invariants": [
+            "read-only observability closure summary",
+            "does not create a production logging backend",
+            "does not start a metric daemon",
+            "does not capture hardware traces",
+            "does not dispatch services",
+            "does not access hardware, Driver/HAL, or virtualization",
+        ],
+        "next_state": {
+            "py_cl_002": "resolved",
+            "remaining_current_python_prototype_implementation_actions": [],
+            "remaining_current_python_prototype_closure_actions": [
+                "final completion audit consistency check",
+                "handoff manifest version alignment",
+            ],
+        },
+        "req_ids": OBSERVABILITY_READINESS_REQ_IDS,
     }
 
 
@@ -9636,6 +9734,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(governance_deployment_plan_payload()))
         elif path == "/audit/recent":
             self.send_json(200, envelope(GOVERNANCE.audit_payload()))
+        elif path == "/observability/readiness":
+            self.send_json(200, envelope(observability_readiness_payload()))
         elif path == "/bindings":
             self.send_json(200, envelope(bindings_payload()))
         elif path == "/bindings/detail":

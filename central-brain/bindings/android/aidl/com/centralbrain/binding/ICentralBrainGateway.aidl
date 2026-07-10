@@ -149,6 +149,8 @@ interface ICentralBrainGateway {
 
     String getRecentAuditJson(String traceId, int limit);
 
+    String getObservabilityReadinessJson(String traceId);
+
     String listBindingsJson(String traceId);
 
     String getBindingDetailJson(String traceId);

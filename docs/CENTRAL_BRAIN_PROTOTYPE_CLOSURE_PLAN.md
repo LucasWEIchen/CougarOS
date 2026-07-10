@@ -6,15 +6,15 @@ This document turns the completion audit into a requirement-by-requirement closu
 
 - Contract: `central-brain/contracts/central_brain_prototype_closure_plan.json`
 - Baseline completion audit: `central-brain/contracts/central_brain_prototype_completion_audit.json`
-- Baseline API contract: `0.1.105`
-- Current estimate after `PY-CL-001` closure: 88-92%
+- Baseline API contract: `0.1.106`
+- Current estimate after `PY-CL-002` closure: 92-96%
 
-The closure plan keeps `python_prototype_current_scope_complete=false` because `NV-F-012` observability coverage remains open. `PY-CL-001` / `FW-S-006` is now resolved by `GET /soa/extensions/closure-summary`.
+The closure plan keeps `python_prototype_current_scope_complete=false` until the final current-scope completion audit consistency check is committed. `PY-CL-001` / `FW-S-006` is resolved by `GET /soa/extensions/closure-summary`; `PY-CL-002` / `NV-F-012` is resolved by `GET /observability/readiness`.
 
 ## Current Prototype Closure Actions
 
 - `PY-CL-001`: resolved by `GET /soa/extensions/closure-summary`, Android Binder `getSoaExtensionClosureSummaryJson` / Console `SOA Ext Close`, and Linux `soa-extension-closure-summary` / `soa.extensions.closure.summary` / `GetSoaExtensionClosureSummary`.
-- `PY-CL-002`: decide whether `NV-F-012` is sufficiently represented by `/audit/recent`, JSONL audit persistence, delivery readiness and prototype readiness, or add a small read-only observability readiness summary.
+- `PY-CL-002`: resolved by `GET /observability/readiness`, Android Binder `getObservabilityReadinessJson` / Console `Observability`, and Linux `observability-readiness` / `observability.readiness.get` / `GetObservabilityReadiness`.
 - `PY-CL-003`: keep customer application modules `APP-001..003` and `APP-005..010` outside Python prototype completion criteria.
 - `PY-CL-004`: keep chip OS base and UniSOC hardware baseline IDs as target-platform responsibilities.
 - `PY-CL-005`: keep real sensors, time sync, connected funcware, ADAS funcware and production network bindings outside the current Python prototype unless a read-only placeholder is missing.
@@ -24,14 +24,14 @@ The closure plan keeps `python_prototype_current_scope_complete=false` because `
 
 - Customer apps: `APP-001..003`, `APP-005..010`.
 - Target OS and hardware base: `HW-001`, `KH-001`, `KH-002`, `KH-004`, `KH-005`, `KH-008`, `KH-009`.
-- Production funcware and protocol runtimes: `NV-F-002`, `NV-F-006`, `NV-F-007`, `NV-F-010`, `NV-P-001`, `NV-P-004`, `NV-P-007`.
+- Production funcware and protocol runtimes: `NV-F-002`, `NV-F-006`, `NV-F-007`, `NV-F-010`, `NV-P-001`, `NV-P-004`, `NV-P-007`; `NV-F-012` production logging/metrics/hardware trace backend remains production-only, while the current prototype closure surface is delivered.
 - Virtualization: `HV-001..003` remains documentation-only by user constraint.
 
 ## Boundaries
 
 This closure plan is read-only and evidence-only:
 
-- no runtime endpoint
+- no production observability backend
 - no POST call
 - no persistence
 - no owner or reviewer assignment

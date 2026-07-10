@@ -2,7 +2,7 @@
   "manifest_name": "central-brain-python-prototype-handoff",
   "manifest_version": "0.1.0",
   "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.104",
+  "baseline_api_contract_version": "0.1.106",
   "baseline_commit": "2884438c",
   "status": {
     "prototype_handoff_ready": true,
@@ -29,6 +29,7 @@
   ],
   "source_surfaces": {
     "prototype_readiness": "GET /prototype/readiness",
+    "observability_readiness": "GET /observability/readiness",
     "delivery_readiness": "GET /delivery/readiness",
     "binding_readiness": "GET /bindings/readiness",
     "driver_gap_backlog": "GET /native/driver-gaps",
@@ -45,6 +46,7 @@
     ],
     "primary_methods": [
       "getPrototypeReadinessJson",
+      "getObservabilityReadinessJson",
       "getDeliveryReadinessJson",
       "getBindingReadinessJson",
       "getDriverHalGapsJson",
@@ -65,6 +67,7 @@
     ],
     "primary_commands": [
       "prototype-readiness",
+      "observability-readiness",
       "delivery-readiness",
       "binding-readiness",
       "driver-gaps",
@@ -72,6 +75,7 @@
     ],
     "ipc_operations": [
       "prototype.readiness.get",
+      "observability.readiness.get",
       "delivery.readiness.get",
       "bindings.readiness.get",
       "native.driver.gaps.get",
@@ -79,6 +83,7 @@
     ],
     "grpc_rpc_methods": [
       "GetPrototypeReadiness",
+      "GetObservabilityReadiness",
       "GetDeliveryReadiness",
       "GetBindingReadiness",
       "GetDriverHalGaps",
@@ -129,7 +134,7 @@
     "ISSUE-018"
   ],
   "next_handoff_step": {
-    "candidate": "resolve prototype closure plan action PY-CL-002",
-    "description": "PY-CL-001/FW-S-006 is covered by GET /soa/extensions/closure-summary; next use central_brain_prototype_closure_plan.json to close NV-F-012 observability without implementing hardware, Driver/HAL, broker runtime, or virtualization"
+    "candidate": "run final current-scope completion audit consistency check",
+    "description": "PY-CL-001/FW-S-006 is covered by GET /soa/extensions/closure-summary and PY-CL-002/NV-F-012 is covered by GET /observability/readiness; next align final completion audit evidence without implementing hardware, Driver/HAL, broker runtime, or virtualization"
   }
 }

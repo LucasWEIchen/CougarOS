@@ -53,6 +53,12 @@
 
 ### 2026-07-10
 
+- 推进 `PY-CL-002` / `NV-F-012` observability readiness closure：
+  - 新增 `GET /observability/readiness`，把 `/audit/recent`、`CENTRAL_BRAIN_AUDIT_LOG` JSONL audit persistence sample、`/delivery/readiness`、`/prototype/readiness` 和 `/governance/runtime` 聚合为只读 observability closure evidence，明确 `py_cl_002_resolved=true`。
+  - Android 主路径新增 Binder `getObservabilityReadinessJson` 与 Console `Observability`；Linux 同步路径新增 CLI `observability-readiness`、IPC `observability.readiness.get` 和 gRPC/RPC `GetObservabilityReadiness`。
+  - 本轮只做 read-only readiness，不创建 production log backend，不启动 metric daemon，不采集 hardware trace，不 dispatch service，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：`NV-F-012`、`XSC-005`、`XSC-006`、`NV-G-007`、`NV-P-002`、`NV-P-003`、`DEL-001`、`DEL-002`、`DEL-003`、`DEL-004`。
+
 - 推进 `PY-CL-001` / `FW-S-006` SOA extension service closure summary：
   - 新增 `GET /soa/extensions/closure-summary`，把 `/soa/contracts` 的 SOA service contract visibility 与 `/uib/extensions` 的 Uni Info Bus extension registry 聚合成只读 closure evidence，明确 `py_cl_001_resolved=true`。
   - Android 主路径新增 Binder `getSoaExtensionClosureSummaryJson` 与 Console `SOA Ext Close`；Linux 同步路径新增 CLI `soa-extension-closure-summary`、IPC `soa.extensions.closure.summary` 和 gRPC/RPC `GetSoaExtensionClosureSummary`。

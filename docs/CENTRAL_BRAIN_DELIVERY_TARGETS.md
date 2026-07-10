@@ -620,7 +620,7 @@ FW-U-003/NV-P-006 的 EV-AE..EV-AHS closure chain 现在通过既有 `GET /proto
 
 `central-brain/contracts/central_brain_prototype_closure_plan.json` 和 `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` 是逐 Req ID closure plan，覆盖 APP-001..010、FW-U-001..008、FW-S-001..006、NV-F-001..012、NV-G-001..007、NV-P-001..007、KH-001..009、HV-001..003、HW-001..002、XSC-001..006、DEL-001..005。
 
-该 plan 固定 `closure_plan_ready=true`、`python_prototype_current_scope_complete=false`、`prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。`PY-CL-001` / `FW-S-006` 已由 `GET /soa/extensions/closure-summary` 关闭；当前原型 closure action 只剩 `PY-CL-002` / `NV-F-012` observability coverage。其余 customer app、target OS/hardware、真实传感器/时间同步/联网/智驾/协议运行时和虚拟化项均是 production-only 或 target-platform blocker。
+该 plan 固定 `closure_plan_ready=true`、`python_prototype_current_scope_complete=false`、`prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。`PY-CL-001` / `FW-S-006` 已由 `GET /soa/extensions/closure-summary` 关闭；`PY-CL-002` / `NV-F-012` 已由 `GET /observability/readiness` 关闭。其余 customer app、target OS/hardware、真实传感器/时间同步/联网/智驾/协议运行时和虚拟化项均是 production-only 或 target-platform blocker。
 
 ## SOA Extension Closure Summary 交付补充
 
@@ -629,3 +629,11 @@ FW-U-003/NV-P-006 的 EV-AE..EV-AHS closure chain 现在通过既有 `GET /proto
 Android 主路径：Binder `getSoaExtensionClosureSummaryJson`，Console `SOA Ext Close`。Linux 同步路径：CLI `soa-extension-closure-summary`，IPC `soa.extensions.closure.summary`，gRPC/RPC `GetSoaExtensionClosureSummary`。
 
 该交付面不 dispatch service，不加载动态插件，不持久化状态，不访问硬件，不开发 Driver/HAL，也不实现虚拟化。
+
+## Observability Readiness 交付补充
+
+`GET /observability/readiness` 是 `PY-CL-002` / `NV-F-012` 的只读交付面，供 Android/Linux 座舱域工程师确认当前 Python prototype 已把 audit、JSONL audit persistence sample、delivery readiness、prototype readiness 和 governance runtime diagnostics 连接到同一个 observability readiness view。
+
+Android 主路径：Binder `getObservabilityReadinessJson`，Console `Observability`。Linux 同步路径：CLI `observability-readiness`，IPC `observability.readiness.get`，gRPC/RPC `GetObservabilityReadiness`。
+
+该交付面不实现 production log backend，不启动 metric daemon，不采集 hardware trace，不 dispatch service，不访问硬件，不开发 Driver/HAL，也不实现虚拟化。

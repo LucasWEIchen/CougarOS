@@ -79,6 +79,7 @@ Brain semantic gateway.
 | `getGovernanceDeploymentPlanJson` | `GET /governance/deployment-plan` | XSC-005, XSC-006, NV-G-001..007, NV-P-002, NV-P-003, DEL-001, DEL-002, DEL-003, DEL-004 |
 | `getRuntimeGovernanceJson` | `GET /governance/runtime` | XSC-005, NV-G-001..007 |
 | `getRecentAuditJson` | `GET /audit/recent` | XSC-005, NV-G-007 |
+| `getObservabilityReadinessJson` | `GET /observability/readiness` | NV-F-012, XSC-005, XSC-006, NV-G-007, DEL-001 |
 | `listBindingsJson` | `GET /bindings` | XSC-006, NV-P-001..006 |
 | `getBindingDetailJson` | `GET /bindings/detail` | XSC-006, NV-P-002 |
 | `getBindingReadinessJson` | `GET /bindings/readiness` | XSC-006, NV-P-001..006, DEL-001..004 |
@@ -174,6 +175,12 @@ Brain semantic gateway.
   issues, next increment candidates, and no-goal boundaries without dispatching
   services, touching hardware, creating Driver/HAL scope, or creating
   virtualization work.
+- `getObservabilityReadinessJson` exposes the Android main path for
+  `GET /observability/readiness` through the Console `Observability` action.
+  It resolves `PY-CL-002` / `NV-F-012` by joining audit, optional JSONL audit
+  persistence, delivery readiness, prototype readiness, and governance runtime
+  diagnostics. It does not implement a production log backend, metric daemon,
+  hardware trace capture, Driver/HAL, or virtualization.
 - `getUibExtensionsJson` exposes FW-U-008 extension registry contract metadata,
   governance rules, binding visibility, and no-dispatch boundaries. It does
   not load plugins, dispatch SOA services, access Driver/HAL, or create

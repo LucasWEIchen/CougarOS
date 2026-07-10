@@ -355,6 +355,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/audit/recent",
         "req_ids": ["XSC-005", "XSC-006", "NV-G-007", "NV-P-002", "DEL-002"],
     },
+    "observability.readiness.get": {
+        "method": "GET",
+        "path": "/observability/readiness",
+        "req_ids": ["NV-F-012", "XSC-005", "XSC-006", "NV-G-007", "NV-P-002", "NV-P-003", "DEL-001", "DEL-002", "DEL-003", "DEL-004"],
+    },
     "bindings.list": {
         "method": "GET",
         "path": "/bindings",

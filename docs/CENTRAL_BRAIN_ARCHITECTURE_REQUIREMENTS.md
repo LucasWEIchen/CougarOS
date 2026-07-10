@@ -604,3 +604,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Android primary delivery: Binder `getSoaExtensionClosureSummaryJson` and Console `SOA Ext Close`.
 - Linux synchronized delivery: CLI `soa-extension-closure-summary`, IPC `soa.extensions.closure.summary`, and gRPC/RPC `GetSoaExtensionClosureSummary`.
 - Boundary: this is not a dynamic extension runtime, schema registry, plugin loader, service implementation, service dispatch path, Driver/HAL integration, hardware access path, or virtualization implementation. `ISSUE-015` remains Proposed until target extension lifecycle and plugin sandbox rules are confirmed.
+
+### 2026-07-10 NV-F-012 observability readiness closure
+
+- Req IDs: `NV-F-012`、`XSC-005`、`XSC-006`、`NV-G-007`、`NV-P-002`、`NV-P-003`、`DEL-001`、`DEL-002`、`DEL-003`、`DEL-004`.
+- `GET /observability/readiness` resolves `PY-CL-002` by binding Runtime & Governance audit, optional JSONL audit persistence, delivery readiness, prototype readiness, and governance runtime diagnostics into one read-only observability readiness surface.
+- Android primary delivery: Binder `getObservabilityReadinessJson` and Console `Observability`.
+- Linux synchronized delivery: CLI `observability-readiness`, IPC `observability.readiness.get`, and gRPC/RPC `GetObservabilityReadiness`.
+- The surface must report `observability_readiness_active=true`, `nv_f_012_closure_ready=true`, `py_cl_002_resolved=true`, `audit_recent_bound=true`, `jsonl_audit_persistence_sample_bound=true`, `delivery_readiness_bound=true`, `prototype_readiness_bound=true`, `production_log_backend_ready=false`, `metric_daemon_ready=false`, `hardware_trace_capture_ready=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
+- Boundary: this closes the current Python prototype observability classification only. It does not implement a production log backend, metric daemon, hardware trace capture, retention/export policy, fleet observability backend, Driver/HAL, or virtualization.

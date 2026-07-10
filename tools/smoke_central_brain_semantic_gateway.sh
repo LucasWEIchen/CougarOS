@@ -506,6 +506,7 @@ checks = [
         "FW-S-005",
     ),
     ("GET", "/audit/recent", None, "NV-G-007"),
+    ("GET", "/observability/readiness", None, "NV-F-012"),
 ]
 
 for method, path, body, req_id in checks:
@@ -5132,6 +5133,28 @@ for method, path, body, req_id in checks:
         events = payload["payload"]["events"]
         assert events, "audit endpoint did not record the SOA call"
         assert events[0]["outcome"] == "completed", "latest audit event is not the SOA completion"
+    if path == "/observability/readiness":
+        summary = payload["payload"]["summary"]
+        encoded = json.dumps(payload)
+        assert summary["observability_readiness_active"] is True, "observability readiness inactive"
+        assert summary["nv_f_012_closure_ready"] is True, "NV-F-012 closure not ready"
+        assert summary["py_cl_002_resolved"] is True, "PY-CL-002 not resolved"
+        assert summary["audit_recent_bound"] is True, "observability readiness missing audit binding"
+        assert summary["jsonl_audit_persistence_sample_bound"] is True, "observability readiness missing JSONL audit sample binding"
+        assert summary["delivery_readiness_bound"] is True, "observability readiness missing delivery readiness binding"
+        assert summary["prototype_readiness_bound"] is True, "observability readiness missing prototype readiness binding"
+        assert summary["production_log_backend_ready"] is False, "observability readiness overstated production log backend"
+        assert summary["metric_daemon_ready"] is False, "observability readiness started metric daemon"
+        assert summary["hardware_trace_capture_ready"] is False, "observability readiness enabled hardware trace capture"
+        assert summary["service_dispatch_triggered"] is False, "observability readiness dispatched service"
+        assert summary["hardware_accessed"] is False, "observability readiness accessed hardware"
+        assert summary["driver_development_triggered"] is False, "observability readiness triggered Driver/HAL"
+        assert summary["virtualization_development_triggered"] is False, "observability readiness triggered virtualization"
+        assert "getObservabilityReadinessJson" in encoded, "Android observability readiness binding missing"
+        assert "observability-readiness" in encoded, "Linux CLI observability readiness binding missing"
+        assert "observability.readiness.get" in encoded, "Linux IPC observability readiness binding missing"
+        assert "GetObservabilityReadiness" in encoded, "Linux gRPC/RPC observability readiness binding missing"
+        assert "NV-F-012" in encoded and "NV-G-007" in encoded and "DEL-004" in encoded, "observability readiness missing Req IDs"
 
 print("semantic gateway smoke ok")
 PY
@@ -5192,6 +5215,7 @@ CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/ce
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" action-request >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" governance-precheck >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" audit >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" observability-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-detail >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" binding-readiness >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" delivery-readiness >/dev/null

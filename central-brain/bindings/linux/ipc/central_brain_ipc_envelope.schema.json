@@ -76,6 +76,7 @@
         "governance.deployment.plan.get",
         "governance.runtime.get",
         "audit.recent.get",
+        "observability.readiness.get",
         "bindings.list",
         "bindings.readiness.get",
         "delivery.readiness.get",

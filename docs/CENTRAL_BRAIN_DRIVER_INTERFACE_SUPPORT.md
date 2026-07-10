@@ -357,3 +357,9 @@ NpuDevice.reset(reason)
 `GET /soa/extensions/closure-summary` 只把 `GET /soa/contracts` 与 `GET /uib/extensions` 聚合为 `PY-CL-001` / `FW-S-006` 的 read-only closure evidence。Android 绑定为 `getSoaExtensionClosureSummaryJson` / `SOA Ext Close`，Linux 绑定为 `soa-extension-closure-summary`、`soa.extensions.closure.summary` 和 `GetSoaExtensionClosureSummary`。
 
 该接口固定 `service_dispatch_triggered=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；不加载动态 extension runtime，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory，不产生新增 Driver/HAL 开发量。
+
+## Observability Readiness Driver/HAL Boundary
+
+`GET /observability/readiness` 是 `PY-CL-002` / `NV-F-012` 的只读 observability closure surface。Android 主路径为 Binder `getObservabilityReadinessJson` 与 Console `Observability`；Linux 同步路径为 CLI `observability-readiness`、IPC `observability.readiness.get` 和 gRPC/RPC `GetObservabilityReadiness`。
+
+该接口只聚合 `/audit/recent`、`CENTRAL_BRAIN_AUDIT_LOG` JSONL audit persistence sample、`/delivery/readiness`、`/prototype/readiness` 和 `/governance/runtime`，不打开 device node，不调用 HAL/vendor SDK，不采集 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory trace，不启动 metric daemon，也不新增 Driver/HAL 开发量。`production_log_backend_ready=false`、`metric_daemon_ready=false`、`hardware_trace_capture_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false` 是验收条件。

@@ -6,7 +6,7 @@ This document is the cockpit-domain engineer handoff index for the current Centr
 
 - Manifest: `central-brain/contracts/central_brain_prototype_handoff_manifest.json`
 - Baseline API contract: `central-brain/contracts/central_brain_api.json`
-- Baseline API version: `0.1.104`
+- Baseline API version: `0.1.106`
 - Baseline commit: `2884438c`
 - Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005
 
@@ -17,6 +17,7 @@ Android is the primary delivery path. The current handoff includes the debug Con
 Primary Android methods:
 
 - `getPrototypeReadinessJson`
+- `getObservabilityReadinessJson`
 - `getDeliveryReadinessJson`
 - `getBindingReadinessJson`
 - `getDriverHalGapsJson`
@@ -31,6 +32,7 @@ Linux is delivered as synchronized CLI, Unix socket IPC, and gRPC/RPC JSON contr
 Primary Linux commands:
 
 - `prototype-readiness`
+- `observability-readiness`
 - `delivery-readiness`
 - `binding-readiness`
 - `driver-gaps`
@@ -39,17 +41,25 @@ Primary Linux commands:
 Primary Linux IPC/RPC operations:
 
 - `prototype.readiness.get`
+- `observability.readiness.get`
 - `delivery.readiness.get`
 - `bindings.readiness.get`
 - `native.driver.gaps.get`
 - `hardware.interfaces.get`
 - `GetPrototypeReadiness`
+- `GetObservabilityReadiness`
 - `GetDeliveryReadiness`
 - `GetBindingReadiness`
 - `GetDriverHalGaps`
 - `GetHardwareInterfaces`
 
 The Linux path remains sample CLI/IPC/gRPC delivery. It does not activate production daemon ownership, real gRPC runtime credentials, MQTT/SOME-IP/DDS runtime, high-rate data plane, or production package management beyond the documented sample profile.
+
+## Observability Handoff
+
+`GET /observability/readiness` is the current `PY-CL-002` / `NV-F-012` handoff surface. It is visible through Android Binder `getObservabilityReadinessJson` / Console `Observability` and Linux `observability-readiness` / `observability.readiness.get` / `GetObservabilityReadiness`.
+
+This handoff surface is read-only. It does not implement a production log backend, metric daemon, hardware trace capture, Driver/HAL, or virtualization.
 
 ## Validation Index
 

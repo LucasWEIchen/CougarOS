@@ -311,6 +311,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "governance-deployment-plan": ("GetGovernanceDeploymentPlan", {}),
     "governance": ("GetRuntimeGovernance", {}),
     "audit": ("GetRecentAudit", {"limit": 10}),
+    "observability-readiness": ("GetObservabilityReadiness", {}),
     "infer": (
         "InvokeService",
         {

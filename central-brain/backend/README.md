@@ -61,6 +61,7 @@ bash tools/run_central_brain_backend.sh
 - `GET /governance/migration-check`
 - `GET /governance/deployment-plan`
 - `GET /audit/recent`
+- `GET /observability/readiness`
 - `GET /bindings`
 - `GET /bindings/detail`
 - `GET /bindings/readiness`
@@ -219,6 +220,8 @@ bash tools/run_central_brain_backend.sh
 `GET /delivery/readiness` 覆盖 DEL-001、DEL-002、DEL-003、DEL-004、DEL-005、XSC-001..006，从 `delivery_readiness.py` 返回 Android debug Console/Binder、Android system service note、Linux CLI、Linux IPC、Linux gRPC/RPC、Linux systemd/package profile、Driver/HAL gap backlog 和虚拟化约束的交付状态、验证命令和阻塞项；它只做交付 metadata visibility，不实现 Android system service、真实 gRPC runtime、量产包管理、生产共享治理后端、Driver/HAL、Safety Runtime、车辆总线或虚拟化层。
 
 `GET /prototype/readiness` 覆盖 XSC-001..006、DEL-001..005、HW-002、KH-003、KH-006、KH-007，从 `prototype_readiness.py` 返回 Python 原型模块成熟度、Android 主路径、Linux 同步路径、开放偏差、开放问题和下一步候选增量；它只做产品/架构/交付状态总览，明确 `production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。
+
+`GET /observability/readiness` 覆盖 NV-F-012、XSC-005、XSC-006、NV-G-007、NV-P-002、NV-P-003、DEL-001、DEL-002、DEL-003、DEL-004，用只读 payload 关闭 `PY-CL-002`：它聚合 `/audit/recent`、`CENTRAL_BRAIN_AUDIT_LOG` JSONL persistence sample、`/delivery/readiness`、`/prototype/readiness` 和 `/governance/runtime`，并暴露 Android Binder `getObservabilityReadinessJson` / Console `Observability`、Linux CLI `observability-readiness`、Linux IPC `observability.readiness.get` 和 Linux gRPC/RPC `GetObservabilityReadiness`。该接口固定 `production_log_backend_ready=false`、`metric_daemon_ready=false`、`hardware_trace_capture_ready=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。
 
 ## 验证
 

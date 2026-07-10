@@ -294,6 +294,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getGovernanceDeploymentPlanJson(traceId);
     }
 
+    public String getObservabilityReadinessJson(String traceId) throws RemoteException {
+        return requireGateway().getObservabilityReadinessJson(traceId);
+    }
+
     public String getBindingDetailJson(String traceId) throws RemoteException {
         return requireGateway().getBindingDetailJson(traceId);
     }

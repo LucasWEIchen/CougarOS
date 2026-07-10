@@ -2,7 +2,7 @@
   "closure_plan_name": "central-brain-python-prototype-req-closure-plan",
   "closure_plan_version": "0.1.0",
   "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.105",
+  "baseline_api_contract_version": "0.1.106",
   "baseline_completion_audit": "central-brain/contracts/central_brain_prototype_completion_audit.json",
   "baseline_commits": [
     "203ed8d4"
@@ -15,16 +15,18 @@
     "android_primary_path_ready": true,
     "linux_synchronized_path_ready": true,
     "py_cl_001_resolved": true,
+    "py_cl_002_resolved": true,
+    "current_python_prototype_implementation_actions_complete": true,
     "hardware_accessed": false,
     "driver_development_triggered": false,
     "virtualization_development_triggered": false,
     "service_dispatch_triggered": false
   },
   "completion_estimate_after_closure_plan": {
-    "python_prototype_completion_lower_percent": 88,
-    "python_prototype_completion_upper_percent": 92,
-    "remaining_small_increment_count_lower": 2,
-    "remaining_small_increment_count_upper": 4
+    "python_prototype_completion_lower_percent": 92,
+    "python_prototype_completion_upper_percent": 96,
+    "remaining_small_increment_count_lower": 1,
+    "remaining_small_increment_count_upper": 2
   },
   "all_baseline_req_ids": [
     "XSC-001",
@@ -176,20 +178,20 @@
         "no Driver/HAL",
         "no virtualization"
       ]
-    }
-  ],
-  "current_python_prototype_open_closure_actions": [
+    },
     {
       "id": "PY-CL-002",
       "req_ids": [
         "NV-F-012"
       ],
-      "classification": "current_python_prototype_closure_action",
-      "action": "Decide whether NV-F-012 Trace/Logging/Metric is sufficiently represented by /audit/recent, JSONL audit persistence, delivery readiness, and prototype readiness, or add a small read-only observability readiness summary.",
-      "evidence_required": [
-        "audit persistence smoke or explicit observability readiness surface",
-        "Android/Linux visibility statement",
-        "Driver/HAL no-access boundary"
+      "classification": "resolved_current_python_prototype_closure_action",
+      "action": "Resolved by GET /observability/readiness, which joins audit, optional JSONL audit persistence, delivery readiness, prototype readiness, and governance runtime diagnostics into a read-only observability closure surface.",
+      "evidence": [
+        "GET /observability/readiness",
+        "Android Binder getObservabilityReadinessJson and Console Observability",
+        "Linux CLI observability-readiness",
+        "Linux IPC observability.readiness.get",
+        "Linux gRPC/RPC GetObservabilityReadiness"
       ],
       "must_not_do": [
         "no production log backend",
@@ -198,7 +200,9 @@
         "no Driver/HAL",
         "no virtualization"
       ]
-    },
+    }
+  ],
+  "current_python_prototype_open_closure_actions": [
     {
       "id": "PY-CL-003",
       "req_ids": [
@@ -379,8 +383,8 @@
     "git diff --check"
   ],
   "next_step": {
-    "candidate": "resolve PY-CL-002 with either explicit production-only notes or a small read-only observability readiness summary",
-    "remaining_small_increment_count_lower": 2,
-    "remaining_small_increment_count_upper": 4
+    "candidate": "run final current-scope completion audit consistency check and align handoff manifest versions",
+    "remaining_small_increment_count_lower": 1,
+    "remaining_small_increment_count_upper": 2
   }
 }

@@ -103,6 +103,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryButton;
     private Button soaExtensionClosureSummaryButton;
+    private Button observabilityReadinessButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -728,6 +729,12 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 getSoaExtensionClosureSummary();
+            }
+        });
+        observabilityReadinessButton = addButton(readinessRow, "Observability", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getObservabilityReadiness();
             }
         });
         prototypeReadinessButton = addButton(readinessRow, "Prototype", new View.OnClickListener() {
@@ -1637,6 +1644,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getObservabilityReadiness() {
+        setBusy(true, "Status: loading observability readiness via Binder");
+        gatewayRequest("Observability Readiness (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getObservabilityReadinessJson(newTraceId("observability-readiness"));
+            }
+        });
+    }
+
     private void getVehicleSignals() {
         setBusy(true, "Status: loading vehicle signal catalog via Binder");
         gatewayRequest("Vehicle Signals (Binder)", new GatewayCall() {
@@ -1675,7 +1692,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Sub ApDec, Sub ApDStat, Sub ApDAudit, Sub ApClose, Sub ApHand, Sub ApHAud, Sub ApHRoll, Sub ApHEv, Sub ApHEvAud, Sub ApHAcc, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, SOA Ext Close, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Sub ApDec, Sub ApDStat, Sub ApDAudit, Sub ApClose, Sub ApHand, Sub ApHAud, Sub ApHRoll, Sub ApHEv, Sub ApHEvAud, Sub ApHAcc, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, SOA Ext Close, Observability, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -1804,6 +1821,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryButton.setEnabled(enabled);
         soaExtensionClosureSummaryButton.setEnabled(enabled);
+        observabilityReadinessButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 
