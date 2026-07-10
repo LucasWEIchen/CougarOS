@@ -609,3 +609,9 @@ FW-U-003/NV-P-006 的 EV-AE..EV-AHS closure chain 现在通过既有 `GET /proto
 该 manifest 固定 `prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。Android 交付索引包括 `getPrototypeReadinessJson`、`getDeliveryReadinessJson`、`getBindingReadinessJson`、`getDriverHalGapsJson` 和 `getHardwareInterfacesJson`；Linux 交付索引包括 `prototype-readiness`、`delivery-readiness`、`binding-readiness`、`driver-gaps`、`hardware-interfaces`、`prototype.readiness.get`、`delivery.readiness.get`、`bindings.readiness.get`、`native.driver.gaps.get`、`hardware.interfaces.get`、`GetPrototypeReadiness`、`GetDeliveryReadiness`、`GetBindingReadiness`、`GetDriverHalGaps` 和 `GetHardwareInterfaces`。
 
 该 manifest 只做交付索引，不新增 runtime endpoint，不调用 POST，不持久化状态，不分配 owner/reviewer，不接受 evidence，不关闭 gate，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+
+## Python Prototype Completion Audit 交付补充
+
+`central-brain/contracts/central_brain_prototype_completion_audit.json` 和 `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` 是当前 Python prototype 的 current-state completion matrix。审计覆盖 XSC-001..006、DEL-001..005、APP-004、FW-U-001..008、FW-S-001..005、NV-F-001/NV-F-003/NV-F-004/NV-F-005/NV-F-008/NV-F-009/NV-F-011、NV-G-001..007、NV-P-002/NV-P-003/NV-P-005/NV-P-006、HW-002、KH-003、KH-006、KH-007。
+
+该 audit 固定 `completion_audit_ready=true`、`python_prototype_current_scope_complete=false`、`prototype_handoff_ready=true`、`production_ready=false`、`android_primary_path_ready=true`、`linux_synchronized_path_ready=true`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。它只做证据矩阵，不新增 runtime endpoint，不调用 POST，不持久化状态，不分配 owner/reviewer，不接受 evidence，不关闭 gate，不激活 broker/DDS/high-rate data plane，不访问硬件，不开发 Driver/HAL 或虚拟化层。

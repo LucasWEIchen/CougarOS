@@ -582,3 +582,10 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - `central-brain/contracts/central_brain_prototype_handoff_manifest.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md` are the static Android/Linux prototype handoff index for cockpit-domain engineers.
 - The manifest must report `prototype_handoff_ready=true`, `production_ready=false`, Android primary path ready, Linux synchronized path ready, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
 - The manifest is documentation/contract delivery only; it must not add runtime endpoints, call POST, persist state, close gates, activate broker/DDS/high-rate transport, access hardware, implement Driver/HAL, or implement virtualization.
+
+### 2026-07-10 prototype completion audit trace
+
+- Req IDs: XSC-001..006、DEL-001..005、APP-004、FW-U-001..008、FW-S-001..005、NV-F-001/NV-F-003/NV-F-004/NV-F-005/NV-F-008/NV-F-009/NV-F-011、NV-G-001..007、NV-P-002/NV-P-003/NV-P-005/NV-P-006、HW-002、KH-003、KH-006、KH-007.
+- `central-brain/contracts/central_brain_prototype_completion_audit.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` are the current-state completion matrix for the Python prototype.
+- The audit must report `completion_audit_ready=true`, `python_prototype_current_scope_complete=false`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+- The audit is evidence-only; it must not add runtime endpoints, call POST, persist state, close gates, activate broker/DDS/high-rate transport, access hardware, implement Driver/HAL, or implement virtualization.

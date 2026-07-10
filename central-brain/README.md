@@ -401,3 +401,7 @@ bash tools/check_central_brain_linux_systemd_hardening.sh
 ### Prototype Handoff Manifest
 
 `central-brain/contracts/central_brain_prototype_handoff_manifest.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md` provide the static Android/Linux handoff index for cockpit-domain engineers. The manifest points to the Android Binder/Console artifacts, Linux CLI/IPC/gRPC samples, readiness surfaces, validation commands, Driver/HAL gap entry points, and remaining production blockers. It is documentation/contract delivery only and keeps `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
+
+### Prototype Completion Audit
+
+`central-brain/contracts/central_brain_prototype_completion_audit.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` provide the current-state completion matrix for the Python prototype. The audit marks the prototype as handoff-ready but not production-ready, keeps `python_prototype_current_scope_complete=false`, and records remaining production blockers without triggering Driver/HAL, hardware access, service dispatch, broker/DDS activation, or virtualization.

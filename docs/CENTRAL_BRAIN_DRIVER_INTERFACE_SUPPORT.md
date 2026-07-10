@@ -339,3 +339,9 @@ NpuDevice.reset(reason)
 `central-brain/contracts/central_brain_prototype_handoff_manifest.json` 只是 Android/Linux prototype delivery handoff index。它引用 `GET /native/driver-gaps` 和 `GET /hardware/interfaces` 作为 Driver/HAL gap 与 hardware empty-interface 的交付入口，但不改变任何 gap 状态，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory。
 
 该 manifest 固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；若目标平台后续要求真实 Driver/HAL、vendor SDK、shared memory 或 DDS/TSN/PTP 支持，必须先在 DRV-GAP backlog 中记录 owner、ABI、smoke evidence 和 acceptance gates。
+
+## Prototype Completion Audit Driver/HAL Boundary
+
+`central-brain/contracts/central_brain_prototype_completion_audit.json` 是 current-state evidence matrix，不是 Driver/HAL 实现计划。它把 HW-002、KH-003、KH-006、KH-007 和 DEL-005 标记为 `empty_interfaces_and_gap_backlog_delivered`，同时保留真实 PCIe NPU、vendor SDK、Driver/HAL ABI、target smoke evidence 和 Safety Runtime acceptance 为 remaining gap。
+
+该 audit 固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；它不改变 DRV-GAP-001/002/003/004/005 backlog，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory。
