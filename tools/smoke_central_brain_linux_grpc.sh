@@ -2293,6 +2293,82 @@ assert "EV-AHN-001" in encoded and "EV-AHN-010" in encoded and "EV-AHM-010" in e
 assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
 assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
 PY
+EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_AUDIT_DECISION_ROLLUP_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup)"
+python3 - "$EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_AUDIT_DECISION_ROLLUP_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = json.loads(response["payload_json"])
+decision = payload["gateway"]["payload"]
+encoded = json.dumps(decision)
+gate_ids = {item["gate_id"] for item in decision["mandatory_gates"]}
+assert response["status"] == "ok", response
+assert decision["operation"] == "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup", response
+assert decision["state"] == "contract-only-handoff-evidence-acceptance-closure-reviewer-assignment-decision-blocked", response
+assert decision["approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_active"] is True, response
+assert decision["decision_rollup_complete"] is True and decision["decision_rollup_consistent"] is True, response
+assert decision["source_reviewer_assignment_audit_bound"] is True and decision["reviewer_assignment_audit_consistent"] is True, response
+assert decision["reviewer_assignment_decision_blocked"] is True and decision["reviewer_assignment_decision_ready"] is False, response
+assert decision["reviewer_assignment_decision"] == "blocked-by-unassigned-reviewers", response
+assert decision["required_decision_count"] == 10 and decision["blocked_decision_count"] == 10, response
+assert decision["assigned_reviewer_count"] == 0 and decision["unassigned_reviewer_count"] == 10, response
+assert {"EV-AHO-001", "EV-AHO-002", "EV-AHO-003", "EV-AHO-004", "EV-AHO-005", "EV-AHO-006", "EV-AHO-007", "EV-AHO-008", "EV-AHO-009", "EV-AHO-010"} <= gate_ids, response
+assert len(decision["decision_items"]) == 10, response
+for item in decision["decision_items"]:
+    assert item["decision"] == "blocked-by-unassigned-reviewers", response
+    assert item["decision_ready"] is False, response
+    assert item["decision_blocked"] is True, response
+    assert item["reviewer_assignment_audit_passed"] is True, response
+    assert item["reviewer_assignment_still_blocked"] is True, response
+    assert item["reviewer_assigned"] is False, response
+    assert item["assignment_persisted"] is False, response
+    assert item["queue_updated"] is False, response
+    assert item["source_audit_gate_id"].startswith("EV-AHN-"), response
+    assert item["source_assignment_gate_id"].startswith("EV-AHM-"), response
+for key in [
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_active",
+    "activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active",
+    "decision_rollup_complete",
+    "decision_rollup_consistent",
+    "source_reviewer_assignment_audit_bound",
+    "reviewer_assignment_audit_consistent",
+    "reviewer_assignment_decision_blocked",
+    "consistency_passed",
+    "reviewer_assignment_count_consistent",
+    "reviewer_assignment_blocker_state_consistent",
+    "no_store_consistent",
+    "no_post_consistent",
+    "no_side_effects_consistent",
+    "android_linux_reviewer_assignment_audit_parity",
+]:
+    assert decision["summary"][key] is True, response
+for key in [
+    "reviewer_assignment_decision_ready",
+    "reviewer_assignment_ready",
+    "reviewer_assignments_persisted",
+    "reviewer_assignment_queue_updated",
+    "approval_review_allowed",
+    "gate_closure_allowed",
+    "broker_activation_allowed",
+    "activation_allowed",
+    "review_queue_updated",
+    "gates_closed",
+    "hardware_accessed",
+    "driver_development_triggered",
+    "virtualization_development_triggered",
+    "service_dispatch_triggered",
+]:
+    assert decision["summary"][key] is False, response
+assert decision["summary"]["assigned_reviewer_count"] == 0 and decision["summary"]["unassigned_reviewer_count"] == 10, response
+assert "getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson" in encoded, response
+assert "event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup" in encoded, response
+assert "uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup" in encoded, response
+assert "GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup" in encoded, response
+assert "EV-AHO-001" in encoded and "EV-AHO-010" in encoded and "EV-AHN-010" in encoded and "EV-AHM-010" in encoded, response
+assert "DRV-GAP-004" in encoded and "DRV-GAP-005" in encoded, response
+assert "NV-P-006" in encoded and "FW-U-003" in encoded and "DEL-004" in encoded, response
+PY
 EXTENSIONS_OUTPUT="$(CENTRAL_BRAIN_GRPC_HOST=127.0.0.1 CENTRAL_BRAIN_GRPC_PORT="$GRPC_PORT" python3 "$ROOT_DIR/central-brain/bindings/linux/grpc/central_brain_grpc_client.py" extensions)"
 python3 - "$EXTENSIONS_OUTPUT" <<'PY'
 import json
