@@ -53,7 +53,63 @@ CENTRAL_BRAIN_AUDIT_LOG=/tmp/central-brain-audit.jsonl
 
 注意：Android 模拟器需要访问宿主机服务，因此后端应监听 `0.0.0.0:8787` 或至少对模拟器可达。
 
-## 3. 确认原型当前状态
+## 3. 启用 Ollama 仿真 NPU
+
+如果当前环境已有 Ollama，可以把它作为用户态 simulated NPU 模型运行时。它只替代 Python mock 推理结果，不代表真实 PCIe NPU、Driver/HAL、vendor SDK、DMA、共享内存、Safety Runtime 或虚拟化可用。
+
+先确认 Ollama 可达：
+
+```bash
+curl -s http://127.0.0.1:11434/api/tags | python3 -m json.tool
+```
+
+再用 Ollama 后端启动 Central Brain：
+
+```bash
+cd /home/normad400/appDev
+CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama \
+CENTRAL_BRAIN_OLLAMA_URL=http://127.0.0.1:11434 \
+CENTRAL_BRAIN_OLLAMA_MODEL=qwen3.5:27b-optimized \
+CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS=120000 \
+bash tools/run_central_brain_backend.sh
+```
+
+验证状态：
+
+```bash
+curl -s http://127.0.0.1:8787/npu/status | python3 -m json.tool
+```
+
+直接推理：
+
+```bash
+curl -s http://127.0.0.1:8787/ai/infer \
+  -H 'Content-Type: application/json' \
+  -d '{"runtime":"ollama","model":"central-intent-v0","input":{"utterance":"query vehicle state"},"policy":{"safety_state_required":"normal","timeout_ms":2000}}' \
+  | python3 -m json.tool
+```
+
+Linux CLI 也能通过 SOA `npu-inference` 走同一后端：
+
+```bash
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama \
+CENTRAL_BRAIN_OLLAMA_MODEL=qwen3.5:27b-optimized \
+python3 central-brain/linux-cli/central_brain_cli.py infer
+```
+
+期望边界字段仍保持：
+
+```text
+runtime=ollama-simulated-npu
+simulated_npu_backend=ollama
+hardware_accessed=false
+driver_development_triggered=false
+virtualization_development_triggered=false
+production_ready=false
+```
+
+## 4. 确认原型当前状态
 
 先检查健康状态：
 
@@ -88,7 +144,7 @@ service_dispatch_triggered=false
 
 这些字段的含义是：当前 Python 原型范围已可交付给 Android/Linux 座舱域工程师试用和对接，但不代表量产系统已经完成。
 
-## 4. Linux CLI 常用入口
+## 5. Linux CLI 常用入口
 
 所有命令默认读取 `CENTRAL_BRAIN_BASE_URL`，未设置时默认为 `http://127.0.0.1:8787`。
 
@@ -156,7 +212,7 @@ python3 central-brain/linux-cli/central_brain_cli.py vehicle-signal-activation
 python3 central-brain/linux-cli/central_brain_cli.py vehicle-signal-validation
 ```
 
-## 5. Android Console 使用方式
+## 6. Android Console 使用方式
 
 启动后端后，构建 Android debug APK：
 
@@ -196,7 +252,7 @@ Android Console 通过 Binder sample 调用后端。常用按钮与接口对应�
 
 注意：当前 Android 交付是普通 App + Binder sample，用于模拟 App layer 到中间层/AI base 的联通；不是量产 privileged/system service 部署。
 
-## 6. Linux IPC 使用方式
+## 7. Linux IPC 使用方式
 
 优先用 smoke script 验证 IPC 样例：
 
@@ -224,7 +280,7 @@ python3 central-brain/bindings/linux/ipc/central_brain_ipc_client.py \
 
 IPC 样例表达 Linux 进程间 contract shape；它不是量产 broker，也不激活真实硬件或 Driver/HAL。
 
-## 7. Linux gRPC/RPC JSON Contract Sample
+## 8. Linux gRPC/RPC JSON Contract Sample
 
 优先用 smoke script 验证：
 
@@ -250,7 +306,7 @@ python3 central-brain/bindings/linux/grpc/central_brain_grpc_client.py \
   --host 127.0.0.1 --port 18788 delivery-readiness
 ```
 
-## 8. 交付前验证
+## 9. 交付前验证
 
 从仓库根目录执行：
 
@@ -266,6 +322,7 @@ bash tools/check_central_brain_virtualization_docs.sh
 bash tools/smoke_central_brain_semantic_gateway.sh
 bash tools/smoke_central_brain_audit_persistence.sh
 bash tools/smoke_central_brain_qos.sh
+bash tools/smoke_central_brain_ollama_simulated_npu.sh
 bash tools/smoke_central_brain_linux_ipc.sh
 bash tools/smoke_central_brain_linux_grpc.sh
 bash tools/build_central_brain_console.sh
@@ -280,7 +337,7 @@ git diff --check
 - Driver/HAL 与虚拟化边界没有被误实现。
 - Python 原型 smoke test 仍可启动和返回 expected evidence。
 
-## 9. 当前边界与不能做的事
+## 10. 当前边界与不能做的事
 
 当前 Python 原型不做这些事：
 
@@ -293,7 +350,7 @@ git diff --check
 
 如果目标 Android/Linux 环境缺少必要用户态桥接、device node、ioctl、sysfs、vendor SDK 或权限模型，应先更新 `docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` 和相关 deviation/issue 文档，再决定是否新增 Driver/HAL 开发量。
 
-## 10. 常用参考文件
+## 11. 常用参考文件
 
 - `central-brain/contracts/central_brain_api.json`：完整 REST、Android Binder、Linux CLI/IPC/gRPC 映射。
 - `central-brain/contracts/central_brain_prototype_handoff_manifest.json`：原型 handoff manifest。

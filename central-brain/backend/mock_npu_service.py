@@ -27,6 +27,10 @@ from ai_sdk import skills_payload as ai_sdk_skills_payload
 from delivery_readiness import delivery_readiness_payload as delivery_readiness_contract_payload
 from hardware_interfaces import HardwareInterfaceRegistry
 from native_adapters import NativeAdapterRegistry
+from ollama_simulated_npu import infer_payload as ollama_infer_payload
+from ollama_simulated_npu import runtime_name as simulated_npu_runtime_name
+from ollama_simulated_npu import selected_backend as selected_simulated_npu_backend
+from ollama_simulated_npu import status_payload as ollama_status_payload
 from prototype_readiness import PrototypeReadinessRegistry
 from protocol_bindings import ProtocolBindingRegistry
 from runtime_governance import RuntimeGovernance
@@ -219,6 +223,8 @@ def npu_status() -> dict[str, Any]:
     requested_vendor = os.environ.get("CENTRAL_BRAIN_NPU_VENDOR_ID")
     requested_device = os.environ.get("CENTRAL_BRAIN_NPU_DEVICE")
     pci_devices = discover_pci_devices()
+    simulated_backend = selected_simulated_npu_backend()
+    simulated_status = ollama_status_payload()
     matched = [
         dev for dev in pci_devices
         if requested_vendor and dev.get("vendor", "").lower() == requested_vendor.lower()
@@ -232,23 +238,31 @@ def npu_status() -> dict[str, Any]:
 
     return {
         "mode": mode,
-        "runtime": "mock-npu",
+        "runtime": simulated_npu_runtime_name(),
+        "simulated_npu_backend": simulated_backend,
+        "simulated_backend_status": simulated_status,
         "device_node": requested_device,
         "requested_vendor": requested_vendor,
         "pci_devices_sample": pci_devices,
         "matched_devices": matched,
+        "production_ready": False,
+        "hardware_accessed": False,
+        "driver_development_triggered": False,
+        "virtualization_development_triggered": False,
+        "service_dispatch_triggered": False,
         "model_slots": [
             {
                 "model": "central-intent-v0",
                 "state": "loaded",
-                "backend": mode
+                "backend": simulated_backend
             },
             {
                 "model": "vehicle-scene-v0",
                 "state": "loaded",
-                "backend": mode
+                "backend": simulated_backend
             }
-        ]
+        ],
+        "req_ids": ["XSC-001", "HW-002", "NV-F-011", "KH-003", "KH-006", "DEL-001", "DEL-002", "DEL-005"]
     }
 
 
@@ -9628,12 +9642,14 @@ def inference_payload(request: dict[str, Any]) -> dict[str, Any]:
     input_value = request.get("input", {})
     policy = request.get("policy", {})
     required_state = policy.get("safety_state_required", "normal")
+    runtime = simulated_npu_runtime_name(request)
 
     if required_state != "normal":
         return {
             "request_id": str(uuid.uuid4()),
             "model": model,
-            "runtime": "mock-npu",
+            "runtime": runtime,
+            "simulated_npu_backend": selected_simulated_npu_backend(request),
             "status": "rejected",
             "result": {
                 "reason": "prototype only accepts normal safety state"
@@ -9641,8 +9657,15 @@ def inference_payload(request: dict[str, Any]) -> dict[str, Any]:
             "metrics": {
                 "queue_ms": 0.2,
                 "inference_ms": 0.0
-            }
+            },
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+            "production_ready": False
         }
+
+    if selected_simulated_npu_backend(request) == "ollama":
+        return ollama_infer_payload(request, started)
 
     time.sleep(0.03)
     inference_ms = (time.time() - started) * 1000
@@ -9660,7 +9683,12 @@ def inference_payload(request: dict[str, Any]) -> dict[str, Any]:
         "metrics": {
             "queue_ms": 0.4,
             "inference_ms": round(inference_ms, 3)
-        }
+        },
+        "hardware_accessed": False,
+        "driver_development_triggered": False,
+        "virtualization_development_triggered": False,
+        "production_ready": False,
+        "req_ids": ["XSC-001", "HW-002", "NV-F-011", "DEL-001", "DEL-002"]
     }
 
 

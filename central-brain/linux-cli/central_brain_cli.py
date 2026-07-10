@@ -595,7 +595,9 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
             "method": "infer",
             "caller_permissions": ["ai.infer", "service.read"],
             "payload": {
+                "runtime": os.environ.get("CENTRAL_BRAIN_SIMULATED_NPU_BACKEND", "mock"),
                 "model": "central-intent-v0",
+                "ollama_model": os.environ.get("CENTRAL_BRAIN_OLLAMA_MODEL", "qwen3.5:27b-optimized"),
                 "input": {"utterance": "query vehicle state"},
                 "policy": {"safety_state_required": "normal", "timeout_ms": 2000},
             },

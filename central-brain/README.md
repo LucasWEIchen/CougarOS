@@ -5,7 +5,8 @@
 ## 目录
 
 - `contracts/`：Android 前端、中间层和后端之间的服务契约。
-- `backend/`：WSL 本地 mock NPU 后端，模拟 PCIe NPU runtime。
+- `backend/`：WSL 本地 mock NPU 后端，可选接入 Ollama 作为用户态仿真 NPU runtime。
+- `backend/ollama_simulated_npu.py`：Ollama simulated-NPU adapter，只调用本机 Ollama HTTP API，不访问 PCIe NPU、Driver/HAL、vendor SDK、DMA、共享内存、Safety Runtime 或虚拟化接口。
 - `backend/ai_sdk.py`：AI SDK/Agent facade mock，输出 policy-aware task graph。
 - `backend/hardware_interfaces.py`：硬件依赖空接口注册表，覆盖 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 的预留方法和 no-hardware-access 边界。
 - `backend/native_adapters.py`：Native adapter 注册表，表达 AIOS Kernel、SOA Service Adapter、Vehicle Signal Adapter、Model Runtime Adapter 的 Android/Linux 交付边界和 Driver/HAL gap backlog。
@@ -26,6 +27,14 @@
 启动后端：
 
 ```bash
+bash tools/run_central_brain_backend.sh
+```
+
+使用本机 Ollama 作为仿真 NPU 模型后端：
+
+```bash
+CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama \
+CENTRAL_BRAIN_OLLAMA_MODEL=qwen3.5:27b-optimized \
 bash tools/run_central_brain_backend.sh
 ```
 

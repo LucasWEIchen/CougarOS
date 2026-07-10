@@ -23672,14 +23672,16 @@
     {
       "method": "GET",
       "path": "/npu/status",
-      "description": "Returns external PCIe NPU runtime and discovery status."
+      "description": "Returns external PCIe NPU discovery status plus mock or Ollama simulated-NPU backend status without touching hardware, Driver/HAL, vendor SDK, DMA, shared memory, Safety Runtime, or virtualization."
     },
     {
       "method": "POST",
       "path": "/ai/infer",
-      "description": "Submits a mock inference request.",
+      "description": "Submits a mock or Ollama simulated-NPU inference request. Ollama remains a user-space simulation backend behind the Model Runtime Adapter boundary, not a real PCIe NPU, Driver/HAL, or vendor SDK.",
       "request": {
+        "runtime": "mock|ollama|ollama-simulated-npu",
         "model": "string",
+        "ollama_model": "string",
         "input": "object|string",
         "policy": {
           "safety_state_required": "normal",
@@ -23689,13 +23691,24 @@
       "response": {
         "request_id": "string",
         "model": "string",
-        "runtime": "mock-npu",
+        "runtime": "mock-npu|ollama-simulated-npu",
+        "simulated_npu_backend": "mock|ollama",
+        "backend_model": "string|null",
         "status": "ok|rejected|error",
-        "result": "object",
+        "result": {
+          "generated_text": "string",
+          "visible_text_available": "boolean",
+          "ollama_done": "boolean"
+        },
         "metrics": {
           "queue_ms": "number",
-          "inference_ms": "number"
-        }
+          "inference_ms": "number",
+          "ollama_eval_count": "number|null"
+        },
+        "hardware_accessed": false,
+        "driver_development_triggered": false,
+        "virtualization_development_triggered": false,
+        "production_ready": false
       }
     },
     {

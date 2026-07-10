@@ -1,6 +1,7 @@
 # Mock NPU Backend
 
 `mock_npu_service.py` 是第一阶段后端，用标准库 HTTP server 模拟中央大脑 AI 基座。
+`ollama_simulated_npu.py` 是可选 Ollama simulated-NPU adapter，只作为用户态仿真模型运行时，不访问 PCIe NPU、Driver/HAL、vendor SDK、DMA、共享内存、Safety Runtime 或虚拟化接口。
 `ai_sdk.py` 承载当前 AI SDK/Agent facade mock，用 intent/utterance 生成 policy-aware task graph，并提供 execute/Skill/Memory contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007。
 `runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、per-service fixed-window QoS 和可选 JSONL 审计持久化。
 `protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、带 shared SOA Runtime & Governance precheck/runtime/audit direct diagnostics + fallback 的 Linux IPC active sample、Linux gRPC/RPC JSON contract sample 和 MQTT/SOME-IP/DDS 计划态。
@@ -119,8 +120,13 @@ bash tools/run_central_brain_backend.sh
 - `CENTRAL_BRAIN_NPU_VENDOR_ID`：用于模拟指定 PCIe vendor id。
 - `CENTRAL_BRAIN_NPU_DEVICE`：用于标记真实或模拟 NPU 设备节点。
 - `CENTRAL_BRAIN_AUDIT_LOG`：可选 JSONL 审计日志路径；设置后 `/audit/recent` 会在服务重启后恢复最近 50 条 SOA 审计记录，覆盖 XSC-005、NV-G-007、DEL-002。
+- `CENTRAL_BRAIN_SIMULATED_NPU_BACKEND`：设置为 `ollama`、`ollama-simulated-npu` 或 `simulated-ollama` 时，`/ai/infer` 与 SOA `npu-inference` 使用 Ollama simulated-NPU adapter；默认 `mock`。
+- `CENTRAL_BRAIN_OLLAMA_URL`：Ollama HTTP API 地址，默认 `http://127.0.0.1:11434`。
+- `CENTRAL_BRAIN_OLLAMA_MODEL`：Ollama 模型名，默认 `qwen3.5:27b-optimized`。
+- `CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS`：Ollama 请求超时，默认 `60000`。
+- `CENTRAL_BRAIN_OLLAMA_NUM_PREDICT`：Ollama 推理 token 上限，默认 `96`。
 
-当前服务只做 mock，不访问真实 NPU。`/agent/execute`、`/skills/{skill_id}/invoke` 和 `/memory/query` 只做 Policy/Safety State 检查、audit 记录和 contract 边界展示，不运行真实 Skill sandbox、Memory store、Model Runtime Adapter、Driver/HAL、车身总线或虚拟化层。
+当前服务默认只做 mock；启用 Ollama 时也只是用户态 simulated NPU 模型运行时。`GET /npu/status` 会报告 `runtime=ollama-simulated-npu`、`simulated_npu_backend=ollama`、Ollama 可达性和模型列表；`POST /ai/infer` 与 SOA `npu-inference` 会返回 `generated_text`、`backend_model` 和 false 边界字段。该路径固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、`production_ready=false`，不表示 DRV-GAP-001 已关闭，也不运行真实 Skill sandbox、Memory store、Driver/HAL、车身总线或虚拟化层。
 
 `GET /native/driver-gaps` 覆盖 KH-003、KH-006、KH-007、DEL-005，只返回 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 缺口、触发条件和 Android/Linux 目标接口；`summary.driver_development_triggered=false` 表示本轮没有新增真实 Driver/HAL 开发。
 

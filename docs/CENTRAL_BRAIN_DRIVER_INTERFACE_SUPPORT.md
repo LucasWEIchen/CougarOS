@@ -11,6 +11,8 @@
 
 2026-07-04/05 本轮语义网关、Runtime & Governance、Protocol Binding contract skeleton、Native adapters mock、Linux IPC active sample、Linux gRPC/RPC JSON contract sample、Android Binder service stub sample、Linux systemd 部署样例与 Android/Linux 平台差异说明增量只新增 Uni Info Bus/SOA/Governance/Binding/Native Adapter mock、Policy/Audit active prototype、Android AIDL 与 Binder service/client sample、Linux Unix socket IPC daemon/client sample、Linux gRPC/RPC contract sample、Linux CLI、systemd unit 和交付文档，不访问真实 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，因此未触发新增驱动开发条件。
 
+2026-07-11 Ollama simulated NPU 增量只新增 `central-brain/backend/ollama_simulated_npu.py`、`CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama` 启用路径和 `tools/smoke_central_brain_ollama_simulated_npu.sh` 验证脚本。该路径只调用本机 Ollama HTTP API 来替代 mock 推理文本，仍固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、`production_ready=false`；不访问 PCIe NPU、device node、ioctl、sysfs、vendor SDK、DMA-BUF、共享内存或 Safety Runtime，因此不关闭 DRV-GAP-001，也未触发 Driver/HAL 新增开发。
+
 A7 虚拟化与 Safety 接口约束增量只新增 `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 和 `tools/check_central_brain_virtualization_docs.sh`，覆盖 HV-001..003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004；不新增 Hypervisor、Safety Runtime、跨 VM 共享内存、Driver/HAL 或 NPU/GPU/Camera/Audio/ETH/Vehicle bus 代码。
 
 A1 Event active mock 增量只新增 `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` 语义入口，以及 Android Binder、Linux IPC、gRPC contract skeleton 的 Event 映射；覆盖 XSC-002、XSC-006、FW-U-003、NV-P-002、NV-P-006、DEL-001、DEL-002。不新增 DDS、高频传感器 topic、共享内存、Driver/HAL、NPU/GPU/Camera/Audio/ETH/Vehicle bus 或虚拟化代码。

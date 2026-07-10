@@ -98,7 +98,9 @@ Model Runtime Adapter 接收的推理请求必须保留 Uni Info Bus/SOA 的治�
 
 ## 当前项目状态
 
-- `GET /npu/status` 仍是 mock runtime 状态，不表示真实 driver/HAL 可用。
+- `GET /npu/status` 默认仍是 mock runtime 状态；当 `CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama` 时，它报告 Ollama simulated NPU backend 的可达性、模型名和 `runtime=ollama-simulated-npu`，但仍不表示真实 driver/HAL 可用。
+- `POST /ai/infer` 与 SOA `npu-inference` 可通过 `runtime=ollama` 或环境变量启用 Ollama simulated NPU backend，返回本机 Ollama 生成文本、`backend_model` 和 metrics；该路径只位于 Model Runtime Adapter 的用户态仿真层，不触碰 PCIe NPU、HAL、vendor SDK、DMA/IOMMU、Safety Runtime 或虚拟化。
+- Ollama simulated NPU backend 固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、`production_ready=false`，不会关闭 `DRV-GAP-001`。
 - `GET /hardware/interfaces` 的 `npu-runtime` 只暴露 reserved methods 和 Android/Linux 目标路径，`hardware_accessed=false`，不表示 HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 可用。
 - `GET /hardware/interfaces/activation-checklist` 只暴露 `HW-ACT-001..008` 激活前门禁，`activation_allowed=false`、`owner_decision_complete=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`，不表示 PCIe NPU、HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 已可用。
 - `GET /hardware/interfaces/owner-decision-status` 只暴露 `HW-ODS-001..008` owner 决策状态，`all_required_owners_assigned=false`、`target_hardware_smoke_attached=false`、`rollback_fault_semantics_confirmed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`，不表示 PCIe NPU、HAL、vendor SDK、DMA/IOMMU 或 Safety Runtime 已可用。
