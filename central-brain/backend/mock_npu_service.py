@@ -34,7 +34,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.104"
+API_VERSION = "0.1.105"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -99,6 +99,18 @@ EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANC
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_AUDIT_DECISION_ROLLUP_CLOSURE_HANDOFF_READINESS_AUDIT_CONSISTENCY_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_AUDIT_DECISION_ROLLUP_CLOSURE_HANDOFF_READINESS_AUDIT_DECISION_ROLLUP_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
 EVENT_SUBSCRIPTION_ACTIVATION_APPROVAL_DECISION_OWNER_HANDOFF_EVIDENCE_ACCEPTANCE_CLOSURE_READINESS_DECISION_REVIEWER_ASSIGNMENT_AUDIT_DECISION_ROLLUP_CLOSURE_HANDOFF_READINESS_AUDIT_DECISION_ROLLUP_CLOSURE_BLOCKER_MATRIX_REQ_IDS = EVENT_SUBSCRIPTION_TRANSPORT_REQ_IDS
+SOA_EXTENSION_CLOSURE_REQ_IDS = [
+    "FW-S-006",
+    "XSC-003",
+    "XSC-005",
+    "XSC-006",
+    "NV-G-001",
+    "NV-G-002",
+    "NV-G-003",
+    "DEL-001",
+    "DEL-002",
+    "DEL-003",
+]
 
 UIB_EXTENSION_REGISTRY: list[dict[str, Any]] = [
     {
@@ -243,6 +255,86 @@ def services_payload() -> dict[str, Any]:
 
 def service_contracts_payload() -> dict[str, Any]:
     return GOVERNANCE.service_contracts_payload()
+
+
+def soa_extension_closure_summary_payload() -> dict[str, Any]:
+    service_contracts = service_contracts_payload()
+    extensions = uib_extensions_payload()
+    return {
+        "summary": {
+            "soa_extension_closure_summary_active": True,
+            "fw_s_006_closure_ready": True,
+            "py_cl_001_resolved": True,
+            "extension_service_runtime_ready": False,
+            "dynamic_extension_service_runtime_ready": False,
+            "source_service_contracts_bound": True,
+            "source_uib_extensions_bound": True,
+            "runtime_governance_bound": True,
+            "policy_schema_governance_bound": True,
+            "android_linux_binding_parity": True,
+            "service_dispatch_triggered": False,
+            "hardware_accessed": False,
+            "driver_development_triggered": False,
+            "virtualization_development_triggered": False,
+        },
+        "source_surfaces": [
+            "GET /soa/contracts",
+            "GET /uib/extensions",
+            "GET /governance/runtime",
+            "GET /bindings/readiness",
+            "GET /delivery/readiness",
+        ],
+        "source_counts": {
+            "service_contract_count": service_contracts["summary"]["contract_count"],
+            "extension_count": len(extensions["extensions"]),
+        },
+        "android_delivery": {
+            "binder": "getSoaExtensionClosureSummaryJson",
+            "console": "SOA Ext Close",
+        },
+        "linux_delivery": {
+            "cli": "soa-extension-closure-summary",
+            "ipc": "soa.extensions.closure.summary",
+            "grpc_rpc": "GetSoaExtensionClosureSummary",
+        },
+        "closure_items": [
+            {
+                "id": "PY-CL-001",
+                "req_id": "FW-S-006",
+                "status": "resolved",
+                "evidence": "SOA contracts and UIB extensions are joined by this read-only summary.",
+            },
+            {
+                "id": "SOA-EXT-001",
+                "req_id": "XSC-003",
+                "status": "covered",
+                "evidence": "Service catalog and service contract metadata remain the SOA entry source of truth.",
+            },
+            {
+                "id": "SOA-EXT-002",
+                "req_id": "XSC-005",
+                "status": "covered",
+                "evidence": "Runtime & Governance remains required for policy, schema, lifecycle, and audit ownership.",
+            },
+            {
+                "id": "SOA-EXT-003",
+                "req_id": "XSC-006",
+                "status": "covered",
+                "evidence": "Android Binder and Linux CLI/IPC/gRPC bindings expose the same read-only payload.",
+            },
+        ],
+        "invariants": [
+            "read-only closure summary",
+            "does not dispatch SOA services",
+            "does not load dynamic extensions or plugins",
+            "does not access hardware, Driver/HAL, or virtualization",
+        ],
+        "next_state": {
+            "py_cl_001": "resolved",
+            "remaining_current_python_prototype_closure_actions": ["PY-CL-002"],
+        },
+        "req_ids": SOA_EXTENSION_CLOSURE_REQ_IDS,
+    }
 
 
 def context_payload() -> dict[str, Any]:
@@ -9532,6 +9624,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(services_payload()))
         elif path == "/soa/contracts":
             self.send_json(200, envelope(service_contracts_payload()))
+        elif path == "/soa/extensions/closure-summary":
+            self.send_json(200, envelope(soa_extension_closure_summary_payload()))
         elif path == "/governance/runtime":
             self.send_json(200, envelope(governance_payload()))
         elif path == "/governance/backend-contract":

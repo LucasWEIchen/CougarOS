@@ -131,6 +131,8 @@ interface ICentralBrainGateway {
 
     String getServiceContractsJson(String traceId);
 
+    String getSoaExtensionClosureSummaryJson(String traceId);
+
     String invokeServiceJson(String traceId, String requestJson);
 
     String evaluatePolicyJson(String traceId, String requestJson);

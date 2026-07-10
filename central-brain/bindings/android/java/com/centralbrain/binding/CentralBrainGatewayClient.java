@@ -274,6 +274,10 @@ public final class CentralBrainGatewayClient {
         return requireGateway().getServiceContractsJson(traceId);
     }
 
+    public String getSoaExtensionClosureSummaryJson(String traceId) throws RemoteException {
+        return requireGateway().getSoaExtensionClosureSummaryJson(traceId);
+    }
+
     public String precheckGovernanceJson(String traceId, String requestJson) throws RemoteException {
         return requireGateway().precheckGovernanceJson(traceId, requestJson);
     }

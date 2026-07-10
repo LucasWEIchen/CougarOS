@@ -2,7 +2,7 @@
   "audit_name": "central-brain-python-prototype-completion-audit",
   "audit_version": "0.1.0",
   "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.104",
+  "baseline_api_contract_version": "0.1.105",
   "baseline_handoff_manifest": "central-brain/contracts/central_brain_prototype_handoff_manifest.json",
   "closure_plan": "central-brain/contracts/central_brain_prototype_closure_plan.json",
   "baseline_commits": [
@@ -22,10 +22,10 @@
     "service_dispatch_triggered": false
   },
   "completion_estimate": {
-    "python_prototype_completion_lower_percent": 82,
-    "python_prototype_completion_upper_percent": 88,
-    "remaining_small_increment_count_lower": 4,
-    "remaining_small_increment_count_upper": 7
+    "python_prototype_completion_lower_percent": 86,
+    "python_prototype_completion_upper_percent": 92,
+    "remaining_small_increment_count_lower": 2,
+    "remaining_small_increment_count_upper": 5
   },
   "audit_scope_req_ids": [
     "XSC-001",
@@ -337,9 +337,8 @@
     "git diff --check"
   ],
   "next_step": {
-    "candidate": "resolve PY-CL-001 and PY-CL-002 from central_brain_prototype_closure_plan.json",
+    "candidate": "resolve PY-CL-002 from central_brain_prototype_closure_plan.json",
     "blocking_decisions": [
-      "FW-S-006 extension service closure classification",
       "NV-F-012 observability closure classification",
       "real PCIe NPU hardware and vendor SDK",
       "production Android system service owner and sepolicy",

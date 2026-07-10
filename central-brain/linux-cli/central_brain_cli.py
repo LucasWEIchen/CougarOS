@@ -19,6 +19,7 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "state": ("GET", "/uib/state", None),
     "services": ("GET", "/soa/services", None),
     "service-contracts": ("GET", "/soa/contracts", None),
+    "soa-extension-closure-summary": ("GET", "/soa/extensions/closure-summary", None),
     "events": ("GET", "/uib/events/topics", None),
     "event-recent": ("GET", "/uib/events/recent", None),
     "event-subscriptions": ("GET", "/uib/events/subscriptions", None),

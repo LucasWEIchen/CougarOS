@@ -5,12 +5,12 @@ This current-state audit records what the Python prototype proves today and what
 ## Summary
 
 - Audit artifact: `central-brain/contracts/central_brain_prototype_completion_audit.json`
-- Baseline API contract: `0.1.104`
+- Baseline API contract: `0.1.105`
 - Baseline handoff manifest: `central-brain/contracts/central_brain_prototype_handoff_manifest.json`
 - Current state: Python prototype is handoff-ready, not production-ready.
-- Estimated current-scope completion: 82-88%.
+- Estimated current-scope completion after `PY-CL-001`: 86-92%.
 
-The audit keeps `python_prototype_current_scope_complete=false` because real PCIe NPU hardware, production Android system service deployment, real Driver/HAL, real event broker/DDS/high-rate data plane, evidence/review/gate workflow, and virtualization remain unimplemented or explicitly outside scope.
+The audit keeps `python_prototype_current_scope_complete=false` because `NV-F-012` observability coverage still needs a closure decision, and real PCIe NPU hardware, production Android system service deployment, real Driver/HAL, real event broker/DDS/high-rate data plane, evidence/review/gate workflow, and virtualization remain unimplemented or explicitly outside scope.
 
 ## Delivered Prototype Evidence
 

@@ -312,6 +312,11 @@ public final class CentralBrainGatewayBinderService extends Service {
         }
 
         @Override
+        public String getSoaExtensionClosureSummaryJson(String traceId) throws RemoteException {
+            return get("/soa/extensions/closure-summary", traceId);
+        }
+
+        @Override
         public String invokeServiceJson(String traceId, String requestJson) throws RemoteException {
             return post("/soa/invoke", withTraceId(traceId, requestJson));
         }

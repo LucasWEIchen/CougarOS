@@ -6,14 +6,14 @@ This document turns the completion audit into a requirement-by-requirement closu
 
 - Contract: `central-brain/contracts/central_brain_prototype_closure_plan.json`
 - Baseline completion audit: `central-brain/contracts/central_brain_prototype_completion_audit.json`
-- Baseline API contract: `0.1.104`
-- Current estimate after this planning slice: 84-90%
+- Baseline API contract: `0.1.105`
+- Current estimate after `PY-CL-001` closure: 88-92%
 
-The closure plan keeps `python_prototype_current_scope_complete=false` because two prototype-scope classification actions remain open: `FW-S-006` extension service coverage and `NV-F-012` observability coverage.
+The closure plan keeps `python_prototype_current_scope_complete=false` because `NV-F-012` observability coverage remains open. `PY-CL-001` / `FW-S-006` is now resolved by `GET /soa/extensions/closure-summary`.
 
 ## Current Prototype Closure Actions
 
-- `PY-CL-001`: decide whether `FW-S-006` is already covered by SOA contract visibility and `/uib/extensions`, or add a small read-only extension-service closure summary.
+- `PY-CL-001`: resolved by `GET /soa/extensions/closure-summary`, Android Binder `getSoaExtensionClosureSummaryJson` / Console `SOA Ext Close`, and Linux `soa-extension-closure-summary` / `soa.extensions.closure.summary` / `GetSoaExtensionClosureSummary`.
 - `PY-CL-002`: decide whether `NV-F-012` is sufficiently represented by `/audit/recent`, JSONL audit persistence, delivery readiness and prototype readiness, or add a small read-only observability readiness summary.
 - `PY-CL-003`: keep customer application modules `APP-001..003` and `APP-005..010` outside Python prototype completion criteria.
 - `PY-CL-004`: keep chip OS base and UniSOC hardware baseline IDs as target-platform responsibilities.

@@ -2,7 +2,7 @@
   "closure_plan_name": "central-brain-python-prototype-req-closure-plan",
   "closure_plan_version": "0.1.0",
   "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.104",
+  "baseline_api_contract_version": "0.1.105",
   "baseline_completion_audit": "central-brain/contracts/central_brain_prototype_completion_audit.json",
   "baseline_commits": [
     "203ed8d4"
@@ -14,16 +14,17 @@
     "production_ready": false,
     "android_primary_path_ready": true,
     "linux_synchronized_path_ready": true,
+    "py_cl_001_resolved": true,
     "hardware_accessed": false,
     "driver_development_triggered": false,
     "virtualization_development_triggered": false,
     "service_dispatch_triggered": false
   },
   "completion_estimate_after_closure_plan": {
-    "python_prototype_completion_lower_percent": 84,
-    "python_prototype_completion_upper_percent": 90,
-    "remaining_small_increment_count_lower": 3,
-    "remaining_small_increment_count_upper": 6
+    "python_prototype_completion_lower_percent": 88,
+    "python_prototype_completion_upper_percent": 92,
+    "remaining_small_increment_count_lower": 2,
+    "remaining_small_increment_count_upper": 4
   },
   "all_baseline_req_ids": [
     "XSC-001",
@@ -154,18 +155,20 @@
     "HV-002",
     "HV-003"
   ],
-  "current_python_prototype_open_closure_actions": [
+  "resolved_current_python_prototype_closure_actions": [
     {
       "id": "PY-CL-001",
       "req_ids": [
         "FW-S-006"
       ],
-      "classification": "current_python_prototype_closure_action",
-      "action": "Decide whether FW-S-006 extension service is already covered by SOA service contract visibility plus /uib/extensions, or add a small read-only extension-service closure summary.",
-      "evidence_required": [
-        "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md classification",
-        "central-brain/contracts/central_brain_api.json evidence or explicit production-only note",
-        "Android/Linux delivery note if a new surface is added"
+      "classification": "resolved_current_python_prototype_closure_action",
+      "action": "Resolved by GET /soa/extensions/closure-summary, which joins SOA contract visibility with /uib/extensions and exposes Android/Linux binding parity.",
+      "evidence": [
+        "GET /soa/extensions/closure-summary",
+        "Android Binder getSoaExtensionClosureSummaryJson and Console SOA Ext Close",
+        "Linux CLI soa-extension-closure-summary",
+        "Linux IPC soa.extensions.closure.summary",
+        "Linux gRPC/RPC GetSoaExtensionClosureSummary"
       ],
       "must_not_do": [
         "no service dispatch",
@@ -173,7 +176,9 @@
         "no Driver/HAL",
         "no virtualization"
       ]
-    },
+    }
+  ],
+  "current_python_prototype_open_closure_actions": [
     {
       "id": "PY-CL-002",
       "req_ids": [
@@ -374,8 +379,8 @@
     "git diff --check"
   ],
   "next_step": {
-    "candidate": "resolve PY-CL-001 and PY-CL-002 with either explicit production-only notes or small read-only closure summaries",
-    "remaining_small_increment_count_lower": 3,
-    "remaining_small_increment_count_upper": 6
+    "candidate": "resolve PY-CL-002 with either explicit production-only notes or a small read-only observability readiness summary",
+    "remaining_small_increment_count_lower": 2,
+    "remaining_small_increment_count_upper": 4
   }
 }

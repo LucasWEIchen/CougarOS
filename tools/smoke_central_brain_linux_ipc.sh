@@ -2645,6 +2645,28 @@ assert payload["summary"]["service_dispatch_triggered"] is False, response
 assert "FW-S-004" in encoded and "NV-G-003" in encoded, response
 assert "not-dispatched" in encoded, response
 PY
+SOA_EXTENSION_CLOSURE_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" soa-extension-closure-summary)"
+python3 - "$SOA_EXTENSION_CLOSURE_OUTPUT" <<'PY'
+import json
+import sys
+
+response = json.loads(sys.argv[1])
+payload = response["payload"]["gateway"]["payload"]
+summary = payload["summary"]
+encoded = json.dumps(payload)
+assert response["status"] == "ok", response
+assert summary["soa_extension_closure_summary_active"] is True, response
+assert summary["fw_s_006_closure_ready"] is True, response
+assert summary["py_cl_001_resolved"] is True, response
+assert summary["extension_service_runtime_ready"] is False, response
+assert summary["dynamic_extension_service_runtime_ready"] is False, response
+assert summary["service_dispatch_triggered"] is False, response
+assert summary["hardware_accessed"] is False, response
+assert summary["driver_development_triggered"] is False, response
+assert summary["virtualization_development_triggered"] is False, response
+assert "FW-S-006" in encoded and "XSC-003" in encoded and "DEL-003" in encoded, response
+assert "soa.extensions.closure.summary" in encoded and "GetSoaExtensionClosureSummary" in encoded, response
+PY
 BINDING_READINESS_OUTPUT="$(CENTRAL_BRAIN_IPC_SOCKET="$SOCKET_PATH" python3 "$ROOT_DIR/central-brain/bindings/linux/ipc/central_brain_ipc_client.py" binding-readiness)"
 python3 - "$BINDING_READINESS_OUTPUT" <<'PY'
 import json

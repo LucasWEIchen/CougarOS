@@ -596,3 +596,11 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - `central-brain/contracts/central_brain_prototype_closure_plan.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` split all architecture Req IDs into delivered current-prototype surfaces, current Python prototype closure actions, and production-only or target-platform blockers.
 - The plan must keep `closure_plan_ready=true`, `python_prototype_current_scope_complete=false`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
 - Current Python prototype closure actions are `PY-CL-001` for `FW-S-006` extension service coverage and `PY-CL-002` for `NV-F-012` observability coverage. Customer apps, target OS/hardware, real sensors/time sync/connected/ADAS/SOME-IP/MQTT/big-data channels, and virtualization remain outside current Python prototype implementation scope unless a read-only placeholder is missing.
+
+### 2026-07-10 FW-S-006 SOA extension service closure summary
+
+- Req IDs: `FW-S-006`、`XSC-003`、`XSC-005`、`XSC-006`、`NV-G-001`、`NV-G-002`、`NV-G-003`、`DEL-001`、`DEL-002`、`DEL-003`.
+- `GET /soa/extensions/closure-summary` resolves `PY-CL-001` by binding SOA service contracts and Uni Info Bus extension registry visibility into one read-only closure evidence surface.
+- Android primary delivery: Binder `getSoaExtensionClosureSummaryJson` and Console `SOA Ext Close`.
+- Linux synchronized delivery: CLI `soa-extension-closure-summary`, IPC `soa.extensions.closure.summary`, and gRPC/RPC `GetSoaExtensionClosureSummary`.
+- Boundary: this is not a dynamic extension runtime, schema registry, plugin loader, service implementation, service dispatch path, Driver/HAL integration, hardware access path, or virtualization implementation. `ISSUE-015` remains Proposed until target extension lifecycle and plugin sandbox rules are confirmed.

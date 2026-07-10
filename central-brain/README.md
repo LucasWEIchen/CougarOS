@@ -409,3 +409,5 @@ bash tools/check_central_brain_linux_systemd_hardening.sh
 ### Prototype Closure Plan
 
 `central-brain/contracts/central_brain_prototype_closure_plan.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` split all architecture Req IDs into delivered prototype surfaces, current Python prototype closure actions, and production-only or target-platform blockers. The plan keeps the next work focused on `FW-S-006` extension service closure and `NV-F-012` observability closure while preserving Android/Linux parity, hardware empty interfaces, and no virtualization development.
+
+`GET /soa/extensions/closure-summary` now resolves `PY-CL-001` / `FW-S-006` by joining SOA service contract visibility with the Uni Info Bus extension registry. Android uses `getSoaExtensionClosureSummaryJson` / Console `SOA Ext Close`; Linux uses `soa-extension-closure-summary`, `soa.extensions.closure.summary`, and `GetSoaExtensionClosureSummary`. The remaining current-scope closure action is `PY-CL-002` / `NV-F-012` observability coverage.

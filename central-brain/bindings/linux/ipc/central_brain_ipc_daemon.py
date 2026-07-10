@@ -310,6 +310,11 @@ OPERATION_MAP: dict[str, dict[str, Any]] = {
         "path": "/soa/contracts",
         "req_ids": ["XSC-003", "XSC-006", "FW-S-004", "NV-G-003", "NV-P-002", "DEL-002"],
     },
+    "soa.extensions.closure.summary": {
+        "method": "GET",
+        "path": "/soa/extensions/closure-summary",
+        "req_ids": ["FW-S-006", "XSC-003", "XSC-005", "XSC-006", "NV-G-001", "NV-G-002", "NV-G-003", "DEL-001", "DEL-002", "DEL-003"],
+    },
     "soa.service.invoke": {
         "method": "POST",
         "path": "/soa/invoke",

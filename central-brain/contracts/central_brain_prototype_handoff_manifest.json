@@ -129,7 +129,7 @@
     "ISSUE-018"
   ],
   "next_handoff_step": {
-    "candidate": "resolve prototype closure plan actions PY-CL-001 and PY-CL-002",
-    "description": "use central_brain_prototype_closure_plan.json to separate current Python prototype closure actions from production-only blockers without implementing hardware, Driver/HAL, broker runtime, or virtualization"
+    "candidate": "resolve prototype closure plan action PY-CL-002",
+    "description": "PY-CL-001/FW-S-006 is covered by GET /soa/extensions/closure-summary; next use central_brain_prototype_closure_plan.json to close NV-F-012 observability without implementing hardware, Driver/HAL, broker runtime, or virtualization"
   }
 }

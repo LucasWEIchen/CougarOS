@@ -53,6 +53,12 @@
 
 ### 2026-07-10
 
+- 推进 `PY-CL-001` / `FW-S-006` SOA extension service closure summary：
+  - 新增 `GET /soa/extensions/closure-summary`，把 `/soa/contracts` 的 SOA service contract visibility 与 `/uib/extensions` 的 Uni Info Bus extension registry 聚合成只读 closure evidence，明确 `py_cl_001_resolved=true`。
+  - Android 主路径新增 Binder `getSoaExtensionClosureSummaryJson` 与 Console `SOA Ext Close`；Linux 同步路径新增 CLI `soa-extension-closure-summary`、IPC `soa.extensions.closure.summary` 和 gRPC/RPC `GetSoaExtensionClosureSummary`。
+  - 本轮只做 read-only closure summary，不加载动态 extension runtime，不 dispatch service，不调用 POST，不持久化状态，不访问硬件，不开发 Driver/HAL 或虚拟化层。`ISSUE-015` 的动态扩展生命周期、schema registry 和插件沙箱仍保持 Proposed。
+  - 覆盖 Req ID：`FW-S-006`、`XSC-003`、`XSC-005`、`XSC-006`、`NV-G-001`、`NV-G-002`、`NV-G-003`、`DEL-001`、`DEL-002`、`DEL-003`。
+
 - 推进 all-baseline-Req-ID Python prototype closure plan：
   - 新增 `central-brain/contracts/central_brain_prototype_closure_plan.json` 与 `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md`，把 APP/FW/NV/KH/HV/HW/XSC/DEL 全部 Req ID 分成已交付原型面、当前 Python 原型 closure action、production-only 或 target-platform blocker。
   - 当前原型剩余 closure action 固定为 `PY-CL-001` `FW-S-006` extension service coverage 与 `PY-CL-002` `NV-F-012` observability coverage；customer apps、target OS/hardware、real sensors/time sync/connected/ADAS/SOME-IP/MQTT/big-data 和虚拟化被明确排除在当前 Python 原型实现范围外。

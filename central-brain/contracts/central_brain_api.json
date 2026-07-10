@@ -1,6 +1,6 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.104",
+  "version": "0.1.105",
   "updated": "2026-07-10",
   "transport": {
     "prototype": "http-json",
@@ -11,6 +11,7 @@
     "shared_governance_migration_check": "GET /governance/migration-check reports production backend replacement invariants, binding readiness, and open decisions without implementing the production backend",
     "shared_governance_deployment_plan": "GET /governance/deployment-plan reports Android system service, Linux daemon, and gRPC/RPC deployment shapes plus open decisions without implementing the production backend",
     "soa_service_contracts": "GET /soa/contracts exposes service contract, version, policy, safety state, QoS, lifecycle, and dispatch-boundary metadata without invoking services",
+    "soa_extension_closure_summary": "GET /soa/extensions/closure-summary resolves PY-CL-001/FW-S-006 by joining SOA service contracts and Uni Info Bus extension registry visibility with Android Binder getSoaExtensionClosureSummaryJson, Linux CLI soa-extension-closure-summary, Linux IPC soa.extensions.closure.summary, and Linux gRPC/RPC GetSoaExtensionClosureSummary; it remains read-only, no-dispatch, no-hardware, no-Driver/HAL, and no-virtualization",
     "protocol_binding_readiness": "GET /bindings/readiness exposes Android Binder, Linux IPC, Linux gRPC/RPC, REST, MQTT, SOME/IP, and DDS readiness, blockers, validation commands, and non-goal boundaries without implementing production transports",
     "delivery_readiness": "GET /delivery/readiness exposes Android/Linux delivery artifacts, validation bundle, blockers, and non-goal boundaries for cockpit-domain engineers without implementing production services or Driver/HAL",
     "prototype_readiness": "GET /prototype/readiness exposes Python prototype module maturity, Android/Linux binding visibility, EV-AE..EV-AHS event subscription activation closure chain summary, deviations, issues, next increment candidates, and no-hardware/no-driver/no-virtualization boundaries",
@@ -13178,6 +13179,49 @@
         "NV-G-003",
         "DEL-001",
         "DEL-002"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/soa/extensions/closure-summary",
+      "description": "Read-only FW-S-006 closure summary that joins SOA service contracts and Uni Info Bus extension registry visibility to resolve PY-CL-001 without dispatching services or loading dynamic extension runtime.",
+      "response": {
+        "summary": {
+          "soa_extension_closure_summary_active": true,
+          "fw_s_006_closure_ready": true,
+          "py_cl_001_resolved": true,
+          "extension_service_runtime_ready": false,
+          "dynamic_extension_service_runtime_ready": false,
+          "source_service_contracts_bound": true,
+          "source_uib_extensions_bound": true,
+          "runtime_governance_bound": true,
+          "android_linux_binding_parity": true,
+          "service_dispatch_triggered": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false
+        },
+        "android_delivery": {
+          "binder": "getSoaExtensionClosureSummaryJson",
+          "console": "SOA Ext Close"
+        },
+        "linux_delivery": {
+          "cli": "soa-extension-closure-summary",
+          "ipc": "soa.extensions.closure.summary",
+          "grpc_rpc": "GetSoaExtensionClosureSummary"
+        }
+      },
+      "req_ids": [
+        "FW-S-006",
+        "XSC-003",
+        "XSC-005",
+        "XSC-006",
+        "NV-G-001",
+        "NV-G-002",
+        "NV-G-003",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003"
       ]
     },
     {

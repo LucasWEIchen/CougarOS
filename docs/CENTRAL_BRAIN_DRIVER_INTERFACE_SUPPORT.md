@@ -351,3 +351,9 @@ NpuDevice.reset(reason)
 `central-brain/contracts/central_brain_prototype_closure_plan.json` 是逐 Req ID closure plan，不是 Driver/HAL implementation plan。它把 `HW-002`、`KH-003`、`KH-006` 和 `KH-007` 保持为 empty-interface 与 gap-backlog 已交付状态，同时把 `HW-001`、`KH-001`、`KH-002`、`KH-004`、`KH-005`、`KH-008` 和 `KH-009` 标为 target-platform closure，不进入当前 Python 原型实现范围。
 
 该 plan 固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；它不改变 DRV-GAP-001/002/003/004/005 backlog，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory。
+
+## SOA Extension Closure Summary Driver/HAL Boundary
+
+`GET /soa/extensions/closure-summary` 只把 `GET /soa/contracts` 与 `GET /uib/extensions` 聚合为 `PY-CL-001` / `FW-S-006` 的 read-only closure evidence。Android 绑定为 `getSoaExtensionClosureSummaryJson` / `SOA Ext Close`，Linux 绑定为 `soa-extension-closure-summary`、`soa.extensions.closure.summary` 和 `GetSoaExtensionClosureSummary`。
+
+该接口固定 `service_dispatch_triggered=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；不加载动态 extension runtime，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory，不产生新增 Driver/HAL 开发量。

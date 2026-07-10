@@ -215,6 +215,7 @@ COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "extensions": ("uib.extensions.get", {}),
     "services": ("soa.services.list", {}),
     "service-contracts": ("soa.contracts.get", {}),
+    "soa-extension-closure-summary": ("soa.extensions.closure.summary", {}),
     "governance": ("governance.runtime.get", {}),
     "governance-backend-contract": ("governance.backend.contract.get", {}),
     "governance-migration-check": ("governance.migration.check", {}),

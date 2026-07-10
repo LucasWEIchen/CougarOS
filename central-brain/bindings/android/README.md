@@ -70,6 +70,7 @@ Brain semantic gateway.
 | `requestActionJson` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `listServicesJson` | `GET /soa/services` | XSC-003, FW-S-001..004 |
 | `getServiceContractsJson` | `GET /soa/contracts` | XSC-003, FW-S-004, NV-G-003 |
+| `getSoaExtensionClosureSummaryJson` | `GET /soa/extensions/closure-summary` | FW-S-006, XSC-003, XSC-005, XSC-006, DEL-001 |
 | `invokeServiceJson` | `POST /soa/invoke` | XSC-003, FW-S-005 |
 | `evaluatePolicyJson` | `POST /policy/evaluate` | XSC-005, NV-G-005 |
 | `precheckGovernanceJson` | `POST /governance/precheck` | XSC-005, NV-G-002, NV-G-004, NV-G-005, NV-G-006, NV-G-007 |

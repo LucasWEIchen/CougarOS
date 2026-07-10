@@ -191,6 +191,7 @@ checks = [
     ("GET", "/uib/extensions", None, "FW-U-008"),
     ("GET", "/soa/services", None, "FW-S-004"),
     ("GET", "/soa/contracts", None, "NV-G-003"),
+    ("GET", "/soa/extensions/closure-summary", None, "FW-S-006"),
     ("GET", "/governance/runtime", None, "NV-G-005"),
     ("GET", "/governance/backend-contract", None, "NV-P-003"),
     ("GET", "/governance/migration-check", None, "DEL-004"),
@@ -5036,6 +5037,23 @@ for method, path, body, req_id in checks:
         assert "FW-S-004" in json.dumps(payload), "SOA contracts missing Service Contract Req ID"
         assert "NV-G-003" in json.dumps(payload), "SOA contracts missing Schema Req ID"
         assert "not-dispatched" in json.dumps(payload), "SOA contracts missing no-dispatch boundary"
+    if path == "/soa/extensions/closure-summary":
+        summary = payload["payload"]["summary"]
+        encoded = json.dumps(payload)
+        assert summary["soa_extension_closure_summary_active"] is True, "SOA extension closure summary inactive"
+        assert summary["fw_s_006_closure_ready"] is True, "FW-S-006 closure not ready"
+        assert summary["py_cl_001_resolved"] is True, "PY-CL-001 not resolved"
+        assert summary["extension_service_runtime_ready"] is False, "SOA extension closure overstated runtime readiness"
+        assert summary["dynamic_extension_service_runtime_ready"] is False, "SOA extension closure enabled dynamic runtime"
+        assert summary["service_dispatch_triggered"] is False, "SOA extension closure dispatched service"
+        assert summary["hardware_accessed"] is False, "SOA extension closure accessed hardware"
+        assert summary["driver_development_triggered"] is False, "SOA extension closure triggered Driver/HAL"
+        assert summary["virtualization_development_triggered"] is False, "SOA extension closure triggered virtualization"
+        assert "getSoaExtensionClosureSummaryJson" in encoded, "Android SOA extension closure binding missing"
+        assert "soa-extension-closure-summary" in encoded, "Linux CLI SOA extension closure binding missing"
+        assert "soa.extensions.closure.summary" in encoded, "Linux IPC SOA extension closure binding missing"
+        assert "GetSoaExtensionClosureSummary" in encoded, "Linux gRPC/RPC SOA extension closure binding missing"
+        assert "FW-S-006" in encoded and "XSC-003" in encoded and "DEL-003" in encoded, "SOA extension closure missing Req IDs"
     if path == "/agent/plan":
         task = payload["payload"]["task"]
         assert task["state"] == "planned", "agent plan was not accepted"
@@ -5120,6 +5138,7 @@ PY
 
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" state >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" service-contracts >/dev/null
+CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" soa-extension-closure-summary >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" events >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-publish >/dev/null
 CENTRAL_BRAIN_BASE_URL="$BASE_URL" python3 "$ROOT_DIR/central-brain/linux-cli/central_brain_cli.py" event-recent >/dev/null

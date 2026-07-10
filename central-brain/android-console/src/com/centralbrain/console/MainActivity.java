@@ -102,6 +102,7 @@ public class MainActivity extends Activity {
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupButton;
     private Button hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryButton;
+    private Button soaExtensionClosureSummaryButton;
     private Button prototypeReadinessButton;
     private CentralBrainGatewayClient gatewayClient;
     private boolean gatewayBound;
@@ -723,6 +724,12 @@ public class MainActivity extends Activity {
 
         LinearLayout readinessRow = buttonRow();
         buttonArea.addView(readinessRow);
+        soaExtensionClosureSummaryButton = addButton(readinessRow, "SOA Ext Close", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getSoaExtensionClosureSummary();
+            }
+        });
         prototypeReadinessButton = addButton(readinessRow, "Prototype", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1620,6 +1627,16 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void getSoaExtensionClosureSummary() {
+        setBusy(true, "Status: loading SOA extension closure summary via Binder");
+        gatewayRequest("SOA Extension Closure Summary (Binder)", new GatewayCall() {
+            @Override
+            public String run(CentralBrainGatewayClient client) throws RemoteException {
+                return client.getSoaExtensionClosureSummaryJson(newTraceId("soa-extension-closure-summary"));
+            }
+        });
+    }
+
     private void getVehicleSignals() {
         setBusy(true, "Status: loading vehicle signal catalog via Binder");
         gatewayRequest("Vehicle Signals (Binder)", new GatewayCall() {
@@ -1658,7 +1675,7 @@ public class MainActivity extends Activity {
                 gatewayBound = true;
                 postResult("Status: Binder gateway connected", "Req IDs: XSC-001, APP-004, XSC-002, XSC-003, XSC-006, NV-P-002, DEL-001\n"
                     + "Upstream prototype binding: " + BASE_URL + "\n\n"
-                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Sub ApDec, Sub ApDStat, Sub ApDAudit, Sub ApClose, Sub ApHand, Sub ApHAud, Sub ApHRoll, Sub ApHEv, Sub ApHEvAud, Sub ApHAcc, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, or Prototype to exercise the Android Binder path.");
+                    + "Use Refresh, Plan, Execute, Skill, Memory, Event Subs, Sub Req, Sub Cancel, Sub Link, Sub Matrix, Sub Gate, Sub Shape, Sub Cursor, Sub QoS, Sub Ready, Sub Evidence, Sub Review, Sub Retain, Sub Decide, Sub ApStat, Sub ApAuth, Sub ApAudit, Sub ApBlock, Sub ApDec, Sub ApDStat, Sub ApDAudit, Sub ApClose, Sub ApHand, Sub ApHAud, Sub ApHRoll, Sub ApHEv, Sub ApHEvAud, Sub ApHAcc, Vehicle Signals, Signal Gate, Signal Check, Governance, Driver Gaps, Hardware IF, HW Gate, HW Owner, HW Evidence, HW EvStatus, HW Retain, HW Replace, HW Adapter, HW Load, HW DryRun, HW DryState, HW DryAudit, HW Approve, HW ApStat, HW ApAudit, HW ApDec, HW ApDStat, HW ApDAudit, HW ApBlock, HW ApRev, HW ApHand, HW ApHStat, HW ApHAud, SOA Ext Close, or Prototype to exercise the Android Binder path.");
             }
 
             @Override
@@ -1786,6 +1803,7 @@ public class MainActivity extends Activity {
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupButton.setEnabled(enabled);
         hardwareOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryButton.setEnabled(enabled);
+        soaExtensionClosureSummaryButton.setEnabled(enabled);
         prototypeReadinessButton.setEnabled(enabled);
     }
 

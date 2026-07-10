@@ -65,6 +65,7 @@ Brain semantic gateway.
 | `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.audit.consistency` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup` | `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup` | XSC-002, FW-U-003, XSC-005, XSC-006, NV-P-002, NV-P-003, NV-P-006, DEL-002, DEL-004 |
 | `uib.extensions.get` | `GET /uib/extensions` | XSC-002, FW-U-008, XSC-005, XSC-006 |
+| `soa.extensions.closure.summary` | `GET /soa/extensions/closure-summary` | FW-S-006, XSC-003, XSC-005, XSC-006, NV-G-001, NV-G-002, NV-G-003, DEL-001, DEL-002, DEL-003 |
 | `uib.actions.request` | `POST /uib/actions/request` | XSC-002, FW-U-004, FW-U-007, XSC-005, NV-G-005 |
 | `ai.sdk.capabilities` | `GET /ai/sdk/capabilities` | XSC-001, APP-004 |
 | `agent.plan` | `POST /agent/plan` | XSC-001, APP-004, NV-F-001, FW-U-006, FW-U-007 |

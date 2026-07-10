@@ -17,6 +17,7 @@ DEFAULT_PORT = int(os.environ.get("CENTRAL_BRAIN_GRPC_PORT", "18788"))
 COMMANDS: dict[str, tuple[str, dict[str, Any]]] = {
     "state": ("GetState", {}),
     "service-contracts": ("GetServiceContracts", {}),
+    "soa-extension-closure-summary": ("GetSoaExtensionClosureSummary", {}),
     "events": ("ListEventTopics", {}),
     "event-subscriptions": ("GetEventSubscriptions", {}),
     "event-subscribe-request": (
