@@ -28,4 +28,5 @@ android {
 
 dependencies {
     implementation(project(":central-brain-sdk"))
+    testImplementation(libs.junit)
 }

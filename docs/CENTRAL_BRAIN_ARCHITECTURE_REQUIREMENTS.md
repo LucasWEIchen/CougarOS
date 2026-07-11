@@ -701,3 +701,15 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - A separate debug-only client process must submit an active task and then be force-stopped; the started Runtime must observe callback Binder death and cancel with `CANCEL_REASON_CLIENT_DIED`.
 - Test components must require `android.permission.DUMP`, exist only in debug/androidTest source sets and be absent from release. Device tests report no hardware, Driver/HAL or virtualization access.
 - R2 exit promotes the typed Android Protocol Binding module to `android_integrated`, not `hardware_validated` or `production_qualified`. The legacy JSON Binder/HTTP migration remains under DEV-018/ISSUE-021 and R7.
+
+### 2026-07-12 R3A Job Supervisor foundation trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- AIOS Kernel must own an explicit task state machine. Allowed paths are `ACCEPTED -> RUNNING -> COMPLETED`, `ACCEPTED/RUNNING -> FAILED`, and `ACCEPTED/RUNNING -> CANCELLED`; terminal transitions and progress regression are rejected.
+- The in-memory R3A registry is bounded to 128 records. Active work and terminal work whose callback delivery is not settled must never be evicted to admit new work; a full non-evictable registry rejects admission. Settled terminal records use a five-minute retention and deterministic expiration/pressure eviction. R4 must replace this process-local owner with durable SQLite state.
+- Production Binder caller identity must be captured before leaving Binder context from `Binder.getCallingUid()`, Android user serial, PackageManager UID-to-package evidence and each package's current APK signer SHA-256. `AgentTaskRequest` contains no identity, permission or capability assertion.
+- Unresolved identity is denied. Job ownership compares the complete trusted snapshot; a non-owner status lookup returns `UNKNOWN` and a non-owner cancel returns false without disclosing whether the task exists.
+- Deterministic JVM tests must cover valid/invalid transitions, monotonic progress, terminal uniqueness, idempotent cancellation, owner isolation, active-capacity exhaustion, terminal pressure eviction and retention expiry.
+- API 33 evidence must show the Demo caller as `packages=[com.centralbrain.demo] resolved=true`, return `job_supervisor_active=true`, `trusted_caller_identity_resolved=true`, and preserve the R2 completion/cancel/death/reconnect/race checks.
+- R3A does not close R3, DEV-019 or ISSUE-023. Package + signer capability mapping, default-deny unknown clients, independent cross-package device tests, action risk classes and high-risk approval remain R3B/R3C work.
+- This increment must keep `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; it must not modify vendor Android sources or add Linux front-end work.

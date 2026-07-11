@@ -227,6 +227,8 @@
 
 当前处理：权限由 Binder UID、package、signature digest、Android user 和受信 Safety/Vehicle State adapter 派生；请求体权限仅可作为测试期望值，不参与授权。动作按读取、舒适控制、驾驶干扰、诊断写和 OTA 分级，高风险动作进入可恢复审批流程并默认拒绝。
 
+2026-07-12 R3A 进展：Runtime 已从 Binder/PackageManager/UserManager 捕获 UID、Android user serial、package 和当前 signer SHA-256，并把完整快照绑定到 Job Supervisor owner；身份解析失败默认拒绝，非 owner status/cancel 不泄漏任务存在性。JVM 状态机/owner/容量/retention 测试和 API 33 caller-resolution、Binder lifecycle/race 回归通过。ISSUE-023 保持 Open：R3B package+signer capability mapping、unknown/default deny 和独立第二客户端越权测试，以及 R3C Safety/Vehicle State、动作风险分级和可恢复高风险审批仍未实现。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-024 Model Router、资源准入与 NPU provider 边界

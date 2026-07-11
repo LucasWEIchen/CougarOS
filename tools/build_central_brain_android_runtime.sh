@@ -22,6 +22,7 @@ export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.tools/gradle-home}"
   --no-daemon \
   --stacktrace \
   :central-brain-sdk:testDebugUnitTest \
+  :runtime-service:testDebugUnitTest \
   :central-brain-sdk:assembleDebug \
   :runtime-service:assembleDebug \
   :demo-hmi:assembleDebug

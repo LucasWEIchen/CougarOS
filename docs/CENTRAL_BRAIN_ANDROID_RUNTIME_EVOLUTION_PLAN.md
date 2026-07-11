@@ -82,6 +82,17 @@
 - R2 退出条件已关闭，`central-brain-sdk`/typed Android Protocol Binding 提升到 `android_integrated`。这不代表 R3..R7、真实硬件或量产资格完成；`DEV-018`/`ISSUE-021` 继续跟踪旧 JSON Binder/HTTP compatibility migration。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
 
+### R3 实施状态
+
+- `R3A Job Supervisor foundation` 已完成：Runtime Service 新增独立的纯 Java `JobSupervisor`，显式限制 `ACCEPTED -> RUNNING -> COMPLETED` 以及到 `FAILED/CANCELLED` 的合法转换，拒绝跳过阶段、终态再转换和进度回退。
+- 注册表上限固定为 128 条；活动任务及尚未完成终态 callback 结算的任务不会被淘汰，容量耗尽时拒绝新任务；已结算终态记录保留 5 分钟，并可在过期或容量压力下确定性淘汰。该策略当前仍是内存态，R4 才迁移到 SQLite durable owner。
+- 每个 production Binder 方法在 Binder 身份仍有效时读取 `Binder.getCallingUid()`，通过 `PackageManager.getPackagesForUid`、当前 APK signer SHA-256 和 `UserManager` Android user serial 构造不可由 `AgentTaskRequest` 伪造的调用者快照。
+- task owner 由 Supervisor 保存；非 owner 的 status 返回 `UNKNOWN`，cancel 返回 false，无法区分任务不存在与越权。身份无法完整解析时默认拒绝。请求体没有 permission/capability 字段。
+- JVM 单测覆盖合法/非法状态转换、进度单调、终态唯一、重复取消、owner 隔离、全活动容量耗尽、终态 callback 结算门禁、终态压力淘汰、retention 到期以及多包/签名配对。
+- API 33 x86_64 实测日志输出 `uid=10175 userSerial=0 packages=[com.centralbrain.demo] resolved=true`；标准 typed Binder 完成/取消门禁和 R2C service/client death、reconnect、15-task race 回归均通过，输出 `trusted_caller_identity_resolved=true`、`hardware_accessed=false`。
+- R3 尚未关闭：R3B 仍需实现 package + signer capability policy、unknown/default deny、独立第二客户端越权设备测试；R3C 仍需动作风险分级和高风险审批入口。`CentralBrainSdk.EVOLUTION_STAGE` 暂不提升，`DEV-019`/`ISSUE-023` 保持 Open。
+- Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+
 ## 架构落点
 
 | 架构图层 | 本计划新增实现 |

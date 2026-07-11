@@ -22,7 +22,7 @@
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
-| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 待开始 |
+| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 进行中：R3A 状态机、容量/保留边界、可信身份快照与 task owner 隔离已完成；R3B capability/default-deny 与 R3C 动作审批待完成 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
@@ -61,6 +61,11 @@
 
 ### 2026-07-12
 
+- 完成 R3A Job Supervisor foundation：把 Service 内分散的 terminal/cancel 布尔状态迁移为独立的合法转换状态机；注册表上限 128，终态 retention 5 分钟，活动任务不因压力淘汰。
+- production Binder 入口现在只从系统可信来源解析 UID、Android user serial、package 和当前 signer SHA-256；身份不可解析时拒绝，status/cancel 对非 owner 分别返回 UNKNOWN/false，请求体字段不参与授权。
+- 新增 Job Supervisor/身份快照 JVM 单测和 `tools/check_central_brain_android_job_supervisor.sh`，覆盖多包签名配对而非扁平化匹配；API 33 实测解析 `com.centralbrain.demo`，标准 Binder 门禁与 R2C death/reconnect/race 全量回归通过。
+- R3 仍为进行中：package+signer capability map、unknown/default deny 独立客户端设备测试、动作风险分级和高风险审批尚未实现；DEV-019/ISSUE-023 保持 Open，硬件/Driver/HAL/虚拟化标志保持 false。
+- R3A 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R2C Binder lifecycle/race instrumentation：SDK death recipient 按具体 Binder 实例关联，断连通知去重，新增显式 `reconnect()`，终态后排队 update 被抑制。
 - API 33 x86_64 真机路径测试通过 Runtime force-stop、活动任务单次 `SERVICE_DIED`、显式重绑恢复、15-task cancel/completion 竞态、重复 cancel 结果一致和 client-process death 自动取消。
 - 新增无外部依赖的 Android instrumentation runner、DUMP-protected debug-only client-death probe 和 `tools/test_central_brain_android_binder_lifecycle.sh`；release APK 排除所有测试 probe。

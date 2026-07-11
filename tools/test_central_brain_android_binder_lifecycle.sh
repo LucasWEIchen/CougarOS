@@ -73,6 +73,7 @@ if [[ "$BUILD" == true ]]; then
     --no-daemon \
     --stacktrace \
     :central-brain-sdk:testDebugUnitTest \
+    :runtime-service:testDebugUnitTest \
     :runtime-service:assembleDebug \
     :demo-hmi:assembleDebug \
     :demo-hmi:assembleDebugAndroidTest

@@ -95,9 +95,19 @@ Because this is app-layer Gradle AIDL, `getProtocolVersion` and `getProtocolHash
 
 ## Security And Hardware Boundary
 
-R2B publishes app-layer production and diagnostic Binders behind separate signature permissions. This proves the independent APK boundary but is not yet the R3 trusted capability model: R3 will derive identity from Binder UID/package/signature, never from `AgentTaskRequest` fields.
+R2B publishes app-layer production and diagnostic Binders behind separate signature permissions. R3A now derives a caller snapshot from Binder UID, Android user serial, UID package evidence and each package's current signer SHA-256; identity can never be supplied by `AgentTaskRequest`. The Job Supervisor binds every task to that snapshot, hides status from non-owners and denies non-owner cancellation.
+
+R3A is not the complete trusted capability model. R3B must map package + current signer to explicit capabilities, deny unknown callers by default and prove denial from a second independently packaged client on API 33. R3C must add trusted Safety/Vehicle State inputs and recoverable approval for high-risk actions. Signature permission alone is not treated as capability authorization.
 
 No AIDL type includes a device node, fd, shared memory, vendor handle, PCIe/NPU object, vehicle bus frame, camera/audio buffer, Safety Runtime token or virtualization control. `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false` remain mandatory.
+
+## R3A Job Supervisor And Identity Evidence
+
+- `JobSupervisor` is a bounded AIOS Kernel owner for `ACCEPTED/RUNNING/COMPLETED/FAILED/CANCELLED`; invalid transitions, terminal re-entry and progress regression fail closed.
+- Capacity is 128 records. Active records and terminal records with unsettled callback delivery are never pressure-evicted; settled terminal records expire after five minutes or are deterministically evicted to admit later work.
+- `AndroidCallerIdentityResolver` uses only public Android APIs and current APK signers. Signing history is not silently treated as a current capability credential.
+- Unit tests cover lifecycle, owner isolation, idempotent cancel, capacity and retention. API 33 validation reports `job_supervisor_active=true`, `trusted_caller_identity_resolved=true`, and `request_identity_fields_used=false` while preserving R2 lifecycle/race results.
+- The V1 AIDL checksum is unchanged because R3A is an internal Runtime implementation and needs no request field or transaction addition.
 
 ## References
 

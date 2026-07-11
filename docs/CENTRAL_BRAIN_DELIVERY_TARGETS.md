@@ -27,6 +27,8 @@ R2B 已交付两个独立 signature-permission Service、`CentralBrainClient` ty
 
 R2C 新增 custom Android instrumentation、debug-only client death probe 和 `tools/test_central_brain_android_binder_lifecycle.sh`。API 33 x86_64 输出 `binder_service_death_verified=true`、`binder_reconnect_verified=true`、`binder_terminal_uniqueness_verified=true`、`binder_cancel_completion_race_verified=true`、`binder_client_death_verified=true`、`r2_binder_exit_criteria_met=true`。Typed Android Protocol Binding 当前为 `android_integrated`；真实 SoC/NPU、可信 capability、持久化、量产性能和旧 adapter 迁移尚未完成，不得提升为 `hardware_validated` 或 `production_qualified`。
 
+R3A 已交付 `JobSupervisor`、`CallerIdentitySnapshot` 和 `AndroidCallerIdentityResolver`。任务状态机、128 条容量上限、5 分钟终态保留、owner status/cancel 隔离已接入 Runtime APK；`tools/build_central_brain_android_runtime.sh` 运行 Supervisor JVM 单测，`tools/check_central_brain_android_job_supervisor.sh` 固定可信身份与无硬件边界。API 33 x86_64 输出 `job_supervisor_active=true`、`trusted_caller_identity_resolved=true`、`request_identity_fields_used=false`。R3 尚未关闭，package+signer capability/default-deny 独立客户端测试和动作审批仍为下一交付。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |

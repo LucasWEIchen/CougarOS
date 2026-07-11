@@ -2,7 +2,6 @@ package com.centralbrain.runtime;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.SystemClock;
@@ -16,6 +15,9 @@ import com.centralbrain.sdk.production.TaskFailure;
 import com.centralbrain.sdk.production.TaskHandle;
 import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
+import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
+import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
+import com.centralbrain.runtime.supervisor.JobSupervisor;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +28,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Typed R2 production Binder with deterministic, hardware-free task execution.
- * Req IDs: XSC-001, XSC-004, XSC-006, NV-F-001, NV-G-003, NV-G-006, NV-P-002.
+ * Typed production Binder with a bounded R3 Job Supervisor and hardware-free execution.
+ * Req IDs: XSC-001, XSC-004, XSC-006, NV-F-001, FW-U-007, NV-G-003,
+ * NV-G-005, NV-G-006, NV-G-007, NV-P-002.
  */
 public final class CentralBrainRuntimeService extends Service {
     public static final String BIND_PERMISSION = "com.centralbrain.permission.BIND_RUNTIME";
@@ -37,9 +40,15 @@ public final class CentralBrainRuntimeService extends Service {
     private static final long START_DELAY_MS = 40;
     private static final long COMPLETE_DELAY_MS = BuildConfig.DEBUG ? 3000 : 160;
     private static final int MAX_TEXT_LENGTH = 4096;
+    private static final int MAX_TASK_RECORDS = 128;
+    private static final long TERMINAL_RETENTION_MS = TimeUnit.MINUTES.toMillis(5);
 
     private final AtomicLong nextTaskId = new AtomicLong(1);
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
+    private final JobSupervisor jobSupervisor = new JobSupervisor(
+            MAX_TASK_RECORDS,
+            TERMINAL_RETENTION_MS,
+            SystemClock::elapsedRealtime);
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
         Thread thread = new Thread(runnable, "central-brain-task-runner");
         thread.setDaemon(true);
@@ -61,41 +70,55 @@ public final class CentralBrainRuntimeService extends Service {
         public TaskHandle submitAgentTask(
                 AgentTaskRequest request,
                 ICentralBrainTaskCallback callback) {
+            CallerIdentitySnapshot caller = resolveTrustedCaller();
             validateRequest(request, callback);
+            removeTaskRecords(jobSupervisor.pruneExpired());
 
             String taskId = "task-" + nextTaskId.getAndIncrement();
+            JobSupervisor.Admission admission = jobSupervisor.admit(taskId, caller, "accepted");
+            removeTaskRecords(admission.getEvictedTaskIds());
             TaskRecord record = new TaskRecord(
                     taskId,
                     request,
                     callback,
-                    Binder.getCallingUid(),
-                    SystemClock.elapsedRealtime());
+                    admission.getSnapshot().getAcceptedAtElapsedRealtimeMs());
             record.deathRecipient = () -> handleCallbackDeath(record);
 
             try {
                 callback.asBinder().linkToDeath(record.deathRecipient, 0);
             } catch (RemoteException exception) {
+                jobSupervisor.remove(taskId);
                 throw new IllegalStateException("callback binder is already dead");
             }
 
             tasks.put(taskId, record);
-            executor.schedule(() -> startTask(record), START_DELAY_MS, TimeUnit.MILLISECONDS);
-            Log.i(TAG, "accepted taskId=" + taskId + " callerUid=" + record.callerUid
+            JobSupervisor.Snapshot current = jobSupervisor.find(taskId);
+            if (current != null && !current.isTerminal()) {
+                executor.schedule(() -> startTask(record), START_DELAY_MS, TimeUnit.MILLISECONDS);
+            }
+            Log.i(TAG, "accepted taskId=" + taskId + " " + caller.auditSummary()
                     + " hardware_accessed=false");
             return copyHandle(record.handle);
         }
 
         @Override
         public boolean cancelTask(TaskHandle handle, int reasonCode) {
+            CallerIdentitySnapshot caller = resolveTrustedCaller();
             validateCancelReason(reasonCode);
+            removeTaskRecords(jobSupervisor.pruneExpired());
             TaskRecord record = findRecord(handle);
-            return record != null && cancelRecord(record, reasonCode, true);
+            return record != null && cancelRecord(record, reasonCode, true, caller);
         }
 
         @Override
         public TaskUpdate getTaskStatus(TaskHandle handle) {
+            CallerIdentitySnapshot caller = resolveTrustedCaller();
+            removeTaskRecords(jobSupervisor.pruneExpired());
             TaskRecord record = findRecord(handle);
-            if (record == null) {
+            JobSupervisor.Snapshot snapshot = record == null
+                    ? null
+                    : jobSupervisor.findOwned(record.handle.taskId, caller);
+            if (snapshot == null) {
                 return updateFor(
                         handle == null ? "" : safe(handle.taskId),
                         ICentralBrainRuntime.TASK_STATE_UNKNOWN,
@@ -103,16 +126,18 @@ public final class CentralBrainRuntimeService extends Service {
                         0,
                         "unknown task");
             }
-            synchronized (record) {
-                return copyUpdate(record.latestUpdate);
-            }
+            return updateFor(snapshot);
         }
     };
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, "created maturity=" + CentralBrainSdk.MATURITY + " hardware_accessed=false");
+        identityResolver = new AndroidCallerIdentityResolver(this);
+        Log.i(TAG, "created maturity=" + CentralBrainSdk.MATURITY
+                + " job_supervisor_max_records=" + MAX_TASK_RECORDS
+                + " terminal_retention_ms=" + TERMINAL_RETENTION_MS
+                + " hardware_accessed=false");
     }
 
     @Override
@@ -135,6 +160,8 @@ public final class CentralBrainRuntimeService extends Service {
         Log.i(TAG, "destroyed hardware_accessed=false");
         super.onDestroy();
     }
+
+    private AndroidCallerIdentityResolver identityResolver;
 
     private static void validateRequest(
             AgentTaskRequest request,
@@ -196,28 +223,33 @@ public final class CentralBrainRuntimeService extends Service {
         TaskUpdate accepted;
         TaskUpdate running;
         synchronized (record) {
-            if (record.terminal) {
+            JobSupervisor.Snapshot before = jobSupervisor.find(record.handle.taskId);
+            if (before == null || before.isTerminal()) {
                 return;
             }
-            accepted = copyUpdate(record.latestUpdate);
-            record.latestUpdate = updateFor(
+            accepted = updateFor(before);
+            JobSupervisor.Transition transition = jobSupervisor.transition(
                     record.handle.taskId,
-                    ICentralBrainRuntime.TASK_STATE_RUNNING,
+                    JobSupervisor.State.RUNNING,
                     50,
-                    record.latestUpdate.sequence + 1,
                     "deterministic stub running");
-            running = copyUpdate(record.latestUpdate);
+            if (!transition.wasApplied()) {
+                return;
+            }
+            running = updateFor(transition.getSnapshot());
         }
 
         deliverUpdate(record, accepted);
         synchronized (record) {
-            if (record.terminal) {
+            JobSupervisor.Snapshot current = jobSupervisor.find(record.handle.taskId);
+            if (current == null || current.isTerminal()) {
                 return;
             }
         }
         deliverUpdate(record, running);
         synchronized (record) {
-            if (record.terminal) {
+            JobSupervisor.Snapshot current = jobSupervisor.find(record.handle.taskId);
+            if (current == null || current.isTerminal()) {
                 return;
             }
         }
@@ -228,17 +260,19 @@ public final class CentralBrainRuntimeService extends Service {
         TaskUpdate completed;
         TaskResult result;
         synchronized (record) {
-            if (record.terminal) {
+            JobSupervisor.Snapshot before = jobSupervisor.find(record.handle.taskId);
+            if (before == null || before.isTerminal()) {
                 return;
             }
-            record.terminal = true;
-            record.latestUpdate = updateFor(
+            JobSupervisor.Transition transition = jobSupervisor.transition(
                     record.handle.taskId,
-                    ICentralBrainRuntime.TASK_STATE_COMPLETED,
+                    JobSupervisor.State.COMPLETED,
                     100,
-                    record.latestUpdate.sequence + 1,
                     "deterministic stub completed");
-            completed = copyUpdate(record.latestUpdate);
+            if (!transition.wasApplied()) {
+                return;
+            }
+            completed = updateFor(transition.getSnapshot());
             result = new TaskResult();
             result.taskId = record.handle.taskId;
             result.completionCode = ICentralBrainRuntime.ERROR_NONE;
@@ -254,28 +288,33 @@ public final class CentralBrainRuntimeService extends Service {
             Log.w(TAG, "completion callback failed taskId=" + record.handle.taskId, exception);
         } finally {
             unlinkCallbackDeath(record);
+            jobSupervisor.markTerminalDeliverySettled(record.handle.taskId);
         }
     }
 
-    private boolean cancelRecord(TaskRecord record, int reasonCode, boolean notifyClient) {
+    private boolean cancelRecord(
+            TaskRecord record,
+            int reasonCode,
+            boolean notifyClient,
+            CallerIdentitySnapshot caller) {
         TaskUpdate cancelled;
         TaskFailure failure;
         synchronized (record) {
-            if (record.cancellationAccepted) {
+            JobSupervisor.Transition transition = caller == null
+                    ? jobSupervisor.cancelSystem(
+                            record.handle.taskId,
+                            "cancelled reason=" + reasonCode)
+                    : jobSupervisor.cancelOwned(
+                            record.handle.taskId,
+                            caller,
+                            "cancelled reason=" + reasonCode);
+            if (transition.getOutcome() == JobSupervisor.TransitionOutcome.ALREADY_CANCELLED) {
                 return true;
             }
-            if (record.terminal) {
+            if (!transition.wasApplied()) {
                 return false;
             }
-            record.cancellationAccepted = true;
-            record.terminal = true;
-            record.latestUpdate = updateFor(
-                    record.handle.taskId,
-                    ICentralBrainRuntime.TASK_STATE_CANCELLED,
-                    record.latestUpdate.progressPercent,
-                    record.latestUpdate.sequence + 1,
-                    "cancelled reason=" + reasonCode);
-            cancelled = copyUpdate(record.latestUpdate);
+            cancelled = updateFor(transition.getSnapshot());
             failure = new TaskFailure();
             failure.taskId = record.handle.taskId;
             failure.errorCode = ICentralBrainRuntime.ERROR_CANCELLED;
@@ -287,6 +326,7 @@ public final class CentralBrainRuntimeService extends Service {
             executor.execute(() -> notifyCancellation(record, cancelled, failure));
         } else {
             unlinkCallbackDeath(record);
+            jobSupervisor.markTerminalDeliverySettled(record.handle.taskId);
         }
         Log.i(TAG, "cancelled taskId=" + record.handle.taskId + " reason=" + reasonCode
                 + " hardware_accessed=false");
@@ -304,6 +344,7 @@ public final class CentralBrainRuntimeService extends Service {
             Log.w(TAG, "cancel callback failed taskId=" + record.handle.taskId, exception);
         } finally {
             unlinkCallbackDeath(record);
+            jobSupervisor.markTerminalDeliverySettled(record.handle.taskId);
         }
     }
 
@@ -319,7 +360,8 @@ public final class CentralBrainRuntimeService extends Service {
         boolean cancelled = cancelRecord(
                 record,
                 ICentralBrainRuntime.CANCEL_REASON_CLIENT_DIED,
-                false);
+                false,
+                null);
         if (cancelled) {
             Log.i(TAG, "callback died taskId=" + record.handle.taskId
                     + " hardware_accessed=false");
@@ -345,13 +387,49 @@ public final class CentralBrainRuntimeService extends Service {
         return copy;
     }
 
-    private static TaskUpdate copyUpdate(TaskUpdate source) {
+    private static TaskUpdate updateFor(JobSupervisor.Snapshot snapshot) {
         return updateFor(
-                source.taskId,
-                source.state,
-                source.progressPercent,
-                source.sequence,
-                source.message);
+                snapshot.getTaskId(),
+                aidlState(snapshot.getState()),
+                snapshot.getProgressPercent(),
+                snapshot.getSequence(),
+                snapshot.getMessage());
+    }
+
+    private static int aidlState(JobSupervisor.State state) {
+        switch (state) {
+            case ACCEPTED:
+                return ICentralBrainRuntime.TASK_STATE_ACCEPTED;
+            case RUNNING:
+                return ICentralBrainRuntime.TASK_STATE_RUNNING;
+            case COMPLETED:
+                return ICentralBrainRuntime.TASK_STATE_COMPLETED;
+            case FAILED:
+                return ICentralBrainRuntime.TASK_STATE_FAILED;
+            case CANCELLED:
+                return ICentralBrainRuntime.TASK_STATE_CANCELLED;
+            default:
+                throw new IllegalArgumentException("unsupported supervisor state: " + state);
+        }
+    }
+
+    private CallerIdentitySnapshot resolveTrustedCaller() {
+        CallerIdentitySnapshot caller = identityResolver.resolveCallingIdentity();
+        if (!caller.isResolved()) {
+            Log.w(TAG, "denied unresolved Binder caller " + caller.auditSummary()
+                    + " reason=" + caller.getResolutionFailure());
+            throw new SecurityException("trusted Binder caller identity could not be resolved");
+        }
+        return caller;
+    }
+
+    private void removeTaskRecords(Iterable<String> taskIds) {
+        for (String taskId : taskIds) {
+            TaskRecord removed = tasks.remove(taskId);
+            if (removed != null) {
+                unlinkCallbackDeath(removed);
+            }
+        }
     }
 
     private static TaskUpdate updateFor(
@@ -377,30 +455,18 @@ public final class CentralBrainRuntimeService extends Service {
         final AgentTaskRequest request;
         final ICentralBrainTaskCallback callback;
         final TaskHandle handle;
-        final int callerUid;
-        TaskUpdate latestUpdate;
         IBinder.DeathRecipient deathRecipient;
-        boolean terminal;
-        boolean cancellationAccepted;
 
         TaskRecord(
                 String taskId,
                 AgentTaskRequest request,
                 ICentralBrainTaskCallback callback,
-                int callerUid,
                 long acceptedAtElapsedRealtimeMs) {
             this.request = request;
             this.callback = callback;
-            this.callerUid = callerUid;
             this.handle = new TaskHandle();
             this.handle.taskId = taskId;
             this.handle.acceptedAtElapsedRealtimeMs = acceptedAtElapsedRealtimeMs;
-            this.latestUpdate = updateFor(
-                    taskId,
-                    ICentralBrainRuntime.TASK_STATE_ACCEPTED,
-                    0,
-                    1,
-                    "accepted");
         }
     }
 }

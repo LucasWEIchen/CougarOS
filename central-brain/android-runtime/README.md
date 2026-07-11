@@ -9,7 +9,7 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 | Module | Artifact | Current responsibility |
 | --- | --- | --- |
 | `central-brain-sdk` | AAR | Public typed client, structured AIDL types, callback bridge and protocol identity |
-| `runtime-service` | APK without launcher | Signature-protected production/diagnostic Binder services and deterministic task runner |
+| `runtime-service` | APK without launcher | Signature-protected Binders, bounded Job Supervisor, trusted caller snapshot and deterministic task runner |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
 
 R2A added compiled, structured production and diagnostic AIDL contracts to `central-brain-sdk`. R2B publishes them from separate exported Services protected by `com.centralbrain.permission.BIND_RUNTIME` and `com.centralbrain.permission.ACCESS_DIAGNOSTICS`. Demo HMI requests only the production signature permission and binds through `CentralBrainClient`; it never requests diagnostics. No module requests network, vehicle, device-node, camera, audio, location, or hardware permissions.
@@ -28,7 +28,15 @@ Production AIDL contains only typed task fields; JSON, `Bundle`, file descriptor
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
-The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`; Job Supervisor, trusted identity, durability, hardware and production qualification remain later stages.
+The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`.
+
+## R3A Job Supervisor
+
+`runtime-service` now routes task lifecycle through a pure-Java `JobSupervisor`. Legal transitions are explicit, progress is monotonic, active tasks are never evicted, total records are bounded to 128, and terminal records are retained for five minutes before deterministic expiry/pressure eviction.
+
+Every production Binder entry resolves its caller from `Binder.getCallingUid()`, Android user serial, PackageManager UID packages and each package's current signing-certificate SHA-256. The request cannot claim identity or permissions. A task is bound to the complete snapshot; another principal receives unknown status and cannot cancel it. Unresolved identity is denied.
+
+R3 is still in progress. R3B must add package+signer capability policy, default-deny unknown clients and a second-client API 33 denial test. R3C must add action risk classes and high-risk approval. R4 still owns durable SQLite recovery, so the R3A registry must not be described as durable.
 
 ## Toolchain
 
@@ -75,6 +83,8 @@ bash tools/test_central_brain_android_binder_lifecycle.sh --require-api-33
 ```
 
 It builds and installs the debug/androidTest artifacts, runs service-death/reconnect and cancel-completion instrumentation, then verifies callback death by force-stopping a separate debug client process. The test path never accesses hardware or vendor interfaces.
+
+The normal build also runs `runtime-service:testDebugUnitTest`; `tools/check_central_brain_android_job_supervisor.sh` checks the R3A state, identity and no-hardware boundaries.
 
 The existing hand-built Android Console and Client2 reverse-demo APK remain separate compatibility/test artifacts. They are not copied into this Gradle project.
 

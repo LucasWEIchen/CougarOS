@@ -218,6 +218,17 @@ for expected in \
   fi
 done
 
+RUNTIME_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CentralBrainRuntime:I '*:S')"
+if ! grep -Fq "job_supervisor_max_records=128 terminal_retention_ms=300000" \
+    <<<"$RUNTIME_LOG"; then
+  echo "Runtime did not report the bounded R3A Job Supervisor" >&2
+  exit 1
+fi
+if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
+  echo "Runtime did not resolve the Demo Binder caller from trusted package evidence" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -238,6 +249,9 @@ printf '%s\n' \
   "signature_permission_enforced=true" \
   "diagnostic_permission_requested_by_demo=false" \
   "diagnostic_binder_page_verified=true" \
+  "job_supervisor_active=true" \
+  "trusted_caller_identity_resolved=true" \
+  "request_identity_fields_used=false" \
   "r1_api33_exit_criteria_met=$API_33_EXIT" \
   "hardware_accessed=false" \
   "driver_development_triggered=false" \

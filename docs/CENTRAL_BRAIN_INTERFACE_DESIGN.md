@@ -717,3 +717,19 @@ This is Gradle application structured AIDL because the project cannot modify the
 R2B published `ICentralBrainRuntime` and `ICentralBrainDiagnostics` from separate signature-protected Service components. `CentralBrainClient` uses an explicit component, narrow package visibility, executor-dispatched callbacks and a service `DeathRecipient`; Runtime task work runs off Binder threads and diagnostic pages remain bounded/read-only. Its API 33 evidence covered protocol negotiation, completion, duplicate cancel, permission denial and diagnostic paging; process-death, rebind and cancel-completion race evidence was completed in R2C.
 
 R2C completes that lifecycle contract: death recipients are scoped to exact Binder instances, active callbacks fail once with `ERROR_SERVICE_DIED`, `reconnect()` explicitly unbinds/rebinds, and post-terminal updates are suppressed. API 33 instrumentation covers Runtime force-stop/recovery, duplicate disconnect suppression, 15-task cancel-completion races and separate client-process death. The typed Android Protocol Binding is `android_integrated`; legacy JSON Binder/HTTP migration remains DEV-018/ISSUE-021 work for R7.
+
+## Android R3A Job Supervisor And Trusted Identity Interfaces
+
+R3A keeps the frozen V1 AIDL unchanged and adds internal AIOS Kernel/Runtime & Governance interfaces:
+
+| Interface | Input | Output/failure | Owner |
+| --- | --- | --- | --- |
+| `JobSupervisor.admit` | Runtime task ID, resolved caller snapshot, initial message | accepted snapshot + pressure-evicted terminal IDs; rejects duplicate ID, unresolved owner or full active registry | AIOS Kernel `NV-F-001` |
+| `JobSupervisor.transition` | task ID, target state, monotonic progress, message | applied/latest snapshot; rejects illegal transition or progress regression | AIOS Kernel/Lifecycle `NV-G-006` |
+| `JobSupervisor.cancelOwned` | task ID, trusted current caller, reason message | applied, already-cancelled, terminal, or not-found/not-owner without existence disclosure | Permission/Policy `FW-U-007`, `NV-G-005` |
+| `JobSupervisor.findOwned` | task ID, trusted current caller | snapshot or null for both missing and non-owner | Runtime & Governance `XSC-005` |
+| `JobSupervisor.pruneExpired` | elapsed realtime | terminal task IDs removed after retention; never removes active work | Lifecycle/Audit `NV-G-006/007` |
+| `JobSupervisor.markTerminalDeliverySettled` | terminal task ID after completion/failure callback attempt or confirmed callback death | makes the terminal record eligible for later retention/pressure eviction; rejects non-terminal settlement | Lifecycle/Audit `NV-G-006/007` |
+| `AndroidCallerIdentityResolver.resolveCallingIdentity` | current Binder transaction | UID, Android user serial, sorted package/current-signer SHA-256 evidence; unresolved result fails closed | Protocol Binding/Policy `XSC-006`, `NV-P-002` |
+
+The package and each current signer remain paired in `CallerIdentitySnapshot.PackageIdentity`; a flat package/digest cross-product is forbidden. No request field participates in identity or authorization. R3B will consume this snapshot through a package+signer capability policy and default-deny unknown clients; R3C will add trusted Safety/Vehicle State and approval inputs.

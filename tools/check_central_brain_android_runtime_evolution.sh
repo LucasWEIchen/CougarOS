@@ -106,6 +106,7 @@ for path in \
   tools/check_central_brain_android_aidl_contract.sh \
   tools/check_central_brain_android_binder_runtime.sh \
   tools/check_central_brain_android_binder_lifecycle.sh \
+  tools/check_central_brain_android_job_supervisor.sh \
   tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
   require_file "$path"
@@ -145,6 +146,12 @@ require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R2C Binder Lifecy
 require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成"
 require_text "docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md" "R2C Lifecycle And Race Evidence"
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "android_integrated"'
+require_text "$PLAN" "R3A Job Supervisor foundation"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R3A Job Supervisor foundation trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "trusted_caller_identity_resolved=true"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3A Job Supervisor Driver/HAL Boundary"
+
+bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

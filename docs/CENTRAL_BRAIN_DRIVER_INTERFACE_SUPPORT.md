@@ -417,3 +417,9 @@ R2B adds Android application-layer Binder Service/client code, signature permiss
 ### R2C Binder Lifecycle Driver/HAL Boundary
 
 R2C uses public Android Binder death recipients, `bindService`/`unbindService`, app instrumentation, `am force-stop`, logcat and DUMP-protected debug Activities. The client-death scenario keeps the app-layer Runtime started only so callback Binder death can be observed. No test opens a device node, invokes JNI/HAL/vendor SDK, probes PCIe/NPU/vehicle interfaces, uses shared memory or changes the Android image. API 33 evidence reports `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; R2 completion adds zero Driver/HAL development and closes no DRV-GAP. Req IDs: `XSC-004`, `XSC-006`, `NV-F-001`, `NV-G-006`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R3A Job Supervisor Driver/HAL Boundary
+
+R3A adds application-process Java only: a bounded task state machine, terminal retention, Binder UID/package/current-signer identity capture and owner isolation. Identity uses public `Binder`, `PackageManager`, `SigningInfo` and `UserManager` APIs. It does not need NDK/JNI, VHAL, vendor AIDL, device nodes, ioctl/sysfs, PCIe/NPU, vehicle bus, shared memory, Camera/Audio/Sensors, Safety Runtime or an Android system-image change.
+
+JVM and API 33 tests report `job_supervisor_active=true`, `trusted_caller_identity_resolved=true`, `request_identity_fields_used=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`. No DRV-GAP is activated and added Driver/HAL development remains zero. Capability configuration and approval are Runtime & Governance R3B/R3C work, not Driver/HAL work. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `FW-U-007`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.

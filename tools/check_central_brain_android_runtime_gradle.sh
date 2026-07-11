@@ -48,6 +48,7 @@ for path in \
   tools/check_central_brain_android_aidl_contract.sh \
   tools/check_central_brain_android_binder_runtime.sh \
   tools/check_central_brain_android_binder_lifecycle.sh \
+  tools/check_central_brain_android_job_supervisor.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
 done
@@ -92,5 +93,6 @@ fi
 bash "$ROOT_DIR/tools/check_central_brain_android_aidl_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_binder_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_binder_lifecycle.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"
