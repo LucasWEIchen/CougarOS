@@ -53,6 +53,11 @@
 
 ### 2026-07-11
 
+- 补充 Central Brain 模块调用用例图：
+  - 新增 `docs/CENTRAL_BRAIN_MODULE_USE_CASE_DIAGRAM.md`，用一张 Mermaid 图串联驾驶员/乘员、Android 工程师、Linux 工程师、系统集成工程师与 L1 应用、Protocol Binding、AI SDK、Uni Info Bus、SOA、Runtime & Governance、Native adapters、Model Runtime 和硬件空接口。
+  - 图中实线表示当前原型调用，虚线表示 contract/空接口/目标平台预留；显式标注 DEV-017 Client2 临时 HTTP、DRV-GAP-001、真实 Driver/HAL/PCIe NPU 未激活和虚拟化不开发。
+  - 覆盖 Req ID：`APP-004`、`XSC-001..006`、`FW-U-001..008`、`FW-S-001..006`、`NV-F-001`、`NV-F-003..005`、`NV-F-011`、`NV-G-001..007`、`NV-P-002`、`NV-P-003`、`NV-P-005`、`KH-003`、`KH-006`、`KH-007`、`HW-002`、`DEL-001..005`。
+
 - 推进 Client2 APK 底层逆向演示测试工程：
   - 新增 `apk-labs/client2-central-brain/`，基于 `reverse/client2/apktool` 的资源/smali 逆向基线建立 patch 工程，不修改 `apks/original` 或原始逆向目录。
   - 新增 `main_layout` 资源层 patch；初版为左侧 2/3 原 `TuanjieView` 与右侧 1/3 面板分屏，现已按演示 UX 要求改为原车模全屏渲染、右侧 1/3 半透明 Central Brain panel 悬浮覆盖，不再压缩车模区域。

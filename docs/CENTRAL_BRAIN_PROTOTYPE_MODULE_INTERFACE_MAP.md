@@ -16,6 +16,8 @@
 
 本文只描述当前 Python 原型和配套 Android/Linux 绑定样例，不声明量产完成状态。
 
+面向参与者的单图入口见 `CENTRAL_BRAIN_MODULE_USE_CASE_DIAGRAM.md`，该图把 Android/Linux 用例、核心模块调用和硬件空接口边界放在同一视图中。
+
 ## 2. 需求边界
 
 相关 Req ID：

@@ -104,6 +104,7 @@ Client2 Android 演示主路径通过右侧半透明悬浮面板提供 12 个稳
 
 - 接口文档：contract、字段、错误码、权限、安全状态。
 - 模块/接口关系说明：`CENTRAL_BRAIN_PROTOTYPE_MODULE_INTERFACE_MAP.md` 必须说明当前 Python 原型模块清单、接口族、Android 主路径、Linux 同步路径和硬件空接口边界。
+- 用例调用关系图：`CENTRAL_BRAIN_MODULE_USE_CASE_DIAGRAM.md` 必须同时标出参与者、Android/Linux 接入、XSC-001..006 核心模块调用、DEV-017 临时路径和 no-hardware/no-virtualization 边界。
 - Android 使用说明：构建、安装、运行、日志、验证命令。
 - Linux 使用说明：启动、配置、CLI/API、日志、验证命令。
 - 平台差异说明：IPC、权限、服务部署、日志路径、驱动接口差异。
