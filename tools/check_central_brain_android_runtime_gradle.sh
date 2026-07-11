@@ -62,6 +62,7 @@ for path in \
   tools/check_central_brain_android_durable_runtime_wiring.sh \
   tools/check_central_brain_android_durable_approval.sh \
   tools/check_central_brain_android_restart_reconciliation.sh \
+  tools/check_central_brain_android_effect_outbox.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
@@ -118,5 +119,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_durable_repository.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_runtime_wiring.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_approval.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_restart_reconciliation.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

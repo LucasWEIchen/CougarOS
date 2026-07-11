@@ -23,7 +23,7 @@
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
-| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 进行中：R4A、R4B1-3、R4C1 完成；R4C2 pending effect/outbox 与后续 fault tests 待完成 |
+| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 进行中：R4A、R4B1-3、R4C1、R4C2A 完成；R4C2B terminal/retry 与 R4C3 fault tests 待完成 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R4C2A repository-only effect prepare/claim：effect+outbox+audit 原子写入，owner-scoped key digest、eligible claim、attempt 递增、IN_FLIGHT reopen requeue 和公平回队已实现。
+- API 33 验证 reopen replay/conflict/owner scope、claim/requeue 幂等与 attempt=2；production wiring/dispatcher/adapter/hardware 均 false。下一步 R4C2B terminal/retry/cancel。
+- R4C2A 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`。
 - 完成 R4C1 fail-closed restart reconciliation：后台启动屏障先对账，ACCEPTED/RUNNING 与未结算 COMPLETED 事务性转 FAILED，追加 checkpoint/audit，且不恢复执行。
 - API 33 已验证对账幂等、same-handle FAILED replay、per-task callback 顺序、service death/reconnect、终态唯一和 cancel-completion race；`task_execution_resume_enabled=false`、dispatch/hardware/Driver/HAL/virtualization 均 false。
 - R4C 下一步为 R4C2 pending effect/outbox 状态机；R4C1 覆盖 Req ID：`FW-U-004`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-004`。

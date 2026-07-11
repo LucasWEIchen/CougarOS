@@ -750,3 +750,11 @@ R4C1 交付 DAO restart candidate query、transactional FAILED/checkpoint/audit 
 API 33 标准安装门禁新增 `restart_reconciliation_enabled=true`、`restart_reconciliation_idempotent=true`、`incomplete_completion_reconciled_failed=true` 和 `task_execution_resume_enabled=false`；service-death instrumentation 必须输出 `restart_reconciliation_verified=true`，并继续通过 terminal uniqueness、cancel-completion race 和 no-hardware 门禁。
 
 该阶段是 fail-closed reconciliation，不是执行恢复：active 与未结算 COMPLETED task 均转为 FAILED；exact replay 返回相同 handle 和 retryable failure。它不保存/重放 raw utterance/result，不创建 pending effect/outbox，不 dispatch Action/SOA/Skill，不访问真实硬件，不新增 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
+
+## Android R4C2A Effect Prepare And Claim 交付补充
+
+R4C2A 交付 `DurableEffectRepository`、effect/outbox DAO query/update、owner-scoped idempotency token、PREPARED/PENDING→IN_FLIGHT claim、IN_FLIGHT reopen requeue、debug-only isolated probe 和 `tools/check_central_brain_android_effect_outbox.sh`。不修改 Room schema version、frozen AIDL 或标准三项 artifact。
+
+API 33 标准安装门禁新增 effect prepare/reopen replay/conflict/owner scope、outbox claim/reopen requeue/fairness/idempotent reconciliation、second claim attempt=2 和 audit count 证据，同时固定 `effect_repository_wired=false`、`outbox_dispatch_enabled=false`、`service_dispatch_triggered=false`。
+
+该交付不包含 retry/backoff、success/dead-letter/cancel 终态，不接 production Service，不调用 UIB/SOA/Skill，不声明 adapter exactly-once，不保存 raw operation payload，不访问硬件，不新增 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。

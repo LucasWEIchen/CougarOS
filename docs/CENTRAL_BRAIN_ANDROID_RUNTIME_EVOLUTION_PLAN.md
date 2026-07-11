@@ -120,7 +120,10 @@
 - `R4C1 fail-closed restart reconciliation` 已完成：Runtime 在单线程后台执行器中先完成启动对账，并以 Future 屏障阻止 task submit/cancel/status 越过对账。ACCEPTED/RUNNING 与未完成终态回执的 COMPLETED 在单 Room transaction 中转为 FAILED，追加 checkpoint/audit，且保持 terminal delivery 未结算。
 - 由于当前只保存 digest/metadata，不保存可重放的原始 utterance/result，R4C1 不恢复执行。Exact replay 返回原 handle，按顺序回调 durable FAILED status 和 retryable `ERROR_INTERNAL`，回调尝试后再幂等结算；SDK 对每个 task callback 使用串行投递器，避免 update/terminal 乱序。
 - API 33 已验证对账幂等、active/incomplete-completion 两类失败关闭、进程死亡后同 handle/FAILED replay、终态唯一和 cancel-completion race；固定 `restart_reconciliation_enabled=true`、`task_execution_resume_enabled=false`、`durable_dispatch_enabled=false`。
-- R4B 已关闭；R4 尚未关闭：R4C2 需 pending effect/outbox 状态机，后续还需 crash-point/fault/race tests 和 retention/trusted-clock 决策。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
+- `R4C2A effect prepare and claim` 已完成：RUNNING task 的 effect/outbox/audit 在单 transaction 中 prepare，调用方 key 先与 owner fingerprint 做域分离哈希以适配现有全局唯一索引；exact reopen replay 不重复写，mismatch 冲突，另一 owner 可复用原始 key。
+- Claim 只选择 due PENDING + PREPARED + RUNNING 组合，在单 transaction 中把 effect/outbox 转为 IN_FLIGHT、递增 attempt 并审计。进程中断后 repository 可把 IN_FLIGHT 幂等回退到队尾 PENDING，先服务等待更久的工作，再以 attempt+1 重新 claim。
+- R4C2A 仅为 repository/debug probe，production Runtime/Governance 不引用它；持久化内容仍只有 digest/metadata，`effect_repository_wired=false`、`outbox_dispatch_enabled=false`。R4C2B 才定义 retry/backoff、success/dead-letter/cancel 终态。
+- R4B 已关闭；R4 尚未关闭：R4C2B 和 R4C3 仍需 terminal/retry、crash-point/fault/race tests 和 retention/trusted-clock 决策。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

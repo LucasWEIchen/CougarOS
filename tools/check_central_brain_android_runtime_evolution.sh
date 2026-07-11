@@ -114,6 +114,7 @@ for path in \
   tools/check_central_brain_android_durable_runtime_wiring.sh \
   tools/check_central_brain_android_durable_approval.sh \
   tools/check_central_brain_android_restart_reconciliation.sh \
+  tools/check_central_brain_android_effect_outbox.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
@@ -192,6 +193,10 @@ require_text "$PLAN" "R4C1 fail-closed restart reconciliation"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4C1 fail-closed restart reconciliation trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4C1 Fail-Closed Restart Reconciliation"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4C1 Restart Reconciliation Driver/HAL Boundary"
+require_text "$PLAN" "R4C2A effect prepare and claim"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4C2A effect prepare and claim trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4C2A Effect Prepare And Claim"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4C2A Effect Outbox Driver/HAL Boundary"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
@@ -201,6 +206,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_durable_repository.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_runtime_wiring.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_approval.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_restart_reconciliation.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

@@ -851,3 +851,16 @@ Frozen production AIDL remains unchanged. Restart behavior is an internal Runtim
 | SDK `SerialExecutor` per callback | preserves update-before-terminal delivery over a concurrent caller executor | terminal remains exactly once and updates are not reordered behind it |
 
 A COMPLETED task with an unsettled callback is conservatively changed to FAILED because R4C1 stores no result payload that can be proven equivalent after process loss. This is an explicit availability tradeoff in favor of no false-success/no duplicate-effect semantics. R4C2 owns pending-effect/outbox state; real resumable task execution requires an approved durable input/result format and is not implied by `restart_reconciliation_enabled=true`.
+
+## Android R4C2A Effect Prepare And Claim
+
+`DurableEffectRepository` is an internal Java/Room boundary and is not referenced by a production Service in this increment.
+
+| Call | Transactional result | Explicit non-result |
+| --- | --- | --- |
+| `prepare(owner,task,key,type,action,payloadDigest,destination,envelopeDigest)` | owner/key digest lookup; exact replay or PREPARED effect + PENDING outbox + audit | no adapter lookup or dispatch |
+| `claimNext(destination)` | due/eligible row moves PREPARED/PENDING→IN_FLIGHT/IN_FLIGHT, attempt increments, audit appends | returns digest metadata only; does not call destination |
+| `reconcileInterruptedClaims()` | interrupted pairs return to PREPARED/PENDING at current `not_before`, one recovery audit each | startup/offline reconciliation only; does not assert whether an external side effect occurred |
+| `findOwned(effectId,owner)` | owner-isolated effect/outbox snapshot | no cross-owner existence disclosure |
+
+The stored `idempotency_key` is a domain-separated owner+caller-key digest, called the idempotency token in repository snapshots. A claim carries IDs, owner token, type/action, payload/envelope digests, destination, state and attempt count; no raw command exists to dispatch. Route pairs are fixed to UIB Action, SOA Operation and Skill. Because an IN_FLIGHT crash is ambiguous once a real adapter exists, requeue alone provides at-least-once infrastructure, not exactly-once execution; adapter idempotency/status contracts remain a hard activation gate.

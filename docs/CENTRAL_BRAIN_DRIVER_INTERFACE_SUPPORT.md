@@ -471,3 +471,9 @@ The Governance AIDL has no approve/grant call and every response keeps `dispatch
 R4C1 uses Java Executor/Future, Binder callback delivery and app-private Room transactions only. It reads task/checkpoint/audit metadata from SQLite and does not inspect a VHAL frame, Safety Runtime state, NPU resource, sensor, device node, vendor SDK or shared memory.
 
 Restart candidates are failed closed and never resumed or dispatched. No pending effect/outbox row is created or consumed, no C/C++/JNI/Driver/HAL code is added, and no existing DRV-GAP changes state. `task_execution_resume_enabled=false`, `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false` are exit evidence. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-003`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.
+
+### R4C2A Effect Outbox Driver/HAL Boundary
+
+R4C2A uses Java SHA-256, Room transactions and an app-private debug probe only. Destination values are inert routing labels; no UIB/SOA/Skill adapter, VHAL, Safety Runtime, NPU, vendor SDK, shared memory, device node or vehicle bus is opened.
+
+An IN_FLIGHT row may be requeued because no dispatcher exists in this increment. Before any real adapter activation, the Driver/HAL/vendor interface contract must consume the persisted idempotency token or provide a trusted delivery-status query; otherwise ambiguous crash retries remain unsafe. No DRV-GAP changes state and added C/C++/JNI/Driver/HAL work is zero. `effect_repository_wired=false`, `outbox_dispatch_enabled=false`, `service_dispatch_triggered=false` and all hardware/virtualization flags remain false. Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `FW-U-004`, `FW-U-005`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `DEL-001`, `DEL-004`.

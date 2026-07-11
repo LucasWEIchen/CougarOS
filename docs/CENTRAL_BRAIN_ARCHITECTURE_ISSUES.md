@@ -227,6 +227,8 @@
 
 2026-07-12 R4C1 进展：启动对账在 Room transaction 中把 ACCEPTED/RUNNING 与未结算 COMPLETED 统一失败关闭，写入下一 checkpoint 和 restart audit；第二次对账不重复写。API 33 service death/reconnect 返回同 handle、durable FAILED 与 retryable failure，且不恢复执行。ISSUE-022 保持 Open：pending effect/outbox、crash-point/fault matrix、可恢复输入/结果格式、retention/export/delete/encryption/key rotation 仍未完成。
 
+2026-07-12 R4C2A 进展：effect+outbox+audit prepare、eligible claim、attempt 递增与 IN_FLIGHT reopen requeue 已 transactional；owner-scoped key digest 避免跨 owner 冲突，API 33 已验证公平回队和第二次 claim。ISSUE-022 保持 Open：真实 adapter 后的 IN_FLIGHT 状态仍有“副作用可能已发生但结果未落库”的歧义，必须由 adapter idempotency token/status reconciliation、R4C2B terminal/retry 和 R4C3 fault matrix 共同关闭；dispatcher 当前禁止启用。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

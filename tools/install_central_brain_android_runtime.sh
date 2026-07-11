@@ -324,6 +324,47 @@ if [[ "$RESTART_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+EFFECT_NONCE="$(date +%s%N)"
+EFFECT_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.DurableEffectRepositoryProbeActivity \
+  --es nonce "$EFFECT_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$EFFECT_PROBE_OUTPUT"; then
+  echo "$EFFECT_PROBE_OUTPUT" >&2
+  echo "durable effect/outbox debug probe did not start successfully" >&2
+  exit 1
+fi
+EFFECT_PROBE_PASSED=false
+for _ in {1..40}; do
+  EFFECT_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbEffectProbe:I)"
+  if grep -Fq "nonce=$EFFECT_NONCE effect_probe_complete=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_prepare_transaction_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_non_running_task_rejected=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_route_mismatch_rejected=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_owner_scoped_token_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_reopen_replay_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_idempotency_conflict_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_owner_scope_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "outbox_claim_transaction_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "outbox_reopen_requeue_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "outbox_reconciliation_idempotent=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "outbox_fair_requeue_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "outbox_second_claim_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_outbox_audit_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "outbox_claim_attempt=2" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_repository_wired=false" <<<"$EFFECT_LOG" \
+      && grep -Fq "outbox_dispatch_enabled=false" <<<"$EFFECT_LOG" \
+      && grep -Fq "service_dispatch_triggered=false" <<<"$EFFECT_LOG"; then
+    EFFECT_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$EFFECT_PROBE_PASSED" != true ]]; then
+  echo "$EFFECT_LOG" >&2
+  echo "durable effect/outbox repository probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -514,6 +555,22 @@ printf '%s\n' \
   "restart_reconciliation_idempotent=true" \
   "incomplete_completion_reconciled_failed=true" \
   "task_execution_resume_enabled=false" \
+  "effect_prepare_transaction_verified=true" \
+  "effect_non_running_task_rejected=true" \
+  "effect_route_mismatch_rejected=true" \
+  "effect_owner_scoped_token_verified=true" \
+  "effect_reopen_replay_verified=true" \
+  "effect_idempotency_conflict_verified=true" \
+  "effect_owner_scope_verified=true" \
+  "outbox_claim_transaction_verified=true" \
+  "outbox_reopen_requeue_verified=true" \
+  "outbox_reconciliation_idempotent=true" \
+  "outbox_fair_requeue_verified=true" \
+  "outbox_second_claim_verified=true" \
+  "effect_outbox_audit_verified=true" \
+  "outbox_claim_attempt=2" \
+  "effect_repository_wired=false" \
+  "outbox_dispatch_enabled=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

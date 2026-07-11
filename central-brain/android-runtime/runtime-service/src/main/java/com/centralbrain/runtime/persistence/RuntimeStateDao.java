@@ -29,6 +29,37 @@ public interface RuntimeStateDao {
     List<RuntimeTaskEntity> findTasksNeedingRestartReconciliation();
 
     @Nullable
+    @Query("SELECT * FROM pending_effect WHERE effect_id = :effectId LIMIT 1")
+    PendingEffectEntity findPendingEffect(String effectId);
+
+    @Nullable
+    @Query("SELECT * FROM pending_effect WHERE idempotency_key = :idempotencyKey LIMIT 1")
+    PendingEffectEntity findPendingEffectByIdempotency(String idempotencyKey);
+
+    @Nullable
+    @Query("SELECT * FROM effect_outbox WHERE effect_id = :effectId LIMIT 1")
+    OutboxEntity findOutboxByEffect(String effectId);
+
+    @Nullable
+    @Query("SELECT effect_outbox.* FROM effect_outbox "
+            + "INNER JOIN pending_effect "
+            + "ON pending_effect.effect_id = effect_outbox.effect_id "
+            + "INNER JOIN runtime_task "
+            + "ON runtime_task.task_id = pending_effect.task_id "
+            + "WHERE effect_outbox.destination = :destination "
+            + "AND effect_outbox.state = 'PENDING' "
+            + "AND effect_outbox.not_before_wall_ms <= :nowWallMs "
+            + "AND pending_effect.state = 'PREPARED' "
+            + "AND runtime_task.state = 'RUNNING' "
+            + "ORDER BY effect_outbox.not_before_wall_ms, "
+            + "effect_outbox.created_at_wall_ms, effect_outbox.outbox_id LIMIT 1")
+    OutboxEntity findNextClaimableOutbox(String destination, long nowWallMs);
+
+    @Query("SELECT * FROM effect_outbox WHERE state = :state "
+            + "ORDER BY updated_at_wall_ms, outbox_id")
+    List<OutboxEntity> findOutboxesInState(String state);
+
+    @Nullable
     @Query("SELECT * FROM task_checkpoint WHERE task_id = :taskId "
             + "ORDER BY sequence DESC LIMIT 1")
     TaskCheckpointEntity findLatestCheckpoint(String taskId);
@@ -74,6 +105,12 @@ public interface RuntimeStateDao {
     int updateTask(RuntimeTaskEntity entity);
 
     @Update
+    int updatePendingEffect(PendingEffectEntity entity);
+
+    @Update
+    int updateOutbox(OutboxEntity entity);
+
+    @Update
     int updateApproval(ApprovalRequestEntity entity);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
@@ -87,6 +124,12 @@ public interface RuntimeStateDao {
 
     @Query("SELECT COUNT(*) FROM task_checkpoint")
     int countTaskCheckpoints();
+
+    @Query("SELECT COUNT(*) FROM pending_effect")
+    int countPendingEffects();
+
+    @Query("SELECT COUNT(*) FROM effect_outbox")
+    int countOutboxRows();
 
     @Query("SELECT COUNT(*) FROM runtime_task WHERE state = :state")
     int countTasksInState(String state);
