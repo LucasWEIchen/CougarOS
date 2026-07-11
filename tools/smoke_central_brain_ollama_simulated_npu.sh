@@ -26,6 +26,7 @@ CENTRAL_BRAIN_OLLAMA_URL="$OLLAMA_URL" \
 CENTRAL_BRAIN_OLLAMA_MODEL="$OLLAMA_MODEL" \
 CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS="${CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS:-120000}" \
 CENTRAL_BRAIN_OLLAMA_NUM_PREDICT="${CENTRAL_BRAIN_OLLAMA_NUM_PREDICT:-16}" \
+CENTRAL_BRAIN_OLLAMA_THINK="${CENTRAL_BRAIN_OLLAMA_THINK:-false}" \
   python3 "$ROOT_DIR/central-brain/backend/mock_npu_service.py" --host 127.0.0.1 --port "$PORT" >"$LOG_FILE" 2>&1 &
 BACKEND_PID=$!
 
@@ -93,7 +94,9 @@ assert direct_infer["simulated_npu_backend"] == "ollama", direct_infer
 assert direct_infer["backend_model"] == expected_model, direct_infer
 assert direct_infer["status"] == "ok", direct_infer
 assert direct_infer["result"]["ollama_done"] is True, direct_infer
-assert "generated_text" in direct_infer["result"], direct_infer
+assert direct_infer["result"]["generated_text"].strip(), direct_infer
+assert direct_infer["result"]["raw_generated_text"].strip(), direct_infer
+assert direct_infer["result"]["thinking_text_available"] is False, direct_infer
 assert direct_infer["metrics"]["ollama_eval_count"] is not None, direct_infer
 assert direct_infer["metrics"]["ollama_eval_count"] > 0, direct_infer
 assert_boundary(direct_infer)
@@ -112,7 +115,9 @@ assert result["runtime"] == "ollama-simulated-npu", soa_infer
 assert result["simulated_npu_backend"] == "ollama", soa_infer
 assert result["status"] == "ok", soa_infer
 assert result["result"]["ollama_done"] is True, soa_infer
-assert "generated_text" in result["result"], soa_infer
+assert result["result"]["generated_text"].strip(), soa_infer
+assert result["result"]["raw_generated_text"].strip(), soa_infer
+assert result["result"]["thinking_text_available"] is False, soa_infer
 assert result["metrics"]["ollama_eval_count"] is not None, soa_infer
 assert result["metrics"]["ollama_eval_count"] > 0, soa_infer
 assert_boundary(result)

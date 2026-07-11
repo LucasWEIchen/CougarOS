@@ -7,6 +7,8 @@
 
 .field private replyView:Landroid/widget/TextView;
 
+.field private static requestInFlight:Z
+
 
 .method public constructor <init>(Landroid/app/Activity;)V
     .locals 0
@@ -64,6 +66,10 @@
 
     check-cast v4, Landroid/widget/Button;
 
+    const/4 v5, 0x0
+
+    invoke-virtual {v4, v5}, Landroid/widget/Button;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V
+
     invoke-virtual {v4, p0}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
 
     :cond_0
@@ -82,6 +88,10 @@
     if-eqz v7, :cond_1
 
     check-cast v6, Landroid/widget/Button;
+
+    const/4 v7, 0x0
+
+    invoke-virtual {v6, v7}, Landroid/widget/Button;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V
 
     invoke-virtual {v6, p0}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
 
@@ -149,6 +159,14 @@
 
     if-eqz p1, :cond_0
 
+    sget-boolean v0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->requestInFlight:Z
+
+    if-nez v0, :cond_0
+
+    const/4 v0, 0x1
+
+    sput-boolean v0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->requestInFlight:Z
+
     new-instance v0, Ljava/lang/StringBuilder;
 
     invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
@@ -163,7 +181,7 @@
 
     move-result-object v0
 
-    invoke-virtual {p0, v0}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->showReply(Ljava/lang/String;)V
+    invoke-virtual {p0, v0}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->setReplyNow(Ljava/lang/String;)V
 
     new-instance v2, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;
 
@@ -176,6 +194,16 @@
     invoke-virtual {v3}, Ljava/lang/Thread;->start()V
 
     :cond_0
+    return-void
+.end method
+
+.method public completeRequest()V
+    .locals 1
+
+    const/4 v0, 0x0
+
+    sput-boolean v0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->requestInFlight:Z
+
     return-void
 .end method
 

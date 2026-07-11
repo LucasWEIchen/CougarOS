@@ -37,7 +37,7 @@ Client2 MainActivity
     └── CentralBrainPanelController$UiUpdate.smali
 ```
 
-右侧 1/3 面板上部包含 `我冷了` 和 `我累了` 两个按钮，下部包含 `centralBrainReplyText` 文本框。按钮点击后，smali 控制器从 APK 内发起临时 HTTP POST 到 `http://10.0.2.2:8787/ai/infer`，请求 Python 原型的 Model Runtime Adapter；回复优先显示 `result.generated_text`，没有 Ollama 文本时回退显示 mock `result.summary` 或原始响应。
+右侧 1/3 面板使用半透明浅灰背景、浅色按钮和浅色回复区；上部包含 `我冷了` 和 `我累了` 两个按钮，下部包含 `centralBrainReplyText` 文本框。按钮点击后，smali 控制器从 APK 内发起临时 HTTP POST 到 `http://10.0.2.2:8787/ai/infer`，请求 Python 原型的 Model Runtime Adapter；回复优先显示 `result.generated_text`，没有 Ollama 文本时回退显示 mock `result.summary` 或原始响应。控制器使用 `requestInFlight` 阻止同一 Activity 内的重复并发请求。
 
 该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、smali 网络请求、rebuild、zipalign、debug sign 和静态验证链路成立。
 
@@ -68,7 +68,9 @@ bash tools/build_client2_central_brain_demo.sh
 CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama \
 CENTRAL_BRAIN_OLLAMA_URL=http://127.0.0.1:11434 \
 CENTRAL_BRAIN_OLLAMA_MODEL=qwen3.5:27b-optimized \
-CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS=120000 \
+CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS=90000 \
+CENTRAL_BRAIN_OLLAMA_NUM_PREDICT=64 \
+CENTRAL_BRAIN_OLLAMA_THINK=false \
 bash tools/run_central_brain_backend.sh
 ```
 
@@ -105,12 +107,20 @@ bash tools/install_client2_central_brain_demo.sh
 - `我冷了` 与 `我累了` 两个按钮均可触发后台请求，文本框可显示 `请求中`、后端摘要和超时错误。
 - APK 到 `http://10.0.2.2:8787/ai/infer` 的 HTTP 路径返回过 `200`；App 无崩溃，未触发 Driver/HAL、硬件或虚拟化访问。
 
-未通过：
+首次测试未通过：
 
 - Ollama 自然语言 `result.generated_text` 尚未通过验收。默认 `CENTRAL_BRAIN_OLLAMA_NUM_PREDICT=96` 时，`qwen3.5:27b-optimized` 返回 `done_reason=length`、`response_length=0`、`thinking_length=337`，APK 因而回退显示 `ollama simulated NPU inference accepted`。
 - 将生成上限提高到 `192` 后，端到端请求仍可能超过 APK `120000 ms` read timeout，界面会显示 `请求失败: timeout`。该结果登记到 `ISSUE-019`，不能视为 Ollama 自然语言回复验收通过。
 
-下一步应先修正 Ollama adapter 的思考/输出预算和可取消超时策略，再重复两按钮端到端测试；生产路径仍按计划迁移到 Binder/SDK，不因本次测试改变架构边界。
+### 修复复测
+
+超时由四项叠加造成：27B 模型约 90% CPU/10% GPU 运行、thinking 消耗输出 token、APK 允许重复点击形成 Ollama 队列，以及测试用 `monkey ... 1` 可能随机注入额外点击。后端与 APK 同时使用 120 秒边界进一步放大了队列超时。
+
+2026-07-11 修复后，Ollama adapter 默认 `think=false`，可通过 `CENTRAL_BRAIN_OLLAMA_THINK` 显式覆盖；本地演示使用 90 秒后端 timeout、64 token 上限，并从结构化模型输出中优先提取 `response_text`。APK 增加 single-flight，测试启动改用确定性的 `adb shell am start -n com.tuanjie.urasclient2/.MainActivity`。
+
+清空旧 Ollama 队列后的可信单请求复测只产生一条 `/ai/infer` 日志，在 APK 120 秒 read timeout 内返回 HTTP 200，面板显示 `建议将模拟空调温度调高以缓解寒冷感。`。`CENTRAL_BRAIN_OLLAMA_THINK=false` 下直接推理与 SOA `npu-inference` smoke 均通过，`generated_text` 非空且 `thinking_text_available=false`。
+
+生产路径仍按计划迁移到 Binder/SDK，不因本次演示修复改变架构边界。
 
 ## 已知风险
 
@@ -119,4 +129,4 @@ bash tools/install_client2_central_brain_demo.sh
 3. RenderService 是 ARM64/Unity/Tuanjie 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳和右侧面板。
 4. 后续如果面板需要访问 Python 原型后端，必须新增 `INTERNET`/cleartext 或 Binder/service 接入，并把直接 HTTP 演示路径记录为偏差。
 5. 当前 HTTP endpoint 固定为 `10.0.2.2:8787`，只适合本地模拟器演示；真实座舱域环境应替换为 Binder/SDK 或目标平台允许的 IPC/RPC 接入。
-6. 当前 Ollama adapter 的默认 token/timeout 配置可能只返回 thinking 或触发 120 秒超时，必须在目标模型和目标算力上独立标定，不能把摘要回退当成自然语言回复。
+6. 本地演示已用 `think=false`、single-flight 和 90 秒后端预算解决连续 timeout；目标模型和目标算力仍必须独立标定，且摘要回退不能当成自然语言回复。

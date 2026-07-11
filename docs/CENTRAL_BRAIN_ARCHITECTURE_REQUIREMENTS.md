@@ -622,3 +622,10 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Linux synchronized delivery: CLI `prototype-completion-summary`, IPC `prototype.completion.summary.get`, and gRPC/RPC `GetPrototypeCompletionSummary`.
 - The surface must report `prototype_completion_summary_active=true`, `python_prototype_current_scope_complete=true`, `current_python_prototype_implementation_actions_complete=true`, `current_python_prototype_audit_actions_complete=true`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
 - Boundary: this is a current Python prototype completion claim only. It does not implement target hardware integration, production Android system service deployment, production Linux packaging, production observability, real event broker/DDS/high-rate data plane, Driver/HAL, Safety Runtime, or virtualization.
+
+### 2026-07-11 Client2 demo UX and simulated-NPU timeout stabilization trace
+
+- Req IDs: `APP-004`, `XSC-001`, `NV-F-011`, `XSC-006`, `DEL-001`, `DEL-002`, `DEL-003`, `DEL-004`.
+- Android primary demo delivery must use a translucent light-gray right-side panel, preserve the two intent controls and reply text surface, and prevent duplicate in-flight requests within the Activity.
+- The shared Python Model Runtime Adapter must expose configurable Ollama thinking mode, default the local demo to non-thinking output, preserve raw model output, and expose non-empty visible `generated_text` when the model returns `response_text` JSON.
+- Linux synchronized delivery documents the same Ollama environment controls in `central-brain.env.example`; this increment does not add Driver/HAL, PCIe NPU, vehicle bus, Safety Runtime, hardware access, or virtualization implementation.

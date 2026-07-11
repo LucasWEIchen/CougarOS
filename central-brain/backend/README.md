@@ -125,8 +125,9 @@ bash tools/run_central_brain_backend.sh
 - `CENTRAL_BRAIN_OLLAMA_MODEL`：Ollama 模型名，默认 `qwen3.5:27b-optimized`。
 - `CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS`：Ollama 请求超时，默认 `60000`。
 - `CENTRAL_BRAIN_OLLAMA_NUM_PREDICT`：Ollama 推理 token 上限，默认 `96`。
+- `CENTRAL_BRAIN_OLLAMA_THINK`：Ollama thinking 模式，默认 `false`；支持 `true` 以及模型允许时的 `low`/`medium`/`high`。Client2 本地演示保持 `false`，避免 thinking 耗尽可见输出预算。
 
-当前服务默认只做 mock；启用 Ollama 时也只是用户态 simulated NPU 模型运行时。`GET /npu/status` 会报告 `runtime=ollama-simulated-npu`、`simulated_npu_backend=ollama`、Ollama 可达性和模型列表；`POST /ai/infer` 与 SOA `npu-inference` 会返回 `generated_text`、`backend_model` 和 false 边界字段。该路径固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、`production_ready=false`，不表示 DRV-GAP-001 已关闭，也不运行真实 Skill sandbox、Memory store、Driver/HAL、车身总线或虚拟化层。
+当前服务默认只做 mock；启用 Ollama 时也只是用户态 simulated NPU 模型运行时。`GET /npu/status` 会报告 `runtime=ollama-simulated-npu`、`simulated_npu_backend=ollama`、Ollama 可达性和模型列表；`POST /ai/infer` 与 SOA `npu-inference` 会返回 `generated_text`、`raw_generated_text`、thinking 可见性、`backend_model` 和 false 边界字段。若模型返回 JSON，adapter 优先提取 `response_text`/`reply`/`text`/`message` 作为 UI 可见文本。该路径固定 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、`production_ready=false`，不表示 DRV-GAP-001 已关闭，也不运行真实 Skill sandbox、Memory store、Driver/HAL、车身总线或虚拟化层。
 
 `GET /native/driver-gaps` 覆盖 KH-003、KH-006、KH-007、DEL-005，只返回 NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、Shared memory/Safety Runtime 缺口、触发条件和 Android/Linux 目标接口；`summary.driver_development_triggered=false` 表示本轮没有新增真实 Driver/HAL 开发。
 

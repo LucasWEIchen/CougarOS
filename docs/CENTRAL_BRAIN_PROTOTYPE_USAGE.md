@@ -70,9 +70,13 @@ cd /home/normad400/appDev
 CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama \
 CENTRAL_BRAIN_OLLAMA_URL=http://127.0.0.1:11434 \
 CENTRAL_BRAIN_OLLAMA_MODEL=qwen3.5:27b-optimized \
-CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS=120000 \
+CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS=90000 \
+CENTRAL_BRAIN_OLLAMA_NUM_PREDICT=64 \
+CENTRAL_BRAIN_OLLAMA_THINK=false \
 bash tools/run_central_brain_backend.sh
 ```
+
+Client2 本地演示默认关闭 thinking，避免 27B 模型把 `num_predict` 全部消耗在不可见 thinking 中。后端 timeout 应短于 APK 的 120 秒 read timeout；重复点击由 APK single-flight 拦截。目标平台需要按实际 CPU/GPU/NPU 性能重新标定这些值。
 
 验证状态：
 

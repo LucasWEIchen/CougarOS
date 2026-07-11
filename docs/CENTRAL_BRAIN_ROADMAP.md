@@ -62,6 +62,8 @@
   - 当前 HTTP `http://10.0.2.2:8787/ai/infer` 只作为本地模拟器演示路径，已登记 DEV-017/ISSUE-019；不改 RenderService/Unity bundle，不访问硬件，不开发 Driver/HAL 或虚拟化层。
   - 完成 API 36 x86_64 可视模拟器运行测试：Client2 原始座舱/3D 车辆和右侧固定面板可同时显示，两个按钮、请求中状态、HTTP 200、摘要回退和 timeout 错误显示均已验证，App 无崩溃。
   - Ollama `result.generated_text` 尚未通过：默认 96 token 全部进入 thinking，提升到 192 后端到端链路出现 120 秒 timeout；已更新 ISSUE-019，下一步修正 simulated NPU adapter 的 thinking/output budget 与超时策略后复测。
+  - 完成 Client2 UX/runtime 稳定化：右侧面板改为半透明浅灰，按钮和回复区改为浅色；smali 清除 Client2 主题按钮 tint，并增加 `requestInFlight` single-flight。
+  - Ollama adapter 新增 `CENTRAL_BRAIN_OLLAMA_THINK`，默认关闭 thinking；保留 raw output，同时优先提取 `response_text` 供 UI 显示。清空旧队列后单次 `我冷了` 只产生一条 HTTP 200，并在约 30 秒内显示非空中文回复；Ollama direct/SOA smoke 通过。
   - 覆盖 Req ID：`APP-004`、`XSC-001`、`NV-F-011`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-003`、`DEL-004`。
 
 ### 2026-07-10

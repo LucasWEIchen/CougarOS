@@ -27,7 +27,9 @@ def patch_layout(work_dir: Path, patch_xml: Path) -> None:
         "@+id/centralBrainColdButton",
         "@+id/centralBrainTiredButton",
         "@+id/centralBrainReplyText",
-        "No Driver/HAL, hardware, or virtualization work",
+        "@drawable/central_brain_panel_background",
+        "@drawable/central_brain_action_button",
+        "@drawable/central_brain_reply_background",
     ]
     missing = [marker for marker in required_markers if marker not in patched]
     if missing:
@@ -35,6 +37,27 @@ def patch_layout(work_dir: Path, patch_xml: Path) -> None:
 
     target_xml.write_text(patched, encoding="utf-8")
     print(f"patched {target_xml}")
+
+
+def copy_resource_patches(work_dir: Path, project_dir: Path) -> None:
+    resource_src = project_dir / "patches" / "res"
+    resource_dst = work_dir / "res"
+    if not resource_src.is_dir():
+        raise SystemExit(f"missing resource patch directory: {resource_src}")
+    if not resource_dst.is_dir():
+        raise SystemExit(f"missing resource output directory: {resource_dst}")
+
+    copied = 0
+    for src in resource_src.rglob("*"):
+        if not src.is_file():
+            continue
+        dst = resource_dst / src.relative_to(resource_src)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+        copied += 1
+    if copied < 3:
+        raise SystemExit(f"expected at least 3 resource patch files, copied {copied}")
+    print(f"copied {copied} resource patch files into {resource_dst}")
 
 
 def patch_manifest(work_dir: Path) -> None:
@@ -127,6 +150,7 @@ def main() -> int:
     if not work_dir.is_dir():
         raise SystemExit(f"missing work dir: {work_dir}")
     patch_layout(work_dir, patch_xml)
+    copy_resource_patches(work_dir, project_dir)
     patch_manifest(work_dir)
     patch_main_activity_hook(work_dir)
     copy_smali_patches(work_dir, project_dir)

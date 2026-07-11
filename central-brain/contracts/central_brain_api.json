@@ -23697,8 +23697,12 @@
         "status": "ok|rejected|error",
         "result": {
           "generated_text": "string",
+          "raw_generated_text": "string",
           "visible_text_available": "boolean",
-          "ollama_done": "boolean"
+          "thinking_text_available": "boolean",
+          "thinking_text_length": "integer",
+          "ollama_done": "boolean",
+          "ollama_done_reason": "string|null"
         },
         "metrics": {
           "queue_ms": "number",

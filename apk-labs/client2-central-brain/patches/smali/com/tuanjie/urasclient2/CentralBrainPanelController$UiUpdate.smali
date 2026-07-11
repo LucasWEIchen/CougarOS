@@ -29,5 +29,7 @@
 
     invoke-virtual {v0, v1}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->setReplyNow(Ljava/lang/String;)V
 
+    invoke-virtual {v0}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->completeRequest()V
+
     return-void
 .end method

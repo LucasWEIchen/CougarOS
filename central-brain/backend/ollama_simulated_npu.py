@@ -49,6 +49,8 @@ def config() -> dict[str, Any]:
         "base_url": os.environ.get("CENTRAL_BRAIN_OLLAMA_URL", DEFAULT_BASE_URL).rstrip("/"),
         "model": os.environ.get("CENTRAL_BRAIN_OLLAMA_MODEL", DEFAULT_MODEL),
         "timeout_ms": timeout_ms,
+        "num_predict": _num_predict(),
+        "think": _think_mode(),
     }
 
 
@@ -58,6 +60,15 @@ def _num_predict() -> int:
         return max(1, int(raw_value))
     except ValueError:
         return 96
+
+
+def _think_mode() -> bool | str:
+    raw_value = os.environ.get("CENTRAL_BRAIN_OLLAMA_THINK", "false").strip().lower()
+    if raw_value in {"1", "true", "yes", "on"}:
+        return True
+    if raw_value in {"high", "medium", "low"}:
+        return raw_value
+    return False
 
 
 def _request_json(method: str, path: str, payload: dict[str, Any] | None, timeout_ms: int) -> dict[str, Any]:
@@ -79,6 +90,9 @@ def status_payload() -> dict[str, Any]:
         "runtime": runtime_name(),
         "base_url": cfg["base_url"],
         "model": cfg["model"],
+        "timeout_ms": cfg["timeout_ms"],
+        "num_predict": cfg["num_predict"],
+        "think": cfg["think"],
         "reachable": False,
         "available_models": [],
         "selected_model_loaded": False,
@@ -119,12 +133,30 @@ def status_payload() -> dict[str, Any]:
 def _prompt(logical_model: str, input_value: Any, policy: dict[str, Any]) -> str:
     return (
         "You are the Central Brain simulated NPU model runtime. "
-        "Return a concise vehicle-cockpit assistant inference result. "
+        "Return only one concise Chinese cockpit-assistant sentence without JSON or Markdown. "
+        "Describe a simulated recommendation and do not claim that a real vehicle action was executed. "
         "Do not claim real vehicle, Driver/HAL, or PCIe NPU access.\n\n"
         f"Logical model: {logical_model}\n"
         f"Policy: {json.dumps(policy, ensure_ascii=False, sort_keys=True)}\n"
         f"Input: {json.dumps(input_value, ensure_ascii=False, sort_keys=True)}"
     )
+
+
+def _visible_generated_text(raw_text: str) -> str:
+    normalized = raw_text.strip()
+    if not normalized:
+        return ""
+    try:
+        parsed = json.loads(normalized)
+    except json.JSONDecodeError:
+        return normalized
+    if not isinstance(parsed, dict):
+        return normalized
+    for key in ("response_text", "reply", "text", "message"):
+        value = parsed.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return normalized
 
 
 def infer_payload(request_payload: dict[str, Any], started: float | None = None) -> dict[str, Any]:
@@ -143,6 +175,7 @@ def infer_payload(request_payload: dict[str, Any], started: float | None = None)
         "model": ollama_model,
         "prompt": _prompt(logical_model, input_value, policy),
         "stream": False,
+        "think": _think_mode(),
         "options": options,
     }
 
@@ -171,7 +204,9 @@ def infer_payload(request_payload: dict[str, Any], started: float | None = None)
         }
 
     inference_ms = (time.time() - started_at) * 1000
-    generated_text = str(response.get("response") or "").strip()
+    raw_generated_text = str(response.get("response") or "").strip()
+    generated_text = _visible_generated_text(raw_generated_text)
+    thinking_text = str(response.get("thinking") or "").strip()
     return {
         "request_id": str(uuid.uuid4()),
         "model": logical_model,
@@ -182,9 +217,13 @@ def infer_payload(request_payload: dict[str, Any], started: float | None = None)
         "result": {
             "summary": "ollama simulated NPU inference accepted",
             "generated_text": generated_text,
+            "raw_generated_text": raw_generated_text,
             "visible_text_available": bool(generated_text),
+            "thinking_text_available": bool(thinking_text),
+            "thinking_text_length": len(thinking_text),
             "input_echo": input_value,
             "ollama_done": bool(response.get("done")),
+            "ollama_done_reason": response.get("done_reason"),
         },
         "metrics": {
             "queue_ms": 0.4,
