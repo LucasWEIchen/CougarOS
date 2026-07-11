@@ -163,6 +163,20 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | DEV-XXX |  |  |  |  |  | Open |
 
+## DEV-017 Client2 APK 逆向演示路径
+
+2026-07-11 新增 `apk-labs/client2-central-brain/`、`tools/build_client2_central_brain_demo.sh`、`tools/check_client2_central_brain_demo.sh`、`tools/install_client2_central_brain_demo.sh` 和 `docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md`，用于基于 `reverse/client2/apktool` 做 APK 资源/smali 层二次开发。该路径服务于 Android 演示验收，不替代架构图中的 AI SDK、Uni Info Bus、SOA、Runtime & Governance 或 Protocol Binding 正式路径。
+
+涉及需求：`APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-003`、`DEL-004`。
+
+当前原因：用户明确要求基于 Client2 APK 底层逆向工程进行演示 App 二次开发。当前增量修改 `res/layout/main_layout.xml`、`AndroidManifest.xml` 和 `MainActivity.smali` 生成 workdir，并新增 `CentralBrainPanelController*.smali`；把原 `TuanjieView` 区域收敛到左侧 2/3，在右侧 1/3 加入固定交互窗口，上部按钮为 `我冷了`、`我累了`，下部 `centralBrainReplyText` 展示 Python 原型 `/ai/infer` 返回的 `result.generated_text`。
+
+风险：APK patch 缺少原始源码工程的长期可维护性；debug 重签名可能影响 Client2 与 RenderService 的信任关系；RenderService 为 ARM64/Unity 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳；当前临时 HTTP `http://10.0.2.2:8787/ai/infer` 调 Python 原型，会绕开 Android Binder/system-service 目标路径，且 endpoint 固定、cleartext、未接入生产权限/身份模型。
+
+修正计划：保持原始 APK 和原始逆向基线只读；所有 patch 通过隔离 workdir 生成；短期 HTTP 只作为本地模拟器演示，继续登记到 DEV-001/DEV-017；下一步应把 endpoint 配置化并优先迁移到 Central Brain Binder/SDK 边界，最终量产路径仍迁移到 system/privileged service、SDK 或目标平台允许的 Protocol Binding。
+
+状态：Accepted Temporary。
+
 2026-07-10 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix`、Android Binder `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson`、Android Console `Sub ApHReadyB`、Linux CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix`、Linux IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix` 和 Linux gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix`，把 Event subscription activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup 的开放项固定为 `EV-AHS-001..010` closure blocker matrix。该补充没有关闭 DEV-007：`closure_blocker_matrix_complete=true` 和 `closure_blocker_matrix_consistent=true` 只表示 blocker 已结构化，`closure_handoff_closure_ready=false`、`open_blocker_count=10`、`closed_blocker_count=0`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false` 仍是验收边界。
 
 2026-07-10 `GET /prototype/readiness` 新增 `event_subscription_activation_closure_chain_summary`，把 `EV-AE..EV-AHS` 30 个阶段集中暴露为 readiness audit summary。该补充仍未关闭 DEV-007：它只证明现有 contract-only closure chain 可以被 Android `getPrototypeReadinessJson` 和 Linux `prototype-readiness`/`prototype.readiness.get`/`GetPrototypeReadiness` 一致读取，仍不启动真实 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、evidence store、review queue、gate closure、Driver/HAL、Safety Runtime 或虚拟化层。

@@ -1,6 +1,6 @@
 # 车载中央大脑路线图与进展
 
-更新时间：2026-07-10
+更新时间：2026-07-11
 
 ## 长期任务拆解
 
@@ -40,7 +40,7 @@
 
 ## 当前工程策略
 
-- 不把现有 APK 逆向产物作为本任务第一阶段的修改对象。
+- Client2 APK 逆向开发现在作为用户指定的 Android 演示路径处理；原始 APK 与原始逆向基线不直接修改，所有二次开发通过隔离 patch 工程生成 debug APK。
 - 所有新系统代码放在 `central-brain/`。
 - 构建和运行脚本放在 `tools/`。
 - 文档放在 `docs/CENTRAL_BRAIN_*`。
@@ -50,6 +50,17 @@
 - 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
+
+### 2026-07-11
+
+- 推进 Client2 APK 底层逆向演示测试工程：
+  - 新增 `apk-labs/client2-central-brain/`，基于 `reverse/client2/apktool` 的资源/smali 逆向基线建立 patch 工程，不修改 `apks/original` 或原始逆向目录。
+  - 新增 `main_layout` 资源层 patch，把 Client2 Activity 拆成左侧 2/3 原 `TuanjieView` 渲染区域和右侧 1/3 固定 Central Brain demo panel。
+  - 新增 Manifest `INTERNET`/cleartext patch、`MainActivity.smali` hook 和 `CentralBrainPanelController*.smali`，右侧面板上部提供 `我冷了`、`我累了` 两个按钮，下部 `centralBrainReplyText` 显示 Python 原型 `/ai/infer` 的 `result.generated_text`。
+  - 新增 `tools/build_client2_central_brain_demo.sh`、`tools/check_client2_central_brain_demo.sh`、`tools/install_client2_central_brain_demo.sh`，覆盖 prepare、apktool rebuild、zipalign、debug sign、static verify 和 adb install 入口。
+  - 新增 `docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md`，记录 APK 级演示路径、Req ID 映射、构建命令、非目标边界、重签名与 RenderService 风险。
+  - 当前 HTTP `http://10.0.2.2:8787/ai/infer` 只作为本地模拟器演示路径，已登记 DEV-017/ISSUE-019；不改 RenderService/Unity bundle，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+  - 覆盖 Req ID：`APP-004`、`XSC-001`、`NV-F-011`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-003`、`DEL-004`。
 
 ### 2026-07-10
 

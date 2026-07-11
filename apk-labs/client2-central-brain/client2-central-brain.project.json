@@ -1,0 +1,83 @@
+{
+  "project": "client2-central-brain-apk-reverse-demo",
+  "version": "0.2.0",
+  "source_apk": "apks/original/client2_20260306_170923.apk",
+  "package_name": "com.tuanjie.urasclient2",
+  "launch_activity": "com.tuanjie.urasclient2.MainActivity",
+  "decoded_baseline": "reverse/client2/apktool",
+  "generated_workdir": "builds/client2-central-brain/workdir",
+  "signed_output": "builds/client2-central-brain/signed/client2-central-brain.debug.apk",
+  "patches": [
+    {
+      "id": "client2-layout-central-brain-panel",
+      "type": "apktool-resource-xml",
+      "target": "res/layout/main_layout.xml",
+      "source": "apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml",
+      "req_ids": [
+        "APP-004",
+        "XSC-001",
+        "XSC-002",
+        "XSC-003",
+        "XSC-005",
+        "XSC-006",
+        "DEL-001",
+        "DEL-003",
+        "DEL-004"
+      ]
+    },
+    {
+      "id": "client2-manifest-central-brain-http-demo",
+      "type": "apktool-manifest-patch",
+      "target": "AndroidManifest.xml",
+      "summary": "Adds INTERNET and cleartext traffic for the temporary emulator HTTP demo path to the Python prototype.",
+      "req_ids": [
+        "APP-004",
+        "XSC-001",
+        "XSC-006",
+        "DEL-001",
+        "DEL-003",
+        "DEL-004"
+      ]
+    },
+    {
+      "id": "client2-mainactivity-smali-panel-controller-hook",
+      "type": "apktool-smali-hook",
+      "target": "smali/com/tuanjie/urasclient2/MainActivity.smali",
+      "summary": "Installs CentralBrainPanelController immediately after MainActivity setContentView.",
+      "req_ids": [
+        "APP-004",
+        "XSC-001",
+        "XSC-006",
+        "DEL-001"
+      ]
+    },
+    {
+      "id": "client2-smali-central-brain-panel-controller",
+      "type": "apktool-smali-addition",
+      "target": "smali/com/tuanjie/urasclient2/CentralBrainPanelController*.smali",
+      "source": "apk-labs/client2-central-brain/patches/smali/com/tuanjie/urasclient2",
+      "http_endpoint": "http://10.0.2.2:8787/ai/infer",
+      "summary": "Handles 我冷了/我累了 button clicks, posts to the Python prototype /ai/infer endpoint, and displays result.generated_text in the right-side text box.",
+      "req_ids": [
+        "APP-004",
+        "XSC-001",
+        "NV-F-011",
+        "XSC-006",
+        "DEL-001",
+        "DEL-003",
+        "DEL-004"
+      ]
+    }
+  ],
+  "non_goals": [
+    "production Android system service integration",
+    "production direct NPU or model access from app UI",
+    "Driver/HAL development",
+    "virtualization development",
+    "RenderService Unity asset modification"
+  ],
+  "tracked_deviations": [
+    "DEV-017: APK reverse demo path",
+    "DEV-001: temporary direct HTTP demo path before Binder/system-service migration"
+  ]
+}

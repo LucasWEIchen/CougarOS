@@ -286,16 +286,21 @@ Linux systemd 部署样例：
 - `docs/CENTRAL_BRAIN_ANDROID_SYSTEM_SERVICE_INTEGRATION.md`
 - `docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`
 - `docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md`
+- `docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md`
 - `tools/check_central_brain_android_system_service_docs.sh`
 - `tools/check_central_brain_npu_interface.sh`
 - `tools/check_central_brain_linux_systemd_hardening.sh`
 - `tools/check_central_brain_linux_package_profile.sh`
+- `tools/build_client2_central_brain_demo.sh`
+- `tools/check_client2_central_brain_demo.sh`
+- `tools/install_client2_central_brain_demo.sh`
 
 ## Android 版本最低要求
 
 Android 版本必须提供：
 
 - 可安装 APK 或 Android library sample。
+- 可重复构建的 Client2 APK reverse demo patch 工程，用于右侧 1/3 Central Brain 演示面板；当前已含 `我冷了`/`我累了` 两个按钮、`centralBrainReplyText` 回复文本框、Manifest `INTERNET`/cleartext patch、MainActivity smali hook，并通过临时 `http://10.0.2.2:8787/ai/infer` 调用 Python 原型显示 `result.generated_text`。
 - 与 Linux 共用的 contract。
 - 模拟器或设备验证脚本。
 - 日志与截图留档。
