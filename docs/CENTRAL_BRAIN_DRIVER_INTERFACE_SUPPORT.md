@@ -447,3 +447,9 @@ API 33 testing uses APK install, Binder, PackageManager, logcat and UIAutomator 
 R4A adds Java annotation processing, AndroidX Room runtime, app-private SQLite files, schema JSON and a debug migration Activity. SQLite storage uses Android application APIs and does not require kernel, HAL, vendor SDK, VHAL, Safety Runtime or shared-memory support.
 
 The migration probe creates/deletes only an isolated app-private test database and reports `durable_dispatch_enabled=false`. No pending effect or outbox row is dispatched; no NPU, Vehicle bus, device node, ioctl/sysfs, camera/audio/sensor or PCIe resource is accessed. No DRV-GAP changes state and added Driver/HAL development remains zero. Req IDs: `XSC-005`, `XSC-006`, `FW-U-004`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R4B1 Durable Repository Driver/HAL Boundary
+
+R4B1 adds pure Java SHA-256 ownership, Room transactions and an app-private debug probe. It consumes only trusted identity snapshots already resolved through Binder/PackageManager; it does not query VHAL, Safety Runtime, NPU, sensors, device nodes, vendor SDK or shared memory.
+
+The repository stores task metadata/digests and acceptance audit rows only. It does not create pending effects/outbox rows, invoke SOA/Skill/Action dispatch or require native code. `runtime_repository_wired=false`, `durable_dispatch_enabled=false`, all hardware/Driver/HAL/virtualization flags remain false, and added Driver/HAL development is zero. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `XSC-005`, `DEL-001`, `DEL-004`.

@@ -756,3 +756,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The migration probe must be DUMP-protected, debug-only and absent from release. It must never open/delete the production database.
 - R4A may persist only structured metadata and payload/detail digests; raw utterance, model output, signer certificate and vehicle frame storage are outside this increment. Encryption/key-management requirements remain a target product decision under ISSUE-022.
 - R4A does not wire production Services, recover work, enqueue/dispatch effects or grant approvals. It must report `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
+
+### 2026-07-12 R4B1 durable task admission trace
+
+- Req IDs: `FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`XSC-005`、`DEL-001`、`DEL-004`.
+- Durable ownership must be a domain-separated SHA-256 over Android user serial and canonical PackageManager package/current-signer pairs. It must not persist signer bytes or bind durable ownership to an ephemeral UID; live Binder identity and capability checks remain authoritative before repository use.
+- Task admission must atomically query `(owner_fingerprint, idempotency_key)`, insert one `runtime_task`, and insert one `TASK_ACCEPTED` audit event. No task may become visible without its acceptance audit.
+- An exact replay over session ID, client request ID and payload digest must return the original task with no second task/audit. Reusing the same owner/key with any changed admission field must return an explicit idempotency conflict. A different owner may use the same key.
+- Device evidence must close and reopen an isolated Room database before replay and prove `task_admission_transaction_verified=true`, `task_idempotent_replay_verified=true`, `task_idempotency_conflict_verified=true`, `task_owner_isolation_verified=true`, exactly two task rows and exactly two acceptance audits.
+- R4B1 is repository-only. Production Services must not reference the repository yet and must report `runtime_repository_wired=false`, `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.

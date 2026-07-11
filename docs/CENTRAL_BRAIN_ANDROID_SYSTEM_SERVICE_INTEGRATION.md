@@ -211,3 +211,5 @@ patch 或 sepolicy patch。
 Governance 的 Safety/Vehicle State 当前来自 Runtime-owned hardware-free fixture，且 approval 无 grant authority、无 durable recovery、无 action dispatch。接入目标 VHAL/Safety Runtime、priv-app 签名、SELinux domain 或 vendor service 前，继续按 ISSUE-013、ISSUE-023、DRV-GAP-002、DRV-GAP-005 管理；没有目标证据时不提交厂商源码、system image、sepolicy、HAL 或 Driver patch。
 
 R4A 的 Room/SQLite WAL 位于 Runtime APK app-private data directory，不要求修改 `/system`、`/vendor` 或厂商预编译组件。当前 schema/migration probe 不使用 direct-boot storage；如果量产要求开机解锁前恢复任务，必须由目标平台 owner 决定 device-protected storage、密钥可用时序和用户隔离策略，不能在普通 APK 中假设完成。
+
+R4B1 的 durable task repository 仍是 Runtime APK 内部 Java/Room 组件，不注册 framework service、不改变三项 signature permission，也不修改 frozen AIDL。当前仅 debug 隔离 probe 使用 repository，production Runtime/Governance Service 尚未接线；因此不需要厂商 SDK/BSP/Framework 编译，且不能宣称 system-server 级 durable workflow 已完成。

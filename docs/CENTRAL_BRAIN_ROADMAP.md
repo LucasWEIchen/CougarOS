@@ -23,7 +23,7 @@
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
-| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 进行中：R4A schema/WAL/migration 完成；R4B repository wiring、R4C recovery/outbox 待完成 |
+| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 进行中：R4A schema/migration、R4B1 task admission repository 完成；Service wiring、approval、R4C recovery/outbox 待完成 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R4B1 durable task admission：stable owner fingerprint 不保存 signer/UID，owner+idempotency lookup、task insert、acceptance audit 在单 Room transaction 内完成。
+- API 33 隔离 probe 跨 database reopen 验证 exact replay、mismatch conflict、owner isolation 与 exactly 2 tasks/2 acceptance audits；production Service 仍固定 `runtime_repository_wired=false`。
+- R4B1 覆盖 Req ID：`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`XSC-005`、`DEL-001`、`DEL-004`。下一步 R4B2 接入 Runtime task lifecycle/checkpoint，不启用 effect dispatch。
 - 完成 R4A Room durable schema：引入 Room `2.8.4`，导出 v2 schema，8 张表覆盖 session/task/checkpoint/pending effect/outbox/approval/audit/event cursor，具备 owner/idempotency unique index 和 FK ownership。
 - 新增 explicit `MIGRATION_1_2`，禁止 destructive fallback；API 33 隔离 probe 验证 WAL、8-table schema 与 legacy task/approval 保留。Probe 仅 debug/DUMP，不进入 release，不操作 production DB。
 - R4A 只保存 metadata/digest 且 `durable_dispatch_enabled=false`；production Services 尚未接库。R4B 将实现 transactional repository/idempotency，R4C 再做 restart recovery 与 outbox fault/race。

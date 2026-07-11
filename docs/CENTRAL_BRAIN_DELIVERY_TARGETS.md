@@ -718,3 +718,11 @@ R4A 交付 AndroidX Room `2.8.4` 依赖、`CentralBrainDatabase` v2、8 个 Enti
 API 33 安装门禁新增 `room_schema_version=2`、`room_table_count=8`、`room_wal_enabled=true`、`room_migration_1_2_verified=true`、`legacy_task_preserved=true`、`legacy_approval_preserved=true`、`durable_dispatch_enabled=false`。Release manifest 必须排除 Migration Probe，且代码不得使用 destructive migration fallback。
 
 该阶段只交付 schema/migration，不声明 Runtime/Governance 已 durable。production Services 尚未打开数据库，不恢复 task/approval，不处理 outbox，不 dispatch action。无 Linux 前端、真实硬件、Driver/HAL、厂商系统源码或虚拟化变更；raw utterance/model output/vehicle frame 不进入 schema。
+
+## Android R4B1 Durable Task Admission 交付补充
+
+R4B1 交付 `DurablePrincipalFingerprint`、`DurableTaskRepository`、DAO owner/idempotency lookup、JVM fingerprint tests、debug-only `DurableRepositoryProbeActivity` 和 `tools/check_central_brain_android_durable_repository.sh`。不修改 frozen AIDL，不新增 APK artifact，也不把 probe 放入 release。
+
+API 33 标准安装门禁新增 `task_admission_transaction_verified=true`、`task_idempotent_replay_verified=true`、`task_idempotency_conflict_verified=true`、`task_owner_isolation_verified=true` 和 `runtime_repository_wired=false`。隔离数据库关闭/重开后必须保持 exactly two owner-scoped tasks and exactly two acceptance audits。
+
+R4B1 不是 production Service integration：Runtime/Governance 不打开 repository，现有 Binder 行为不宣称 durable，approval 仍为 process-local。无 effect/outbox dispatch、Linux 前端、真实硬件、Driver/HAL、厂商系统源码或虚拟化变更。

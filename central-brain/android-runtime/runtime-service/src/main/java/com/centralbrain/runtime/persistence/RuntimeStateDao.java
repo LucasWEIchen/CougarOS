@@ -13,6 +13,14 @@ public interface RuntimeStateDao {
     RuntimeTaskEntity findTask(String taskId);
 
     @Nullable
+    @Query("SELECT * FROM runtime_task "
+            + "WHERE owner_fingerprint = :ownerFingerprint "
+            + "AND idempotency_key = :idempotencyKey LIMIT 1")
+    RuntimeTaskEntity findTaskByOwnerAndIdempotency(
+            String ownerFingerprint,
+            String idempotencyKey);
+
+    @Nullable
     @Query("SELECT * FROM approval_request WHERE approval_id = :approvalId LIMIT 1")
     ApprovalRequestEntity findApproval(String approvalId);
 
@@ -39,4 +47,10 @@ public interface RuntimeStateDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertEventCursor(EventCursorEntity entity);
+
+    @Query("SELECT COUNT(*) FROM runtime_task")
+    int countTasks();
+
+    @Query("SELECT COUNT(*) FROM audit_event")
+    int countAuditEvents();
 }

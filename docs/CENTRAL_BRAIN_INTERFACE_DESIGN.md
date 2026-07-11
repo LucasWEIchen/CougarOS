@@ -799,3 +799,14 @@ R4A establishes the persistence ownership boundary without changing production A
 `CentralBrainDatabase.open` configures WAL and only registers explicit `MIGRATION_1_2`; destructive fallback is forbidden. `RuntimeStateDao` currently exposes migration reads and insert primitives. It is not yet the production repository API, and production Services do not open it in R4A.
 
 The debug migration probe creates a separate v1 database, inserts task/approval rows, migrates to v2, checks the eight-table schema and WAL, then deletes only the probe database. Payload-bearing columns are digests, not raw payload. R4B must add transactions and repository invariants; R4C must add restart/outbox recovery. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.
+## Android R4B1 Durable Task Admission
+
+R4B1 adds an internal Java repository boundary; it does not change frozen task/diagnostic or Governance AIDL.
+
+| Interface | Input | Output/failure | Transactional rule |
+| --- | --- | --- | --- |
+| `DurablePrincipalFingerprint.from` | resolved trusted caller snapshot | lowercase SHA-256 owner fingerprint; unresolved identity throws | canonical Android user + package/current-signer pairs; UID excluded |
+| `DurableTaskRepository.admit` | owner fingerprint, session/client request/idempotency metadata, payload digest | `CREATED` or `REPLAYED` admission; mismatched replay throws `IdempotencyConflictException` | owner/key lookup + task insert + `TASK_ACCEPTED` audit insert in one Room transaction |
+| `RuntimeStateDao.findTaskByOwnerAndIdempotency` | owner fingerprint + idempotency key | matching mutable entity or null, internal only | backed by `index_runtime_task_owner_idempotency` unique index |
+
+The repository never accepts a raw utterance, caller-supplied identity, risk classification or permission assertion. `payloadDigest` is a lowercase SHA-256 placeholder; production keying/HMAC policy remains open under ISSUE-022. R4B1 is not referenced by production Services, does not write checkpoint/effect/outbox rows, and cannot dispatch an Action.

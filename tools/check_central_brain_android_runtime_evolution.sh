@@ -110,6 +110,7 @@ for path in \
   tools/check_central_brain_android_capability_policy.sh \
   tools/check_central_brain_android_action_governance.sh \
   tools/check_central_brain_android_durable_schema.sh \
+  tools/check_central_brain_android_durable_repository.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
@@ -172,11 +173,16 @@ require_text "$PLAN" "R4A Room durable schema"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4A Room durable schema trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4A Room Durable Schema"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4A Room Schema Driver/HAL Boundary"
+require_text "$PLAN" "R4B1 durable task admission"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4B1 durable task admission trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4B1 Durable Task Admission"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4B1 Durable Repository Driver/HAL Boundary"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_schema.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_durable_repository.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

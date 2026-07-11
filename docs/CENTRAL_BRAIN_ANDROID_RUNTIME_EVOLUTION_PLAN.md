@@ -110,6 +110,9 @@
 - Schema 固定 8 张表：`runtime_session`、`runtime_task`、`task_checkpoint`、`pending_effect`、`effect_outbox`、`approval_request`、`audit_event`、`event_cursor`；task/approval/effect/outbox/event cursor 具备 owner/idempotency unique index，checkpoint/effect/outbox 具备明确 foreign-key ownership。
 - `MIGRATION_1_2` 从旧 task/approval 最小表迁移，使用 `legacy:<id>` 回填幂等键并保留状态/owner/timestamp。debug-only DUMP probe 使用隔离数据库验证 schema version、table count、WAL 和 legacy task/approval 数据保留。
 - 当前 schema 只保存 payload/checkpoint/outbox/audit digest，不保存 raw utterance、模型输出、车辆帧或 signer bytes。数据库尚未接入 production Service，固定 `durable_dispatch_enabled=false`。
+- `R4B1 durable task admission` 已完成：stable owner fingerprint 由 Android user serial + canonical package/current-signer pairs 计算，排除易变 UID；`DurableTaskRepository` 在单个 Room transaction 中完成 owner/idempotency lookup、task insert 和 acceptance audit insert。
+- Exact replay 返回原 task 且不重复写 task/audit；同 owner/key 的不同 session/client request/payload digest 明确冲突，另一 owner 可独立复用 key。API 33 隔离 probe 在关闭并重开数据库后验证 2 owners = 2 tasks = 2 acceptance audits。
+- R4B1 尚未接入 production Runtime/Governance Service，固定 `runtime_repository_wired=false`；task transition/checkpoint/terminal delivery、approval repository 和 restart recovery 仍待后续 R4B/R4C。
 - R4 尚未关闭：R4B 需 transactional repository、task/approval/idempotency 接入；R4C 需 process restart recovery、pending effect/outbox 状态机和 fault/race tests。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 

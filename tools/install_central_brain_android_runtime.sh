@@ -211,6 +211,39 @@ if [[ "$MIGRATION_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+REPOSITORY_NONCE="$(date +%s%N)"
+REPOSITORY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.DurableRepositoryProbeActivity \
+  --es nonce "$REPOSITORY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$REPOSITORY_PROBE_OUTPUT"; then
+  echo "$REPOSITORY_PROBE_OUTPUT" >&2
+  echo "durable repository debug probe did not start successfully" >&2
+  exit 1
+fi
+REPOSITORY_PROBE_PASSED=false
+for _ in {1..40}; do
+  REPOSITORY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbRepositoryProbe:I)"
+  if grep -Fq "nonce=$REPOSITORY_NONCE repository_probe_complete=true" \
+      <<<"$REPOSITORY_LOG" \
+      && grep -Fq "task_admission_transaction_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "task_idempotent_replay_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "task_idempotency_conflict_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "task_owner_isolation_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "durable_task_count=2" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "acceptance_audit_count=2" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "runtime_repository_wired=false" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "durable_dispatch_enabled=false" <<<"$REPOSITORY_LOG"; then
+    REPOSITORY_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$REPOSITORY_PROBE_PASSED" != true ]]; then
+  echo "$REPOSITORY_LOG" >&2
+  echo "durable task repository probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -343,6 +376,11 @@ printf '%s\n' \
   "room_migration_1_2_verified=true" \
   "legacy_task_preserved=true" \
   "legacy_approval_preserved=true" \
+  "task_admission_transaction_verified=true" \
+  "task_idempotent_replay_verified=true" \
+  "task_idempotency_conflict_verified=true" \
+  "task_owner_isolation_verified=true" \
+  "runtime_repository_wired=false" \
   "durable_dispatch_enabled=false" \
   "job_supervisor_active=true" \
   "trusted_caller_identity_resolved=true" \
