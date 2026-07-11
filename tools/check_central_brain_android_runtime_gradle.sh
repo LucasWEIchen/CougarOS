@@ -44,6 +44,9 @@ for path in \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/DurableDigest.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/DurableApprovalRepository.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/DurableEffectRepository.java \
+  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectAdapter.java \
+  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectAdapterContract.java \
+  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectStatusReconciler.java \
   central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
@@ -65,6 +68,7 @@ for path in \
   tools/check_central_brain_android_restart_reconciliation.sh \
   tools/check_central_brain_android_effect_outbox.sh \
   tools/check_central_brain_android_effect_outbox_terminal.sh \
+  tools/check_central_brain_android_effect_adapter_contract.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
@@ -123,5 +127,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_durable_approval.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_restart_reconciliation.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox_terminal.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_effect_adapter_contract.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

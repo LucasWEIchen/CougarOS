@@ -880,3 +880,19 @@ The internal Room API closes local effect lifecycle semantics while keeping all 
 Result, failure and cancellation content enters Room only as lowercase SHA-256 digests. Replay validation binds IDs, expected attempt and operation-specific input; retry also binds the requested delay and persisted not-before timestamp. Default `maxAttempts=3`, constructor bounds are 1..100, and delay bounds are 0..24 hours.
 
 `EFFECT_CLAIM_EXHAUSTED` is a local fail-closed outcome for an unknown final-attempt result. It does not authorize blind re-delivery and does not state that the destination never applied the operation. No dispatcher, adapter call or production Service wiring exists in R4C2B; R4C3 must supply destination idempotency/status interfaces and crash-point evidence first.
+
+## Android R4C3A Effect Adapter Contract
+
+`EffectAdapter` is an internal Java contract, not a Binder, HAL or vendor implementation.
+
+| Interface | Input | Result and invariant |
+| --- | --- | --- |
+| `descriptor()` | none | adapter ID/destination, `TOKEN_DEDUPLICATED`, duplicate returns original, APPLIED status returns original evidence, `LINEARIZABLE` status, bounded operation timeout |
+| `apply(Invocation)` | effect/outbox IDs, persisted token, route/action, attempt, bounded transient canonical payload/envelope | typed apply state + echoed token + evidence digest; duplicate token must not repeat the side effect |
+| `queryStatus(token)` | persisted idempotency token | NOT_APPLIED/APPLIED/REJECTED/UNKNOWN + echoed token + evidence digest; query transport failure is a distinct exception |
+| `EffectAdapterContract.requireSafe` | adapter + expected destination | rejects route mismatch, non-token idempotency, changed duplicate result or non-linearizable status |
+| `EffectStatusReconciler.reconcile` | durable IN_FLIGHT snapshot + safe adapter + retry delay | queries status only and atomically calls repository success/retry/dead-letter, or defers with no mutation |
+
+APPLIED maps to APPLIED/DELIVERED. NOT_APPLIED maps to PREPARED/PENDING only while attempts remain and otherwise to FAILED/DEAD_LETTER. REJECTED/UNKNOWN map to FAILED/DEAD_LETTER. Adapter unavailability keeps IN_FLIGHT unchanged so a transport failure is not mistaken for destination state.
+
+The debug fixture retains token status only in process memory and receives canonical bytes directly from the probe. It validates the algorithm across Room close/reopen but does not solve command-material recovery after process death. No production Service references these interfaces in R4C3A; R4C3B must bind any retry-capable activation to a trusted durable material source whose confidentiality, digest verification and lifecycle are explicit.

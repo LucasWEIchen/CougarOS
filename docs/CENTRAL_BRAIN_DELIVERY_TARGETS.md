@@ -766,3 +766,11 @@ R4C2B 在 `DurableEffectRepository` 内交付 bounded retry/backoff、APPLIED/DE
 API 33 标准安装门禁必须验证 retry delay/digest 冲突、not-before gating、final attempt 不可重试、stale attempt 拒绝、success/dead-letter/cancel exact replay、终态计数、最终 attempt 崩溃转死信和重复对账幂等；同时保持 `effect_repository_wired=false`、`outbox_dispatch_enabled=false`、`service_dispatch_triggered=false` 及全部 no-hardware 标志。
 
 该交付只关闭 repository 本地状态机，不交付 dispatcher 或 adapter。最终 attempt 崩溃转死信只表示本地结果未知并失败关闭，不证明目标端副作用未发生。R4C3 必须先交付 adapter idempotency token/status reconciliation 接口和 crash-point fault matrix，production Service 才可评审 wiring。Trusted clock、retention、encryption/key lifecycle 继续开放；不新增 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
+
+## Android R4C3A Effect Adapter Contract 交付补充
+
+R4C3A 交付 `EffectAdapter`、`EffectAdapterContract`、`EffectStatusReconciler`、纯 Java contract 单测、debug-only deterministic adapter/probe 和 `tools/check_central_brain_android_effect_adapter_contract.sh`。它不修改 Room schema、frozen AIDL 或标准 SDK AAR/Runtime APK/Demo APK 三项交付形状。
+
+API 33 标准安装门禁必须输出 safe/unsafe contract、destination mismatch、duplicate apply、apply 前/后崩溃、status unavailable defer、UNKNOWN/final NOT_APPLIED dead-letter、terminal count 和 fault matrix 证据。Release APK 必须排除 probe，production Runtime/Governance 不得引用 adapter/reconciler。
+
+该交付只证明 contract 和 debug fault algorithm，deterministic adapter 不代表 UIB/SOA/Skill/vendor/hardware。Canonical payload/envelope 仅为 probe 瞬时材料，固定 `transient_effect_material_durable=false`；因此 production activation 仍被 R4C3B durable material source/gate 阻塞，并保持 `effect_adapter_production_wired=false`、`real_adapter_dispatch_enabled=false`、`service_dispatch_triggered=false`。无 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。

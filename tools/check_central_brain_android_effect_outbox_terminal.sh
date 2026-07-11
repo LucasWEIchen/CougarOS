@@ -103,6 +103,6 @@ require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4C2B Effect Retr
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4C2B Effect Terminal State Driver/HAL Boundary"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "R4C2B 进展"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "R4C2B 进展"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "R4C2A/B 完成"
+require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "R4C2B repository-only retry/terminal"
 
 echo "Central Brain Android effect retry/terminal check passed"

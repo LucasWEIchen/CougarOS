@@ -385,6 +385,56 @@ if [[ "$EFFECT_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+ADAPTER_NONCE="$(date +%s%N)"
+ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.EffectAdapterContractProbeActivity \
+  --es nonce "$ADAPTER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$ADAPTER_PROBE_OUTPUT"; then
+  echo "$ADAPTER_PROBE_OUTPUT" >&2
+  echo "effect adapter contract debug probe did not start successfully" >&2
+  exit 1
+fi
+ADAPTER_PROBE_PASSED=false
+for _ in {1..40}; do
+  ADAPTER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbAdapterProbe:I)"
+  if grep -Fq "nonce=$ADAPTER_NONCE adapter_probe_complete=true" \
+      <<<"$ADAPTER_LOG" \
+      && grep -Fq "effect_adapter_contract_verified=true" <<<"$ADAPTER_LOG" \
+      && grep -Fq "unsafe_adapter_rejected=true" <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_destination_mismatch_rejected=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_duplicate_apply_idempotent=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_status_matches_apply_result=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_crash_after_apply_reconciled=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_crash_before_apply_retried=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_status_unavailable_deferred=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_unknown_status_dead_lettered=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_final_not_applied_dead_lettered=true" \
+        <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_terminal_counts_verified=true" <<<"$ADAPTER_LOG" \
+      && grep -Fq "adapter_fault_matrix_verified=true" <<<"$ADAPTER_LOG" \
+      && grep -Fq "transient_effect_material_durable=false" <<<"$ADAPTER_LOG" \
+      && grep -Fq "effect_adapter_production_wired=false" <<<"$ADAPTER_LOG" \
+      && grep -Fq "real_adapter_dispatch_enabled=false" <<<"$ADAPTER_LOG" \
+      && grep -Fq "service_dispatch_triggered=false" <<<"$ADAPTER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$ADAPTER_LOG"; then
+    ADAPTER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$ADAPTER_PROBE_PASSED" != true ]]; then
+  echo "$ADAPTER_LOG" >&2
+  echo "effect adapter contract probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -608,6 +658,21 @@ printf '%s\n' \
   "outbox_claim_attempt=2" \
   "effect_repository_wired=false" \
   "outbox_dispatch_enabled=false" \
+  "effect_adapter_contract_verified=true" \
+  "unsafe_adapter_rejected=true" \
+  "adapter_destination_mismatch_rejected=true" \
+  "adapter_duplicate_apply_idempotent=true" \
+  "adapter_status_matches_apply_result=true" \
+  "adapter_crash_after_apply_reconciled=true" \
+  "adapter_crash_before_apply_retried=true" \
+  "adapter_status_unavailable_deferred=true" \
+  "adapter_unknown_status_dead_lettered=true" \
+  "adapter_final_not_applied_dead_lettered=true" \
+  "adapter_terminal_counts_verified=true" \
+  "adapter_fault_matrix_verified=true" \
+  "transient_effect_material_durable=false" \
+  "effect_adapter_production_wired=false" \
+  "real_adapter_dispatch_enabled=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

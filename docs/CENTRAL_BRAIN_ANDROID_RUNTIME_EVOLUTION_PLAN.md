@@ -124,8 +124,10 @@
 - Claim 只选择 due PENDING + PREPARED + RUNNING 组合，在单 transaction 中把 effect/outbox 转为 IN_FLIGHT、递增 attempt 并审计。进程中断后 repository 可把 IN_FLIGHT 幂等回退到队尾 PENDING，先服务等待更久的工作，再以 attempt+1 重新 claim。
 - `R4C2B effect retry and terminal states` 已完成：IN_FLIGHT claim 可按 expected attempt 事务性 success、bounded-delay retry 或 dead-letter，PREPARED/PENDING 可按当前 attempt cancel；所有变更校验 owner/effect/outbox，exact replay 不重复审计，变化的 digest 或 retry delay 冲突。
 - 默认最多 claim 3 次，DAO 不再选择 exhausted row，最终 attempt 禁止 retry。若进程在最终 IN_FLIGHT claim 后崩溃，reopen reconciliation 失败关闭为 FAILED/DEAD_LETTER 并写 `EFFECT_CLAIM_EXHAUSTED`；第二次对账不再修改。该终态不证明外部副作用是否发生。
-- R4C2A/B 仍仅为 repository/debug probe，production Runtime/Governance 不引用它；持久化内容只有 digest/metadata，`effect_repository_wired=false`、`outbox_dispatch_enabled=false`。R4C3 必须先定义 adapter idempotency/status contract 和 crash/fault matrix，才可评审 dispatcher wiring。
-- R4B 已关闭；R4 尚未关闭：R4C3、retention/trusted-clock、encryption/key lifecycle 仍待完成。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
+- `R4C3A effect adapter contract and fault matrix` 已完成：安全 adapter 必须以持久化 token 去重并在重复 apply 时返回原结果，status query 必须 linearizable 且 APPLIED 返回同一原始结果证据；transient canonical payload/envelope 必须与 Room digest 一致且采用 defensive copy。
+- Status reconciler 只 query、不 apply：APPLIED 收敛成功，仍有次数的权威 NOT_APPLIED 才可重试，REJECTED/UNKNOWN 失败关闭，query unavailable 保持 IN_FLIGHT，最终 NOT_APPLIED 进入 dead letter。API 33 已覆盖 apply 前/后崩溃、重复 apply、不可用/未知状态和终态回放。
+- R4C2A/B 与 R4C3A 仍为 repository/contract/debug probe，production Runtime/Governance 不引用它；debug adapter 只在进程内模拟远端持久状态。`transient_effect_material_durable=false`、`effect_adapter_production_wired=false`、`real_adapter_dispatch_enabled=false`。
+- R4B 已关闭；R4 尚未关闭：R4C3B 必须定义 trusted durable effect material source 与 activation gate，retention/trusted-clock、encryption/key lifecycle 仍待决策。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

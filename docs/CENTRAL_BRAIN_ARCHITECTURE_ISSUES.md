@@ -231,6 +231,8 @@
 
 2026-07-12 R4C2B 进展：effect/outbox 已具备 attempt-aware success、bounded retry、dead-letter、cancel 和 exact replay；最终 claim 崩溃会以 `EFFECT_CLAIM_EXHAUSTED` 幂等失败关闭，API 33 已验证 delay/digest/stale-attempt 冲突和终态计数。ISSUE-022 保持 Open：该本地死信不能判定真实 adapter 是否已执行，production wiring 仍必须等待 R4C3 的 idempotency token/status reconciliation 与 crash-point fault matrix；trusted clock、retention/export/delete、encryption/key rotation 也仍未完成。
 
+2026-07-12 R4C3A 进展：已定义 token-deduplicated apply、duplicate-original-result、linearizable status 和 digest-matched transient material contract；status reconciler/API 33 probe 已覆盖 apply 前后崩溃、query unavailable、UNKNOWN、final NOT_APPLIED 和 exact replay。ISSUE-022 保持 Open：debug adapter/status 与 canonical bytes 只在进程内，`transient_effect_material_durable=false`；R4C3B 仍需 trusted durable material source/activation gate，且 retention/export/delete、trusted clock、encryption/key rotation 未关闭。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

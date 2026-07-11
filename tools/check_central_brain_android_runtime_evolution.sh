@@ -116,6 +116,7 @@ for path in \
   tools/check_central_brain_android_restart_reconciliation.sh \
   tools/check_central_brain_android_effect_outbox.sh \
   tools/check_central_brain_android_effect_outbox_terminal.sh \
+  tools/check_central_brain_android_effect_adapter_contract.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
@@ -202,6 +203,10 @@ require_text "$PLAN" "R4C2B effect retry and terminal states"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4C2B effect retry and terminal state trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4C2B Effect Retry And Terminal States"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4C2B Effect Terminal State Driver/HAL Boundary"
+require_text "$PLAN" "R4C3A effect adapter contract and fault matrix"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4C3A effect adapter contract trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4C3A Effect Adapter Contract"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4C3A Effect Adapter Driver/HAL Boundary"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
@@ -213,6 +218,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_durable_approval.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_restart_reconciliation.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox_terminal.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_effect_adapter_contract.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 
