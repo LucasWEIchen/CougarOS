@@ -46,16 +46,18 @@ bash tools/install_client2_central_brain_demo.sh
 
 ## Current Patch
 
-The first patch replaces `res/layout/main_layout.xml` with a horizontal root:
+The layout patch keeps the original render hierarchy full-screen and adds a
+right-side overlay in the existing root `FrameLayout`:
 
 ```text
 Activity
-├── left 2/3: original TuanjieView containers `view1`, `view2`, `view3`
-└── right 1/3: fixed Central Brain demo panel
+├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
+└── floating overlay: translucent right 1/3 Central Brain demo panel
 ```
 
-The panel is static in this increment. It proves the APK resource-level
-rebuild path before adding smali hooks, network permissions, or Binder calls.
+The overlay does not resize the vehicle scene. Empty space outside the panel
+continues to pass input to Client2, while the panel consumes touches over its
+own surface and exposes the existing smali-backed controls.
 
 ## Boundaries
 

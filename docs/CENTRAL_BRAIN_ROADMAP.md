@@ -55,7 +55,7 @@
 
 - 推进 Client2 APK 底层逆向演示测试工程：
   - 新增 `apk-labs/client2-central-brain/`，基于 `reverse/client2/apktool` 的资源/smali 逆向基线建立 patch 工程，不修改 `apks/original` 或原始逆向目录。
-  - 新增 `main_layout` 资源层 patch，把 Client2 Activity 拆成左侧 2/3 原 `TuanjieView` 渲染区域和右侧 1/3 固定 Central Brain demo panel。
+  - 新增 `main_layout` 资源层 patch；初版为左侧 2/3 原 `TuanjieView` 与右侧 1/3 面板分屏，现已按演示 UX 要求改为原车模全屏渲染、右侧 1/3 半透明 Central Brain panel 悬浮覆盖，不再压缩车模区域。
   - 新增 Manifest `INTERNET`/cleartext patch、`MainActivity.smali` hook 和 `CentralBrainPanelController*.smali`，右侧面板上部提供 `我冷了`、`我累了` 两个按钮，下部 `centralBrainReplyText` 显示 Python 原型 `/ai/infer` 的 `result.generated_text`。
   - 新增 `tools/build_client2_central_brain_demo.sh`、`tools/check_client2_central_brain_demo.sh`、`tools/install_client2_central_brain_demo.sh`，覆盖 prepare、apktool rebuild、zipalign、debug sign、static verify 和 adb install 入口。
   - 新增 `docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md`，记录 APK 级演示路径、Req ID 映射、构建命令、非目标边界、重签名与 RenderService 风险。
@@ -63,6 +63,8 @@
   - 完成 API 36 x86_64 可视模拟器运行测试：Client2 原始座舱/3D 车辆和右侧固定面板可同时显示，两个按钮、请求中状态、HTTP 200、摘要回退和 timeout 错误显示均已验证，App 无崩溃。
   - Ollama `result.generated_text` 尚未通过：默认 96 token 全部进入 thinking，提升到 192 后端到端链路出现 120 秒 timeout；已更新 ISSUE-019，下一步修正 simulated NPU adapter 的 thinking/output budget 与超时策略后复测。
   - 完成 Client2 UX/runtime 稳定化：右侧面板改为半透明浅灰，按钮和回复区改为浅色；smali 清除 Client2 主题按钮 tint，并增加 `requestInFlight` single-flight。
+  - 完成 Client2 overlay UX 修正：`centralBrainRenderRegion` 恢复 `match_parent`，新增 `centralBrainPanelOverlay` 作为覆盖层；面板增加 12dp 外边距、6dp 圆角和 8dp elevation，静态检查禁止渲染区重新引入分屏 weight。
+  - 完成 API 36、`1920x1080` 可视模拟器 overlay 复测：车模渲染区与 overlay 同为 Activity 全内容区 `[0,128][1920,1080]`，面板为 `[1265,160][1888,1048]`；截图确认车身延伸到半透明面板下方，App 无崩溃。
   - Ollama adapter 新增 `CENTRAL_BRAIN_OLLAMA_THINK`，默认关闭 thinking；保留 raw output，同时优先提取 `response_text` 供 UI 显示。清空旧队列后单次 `我冷了` 只产生一条 HTTP 200，并在约 30 秒内显示非空中文回复；Ollama direct/SOA smoke 通过。
   - 覆盖 Req ID：`APP-004`、`XSC-001`、`NV-F-011`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-003`、`DEL-004`。
 

@@ -169,7 +169,7 @@
 
 涉及需求：`APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-003`、`DEL-004`。
 
-当前原因：用户明确要求基于 Client2 APK 底层逆向工程进行演示 App 二次开发。当前增量修改 `res/layout/main_layout.xml`、`AndroidManifest.xml` 和 `MainActivity.smali` 生成 workdir，并新增 `CentralBrainPanelController*.smali`；把原 `TuanjieView` 区域收敛到左侧 2/3，在右侧 1/3 加入固定交互窗口，上部按钮为 `我冷了`、`我累了`，下部 `centralBrainReplyText` 展示 Python 原型 `/ai/infer` 返回的 `result.generated_text`。
+当前原因：用户明确要求基于 Client2 APK 底层逆向工程进行演示 App 二次开发。当前增量修改 `res/layout/main_layout.xml`、`AndroidManifest.xml` 和 `MainActivity.smali` 生成 workdir，并新增 `CentralBrainPanelController*.smali`；原 `TuanjieView` 保持全屏渲染，右侧约 1/3 的半透明交互窗口通过同一根 `FrameLayout` 悬浮覆盖，不再与车模分屏。上部按钮为 `我冷了`、`我累了`，下部 `centralBrainReplyText` 展示 Python 原型 `/ai/infer` 返回的 `result.generated_text`。
 
 风险：APK patch 缺少原始源码工程的长期可维护性；debug 重签名可能影响 Client2 与 RenderService 的信任关系；RenderService 为 ARM64/Unity 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳；当前临时 HTTP `http://10.0.2.2:8787/ai/infer` 调 Python 原型，会绕开 Android Binder/system-service 目标路径，且 endpoint 固定、cleartext、未接入生产权限/身份模型。
 

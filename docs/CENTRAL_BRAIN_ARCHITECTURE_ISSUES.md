@@ -171,11 +171,13 @@
 
 影响：如果上述边界不清，集成方可能把 APK patch demo 误认为生产 Android system service 或正式 SDK 交付；也可能在 x86_64 模拟器上误判 RenderService 不可用为中央大脑 UI patch 失败。
 
-当前建议：短期把 `apk-labs/client2-central-brain/` 定义为 Android 演示分支，先验收 APK rebuild/sign/install、右侧 1/3 面板、`我冷了`/`我累了` 按钮和 `/ai/infer` 回复文本显示；HTTP 只作为本地演示路径并登记偏差；RenderService 完整渲染验收放到 ARM64 设备或可运行 RenderService 的目标环境；下一步优先补 endpoint 配置化或 Binder/SDK 接入。
+当前建议：短期把 `apk-labs/client2-central-brain/` 定义为 Android 演示分支，先验收 APK rebuild/sign/install、车模全屏且右侧约 1/3 半透明悬浮面板不压缩渲染区域、`我冷了`/`我累了` 按钮和 `/ai/infer` 回复文本显示；HTTP 只作为本地演示路径并登记偏差；RenderService 完整渲染验收放到 ARM64 设备或可运行 RenderService 的目标环境；下一步优先补 endpoint 配置化或 Binder/SDK 接入。
 
 2026-07-11 运行时证据：API 36 x86_64 模拟器通过 `-gpu host` 可同时显示 Client2 原始座舱/3D 车辆和右侧面板，两个按钮均能触发请求，`/ai/infer` 返回过 HTTP 200，App 无崩溃。Ollama 自然语言回复未通过：`num_predict=96` 时模型把预算耗尽在 thinking，观测到 `done_reason=length`、`response_length=0`、`thinking_length=337`，UI 只能显示摘要回退；提高到 `192` 后又观测到 `请求失败: timeout`。因此当前验收状态为 UI/HTTP/回退显示通过、`result.generated_text` 失败，下一步需要修正 adapter 的 thinking 参数、token 预算、取消和超时策略后复测。
 
 2026-07-11 修复复测证据：右侧面板已改为半透明浅灰 UI；APK 通过 `requestInFlight` 实施 single-flight；Ollama adapter 默认 `CENTRAL_BRAIN_OLLAMA_THINK=false` 并从 JSON 输出优先提取 `response_text`；本地演示把后端 timeout 设为 90 秒、输出上限设为 64。清空遗留队列并改用确定性 `am start` 后，一次 `我冷了` 只产生一条 `/ai/infer` 日志，在 APK 120 秒 read timeout 内返回 HTTP 200 和非空中文 `generated_text`。timeout 子问题在当前本地演示配置下已缓解；固定 HTTP endpoint、Binder/SDK 迁移、闭源 APK 维护和目标平台标定仍保持未决，因此 ISSUE-019 继续为 Proposed。
+
+2026-07-11 overlay 修正与复测：初版右侧面板使用横向 weight 与车模形成 2/3 + 1/3 分屏，会改变原始车模 viewport，不符合用户要求。现将 `centralBrainRenderRegion` 恢复为全屏，将 `centralBrainPanelOverlay` 放在同一 `FrameLayout` 的上层并保持右侧约 1/3 宽度；静态验收确认渲染区无横向 weight。API 36、`1920x1080` 可视模拟器的 UI dump 显示车模渲染区和 overlay 都覆盖 Activity 全内容区 `[0,128][1920,1080]`，面板位于 `[1265,160][1888,1048]`；截图确认车身延伸到半透明面板下方，App 无崩溃。该修正只改变 APK 资源布局，不改变临时 HTTP、Binder/SDK 迁移或目标平台风险边界。
 
 状态：Proposed。
 

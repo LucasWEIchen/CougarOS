@@ -39,12 +39,20 @@ done
 
 if [[ -d "$WORK_DIR" ]]; then
   rg -q "centralBrainPanel" "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q "centralBrainPanelOverlay" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "@id/view1" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainColdButton" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainTiredButton" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainReplyText" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "central_brain_panel_background" "$WORK_DIR/res/layout/main_layout.xml"
-  rg -q '#DCF1F3F5' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
+  rg -q 'centralBrainRenderRegion.*android:layout_width="match_parent".*android:layout_height="match_parent"' "$WORK_DIR/res/layout/main_layout.xml"
+  if rg -q 'centralBrainRenderRegion.*android:layout_weight=' "$WORK_DIR/res/layout/main_layout.xml"; then
+    echo "Client2 render region must remain full-screen behind the floating panel" >&2
+    exit 1
+  fi
+  rg -q 'centralBrainPanelOverlay.*android:layout_width="match_parent".*android:layout_height="match_parent"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'centralBrainPanel.*android:layout_width="0.0dp".*android:layout_weight="1.0".*android:elevation="8.0dp"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q '#B8F1F3F5' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
   rg -q '#E8FFFFFF' "$WORK_DIR/res/drawable/central_brain_action_button.xml"
   rg -q '#C8FFFFFF' "$WORK_DIR/res/drawable/central_brain_reply_background.xml"
   rg -q "android.permission.INTERNET" "$WORK_DIR/AndroidManifest.xml"

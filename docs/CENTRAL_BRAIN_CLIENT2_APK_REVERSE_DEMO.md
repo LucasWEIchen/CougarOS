@@ -26,8 +26,8 @@
 ```text
 Client2 MainActivity
 ├── res/layout/main_layout.xml
-│   ├── left 2/3: original TuanjieView containers view1/view2/view3
-│   └── right 1/3: fixed Central Brain interaction panel
+│   ├── full-screen: original TuanjieView containers view1/view2/view3
+│   └── overlay: translucent right 1/3 Central Brain interaction panel
 ├── AndroidManifest.xml
 │   └── INTERNET + usesCleartextTraffic=true for temporary emulator HTTP demo
 └── smali/com/tuanjie/urasclient2
@@ -37,7 +37,7 @@ Client2 MainActivity
     └── CentralBrainPanelController$UiUpdate.smali
 ```
 
-右侧 1/3 面板使用半透明浅灰背景、浅色按钮和浅色回复区；上部包含 `我冷了` 和 `我累了` 两个按钮，下部包含 `centralBrainReplyText` 文本框。按钮点击后，smali 控制器从 APK 内发起临时 HTTP POST 到 `http://10.0.2.2:8787/ai/infer`，请求 Python 原型的 Model Runtime Adapter；回复优先显示 `result.generated_text`，没有 Ollama 文本时回退显示 mock `result.summary` 或原始响应。控制器使用 `requestInFlight` 阻止同一 Activity 内的重复并发请求。
+原始 `TuanjieView` 容器保持 `match_parent` 全屏，不因新增 UI 改变车模 viewport。右侧约 1/3 面板通过根 `FrameLayout` 上的 `centralBrainPanelOverlay` 覆盖车模，使用半透明浅灰背景、12dp 外边距、6dp 圆角、8dp elevation、浅色按钮和浅色回复区；上部包含 `我冷了` 和 `我累了` 两个按钮，下部包含 `centralBrainReplyText` 文本框。按钮点击后，smali 控制器从 APK 内发起临时 HTTP POST 到 `http://10.0.2.2:8787/ai/infer`，请求 Python 原型的 Model Runtime Adapter；回复优先显示 `result.generated_text`，没有 Ollama 文本时回退显示 mock `result.summary` 或原始响应。控制器使用 `requestInFlight` 阻止同一 Activity 内的重复并发请求。
 
 该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、smali 网络请求、rebuild、zipalign、debug sign 和静态验证链路成立。
 
@@ -103,7 +103,7 @@ bash tools/install_client2_central_brain_demo.sh
 已通过：
 
 - APK 增量安装成功，包名保持 `com.tuanjie.urasclient2`，`MainActivity` 进入 resumed 状态。
-- Client2 原始座舱背景、3D 车辆和右侧固定 1/3 Central Brain 面板同时可见。
+- Client2 原始座舱背景、3D 车辆和右侧约 1/3 Central Brain 面板同时可见；初版运行证据为分屏布局，后续 overlay 修正已重新验证车模 viewport 保持全屏且面板悬浮其上。
 - `我冷了` 与 `我累了` 两个按钮均可触发后台请求，文本框可显示 `请求中`、后端摘要和超时错误。
 - APK 到 `http://10.0.2.2:8787/ai/infer` 的 HTTP 路径返回过 `200`；App 无崩溃，未触发 Driver/HAL、硬件或虚拟化访问。
 
@@ -121,6 +121,12 @@ bash tools/install_client2_central_brain_demo.sh
 清空旧 Ollama 队列后的可信单请求复测只产生一条 `/ai/infer` 日志，在 APK 120 秒 read timeout 内返回 HTTP 200，面板显示 `建议将模拟空调温度调高以缓解寒冷感。`。`CENTRAL_BRAIN_OLLAMA_THINK=false` 下直接推理与 SOA `npu-inference` smoke 均通过，`generated_text` 非空且 `thinking_text_available=false`。
 
 生产路径仍按计划迁移到 Binder/SDK，不因本次演示修复改变架构边界。
+
+### Overlay 布局复测
+
+2026-07-11 使用 API 36 可视模拟器和 `1920x1080` skin 重新安装、冷启动最终签名 APK。UI dump 显示 `centralBrainRenderRegion` 与 `centralBrainPanelOverlay` 均为 Activity 全内容区 `[0,128][1920,1080]`，说明新增 UI 没有改变车模渲染宽度；`centralBrainPanel` 位于 `[1265,160][1888,1048]`，约占物理屏宽三分之一并保留四周外边距。
+
+运行截图确认车身、天气和底部座舱控件继续绘制到面板下方，浅灰面板可透出原车模内容；两个按钮和回复区均在面板内，Activity 保持 resumed，过滤后的 logcat 未出现 `FATAL EXCEPTION`。证据位于 `logs/test/client2-central-brain-live/20260711_193406/`；该目录只作为本地测试输出，不纳入源码交付。
 
 ## 已知风险
 

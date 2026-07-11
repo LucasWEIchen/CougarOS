@@ -23,6 +23,7 @@ def patch_layout(work_dir: Path, patch_xml: Path) -> None:
     patched = patch_xml.read_text(encoding="utf-8")
     required_markers = [
         "@id/view1",
+        "@+id/centralBrainPanelOverlay",
         "@+id/centralBrainPanel",
         "@+id/centralBrainColdButton",
         "@+id/centralBrainTiredButton",
