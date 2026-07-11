@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Central Brain</string>
+    <string name="foundation_status">SDK %1$s | %2$s</string>
+</resources>

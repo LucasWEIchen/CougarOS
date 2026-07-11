@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:allowBackup="false"
+        android:label="@string/runtime_service_name"
+        android:supportsRtl="true">
+        <service
+            android:name=".CentralBrainRuntimeService"
+            android:enabled="true"
+            android:exported="false" />
+    </application>
+</manifest>

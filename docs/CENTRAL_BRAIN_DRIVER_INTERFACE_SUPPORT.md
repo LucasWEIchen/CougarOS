@@ -391,3 +391,9 @@ Model Router 在当前无 NPU 环境中必须选择 deterministic Stub provider�
 Event callback、Room persistence、Binder identity 和 Android Job Supervisor 不需要新增 Driver/HAL。DDS/shared-memory 高频数据面、Vehicle bus、Camera/Audio/Sensors 和 Safety Runtime 仍分别受 `DRV-GAP-002..005` 约束。本阶段不开发 Linux 前端，也不因停止 Linux 新功能而修改既有 Linux driver gap 状态。
 
 Req IDs：`XSC-004`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-P-002`、`HW-002`、`KH-003`、`KH-006`、`KH-007`、`DEL-001`、`DEL-005`。
+
+### R1A Gradle Foundation Driver/HAL Evidence
+
+R1A only adds source-built Android application/library boundaries. `central-brain-sdk` is a Java AAR, `runtime-service` is non-exported and returns no Binder, and `demo-hmi` only renders SDK version/maturity text. None requests network, vehicle, camera, audio, location, device-node or privileged permissions.
+
+The successful AAR/APK build does not open a device node, call a vendor SDK/HAL, access PCIe NPU/vehicle bus/shared memory, or modify the Android system image. No new Driver/HAL gap was found and added driver development remains zero. Req IDs: `XSC-004`, `XSC-006`, `NV-F-001`, `NV-P-002`, `DEL-001`, `DEL-005`.

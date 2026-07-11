@@ -645,3 +645,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The current Python gateway, legacy String/JSON AIDL and Client2 HTTP path remain temporary compatibility/test adapters under `DEV-001`, `DEV-017`, `DEV-018`, and `DEV-019`.
 - Current phase scope is Android only. Existing Linux artifacts are preserved without new Linux front-end implementation. Vendor Android/BSP/framework binaries are not modified.
 - Real NPU, vehicle bus and high-rate data paths remain empty adapters until target SDK/ABI evidence closes the relevant DRV-GAP. No virtualization runtime is developed.
+
+### 2026-07-12 R1A Android Gradle foundation trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- `central-brain/android-runtime` is the source-built Android 13 product root. It owns three explicit artifacts: `central-brain-sdk` AAR, non-exported `runtime-service` APK, and launcher `demo-hmi` APK.
+- All modules use `minSdk=33`; the reproducible build pins AGP `8.10.1`, Gradle `8.11.1`, JDK 17 and the official Gradle distribution SHA-256.
+- R1A must keep AIDL absent, `runtime-service` non-exported, and all network/vehicle/device permissions absent. Typed production and diagnostic Binder contracts belong to R2.
+- Build, SDK unit test, AAR structure, APK package/minSdk and APK signature evidence prove `contract_defined`; only an API 33 device/emulator install and runtime test can promote this path to `android_integrated`.
+- R1A does not modify vendor Android system binaries, access hardware, add Driver/HAL, extend the Linux front-end, or implement virtualization.

@@ -52,6 +52,15 @@
 | R6 | Event、Memory、Skill 与 middleware | callback/cursor、memory lifecycle、signed built-in Skill、治理链测试通过 | FW-U-003/006/007, NV-G-005/007 |
 | R7 | Observability、Client2 SDK 迁移与验收 | Client2 不再直连固定 HTTP；trace/metric、端到端和故障测试通过 | APP-004, NV-F-012, XSC-005/006, DEL-001 |
 
+### R1 实施状态
+
+- `R1A Gradle foundation` 已完成：`central-brain/android-runtime` 使用 AGP `8.10.1`、Gradle Wrapper `8.11.1`、JDK 17、`compileSdk=36`、`minSdk=33`，Wrapper 固定官方分发包 SHA-256。
+- 已真实构建并验证 `central-brain-sdk-debug.aar`、`runtime-service-debug.apk`、`demo-hmi-debug.apk`；SDK JUnit、APK package/minSdk 和 APK v2 签名校验通过。
+- `runtime-service` 当前是非导出、无网络权限、无 Binder 的生命周期边界；R1 不提前引入 R2 typed/async AIDL。
+- 当前工作区只有 API 36 AVD，没有 API 33 system image 或已连接设备，因此 R1 的 API 33 安装/启动退出条件仍未关闭，成熟度保持 `contract_defined`。
+- 当前本地 Android SDK command-line tools 只识别 XML version 3，而已安装 SDK 含 version 4 metadata；构建成功但存在工具版本警告，量产 CI 前必须对齐 command-line tools 与 SDK。
+- Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+
 ## 架构落点
 
 | 架构图层 | 本计划新增实现 |

@@ -20,7 +20,7 @@
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path + Client2 12 场景 Agent 验收面板 |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
-| R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 待开始 |
+| R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 进行中：R1A 已构建；API 33 安装验证待完成 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 待开始 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 待开始 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
@@ -61,6 +61,11 @@
 
 ### 2026-07-12
 
+- 完成 R1A Gradle foundation：新增 `central-brain/android-runtime` 多模块工程，包含 `central-brain-sdk` AAR、独立 `runtime-service` APK 和 `demo-hmi` APK；工具链固定 AGP `8.10.1`、Gradle `8.11.1`、JDK 17、`minSdk=33`。
+- 完成 SDK JUnit、三模块 assemble、AAR 内容、APK package/minSdk 与 APK v2 签名验证；R1 未引入 AIDL、网络权限、硬件访问、Driver/HAL 或虚拟化代码。
+- 当前只有 API 36 AVD，尚无 API 33 镜像或设备，R1 仍为进行中且成熟度保持 `contract_defined`；下一增量补齐可重复安装/启动检查并获取 API 33 设备证据。
+- 本机构建还报告 Android SDK command-line tools/XML metadata 版本警告；当前不影响产物，但在量产 CI 门禁前需要对齐 SDK 工具版本。
+- R1A 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 用户批准 Android Runtime 演进计划，新增 `docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md`，把后续开发拆为 R0..R7，并固定每轮一个可验证增量、自动进入下一阶段。
 - 新增五级成熟度：`contract_defined`、`prototype_implemented`、`android_integrated`、`hardware_validated`、`production_qualified`；明确 Python completion/readiness 不等于 Android 或硬件完成。
 - 登记 `ISSUE-021..025` 和 `DEV-018/019`，覆盖 AIDL 业务/诊断拆分、durable workflow、可信 Binder 身份、Model Router、Event/Memory/Skill 生命周期。

@@ -15,6 +15,8 @@
 
 当前 Android 产品验收必须逐步覆盖 typed/async Binder、可信调用方身份、durable task/checkpoint/outbox、调度与取消、Stub/Ollama-debug/Vendor-empty Model Router、Event/Memory/Skill lifecycle、trace/metric 和 API 33 设备测试。Req IDs：`APP-004`、`XSC-001..006`、`FW-U-003/004/006/007`、`NV-F-001/011/012`、`NV-G-003..007`、`NV-P-002`、`DEL-001/003/004/005`。
 
+R1A 已交付可重复构建的 `central-brain/android-runtime`：`central-brain-sdk-debug.aar`、`runtime-service-debug.apk` 和 `demo-hmi-debug.apk` 均已由 AGP 构建并完成单测/结构/包名/minSdk/签名校验。当前工作区没有 API 33 system image 或已连接设备，因此此证据仍是 `contract_defined`，不能标记为 `android_integrated`。Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
@@ -311,6 +313,12 @@ Linux systemd 部署样例：
 - `tools/build_client2_central_brain_demo.sh`
 - `tools/check_client2_central_brain_demo.sh`
 - `tools/install_client2_central_brain_demo.sh`
+- `central-brain/android-runtime/README.md`
+- `central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar`（构建产物，不入库）
+- `central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk`（构建产物，不入库）
+- `central-brain/android-runtime/demo-hmi/build/outputs/apk/debug/demo-hmi-debug.apk`（构建产物，不入库）
+- `tools/build_central_brain_android_runtime.sh`
+- `tools/check_central_brain_android_runtime_gradle.sh`
 
 ## Android 版本最低要求
 
