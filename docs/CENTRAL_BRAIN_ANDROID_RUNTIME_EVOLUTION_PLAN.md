@@ -72,7 +72,11 @@
 - `R2A compiled AIDL contract` 已完成：`central-brain-sdk` 开启 AIDL，编译 5 个 production Parcelable、3 个 diagnostic Parcelable、production/callback/diagnostic 三个接口，并冻结 `aidl-api/v1.sha256`。
 - Production 只包含 typed agent task submit/cancel/status，禁止 JSON/Bundle/fd/shared memory；callback 为 `oneway`，生成代码使用 `IBinder.FLAG_ONEWAY`；diagnostic 为只读 cursor page，`MAX_PAGE_SIZE=100`。
 - Gradle 应用层无法使用需 Soong/AOSP 构建的 `aidl_interface`/VINTF stable AIDL，因此使用显式 `getProtocolVersion/getProtocolHash` 和 checksum freeze；该限制继续记录在 `DEV-018`/`ISSUE-021`，不得宣称 VINTF stable。
-- R2A 只定义并编译契约，Runtime `onBind()` 仍返回 `null`。R2B 才发布分离的 signature-permission production/diagnostic Service；成熟度保持 `contract_defined`。
+- `R2B typed Binder runtime` 已完成：Runtime APK 发布独立 production/diagnostic Service，分别受 `BIND_RUNTIME`/`ACCESS_DIAGNOSTICS` signature 权限保护；Demo 只请求 production 权限。
+- `CentralBrainClient` 使用 explicit component 和 SDK AAR 的 narrow package visibility query，提供 typed submit/cancel/status、callback executor 和 service `DeathRecipient`；Runtime 为每个 remote callback 注册 `DeathRecipient`。
+- Deterministic task runner 在单线程 executor 上发出 ACCEPTED/RUNNING/COMPLETED，cancel 只在 Binder 线程标记状态并异步通知，重复 cancel 幂等；diagnostic 为只读有界 cursor page。所有路径固定 `hardware_accessed=false`。
+- API 33 x86_64 设备门禁已验证 typed Binder connect/version/hash、completion callback、duplicate cancel、两个 signature permission 拒绝和 diagnostic page；release APK 已确认排除两个 DUMP-protected debug probe。
+- R2 仍未退出：R2C 必须补齐 service-process/client-process/callback death、显式 rebind、重复 disconnect 抑制和 cancel-vs-completion race instrumentation。成熟度保持 `contract_defined`，`DEV-018`/`ISSUE-021` 继续 Open。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
 
 ## 架构落点

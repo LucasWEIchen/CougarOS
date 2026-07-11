@@ -23,6 +23,8 @@ R1C 已在 `central_brain_api33_x86_64` Android 13/API 33/x86_64 system image re
 
 R2A 已在 `central-brain-sdk` AAR 中编译 production、oneway callback 和 diagnostic structured AIDL；V1 source checksum 已冻结。当前只交付契约，不发布 Binder Service，成熟度仍为 `contract_defined`。详细类型、方法、latency、cancel/death、分页和 Gradle-vs-VINTF 边界见 `CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`。
 
+R2B 已交付两个独立 signature-permission Service、`CentralBrainClient` typed binding、deterministic async task/cancel path 和 read-only diagnostic paging。API 33 x86_64 设备门禁已验证 `typed_binder_connected=true`、`typed_binder_callback_completed=true`、`typed_binder_cancel_confirmed=true`、`signature_permission_enforced=true`、`diagnostic_permission_requested_by_demo=false`、`diagnostic_binder_page_verified=true`；release manifest 不包含 DUMP-protected debug probes。R2C death/reconnect/race 测试未完成，成熟度仍为 `contract_defined`。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |

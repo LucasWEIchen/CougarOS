@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <permission
+        android:name="com.centralbrain.permission.BIND_RUNTIME"
+        android:protectionLevel="signature" />
+    <permission
+        android:name="com.centralbrain.permission.ACCESS_DIAGNOSTICS"
+        android:protectionLevel="signature" />
+
     <application
         android:allowBackup="false"
         android:label="@string/runtime_service_name"
@@ -6,6 +13,12 @@
         <service
             android:name=".CentralBrainRuntimeService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="true"
+            android:permission="com.centralbrain.permission.BIND_RUNTIME" />
+        <service
+            android:name=".CentralBrainDiagnosticService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.centralbrain.permission.ACCESS_DIAGNOSTICS" />
     </application>
 </manifest>

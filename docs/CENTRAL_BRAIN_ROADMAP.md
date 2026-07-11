@@ -21,7 +21,7 @@
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
-| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 进行中：R2A compiled contract 已完成 |
+| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 进行中：R2A contract、R2B Service/SDK/API 33 集成已完成；R2C death/race 测试待完成 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 待开始 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
@@ -61,6 +61,10 @@
 
 ### 2026-07-12
 
+- 完成 R2B typed Binder runtime：独立 production/diagnostic Service 分别使用 `BIND_RUNTIME`/`ACCESS_DIAGNOSTICS` signature 权限；SDK AAR 新增显式组件绑定、callback executor 和 service `DeathRecipient`。
+- Runtime 以单线程 executor 执行 deterministic hardware-free task，提交快速返回 handle，支持 ACCEPTED/RUNNING/COMPLETED、异步取消、重复取消幂等和 callback death 取消；diagnostic 提供 `1..100` 有界 cursor page。
+- API 33 x86_64 实测通过 typed Binder 连接、完成 callback、重复取消、业务/诊断 signature 权限拒绝、diagnostic page probe；release APK 不包含 debug probe。成熟度仍保持 `contract_defined`，R2C 继续验证 service/client death、显式重连和 cancel-vs-completion race。
+- R2B 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R2A compiled AIDL contract：SDK AAR 新增 production、oneway callback、diagnostic 三个独立接口和 8 个 structured Parcelable，AIDL Java 代码真实编译通过。
 - 新增 `docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`、V1 checksum freeze `central-brain-sdk/aidl-api/v1.sha256` 和 `tools/check_central_brain_android_aidl_contract.sh`；production AIDL 禁止 JSON/Bundle/fd/shared memory，diagnostic 固定 cursor/page size 上限。
 - 记录 Gradle app structured AIDL 与 Soong/VINTF stable AIDL 的工具链边界；显式使用 `getProtocolVersion/getProtocolHash`，保留 DEV-018/ISSUE-021，R2B 才实现分离 Service。

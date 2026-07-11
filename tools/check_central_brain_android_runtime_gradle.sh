@@ -32,9 +32,11 @@ for path in \
   central-brain/android-runtime/central-brain-sdk/build.gradle.kts \
   central-brain/android-runtime/central-brain-sdk/src/main/AndroidManifest.xml \
   central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java \
+  central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainClient.java \
   central-brain/android-runtime/runtime-service/build.gradle.kts \
   central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java \
+  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainDiagnosticService.java \
   central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
@@ -43,7 +45,8 @@ for path in \
   central-brain/android-runtime/README.md \
   tools/build_central_brain_android_runtime.sh \
   tools/install_central_brain_android_runtime.sh \
-  tools/check_central_brain_android_aidl_contract.sh; do
+  tools/check_central_brain_android_aidl_contract.sh \
+  tools/check_central_brain_android_binder_runtime.sh; do
   require_file "$path"
 done
 
@@ -59,8 +62,8 @@ for module in central-brain-sdk runtime-service demo-hmi; do
 done
 require_text "central-brain/android-runtime/runtime-service/build.gradle.kts" 'applicationId = "com.centralbrain.runtime"'
 require_text "central-brain/android-runtime/demo-hmi/build.gradle.kts" 'applicationId = "com.centralbrain.demo"'
-require_text "central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml" 'android:exported="false"'
-require_text "central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java" "R2 introduces the typed production and diagnostic Binder surfaces."
+require_text "central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml" 'android:permission="com.centralbrain.permission.BIND_RUNTIME"'
+require_text "central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java" "ICentralBrainRuntime.Stub"
 require_text "central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java" "hardware_accessed=false"
 require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml" 'android:permission="android.permission.DUMP"'
 require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml" 'android:exported="true"'
@@ -84,5 +87,6 @@ if grep -Fq "RuntimeProbeActivity" "$RUNTIME_DIR/runtime-service/src/main/Androi
 fi
 
 bash "$ROOT_DIR/tools/check_central_brain_android_aidl_contract.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_binder_runtime.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

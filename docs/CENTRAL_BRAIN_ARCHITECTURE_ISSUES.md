@@ -205,7 +205,7 @@
 
 当前处理：按 `CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` 拆分量产业务 AIDL 与诊断 AIDL；业务接口使用 versioned Parcelable，任务提交快速返回 handle，状态通过 callback 推送，并定义 cancel、timeout、death-recipient 和兼容迁移窗口。诊断接口允许 JSON，但必须分页且不得阻塞业务 Binder 线程。
 
-2026-07-12 进展：R1 SDK AAR、Runtime Service APK、Demo HMI APK 和 API 33 生命周期退出验证已完成。R2A 已编译分离的业务/诊断 structured AIDL、oneway callback、显式 protocol version/hash 和 V1 checksum freeze；因无 AOSP/Soong build 权限，当前不是 VINTF stable AIDL。Service、cancel、death-recipient 与 instrumentation 尚未实现，因此 ISSUE-021 保持 Open。
+2026-07-12 进展：R1 SDK AAR、Runtime Service APK、Demo HMI APK 和 API 33 生命周期退出验证已完成。R2A 已编译分离的业务/诊断 structured AIDL、oneway callback、显式 protocol version/hash 和 V1 checksum freeze；R2B 已实现独立 signature-permission production/diagnostic Service、typed SDK client、快速 handle、deterministic callback、异步/幂等 cancel、callback/service death recipient、API 33 权限拒绝和 diagnostic paging 设备证据。因无 AOSP/Soong build 权限，当前不是 VINTF stable AIDL；service/client death、显式重连、重复 disconnect 抑制、client-process death 和 cancel-vs-completion race 的 instrumentation 证据属于 R2C，尚未完成，因此 ISSUE-021 保持 Open。
 
 状态：Open，实施已获批准。
 

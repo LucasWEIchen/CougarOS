@@ -679,3 +679,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Callback methods must be `oneway`; generated Java must transact with `IBinder.FLAG_ONEWAY`. R2B/R2C must implement callback, cancel and Binder death behavior without blocking a Binder thread.
 - This Gradle APK/AAR project uses application structured AIDL with explicit `getProtocolVersion/getProtocolHash` and a V1 SHA-256 source freeze. It is not Soong `aidl_interface` or VINTF stable AIDL; DEV-018/ISSUE-021 remain open.
 - R2A publishes no Binder Service and does not promote maturity. No hardware, vendor SDK, Driver/HAL, Linux front-end or virtualization work is triggered.
+
+### 2026-07-12 R2B typed Binder runtime trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- Runtime APK must publish production and diagnostic AIDL from separate exported Service components protected by separate signature permissions. Demo HMI may request production binding only and must not request diagnostic access.
+- SDK AAR must use an explicit component plus a narrow `<queries>` package declaration, dispatch callbacks through a caller-supplied executor, and link a `DeathRecipient` to the production Binder. It must not request `QUERY_ALL_PACKAGES`.
+- Task submission must return a typed handle before deterministic work begins. ACCEPTED/RUNNING/COMPLETED callbacks, asynchronous cancellation, duplicate-cancel idempotency and callback-death cancellation must execute without hardware access or synchronous HTTP proxying on Binder threads.
+- Diagnostic replies must remain read-only, structured and cursor-paged with a maximum of 100 records. The Demo APK must not gain the diagnostic permission; the shell caller must be rejected by both signature permissions.
+- API 33 device evidence must cover production bind/version/hash, terminal callback, duplicate cancel, diagnostic page access through a DUMP-protected debug-only probe, permission rejection and release exclusion of both debug probes.
+- R2B does not close `ISSUE-021` or promote maturity. R2C must still prove service-process death, client/callback death, explicit rebind, duplicate disconnect suppression and cancel-vs-completion races.
+- This increment does not modify vendor Android sources, access Driver/HAL/vendor SDK/NPU/vehicle interfaces, add a Linux front-end or implement virtualization.

@@ -108,6 +108,62 @@ fi
 "${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.runtime
 "${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.demo
 
+DEMO_PACKAGE_DUMP="$("${ADB_DEVICE[@]}" shell dumpsys package com.centralbrain.demo)"
+if ! grep -Fq "com.centralbrain.permission.BIND_RUNTIME: granted=true" <<<"$DEMO_PACKAGE_DUMP"; then
+  echo "Demo HMI does not hold the signature BIND_RUNTIME permission" >&2
+  exit 1
+fi
+if grep -Fq "com.centralbrain.permission.ACCESS_DIAGNOSTICS" <<<"$DEMO_PACKAGE_DUMP"; then
+  echo "Demo HMI must not request the diagnostic permission" >&2
+  exit 1
+fi
+
+set +e
+UNAUTHORIZED_RUNTIME_OUTPUT="$("${ADB_DEVICE[@]}" shell am startservice \
+  -n com.centralbrain.runtime/.CentralBrainRuntimeService 2>&1)"
+UNAUTHORIZED_RUNTIME_STATUS=$?
+UNAUTHORIZED_DIAGNOSTIC_OUTPUT="$("${ADB_DEVICE[@]}" shell am startservice \
+  -n com.centralbrain.runtime/.CentralBrainDiagnosticService 2>&1)"
+UNAUTHORIZED_DIAGNOSTIC_STATUS=$?
+set -e
+if [[ $UNAUTHORIZED_RUNTIME_STATUS -eq 0 ]] \
+    || ! grep -Fq "Requires permission com.centralbrain.permission.BIND_RUNTIME" \
+      <<<"$UNAUTHORIZED_RUNTIME_OUTPUT"; then
+  echo "shell caller was not rejected by the production signature permission" >&2
+  exit 1
+fi
+if [[ $UNAUTHORIZED_DIAGNOSTIC_STATUS -eq 0 ]] \
+    || ! grep -Fq "Requires permission com.centralbrain.permission.ACCESS_DIAGNOSTICS" \
+      <<<"$UNAUTHORIZED_DIAGNOSTIC_OUTPUT"; then
+  echo "shell caller was not rejected by the diagnostic signature permission" >&2
+  exit 1
+fi
+
+DIAGNOSTIC_NONCE="$(date +%s%N)"
+DIAGNOSTIC_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.DiagnosticProbeActivity \
+  --es nonce "$DIAGNOSTIC_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$DIAGNOSTIC_PROBE_OUTPUT"; then
+  echo "$DIAGNOSTIC_PROBE_OUTPUT" >&2
+  echo "diagnostic debug probe did not start successfully" >&2
+  exit 1
+fi
+DIAGNOSTIC_PROBE_PASSED=false
+for _ in {1..20}; do
+  DIAGNOSTIC_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+    -s CentralBrainDiagProbe:I '*:S' | tail -n 20)"
+  if grep -Fq "nonce=$DIAGNOSTIC_NONCE diagnostic_probe_passed=true" \
+      <<<"$DIAGNOSTIC_LOG"; then
+    DIAGNOSTIC_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$DIAGNOSTIC_PROBE_PASSED" != true ]]; then
+  echo "diagnostic Binder page probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -140,9 +196,22 @@ if ! grep -Eq 'mResumedActivity.*com\.centralbrain\.demo/.DemoActivity|topResume
   exit 1
 fi
 
-"${ADB_DEVICE[@]}" shell uiautomator dump /sdcard/central-brain-demo.xml >/dev/null
-UI_DUMP="$("${ADB_DEVICE[@]}" exec-out cat /sdcard/central-brain-demo.xml | tr -d '\r')"
-for expected in "Central Brain" "contract_defined"; do
+UI_DUMP=""
+for _ in {1..20}; do
+  "${ADB_DEVICE[@]}" shell uiautomator dump /sdcard/central-brain-demo.xml >/dev/null
+  UI_DUMP="$("${ADB_DEVICE[@]}" exec-out cat /sdcard/central-brain-demo.xml | tr -d '\r')"
+  if grep -Fq "Typed Binder: completed" <<<"$UI_DUMP" \
+      && grep -Fq "Cancel: confirmed" <<<"$UI_DUMP"; then
+    break
+  fi
+  sleep 0.5
+done
+for expected in \
+  "Central Brain" \
+  "contract_defined" \
+  "Typed Binder: connected v1" \
+  "Typed Binder: completed" \
+  "Cancel: confirmed"; do
   if ! grep -Fq "$expected" <<<"$UI_DUMP"; then
     echo "Demo HMI UI missing expected text: $expected" >&2
     exit 1
@@ -163,6 +232,12 @@ printf '%s\n' \
   "runtime_pid=$RUNTIME_PID" \
   "demo_hmi_resumed=true" \
   "demo_ui_contract_defined=true" \
+  "typed_binder_connected=true" \
+  "typed_binder_callback_completed=true" \
+  "typed_binder_cancel_confirmed=true" \
+  "signature_permission_enforced=true" \
+  "diagnostic_permission_requested_by_demo=false" \
+  "diagnostic_binder_page_verified=true" \
   "r1_api33_exit_criteria_met=$API_33_EXIT" \
   "hardware_accessed=false" \
   "driver_development_triggered=false" \
