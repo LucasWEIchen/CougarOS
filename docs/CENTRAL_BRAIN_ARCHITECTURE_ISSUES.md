@@ -229,6 +229,8 @@
 
 2026-07-12 R4C2A 进展：effect+outbox+audit prepare、eligible claim、attempt 递增与 IN_FLIGHT reopen requeue 已 transactional；owner-scoped key digest 避免跨 owner 冲突，API 33 已验证公平回队和第二次 claim。ISSUE-022 保持 Open：真实 adapter 后的 IN_FLIGHT 状态仍有“副作用可能已发生但结果未落库”的歧义，必须由 adapter idempotency token/status reconciliation、R4C2B terminal/retry 和 R4C3 fault matrix 共同关闭；dispatcher 当前禁止启用。
 
+2026-07-12 R4C2B 进展：effect/outbox 已具备 attempt-aware success、bounded retry、dead-letter、cancel 和 exact replay；最终 claim 崩溃会以 `EFFECT_CLAIM_EXHAUSTED` 幂等失败关闭，API 33 已验证 delay/digest/stale-attempt 冲突和终态计数。ISSUE-022 保持 Open：该本地死信不能判定真实 adapter 是否已执行，production wiring 仍必须等待 R4C3 的 idempotency token/status reconciliation 与 crash-point fault matrix；trusted clock、retention/export/delete、encryption/key rotation 也仍未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

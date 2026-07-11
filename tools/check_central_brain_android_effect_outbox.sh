@@ -75,9 +75,9 @@ if grep -Fq "DurableEffectRepository" "$ROOT_DIR/$RUNTIME" \
   echo "R4C2A repository must not be wired to production Services" >&2
   exit 1
 fi
-if grep -Eiq 'dispatchAction|invokeAdapter|sendEffect|recordSuccess|scheduleRetry|deadLetter' \
+if grep -Eiq 'dispatchAction|invokeAdapter|sendEffect' \
     "$ROOT_DIR/$REPOSITORY" "$ROOT_DIR/$PROBE"; then
-  echo "R4C2A must not dispatch or claim terminal/retry effect semantics" >&2
+  echo "effect/outbox repository must not dispatch effects or invoke adapters" >&2
   exit 1
 fi
 if grep -R -Eiq 'ioctl|sysfs|/dev/|VehicleHal|CarPropertyManager|vendor sdk|SharedMemory' \

@@ -49,15 +49,25 @@ public interface RuntimeStateDao {
             + "WHERE effect_outbox.destination = :destination "
             + "AND effect_outbox.state = 'PENDING' "
             + "AND effect_outbox.not_before_wall_ms <= :nowWallMs "
+            + "AND effect_outbox.attempt_count < :maxAttempts "
             + "AND pending_effect.state = 'PREPARED' "
             + "AND runtime_task.state = 'RUNNING' "
             + "ORDER BY effect_outbox.not_before_wall_ms, "
             + "effect_outbox.created_at_wall_ms, effect_outbox.outbox_id LIMIT 1")
-    OutboxEntity findNextClaimableOutbox(String destination, long nowWallMs);
+    OutboxEntity findNextClaimableOutbox(
+            String destination,
+            long nowWallMs,
+            int maxAttempts);
 
     @Query("SELECT * FROM effect_outbox WHERE state = :state "
             + "ORDER BY updated_at_wall_ms, outbox_id")
     List<OutboxEntity> findOutboxesInState(String state);
+
+    @Nullable
+    @Query("SELECT * FROM audit_event "
+            + "WHERE subject_id = :subjectId AND event_type = :eventType "
+            + "ORDER BY sequence DESC LIMIT 1")
+    AuditEventEntity findLatestAuditEvent(String subjectId, String eventType);
 
     @Nullable
     @Query("SELECT * FROM task_checkpoint WHERE task_id = :taskId "
@@ -130,6 +140,12 @@ public interface RuntimeStateDao {
 
     @Query("SELECT COUNT(*) FROM effect_outbox")
     int countOutboxRows();
+
+    @Query("SELECT COUNT(*) FROM pending_effect WHERE state = :state")
+    int countPendingEffectsInState(String state);
+
+    @Query("SELECT COUNT(*) FROM effect_outbox WHERE state = :state")
+    int countOutboxRowsInState(String state);
 
     @Query("SELECT COUNT(*) FROM runtime_task WHERE state = :state")
     int countTasksInState(String state);

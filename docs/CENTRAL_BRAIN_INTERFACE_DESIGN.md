@@ -864,3 +864,19 @@ A COMPLETED task with an unsettled callback is conservatively changed to FAILED 
 | `findOwned(effectId,owner)` | owner-isolated effect/outbox snapshot | no cross-owner existence disclosure |
 
 The stored `idempotency_key` is a domain-separated owner+caller-key digest, called the idempotency token in repository snapshots. A claim carries IDs, owner token, type/action, payload/envelope digests, destination, state and attempt count; no raw command exists to dispatch. Route pairs are fixed to UIB Action, SOA Operation and Skill. Because an IN_FLIGHT crash is ambiguous once a real adapter exists, requeue alone provides at-least-once infrastructure, not exactly-once execution; adapter idempotency/status contracts remain a hard activation gate.
+
+## Android R4C2B Effect Retry And Terminal States
+
+The internal Room API closes local effect lifecycle semantics while keeping all destination adapters disconnected.
+
+| Call | Required current state | Transactional result |
+| --- | --- | --- |
+| `recordSuccess(effect,outbox,owner,expectedAttempt,resultDigest)` | matching IN_FLIGHT pair and attempt | APPLIED/DELIVERED + `EFFECT_APPLIED`; exact replay returns `REPLAYED` |
+| `scheduleRetry(effect,outbox,owner,expectedAttempt,delay,failureDigest)` | matching non-final IN_FLIGHT pair | PREPARED/PENDING + bounded `not_before` + `EFFECT_RETRY_SCHEDULED` |
+| `deadLetter(effect,outbox,owner,expectedAttempt,failureDigest)` | matching IN_FLIGHT pair | FAILED/DEAD_LETTER + `EFFECT_DEAD_LETTERED` |
+| `cancelPrepared(effect,outbox,owner,expectedAttempt,reasonDigest)` | matching PREPARED/PENDING pair and attempt | CANCELLED/CANCELLED + `EFFECT_CANCELLED` |
+| `reconcileInterruptedClaims()` | IN_FLIGHT pairs after reopen | attempts remaining: requeue; exhausted: FAILED/DEAD_LETTER + `EFFECT_CLAIM_EXHAUSTED` |
+
+Result, failure and cancellation content enters Room only as lowercase SHA-256 digests. Replay validation binds IDs, expected attempt and operation-specific input; retry also binds the requested delay and persisted not-before timestamp. Default `maxAttempts=3`, constructor bounds are 1..100, and delay bounds are 0..24 hours.
+
+`EFFECT_CLAIM_EXHAUSTED` is a local fail-closed outcome for an unknown final-attempt result. It does not authorize blind re-delivery and does not state that the destination never applied the operation. No dispatcher, adapter call or production Service wiring exists in R4C2B; R4C3 must supply destination idempotency/status interfaces and crash-point evidence first.

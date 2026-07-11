@@ -349,6 +349,26 @@ for _ in {1..40}; do
       && grep -Fq "outbox_reconciliation_idempotent=true" <<<"$EFFECT_LOG" \
       && grep -Fq "outbox_fair_requeue_verified=true" <<<"$EFFECT_LOG" \
       && grep -Fq "outbox_second_claim_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_retry_idempotent_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_retry_delay_conflict_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_retry_digest_conflict_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_retry_not_before_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_final_claim_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_attempt_limit_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_dead_letter_idempotent_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_dead_letter_digest_conflict_verified=true" \
+        <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_stale_attempt_rejected=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_success_idempotent_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_success_digest_conflict_verified=true" \
+        <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_cancel_idempotent_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_cancel_stale_attempt_rejected=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_cancel_digest_conflict_verified=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_max_attempt_crash_dead_lettered=true" <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_exhausted_reconciliation_idempotent=true" \
+        <<<"$EFFECT_LOG" \
+      && grep -Fq "effect_terminal_states_verified=true" <<<"$EFFECT_LOG" \
       && grep -Fq "effect_outbox_audit_verified=true" <<<"$EFFECT_LOG" \
       && grep -Fq "outbox_claim_attempt=2" <<<"$EFFECT_LOG" \
       && grep -Fq "effect_repository_wired=false" <<<"$EFFECT_LOG" \
@@ -567,6 +587,23 @@ printf '%s\n' \
   "outbox_reconciliation_idempotent=true" \
   "outbox_fair_requeue_verified=true" \
   "outbox_second_claim_verified=true" \
+  "effect_retry_idempotent_verified=true" \
+  "effect_retry_delay_conflict_verified=true" \
+  "effect_retry_digest_conflict_verified=true" \
+  "effect_retry_not_before_verified=true" \
+  "effect_final_claim_verified=true" \
+  "effect_attempt_limit_verified=true" \
+  "effect_dead_letter_idempotent_verified=true" \
+  "effect_dead_letter_digest_conflict_verified=true" \
+  "effect_stale_attempt_rejected=true" \
+  "effect_success_idempotent_verified=true" \
+  "effect_success_digest_conflict_verified=true" \
+  "effect_cancel_idempotent_verified=true" \
+  "effect_cancel_stale_attempt_rejected=true" \
+  "effect_cancel_digest_conflict_verified=true" \
+  "effect_max_attempt_crash_dead_lettered=true" \
+  "effect_exhausted_reconciliation_idempotent=true" \
+  "effect_terminal_states_verified=true" \
   "effect_outbox_audit_verified=true" \
   "outbox_claim_attempt=2" \
   "effect_repository_wired=false" \

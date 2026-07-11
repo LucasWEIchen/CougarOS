@@ -221,3 +221,5 @@ R4B3 同样只在 source-built `CentralBrainGovernanceService` 内打开 app-pri
 R4C1 在同一 source-built Runtime APK 内增加非主线程启动对账和 Binder task-call 屏障，不改变部署模型、签名权限或 frozen AIDL。进程重启后的 active/未结算 completion 失败关闭为 FAILED，并通过原 handle 向 owner 回放；它不会自动恢复执行、创建 pending effect/outbox 或访问 vendor service。Android 13 目标设备移植只需验证 APK 签名/权限、app-private Room、进程死亡与重连；direct boot、system-server 注册、SELinux、真实 VHAL/Safety/NPU 仍不在本增量内。
 
 R4C2A 仍只增加 Runtime APK 内部 repository/debug probe，不把 effect/outbox 接到任何 exported Binder Service。目标 Android 13 部署无需 Framework/BSP/SELinux/vendor 修改；routing destination 只是数据库标签。只有在 R4C2B/R4C3 关闭 terminal/retry 与 adapter idempotency/status gate 后，平台集成方才可评审 production wiring，当前禁止从 outbox 调用 VHAL、vendor SDK、SOA、Skill 或 NPU。
+
+R4C2B 已关闭 repository 本地 retry/terminal 状态机，但部署边界不变：Runtime/Governance production Service 仍不引用 `DurableEffectRepository`，也没有 dispatcher。最终 attempt 崩溃后的 FAILED/DEAD_LETTER 是结果未知的本地失败关闭，不是 vendor adapter 状态证明。Android 13 目标平台在 R4C3 前只需验证 app-private Room 行为；只有 vendor/应用 adapter 能消费持久化 idempotency token 或按 token 查询可信状态，并通过 crash-point fault matrix 后，才允许评审生产 wiring。该阶段仍不要求修改 Framework/BSP/SELinux 或预编译系统组件。

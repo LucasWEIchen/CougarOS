@@ -758,3 +758,11 @@ R4C2A 交付 `DurableEffectRepository`、effect/outbox DAO query/update、owner-
 API 33 标准安装门禁新增 effect prepare/reopen replay/conflict/owner scope、outbox claim/reopen requeue/fairness/idempotent reconciliation、second claim attempt=2 和 audit count 证据，同时固定 `effect_repository_wired=false`、`outbox_dispatch_enabled=false`、`service_dispatch_triggered=false`。
 
 该交付不包含 retry/backoff、success/dead-letter/cancel 终态，不接 production Service，不调用 UIB/SOA/Skill，不声明 adapter exactly-once，不保存 raw operation payload，不访问硬件，不新增 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
+
+## Android R4C2B Effect Retry And Terminal States 交付补充
+
+R4C2B 在 `DurableEffectRepository` 内交付 bounded retry/backoff、APPLIED/DELIVERED、FAILED/DEAD_LETTER、CANCELLED/CANCELLED、attempt-aware exact replay，以及最终 IN_FLIGHT claim 崩溃后的 `EFFECT_CLAIM_EXHAUSTED` 失败关闭。它新增 `tools/check_central_brain_android_effect_outbox_terminal.sh`，不修改 Room schema version、frozen AIDL 或标准三项 artifact。
+
+API 33 标准安装门禁必须验证 retry delay/digest 冲突、not-before gating、final attempt 不可重试、stale attempt 拒绝、success/dead-letter/cancel exact replay、终态计数、最终 attempt 崩溃转死信和重复对账幂等；同时保持 `effect_repository_wired=false`、`outbox_dispatch_enabled=false`、`service_dispatch_triggered=false` 及全部 no-hardware 标志。
+
+该交付只关闭 repository 本地状态机，不交付 dispatcher 或 adapter。最终 attempt 崩溃转死信只表示本地结果未知并失败关闭，不证明目标端副作用未发生。R4C3 必须先交付 adapter idempotency token/status reconciliation 接口和 crash-point fault matrix，production Service 才可评审 wiring。Trusted clock、retention、encryption/key lifecycle 继续开放；不新增 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。

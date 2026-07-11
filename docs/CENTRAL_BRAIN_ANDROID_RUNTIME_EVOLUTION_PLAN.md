@@ -122,8 +122,10 @@
 - API 33 已验证对账幂等、active/incomplete-completion 两类失败关闭、进程死亡后同 handle/FAILED replay、终态唯一和 cancel-completion race；固定 `restart_reconciliation_enabled=true`、`task_execution_resume_enabled=false`、`durable_dispatch_enabled=false`。
 - `R4C2A effect prepare and claim` 已完成：RUNNING task 的 effect/outbox/audit 在单 transaction 中 prepare，调用方 key 先与 owner fingerprint 做域分离哈希以适配现有全局唯一索引；exact reopen replay 不重复写，mismatch 冲突，另一 owner 可复用原始 key。
 - Claim 只选择 due PENDING + PREPARED + RUNNING 组合，在单 transaction 中把 effect/outbox 转为 IN_FLIGHT、递增 attempt 并审计。进程中断后 repository 可把 IN_FLIGHT 幂等回退到队尾 PENDING，先服务等待更久的工作，再以 attempt+1 重新 claim。
-- R4C2A 仅为 repository/debug probe，production Runtime/Governance 不引用它；持久化内容仍只有 digest/metadata，`effect_repository_wired=false`、`outbox_dispatch_enabled=false`。R4C2B 才定义 retry/backoff、success/dead-letter/cancel 终态。
-- R4B 已关闭；R4 尚未关闭：R4C2B 和 R4C3 仍需 terminal/retry、crash-point/fault/race tests 和 retention/trusted-clock 决策。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
+- `R4C2B effect retry and terminal states` 已完成：IN_FLIGHT claim 可按 expected attempt 事务性 success、bounded-delay retry 或 dead-letter，PREPARED/PENDING 可按当前 attempt cancel；所有变更校验 owner/effect/outbox，exact replay 不重复审计，变化的 digest 或 retry delay 冲突。
+- 默认最多 claim 3 次，DAO 不再选择 exhausted row，最终 attempt 禁止 retry。若进程在最终 IN_FLIGHT claim 后崩溃，reopen reconciliation 失败关闭为 FAILED/DEAD_LETTER 并写 `EFFECT_CLAIM_EXHAUSTED`；第二次对账不再修改。该终态不证明外部副作用是否发生。
+- R4C2A/B 仍仅为 repository/debug probe，production Runtime/Governance 不引用它；持久化内容只有 digest/metadata，`effect_repository_wired=false`、`outbox_dispatch_enabled=false`。R4C3 必须先定义 adapter idempotency/status contract 和 crash/fault matrix，才可评审 dispatcher wiring。
+- R4B 已关闭；R4 尚未关闭：R4C3、retention/trusted-clock、encryption/key lifecycle 仍待完成。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-/** Transactional effect/outbox owner. R4C2A exposes no dispatcher or adapter call. */
+/** Transactional effect/outbox owner. R4C2B exposes no dispatcher or adapter call. */
 public final class DurableEffectRepository {
     public static final String EFFECT_TYPE_ACTION = "ACTION";
     public static final String EFFECT_TYPE_SOA = "SOA";
@@ -18,17 +18,31 @@ public final class DurableEffectRepository {
     public static final String DESTINATION_SKILL = "SKILL";
     public static final String EFFECT_STATE_PREPARED = "PREPARED";
     public static final String EFFECT_STATE_IN_FLIGHT = "IN_FLIGHT";
+    public static final String EFFECT_STATE_APPLIED = "APPLIED";
+    public static final String EFFECT_STATE_FAILED = "FAILED";
+    public static final String EFFECT_STATE_CANCELLED = "CANCELLED";
     public static final String OUTBOX_STATE_PENDING = "PENDING";
     public static final String OUTBOX_STATE_IN_FLIGHT = "IN_FLIGHT";
+    public static final String OUTBOX_STATE_DELIVERED = "DELIVERED";
+    public static final String OUTBOX_STATE_DEAD_LETTER = "DEAD_LETTER";
+    public static final String OUTBOX_STATE_CANCELLED = "CANCELLED";
     public static final String AUDIT_EFFECT_PREPARED = "EFFECT_PREPARED";
     public static final String AUDIT_EFFECT_CLAIMED = "EFFECT_CLAIMED";
     public static final String AUDIT_EFFECT_CLAIM_RECOVERED = "EFFECT_CLAIM_RECOVERED";
+    public static final String AUDIT_EFFECT_CLAIM_EXHAUSTED = "EFFECT_CLAIM_EXHAUSTED";
+    public static final String AUDIT_EFFECT_RETRY_SCHEDULED = "EFFECT_RETRY_SCHEDULED";
+    public static final String AUDIT_EFFECT_APPLIED = "EFFECT_APPLIED";
+    public static final String AUDIT_EFFECT_DEAD_LETTERED = "EFFECT_DEAD_LETTERED";
+    public static final String AUDIT_EFFECT_CANCELLED = "EFFECT_CANCELLED";
 
     private static final int MAX_METADATA_LENGTH = 256;
     private static final int MAX_GENERATED_ID_LENGTH = 128;
+    private static final long MAX_RETRY_DELAY_MS = 86_400_000L;
+    public static final int DEFAULT_MAX_ATTEMPTS = 3;
 
     private final CentralBrainDatabase database;
     private final RuntimeStateDao dao;
+    private final int maxAttempts;
     private final LongSupplier wallClockMs;
     private final Supplier<String> uniqueIdSource;
 
@@ -36,8 +50,20 @@ public final class DurableEffectRepository {
             CentralBrainDatabase database,
             LongSupplier wallClockMs,
             Supplier<String> uniqueIdSource) {
+        this(database, DEFAULT_MAX_ATTEMPTS, wallClockMs, uniqueIdSource);
+    }
+
+    public DurableEffectRepository(
+            CentralBrainDatabase database,
+            int maxAttempts,
+            LongSupplier wallClockMs,
+            Supplier<String> uniqueIdSource) {
         this.database = Objects.requireNonNull(database, "database");
         this.dao = database.runtimeStateDao();
+        if (maxAttempts < 1 || maxAttempts > 100) {
+            throw new IllegalArgumentException("maxAttempts must be in range 1..100");
+        }
+        this.maxAttempts = maxAttempts;
         this.wallClockMs = Objects.requireNonNull(wallClockMs, "wallClockMs");
         this.uniqueIdSource = Objects.requireNonNull(uniqueIdSource, "uniqueIdSource");
     }
@@ -45,6 +71,7 @@ public final class DurableEffectRepository {
     public static DurableEffectRepository create(CentralBrainDatabase database) {
         return new DurableEffectRepository(
                 database,
+                DEFAULT_MAX_ATTEMPTS,
                 System::currentTimeMillis,
                 () -> UUID.randomUUID().toString());
     }
@@ -152,7 +179,10 @@ public final class DurableEffectRepository {
         validateDestination(destination);
         return runTransaction(() -> {
             long now = now();
-            OutboxEntity outbox = dao.findNextClaimableOutbox(destination, now);
+            OutboxEntity outbox = dao.findNextClaimableOutbox(
+                    destination,
+                    now,
+                    maxAttempts);
             if (outbox == null) {
                 return null;
             }
@@ -163,7 +193,7 @@ public final class DurableEffectRepository {
                     || !DurableTaskRepository.STATE_RUNNING.equals(task.state)) {
                 throw new StateConflictException("claimable effect state changed unexpectedly");
             }
-            if (outbox.attemptCount == Integer.MAX_VALUE) {
+            if (outbox.attemptCount >= maxAttempts) {
                 throw new StateConflictException("outbox attempt counter is exhausted");
             }
 
@@ -187,14 +217,212 @@ public final class DurableEffectRepository {
                     "ATTEMPT_" + outbox.attemptCount,
                     detailDigest,
                     now);
-            return new Claim(Snapshot.from(effect, outbox, task.ownerFingerprint));
+            return new Claim(
+                    Snapshot.from(effect, outbox, task.ownerFingerprint),
+                    maxAttempts);
+        });
+    }
+
+    public MutationOutcome recordSuccess(
+            String effectId,
+            String outboxId,
+            String ownerFingerprint,
+            int expectedAttempt,
+            String resultDigest) {
+        validateClaimReference(effectId, outboxId, ownerFingerprint, expectedAttempt);
+        validateDigest(resultDigest, "resultDigest");
+        return runTransaction(() -> {
+            OwnedRows rows = requireOwnedRows(effectId, outboxId, ownerFingerprint);
+            String detailDigest = outcomeDigest(
+                    "central-brain-effect-applied-v1",
+                    rows,
+                    expectedAttempt,
+                    resultDigest);
+            if (EFFECT_STATE_APPLIED.equals(rows.effect.state)
+                    && OUTBOX_STATE_DELIVERED.equals(rows.outbox.state)) {
+                return requireReplay(
+                        rows,
+                        expectedAttempt,
+                        AUDIT_EFFECT_APPLIED,
+                        detailDigest);
+            }
+            requireInFlightClaim(rows, expectedAttempt);
+            long now = now();
+            rows.effect.state = EFFECT_STATE_APPLIED;
+            rows.effect.updatedAtWallMs = now;
+            rows.outbox.state = OUTBOX_STATE_DELIVERED;
+            rows.outbox.updatedAtWallMs = now;
+            updateEffectAndOutbox(rows.effect, rows.outbox);
+            insertAudit(
+                    effectId,
+                    ownerFingerprint,
+                    AUDIT_EFFECT_APPLIED,
+                    "ATTEMPT_" + expectedAttempt,
+                    detailDigest,
+                    now);
+            return MutationOutcome.APPLIED;
+        });
+    }
+
+    public MutationOutcome scheduleRetry(
+            String effectId,
+            String outboxId,
+            String ownerFingerprint,
+            int expectedAttempt,
+            long retryDelayMs,
+            String failureDigest) {
+        validateClaimReference(effectId, outboxId, ownerFingerprint, expectedAttempt);
+        validateDigest(failureDigest, "failureDigest");
+        if (retryDelayMs < 0 || retryDelayMs > MAX_RETRY_DELAY_MS) {
+            throw new IllegalArgumentException("retryDelayMs is outside the supported range");
+        }
+        if (expectedAttempt >= maxAttempts) {
+            throw new AttemptLimitException("claim has no retry attempts remaining");
+        }
+        return runTransaction(() -> {
+            OwnedRows rows = requireOwnedRows(effectId, outboxId, ownerFingerprint);
+            if (EFFECT_STATE_PREPARED.equals(rows.effect.state)
+                    && OUTBOX_STATE_PENDING.equals(rows.outbox.state)) {
+                String replayDigest = retryDigest(
+                        rows,
+                        expectedAttempt,
+                        rows.outbox.notBeforeWallMs,
+                        retryDelayMs,
+                        failureDigest);
+                return requireReplay(
+                        rows,
+                        expectedAttempt,
+                        AUDIT_EFFECT_RETRY_SCHEDULED,
+                        replayDigest);
+            }
+            requireInFlightClaim(rows, expectedAttempt);
+            long now = now();
+            long notBeforeWallMs;
+            try {
+                notBeforeWallMs = Math.addExact(now, retryDelayMs);
+            } catch (ArithmeticException exception) {
+                throw new IllegalArgumentException("retry schedule overflow", exception);
+            }
+            rows.effect.state = EFFECT_STATE_PREPARED;
+            rows.effect.updatedAtWallMs = now;
+            rows.outbox.state = OUTBOX_STATE_PENDING;
+            rows.outbox.notBeforeWallMs = notBeforeWallMs;
+            rows.outbox.updatedAtWallMs = now;
+            updateEffectAndOutbox(rows.effect, rows.outbox);
+            String detailDigest = retryDigest(
+                    rows,
+                    expectedAttempt,
+                    notBeforeWallMs,
+                    retryDelayMs,
+                    failureDigest);
+            insertAudit(
+                    effectId,
+                    ownerFingerprint,
+                    AUDIT_EFFECT_RETRY_SCHEDULED,
+                    "ATTEMPT_" + expectedAttempt,
+                    detailDigest,
+                    now);
+            return MutationOutcome.APPLIED;
+        });
+    }
+
+    public MutationOutcome deadLetter(
+            String effectId,
+            String outboxId,
+            String ownerFingerprint,
+            int expectedAttempt,
+            String failureDigest) {
+        validateClaimReference(effectId, outboxId, ownerFingerprint, expectedAttempt);
+        validateDigest(failureDigest, "failureDigest");
+        return runTransaction(() -> {
+            OwnedRows rows = requireOwnedRows(effectId, outboxId, ownerFingerprint);
+            String detailDigest = outcomeDigest(
+                    "central-brain-effect-dead-letter-v1",
+                    rows,
+                    expectedAttempt,
+                    failureDigest);
+            if (EFFECT_STATE_FAILED.equals(rows.effect.state)
+                    && OUTBOX_STATE_DEAD_LETTER.equals(rows.outbox.state)) {
+                return requireReplay(
+                        rows,
+                        expectedAttempt,
+                        AUDIT_EFFECT_DEAD_LETTERED,
+                        detailDigest);
+            }
+            requireInFlightClaim(rows, expectedAttempt);
+            long now = now();
+            rows.effect.state = EFFECT_STATE_FAILED;
+            rows.effect.updatedAtWallMs = now;
+            rows.outbox.state = OUTBOX_STATE_DEAD_LETTER;
+            rows.outbox.updatedAtWallMs = now;
+            updateEffectAndOutbox(rows.effect, rows.outbox);
+            insertAudit(
+                    effectId,
+                    ownerFingerprint,
+                    AUDIT_EFFECT_DEAD_LETTERED,
+                    "ATTEMPT_" + expectedAttempt,
+                    detailDigest,
+                    now);
+            return MutationOutcome.APPLIED;
+        });
+    }
+
+    public MutationOutcome cancelPrepared(
+            String effectId,
+            String outboxId,
+            String ownerFingerprint,
+            int expectedAttempt,
+            String reasonDigest) {
+        validateMetadata(effectId, "effectId");
+        validateMetadata(outboxId, "outboxId");
+        validateDigest(ownerFingerprint, "ownerFingerprint");
+        validateDigest(reasonDigest, "reasonDigest");
+        if (expectedAttempt < 0) {
+            throw new IllegalArgumentException("expectedAttempt must be non-negative");
+        }
+        return runTransaction(() -> {
+            OwnedRows rows = requireOwnedRows(effectId, outboxId, ownerFingerprint);
+            String detailDigest = outcomeDigest(
+                    "central-brain-effect-cancelled-v1",
+                    rows,
+                    expectedAttempt,
+                    reasonDigest);
+            if (EFFECT_STATE_CANCELLED.equals(rows.effect.state)
+                    && OUTBOX_STATE_CANCELLED.equals(rows.outbox.state)) {
+                return requireReplay(
+                        rows,
+                        expectedAttempt,
+                        AUDIT_EFFECT_CANCELLED,
+                        detailDigest);
+            }
+            if (!EFFECT_STATE_PREPARED.equals(rows.effect.state)
+                    || !OUTBOX_STATE_PENDING.equals(rows.outbox.state)
+                    || rows.outbox.attemptCount != expectedAttempt) {
+                throw new StateConflictException(
+                        "only the expected pending attempt can cancel");
+            }
+            long now = now();
+            rows.effect.state = EFFECT_STATE_CANCELLED;
+            rows.effect.updatedAtWallMs = now;
+            rows.outbox.state = OUTBOX_STATE_CANCELLED;
+            rows.outbox.updatedAtWallMs = now;
+            updateEffectAndOutbox(rows.effect, rows.outbox);
+            insertAudit(
+                    effectId,
+                    ownerFingerprint,
+                    AUDIT_EFFECT_CANCELLED,
+                    "ATTEMPT_" + expectedAttempt,
+                    detailDigest,
+                    now);
+            return MutationOutcome.APPLIED;
         });
     }
 
     public ReconciliationReport reconcileInterruptedClaims() {
         return runTransaction(() -> {
             long now = now();
-            List<String> effectIds = new ArrayList<>();
+            List<String> requeuedEffectIds = new ArrayList<>();
+            List<String> deadLetteredEffectIds = new ArrayList<>();
             for (OutboxEntity outbox : dao.findOutboxesInState(OUTBOX_STATE_IN_FLIGHT)) {
                 PendingEffectEntity effect = requireEffect(outbox.effectId);
                 RuntimeTaskEntity task = requireTask(effect.taskId);
@@ -202,27 +430,48 @@ public final class DurableEffectRepository {
                     throw new StateConflictException(
                             "in-flight outbox has a non-in-flight effect");
                 }
-                effect.state = EFFECT_STATE_PREPARED;
-                effect.updatedAtWallMs = now;
-                outbox.state = OUTBOX_STATE_PENDING;
-                outbox.notBeforeWallMs = now;
-                outbox.updatedAtWallMs = now;
-                updateEffectAndOutbox(effect, outbox);
-                String detailDigest = DurableDigest.sha256(
-                        "central-brain-effect-claim-recovery-v1",
-                        effect.effectId,
-                        outbox.outboxId,
-                        Integer.toString(outbox.attemptCount));
-                insertAudit(
-                        effect.effectId,
-                        task.ownerFingerprint,
-                        AUDIT_EFFECT_CLAIM_RECOVERED,
-                        OUTBOX_STATE_PENDING,
-                        detailDigest,
-                        now);
-                effectIds.add(effect.effectId);
+                if (outbox.attemptCount >= maxAttempts) {
+                    effect.state = EFFECT_STATE_FAILED;
+                    effect.updatedAtWallMs = now;
+                    outbox.state = OUTBOX_STATE_DEAD_LETTER;
+                    outbox.updatedAtWallMs = now;
+                    updateEffectAndOutbox(effect, outbox);
+                    String detailDigest = DurableDigest.sha256(
+                            "central-brain-effect-claim-exhausted-v1",
+                            effect.effectId,
+                            outbox.outboxId,
+                            Integer.toString(outbox.attemptCount));
+                    insertAudit(
+                            effect.effectId,
+                            task.ownerFingerprint,
+                            AUDIT_EFFECT_CLAIM_EXHAUSTED,
+                            OUTBOX_STATE_DEAD_LETTER,
+                            detailDigest,
+                            now);
+                    deadLetteredEffectIds.add(effect.effectId);
+                } else {
+                    effect.state = EFFECT_STATE_PREPARED;
+                    effect.updatedAtWallMs = now;
+                    outbox.state = OUTBOX_STATE_PENDING;
+                    outbox.notBeforeWallMs = now;
+                    outbox.updatedAtWallMs = now;
+                    updateEffectAndOutbox(effect, outbox);
+                    String detailDigest = DurableDigest.sha256(
+                            "central-brain-effect-claim-recovery-v1",
+                            effect.effectId,
+                            outbox.outboxId,
+                            Integer.toString(outbox.attemptCount));
+                    insertAudit(
+                            effect.effectId,
+                            task.ownerFingerprint,
+                            AUDIT_EFFECT_CLAIM_RECOVERED,
+                            OUTBOX_STATE_PENDING,
+                            detailDigest,
+                            now);
+                    requeuedEffectIds.add(effect.effectId);
+                }
             }
-            return new ReconciliationReport(effectIds);
+            return new ReconciliationReport(requeuedEffectIds, deadLetteredEffectIds);
         });
     }
 
@@ -244,6 +493,90 @@ public final class DurableEffectRepository {
 
     public boolean isDispatchEnabled() {
         return false;
+    }
+
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
+
+    private OwnedRows requireOwnedRows(
+            String effectId,
+            String outboxId,
+            String ownerFingerprint) {
+        PendingEffectEntity effect = requireEffect(effectId);
+        RuntimeTaskEntity task = requireTask(effect.taskId);
+        if (!task.ownerFingerprint.equals(ownerFingerprint)) {
+            throw new TaskNotEligibleException("effect is unavailable to owner");
+        }
+        OutboxEntity outbox = requireOutbox(effectId);
+        if (!outbox.outboxId.equals(outboxId)) {
+            throw new StateConflictException("outbox ID does not match effect");
+        }
+        return new OwnedRows(effect, outbox, task);
+    }
+
+    private void requireInFlightClaim(OwnedRows rows, int expectedAttempt) {
+        if (!EFFECT_STATE_IN_FLIGHT.equals(rows.effect.state)
+                || !OUTBOX_STATE_IN_FLIGHT.equals(rows.outbox.state)
+                || rows.outbox.attemptCount != expectedAttempt) {
+            throw new StateConflictException("effect claim state or attempt is stale");
+        }
+    }
+
+    private MutationOutcome requireReplay(
+            OwnedRows rows,
+            int expectedAttempt,
+            String eventType,
+            String detailDigest) {
+        AuditEventEntity audit = dao.findLatestAuditEvent(rows.effect.effectId, eventType);
+        if (rows.outbox.attemptCount != expectedAttempt
+                || audit == null
+                || !audit.detailDigest.equals(detailDigest)) {
+            throw new StateConflictException("terminal/retry replay does not match durable result");
+        }
+        return MutationOutcome.REPLAYED;
+    }
+
+    private static String outcomeDigest(
+            String domain,
+            OwnedRows rows,
+            int expectedAttempt,
+            String resultDigest) {
+        return DurableDigest.sha256(
+                domain,
+                rows.effect.effectId,
+                rows.outbox.outboxId,
+                Integer.toString(expectedAttempt),
+                resultDigest);
+    }
+
+    private static String retryDigest(
+            OwnedRows rows,
+            int expectedAttempt,
+            long notBeforeWallMs,
+            long retryDelayMs,
+            String failureDigest) {
+        return DurableDigest.sha256(
+                "central-brain-effect-retry-v1",
+                rows.effect.effectId,
+                rows.outbox.outboxId,
+                Integer.toString(expectedAttempt),
+                Long.toString(notBeforeWallMs),
+                Long.toString(retryDelayMs),
+                failureDigest);
+    }
+
+    private static void validateClaimReference(
+            String effectId,
+            String outboxId,
+            String ownerFingerprint,
+            int expectedAttempt) {
+        validateMetadata(effectId, "effectId");
+        validateMetadata(outboxId, "outboxId");
+        validateDigest(ownerFingerprint, "ownerFingerprint");
+        if (expectedAttempt < 1) {
+            throw new IllegalArgumentException("expectedAttempt must be positive");
+        }
     }
 
     private RuntimeTaskEntity requireOwnedTask(String taskId, String ownerFingerprint) {
@@ -374,8 +707,28 @@ public final class DurableEffectRepository {
         }
     }
 
+    private static final class OwnedRows {
+        final PendingEffectEntity effect;
+        final OutboxEntity outbox;
+        final RuntimeTaskEntity task;
+
+        OwnedRows(
+                PendingEffectEntity effect,
+                OutboxEntity outbox,
+                RuntimeTaskEntity task) {
+            this.effect = effect;
+            this.outbox = outbox;
+            this.task = task;
+        }
+    }
+
     public enum PrepareOutcome {
         CREATED,
+        REPLAYED
+    }
+
+    public enum MutationOutcome {
+        APPLIED,
         REPLAYED
     }
 
@@ -399,13 +752,23 @@ public final class DurableEffectRepository {
 
     public static final class Claim {
         private final Snapshot snapshot;
+        private final int maxAttempts;
 
-        private Claim(Snapshot snapshot) {
+        private Claim(Snapshot snapshot, int maxAttempts) {
             this.snapshot = snapshot;
+            this.maxAttempts = maxAttempts;
         }
 
         public Snapshot getSnapshot() {
             return snapshot;
+        }
+
+        public int getMaxAttempts() {
+            return maxAttempts;
+        }
+
+        public boolean canRetry() {
+            return snapshot.getAttemptCount() < maxAttempts;
         }
     }
 
@@ -535,19 +898,32 @@ public final class DurableEffectRepository {
     }
 
     public static final class ReconciliationReport {
-        private final List<String> effectIds;
+        private final List<String> requeuedEffectIds;
+        private final List<String> deadLetteredEffectIds;
 
-        private ReconciliationReport(List<String> effectIds) {
-            this.effectIds = java.util.Collections.unmodifiableList(
-                    new ArrayList<>(effectIds));
+        private ReconciliationReport(
+                List<String> requeuedEffectIds,
+                List<String> deadLetteredEffectIds) {
+            this.requeuedEffectIds = java.util.Collections.unmodifiableList(
+                    new ArrayList<>(requeuedEffectIds));
+            this.deadLetteredEffectIds = java.util.Collections.unmodifiableList(
+                    new ArrayList<>(deadLetteredEffectIds));
         }
 
         public int getRequeuedCount() {
-            return effectIds.size();
+            return requeuedEffectIds.size();
         }
 
-        public List<String> getEffectIds() {
-            return effectIds;
+        public int getDeadLetteredCount() {
+            return deadLetteredEffectIds.size();
+        }
+
+        public List<String> getRequeuedEffectIds() {
+            return requeuedEffectIds;
+        }
+
+        public List<String> getDeadLetteredEffectIds() {
+            return deadLetteredEffectIds;
         }
     }
 
@@ -559,6 +935,12 @@ public final class DurableEffectRepository {
 
     public static final class TaskNotEligibleException extends IllegalStateException {
         public TaskNotEligibleException(String message) {
+            super(message);
+        }
+    }
+
+    public static final class AttemptLimitException extends IllegalStateException {
+        public AttemptLimitException(String message) {
             super(message);
         }
     }
