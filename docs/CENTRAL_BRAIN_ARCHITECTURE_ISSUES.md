@@ -267,6 +267,8 @@
 
 2026-07-12 R5A1 进展：Android main source 已新增统一 `ModelProvider` typed contract，并登记 immutable `deterministic.stub` TEST_ONLY/COLD 与 `vendor.npu.empty` EMPTY/UNAVAILABLE profile。JVM/API 33 已验证 unsafe production/hardware claim、empty inference slot 和非 defensive stream material 均失败关闭。当前两 profile 均未实例化、未路由，`model_provider_runtime_wired=false`、`model_router_dispatch_enabled=false`、`ollama_android_provider_configured=false`、`hardware_accessed=false`。ISSUE-024 保持 Open：R5A2 的 priority/deadline/quota/cancel resource admission、R5B executable stub/router、Ollama debug provider、熔断/fallback fault matrix 和 `DRV-GAP-001` 后的 Vendor NPU 实现尚未完成。
 
+2026-07-12 R5A2 进展：新增 pure-Java inference resource scheduler，priority 只能由 Runtime-policy factory 形成，deadline 使用 elapsed realtime；global/per-owner queue/running quota、provider slots、priority/deadline/FIFO、active replay、queued/running cancel 和 deadline directive 已具备 JVM/API 33 evidence。Scheduler 只产生 lease/directive，不调用 provider；当前两个 profile 仍 non-routable，production Service 未 wiring。ISSUE-024 保持 Open：R5B executable deterministic provider/Router、provider health/熔断/fallback fault matrix、Ollama debug adapter、durable scheduler recovery/metrics 和 Vendor NPU hardware path 尚未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-025 Event、Memory、Skill 生命周期与治理链

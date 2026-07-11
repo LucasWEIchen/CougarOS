@@ -934,3 +934,18 @@ This interface is observation-only. Neither Service gets an adapter or material-
 | `close()` | Runtime lifecycle -> Provider | stop provider and reject new work | contract only |
 
 `deterministic.stub` 为 TEST_ONLY、COLD、1 个声明 slot，所有 operation 仅表示 R5B 要实现的 contract，当前未配置/未路由。`vendor.npu.empty` 为 EMPTY/UNAVAILABLE、0 slot，只能暴露 unavailable health/fault metadata。Stub/Ollama debug 不能声明 production/hardware；EMPTY 不能声明 inference/fallback。R5A2 Scheduler 才能形成排队/准入调用关系，R5B 才允许 Router 调用 deterministic provider。
+
+## Android R5A2 Inference Resource Scheduler
+
+| 接口/类型 | 输入 | 输出/约束 |
+| --- | --- | --- |
+| `TrustedSubmission.fromRuntimePolicy` | request/owner/model/provider、effective priority、elapsed task deadline、queue wait | 唯一 priority 构造入口；不接受 Binder payload priority |
+| `admit` | trusted submission | ADMITTED/REPLAYED/duplicate/deadline/timeout/global-owner quota/route unavailable |
+| `claimNext` | 无 | 按 priority -> queue deadline -> FIFO -> request ID 选择，返回 lease；同时返回 deadline sweep report |
+| `cancelOwned` | request ID + durable owner fingerprint | queued 本地移除；running 返回 provider cancellation directive；非 owner 不泄露 |
+| `sweepDeadlines` | injected elapsed-realtime now | queued expiry、running cancellation directive、cancel-unsupported blocker |
+| `settle` | request ID + lease ID + provider terminal outcome | stale lease/invalid state/cancel race 检查，释放 slot 并返回 local terminal mapping |
+| `RouteTarget.fromProfile` | R5A1 immutable profile | 当前两个 profile 均 disabled |
+| `RouteTarget.forContractTest` | `test.*` ID、slot、cancel capability | 仅 unit/debug contract route，不是 production activation |
+
+`CANCEL_REQUESTED` 继续占用 running/global/owner/provider slot，直到 provider acknowledgement；Scheduler 不调用 `ModelProvider.infer/cancel`。Deadline cancellation 的 local terminal 固定为 DEADLINE_EXCEEDED；owner cancellation 后的迟到 COMPLETED 只作为资源释放 acknowledgement，本地映射为 CANCELLED 且不接受输出。Scheduler 只拥有 active resource admission，terminal task/checkpoint/audit 仍由 Job Supervisor 和 Room repository 持有。

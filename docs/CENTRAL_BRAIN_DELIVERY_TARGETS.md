@@ -798,3 +798,11 @@ R5A1 继续保持 Android 13 应用层源码交付，不修改 vendor/AOSP/BSP �
 Android API 33 验收必须输出 `model_provider_contract_verified=true`、`deterministic_stub_profile_verified=true`、`vendor_npu_empty_profile_verified=true`、`unsafe_provider_descriptor_rejected=true`，并同时输出 provider/runtime/router/Ollama/vendor/hardware 全部未激活标志。Release APK 不得包含 ModelProvider probe。
 
 本阶段聚焦 Android 硬件环境，因此不新增 Linux 前端 artifact。跨 SoC Provider contract 的 Linux 交付映射保留在既有 NPU 接口文档中，待用户恢复 Linux scope 时实现；这项范围收缩必须与当前 Android-only phase 一起解释，不得宣称双平台 R5 已完成。
+
+## Android R5A2 Inference Resource Scheduler
+
+R5A2 新增 main-source pure-Java `InferenceResourceScheduler`、JVM unit test、DUMP-protected debug probe 和 `tools/check_central_brain_android_inference_scheduler.sh`。不修改 AIDL、SDK public API、Room schema 或三项标准 artifact 形状；release Runtime 不得包含 Scheduler probe。
+
+Android API 33 验收必须覆盖 trusted effective priority、priority/deadline/FIFO、global/per-owner queue/running quota、provider slot、queued expiry、running deadline cancellation directive、queued/running cancel、completion-after-cancel deterministic resolution 和 current-profile non-routing。验收同时固定 `provider_cancel_invoked=false`、`scheduler_production_wired=false`、`model_provider_runtime_wired=false`、`model_router_dispatch_enabled=false` 和全部 no-hardware 标志。
+
+该阶段不交付真实推理 UI/SDK 调用、provider execution、Ollama Android adapter、Vendor NPU adapter 或 Linux 前端。Scheduler 的 contract-test route 不是产品 route；R5B 只有在 deterministic provider fault/cancel/stream contract 通过后才能启用 test-only routing。

@@ -137,5 +137,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_effect_adapter_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_activation_gate.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_gate_wiring.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_model_provider_contract.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_inference_scheduler.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

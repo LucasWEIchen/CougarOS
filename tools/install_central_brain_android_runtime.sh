@@ -537,6 +537,58 @@ if [[ "$MODEL_PROVIDER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SCHEDULER_NONCE="$(date +%s%N)"
+SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.scheduler.InferenceSchedulerContractProbeActivity \
+  --es nonce "$SCHEDULER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SCHEDULER_PROBE_OUTPUT"; then
+  echo "$SCHEDULER_PROBE_OUTPUT" >&2
+  echo "inference scheduler contract debug probe did not start successfully" >&2
+  exit 1
+fi
+SCHEDULER_PROBE_PASSED=false
+for _ in {1..40}; do
+  SCHEDULER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbSchedulerProbe:I)"
+  if grep -Fq "nonce=$SCHEDULER_NONCE scheduler_probe_complete=true" \
+      <<<"$SCHEDULER_LOG" \
+      && grep -Fq "inference_scheduler_contract_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "trusted_effective_priority_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "priority_deadline_fifo_order_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "global_owner_queue_quota_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "global_owner_running_quota_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "provider_slot_quota_verified=true" <<<"$SCHEDULER_LOG" \
+      && grep -Fq "queued_deadline_expiry_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "running_deadline_cancel_directive_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "queued_cancel_verified=true" <<<"$SCHEDULER_LOG" \
+      && grep -Fq "running_cancel_requires_provider_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "completion_after_cancel_resolved=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "current_profiles_non_routable_verified=true" \
+        <<<"$SCHEDULER_LOG" \
+      && grep -Fq "provider_cancel_invoked=false" <<<"$SCHEDULER_LOG" \
+      && grep -Fq "scheduler_production_wired=false" <<<"$SCHEDULER_LOG" \
+      && grep -Fq "model_provider_runtime_wired=false" <<<"$SCHEDULER_LOG" \
+      && grep -Fq "model_router_dispatch_enabled=false" <<<"$SCHEDULER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SCHEDULER_LOG"; then
+    SCHEDULER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SCHEDULER_PROBE_PASSED" != true ]]; then
+  echo "$SCHEDULER_LOG" >&2
+  echo "inference scheduler contract probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -844,6 +896,20 @@ printf '%s\n' \
   "model_provider_runtime_wired=false" \
   "model_router_dispatch_enabled=false" \
   "ollama_android_provider_configured=false" \
+  "inference_scheduler_contract_verified=true" \
+  "trusted_effective_priority_verified=true" \
+  "priority_deadline_fifo_order_verified=true" \
+  "global_owner_queue_quota_verified=true" \
+  "global_owner_running_quota_verified=true" \
+  "provider_slot_quota_verified=true" \
+  "queued_deadline_expiry_verified=true" \
+  "running_deadline_cancel_directive_verified=true" \
+  "queued_cancel_verified=true" \
+  "running_cancel_requires_provider_verified=true" \
+  "completion_after_cancel_resolved=true" \
+  "current_profiles_non_routable_verified=true" \
+  "provider_cancel_invoked=false" \
+  "scheduler_production_wired=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

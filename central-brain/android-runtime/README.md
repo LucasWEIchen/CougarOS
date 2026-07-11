@@ -151,6 +151,14 @@ This closes the R4 durable-workflow foundation at `R4_DURABLE_WORKFLOW` / `andro
 
 JVM tests and a DUMP-protected debug-only API 33 probe validate both profiles, unsafe descriptor rejection and defensive stream-chunk copies. R5A1 keeps `model_provider_runtime_wired=false`, `model_router_dispatch_enabled=false`, `ollama_android_provider_configured=false` and `hardware_accessed=false`. R5A2 owns scheduler admission/priority/deadline/quota/cancel semantics; R5B will add the first executable deterministic stub without enabling vendor NPU access.
 
+## R5A2 Inference Resource Scheduler
+
+`InferenceResourceScheduler` is a synchronized pure-Java admission state machine. A `TrustedSubmission` can only be constructed through the Runtime-policy factory; priority is not read from Binder payload. Queue and task deadlines use an injected elapsed-realtime clock. Dispatch order is effective priority, earliest queue deadline, admission FIFO and request ID.
+
+Limits independently bound global/per-owner queued work, global/per-owner running work and maximum queue wait. A route adds its own concurrency slots. Exact active submission replay consumes no quota; changed duplicate IDs are rejected. Current R5A1 profiles convert to disabled routes, while enabled `test.*` routes exist only for contract evidence.
+
+Queued cancellation removes the admission locally. Running cancellation or deadline expiry changes state to `CANCEL_REQUESTED` and returns a lease-bound directive; the scheduler never calls `ModelProvider.cancel` or `infer`. Any later provider terminal acknowledgement releases the slot, but a late completion is mapped to local CANCELLED or DEADLINE_EXCEEDED and its output is not accepted. Job Supervisor/durable workflow still owns final task state. Production Services remain unwired and all provider/hardware flags remain false.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`
