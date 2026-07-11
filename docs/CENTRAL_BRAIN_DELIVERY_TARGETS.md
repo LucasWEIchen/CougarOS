@@ -694,3 +694,11 @@ Android 主路径：Binder `getObservabilityReadinessJson`，Console `Observabil
 Android 主路径：Binder `getPrototypeCompletionSummaryJson`，Console `Complete`。Linux 同步路径：CLI `prototype-completion-summary`，IPC `prototype.completion.summary.get`，gRPC/RPC `GetPrototypeCompletionSummary`。
 
 该交付面固定 `prototype_completion_summary_active=true`、`python_prototype_current_scope_complete=true`、`current_python_prototype_implementation_actions_complete=true`、`current_python_prototype_audit_actions_complete=true`、`prototype_handoff_ready=true`、`production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`。它不调用 POST，不分配 owner/reviewer，不持久化 completion/approval/handoff/review/evidence state，不关闭 production gate，不 dispatch service，不访问硬件，不开发 Driver/HAL，也不实现虚拟化。
+
+## Android R3C1 Action Governance Core 交付补充
+
+R3C1 在 `runtime-service` 内交付纯 Java `ActionGovernancePolicy`、`SafetyVehicleStateProvider`、`RuntimeOwnedSafetyVehicleStateProvider` 和 `InMemoryApprovalRegistry`，以及 deterministic JVM tests 和 `tools/check_central_brain_android_action_governance.sh`。本增量不新增 Linux 前端，也不改变既有 Linux 原型 artifact。
+
+交付检查必须证明：五类 exact Action ID 风险映射；unknown/default deny；caller 不提供 Safety/Vehicle State 或 risk class；high-risk moving deny 与 parked approval-required；owner 隔离；pending 不压力淘汰；expiry/cancel；`dispatchAllowed=false`、`supportsApprovalGrant=false`、`isDurable=false`、`hardwareBacked=false`、`productionTrusted=false`。R3C2 前不存在 Android Governance Binder 交付声明，R4 前不存在 durable approval 或 checkpoint/outbox 声明。
+
+该增量不访问 VHAL、Safety Runtime、Vehicle bus、PCIe NPU、device node、HAL/vendor SDK 或 shared memory，不修改厂商 Android 系统，不开发虚拟化。Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。

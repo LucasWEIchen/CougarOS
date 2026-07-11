@@ -22,7 +22,7 @@
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
-| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 进行中：R3A Supervisor/可信身份、R3B package+signer capability/default-deny 设备验证已完成；R3C 动作分级/审批待完成 |
+| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 进行中：R3A/R3B 完成；R3C1 Action/Safety/approval 内核完成，R3C2 typed Governance Binder/API 33 验证待完成 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
@@ -61,6 +61,10 @@
 
 ### 2026-07-12
 
+- 完成 R3C1 action governance core：稳定 Action catalog 固定读取、舒适控制、驾驶干扰、诊断写和 OTA 五类风险，unknown/default deny，caller 无法自报 risk class。
+- 新增 Runtime-owned `SafetyVehicleStateProvider` 边界；当前 deterministic fixture 明确 `hardwareBacked=false`、`productionTrusted=false`，只证明 policy state 不来自 Binder payload，不替代 VHAL/Safety Runtime。
+- 新增有界 owner-isolated `InMemoryApprovalRegistry`；仅创建 high-risk pending request，pending 不被压力淘汰，支持 expiry/cancel，但明确不支持 grant、非 durable、无 service dispatch。R3C2 将接入独立 typed Governance Binder，R4 再持久化。
+- R3C1 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R3B capability policy：Runtime APK strict XML 只允许 default deny，Demo/Runtime diagnostic 规则同时要求字面包名与 Runtime 当前 signer 完整集合，四个 production Binder capability 和 diagnostic-read 分别执行。
 - 新增 test-only `policy-probe` APK 和 API 33 脚本；Probe 与 Runtime/Demo 同签名、两项外层 signature permission granted 且两个 Service bind 成功，但未配置包的 protocol/submit/status/cancel/diagnostics 全部被 Runtime 拒绝并审计。
 - 新增 capability 单测覆盖缺失 capability、未知包、signer mismatch、共享 UID capability 合并与任一 signer mismatch fail-closed；标准交付构建不包含 Probe。

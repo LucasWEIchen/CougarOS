@@ -231,6 +231,8 @@
 
 2026-07-12 R3B 进展：Runtime 已启用 package + complete current-signer-set capability mapping 和 XML default deny；同 signer 未配置包在 API 33 上能通过 production/diagnostic signature permission 并绑定两个 Service，但 protocol/submit/status/cancel/diagnostics 均被 policy 拒绝并审计。ISSUE-023 保持 Open：当前 signer 精确匹配不等于第三方签名部署方案，且 R3C 的受信 Safety/Vehicle State、动作风险分级和高风险审批以及 R4 durable pending approval 尚未完成。
 
+2026-07-12 R3C1 进展：Runtime 已用 exact Action ID catalog 固定读取、舒适控制、驾驶干扰、诊断写和 OTA 五类风险，并通过 caller-independent `SafetyVehicleStateProvider` 构造 policy context；high-risk 在 moving 状态拒绝，在 parked/normal/driver-available 状态只能创建 owner-isolated pending approval。当前 provider 明确不是 hardware-backed production source，registry 没有 grant authority 且不持久。ISSUE-023 保持 Open：R3C2 Governance Binder/capability/API 33 evidence、第三方签名部署方案、目标 VHAL/Safety Runtime source 和 R4 durable approval authority/recovery 尚未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-024 Model Router、资源准入与 NPU provider 边界

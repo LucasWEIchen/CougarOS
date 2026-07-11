@@ -725,3 +725,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Runtime denial audit must include capability ID, stable reason and resolved caller package without logging signer bytes. API 33 evidence reports `unknown_client_default_deny_verified=true`, `diagnostic_capability_default_deny_verified=true`, `package_and_current_signer_mapping_verified=true`, and `production_capability_denial_audited=true`.
 - `policy-probe` is test-only, exposes no non-debug variant, requires test-only ADB installation and must not be built by the standard Android delivery build. R3B changes no frozen V1 AIDL transaction or Parcelable.
 - R3 remains open for trusted Safety/Vehicle State, action risk classes and high-risk approval. No hardware, Driver/HAL, Linux front-end or virtualization implementation is triggered.
+
+### 2026-07-12 R3C1 action governance core trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- Action risk is derived only from a Runtime-owned exact Action ID catalog. The required classes are `READ_ONLY`, `COMFORT_CONTROL`, `DRIVER_DISTRACTION`, `DIAGNOSTIC_WRITE`, and `OTA`; unknown IDs fail closed and no caller-supplied risk class is accepted.
+- `SafetyVehicleStateProvider` is the only policy-state boundary. The current provider is caller-independent and Runtime-owned but explicitly a hardware-free stub with `RUNTIME_OWNED_STUB`, `hardwareBacked=false`, and `productionTrusted=false`; it does not claim VHAL, Safety Runtime or target-hardware trust.
+- Read and comfort actions may return `ALLOW_POLICY_ONLY`; all decisions keep `dispatchAllowed=false`. Driver-distraction, diagnostic-write and OTA actions are denied while moving and return `APPROVAL_REQUIRED` only when parked, Safety State permits and a driver is available.
+- The R3C1 approval registry is bounded, owner-isolated and process-local. It accepts only high-risk approval-required decisions, never pressure-evicts pending records, expires/cancels deterministically, and must report `supportsApprovalGrant=false` and `isDurable=false`.
+- R3C1 changes no frozen V1 AIDL and does not close R3. R3C2 must add a separate typed Governance Binder/capability/device test; R4 owns durable approval resolution, checkpoint and outbox recovery.
+- This increment keeps `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`; it adds no Linux front-end work and modifies no vendor Android source.

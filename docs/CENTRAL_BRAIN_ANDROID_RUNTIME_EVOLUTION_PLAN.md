@@ -94,7 +94,10 @@
 - `runtime.protocol.read`、`runtime.task.submit`、`runtime.task.status.own`、`runtime.task.cancel.own` 分别在每个 production Binder 方法执行，`runtime.diagnostics.read` 在 diagnostic version/hash/page 执行。共享 UID 可合并多个已配置包的 capability，但任一已配置包 signer 不一致即整体拒绝。
 - 新增 test-only `policy-probe` APK。它与 Runtime/Demo 使用同一 debug signer，成功获得外层 `BIND_RUNTIME` 和 `ACCESS_DIAGNOSTICS` signature permission 并成功 bind，但包名未配置；API 33 上 production 与 diagnostic capability 全部抛出 `SecurityException`，audit reason 均为 `PACKAGE_NOT_CONFIGURED`。
 - API 33 R3B 输出 `outer_signature_permission_passed=true`、`outer_diagnostic_signature_permission_passed=true`、`test_only_install_enforced=true`、`allowed_client_capabilities_verified=true`、`unknown_client_default_deny_verified=true`、`diagnostic_capability_default_deny_verified=true`、`package_and_current_signer_mapping_verified=true`、`production_capability_denial_audited=true`。Probe 不属于标准交付产物。
-- R3 尚未关闭：R3C 仍需动作风险分级、受信 Safety/Vehicle State 输入和高风险审批入口；R4 再提供 durable approval/checkpoint/outbox。`CentralBrainSdk.EVOLUTION_STAGE` 暂不提升，`DEV-019`/`ISSUE-023` 保持 Open。
+- `R3C1 action governance core` 已完成：纯 Java `ActionGovernancePolicy` 只从 Runtime-owned stable Action catalog 派生读取、舒适控制、驾驶干扰、诊断写、OTA 五类风险，未知 Action 和不安全状态默认拒绝；读取/舒适决策仅为 policy-only，所有结果固定 `dispatchAllowed=false`。
+- Safety/Vehicle State 只能通过 `SafetyVehicleStateProvider` 输入。当前 `RuntimeOwnedSafetyVehicleStateProvider` 是 caller-independent、hardware-free fixture，固定 `RUNTIME_OWNED_STUB`、`hardwareBacked=false`、`productionTrusted=false`，不能替代目标 VHAL/Safety Runtime 证据。
+- `InMemoryApprovalRegistry` 只接收停车状态下三类 high-risk `APPROVAL_REQUIRED` 决策，按完整 trusted caller snapshot 隔离 owner，pending 不因容量压力淘汰，并支持有界 expiry/cancel；它明确 `supportsApprovalGrant=false`、`isDurable=false`，不伪造审批授权或重启恢复。
+- R3 尚未关闭：R3C2 仍需独立 typed Governance AIDL/Service、capability 和 API 33 跨包拒绝/允许验证；R4 再提供 durable approval/checkpoint/outbox。`CentralBrainSdk.EVOLUTION_STAGE` 暂不提升，`DEV-019`/`ISSUE-023` 保持 Open。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

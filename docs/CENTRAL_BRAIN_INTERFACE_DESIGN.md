@@ -745,3 +745,20 @@ The package and each current signer remain paired in `CallerIdentitySnapshot.Pac
 Production capability IDs are `runtime.protocol.read`, `runtime.task.submit`, `runtime.task.status.own`, and `runtime.task.cancel.own`; diagnostics use `runtime.diagnostics.read`. For shared UID identities, correctly signed configured packages contribute capabilities to the UID principal; a signer mismatch on any configured package fails closed. Stable denial reasons are `IDENTITY_UNRESOLVED`, `PACKAGE_NOT_CONFIGURED`, `CURRENT_SIGNER_MISMATCH`, and `CAPABILITY_NOT_GRANTED`.
 
 `policy-probe` is a separate same-signer APK used only to prove that manifest signature permission is not treated as capability authorization. It binds both Services successfully but is absent from the policy, so every production method and diagnostic read is denied on API 33. It is not an AI SDK or Runtime delivery module and adds no architecture layer.
+
+## Android R3C1 Action Governance Core Interfaces
+
+R3C1 keeps the frozen task/diagnostic AIDL unchanged and defines the internal Governance core that R3C2 will publish through a separate typed Binder.
+
+| Interface | Trusted input | Output/failure | Boundary |
+| --- | --- | --- | --- |
+| `SafetyVehicleStateProvider.currentSnapshot` | Runtime-owned provider only | immutable source/revision/Safety/Motion/driver snapshot | no Binder payload state; current stub is not production trusted |
+| `ActionGovernancePolicy.classify` | exact stable Action ID | one of five risk classes or `UNKNOWN` | caller cannot submit or lower a risk class |
+| `ActionGovernancePolicy.evaluate` | Action ID + provider snapshot | `ALLOW_POLICY_ONLY`, `APPROVAL_REQUIRED`, or `DENY` with stable reason | always `dispatchAllowed=false` |
+| `InMemoryApprovalRegistry.request` | high-risk approval-required decision + trusted caller snapshot | owner-bound `PENDING` record or capacity rejection | no approval grant and no durable recovery |
+| `InMemoryApprovalRegistry.findOwned` | approval ID + trusted current caller | snapshot or null for missing/non-owner | no existence disclosure across owners |
+| `InMemoryApprovalRegistry.cancelOwned` | approval ID + trusted current caller | idempotent cancel or false | expired/missing/non-owner cannot be cancelled |
+
+The exact Action catalog is `vehicle.state.read`, `cabin.temperature.set`, `driver.display.video.play`, `vehicle.diagnostics.write`, and `system.ota.install`. Read-only remains visible even during emergency state; comfort is policy-only when Safety/Motion are known; driver-distraction, diagnostic-write and OTA require parked/normal/driver-available state before a pending approval may be created. Moving high-risk actions are denied before approval creation.
+
+The current provider uses `RUNTIME_OWNED_STUB` with `hardwareBacked=false` and `productionTrusted=false`. The current registry uses bounded process memory with `supportsApprovalGrant=false` and `isDurable=false`. These are deliberate R3C1 limits, not approval completion or target Safety evidence. Req IDs: `FW-U-004`, `FW-U-007`, `FW-S-005`, `XSC-005`, `XSC-006`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`.

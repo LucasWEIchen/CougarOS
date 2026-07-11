@@ -117,6 +117,12 @@ No AIDL type includes a device node, fd, shared memory, vendor handle, PCIe/NPU 
 - API 33 evidence is produced by `tools/test_central_brain_android_capability_policy.sh`; the normal delivery build excludes the probe.
 - R3B changes no AIDL field, transaction order, version or hash. Trusted Safety/Vehicle State and high-risk approval remain R3C/R4 work.
 
+## R3C1 Governance Core Boundary
+
+R3C1 adds no method, field, transaction or hash to the frozen Runtime/Diagnostic V1 interfaces. The pure Java governance core derives one of five risk classes from exact Runtime-owned Action IDs, consumes Safety/Vehicle State only through a Runtime-owned provider, and creates bounded owner-isolated pending approval records for parked high-risk actions. All policy outcomes keep service dispatch disabled.
+
+The current state provider is a hardware-free stub and the current approval registry cannot grant approval or recover across process restart. R3C2 will expose governance through a separate typed AIDL rather than append unrelated action/approval methods to `ICentralBrainRuntime`; R4 will add durable approval/checkpoint/outbox ownership. This preserves V1 task-client compatibility and keeps target VHAL/Safety Runtime work behind `DRV-GAP-002`/`DRV-GAP-005`.
+
 ## References
 
 - Android app AIDL: <https://developer.android.com/develop/background-work/services/aidl>
