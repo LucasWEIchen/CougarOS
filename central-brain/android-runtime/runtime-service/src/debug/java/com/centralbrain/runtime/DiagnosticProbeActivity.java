@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.centralbrain.sdk.diagnostics.DiagnosticPage;
 import com.centralbrain.sdk.diagnostics.DiagnosticQuery;
+import com.centralbrain.sdk.diagnostics.DiagnosticRecord;
 import com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics;
 
 /** ADB-only diagnostic Binder probe. Req IDs: XSC-005, XSC-006, NV-G-007, NV-P-002. */
@@ -30,14 +31,21 @@ public final class DiagnosticProbeActivity extends Activity {
                 DiagnosticQuery query = new DiagnosticQuery();
                 query.pageSize = 1;
                 DiagnosticPage page = diagnostics.getPage(query);
+                DiagnosticQuery activationQuery = new DiagnosticQuery();
+                activationQuery.pageSize = ICentralBrainDiagnostics.MAX_PAGE_SIZE;
+                DiagnosticPage activationPage = diagnostics.getPage(activationQuery);
+                boolean activationVerified = hasBlockedEffectActivation(activationPage);
                 boolean passed = diagnostics.getProtocolVersion() == 1
                         && ICentralBrainDiagnostics.INTERFACE_HASH.equals(
                                 diagnostics.getProtocolHash())
                         && page != null
                         && page.records != null
                         && page.records.length == 1
-                        && page.hasMore;
+                        && page.hasMore
+                        && activationVerified;
                 Log.i(TAG, "nonce=" + nonce + " diagnostic_probe_passed=" + passed
+                        + " effect_delivery_activation_diagnostic_verified="
+                        + activationVerified
                         + " record_count=" + (page == null || page.records == null
                                 ? -1 : page.records.length)
                         + " hardware_accessed=false");
@@ -86,5 +94,27 @@ public final class DiagnosticProbeActivity extends Activity {
             bound = false;
         }
         finish();
+    }
+
+    private static boolean hasBlockedEffectActivation(DiagnosticPage page) {
+        if (page == null || page.records == null) {
+            return false;
+        }
+        for (DiagnosticRecord record : page.records) {
+            if (record != null
+                    && "effect-delivery-activation".equals(record.recordId)
+                    && "blocked".equals(record.summary)
+                    && record.detail != null
+                    && record.detail.contains("activation_allowed=false")
+                    && record.detail.contains("adapter_configured=false")
+                    && record.detail.contains("material_source=empty.effect.material")
+                    && record.detail.contains("ADAPTER_MISSING")
+                    && record.detail.contains("MATERIAL_SOURCE_EMPTY")
+                    && record.detail.contains("apply_enabled=false")
+                    && record.detail.contains("status_query_enabled=false")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

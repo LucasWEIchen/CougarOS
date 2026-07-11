@@ -910,3 +910,11 @@ The debug fixture retains token status only in process memory and receives canon
 Stable blockers cover missing/unsafe adapter; missing/invalid/empty/non-production source; non-durable, unencrypted or integrity-unbound material; missing delete support; and invalid retention. A blocker-free result is only a code-level necessary condition: target evidence must still bind the actual signed provider, key owner, storage policy and vendor adapter conformance.
 
 The current production configuration has no adapter and uses the empty source, so it remains blocked. The debug synthetic source can exercise the positive branch and resolve bytes after a Room reopen, but it does not survive process death and is never a release implementation. R4C3B does not add payload columns or blobs to Room.
+
+## Android R4C3C Production Activation Snapshot
+
+`EffectDeliveryActivationSnapshot.current()` is the only production visibility object. It is an immutable singleton derived from `EffectDeliveryActivationGate.evaluate(null, EmptyEffectMaterialSource, UIB_ACTION)`. It exposes activation, adapter/material/apply/status booleans, source ID, ordered blockers and a bounded diagnostic detail string.
+
+`CentralBrainRuntimeService` reads the snapshot for startup logging and protected Service dumpsys. `CentralBrainDiagnosticService` reads the same snapshot for record ID `effect-delivery-activation`, summary `blocked`, sequence 4 in the existing cursor-paged diagnostic interface. No new AIDL transaction or Parcelable is added.
+
+This interface is observation-only. Neither Service gets an adapter or material-source handle from the snapshot; neither can call apply/query/resolve or claim an outbox. Current blocker visibility therefore cannot be used as an activation command.

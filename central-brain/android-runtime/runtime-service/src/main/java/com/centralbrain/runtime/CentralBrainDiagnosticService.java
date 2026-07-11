@@ -12,6 +12,7 @@ import com.centralbrain.sdk.diagnostics.DiagnosticQuery;
 import com.centralbrain.sdk.diagnostics.DiagnosticRecord;
 import com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics;
 import com.centralbrain.sdk.production.ICentralBrainRuntime;
+import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
@@ -24,6 +25,8 @@ public final class CentralBrainDiagnosticService extends Service {
             "com.centralbrain.permission.ACCESS_DIAGNOSTICS";
 
     private static final String TAG = "CentralBrainDiagnostic";
+    private final EffectDeliveryActivationSnapshot effectDeliveryActivation =
+            EffectDeliveryActivationSnapshot.current();
 
     private final ICentralBrainDiagnostics.Stub binder = new ICentralBrainDiagnostics.Stub() {
         @Override
@@ -76,6 +79,11 @@ public final class CentralBrainDiagnosticService extends Service {
                 identityResolver.resolveOwnIdentity());
         Log.i(TAG, "created capability_default=deny"
                 + " capability_rule_count=" + capabilityPolicy.getRuleCount()
+                + " effect_delivery_activation_diagnostic_wired=true"
+                + " production_effect_delivery_activation_allowed="
+                + effectDeliveryActivation.isActivationAllowed()
+                + " production_effect_material_source="
+                + effectDeliveryActivation.getMaterialSourceId()
                 + " hardware_accessed=false");
     }
 
@@ -117,7 +125,7 @@ public final class CentralBrainDiagnosticService extends Service {
         }
     }
 
-    private static DiagnosticRecord[] records() {
+    private DiagnosticRecord[] records() {
         return new DiagnosticRecord[] {
                 record("protocol", "production", "version=1", ICentralBrainRuntime.INTERFACE_HASH, 1),
                 record("protocol", "diagnostic", "version=1", ICentralBrainDiagnostics.INTERFACE_HASH, 2),
@@ -126,7 +134,13 @@ public final class CentralBrainDiagnosticService extends Service {
                         "maturity",
                         CentralBrainSdk.MATURITY,
                         "hardware_accessed=false;driver_development_triggered=false",
-                        3)
+                        3),
+                record(
+                        "runtime",
+                        "effect-delivery-activation",
+                        "blocked",
+                        effectDeliveryActivation.diagnosticDetail(),
+                        4)
         };
     }
 

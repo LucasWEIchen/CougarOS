@@ -833,3 +833,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Current main code must provide only `EmptyEffectMaterialSource`, with no production `EffectAdapter` implementation. The empty provider cannot resolve material and must keep production activation false.
 - API 33 evidence must verify the current empty blocker set, TEST_ONLY rejection, synthetic positive contract, Room close/reopen resolution, defensive copies, digest mismatch, missing material, empty-source resolution rejection and zero adapter/repository side effects.
 - Synthetic debug material is process-memory only and cannot satisfy target security evidence. `production_effect_delivery_activation_allowed=false`, `production_effect_material_source=empty`, `production_effect_material_durable=false`, `raw_effect_material_persisted=false`, `real_adapter_dispatch_enabled=false`, and all no-hardware flags are mandatory. R4C3C owns production fail-closed gate visibility, not dispatch.
+
+### 2026-07-12 R4C3C production fail-closed activation visibility trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`.
+- Runtime and Diagnostic Services must consume the same immutable current-product activation snapshot. The snapshot must evaluate `adapter missing + EmptyEffectMaterialSource` once and fail closed if that configuration is ever reported allowed.
+- Runtime startup log and Service dumpsys must expose gate wired, activation allowed, adapter configured, material source/durability, apply/status enabled and ordered blockers. Output must contain no raw material, signer evidence or hardware data.
+- Existing read-only diagnostic AIDL must add one bounded `effect-delivery-activation` record without changing its frozen interface/checksum. The record must match Runtime snapshot values and remain capability/signature protected.
+- Production Runtime must not instantiate an `EffectAdapter`, resolve material, query status, call apply, reference `DurableEffectRepository` or start a dispatcher. Gate visibility is not effect wiring.
+- API 33 must verify Runtime log, dumpsys and diagnostic-page parity, plus existing Binder lifecycle/default-deny regressions. Release must retain exactly the three signature-protected Services and no debug Activity/probe.
+- R4 exits at `R4_DURABLE_WORKFLOW` / `android_integrated` with activation blocked. `production_effect_delivery_activation_allowed=false`, adapter/material/apply/status/dispatch false and all no-hardware flags remain mandatory; target material/key/clock/adapter evidence remains open.

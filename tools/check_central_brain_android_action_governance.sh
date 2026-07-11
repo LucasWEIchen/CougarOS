@@ -102,7 +102,7 @@ require_text "central-brain/android-runtime/demo-hmi/src/main/res/values/strings
 require_text "tools/install_central_brain_android_runtime.sh" "governance_typed_binder_connected=true"
 require_text "tools/install_central_brain_android_runtime.sh" "approval_grant_supported=false"
 require_text "tools/test_central_brain_android_capability_policy.sh" "governance_capability_default_deny_verified=true"
-require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R3_TRUSTED_GOVERNANCE"'
+require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "android_integrated"'
 
 if grep -R -Eq '^import android\.|android\.(os|hardware|car)' "$ROOT_DIR/$GOVERNANCE_ROOT"; then
   echo "R3C1 governance core must remain pure Java and hardware-free" >&2

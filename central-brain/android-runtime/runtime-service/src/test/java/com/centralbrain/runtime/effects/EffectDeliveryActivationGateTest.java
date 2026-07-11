@@ -1,6 +1,7 @@
 package com.centralbrain.runtime.effects;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import com.centralbrain.runtime.persistence.DurableEffectRepository;
@@ -60,6 +61,22 @@ public final class EffectDeliveryActivationGateTest {
         assertFalse(unbounded.isAllowed());
         assertTrue(unbounded.hasBlocker(
                 EffectDeliveryActivationGate.Blocker.MATERIAL_RETENTION_INVALID));
+    }
+
+    @Test
+    public void currentSnapshotIsImmutableFailClosedConfiguration() {
+        EffectDeliveryActivationSnapshot current = EffectDeliveryActivationSnapshot.current();
+        assertSame(current, EffectDeliveryActivationSnapshot.current());
+        assertFalse(current.isActivationAllowed());
+        assertFalse(current.isAdapterConfigured());
+        assertFalse(current.isMaterialDurable());
+        assertFalse(current.isApplyEnabled());
+        assertFalse(current.isStatusQueryEnabled());
+        assertTrue(current.getBlockers().contains(
+                EffectDeliveryActivationGate.Blocker.ADAPTER_MISSING));
+        assertTrue(current.getBlockers().contains(
+                EffectDeliveryActivationGate.Blocker.MATERIAL_SOURCE_EMPTY));
+        assertTrue(current.diagnosticDetail().contains("service_dispatch_triggered=false"));
     }
 
     private static EffectAdapter safeAdapter() {

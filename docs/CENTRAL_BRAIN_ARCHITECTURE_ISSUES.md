@@ -235,6 +235,8 @@
 
 2026-07-12 R4C3B 进展：已定义 material source 的 production assurance、跨进程 durability、at-rest encryption、effect integrity、bounded retention/delete 必要条件和稳定 activation blockers；当前 main source 明确为空，API 33 仅用 synthetic source 验证正向 contract/mismatch/missing/no-side-effect。ISSUE-022 保持 Open：实际 key owner、encrypted store、process-death、retention/export/delete、key rotation 和 production adapter evidence 均不存在，`production_effect_delivery_activation_allowed=false`；R4C3C 只接 fail-closed 可见性。
 
+2026-07-12 R4C3C 进展：Runtime startup/dumpsys 与现有 Diagnostic Binder 已接入同一 immutable empty-source activation snapshot，API 33 三路一致且 release 无 probe；production Service 不持有 adapter/material/effect-dispatch repository。R4 durable-workflow foundation 已关闭并提升到 `R4_DURABLE_WORKFLOW` / `android_integrated`。ISSUE-022 保持 Open，专门跟踪 target key/encrypted store/process-death/retention/export/delete/key rotation/trusted clock 和真实 adapter/hardware 资格，不阻塞进入 R5。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

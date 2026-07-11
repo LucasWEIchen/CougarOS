@@ -50,6 +50,7 @@ for path in \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectMaterialSource.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EmptyEffectMaterialSource.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectDeliveryActivationGate.java \
+  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectDeliveryActivationSnapshot.java \
   central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
@@ -73,6 +74,7 @@ for path in \
   tools/check_central_brain_android_effect_outbox_terminal.sh \
   tools/check_central_brain_android_effect_adapter_contract.sh \
   tools/check_central_brain_android_effect_activation_gate.sh \
+  tools/check_central_brain_android_effect_gate_wiring.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
@@ -98,7 +100,7 @@ require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidMan
 require_text "central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java" "BuildConfig.DEBUG"
 require_text "tools/install_central_brain_android_runtime.sh" "--require-api-33"
 require_text "tools/install_central_brain_android_runtime.sh" "r1_api33_exit_criteria_met"
-require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R3_TRUSTED_GOVERNANCE"'
+require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R4_DURABLE_WORKFLOW"'
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "android_integrated"'
 require_text "central-brain/android-runtime/central-brain-sdk/build.gradle.kts" "aidl = true"
 require_text "central-brain/android-runtime/README.md" "central_brain_api33_x86_64"
@@ -133,5 +135,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_outbox_terminal.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_adapter_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_activation_gate.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_effect_gate_wiring.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

@@ -61,7 +61,7 @@ The policy probe is not assembled by `tools/build_central_brain_android_runtime.
 
 `CentralBrainGovernanceService` performs protocol read, action evaluation, approval request, owner status and owner cancel behind separate capabilities and the `BIND_GOVERNANCE` signature permission. The API deliberately has no approve/grant method. Demo HMI verifies read/comfort policy-only decisions, OTA approval-required, pending status and idempotent cancel. The same-signer unconfigured `policy-probe` receives the outer permission but every Governance method is denied by the inner default-deny policy.
 
-API 33 evidence is part of `tools/install_central_brain_android_runtime.sh --require-api-33` and `tools/test_central_brain_android_capability_policy.sh --require-api-33`. R3 is complete at `R3_TRUSTED_GOVERNANCE` / `android_integrated`, meaning the Android boundary and emulator behavior are integrated. It does not mean production Safety/Vehicle data, approval grant authority, durable recovery, real action dispatch or target hardware are complete; those remain R4 and target-platform work.
+API 33 evidence is part of `tools/install_central_brain_android_runtime.sh --require-api-33` and `tools/test_central_brain_android_capability_policy.sh --require-api-33`. R3 completed at `R3_TRUSTED_GOVERNANCE` / `android_integrated`; the current stage is now R4 durable workflow. Neither stage implies production Safety/Vehicle data, approval grant authority, real action dispatch or target hardware qualification.
 
 ## R4A Room Durable Schema
 
@@ -134,6 +134,14 @@ The debug-only deterministic adapter and API 33 isolated probe verify duplicate 
 The current main-source implementation is deliberately `EmptyEffectMaterialSource`; it resolves nothing and fails every production activation check. A debug-only synthetic source verifies the positive contract, Room reopen resolution, defensive copies and digest mismatch/missing-material rejection, but remains process memory and is not delivery evidence.
 
 API 33 reports `production_effect_delivery_activation_allowed=false`, `production_effect_material_source=empty`, `production_effect_material_durable=false` and `raw_effect_material_persisted=false`. R4C3C must wire this fail-closed result into the production Runtime boundary without enabling a dispatcher; target material storage still requires platform-owned key, retention and deletion evidence.
+
+## R4C3C Production Fail-Closed Activation Visibility
+
+Runtime and Diagnostic Services now share one immutable `EffectDeliveryActivationSnapshot`. It evaluates the current `adapter=null + EmptyEffectMaterialSource` configuration once and fails class initialization if that impossible configuration ever reports allowed. Runtime startup logs and `dumpsys activity service` expose only bounded blocker/status fields; the existing read-only diagnostic page adds one `effect-delivery-activation` record.
+
+No production path resolves material, queries status, calls apply or opens `DurableEffectRepository` for dispatch. API 33 verifies the diagnostic record, Runtime log and dumpsys all agree on `activation_allowed=false`, adapter/material/apply/status disabled, and the full blocker set. Release still contains only the three signature-protected Services and no probes.
+
+This closes the R4 durable-workflow foundation at `R4_DURABLE_WORKFLOW` / `android_integrated`. It does not activate effect delivery: target adapter/material/key/trusted-clock evidence remains an ISSUE-022/Driver-HAL gate and later integration work.
 
 ## Toolchain
 

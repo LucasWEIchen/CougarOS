@@ -168,7 +168,9 @@ for _ in {1..20}; do
   DIAGNOSTIC_LOG="$("${ADB_DEVICE[@]}" logcat -d \
     -s CentralBrainDiagProbe:I '*:S' | tail -n 20)"
   if grep -Fq "nonce=$DIAGNOSTIC_NONCE diagnostic_probe_passed=true" \
-      <<<"$DIAGNOSTIC_LOG"; then
+      <<<"$DIAGNOSTIC_LOG" \
+      && grep -Fq "effect_delivery_activation_diagnostic_verified=true" \
+        <<<"$DIAGNOSTIC_LOG"; then
     DIAGNOSTIC_PROBE_PASSED=true
     break
   fi
@@ -507,6 +509,23 @@ if [[ -z "$RUNTIME_PID" ]]; then
   echo "runtime-service process is not running" >&2
   exit 1
 fi
+RUNTIME_CLIENT_DUMP="$("${ADB_DEVICE[@]}" shell dumpsys activity service \
+  com.centralbrain.runtime/.CentralBrainRuntimeService)"
+for marker in \
+  "production_effect_activation_gate_wired=true" \
+  "production_effect_delivery_activation_allowed=false" \
+  "production_effect_adapter_configured=false" \
+  "production_effect_material_source=empty.effect.material" \
+  "production_effect_apply_enabled=false" \
+  "production_effect_status_query_enabled=false" \
+  "production_effect_activation_blockers=ADAPTER_MISSING" \
+  "service_dispatch_triggered=false" \
+  "hardware_accessed=false"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
+    echo "Runtime dumpsys effect gate missing marker: $marker" >&2
+    exit 1
+  fi
+done
 
 DEMO_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.demo/.DemoActivity)"
 if ! grep -Fq "Status: ok" <<<"$DEMO_OUTPUT"; then
@@ -555,6 +574,11 @@ if ! grep -Fq "job_supervisor_max_records=128 terminal_retention_ms=300000" \
   echo "Runtime did not report the bounded R3A Job Supervisor" >&2
   exit 1
 fi
+if ! grep -Fq "maturity=android_integrated evolution_stage=R4_DURABLE_WORKFLOW" \
+    <<<"$RUNTIME_LOG"; then
+  echo "Runtime did not report the R4 durable workflow stage" >&2
+  exit 1
+fi
 if ! grep -Fq "capability_default=deny capability_rule_count=2" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not load the strict R3B capability policy" >&2
   exit 1
@@ -569,6 +593,20 @@ if ! grep -Fq "restart_reconciliation_enabled=true task_execution_resume_enabled
   echo "Runtime did not report the R4C1 fail-closed restart boundary" >&2
   exit 1
 fi
+for marker in \
+  "production_effect_activation_gate_wired=true" \
+  "production_effect_delivery_activation_allowed=false" \
+  "production_effect_adapter_configured=false" \
+  "production_effect_material_source=empty.effect.material" \
+  "production_effect_material_durable=false" \
+  "production_effect_apply_enabled=false" \
+  "production_effect_status_query_enabled=false" \
+  "production_effect_activation_blockers=ADAPTER_MISSING"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
+    echo "Runtime effect delivery gate missing marker: $marker" >&2
+    exit 1
+  fi
+done
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not resolve the Demo Binder caller from trusted package evidence" >&2
   exit 1
@@ -653,6 +691,7 @@ printf '%s\n' \
   "device_abi=$ABI" \
   "runtime_service_running=true" \
   "runtime_pid=$RUNTIME_PID" \
+  "evolution_stage=R4_DURABLE_WORKFLOW" \
   "demo_hmi_resumed=true" \
   "demo_ui_android_integrated=true" \
   "typed_binder_connected=true" \
@@ -663,6 +702,7 @@ printf '%s\n' \
   "governance_permission_requested_by_demo=true" \
   "diagnostic_permission_requested_by_demo=false" \
   "diagnostic_binder_page_verified=true" \
+  "effect_delivery_activation_diagnostic_verified=true" \
   "room_schema_version=2" \
   "room_table_count=8" \
   "room_wal_enabled=true" \
@@ -738,8 +778,14 @@ printf '%s\n' \
   "activation_gate_no_side_effect_verified=true" \
   "material_activation_contract_verified=true" \
   "production_effect_delivery_activation_allowed=false" \
+  "production_effect_activation_gate_wired=true" \
+  "production_effect_adapter_configured=false" \
   "production_effect_material_source=empty" \
+  "production_effect_material_source_id=empty.effect.material" \
   "production_effect_material_durable=false" \
+  "production_effect_apply_enabled=false" \
+  "production_effect_status_query_enabled=false" \
+  "production_effect_gate_dumpsys_verified=true" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "durable_replay_callback_verified=true" \
@@ -770,6 +816,7 @@ printf '%s\n' \
   "approval_durable=true" \
   "service_dispatch_triggered=false" \
   "r1_api33_exit_criteria_met=$API_33_EXIT" \
+  "r4_durable_workflow_exit_criteria_met=$API_33_EXIT" \
   "hardware_accessed=false" \
   "driver_development_triggered=false" \
   "virtualization_development_triggered=false"

@@ -782,3 +782,11 @@ R4C3B 交付 `EffectMaterialSource`、`EmptyEffectMaterialSource`、`EffectDeliv
 API 33 门禁必须验证 current empty blocker、TEST_ONLY 拒绝、synthetic positive contract、Room reopen resolution、defensive copy、digest mismatch/missing material/empty resolve 拒绝和 no-side-effect。Release APK 必须排除 material probe；production Runtime/Governance 在 R4C3B 仍不得引用 gate/source。
 
 当前交付固定 `production_effect_delivery_activation_allowed=false`、`production_effect_material_source=empty`、`production_effect_material_durable=false`、`raw_effect_material_persisted=false`。Synthetic source 仅为进程内测试，不提供 key/retention/delete 或 process-death 证据。R4C3C 只可把该阻塞结果接到 production diagnostics，不得启用 dispatch。无 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
+
+## Android R4C3C Production Fail-Closed Activation Visibility 交付补充
+
+R4C3C 交付 immutable `EffectDeliveryActivationSnapshot`、Runtime startup/dumpsys status 和现有 Diagnostic Binder 中的 bounded `effect-delivery-activation` record，以及 `tools/check_central_brain_android_effect_gate_wiring.sh`。Frozen AIDL/checksum、Room schema 和三项 artifact 形状不变。
+
+API 33 门禁必须验证 diagnostic record、Runtime log 与 dumpsys 同时报告 gate wired、activation false、adapter/material/apply/status false、empty source 和 ordered blocker；R2C lifecycle/race 与 R3 default-deny 必须回归。Release APK 必须只有 3 个 signature-protected Service 和 0 Activity/probe。
+
+R4 以 `R4_DURABLE_WORKFLOW` / `android_integrated` 关闭基础阶段，但 effect delivery 仍被明确阻塞。Production Service 不实例化 adapter、不 resolve material、不 query/apply、不引用 effect repository dispatch。Target key/material/adapter/trusted-clock/hardware evidence 不属于本完成声明；无 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。

@@ -15,6 +15,7 @@ import com.centralbrain.sdk.production.TaskFailure;
 import com.centralbrain.sdk.production.TaskHandle;
 import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
+import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
@@ -26,6 +27,8 @@ import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
 import com.centralbrain.runtime.supervisor.JobSupervisor;
 
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,6 +60,8 @@ public final class CentralBrainRuntimeService extends Service {
     private static final long TERMINAL_RETENTION_MS = TimeUnit.MINUTES.toMillis(5);
 
     private final Object admissionLock = new Object();
+    private final EffectDeliveryActivationSnapshot effectDeliveryActivation =
+            EffectDeliveryActivationSnapshot.current();
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
     private final JobSupervisor jobSupervisor = new JobSupervisor(
             MAX_TASK_RECORDS,
@@ -213,6 +218,7 @@ public final class CentralBrainRuntimeService extends Service {
             return reconciliation;
         });
         Log.i(TAG, "created maturity=" + CentralBrainSdk.MATURITY
+                + " evolution_stage=" + RUNTIME_STAGE
                 + " job_supervisor_max_records=" + MAX_TASK_RECORDS
                 + " terminal_retention_ms=" + TERMINAL_RETENTION_MS
                 + " capability_default=deny"
@@ -222,6 +228,21 @@ public final class CentralBrainRuntimeService extends Service {
                 + " restart_reconciliation_enabled=true"
                 + " restart_reconciliation_pending=true"
                 + " task_execution_resume_enabled=false"
+                + " production_effect_activation_gate_wired=true"
+                + " production_effect_delivery_activation_allowed="
+                + effectDeliveryActivation.isActivationAllowed()
+                + " production_effect_adapter_configured="
+                + effectDeliveryActivation.isAdapterConfigured()
+                + " production_effect_material_source="
+                + effectDeliveryActivation.getMaterialSourceId()
+                + " production_effect_material_durable="
+                + effectDeliveryActivation.isMaterialDurable()
+                + " production_effect_apply_enabled="
+                + effectDeliveryActivation.isApplyEnabled()
+                + " production_effect_status_query_enabled="
+                + effectDeliveryActivation.isStatusQueryEnabled()
+                + " production_effect_activation_blockers="
+                + effectDeliveryActivation.getBlockersCsv()
                 + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
     }
@@ -236,6 +257,27 @@ public final class CentralBrainRuntimeService extends Service {
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "production binder requested hardware_accessed=false");
         return binder;
+    }
+
+    @Override
+    protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
+        writer.println("production_effect_activation_gate_wired=true");
+        writer.println("production_effect_delivery_activation_allowed="
+                + effectDeliveryActivation.isActivationAllowed());
+        writer.println("production_effect_adapter_configured="
+                + effectDeliveryActivation.isAdapterConfigured());
+        writer.println("production_effect_material_source="
+                + effectDeliveryActivation.getMaterialSourceId());
+        writer.println("production_effect_material_durable="
+                + effectDeliveryActivation.isMaterialDurable());
+        writer.println("production_effect_apply_enabled="
+                + effectDeliveryActivation.isApplyEnabled());
+        writer.println("production_effect_status_query_enabled="
+                + effectDeliveryActivation.isStatusQueryEnabled());
+        writer.println("production_effect_activation_blockers="
+                + effectDeliveryActivation.getBlockersCsv());
+        writer.println("service_dispatch_triggered=false");
+        writer.println("hardware_accessed=false");
     }
 
     @Override

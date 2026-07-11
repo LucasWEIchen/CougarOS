@@ -23,7 +23,7 @@
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
-| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 进行中：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B 完成；R4C3C fail-closed wiring 待完成 |
+| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 已完成：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B/C API 33 验证通过；真实 effect activation 仍受 gate 阻塞 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R4C3C production fail-closed visibility：Runtime startup log/dumpsys 与现有 Diagnostic Binder 共享 immutable empty-source activation snapshot，不新增 AIDL 或 dispatch 路径。
+- API 33 验证三路均报告 gate wired、activation/adapter/material/apply/status false 和完整 blocker；release 仅 3 个 signature-protected Service、0 probe。R4 提升为 `R4_DURABLE_WORKFLOW` / `android_integrated`，下一阶段进入 R5 Scheduler/Model Router。
+- R4C3C 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`。
 - 完成 R4C3B material source/activation gate：跨进程 durable、加密、effect integrity、bounded retention/delete 与 production assurance 成为必要条件，当前 main source 明确为空。
 - API 33 验证 empty/test-only blocker、synthetic positive contract、Room reopen material resolution、digest/missing rejection 与 no-side-effect；`production_effect_delivery_activation_allowed=false`。下一步 R4C3C 仅接 production fail-closed diagnostics，不启用 dispatch。
 - R4C3B 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`。
