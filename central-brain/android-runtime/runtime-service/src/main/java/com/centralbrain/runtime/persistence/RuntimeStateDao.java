@@ -7,6 +7,8 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import java.util.List;
+
 @Dao
 public interface RuntimeStateDao {
     @Nullable
@@ -29,6 +31,18 @@ public interface RuntimeStateDao {
     @Nullable
     @Query("SELECT * FROM approval_request WHERE approval_id = :approvalId LIMIT 1")
     ApprovalRequestEntity findApproval(String approvalId);
+
+    @Nullable
+    @Query("SELECT * FROM approval_request "
+            + "WHERE owner_fingerprint = :ownerFingerprint "
+            + "AND idempotency_key = :idempotencyKey LIMIT 1")
+    ApprovalRequestEntity findApprovalByOwnerAndIdempotency(
+            String ownerFingerprint,
+            String idempotencyKey);
+
+    @Query("SELECT * FROM approval_request "
+            + "WHERE state = 'PENDING' AND expires_at_wall_ms <= :nowWallMs")
+    List<ApprovalRequestEntity> findExpiredPendingApprovals(long nowWallMs);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertSession(RuntimeSessionEntity entity);
@@ -54,6 +68,9 @@ public interface RuntimeStateDao {
     @Update
     int updateTask(RuntimeTaskEntity entity);
 
+    @Update
+    int updateApproval(ApprovalRequestEntity entity);
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertEventCursor(EventCursorEntity entity);
 
@@ -76,4 +93,10 @@ public interface RuntimeStateDao {
 
     @Query("SELECT COUNT(*) FROM audit_event WHERE event_type = :eventType")
     int countAuditEventsByType(String eventType);
+
+    @Query("SELECT COUNT(*) FROM approval_request")
+    int countApprovals();
+
+    @Query("SELECT COUNT(*) FROM approval_request WHERE state = :state")
+    int countApprovalsInState(String state);
 }

@@ -193,6 +193,7 @@ public final class DemoActivity extends Activity {
                 ICentralBrainGovernance.ACTION_OTA_INSTALL);
         ActionDecision highRisk = connectedClient.evaluateAction(highRiskRequest);
         ApprovalHandle handle = connectedClient.requestApproval(highRiskRequest);
+        ApprovalHandle replayedHandle = connectedClient.requestApproval(highRiskRequest);
         ApprovalStatus pending = connectedClient.getApprovalStatus(handle);
         boolean firstCancel = connectedClient.cancelApproval(handle);
         boolean secondCancel = connectedClient.cancelApproval(handle);
@@ -206,16 +207,18 @@ public final class DemoActivity extends Activity {
                 && comfort.outcome == ICentralBrainGovernance.DECISION_ALLOW_POLICY_ONLY
                 && highRisk.riskClass == ICentralBrainGovernance.RISK_OTA
                 && highRisk.outcome == ICentralBrainGovernance.DECISION_APPROVAL_REQUIRED
+                && handle.approvalId.equals(replayedHandle.approvalId)
                 && !highRisk.sourceHardwareBacked
                 && !highRisk.sourceProductionTrusted
                 && !highRisk.dispatchAllowed
                 && pending.status == ICentralBrainGovernance.APPROVAL_STATUS_PENDING
                 && !pending.grantSupported
-                && !pending.durable
+                && pending.durable
                 && !pending.dispatchAllowed
                 && firstCancel
                 && secondCancel
-                && cancelled.status == ICentralBrainGovernance.APPROVAL_STATUS_CANCELLED;
+                && cancelled.status == ICentralBrainGovernance.APPROVAL_STATUS_CANCELLED
+                && cancelled.durable;
         if (!verified) {
             throw new IllegalStateException("governance contract verification failed");
         }
@@ -226,11 +229,12 @@ public final class DemoActivity extends Activity {
                 + " comfort_policy_only=true"
                 + " high_risk_approval_required=true"
                 + " approval_pending=true"
+                + " approval_idempotent_replay_verified=true"
                 + " approval_cancelled=true"
                 + " source_hardware_backed=false"
                 + " source_production_trusted=false"
                 + " approval_grant_supported=false"
-                + " approval_durable=false"
+                + " approval_durable=true"
                 + " dispatch_allowed=false hardware_accessed=false");
     }
 

@@ -10,13 +10,15 @@ import com.centralbrain.runtime.governance.ActionGovernancePolicy;
 import com.centralbrain.runtime.governance.ActionGovernancePolicy.Decision;
 import com.centralbrain.runtime.governance.ActionGovernancePolicy.Outcome;
 import com.centralbrain.runtime.governance.ActionGovernancePolicy.RiskClass;
-import com.centralbrain.runtime.governance.InMemoryApprovalRegistry;
-import com.centralbrain.runtime.governance.InMemoryApprovalRegistry.Snapshot;
 import com.centralbrain.runtime.governance.RuntimeOwnedSafetyVehicleStateProvider;
 import com.centralbrain.runtime.governance.SafetyVehicleStateProvider;
 import com.centralbrain.runtime.governance.SafetyVehicleStateSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
+import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
+import com.centralbrain.runtime.persistence.CentralBrainDatabase;
+import com.centralbrain.runtime.persistence.DurableApprovalRepository;
+import com.centralbrain.runtime.persistence.DurableApprovalRepository.Snapshot;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
@@ -28,22 +30,22 @@ import com.centralbrain.sdk.governance.ICentralBrainGovernance;
 
 import java.util.concurrent.TimeUnit;
 
-/** Typed R3C Runtime & Governance surface with no action dispatch or approval grant. */
+/** Typed Governance surface with R4B3 durable approval and no action dispatch/grant path. */
 public final class CentralBrainGovernanceService extends Service {
     public static final String BIND_PERMISSION =
             "com.centralbrain.permission.BIND_GOVERNANCE";
 
     private static final String TAG = "CentralBrainGovernance";
     private static final int MAX_TEXT_LENGTH = 256;
-    private static final int MAX_APPROVAL_RECORDS = 64;
+    private static final int MAX_PENDING_APPROVALS = 64;
     private static final long APPROVAL_TTL_MS = TimeUnit.MINUTES.toMillis(2);
-    private static final long TERMINAL_RETENTION_MS = TimeUnit.MINUTES.toMillis(5);
 
     private AndroidCallerIdentityResolver identityResolver;
     private CallerCapabilityPolicy capabilityPolicy;
     private SafetyVehicleStateProvider stateProvider;
     private ActionGovernancePolicy actionPolicy;
-    private InMemoryApprovalRegistry approvalRegistry;
+    private CentralBrainDatabase database;
+    private DurableApprovalRepository approvalRepository;
 
     private final ICentralBrainGovernance.Stub binder = new ICentralBrainGovernance.Stub() {
         @Override
@@ -80,11 +82,26 @@ public final class CentralBrainGovernanceService extends Service {
             Decision decision = actionPolicy.evaluate(
                     request.actionId,
                     stateProvider.currentSnapshot());
-            Snapshot pending = approvalRegistry.request(request.actionId, decision, caller);
-            Log.i(TAG, "approval pending approvalId=" + pending.getApprovalId()
+            DurableApprovalRepository.RequestResult result;
+            try {
+                result = approvalRepository.request(
+                        DurablePrincipalFingerprint.from(caller),
+                        request.idempotencyKey,
+                        request.actionId,
+                        decision.getRiskClass().name(),
+                        decision.getReason().name(),
+                        decision.getOutcome() == Outcome.APPROVAL_REQUIRED
+                                && ActionGovernancePolicy.isHighRisk(
+                                        decision.getRiskClass()));
+            } catch (DurableApprovalRepository.ApprovalRejectedException exception) {
+                throw new IllegalArgumentException(exception.getMessage());
+            }
+            Snapshot pending = result.getSnapshot();
+            Log.i(TAG, "approval request approvalId=" + pending.getApprovalId()
                     + " actionId=" + pending.getActionId()
+                    + " request_outcome=" + result.getOutcome()
                     + " " + caller.auditSummary()
-                    + " grant_supported=false durable=false"
+                    + " grant_supported=false durable=true"
                     + " dispatch_allowed=false hardware_accessed=false");
             return toApprovalHandle(pending);
         }
@@ -94,7 +111,9 @@ public final class CentralBrainGovernanceService extends Service {
             CallerIdentitySnapshot caller = resolveAuthorizedCaller(
                     Capability.APPROVAL_STATUS_OWN);
             String approvalId = validateApprovalHandle(handle);
-            Snapshot snapshot = approvalRegistry.findOwned(approvalId, caller);
+            Snapshot snapshot = approvalRepository.findOwned(
+                    approvalId,
+                    DurablePrincipalFingerprint.from(caller));
             return snapshot == null ? unknownApprovalStatus() : toApprovalStatus(snapshot);
         }
 
@@ -103,9 +122,14 @@ public final class CentralBrainGovernanceService extends Service {
             CallerIdentitySnapshot caller = resolveAuthorizedCaller(
                     Capability.APPROVAL_CANCEL_OWN);
             String approvalId = validateApprovalHandle(handle);
-            boolean cancelled = approvalRegistry.cancelOwned(approvalId, caller);
+            DurableApprovalRepository.CancelOutcome outcome = approvalRepository.cancelOwned(
+                    approvalId,
+                    DurablePrincipalFingerprint.from(caller));
+            boolean cancelled = outcome == DurableApprovalRepository.CancelOutcome.APPLIED
+                    || outcome == DurableApprovalRepository.CancelOutcome.REPLAYED;
             Log.i(TAG, "approval cancel approvalId=" + approvalId
                     + " result=" + cancelled
+                    + " outcome=" + outcome
                     + " " + caller.auditSummary()
                     + " dispatch_allowed=false hardware_accessed=false");
             return cancelled;
@@ -122,21 +146,21 @@ public final class CentralBrainGovernanceService extends Service {
                 identityResolver.resolveOwnIdentity());
         stateProvider = new RuntimeOwnedSafetyVehicleStateProvider(SystemClock::elapsedRealtime);
         actionPolicy = new ActionGovernancePolicy();
-        approvalRegistry = new InMemoryApprovalRegistry(
-                MAX_APPROVAL_RECORDS,
-                APPROVAL_TTL_MS,
-                TERMINAL_RETENTION_MS,
-                SystemClock::elapsedRealtime);
+        database = CentralBrainDatabase.open(this);
+        approvalRepository = DurableApprovalRepository.create(
+                database,
+                MAX_PENDING_APPROVALS,
+                APPROVAL_TTL_MS);
         SafetyVehicleStateSnapshot state = stateProvider.currentSnapshot();
         Log.i(TAG, "created capability_default=deny"
                 + " capability_rule_count=" + capabilityPolicy.getRuleCount()
                 + " state_source=" + state.getSourceId()
                 + " source_hardware_backed=" + state.isHardwareBacked()
                 + " source_production_trusted=" + state.isProductionTrusted()
-                + " approval_max_records=" + MAX_APPROVAL_RECORDS
+                + " approval_max_pending_records=" + MAX_PENDING_APPROVALS
                 + " approval_ttl_ms=" + APPROVAL_TTL_MS
-                + " approval_grant_supported=" + approvalRegistry.supportsApprovalGrant()
-                + " approval_durable=" + approvalRegistry.isDurable()
+                + " approval_grant_supported=" + approvalRepository.supportsApprovalGrant()
+                + " approval_durable=" + approvalRepository.isDurable()
                 + " dispatch_allowed=false hardware_accessed=false");
     }
 
@@ -144,6 +168,14 @@ public final class CentralBrainGovernanceService extends Service {
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "governance binder requested hardware_accessed=false");
         return binder;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (database != null) {
+            database.close();
+        }
+        super.onDestroy();
     }
 
     private CallerIdentitySnapshot resolveAuthorizedCaller(Capability capability) {
@@ -214,9 +246,9 @@ public final class CentralBrainGovernanceService extends Service {
         handle.schemaVersion = 1;
         handle.approvalId = snapshot.getApprovalId();
         handle.actionId = snapshot.getActionId();
-        handle.status = approvalStatus(snapshot.getStatus());
-        handle.createdAtElapsedRealtimeMs = snapshot.getCreatedAtElapsedRealtimeMs();
-        handle.expiresAtElapsedRealtimeMs = snapshot.getExpiresAtElapsedRealtimeMs();
+        handle.status = approvalStatus(snapshot.getState());
+        handle.createdAtElapsedRealtimeMs = wallToElapsed(snapshot.getCreatedAtWallMs());
+        handle.expiresAtElapsedRealtimeMs = wallToElapsed(snapshot.getExpiresAtWallMs());
         return handle;
     }
 
@@ -225,13 +257,13 @@ public final class CentralBrainGovernanceService extends Service {
         status.schemaVersion = 1;
         status.approvalId = snapshot.getApprovalId();
         status.actionId = snapshot.getActionId();
-        status.status = approvalStatus(snapshot.getStatus());
-        status.riskClass = riskClass(snapshot.getDecision().getRiskClass());
-        status.reasonCode = snapshot.getDecision().getReason().name();
-        status.createdAtElapsedRealtimeMs = snapshot.getCreatedAtElapsedRealtimeMs();
-        status.expiresAtElapsedRealtimeMs = snapshot.getExpiresAtElapsedRealtimeMs();
+        status.status = approvalStatus(snapshot.getState());
+        status.riskClass = riskClass(snapshot.getRiskClass());
+        status.reasonCode = snapshot.getReasonCode();
+        status.createdAtElapsedRealtimeMs = wallToElapsed(snapshot.getCreatedAtWallMs());
+        status.expiresAtElapsedRealtimeMs = wallToElapsed(snapshot.getExpiresAtWallMs());
         status.grantSupported = false;
-        status.durable = false;
+        status.durable = true;
         status.dispatchAllowed = false;
         return status;
     }
@@ -241,7 +273,7 @@ public final class CentralBrainGovernanceService extends Service {
         status.schemaVersion = 1;
         status.status = ICentralBrainGovernance.APPROVAL_STATUS_UNKNOWN;
         status.grantSupported = false;
-        status.durable = false;
+        status.durable = true;
         status.dispatchAllowed = false;
         return status;
     }
@@ -302,17 +334,35 @@ public final class CentralBrainGovernanceService extends Service {
         }
     }
 
-    private static int approvalStatus(InMemoryApprovalRegistry.Status status) {
-        switch (status) {
-            case PENDING:
-                return ICentralBrainGovernance.APPROVAL_STATUS_PENDING;
-            case CANCELLED:
-                return ICentralBrainGovernance.APPROVAL_STATUS_CANCELLED;
-            case EXPIRED:
-                return ICentralBrainGovernance.APPROVAL_STATUS_EXPIRED;
-            default:
-                return ICentralBrainGovernance.APPROVAL_STATUS_UNKNOWN;
+    private static int approvalStatus(String status) {
+        if (DurableApprovalRepository.STATE_PENDING.equals(status)) {
+            return ICentralBrainGovernance.APPROVAL_STATUS_PENDING;
         }
+        if (DurableApprovalRepository.STATE_CANCELLED.equals(status)) {
+            return ICentralBrainGovernance.APPROVAL_STATUS_CANCELLED;
+        }
+        if (DurableApprovalRepository.STATE_EXPIRED.equals(status)) {
+            return ICentralBrainGovernance.APPROVAL_STATUS_EXPIRED;
+        }
+        return ICentralBrainGovernance.APPROVAL_STATUS_UNKNOWN;
+    }
+
+    private static int riskClass(String riskClass) {
+        try {
+            return riskClass(RiskClass.valueOf(riskClass));
+        } catch (IllegalArgumentException exception) {
+            return ICentralBrainGovernance.RISK_UNKNOWN;
+        }
+    }
+
+    private static long wallToElapsed(long wallTimeMs) {
+        long wallNow = System.currentTimeMillis();
+        long elapsedNow = SystemClock.elapsedRealtime();
+        if (wallTimeMs >= wallNow) {
+            long delta = wallTimeMs - wallNow;
+            return delta > Long.MAX_VALUE - elapsedNow ? Long.MAX_VALUE : elapsedNow + delta;
+        }
+        return Math.max(0, elapsedNow - (wallNow - wallTimeMs));
     }
 
     private static boolean isBlank(String value) {

@@ -459,3 +459,9 @@ The repository stores task metadata/digests and acceptance audit rows only. It d
 R4B2 connects only the source-built Java Runtime Service to its app-private Room database. Binder identity, SHA-256, SQLite WAL and callback delivery use Android application APIs; no JNI/C/C++, VHAL, Safety Runtime, NPU, vendor SDK, shared memory, device node, ioctl/sysfs or vehicle bus is required.
 
 Task transitions persist metadata/digests/checkpoints/audits but never create or consume pending-effect/outbox work. Runtime reports `task_recovery_enabled=false` and `durable_dispatch_enabled=false`; restart recovery and any future adapter activation remain separately gated. No DRV-GAP changes state and added Driver/HAL development is zero. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-003`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.
+
+### R4B3 Durable Approval Driver/HAL Boundary
+
+R4B3 uses Java Binder identity, SHA-256 owner fingerprint and app-private Room only. Approval rows/audits contain Action ID, derived risk/reason, status, idempotency metadata and timestamps; they contain no VHAL frame, signer certificate, device handle or hardware payload.
+
+The Governance AIDL has no approve/grant call and every response keeps `dispatchAllowed=false`. No pending effect/outbox is created, no NPU/vehicle/vendor adapter is selected, and no C/C++/JNI/Driver/HAL work is added. All hardware/Driver/HAL/virtualization flags remain false. Req IDs: `FW-U-004`, `FW-U-007`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.

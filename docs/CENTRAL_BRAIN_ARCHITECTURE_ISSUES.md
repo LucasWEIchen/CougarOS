@@ -223,6 +223,8 @@
 
 2026-07-12 R4B2 进展：Runtime task submit/transition/checkpoint/terminal settlement 已 transactional wiring，live exact replay callback 和 durable status fallback 已在 API 33 验证；new expired request 不落库，existing exact replay 不受 creation deadline 阻断。ISSUE-022 保持 Open：restart recovery/reconciliation、approval persistence、pending effect/outbox processing、crash point/fault injection、retention/export/delete/encryption 仍未完成。
 
+2026-07-12 R4B3 进展：approval request/status/cancel/expiry 已接入 Room，`ApprovalStatus.durable=true`，跨 reopen exact replay、mismatch conflict、owner isolation 和审计通过。ISSUE-022 保持 Open：task restart recovery、pending effect/outbox、crash-point/fault tests、approval terminal retention、trusted wall clock/background sweep、export/delete/encryption/key rotation 仍未完成；ISSUE-023 仍跟踪真实 approval authority 与 VHAL/Safety trust。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

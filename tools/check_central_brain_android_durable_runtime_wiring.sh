@@ -73,10 +73,6 @@ require_text "tools/install_central_brain_android_runtime.sh" "task_recovery_ena
 require_text "tools/test_central_brain_android_binder_lifecycle.sh" "durable_recovery_pending_verified=true"
 require_text "central-brain/android-runtime/demo-hmi/src/androidTest/java/com/centralbrain/demo/test/CentralBrainBinderInstrumentation.java" "durable recovery-pending replay"
 
-if grep -Fq "CentralBrainDatabase" "$ROOT_DIR/$GOVERNANCE"; then
-  echo "R4B2 must not wire Governance approval persistence before its dedicated increment" >&2
-  exit 1
-fi
 if grep -Fq "RuntimeDurabilityProbeActivity" \
     "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml"; then
   echo "Runtime durability probe must remain debug-only" >&2

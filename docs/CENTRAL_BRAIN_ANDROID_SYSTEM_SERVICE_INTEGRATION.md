@@ -215,3 +215,5 @@ R4A 的 Room/SQLite WAL 位于 Runtime APK app-private data directory，不要�
 R4B1 的 durable task repository 仍是 Runtime APK 内部 Java/Room 组件，不注册 framework service、不改变三项 signature permission，也不修改 frozen AIDL。当前仅 debug 隔离 probe 使用 repository，production Runtime/Governance Service 尚未接线；因此不需要厂商 SDK/BSP/Framework 编译，且不能宣称 system-server 级 durable workflow 已完成。
 
 R4B2 已把同一 app-private repository 接入 source-built `CentralBrainRuntimeService`，但部署模型不变：仍是显式 APK Binder Service，不注册到 framework `servicemanager`，不修改 system image。数据库只承载 task metadata/digest/checkpoint/audit；`task_recovery_enabled=false`、approval 仍非 durable、outbox/dispatch 关闭，因此该 APK 集成不能替代 system-server/direct-boot/目标硬件恢复验收。
+
+R4B3 同样只在 source-built `CentralBrainGovernanceService` 内打开 app-private Room，使 approval request/status/cancel/expiry 可跨进程恢复。它不增加 framework API、system permission、priv-app 白名单、SELinux 或 vendor service；`durable=true` 不代表 approve/grant authority。目标系统的 direct boot、trusted clock、key availability 和真实 Safety/VHAL authority 仍需平台侧证据。

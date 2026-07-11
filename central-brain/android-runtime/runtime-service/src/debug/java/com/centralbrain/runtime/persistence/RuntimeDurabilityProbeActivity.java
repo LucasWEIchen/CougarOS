@@ -33,10 +33,19 @@ public final class RuntimeDurabilityProbeActivity extends Activity {
             int settlementCount = dao.countSettledTerminalTasks();
             int settlementAuditCount = dao.countAuditEventsByType(
                     DurableTaskRepository.AUDIT_TERMINAL_DELIVERY_SETTLED);
+            int cancelledApprovalCount = dao.countApprovalsInState(
+                    DurableApprovalRepository.STATE_CANCELLED);
+            int approvalRequestAuditCount = dao.countAuditEventsByType(
+                    DurableApprovalRepository.AUDIT_APPROVAL_REQUESTED);
+            int approvalCancelAuditCount = dao.countAuditEventsByType(
+                    DurableApprovalRepository.AUDIT_APPROVAL_CANCELLED);
             boolean completedVerified = completedCount >= 1;
             boolean cancelledVerified = cancelledCount >= 1;
             boolean checkpointVerified = checkpointCount >= 4 && transitionAuditCount >= 2;
             boolean settlementVerified = settlementCount >= 2 && settlementAuditCount >= 2;
+            boolean durableApprovalVerified = cancelledApprovalCount >= 1
+                    && approvalRequestAuditCount >= 1
+                    && approvalCancelAuditCount >= 1;
 
             Log.i(TAG, "nonce=" + nonce
                     + " runtime_durability_probe_complete=true"
@@ -44,10 +53,12 @@ public final class RuntimeDurabilityProbeActivity extends Activity {
                     + " durable_cancelled_task_verified=" + cancelledVerified
                     + " durable_checkpoint_chain_verified=" + checkpointVerified
                     + " durable_terminal_settlement_verified=" + settlementVerified
+                    + " production_durable_approval_verified=" + durableApprovalVerified
                     + " production_task_count=" + taskCount
                     + " production_checkpoint_count=" + checkpointCount
                     + " production_transition_audit_count=" + transitionAuditCount
                     + " production_settlement_count=" + settlementCount
+                    + " production_cancelled_approval_count=" + cancelledApprovalCount
                     + " runtime_repository_wired=true"
                     + " task_recovery_enabled=false"
                     + " durable_dispatch_enabled=false"

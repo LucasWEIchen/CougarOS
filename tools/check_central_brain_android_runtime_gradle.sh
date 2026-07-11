@@ -42,6 +42,7 @@ for path in \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/CentralBrainDatabase.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/DurableTaskRepository.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/DurableDigest.java \
+  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/DurableApprovalRepository.java \
   central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
@@ -59,6 +60,7 @@ for path in \
   tools/check_central_brain_android_durable_schema.sh \
   tools/check_central_brain_android_durable_repository.sh \
   tools/check_central_brain_android_durable_runtime_wiring.sh \
+  tools/check_central_brain_android_durable_approval.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
@@ -113,5 +115,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_schema.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_repository.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_runtime_wiring.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_durable_approval.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

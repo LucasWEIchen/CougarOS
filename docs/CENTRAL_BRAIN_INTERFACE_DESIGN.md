@@ -825,3 +825,15 @@ Frozen `ICentralBrainRuntime` V1 is unchanged. Durability is an internal Service
 | `getTaskStatus` | live owner snapshot first, then owner-fingerprint Room lookup | durable fallback message states recovery is pending |
 
 `DurableDigest` length-frames every UTF-8 field and domain-separates request/checkpoint/settlement hashes. Deadline policy is transactional: exact existing replay is returned even when creation is no longer allowed; a new expired request throws before any task row is inserted. R4B2 does not expose database handles through AIDL and does not access pending-effect/outbox dispatch.
+
+## Android R4B3 Durable Approval
+
+Frozen `ICentralBrainGovernance` V1 remains unchanged; the implementation backing changes from process-local registry to Room.
+
+| Repository call | Result | Transaction rule |
+| --- | --- | --- |
+| `request(owner,key,action,risk,reason,creationAllowed)` | `CREATED` or `REPLAYED`; conflict/rejection/capacity exception | expire due rows, lookup owner/key, then optional PENDING insert + request audit |
+| `findOwned(approvalId,owner)` | durable snapshot or null | expire due rows first; non-owner is indistinguishable from missing |
+| `cancelOwned(approvalId,owner)` | `APPLIED`, `REPLAYED`, `NOT_FOUND`, `NOT_PENDING` | one PENDING→CANCELLED update + one cancel audit |
+
+The persisted equivalence key is owner + idempotency key + exact Action ID. `clientRequestId` remains tracing metadata and does not create another approval for the same operation key. Stored risk/reason are Runtime-derived originals. Replaying an existing approval under changed policy returns its current PENDING/CANCELLED/EXPIRED state but cannot grant or dispatch it. Wall timestamps are converted to elapsed-realtime fields for AIDL responses; trusted clock and reboot/direct-boot qualification remain open.

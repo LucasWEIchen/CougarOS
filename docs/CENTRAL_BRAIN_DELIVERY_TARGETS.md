@@ -734,3 +734,11 @@ R4B2 交付 production Runtime Service repository wiring、`DurableDigest`、tra
 API 33 标准门禁输出 `runtime_repository_wired=true`、`durable_replay_callback_verified=true`、`durable_concurrent_replay_verified=true`、`durable_completed_task_verified=true`、`durable_cancelled_task_verified=true`、`durable_checkpoint_chain_verified=true`、`durable_terminal_settlement_verified=true`、`task_recovery_enabled=false`、`durable_dispatch_enabled=false`；service-death instrumentation 还必须输出 `durable_recovery_pending_verified=true`。R2C death/race 与 R3 unknown-client default-deny 必须回归通过。
 
 本增量不交付 restart execution recovery、approval persistence、pending effect/outbox processing 或真实 action dispatch。存在但未恢复的 task 返回既有 handle 和 retryable recovery-pending failure，不重复执行。无 Linux 前端、真实硬件、Driver/HAL、厂商系统源码或虚拟化变更。
+
+## Android R4B3 Durable Approval 交付补充
+
+R4B3 交付 `DurableApprovalRepository`、Governance Service Room wiring、approval DAO query/update/count、debug-only reopen probe、Demo duplicate approval evidence、production DB read probe 和 `tools/check_central_brain_android_durable_approval.sh`。Frozen Governance AIDL/checksum 不变，R3 `InMemoryApprovalRegistry` 仅保留历史 core test，不再被 Service 引用。
+
+API 33 门禁新增 `approval_reopen_replay_verified=true`、`approval_idempotency_conflict_verified=true`、`approval_owner_isolation_verified=true`、`approval_expiry_verified=true`、`production_durable_approval_verified=true` 和 `approval_durable=true`；同时必须保持 `approval_grant_supported=false`、`service_dispatch_triggered=false`。
+
+该交付只使 request/status/cancel/expiry durable，不提供 approve/grant authority、真实 Safety/VHAL source、effect/outbox dispatch、task restart execution recovery 或硬件资格。Expiry 是 access-triggered wall-clock sweep；terminal retention、trusted clock、encryption/key lifecycle 继续由 ISSUE-022 跟踪。

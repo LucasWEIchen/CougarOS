@@ -252,6 +252,44 @@ if [[ "$REPOSITORY_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+APPROVAL_REPOSITORY_NONCE="$(date +%s%N)"
+APPROVAL_REPOSITORY_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.DurableApprovalRepositoryProbeActivity \
+  --es nonce "$APPROVAL_REPOSITORY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$APPROVAL_REPOSITORY_OUTPUT"; then
+  echo "$APPROVAL_REPOSITORY_OUTPUT" >&2
+  echo "durable approval repository debug probe did not start successfully" >&2
+  exit 1
+fi
+APPROVAL_REPOSITORY_PASSED=false
+for _ in {1..40}; do
+  APPROVAL_REPOSITORY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbApprovalProbe:I)"
+  if grep -Fq "nonce=$APPROVAL_REPOSITORY_NONCE approval_probe_complete=true" \
+      <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "approval_reopen_replay_verified=true" \
+        <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "approval_idempotency_conflict_verified=true" \
+        <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "approval_owner_isolation_verified=true" \
+        <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "approval_cancel_idempotency_verified=true" \
+        <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "approval_expiry_verified=true" <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "approval_durable=true" <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "approval_grant_supported=false" <<<"$APPROVAL_REPOSITORY_LOG" \
+      && grep -Fq "service_dispatch_triggered=false" \
+        <<<"$APPROVAL_REPOSITORY_LOG"; then
+    APPROVAL_REPOSITORY_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$APPROVAL_REPOSITORY_PASSED" != true ]]; then
+  echo "$APPROVAL_REPOSITORY_LOG" >&2
+  echo "durable approval repository probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -338,7 +376,7 @@ if ! grep -Fq "state_source=runtime-owned-state-stub" <<<"$GOVERNANCE_LOG" \
     || ! grep -Fq "source_hardware_backed=false" <<<"$GOVERNANCE_LOG" \
     || ! grep -Fq "source_production_trusted=false" <<<"$GOVERNANCE_LOG" \
     || ! grep -Fq "approval_grant_supported=false" <<<"$GOVERNANCE_LOG" \
-    || ! grep -Fq "approval_durable=false" <<<"$GOVERNANCE_LOG"; then
+    || ! grep -Fq "approval_durable=true" <<<"$GOVERNANCE_LOG"; then
   echo "Governance Service did not report the R3C trusted-state/approval boundary" >&2
   exit 1
 fi
@@ -355,9 +393,10 @@ for marker in \
   "comfort_policy_only=true" \
   "high_risk_approval_required=true" \
   "approval_pending=true" \
+  "approval_idempotent_replay_verified=true" \
   "approval_cancelled=true" \
   "approval_grant_supported=false" \
-  "approval_durable=false" \
+  "approval_durable=true" \
   "dispatch_allowed=false"; do
   if ! grep -Fq "$marker" <<<"$GOVERNANCE_DEMO_LOG"; then
     echo "Demo Governance evidence missing marker: $marker" >&2
@@ -383,6 +422,7 @@ for _ in {1..40}; do
       && grep -Fq "durable_cancelled_task_verified=true" <<<"$DURABILITY_LOG" \
       && grep -Fq "durable_checkpoint_chain_verified=true" <<<"$DURABILITY_LOG" \
       && grep -Fq "durable_terminal_settlement_verified=true" <<<"$DURABILITY_LOG" \
+      && grep -Fq "production_durable_approval_verified=true" <<<"$DURABILITY_LOG" \
       && grep -Fq "runtime_repository_wired=true" <<<"$DURABILITY_LOG" \
       && grep -Fq "task_recovery_enabled=false" <<<"$DURABILITY_LOG" \
       && grep -Fq "durable_dispatch_enabled=false" <<<"$DURABILITY_LOG"; then
@@ -437,6 +477,13 @@ printf '%s\n' \
   "durable_cancelled_task_verified=true" \
   "durable_checkpoint_chain_verified=true" \
   "durable_terminal_settlement_verified=true" \
+  "approval_reopen_replay_verified=true" \
+  "approval_idempotent_replay_verified=true" \
+  "approval_idempotency_conflict_verified=true" \
+  "approval_owner_isolation_verified=true" \
+  "approval_cancel_idempotency_verified=true" \
+  "approval_expiry_verified=true" \
+  "production_durable_approval_verified=true" \
   "durable_dispatch_enabled=false" \
   "job_supervisor_active=true" \
   "trusted_caller_identity_resolved=true" \
@@ -449,7 +496,7 @@ printf '%s\n' \
   "high_risk_pending_approval_verified=true" \
   "approval_cancel_verified=true" \
   "approval_grant_supported=false" \
-  "approval_durable=false" \
+  "approval_durable=true" \
   "service_dispatch_triggered=false" \
   "r1_api33_exit_criteria_met=$API_33_EXIT" \
   "hardware_accessed=false" \
