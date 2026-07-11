@@ -233,6 +233,8 @@
 
 2026-07-12 R3C1 进展：Runtime 已用 exact Action ID catalog 固定读取、舒适控制、驾驶干扰、诊断写和 OTA 五类风险，并通过 caller-independent `SafetyVehicleStateProvider` 构造 policy context；high-risk 在 moving 状态拒绝，在 parked/normal/driver-available 状态只能创建 owner-isolated pending approval。当前 provider 明确不是 hardware-backed production source，registry 没有 grant authority 且不持久。ISSUE-023 保持 Open：R3C2 Governance Binder/capability/API 33 evidence、第三方签名部署方案、目标 VHAL/Safety Runtime source 和 R4 durable approval authority/recovery 尚未完成。
 
+2026-07-12 R3C2 进展：独立 Governance V1 AIDL、signature permission、package+signer capability、SDK client 和 Service 已在 API 33 完成允许/拒绝双路径；ActionRequest 不含 caller risk/state/permission，接口无 grant transaction，missing/non-owner status/cancel 不泄露记录。R3 工程退出条件已完成。ISSUE-023 保持 Open：量产第三方签名配置、目标平台可信 VHAL/Safety Runtime source、真实 approval authority/UX/audit 以及 R4 durable pending/recovery 仍待目标环境与产品决策。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-024 Model Router、资源准入与 NPU provider 边界

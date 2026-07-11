@@ -5,13 +5,20 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.centralbrain.sdk.CentralBrainClient;
+import com.centralbrain.sdk.CentralBrainGovernanceClient;
 import com.centralbrain.sdk.CentralBrainSdk;
+import com.centralbrain.sdk.governance.ActionDecision;
+import com.centralbrain.sdk.governance.ActionRequest;
+import com.centralbrain.sdk.governance.ApprovalHandle;
+import com.centralbrain.sdk.governance.ApprovalStatus;
+import com.centralbrain.sdk.governance.ICentralBrainGovernance;
 import com.centralbrain.sdk.production.AgentTaskRequest;
 import com.centralbrain.sdk.production.ICentralBrainRuntime;
 import com.centralbrain.sdk.production.TaskFailure;
@@ -21,13 +28,17 @@ import com.centralbrain.sdk.production.TaskUpdate;
 
 /** Req IDs: APP-004, XSC-001, XSC-006, NV-G-003, NV-G-006, DEL-001. */
 public final class DemoActivity extends Activity {
+    private static final String TAG = "CentralBrainGovernanceDemo";
     private static final int CONTENT_PADDING_DP = 32;
 
     private TextView protocolStatus;
     private TextView completionStatus;
     private TextView cancellationStatus;
+    private TextView governanceStatus;
     private CentralBrainClient client;
+    private CentralBrainGovernanceClient governanceClient;
     private boolean demoStarted;
+    private boolean governanceDemoStarted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,15 +74,27 @@ public final class DemoActivity extends Activity {
         cancellationStatus.setText("Cancel: pending");
         content.addView(cancellationStatus, spacedWidth(8));
 
+        governanceStatus = textView(16, Color.rgb(43, 55, 61));
+        governanceStatus.setText(R.string.governance_connecting);
+        content.addView(governanceStatus, spacedWidth(8));
+
         setContentView(content);
         client = new CentralBrainClient(this, getMainExecutor(), connectionListener);
         client.connect();
+        governanceClient = new CentralBrainGovernanceClient(
+                this,
+                getMainExecutor(),
+                governanceConnectionListener);
+        governanceClient.connect();
     }
 
     @Override
     protected void onDestroy() {
         if (client != null) {
             client.close();
+        }
+        if (governanceClient != null) {
+            governanceClient.close();
         }
         super.onDestroy();
     }
@@ -106,6 +129,91 @@ public final class DemoActivity extends Activity {
                     protocolStatus.setText("Typed Binder: failed " + reason);
                 }
             };
+
+    private final CentralBrainGovernanceClient.ConnectionListener governanceConnectionListener =
+            new CentralBrainGovernanceClient.ConnectionListener() {
+                @Override
+                public void onConnected(CentralBrainGovernanceClient connectedClient) {
+                    if (governanceDemoStarted) {
+                        return;
+                    }
+                    governanceDemoStarted = true;
+                    try {
+                        runGovernanceProbe(connectedClient);
+                    } catch (RemoteException | RuntimeException exception) {
+                        governanceStatus.setText(getString(
+                                R.string.governance_failed,
+                                exception.getClass().getSimpleName()));
+                        Log.e(TAG, "governance_probe_complete=false", exception);
+                    }
+                }
+
+                @Override
+                public void onDisconnected() {
+                    governanceStatus.setText(R.string.governance_disconnected);
+                }
+
+                @Override
+                public void onConnectionFailed(String reason) {
+                    governanceStatus.setText(getString(R.string.governance_failed, reason));
+                }
+            };
+
+    private void runGovernanceProbe(CentralBrainGovernanceClient connectedClient)
+            throws RemoteException {
+        int version = connectedClient.getProtocolVersion();
+        String hash = connectedClient.getProtocolHash();
+        ActionDecision read = connectedClient.evaluateAction(actionRequest(
+                "read",
+                ICentralBrainGovernance.ACTION_VEHICLE_STATE_READ));
+        ActionDecision comfort = connectedClient.evaluateAction(actionRequest(
+                "comfort",
+                ICentralBrainGovernance.ACTION_CABIN_TEMPERATURE_SET));
+        ActionRequest highRiskRequest = actionRequest(
+                "ota",
+                ICentralBrainGovernance.ACTION_OTA_INSTALL);
+        ActionDecision highRisk = connectedClient.evaluateAction(highRiskRequest);
+        ApprovalHandle handle = connectedClient.requestApproval(highRiskRequest);
+        ApprovalStatus pending = connectedClient.getApprovalStatus(handle);
+        boolean firstCancel = connectedClient.cancelApproval(handle);
+        boolean secondCancel = connectedClient.cancelApproval(handle);
+        ApprovalStatus cancelled = connectedClient.getApprovalStatus(handle);
+
+        boolean verified = version == ICentralBrainGovernance.INTERFACE_VERSION
+                && hash.equals(ICentralBrainGovernance.INTERFACE_HASH)
+                && read.riskClass == ICentralBrainGovernance.RISK_READ_ONLY
+                && read.outcome == ICentralBrainGovernance.DECISION_ALLOW_POLICY_ONLY
+                && comfort.riskClass == ICentralBrainGovernance.RISK_COMFORT_CONTROL
+                && comfort.outcome == ICentralBrainGovernance.DECISION_ALLOW_POLICY_ONLY
+                && highRisk.riskClass == ICentralBrainGovernance.RISK_OTA
+                && highRisk.outcome == ICentralBrainGovernance.DECISION_APPROVAL_REQUIRED
+                && !highRisk.sourceHardwareBacked
+                && !highRisk.sourceProductionTrusted
+                && !highRisk.dispatchAllowed
+                && pending.status == ICentralBrainGovernance.APPROVAL_STATUS_PENDING
+                && !pending.grantSupported
+                && !pending.durable
+                && !pending.dispatchAllowed
+                && firstCancel
+                && secondCancel
+                && cancelled.status == ICentralBrainGovernance.APPROVAL_STATUS_CANCELLED;
+        if (!verified) {
+            throw new IllegalStateException("governance contract verification failed");
+        }
+
+        governanceStatus.setText(getString(R.string.governance_verified, version));
+        Log.i(TAG, "governance_probe_complete=true"
+                + " read_policy_only=true"
+                + " comfort_policy_only=true"
+                + " high_risk_approval_required=true"
+                + " approval_pending=true"
+                + " approval_cancelled=true"
+                + " source_hardware_backed=false"
+                + " source_production_trusted=false"
+                + " approval_grant_supported=false"
+                + " approval_durable=false"
+                + " dispatch_allowed=false hardware_accessed=false");
+    }
 
     private void submitCompletionTask(CentralBrainClient connectedClient) throws RemoteException {
         AgentTaskRequest request = request("completion", "demo typed binder");
@@ -169,6 +277,16 @@ public final class DemoActivity extends Activity {
         request.locale = "en-US";
         request.deadlineElapsedRealtimeMs = now + 5000;
         request.priority = 1;
+        request.idempotencyKey = request.clientRequestId;
+        return request;
+    }
+
+    private static ActionRequest actionRequest(String suffix, String actionId) {
+        long now = SystemClock.elapsedRealtime();
+        ActionRequest request = new ActionRequest();
+        request.schemaVersion = 1;
+        request.clientRequestId = "governance-" + suffix + "-" + now;
+        request.actionId = actionId;
         request.idempotencyKey = request.clientRequestId;
         return request;
     }

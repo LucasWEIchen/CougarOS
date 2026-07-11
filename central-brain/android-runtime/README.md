@@ -8,12 +8,12 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 
 | Module | Artifact | Current responsibility |
 | --- | --- | --- |
-| `central-brain-sdk` | AAR | Public typed client, structured AIDL types, callback bridge and protocol identity |
-| `runtime-service` | APK without launcher | Signature-protected Binders, bounded Job Supervisor, trusted caller snapshot and deterministic task runner |
+| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured AIDL types, callback bridge and protocol identity |
+| `runtime-service` | APK without launcher | Signature-protected task/diagnostic/Governance Binders, bounded supervisors and deterministic hardware-free runtime |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
 | `policy-probe` | Test-only APK | Same-signer, unconfigured-package default-deny device probe; excluded from standard delivery build |
 
-R2A added compiled, structured production and diagnostic AIDL contracts to `central-brain-sdk`. R2B publishes them from separate exported Services protected by `com.centralbrain.permission.BIND_RUNTIME` and `com.centralbrain.permission.ACCESS_DIAGNOSTICS`. Demo HMI requests only the production signature permission and binds through `CentralBrainClient`; it never requests diagnostics. No module requests network, vehicle, device-node, camera, audio, location, or hardware permissions.
+R2A added compiled, structured production and diagnostic AIDL contracts to `central-brain-sdk`. R2B publishes them from separate exported Services protected by `com.centralbrain.permission.BIND_RUNTIME` and `com.centralbrain.permission.ACCESS_DIAGNOSTICS`. R3C2 adds an independent Governance Service protected by `com.centralbrain.permission.BIND_GOVERNANCE`. Demo HMI requests task and Governance access, binds through the two typed SDK clients, and never requests diagnostics. No module requests network, vehicle, device-node, camera, audio, location, or hardware permissions.
 
 The Runtime debug variant adds `RuntimeProbeActivity` and `DiagnosticProbeActivity` only under `src/debug`. Both are ADB test probes protected by the platform `android.permission.DUMP` permission. The release APK contains neither activity.
 
@@ -45,7 +45,7 @@ R3A does not by itself close R3. R3B adds package+signer capability policy and a
 
 Every production V1 method enforces one of `runtime.protocol.read`, `runtime.task.submit`, `runtime.task.status.own`, or `runtime.task.cancel.own`; diagnostic version/hash/page enforce `runtime.diagnostics.read`. The test-only `policy-probe` shares the debug signer and receives both signature permissions but has no package rule; both Binder surfaces deny its API 33 calls inside Runtime. Run this evidence with `tools/test_central_brain_android_capability_policy.sh --require-api-33`.
 
-The policy probe is not assembled by `tools/build_central_brain_android_runtime.sh`, has only a debug variant, is marked `android:testOnly=true`, and is not a product artifact. R3 remains open for trusted Safety/Vehicle State and action/approval policy; R4 remains responsible for durable approval recovery.
+The policy probe is not assembled by `tools/build_central_brain_android_runtime.sh`, has only a debug variant, is marked `android:testOnly=true`, and is not a product artifact. R3C now supplies the separate Governance boundary; R4 remains responsible for durable approval recovery.
 
 ## R3C1 Action Governance Core
 
@@ -53,7 +53,15 @@ The policy probe is not assembled by `tools/build_central_brain_android_runtime.
 
 `SafetyVehicleStateProvider` is the input boundary for Safety/Vehicle State. The current `RuntimeOwnedSafetyVehicleStateProvider` is a caller-independent, hardware-free test fixture with `RUNTIME_OWNED_STUB`, `hardwareBacked=false` and `productionTrusted=false`. It proves that Binder payloads do not control policy state, but it is not target-vehicle evidence and does not close `DRV-GAP-002` or `DRV-GAP-005`.
 
-`InMemoryApprovalRegistry` is bounded and owner-isolated. It stores only high-risk `PENDING` requests, never pressure-evicts pending records, expires/cancels deterministically, and explicitly reports `supportsApprovalGrant=false` and `isDurable=false`. R3C2 will publish this boundary through a separate typed Governance Binder; R4 will replace the process-local registry with durable approval/checkpoint/outbox storage.
+`InMemoryApprovalRegistry` is bounded and owner-isolated. It stores only high-risk `PENDING` requests, never pressure-evicts pending records, expires/cancels deterministically, and explicitly reports `supportsApprovalGrant=false` and `isDurable=false`. R3C2 publishes this boundary through a separate typed Governance Binder; R4 will replace the process-local registry with durable approval/checkpoint/outbox storage.
+
+## R3C2 Typed Governance Binder
+
+`central-brain-sdk` now includes `ICentralBrainGovernance`, four structured parcelables and `CentralBrainGovernanceClient`. The Governance V1 source is frozen by `central-brain-sdk/aidl-api/governance-v1.sha256`; the original task/diagnostic `v1.sha256` remains unchanged. `ActionRequest` contains only client request ID, exact Action ID and idempotency key. It has no risk, Safety/Vehicle State, caller, package, signer or permission assertion.
+
+`CentralBrainGovernanceService` performs protocol read, action evaluation, approval request, owner status and owner cancel behind separate capabilities and the `BIND_GOVERNANCE` signature permission. The API deliberately has no approve/grant method. Demo HMI verifies read/comfort policy-only decisions, OTA approval-required, pending status and idempotent cancel. The same-signer unconfigured `policy-probe` receives the outer permission but every Governance method is denied by the inner default-deny policy.
+
+API 33 evidence is part of `tools/install_central_brain_android_runtime.sh --require-api-33` and `tools/test_central_brain_android_capability_policy.sh --require-api-33`. R3 is complete at `R3_TRUSTED_GOVERNANCE` / `android_integrated`, meaning the Android boundary and emulator behavior are integrated. It does not mean production Safety/Vehicle data, approval grant authority, durable recovery, real action dispatch or target hardware are complete; those remain R4 and target-platform work.
 
 ## Toolchain
 
@@ -91,7 +99,7 @@ bash tools/install_central_brain_android_runtime.sh
 
 Use `--serial <serial>` when multiple devices are attached and `--skip-build` to reuse existing artifacts. `--require-api-33` is the R1 exit gate: it fails on newer compatibility-test AVDs rather than treating them as Android 13 evidence.
 
-The check installs both APKs, invokes the DUMP-protected lifecycle and diagnostic probes, verifies both signature-permission boundaries, launches Demo HMI, checks typed Binder completion/cancellation UI, and reports hardware/Driver/HAL/virtualization boundaries.
+The check installs both APKs, invokes the DUMP-protected lifecycle and diagnostic probes, verifies all three signature-permission boundaries, launches Demo HMI, checks typed task completion/cancellation plus Governance evaluate/pending/cancel UI, and reports hardware/Driver/HAL/virtualization boundaries.
 
 Run the R2 Binder lifecycle suite on Android 13 with:
 

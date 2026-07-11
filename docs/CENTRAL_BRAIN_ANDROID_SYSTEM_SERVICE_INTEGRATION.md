@@ -201,3 +201,11 @@ Policy 仍由 Runtime & Governance 执行。Binder 身份是输入，不是绕�
 patch 或 sepolicy patch。
 
 | Event subscription approval decision owner handoff evidence acceptance closure handoff blocker matrix 可见 | `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson` + Console `Sub ApHReadyB` + `/uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix`；只返回 `EV-AHS-001..010` open closure blockers，不分配 reviewer/owner、不接受 packet、不附加 evidence、不持久化 reviewer/evidence/review state、不创建 store/queue、不关闭 gate、不激活 broker/DDS/high-rate data plane、不触发 Driver/HAL 或虚拟化层 | XSC-002, XSC-005, XSC-006, FW-U-003, NV-P-006, DEL-001, DEL-002, DEL-004 |
+
+## Source-Built Android Runtime R3 Deployment Boundary
+
+`central-brain/android-runtime` 是当前 Android 13 主交付工程，不依赖修改已刷机厂商 Framework/BSP。Runtime APK 以普通安装包发布三个显式组件：task Runtime Service、read-only Diagnostic Service、typed Governance Service；分别受 `BIND_RUNTIME`、`ACCESS_DIAGNOSTICS`、`BIND_GOVERNANCE` signature permission 保护。SDK 使用 explicit component bind，不向 `servicemanager` 注册 framework service，也不需要 system image rebuild。
+
+当前 Demo 与 Runtime 使用同一测试 signer，适用于本地/API 33 验收。真实项目若 HMI、Runtime 由不同组织签名，必须由目标平台 owner 明确共享签名、签名级 permission allowlist 或受控 broker 方案，并同步 capability XML 的 package/current-signer policy；不得把 signature permission 单独当成最终 capability 授权。
+
+Governance 的 Safety/Vehicle State 当前来自 Runtime-owned hardware-free fixture，且 approval 无 grant authority、无 durable recovery、无 action dispatch。接入目标 VHAL/Safety Runtime、priv-app 签名、SELinux domain 或 vendor service 前，继续按 ISSUE-013、ISSUE-023、DRV-GAP-002、DRV-GAP-005 管理；没有目标证据时不提交厂商源码、system image、sepolicy、HAL 或 Driver patch。

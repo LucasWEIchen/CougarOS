@@ -735,3 +735,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The R3C1 approval registry is bounded, owner-isolated and process-local. It accepts only high-risk approval-required decisions, never pressure-evicts pending records, expires/cancels deterministically, and must report `supportsApprovalGrant=false` and `isDurable=false`.
 - R3C1 changes no frozen V1 AIDL and does not close R3. R3C2 must add a separate typed Governance Binder/capability/device test; R4 owns durable approval resolution, checkpoint and outbox recovery.
 - This increment keeps `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`; it adds no Linux front-end work and modifies no vendor Android source.
+
+### 2026-07-12 R3C2 typed Governance Binder trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- Governance must be a separate structured AIDL surface and Service protected by `com.centralbrain.permission.BIND_GOVERNANCE`; it must not append action/approval transactions to the frozen task/diagnostic V1 interfaces.
+- Governance V1 must provide typed protocol negotiation, Action evaluation, pending approval request, owner status and owner cancel. It must have a frozen checksum and no approve/grant/resolve method.
+- `ActionRequest` may contain only schema version, client request ID, exact Action ID and idempotency key. Risk, Safety/Vehicle State, caller identity, package, signer and permission assertions are forbidden.
+- The Demo principal must receive five Governance capabilities: protocol read, Action evaluate, approval request, owner status and owner cancel. Every method enforces its capability before parsing request/handle data.
+- API 33 allowed-client evidence must prove read/comfort policy-only, OTA approval-required, pending status, idempotent cancel, Runtime-owned state and no grant/durability/dispatch. A separately packaged same-signer unknown client must pass the outer signature permission and bind but receive `SecurityException` for all five capability groups.
+- Missing/non-owner approval status returns `UNKNOWN`; cancel returns false. R3C2 remains process-local and does not enforce idempotency durability or restart recovery; those are R4 requirements.
+- R3 exit is `R3_TRUSTED_GOVERNANCE` at `android_integrated`. This does not close target VHAL/Safety Runtime trust, approval authority, hardware validation or production qualification. Hardware, Driver/HAL, Linux front-end and virtualization flags remain false.

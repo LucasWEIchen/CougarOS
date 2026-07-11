@@ -121,7 +121,21 @@ No AIDL type includes a device node, fd, shared memory, vendor handle, PCIe/NPU 
 
 R3C1 adds no method, field, transaction or hash to the frozen Runtime/Diagnostic V1 interfaces. The pure Java governance core derives one of five risk classes from exact Runtime-owned Action IDs, consumes Safety/Vehicle State only through a Runtime-owned provider, and creates bounded owner-isolated pending approval records for parked high-risk actions. All policy outcomes keep service dispatch disabled.
 
-The current state provider is a hardware-free stub and the current approval registry cannot grant approval or recover across process restart. R3C2 will expose governance through a separate typed AIDL rather than append unrelated action/approval methods to `ICentralBrainRuntime`; R4 will add durable approval/checkpoint/outbox ownership. This preserves V1 task-client compatibility and keeps target VHAL/Safety Runtime work behind `DRV-GAP-002`/`DRV-GAP-005`.
+The current state provider is a hardware-free stub and the current approval registry cannot grant approval or recover across process restart. R3C2 exposes governance through a separate typed AIDL rather than append unrelated action/approval methods to `ICentralBrainRuntime`; R4 will add durable approval/checkpoint/outbox ownership. This preserves V1 task-client compatibility and keeps target VHAL/Safety Runtime work behind `DRV-GAP-002`/`DRV-GAP-005`.
+
+## R3C2 Governance AIDL V1
+
+R3C2 publishes a third, independent app-layer structured AIDL surface:
+
+- Interface: `com.centralbrain.sdk.governance.ICentralBrainGovernance`.
+- Parcelables: `ActionRequest`, `ActionDecision`, `ApprovalHandle`, `ApprovalStatus`.
+- Permission: `com.centralbrain.permission.BIND_GOVERNANCE` with `signature` protection.
+- SDK facade: `CentralBrainGovernanceClient` using an explicit component, narrow package visibility and Binder death handling.
+- Frozen source list: `central-brain-sdk/aidl-api/governance-v1.sha256`.
+
+Methods are bounded quick-return calls: protocol version/hash, evaluate exact Action ID, create pending approval, owner status and owner cancel. There is intentionally no approval grant method. `ActionRequest` contains no risk class, Safety/Vehicle State, identity, permission, package or signer field; those contexts remain Runtime-owned. Missing/non-owner status returns `APPROVAL_STATUS_UNKNOWN`, and cancel returns false without disclosing another owner's record.
+
+API 33 allowed-client evidence verifies policy-only read/comfort, OTA approval-required, pending creation and idempotent cancel with `sourceHardwareBacked=false`, `sourceProductionTrusted=false`, `grantSupported=false`, `durable=false`, and `dispatchAllowed=false`. A same-signer unconfigured package passes the outer Governance permission and bind, then receives `SecurityException` for protocol/evaluate/request/status/cancel from the inner capability policy. The task/diagnostic V1 files, transaction order and checksum remain unchanged.
 
 ## References
 

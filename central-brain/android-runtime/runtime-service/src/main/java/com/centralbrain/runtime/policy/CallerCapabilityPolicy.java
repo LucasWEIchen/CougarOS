@@ -17,6 +17,11 @@ public final class CallerCapabilityPolicy {
         TASK_SUBMIT("runtime.task.submit"),
         TASK_STATUS_OWN("runtime.task.status.own"),
         TASK_CANCEL_OWN("runtime.task.cancel.own"),
+        GOVERNANCE_PROTOCOL_READ("governance.protocol.read"),
+        ACTION_EVALUATE("governance.action.evaluate"),
+        APPROVAL_REQUEST("governance.approval.request"),
+        APPROVAL_STATUS_OWN("governance.approval.status.own"),
+        APPROVAL_CANCEL_OWN("governance.approval.cancel.own"),
         DIAGNOSTICS_READ("runtime.diagnostics.read");
 
         private final String id;

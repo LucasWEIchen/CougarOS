@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Central Brain</string>
     <string name="foundation_status">SDK %1$s | %2$s</string>
+    <string name="governance_connecting">Governance: connecting</string>
+    <string name="governance_disconnected">Governance: disconnected</string>
+    <string name="governance_failed">Governance: failed %1$s</string>
+    <string name="governance_verified">Governance: verified v%1$d</string>
 </resources>

@@ -15,6 +15,9 @@ import android.util.Log;
 
 import com.centralbrain.sdk.diagnostics.DiagnosticQuery;
 import com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics;
+import com.centralbrain.sdk.governance.ActionRequest;
+import com.centralbrain.sdk.governance.ApprovalHandle;
+import com.centralbrain.sdk.governance.ICentralBrainGovernance;
 import com.centralbrain.sdk.production.AgentTaskRequest;
 import com.centralbrain.sdk.production.ICentralBrainRuntime;
 import com.centralbrain.sdk.production.ICentralBrainTaskCallback;
@@ -32,17 +35,24 @@ public final class CapabilityPolicyProbeActivity extends Activity {
     private static final ComponentName DIAGNOSTIC_COMPONENT = new ComponentName(
             "com.centralbrain.runtime",
             "com.centralbrain.runtime.CentralBrainDiagnosticService");
+    private static final ComponentName GOVERNANCE_COMPONENT = new ComponentName(
+            "com.centralbrain.runtime",
+            "com.centralbrain.runtime.CentralBrainGovernanceService");
     private static final long TIMEOUT_MS = 5000;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean productionBound;
     private boolean diagnosticBound;
+    private boolean governanceBound;
     private boolean finished;
     private boolean protocolVersionDenied;
     private boolean protocolHashDenied;
     private boolean submitDenied;
     private boolean statusDenied;
     private boolean cancelDenied;
+    private boolean diagnosticVersionDenied;
+    private boolean diagnosticHashDenied;
+    private boolean diagnosticPageDenied;
 
     private final ServiceConnection productionConnection = new ServiceConnection() {
         @Override
@@ -82,26 +92,14 @@ public final class CapabilityPolicyProbeActivity extends Activity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             ICentralBrainDiagnostics diagnostics = ICentralBrainDiagnostics.Stub.asInterface(service);
-            boolean diagnosticVersionDenied = denied(diagnostics::getProtocolVersion);
-            boolean diagnosticHashDenied = denied(diagnostics::getProtocolHash);
+            diagnosticVersionDenied = denied(diagnostics::getProtocolVersion);
+            diagnosticHashDenied = denied(diagnostics::getProtocolHash);
             DiagnosticQuery query = new DiagnosticQuery();
             query.schemaVersion = 1;
             query.pageSize = 1;
-            boolean diagnosticPageDenied = denied(() -> diagnostics.getPage(query));
-
-            Log.i(TAG, "capability_probe_complete=true"
-                    + " production_bind_succeeded=true"
-                    + " diagnostic_bind_succeeded=true"
-                    + " protocol_version_denied=" + protocolVersionDenied
-                    + " protocol_hash_denied=" + protocolHashDenied
-                    + " submit_denied=" + submitDenied
-                    + " status_denied=" + statusDenied
-                    + " cancel_denied=" + cancelDenied
-                    + " diagnostic_version_denied=" + diagnosticVersionDenied
-                    + " diagnostic_hash_denied=" + diagnosticHashDenied
-                    + " diagnostic_page_denied=" + diagnosticPageDenied
-                    + " hardware_accessed=false");
-            finishProbe();
+            diagnosticPageDenied = denied(() -> diagnostics.getPage(query));
+            unbindDiagnostic();
+            bindGovernance();
         }
 
         @Override
@@ -115,6 +113,56 @@ public final class CapabilityPolicyProbeActivity extends Activity {
         @Override
         public void onNullBinding(ComponentName name) {
             Log.e(TAG, "capability_probe_complete=false diagnostic_null_binding=true");
+            finishProbe();
+        }
+    };
+
+    private final ServiceConnection governanceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ICentralBrainGovernance governance = ICentralBrainGovernance.Stub.asInterface(service);
+            boolean governanceVersionDenied = denied(governance::getProtocolVersion);
+            boolean governanceHashDenied = denied(governance::getProtocolHash);
+            ActionRequest request = actionRequest();
+            boolean actionEvaluateDenied = denied(() -> governance.evaluateAction(request));
+            boolean approvalRequestDenied = denied(() -> governance.requestApproval(request));
+            ApprovalHandle handle = approvalHandle();
+            boolean approvalStatusDenied = denied(() -> governance.getApprovalStatus(handle));
+            boolean approvalCancelDenied = denied(() -> governance.cancelApproval(handle));
+
+            Log.i(TAG, "capability_probe_complete=true"
+                    + " production_bind_succeeded=true"
+                    + " diagnostic_bind_succeeded=true"
+                    + " governance_bind_succeeded=true"
+                    + " protocol_version_denied=" + protocolVersionDenied
+                    + " protocol_hash_denied=" + protocolHashDenied
+                    + " submit_denied=" + submitDenied
+                    + " status_denied=" + statusDenied
+                    + " cancel_denied=" + cancelDenied
+                    + " diagnostic_version_denied=" + diagnosticVersionDenied
+                    + " diagnostic_hash_denied=" + diagnosticHashDenied
+                    + " diagnostic_page_denied=" + diagnosticPageDenied
+                    + " governance_version_denied=" + governanceVersionDenied
+                    + " governance_hash_denied=" + governanceHashDenied
+                    + " action_evaluate_denied=" + actionEvaluateDenied
+                    + " approval_request_denied=" + approvalRequestDenied
+                    + " approval_status_denied=" + approvalStatusDenied
+                    + " approval_cancel_denied=" + approvalCancelDenied
+                    + " hardware_accessed=false");
+            finishProbe();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            if (!finished) {
+                Log.e(TAG, "capability_probe_complete=false governance_disconnected=true");
+                finishProbe();
+            }
+        }
+
+        @Override
+        public void onNullBinding(ComponentName name) {
+            Log.e(TAG, "capability_probe_complete=false governance_null_binding=true");
             finishProbe();
         }
     };
@@ -156,8 +204,11 @@ public final class CapabilityPolicyProbeActivity extends Activity {
     protected void onDestroy() {
         unbindProduction();
         if (diagnosticBound) {
-            unbindService(diagnosticConnection);
-            diagnosticBound = false;
+            unbindDiagnostic();
+        }
+        if (governanceBound) {
+            unbindService(governanceConnection);
+            governanceBound = false;
         }
         super.onDestroy();
     }
@@ -179,6 +230,23 @@ public final class CapabilityPolicyProbeActivity extends Activity {
         }
     }
 
+    private void bindGovernance() {
+        Intent intent = new Intent().setComponent(GOVERNANCE_COMPONENT);
+        governanceBound = bindService(intent, governanceConnection, Context.BIND_AUTO_CREATE);
+        Log.i(TAG, "governance_bind_requested=true bind_returned=" + governanceBound);
+        if (!governanceBound) {
+            Log.e(TAG, "capability_probe_complete=false governance_bind_succeeded=false");
+            finishProbe();
+        }
+    }
+
+    private void unbindDiagnostic() {
+        if (diagnosticBound) {
+            unbindService(diagnosticConnection);
+            diagnosticBound = false;
+        }
+    }
+
     private static AgentTaskRequest request() {
         AgentTaskRequest request = new AgentTaskRequest();
         request.clientRequestId = "policy-probe-request";
@@ -189,6 +257,22 @@ public final class CapabilityPolicyProbeActivity extends Activity {
         request.priority = 1;
         request.idempotencyKey = "policy-probe-idempotency";
         return request;
+    }
+
+    private static ActionRequest actionRequest() {
+        ActionRequest request = new ActionRequest();
+        request.schemaVersion = 1;
+        request.clientRequestId = "policy-probe-action";
+        request.actionId = ICentralBrainGovernance.ACTION_OTA_INSTALL;
+        request.idempotencyKey = "policy-probe-action-idempotency";
+        return request;
+    }
+
+    private static ApprovalHandle approvalHandle() {
+        ApprovalHandle handle = new ApprovalHandle();
+        handle.schemaVersion = 1;
+        handle.approvalId = "policy-probe-approval";
+        return handle;
     }
 
     private static boolean denied(RemoteCall call) {

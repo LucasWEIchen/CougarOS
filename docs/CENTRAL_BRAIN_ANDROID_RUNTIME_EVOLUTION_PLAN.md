@@ -97,8 +97,12 @@
 - `R3C1 action governance core` 已完成：纯 Java `ActionGovernancePolicy` 只从 Runtime-owned stable Action catalog 派生读取、舒适控制、驾驶干扰、诊断写、OTA 五类风险，未知 Action 和不安全状态默认拒绝；读取/舒适决策仅为 policy-only，所有结果固定 `dispatchAllowed=false`。
 - Safety/Vehicle State 只能通过 `SafetyVehicleStateProvider` 输入。当前 `RuntimeOwnedSafetyVehicleStateProvider` 是 caller-independent、hardware-free fixture，固定 `RUNTIME_OWNED_STUB`、`hardwareBacked=false`、`productionTrusted=false`，不能替代目标 VHAL/Safety Runtime 证据。
 - `InMemoryApprovalRegistry` 只接收停车状态下三类 high-risk `APPROVAL_REQUIRED` 决策，按完整 trusted caller snapshot 隔离 owner，pending 不因容量压力淘汰，并支持有界 expiry/cancel；它明确 `supportsApprovalGrant=false`、`isDurable=false`，不伪造审批授权或重启恢复。
-- R3 尚未关闭：R3C2 仍需独立 typed Governance AIDL/Service、capability 和 API 33 跨包拒绝/允许验证；R4 再提供 durable approval/checkpoint/outbox。`CentralBrainSdk.EVOLUTION_STAGE` 暂不提升，`DEV-019`/`ISSUE-023` 保持 Open。
-- Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+- `R3C2 typed Governance Binder` 已完成：新增独立 `ICentralBrainGovernance`、四个 structured Parcelable、Governance V1 checksum freeze、`CentralBrainGovernanceClient` 和 `CentralBrainGovernanceService`；原 task/diagnostic V1 checksum 不变。
+- Governance Service 使用独立 `BIND_GOVERNANCE` signature permission，并在内层分别执行 protocol/evaluate/request/status-own/cancel-own capability。`ActionRequest` 不包含 risk、Safety/Vehicle State、caller、package、signer 或 permission assertion；接口故意没有 approve/grant 方法。
+- API 33 allowed Demo 已验证 read/comfort policy-only、OTA approval-required、pending owner status 和 duplicate cancel；同 signer 未配置 Probe 已通过外层 Governance permission 并成功 bind，但五项 Governance capability 均以 `PACKAGE_NOT_CONFIGURED` 拒绝。
+- API 33 输出 `governance_typed_binder_connected=true`、`action_risk_classes_verified=true`、`runtime_owned_state_provider_verified=true`、`high_risk_pending_approval_verified=true`、`approval_cancel_verified=true`、`governance_capability_default_deny_verified=true`、`approval_grant_supported=false`、`approval_durable=false`、`service_dispatch_triggered=false` 和全部 no-hardware flags。
+- R3 退出条件已关闭，`CentralBrainSdk.EVOLUTION_STAGE=R3_TRUSTED_GOVERNANCE`，成熟度保持 `android_integrated`。`DEV-019`/`ISSUE-023` 继续跟踪目标 VHAL/Safety Runtime source、量产签名/审批 authority 和 R4 durable approval/checkpoint/outbox，不能据此宣称 production qualification。
+- Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

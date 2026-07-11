@@ -27,7 +27,7 @@ R2B 已交付两个独立 signature-permission Service、`CentralBrainClient` ty
 
 R2C 新增 custom Android instrumentation、debug-only client death probe 和 `tools/test_central_brain_android_binder_lifecycle.sh`。API 33 x86_64 输出 `binder_service_death_verified=true`、`binder_reconnect_verified=true`、`binder_terminal_uniqueness_verified=true`、`binder_cancel_completion_race_verified=true`、`binder_client_death_verified=true`、`r2_binder_exit_criteria_met=true`。Typed Android Protocol Binding 当前为 `android_integrated`；真实 SoC/NPU、可信 capability、持久化、量产性能和旧 adapter 迁移尚未完成，不得提升为 `hardware_validated` 或 `production_qualified`。
 
-R3A 已交付 `JobSupervisor`、`CallerIdentitySnapshot` 和 `AndroidCallerIdentityResolver`。任务状态机、128 条容量上限、5 分钟终态保留、owner status/cancel 隔离已接入 Runtime APK；`tools/build_central_brain_android_runtime.sh` 运行 Supervisor JVM 单测，`tools/check_central_brain_android_job_supervisor.sh` 固定可信身份与无硬件边界。API 33 x86_64 输出 `job_supervisor_active=true`、`trusted_caller_identity_resolved=true`、`request_identity_fields_used=false`。R3 尚未关闭，package+signer capability/default-deny 独立客户端测试和动作审批仍为下一交付。
+R3A 已交付 `JobSupervisor`、`CallerIdentitySnapshot` 和 `AndroidCallerIdentityResolver`。任务状态机、128 条容量上限、5 分钟终态保留、owner status/cancel 隔离已接入 Runtime APK；`tools/build_central_brain_android_runtime.sh` 运行 Supervisor JVM 单测，`tools/check_central_brain_android_job_supervisor.sh` 固定可信身份与无硬件边界。API 33 x86_64 输出 `job_supervisor_active=true`、`trusted_caller_identity_resolved=true`、`request_identity_fields_used=false`。该段保留 R3A 时点边界；package+signer default-deny 和动作审批入口现已由 R3B/R3C 完成。
 
 R3B 已交付 Runtime APK 内的 V1 strict default-deny capability XML、四项 production Binder capability 和独立 diagnostic-read capability。标准 Demo/Runtime diagnostic probe 只有在字面包名与 Runtime 当前 signer 完整集合同时匹配时获权；test-only `policy-probe` 与 Runtime 同 signer、持有两项外层 signature permission 且成功 bind，但 API 33 上 production/diagnostic 调用均被拒绝。设备输出 `test_only_install_enforced=true`、`allowed_client_capabilities_verified=true`、`unknown_client_default_deny_verified=true`、`diagnostic_capability_default_deny_verified=true`、`package_and_current_signer_mapping_verified=true`、`production_capability_denial_audited=true`。Probe 不属于 SDK AAR/Runtime APK/Demo HMI 三项标准交付。
 
@@ -702,3 +702,11 @@ R3C1 在 `runtime-service` 内交付纯 Java `ActionGovernancePolicy`、`SafetyV
 交付检查必须证明：五类 exact Action ID 风险映射；unknown/default deny；caller 不提供 Safety/Vehicle State 或 risk class；high-risk moving deny 与 parked approval-required；owner 隔离；pending 不压力淘汰；expiry/cancel；`dispatchAllowed=false`、`supportsApprovalGrant=false`、`isDurable=false`、`hardwareBacked=false`、`productionTrusted=false`。R3C2 前不存在 Android Governance Binder 交付声明，R4 前不存在 durable approval 或 checkpoint/outbox 声明。
 
 该增量不访问 VHAL、Safety Runtime、Vehicle bus、PCIe NPU、device node、HAL/vendor SDK 或 shared memory，不修改厂商 Android 系统，不开发虚拟化。Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+
+## Android R3C2 Typed Governance Binder 交付补充
+
+R3C2 交付 `ICentralBrainGovernance` 与 `ActionRequest`、`ActionDecision`、`ApprovalHandle`、`ApprovalStatus`，`CentralBrainGovernanceClient`，独立 `CentralBrainGovernanceService`，`BIND_GOVERNANCE` signature permission 和 `governance-v1.sha256`。原 task/diagnostic V1 checksum 不变；标准交付仍只有 SDK AAR、Runtime APK 和 Demo APK，`policy-probe` 仅为 test-only artifact。
+
+API 33 标准安装门禁必须输出 `governance_typed_binder_connected=true`、`action_risk_classes_verified=true`、`runtime_owned_state_provider_verified=true`、`high_risk_pending_approval_verified=true`、`approval_cancel_verified=true`、`approval_grant_supported=false`、`approval_durable=false`、`service_dispatch_triggered=false`。同 signer Probe 门禁必须输出 `outer_governance_signature_permission_passed=true` 和 `governance_capability_default_deny_verified=true`。
+
+R3C2 只证明 Android 13 typed Governance 和 default-deny capability 已集成，成熟度为 `android_integrated`。它不交付真实 VHAL/Safety Runtime source、approval grant authority、durable idempotency/recovery、真实车控 dispatch、目标硬件或 production qualification；这些分别留给目标平台和 R4。无 Linux 前端、Driver/HAL、厂商系统源码或虚拟化变更。

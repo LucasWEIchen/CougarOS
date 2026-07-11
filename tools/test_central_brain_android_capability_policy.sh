@@ -148,6 +148,11 @@ if ! grep -Fq "com.centralbrain.permission.ACCESS_DIAGNOSTICS: granted=true" \
   echo "Policy probe did not pass the outer diagnostic signature permission" >&2
   exit 1
 fi
+if ! grep -Fq "com.centralbrain.permission.BIND_GOVERNANCE: granted=true" \
+    <<<"$PROBE_PACKAGE_DUMP"; then
+  echo "Policy probe did not pass the outer Governance signature permission" >&2
+  exit 1
+fi
 
 "${ADB_DEVICE[@]}" logcat -c
 START_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
@@ -161,7 +166,8 @@ fi
 PROBE_PASSED=false
 for _ in {1..40}; do
   PROBE_LOG="$("${ADB_DEVICE[@]}" logcat -d \
-    -s CentralBrainPolicyProbe:I CentralBrainRuntime:W CentralBrainDiagnostic:W '*:S')"
+    CentralBrainPolicyProbe:I CentralBrainRuntime:W CentralBrainDiagnostic:W \
+      CentralBrainGovernance:W '*:S')"
   if grep -Fq "capability_probe_complete=true" <<<"$PROBE_LOG" \
       && grep -Fq "protocol_version_denied=true" <<<"$PROBE_LOG" \
       && grep -Fq "protocol_hash_denied=true" <<<"$PROBE_LOG" \
@@ -170,7 +176,13 @@ for _ in {1..40}; do
       && grep -Fq "cancel_denied=true" <<<"$PROBE_LOG" \
       && grep -Fq "diagnostic_version_denied=true" <<<"$PROBE_LOG" \
       && grep -Fq "diagnostic_hash_denied=true" <<<"$PROBE_LOG" \
-      && grep -Fq "diagnostic_page_denied=true" <<<"$PROBE_LOG"; then
+      && grep -Fq "diagnostic_page_denied=true" <<<"$PROBE_LOG" \
+      && grep -Fq "governance_version_denied=true" <<<"$PROBE_LOG" \
+      && grep -Fq "governance_hash_denied=true" <<<"$PROBE_LOG" \
+      && grep -Fq "action_evaluate_denied=true" <<<"$PROBE_LOG" \
+      && grep -Fq "approval_request_denied=true" <<<"$PROBE_LOG" \
+      && grep -Fq "approval_status_denied=true" <<<"$PROBE_LOG" \
+      && grep -Fq "approval_cancel_denied=true" <<<"$PROBE_LOG"; then
     PROBE_PASSED=true
     break
   fi
@@ -187,6 +199,11 @@ for capability in \
   runtime.task.submit \
   runtime.task.status.own \
   runtime.task.cancel.own \
+  governance.protocol.read \
+  governance.action.evaluate \
+  governance.approval.request \
+  governance.approval.status.own \
+  governance.approval.cancel.own \
   runtime.diagnostics.read; do
   if ! grep -Fq "capability denied capability=$capability reason=PACKAGE_NOT_CONFIGURED" \
       <<<"$PROBE_LOG"; then
@@ -205,10 +222,12 @@ printf '%s\n' \
   "device_abi=$ABI" \
   "outer_signature_permission_passed=true" \
   "outer_diagnostic_signature_permission_passed=true" \
+  "outer_governance_signature_permission_passed=true" \
   "test_only_install_enforced=true" \
   "allowed_client_capabilities_verified=true" \
   "unknown_client_default_deny_verified=true" \
   "diagnostic_capability_default_deny_verified=true" \
+  "governance_capability_default_deny_verified=true" \
   "package_and_current_signer_mapping_verified=true" \
   "production_capability_denial_audited=true" \
   "hardware_accessed=false" \

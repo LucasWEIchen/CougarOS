@@ -748,7 +748,7 @@ Production capability IDs are `runtime.protocol.read`, `runtime.task.submit`, `r
 
 ## Android R3C1 Action Governance Core Interfaces
 
-R3C1 keeps the frozen task/diagnostic AIDL unchanged and defines the internal Governance core that R3C2 will publish through a separate typed Binder.
+R3C1 keeps the frozen task/diagnostic AIDL unchanged and defines the internal Governance core that R3C2 publishes through a separate typed Binder.
 
 | Interface | Trusted input | Output/failure | Boundary |
 | --- | --- | --- | --- |
@@ -762,3 +762,21 @@ R3C1 keeps the frozen task/diagnostic AIDL unchanged and defines the internal Go
 The exact Action catalog is `vehicle.state.read`, `cabin.temperature.set`, `driver.display.video.play`, `vehicle.diagnostics.write`, and `system.ota.install`. Read-only remains visible even during emergency state; comfort is policy-only when Safety/Motion are known; driver-distraction, diagnostic-write and OTA require parked/normal/driver-available state before a pending approval may be created. Moving high-risk actions are denied before approval creation.
 
 The current provider uses `RUNTIME_OWNED_STUB` with `hardwareBacked=false` and `productionTrusted=false`. The current registry uses bounded process memory with `supportsApprovalGrant=false` and `isDurable=false`. These are deliberate R3C1 limits, not approval completion or target Safety evidence. Req IDs: `FW-U-004`, `FW-U-007`, `FW-S-005`, `XSC-005`, `XSC-006`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`.
+
+## Android R3C2 Typed Governance Binder Interfaces
+
+The Android product path publishes `ICentralBrainGovernance` as an independent production control plane. It is not part of the legacy JSON gateway and does not change task/diagnostic V1 transaction order.
+
+| Binder method | Required inner capability | Result | Side-effect boundary |
+| --- | --- | --- | --- |
+| `getProtocolVersion/getProtocolHash` | `governance.protocol.read` | Governance V1 identity | no policy or approval mutation |
+| `evaluateAction(ActionRequest)` | `governance.action.evaluate` | typed risk/outcome/reason + Runtime state-source metadata | no approval creation and no dispatch |
+| `requestApproval(ActionRequest)` | `governance.approval.request` | owner-bound pending `ApprovalHandle` | only high-risk approval-required decisions; no grant |
+| `getApprovalStatus(ApprovalHandle)` | `governance.approval.status.own` | owner status or `UNKNOWN` | missing/non-owner indistinguishable |
+| `cancelApproval(ApprovalHandle)` | `governance.approval.cancel.own` | idempotent true for owner-cancelled, false otherwise | no action dispatch |
+
+Outer access uses `com.centralbrain.permission.BIND_GOVERNANCE` (`signature`). Inner policy still requires exact package plus complete current signer set, so sharing the signer alone does not authorize a package. `CentralBrainGovernanceClient` binds the explicit Service component, negotiates version/hash and handles Binder death; it never accepts a caller-supplied identity or state provider.
+
+`ActionRequest` has exactly `schemaVersion`, `clientRequestId`, `actionId`, and `idempotencyKey`. `ActionDecision` exposes derived risk/outcome and Runtime state-source metadata. `ApprovalHandle/ApprovalStatus` expose bounded pending/cancelled/expired state; status always reports grant/durable/dispatch false. Governance V1 is frozen by `central-brain-sdk/aidl-api/governance-v1.sha256` and intentionally has no approval resolution method.
+
+API 33 allowed-client evidence is emitted by `tools/install_central_brain_android_runtime.sh`; same-signer unknown-client denial is emitted by `tools/test_central_brain_android_capability_policy.sh`. Req IDs: `FW-U-004`, `FW-U-007`, `FW-S-005`, `XSC-005`, `XSC-006`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`.

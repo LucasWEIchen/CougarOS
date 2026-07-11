@@ -8,5 +8,10 @@
         <capability name="runtime.task.submit" />
         <capability name="runtime.task.status.own" />
         <capability name="runtime.task.cancel.own" />
+        <capability name="governance.protocol.read" />
+        <capability name="governance.action.evaluate" />
+        <capability name="governance.approval.request" />
+        <capability name="governance.approval.status.own" />
+        <capability name="governance.approval.cancel.own" />
     </principal>
 </capability-policy>

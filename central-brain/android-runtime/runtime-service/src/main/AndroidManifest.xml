@@ -5,6 +5,9 @@
     <permission
         android:name="com.centralbrain.permission.ACCESS_DIAGNOSTICS"
         android:protectionLevel="signature" />
+    <permission
+        android:name="com.centralbrain.permission.BIND_GOVERNANCE"
+        android:protectionLevel="signature" />
 
     <application
         android:allowBackup="false"
@@ -20,5 +23,10 @@
             android:enabled="true"
             android:exported="true"
             android:permission="com.centralbrain.permission.ACCESS_DIAGNOSTICS" />
+        <service
+            android:name=".CentralBrainGovernanceService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.centralbrain.permission.BIND_GOVERNANCE" />
     </application>
 </manifest>

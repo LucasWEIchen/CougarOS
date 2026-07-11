@@ -161,6 +161,12 @@ require_text "$PLAN" "R3C1 action governance core"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R3C1 action governance core trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R3C1 Action Governance Core"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3C1 Action Governance Core Driver/HAL Boundary"
+require_text "$PLAN" "R3C2 typed Governance Binder"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R3C2 typed Governance Binder trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R3C2 Typed Governance Binder"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3C2 Governance Binder Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成"
+require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R3_TRUSTED_GOVERNANCE"'
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"

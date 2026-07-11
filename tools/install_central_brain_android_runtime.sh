@@ -107,10 +107,16 @@ fi
 "${ADB_DEVICE[@]}" install -r "$DEMO_APK"
 "${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.runtime
 "${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.demo
+"${ADB_DEVICE[@]}" logcat -c
 
 DEMO_PACKAGE_DUMP="$("${ADB_DEVICE[@]}" shell dumpsys package com.centralbrain.demo)"
 if ! grep -Fq "com.centralbrain.permission.BIND_RUNTIME: granted=true" <<<"$DEMO_PACKAGE_DUMP"; then
   echo "Demo HMI does not hold the signature BIND_RUNTIME permission" >&2
+  exit 1
+fi
+if ! grep -Fq "com.centralbrain.permission.BIND_GOVERNANCE: granted=true" \
+    <<<"$DEMO_PACKAGE_DUMP"; then
+  echo "Demo HMI does not hold the signature BIND_GOVERNANCE permission" >&2
   exit 1
 fi
 if grep -Fq "com.centralbrain.permission.ACCESS_DIAGNOSTICS" <<<"$DEMO_PACKAGE_DUMP"; then
@@ -125,6 +131,9 @@ UNAUTHORIZED_RUNTIME_STATUS=$?
 UNAUTHORIZED_DIAGNOSTIC_OUTPUT="$("${ADB_DEVICE[@]}" shell am startservice \
   -n com.centralbrain.runtime/.CentralBrainDiagnosticService 2>&1)"
 UNAUTHORIZED_DIAGNOSTIC_STATUS=$?
+UNAUTHORIZED_GOVERNANCE_OUTPUT="$("${ADB_DEVICE[@]}" shell am startservice \
+  -n com.centralbrain.runtime/.CentralBrainGovernanceService 2>&1)"
+UNAUTHORIZED_GOVERNANCE_STATUS=$?
 set -e
 if [[ $UNAUTHORIZED_RUNTIME_STATUS -eq 0 ]] \
     || ! grep -Fq "Requires permission com.centralbrain.permission.BIND_RUNTIME" \
@@ -136,6 +145,12 @@ if [[ $UNAUTHORIZED_DIAGNOSTIC_STATUS -eq 0 ]] \
     || ! grep -Fq "Requires permission com.centralbrain.permission.ACCESS_DIAGNOSTICS" \
       <<<"$UNAUTHORIZED_DIAGNOSTIC_OUTPUT"; then
   echo "shell caller was not rejected by the diagnostic signature permission" >&2
+  exit 1
+fi
+if [[ $UNAUTHORIZED_GOVERNANCE_STATUS -eq 0 ]] \
+    || ! grep -Fq "Requires permission com.centralbrain.permission.BIND_GOVERNANCE" \
+      <<<"$UNAUTHORIZED_GOVERNANCE_OUTPUT"; then
+  echo "shell caller was not rejected by the Governance signature permission" >&2
   exit 1
 fi
 
@@ -201,7 +216,8 @@ for _ in {1..20}; do
   "${ADB_DEVICE[@]}" shell uiautomator dump /sdcard/central-brain-demo.xml >/dev/null
   UI_DUMP="$("${ADB_DEVICE[@]}" exec-out cat /sdcard/central-brain-demo.xml | tr -d '\r')"
   if grep -Fq "Typed Binder: completed" <<<"$UI_DUMP" \
-      && grep -Fq "Cancel: confirmed" <<<"$UI_DUMP"; then
+      && grep -Fq "Cancel: confirmed" <<<"$UI_DUMP" \
+      && grep -Fq "Governance: verified v1" <<<"$UI_DUMP"; then
     break
   fi
   sleep 0.5
@@ -211,7 +227,8 @@ for expected in \
   "android_integrated" \
   "Typed Binder: connected v1" \
   "Typed Binder: completed" \
-  "Cancel: confirmed"; do
+  "Cancel: confirmed" \
+  "Governance: verified v1"; do
   if ! grep -Fq "$expected" <<<"$UI_DUMP"; then
     echo "Demo HMI UI missing expected text: $expected" >&2
     exit 1
@@ -233,6 +250,39 @@ if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"
   exit 1
 fi
 
+GOVERNANCE_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+  CentralBrainGovernance:I '*:S')"
+if ! grep -Fq "state_source=runtime-owned-state-stub" <<<"$GOVERNANCE_LOG" \
+    || ! grep -Fq "source_hardware_backed=false" <<<"$GOVERNANCE_LOG" \
+    || ! grep -Fq "source_production_trusted=false" <<<"$GOVERNANCE_LOG" \
+    || ! grep -Fq "approval_grant_supported=false" <<<"$GOVERNANCE_LOG" \
+    || ! grep -Fq "approval_durable=false" <<<"$GOVERNANCE_LOG"; then
+  echo "Governance Service did not report the R3C trusted-state/approval boundary" >&2
+  exit 1
+fi
+if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$GOVERNANCE_LOG"; then
+  echo "Governance Service did not authorize the trusted Demo caller" >&2
+  exit 1
+fi
+
+GOVERNANCE_DEMO_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+  CentralBrainGovernanceDemo:I '*:S')"
+for marker in \
+  "governance_probe_complete=true" \
+  "read_policy_only=true" \
+  "comfort_policy_only=true" \
+  "high_risk_approval_required=true" \
+  "approval_pending=true" \
+  "approval_cancelled=true" \
+  "approval_grant_supported=false" \
+  "approval_durable=false" \
+  "dispatch_allowed=false"; do
+  if ! grep -Fq "$marker" <<<"$GOVERNANCE_DEMO_LOG"; then
+    echo "Demo Governance evidence missing marker: $marker" >&2
+    exit 1
+  fi
+done
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -251,6 +301,8 @@ printf '%s\n' \
   "typed_binder_callback_completed=true" \
   "typed_binder_cancel_confirmed=true" \
   "signature_permission_enforced=true" \
+  "governance_signature_permission_enforced=true" \
+  "governance_permission_requested_by_demo=true" \
   "diagnostic_permission_requested_by_demo=false" \
   "diagnostic_binder_page_verified=true" \
   "job_supervisor_active=true" \
@@ -258,6 +310,14 @@ printf '%s\n' \
   "request_identity_fields_used=false" \
   "capability_policy_loaded=true" \
   "allowed_client_capabilities_verified=true" \
+  "governance_typed_binder_connected=true" \
+  "action_risk_classes_verified=true" \
+  "runtime_owned_state_provider_verified=true" \
+  "high_risk_pending_approval_verified=true" \
+  "approval_cancel_verified=true" \
+  "approval_grant_supported=false" \
+  "approval_durable=false" \
+  "service_dispatch_triggered=false" \
   "r1_api33_exit_criteria_met=$API_33_EXIT" \
   "hardware_accessed=false" \
   "driver_development_triggered=false" \

@@ -33,10 +33,12 @@ for path in \
   central-brain/android-runtime/central-brain-sdk/src/main/AndroidManifest.xml \
   central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java \
   central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainClient.java \
+  central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainGovernanceClient.java \
   central-brain/android-runtime/runtime-service/build.gradle.kts \
   central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainDiagnosticService.java \
+  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java \
   central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
@@ -50,6 +52,7 @@ for path in \
   tools/check_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_job_supervisor.sh \
   tools/check_central_brain_android_capability_policy.sh \
+  tools/check_central_brain_android_action_governance.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
@@ -75,7 +78,7 @@ require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidMan
 require_text "central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java" "BuildConfig.DEBUG"
 require_text "tools/install_central_brain_android_runtime.sh" "--require-api-33"
 require_text "tools/install_central_brain_android_runtime.sh" "r1_api33_exit_criteria_met"
-require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R2_TYPED_BINDER"'
+require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R3_TRUSTED_GOVERNANCE"'
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "android_integrated"'
 require_text "central-brain/android-runtime/central-brain-sdk/build.gradle.kts" "aidl = true"
 require_text "central-brain/android-runtime/README.md" "central_brain_api33_x86_64"
@@ -100,5 +103,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_binder_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_binder_lifecycle.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

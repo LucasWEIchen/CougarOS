@@ -21,6 +21,7 @@ require_text() {
 }
 
 SERVICE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
+GOVERNANCE_SERVICE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"
 POLICY="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/policy/CallerCapabilityPolicy.java"
 LOADER="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/policy/AndroidCapabilityPolicyLoader.java"
 POLICY_XML="central-brain/android-runtime/runtime-service/src/main/res/xml/central_brain_capability_policy.xml"
@@ -31,7 +32,7 @@ PROBE_ACTIVITY="central-brain/android-runtime/policy-probe/src/main/java/com/cen
 DEVICE_TEST="tools/test_central_brain_android_capability_policy.sh"
 
 for path in \
-  "$SERVICE" "$POLICY" "$LOADER" "$POLICY_XML" "$POLICY_TEST" \
+  "$SERVICE" "$GOVERNANCE_SERVICE" "$POLICY" "$LOADER" "$POLICY_XML" "$POLICY_TEST" \
   "$PROBE_GRADLE" "$PROBE_MANIFEST" "$PROBE_ACTIVITY" "$DEVICE_TEST"; do
   require_file "$path"
 done
@@ -41,6 +42,11 @@ for capability in \
   runtime.task.submit \
   runtime.task.status.own \
   runtime.task.cancel.own \
+  governance.protocol.read \
+  governance.action.evaluate \
+  governance.approval.request \
+  governance.approval.status.own \
+  governance.approval.cancel.own \
   runtime.diagnostics.read; do
   require_text "$POLICY" "$capability"
   require_text "$POLICY_XML" "$capability"
@@ -58,14 +64,22 @@ require_text "$SERVICE" "resolveAuthorizedCaller(Capability.TASK_SUBMIT)"
 require_text "$SERVICE" "resolveAuthorizedCaller(Capability.TASK_STATUS_OWN)"
 require_text "$SERVICE" "resolveAuthorizedCaller(Capability.TASK_CANCEL_OWN)"
 require_text "central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainDiagnosticService.java" "Capability.DIAGNOSTICS_READ"
+require_text "$GOVERNANCE_SERVICE" "Capability.GOVERNANCE_PROTOCOL_READ"
+require_text "$GOVERNANCE_SERVICE" "Capability.ACTION_EVALUATE"
+require_text "$GOVERNANCE_SERVICE" "Capability.APPROVAL_REQUEST"
+require_text "$GOVERNANCE_SERVICE" "Capability.APPROVAL_STATUS_OWN"
+require_text "$GOVERNANCE_SERVICE" "Capability.APPROVAL_CANCEL_OWN"
 require_text "$SERVICE" "capability_default=deny"
 require_text "$PROBE_MANIFEST" 'android:permission="android.permission.DUMP"'
 require_text "$PROBE_MANIFEST" 'android:testOnly="true"'
 require_text "$PROBE_MANIFEST" 'com.centralbrain.permission.BIND_RUNTIME'
 require_text "$PROBE_MANIFEST" 'com.centralbrain.permission.ACCESS_DIAGNOSTICS'
+require_text "$PROBE_MANIFEST" 'com.centralbrain.permission.BIND_GOVERNANCE'
 require_text "$PROBE_ACTIVITY" "capability_probe_complete=true"
+require_text "$PROBE_ACTIVITY" "governance_bind_succeeded=true"
 require_text "$DEVICE_TEST" "unknown_client_default_deny_verified=true"
 require_text "$DEVICE_TEST" "diagnostic_capability_default_deny_verified=true"
+require_text "$DEVICE_TEST" "governance_capability_default_deny_verified=true"
 require_text "$DEVICE_TEST" "test_only_install_enforced=true"
 require_text "central-brain/android-runtime/settings.gradle.kts" 'include(":policy-probe")'
 require_text "$PROBE_GRADLE" 'variantBuilder.enable = false'
@@ -91,6 +105,11 @@ expected = {
         "runtime.task.submit",
         "runtime.task.status.own",
         "runtime.task.cancel.own",
+        "governance.protocol.read",
+        "governance.action.evaluate",
+        "governance.approval.request",
+        "governance.approval.status.own",
+        "governance.approval.cancel.own",
     },
 }
 actual_by_package = {}
