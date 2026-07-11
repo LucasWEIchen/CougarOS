@@ -59,6 +59,9 @@
 - `runtime-service` 当前是非导出、无网络权限、无 Binder 的生命周期边界；R1 不提前引入 R2 typed/async AIDL。
 - 当前工作区只有 API 36 AVD，没有 API 33 system image 或已连接设备，因此 R1 的 API 33 安装/启动退出条件仍未关闭，成熟度保持 `contract_defined`。
 - 当前本地 Android SDK command-line tools 只识别 XML version 3，而已安装 SDK 含 version 4 metadata；构建成功但存在工具版本警告，量产 CI 前必须对齐 command-line tools 与 SDK。
+- `R1B device lifecycle check` 已完成：新增 DUMP-protected、debug-only `RuntimeProbeActivity` 和 `tools/install_central_brain_android_runtime.sh`，可安装 Runtime/Demo、启动非导出 Service、核验进程/前台 Activity/UI 并输出硬件边界。
+- API 36 x86_64 AVD 兼容测试通过，输出 `runtime_service_running=true`、`demo_hmi_resumed=true`、`demo_ui_contract_defined=true`，同时正确保持 `r1_api33_exit_criteria_met=false`；`--require-api-33` 在 API 36 上按预期失败。
+- Release APK manifest 已验证不含 `RuntimeProbeActivity`，只保留 `CentralBrainRuntimeService exported=false`。API 33 验证仍是 R1 唯一未关闭退出项。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

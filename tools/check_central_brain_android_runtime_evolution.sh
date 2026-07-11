@@ -102,6 +102,7 @@ for path in \
   central-brain/android-runtime/runtime-service/build.gradle.kts \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
   tools/build_central_brain_android_runtime.sh \
+  tools/install_central_brain_android_runtime.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
   require_file "$path"
 done
@@ -110,6 +111,10 @@ require_text "$PLAN" "R1A Gradle foundation"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R1A Android Gradle foundation trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "central-brain-sdk-debug.aar"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R1A Gradle Foundation Driver/HAL Evidence"
+require_text "$PLAN" "R1B device lifecycle check"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R1B Android device lifecycle trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "r1_api33_exit_criteria_met=false"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R1B Device Lifecycle Driver/HAL Evidence"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

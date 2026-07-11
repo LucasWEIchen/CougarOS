@@ -654,3 +654,11 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - R1A must keep AIDL absent, `runtime-service` non-exported, and all network/vehicle/device permissions absent. Typed production and diagnostic Binder contracts belong to R2.
 - Build, SDK unit test, AAR structure, APK package/minSdk and APK signature evidence prove `contract_defined`; only an API 33 device/emulator install and runtime test can promote this path to `android_integrated`.
 - R1A does not modify vendor Android system binaries, access hardware, add Driver/HAL, extend the Linux front-end, or implement virtualization.
+
+### 2026-07-12 R1B Android device lifecycle trace
+
+- Req IDs: `XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- The production manifest must keep `CentralBrainRuntimeService exported=false`. An ADB lifecycle entrypoint is allowed only in the debug source set, must require `android.permission.DUMP`, must start the service from its own package, and must be absent from release artifacts.
+- `tools/install_central_brain_android_runtime.sh` must require API 33 or newer, support explicit device selection, install both APKs, verify the service process, resumed Demo Activity and visible maturity text, and expose a strict `--require-api-33` exit gate.
+- Compatibility validation on API 36 may prove install/launch portability but must return `r1_api33_exit_criteria_met=false`; it cannot promote the path to `android_integrated` or close R1.
+- Device validation must report `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; it must not probe vendor SDK, device node, NPU or vehicle interfaces.

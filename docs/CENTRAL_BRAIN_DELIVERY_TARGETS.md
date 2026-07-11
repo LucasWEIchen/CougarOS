@@ -17,6 +17,8 @@
 
 R1A 已交付可重复构建的 `central-brain/android-runtime`：`central-brain-sdk-debug.aar`、`runtime-service-debug.apk` 和 `demo-hmi-debug.apk` 均已由 AGP 构建并完成单测/结构/包名/minSdk/签名校验。当前工作区没有 API 33 system image 或已连接设备，因此此证据仍是 `contract_defined`，不能标记为 `android_integrated`。Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
+R1B 新增 `tools/install_central_brain_android_runtime.sh` 和仅存在于 debug variant 的 DUMP-protected lifecycle probe。API 36 x86_64 AVD 已通过 Runtime/Demo 安装、非导出 Service 进程、Demo resumed Activity 和 UI maturity 检查；release APK 不含 probe。该结果是兼容性证据，`r1_api33_exit_criteria_met=false`，API 33 设备/模拟器验证仍待完成。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
@@ -319,6 +321,7 @@ Linux systemd 部署样例：
 - `central-brain/android-runtime/demo-hmi/build/outputs/apk/debug/demo-hmi-debug.apk`（构建产物，不入库）
 - `tools/build_central_brain_android_runtime.sh`
 - `tools/check_central_brain_android_runtime_gradle.sh`
+- `tools/install_central_brain_android_runtime.sh`
 
 ## Android 版本最低要求
 
