@@ -33,12 +33,14 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Typed production Binder with a bounded R3 Job Supervisor and hardware-free execution.
+ * Typed production Binder with a bounded Job Supervisor and R4 durable task state.
  * Req IDs: XSC-001, XSC-004, XSC-006, NV-F-001, FW-U-007, NV-G-003,
  * NV-G-005, NV-G-006, NV-G-007, NV-P-002.
  */
@@ -67,6 +69,7 @@ public final class CentralBrainRuntimeService extends Service {
     });
     private CentralBrainDatabase database;
     private DurableTaskRepository taskRepository;
+    private Future<DurableTaskRepository.ReconciliationReport> startupReconciliation;
 
     private final ICentralBrainRuntime.Stub binder = new ICentralBrainRuntime.Stub() {
         @Override
@@ -86,6 +89,7 @@ public final class CentralBrainRuntimeService extends Service {
                 AgentTaskRequest request,
                 ICentralBrainTaskCallback callback) {
             CallerIdentitySnapshot caller = resolveAuthorizedCaller(Capability.TASK_SUBMIT);
+            awaitStartupReconciliation();
             validateRequest(request, callback);
             removeTaskRecords(jobSupervisor.pruneExpired());
 
@@ -151,6 +155,7 @@ public final class CentralBrainRuntimeService extends Service {
         @Override
         public boolean cancelTask(TaskHandle handle, int reasonCode) {
             CallerIdentitySnapshot caller = resolveAuthorizedCaller(Capability.TASK_CANCEL_OWN);
+            awaitStartupReconciliation();
             validateCancelReason(reasonCode);
             removeTaskRecords(jobSupervisor.pruneExpired());
             TaskRecord record = findRecord(handle);
@@ -160,6 +165,7 @@ public final class CentralBrainRuntimeService extends Service {
         @Override
         public TaskUpdate getTaskStatus(TaskHandle handle) {
             CallerIdentitySnapshot caller = resolveAuthorizedCaller(Capability.TASK_STATUS_OWN);
+            awaitStartupReconciliation();
             removeTaskRecords(jobSupervisor.pruneExpired());
             TaskRecord record = findRecord(handle);
             JobSupervisor.Snapshot snapshot = record == null
@@ -192,6 +198,20 @@ public final class CentralBrainRuntimeService extends Service {
                 identityResolver.resolveOwnIdentity());
         database = CentralBrainDatabase.open(this);
         taskRepository = DurableTaskRepository.create(database);
+        startupReconciliation = executor.submit(() -> {
+            DurableTaskRepository.ReconciliationReport reconciliation =
+                    taskRepository.reconcileInterruptedTasks();
+            Log.i(TAG, "restart reconciliation completed"
+                    + " restart_reconciliation_enabled=true"
+                    + " task_execution_resume_enabled=false"
+                    + " restart_reconciled_active_count="
+                    + reconciliation.getActiveTaskCount()
+                    + " restart_reconciled_incomplete_completion_count="
+                    + reconciliation.getIncompleteCompletionCount()
+                    + " durable_dispatch_enabled=false"
+                    + " hardware_accessed=false");
+            return reconciliation;
+        });
         Log.i(TAG, "created maturity=" + CentralBrainSdk.MATURITY
                 + " job_supervisor_max_records=" + MAX_TASK_RECORDS
                 + " terminal_retention_ms=" + TERMINAL_RETENTION_MS
@@ -199,6 +219,9 @@ public final class CentralBrainRuntimeService extends Service {
                 + " capability_rule_count=" + capabilityPolicy.getRuleCount()
                 + " runtime_repository_wired=true"
                 + " task_recovery_enabled=false"
+                + " restart_reconciliation_enabled=true"
+                + " restart_reconciliation_pending=true"
+                + " task_execution_resume_enabled=false"
                 + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
     }
@@ -477,9 +500,10 @@ public final class CentralBrainRuntimeService extends Service {
         TaskRecord record = tasks.get(durableAdmission.getTaskId());
         if (record == null) {
             TaskHandle handle = handleFrom(durableAdmission);
-            executor.execute(() -> notifyRecoveryPending(handle, caller, callback));
-            Log.w(TAG, "durable replay awaits R4C recovery taskId=" + handle.taskId
-                    + " runtime_repository_wired=true task_recovery_enabled=false"
+            executor.execute(() -> notifyDurableReplayWithoutLiveRecord(handle, caller, callback));
+            Log.w(TAG, "durable replay uses restart reconciliation taskId=" + handle.taskId
+                    + " runtime_repository_wired=true restart_reconciliation_enabled=true"
+                    + " task_execution_resume_enabled=false"
                     + " hardware_accessed=false");
             return handle;
         }
@@ -537,7 +561,7 @@ public final class CentralBrainRuntimeService extends Service {
         }
     }
 
-    private void notifyRecoveryPending(
+    private void notifyDurableReplayWithoutLiveRecord(
             TaskHandle handle,
             CallerIdentitySnapshot caller,
             ICentralBrainTaskCallback callback) {
@@ -549,14 +573,64 @@ public final class CentralBrainRuntimeService extends Service {
             if (durable != null) {
                 callback.onTaskUpdate(updateFor(durable));
             }
-            TaskFailure failure = new TaskFailure();
-            failure.taskId = handle.taskId;
-            failure.errorCode = ICentralBrainRuntime.ERROR_INTERNAL;
-            failure.errorMessage = "durable task recovery is pending R4C";
-            failure.retryable = true;
-            callback.onTaskFailed(failure);
+            if (durable != null
+                    && DurableTaskRepository.STATE_COMPLETED.equals(durable.getState())) {
+                callback.onTaskCompleted(recoveredCompletedResult(handle.taskId));
+            } else {
+                TaskFailure failure = new TaskFailure();
+                failure.taskId = handle.taskId;
+                failure.errorCode = durable != null
+                                && DurableTaskRepository.STATE_CANCELLED.equals(
+                                        durable.getState())
+                        ? ICentralBrainRuntime.ERROR_CANCELLED
+                        : ICentralBrainRuntime.ERROR_INTERNAL;
+                if (durable != null
+                        && DurableTaskRepository.STATE_CANCELLED.equals(durable.getState())) {
+                    failure.errorMessage = "task was cancelled before process restart";
+                } else if (durable != null && durable.isTerminal()) {
+                    failure.errorMessage = "task terminated by restart reconciliation";
+                } else {
+                    failure.errorMessage = "durable task restart reconciliation is pending";
+                }
+                failure.retryable = failure.errorCode == ICentralBrainRuntime.ERROR_INTERNAL;
+                callback.onTaskFailed(failure);
+            }
         } catch (RemoteException exception) {
-            Log.w(TAG, "recovery-pending callback failed taskId=" + handle.taskId, exception);
+            Log.w(TAG, "durable replay callback failed taskId=" + handle.taskId, exception);
+        } finally {
+            if (durable != null
+                    && durable.isTerminal()
+                    && !durable.isTerminalDeliverySettled()) {
+                try {
+                    String detailDigest = DurableDigest.sha256(
+                            "central-brain-restart-replay-settlement-v1",
+                            durable.getTaskId(),
+                            durable.getState(),
+                            Long.toString(durable.getSequence()));
+                    taskRepository.settleTerminalDelivery(
+                            durable.getTaskId(),
+                            ownerFingerprint,
+                            detailDigest);
+                } catch (RuntimeException exception) {
+                    Log.e(TAG, "durable restart replay settlement failed taskId="
+                            + handle.taskId, exception);
+                }
+            }
+        }
+    }
+
+    private DurableTaskRepository.ReconciliationReport awaitStartupReconciliation() {
+        Future<DurableTaskRepository.ReconciliationReport> reconciliation = startupReconciliation;
+        if (reconciliation == null) {
+            throw new IllegalStateException("restart reconciliation is not initialized");
+        }
+        try {
+            return reconciliation.get();
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("restart reconciliation wait was interrupted", exception);
+        } catch (ExecutionException exception) {
+            throw new IllegalStateException("restart reconciliation failed", exception.getCause());
         }
     }
 
@@ -673,6 +747,16 @@ public final class CentralBrainRuntimeService extends Service {
         return result;
     }
 
+    private static TaskResult recoveredCompletedResult(String taskId) {
+        TaskResult result = new TaskResult();
+        result.taskId = taskId;
+        result.completionCode = ICentralBrainRuntime.ERROR_NONE;
+        result.replyText = "";
+        result.summary = "durable completion recovered; raw result payload was not retained";
+        result.completedAtElapsedRealtimeMs = SystemClock.elapsedRealtime();
+        return result;
+    }
+
     private static TaskFailure terminalFailure(
             TaskRecord record,
             JobSupervisor.State state) {
@@ -743,7 +827,7 @@ public final class CentralBrainRuntimeService extends Service {
                 aidlState(snapshot.getState()),
                 snapshot.getProgressPercent(),
                 snapshot.getSequence(),
-                "durable state; automatic recovery pending R4C");
+                "durable state after restart reconciliation");
     }
 
     private static int aidlState(String state) {

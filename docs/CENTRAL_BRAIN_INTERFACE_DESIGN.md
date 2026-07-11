@@ -837,3 +837,17 @@ Frozen `ICentralBrainGovernance` V1 remains unchanged; the implementation backin
 | `cancelOwned(approvalId,owner)` | `APPLIED`, `REPLAYED`, `NOT_FOUND`, `NOT_PENDING` | one PENDING→CANCELLED update + one cancel audit |
 
 The persisted equivalence key is owner + idempotency key + exact Action ID. `clientRequestId` remains tracing metadata and does not create another approval for the same operation key. Stored risk/reason are Runtime-derived originals. Replaying an existing approval under changed policy returns its current PENDING/CANCELLED/EXPIRED state but cannot grant or dispatch it. Wall timestamps are converted to elapsed-realtime fields for AIDL responses; trusted clock and reboot/direct-boot qualification remain open.
+
+## Android R4C1 Fail-Closed Restart Reconciliation
+
+Frozen production AIDL remains unchanged. Restart behavior is an internal Runtime/Room contract.
+
+| Interface/path | Behavior | Boundary |
+| --- | --- | --- |
+| `RuntimeStateDao.findTasksNeedingRestartReconciliation` | selects ACCEPTED/RUNNING and COMPLETED with unsettled terminal delivery | internal DAO only; owner-scoped Binder authorization remains at Service entry |
+| `DurableTaskRepository.reconcileInterruptedTasks` | atomically changes each selected task to FAILED and inserts the next checkpoint plus restart audit | idempotent second pass; no raw payload reconstruction |
+| Runtime startup Future barrier | runs Room work on the single task executor; task submit/cancel/status await completion | no main-thread database transaction and no admission/reconciliation race |
+| exact replay without live record | returns existing handle, sends FAILED update then retryable `ERROR_INTERNAL`, then attempts durable settlement | no task execution resume, effect creation, outbox delivery or hardware dispatch |
+| SDK `SerialExecutor` per callback | preserves update-before-terminal delivery over a concurrent caller executor | terminal remains exactly once and updates are not reordered behind it |
+
+A COMPLETED task with an unsettled callback is conservatively changed to FAILED because R4C1 stores no result payload that can be proven equivalent after process loss. This is an explicit availability tradeoff in favor of no false-success/no duplicate-effect semantics. R4C2 owns pending-effect/outbox state; real resumable task execution requires an approved durable input/result format and is not implied by `restart_reconciliation_enabled=true`.

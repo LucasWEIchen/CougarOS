@@ -225,6 +225,8 @@
 
 2026-07-12 R4B3 进展：approval request/status/cancel/expiry 已接入 Room，`ApprovalStatus.durable=true`，跨 reopen exact replay、mismatch conflict、owner isolation 和审计通过。ISSUE-022 保持 Open：task restart recovery、pending effect/outbox、crash-point/fault tests、approval terminal retention、trusted wall clock/background sweep、export/delete/encryption/key rotation 仍未完成；ISSUE-023 仍跟踪真实 approval authority 与 VHAL/Safety trust。
 
+2026-07-12 R4C1 进展：启动对账在 Room transaction 中把 ACCEPTED/RUNNING 与未结算 COMPLETED 统一失败关闭，写入下一 checkpoint 和 restart audit；第二次对账不重复写。API 33 service death/reconnect 返回同 handle、durable FAILED 与 retryable failure，且不恢复执行。ISSUE-022 保持 Open：pending effect/outbox、crash-point/fault matrix、可恢复输入/结果格式、retention/export/delete/encryption/key rotation 仍未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

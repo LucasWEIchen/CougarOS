@@ -60,6 +60,7 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
                     "\nbinder_service_death_verified=true"
                             + "\nbinder_reconnect_verified=true"
                             + "\ndurable_recovery_pending_verified=true"
+                            + "\nrestart_reconciliation_verified=true"
                             + "\nbinder_terminal_uniqueness_verified=true"
                             + "\nbinder_cancel_completion_race_verified=true"
                             + "\nhardware_accessed=false\n");
@@ -130,13 +131,14 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
 
             CountDownLatch replayTerminal = new CountDownLatch(1);
             AtomicInteger replayFailureCode = new AtomicInteger(-1);
+            AtomicInteger replayState = new AtomicInteger(-1);
             AtomicBoolean replayRetryable = new AtomicBoolean();
             TaskHandle replayHandle = client.submitAgentTask(
                     interruptedRequest,
                     new CentralBrainClient.TaskCallback() {
                         @Override
                         public void onUpdate(TaskUpdate update) {
-                            // The persisted state may be ACCEPTED or RUNNING at process death.
+                            replayState.set(update.state);
                         }
 
                         @Override
@@ -156,6 +158,8 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
                     "durable replay returned a different task handle");
             assertEquals(ICentralBrainRuntime.ERROR_INTERNAL, replayFailureCode.get(),
                     "unrecovered durable replay did not fail explicitly");
+            assertEquals(ICentralBrainRuntime.TASK_STATE_FAILED, replayState.get(),
+                    "interrupted durable task was not reconciled to FAILED");
             assertTrue(replayRetryable.get(),
                     "unrecovered durable replay failure was not retryable");
 

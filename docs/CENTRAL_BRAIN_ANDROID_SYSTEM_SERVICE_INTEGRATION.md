@@ -217,3 +217,5 @@ R4B1 的 durable task repository 仍是 Runtime APK 内部 Java/Room 组件，�
 R4B2 已把同一 app-private repository 接入 source-built `CentralBrainRuntimeService`，但部署模型不变：仍是显式 APK Binder Service，不注册到 framework `servicemanager`，不修改 system image。数据库只承载 task metadata/digest/checkpoint/audit；`task_recovery_enabled=false`、approval 仍非 durable、outbox/dispatch 关闭，因此该 APK 集成不能替代 system-server/direct-boot/目标硬件恢复验收。
 
 R4B3 同样只在 source-built `CentralBrainGovernanceService` 内打开 app-private Room，使 approval request/status/cancel/expiry 可跨进程恢复。它不增加 framework API、system permission、priv-app 白名单、SELinux 或 vendor service；`durable=true` 不代表 approve/grant authority。目标系统的 direct boot、trusted clock、key availability 和真实 Safety/VHAL authority 仍需平台侧证据。
+
+R4C1 在同一 source-built Runtime APK 内增加非主线程启动对账和 Binder task-call 屏障，不改变部署模型、签名权限或 frozen AIDL。进程重启后的 active/未结算 completion 失败关闭为 FAILED，并通过原 handle 向 owner 回放；它不会自动恢复执行、创建 pending effect/outbox 或访问 vendor service。Android 13 目标设备移植只需验证 APK 签名/权限、app-private Room、进程死亡与重连；direct boot、system-server 注册、SELinux、真实 VHAL/Safety/NPU 仍不在本增量内。

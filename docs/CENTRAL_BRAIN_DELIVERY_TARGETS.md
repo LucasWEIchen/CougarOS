@@ -742,3 +742,11 @@ R4B3 交付 `DurableApprovalRepository`、Governance Service Room wiring、appro
 API 33 门禁新增 `approval_reopen_replay_verified=true`、`approval_idempotency_conflict_verified=true`、`approval_owner_isolation_verified=true`、`approval_expiry_verified=true`、`production_durable_approval_verified=true` 和 `approval_durable=true`；同时必须保持 `approval_grant_supported=false`、`service_dispatch_triggered=false`。
 
 该交付只使 request/status/cancel/expiry durable，不提供 approve/grant authority、真实 Safety/VHAL source、effect/outbox dispatch、task restart execution recovery 或硬件资格。Expiry 是 access-triggered wall-clock sweep；terminal retention、trusted clock、encryption/key lifecycle 继续由 ISSUE-022 跟踪。
+
+## Android R4C1 Fail-Closed Restart Reconciliation 交付补充
+
+R4C1 交付 DAO restart candidate query、transactional FAILED/checkpoint/audit reconciliation、Runtime 后台启动屏障、无 live record 的 owner-scoped replay/settlement、SDK per-task serial callback delivery、debug-only isolated restart probe 和 `tools/check_central_brain_android_restart_reconciliation.sh`。Frozen AIDL/checksum 与标准三项 artifact 不变。
+
+API 33 标准安装门禁新增 `restart_reconciliation_enabled=true`、`restart_reconciliation_idempotent=true`、`incomplete_completion_reconciled_failed=true` 和 `task_execution_resume_enabled=false`；service-death instrumentation 必须输出 `restart_reconciliation_verified=true`，并继续通过 terminal uniqueness、cancel-completion race 和 no-hardware 门禁。
+
+该阶段是 fail-closed reconciliation，不是执行恢复：active 与未结算 COMPLETED task 均转为 FAILED；exact replay 返回相同 handle 和 retryable failure。它不保存/重放 raw utterance/result，不创建 pending effect/outbox，不 dispatch Action/SOA/Skill，不访问真实硬件，不新增 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。

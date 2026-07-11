@@ -1,5 +1,7 @@
 package com.centralbrain.runtime.persistence;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -17,6 +19,8 @@ public final class DurableTaskRepository {
     public static final String AUDIT_TASK_TRANSITION = "TASK_TRANSITION";
     public static final String AUDIT_TERMINAL_DELIVERY_SETTLED =
             "TASK_TERMINAL_DELIVERY_SETTLED";
+    public static final String AUDIT_TASK_RESTART_RECONCILED =
+            "TASK_RESTART_RECONCILED";
 
     private static final int MAX_METADATA_LENGTH = 256;
     private static final int MAX_GENERATED_ID_LENGTH = 128;
@@ -240,6 +244,57 @@ public final class DurableTaskRepository {
             }
             TaskCheckpointEntity latest = dao.findLatestCheckpoint(taskId);
             return Snapshot.from(task, latest == null ? 0 : latest.sequence);
+        });
+    }
+
+    public ReconciliationReport reconcileInterruptedTasks() {
+        return runTransaction(() -> {
+            long now = now();
+            int activeCount = 0;
+            int incompleteCompletionCount = 0;
+            List<String> taskIds = new ArrayList<>();
+            for (RuntimeTaskEntity task : dao.findTasksNeedingRestartReconciliation()) {
+                String previousState = task.state;
+                if (STATE_COMPLETED.equals(previousState)) {
+                    incompleteCompletionCount++;
+                } else {
+                    activeCount++;
+                }
+                TaskCheckpointEntity latest = dao.findLatestCheckpoint(task.taskId);
+                long nextSequence = latest == null ? 1 : latest.sequence + 1;
+                String reconciliationDigest = DurableDigest.sha256(
+                        "central-brain-task-restart-reconciliation-v1",
+                        task.taskId,
+                        previousState,
+                        Long.toString(nextSequence),
+                        task.payloadDigest);
+                task.state = STATE_FAILED;
+                task.updatedAtWallMs = now;
+                task.terminalDeliverySettled = false;
+                if (dao.updateTask(task) != 1) {
+                    throw new IllegalStateException(
+                            "restart reconciliation did not update one task row");
+                }
+                dao.insertCheckpoint(checkpoint(
+                        task.taskId,
+                        nextSequence,
+                        (int) Math.min(Integer.MAX_VALUE, nextSequence - 1),
+                        STATE_FAILED,
+                        reconciliationDigest,
+                        now));
+                insertAudit(
+                        task.taskId,
+                        task.ownerFingerprint,
+                        AUDIT_TASK_RESTART_RECONCILED,
+                        previousState + "->" + STATE_FAILED,
+                        reconciliationDigest,
+                        now);
+                taskIds.add(task.taskId);
+            }
+            return new ReconciliationReport(
+                    activeCount,
+                    incompleteCompletionCount,
+                    taskIds);
         });
     }
 
@@ -512,6 +567,38 @@ public final class DurableTaskRepository {
 
         public boolean isTerminal() {
             return DurableTaskRepository.isTerminal(state);
+        }
+    }
+
+    public static final class ReconciliationReport {
+        private final int activeTaskCount;
+        private final int incompleteCompletionCount;
+        private final List<String> taskIds;
+
+        private ReconciliationReport(
+                int activeTaskCount,
+                int incompleteCompletionCount,
+                List<String> taskIds) {
+            this.activeTaskCount = activeTaskCount;
+            this.incompleteCompletionCount = incompleteCompletionCount;
+            this.taskIds = java.util.Collections.unmodifiableList(
+                    new ArrayList<>(taskIds));
+        }
+
+        public int getActiveTaskCount() {
+            return activeTaskCount;
+        }
+
+        public int getIncompleteCompletionCount() {
+            return incompleteCompletionCount;
+        }
+
+        public int getTotalCount() {
+            return taskIds.size();
+        }
+
+        public List<String> getTaskIds() {
+            return taskIds;
         }
     }
 

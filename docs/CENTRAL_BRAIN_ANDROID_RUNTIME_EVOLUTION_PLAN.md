@@ -115,9 +115,12 @@
 - R4B1 尚未接入 production Runtime/Governance Service，固定 `runtime_repository_wired=false`；task transition/checkpoint/terminal delivery、approval repository 和 restart recovery 仍待后续 R4B/R4C。
 - `R4B2 durable Runtime wiring` 已完成：production Runtime 在返回 handle 前完成 durable admission；ACCEPTED sequence 1、后续 transition + checkpoint + audit、terminal callback settlement 均采用明确 Room transaction，Job Supervisor 只在 durable transition 成功后推进。
 - Same-process exact replay 返回同 handle 并支持最多 4 个有界 observer callback；短 admission lock 覆盖 Room admission 到 live-map publish，Demo/API 33 已验证 sequential + concurrent replay callback 完成。Exact existing replay 即使原 deadline 已过仍可返回，new expired request 不产生 task。
-- Owner status 可 fallback 到 durable metadata；数据库存在但当前进程未恢复的 replay 明确回调 retryable `ERROR_INTERNAL`，固定 `task_recovery_enabled=false`，不会重复执行。API 33 service-death/reconnect instrumentation 已输出 `durable_recovery_pending_verified=true`；R4C 才实现 restart recovery/fault injection。
+- Owner status 可 fallback 到 durable metadata；数据库存在但当前进程未恢复的 replay 明确回调 retryable `ERROR_INTERNAL`，固定 `task_recovery_enabled=false`，不会重复执行。API 33 service-death/reconnect instrumentation 已输出 `durable_recovery_pending_verified=true`；后续 R4C 负责定义 restart handling/fault injection，R4C1 最终选择 fail-closed reconciliation 而不是执行续跑。
 - `R4B3 durable approval` 已完成：Governance 使用 owner-scoped Room request/status/cancel/expiry/audit；跨 DB reopen exact key/action replay、mismatch conflict、owner isolation、cancel idempotency 和 lazy expiry 均有 API 33 证据。`ApprovalStatus.durable=true`，但 grant/dispatch 仍为 false。
-- R4B 已关闭；R4 尚未关闭：R4C 需 process restart recovery、pending effect/outbox 状态机、crash-point/fault/race tests 和 retention/trusted-clock 决策。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
+- `R4C1 fail-closed restart reconciliation` 已完成：Runtime 在单线程后台执行器中先完成启动对账，并以 Future 屏障阻止 task submit/cancel/status 越过对账。ACCEPTED/RUNNING 与未完成终态回执的 COMPLETED 在单 Room transaction 中转为 FAILED，追加 checkpoint/audit，且保持 terminal delivery 未结算。
+- 由于当前只保存 digest/metadata，不保存可重放的原始 utterance/result，R4C1 不恢复执行。Exact replay 返回原 handle，按顺序回调 durable FAILED status 和 retryable `ERROR_INTERNAL`，回调尝试后再幂等结算；SDK 对每个 task callback 使用串行投递器，避免 update/terminal 乱序。
+- API 33 已验证对账幂等、active/incomplete-completion 两类失败关闭、进程死亡后同 handle/FAILED replay、终态唯一和 cancel-completion race；固定 `restart_reconciliation_enabled=true`、`task_execution_resume_enabled=false`、`durable_dispatch_enabled=false`。
+- R4B 已关闭；R4 尚未关闭：R4C2 需 pending effect/outbox 状态机，后续还需 crash-point/fault/race tests 和 retention/trusted-clock 决策。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

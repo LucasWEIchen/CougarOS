@@ -290,6 +290,40 @@ if [[ "$APPROVAL_REPOSITORY_PASSED" != true ]]; then
   exit 1
 fi
 
+RESTART_NONCE="$(date +%s%N)"
+RESTART_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.RestartReconciliationProbeActivity \
+  --es nonce "$RESTART_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$RESTART_PROBE_OUTPUT"; then
+  echo "$RESTART_PROBE_OUTPUT" >&2
+  echo "restart reconciliation debug probe did not start successfully" >&2
+  exit 1
+fi
+RESTART_PROBE_PASSED=false
+for _ in {1..40}; do
+  RESTART_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbRestartProbe:I)"
+  if grep -Fq "nonce=$RESTART_NONCE restart_probe_complete=true" \
+      <<<"$RESTART_LOG" \
+      && grep -Fq "active_task_reconciled_failed=true" <<<"$RESTART_LOG" \
+      && grep -Fq "incomplete_completion_reconciled_failed=true" \
+        <<<"$RESTART_LOG" \
+      && grep -Fq "restart_reconciliation_report_verified=true" \
+        <<<"$RESTART_LOG" \
+      && grep -Fq "restart_reconciliation_idempotent=true" <<<"$RESTART_LOG" \
+      && grep -Fq "restart_reconciliation_audit_count=2" <<<"$RESTART_LOG" \
+      && grep -Fq "task_execution_resume_enabled=false" <<<"$RESTART_LOG" \
+      && grep -Fq "durable_dispatch_enabled=false" <<<"$RESTART_LOG"; then
+    RESTART_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$RESTART_PROBE_PASSED" != true ]]; then
+  echo "$RESTART_LOG" >&2
+  echo "restart reconciliation probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -363,6 +397,11 @@ fi
 if ! grep -Fq "runtime_repository_wired=true task_recovery_enabled=false" \
     <<<"$RUNTIME_LOG"; then
   echo "Runtime did not report the bounded R4B2 repository/recovery boundary" >&2
+  exit 1
+fi
+if ! grep -Fq "restart_reconciliation_enabled=true task_execution_resume_enabled=false" \
+    <<<"$RUNTIME_LOG"; then
+  echo "Runtime did not report the R4C1 fail-closed restart boundary" >&2
   exit 1
 fi
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
@@ -471,6 +510,10 @@ printf '%s\n' \
   "task_owner_isolation_verified=true" \
   "runtime_repository_wired=true" \
   "task_recovery_enabled=false" \
+  "restart_reconciliation_enabled=true" \
+  "restart_reconciliation_idempotent=true" \
+  "incomplete_completion_reconciled_failed=true" \
+  "task_execution_resume_enabled=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

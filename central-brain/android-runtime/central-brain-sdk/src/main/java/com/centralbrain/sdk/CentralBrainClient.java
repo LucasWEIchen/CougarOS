@@ -15,12 +15,13 @@ import com.centralbrain.sdk.production.TaskHandle;
 import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
 
+import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Typed Android client for the R2 production Binder surface.
@@ -328,48 +329,80 @@ public final class CentralBrainClient implements AutoCloseable {
 
     private final class CallbackBridge extends ICentralBrainTaskCallback.Stub {
         private final TaskCallback callback;
-        private final AtomicBoolean terminal = new AtomicBoolean(false);
+        private final Executor deliveryExecutor;
+        private boolean terminal;
         private volatile String taskId = "";
 
         CallbackBridge(TaskCallback callback) {
             this.callback = callback;
+            this.deliveryExecutor = new SerialExecutor(callbackExecutor);
         }
 
         @Override
-        public void onTaskUpdate(TaskUpdate update) {
-            if (!terminal.get()) {
-                dispatch(() -> {
-                    if (!terminal.get()) {
-                        callback.onUpdate(update);
-                    }
-                });
+        public synchronized void onTaskUpdate(TaskUpdate update) {
+            if (!terminal) {
+                deliveryExecutor.execute(() -> callback.onUpdate(update));
             }
         }
 
         @Override
-        public void onTaskCompleted(TaskResult result) {
-            if (terminal.compareAndSet(false, true)) {
+        public synchronized void onTaskCompleted(TaskResult result) {
+            if (!terminal) {
+                terminal = true;
                 activeCallbacks.remove(asBinder());
-                dispatch(() -> callback.onCompleted(result));
+                deliveryExecutor.execute(() -> callback.onCompleted(result));
             }
         }
 
         @Override
-        public void onTaskFailed(TaskFailure failure) {
-            if (terminal.compareAndSet(false, true)) {
+        public synchronized void onTaskFailed(TaskFailure failure) {
+            if (!terminal) {
+                terminal = true;
                 activeCallbacks.remove(asBinder());
-                dispatch(() -> callback.onFailed(failure));
+                deliveryExecutor.execute(() -> callback.onFailed(failure));
             }
         }
 
-        void failFromClient(int errorCode, String message) {
-            if (terminal.compareAndSet(false, true)) {
+        synchronized void failFromClient(int errorCode, String message) {
+            if (!terminal) {
+                terminal = true;
                 TaskFailure failure = new TaskFailure();
                 failure.taskId = taskId;
                 failure.errorCode = errorCode;
                 failure.errorMessage = message;
                 failure.retryable = true;
-                dispatch(() -> callback.onFailed(failure));
+                deliveryExecutor.execute(() -> callback.onFailed(failure));
+            }
+        }
+    }
+
+    private static final class SerialExecutor implements Executor {
+        private final Queue<Runnable> tasks = new ArrayDeque<>();
+        private final Executor delegate;
+        private Runnable active;
+
+        SerialExecutor(Executor delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public synchronized void execute(Runnable command) {
+            tasks.offer(() -> {
+                try {
+                    command.run();
+                } finally {
+                    scheduleNext();
+                }
+            });
+            if (active == null) {
+                scheduleNext();
+            }
+        }
+
+        private synchronized void scheduleNext() {
+            active = tasks.poll();
+            if (active != null) {
+                delegate.execute(active);
             }
         }
     }

@@ -132,6 +132,8 @@ if [[ $INSTRUMENTATION_STATUS -ne 0 ]] \
     || ! grep -Fq "binder_reconnect_verified=true" <<<"$INSTRUMENTATION_OUTPUT" \
     || ! grep -Fq "durable_recovery_pending_verified=true" \
       <<<"$INSTRUMENTATION_OUTPUT" \
+    || ! grep -Fq "restart_reconciliation_verified=true" \
+      <<<"$INSTRUMENTATION_OUTPUT" \
     || ! grep -Fq "binder_terminal_uniqueness_verified=true" <<<"$INSTRUMENTATION_OUTPUT" \
     || ! grep -Fq "binder_cancel_completion_race_verified=true" <<<"$INSTRUMENTATION_OUTPUT"; then
   echo "R2C Binder instrumentation did not pass" >&2
@@ -199,6 +201,7 @@ printf '%s\n' \
   "binder_service_death_verified=true" \
   "binder_reconnect_verified=true" \
   "durable_recovery_pending_verified=true" \
+  "restart_reconciliation_verified=true" \
   "binder_terminal_uniqueness_verified=true" \
   "binder_cancel_completion_race_verified=true" \
   "binder_client_death_verified=true" \

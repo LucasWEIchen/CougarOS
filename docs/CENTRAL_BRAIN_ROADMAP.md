@@ -23,7 +23,7 @@
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
-| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 进行中：R4A、R4B1-3 完成；R4C task recovery/pending effect/outbox/fault tests 待完成 |
+| R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 进行中：R4A、R4B1-3、R4C1 完成；R4C2 pending effect/outbox 与后续 fault tests 待完成 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
@@ -61,9 +61,12 @@
 
 ### 2026-07-12
 
+- 完成 R4C1 fail-closed restart reconciliation：后台启动屏障先对账，ACCEPTED/RUNNING 与未结算 COMPLETED 事务性转 FAILED，追加 checkpoint/audit，且不恢复执行。
+- API 33 已验证对账幂等、same-handle FAILED replay、per-task callback 顺序、service death/reconnect、终态唯一和 cancel-completion race；`task_execution_resume_enabled=false`、dispatch/hardware/Driver/HAL/virtualization 均 false。
+- R4C 下一步为 R4C2 pending effect/outbox 状态机；R4C1 覆盖 Req ID：`FW-U-004`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-004`。
 - 完成 R4B3 durable approval：Governance request/status/cancel/expiry/audit 接入 owner-scoped Room，`ApprovalStatus.durable=true`，grant/dispatch 仍 false。
 - API 33 隔离 reopen probe 验证 exact replay、action conflict、owner isolation、cancel idempotency、expiry；Demo/production DB 证明真实 Binder 路径持久化。
-- R4B 关闭，下一步 R4C restart recovery、pending effect/outbox 和 crash/fault/race；trusted clock、retention/encryption 继续开放。
+- R4B 已关闭；后续 R4C 覆盖 restart handling、pending effect/outbox 和 crash/fault/race，其中 R4C1 已采用 fail-closed reconciliation，可恢复执行仍未声明；trusted clock、retention/encryption 继续开放。
 - R4B3 覆盖 Req ID：`FW-U-004`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-004`。
 - 完成 R4B2 durable Runtime wiring：handle 前 admission、sequence checkpoint/transition audit、terminal settlement、owner status fallback 和最多 4 个 live replay observer 已接入 production Runtime。
 - API 33 验证 sequential/concurrent same-handle replay callback、completed/cancelled task、checkpoint chain 与 settlement；R2C death/race、R3 default-deny 回归继续通过。

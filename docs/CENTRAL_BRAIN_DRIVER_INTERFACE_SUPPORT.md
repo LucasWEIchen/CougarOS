@@ -465,3 +465,9 @@ Task transitions persist metadata/digests/checkpoints/audits but never create or
 R4B3 uses Java Binder identity, SHA-256 owner fingerprint and app-private Room only. Approval rows/audits contain Action ID, derived risk/reason, status, idempotency metadata and timestamps; they contain no VHAL frame, signer certificate, device handle or hardware payload.
 
 The Governance AIDL has no approve/grant call and every response keeps `dispatchAllowed=false`. No pending effect/outbox is created, no NPU/vehicle/vendor adapter is selected, and no C/C++/JNI/Driver/HAL work is added. All hardware/Driver/HAL/virtualization flags remain false. Req IDs: `FW-U-004`, `FW-U-007`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.
+
+### R4C1 Restart Reconciliation Driver/HAL Boundary
+
+R4C1 uses Java Executor/Future, Binder callback delivery and app-private Room transactions only. It reads task/checkpoint/audit metadata from SQLite and does not inspect a VHAL frame, Safety Runtime state, NPU resource, sensor, device node, vendor SDK or shared memory.
+
+Restart candidates are failed closed and never resumed or dispatched. No pending effect/outbox row is created or consumed, no C/C++/JNI/Driver/HAL code is added, and no existing DRV-GAP changes state. `task_execution_resume_enabled=false`, `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false` are exit evidence. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-003`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.

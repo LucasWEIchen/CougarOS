@@ -23,6 +23,11 @@ public interface RuntimeStateDao {
             String ownerFingerprint,
             String idempotencyKey);
 
+    @Query("SELECT * FROM runtime_task WHERE state IN ('ACCEPTED', 'RUNNING') "
+            + "OR (state = 'COMPLETED' AND terminal_delivery_settled = 0) "
+            + "ORDER BY accepted_at_wall_ms, task_id")
+    List<RuntimeTaskEntity> findTasksNeedingRestartReconciliation();
+
     @Nullable
     @Query("SELECT * FROM task_checkpoint WHERE task_id = :taskId "
             + "ORDER BY sequence DESC LIMIT 1")
