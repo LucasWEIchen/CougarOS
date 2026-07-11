@@ -519,3 +519,9 @@ Provider slots are contract counters, not detected NPU resources. Current Stub/V
 The executable Stub is Java-only and consumes model/input SHA-256 metadata. It generates bounded synthetic bytes, schedules phases on an injected executor and uses an injected elapsed clock. Fault modes mutate only in-process lifecycle state and do not emulate a vendor ABI, PCIe/IOMMU fault or Safety Runtime signal.
 
 No network, JNI/C/C++, vendor library, HAL/AIDL service, device node, ioctl/sysfs, PCIe enumeration, DMA-BUF, VHAL or hardware metric access is present. The implementation remains TEST_ONLY, profile configuration/routing and production inference remain false, and `DRV-GAP-001` stays open. Added Driver/HAL development is zero; all no-hardware/virtualization flags remain mandatory. Req IDs: `APP-004`, `XSC-004`, `NV-F-011`, `NV-G-004`, `NV-G-006`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R5B2 Test-Only Router Driver/HAL Boundary
+
+R5B2 composes Java Scheduler and deterministic-provider objects only in JVM/debug evidence. Route, lease and cancellation identifiers are synthetic application-process values; model/input material is SHA-256 metadata and output is synthetic bytes. Provider slot accounting does not discover or reserve an NPU resource.
+
+No network, JNI/C/C++, vendor library, HAL/AIDL service, device node, ioctl/sysfs, PCIe, DMA-BUF/IOMMU, VHAL, Safety Runtime or hardware metric path is added. Production Services do not construct the Router, Vendor NPU remains EMPTY and `DRV-GAP-001` stays open. Added Driver/HAL development is zero; `production_model_router_wired=false`, `production_model_router_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false` are mandatory. Req IDs: `APP-004`, `XSC-004`, `NV-F-001`, `NV-F-011`, `NV-G-004`, `NV-G-006`, `DEL-001`, `DEL-004`, `DEL-005`.

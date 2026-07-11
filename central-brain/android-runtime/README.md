@@ -167,6 +167,14 @@ Cancellation sets a flag and returns `PENDING_PROVIDER_ACK`; a later executor ph
 
 The implementation is instantiated only by JVM tests and a DUMP-protected debug probe. The current immutable profile still reports `implementationConfigured=false` and `routingEnabled=false`; Runtime, Governance, Scheduler and Model Router do not hold the provider. Ollama, Vendor NPU, network and hardware access remain disabled.
 
+## R5B2 Test-Only Model Router
+
+`TestOnlyModelRouter` is the first executable Scheduler-to-Provider coordinator. Its only factory is `createForContractTest`, and its only route is `test.deterministic.stub`. A trusted Runtime-policy request is admitted by `InferenceResourceScheduler`, claimed with a lease, converted to a digest-only provider request and dispatched to `DeterministicStubModelProvider`. Stream chunks are forwarded transiently; provider handle, request and lease identities are validated before terminal settlement.
+
+Queued cancellation terminates locally. Running cancellation and deadline expiry consume the Scheduler's lease-bound directive, invoke provider cancellation once, then normalize the provider acknowledgement to the Scheduler-owned CANCELLED or DEADLINE_EXCEEDED state. Exact active replay retains the original observer, changed duplicate content is rejected, duplicate terminals are ignored, and the only fallback policy is `NO_FALLBACK`.
+
+JVM tests and the DUMP-protected debug API 33 probe exercise sequential slot dispatch, stream forwarding, cancellation, deadlines, provider identity, replay, duplicate-terminal settlement and retryable failure. The router is not referenced by production Runtime/Governance, no production factory or Binder API exists, and the immutable profile remains unconfigured/non-routable. Production inference, Ollama, Vendor NPU, network and hardware access remain disabled.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

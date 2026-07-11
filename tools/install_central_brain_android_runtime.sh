@@ -650,6 +650,75 @@ if [[ "$STUB_PROVIDER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MODEL_ROUTER_NONCE="$(date +%s%N)"
+MODEL_ROUTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.TestOnlyModelRouterProbeActivity \
+  --es nonce "$MODEL_ROUTER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MODEL_ROUTER_PROBE_OUTPUT"; then
+  echo "$MODEL_ROUTER_PROBE_OUTPUT" >&2
+  echo "test-only model router debug probe did not start successfully" >&2
+  exit 1
+fi
+MODEL_ROUTER_PROBE_PASSED=false
+for _ in {1..40}; do
+  MODEL_ROUTER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbModelRouterProbe:I)"
+  if grep -Fq "nonce=$MODEL_ROUTER_NONCE model_router_probe_complete=true" \
+      <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "test_model_router_contract_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "test_model_router_e2e_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "scheduler_provider_lease_binding_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_stream_forward_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_cancel_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_deadline_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_no_fallback_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_terminal_once_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_provider_identity_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_replay_validation_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_profile_boundary_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "test_model_router_dispatch_verified=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "provider_infer_invoked_in_debug=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_test_only=true" <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "model_router_implementation_available=true" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "production_model_router_wired=false" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "production_model_router_dispatch_enabled=false" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "production_inference_enabled=false" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "deterministic_stub_implementation_configured=false" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "deterministic_stub_routing_enabled=false" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "ollama_android_provider_configured=false" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "vendor_npu_provider_available=false" \
+        <<<"$MODEL_ROUTER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$MODEL_ROUTER_LOG"; then
+    MODEL_ROUTER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MODEL_ROUTER_PROBE_PASSED" != true ]]; then
+  echo "$MODEL_ROUTER_LOG" >&2
+  echo "test-only model router probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -982,6 +1051,23 @@ printf '%s\n' \
   "deterministic_stub_profile_boundary_verified=true" \
   "deterministic_stub_test_only=true" \
   "deterministic_stub_implementation_available=true" \
+  "test_model_router_contract_verified=true" \
+  "test_model_router_e2e_verified=true" \
+  "scheduler_provider_lease_binding_verified=true" \
+  "model_router_stream_forward_verified=true" \
+  "model_router_cancel_verified=true" \
+  "model_router_deadline_verified=true" \
+  "model_router_no_fallback_verified=true" \
+  "model_router_terminal_once_verified=true" \
+  "model_router_provider_identity_verified=true" \
+  "model_router_replay_validation_verified=true" \
+  "model_router_profile_boundary_verified=true" \
+  "test_model_router_dispatch_verified=true" \
+  "provider_infer_invoked_in_debug=true" \
+  "model_router_test_only=true" \
+  "model_router_implementation_available=true" \
+  "production_model_router_wired=false" \
+  "production_model_router_dispatch_enabled=false" \
   "production_inference_enabled=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \

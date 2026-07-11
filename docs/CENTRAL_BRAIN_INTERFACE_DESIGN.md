@@ -963,3 +963,17 @@ This interface is observation-only. Neither Service gets an adapter or material-
 | `close()` | active 终结为 CANCELLED，进入 STOPPED | 重复 close 幂等，禁止 reuse |
 
 Provider output 只由 `modelId + inputDigest` 生成 synthetic bytes；不接收真实 utterance 或 buffer。Terminal history 上限 64。R5B1 不创建 Model Router，不接 Scheduler lease；class availability 与 profile activation 分离，当前 profile 仍 implementation/routing false。
+
+## Android R5B2 Test-Only Model Router
+
+| 接口/类型 | 调用关系 | 输出/约束 |
+| --- | --- | --- |
+| `createForContractTest(scheduler, provider)` | debug/test composition root -> Router | 只接受 deterministic TEST_ONLY provider；无 production factory |
+| `routeTargetForContractTest(provider)` | Router -> Scheduler route catalog | 固定 `test.deterministic.stub`，slot/cancel 来自受检 descriptor |
+| `submit(TrustedRouteRequest, observer)` | trusted test caller -> Scheduler -> Provider | typed ADMITTED/REPLAYED/REJECTED/PROVIDER_UNAVAILABLE；claim 后才 infer |
+| `pump()` | Router -> Scheduler `claimNext` -> Provider `infer` | lease/request/provider identity 全匹配才计为 dispatched |
+| `cancelOwned(requestId, owner, reason)` | caller -> Scheduler directive -> Provider cancel | queued 本地 terminal；running provider ack 后归一化 terminal |
+| `tick()` | elapsed clock -> Scheduler sweep -> Provider cancel | queue expiry、running deadline、unsupported cancel 失败关闭 |
+| `snapshot()` | debug diagnostics -> Router | bounded counters、`NO_FALLBACK`、production/hardware false |
+
+Provider chunks 仅在 matching active lease 下转发；terminal 先由 Scheduler settle，再向原 observer 交付且最多一次。Exact replay 不替换 observer；changed duplicate 拒绝。Router 不写 Room、不拥有最终 durable task 状态，也不允许 Ollama/Vendor fallback。Production Runtime/Governance 不引用该 class，current profile 仍 configuration/routing false。

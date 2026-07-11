@@ -271,6 +271,8 @@
 
 2026-07-12 R5B1 进展：已实现 TEST_ONLY deterministic provider，JVM/API 33 覆盖 model warmup、ordered stream、跨实例 deterministic output、cancel acknowledgement、metrics、retryable fault 和 fault isolation。Implementation class 可用，但 immutable profile 仍未配置/未路由，production Service/Scheduler/Router 不引用；Ollama/Vendor/hardware 均未接入。ISSUE-024 保持 Open：R5B2 Router lease/provider 编排、取消竞态与 fallback/熔断矩阵、R5C diagnostics、durable recovery、Ollama debug provider 和 Vendor NPU path 尚未完成。
 
+2026-07-12 R5B2 进展：已新增 TEST_ONLY Model Router，把 Scheduler admission/lease/cancel/deadline/settlement 与 deterministic provider infer/stream/cancel 连成可执行 debug/test 路径；identity mismatch、changed replay、duplicate terminal 均失败关闭，fallback 固定 `NO_FALLBACK`。JVM/API 33 只通过 `test.deterministic.stub` 运行，production Runtime/Governance 未引用，profile configured/routing 和 production dispatch 仍 false。ISSUE-024 保持 Open：R5C production-safe diagnostics/health/fault visibility、durable scheduler/provider recovery、Ollama debug provider、production Router policy/fallback、Client2 Binder 迁移和 `DRV-GAP-001` 后 Vendor NPU path 尚未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-025 Event、Memory、Skill 生命周期与治理链

@@ -814,3 +814,11 @@ R5B1 新增 main-source TEST_ONLY provider、JVM unit test、DUMP-protected debu
 API 33 验收必须输出 lifecycle/stream/deterministic-output/cancel-ack/metrics/retryable-fault/fault-isolation/profile-boundary evidence，同时区分 `implementation_available=true` 与 `implementation_configured=false`/`routing_enabled=false`。`production_inference_enabled=false`、Ollama/Vendor unavailable 和全部 no-hardware 标志必须保持。
 
 该实现用于后续 R5B2 Router 的 deterministic test path，不是量产模型 runtime，不处理真实模型权重/输入，不证明性能、GPU/NPU utilization 或硬件 fault。当前 Android-only phase 不新增 Linux 前端。
+
+## Android R5B2 Test-Only Model Router
+
+R5B2 新增 main-source test-only Router、JVM unit test、DUMP-protected debug probe 和 `tools/check_central_brain_android_test_model_router.sh`。它只在 unit/debug composition 中把 R5A2 Scheduler 与 R5B1 provider 连接；AIDL、SDK public API、Room schema 和 SDK AAR + Runtime APK + Demo APK 形状不变。Release Runtime 不得包含 Router probe，production Services 不得引用 Router。
+
+API 33 验收必须输出 end-to-end dispatch、Scheduler/provider lease binding、stream、cancel、deadline、identity、replay、single-terminal 和 `NO_FALLBACK` evidence；同时保持 `model_router_test_only=true`、`production_model_router_wired=false`、`production_model_router_dispatch_enabled=false`、profile configured/routing false、Ollama/Vendor unavailable 和全部 no-hardware 标志。
+
+该交付不包含 production Binder/SDK inference API、真实模型输入、Room route recovery、production fallback/熔断、Ollama Android provider、Vendor NPU adapter 或 Linux 前端。R5B2 的 executable test route 不能作为量产 routing 或 NPU 验收声明。
