@@ -46,7 +46,9 @@ for path in \
   tools/build_central_brain_android_runtime.sh \
   tools/install_central_brain_android_runtime.sh \
   tools/check_central_brain_android_aidl_contract.sh \
-  tools/check_central_brain_android_binder_runtime.sh; do
+  tools/check_central_brain_android_binder_runtime.sh \
+  tools/check_central_brain_android_binder_lifecycle.sh \
+  tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
 done
 
@@ -70,10 +72,11 @@ require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidMan
 require_text "central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java" "BuildConfig.DEBUG"
 require_text "tools/install_central_brain_android_runtime.sh" "--require-api-33"
 require_text "tools/install_central_brain_android_runtime.sh" "r1_api33_exit_criteria_met"
-require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "contract_defined"'
+require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R2_TYPED_BINDER"'
+require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "android_integrated"'
 require_text "central-brain/android-runtime/central-brain-sdk/build.gradle.kts" "aidl = true"
 require_text "central-brain/android-runtime/README.md" "central_brain_api33_x86_64"
-require_text "central-brain/android-runtime/README.md" 'overall Runtime remains `contract_defined`'
+require_text "central-brain/android-runtime/README.md" 'typed Protocol Binding is `android_integrated`'
 require_text "central-brain/android-runtime/README.md" "command-line tools understand SDK XML up to version 3"
 
 if grep -R -Fq "android.permission.INTERNET" "$RUNTIME_DIR"; then
@@ -88,5 +91,6 @@ fi
 
 bash "$ROOT_DIR/tools/check_central_brain_android_aidl_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_binder_runtime.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_binder_lifecycle.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

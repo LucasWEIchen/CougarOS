@@ -56,10 +56,10 @@ public final class CentralBrainClient implements AutoCloseable {
     private final ConnectionListener connectionListener;
     private final Object connectionLock = new Object();
     private final Map<IBinder, CallbackBridge> activeCallbacks = new ConcurrentHashMap<>();
-    private final IBinder.DeathRecipient deathRecipient = this::handleServiceDeath;
 
     private ICentralBrainRuntime runtime;
     private IBinder runtimeBinder;
+    private IBinder.DeathRecipient runtimeDeathRecipient;
     private boolean bound;
     private boolean closed;
 
@@ -67,38 +67,63 @@ public final class CentralBrainClient implements AutoCloseable {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             ICentralBrainRuntime connected = ICentralBrainRuntime.Stub.asInterface(service);
+            IBinder.DeathRecipient recipient = () -> handleServiceDeath(service);
             try {
-                service.linkToDeath(deathRecipient, 0);
+                service.linkToDeath(recipient, 0);
             } catch (RemoteException exception) {
-                handleServiceDeath();
+                invalidateBinding();
                 dispatch(() -> connectionListener.onConnectionFailed("service died during bind"));
                 return;
             }
 
+            IBinder previousBinder;
+            IBinder.DeathRecipient previousRecipient;
             synchronized (connectionLock) {
                 if (closed) {
-                    safeUnlinkToDeath(service);
+                    safeUnlinkToDeath(service, recipient);
                     return;
                 }
+                previousBinder = runtimeBinder;
+                previousRecipient = runtimeDeathRecipient;
                 runtime = connected;
                 runtimeBinder = service;
+                runtimeDeathRecipient = recipient;
             }
-            dispatch(() -> connectionListener.onConnected(CentralBrainClient.this));
+            safeUnlinkToDeath(previousBinder, previousRecipient);
+            if (!service.isBinderAlive()) {
+                handleServiceDeath(service);
+                return;
+            }
+            dispatch(() -> {
+                if (isCurrentConnection(service)) {
+                    connectionListener.onConnected(CentralBrainClient.this);
+                }
+            });
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            handleServiceDeath();
+            if (!hasLiveConnection()) {
+                handleServiceDeath(null);
+            }
         }
 
         @Override
         public void onBindingDied(ComponentName name) {
-            handleServiceDeath();
+            if (hasLiveConnection()) {
+                return;
+            }
+            invalidateBinding();
+            handleServiceDeath(null);
         }
 
         @Override
         public void onNullBinding(ComponentName name) {
-            clearConnection();
+            if (hasLiveConnection()) {
+                return;
+            }
+            invalidateBinding();
+            handleServiceDeath(null);
             dispatch(() -> connectionListener.onConnectionFailed("runtime returned a null Binder"));
         }
     };
@@ -113,6 +138,7 @@ public final class CentralBrainClient implements AutoCloseable {
     }
 
     public boolean connect() {
+        boolean didBind;
         synchronized (connectionLock) {
             if (closed) {
                 throw new IllegalStateException("client is closed");
@@ -121,12 +147,24 @@ public final class CentralBrainClient implements AutoCloseable {
                 return true;
             }
             Intent intent = new Intent().setComponent(RUNTIME_COMPONENT);
-            bound = appContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
-            if (!bound) {
-                dispatch(() -> connectionListener.onConnectionFailed("bindService returned false"));
-            }
-            return bound;
+            didBind = appContext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+            bound = didBind;
         }
+        if (!didBind) {
+            dispatch(() -> connectionListener.onConnectionFailed("bindService returned false"));
+        }
+        return didBind;
+    }
+
+    public boolean reconnect() {
+        synchronized (connectionLock) {
+            if (closed) {
+                throw new IllegalStateException("client is closed");
+            }
+        }
+        handleServiceDeath(null);
+        invalidateBinding();
+        return connect();
     }
 
     public boolean isConnected() {
@@ -174,6 +212,7 @@ public final class CentralBrainClient implements AutoCloseable {
     @Override
     public void close() {
         IBinder binderToUnlink;
+        IBinder.DeathRecipient recipientToUnlink;
         boolean shouldUnbind;
         synchronized (connectionLock) {
             if (closed) {
@@ -181,15 +220,17 @@ public final class CentralBrainClient implements AutoCloseable {
             }
             closed = true;
             binderToUnlink = runtimeBinder;
+            recipientToUnlink = runtimeDeathRecipient;
             shouldUnbind = bound;
             runtime = null;
             runtimeBinder = null;
+            runtimeDeathRecipient = null;
             bound = false;
         }
 
-        safeUnlinkToDeath(binderToUnlink);
+        safeUnlinkToDeath(binderToUnlink, recipientToUnlink);
         if (shouldUnbind) {
-            appContext.unbindService(serviceConnection);
+            safeUnbind();
         }
         failActiveCallbacks(ICentralBrainRuntime.ERROR_SERVICE_DIED, "client closed");
     }
@@ -203,16 +244,55 @@ public final class CentralBrainClient implements AutoCloseable {
         }
     }
 
-    private void handleServiceDeath() {
-        clearConnection();
-        failActiveCallbacks(ICentralBrainRuntime.ERROR_SERVICE_DIED, "runtime service died");
-        dispatch(connectionListener::onDisconnected);
-    }
-
-    private void clearConnection() {
+    private void handleServiceDeath(IBinder expectedBinder) {
+        IBinder binderToUnlink;
+        IBinder.DeathRecipient recipientToUnlink;
         synchronized (connectionLock) {
+            if (runtimeBinder == null
+                    || (expectedBinder != null && runtimeBinder != expectedBinder)) {
+                return;
+            }
+            binderToUnlink = runtimeBinder;
+            recipientToUnlink = runtimeDeathRecipient;
             runtime = null;
             runtimeBinder = null;
+            runtimeDeathRecipient = null;
+        }
+        safeUnlinkToDeath(binderToUnlink, recipientToUnlink);
+        failActiveCallbacks(ICentralBrainRuntime.ERROR_SERVICE_DIED, "runtime service died");
+        dispatch(() -> {
+            if (!isClosed()) {
+                connectionListener.onDisconnected();
+            }
+        });
+    }
+
+    private void invalidateBinding() {
+        boolean shouldUnbind;
+        synchronized (connectionLock) {
+            shouldUnbind = bound;
+            bound = false;
+        }
+        if (shouldUnbind) {
+            safeUnbind();
+        }
+    }
+
+    private boolean isCurrentConnection(IBinder service) {
+        synchronized (connectionLock) {
+            return !closed && runtimeBinder == service && service.isBinderAlive();
+        }
+    }
+
+    private boolean hasLiveConnection() {
+        synchronized (connectionLock) {
+            return runtimeBinder != null && runtimeBinder.isBinderAlive();
+        }
+    }
+
+    private boolean isClosed() {
+        synchronized (connectionLock) {
+            return closed;
         }
     }
 
@@ -227,14 +307,22 @@ public final class CentralBrainClient implements AutoCloseable {
         callbackExecutor.execute(runnable);
     }
 
-    private void safeUnlinkToDeath(IBinder binder) {
-        if (binder == null) {
+    private void safeUnlinkToDeath(IBinder binder, IBinder.DeathRecipient recipient) {
+        if (binder == null || recipient == null) {
             return;
         }
         try {
-            binder.unlinkToDeath(deathRecipient, 0);
+            binder.unlinkToDeath(recipient, 0);
         } catch (NoSuchElementException ignored) {
             // Binder already removed the recipient after service death.
+        }
+    }
+
+    private void safeUnbind() {
+        try {
+            appContext.unbindService(serviceConnection);
+        } catch (IllegalArgumentException ignored) {
+            // Android already discarded a dead/null binding.
         }
     }
 
@@ -250,7 +338,11 @@ public final class CentralBrainClient implements AutoCloseable {
         @Override
         public void onTaskUpdate(TaskUpdate update) {
             if (!terminal.get()) {
-                dispatch(() -> callback.onUpdate(update));
+                dispatch(() -> {
+                    if (!terminal.get()) {
+                        callback.onUpdate(update);
+                    }
+                });
             }
         }
 

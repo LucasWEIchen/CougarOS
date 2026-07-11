@@ -690,3 +690,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - API 33 device evidence must cover production bind/version/hash, terminal callback, duplicate cancel, diagnostic page access through a DUMP-protected debug-only probe, permission rejection and release exclusion of both debug probes.
 - R2B does not close `ISSUE-021` or promote maturity. R2C must still prove service-process death, client/callback death, explicit rebind, duplicate disconnect suppression and cancel-vs-completion races.
 - This increment does not modify vendor Android sources, access Driver/HAL/vendor SDK/NPU/vehicle interfaces, add a Linux front-end or implement virtualization.
+
+### 2026-07-12 R2C Binder lifecycle and race trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- SDK death handling must associate each `DeathRecipient` with the exact Binder instance, ignore stale/duplicate death notifications, fail every active callback exactly once with `ERROR_SERVICE_DIED`, and expose an explicit unbind/rebind operation.
+- A callback queued before a terminal completion/failure must be suppressed if it executes after the terminal transition. Service death, disconnect and cancel-completion races must not emit duplicate terminal callbacks.
+- API 33 instrumentation must force-stop the independent Runtime process, verify one disconnect and one `SERVICE_DIED`, explicitly reconnect, and complete a new typed task after recovery.
+- A concurrent multi-task race must produce both completed and cancelled outcomes, preserve duplicate-cancel consistency, emit exactly one terminal callback per task and emit no update after terminal.
+- A separate debug-only client process must submit an active task and then be force-stopped; the started Runtime must observe callback Binder death and cancel with `CANCEL_REASON_CLIENT_DIED`.
+- Test components must require `android.permission.DUMP`, exist only in debug/androidTest source sets and be absent from release. Device tests report no hardware, Driver/HAL or virtualization access.
+- R2 exit promotes the typed Android Protocol Binding module to `android_integrated`, not `hardware_validated` or `production_qualified`. The legacy JSON Binder/HTTP migration remains under DEV-018/ISSUE-021 and R7.

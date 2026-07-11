@@ -28,7 +28,7 @@ Production AIDL contains only typed task fields; JSON, `Bundle`, file descriptor
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
-The R2B deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C still owns process-death, reconnect and cancel-vs-completion race instrumentation, so overall maturity remains `contract_defined`.
+The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`; Job Supervisor, trusted identity, durability, hardware and production qualification remain later stages.
 
 ## Toolchain
 
@@ -68,8 +68,16 @@ Use `--serial <serial>` when multiple devices are attached and `--skip-build` to
 
 The check installs both APKs, invokes the DUMP-protected lifecycle and diagnostic probes, verifies both signature-permission boundaries, launches Demo HMI, checks typed Binder completion/cancellation UI, and reports hardware/Driver/HAL/virtualization boundaries.
 
+Run the R2 Binder lifecycle suite on Android 13 with:
+
+```bash
+bash tools/test_central_brain_android_binder_lifecycle.sh --require-api-33
+```
+
+It builds and installs the debug/androidTest artifacts, runs service-death/reconnect and cancel-completion instrumentation, then verifies callback death by force-stopping a separate debug client process. The test path never accesses hardware or vendor interfaces.
+
 The existing hand-built Android Console and Client2 reverse-demo APK remain separate compatibility/test artifacts. They are not copied into this Gradle project.
 
-Build success alone proves `contract_defined` only. R1 and R2B strict validation passed on the `central_brain_api33_x86_64` Android 13 AVD with system image revision 17, fingerprint `google/sdk_gphone64_x86_64/emu64x:13/TE1A.240213.009/12342917:userdebug/dev-keys`, and a `1920x1080` display. The overall Runtime remains `contract_defined` until R2C closes the required Binder death/reconnect/race instrumentation evidence.
+Build success alone proves `contract_defined` only. R1 and complete R2 strict validation passed on the `central_brain_api33_x86_64` Android 13 AVD with system image revision 17, fingerprint `google/sdk_gphone64_x86_64/emu64x:13/TE1A.240213.009/12342917:userdebug/dev-keys`, and a `1920x1080` display. Binder/instrumentation plus API 33 evidence promotes only the typed Protocol Binding to `android_integrated`; it does not imply target-hardware validation or production qualification.
 
 The local build currently warns that its Android SDK command-line tools understand SDK XML up to version 3 while the installed SDK contains version 4 metadata. The build succeeds, but production CI must align command-line tools and SDK metadata before qualification.

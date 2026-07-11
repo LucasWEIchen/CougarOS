@@ -105,6 +105,8 @@ for path in \
   tools/install_central_brain_android_runtime.sh \
   tools/check_central_brain_android_aidl_contract.sh \
   tools/check_central_brain_android_binder_runtime.sh \
+  tools/check_central_brain_android_binder_lifecycle.sh \
+  tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
   require_file "$path"
 done
@@ -134,8 +136,15 @@ require_text "$PLAN" "R2B typed Binder runtime"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R2B typed Binder runtime trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "typed_binder_connected=true"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R2B Binder Runtime Driver/HAL Boundary"
-require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "R2C 的 service/client death"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "R2C 已通过 API 33"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "R2C"
+require_text "$PLAN" "R2C Binder lifecycle/race instrumentation"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R2C Binder lifecycle and race trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "r2_binder_exit_criteria_met=true"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R2C Binder Lifecycle Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成"
+require_text "docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md" "R2C Lifecycle And Race Evidence"
+require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "android_integrated"'
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

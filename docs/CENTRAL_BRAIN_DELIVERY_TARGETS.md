@@ -25,6 +25,8 @@ R2A 已在 `central-brain-sdk` AAR 中编译 production、oneway callback 和 di
 
 R2B 已交付两个独立 signature-permission Service、`CentralBrainClient` typed binding、deterministic async task/cancel path 和 read-only diagnostic paging。API 33 x86_64 设备门禁已验证 `typed_binder_connected=true`、`typed_binder_callback_completed=true`、`typed_binder_cancel_confirmed=true`、`signature_permission_enforced=true`、`diagnostic_permission_requested_by_demo=false`、`diagnostic_binder_page_verified=true`；release manifest 不包含 DUMP-protected debug probes。R2C death/reconnect/race 测试未完成，成熟度仍为 `contract_defined`。
 
+R2C 新增 custom Android instrumentation、debug-only client death probe 和 `tools/test_central_brain_android_binder_lifecycle.sh`。API 33 x86_64 输出 `binder_service_death_verified=true`、`binder_reconnect_verified=true`、`binder_terminal_uniqueness_verified=true`、`binder_cancel_completion_race_verified=true`、`binder_client_death_verified=true`、`r2_binder_exit_criteria_met=true`。Typed Android Protocol Binding 当前为 `android_integrated`；真实 SoC/NPU、可信 capability、持久化、量产性能和旧 adapter 迁移尚未完成，不得提升为 `hardware_validated` 或 `production_qualified`。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |

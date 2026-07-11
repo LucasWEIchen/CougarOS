@@ -76,7 +76,10 @@
 - `CentralBrainClient` 使用 explicit component 和 SDK AAR 的 narrow package visibility query，提供 typed submit/cancel/status、callback executor 和 service `DeathRecipient`；Runtime 为每个 remote callback 注册 `DeathRecipient`。
 - Deterministic task runner 在单线程 executor 上发出 ACCEPTED/RUNNING/COMPLETED，cancel 只在 Binder 线程标记状态并异步通知，重复 cancel 幂等；diagnostic 为只读有界 cursor page。所有路径固定 `hardware_accessed=false`。
 - API 33 x86_64 设备门禁已验证 typed Binder connect/version/hash、completion callback、duplicate cancel、两个 signature permission 拒绝和 diagnostic page；release APK 已确认排除两个 DUMP-protected debug probe。
-- R2 仍未退出：R2C 必须补齐 service-process/client-process/callback death、显式 rebind、重复 disconnect 抑制和 cancel-vs-completion race instrumentation。成熟度保持 `contract_defined`，`DEV-018`/`ISSUE-021` 继续 Open。
+- `R2C Binder lifecycle/race instrumentation` 已完成：SDK death recipient 与具体 Binder 实例绑定，stale/duplicate death 被忽略，`reconnect()` 明确执行 unbind/rebind，terminal 后排队 update 被抑制。
+- Custom Android instrumentation 在 API 33 x86_64 上 force-stop Runtime，验证活动任务只收到一次 `SERVICE_DIED`、只通知一次 disconnect、显式重连后新任务完成；15-task 并发测试同时得到 completed/cancelled 且每任务只有一个 terminal callback。
+- Debug-only client-death probe 在独立 app process 提交任务后被 force-stop；保持 started 的 Runtime 观察 callback Binder death 并以 `CANCEL_REASON_CLIENT_DIED` 取消。所有测试组件受 DUMP 保护且 release APK 不包含。
+- R2 退出条件已关闭，`central-brain-sdk`/typed Android Protocol Binding 提升到 `android_integrated`。这不代表 R3..R7、真实硬件或量产资格完成；`DEV-018`/`ISSUE-021` 继续跟踪旧 JSON Binder/HTTP compatibility migration。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
 
 ## 架构落点

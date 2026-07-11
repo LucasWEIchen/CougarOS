@@ -413,3 +413,7 @@ R2A adds Java Binder metadata and structured parcelables only. Production AIDL e
 ### R2B Binder Runtime Driver/HAL Boundary
 
 R2B adds Android application-layer Binder Service/client code, signature permissions, an in-memory deterministic task runner and read-only diagnostics. The production and diagnostic paths contain no native library, JNI, device node, ioctl, sysfs, VHAL/vendor AIDL, PCIe/NPU runtime, vehicle bus, shared memory, DMA-BUF or Safety Runtime access. API 33 device validation reports `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; no Driver/HAL gap is activated and no new driver development is required. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-005`.
+
+### R2C Binder Lifecycle Driver/HAL Boundary
+
+R2C uses public Android Binder death recipients, `bindService`/`unbindService`, app instrumentation, `am force-stop`, logcat and DUMP-protected debug Activities. The client-death scenario keeps the app-layer Runtime started only so callback Binder death can be observed. No test opens a device node, invokes JNI/HAL/vendor SDK, probes PCIe/NPU/vehicle interfaces, uses shared memory or changes the Android image. API 33 evidence reports `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; R2 completion adds zero Driver/HAL development and closes no DRV-GAP. Req IDs: `XSC-004`, `XSC-006`, `NV-F-001`, `NV-G-006`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.

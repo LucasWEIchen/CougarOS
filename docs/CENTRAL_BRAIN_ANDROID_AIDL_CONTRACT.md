@@ -2,7 +2,7 @@
 
 Version: 1.0-draft
 Date: 2026-07-12
-Stage: R2B Service/SDK/API 33 integration complete; R2C death/race verification pending
+Stage: R2 complete / typed Android Protocol Binding `android_integrated`
 
 ## Scope
 
@@ -60,19 +60,29 @@ Diagnostics are read-only snapshots. They must not invoke task submission, cance
 
 - `CentralBrainRuntimeService` validates and accepts requests on Binder, returns a `TaskHandle`, and executes the deterministic hardware-free task on a single-thread executor.
 - Cancellation marks terminal state synchronously but dispatches the cancellation update/failure asynchronously. Duplicate cancellation returns the original accepted outcome and does not duplicate notification.
-- Runtime callback Binders and the SDK service Binder use `linkToDeath`. R2C remains responsible for process-death, explicit rebind and race instrumentation before R2 exits.
+- Runtime callback Binders and the SDK service Binder use `linkToDeath`. R2C associates death recipients with exact Binder instances and verifies process death, explicit rebind and terminal race behavior.
 - `CentralBrainDiagnosticService` returns three deterministic structured records and clamps each page to `1..100`; it does not call the production Binder or any adapter.
 - `CentralBrainClient` binds an explicit component and the SDK AAR contributes a narrow `<queries><package android:name="com.centralbrain.runtime"/></queries>` declaration for Android 11+ package visibility. `QUERY_ALL_PACKAGES` is forbidden.
 - API 33 x86_64 validation passed production protocol negotiation, completion callback, duplicate cancel, shell denial by both signature permissions, Demo diagnostic-permission absence and diagnostic page probing. Debug probes require `android.permission.DUMP` and are absent from release APKs.
 - Public app-SDK code throws `IllegalArgumentException` for malformed synchronous requests; it does not depend on hidden `android.os.ServiceSpecificException`.
 
+## R2C Lifecycle And Race Evidence
+
+- `CentralBrainClient.reconnect()` explicitly unbinds and binds the known Runtime component. Stale or duplicate death notifications cannot clear a newer Binder connection.
+- Runtime force-stop fails each active task callback once with `ERROR_SERVICE_DIED`, emits one disconnect notification, and permits a new typed task to complete after explicit reconnect.
+- A 15-task cancel/completion race produces both terminal outcomes, keeps duplicate cancel outcomes consistent, emits exactly one terminal callback per task and emits no queued update after terminal.
+- A DUMP-protected debug client in a separate app process is force-stopped while its task is active. The independently started Runtime observes callback Binder death and cancels with `CANCEL_REASON_CLIENT_DIED`.
+- `tools/test_central_brain_android_binder_lifecycle.sh --serial emulator-5554 --require-api-33` records all R2 exit flags. Test Activities and instrumentation are excluded from release artifacts.
+
 ## Cancellation And Death
 
-- Client SDK links a `DeathRecipient` to the production service Binder. Service death fails all non-terminal callbacks with a stable `SERVICE_DIED` error. R2C must prove and finalize explicit rebind behavior.
+- Client SDK links a `DeathRecipient` to the production service Binder. Service death fails all non-terminal callbacks once with a stable `SERVICE_DIED` error; explicit `reconnect()` performs the required unbind/rebind.
 - Runtime links a `DeathRecipient` to every remote callback Binder. Client death removes the callback and requests cancellation of tasks that have no durable detached-execution capability.
 - `cancelTask` is idempotent. Repeated cancellation returns the same accepted/not-accepted outcome and never repeats a side effect.
 - Callback `RemoteException` is treated as callback death; no callback retry loop may block a Binder thread.
 - R2 must test service-process death, client-process death, callback death, duplicate cancel and cancel-vs-completion races.
+
+All listed R2 death/cancel/race cases have API 33 evidence. Durable task recovery across Runtime process death is not part of R2 and remains R4 work.
 
 ## Versioning
 

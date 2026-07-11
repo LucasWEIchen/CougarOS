@@ -208,7 +208,7 @@ for _ in {1..20}; do
 done
 for expected in \
   "Central Brain" \
-  "contract_defined" \
+  "android_integrated" \
   "Typed Binder: connected v1" \
   "Typed Binder: completed" \
   "Cancel: confirmed"; do
@@ -231,7 +231,7 @@ printf '%s\n' \
   "runtime_service_running=true" \
   "runtime_pid=$RUNTIME_PID" \
   "demo_hmi_resumed=true" \
-  "demo_ui_contract_defined=true" \
+  "demo_ui_android_integrated=true" \
   "typed_binder_connected=true" \
   "typed_binder_callback_completed=true" \
   "typed_binder_cancel_confirmed=true" \

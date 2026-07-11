@@ -35,7 +35,7 @@ public final class CentralBrainRuntimeService extends Service {
 
     private static final String TAG = "CentralBrainRuntime";
     private static final long START_DELAY_MS = 40;
-    private static final long COMPLETE_DELAY_MS = 160;
+    private static final long COMPLETE_DELAY_MS = BuildConfig.DEBUG ? 3000 : 160;
     private static final int MAX_TEXT_LENGTH = 4096;
 
     private final AtomicLong nextTaskId = new AtomicLong(1);
@@ -112,7 +112,7 @@ public final class CentralBrainRuntimeService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, "created maturity=contract_defined hardware_accessed=false");
+        Log.i(TAG, "created maturity=" + CentralBrainSdk.MATURITY + " hardware_accessed=false");
     }
 
     @Override

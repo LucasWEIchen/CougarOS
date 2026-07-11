@@ -7,7 +7,7 @@ import org.junit.Test;
 public final class CentralBrainSdkTest {
     @Test
     public void exposesR1ContractMaturity() {
-        assertEquals("R1_GRADLE_FOUNDATION", CentralBrainSdk.EVOLUTION_STAGE);
-        assertEquals("contract_defined", CentralBrainSdk.MATURITY);
+        assertEquals("R2_TYPED_BINDER", CentralBrainSdk.EVOLUTION_STAGE);
+        assertEquals("android_integrated", CentralBrainSdk.MATURITY);
     }
 }

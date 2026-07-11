@@ -21,7 +21,7 @@
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
-| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 进行中：R2A contract、R2B Service/SDK/API 33 集成已完成；R2C death/race 测试待完成 |
+| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 待开始 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
@@ -61,6 +61,11 @@
 
 ### 2026-07-12
 
+- 完成 R2C Binder lifecycle/race instrumentation：SDK death recipient 按具体 Binder 实例关联，断连通知去重，新增显式 `reconnect()`，终态后排队 update 被抑制。
+- API 33 x86_64 真机路径测试通过 Runtime force-stop、活动任务单次 `SERVICE_DIED`、显式重绑恢复、15-task cancel/completion 竞态、重复 cancel 结果一致和 client-process death 自动取消。
+- 新增无外部依赖的 Android instrumentation runner、DUMP-protected debug-only client-death probe 和 `tools/test_central_brain_android_binder_lifecycle.sh`；release APK 排除所有测试 probe。
+- R2 退出条件关闭，typed Android Protocol Binding 提升为 `android_integrated`。旧 107-method JSON Binder/Client2 HTTP 仍由 DEV-018/ISSUE-021 跟踪；没有硬件或量产资格声明，下一阶段进入 R3 Job Supervisor/可信身份。
+- R2C 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R2B typed Binder runtime：独立 production/diagnostic Service 分别使用 `BIND_RUNTIME`/`ACCESS_DIAGNOSTICS` signature 权限；SDK AAR 新增显式组件绑定、callback executor 和 service `DeathRecipient`。
 - Runtime 以单线程 executor 执行 deterministic hardware-free task，提交快速返回 handle，支持 ACCEPTED/RUNNING/COMPLETED、异步取消、重复取消幂等和 callback death 取消；diagnostic 提供 `1..100` 有界 cursor page。
 - API 33 x86_64 实测通过 typed Binder 连接、完成 callback、重复取消、业务/诊断 signature 权限拒绝、diagnostic page probe；release APK 不包含 debug probe。成熟度仍保持 `contract_defined`，R2C 继续验证 service/client death、显式重连和 cancel-vs-completion race。
