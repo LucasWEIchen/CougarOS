@@ -949,3 +949,17 @@ This interface is observation-only. Neither Service gets an adapter or material-
 | `RouteTarget.forContractTest` | `test.*` ID、slot、cancel capability | 仅 unit/debug contract route，不是 production activation |
 
 `CANCEL_REQUESTED` 继续占用 running/global/owner/provider slot，直到 provider acknowledgement；Scheduler 不调用 `ModelProvider.infer/cancel`。Deadline cancellation 的 local terminal 固定为 DEADLINE_EXCEEDED；owner cancellation 后的迟到 COMPLETED 只作为资源释放 acknowledgement，本地映射为 CANCELLED 且不接受输出。Scheduler 只拥有 active resource admission，terminal task/checkpoint/audit 仍由 Job Supervisor 和 Room repository 持有。
+
+## Android R5B1 Deterministic Stub Provider
+
+| 接口 | 行为 | 失败/边界 |
+| --- | --- | --- |
+| `warmup(ModelSpec)` | allowlisted model ID/version/artifact digest，COLD->READY | mismatch、closed、fault-isolated 拒绝 |
+| `infer(request, observer)` | injected executor 两阶段执行；stream sequence 1/2；terminal digest | not-ready、deadline、duplicate、slot-full 拒绝 |
+| `cancel(requestId, reason)` | active 标记 cancel，返回 `PENDING_PROVIDER_ACK` | missing/terminal/unsupported typed state |
+| `snapshot()` | lifecycle/health/loaded=0..1/active=0..1，hardware=false | 无 queue；Scheduler 单独拥有排队 |
+| `metrics()` | accepted/completed/cancelled/failed bounded counters | terminal sum 不得超过 accepted |
+| `lastFault()` | NONE/retryable/terminal/fault-isolated code | 仅 test fault injection |
+| `close()` | active 终结为 CANCELLED，进入 STOPPED | 重复 close 幂等，禁止 reuse |
+
+Provider output 只由 `modelId + inputDigest` 生成 synthetic bytes；不接收真实 utterance 或 buffer。Terminal history 上限 64。R5B1 不创建 Model Router，不接 Scheduler lease；class availability 与 profile activation 分离，当前 profile 仍 implementation/routing false。

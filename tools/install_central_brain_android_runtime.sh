@@ -589,6 +589,67 @@ if [[ "$SCHEDULER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+STUB_PROVIDER_NONCE="$(date +%s%N)"
+STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
+  --es nonce "$STUB_PROVIDER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$STUB_PROVIDER_PROBE_OUTPUT"; then
+  echo "$STUB_PROVIDER_PROBE_OUTPUT" >&2
+  echo "deterministic stub provider debug probe did not start successfully" >&2
+  exit 1
+fi
+STUB_PROVIDER_PROBE_PASSED=false
+for _ in {1..40}; do
+  STUB_PROVIDER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbStubProviderProbe:I)"
+  if grep -Fq "nonce=$STUB_PROVIDER_NONCE stub_provider_probe_complete=true" \
+      <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_provider_contract_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_lifecycle_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_stream_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_output_deterministic=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_cancel_ack_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_metrics_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_retryable_fault_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_fault_isolation_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_profile_boundary_verified=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_test_only=true" <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_implementation_available=true" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_implementation_configured=false" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_routing_enabled=false" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "model_provider_runtime_wired=false" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "model_router_dispatch_enabled=false" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "production_inference_enabled=false" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "ollama_android_provider_configured=false" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "vendor_npu_provider_available=false" \
+        <<<"$STUB_PROVIDER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$STUB_PROVIDER_LOG"; then
+    STUB_PROVIDER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$STUB_PROVIDER_PROBE_PASSED" != true ]]; then
+  echo "$STUB_PROVIDER_LOG" >&2
+  echo "deterministic stub provider probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -910,6 +971,18 @@ printf '%s\n' \
   "current_profiles_non_routable_verified=true" \
   "provider_cancel_invoked=false" \
   "scheduler_production_wired=false" \
+  "deterministic_stub_provider_contract_verified=true" \
+  "deterministic_stub_lifecycle_verified=true" \
+  "deterministic_stub_stream_verified=true" \
+  "deterministic_stub_output_deterministic=true" \
+  "deterministic_stub_cancel_ack_verified=true" \
+  "deterministic_stub_metrics_verified=true" \
+  "deterministic_stub_retryable_fault_verified=true" \
+  "deterministic_stub_fault_isolation_verified=true" \
+  "deterministic_stub_profile_boundary_verified=true" \
+  "deterministic_stub_test_only=true" \
+  "deterministic_stub_implementation_available=true" \
+  "production_inference_enabled=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

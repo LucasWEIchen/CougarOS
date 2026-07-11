@@ -159,6 +159,14 @@ Limits independently bound global/per-owner queued work, global/per-owner runnin
 
 Queued cancellation removes the admission locally. Running cancellation or deadline expiry changes state to `CANCEL_REQUESTED` and returns a lease-bound directive; the scheduler never calls `ModelProvider.cancel` or `infer`. Any later provider terminal acknowledgement releases the slot, but a late completion is mapped to local CANCELLED or DEADLINE_EXCEEDED and its output is not accepted. Job Supervisor/durable workflow still owns final task state. Production Services remain unwired and all provider/hardware flags remain false.
 
+## R5B1 Deterministic Stub Provider
+
+`DeterministicStubModelProvider` is an executable implementation of the R5A1 contract, but its descriptor is permanently TEST_ONLY, non-hardware and non-production. It starts COLD, validates one allowlisted model artifact during warmup, then accepts one active request. Inference uses an injected executor and elapsed clock; streaming emits two ordered bounded chunks followed by a digest-only terminal result. Equal model/input digests produce identical output across provider instances.
+
+Cancellation sets a flag and returns `PENDING_PROVIDER_ACK`; a later executor phase emits the terminal cancellation and releases the slot. Metrics track accepted/completed/cancelled/failed work, terminal history is bounded to 64, and test fault modes cover retryable-before-stream, terminal-after-first-chunk and fault isolation. Close terminates active test work and prevents reuse.
+
+The implementation is instantiated only by JVM tests and a DUMP-protected debug probe. The current immutable profile still reports `implementationConfigured=false` and `routingEnabled=false`; Runtime, Governance, Scheduler and Model Router do not hold the provider. Ollama, Vendor NPU, network and hardware access remain disabled.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

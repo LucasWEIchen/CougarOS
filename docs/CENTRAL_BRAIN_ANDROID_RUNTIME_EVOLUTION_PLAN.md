@@ -142,7 +142,10 @@
 - `R5A2 inference resource scheduler` 已完成：pure-Java synchronized state machine 使用 Runtime-policy-only effective priority、elapsed-realtime task/queue deadline、global/per-owner queue/running quota、provider slot 和 priority/deadline/FIFO 稳定排序。
 - Queued cancel 本地移除；RUNNING cancel/deadline 只转 `CANCEL_REQUESTED` 并产生 lease-bound provider directive。Scheduler 不调用 provider；迟到 completion 仍作为 terminal acknowledgement 释放 slot，但本地映射为 CANCELLED/DEADLINE_EXCEEDED 且不接受输出，最终 task 状态仍归 Job Supervisor/durable workflow。
 - 当前 profile 仍转换为 disabled route；只有 `test.*` contract route 可在 unit/debug probe 中 enabled。Production Runtime/Governance 不引用 Scheduler，AIDL/Room/artifact shape 不变。
-- R5 仍在进行中：R5B 实现 executable deterministic stub/router fault matrix；Ollama 只允许后续 debug profile，Vendor NPU 保持 empty 到 `DRV-GAP-001` 关闭。
+- `R5B1 deterministic stub provider` 已完成：TEST_ONLY implementation 支持 COLD->READY warmup、单 slot async infer、两段 ordered stream、cancel acknowledgement、bounded terminal history、metrics 和 retryable/terminal/fault-isolated injection。
+- 同 model/input digest 跨 provider instance 输出一致；deadline/slot/duplicate/model mismatch 默认拒绝。Provider 不访问网络/vendor/hardware，descriptor 固定 non-production/non-hardware。
+- JVM/API 33 只实例化 debug/test provider；immutable production profile 仍 `implementationConfigured=false`、`routingEnabled=false`，Runtime/Governance/Scheduler/Router 不引用 instance。
+- R5 仍在进行中：R5B2 实现 test-only Model Router 连接 Scheduler lease 与 deterministic provider，并补 cancel/fault/fallback matrix；Ollama 只允许后续 debug profile，Vendor NPU 保持 empty 到 `DRV-GAP-001` 关闭。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

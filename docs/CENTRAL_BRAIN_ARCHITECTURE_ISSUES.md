@@ -269,6 +269,8 @@
 
 2026-07-12 R5A2 进展：新增 pure-Java inference resource scheduler，priority 只能由 Runtime-policy factory 形成，deadline 使用 elapsed realtime；global/per-owner queue/running quota、provider slots、priority/deadline/FIFO、active replay、queued/running cancel 和 deadline directive 已具备 JVM/API 33 evidence。Scheduler 只产生 lease/directive，不调用 provider；当前两个 profile 仍 non-routable，production Service 未 wiring。ISSUE-024 保持 Open：R5B executable deterministic provider/Router、provider health/熔断/fallback fault matrix、Ollama debug adapter、durable scheduler recovery/metrics 和 Vendor NPU hardware path 尚未完成。
 
+2026-07-12 R5B1 进展：已实现 TEST_ONLY deterministic provider，JVM/API 33 覆盖 model warmup、ordered stream、跨实例 deterministic output、cancel acknowledgement、metrics、retryable fault 和 fault isolation。Implementation class 可用，但 immutable profile 仍未配置/未路由，production Service/Scheduler/Router 不引用；Ollama/Vendor/hardware 均未接入。ISSUE-024 保持 Open：R5B2 Router lease/provider 编排、取消竞态与 fallback/熔断矩阵、R5C diagnostics、durable recovery、Ollama debug provider 和 Vendor NPU path 尚未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-025 Event、Memory、Skill 生命周期与治理链

@@ -806,3 +806,11 @@ R5A2 新增 main-source pure-Java `InferenceResourceScheduler`、JVM unit test�
 Android API 33 验收必须覆盖 trusted effective priority、priority/deadline/FIFO、global/per-owner queue/running quota、provider slot、queued expiry、running deadline cancellation directive、queued/running cancel、completion-after-cancel deterministic resolution 和 current-profile non-routing。验收同时固定 `provider_cancel_invoked=false`、`scheduler_production_wired=false`、`model_provider_runtime_wired=false`、`model_router_dispatch_enabled=false` 和全部 no-hardware 标志。
 
 该阶段不交付真实推理 UI/SDK 调用、provider execution、Ollama Android adapter、Vendor NPU adapter 或 Linux 前端。Scheduler 的 contract-test route 不是产品 route；R5B 只有在 deterministic provider fault/cancel/stream contract 通过后才能启用 test-only routing。
+
+## Android R5B1 Deterministic Stub Provider
+
+R5B1 新增 main-source TEST_ONLY provider、JVM unit test、DUMP-protected debug probe 和 `tools/check_central_brain_android_deterministic_model_provider.sh`。Standard artifact 形状、AIDL、SDK public API 和 Room schema 不变；release Runtime 不得包含 provider probe，production Services 不得实例化 provider。
+
+API 33 验收必须输出 lifecycle/stream/deterministic-output/cancel-ack/metrics/retryable-fault/fault-isolation/profile-boundary evidence，同时区分 `implementation_available=true` 与 `implementation_configured=false`/`routing_enabled=false`。`production_inference_enabled=false`、Ollama/Vendor unavailable 和全部 no-hardware 标志必须保持。
+
+该实现用于后续 R5B2 Router 的 deterministic test path，不是量产模型 runtime，不处理真实模型权重/输入，不证明性能、GPU/NPU utilization 或硬件 fault。当前 Android-only phase 不新增 Linux 前端。
