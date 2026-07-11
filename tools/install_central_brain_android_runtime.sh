@@ -179,6 +179,38 @@ if [[ "$DIAGNOSTIC_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MIGRATION_NONCE="$(date +%s%N)"
+MIGRATION_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.MigrationProbeActivity \
+  --es nonce "$MIGRATION_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MIGRATION_PROBE_OUTPUT"; then
+  echo "$MIGRATION_PROBE_OUTPUT" >&2
+  echo "Room migration debug probe did not start successfully" >&2
+  exit 1
+fi
+MIGRATION_PROBE_PASSED=false
+for _ in {1..40}; do
+  MIGRATION_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbMigrationProbe:I)"
+  if grep -Fq "nonce=$MIGRATION_NONCE migration_probe_complete=true" \
+      <<<"$MIGRATION_LOG" \
+      && grep -Fq "room_migration_1_2_verified=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "room_schema_version=2" <<<"$MIGRATION_LOG" \
+      && grep -Fq "room_table_count=8" <<<"$MIGRATION_LOG" \
+      && grep -Fq "room_wal_enabled=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "legacy_task_preserved=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "legacy_approval_preserved=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "durable_dispatch_enabled=false" <<<"$MIGRATION_LOG"; then
+    MIGRATION_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MIGRATION_PROBE_PASSED" != true ]]; then
+  echo "$MIGRATION_LOG" >&2
+  echo "Room schema/WAL/migration probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -305,6 +337,13 @@ printf '%s\n' \
   "governance_permission_requested_by_demo=true" \
   "diagnostic_permission_requested_by_demo=false" \
   "diagnostic_binder_page_verified=true" \
+  "room_schema_version=2" \
+  "room_table_count=8" \
+  "room_wal_enabled=true" \
+  "room_migration_1_2_verified=true" \
+  "legacy_task_preserved=true" \
+  "legacy_approval_preserved=true" \
+  "durable_dispatch_enabled=false" \
   "job_supervisor_active=true" \
   "trusted_caller_identity_resolved=true" \
   "request_identity_fields_used=false" \

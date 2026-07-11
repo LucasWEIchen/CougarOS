@@ -1,0 +1,670 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "ea0cdc967d4fdae5fbeaf663f9e01ed3",
+    "entities": [
+      {
+        "tableName": "runtime_session",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`session_id` TEXT NOT NULL, `owner_fingerprint` TEXT NOT NULL, `session_key` TEXT NOT NULL, `state` TEXT NOT NULL, `created_at_wall_ms` INTEGER NOT NULL, `updated_at_wall_ms` INTEGER NOT NULL, PRIMARY KEY(`session_id`))",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerFingerprint",
+            "columnName": "owner_fingerprint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionKey",
+            "columnName": "session_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtWallMs",
+            "columnName": "created_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtWallMs",
+            "columnName": "updated_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "session_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_runtime_session_owner_key",
+            "unique": true,
+            "columnNames": [
+              "owner_fingerprint",
+              "session_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_runtime_session_owner_key` ON `${TABLE_NAME}` (`owner_fingerprint`, `session_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "runtime_task",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`task_id` TEXT NOT NULL, `session_id` TEXT NOT NULL DEFAULT '', `owner_fingerprint` TEXT NOT NULL, `client_request_id` TEXT NOT NULL DEFAULT '', `idempotency_key` TEXT NOT NULL DEFAULT '', `state` TEXT NOT NULL, `progress_percent` INTEGER NOT NULL DEFAULT 0, `payload_digest` TEXT NOT NULL DEFAULT '', `accepted_at_wall_ms` INTEGER NOT NULL DEFAULT 0, `updated_at_wall_ms` INTEGER NOT NULL, `terminal_delivery_settled` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`task_id`))",
+        "fields": [
+          {
+            "fieldPath": "taskId",
+            "columnName": "task_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "ownerFingerprint",
+            "columnName": "owner_fingerprint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clientRequestId",
+            "columnName": "client_request_id",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "idempotencyKey",
+            "columnName": "idempotency_key",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressPercent",
+            "columnName": "progress_percent",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "payloadDigest",
+            "columnName": "payload_digest",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "acceptedAtWallMs",
+            "columnName": "accepted_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "updatedAtWallMs",
+            "columnName": "updated_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "terminalDeliverySettled",
+            "columnName": "terminal_delivery_settled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "task_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_runtime_task_session",
+            "unique": false,
+            "columnNames": [
+              "session_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_runtime_task_session` ON `${TABLE_NAME}` (`session_id`)"
+          },
+          {
+            "name": "index_runtime_task_owner_idempotency",
+            "unique": true,
+            "columnNames": [
+              "owner_fingerprint",
+              "idempotency_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_runtime_task_owner_idempotency` ON `${TABLE_NAME}` (`owner_fingerprint`, `idempotency_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "task_checkpoint",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`checkpoint_id` TEXT NOT NULL, `task_id` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `step_index` INTEGER NOT NULL, `state` TEXT NOT NULL, `payload_digest` TEXT NOT NULL, `created_at_wall_ms` INTEGER NOT NULL, PRIMARY KEY(`checkpoint_id`), FOREIGN KEY(`task_id`) REFERENCES `runtime_task`(`task_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "checkpointId",
+            "columnName": "checkpoint_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "task_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sequence",
+            "columnName": "sequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stepIndex",
+            "columnName": "step_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadDigest",
+            "columnName": "payload_digest",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtWallMs",
+            "columnName": "created_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "checkpoint_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_task_checkpoint_task",
+            "unique": false,
+            "columnNames": [
+              "task_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_task_checkpoint_task` ON `${TABLE_NAME}` (`task_id`)"
+          },
+          {
+            "name": "index_task_checkpoint_task_sequence",
+            "unique": true,
+            "columnNames": [
+              "task_id",
+              "sequence"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_task_checkpoint_task_sequence` ON `${TABLE_NAME}` (`task_id`, `sequence`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "runtime_task",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "task_id"
+            ],
+            "referencedColumns": [
+              "task_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "pending_effect",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`effect_id` TEXT NOT NULL, `task_id` TEXT NOT NULL, `idempotency_key` TEXT NOT NULL, `effect_type` TEXT NOT NULL, `action_id` TEXT NOT NULL, `payload_digest` TEXT NOT NULL, `state` TEXT NOT NULL, `created_at_wall_ms` INTEGER NOT NULL, `updated_at_wall_ms` INTEGER NOT NULL, PRIMARY KEY(`effect_id`), FOREIGN KEY(`task_id`) REFERENCES `runtime_task`(`task_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "effectId",
+            "columnName": "effect_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "task_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "idempotencyKey",
+            "columnName": "idempotency_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "effectType",
+            "columnName": "effect_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionId",
+            "columnName": "action_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadDigest",
+            "columnName": "payload_digest",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtWallMs",
+            "columnName": "created_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtWallMs",
+            "columnName": "updated_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "effect_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_pending_effect_task",
+            "unique": false,
+            "columnNames": [
+              "task_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pending_effect_task` ON `${TABLE_NAME}` (`task_id`)"
+          },
+          {
+            "name": "index_pending_effect_idempotency",
+            "unique": true,
+            "columnNames": [
+              "idempotency_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_pending_effect_idempotency` ON `${TABLE_NAME}` (`idempotency_key`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "runtime_task",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "task_id"
+            ],
+            "referencedColumns": [
+              "task_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "effect_outbox",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`outbox_id` TEXT NOT NULL, `effect_id` TEXT NOT NULL, `destination` TEXT NOT NULL, `envelope_digest` TEXT NOT NULL, `state` TEXT NOT NULL, `attempt_count` INTEGER NOT NULL, `not_before_wall_ms` INTEGER NOT NULL, `created_at_wall_ms` INTEGER NOT NULL, `updated_at_wall_ms` INTEGER NOT NULL, PRIMARY KEY(`outbox_id`), FOREIGN KEY(`effect_id`) REFERENCES `pending_effect`(`effect_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "outboxId",
+            "columnName": "outbox_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "effectId",
+            "columnName": "effect_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "destination",
+            "columnName": "destination",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "envelopeDigest",
+            "columnName": "envelope_digest",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attemptCount",
+            "columnName": "attempt_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notBeforeWallMs",
+            "columnName": "not_before_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtWallMs",
+            "columnName": "created_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtWallMs",
+            "columnName": "updated_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "outbox_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_effect_outbox_effect",
+            "unique": true,
+            "columnNames": [
+              "effect_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_effect_outbox_effect` ON `${TABLE_NAME}` (`effect_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "pending_effect",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "effect_id"
+            ],
+            "referencedColumns": [
+              "effect_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "approval_request",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`approval_id` TEXT NOT NULL, `owner_fingerprint` TEXT NOT NULL, `action_id` TEXT NOT NULL, `risk_class` TEXT NOT NULL DEFAULT 'UNKNOWN', `state` TEXT NOT NULL, `reason_code` TEXT NOT NULL DEFAULT '', `idempotency_key` TEXT NOT NULL DEFAULT '', `created_at_wall_ms` INTEGER NOT NULL DEFAULT 0, `expires_at_wall_ms` INTEGER NOT NULL DEFAULT 0, `updated_at_wall_ms` INTEGER NOT NULL, PRIMARY KEY(`approval_id`))",
+        "fields": [
+          {
+            "fieldPath": "approvalId",
+            "columnName": "approval_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerFingerprint",
+            "columnName": "owner_fingerprint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionId",
+            "columnName": "action_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "riskClass",
+            "columnName": "risk_class",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'UNKNOWN'"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reasonCode",
+            "columnName": "reason_code",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "idempotencyKey",
+            "columnName": "idempotency_key",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "createdAtWallMs",
+            "columnName": "created_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "expiresAtWallMs",
+            "columnName": "expires_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "updatedAtWallMs",
+            "columnName": "updated_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "approval_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_approval_owner_idempotency",
+            "unique": true,
+            "columnNames": [
+              "owner_fingerprint",
+              "idempotency_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_approval_owner_idempotency` ON `${TABLE_NAME}` (`owner_fingerprint`, `idempotency_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "audit_event",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sequence` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `event_id` TEXT NOT NULL, `event_type` TEXT NOT NULL, `subject_id` TEXT NOT NULL, `owner_fingerprint` TEXT NOT NULL, `outcome` TEXT NOT NULL, `detail_digest` TEXT NOT NULL, `observed_at_wall_ms` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "sequence",
+            "columnName": "sequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventId",
+            "columnName": "event_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventType",
+            "columnName": "event_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subjectId",
+            "columnName": "subject_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerFingerprint",
+            "columnName": "owner_fingerprint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outcome",
+            "columnName": "outcome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detailDigest",
+            "columnName": "detail_digest",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observedAtWallMs",
+            "columnName": "observed_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "sequence"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_audit_event_id",
+            "unique": true,
+            "columnNames": [
+              "event_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_audit_event_id` ON `${TABLE_NAME}` (`event_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "event_cursor",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`cursor_id` TEXT NOT NULL, `owner_fingerprint` TEXT NOT NULL, `topic` TEXT NOT NULL, `last_sequence` INTEGER NOT NULL, `updated_at_wall_ms` INTEGER NOT NULL, PRIMARY KEY(`cursor_id`))",
+        "fields": [
+          {
+            "fieldPath": "cursorId",
+            "columnName": "cursor_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerFingerprint",
+            "columnName": "owner_fingerprint",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topic",
+            "columnName": "topic",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSequence",
+            "columnName": "last_sequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtWallMs",
+            "columnName": "updated_at_wall_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "cursor_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_event_cursor_owner_topic",
+            "unique": true,
+            "columnNames": [
+              "owner_fingerprint",
+              "topic"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_event_cursor_owner_topic` ON `${TABLE_NAME}` (`owner_fingerprint`, `topic`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ea0cdc967d4fdae5fbeaf663f9e01ed3')"
+    ]
+  }
+}

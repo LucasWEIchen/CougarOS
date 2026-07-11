@@ -217,6 +217,8 @@
 
 当前处理：Android Runtime Service 使用 Room/SQLite WAL 保存 session、task、step、checkpoint、pending effect、outbox 和 event cursor；副作用必须先持久化幂等键，再通过 UIB Action/SOA/Skill dispatch。重启恢复、取消和重复投递必须有确定性测试。
 
+2026-07-12 R4A 进展：Room `2.8.4`、`CentralBrainDatabase` v2、8-table exported schema、WAL、explicit 1→2 migration 和 API 33 isolated migration probe 已完成；legacy task/approval 数据、owner/state/timestamp 与 collision-safe legacy idempotency key 均保留，禁止 destructive fallback。ISSUE-022 保持 Open：production Service repository wiring、transactional task/checkpoint/effect/outbox/approval/audit、restart recovery、duplicate delivery/fault tests 尚未完成；当前仅保存 digest/metadata，量产数据库 encryption、key rotation、retention/export/delete 仍需产品与平台 owner 决策。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

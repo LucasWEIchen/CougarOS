@@ -441,3 +441,9 @@ No code opens device nodes, invokes ioctl/sysfs, JNI, VHAL/vendor AIDL, Safety R
 R3C2 adds app-layer AIDL, Binder Service/client, signature permission and capability checks only. `ActionRequest` carries no device handle or vehicle state; the Service reads the same Runtime-owned hardware-free provider and returns `sourceHardwareBacked=false`, `sourceProductionTrusted=false`, and `dispatchAllowed=false`. Approval status remains process-local with no grant path.
 
 API 33 testing uses APK install, Binder, PackageManager, logcat and UIAutomator only. It does not invoke VHAL/vendor AIDL, Safety Runtime, Vehicle bus, shared memory, JNI, ioctl/sysfs, device nodes, PCIe NPU or vendor SDK. `DRV-GAP-002`/`DRV-GAP-005` remain open and unchanged; added Driver/HAL development is zero. `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false` are exit evidence. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `FW-U-004`, `FW-U-007`, `FW-S-005`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R4A Room Schema Driver/HAL Boundary
+
+R4A adds Java annotation processing, AndroidX Room runtime, app-private SQLite files, schema JSON and a debug migration Activity. SQLite storage uses Android application APIs and does not require kernel, HAL, vendor SDK, VHAL, Safety Runtime or shared-memory support.
+
+The migration probe creates/deletes only an isolated app-private test database and reports `durable_dispatch_enabled=false`. No pending effect or outbox row is dispatched; no NPU, Vehicle bus, device node, ioctl/sysfs, camera/audio/sensor or PCIe resource is accessed. No DRV-GAP changes state and added Driver/HAL development remains zero. Req IDs: `XSC-005`, `XSC-006`, `FW-U-004`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.

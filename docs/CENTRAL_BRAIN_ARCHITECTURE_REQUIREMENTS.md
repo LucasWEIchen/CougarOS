@@ -746,3 +746,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - API 33 allowed-client evidence must prove read/comfort policy-only, OTA approval-required, pending status, idempotent cancel, Runtime-owned state and no grant/durability/dispatch. A separately packaged same-signer unknown client must pass the outer signature permission and bind but receive `SecurityException` for all five capability groups.
 - Missing/non-owner approval status returns `UNKNOWN`; cancel returns false. R3C2 remains process-local and does not enforce idempotency durability or restart recovery; those are R4 requirements.
 - R3 exit is `R3_TRUSTED_GOVERNANCE` at `android_integrated`. This does not close target VHAL/Safety Runtime trust, approval authority, hardware validation or production qualification. Hardware, Driver/HAL, Linux front-end and virtualization flags remain false.
+
+### 2026-07-12 R4A Room durable schema trace
+
+- Req IDs: `XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- Android Runtime durable state must use an app-private Room/SQLite WAL database with exported schema and explicit migrations. `fallbackToDestructiveMigration` is forbidden.
+- Schema v2 must contain exactly session, task, checkpoint, pending effect, effect outbox, approval, audit event and event cursor tables. Task/approval/effect/outbox/cursor idempotency or owner keys require unique indexes; checkpoint/effect/outbox ownership requires foreign keys with cascade deletion.
+- `MIGRATION_1_2` must preserve legacy task and approval rows, derive collision-safe legacy idempotency keys, and pass Room schema validation. API 33 evidence must verify version 2, eight tables, WAL, task preservation and approval preservation in an isolated test database.
+- The migration probe must be DUMP-protected, debug-only and absent from release. It must never open/delete the production database.
+- R4A may persist only structured metadata and payload/detail digests; raw utterance, model output, signer certificate and vehicle frame storage are outside this increment. Encryption/key-management requirements remain a target product decision under ISSUE-022.
+- R4A does not wire production Services, recover work, enqueue/dispatch effects or grant approvals. It must report `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.

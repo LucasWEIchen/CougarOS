@@ -209,3 +209,5 @@ patch 或 sepolicy patch。
 当前 Demo 与 Runtime 使用同一测试 signer，适用于本地/API 33 验收。真实项目若 HMI、Runtime 由不同组织签名，必须由目标平台 owner 明确共享签名、签名级 permission allowlist 或受控 broker 方案，并同步 capability XML 的 package/current-signer policy；不得把 signature permission 单独当成最终 capability 授权。
 
 Governance 的 Safety/Vehicle State 当前来自 Runtime-owned hardware-free fixture，且 approval 无 grant authority、无 durable recovery、无 action dispatch。接入目标 VHAL/Safety Runtime、priv-app 签名、SELinux domain 或 vendor service 前，继续按 ISSUE-013、ISSUE-023、DRV-GAP-002、DRV-GAP-005 管理；没有目标证据时不提交厂商源码、system image、sepolicy、HAL 或 Driver patch。
+
+R4A 的 Room/SQLite WAL 位于 Runtime APK app-private data directory，不要求修改 `/system`、`/vendor` 或厂商预编译组件。当前 schema/migration probe 不使用 direct-boot storage；如果量产要求开机解锁前恢复任务，必须由目标平台 owner 决定 device-protected storage、密钥可用时序和用户隔离策略，不能在普通 APK 中假设完成。

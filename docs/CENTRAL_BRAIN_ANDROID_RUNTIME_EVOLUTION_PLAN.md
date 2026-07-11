@@ -104,6 +104,15 @@
 - R3 退出条件已关闭，`CentralBrainSdk.EVOLUTION_STAGE=R3_TRUSTED_GOVERNANCE`，成熟度保持 `android_integrated`。`DEV-019`/`ISSUE-023` 继续跟踪目标 VHAL/Safety Runtime source、量产签名/审批 authority 和 R4 durable approval/checkpoint/outbox，不能据此宣称 production qualification。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
+### R4 实施状态
+
+- `R4A Room durable schema` 已完成实现：Runtime APK 引入 AndroidX Room `2.8.4`，导出 `CentralBrainDatabase` v2 schema，开启 app-private WAL，并禁止 destructive migration fallback。
+- Schema 固定 8 张表：`runtime_session`、`runtime_task`、`task_checkpoint`、`pending_effect`、`effect_outbox`、`approval_request`、`audit_event`、`event_cursor`；task/approval/effect/outbox/event cursor 具备 owner/idempotency unique index，checkpoint/effect/outbox 具备明确 foreign-key ownership。
+- `MIGRATION_1_2` 从旧 task/approval 最小表迁移，使用 `legacy:<id>` 回填幂等键并保留状态/owner/timestamp。debug-only DUMP probe 使用隔离数据库验证 schema version、table count、WAL 和 legacy task/approval 数据保留。
+- 当前 schema 只保存 payload/checkpoint/outbox/audit digest，不保存 raw utterance、模型输出、车辆帧或 signer bytes。数据库尚未接入 production Service，固定 `durable_dispatch_enabled=false`。
+- R4 尚未关闭：R4B 需 transactional repository、task/approval/idempotency 接入；R4C 需 process restart recovery、pending effect/outbox 状态机和 fault/race tests。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
+- Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+
 ## 架构落点
 
 | 架构图层 | 本计划新增实现 |

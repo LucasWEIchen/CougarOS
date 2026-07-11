@@ -13,6 +13,14 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                argument("room.schemaLocation", "$projectDir/schemas")
+                argument("room.incremental", "true")
+                argument("room.generateKotlin", "false")
+            }
+        }
     }
 
     buildFeatures {
@@ -28,5 +36,7 @@ android {
 
 dependencies {
     implementation(project(":central-brain-sdk"))
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
     testImplementation(libs.junit)
 }

@@ -710,3 +710,11 @@ R3C2 交付 `ICentralBrainGovernance` 与 `ActionRequest`、`ActionDecision`、`
 API 33 标准安装门禁必须输出 `governance_typed_binder_connected=true`、`action_risk_classes_verified=true`、`runtime_owned_state_provider_verified=true`、`high_risk_pending_approval_verified=true`、`approval_cancel_verified=true`、`approval_grant_supported=false`、`approval_durable=false`、`service_dispatch_triggered=false`。同 signer Probe 门禁必须输出 `outer_governance_signature_permission_passed=true` 和 `governance_capability_default_deny_verified=true`。
 
 R3C2 只证明 Android 13 typed Governance 和 default-deny capability 已集成，成熟度为 `android_integrated`。它不交付真实 VHAL/Safety Runtime source、approval grant authority、durable idempotency/recovery、真实车控 dispatch、目标硬件或 production qualification；这些分别留给目标平台和 R4。无 Linux 前端、Driver/HAL、厂商系统源码或虚拟化变更。
+
+## Android R4A Room Durable Schema 交付补充
+
+R4A 交付 AndroidX Room `2.8.4` 依赖、`CentralBrainDatabase` v2、8 个 Entity、`RuntimeStateDao`、exported schema JSON、explicit `MIGRATION_1_2`、debug-only migration probe 和 `tools/check_central_brain_android_durable_schema.sh`。标准 build 仍只产出 SDK AAR、Runtime APK、Demo APK；schema JSON 是源码审查/迁移门禁 artifact。
+
+API 33 安装门禁新增 `room_schema_version=2`、`room_table_count=8`、`room_wal_enabled=true`、`room_migration_1_2_verified=true`、`legacy_task_preserved=true`、`legacy_approval_preserved=true`、`durable_dispatch_enabled=false`。Release manifest 必须排除 Migration Probe，且代码不得使用 destructive migration fallback。
+
+该阶段只交付 schema/migration，不声明 Runtime/Governance 已 durable。production Services 尚未打开数据库，不恢复 task/approval，不处理 outbox，不 dispatch action。无 Linux 前端、真实硬件、Driver/HAL、厂商系统源码或虚拟化变更；raw utterance/model output/vehicle frame 不进入 schema。

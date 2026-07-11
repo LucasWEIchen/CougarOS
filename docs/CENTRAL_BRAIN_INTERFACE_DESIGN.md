@@ -780,3 +780,22 @@ Outer access uses `com.centralbrain.permission.BIND_GOVERNANCE` (`signature`). I
 `ActionRequest` has exactly `schemaVersion`, `clientRequestId`, `actionId`, and `idempotencyKey`. `ActionDecision` exposes derived risk/outcome and Runtime state-source metadata. `ApprovalHandle/ApprovalStatus` expose bounded pending/cancelled/expired state; status always reports grant/durable/dispatch false. Governance V1 is frozen by `central-brain-sdk/aidl-api/governance-v1.sha256` and intentionally has no approval resolution method.
 
 API 33 allowed-client evidence is emitted by `tools/install_central_brain_android_runtime.sh`; same-signer unknown-client denial is emitted by `tools/test_central_brain_android_capability_policy.sh`. Req IDs: `FW-U-004`, `FW-U-007`, `FW-S-005`, `XSC-005`, `XSC-006`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`.
+
+## Android R4A Durable Schema Interfaces
+
+R4A establishes the persistence ownership boundary without changing production AIDL or wiring a dispatcher.
+
+| Room object/table | Key and integrity rule | Intended R4 owner |
+| --- | --- | --- |
+| `runtime_session` | session PK; unique owner fingerprint + session key | session lifecycle |
+| `runtime_task` | task PK; unique owner fingerprint + idempotency key | Job Supervisor durable mirror |
+| `task_checkpoint` | checkpoint PK; unique task + sequence; task FK cascade | task step/checkpoint recovery |
+| `pending_effect` | effect PK; global unique idempotency key; task FK cascade | prepare-before-side-effect boundary |
+| `effect_outbox` | outbox PK; one row per effect; effect FK cascade | retryable delivery intent |
+| `approval_request` | approval PK; unique owner fingerprint + idempotency key | durable pending/decision lifecycle |
+| `audit_event` | auto sequence; unique event ID | ordered durable governance audit |
+| `event_cursor` | cursor PK; unique owner fingerprint + topic | replay/cursor recovery |
+
+`CentralBrainDatabase.open` configures WAL and only registers explicit `MIGRATION_1_2`; destructive fallback is forbidden. `RuntimeStateDao` currently exposes migration reads and insert primitives. It is not yet the production repository API, and production Services do not open it in R4A.
+
+The debug migration probe creates a separate v1 database, inserts task/approval rows, migrates to v2, checks the eight-table schema and WAL, then deletes only the probe database. Payload-bearing columns are digests, not raw payload. R4B must add transactions and repository invariants; R4C must add restart/outbox recovery. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.

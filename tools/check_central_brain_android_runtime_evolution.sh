@@ -109,6 +109,7 @@ for path in \
   tools/check_central_brain_android_job_supervisor.sh \
   tools/check_central_brain_android_capability_policy.sh \
   tools/check_central_brain_android_action_governance.sh \
+  tools/check_central_brain_android_durable_schema.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
@@ -167,10 +168,15 @@ require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R3C2 Typed Govern
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3C2 Governance Binder Driver/HAL Boundary"
 require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成"
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R3_TRUSTED_GOVERNANCE"'
+require_text "$PLAN" "R4A Room durable schema"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4A Room durable schema trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4A Room Durable Schema"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4A Room Schema Driver/HAL Boundary"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_durable_schema.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

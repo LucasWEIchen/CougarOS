@@ -63,6 +63,14 @@ The policy probe is not assembled by `tools/build_central_brain_android_runtime.
 
 API 33 evidence is part of `tools/install_central_brain_android_runtime.sh --require-api-33` and `tools/test_central_brain_android_capability_policy.sh --require-api-33`. R3 is complete at `R3_TRUSTED_GOVERNANCE` / `android_integrated`, meaning the Android boundary and emulator behavior are integrated. It does not mean production Safety/Vehicle data, approval grant authority, durable recovery, real action dispatch or target hardware are complete; those remain R4 and target-platform work.
 
+## R4A Room Durable Schema
+
+`runtime-service` now compiles AndroidX Room `2.8.4` and exports `CentralBrainDatabase` schema version 2. The app-private WAL database owns eight tables: session, task, checkpoint, pending effect, effect outbox, approval, audit event and event cursor. Unique idempotency/owner indexes and task/effect foreign keys are part of the exported schema. Payload/checkpoint/outbox/audit content is represented by digests; R4A does not persist raw utterances, model output or vehicle frames.
+
+`MIGRATION_1_2` upgrades the prior minimal task/approval shape without destructive fallback. A DUMP-protected debug-only migration probe creates an isolated v1 database, inserts legacy rows, opens it through Room, and verifies schema version 2, eight tables, WAL plus preserved task/approval data. The probe never opens or deletes the production database and is absent from release.
+
+R4A defines and validates storage ownership only. Production Runtime/Governance Services do not open the database yet, `durable_dispatch_enabled=false`, and restart recovery is not claimed. R4B will introduce a transactional repository and wire task/approval/idempotency writes; R4C will add restart recovery and pending-effect/outbox processing while keeping real hardware dispatch disabled.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`
