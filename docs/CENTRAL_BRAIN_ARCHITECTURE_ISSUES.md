@@ -221,6 +221,8 @@
 
 2026-07-12 R4B1 进展：owner-scoped task admission 现已在单 Room transaction 内执行查重、task insert 与 acceptance audit insert；exact replay 不重复写，mismatch key reuse 明确冲突，API 33 跨 database reopen 证据通过。ISSUE-022 保持 Open：production Service 尚未 wiring，transition/checkpoint/terminal callback settlement、approval、restart recovery、pending effect/outbox、fault/race 与 retention/encryption 决策仍未完成。
 
+2026-07-12 R4B2 进展：Runtime task submit/transition/checkpoint/terminal settlement 已 transactional wiring，live exact replay callback 和 durable status fallback 已在 API 33 验证；new expired request 不落库，existing exact replay 不受 creation deadline 阻断。ISSUE-022 保持 Open：restart recovery/reconciliation、approval persistence、pending effect/outbox processing、crash point/fault injection、retention/export/delete/encryption 仍未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

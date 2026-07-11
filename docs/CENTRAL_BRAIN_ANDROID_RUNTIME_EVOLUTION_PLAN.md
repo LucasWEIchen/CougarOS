@@ -113,6 +113,9 @@
 - `R4B1 durable task admission` 已完成：stable owner fingerprint 由 Android user serial + canonical package/current-signer pairs 计算，排除易变 UID；`DurableTaskRepository` 在单个 Room transaction 中完成 owner/idempotency lookup、task insert 和 acceptance audit insert。
 - Exact replay 返回原 task 且不重复写 task/audit；同 owner/key 的不同 session/client request/payload digest 明确冲突，另一 owner 可独立复用 key。API 33 隔离 probe 在关闭并重开数据库后验证 2 owners = 2 tasks = 2 acceptance audits。
 - R4B1 尚未接入 production Runtime/Governance Service，固定 `runtime_repository_wired=false`；task transition/checkpoint/terminal delivery、approval repository 和 restart recovery 仍待后续 R4B/R4C。
+- `R4B2 durable Runtime wiring` 已完成：production Runtime 在返回 handle 前完成 durable admission；ACCEPTED sequence 1、后续 transition + checkpoint + audit、terminal callback settlement 均采用明确 Room transaction，Job Supervisor 只在 durable transition 成功后推进。
+- Same-process exact replay 返回同 handle 并支持最多 4 个有界 observer callback；短 admission lock 覆盖 Room admission 到 live-map publish，Demo/API 33 已验证 sequential + concurrent replay callback 完成。Exact existing replay 即使原 deadline 已过仍可返回，new expired request 不产生 task。
+- Owner status 可 fallback 到 durable metadata；数据库存在但当前进程未恢复的 replay 明确回调 retryable `ERROR_INTERNAL`，固定 `task_recovery_enabled=false`，不会重复执行。API 33 service-death/reconnect instrumentation 已输出 `durable_recovery_pending_verified=true`；R4C 才实现 restart recovery/fault injection。
 - R4 尚未关闭：R4B 需 transactional repository、task/approval/idempotency 接入；R4C 需 process restart recovery、pending effect/outbox 状态机和 fault/race tests。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 

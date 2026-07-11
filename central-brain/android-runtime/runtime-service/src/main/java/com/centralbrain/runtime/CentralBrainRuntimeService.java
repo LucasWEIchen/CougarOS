@@ -17,18 +17,25 @@ import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
+import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
+import com.centralbrain.runtime.persistence.CentralBrainDatabase;
+import com.centralbrain.runtime.persistence.DurableDigest;
+import com.centralbrain.runtime.persistence.DurableTaskRepository;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
 import com.centralbrain.runtime.supervisor.JobSupervisor;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Typed production Binder with a bounded R3 Job Supervisor and hardware-free execution.
@@ -44,9 +51,10 @@ public final class CentralBrainRuntimeService extends Service {
     private static final long COMPLETE_DELAY_MS = BuildConfig.DEBUG ? 3000 : 160;
     private static final int MAX_TEXT_LENGTH = 4096;
     private static final int MAX_TASK_RECORDS = 128;
+    private static final int MAX_REPLAY_CALLBACKS_PER_TASK = 4;
     private static final long TERMINAL_RETENTION_MS = TimeUnit.MINUTES.toMillis(5);
 
-    private final AtomicLong nextTaskId = new AtomicLong(1);
+    private final Object admissionLock = new Object();
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
     private final JobSupervisor jobSupervisor = new JobSupervisor(
             MAX_TASK_RECORDS,
@@ -57,6 +65,8 @@ public final class CentralBrainRuntimeService extends Service {
         thread.setDaemon(true);
         return thread;
     });
+    private CentralBrainDatabase database;
+    private DurableTaskRepository taskRepository;
 
     private final ICentralBrainRuntime.Stub binder = new ICentralBrainRuntime.Stub() {
         @Override
@@ -79,31 +89,63 @@ public final class CentralBrainRuntimeService extends Service {
             validateRequest(request, callback);
             removeTaskRecords(jobSupervisor.pruneExpired());
 
-            String taskId = "task-" + nextTaskId.getAndIncrement();
-            JobSupervisor.Admission admission = jobSupervisor.admit(taskId, caller, "accepted");
-            removeTaskRecords(admission.getEvictedTaskIds());
-            TaskRecord record = new TaskRecord(
-                    taskId,
-                    request,
-                    callback,
-                    admission.getSnapshot().getAcceptedAtElapsedRealtimeMs());
-            record.deathRecipient = () -> handleCallbackDeath(record);
+            synchronized (admissionLock) {
+                String ownerFingerprint = DurablePrincipalFingerprint.from(caller);
+                String payloadDigest = requestDigest(request);
+                DurableTaskRepository.Admission durableAdmission;
+                try {
+                    durableAdmission = taskRepository.admit(
+                            ownerFingerprint,
+                            safe(request.sessionId),
+                            request.clientRequestId,
+                            request.idempotencyKey,
+                            payloadDigest,
+                            request.deadlineElapsedRealtimeMs <= 0
+                                    || request.deadlineElapsedRealtimeMs
+                                            > SystemClock.elapsedRealtime());
+                } catch (DurableTaskRepository.AdmissionRejectedException exception) {
+                    throw new IllegalArgumentException(exception.getMessage());
+                }
+                if (durableAdmission.getOutcome()
+                        == DurableTaskRepository.AdmissionOutcome.REPLAYED) {
+                    return handleDurableReplay(durableAdmission, caller, callback);
+                }
 
-            try {
-                callback.asBinder().linkToDeath(record.deathRecipient, 0);
-            } catch (RemoteException exception) {
-                jobSupervisor.remove(taskId);
-                throw new IllegalStateException("callback binder is already dead");
-            }
+                String taskId = durableAdmission.getTaskId();
+                JobSupervisor.Admission admission;
+                try {
+                    admission = jobSupervisor.admit(taskId, caller, "accepted");
+                } catch (RuntimeException exception) {
+                    failUnscheduledAdmission(taskId, ownerFingerprint, payloadDigest);
+                    throw exception;
+                }
+                removeTaskRecords(admission.getEvictedTaskIds());
+                TaskRecord record = new TaskRecord(
+                        taskId,
+                        request,
+                        callback,
+                        admission.getSnapshot().getAcceptedAtElapsedRealtimeMs(),
+                        ownerFingerprint,
+                        payloadDigest);
+                record.deathRecipient = () -> handleCallbackDeath(record);
 
-            tasks.put(taskId, record);
-            JobSupervisor.Snapshot current = jobSupervisor.find(taskId);
-            if (current != null && !current.isTerminal()) {
-                executor.schedule(() -> startTask(record), START_DELAY_MS, TimeUnit.MILLISECONDS);
+                try {
+                    callback.asBinder().linkToDeath(record.deathRecipient, 0);
+                } catch (RemoteException exception) {
+                    jobSupervisor.remove(taskId);
+                    failUnscheduledAdmission(taskId, ownerFingerprint, payloadDigest);
+                    throw new IllegalStateException("callback binder is already dead");
+                }
+
+                tasks.put(taskId, record);
+                JobSupervisor.Snapshot current = jobSupervisor.find(taskId);
+                if (current != null && !current.isTerminal()) {
+                    executor.schedule(() -> startTask(record), START_DELAY_MS, TimeUnit.MILLISECONDS);
+                }
+                Log.i(TAG, "accepted taskId=" + taskId + " " + caller.auditSummary()
+                        + " hardware_accessed=false");
+                return copyHandle(record.handle);
             }
-            Log.i(TAG, "accepted taskId=" + taskId + " " + caller.auditSummary()
-                    + " hardware_accessed=false");
-            return copyHandle(record.handle);
         }
 
         @Override
@@ -124,11 +166,16 @@ public final class CentralBrainRuntimeService extends Service {
                     ? null
                     : jobSupervisor.findOwned(record.handle.taskId, caller);
             if (snapshot == null) {
-                return updateFor(
-                        handle == null ? "" : safe(handle.taskId),
-                        ICentralBrainRuntime.TASK_STATE_UNKNOWN,
-                        0,
-                        0,
+                String taskId = handle == null ? "" : safe(handle.taskId);
+                if (!isBlank(taskId)) {
+                    DurableTaskRepository.Snapshot durable = taskRepository.findOwned(
+                            taskId,
+                            DurablePrincipalFingerprint.from(caller));
+                    if (durable != null) {
+                        return updateFor(durable);
+                    }
+                }
+                return updateFor(taskId, ICentralBrainRuntime.TASK_STATE_UNKNOWN, 0, 0,
                         "unknown task");
             }
             return updateFor(snapshot);
@@ -143,11 +190,16 @@ public final class CentralBrainRuntimeService extends Service {
                 this,
                 R.xml.central_brain_capability_policy,
                 identityResolver.resolveOwnIdentity());
+        database = CentralBrainDatabase.open(this);
+        taskRepository = DurableTaskRepository.create(database);
         Log.i(TAG, "created maturity=" + CentralBrainSdk.MATURITY
                 + " job_supervisor_max_records=" + MAX_TASK_RECORDS
                 + " terminal_retention_ms=" + TERMINAL_RETENTION_MS
                 + " capability_default=deny"
                 + " capability_rule_count=" + capabilityPolicy.getRuleCount()
+                + " runtime_repository_wired=true"
+                + " task_recovery_enabled=false"
+                + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
     }
 
@@ -168,6 +220,9 @@ public final class CentralBrainRuntimeService extends Service {
         executor.shutdownNow();
         tasks.values().forEach(this::unlinkCallbackDeath);
         tasks.clear();
+        if (database != null) {
+            database.close();
+        }
         Log.i(TAG, "destroyed hardware_accessed=false");
         super.onDestroy();
     }
@@ -198,10 +253,6 @@ public final class CentralBrainRuntimeService extends Service {
         }
         if (request.priority < 0 || request.priority > 3) {
             invalidArgument("priority must be in range 0..3");
-        }
-        if (request.deadlineElapsedRealtimeMs > 0
-                && request.deadlineElapsedRealtimeMs <= SystemClock.elapsedRealtime()) {
-            throw new IllegalArgumentException("request deadline has elapsed");
         }
     }
 
@@ -240,6 +291,7 @@ public final class CentralBrainRuntimeService extends Service {
                 return;
             }
             accepted = updateFor(before);
+            persistTransition(record, before, JobSupervisor.State.RUNNING, 50);
             JobSupervisor.Transition transition = jobSupervisor.transition(
                     record.handle.taskId,
                     JobSupervisor.State.RUNNING,
@@ -276,6 +328,7 @@ public final class CentralBrainRuntimeService extends Service {
             if (before == null || before.isTerminal()) {
                 return;
             }
+            persistTransition(record, before, JobSupervisor.State.COMPLETED, 100);
             JobSupervisor.Transition transition = jobSupervisor.transition(
                     record.handle.taskId,
                     JobSupervisor.State.COMPLETED,
@@ -285,23 +338,20 @@ public final class CentralBrainRuntimeService extends Service {
                 return;
             }
             completed = updateFor(transition.getSnapshot());
-            result = new TaskResult();
-            result.taskId = record.handle.taskId;
-            result.completionCode = ICentralBrainRuntime.ERROR_NONE;
-            result.replyText = "Deterministic Binder reply: " + safe(record.request.utterance);
-            result.summary = "typed Binder task completed without hardware access";
-            result.completedAtElapsedRealtimeMs = SystemClock.elapsedRealtime();
+            result = completedResult(record);
         }
 
         deliverUpdate(record, completed);
-        try {
-            record.callback.onTaskCompleted(result);
-        } catch (RemoteException exception) {
-            Log.w(TAG, "completion callback failed taskId=" + record.handle.taskId, exception);
-        } finally {
-            unlinkCallbackDeath(record);
-            jobSupervisor.markTerminalDeliverySettled(record.handle.taskId);
+        for (ICentralBrainTaskCallback callback : callbacksFor(record)) {
+            try {
+                callback.onTaskCompleted(result);
+            } catch (RemoteException exception) {
+                handleDeliveryFailure(record, callback, "completion", exception);
+            }
         }
+        clearReplayCallbacks(record);
+        unlinkCallbackDeath(record);
+        settleTerminalDelivery(record);
     }
 
     private boolean cancelRecord(
@@ -312,6 +362,23 @@ public final class CentralBrainRuntimeService extends Service {
         TaskUpdate cancelled;
         TaskFailure failure;
         synchronized (record) {
+            JobSupervisor.Snapshot before = caller == null
+                    ? jobSupervisor.find(record.handle.taskId)
+                    : jobSupervisor.findOwned(record.handle.taskId, caller);
+            if (before == null) {
+                return false;
+            }
+            if (before.getState() == JobSupervisor.State.CANCELLED) {
+                return true;
+            }
+            if (before.isTerminal()) {
+                return false;
+            }
+            persistTransition(
+                    record,
+                    before,
+                    JobSupervisor.State.CANCELLED,
+                    before.getProgressPercent());
             JobSupervisor.Transition transition = caller == null
                     ? jobSupervisor.cancelSystem(
                             record.handle.taskId,
@@ -338,7 +405,7 @@ public final class CentralBrainRuntimeService extends Service {
             executor.execute(() -> notifyCancellation(record, cancelled, failure));
         } else {
             unlinkCallbackDeath(record);
-            jobSupervisor.markTerminalDeliverySettled(record.handle.taskId);
+            settleTerminalDelivery(record);
         }
         Log.i(TAG, "cancelled taskId=" + record.handle.taskId + " reason=" + reasonCode
                 + " hardware_accessed=false");
@@ -350,21 +417,25 @@ public final class CentralBrainRuntimeService extends Service {
             TaskUpdate cancelled,
             TaskFailure failure) {
         deliverUpdate(record, cancelled);
-        try {
-            record.callback.onTaskFailed(failure);
-        } catch (RemoteException exception) {
-            Log.w(TAG, "cancel callback failed taskId=" + record.handle.taskId, exception);
-        } finally {
-            unlinkCallbackDeath(record);
-            jobSupervisor.markTerminalDeliverySettled(record.handle.taskId);
+        for (ICentralBrainTaskCallback callback : callbacksFor(record)) {
+            try {
+                callback.onTaskFailed(failure);
+            } catch (RemoteException exception) {
+                handleDeliveryFailure(record, callback, "cancel", exception);
+            }
         }
+        clearReplayCallbacks(record);
+        unlinkCallbackDeath(record);
+        settleTerminalDelivery(record);
     }
 
     private void deliverUpdate(TaskRecord record, TaskUpdate update) {
-        try {
-            record.callback.onTaskUpdate(update);
-        } catch (RemoteException exception) {
-            handleCallbackDeath(record);
+        for (ICentralBrainTaskCallback callback : callbacksFor(record)) {
+            try {
+                callback.onTaskUpdate(update);
+            } catch (RemoteException exception) {
+                handleDeliveryFailure(record, callback, "update", exception);
+            }
         }
     }
 
@@ -385,7 +456,7 @@ public final class CentralBrainRuntimeService extends Service {
             return;
         }
         try {
-            record.callback.asBinder().unlinkToDeath(record.deathRecipient, 0);
+            record.primaryCallback.asBinder().unlinkToDeath(record.deathRecipient, 0);
         } catch (NoSuchElementException ignored) {
             // The remote callback already died and Binder removed the recipient.
         }
@@ -399,6 +470,264 @@ public final class CentralBrainRuntimeService extends Service {
         return copy;
     }
 
+    private TaskHandle handleDurableReplay(
+            DurableTaskRepository.Admission durableAdmission,
+            CallerIdentitySnapshot caller,
+            ICentralBrainTaskCallback callback) {
+        TaskRecord record = tasks.get(durableAdmission.getTaskId());
+        if (record == null) {
+            TaskHandle handle = handleFrom(durableAdmission);
+            executor.execute(() -> notifyRecoveryPending(handle, caller, callback));
+            Log.w(TAG, "durable replay awaits R4C recovery taskId=" + handle.taskId
+                    + " runtime_repository_wired=true task_recovery_enabled=false"
+                    + " hardware_accessed=false");
+            return handle;
+        }
+
+        JobSupervisor.Snapshot snapshot;
+        synchronized (record) {
+            snapshot = jobSupervisor.findOwned(record.handle.taskId, caller);
+            if (snapshot == null) {
+                throw new SecurityException("durable task replay is not owned by caller");
+            }
+            if (!snapshot.isTerminal()) {
+                attachReplayCallbackLocked(record, callback);
+            }
+        }
+        if (snapshot.isTerminal()) {
+            executor.execute(() -> notifyTerminalReplay(record, snapshot, callback));
+        } else {
+            TaskUpdate current = updateFor(snapshot);
+            executor.execute(() -> deliverSingleUpdate(record, callback, current));
+        }
+        Log.i(TAG, "durable replay taskId=" + record.handle.taskId
+                + " state=" + snapshot.getState()
+                + " runtime_repository_wired=true hardware_accessed=false");
+        return copyHandle(record.handle);
+    }
+
+    private void attachReplayCallbackLocked(
+            TaskRecord record,
+            ICentralBrainTaskCallback callback) {
+        IBinder binder = callback.asBinder();
+        if (record.primaryCallback.asBinder().equals(binder)
+                || record.replayCallbacks.containsKey(binder)) {
+            return;
+        }
+        if (record.replayCallbacks.size() >= MAX_REPLAY_CALLBACKS_PER_TASK) {
+            throw new IllegalStateException("task replay callback capacity exhausted");
+        }
+        record.replayCallbacks.put(binder, callback);
+    }
+
+    private void notifyTerminalReplay(
+            TaskRecord record,
+            JobSupervisor.Snapshot snapshot,
+            ICentralBrainTaskCallback callback) {
+        try {
+            callback.onTaskUpdate(updateFor(snapshot));
+            if (snapshot.getState() == JobSupervisor.State.COMPLETED) {
+                callback.onTaskCompleted(completedResult(record));
+            } else {
+                callback.onTaskFailed(terminalFailure(record, snapshot.getState()));
+            }
+        } catch (RemoteException exception) {
+            Log.w(TAG, "terminal replay callback failed taskId=" + record.handle.taskId,
+                    exception);
+        }
+    }
+
+    private void notifyRecoveryPending(
+            TaskHandle handle,
+            CallerIdentitySnapshot caller,
+            ICentralBrainTaskCallback callback) {
+        String ownerFingerprint = DurablePrincipalFingerprint.from(caller);
+        DurableTaskRepository.Snapshot durable = taskRepository.findOwned(
+                handle.taskId,
+                ownerFingerprint);
+        try {
+            if (durable != null) {
+                callback.onTaskUpdate(updateFor(durable));
+            }
+            TaskFailure failure = new TaskFailure();
+            failure.taskId = handle.taskId;
+            failure.errorCode = ICentralBrainRuntime.ERROR_INTERNAL;
+            failure.errorMessage = "durable task recovery is pending R4C";
+            failure.retryable = true;
+            callback.onTaskFailed(failure);
+        } catch (RemoteException exception) {
+            Log.w(TAG, "recovery-pending callback failed taskId=" + handle.taskId, exception);
+        }
+    }
+
+    private void persistTransition(
+            TaskRecord record,
+            JobSupervisor.Snapshot before,
+            JobSupervisor.State target,
+            int progressPercent) {
+        long sequence = before.getSequence() + 1;
+        String targetState = durableState(target);
+        String checkpointDigest = DurableDigest.sha256(
+                "central-brain-task-checkpoint-v1",
+                record.handle.taskId,
+                Long.toString(sequence),
+                targetState,
+                Integer.toString(progressPercent),
+                record.payloadDigest);
+        DurableTaskRepository.Transition transition = taskRepository.transition(
+                record.handle.taskId,
+                record.ownerFingerprint,
+                durableState(before.getState()),
+                targetState,
+                progressPercent,
+                sequence,
+                checkpointDigest);
+        if (transition.getOutcome() != DurableTaskRepository.TransitionOutcome.APPLIED) {
+            throw new IllegalStateException(
+                    "durable transition was not applied: " + transition.getOutcome());
+        }
+    }
+
+    private void settleTerminalDelivery(TaskRecord record) {
+        JobSupervisor.Snapshot snapshot = jobSupervisor.find(record.handle.taskId);
+        if (snapshot == null || !snapshot.isTerminal()) {
+            return;
+        }
+        String detailDigest = DurableDigest.sha256(
+                "central-brain-terminal-delivery-v1",
+                record.handle.taskId,
+                durableState(snapshot.getState()),
+                Long.toString(snapshot.getSequence()));
+        try {
+            DurableTaskRepository.Settlement settlement = taskRepository.settleTerminalDelivery(
+                    record.handle.taskId,
+                    record.ownerFingerprint,
+                    detailDigest);
+            if (settlement == DurableTaskRepository.Settlement.NOT_FOUND) {
+                throw new IllegalStateException("durable terminal task was not found");
+            }
+            jobSupervisor.markTerminalDeliverySettled(record.handle.taskId);
+        } catch (RuntimeException exception) {
+            Log.e(TAG, "terminal settlement failed taskId=" + record.handle.taskId,
+                    exception);
+        }
+    }
+
+    private void failUnscheduledAdmission(
+            String taskId,
+            String ownerFingerprint,
+            String payloadDigest) {
+        String checkpointDigest = DurableDigest.sha256(
+                "central-brain-unscheduled-task-v1",
+                taskId,
+                payloadDigest);
+        try {
+            taskRepository.transition(
+                    taskId,
+                    ownerFingerprint,
+                    DurableTaskRepository.STATE_ACCEPTED,
+                    DurableTaskRepository.STATE_FAILED,
+                    0,
+                    2,
+                    checkpointDigest);
+            taskRepository.settleTerminalDelivery(
+                    taskId,
+                    ownerFingerprint,
+                    checkpointDigest);
+        } catch (RuntimeException exception) {
+            Log.e(TAG, "failed to close unscheduled durable taskId=" + taskId, exception);
+        }
+    }
+
+    private static String requestDigest(AgentTaskRequest request) {
+        return DurableDigest.sha256(
+                "central-brain-agent-task-v1",
+                Integer.toString(request.schemaVersion),
+                request.clientRequestId,
+                safe(request.sessionId),
+                request.utterance,
+                safe(request.locale),
+                Long.toString(request.deadlineElapsedRealtimeMs),
+                Integer.toString(request.priority));
+    }
+
+    private static String durableState(JobSupervisor.State state) {
+        return state.name();
+    }
+
+    private static TaskHandle handleFrom(DurableTaskRepository.Admission admission) {
+        TaskHandle handle = new TaskHandle();
+        handle.taskId = admission.getTaskId();
+        long ageMs = Math.max(0, System.currentTimeMillis() - admission.getAcceptedAtWallMs());
+        handle.acceptedAtElapsedRealtimeMs = Math.max(0, SystemClock.elapsedRealtime() - ageMs);
+        return handle;
+    }
+
+    private static TaskResult completedResult(TaskRecord record) {
+        TaskResult result = new TaskResult();
+        result.taskId = record.handle.taskId;
+        result.completionCode = ICentralBrainRuntime.ERROR_NONE;
+        result.replyText = "Deterministic Binder reply: " + safe(record.request.utterance);
+        result.summary = "typed Binder task completed without hardware access";
+        result.completedAtElapsedRealtimeMs = SystemClock.elapsedRealtime();
+        return result;
+    }
+
+    private static TaskFailure terminalFailure(
+            TaskRecord record,
+            JobSupervisor.State state) {
+        TaskFailure failure = new TaskFailure();
+        failure.taskId = record.handle.taskId;
+        failure.errorCode = state == JobSupervisor.State.CANCELLED
+                ? ICentralBrainRuntime.ERROR_CANCELLED
+                : ICentralBrainRuntime.ERROR_INTERNAL;
+        failure.errorMessage = "task terminal state=" + state;
+        failure.retryable = false;
+        return failure;
+    }
+
+    private static List<ICentralBrainTaskCallback> callbacksFor(TaskRecord record) {
+        synchronized (record) {
+            List<ICentralBrainTaskCallback> callbacks = new ArrayList<>();
+            callbacks.add(record.primaryCallback);
+            callbacks.addAll(record.replayCallbacks.values());
+            return callbacks;
+        }
+    }
+
+    private static void clearReplayCallbacks(TaskRecord record) {
+        synchronized (record) {
+            record.replayCallbacks.clear();
+        }
+    }
+
+    private void deliverSingleUpdate(
+            TaskRecord record,
+            ICentralBrainTaskCallback callback,
+            TaskUpdate update) {
+        try {
+            callback.onTaskUpdate(update);
+        } catch (RemoteException exception) {
+            handleDeliveryFailure(record, callback, "replay update", exception);
+        }
+    }
+
+    private void handleDeliveryFailure(
+            TaskRecord record,
+            ICentralBrainTaskCallback callback,
+            String operation,
+            RemoteException exception) {
+        if (record.primaryCallback.asBinder().equals(callback.asBinder())) {
+            handleCallbackDeath(record);
+            return;
+        }
+        synchronized (record) {
+            record.replayCallbacks.remove(callback.asBinder());
+        }
+        Log.w(TAG, operation + " observer callback failed taskId=" + record.handle.taskId,
+                exception);
+    }
+
     private static TaskUpdate updateFor(JobSupervisor.Snapshot snapshot) {
         return updateFor(
                 snapshot.getTaskId(),
@@ -406,6 +735,32 @@ public final class CentralBrainRuntimeService extends Service {
                 snapshot.getProgressPercent(),
                 snapshot.getSequence(),
                 snapshot.getMessage());
+    }
+
+    private static TaskUpdate updateFor(DurableTaskRepository.Snapshot snapshot) {
+        return updateFor(
+                snapshot.getTaskId(),
+                aidlState(snapshot.getState()),
+                snapshot.getProgressPercent(),
+                snapshot.getSequence(),
+                "durable state; automatic recovery pending R4C");
+    }
+
+    private static int aidlState(String state) {
+        switch (state) {
+            case DurableTaskRepository.STATE_ACCEPTED:
+                return ICentralBrainRuntime.TASK_STATE_ACCEPTED;
+            case DurableTaskRepository.STATE_RUNNING:
+                return ICentralBrainRuntime.TASK_STATE_RUNNING;
+            case DurableTaskRepository.STATE_COMPLETED:
+                return ICentralBrainRuntime.TASK_STATE_COMPLETED;
+            case DurableTaskRepository.STATE_FAILED:
+                return ICentralBrainRuntime.TASK_STATE_FAILED;
+            case DurableTaskRepository.STATE_CANCELLED:
+                return ICentralBrainRuntime.TASK_STATE_CANCELLED;
+            default:
+                return ICentralBrainRuntime.TASK_STATE_UNKNOWN;
+        }
     }
 
     private static int aidlState(JobSupervisor.State state) {
@@ -453,6 +808,7 @@ public final class CentralBrainRuntimeService extends Service {
         for (String taskId : taskIds) {
             TaskRecord removed = tasks.remove(taskId);
             if (removed != null) {
+                clearReplayCallbacks(removed);
                 unlinkCallbackDeath(removed);
             }
         }
@@ -479,17 +835,24 @@ public final class CentralBrainRuntimeService extends Service {
 
     private static final class TaskRecord {
         final AgentTaskRequest request;
-        final ICentralBrainTaskCallback callback;
+        final ICentralBrainTaskCallback primaryCallback;
         final TaskHandle handle;
+        final String ownerFingerprint;
+        final String payloadDigest;
+        final Map<IBinder, ICentralBrainTaskCallback> replayCallbacks = new LinkedHashMap<>();
         IBinder.DeathRecipient deathRecipient;
 
         TaskRecord(
                 String taskId,
                 AgentTaskRequest request,
                 ICentralBrainTaskCallback callback,
-                long acceptedAtElapsedRealtimeMs) {
+                long acceptedAtElapsedRealtimeMs,
+                String ownerFingerprint,
+                String payloadDigest) {
             this.request = request;
-            this.callback = callback;
+            this.primaryCallback = callback;
+            this.ownerFingerprint = ownerFingerprint;
+            this.payloadDigest = payloadDigest;
             this.handle = new TaskHandle();
             this.handle.taskId = taskId;
             this.handle.acceptedAtElapsedRealtimeMs = acceptedAtElapsedRealtimeMs;

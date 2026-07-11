@@ -453,3 +453,9 @@ The migration probe creates/deletes only an isolated app-private test database a
 R4B1 adds pure Java SHA-256 ownership, Room transactions and an app-private debug probe. It consumes only trusted identity snapshots already resolved through Binder/PackageManager; it does not query VHAL, Safety Runtime, NPU, sensors, device nodes, vendor SDK or shared memory.
 
 The repository stores task metadata/digests and acceptance audit rows only. It does not create pending effects/outbox rows, invoke SOA/Skill/Action dispatch or require native code. `runtime_repository_wired=false`, `durable_dispatch_enabled=false`, all hardware/Driver/HAL/virtualization flags remain false, and added Driver/HAL development is zero. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-006`, `NV-G-007`, `XSC-005`, `DEL-001`, `DEL-004`.
+
+### R4B2 Durable Runtime Driver/HAL Boundary
+
+R4B2 connects only the source-built Java Runtime Service to its app-private Room database. Binder identity, SHA-256, SQLite WAL and callback delivery use Android application APIs; no JNI/C/C++, VHAL, Safety Runtime, NPU, vendor SDK, shared memory, device node, ioctl/sysfs or vehicle bus is required.
+
+Task transitions persist metadata/digests/checkpoints/audits but never create or consume pending-effect/outbox work. Runtime reports `task_recovery_enabled=false` and `durable_dispatch_enabled=false`; restart recovery and any future adapter activation remain separately gated. No DRV-GAP changes state and added Driver/HAL development is zero. Req IDs: `FW-U-004`, `NV-F-001`, `NV-G-003`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `XSC-005`, `XSC-006`, `DEL-001`, `DEL-004`.

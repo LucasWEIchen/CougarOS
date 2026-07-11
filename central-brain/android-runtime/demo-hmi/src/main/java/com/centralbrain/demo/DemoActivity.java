@@ -26,6 +26,12 @@ import com.centralbrain.sdk.production.TaskHandle;
 import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 /** Req IDs: APP-004, XSC-001, XSC-006, NV-G-003, NV-G-006, DEL-001. */
 public final class DemoActivity extends Activity {
     private static final String TAG = "CentralBrainGovernanceDemo";
@@ -33,12 +39,15 @@ public final class DemoActivity extends Activity {
 
     private TextView protocolStatus;
     private TextView completionStatus;
+    private TextView replayStatus;
+    private TextView concurrentReplayStatus;
     private TextView cancellationStatus;
     private TextView governanceStatus;
     private CentralBrainClient client;
     private CentralBrainGovernanceClient governanceClient;
     private boolean demoStarted;
     private boolean governanceDemoStarted;
+    private final ExecutorService replayExecutor = Executors.newFixedThreadPool(2);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +79,14 @@ public final class DemoActivity extends Activity {
         completionStatus.setText("Completion: pending");
         content.addView(completionStatus, spacedWidth(8));
 
+        replayStatus = textView(16, Color.rgb(43, 55, 61));
+        replayStatus.setText(R.string.replay_pending);
+        content.addView(replayStatus, spacedWidth(8));
+
+        concurrentReplayStatus = textView(16, Color.rgb(43, 55, 61));
+        concurrentReplayStatus.setText(R.string.concurrent_replay_pending);
+        content.addView(concurrentReplayStatus, spacedWidth(8));
+
         cancellationStatus = textView(16, Color.rgb(43, 55, 61));
         cancellationStatus.setText("Cancel: pending");
         content.addView(cancellationStatus, spacedWidth(8));
@@ -96,6 +113,7 @@ public final class DemoActivity extends Activity {
         if (governanceClient != null) {
             governanceClient.close();
         }
+        replayExecutor.shutdownNow();
         super.onDestroy();
     }
 
@@ -114,6 +132,7 @@ public final class DemoActivity extends Activity {
                                 "Typed Binder: connected v" + version + " " + hash.substring(0, 8));
                         submitCompletionTask(connectedClient);
                         submitCancellationTask(connectedClient);
+                        submitConcurrentReplayTask(connectedClient);
                     } catch (RemoteException | RuntimeException exception) {
                         protocolStatus.setText("Typed Binder: failed " + exception.getClass().getSimpleName());
                     }
@@ -217,7 +236,9 @@ public final class DemoActivity extends Activity {
 
     private void submitCompletionTask(CentralBrainClient connectedClient) throws RemoteException {
         AgentTaskRequest request = request("completion", "demo typed binder");
-        connectedClient.submitAgentTask(request, new CentralBrainClient.TaskCallback() {
+        TaskHandle firstHandle = connectedClient.submitAgentTask(
+                request,
+                new CentralBrainClient.TaskCallback() {
             @Override
             public void onUpdate(TaskUpdate update) {
                 completionStatus.setText("Completion: progress " + update.progressPercent + "%");
@@ -233,6 +254,27 @@ public final class DemoActivity extends Activity {
                 completionStatus.setText("Completion: failed " + failure.errorCode);
             }
         });
+        TaskHandle replayHandle = connectedClient.submitAgentTask(
+                request,
+                new CentralBrainClient.TaskCallback() {
+                    @Override
+                    public void onUpdate(TaskUpdate update) {
+                        replayStatus.setText(R.string.replay_same_handle);
+                    }
+
+                    @Override
+                    public void onCompleted(TaskResult result) {
+                        replayStatus.setText(R.string.replay_completed);
+                    }
+
+                    @Override
+                    public void onFailed(TaskFailure failure) {
+                        replayStatus.setText(getString(R.string.replay_failed, failure.errorCode));
+                    }
+                });
+        if (!firstHandle.taskId.equals(replayHandle.taskId)) {
+            throw new IllegalStateException("idempotent replay returned a different task handle");
+        }
     }
 
     private void submitCancellationTask(CentralBrainClient connectedClient) throws RemoteException {
@@ -266,6 +308,85 @@ public final class DemoActivity extends Activity {
         if (!first || !second) {
             cancellationStatus.setText("Cancel: idempotency failed");
         }
+    }
+
+    private void submitConcurrentReplayTask(CentralBrainClient connectedClient) {
+        AgentTaskRequest request = request("concurrent-replay", "concurrent replay task");
+        CountDownLatch start = new CountDownLatch(1);
+        AtomicReference<String> firstTaskId = new AtomicReference<>();
+        AtomicReference<String> secondTaskId = new AtomicReference<>();
+        AtomicInteger terminalCallbacks = new AtomicInteger();
+        submitConcurrentReplay(
+                connectedClient,
+                request,
+                start,
+                firstTaskId,
+                secondTaskId,
+                terminalCallbacks,
+                true);
+        submitConcurrentReplay(
+                connectedClient,
+                request,
+                start,
+                firstTaskId,
+                secondTaskId,
+                terminalCallbacks,
+                false);
+        start.countDown();
+    }
+
+    private void submitConcurrentReplay(
+            CentralBrainClient connectedClient,
+            AgentTaskRequest request,
+            CountDownLatch start,
+            AtomicReference<String> firstTaskId,
+            AtomicReference<String> secondTaskId,
+            AtomicInteger terminalCallbacks,
+            boolean first) {
+        replayExecutor.execute(() -> {
+            try {
+                start.await();
+                TaskHandle handle = connectedClient.submitAgentTask(
+                        request,
+                        new CentralBrainClient.TaskCallback() {
+                            @Override
+                            public void onUpdate(TaskUpdate update) {
+                                // The terminal callback is the acceptance condition.
+                            }
+
+                            @Override
+                            public void onCompleted(TaskResult result) {
+                                int completed = terminalCallbacks.incrementAndGet();
+                                if (completed == 2
+                                        && firstTaskId.get() != null
+                                        && firstTaskId.get().equals(secondTaskId.get())) {
+                                    concurrentReplayStatus.setText(
+                                            R.string.concurrent_replay_completed);
+                                }
+                            }
+
+                            @Override
+                            public void onFailed(TaskFailure failure) {
+                                concurrentReplayStatus.setText(getString(
+                                        R.string.concurrent_replay_failed,
+                                        failure.errorCode));
+                            }
+                        });
+                if (first) {
+                    firstTaskId.set(handle.taskId);
+                } else {
+                    secondTaskId.set(handle.taskId);
+                }
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                runOnUiThread(() -> concurrentReplayStatus.setText(
+                        R.string.concurrent_replay_interrupted));
+            } catch (RemoteException | RuntimeException exception) {
+                runOnUiThread(() -> concurrentReplayStatus.setText(getString(
+                        R.string.concurrent_replay_exception,
+                        exception.getClass().getSimpleName())));
+            }
+        });
     }
 
     private static AgentTaskRequest request(String suffix, String utterance) {

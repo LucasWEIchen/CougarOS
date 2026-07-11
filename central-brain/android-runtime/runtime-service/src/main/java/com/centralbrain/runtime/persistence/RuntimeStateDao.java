@@ -5,6 +5,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 @Dao
 public interface RuntimeStateDao {
@@ -19,6 +20,11 @@ public interface RuntimeStateDao {
     RuntimeTaskEntity findTaskByOwnerAndIdempotency(
             String ownerFingerprint,
             String idempotencyKey);
+
+    @Nullable
+    @Query("SELECT * FROM task_checkpoint WHERE task_id = :taskId "
+            + "ORDER BY sequence DESC LIMIT 1")
+    TaskCheckpointEntity findLatestCheckpoint(String taskId);
 
     @Nullable
     @Query("SELECT * FROM approval_request WHERE approval_id = :approvalId LIMIT 1")
@@ -45,6 +51,9 @@ public interface RuntimeStateDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     long insertAuditEvent(AuditEventEntity entity);
 
+    @Update
+    int updateTask(RuntimeTaskEntity entity);
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertEventCursor(EventCursorEntity entity);
 
@@ -53,4 +62,18 @@ public interface RuntimeStateDao {
 
     @Query("SELECT COUNT(*) FROM audit_event")
     int countAuditEvents();
+
+    @Query("SELECT COUNT(*) FROM task_checkpoint")
+    int countTaskCheckpoints();
+
+    @Query("SELECT COUNT(*) FROM runtime_task WHERE state = :state")
+    int countTasksInState(String state);
+
+    @Query("SELECT COUNT(*) FROM runtime_task "
+            + "WHERE terminal_delivery_settled = 1 "
+            + "AND state IN ('COMPLETED', 'FAILED', 'CANCELLED')")
+    int countSettledTerminalTasks();
+
+    @Query("SELECT COUNT(*) FROM audit_event WHERE event_type = :eventType")
+    int countAuditEventsByType(String eventType);
 }

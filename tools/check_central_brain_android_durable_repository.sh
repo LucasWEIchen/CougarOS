@@ -49,13 +49,13 @@ require_text "$PROBE" "task_admission_transaction_verified="
 require_text "$PROBE" "task_idempotent_replay_verified="
 require_text "$PROBE" "task_idempotency_conflict_verified="
 require_text "$PROBE" "task_owner_isolation_verified="
-require_text "$PROBE" "runtime_repository_wired=false"
+require_text "$PROBE" "repository_probe_isolated=true"
 require_text "$PROBE" "durable_dispatch_enabled=false"
 require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml" ".persistence.DurableRepositoryProbeActivity"
 require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml" 'android:permission="android.permission.DUMP"'
 require_text "tools/install_central_brain_android_runtime.sh" "task_admission_transaction_verified=true"
 require_text "tools/install_central_brain_android_runtime.sh" "task_idempotent_replay_verified=true"
-require_text "tools/install_central_brain_android_runtime.sh" "runtime_repository_wired=false"
+require_text "tools/install_central_brain_android_runtime.sh" "repository_probe_isolated=true"
 
 if grep -Fq "getUid()" "$ROOT_DIR/$FINGERPRINT"; then
   echo "durable principal fingerprint must not bind ownership to ephemeral UID" >&2
@@ -63,12 +63,6 @@ if grep -Fq "getUid()" "$ROOT_DIR/$FINGERPRINT"; then
 fi
 if grep -Eiq 'utterance|model output|vehicle frame|signer bytes' "$ROOT_DIR/$REPOSITORY"; then
   echo "R4B1 repository must persist metadata/digests only" >&2
-  exit 1
-fi
-if grep -R -Fq "DurableTaskRepository" \
-    "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java" \
-    "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java"; then
-  echo "R4B1 repository must not be wired to production Services yet" >&2
   exit 1
 fi
 if grep -Fq "DurableRepositoryProbeActivity" \

@@ -59,6 +59,7 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
                     "stream",
                     "\nbinder_service_death_verified=true"
                             + "\nbinder_reconnect_verified=true"
+                            + "\ndurable_recovery_pending_verified=true"
                             + "\nbinder_terminal_uniqueness_verified=true"
                             + "\nbinder_cancel_completion_race_verified=true"
                             + "\nhardware_accessed=false\n");
@@ -87,8 +88,9 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
             CountDownLatch terminal = new CountDownLatch(1);
             AtomicInteger terminalCount = new AtomicInteger();
             AtomicInteger failureCode = new AtomicInteger(-1);
-            client.submitAgentTask(
-                    request("service-death"),
+            AgentTaskRequest interruptedRequest = request("service-death");
+            TaskHandle interruptedHandle = client.submitAgentTask(
+                    interruptedRequest,
                     new CentralBrainClient.TaskCallback() {
                         @Override
                         public void onUpdate(TaskUpdate update) {
@@ -125,6 +127,37 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
             await(connections.reconnected, "explicit reconnect");
             assertNull(connections.failure.get(), "explicit reconnect failed");
             assertTrue(client.isConnected(), "client is not connected after explicit reconnect");
+
+            CountDownLatch replayTerminal = new CountDownLatch(1);
+            AtomicInteger replayFailureCode = new AtomicInteger(-1);
+            AtomicBoolean replayRetryable = new AtomicBoolean();
+            TaskHandle replayHandle = client.submitAgentTask(
+                    interruptedRequest,
+                    new CentralBrainClient.TaskCallback() {
+                        @Override
+                        public void onUpdate(TaskUpdate update) {
+                            // The persisted state may be ACCEPTED or RUNNING at process death.
+                        }
+
+                        @Override
+                        public void onCompleted(TaskResult taskResult) {
+                            replayTerminal.countDown();
+                        }
+
+                        @Override
+                        public void onFailed(TaskFailure failure) {
+                            replayFailureCode.set(failure.errorCode);
+                            replayRetryable.set(failure.retryable);
+                            replayTerminal.countDown();
+                        }
+                    });
+            await(replayTerminal, "durable recovery-pending replay");
+            assertEquals(interruptedHandle.taskId, replayHandle.taskId,
+                    "durable replay returned a different task handle");
+            assertEquals(ICentralBrainRuntime.ERROR_INTERNAL, replayFailureCode.get(),
+                    "unrecovered durable replay did not fail explicitly");
+            assertTrue(replayRetryable.get(),
+                    "unrecovered durable replay failure was not retryable");
 
             CountDownLatch recoveryTerminal = new CountDownLatch(1);
             AtomicInteger recoveryCount = new AtomicInteger();
@@ -297,6 +330,12 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
 
     private static void assertEquals(int expected, int actual, String message) {
         if (expected != actual) {
+            throw new AssertionError(message + ": expected=" + expected + " actual=" + actual);
+        }
+    }
+
+    private static void assertEquals(String expected, String actual, String message) {
+        if (expected == null ? actual != null : !expected.equals(actual)) {
             throw new AssertionError(message + ": expected=" + expected + " actual=" + actual);
         }
     }

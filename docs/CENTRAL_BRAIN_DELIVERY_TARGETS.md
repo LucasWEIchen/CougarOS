@@ -726,3 +726,11 @@ R4B1 交付 `DurablePrincipalFingerprint`、`DurableTaskRepository`、DAO owner/
 API 33 标准安装门禁新增 `task_admission_transaction_verified=true`、`task_idempotent_replay_verified=true`、`task_idempotency_conflict_verified=true`、`task_owner_isolation_verified=true` 和 `runtime_repository_wired=false`。隔离数据库关闭/重开后必须保持 exactly two owner-scoped tasks and exactly two acceptance audits。
 
 R4B1 不是 production Service integration：Runtime/Governance 不打开 repository，现有 Binder 行为不宣称 durable，approval 仍为 process-local。无 effect/outbox dispatch、Linux 前端、真实硬件、Driver/HAL、厂商系统源码或虚拟化变更。
+
+## Android R4B2 Durable Runtime Wiring 交付补充
+
+R4B2 交付 production Runtime Service repository wiring、`DurableDigest`、transactional transition/checkpoint/settlement、bounded same-process replay observers、durable owner-status fallback、debug-only `RuntimeDurabilityProbeActivity`、Demo replay UI 和 `tools/check_central_brain_android_durable_runtime_wiring.sh`。Frozen AIDL/checksum 不变。
+
+API 33 标准门禁输出 `runtime_repository_wired=true`、`durable_replay_callback_verified=true`、`durable_concurrent_replay_verified=true`、`durable_completed_task_verified=true`、`durable_cancelled_task_verified=true`、`durable_checkpoint_chain_verified=true`、`durable_terminal_settlement_verified=true`、`task_recovery_enabled=false`、`durable_dispatch_enabled=false`；service-death instrumentation 还必须输出 `durable_recovery_pending_verified=true`。R2C death/race 与 R3 unknown-client default-deny 必须回归通过。
+
+本增量不交付 restart execution recovery、approval persistence、pending effect/outbox processing 或真实 action dispatch。存在但未恢复的 task 返回既有 handle 和 retryable recovery-pending failure，不重复执行。无 Linux 前端、真实硬件、Driver/HAL、厂商系统源码或虚拟化变更。

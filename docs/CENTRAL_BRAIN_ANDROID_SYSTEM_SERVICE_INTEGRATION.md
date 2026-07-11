@@ -213,3 +213,5 @@ Governance 的 Safety/Vehicle State 当前来自 Runtime-owned hardware-free fix
 R4A 的 Room/SQLite WAL 位于 Runtime APK app-private data directory，不要求修改 `/system`、`/vendor` 或厂商预编译组件。当前 schema/migration probe 不使用 direct-boot storage；如果量产要求开机解锁前恢复任务，必须由目标平台 owner 决定 device-protected storage、密钥可用时序和用户隔离策略，不能在普通 APK 中假设完成。
 
 R4B1 的 durable task repository 仍是 Runtime APK 内部 Java/Room 组件，不注册 framework service、不改变三项 signature permission，也不修改 frozen AIDL。当前仅 debug 隔离 probe 使用 repository，production Runtime/Governance Service 尚未接线；因此不需要厂商 SDK/BSP/Framework 编译，且不能宣称 system-server 级 durable workflow 已完成。
+
+R4B2 已把同一 app-private repository 接入 source-built `CentralBrainRuntimeService`，但部署模型不变：仍是显式 APK Binder Service，不注册到 framework `servicemanager`，不修改 system image。数据库只承载 task metadata/digest/checkpoint/audit；`task_recovery_enabled=false`、approval 仍非 durable、outbox/dispatch 关闭，因此该 APK 集成不能替代 system-server/direct-boot/目标硬件恢复验收。

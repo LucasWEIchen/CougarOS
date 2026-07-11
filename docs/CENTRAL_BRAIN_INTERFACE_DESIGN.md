@@ -810,3 +810,18 @@ R4B1 adds an internal Java repository boundary; it does not change frozen task/d
 | `RuntimeStateDao.findTaskByOwnerAndIdempotency` | owner fingerprint + idempotency key | matching mutable entity or null, internal only | backed by `index_runtime_task_owner_idempotency` unique index |
 
 The repository never accepts a raw utterance, caller-supplied identity, risk classification or permission assertion. `payloadDigest` is a lowercase SHA-256 placeholder; production keying/HMAC policy remains open under ISSUE-022. R4B1 is not referenced by production Services, does not write checkpoint/effect/outbox rows, and cannot dispatch an Action.
+
+## Android R4B2 Durable Runtime Wiring
+
+Frozen `ICentralBrainRuntime` V1 is unchanged. Durability is an internal Service/repository contract.
+
+| Call/path | Durable behavior | Callback/recovery behavior |
+| --- | --- | --- |
+| `submitAgentTask` new key | trusted owner + request digest; task/ACCEPTED checkpoint/audit commit before handle | schedules deterministic stub only after durable admission |
+| `submitAgentTask` exact live replay | returns original handle; no new task/checkpoint/audit; admission-to-live-map publication is serialized | same callback Binder is deduplicated; up to four observer Binders receive current and terminal events |
+| `submitAgentTask` existing but unrecovered | returns original handle | emits durable status then retryable `ERROR_INTERNAL`; no execution until R4C |
+| RUNNING/terminal transition | task update + next checkpoint + transition audit in one transaction | Job Supervisor advances after commit |
+| terminal callback settlement | task settled flag + settlement audit, idempotent | executed after callback attempts; failed persistence remains pending |
+| `getTaskStatus` | live owner snapshot first, then owner-fingerprint Room lookup | durable fallback message states recovery is pending |
+
+`DurableDigest` length-frames every UTF-8 field and domain-separates request/checkpoint/settlement hashes. Deadline policy is transactional: exact existing replay is returned even when creation is no longer allowed; a new expired request throws before any task row is inserted. R4B2 does not expose database handles through AIDL and does not access pending-effect/outbox dispatch.

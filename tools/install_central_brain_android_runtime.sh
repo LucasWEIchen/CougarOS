@@ -227,11 +227,19 @@ for _ in {1..40}; do
       <<<"$REPOSITORY_LOG" \
       && grep -Fq "task_admission_transaction_verified=true" <<<"$REPOSITORY_LOG" \
       && grep -Fq "task_idempotent_replay_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "expired_deadline_replay_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "new_expired_deadline_rejected=true" <<<"$REPOSITORY_LOG" \
       && grep -Fq "task_idempotency_conflict_verified=true" <<<"$REPOSITORY_LOG" \
       && grep -Fq "task_owner_isolation_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "task_transition_transaction_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "task_transition_replay_verified=true" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "terminal_settlement_transaction_verified=true" \
+        <<<"$REPOSITORY_LOG" \
       && grep -Fq "durable_task_count=2" <<<"$REPOSITORY_LOG" \
       && grep -Fq "acceptance_audit_count=2" <<<"$REPOSITORY_LOG" \
-      && grep -Fq "runtime_repository_wired=false" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "durable_audit_count=5" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "durable_checkpoint_count=4" <<<"$REPOSITORY_LOG" \
+      && grep -Fq "repository_probe_isolated=true" <<<"$REPOSITORY_LOG" \
       && grep -Fq "durable_dispatch_enabled=false" <<<"$REPOSITORY_LOG"; then
     REPOSITORY_PROBE_PASSED=true
     break
@@ -281,6 +289,8 @@ for _ in {1..20}; do
   "${ADB_DEVICE[@]}" shell uiautomator dump /sdcard/central-brain-demo.xml >/dev/null
   UI_DUMP="$("${ADB_DEVICE[@]}" exec-out cat /sdcard/central-brain-demo.xml | tr -d '\r')"
   if grep -Fq "Typed Binder: completed" <<<"$UI_DUMP" \
+      && grep -Fq "Replay: completed" <<<"$UI_DUMP" \
+      && grep -Fq "Concurrent replay: completed" <<<"$UI_DUMP" \
       && grep -Fq "Cancel: confirmed" <<<"$UI_DUMP" \
       && grep -Fq "Governance: verified v1" <<<"$UI_DUMP"; then
     break
@@ -292,6 +302,8 @@ for expected in \
   "android_integrated" \
   "Typed Binder: connected v1" \
   "Typed Binder: completed" \
+  "Replay: completed" \
+  "Concurrent replay: completed" \
   "Cancel: confirmed" \
   "Governance: verified v1"; do
   if ! grep -Fq "$expected" <<<"$UI_DUMP"; then
@@ -308,6 +320,11 @@ if ! grep -Fq "job_supervisor_max_records=128 terminal_retention_ms=300000" \
 fi
 if ! grep -Fq "capability_default=deny capability_rule_count=2" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not load the strict R3B capability policy" >&2
+  exit 1
+fi
+if ! grep -Fq "runtime_repository_wired=true task_recovery_enabled=false" \
+    <<<"$RUNTIME_LOG"; then
+  echo "Runtime did not report the bounded R4B2 repository/recovery boundary" >&2
   exit 1
 fi
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
@@ -348,6 +365,38 @@ for marker in \
   fi
 done
 
+DURABILITY_NONCE="$(date +%s%N)"
+DURABILITY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.RuntimeDurabilityProbeActivity \
+  --es nonce "$DURABILITY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$DURABILITY_PROBE_OUTPUT"; then
+  echo "$DURABILITY_PROBE_OUTPUT" >&2
+  echo "Runtime durability debug probe did not start successfully" >&2
+  exit 1
+fi
+DURABILITY_PROBE_PASSED=false
+for _ in {1..40}; do
+  DURABILITY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbRuntimeDurability:I)"
+  if grep -Fq "nonce=$DURABILITY_NONCE runtime_durability_probe_complete=true" \
+      <<<"$DURABILITY_LOG" \
+      && grep -Fq "durable_completed_task_verified=true" <<<"$DURABILITY_LOG" \
+      && grep -Fq "durable_cancelled_task_verified=true" <<<"$DURABILITY_LOG" \
+      && grep -Fq "durable_checkpoint_chain_verified=true" <<<"$DURABILITY_LOG" \
+      && grep -Fq "durable_terminal_settlement_verified=true" <<<"$DURABILITY_LOG" \
+      && grep -Fq "runtime_repository_wired=true" <<<"$DURABILITY_LOG" \
+      && grep -Fq "task_recovery_enabled=false" <<<"$DURABILITY_LOG" \
+      && grep -Fq "durable_dispatch_enabled=false" <<<"$DURABILITY_LOG"; then
+    DURABILITY_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$DURABILITY_PROBE_PASSED" != true ]]; then
+  echo "$DURABILITY_LOG" >&2
+  echo "Runtime durable lifecycle probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -380,7 +429,14 @@ printf '%s\n' \
   "task_idempotent_replay_verified=true" \
   "task_idempotency_conflict_verified=true" \
   "task_owner_isolation_verified=true" \
-  "runtime_repository_wired=false" \
+  "runtime_repository_wired=true" \
+  "task_recovery_enabled=false" \
+  "durable_replay_callback_verified=true" \
+  "durable_concurrent_replay_verified=true" \
+  "durable_completed_task_verified=true" \
+  "durable_cancelled_task_verified=true" \
+  "durable_checkpoint_chain_verified=true" \
+  "durable_terminal_settlement_verified=true" \
   "durable_dispatch_enabled=false" \
   "job_supervisor_active=true" \
   "trusted_caller_identity_resolved=true" \

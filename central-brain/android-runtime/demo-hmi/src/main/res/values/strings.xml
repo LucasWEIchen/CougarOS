@@ -5,4 +5,13 @@
     <string name="governance_disconnected">Governance: disconnected</string>
     <string name="governance_failed">Governance: failed %1$s</string>
     <string name="governance_verified">Governance: verified v%1$d</string>
+    <string name="replay_pending">Replay: pending</string>
+    <string name="replay_same_handle">Replay: same handle</string>
+    <string name="replay_completed">Replay: completed</string>
+    <string name="replay_failed">Replay: failed %1$d</string>
+    <string name="concurrent_replay_pending">Concurrent replay: pending</string>
+    <string name="concurrent_replay_completed">Concurrent replay: completed</string>
+    <string name="concurrent_replay_failed">Concurrent replay: failed %1$d</string>
+    <string name="concurrent_replay_interrupted">Concurrent replay: interrupted</string>
+    <string name="concurrent_replay_exception">Concurrent replay: exception %1$s</string>
 </resources>
