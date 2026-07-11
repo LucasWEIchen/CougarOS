@@ -183,7 +183,7 @@
 
 修正计划：执行 `CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` R1/R2，建立 SDK AAR + Runtime Service APK，拆分 production/diagnostic AIDL，业务对象改为 versioned Parcelable；保留旧 JSON AIDL 作为限时兼容 adapter，迁移完成后从正式 SDK 移除。
 
-2026-07-12 进展：R1 Gradle 多模块、API 33 安装/Service/Demo 生命周期退出验证已完成；production/diagnostic typed AIDL 尚未进入实现，DEV-018 不关闭并直接进入 R2。
+2026-07-12 进展：R1 Gradle 多模块、API 33 安装/Service/Demo 生命周期退出验证已完成。R2A 已编译分离的 production/diagnostic structured AIDL、oneway callback 和 V1 checksum freeze，但当前无 AOSP/Soong build 权限，不能使用 `aidl_interface`/VINTF stable AIDL；改用显式 `getProtocolVersion/getProtocolHash`。Service/cancel/death 尚未实现，DEV-018 不关闭。
 
 状态：Accepted Temporary；对应 `ISSUE-021`。
 

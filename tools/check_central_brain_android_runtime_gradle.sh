@@ -42,7 +42,8 @@ for path in \
   central-brain/android-runtime/demo-hmi/src/main/java/com/centralbrain/demo/DemoActivity.java \
   central-brain/android-runtime/README.md \
   tools/build_central_brain_android_runtime.sh \
-  tools/install_central_brain_android_runtime.sh; do
+  tools/install_central_brain_android_runtime.sh \
+  tools/check_central_brain_android_aidl_contract.sh; do
   require_file "$path"
 done
 
@@ -67,17 +68,13 @@ require_text "central-brain/android-runtime/runtime-service/src/debug/java/com/c
 require_text "tools/install_central_brain_android_runtime.sh" "--require-api-33"
 require_text "tools/install_central_brain_android_runtime.sh" "r1_api33_exit_criteria_met"
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "contract_defined"'
+require_text "central-brain/android-runtime/central-brain-sdk/build.gradle.kts" "aidl = true"
 require_text "central-brain/android-runtime/README.md" "central_brain_api33_x86_64"
 require_text "central-brain/android-runtime/README.md" 'overall Runtime remains `contract_defined`'
 require_text "central-brain/android-runtime/README.md" "command-line tools understand SDK XML up to version 3"
 
-if find "$RUNTIME_DIR" -type f -path '*/src/main/aidl/*' -print -quit | grep -q .; then
-  echo "R1 must not introduce AIDL before the R2 contract increment" >&2
-  exit 1
-fi
-
 if grep -R -Fq "android.permission.INTERNET" "$RUNTIME_DIR"; then
-  echo "R1 Android runtime modules must not request network access" >&2
+  echo "Android runtime modules must not request network access" >&2
   exit 1
 fi
 
@@ -85,5 +82,7 @@ if grep -Fq "RuntimeProbeActivity" "$RUNTIME_DIR/runtime-service/src/main/Androi
   echo "the ADB lifecycle probe must remain debug-only" >&2
   exit 1
 fi
+
+bash "$ROOT_DIR/tools/check_central_brain_android_aidl_contract.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

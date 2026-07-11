@@ -103,6 +103,7 @@ for path in \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
   tools/build_central_brain_android_runtime.sh \
   tools/install_central_brain_android_runtime.sh \
+  tools/check_central_brain_android_aidl_contract.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
   require_file "$path"
 done
@@ -122,6 +123,12 @@ require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R1C API 33 Exit D
 require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "R1 Gradle 多模块、API 33"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "R1 SDK AAR、Runtime Service APK、Demo HMI APK"
+require_file "docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md"
+require_text "$PLAN" "R2A compiled AIDL contract"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R2A compiled AIDL contract trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R2A AIDL Contract Driver/HAL Boundary"
+require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android R2 Typed AIDL Contract"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

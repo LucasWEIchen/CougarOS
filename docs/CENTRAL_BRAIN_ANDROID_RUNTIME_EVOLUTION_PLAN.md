@@ -67,6 +67,14 @@
 - R1 退出条件已关闭。整体 Runtime 暂不提升为 `android_integrated`，因为成熟度模型还要求 R2 production Binder/instrumentation 证据。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
+### R2 实施状态
+
+- `R2A compiled AIDL contract` 已完成：`central-brain-sdk` 开启 AIDL，编译 5 个 production Parcelable、3 个 diagnostic Parcelable、production/callback/diagnostic 三个接口，并冻结 `aidl-api/v1.sha256`。
+- Production 只包含 typed agent task submit/cancel/status，禁止 JSON/Bundle/fd/shared memory；callback 为 `oneway`，生成代码使用 `IBinder.FLAG_ONEWAY`；diagnostic 为只读 cursor page，`MAX_PAGE_SIZE=100`。
+- Gradle 应用层无法使用需 Soong/AOSP 构建的 `aidl_interface`/VINTF stable AIDL，因此使用显式 `getProtocolVersion/getProtocolHash` 和 checksum freeze；该限制继续记录在 `DEV-018`/`ISSUE-021`，不得宣称 VINTF stable。
+- R2A 只定义并编译契约，Runtime `onBind()` 仍返回 `null`。R2B 才发布分离的 signature-permission production/diagnostic Service；成熟度保持 `contract_defined`。
+- Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
+
 ## 架构落点
 
 | 架构图层 | 本计划新增实现 |

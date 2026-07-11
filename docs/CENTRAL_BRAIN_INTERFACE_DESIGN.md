@@ -707,3 +707,9 @@ Android 主路径为 Binder `getEventSubscriptionActivationApprovalDecisionOwner
 - Linux: `prototype-readiness`, `prototype.readiness.get`, `GetPrototypeReadiness`
 - Payload: `event_subscription_activation_closure_chain_summary` with `source_range=EV-AE..EV-AHS`, 30 stage ids, `event_subscription_activation_closure_chain_stage_count=30`, `event_subscription_activation_closure_chain_ready=false`, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, Android/Linux binding parity, no-store/no-POST/no-side-effect consistency, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
 - Scope: read-only readiness summary over existing EV-AE..EV-AHS surfaces; no new deep endpoint, no owner/reviewer assignment, no evidence persistence, no queue/gate/broker activation, no hardware, no Driver/HAL, and no virtualization work.
+
+## Android R2 Typed AIDL Contract
+
+The Android product runtime no longer extends the legacy String/JSON Binder surface for new business operations. R2 uses `ICentralBrainRuntime` for typed task control, `ICentralBrainTaskCallback` for oneway async results, and `ICentralBrainDiagnostics` for bounded read-only cursor pages. Full V1 types, method latency, cancellation, death handling, version/hash rules and the no-hardware boundary are defined in `CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`.
+
+This is Gradle application structured AIDL because the project cannot modify the prebuilt vendor/AOSP Soong build. It must not be labeled VINTF stable AIDL. Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-G-003`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`; deviation/issue tracking: `DEV-018`, `ISSUE-021`.

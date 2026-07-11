@@ -21,6 +21,8 @@ R1B 新增 `tools/install_central_brain_android_runtime.sh` 和仅存在于 debu
 
 R1C 已在 `central_brain_api33_x86_64` Android 13/API 33/x86_64 system image revision 17 上通过严格门禁，双 APK `versionName=0.1.0`，`r1_api33_exit_criteria_met=true`。R1 交付退出条件已关闭；整体 Runtime 仍为 `contract_defined`，等待 R2 production Binder/instrumentation 后再提升成熟度。
 
+R2A 已在 `central-brain-sdk` AAR 中编译 production、oneway callback 和 diagnostic structured AIDL；V1 source checksum 已冻结。当前只交付契约，不发布 Binder Service，成熟度仍为 `contract_defined`。详细类型、方法、latency、cancel/death、分页和 Gradle-vs-VINTF 边界见 `CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |
@@ -324,6 +326,9 @@ Linux systemd 部署样例：
 - `tools/build_central_brain_android_runtime.sh`
 - `tools/check_central_brain_android_runtime_gradle.sh`
 - `tools/install_central_brain_android_runtime.sh`
+- `docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`
+- `central-brain/android-runtime/central-brain-sdk/aidl-api/v1.sha256`
+- `tools/check_central_brain_android_aidl_contract.sh`
 
 ## Android 版本最低要求
 

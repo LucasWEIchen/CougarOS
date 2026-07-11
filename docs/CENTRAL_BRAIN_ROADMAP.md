@@ -21,7 +21,7 @@
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
-| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 待开始 |
+| R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 进行中：R2A compiled contract 已完成 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 待开始 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
@@ -61,6 +61,10 @@
 
 ### 2026-07-12
 
+- 完成 R2A compiled AIDL contract：SDK AAR 新增 production、oneway callback、diagnostic 三个独立接口和 8 个 structured Parcelable，AIDL Java 代码真实编译通过。
+- 新增 `docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`、V1 checksum freeze `central-brain-sdk/aidl-api/v1.sha256` 和 `tools/check_central_brain_android_aidl_contract.sh`；production AIDL 禁止 JSON/Bundle/fd/shared memory，diagnostic 固定 cursor/page size 上限。
+- 记录 Gradle app structured AIDL 与 Soong/VINTF stable AIDL 的工具链边界；显式使用 `getProtocolVersion/getProtocolHash`，保留 DEV-018/ISSUE-021，R2B 才实现分离 Service。
+- R2A 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
 - 完成 R1C Android 13 退出验证：安装 SDK Platform 33 revision 3 与 Google APIs x86_64 system image revision 17，创建 `central_brain_api33_x86_64` AVD。
 - `tools/install_central_brain_android_runtime.sh --require-api-33` 在 Android 13/API 33/x86_64、`1920x1080` 上通过，双 APK `versionName=0.1.0`、Runtime Service 运行、Demo resumed/UI 可见、`r1_api33_exit_criteria_met=true`。
 - R1 正式完成并进入 R2。整体成熟度仍为 `contract_defined`，待 production/diagnostic typed AIDL、callback/cancel/death 与 instrumentation 证据完成后再评估 `android_integrated`。

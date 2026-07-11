@@ -1,0 +1,11 @@
+2733487b9de38af7d643d47d7a7d483f73bb145d04d9d9410ba7d9ef3f96ed50  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/diagnostics/DiagnosticPage.aidl
+becf9ff23152e1cf354a41b082d9c2f9c1e9122beb4e1f8b64ea0d468744bda2  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/diagnostics/DiagnosticQuery.aidl
+4e38c8eee47fcedc20aa06087d742a26a26dd9a0c45676f796c4acbe6b2f7f2f  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/diagnostics/DiagnosticRecord.aidl
+f338144de6b7e9a90f909c57ff978a6f7de1abaf94e38850cbfe76fb2574aae3  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/diagnostics/ICentralBrainDiagnostics.aidl
+14d0eaa46229093560d052cacaf0f87d18f49ceb7686d445abebc29b860fd6eb  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/production/AgentTaskRequest.aidl
+0f90dc10a97d55c12df355678edac6fcedae25ec5c6488ecfdaea14245b37654  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/production/ICentralBrainRuntime.aidl
+8f71f91155a15bd9097439cbc6eed35bd853e87bfa2fde830dafe62ddfbd6862  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/production/ICentralBrainTaskCallback.aidl
+7dc1661ed7a165881e98d516cfe9c59c940915ad346c7835166fa75522d63fa6  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/production/TaskFailure.aidl
+6b9700fcd30f2aeea792c8dc6797ba52828d5a39c194f12982d337dc712f612f  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/production/TaskHandle.aidl
+d49ba5155d2f45dd750f94b1d3323b114667c33ed493715a59f206698495eeab  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/production/TaskResult.aidl
+170f7034afc5318a71b00ca22955f983f643410284ce4b7d76646e5ef0020a9e  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/production/TaskUpdate.aidl

@@ -405,3 +405,7 @@ The debug-only DUMP-protected probe, adb installer, service `dumpsys` check and 
 ### R1C API 33 Exit Driver/HAL Evidence
 
 The Android 13/API 33 x86_64 strict test repeated the same application/framework-only checks and returned `r1_api33_exit_criteria_met=true`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`. The AVD does not represent target SoC/NPU hardware and does not close `DRV-GAP-001..005`; R1 completion adds no Driver/HAL development. Req IDs: `XSC-004`, `XSC-006`, `NV-F-001`, `NV-P-002`, `DEL-001`, `DEL-005`.
+
+### R2A AIDL Contract Driver/HAL Boundary
+
+R2A adds Java Binder metadata and structured parcelables only. Production AIDL explicitly rejects file descriptors, shared memory, vendor handles and JSON escape payloads; diagnostic AIDL is bounded read-only paging. No interface opens a device node, calls HAL/vendor SDK, accesses PCIe NPU/vehicle bus or modifies the system image. `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; no new Driver/HAL development is required. Req IDs: `XSC-004`, `XSC-006`, `NV-F-001`, `NV-P-002`, `DEL-001`, `DEL-005`.

@@ -6,15 +6,25 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 
 ## Modules
 
-| Module | Artifact | R1 responsibility |
+| Module | Artifact | Current responsibility |
 | --- | --- | --- |
-| `central-brain-sdk` | AAR | Public Android SDK ownership boundary and version identity |
+| `central-brain-sdk` | AAR | Public Android SDK boundary, structured AIDL types and protocol identity |
 | `runtime-service` | APK without launcher | Independent user-space runtime process/lifecycle boundary |
 | `demo-hmi` | Launcher APK | Source-built integration client for Android hardware testing |
 
-R1 intentionally has no AIDL. `runtime-service` is non-exported and `onBind()` returns no Binder until R2 introduces separate typed production and diagnostic contracts. No module requests network, vehicle, device-node, camera, audio, location, or privileged permissions.
+R2A adds compiled, structured production and diagnostic AIDL contracts to `central-brain-sdk`. `runtime-service` remains non-exported and `onBind()` still returns no Binder until R2B implements separate signature-permission Service endpoints. No module requests network, vehicle, device-node, camera, audio, location, or privileged permissions.
 
 The debug variant adds `RuntimeProbeActivity` only under `src/debug`. It is an ADB lifecycle probe protected by the platform `android.permission.DUMP` permission; it starts the non-exported service from inside the runtime package and immediately finishes. The release APK does not contain this activity.
+
+## R2A Protocol Contract
+
+- Production: `com.centralbrain.sdk.production.ICentralBrainRuntime`
+- Oneway callback: `com.centralbrain.sdk.production.ICentralBrainTaskCallback`
+- Diagnostics: `com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics`
+- Frozen source checksum list: `central-brain-sdk/aidl-api/v1.sha256`
+- Detailed semantics: `docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`
+
+Production AIDL contains only typed task fields; JSON, `Bundle`, file descriptors and shared memory are rejected by `tools/check_central_brain_android_aidl_contract.sh`. Diagnostic records are structured, read-only and cursor-paged with a maximum page size of 100.
 
 ## Toolchain
 

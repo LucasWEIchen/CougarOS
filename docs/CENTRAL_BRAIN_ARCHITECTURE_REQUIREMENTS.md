@@ -670,3 +670,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The strict `--require-api-33` check must install Runtime/Demo `versionName=0.1.0`, verify `CentralBrainRuntimeService`, Demo resumed state and visible `contract_defined`, and return `r1_api33_exit_criteria_met=true`.
 - R1 completion does not close `ISSUE-021` or `DEV-018`. Production/diagnostic typed AIDL, callback/cancel/death and instrumentation remain R2 requirements, so overall Runtime maturity stays `contract_defined`.
 - The API 33 test remains user-space only and reports `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
+
+### 2026-07-12 R2A compiled AIDL contract trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`.
+- `central-brain-sdk` must compile separate `ICentralBrainRuntime`, `ICentralBrainTaskCallback`, and `ICentralBrainDiagnostics` AIDL interfaces plus versioned structured parcelables.
+- Production AIDL must expose typed agent-task submit/cancel/status only and reject JSON, Bundle, file descriptors and shared memory. Diagnostic AIDL must be read-only, cursor-paged and bounded to 100 records.
+- Callback methods must be `oneway`; generated Java must transact with `IBinder.FLAG_ONEWAY`. R2B/R2C must implement callback, cancel and Binder death behavior without blocking a Binder thread.
+- This Gradle APK/AAR project uses application structured AIDL with explicit `getProtocolVersion/getProtocolHash` and a V1 SHA-256 source freeze. It is not Soong `aidl_interface` or VINTF stable AIDL; DEV-018/ISSUE-021 remain open.
+- R2A publishes no Binder Service and does not promote maturity. No hardware, vendor SDK, Driver/HAL, Linux front-end or virtualization work is triggered.
