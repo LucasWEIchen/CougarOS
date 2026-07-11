@@ -6,7 +6,7 @@ This document turns the completion audit into a requirement-by-requirement closu
 
 - Contract: `central-brain/contracts/central_brain_prototype_closure_plan.json`
 - Baseline completion audit: `central-brain/contracts/central_brain_prototype_completion_audit.json`
-- Baseline API contract: `0.1.107`
+- Baseline API contract: `0.1.108`
 - Current estimate after `GET /prototype/completion-summary`: 100%
 
 The closure plan now records `python_prototype_current_scope_complete=true` for the current Python prototype scope. `PY-CL-001` / `FW-S-006` is resolved by `GET /soa/extensions/closure-summary`; `PY-CL-002` / `NV-F-012` is resolved by `GET /observability/readiness`; final completion evidence is exposed by `GET /prototype/completion-summary`.

@@ -197,6 +197,56 @@
 
 状态：Proposed。
 
+## ISSUE-021 Android Binder 业务/诊断接口与异步任务边界
+
+当前 `ICentralBrainGateway` 把业务操作、readiness、checklist、audit、rollup 和 hardware evidence 查询集中在同一个接口中，并全部使用同步 `String`/JSON 返回；`CentralBrainGatewayBinderService` 还在 Binder 调用线程中同步代理 HTTP。该形态无法提供稳定类型、快速返回、取消、进度 callback、Binder death 或大响应分页语义。
+
+涉及需求：`XSC-006`、`NV-G-003`、`NV-G-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
+
+当前处理：按 `CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` 拆分量产业务 AIDL 与诊断 AIDL；业务接口使用 versioned Parcelable，任务提交快速返回 handle，状态通过 callback 推送，并定义 cancel、timeout、death-recipient 和兼容迁移窗口。诊断接口允许 JSON，但必须分页且不得阻塞业务 Binder 线程。
+
+状态：Open，实施已获批准。
+
+## ISSUE-022 Durable task/session/checkpoint 与副作用恢复
+
+当前 `/agent/execute` 只返回 `validated_mock`，Memory 是进程内静态列表，Task、Step、approval、pending effect 和 event cursor 没有 durable owner；进程退出后不能恢复，也没有防止车控/SOA 副作用重复执行的 idempotency/outbox 语义。
+
+涉及需求：`APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`。
+
+当前处理：Android Runtime Service 使用 Room/SQLite WAL 保存 session、task、step、checkpoint、pending effect、outbox 和 event cursor；副作用必须先持久化幂等键，再通过 UIB Action/SOA/Skill dispatch。重启恢复、取消和重复投递必须有确定性测试。
+
+状态：Open，实施已获批准。
+
+## ISSUE-023 Android 可信身份、capability 与审批
+
+当前 Python Policy 从请求体读取 `caller_permissions`，并在部分路径提供默认权限；这只能用于 contract mock，不能作为真实 Android 授权依据。Safety State、vehicle state 和高风险动作审批也没有可信来源或 durable pending-request owner。
+
+涉及需求：`FW-U-004`、`FW-U-007`、`FW-S-005`、`XSC-005`、`NV-G-005`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`。
+
+当前处理：权限由 Binder UID、package、signature digest、Android user 和受信 Safety/Vehicle State adapter 派生；请求体权限仅可作为测试期望值，不参与授权。动作按读取、舒适控制、驾驶干扰、诊断写和 OTA 分级，高风险动作进入可恢复审批流程并默认拒绝。
+
+状态：Open，实施已获批准。
+
+## ISSUE-024 Model Router、资源准入与 NPU provider 边界
+
+当前 Ollama adapter 是同步 HTTP 仿真，缺少 provider 生命周期、并发槽位、排队 deadline、stream/cancel、健康熔断和策略化 fallback；NPU 接口文档已定义 cancel/status/model lifecycle，但实现尚未闭合。真实 NPU 仍受 `DRV-GAP-001` 阻塞。
+
+涉及需求：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-001`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`KH-003`、`KH-006`、`KH-007`、`DEL-001`、`DEL-005`。
+
+当前处理：建立 Stub、Ollama-debug 和 Vendor-NPU-empty provider；统一 health、warmup、infer、stream、cancel、metrics、fault 和 fallback contract。当前 Android 无 NPU 时只激活 deterministic stub，禁止探测 device node 或把 Ollama 标记为硬件验证。
+
+状态：Open，实施已获批准。
+
+## ISSUE-025 Event、Memory、Skill 生命周期与治理链
+
+当前 Event 订阅仍为 contract-only，Memory 只有静态查询，Skill 只有 manifest/mock invocation；缺少 callback/cursor persistence、privacy/TTL/delete-export、Skill signature/version/capability 和固定 middleware 执行顺序。
+
+涉及需求：`XSC-001`、`XSC-002`、`XSC-005`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-007`、`NV-P-002`、`DEL-001`。
+
+当前处理：R6 阶段实现 Android 低频 callback/cursor、分层 Memory 生命周期、仅编译内置或签名审核 Skill，以及 identity -> schema -> privacy -> policy -> QoS -> trace -> dispatch -> output guard -> audit 中间件链。DDS/shared-memory 高频数据面仍保持空接口。
+
+状态：Open，实施已获批准。
+
 2026-07-10 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix`、Android `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson`、Console `Sub ApHReadyB`、Linux `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix` 与 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix`，把 activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision closure blockers 拆成 `EV-AHS-001..010` contract。ISSUE-018 仍为 Proposed：真实 closure handoff decision owner、approval review authority、gate closure authority、broker activation owner、acceptance record store、review queue owner、Android/Linux parity evidence、DRV-GAP-004/005 owner、虚拟化边界验收和 no-side-effect decision closure 仍未确认；原型只报告 `closure_blocker_matrix_complete=true`、`closure_blocker_matrix_consistent=true`、`closure_handoff_closure_ready=false`、`open_blocker_count=10`、`closed_blocker_count=0`、`review_queue_updated=false`、`gates_closed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`。
 
 2026-07-10 `GET /prototype/readiness` 新增 `event_subscription_activation_closure_chain_summary`，把 ISSUE-018 下 EV-AE..EV-AHS 的 activation evidence、approval、handoff、reviewer assignment、closure handoff 和 closure blocker matrix 收束为 30-stage closure chain summary。ISSUE-018 仍为 Proposed：真实 broker/runtime activation、closure handoff decision owner、approval review authority、gate closure authority、broker activation owner、acceptance record store、review queue owner、Android/Linux parity evidence、DRV-GAP-004/005 owner、virtualization boundary acceptance 和 no-side-effect closure decision 仍未确认。

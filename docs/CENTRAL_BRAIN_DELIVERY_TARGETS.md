@@ -7,6 +7,14 @@
 
 本项目交付对象是使用 Android 和 Linux 系统的座舱域软件工程师。交付物必须能帮助他们完成集成、调试、验证和二次开发，而不只是展示 Demo。
 
+## 2026-07-12 当前实施阶段
+
+用户已批准 `CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md`。当前新增开发范围只聚焦 Android 13：交付 `central-brain-sdk` AAR、独立 Runtime Service APK、Demo HMI APK，以及目标 vendor SDK 明确后按需启用的 NDK/JNI adapter。既有 Linux 交付物继续保留为历史同步样例，但本阶段不新增 Linux 前端或 Linux 产品运行时。
+
+交付成熟度统一使用 `contract_defined`、`prototype_implemented`、`android_integrated`、`hardware_validated`、`production_qualified`。`python_prototype_current_scope_complete=true`、readiness/checklist/rollup 和 Client2 HTTP 演示不得被解释为 `android_integrated`、`hardware_validated` 或 `production_qualified`。
+
+当前 Android 产品验收必须逐步覆盖 typed/async Binder、可信调用方身份、durable task/checkpoint/outbox、调度与取消、Stub/Ollama-debug/Vendor-empty Model Router、Event/Memory/Skill lifecycle、trace/metric 和 API 33 设备测试。Req IDs：`APP-004`、`XSC-001..006`、`FW-U-003/004/006/007`、`NV-F-001/011/012`、`NV-G-003..007`、`NV-P-002`、`DEL-001/003/004/005`。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |

@@ -5,7 +5,7 @@ This current-state audit records what the Python prototype proves today and what
 ## Summary
 
 - Audit artifact: `central-brain/contracts/central_brain_prototype_completion_audit.json`
-- Baseline API contract: `0.1.107`
+- Baseline API contract: `0.1.108`
 - Baseline handoff manifest: `central-brain/contracts/central_brain_prototype_handoff_manifest.json`
 - Current state: Python prototype is handoff-ready, not production-ready.
 - Estimated current-scope completion after `GET /prototype/completion-summary`: 100%.

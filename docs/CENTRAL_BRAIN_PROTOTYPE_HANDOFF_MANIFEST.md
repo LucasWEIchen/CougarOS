@@ -6,7 +6,7 @@ This document is the cockpit-domain engineer handoff index for the current Centr
 
 - Manifest: `central-brain/contracts/central_brain_prototype_handoff_manifest.json`
 - Baseline API contract: `central-brain/contracts/central_brain_api.json`
-- Baseline API version: `0.1.107`
+- Baseline API version: `0.1.108`
 - Baseline commit: `2884438c`
 - Req IDs: XSC-001, XSC-002, XSC-003, XSC-004, XSC-005, XSC-006, DEL-001, DEL-002, DEL-003, DEL-004, DEL-005
 

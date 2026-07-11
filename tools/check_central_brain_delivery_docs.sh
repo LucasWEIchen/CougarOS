@@ -33,6 +33,7 @@ require_file "docs/CENTRAL_BRAIN_PROTOTYPE_MODULE_INTERFACE_MAP.md"
 require_file "docs/CENTRAL_BRAIN_MODULE_USE_CASE_DIAGRAM.md"
 require_file "docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md"
 require_file "docs/CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md"
+require_file "docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md"
 require_file "central-brain/contracts/central_brain_prototype_handoff_manifest.json"
 require_file "central-brain/contracts/central_brain_prototype_completion_audit.json"
 require_file "central-brain/contracts/central_brain_prototype_closure_plan.json"
@@ -50,6 +51,7 @@ require_file "central-brain/deploy/linux/systemd/central-brain-linux-ipc.service
 require_file "central-brain/deploy/linux/systemd/central-brain-linux-grpc.service"
 require_file "tools/smoke_central_brain_ollama_simulated_npu.sh"
 require_file "tools/smoke_central_brain_agent_scenarios.sh"
+require_file "tools/check_central_brain_android_runtime_evolution.sh"
 require_file "apk-labs/client2-central-brain/client2-central-brain.project.json"
 require_file "apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml"
 require_file "apk-labs/client2-central-brain/patches/res/drawable/central_brain_panel_background.xml"
@@ -1442,5 +1444,7 @@ require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "GET /observability/rea
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "GET /prototype/completion-summary"
 require_text "central-brain/contracts/central_brain_prototype_completion_audit.json" "central_brain_prototype_closure_plan.json"
 require_text "central-brain/contracts/central_brain_prototype_handoff_manifest.json" "central_brain_prototype_closure_plan.json"
+
+bash "$ROOT_DIR/tools/check_central_brain_android_runtime_evolution.sh"
 
 echo "Central Brain delivery docs check passed"

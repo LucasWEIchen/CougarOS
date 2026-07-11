@@ -1,8 +1,8 @@
 {
   "closure_plan_name": "central-brain-python-prototype-req-closure-plan",
   "closure_plan_version": "0.1.0",
-  "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.107",
+  "updated": "2026-07-12",
+  "baseline_api_contract_version": "0.1.108",
   "baseline_completion_audit": "central-brain/contracts/central_brain_prototype_completion_audit.json",
   "baseline_commits": [
     "203ed8d4"

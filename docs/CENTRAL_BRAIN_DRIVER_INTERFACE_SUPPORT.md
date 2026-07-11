@@ -381,3 +381,13 @@ NpuDevice.reset(reason)
 `GET /agent/scenarios`、`POST /agent/scenarios/run` 和 Client2 12 场景面板只组合现有 AI SDK、Uni Info Bus、SOA、Policy/Audit、Model Runtime 和 readiness 接口。它们不打开 device node，不调用 ioctl/sysfs、Android VHAL/vendor AIDL、Linux SocketCAN、vendor SDK、PCIe NPU runtime、车辆总线、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime。
 
 `care.cold` 的 Action 结果、`task.home` 的 5 步任务图和 `skill.nap` 的座椅/车窗/空调计划都只是 policy/contract mock；`runtime.npu` 读取 Ollama simulated NPU 状态也不关闭 DRV-GAP-001。所有场景必须保持 `real_vehicle_control=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `production_ready=false`。本增量没有发现当前 Android/Linux 环境必须新增 Driver/HAL 才能完成的接口缺口，因此新增驱动开发量为零。
+
+## Android Runtime Evolution Driver/HAL Boundary
+
+`docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` R0..R7 只建设 Android 13 用户态 AI SDK、Runtime Service、Binder、Room/SQLite、治理和 deterministic provider。它不修改厂商 Android Framework、BSP、预编译系统组件、kernel driver、HAL、SELinux policy 或虚拟化层。
+
+Model Router 在当前无 NPU 环境中必须选择 deterministic Stub provider；Ollama 只允许作为 debug provider；Vendor NPU provider 保持 empty adapter，并继续报告 `hardware_accessed=false`、`driver_development_triggered=false` 和 `production_ready=false`。只有目标硬件、vendor SDK、ABI、buffer/fault contract 和 smoke evidence 明确后，才通过 `DRV-GAP-001` 触发最小 JNI/C ABI 或 HAL bridge 开发。
+
+Event callback、Room persistence、Binder identity 和 Android Job Supervisor 不需要新增 Driver/HAL。DDS/shared-memory 高频数据面、Vehicle bus、Camera/Audio/Sensors 和 Safety Runtime 仍分别受 `DRV-GAP-002..005` 约束。本阶段不开发 Linux 前端，也不因停止 Linux 新功能而修改既有 Linux driver gap 状态。
+
+Req IDs：`XSC-004`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-P-002`、`HW-002`、`KH-003`、`KH-006`、`KH-007`、`DEL-001`、`DEL-005`。

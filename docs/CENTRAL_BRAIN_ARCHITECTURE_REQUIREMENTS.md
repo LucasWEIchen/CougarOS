@@ -634,3 +634,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Linux synchronized delivery must provide `agent-scenarios` and `agent-scenario-home` over the same REST contract and document the same Ollama environment controls in `central-brain.env.example`.
 - KaKaClaw public product concepts are test references only. Continuous multi-turn sessions, personality/dialect runtime, zero-code Skill lifecycle, proactive triggers, real navigation/media/vehicle/ADAS dispatch, production Skill sandbox, and Privacy Router remain ISSUE-020 gaps.
 - This increment does not add Driver/HAL, PCIe NPU, vehicle bus, Safety Runtime, hardware access, or virtualization implementation.
+
+### 2026-07-12 Android Runtime evolution baseline
+
+- Req IDs: `APP-004`、`XSC-001`..`XSC-006`、`FW-U-003`、`FW-U-004`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`..`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- `docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` is the approved R0..R7 implementation baseline for moving from the completed Python contract/mock scope to an Android 13 user-space runtime.
+- Maturity must use exactly `contract_defined`, `prototype_implemented`, `android_integrated`, `hardware_validated`, or `production_qualified`. Readiness/checklist visibility cannot promote a module beyond its executable evidence.
+- The Android product path must deliver an AI SDK AAR, independent Runtime Service APK, Demo HMI APK, typed/async Binder contracts, trusted Binder identity, durable task state, scheduler, Model Router, governed Event/Memory/Skill runtime, and production-facing observability tests.
+- The Android runtime must not use request-provided `caller_permissions` as authorization input. Binder UID/package/signature and trusted Safety/Vehicle State inputs are mandatory Policy context.
+- The current Python gateway, legacy String/JSON AIDL and Client2 HTTP path remain temporary compatibility/test adapters under `DEV-001`, `DEV-017`, `DEV-018`, and `DEV-019`.
+- Current phase scope is Android only. Existing Linux artifacts are preserved without new Linux front-end implementation. Vendor Android/BSP/framework binaries are not modified.
+- Real NPU, vehicle bus and high-rate data paths remain empty adapters until target SDK/ABI evidence closes the relevant DRV-GAP. No virtualization runtime is developed.

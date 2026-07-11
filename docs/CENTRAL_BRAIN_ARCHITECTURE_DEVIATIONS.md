@@ -177,6 +177,22 @@
 
 状态：Accepted Temporary。
 
+## DEV-018 Android AIDL 业务面与诊断面混合
+
+当前 `ICentralBrainGateway` 包含 107 个同步 String/JSON 方法，其中大部分是 readiness/checklist/status/audit/rollup 诊断查询；同一 Binder service 又同步代理 REST。该形态偏离 `XSC-006`、`NV-P-002` 和 `NV-G-003` 所要求的稳定、版本化 Protocol Binding，也无法满足长任务的快速返回、callback、cancel 和 Binder death 处理。
+
+修正计划：执行 `CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` R1/R2，建立 SDK AAR + Runtime Service APK，拆分 production/diagnostic AIDL，业务对象改为 versioned Parcelable；保留旧 JSON AIDL 作为限时兼容 adapter，迁移完成后从正式 SDK 移除。
+
+状态：Accepted Temporary；对应 `ISSUE-021`。
+
+## DEV-019 请求体自报权限与非持久运行时
+
+当前 Runtime & Governance 直接读取请求体 `caller_permissions`，Task/Memory/QoS/Audit 主要保存在单进程内存或开发 JSONL 中，`/agent/execute` 不实际 dispatch。该实现偏离 `FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006` 和 `NV-G-007` 的可信身份、生命周期、恢复和审计要求。
+
+修正计划：执行 R3/R4，使用 Binder UID/package/signature 和受信 Safety/Vehicle State 构造 capability context；使用 Room/SQLite checkpoint、pending effect、idempotency/outbox 和 durable audit。请求体权限字段降级为测试期望值，绝不参与真实授权。
+
+状态：Accepted Temporary；对应 `ISSUE-022`、`ISSUE-023`。
+
 2026-07-10 新增 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix`、Android Binder `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson`、Android Console `Sub ApHReadyB`、Linux CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix`、Linux IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix` 和 Linux gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix`，把 Event subscription activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup 的开放项固定为 `EV-AHS-001..010` closure blocker matrix。该补充没有关闭 DEV-007：`closure_blocker_matrix_complete=true` 和 `closure_blocker_matrix_consistent=true` 只表示 blocker 已结构化，`closure_handoff_closure_ready=false`、`open_blocker_count=10`、`closed_blocker_count=0`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false` 仍是验收边界。
 
 2026-07-10 `GET /prototype/readiness` 新增 `event_subscription_activation_closure_chain_summary`，把 `EV-AE..EV-AHS` 30 个阶段集中暴露为 readiness audit summary。该补充仍未关闭 DEV-007：它只证明现有 contract-only closure chain 可以被 Android `getPrototypeReadinessJson` 和 Linux `prototype-readiness`/`prototype.readiness.get`/`GetPrototypeReadiness` 一致读取，仍不启动真实 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、evidence store、review queue、gate closure、Driver/HAL、Safety Runtime 或虚拟化层。

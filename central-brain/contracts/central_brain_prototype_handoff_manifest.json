@@ -1,8 +1,8 @@
 {
   "manifest_name": "central-brain-python-prototype-handoff",
   "manifest_version": "0.1.0",
-  "updated": "2026-07-10",
-  "baseline_api_contract_version": "0.1.107",
+  "updated": "2026-07-12",
+  "baseline_api_contract_version": "0.1.108",
   "baseline_commit": "2884438c",
   "status": {
     "prototype_handoff_ready": true,
@@ -107,6 +107,7 @@
     "bash tools/check_central_brain_binding_artifacts.sh",
     "bash tools/check_central_brain_delivery_docs.sh",
     "bash tools/check_central_brain_android_system_service_docs.sh",
+    "bash tools/check_central_brain_android_runtime_evolution.sh",
     "bash tools/smoke_central_brain_semantic_gateway.sh",
     "bash tools/smoke_central_brain_linux_ipc.sh",
     "bash tools/smoke_central_brain_linux_grpc.sh",
@@ -131,18 +132,28 @@
     "DEV-004",
     "DEV-005",
     "DEV-007",
-    "DEV-016"
+    "DEV-016",
+    "DEV-017",
+    "DEV-018",
+    "DEV-019"
   ],
   "open_issues": [
     "ISSUE-013",
     "ISSUE-014",
     "ISSUE-016",
     "ISSUE-017",
-    "ISSUE-018"
+    "ISSUE-018",
+    "ISSUE-019",
+    "ISSUE-020",
+    "ISSUE-021",
+    "ISSUE-022",
+    "ISSUE-023",
+    "ISSUE-024",
+    "ISSUE-025"
   ],
   "next_handoff_step": {
-    "candidate": "handoff current Python prototype to Android/Linux cockpit-domain engineers and plan production target integration separately",
-    "description": "Current Python prototype scope is complete through GET /prototype/completion-summary; target hardware, Driver/HAL, production observability, broker runtime, Android system service deployment, and virtualization remain separate production planning work."
+    "candidate": "execute Android Runtime Evolution Plan R1 Gradle multi-module delivery skeleton",
+    "description": "The Python prototype remains complete for its historical scope. New approved work is Android-only and progresses through R1..R7 without modifying vendor system binaries, implementing Linux front-end work, or activating real Driver/HAL/NPU paths."
   },
   "current_scope_completion_evidence": {
     "endpoint": "GET /prototype/completion-summary",
