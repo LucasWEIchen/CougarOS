@@ -60,6 +60,8 @@
   - 新增 `tools/build_client2_central_brain_demo.sh`、`tools/check_client2_central_brain_demo.sh`、`tools/install_client2_central_brain_demo.sh`，覆盖 prepare、apktool rebuild、zipalign、debug sign、static verify 和 adb install 入口。
   - 新增 `docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md`，记录 APK 级演示路径、Req ID 映射、构建命令、非目标边界、重签名与 RenderService 风险。
   - 当前 HTTP `http://10.0.2.2:8787/ai/infer` 只作为本地模拟器演示路径，已登记 DEV-017/ISSUE-019；不改 RenderService/Unity bundle，不访问硬件，不开发 Driver/HAL 或虚拟化层。
+  - 完成 API 36 x86_64 可视模拟器运行测试：Client2 原始座舱/3D 车辆和右侧固定面板可同时显示，两个按钮、请求中状态、HTTP 200、摘要回退和 timeout 错误显示均已验证，App 无崩溃。
+  - Ollama `result.generated_text` 尚未通过：默认 96 token 全部进入 thinking，提升到 192 后端到端链路出现 120 秒 timeout；已更新 ISSUE-019，下一步修正 simulated NPU adapter 的 thinking/output budget 与超时策略后复测。
   - 覆盖 Req ID：`APP-004`、`XSC-001`、`NV-F-011`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-003`、`DEL-004`。
 
 ### 2026-07-10

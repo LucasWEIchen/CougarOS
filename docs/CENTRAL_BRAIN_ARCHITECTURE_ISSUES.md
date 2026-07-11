@@ -167,11 +167,13 @@
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
-图中应用层没有规定必须基于既有闭源 APK 逆向开发；用户现在明确选择 Client2 作为演示 App 基座。该路径存在五个待确认点：Client2 与 RenderService 是否存在签名信任约束、RenderService ARM64 依赖是否影响本地模拟器完整验收、右侧面板当前临时 HTTP 何时迁移到 Binder/SDK、固定 `10.0.2.2:8787` endpoint 如何配置化、以及 APK patch 成果是否只作为 demo fork 而非生产交付形态。
+图中应用层没有规定必须基于既有闭源 APK 逆向开发；用户现在明确选择 Client2 作为演示 App 基座。该路径存在六个待确认点：Client2 与 RenderService 是否存在签名信任约束、RenderService ARM64 依赖是否影响本地模拟器完整验收、右侧面板当前临时 HTTP 何时迁移到 Binder/SDK、固定 `10.0.2.2:8787` endpoint 如何配置化、APK patch 成果是否只作为 demo fork 而非生产交付形态、以及 Ollama thinking/output token 预算与 APK 120 秒超时如何在目标算力上标定。
 
 影响：如果上述边界不清，集成方可能把 APK patch demo 误认为生产 Android system service 或正式 SDK 交付；也可能在 x86_64 模拟器上误判 RenderService 不可用为中央大脑 UI patch 失败。
 
 当前建议：短期把 `apk-labs/client2-central-brain/` 定义为 Android 演示分支，先验收 APK rebuild/sign/install、右侧 1/3 面板、`我冷了`/`我累了` 按钮和 `/ai/infer` 回复文本显示；HTTP 只作为本地演示路径并登记偏差；RenderService 完整渲染验收放到 ARM64 设备或可运行 RenderService 的目标环境；下一步优先补 endpoint 配置化或 Binder/SDK 接入。
+
+2026-07-11 运行时证据：API 36 x86_64 模拟器通过 `-gpu host` 可同时显示 Client2 原始座舱/3D 车辆和右侧面板，两个按钮均能触发请求，`/ai/infer` 返回过 HTTP 200，App 无崩溃。Ollama 自然语言回复未通过：`num_predict=96` 时模型把预算耗尽在 thinking，观测到 `done_reason=length`、`response_length=0`、`thinking_length=337`，UI 只能显示摘要回退；提高到 `192` 后又观测到 `请求失败: timeout`。因此当前验收状态为 UI/HTTP/回退显示通过、`result.generated_text` 失败，下一步需要修正 adapter 的 thinking 参数、token 预算、取消和超时策略后复测。
 
 状态：Proposed。
 

@@ -94,6 +94,24 @@ bash tools/install_client2_central_brain_demo.sh
 - 不把 APK patch 路径描述为量产 Android system service。
 - 不让 App UI 绕过 AI SDK、Uni Info Bus、SOA 和 Runtime & Governance 直接访问模型或 NPU。
 
+## 2026-07-11 模拟器运行测试
+
+测试环境为 `cabin_client_api36_x86_64`、Android API 36、`1920x1080` 和 `-gpu host`。为让测试过程出现在 WSLg/Windows 桌面，本轮直接启动 `emulator`，没有使用 `tools/start_client2_emulator.sh` 中的 `-no-window` 参数。
+
+已通过：
+
+- APK 增量安装成功，包名保持 `com.tuanjie.urasclient2`，`MainActivity` 进入 resumed 状态。
+- Client2 原始座舱背景、3D 车辆和右侧固定 1/3 Central Brain 面板同时可见。
+- `我冷了` 与 `我累了` 两个按钮均可触发后台请求，文本框可显示 `请求中`、后端摘要和超时错误。
+- APK 到 `http://10.0.2.2:8787/ai/infer` 的 HTTP 路径返回过 `200`；App 无崩溃，未触发 Driver/HAL、硬件或虚拟化访问。
+
+未通过：
+
+- Ollama 自然语言 `result.generated_text` 尚未通过验收。默认 `CENTRAL_BRAIN_OLLAMA_NUM_PREDICT=96` 时，`qwen3.5:27b-optimized` 返回 `done_reason=length`、`response_length=0`、`thinking_length=337`，APK 因而回退显示 `ollama simulated NPU inference accepted`。
+- 将生成上限提高到 `192` 后，端到端请求仍可能超过 APK `120000 ms` read timeout，界面会显示 `请求失败: timeout`。该结果登记到 `ISSUE-019`，不能视为 Ollama 自然语言回复验收通过。
+
+下一步应先修正 Ollama adapter 的思考/输出预算和可取消超时策略，再重复两按钮端到端测试；生产路径仍按计划迁移到 Binder/SDK，不因本次测试改变架构边界。
+
 ## 已知风险
 
 1. Client2 原始源码不可用，长期维护风险高于源码工程。
@@ -101,3 +119,4 @@ bash tools/install_client2_central_brain_demo.sh
 3. RenderService 是 ARM64/Unity/Tuanjie 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳和右侧面板。
 4. 后续如果面板需要访问 Python 原型后端，必须新增 `INTERNET`/cleartext 或 Binder/service 接入，并把直接 HTTP 演示路径记录为偏差。
 5. 当前 HTTP endpoint 固定为 `10.0.2.2:8787`，只适合本地模拟器演示；真实座舱域环境应替换为 Binder/SDK 或目标平台允许的 IPC/RPC 接入。
+6. 当前 Ollama adapter 的默认 token/timeout 配置可能只返回 thinking 或触发 120 秒超时，必须在目标模型和目标算力上独立标定，不能把摘要回退当成自然语言回复。
