@@ -774,3 +774,11 @@ R4C3A 交付 `EffectAdapter`、`EffectAdapterContract`、`EffectStatusReconciler
 API 33 标准安装门禁必须输出 safe/unsafe contract、destination mismatch、duplicate apply、apply 前/后崩溃、status unavailable defer、UNKNOWN/final NOT_APPLIED dead-letter、terminal count 和 fault matrix 证据。Release APK 必须排除 probe，production Runtime/Governance 不得引用 adapter/reconciler。
 
 该交付只证明 contract 和 debug fault algorithm，deterministic adapter 不代表 UIB/SOA/Skill/vendor/hardware。Canonical payload/envelope 仅为 probe 瞬时材料，固定 `transient_effect_material_durable=false`；因此 production activation 仍被 R4C3B durable material source/gate 阻塞，并保持 `effect_adapter_production_wired=false`、`real_adapter_dispatch_enabled=false`、`service_dispatch_triggered=false`。无 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
+
+## Android R4C3B Effect Material Activation Gate 交付补充
+
+R4C3B 交付 `EffectMaterialSource`、`EmptyEffectMaterialSource`、`EffectDeliveryActivationGate`、JVM gate tests、debug-only synthetic material source/probe 和 `tools/check_central_brain_android_effect_activation_gate.sh`。Room schema/frozen AIDL/标准三项 artifact 不变，main source 不新增非空 material provider 或 adapter implementation。
+
+API 33 门禁必须验证 current empty blocker、TEST_ONLY 拒绝、synthetic positive contract、Room reopen resolution、defensive copy、digest mismatch/missing material/empty resolve 拒绝和 no-side-effect。Release APK 必须排除 material probe；production Runtime/Governance 在 R4C3B 仍不得引用 gate/source。
+
+当前交付固定 `production_effect_delivery_activation_allowed=false`、`production_effect_material_source=empty`、`production_effect_material_durable=false`、`raw_effect_material_persisted=false`。Synthetic source 仅为进程内测试，不提供 key/retention/delete 或 process-death 证据。R4C3C 只可把该阻塞结果接到 production diagnostics，不得启用 dispatch。无 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。

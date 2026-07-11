@@ -233,6 +233,8 @@
 
 2026-07-12 R4C3A 进展：已定义 token-deduplicated apply、duplicate-original-result、linearizable status 和 digest-matched transient material contract；status reconciler/API 33 probe 已覆盖 apply 前后崩溃、query unavailable、UNKNOWN、final NOT_APPLIED 和 exact replay。ISSUE-022 保持 Open：debug adapter/status 与 canonical bytes 只在进程内，`transient_effect_material_durable=false`；R4C3B 仍需 trusted durable material source/activation gate，且 retention/export/delete、trusted clock、encryption/key rotation 未关闭。
 
+2026-07-12 R4C3B 进展：已定义 material source 的 production assurance、跨进程 durability、at-rest encryption、effect integrity、bounded retention/delete 必要条件和稳定 activation blockers；当前 main source 明确为空，API 33 仅用 synthetic source 验证正向 contract/mismatch/missing/no-side-effect。ISSUE-022 保持 Open：实际 key owner、encrypted store、process-death、retention/export/delete、key rotation 和 production adapter evidence 均不存在，`production_effect_delivery_activation_allowed=false`；R4C3C 只接 fail-closed 可见性。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-023 Android 可信身份、capability 与审批

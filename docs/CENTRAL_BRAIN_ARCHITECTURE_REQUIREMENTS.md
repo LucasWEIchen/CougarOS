@@ -823,3 +823,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - API 33 evidence must cover destination/unsafe-contract rejection, duplicate token apply count=1, crash after adapter apply before local commit, crash before apply, unavailable and UNKNOWN status, final-attempt NOT_APPLIED, exact replay and terminal/audit counts.
 - The deterministic adapter is debug-only and process-memory simulation. It is not a UIB/SOA/Skill/vendor implementation and cannot prove process-restart durability, hardware status or production dispatch.
 - R4C3A remains unwired to production Runtime/Governance. `transient_effect_material_durable=false`, `effect_adapter_production_wired=false`, `real_adapter_dispatch_enabled=false`, `service_dispatch_triggered=false`, and all no-hardware flags are mandatory. R4C3B owns the trusted durable material source and activation gate.
+
+### 2026-07-12 R4C3B effect material activation trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`.
+- A production-eligible material source must be available, explicitly production-assured, durable across process restart, encrypted at rest, integrity-bound to the exact effect, deletable and retained for a positive bounded period no longer than 30 days. Missing or self-declared test-only sources fail closed.
+- The activation gate must combine the material requirements with the R4C3A adapter requirements and return stable blocker codes. Gate evaluation must not resolve material, query adapter status or invoke adapter apply.
+- Resolution is allowed only after a blocker-free gate. The resolved effect ID must match the claim; canonical payload/envelope must pass the invocation digest checks and remain defensive copies. Missing or mismatched material is rejected before adapter invocation.
+- Current main code must provide only `EmptyEffectMaterialSource`, with no production `EffectAdapter` implementation. The empty provider cannot resolve material and must keep production activation false.
+- API 33 evidence must verify the current empty blocker set, TEST_ONLY rejection, synthetic positive contract, Room close/reopen resolution, defensive copies, digest mismatch, missing material, empty-source resolution rejection and zero adapter/repository side effects.
+- Synthetic debug material is process-memory only and cannot satisfy target security evidence. `production_effect_delivery_activation_allowed=false`, `production_effect_material_source=empty`, `production_effect_material_durable=false`, `raw_effect_material_persisted=false`, `real_adapter_dispatch_enabled=false`, and all no-hardware flags are mandatory. R4C3C owns production fail-closed gate visibility, not dispatch.

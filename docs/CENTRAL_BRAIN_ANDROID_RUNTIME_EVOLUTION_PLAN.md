@@ -126,8 +126,10 @@
 - 默认最多 claim 3 次，DAO 不再选择 exhausted row，最终 attempt 禁止 retry。若进程在最终 IN_FLIGHT claim 后崩溃，reopen reconciliation 失败关闭为 FAILED/DEAD_LETTER 并写 `EFFECT_CLAIM_EXHAUSTED`；第二次对账不再修改。该终态不证明外部副作用是否发生。
 - `R4C3A effect adapter contract and fault matrix` 已完成：安全 adapter 必须以持久化 token 去重并在重复 apply 时返回原结果，status query 必须 linearizable 且 APPLIED 返回同一原始结果证据；transient canonical payload/envelope 必须与 Room digest 一致且采用 defensive copy。
 - Status reconciler 只 query、不 apply：APPLIED 收敛成功，仍有次数的权威 NOT_APPLIED 才可重试，REJECTED/UNKNOWN 失败关闭，query unavailable 保持 IN_FLIGHT，最终 NOT_APPLIED 进入 dead letter。API 33 已覆盖 apply 前/后崩溃、重复 apply、不可用/未知状态和终态回放。
-- R4C2A/B 与 R4C3A 仍为 repository/contract/debug probe，production Runtime/Governance 不引用它；debug adapter 只在进程内模拟远端持久状态。`transient_effect_material_durable=false`、`effect_adapter_production_wired=false`、`real_adapter_dispatch_enabled=false`。
-- R4B 已关闭；R4 尚未关闭：R4C3B 必须定义 trusted durable effect material source 与 activation gate，retention/trusted-clock、encryption/key lifecycle 仍待决策。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
+- `R4C3B effect material source and activation gate` 已完成：material source 必须 available/production-assured、跨进程 durable、at-rest encrypted、effect-bound integrity、bounded retention 且支持 delete；gate 同时要求 R4C3A safe adapter，并返回稳定 blocker，不调用 apply/query。
+- 当前 main source 只有 `EmptyEffectMaterialSource`，正向合规路径仅由 debug synthetic source 验证；API 33 已覆盖 empty/test-only blocker、Room reopen resolution、defensive copy、digest mismatch/missing material 和 no-side-effect。固定 `production_effect_delivery_activation_allowed=false`、`raw_effect_material_persisted=false`。
+- R4C2A/B 与 R4C3A/B 仍为 repository/contract/debug probe，production Runtime/Governance 尚未引用 effect delivery gate。Debug adapter/material 只在进程内模拟；真实 adapter dispatch 保持 false。
+- R4B 已关闭；R4 尚未关闭：R4C3C 将把 empty-source activation result 接入 production Runtime fail-closed diagnostics，但仍不 dispatch；target key/retention/delete 与 trusted-clock 决策保持开放。`CentralBrainSdk.EVOLUTION_STAGE` 暂保持 `R3_TRUSTED_GOVERNANCE`。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

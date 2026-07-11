@@ -896,3 +896,17 @@ Result, failure and cancellation content enters Room only as lowercase SHA-256 d
 APPLIED maps to APPLIED/DELIVERED. NOT_APPLIED maps to PREPARED/PENDING only while attempts remain and otherwise to FAILED/DEAD_LETTER. REJECTED/UNKNOWN map to FAILED/DEAD_LETTER. Adapter unavailability keeps IN_FLIGHT unchanged so a transport failure is not mistaken for destination state.
 
 The debug fixture retains token status only in process memory and receives canonical bytes directly from the probe. It validates the algorithm across Room close/reopen but does not solve command-material recovery after process death. No production Service references these interfaces in R4C3A; R4C3B must bind any retry-capable activation to a trusted durable material source whose confidentiality, digest verification and lifecycle are explicit.
+
+## Android R4C3B Effect Material Activation Gate
+
+| Interface | Input | Output/failure |
+| --- | --- | --- |
+| `EffectMaterialSource.descriptor` | none | availability, assurance, restart durability, at-rest encryption, effect integrity binding, deletion and retention metadata |
+| `EffectMaterialSource.resolve` | durable claim | canonical payload/envelope + effect ID + source revision, or `MaterialUnavailableException` |
+| `EmptyEffectMaterialSource` | any claim | always unavailable; current main-source product boundary |
+| `EffectDeliveryActivationGate.evaluate` | adapter, material source, expected destination | ordered blocker list; no material resolution, adapter status query or apply |
+| `EffectDeliveryActivationGate.resolveInvocation` | blocker-free adapter/source + IN_FLIGHT claim | digest-verified `EffectAdapter.Invocation`, or activation/material/integrity failure |
+
+Stable blockers cover missing/unsafe adapter; missing/invalid/empty/non-production source; non-durable, unencrypted or integrity-unbound material; missing delete support; and invalid retention. A blocker-free result is only a code-level necessary condition: target evidence must still bind the actual signed provider, key owner, storage policy and vendor adapter conformance.
+
+The current production configuration has no adapter and uses the empty source, so it remains blocked. The debug synthetic source can exercise the positive branch and resolve bytes after a Room reopen, but it does not survive process death and is never a release implementation. R4C3B does not add payload columns or blobs to Room.

@@ -435,6 +435,60 @@ if [[ "$ADAPTER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MATERIAL_NONCE="$(date +%s%N)"
+MATERIAL_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.EffectDeliveryActivationProbeActivity \
+  --es nonce "$MATERIAL_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MATERIAL_PROBE_OUTPUT"; then
+  echo "$MATERIAL_PROBE_OUTPUT" >&2
+  echo "effect delivery activation debug probe did not start successfully" >&2
+  exit 1
+fi
+MATERIAL_PROBE_PASSED=false
+for _ in {1..40}; do
+  MATERIAL_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbMaterialProbe:I)"
+  if grep -Fq "nonce=$MATERIAL_NONCE material_probe_complete=true" \
+      <<<"$MATERIAL_LOG" \
+      && grep -Fq "current_empty_material_gate_verified=true" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "test_only_material_rejected=true" <<<"$MATERIAL_LOG" \
+      && grep -Fq "synthetic_positive_gate_verified=true" <<<"$MATERIAL_LOG" \
+      && grep -Fq "material_reopen_resolution_verified=true" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "material_defensive_copy_verified=true" <<<"$MATERIAL_LOG" \
+      && grep -Fq "material_digest_mismatch_rejected=true" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "material_missing_rejected=true" <<<"$MATERIAL_LOG" \
+      && grep -Fq "empty_material_resolution_blocked=true" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "activation_gate_no_side_effect_verified=true" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "material_activation_contract_verified=true" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "production_effect_delivery_activation_allowed=false" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "production_effect_material_source=empty" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "production_effect_material_durable=false" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "synthetic_material_source_process_only=true" \
+        <<<"$MATERIAL_LOG" \
+      && grep -Fq "raw_effect_material_persisted=false" <<<"$MATERIAL_LOG" \
+      && grep -Fq "effect_adapter_production_wired=false" <<<"$MATERIAL_LOG" \
+      && grep -Fq "real_adapter_dispatch_enabled=false" <<<"$MATERIAL_LOG" \
+      && grep -Fq "service_dispatch_triggered=false" <<<"$MATERIAL_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$MATERIAL_LOG"; then
+    MATERIAL_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MATERIAL_PROBE_PASSED" != true ]]; then
+  echo "$MATERIAL_LOG" >&2
+  echo "effect delivery activation probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -673,6 +727,21 @@ printf '%s\n' \
   "transient_effect_material_durable=false" \
   "effect_adapter_production_wired=false" \
   "real_adapter_dispatch_enabled=false" \
+  "current_empty_material_gate_verified=true" \
+  "test_only_material_rejected=true" \
+  "synthetic_positive_gate_verified=true" \
+  "material_reopen_resolution_verified=true" \
+  "material_defensive_copy_verified=true" \
+  "material_digest_mismatch_rejected=true" \
+  "material_missing_rejected=true" \
+  "empty_material_resolution_blocked=true" \
+  "activation_gate_no_side_effect_verified=true" \
+  "material_activation_contract_verified=true" \
+  "production_effect_delivery_activation_allowed=false" \
+  "production_effect_material_source=empty" \
+  "production_effect_material_durable=false" \
+  "synthetic_material_source_process_only=true" \
+  "raw_effect_material_persisted=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \
