@@ -20,7 +20,7 @@
 | A8 | 应用层扩展 | 座舱、Agent、Cluster/TBOX、ADAS、诊断视图 | AI SDK/Agent plan + execute/Skill/Memory contract mock + Android Console Binder debug path + Client2 12 场景 Agent 验收面板 |
 | A9 | Android/Linux 双平台交付 | Android APK/SDK sample、Linux CLI/daemon sample、平台差异说明 | Android system service integration note + Linux systemd 与平台差异初版 + Linux systemd hardening check + Linux package profile check + `/delivery/readiness` + `/prototype/readiness` |
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
-| R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 进行中：R1A/R1B 已完成；API 33 安装验证待完成 |
+| R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 待开始 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 待开始 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
@@ -61,6 +61,10 @@
 
 ### 2026-07-12
 
+- 完成 R1C Android 13 退出验证：安装 SDK Platform 33 revision 3 与 Google APIs x86_64 system image revision 17，创建 `central_brain_api33_x86_64` AVD。
+- `tools/install_central_brain_android_runtime.sh --require-api-33` 在 Android 13/API 33/x86_64、`1920x1080` 上通过，双 APK `versionName=0.1.0`、Runtime Service 运行、Demo resumed/UI 可见、`r1_api33_exit_criteria_met=true`。
+- R1 正式完成并进入 R2。整体成熟度仍为 `contract_defined`，待 production/diagnostic typed AIDL、callback/cancel/death 与 instrumentation 证据完成后再评估 `android_integrated`。
+- R1C 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R1B 设备生命周期检查：Runtime debug variant 新增 `android.permission.DUMP` 保护的无界面 probe Activity，仅用于 ADB 启动同包非导出 Service；release variant 不包含 probe。
 - 新增 `tools/install_central_brain_android_runtime.sh`，覆盖设备选择、API/ABI 门禁、双 APK 安装、Runtime Service 进程、Demo resumed Activity 和 UI 文本检查；`--require-api-33` 用于 R1 Android 13 退出证据。
 - API 36 x86_64 AVD 实测通过安装/启动/UI/Service 检查，并按预期报告 `r1_api33_exit_criteria_met=false`；API 33 验证仍未完成，不提升 `android_integrated`。

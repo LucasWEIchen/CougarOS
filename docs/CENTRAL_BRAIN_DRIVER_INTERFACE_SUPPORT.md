@@ -401,3 +401,7 @@ The successful AAR/APK build does not open a device node, call a vendor SDK/HAL,
 ### R1B Device Lifecycle Driver/HAL Evidence
 
 The debug-only DUMP-protected probe, adb installer, service `dumpsys` check and Demo UI dump use Android application/framework diagnostics only. They do not inspect a device node, ioctl/sysfs, vendor SDK/HAL, PCIe NPU, vehicle bus, shared memory, Camera/Audio/Sensors or Safety Runtime. The API 36 result explicitly reports `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; new Driver/HAL development remains zero. Req IDs: `XSC-004`, `XSC-006`, `NV-F-001`, `NV-P-002`, `DEL-001`, `DEL-005`.
+
+### R1C API 33 Exit Driver/HAL Evidence
+
+The Android 13/API 33 x86_64 strict test repeated the same application/framework-only checks and returned `r1_api33_exit_criteria_met=true`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`. The AVD does not represent target SoC/NPU hardware and does not close `DRV-GAP-001..005`; R1 completion adds no Driver/HAL development. Req IDs: `XSC-004`, `XSC-006`, `NV-F-001`, `NV-P-002`, `DEL-001`, `DEL-005`.

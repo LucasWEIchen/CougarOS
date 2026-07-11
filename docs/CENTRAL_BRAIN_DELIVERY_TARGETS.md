@@ -15,9 +15,11 @@
 
 当前 Android 产品验收必须逐步覆盖 typed/async Binder、可信调用方身份、durable task/checkpoint/outbox、调度与取消、Stub/Ollama-debug/Vendor-empty Model Router、Event/Memory/Skill lifecycle、trace/metric 和 API 33 设备测试。Req IDs：`APP-004`、`XSC-001..006`、`FW-U-003/004/006/007`、`NV-F-001/011/012`、`NV-G-003..007`、`NV-P-002`、`DEL-001/003/004/005`。
 
-R1A 已交付可重复构建的 `central-brain/android-runtime`：`central-brain-sdk-debug.aar`、`runtime-service-debug.apk` 和 `demo-hmi-debug.apk` 均已由 AGP 构建并完成单测/结构/包名/minSdk/签名校验。当前工作区没有 API 33 system image 或已连接设备，因此此证据仍是 `contract_defined`，不能标记为 `android_integrated`。Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+R1A 已交付可重复构建的 `central-brain/android-runtime`：`central-brain-sdk-debug.aar`、`runtime-service-debug.apk` 和 `demo-hmi-debug.apk` 均已由 AGP 构建并完成单测/结构/包名/minSdk/签名校验。Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 R1B 新增 `tools/install_central_brain_android_runtime.sh` 和仅存在于 debug variant 的 DUMP-protected lifecycle probe。API 36 x86_64 AVD 已通过 Runtime/Demo 安装、非导出 Service 进程、Demo resumed Activity 和 UI maturity 检查；release APK 不含 probe。该结果是兼容性证据，`r1_api33_exit_criteria_met=false`，API 33 设备/模拟器验证仍待完成。
+
+R1C 已在 `central_brain_api33_x86_64` Android 13/API 33/x86_64 system image revision 17 上通过严格门禁，双 APK `versionName=0.1.0`，`r1_api33_exit_criteria_met=true`。R1 交付退出条件已关闭；整体 Runtime 仍为 `contract_defined`，等待 R2 production Binder/instrumentation 后再提升成熟度。
 
 ## 平台优先级
 

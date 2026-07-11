@@ -56,6 +56,6 @@ The check installs both APKs, invokes the DUMP-protected debug probe, verifies t
 
 The existing hand-built Android Console and Client2 reverse-demo APK remain separate compatibility/test artifacts. They are not copied into this Gradle project.
 
-R1 build success proves `contract_defined` only. Promotion to `android_integrated` requires installation and runtime evidence from an API 33 device or emulator; the current workspace only has an API 36 AVD.
+Build success alone proves `contract_defined` only. R1 strict validation passed on the `central_brain_api33_x86_64` Android 13 AVD with system image revision 17, fingerprint `google/sdk_gphone64_x86_64/emu64x:13/TE1A.240213.009/12342917:userdebug/dev-keys`, and a `1920x1080` display. The overall Runtime remains `contract_defined` until R2 adds production Binder contracts and instrumentation evidence.
 
 The local build currently warns that its Android SDK command-line tools understand SDK XML up to version 3 while the installed SDK contains version 4 metadata. The build succeeds, but production CI must align command-line tools and SDK metadata before qualification.

@@ -115,6 +115,13 @@ require_text "$PLAN" "R1B device lifecycle check"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R1B Android device lifecycle trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "r1_api33_exit_criteria_met=false"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R1B Device Lifecycle Driver/HAL Evidence"
+require_text "$PLAN" "R1C API 33 exit"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R1C Android 13 exit trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "r1_api33_exit_criteria_met=true"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R1C API 33 Exit Driver/HAL Evidence"
+require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md" "R1 Gradle 多模块、API 33"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "R1 SDK AAR、Runtime Service APK、Demo HMI APK"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

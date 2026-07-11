@@ -67,7 +67,8 @@ require_text "central-brain/android-runtime/runtime-service/src/debug/java/com/c
 require_text "tools/install_central_brain_android_runtime.sh" "--require-api-33"
 require_text "tools/install_central_brain_android_runtime.sh" "r1_api33_exit_criteria_met"
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "contract_defined"'
-require_text "central-brain/android-runtime/README.md" "current workspace only has an API 36 AVD"
+require_text "central-brain/android-runtime/README.md" "central_brain_api33_x86_64"
+require_text "central-brain/android-runtime/README.md" 'overall Runtime remains `contract_defined`'
 require_text "central-brain/android-runtime/README.md" "command-line tools understand SDK XML up to version 3"
 
 if find "$RUNTIME_DIR" -type f -path '*/src/main/aidl/*' -print -quit | grep -q .; then

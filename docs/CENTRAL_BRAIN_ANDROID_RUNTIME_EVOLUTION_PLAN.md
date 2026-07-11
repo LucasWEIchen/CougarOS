@@ -57,11 +57,14 @@
 - `R1A Gradle foundation` 已完成：`central-brain/android-runtime` 使用 AGP `8.10.1`、Gradle Wrapper `8.11.1`、JDK 17、`compileSdk=36`、`minSdk=33`，Wrapper 固定官方分发包 SHA-256。
 - 已真实构建并验证 `central-brain-sdk-debug.aar`、`runtime-service-debug.apk`、`demo-hmi-debug.apk`；SDK JUnit、APK package/minSdk 和 APK v2 签名校验通过。
 - `runtime-service` 当前是非导出、无网络权限、无 Binder 的生命周期边界；R1 不提前引入 R2 typed/async AIDL。
-- 当前工作区只有 API 36 AVD，没有 API 33 system image 或已连接设备，因此 R1 的 API 33 安装/启动退出条件仍未关闭，成熟度保持 `contract_defined`。
+- 工作区已安装 Android SDK Platform 33 revision 3 与 Google APIs x86_64 system image revision 17，并创建 `central_brain_api33_x86_64` AVD；保留 API 36 AVD 用于前向兼容测试。
 - 当前本地 Android SDK command-line tools 只识别 XML version 3，而已安装 SDK 含 version 4 metadata；构建成功但存在工具版本警告，量产 CI 前必须对齐 command-line tools 与 SDK。
 - `R1B device lifecycle check` 已完成：新增 DUMP-protected、debug-only `RuntimeProbeActivity` 和 `tools/install_central_brain_android_runtime.sh`，可安装 Runtime/Demo、启动非导出 Service、核验进程/前台 Activity/UI 并输出硬件边界。
 - API 36 x86_64 AVD 兼容测试通过，输出 `runtime_service_running=true`、`demo_hmi_resumed=true`、`demo_ui_contract_defined=true`，同时正确保持 `r1_api33_exit_criteria_met=false`；`--require-api-33` 在 API 36 上按预期失败。
-- Release APK manifest 已验证不含 `RuntimeProbeActivity`，只保留 `CentralBrainRuntimeService exported=false`。API 33 验证仍是 R1 唯一未关闭退出项。
+- Release APK manifest 已验证不含 `RuntimeProbeActivity`，只保留 `CentralBrainRuntimeService exported=false`。
+- `R1C API 33 exit` 已完成：`tools/install_central_brain_android_runtime.sh --skip-build --serial emulator-5554 --require-api-33` 在 Android 13/API 33/x86_64、`1920x1080` AVD 上通过，输出 `runtime_service_running=true`、`demo_hmi_resumed=true`、`demo_ui_contract_defined=true`、`r1_api33_exit_criteria_met=true`。
+- 验证设备 fingerprint 为 `google/sdk_gphone64_x86_64/emu64x:13/TE1A.240213.009/12342917:userdebug/dev-keys`，Runtime 与 Demo `versionName=0.1.0`，Runtime log 固定 `maturity=contract_defined hardware_accessed=false`。
+- R1 退出条件已关闭。整体 Runtime 暂不提升为 `android_integrated`，因为成熟度模型还要求 R2 production Binder/instrumentation 证据。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

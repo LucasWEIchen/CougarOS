@@ -183,6 +183,8 @@
 
 修正计划：执行 `CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` R1/R2，建立 SDK AAR + Runtime Service APK，拆分 production/diagnostic AIDL，业务对象改为 versioned Parcelable；保留旧 JSON AIDL 作为限时兼容 adapter，迁移完成后从正式 SDK 移除。
 
+2026-07-12 进展：R1 Gradle 多模块、API 33 安装/Service/Demo 生命周期退出验证已完成；production/diagnostic typed AIDL 尚未进入实现，DEV-018 不关闭并直接进入 R2。
+
 状态：Accepted Temporary；对应 `ISSUE-021`。
 
 ## DEV-019 请求体自报权限与非持久运行时

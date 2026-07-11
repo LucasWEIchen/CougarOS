@@ -652,7 +652,7 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - `central-brain/android-runtime` is the source-built Android 13 product root. It owns three explicit artifacts: `central-brain-sdk` AAR, non-exported `runtime-service` APK, and launcher `demo-hmi` APK.
 - All modules use `minSdk=33`; the reproducible build pins AGP `8.10.1`, Gradle `8.11.1`, JDK 17 and the official Gradle distribution SHA-256.
 - R1A must keep AIDL absent, `runtime-service` non-exported, and all network/vehicle/device permissions absent. Typed production and diagnostic Binder contracts belong to R2.
-- Build, SDK unit test, AAR structure, APK package/minSdk and APK signature evidence prove `contract_defined`; only an API 33 device/emulator install and runtime test can promote this path to `android_integrated`.
+- Build, SDK unit test, AAR structure, APK package/minSdk and APK signature evidence prove `contract_defined`. API 33 device/emulator install/runtime evidence is mandatory but not sufficient for `android_integrated`; production Binder/instrumentation evidence is also required.
 - R1A does not modify vendor Android system binaries, access hardware, add Driver/HAL, extend the Linux front-end, or implement virtualization.
 
 ### 2026-07-12 R1B Android device lifecycle trace
@@ -662,3 +662,11 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - `tools/install_central_brain_android_runtime.sh` must require API 33 or newer, support explicit device selection, install both APKs, verify the service process, resumed Demo Activity and visible maturity text, and expose a strict `--require-api-33` exit gate.
 - Compatibility validation on API 36 may prove install/launch portability but must return `r1_api33_exit_criteria_met=false`; it cannot promote the path to `android_integrated` or close R1.
 - Device validation must report `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; it must not probe vendor SDK, device node, NPU or vehicle interfaces.
+
+### 2026-07-12 R1C Android 13 exit trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- The R1 exit device is `central_brain_api33_x86_64`, Android 13/API 33, Google APIs x86_64 system image revision 17, fingerprint `google/sdk_gphone64_x86_64/emu64x:13/TE1A.240213.009/12342917:userdebug/dev-keys`.
+- The strict `--require-api-33` check must install Runtime/Demo `versionName=0.1.0`, verify `CentralBrainRuntimeService`, Demo resumed state and visible `contract_defined`, and return `r1_api33_exit_criteria_met=true`.
+- R1 completion does not close `ISSUE-021` or `DEV-018`. Production/diagnostic typed AIDL, callback/cancel/death and instrumentation remain R2 requirements, so overall Runtime maturity stays `contract_defined`.
+- The API 33 test remains user-space only and reports `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
