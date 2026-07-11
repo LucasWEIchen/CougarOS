@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<capability-policy version="1" defaultDecision="deny">
+    <principal packageName="com.centralbrain.runtime" signer="runtime-current">
+        <capability name="runtime.diagnostics.read" />
+    </principal>
+    <principal packageName="com.centralbrain.demo" signer="runtime-current">
+        <capability name="runtime.protocol.read" />
+        <capability name="runtime.task.submit" />
+        <capability name="runtime.task.status.own" />
+        <capability name="runtime.task.cancel.own" />
+    </principal>
+</capability-policy>

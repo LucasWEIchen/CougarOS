@@ -229,6 +229,8 @@
 
 2026-07-12 R3A 进展：Runtime 已从 Binder/PackageManager/UserManager 捕获 UID、Android user serial、package 和当前 signer SHA-256，并把完整快照绑定到 Job Supervisor owner；身份解析失败默认拒绝，非 owner status/cancel 不泄漏任务存在性。JVM 状态机/owner/容量/retention 测试和 API 33 caller-resolution、Binder lifecycle/race 回归通过。ISSUE-023 保持 Open：R3B package+signer capability mapping、unknown/default deny 和独立第二客户端越权测试，以及 R3C Safety/Vehicle State、动作风险分级和可恢复高风险审批仍未实现。
 
+2026-07-12 R3B 进展：Runtime 已启用 package + complete current-signer-set capability mapping 和 XML default deny；同 signer 未配置包在 API 33 上能通过 production/diagnostic signature permission 并绑定两个 Service，但 protocol/submit/status/cancel/diagnostics 均被 policy 拒绝并审计。ISSUE-023 保持 Open：当前 signer 精确匹配不等于第三方签名部署方案，且 R3C 的受信 Safety/Vehicle State、动作风险分级和高风险审批以及 R4 durable pending approval 尚未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-024 Model Router、资源准入与 NPU provider 边界

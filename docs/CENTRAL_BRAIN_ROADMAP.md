@@ -22,7 +22,7 @@
 | R0 | Android Runtime 演进基线 | ISSUE-021..025、DEV-018/019、成熟度模型、API baseline 一致性门禁 | 已完成 |
 | R1 | Android Gradle 多模块交付骨架 | AI SDK AAR、Runtime Service APK、Demo HMI APK | 已完成：API 33 build/install/lifecycle/UI 验证通过 |
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
-| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 进行中：R3A 状态机、容量/保留边界、可信身份快照与 task owner 隔离已完成；R3B capability/default-deny 与 R3C 动作审批待完成 |
+| R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 进行中：R3A Supervisor/可信身份、R3B package+signer capability/default-deny 设备验证已完成；R3C 动作分级/审批待完成 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 待开始 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 待开始 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
@@ -61,6 +61,10 @@
 
 ### 2026-07-12
 
+- 完成 R3B capability policy：Runtime APK strict XML 只允许 default deny，Demo/Runtime diagnostic 规则同时要求字面包名与 Runtime 当前 signer 完整集合，四个 production Binder capability 和 diagnostic-read 分别执行。
+- 新增 test-only `policy-probe` APK 和 API 33 脚本；Probe 与 Runtime/Demo 同签名、两项外层 signature permission granted 且两个 Service bind 成功，但未配置包的 protocol/submit/status/cancel/diagnostics 全部被 Runtime 拒绝并审计。
+- 新增 capability 单测覆盖缺失 capability、未知包、signer mismatch、共享 UID capability 合并与任一 signer mismatch fail-closed；标准交付构建不包含 Probe。
+- R3 仍为进行中：受信 Safety/Vehicle State、动作风险分级和高风险审批入口未完成；DEV-019/ISSUE-023 保持 Open，R4 再补 durable pending approval/checkpoint/outbox。
 - 完成 R3A Job Supervisor foundation：把 Service 内分散的 terminal/cancel 布尔状态迁移为独立的合法转换状态机；注册表上限 128，终态 retention 5 分钟，活动任务不因压力淘汰。
 - production Binder 入口现在只从系统可信来源解析 UID、Android user serial、package 和当前 signer SHA-256；身份不可解析时拒绝，status/cancel 对非 owner 分别返回 UNKNOWN/false，请求体字段不参与授权。
 - 新增 Job Supervisor/身份快照 JVM 单测和 `tools/check_central_brain_android_job_supervisor.sh`，覆盖多包签名配对而非扁平化匹配；API 33 实测解析 `com.centralbrain.demo`，标准 Binder 门禁与 R2C death/reconnect/race 全量回归通过。

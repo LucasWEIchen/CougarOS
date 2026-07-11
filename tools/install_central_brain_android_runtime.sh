@@ -224,6 +224,10 @@ if ! grep -Fq "job_supervisor_max_records=128 terminal_retention_ms=300000" \
   echo "Runtime did not report the bounded R3A Job Supervisor" >&2
   exit 1
 fi
+if ! grep -Fq "capability_default=deny capability_rule_count=2" <<<"$RUNTIME_LOG"; then
+  echo "Runtime did not load the strict R3B capability policy" >&2
+  exit 1
+fi
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not resolve the Demo Binder caller from trusted package evidence" >&2
   exit 1
@@ -252,6 +256,8 @@ printf '%s\n' \
   "job_supervisor_active=true" \
   "trusted_caller_identity_resolved=true" \
   "request_identity_fields_used=false" \
+  "capability_policy_loaded=true" \
+  "allowed_client_capabilities_verified=true" \
   "r1_api33_exit_criteria_met=$API_33_EXIT" \
   "hardware_accessed=false" \
   "driver_development_triggered=false" \

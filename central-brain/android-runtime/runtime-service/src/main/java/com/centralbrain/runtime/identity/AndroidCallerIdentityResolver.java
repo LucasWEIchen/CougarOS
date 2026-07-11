@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
 import android.os.Binder;
+import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
 
@@ -29,6 +30,10 @@ public final class AndroidCallerIdentityResolver {
 
     public CallerIdentitySnapshot resolveCallingIdentity() {
         return resolveUid(Binder.getCallingUid());
+    }
+
+    public CallerIdentitySnapshot resolveOwnIdentity() {
+        return resolveUid(Process.myUid());
     }
 
     CallerIdentitySnapshot resolveUid(int uid) {

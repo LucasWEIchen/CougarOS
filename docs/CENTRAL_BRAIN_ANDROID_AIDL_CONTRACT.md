@@ -109,6 +109,14 @@ No AIDL type includes a device node, fd, shared memory, vendor handle, PCIe/NPU 
 - Unit tests cover lifecycle, owner isolation, idempotent cancel, capacity and retention. API 33 validation reports `job_supervisor_active=true`, `trusted_caller_identity_resolved=true`, and `request_identity_fields_used=false` while preserving R2 lifecycle/race results.
 - The V1 AIDL checksum is unchanged because R3A is an internal Runtime implementation and needs no request field or transaction addition.
 
+## R3B Capability Policy Evidence
+
+- Runtime loads a strict V1 XML with an immutable default-deny rule. Allowed Demo production and Runtime diagnostic principals are literal package names paired with the Runtime's complete current signer set; no signer digest is hard-coded before APK signing.
+- `getProtocolVersion/getProtocolHash`, `submitAgentTask`, `getTaskStatus`, and `cancelTask` enforce protocol-read, submit, own-status and own-cancel capabilities respectively before parsing or task lookup. Diagnostic version/hash/page independently enforce diagnostic-read.
+- A test-only second APK uses the same debug signer and obtains both `BIND_RUNTIME` and `ACCESS_DIAGNOSTICS`, proving the outer manifest permissions passed. Because its package is absent from policy, both Binder surfaces throw `SecurityException` and log `PACKAGE_NOT_CONFIGURED` without signer bytes.
+- API 33 evidence is produced by `tools/test_central_brain_android_capability_policy.sh`; the normal delivery build excludes the probe.
+- R3B changes no AIDL field, transaction order, version or hash. Trusted Safety/Vehicle State and high-risk approval remain R3C/R4 work.
+
 ## References
 
 - Android app AIDL: <https://developer.android.com/develop/background-work/services/aidl>

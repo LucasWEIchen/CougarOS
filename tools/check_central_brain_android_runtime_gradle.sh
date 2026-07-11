@@ -49,6 +49,8 @@ for path in \
   tools/check_central_brain_android_binder_runtime.sh \
   tools/check_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_job_supervisor.sh \
+  tools/check_central_brain_android_capability_policy.sh \
+  tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
 done
@@ -79,6 +81,9 @@ require_text "central-brain/android-runtime/central-brain-sdk/build.gradle.kts" 
 require_text "central-brain/android-runtime/README.md" "central_brain_api33_x86_64"
 require_text "central-brain/android-runtime/README.md" 'typed Protocol Binding is `android_integrated`'
 require_text "central-brain/android-runtime/README.md" "command-line tools understand SDK XML up to version 3"
+require_text "central-brain/android-runtime/settings.gradle.kts" 'include(":policy-probe")'
+require_text "central-brain/android-runtime/policy-probe/build.gradle.kts" 'applicationId = "com.centralbrain.policyprobe"'
+require_text "central-brain/android-runtime/policy-probe/build.gradle.kts" "minSdk = 33"
 
 if grep -R -Fq "android.permission.INTERNET" "$RUNTIME_DIR"; then
   echo "Android runtime modules must not request network access" >&2
@@ -94,5 +99,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_aidl_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_binder_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_binder_lifecycle.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

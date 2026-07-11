@@ -732,4 +732,16 @@ R3A keeps the frozen V1 AIDL unchanged and adds internal AIOS Kernel/Runtime & G
 | `JobSupervisor.markTerminalDeliverySettled` | terminal task ID after completion/failure callback attempt or confirmed callback death | makes the terminal record eligible for later retention/pressure eviction; rejects non-terminal settlement | Lifecycle/Audit `NV-G-006/007` |
 | `AndroidCallerIdentityResolver.resolveCallingIdentity` | current Binder transaction | UID, Android user serial, sorted package/current-signer SHA-256 evidence; unresolved result fails closed | Protocol Binding/Policy `XSC-006`, `NV-P-002` |
 
-The package and each current signer remain paired in `CallerIdentitySnapshot.PackageIdentity`; a flat package/digest cross-product is forbidden. No request field participates in identity or authorization. R3B will consume this snapshot through a package+signer capability policy and default-deny unknown clients; R3C will add trusted Safety/Vehicle State and approval inputs.
+The package and each current signer remain paired in `CallerIdentitySnapshot.PackageIdentity`; a flat package/digest cross-product is forbidden. No request field participates in identity or authorization. R3B consumes this snapshot through a package+signer capability policy and default-deny unknown clients; R3C will add trusted Safety/Vehicle State and approval inputs.
+
+## Android R3B Capability Policy Interfaces
+
+| Interface | Input | Output/failure | Rule |
+| --- | --- | --- | --- |
+| `AndroidCapabilityPolicyLoader.load` | APK XML + Runtime own trusted identity | immutable policy or startup failure | root must be V1/default deny; only literal package and `runtime-current` signer rules |
+| `CallerCapabilityPolicy.evaluate` | complete caller snapshot + capability enum | allow or stable deny reason | exact package/current-signer pair; no request assertions or signer intersection |
+| `resolveAuthorizedCaller` | active Binder caller + required production/diagnostic capability | trusted caller snapshot or `SecurityException` | runs before request parsing/task lookup and writes bounded denial audit |
+
+Production capability IDs are `runtime.protocol.read`, `runtime.task.submit`, `runtime.task.status.own`, and `runtime.task.cancel.own`; diagnostics use `runtime.diagnostics.read`. For shared UID identities, correctly signed configured packages contribute capabilities to the UID principal; a signer mismatch on any configured package fails closed. Stable denial reasons are `IDENTITY_UNRESOLVED`, `PACKAGE_NOT_CONFIGURED`, `CURRENT_SIGNER_MISMATCH`, and `CAPABILITY_NOT_GRANTED`.
+
+`policy-probe` is a separate same-signer APK used only to prove that manifest signature permission is not treated as capability authorization. It binds both Services successfully but is absent from the policy, so every production method and diagnostic read is denied on API 33. It is not an AI SDK or Runtime delivery module and adds no architecture layer.

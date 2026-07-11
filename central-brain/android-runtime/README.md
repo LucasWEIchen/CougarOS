@@ -11,6 +11,7 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 | `central-brain-sdk` | AAR | Public typed client, structured AIDL types, callback bridge and protocol identity |
 | `runtime-service` | APK without launcher | Signature-protected Binders, bounded Job Supervisor, trusted caller snapshot and deterministic task runner |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
+| `policy-probe` | Test-only APK | Same-signer, unconfigured-package default-deny device probe; excluded from standard delivery build |
 
 R2A added compiled, structured production and diagnostic AIDL contracts to `central-brain-sdk`. R2B publishes them from separate exported Services protected by `com.centralbrain.permission.BIND_RUNTIME` and `com.centralbrain.permission.ACCESS_DIAGNOSTICS`. Demo HMI requests only the production signature permission and binds through `CentralBrainClient`; it never requests diagnostics. No module requests network, vehicle, device-node, camera, audio, location, or hardware permissions.
 
@@ -36,7 +37,15 @@ The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/
 
 Every production Binder entry resolves its caller from `Binder.getCallingUid()`, Android user serial, PackageManager UID packages and each package's current signing-certificate SHA-256. The request cannot claim identity or permissions. A task is bound to the complete snapshot; another principal receives unknown status and cannot cancel it. Unresolved identity is denied.
 
-R3 is still in progress. R3B must add package+signer capability policy, default-deny unknown clients and a second-client API 33 denial test. R3C must add action risk classes and high-risk approval. R4 still owns durable SQLite recovery, so the R3A registry must not be described as durable.
+R3A does not by itself close R3. R3B adds package+signer capability policy and a second-client API 33 default-deny test; R3C must still add action risk classes and high-risk approval. R4 owns durable SQLite recovery, so the R3A registry must not be described as durable.
+
+## R3B Capability Policy
+
+`runtime-service/src/main/res/xml/central_brain_capability_policy.xml` is a strict V1 default-deny policy. The baseline grants Demo four production capabilities and the Runtime package one diagnostic-read capability only when each literal package is paired with the Runtime APK's complete current signer set. Because `runtime-current` is resolved after APK signing, no local debug certificate digest is embedded in source. Wildcards, unknown fields, duplicate rules and non-deny defaults fail startup closed.
+
+Every production V1 method enforces one of `runtime.protocol.read`, `runtime.task.submit`, `runtime.task.status.own`, or `runtime.task.cancel.own`; diagnostic version/hash/page enforce `runtime.diagnostics.read`. The test-only `policy-probe` shares the debug signer and receives both signature permissions but has no package rule; both Binder surfaces deny its API 33 calls inside Runtime. Run this evidence with `tools/test_central_brain_android_capability_policy.sh --require-api-33`.
+
+The policy probe is not assembled by `tools/build_central_brain_android_runtime.sh`, has only a debug variant, is marked `android:testOnly=true`, and is not a product artifact. R3 remains open for trusted Safety/Vehicle State and action/approval policy; R4 remains responsible for durable approval recovery.
 
 ## Toolchain
 

@@ -19,3 +19,4 @@ rootProject.name = "central-brain-android-runtime"
 include(":central-brain-sdk")
 include(":runtime-service")
 include(":demo-hmi")
+include(":policy-probe")

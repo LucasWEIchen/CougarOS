@@ -29,6 +29,8 @@ R2C 新增 custom Android instrumentation、debug-only client death probe 和 `t
 
 R3A 已交付 `JobSupervisor`、`CallerIdentitySnapshot` 和 `AndroidCallerIdentityResolver`。任务状态机、128 条容量上限、5 分钟终态保留、owner status/cancel 隔离已接入 Runtime APK；`tools/build_central_brain_android_runtime.sh` 运行 Supervisor JVM 单测，`tools/check_central_brain_android_job_supervisor.sh` 固定可信身份与无硬件边界。API 33 x86_64 输出 `job_supervisor_active=true`、`trusted_caller_identity_resolved=true`、`request_identity_fields_used=false`。R3 尚未关闭，package+signer capability/default-deny 独立客户端测试和动作审批仍为下一交付。
 
+R3B 已交付 Runtime APK 内的 V1 strict default-deny capability XML、四项 production Binder capability 和独立 diagnostic-read capability。标准 Demo/Runtime diagnostic probe 只有在字面包名与 Runtime 当前 signer 完整集合同时匹配时获权；test-only `policy-probe` 与 Runtime 同 signer、持有两项外层 signature permission 且成功 bind，但 API 33 上 production/diagnostic 调用均被拒绝。设备输出 `test_only_install_enforced=true`、`allowed_client_capabilities_verified=true`、`unknown_client_default_deny_verified=true`、`diagnostic_capability_default_deny_verified=true`、`package_and_current_signer_mapping_verified=true`、`production_capability_denial_audited=true`。Probe 不属于 SDK AAR/Runtime APK/Demo HMI 三项标准交付。
+
 ## 平台优先级
 
 | 平台 | 优先级 | 交付定位 | 当前状态 |

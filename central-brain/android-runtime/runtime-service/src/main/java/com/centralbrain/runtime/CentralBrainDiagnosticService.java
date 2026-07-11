@@ -12,8 +12,13 @@ import com.centralbrain.sdk.diagnostics.DiagnosticQuery;
 import com.centralbrain.sdk.diagnostics.DiagnosticRecord;
 import com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics;
 import com.centralbrain.sdk.production.ICentralBrainRuntime;
+import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
+import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
+import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
+import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
+import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
 
-/** Read-only R2 diagnostic Binder. Req IDs: XSC-005, XSC-006, NV-G-007, NV-P-002. */
+/** Read-only diagnostic Binder with R3B trusted capability enforcement. */
 public final class CentralBrainDiagnosticService extends Service {
     public static final String ACCESS_PERMISSION =
             "com.centralbrain.permission.ACCESS_DIAGNOSTICS";
@@ -23,16 +28,19 @@ public final class CentralBrainDiagnosticService extends Service {
     private final ICentralBrainDiagnostics.Stub binder = new ICentralBrainDiagnostics.Stub() {
         @Override
         public int getProtocolVersion() {
+            resolveAuthorizedCaller();
             return ICentralBrainDiagnostics.INTERFACE_VERSION;
         }
 
         @Override
         public String getProtocolHash() {
+            resolveAuthorizedCaller();
             return ICentralBrainDiagnostics.INTERFACE_HASH;
         }
 
         @Override
         public DiagnosticPage getPage(DiagnosticQuery query) {
+            resolveAuthorizedCaller();
             if (query == null || query.schemaVersion != 1) {
                 throw new IllegalArgumentException("DiagnosticQuery schemaVersion=1 is required");
             }
@@ -55,10 +63,43 @@ public final class CentralBrainDiagnosticService extends Service {
         }
     };
 
+    private AndroidCallerIdentityResolver identityResolver;
+    private CallerCapabilityPolicy capabilityPolicy;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        identityResolver = new AndroidCallerIdentityResolver(this);
+        capabilityPolicy = AndroidCapabilityPolicyLoader.load(
+                this,
+                R.xml.central_brain_capability_policy,
+                identityResolver.resolveOwnIdentity());
+        Log.i(TAG, "created capability_default=deny"
+                + " capability_rule_count=" + capabilityPolicy.getRuleCount()
+                + " hardware_accessed=false");
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "diagnostic binder requested hardware_accessed=false");
         return binder;
+    }
+
+    private CallerIdentitySnapshot resolveAuthorizedCaller() {
+        CallerIdentitySnapshot caller = identityResolver.resolveCallingIdentity();
+        CallerCapabilityPolicy.Decision decision = capabilityPolicy.evaluate(
+                caller,
+                Capability.DIAGNOSTICS_READ);
+        if (!decision.isAllowed()) {
+            Log.w(TAG, "capability denied capability=" + Capability.DIAGNOSTICS_READ.getId()
+                    + " reason=" + decision.getReason()
+                    + " matchedPackage=" + decision.getMatchedPackage()
+                    + " " + caller.auditSummary()
+                    + " hardware_accessed=false");
+            throw new SecurityException("Central Brain capability denied: "
+                    + Capability.DIAGNOSTICS_READ.getId());
+        }
+        return caller;
     }
 
     private static int parseCursor(String cursor, int recordCount) {

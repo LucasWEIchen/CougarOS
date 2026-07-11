@@ -107,6 +107,8 @@ for path in \
   tools/check_central_brain_android_binder_runtime.sh \
   tools/check_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_job_supervisor.sh \
+  tools/check_central_brain_android_capability_policy.sh \
+  tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
   require_file "$path"
@@ -150,8 +152,13 @@ require_text "$PLAN" "R3A Job Supervisor foundation"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R3A Job Supervisor foundation trace"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "trusted_caller_identity_resolved=true"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3A Job Supervisor Driver/HAL Boundary"
+require_text "$PLAN" "R3B capability policy"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R3B capability policy trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "unknown_client_default_deny_verified=true"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R3B Capability Policy Driver/HAL Boundary"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

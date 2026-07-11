@@ -90,7 +90,11 @@
 - task owner 由 Supervisor 保存；非 owner 的 status 返回 `UNKNOWN`，cancel 返回 false，无法区分任务不存在与越权。身份无法完整解析时默认拒绝。请求体没有 permission/capability 字段。
 - JVM 单测覆盖合法/非法状态转换、进度单调、终态唯一、重复取消、owner 隔离、全活动容量耗尽、终态 callback 结算门禁、终态压力淘汰、retention 到期以及多包/签名配对。
 - API 33 x86_64 实测日志输出 `uid=10175 userSerial=0 packages=[com.centralbrain.demo] resolved=true`；标准 typed Binder 完成/取消门禁和 R2C service/client death、reconnect、15-task race 回归均通过，输出 `trusted_caller_identity_resolved=true`、`hardware_accessed=false`。
-- R3 尚未关闭：R3B 仍需实现 package + signer capability policy、unknown/default deny、独立第二客户端越权设备测试；R3C 仍需动作风险分级和高风险审批入口。`CentralBrainSdk.EVOLUTION_STAGE` 暂不提升，`DEV-019`/`ISSUE-023` 保持 Open。
+- `R3B capability policy` 已完成：Runtime APK 内置严格解析的 V1 XML，唯一默认值为 deny；Demo production principal 和 Runtime diagnostic principal 都必须同时匹配字面包名与 Runtime 当前 signer 完整集合，禁止 wildcard、请求体授权和 signer 交集放宽。
+- `runtime.protocol.read`、`runtime.task.submit`、`runtime.task.status.own`、`runtime.task.cancel.own` 分别在每个 production Binder 方法执行，`runtime.diagnostics.read` 在 diagnostic version/hash/page 执行。共享 UID 可合并多个已配置包的 capability，但任一已配置包 signer 不一致即整体拒绝。
+- 新增 test-only `policy-probe` APK。它与 Runtime/Demo 使用同一 debug signer，成功获得外层 `BIND_RUNTIME` 和 `ACCESS_DIAGNOSTICS` signature permission 并成功 bind，但包名未配置；API 33 上 production 与 diagnostic capability 全部抛出 `SecurityException`，audit reason 均为 `PACKAGE_NOT_CONFIGURED`。
+- API 33 R3B 输出 `outer_signature_permission_passed=true`、`outer_diagnostic_signature_permission_passed=true`、`test_only_install_enforced=true`、`allowed_client_capabilities_verified=true`、`unknown_client_default_deny_verified=true`、`diagnostic_capability_default_deny_verified=true`、`package_and_current_signer_mapping_verified=true`、`production_capability_denial_audited=true`。Probe 不属于标准交付产物。
+- R3 尚未关闭：R3C 仍需动作风险分级、受信 Safety/Vehicle State 输入和高风险审批入口；R4 再提供 durable approval/checkpoint/outbox。`CentralBrainSdk.EVOLUTION_STAGE` 暂不提升，`DEV-019`/`ISSUE-023` 保持 Open。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

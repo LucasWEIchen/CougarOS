@@ -17,6 +17,9 @@ import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
+import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
+import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
+import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
 import com.centralbrain.runtime.supervisor.JobSupervisor;
 
 import java.util.NoSuchElementException;
@@ -58,11 +61,13 @@ public final class CentralBrainRuntimeService extends Service {
     private final ICentralBrainRuntime.Stub binder = new ICentralBrainRuntime.Stub() {
         @Override
         public int getProtocolVersion() {
+            resolveAuthorizedCaller(Capability.PROTOCOL_READ);
             return ICentralBrainRuntime.INTERFACE_VERSION;
         }
 
         @Override
         public String getProtocolHash() {
+            resolveAuthorizedCaller(Capability.PROTOCOL_READ);
             return ICentralBrainRuntime.INTERFACE_HASH;
         }
 
@@ -70,7 +75,7 @@ public final class CentralBrainRuntimeService extends Service {
         public TaskHandle submitAgentTask(
                 AgentTaskRequest request,
                 ICentralBrainTaskCallback callback) {
-            CallerIdentitySnapshot caller = resolveTrustedCaller();
+            CallerIdentitySnapshot caller = resolveAuthorizedCaller(Capability.TASK_SUBMIT);
             validateRequest(request, callback);
             removeTaskRecords(jobSupervisor.pruneExpired());
 
@@ -103,7 +108,7 @@ public final class CentralBrainRuntimeService extends Service {
 
         @Override
         public boolean cancelTask(TaskHandle handle, int reasonCode) {
-            CallerIdentitySnapshot caller = resolveTrustedCaller();
+            CallerIdentitySnapshot caller = resolveAuthorizedCaller(Capability.TASK_CANCEL_OWN);
             validateCancelReason(reasonCode);
             removeTaskRecords(jobSupervisor.pruneExpired());
             TaskRecord record = findRecord(handle);
@@ -112,7 +117,7 @@ public final class CentralBrainRuntimeService extends Service {
 
         @Override
         public TaskUpdate getTaskStatus(TaskHandle handle) {
-            CallerIdentitySnapshot caller = resolveTrustedCaller();
+            CallerIdentitySnapshot caller = resolveAuthorizedCaller(Capability.TASK_STATUS_OWN);
             removeTaskRecords(jobSupervisor.pruneExpired());
             TaskRecord record = findRecord(handle);
             JobSupervisor.Snapshot snapshot = record == null
@@ -134,9 +139,15 @@ public final class CentralBrainRuntimeService extends Service {
     public void onCreate() {
         super.onCreate();
         identityResolver = new AndroidCallerIdentityResolver(this);
+        capabilityPolicy = AndroidCapabilityPolicyLoader.load(
+                this,
+                R.xml.central_brain_capability_policy,
+                identityResolver.resolveOwnIdentity());
         Log.i(TAG, "created maturity=" + CentralBrainSdk.MATURITY
                 + " job_supervisor_max_records=" + MAX_TASK_RECORDS
                 + " terminal_retention_ms=" + TERMINAL_RETENTION_MS
+                + " capability_default=deny"
+                + " capability_rule_count=" + capabilityPolicy.getRuleCount()
                 + " hardware_accessed=false");
     }
 
@@ -162,6 +173,7 @@ public final class CentralBrainRuntimeService extends Service {
     }
 
     private AndroidCallerIdentityResolver identityResolver;
+    private CallerCapabilityPolicy capabilityPolicy;
 
     private static void validateRequest(
             AgentTaskRequest request,
@@ -419,6 +431,20 @@ public final class CentralBrainRuntimeService extends Service {
             Log.w(TAG, "denied unresolved Binder caller " + caller.auditSummary()
                     + " reason=" + caller.getResolutionFailure());
             throw new SecurityException("trusted Binder caller identity could not be resolved");
+        }
+        return caller;
+    }
+
+    private CallerIdentitySnapshot resolveAuthorizedCaller(Capability capability) {
+        CallerIdentitySnapshot caller = resolveTrustedCaller();
+        CallerCapabilityPolicy.Decision decision = capabilityPolicy.evaluate(caller, capability);
+        if (!decision.isAllowed()) {
+            Log.w(TAG, "capability denied capability=" + capability.getId()
+                    + " reason=" + decision.getReason()
+                    + " matchedPackage=" + decision.getMatchedPackage()
+                    + " " + caller.auditSummary()
+                    + " hardware_accessed=false");
+            throw new SecurityException("Central Brain capability denied: " + capability.getId());
         }
         return caller;
     }
