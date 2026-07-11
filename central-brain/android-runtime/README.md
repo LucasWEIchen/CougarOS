@@ -143,6 +143,14 @@ No production path resolves material, queries status, calls apply or opens `Dura
 
 This closes the R4 durable-workflow foundation at `R4_DURABLE_WORKFLOW` / `android_integrated`. It does not activate effect delivery: target adapter/material/key/trusted-clock evidence remains an ISSUE-022/Driver-HAL gate and later integration work.
 
+## R5A1 Model Provider Contract
+
+`ModelProvider` defines the internal Model Runtime Adapter lifecycle boundary: descriptor, health/lifecycle snapshot, model warmup, asynchronous inference with bounded transient stream chunks, cancellation, metrics, fault reporting and close. Descriptor invariants reject production or hardware claims from deterministic-stub/Ollama-debug backends and reject any inference slot or fallback capability on an empty provider.
+
+`ModelProviderProfiles` currently publishes two immutable, non-routable profiles. `deterministic.stub` is TEST_ONLY, hardware-free and COLD with one declared future concurrency slot; its implementation is not configured in R5A1. `vendor.npu.empty` is EMPTY/UNAVAILABLE, has zero slots and cannot warm up, infer, stream, cancel, collect device metrics or act as fallback. Neither profile is held by a production Service.
+
+JVM tests and a DUMP-protected debug-only API 33 probe validate both profiles, unsafe descriptor rejection and defensive stream-chunk copies. R5A1 keeps `model_provider_runtime_wired=false`, `model_router_dispatch_enabled=false`, `ollama_android_provider_configured=false` and `hardware_accessed=false`. R5A2 owns scheduler admission/priority/deadline/quota/cancel semantics; R5B will add the first executable deterministic stub without enabling vendor NPU access.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

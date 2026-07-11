@@ -843,3 +843,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Production Runtime must not instantiate an `EffectAdapter`, resolve material, query status, call apply, reference `DurableEffectRepository` or start a dispatcher. Gate visibility is not effect wiring.
 - API 33 must verify Runtime log, dumpsys and diagnostic-page parity, plus existing Binder lifecycle/default-deny regressions. Release must retain exactly the three signature-protected Services and no debug Activity/probe.
 - R4 exits at `R4_DURABLE_WORKFLOW` / `android_integrated` with activation blocked. `production_effect_delivery_activation_allowed=false`, adapter/material/apply/status/dispatch false and all no-hardware flags remain mandatory; target material/key/clock/adapter evidence remains open.
+
+### 2026-07-12 R5A1 model provider contract trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`.
+- The Android Model Runtime Adapter must expose one internal typed contract for descriptor, lifecycle/health snapshot, warmup, asynchronous infer/stream, cancel, metrics, fault and close. Stream chunks must be bounded to 64 KiB and defensively copied.
+- A descriptor must bind backend kind, assurance, fallback class, concurrency slots and operation support. Stub/Ollama-debug descriptors cannot claim hardware or production eligibility; EMPTY descriptors cannot expose inference, warmup, stream, cancel, device metrics, concurrency slots or fallback.
+- R5A1 must publish exactly the current `deterministic.stub` TEST_ONLY/COLD profile and `vendor.npu.empty` EMPTY/UNAVAILABLE profile. Both profiles remain immutable, unconfigured and non-routable. Vendor empty has zero concurrency and no hardware access.
+- The debug probe must be DUMP-protected and absent from release. JVM/API 33 evidence must verify both profiles, unsafe descriptor rejection, bounded defensive stream material and all no-routing/no-hardware flags.
+- R5A1 must not instantiate a provider or wire production Runtime/Governance. It must report `deterministic_stub_implementation_configured=false`, `deterministic_stub_routing_enabled=false`, `vendor_npu_provider_available=false`, `model_provider_runtime_wired=false`, `model_router_dispatch_enabled=false`, `ollama_android_provider_configured=false`, and `hardware_accessed=false`.
+- Scheduler admission/priority/deadline/quota/cancel state belongs to R5A2. Executable deterministic routing belongs to R5B; real Vendor NPU remains blocked by `DRV-GAP-001`.

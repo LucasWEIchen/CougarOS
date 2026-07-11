@@ -491,6 +491,52 @@ if [[ "$MATERIAL_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MODEL_PROVIDER_NONCE="$(date +%s%N)"
+MODEL_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.ModelProviderContractProbeActivity \
+  --es nonce "$MODEL_PROVIDER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MODEL_PROVIDER_PROBE_OUTPUT"; then
+  echo "$MODEL_PROVIDER_PROBE_OUTPUT" >&2
+  echo "model provider contract debug probe did not start successfully" >&2
+  exit 1
+fi
+MODEL_PROVIDER_PROBE_PASSED=false
+for _ in {1..40}; do
+  MODEL_PROVIDER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbModelProbe:I)"
+  if grep -Fq "nonce=$MODEL_PROVIDER_NONCE model_provider_probe_complete=true" \
+      <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "model_provider_contract_verified=true" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_profile_verified=true" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "vendor_npu_empty_profile_verified=true" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "unsafe_provider_descriptor_rejected=true" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_implementation_configured=false" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "deterministic_stub_routing_enabled=false" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "vendor_npu_provider_available=false" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "model_provider_runtime_wired=false" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "model_router_dispatch_enabled=false" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "ollama_android_provider_configured=false" \
+        <<<"$MODEL_PROVIDER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$MODEL_PROVIDER_LOG"; then
+    MODEL_PROVIDER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MODEL_PROVIDER_PROBE_PASSED" != true ]]; then
+  echo "$MODEL_PROVIDER_LOG" >&2
+  echo "model provider contract probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -788,6 +834,16 @@ printf '%s\n' \
   "production_effect_gate_dumpsys_verified=true" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
+  "model_provider_contract_verified=true" \
+  "deterministic_stub_profile_verified=true" \
+  "vendor_npu_empty_profile_verified=true" \
+  "unsafe_provider_descriptor_rejected=true" \
+  "deterministic_stub_implementation_configured=false" \
+  "deterministic_stub_routing_enabled=false" \
+  "vendor_npu_provider_available=false" \
+  "model_provider_runtime_wired=false" \
+  "model_router_dispatch_enabled=false" \
+  "ollama_android_provider_configured=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

@@ -265,6 +265,8 @@
 
 当前处理：建立 Stub、Ollama-debug 和 Vendor-NPU-empty provider；统一 health、warmup、infer、stream、cancel、metrics、fault 和 fallback contract。当前 Android 无 NPU 时只激活 deterministic stub，禁止探测 device node 或把 Ollama 标记为硬件验证。
 
+2026-07-12 R5A1 进展：Android main source 已新增统一 `ModelProvider` typed contract，并登记 immutable `deterministic.stub` TEST_ONLY/COLD 与 `vendor.npu.empty` EMPTY/UNAVAILABLE profile。JVM/API 33 已验证 unsafe production/hardware claim、empty inference slot 和非 defensive stream material 均失败关闭。当前两 profile 均未实例化、未路由，`model_provider_runtime_wired=false`、`model_router_dispatch_enabled=false`、`ollama_android_provider_configured=false`、`hardware_accessed=false`。ISSUE-024 保持 Open：R5A2 的 priority/deadline/quota/cancel resource admission、R5B executable stub/router、Ollama debug provider、熔断/fallback fault matrix 和 `DRV-GAP-001` 后的 Vendor NPU 实现尚未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-025 Event、Memory、Skill 生命周期与治理链

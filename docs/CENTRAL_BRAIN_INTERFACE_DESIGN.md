@@ -918,3 +918,19 @@ The current production configuration has no adapter and uses the empty source, s
 `CentralBrainRuntimeService` reads the snapshot for startup logging and protected Service dumpsys. `CentralBrainDiagnosticService` reads the same snapshot for record ID `effect-delivery-activation`, summary `blocked`, sequence 4 in the existing cursor-paged diagnostic interface. No new AIDL transaction or Parcelable is added.
 
 This interface is observation-only. Neither Service gets an adapter or material-source handle from the snapshot; neither can call apply/query/resolve or claim an outbox. Current blocker visibility therefore cannot be used as an activation command.
+
+## Android R5A1 Model Provider Contract
+
+映射 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`。
+
+| 接口/类型 | 调用方 -> 实现方 | 语义 | 当前实现 |
+| --- | --- | --- | --- |
+| `ModelProvider.descriptor()` | Model Router -> Provider | backend/assurance/fallback/operation/concurrency immutable contract | 类型已实现；无 provider instance |
+| `snapshot()` | Scheduler/Diagnostics -> Provider | lifecycle、health、loaded/active/queued、hardware evidence | profile snapshot only |
+| `warmup(ModelSpec)` | Model Router -> Provider | model id/version/artifact digest lifecycle transition | contract only |
+| `infer(InferenceRequest, StreamObserver)` | Scheduler -> Provider | deadline-bound async inference; chunks transient and <=64 KiB | contract only |
+| `cancel(requestId, reason)` | Scheduler -> Provider | cancelled/pending-ack/terminal/not-found/unsupported | contract only |
+| `metrics()` / `lastFault()` | Governance/Diagnostics -> Provider | bounded counters and fault/isolation status | contract only |
+| `close()` | Runtime lifecycle -> Provider | stop provider and reject new work | contract only |
+
+`deterministic.stub` 为 TEST_ONLY、COLD、1 个声明 slot，所有 operation 仅表示 R5B 要实现的 contract，当前未配置/未路由。`vendor.npu.empty` 为 EMPTY/UNAVAILABLE、0 slot，只能暴露 unavailable health/fault metadata。Stub/Ollama debug 不能声明 production/hardware；EMPTY 不能声明 inference/fallback。R5A2 Scheduler 才能形成排队/准入调用关系，R5B 才允许 Router 调用 deterministic provider。

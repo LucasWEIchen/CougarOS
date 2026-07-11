@@ -790,3 +790,11 @@ R4C3C 交付 immutable `EffectDeliveryActivationSnapshot`、Runtime startup/dump
 API 33 门禁必须验证 diagnostic record、Runtime log 与 dumpsys 同时报告 gate wired、activation false、adapter/material/apply/status false、empty source 和 ordered blocker；R2C lifecycle/race 与 R3 default-deny 必须回归。Release APK 必须只有 3 个 signature-protected Service 和 0 Activity/probe。
 
 R4 以 `R4_DURABLE_WORKFLOW` / `android_integrated` 关闭基础阶段，但 effect delivery 仍被明确阻塞。Production Service 不实例化 adapter、不 resolve material、不 query/apply、不引用 effect repository dispatch。Target key/material/adapter/trusted-clock/hardware evidence 不属于本完成声明；无 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
+
+## Android R5A1 Model Provider Contract
+
+R5A1 继续保持 Android 13 应用层源码交付，不修改 vendor/AOSP/BSP 或已编译系统。新增 main-source `ModelProvider`/`ModelProviderProfiles`、JVM unit test、DUMP-protected debug probe 和 `tools/check_central_brain_android_model_provider_contract.sh`；frozen AIDL、Room schema、SDK AAR + Runtime APK + Demo APK 三项标准 artifact 不变。
+
+Android API 33 验收必须输出 `model_provider_contract_verified=true`、`deterministic_stub_profile_verified=true`、`vendor_npu_empty_profile_verified=true`、`unsafe_provider_descriptor_rejected=true`，并同时输出 provider/runtime/router/Ollama/vendor/hardware 全部未激活标志。Release APK 不得包含 ModelProvider probe。
+
+本阶段聚焦 Android 硬件环境，因此不新增 Linux 前端 artifact。跨 SoC Provider contract 的 Linux 交付映射保留在既有 NPU 接口文档中，待用户恢复 Linux scope 时实现；这项范围收缩必须与当前 Android-only phase 一起解释，不得宣称双平台 R5 已完成。

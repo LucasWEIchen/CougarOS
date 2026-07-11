@@ -133,6 +133,15 @@
 - R4 durable-workflow foundation 退出条件关闭，`CentralBrainSdk.EVOLUTION_STAGE=R4_DURABLE_WORKFLOW`，成熟度保持 `android_integrated`。这不代表真实 effect delivery、target key/retention/delete/trusted-clock 或 hardware validation；这些继续由 ISSUE-022/Driver-HAL gate 和后续集成跟踪。
 - Req IDs：`XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
+### R5 实施状态
+
+- `R5A1 model provider contract` 已完成：新增纯 Java `ModelProvider`，统一 descriptor、health/lifecycle snapshot、warmup、infer/stream、cancel、metrics、fault 和 close 语义；stream chunk 有界且 defensive copy。
+- Descriptor 默认失败关闭：deterministic stub 与 Ollama debug 不得声明 hardware-backed/production，EMPTY provider 不得声明 inference slot、warmup/stream/cancel/metrics 或 fallback。
+- 当前只登记 `deterministic.stub` 与 `vendor.npu.empty` 两个 immutable profile。前者 TEST_ONLY/COLD、后者 EMPTY/UNAVAILABLE；两者 `implementationConfigured=false`、`routingEnabled=false`，production Runtime/Governance 不引用 provider。
+- JVM 与 debug-only API 33 probe 验证 profile、unsafe descriptor rejection 和 no-hardware/no-routing 边界；frozen AIDL、Room schema、标准 artifact shape 均未改变。
+- R5 仍在进行中：R5A2 实现 resource admission/priority/deadline/quota/cancel contract；R5B 再实现 deterministic stub/router fault matrix；Ollama 只允许后续 debug profile，Vendor NPU 保持 empty 到 `DRV-GAP-001` 关闭。
+- Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`。
+
 ## 架构落点
 
 | 架构图层 | 本计划新增实现 |
