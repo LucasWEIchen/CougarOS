@@ -464,6 +464,20 @@ COMMANDS: dict[str, tuple[str, str, dict[str, Any] | None]] = {
     "vehicle-signal-activation": ("GET", "/vehicle/signals/activation", None),
     "vehicle-signal-validation": ("GET", "/vehicle/signals/validation", None),
     "ai-sdk": ("GET", "/ai/sdk/capabilities", None),
+    "agent-scenarios": ("GET", "/agent/scenarios", None),
+    "agent-scenario-home": (
+        "POST",
+        "/agent/scenarios/run",
+        {
+            "trace_id": "linux-cli-agent-scenario-home",
+            "scenario_id": "task.home",
+            "utterance": "回家规划",
+            "runtime": "mock",
+            "caller_permissions": ["vehicle.read", "vehicle.control", "service.read", "ai.infer", "policy.read"],
+            "vehicle_state": "parked",
+            "safety_state": "normal",
+        },
+    ),
     "skills": ("GET", "/skills", None),
     "agent-plan": (
         "POST",

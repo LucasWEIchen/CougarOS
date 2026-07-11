@@ -1,6 +1,6 @@
 # Client2 APK Reverse Demo Path
 
-版本：0.1
+版本：0.2
 日期：2026-07-11
 
 ## 目标
@@ -37,7 +37,9 @@ Client2 MainActivity
     └── CentralBrainPanelController$UiUpdate.smali
 ```
 
-原始 `TuanjieView` 容器保持 `match_parent` 全屏，不因新增 UI 改变车模 viewport。右侧约 1/3 面板通过根 `FrameLayout` 上的 `centralBrainPanelOverlay` 覆盖车模，使用半透明浅灰背景、12dp 外边距、6dp 圆角、8dp elevation、浅色按钮和浅色回复区；上部包含 `我冷了` 和 `我累了` 两个按钮，下部包含 `centralBrainReplyText` 文本框。按钮点击后，smali 控制器从 APK 内发起临时 HTTP POST 到 `http://10.0.2.2:8787/ai/infer`，请求 Python 原型的 Model Runtime Adapter；回复优先显示 `result.generated_text`，没有 Ollama 文本时回退显示 mock `result.summary` 或原始响应。控制器使用 `requestInFlight` 阻止同一 Activity 内的重复并发请求。
+原始 `TuanjieView` 容器保持 `match_parent` 全屏，不因新增 UI 改变车模 viewport。右侧约 1/3 面板通过根 `FrameLayout` 上的 `centralBrainPanelOverlay` 覆盖车模，使用半透明浅灰背景、12dp 外边距、6dp 圆角、8dp elevation、浅色按钮和浅色回复区。上部固定高度控件区可独立滚动，按“场景任务”“状态与成长”“安全与系统”三组提供 12 个按钮；下部 `centralBrainReplyText` 保持固定结果区域。
+
+每个按钮通过 `android:tag` 绑定稳定 `scenario_id`。smali 控制器递归绑定控件区内的全部 `Button`，点击后向 `http://10.0.2.2:8787/agent/scenarios/run` 发起临时 HTTP POST，并显示根对象 `result.generated_text`。12 个场景和底层接口映射见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`。控制器继续使用进程内 `requestInFlight` 阻止同一 Activity 内的重复并发请求。
 
 该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、smali 网络请求、rebuild、zipalign、debug sign 和静态验证链路成立。
 
@@ -45,7 +47,7 @@ Client2 MainActivity
 
 | Req ID | 映射 |
 | --- | --- |
-| `APP-004` / `XSC-001` | 右侧面板作为 AI SDK/Agent 可视入口；本轮为了本地演示临时直连 Python 原型 `/ai/infer`，偏差登记在 DEV-017/DEV-001。 |
+| `APP-004` / `XSC-001` | 右侧面板作为 AI SDK/Agent 可视入口；本轮为了本地演示临时直连 Python 原型 `/agent/scenarios/run`，该编排器继续组合既有 Agent/Skill/Memory/Model Runtime 接口，偏差登记在 DEV-017/DEV-001。 |
 | `XSC-002` | 后续面板状态必须来自 Uni Info Bus 语义对象。 |
 | `XSC-003` | 后续动作必须经 SOA 服务入口，不直接 dispatch 车控或 NPU。 |
 | `XSC-005` | 后续调用必须保留 Runtime & Governance 状态、Policy 和 Audit 可见性。 |
@@ -74,7 +76,7 @@ CENTRAL_BRAIN_OLLAMA_THINK=false \
 bash tools/run_central_brain_backend.sh
 ```
 
-APK 内固定访问 `http://10.0.2.2:8787/ai/infer`。在 Android emulator 中，`10.0.2.2` 指向模拟器宿主环境；如果后端不在该宿主上，需要后续把 endpoint 配置化或迁移到 Binder/system-service。
+APK 内固定访问 `http://10.0.2.2:8787/agent/scenarios/run`。在 Android emulator 中，`10.0.2.2` 指向模拟器宿主环境；如果后端不在该宿主上，需要后续把 endpoint 配置化或迁移到 Binder/system-service。
 
 验证：
 
@@ -104,10 +106,10 @@ bash tools/install_client2_central_brain_demo.sh
 
 - APK 增量安装成功，包名保持 `com.tuanjie.urasclient2`，`MainActivity` 进入 resumed 状态。
 - Client2 原始座舱背景、3D 车辆和右侧约 1/3 Central Brain 面板同时可见；初版运行证据为分屏布局，后续 overlay 修正已重新验证车模 viewport 保持全屏且面板悬浮其上。
-- `我冷了` 与 `我累了` 两个按钮均可触发后台请求，文本框可显示 `请求中`、后端摘要和超时错误。
-- APK 到 `http://10.0.2.2:8787/ai/infer` 的 HTTP 路径返回过 `200`；App 无崩溃，未触发 Driver/HAL、硬件或虚拟化访问。
+- 12 个按钮通过稳定 `scenario_id` 共用同一个后台执行入口；文本框可显示 `请求中`、场景结果和错误。
+- APK 到 `http://10.0.2.2:8787/agent/scenarios/run` 的 HTTP 路径返回 `200`；App 无崩溃，未触发 Driver/HAL、硬件或虚拟化访问。
 
-首次测试未通过：
+首次测试未通过（历史记录）：
 
 - Ollama 自然语言 `result.generated_text` 尚未通过验收。默认 `CENTRAL_BRAIN_OLLAMA_NUM_PREDICT=96` 时，`qwen3.5:27b-optimized` 返回 `done_reason=length`、`response_length=0`、`thinking_length=337`，APK 因而回退显示 `ollama simulated NPU inference accepted`。
 - 将生成上限提高到 `192` 后，端到端请求仍可能超过 APK `120000 ms` read timeout，界面会显示 `请求失败: timeout`。该结果登记到 `ISSUE-019`，不能视为 Ollama 自然语言回复验收通过。
@@ -118,7 +120,7 @@ bash tools/install_client2_central_brain_demo.sh
 
 2026-07-11 修复后，Ollama adapter 默认 `think=false`，可通过 `CENTRAL_BRAIN_OLLAMA_THINK` 显式覆盖；本地演示使用 90 秒后端 timeout、64 token 上限，并从结构化模型输出中优先提取 `response_text`。APK 增加 single-flight，测试启动改用确定性的 `adb shell am start -n com.tuanjie.urasclient2/.MainActivity`。
 
-清空旧 Ollama 队列后的可信单请求复测只产生一条 `/ai/infer` 日志，在 APK 120 秒 read timeout 内返回 HTTP 200，面板显示 `建议将模拟空调温度调高以缓解寒冷感。`。`CENTRAL_BRAIN_OLLAMA_THINK=false` 下直接推理与 SOA `npu-inference` smoke 均通过，`generated_text` 非空且 `thinking_text_available=false`。
+清空旧 Ollama 队列后的可信单请求复测只产生一条 HTTP 请求，在 APK 120 秒 read timeout 内返回 HTTP 200，面板显示非空中文建议。`CENTRAL_BRAIN_OLLAMA_THINK=false` 下直接推理与 SOA `npu-inference` smoke 均通过，`generated_text` 非空且 `thinking_text_available=false`。
 
 生产路径仍按计划迁移到 Binder/SDK，不因本次演示修复改变架构边界。
 
@@ -126,13 +128,28 @@ bash tools/install_client2_central_brain_demo.sh
 
 2026-07-11 使用 API 36 可视模拟器和 `1920x1080` skin 重新安装、冷启动最终签名 APK。UI dump 显示 `centralBrainRenderRegion` 与 `centralBrainPanelOverlay` 均为 Activity 全内容区 `[0,128][1920,1080]`，说明新增 UI 没有改变车模渲染宽度；`centralBrainPanel` 位于 `[1265,160][1888,1048]`，约占物理屏宽三分之一并保留四周外边距。
 
-运行截图确认车身、天气和底部座舱控件继续绘制到面板下方，浅灰面板可透出原车模内容；两个按钮和回复区均在面板内，Activity 保持 resumed，过滤后的 logcat 未出现 `FATAL EXCEPTION`。证据位于 `logs/test/client2-central-brain-live/20260711_193406/`；该目录只作为本地测试输出，不纳入源码交付。
+运行截图确认车身、天气和底部座舱控件继续绘制到面板下方，浅灰面板可透出原车模内容；当时的两个初版按钮和回复区均在面板内，Activity 保持 resumed，过滤后的 logcat 未出现 `FATAL EXCEPTION`。证据位于 `logs/test/client2-central-brain-live/20260711_193406/`；该目录只作为本地测试输出，不纳入源码交付。
+
+### 12 场景面板与最终复测
+
+最终面板包含 `care.cold`、`care.fatigue`、`task.home`、`skill.nap`、`state.vehicle`、`memory.preference`、`skills.catalog`、`governance.audit`、`security.denied`、`security.privacy`、`runtime.npu` 和 `system.overview`。控件区高度固定并独立滚动，动态内容不会挤压下部结果区；两列按钮使用稳定尺寸，避免滚动或状态文本引发布局跳动。
+
+2026-07-11 在 API 36、`1920x1080` 可视模拟器中重新构建、签名、安装和启动 APK。实机抽样结果：
+
+- `回家规划` 返回 5 步任务图和 `validated_mock`，同时说明未调用真实导航或车控。
+- `越权拦截` 返回 `DENY` 和缺少权限/安全状态原因。
+- `NPU状态` 返回 `ollama-simulated-npu`、`qwen3.5:27b-optimized` 和 `hardware_accessed=false`。
+- `系统总览` 返回当前 Python 原型范围完成、Android/Linux 同步就绪、`production_ready=false`。
+- `我冷了` 通过本地 Ollama 仿真链路约 77.6 秒返回中文建议和 Action 门禁状态；当时 `ollama ps` 显示模型约为 `90%/10% CPU/GPU`，不作为真实 NPU 性能验收。
+
+UI dump 验证首屏和滚动后全部 12 个按钮可见且可点击，Activity 保持 resumed。稳定截图位于 `logs/test/client2-central-brain/20260711_scenarios/`；该目录是本地测试证据，不纳入源码提交。当前环境图形后端回退到 `llvmpipe`，紧邻 Unity 帧更新的瞬时 `screencap` 可能出现黑块，延迟后的稳定截图正常。
 
 ## 已知风险
 
 1. Client2 原始源码不可用，长期维护风险高于源码工程。
 2. Debug 重签名可能影响 Client2 与 RenderService 的信任关系，需要在真机或 ARM64 环境验证。
 3. RenderService 是 ARM64/Unity/Tuanjie 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳和右侧面板。
-4. 后续如果面板需要访问 Python 原型后端，必须新增 `INTERNET`/cleartext 或 Binder/service 接入，并把直接 HTTP 演示路径记录为偏差。
+4. 面板访问 Python 原型后端使用 `INTERNET`/cleartext，直接 HTTP 演示路径已记录为偏差；量产必须迁移到 Binder/service/SDK。
 5. 当前 HTTP endpoint 固定为 `10.0.2.2:8787`，只适合本地模拟器演示；真实座舱域环境应替换为 Binder/SDK 或目标平台允许的 IPC/RPC 接入。
-6. 本地演示已用 `think=false`、single-flight 和 90 秒后端预算解决连续 timeout；目标模型和目标算力仍必须独立标定，且摘要回退不能当成自然语言回复。
+6. 本地演示已用 `think=false`、single-flight 和受控输出预算解决连续 timeout；27B 模型在当前环境仍以 CPU 为主且单次约 77.6 秒，目标模型和目标算力必须独立标定。
+7. KaKaClaw 只作为公开产品概念参考；连续多轮、人格/方言、零代码 Skill、主动触发、真实导航/媒体/车控/ADAS、量产 Skill sandbox 和 Privacy Router 尚未实现，见 ISSUE-020。

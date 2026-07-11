@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -13,7 +13,7 @@
       "type": "apktool-resource-xml",
       "target": "res/layout/main_layout.xml",
       "source": "apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml",
-      "summary": "Keeps the original Client2 render region full-screen and overlays a right-side translucent light-gray Central Brain panel without resizing the vehicle scene.",
+      "summary": "Keeps the original Client2 render region full-screen and overlays a grouped, scrollable right-side test console with 12 KaKaClaw-inspired Agent scenarios.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -57,8 +57,8 @@
       "type": "apktool-smali-addition",
       "target": "smali/com/tuanjie/urasclient2/CentralBrainPanelController*.smali",
       "source": "apk-labs/client2-central-brain/patches/smali/com/tuanjie/urasclient2",
-      "http_endpoint": "http://10.0.2.2:8787/ai/infer",
-      "summary": "Handles 我冷了/我累了 button clicks with one in-flight request per Activity, posts to the Python prototype /ai/infer endpoint, and displays result.generated_text in the right-side text box.",
+      "http_endpoint": "http://10.0.2.2:8787/agent/scenarios/run",
+      "summary": "Recursively binds 12 tagged scenario buttons with one in-flight request per Activity, posts stable scenario IDs to the Agent test harness, and displays result.generated_text in the right-side text box.",
       "req_ids": [
         "APP-004",
         "XSC-001",

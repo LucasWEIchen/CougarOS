@@ -10,6 +10,7 @@
 
 - Python HTTP semantic gateway：本地 mock NPU/AI base 与 Uni Info Bus、SOA、Governance、Driver/HAL gap visibility、hardware empty-interface registry 的只读或 contract-only 入口。
 - Android Console：普通 debug APK，通过 Binder/AIDL sample 访问同一套语义网关。模拟器访问宿主机服务时使用 `http://10.0.2.2:8787`。
+- Client2 Agent 场景 Demo：逆向 patch debug APK，在原车模右侧叠加 12 场景面板；当前通过临时 HTTP `/agent/scenarios/run` 访问原型，非量产 Binder/SDK 路径。
 - Linux CLI：面向 Linux 座舱域工程师的命令行同步交付入口。
 - Linux IPC：Unix socket daemon/client active sample。
 - Linux gRPC/RPC JSON contract sample：用于表达服务边界和跨进程 contract shape。
@@ -112,6 +113,34 @@ driver_development_triggered=false
 virtualization_development_triggered=false
 production_ready=false
 ```
+
+### 3.1 使用 Agent 场景验收入口
+
+读取 12 场景目录：
+
+```bash
+curl -s http://127.0.0.1:8787/agent/scenarios | python3 -m json.tool
+```
+
+运行一个不触发模型推理的回家任务图：
+
+```bash
+curl -s http://127.0.0.1:8787/agent/scenarios/run \
+  -H 'Content-Type: application/json' \
+  -d '{"scenario_id":"task.home","utterance":"回家规划","runtime":"mock"}' \
+  | python3 -m json.tool
+```
+
+Linux 同步入口：
+
+```bash
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+python3 central-brain/linux-cli/central_brain_cli.py agent-scenarios
+CENTRAL_BRAIN_BASE_URL=http://127.0.0.1:8787 \
+python3 central-brain/linux-cli/central_brain_cli.py agent-scenario-home
+```
+
+Android Client2 debug APK 位于 `builds/client2-central-brain/signed/client2-central-brain.debug.apk`。启动后在右侧面板点击场景；向上滑动按钮区可进入安全与系统分组。完整按钮、接口和边界见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`。
 
 ## 4. 确认原型当前状态
 

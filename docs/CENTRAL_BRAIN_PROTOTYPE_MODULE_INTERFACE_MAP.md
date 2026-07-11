@@ -1,8 +1,8 @@
 # Central Brain Python 原型模块、接口与关系说明
 
-版本：0.1
+版本：0.2
 日期：2026-07-11
-基线：`central-brain/contracts/central_brain_api.json` 版本 `0.1.107`
+基线：`central-brain/contracts/central_brain_api.json` 版本 `0.1.108`
 
 ## 1. 目的和范围
 
@@ -47,6 +47,8 @@
 flowchart LR
   AndroidApp["Android Console APK / App layer"] --> AndroidBinder["Android Binder / AIDL sample"]
   AndroidBinder --> RestGateway["HTTP Semantic Gateway mock_npu_service.py"]
+  Client2["Client2 scenario demo panel"] --> RestGateway
+  RestGateway --> Scenario["Agent scenario test harness"]
 
   LinuxCli["Linux CLI"] --> RestGateway
   LinuxIPC["Linux IPC daemon/client"] --> RestGateway
@@ -84,12 +86,14 @@ flowchart LR
 | 模块 | 代码/交付物 | 主要 Req ID | 职责 | Android 主路径 | Linux 同步路径 | 当前状态 |
 | --- | --- | --- | --- | --- | --- | --- |
 | Android Console APK | `central-brain/android-console/` | DEL-001, XSC-001..006 | 给座舱工程师提供可点击调试入口 | Activity 调 Binder service sample | 不适用 | active sample，非 privileged/system service |
+| Client2 Agent 场景面板 | `apk-labs/client2-central-brain/` | APP-004, XSC-001..006, DEL-001 | 在原车模上叠加 12 场景 Android 演示入口 | 临时 HTTP `/agent/scenarios/run` | 不适用 | active demo，DEV-017；非正式 Binder/SDK 路径 |
 | Android Binder/AIDL Binding | `central-brain/bindings/android/aidl/com/centralbrain/binding/ICentralBrainGateway.aidl` | XSC-006, DEL-001 | 将 REST contract 映射为 Binder JSON 方法 | `getStateJson`、`invokeServiceJson`、`planAgentTaskJson` 等 | 不适用 | active sample，上游仍代理 REST prototype |
 | Linux CLI | `central-brain/linux-cli/central_brain_cli.py` | DEL-002, XSC-002..006 | Linux 调试和验收入口 | 不适用 | CLI 命令调用 REST | active sample |
 | Linux IPC Binding | `central-brain/bindings/linux/ipc/` | NV-P-002, DEL-002 | Unix socket 进程间 contract shape | 不适用 | daemon/client operation name 映射 | active sample，非量产 broker |
 | Linux gRPC/RPC Binding | `central-brain/bindings/linux/grpc/`, `central-brain/bindings/linux/proto/central_brain_gateway.proto` | NV-P-003, DEL-002 | gRPC/RPC contract shape | 不适用 | JSON TCP wrapper + proto 契约 | active sample，环境无 `grpcio` 时使用 JSON wrapper |
 | HTTP Semantic Gateway | `central-brain/backend/mock_npu_service.py` | XSC-001..006 | 原型主服务，承载全部 REST route | Binder service 代理到此 | CLI/IPC/gRPC 代理到此 | active prototype |
 | AI SDK / Agent / Skill / Memory | `central-brain/backend/ai_sdk.py` | XSC-001, APP-004, FW-U-006 | 应用层 AI 能力门面、任务规划、任务执行、技能和记忆 mock | Binder AI/Agent/Skill/Memory 方法 | CLI/IPC/gRPC 对应命令 | active mock contract |
+| Agent Scenario Test Harness | `central-brain/backend/agent_scenarios.py` | APP-004, XSC-001..006, FW-U-004, FW-U-006, FW-U-007 | 把已有接口组合成 12 个可重复验收场景，不引入新架构层 | Client2 `/agent/scenarios/run` | CLI `agent-scenarios`、`agent-scenario-home` | active test orchestrator，独立实现且不声明产品兼容 |
 | Uni Info Bus | gateway route + `central-brain/backend/vehicle_signals.py` 部分联动 | XSC-002, FW-U-003, FW-U-004, FW-U-008 | context、state、action、event、extension、signal gate 语义总线 | Binder UIB 方法和 Console 按钮 | CLI/IPC/gRPC UIB operation | active mock + contract-only gate |
 | SOA Service Entry | `central-brain/backend/runtime_governance.py` service catalog + gateway route | XSC-003 | service list、contract list、semantic invocation | Binder `listServicesJson`、`invokeServiceJson` | CLI/IPC/gRPC `service-*` 和 `soa.service.invoke` | active prototype |
 | Runtime & Governance | `central-brain/backend/runtime_governance.py` | XSC-005 | Registry、Discovery、Policy、Lifecycle、QoS、Audit、deployment/migration target contract | Binder governance 方法 | CLI/IPC/gRPC governance operation | active prototype，非量产 governance backend |
@@ -110,6 +114,7 @@ flowchart LR
 | Health / Observability / Prototype | `GET /health`, `GET /observability/readiness`, `GET /prototype/readiness`, `GET /prototype/completion-summary` | `getObservabilityReadinessJson`, `getPrototypeReadinessJson`, `getPrototypeCompletionSummaryJson` | `observability-readiness`, `prototype-readiness`, `prototype-completion-summary` | 用于验收当前原型覆盖面和边界 | active |
 | AI SDK / NPU inference | `GET /ai/sdk/capabilities`, `POST /ai/infer` | `getAiSdkCapabilitiesJson`, `inferJson` | `capabilities`, `infer`, `npu-inference` | App -> AI SDK -> Model Runtime Adapter -> mock/Ollama | active mock + optional Ollama |
 | Agent / Skill / Memory / Tool | `GET /tools`, `POST /agent/plan`, `POST /agent/execute`, `GET /skills`, `POST /skills/{skill_id}/invoke`, `POST /memory/query` | `planAgentTaskJson`, `executeAgentTaskJson`, `listSkillsJson`, `invokeSkillJson`, `queryMemoryJson` | `agent-plan`, `agent-execute`, `skill-invoke`, `memory-query` | AI SDK facade 组合 UIB/SOA/tool contract | active mock |
+| Agent 场景验收 | `GET /agent/scenarios`, `POST /agent/scenarios/run` | Client2 APK 临时 HTTP demo | `agent-scenarios`, `agent-scenario-home` | 场景编排器组合 AI SDK、UIB、SOA、Policy/Audit、Model Runtime 和 readiness；不直接访问实现或硬件 | active test harness |
 | Uni Info Bus context/state/action | `GET /context`, `GET /uib/context`, `GET /state`, `GET /uib/state`, `POST /actions/request`, `POST /uib/actions/request`, `GET /uib/extensions` | `getContextJson`, `getStateJson`, `requestActionJson`, `getUibExtensionsJson` | `context`, `state`, `action-request`, `extensions` | App semantic state/action 总线 | active mock |
 | Uni Info Bus event active mock | `GET /events/topics`, `POST /events/publish`, `GET /uib/events/topics`, `POST /uib/events/publish`, `GET /uib/events/recent` | `listEventTopicsJson`, `publishEventJson`, `getRecentEventsJson` | `events`, `event-publish`, `event-recent`, `uib.events.*` | Event 语义和最近事件观察 | active mock |
 | Uni Info Bus event subscription gate | `/uib/events/subscriptions*` | `getEventSubscriptionsJson` 到 approval/closure 系列方法 | `event-subscription-*`, `uib.events.subscriptions.*`, `GetEventSubscription*` | 表达订阅激活、证据、审批、handoff、closure 门禁 | contract-only |
@@ -164,7 +169,26 @@ sequenceDiagram
 
 关系说明：Agent 不绕过 AI SDK facade，不直接访问服务实现。Skill/Memory/Tool 也是 AI SDK 侧的 mock contract。
 
-### 6.3 SOA 调用治理链
+### 6.3 Agent 场景验收链
+
+```mermaid
+sequenceDiagram
+  participant Client as "Client2 or Linux CLI"
+  participant Gateway as "Semantic Gateway"
+  participant Scenario as "Agent scenario harness"
+  participant Modules as "AI SDK / UIB / SOA / Governance"
+
+  Client->>Gateway: POST /agent/scenarios/run with scenario_id
+  Gateway->>Scenario: validate stable scenario catalog
+  Scenario->>Modules: compose existing typed operations
+  Modules-->>Scenario: checks, evidence, boundary flags
+  Scenario-->>Gateway: generated_text + outcome
+  Gateway-->>Client: no-hardware/no-dispatch response
+```
+
+关系说明：该 harness 是演示和验收编排器，不是新的业务总线或量产 Agent runtime。Android 当前直连 HTTP 是 DEV-017；Linux 通过同一 REST contract 提供同步 CLI。完整矩阵见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`。
+
+### 6.4 SOA 调用治理链
 
 ```mermaid
 sequenceDiagram
@@ -189,7 +213,7 @@ sequenceDiagram
 
 关系说明：SOA 服务入口和 governance 不是并列绕行关系。`/soa/invoke` 必须先完成 registry、policy、QoS、audit 约束，之后才允许 mock dispatch。
 
-### 6.4 Ollama simulated NPU
+### 6.5 Ollama simulated NPU
 
 ```mermaid
 sequenceDiagram
@@ -212,7 +236,7 @@ sequenceDiagram
 
 关系说明：Ollama 是用户态仿真 NPU 内模型，不代表真实 PCIe NPU、vendor SDK、Driver/HAL 或部署隔离已经可用。
 
-### 6.5 Hardware empty-interface 门禁
+### 6.6 Hardware empty-interface 门禁
 
 ```mermaid
 sequenceDiagram

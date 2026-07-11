@@ -36,7 +36,7 @@
 .end method
 
 .method private bind()V
-    .locals 10
+    .locals 8
 
     iget-object v0, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->activity:Landroid/app/Activity;
 
@@ -50,7 +50,7 @@
 
     const-string v3, "id"
 
-    const-string v4, "centralBrainColdButton"
+    const-string v4, "centralBrainControlGroup"
 
     invoke-virtual {v1, v4, v3, v2}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
 
@@ -60,74 +60,92 @@
 
     move-result-object v4
 
-    instance-of v5, v4, Landroid/widget/Button;
+    if-eqz v4, :cond_0
 
-    if-eqz v5, :cond_0
-
-    check-cast v4, Landroid/widget/Button;
-
-    const/4 v5, 0x0
-
-    invoke-virtual {v4, v5}, Landroid/widget/Button;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V
-
-    invoke-virtual {v4, p0}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    invoke-direct {p0, v4}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->bindButtons(Landroid/view/View;)V
 
     :cond_0
-    const-string v6, "centralBrainTiredButton"
+    const-string v5, "centralBrainReplyText"
 
-    invoke-virtual {v1, v6, v3, v2}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
+    invoke-virtual {v1, v5, v3, v2}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
 
-    move-result v6
+    move-result v5
 
-    invoke-virtual {v0, v6}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+    invoke-virtual {v0, v5}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
 
-    move-result-object v6
+    move-result-object v5
 
-    instance-of v7, v6, Landroid/widget/Button;
+    instance-of v6, v5, Landroid/widget/TextView;
 
-    if-eqz v7, :cond_1
+    if-eqz v6, :cond_1
 
-    check-cast v6, Landroid/widget/Button;
+    check-cast v5, Landroid/widget/TextView;
 
-    const/4 v7, 0x0
+    iput-object v5, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->replyView:Landroid/widget/TextView;
 
-    invoke-virtual {v6, v7}, Landroid/widget/Button;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V
+    const-string v7, "\u9009\u62e9\u6d4b\u8bd5\u573a\u666f..."
 
-    invoke-virtual {v6, p0}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    invoke-virtual {v5, v7}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
 
     :cond_1
-    const-string v8, "centralBrainReplyText"
+    return-void
+.end method
 
-    invoke-virtual {v1, v8, v3, v2}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
+.method private bindButtons(Landroid/view/View;)V
+    .locals 4
 
-    move-result v8
+    if-eqz p1, :cond_return
 
-    invoke-virtual {v0, v8}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+    instance-of v0, p1, Landroid/widget/Button;
 
-    move-result-object v8
+    if-eqz v0, :cond_group
 
-    instance-of v9, v8, Landroid/widget/TextView;
+    check-cast p1, Landroid/widget/Button;
 
-    if-eqz v9, :cond_2
+    const/4 v1, 0x0
 
-    check-cast v8, Landroid/widget/TextView;
+    invoke-virtual {p1, v1}, Landroid/widget/Button;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V
 
-    iput-object v8, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->replyView:Landroid/widget/TextView;
+    invoke-virtual {p1, p0}, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
 
-    const-string v9, "\u7b49\u5f85\u6307\u4ee4..."
+    return-void
 
-    invoke-virtual {v8, v9}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+    :cond_group
+    instance-of v0, p1, Landroid/view/ViewGroup;
 
-    :cond_2
+    if-eqz v0, :cond_return
+
+    check-cast p1, Landroid/view/ViewGroup;
+
+    invoke-virtual {p1}, Landroid/view/ViewGroup;->getChildCount()I
+
+    move-result v1
+
+    const/4 v2, 0x0
+
+    :goto_children
+    if-ge v2, v1, :cond_return
+
+    invoke-virtual {p1, v2}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
+
+    move-result-object v3
+
+    invoke-direct {p0, v3}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->bindButtons(Landroid/view/View;)V
+
+    add-int/lit8 v2, v2, 0x1
+
+    goto :goto_children
+
+    :cond_return
     return-void
 .end method
 
 .method public onClick(Landroid/view/View;)V
-    .locals 2
+    .locals 4
 
     instance-of v0, p1, Landroid/widget/TextView;
 
-    if-eqz v0, :cond_1
+    if-eqz v0, :cond_return
 
     check-cast p1, Landroid/widget/TextView;
 
@@ -135,29 +153,46 @@
 
     move-result-object v0
 
-    if-eqz v0, :cond_0
+    if-eqz v0, :cond_empty
 
     invoke-interface {v0}, Ljava/lang/CharSequence;->toString()Ljava/lang/String;
 
     move-result-object v1
 
-    invoke-direct {p0, v1}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->submitIntent(Ljava/lang/String;)V
+    goto :cond_tag
 
-    return-void
-
-    :cond_0
+    :cond_empty
     const-string v1, ""
 
-    invoke-direct {p0, v1}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->submitIntent(Ljava/lang/String;)V
+    :cond_tag
+    invoke-virtual {p1}, Landroid/view/View;->getTag()Ljava/lang/Object;
 
-    :cond_1
+    move-result-object v2
+
+    if-eqz v2, :cond_use_text
+
+    invoke-virtual {v2}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v3
+
+    goto :cond_submit
+
+    :cond_use_text
+    move-object v3, v1
+
+    :cond_submit
+    invoke-direct {p0, v3, v1}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->submitScenario(Ljava/lang/String;Ljava/lang/String;)V
+
+    :cond_return
     return-void
 .end method
 
-.method private submitIntent(Ljava/lang/String;)V
+.method private submitScenario(Ljava/lang/String;Ljava/lang/String;)V
     .locals 4
 
     if-eqz p1, :cond_0
+
+    if-eqz p2, :cond_0
 
     sget-boolean v0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->requestInFlight:Z
 
@@ -175,7 +210,7 @@
 
     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
-    invoke-virtual {v0, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v0, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
 
@@ -185,7 +220,7 @@
 
     new-instance v2, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;
 
-    invoke-direct {v2, p0, p1}, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;-><init>(Lcom/tuanjie/urasclient2/CentralBrainPanelController;Ljava/lang/String;)V
+    invoke-direct {v2, p0, p1, p2}, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;-><init>(Lcom/tuanjie/urasclient2/CentralBrainPanelController;Ljava/lang/String;Ljava/lang/String;)V
 
     new-instance v3, Ljava/lang/Thread;
 

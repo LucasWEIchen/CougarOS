@@ -1,7 +1,7 @@
 {
   "name": "central-brain-api",
-  "version": "0.1.107",
-  "updated": "2026-07-10",
+  "version": "0.1.108",
+  "updated": "2026-07-11",
   "transport": {
     "prototype": "http-json",
     "linux_ipc_sample": "unix-domain-socket-json with shared Linux governance daemon SOA precheck plus runtime/audit diagnostics via reusable governance socket client and fallback; hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.checklist maps to closure readiness checklist, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.audit.consistency, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.rollup, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.checklist, hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup maps to reviewer assignment audit decision rollup, and hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary maps to closure handoff readiness summary; uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup maps to Event subscription owner handoff decision rollup",
@@ -23714,6 +23714,77 @@
         "virtualization_development_triggered": false,
         "production_ready": false
       }
+    },
+    {
+      "method": "GET",
+      "path": "/agent/scenarios",
+      "description": "Lists the KaKaClaw-inspired Client2 test scenarios and maps task-as-service, active care, memory, Skill sandbox, Policy, audit, model runtime, and readiness concepts to current Central Brain prototype interfaces without claiming product compatibility.",
+      "req_ids": [
+        "APP-004",
+        "XSC-001",
+        "XSC-002",
+        "XSC-003",
+        "XSC-005",
+        "XSC-006",
+        "FW-U-006",
+        "FW-U-007",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/agent/scenarios/run",
+      "description": "Runs one Android/Linux demo scenario through existing AI SDK, Uni Info Bus, SOA, Runtime and Governance, Skill, Memory, Model Runtime, or readiness mock surfaces and returns compact UI text plus interface evidence. It never dispatches real navigation, media, ADAS, vehicle control, Driver/HAL, NPU hardware, or virtualization.",
+      "request": {
+        "trace_id": "string",
+        "scenario_id": "care.cold|care.fatigue|task.home|skill.nap|state.vehicle|memory.preference|skills.catalog|security.denied|security.privacy|governance.audit|runtime.npu|system.overview",
+        "utterance": "string",
+        "runtime": "mock|ollama",
+        "caller_permissions": "string[]",
+        "vehicle_state": "parked|driving",
+        "safety_state": "normal|degraded|diagnostic_readonly"
+      },
+      "response": {
+        "status": "ok|error",
+        "scenario": "object",
+        "result": {
+          "outcome": "passed|blocked_as_expected|failed|unknown_scenario",
+          "generated_text": "string",
+          "checks": "object[]"
+        },
+        "evidence": "object",
+        "boundaries": {
+          "real_navigation_dispatched": false,
+          "real_media_dispatched": false,
+          "real_vehicle_control_dispatched": false,
+          "real_vehicle_control": false,
+          "service_dispatch_triggered": false,
+          "hardware_accessed": false,
+          "driver_development_triggered": false,
+          "virtualization_development_triggered": false,
+          "production_ready": false
+        }
+      },
+      "req_ids": [
+        "APP-004",
+        "XSC-001",
+        "XSC-002",
+        "XSC-003",
+        "XSC-005",
+        "XSC-006",
+        "FW-U-004",
+        "FW-U-006",
+        "FW-U-007",
+        "NV-F-001",
+        "NV-F-011",
+        "NV-G-005",
+        "NV-G-007",
+        "DEL-001",
+        "DEL-002",
+        "DEL-003"
+      ]
     },
     {
       "method": "POST",

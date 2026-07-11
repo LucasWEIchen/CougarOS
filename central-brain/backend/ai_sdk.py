@@ -33,6 +33,17 @@ SKILL_MANIFESTS: list[dict[str, Any]] = [
         "sandbox": {"network": "none", "vehicle_write": "requires Action", "cloud_access": False},
         "req_ids": ["XSC-001", "FW-U-006", "FW-U-004", "FW-U-007", "NV-G-005"],
     },
+    {
+        "skill_id": "cabin.scene.nap",
+        "name": "Cabin Nap Scene",
+        "version": "0.1.0",
+        "status": "contract-only",
+        "permissions": ["vehicle.read", "vehicle.control"],
+        "allowed_safety_states": ["normal"],
+        "semantic_entry": "POST /agent/plan intent=cabin_nap_prepare; executable actions must re-enter /uib/actions/request or /soa/invoke",
+        "sandbox": {"network": "none", "vehicle_write": "requires Action", "cloud_access": False},
+        "req_ids": ["XSC-001", "FW-U-006", "FW-U-004", "FW-U-007", "NV-G-005"],
+    },
 ]
 
 MEMORY_ITEMS: list[dict[str, Any]] = [
@@ -182,6 +193,51 @@ def plan_payload(request: dict[str, Any], policy_decision: dict[str, Any]) -> di
                 "depends_on": ["policy"],
                 "state": "planned-only",
                 "req_ids": ["XSC-003", "FW-S-001", "FW-S-005"],
+            },
+        ]
+    elif intent == "home_trip_prepare":
+        required_permissions = ["vehicle.read", "vehicle.control", "service.read"]
+        steps = [
+            {
+                "step_id": "context",
+                "type": "read_context",
+                "semantic_entry": "GET /uib/context",
+                "req_ids": ["XSC-002", "FW-U-001"],
+            },
+            {
+                "step_id": "memory",
+                "type": "query_memory",
+                "semantic_entry": "POST /memory/query",
+                "depends_on": ["context"],
+                "req_ids": ["XSC-001", "NV-F-001", "FW-U-006"],
+            },
+            {
+                "step_id": "route",
+                "type": "invoke_service",
+                "service": "navigation-route-planner",
+                "method": "planAlternatives",
+                "semantic_entry": "POST /soa/invoke",
+                "depends_on": ["memory"],
+                "state": "planned-contract-only",
+                "req_ids": ["XSC-003", "FW-S-001", "FW-S-005"],
+            },
+            {
+                "step_id": "cabin",
+                "type": "request_action",
+                "action": "Cabin.SetTemperature",
+                "semantic_entry": "POST /uib/actions/request",
+                "depends_on": ["memory"],
+                "state": "planned-only",
+                "req_ids": ["XSC-002", "FW-U-004", "FW-U-007"],
+            },
+            {
+                "step_id": "media",
+                "type": "invoke_skill",
+                "skill_id": "media.favorites.play",
+                "semantic_entry": "POST /skills/media.favorites.play/invoke",
+                "depends_on": ["memory"],
+                "state": "planned-contract-only",
+                "req_ids": ["XSC-001", "FW-U-006", "FW-U-007"],
             },
         ]
     else:

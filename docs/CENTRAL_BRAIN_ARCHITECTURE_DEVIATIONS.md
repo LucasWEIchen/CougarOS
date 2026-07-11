@@ -169,11 +169,11 @@
 
 涉及需求：`APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-003`、`DEL-004`。
 
-当前原因：用户明确要求基于 Client2 APK 底层逆向工程进行演示 App 二次开发。当前增量修改 `res/layout/main_layout.xml`、`AndroidManifest.xml` 和 `MainActivity.smali` 生成 workdir，并新增 `CentralBrainPanelController*.smali`；原 `TuanjieView` 保持全屏渲染，右侧约 1/3 的半透明交互窗口通过同一根 `FrameLayout` 悬浮覆盖，不再与车模分屏。上部按钮为 `我冷了`、`我累了`，下部 `centralBrainReplyText` 展示 Python 原型 `/ai/infer` 返回的 `result.generated_text`。
+当前原因：用户明确要求基于 Client2 APK 底层逆向工程进行演示 App 二次开发。当前增量修改 `res/layout/main_layout.xml`、`AndroidManifest.xml` 和 `MainActivity.smali` 生成 workdir，并新增 `CentralBrainPanelController*.smali`；原 `TuanjieView` 保持全屏渲染，右侧约 1/3 的半透明交互窗口通过同一根 `FrameLayout` 悬浮覆盖，不再与车模分屏。控件区现提供 12 个带稳定 `scenario_id` 的可滚动按钮，下部 `centralBrainReplyText` 展示 Python 原型 `/agent/scenarios/run` 返回的 `result.generated_text`。新增 `agent_scenarios.py` 只是组合既有 AI SDK、UIB、SOA、Policy/Audit、Model Runtime 和 readiness 接口的演示编排器，不作为架构图之外的新层。
 
-风险：APK patch 缺少原始源码工程的长期可维护性；debug 重签名可能影响 Client2 与 RenderService 的信任关系；RenderService 为 ARM64/Unity 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳；当前临时 HTTP `http://10.0.2.2:8787/ai/infer` 调 Python 原型，会绕开 Android Binder/system-service 目标路径，且 endpoint 固定、cleartext、未接入生产权限/身份模型。
+风险：APK patch 缺少原始源码工程的长期可维护性；debug 重签名可能影响 Client2 与 RenderService 的信任关系；RenderService 为 ARM64/Unity 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳；当前临时 HTTP `http://10.0.2.2:8787/agent/scenarios/run` 会绕开 Android Binder/system-service 目标路径，且 endpoint 固定、cleartext、未接入生产权限/身份模型。场景编排器若被误当成正式 task runtime，也会掩盖导航、媒体、车控、ADAS、Skill sandbox 和 Privacy Router 尚未量产实现的事实。
 
-修正计划：保持原始 APK 和原始逆向基线只读；所有 patch 通过隔离 workdir 生成；短期 HTTP 只作为本地模拟器演示，继续登记到 DEV-001/DEV-017；下一步应把 endpoint 配置化并优先迁移到 Central Brain Binder/SDK 边界，最终量产路径仍迁移到 system/privileged service、SDK 或目标平台允许的 Protocol Binding。
+修正计划：保持原始 APK 和原始逆向基线只读；所有 patch 通过隔离 workdir 生成；短期 HTTP 只作为本地模拟器演示，继续登记到 DEV-001/DEV-017；catalog 固定 `product_compatibility_claimed=false` 和 no-side-effect 边界；下一步把 endpoint 配置化并优先迁移到 Central Brain Binder/SDK 边界，最终量产路径仍迁移到 system/privileged service、SDK 或目标平台允许的 Protocol Binding。KaKaClaw 参考能力缺口由 ISSUE-020 独立跟踪。
 
 状态：Accepted Temporary。
 

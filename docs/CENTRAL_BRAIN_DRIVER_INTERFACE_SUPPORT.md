@@ -375,3 +375,9 @@ NpuDevice.reset(reason)
 `GET /prototype/completion-summary` 是当前 Python prototype 的只读 completion summary。Android 主路径为 Binder `getPrototypeCompletionSummaryJson` 与 Console `Complete`；Linux 同步路径为 CLI `prototype-completion-summary`、IPC `prototype.completion.summary.get` 和 gRPC/RPC `GetPrototypeCompletionSummary`。
 
 该接口只聚合 closure plan、completion audit、handoff manifest、SOA extension closure、observability readiness、delivery readiness、prototype readiness 和 binding readiness，不打开 device node，不调用 HAL/vendor SDK，不访问 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN 或 shared memory，不新增 Driver/HAL 开发量。`python_prototype_current_scope_complete=true` 只表示当前 Python 原型范围完成；`production_ready=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false` 仍是验收边界。
+
+## Agent Scenario Test Harness Driver/HAL Boundary
+
+`GET /agent/scenarios`、`POST /agent/scenarios/run` 和 Client2 12 场景面板只组合现有 AI SDK、Uni Info Bus、SOA、Policy/Audit、Model Runtime 和 readiness 接口。它们不打开 device node，不调用 ioctl/sysfs、Android VHAL/vendor AIDL、Linux SocketCAN、vendor SDK、PCIe NPU runtime、车辆总线、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime。
+
+`care.cold` 的 Action 结果、`task.home` 的 5 步任务图和 `skill.nap` 的座椅/车窗/空调计划都只是 policy/contract mock；`runtime.npu` 读取 Ollama simulated NPU 状态也不关闭 DRV-GAP-001。所有场景必须保持 `real_vehicle_control=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `production_ready=false`。本增量没有发现当前 Android/Linux 环境必须新增 Driver/HAL 才能完成的接口缺口，因此新增驱动开发量为零。

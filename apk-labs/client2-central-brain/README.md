@@ -57,7 +57,10 @@ Activity
 
 The overlay does not resize the vehicle scene. Empty space outside the panel
 continues to pass input to Client2, while the panel consumes touches over its
-own surface and exposes the existing smali-backed controls.
+own surface. The scrollable control area groups 12 stable scenario IDs under
+task service, context/growth, and safety/runtime. Each button calls
+`POST /agent/scenarios/run`; the response area renders compact module and
+policy evidence from the Python prototype.
 
 ## Boundaries
 

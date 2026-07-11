@@ -623,9 +623,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The surface must report `prototype_completion_summary_active=true`, `python_prototype_current_scope_complete=true`, `current_python_prototype_implementation_actions_complete=true`, `current_python_prototype_audit_actions_complete=true`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
 - Boundary: this is a current Python prototype completion claim only. It does not implement target hardware integration, production Android system service deployment, production Linux packaging, production observability, real event broker/DDS/high-rate data plane, Driver/HAL, Safety Runtime, or virtualization.
 
-### 2026-07-11 Client2 demo UX and simulated-NPU timeout stabilization trace
+### 2026-07-11 Client2 Agent scenario demo trace
 
-- Req IDs: `APP-004`, `XSC-001`, `NV-F-011`, `XSC-006`, `DEL-001`, `DEL-002`, `DEL-003`, `DEL-004`.
-- Android primary demo delivery must use a translucent light-gray right-side panel, preserve the two intent controls and reply text surface, and prevent duplicate in-flight requests within the Activity.
+- Req IDs: `APP-004`, `XSC-001`, `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006`, `FW-U-004`, `FW-U-006`, `FW-U-007`, `NV-F-001`, `NV-F-011`, `NV-G-005`, `NV-G-007`, `DEL-001`, `DEL-002`, `DEL-003`, `DEL-004`.
+- Android primary demo delivery must use a translucent light-gray right-side overlay, preserve the full-screen Client2 vehicle render region, expose 12 stable scenario controls in an independently scrollable area, keep a fixed reply text surface, and prevent duplicate in-flight requests within the Activity.
+- `GET /agent/scenarios` must expose exactly 12 stable IDs, explicit reference capability gaps, Req IDs, and `product_compatibility_claimed=false`.
+- `POST /agent/scenarios/run` must compose existing AI SDK, Uni Info Bus, SOA, Runtime & Governance, Policy/Audit, Model Runtime and readiness operations. The scenario harness is a test orchestrator, not an additional architecture layer or production Agent runtime.
+- `security.denied` and `security.privacy` must return `blocked_as_expected`; unknown IDs must return `unknown_scenario`. Every scenario response must keep `real_vehicle_control=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `production_ready=false`.
 - The shared Python Model Runtime Adapter must expose configurable Ollama thinking mode, default the local demo to non-thinking output, preserve raw model output, and expose non-empty visible `generated_text` when the model returns `response_text` JSON.
-- Linux synchronized delivery documents the same Ollama environment controls in `central-brain.env.example`; this increment does not add Driver/HAL, PCIe NPU, vehicle bus, Safety Runtime, hardware access, or virtualization implementation.
+- Linux synchronized delivery must provide `agent-scenarios` and `agent-scenario-home` over the same REST contract and document the same Ollama environment controls in `central-brain.env.example`.
+- KaKaClaw public product concepts are test references only. Continuous multi-turn sessions, personality/dialect runtime, zero-code Skill lifecycle, proactive triggers, real navigation/media/vehicle/ADAS dispatch, production Skill sandbox, and Privacy Router remain ISSUE-020 gaps.
+- This increment does not add Driver/HAL, PCIe NPU, vehicle bus, Safety Runtime, hardware access, or virtualization implementation.

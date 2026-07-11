@@ -5,17 +5,21 @@
 
 .field private final controller:Lcom/tuanjie/urasclient2/CentralBrainPanelController;
 
+.field private final scenarioId:Ljava/lang/String;
+
 .field private final userText:Ljava/lang/String;
 
 
-.method public constructor <init>(Lcom/tuanjie/urasclient2/CentralBrainPanelController;Ljava/lang/String;)V
+.method public constructor <init>(Lcom/tuanjie/urasclient2/CentralBrainPanelController;Ljava/lang/String;Ljava/lang/String;)V
     .locals 0
 
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 
     iput-object p1, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;->controller:Lcom/tuanjie/urasclient2/CentralBrainPanelController;
 
-    iput-object p2, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;->userText:Ljava/lang/String;
+    iput-object p2, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;->scenarioId:Ljava/lang/String;
+
+    iput-object p3, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;->userText:Ljava/lang/String;
 
     return-void
 .end method
@@ -26,6 +30,12 @@
     new-instance v0, Lorg/json/JSONObject;
 
     invoke-direct {v0}, Lorg/json/JSONObject;-><init>()V
+
+    const-string v1, "scenario_id"
+
+    iget-object v2, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;->scenarioId:Ljava/lang/String;
+
+    invoke-virtual {v0, v1, v2}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
 
     const-string v1, "runtime"
 
@@ -51,7 +61,7 @@
 
     const-string v1, "source"
 
-    const-string v2, "client2-right-panel"
+    const-string v2, "client2-agent-scenario-panel"
 
     invoke-virtual {v3, v1, v2}, Lorg/json/JSONObject;->put(Ljava/lang/String;Ljava/lang/Object;)Lorg/json/JSONObject;
 
@@ -299,7 +309,7 @@
 
     new-instance v1, Ljava/net/URL;
 
-    const-string v2, "http://10.0.2.2:8787/ai/infer"
+    const-string v2, "http://10.0.2.2:8787/agent/scenarios/run"
 
     invoke-direct {v1, v2}, Ljava/net/URL;-><init>(Ljava/lang/String;)V
 

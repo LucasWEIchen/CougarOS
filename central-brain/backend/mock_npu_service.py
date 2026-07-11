@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from agent_scenarios import catalog_payload as agent_scenario_catalog_contract_payload
+from agent_scenarios import run_payload as agent_scenario_run_contract_payload
 from ai_sdk import capabilities_payload as ai_sdk_capabilities_payload
 from ai_sdk import execute_payload as ai_sdk_execute_payload
 from ai_sdk import memory_query_payload as ai_sdk_memory_query_payload
@@ -38,7 +40,7 @@ from vehicle_signals import VehicleSignalRegistry
 
 
 STARTED_AT = time.time()
-API_VERSION = "0.1.107"
+API_VERSION = "0.1.108"
 GOVERNANCE = RuntimeGovernance(os.environ.get("CENTRAL_BRAIN_AUDIT_LOG"))
 BINDINGS = ProtocolBindingRegistry()
 NATIVE_ADAPTERS = NativeAdapterRegistry()
@@ -9306,6 +9308,32 @@ def memory_query_payload(request: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+def agent_scenario_catalog_payload() -> dict[str, Any]:
+    return agent_scenario_catalog_contract_payload()
+
+
+def agent_scenario_run_payload(request: dict[str, Any]) -> dict[str, Any]:
+    return agent_scenario_run_contract_payload(
+        request,
+        {
+            "agent_plan": agent_plan_payload,
+            "agent_execute": agent_execute_payload,
+            "skill_invoke": skill_invoke_payload,
+            "memory_query": memory_query_payload,
+            "skills": ai_sdk_skills_payload,
+            "state": state_payload,
+            "vehicle_state": vehicle_state_payload,
+            "action_request": action_request_payload,
+            "permission_check": permission_check_payload,
+            "inference": inference_payload,
+            "audit": GOVERNANCE.audit_payload,
+            "record_audit": GOVERNANCE.record_audit,
+            "npu_status": npu_status,
+            "completion": prototype_completion_summary_payload,
+        },
+    )
+
+
 def governance_payload() -> dict[str, Any]:
     return GOVERNANCE.governance_payload()
 
@@ -10069,6 +10097,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(tools_payload()))
         elif path == "/ai/sdk/capabilities":
             self.send_json(200, envelope(ai_sdk_capabilities_payload()))
+        elif path == "/agent/scenarios":
+            self.send_json(200, envelope(agent_scenario_catalog_payload()))
         elif path == "/skills":
             self.send_json(200, envelope(ai_sdk_skills_payload()))
         elif path == "/vehicle/state":
@@ -10134,6 +10164,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(200, envelope(hardware_interface_owner_decision_evidence_adapter_load_approval_decision_dry_run_payload(request), trace_id))
         elif path == "/agent/plan":
             self.send_json(200, envelope(agent_plan_payload(request), request.get("trace_id")))
+        elif path == "/agent/scenarios/run":
+            self.send_json(200, agent_scenario_run_payload(request))
         elif path == "/agent/execute":
             trace_id = request.get("trace_id") or str(uuid.uuid4())
             request["trace_id"] = trace_id

@@ -3,6 +3,7 @@
 `mock_npu_service.py` 是第一阶段后端，用标准库 HTTP server 模拟中央大脑 AI 基座。
 `ollama_simulated_npu.py` 是可选 Ollama simulated-NPU adapter，只作为用户态仿真模型运行时，不访问 PCIe NPU、Driver/HAL、vendor SDK、DMA、共享内存、Safety Runtime 或虚拟化接口。
 `ai_sdk.py` 承载当前 AI SDK/Agent facade mock，用 intent/utterance 生成 policy-aware task graph，并提供 execute/Skill/Memory contract mock，覆盖 XSC-001、APP-004、NV-F-001、FW-U-006、FW-U-007。
+`agent_scenarios.py` 把既有 AI SDK、UIB、SOA、Policy/Audit、Model Runtime 和 readiness 操作组合成 12 个稳定验收场景；它是 test harness，不是新的架构层或量产 Agent runtime。
 `runtime_governance.py` 承载当前 Runtime & Governance 原型，包括服务注册、发现、Policy、Lifecycle、per-service fixed-window QoS 和可选 JSONL 审计持久化。
 `protocol_bindings.py` 承载当前 Protocol Binding 注册表，包括 REST active prototype、Android Binder/AIDL service stub sample、带 shared SOA Runtime & Governance precheck/runtime/audit direct diagnostics + fallback 的 Linux IPC active sample、Linux gRPC/RPC JSON contract sample 和 MQTT/SOME-IP/DDS 计划态。
 `delivery_readiness.py` 承载 Android/Linux delivery readiness contract，汇总交付样例、验证命令、阻塞项和非目标边界。
@@ -104,6 +105,8 @@ bash tools/run_central_brain_backend.sh
 - `GET /npu/status`
 - `POST /agent/plan`
 - `POST /agent/execute`
+- `GET /agent/scenarios`
+- `POST /agent/scenarios/run`
 - `POST /skills/{skill_id}/invoke`
 - `POST /memory/query`
 - `POST /soa/invoke`
