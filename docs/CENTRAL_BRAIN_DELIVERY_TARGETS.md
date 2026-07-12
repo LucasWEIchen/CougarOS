@@ -1009,3 +1009,14 @@ tracked pre-push hook + Actions 不等价于服务端保护。`physical_controll
 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、
 `NV-F-001`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、
 `DEL-003`、`DEL-004`、`DEL-005`。
+
+## Software Detailed Design Engineering Handoff
+
+`docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md` 是 `DEL-003` 的实现级工程师交付物，覆盖当前仓库的
+Android Java/AIDL/Room/C/JNI 实际工程、Client2/Demo 集成、Python 语义原型和 Linux binding。
+文档给出模块设计意图、接口与字段、状态机、线程/时钟/数据所有权、持久化、错误语义、配置、扩展步骤和
+验证矩阵；`tools/check_central_brain_software_detailed_design.sh` 从源码反查关键合同并已进入持续门禁。
+
+该文档交付只证明工程设计可追踪，不新增 APK/AAR artifact，不启用 production Scheduler/Model Router、
+Effect adapter、Event broker、Memory store、Skill dispatcher、Vendor NPU、VHAL、Driver/HAL 或虚拟化。
+`production_ready=false`、`target_hardware_validated=false`、`hardware_accessed=false` 保持不变。

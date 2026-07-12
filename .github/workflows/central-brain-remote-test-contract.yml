@@ -11,10 +11,12 @@ on:
       - "central-brain/contracts/central_brain_github_remote_testing.json"
       - "central-brain/delivery/android-hybrid/**"
       - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+      - "docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md"
       - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
       - "tools/check_central_brain_github_publication_tree.sh"
       - "tools/check_central_brain_root_readme.sh"
+      - "tools/check_central_brain_software_detailed_design.sh"
       - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
   pull_request:
@@ -25,10 +27,12 @@ on:
       - "central-brain/contracts/central_brain_github_remote_testing.json"
       - "central-brain/delivery/android-hybrid/**"
       - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+      - "docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md"
       - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
       - "tools/check_central_brain_github_publication_tree.sh"
       - "tools/check_central_brain_root_readme.sh"
+      - "tools/check_central_brain_software_detailed_design.sh"
       - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
 
@@ -47,4 +51,5 @@ jobs:
         run: |
           bash tools/check_central_brain_github_publication_tree.sh HEAD
           bash tools/check_central_brain_github_remote_testing.sh
+          bash tools/check_central_brain_software_detailed_design.sh
           bash tools/check_central_brain_root_readme.sh

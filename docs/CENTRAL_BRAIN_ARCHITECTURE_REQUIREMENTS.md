@@ -1098,3 +1098,11 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The total architecture and call chains must preserve Binder identity/Governance/Room ownership in Java, a narrow JNI bridge, the C11 ABI lifecycle boundary, protocol-binding separation and fail-closed Vendor NPU/VHAL/Driver/HAL/virtualization gates.
 - Current delivery and acceptance values must not overstate evidence: `physical_controller_evidence_available=false`, `production_ready=false` and `target_hardware_validated=false` remain mandatory until separately approved target evidence exists.
 - Architecture/interface/delivery changes must update the README recent-change table. `tools/check_central_brain_root_readme.sh` validates headings, tracked path mappings, Gradle modules, relative links, Req IDs, negative readiness states and retained architecture commits; it must run in the Android evolution gate and the remote GitHub contract workflow.
+
+### 2026-07-12 software detailed design trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-001..008`、`FW-S-001..006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-001..007`、`NV-P-001..006`、`HW-002`、`KH-003`、`KH-006`、`KH-007`、`DEL-001..005`.
+- `docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md` is the implementation-level guide for software engineers. It must cover the actual Android Java/AIDL/Room/C/JNI path and the separate Python/Linux prototype path without presenting either contract-test code or simulated-NPU as production hardware.
+- The document must describe module intent and non-responsibility, public and internal interfaces, Binder permissions/death behavior, task and durable state machines, data ownership, wall/elapsed clock domains, concurrency, error semantics, configuration, extension procedures and validation gates.
+- Source-level markers must remain synchronized with Android Gradle modules, Runtime/Governance/Diagnostics AIDL methods, the C ABI V1 exported function set, the Client2 12-scenario allowlist and the Ollama environment contract.
+- `tools/check_central_brain_software_detailed_design.sh` must run in the Android evolution gate and the GitHub contract workflow. It may validate documentation/source consistency but cannot set `production_ready`, `target_hardware_validated`, `hardware_accessed`, Driver/HAL development or virtualization development true.
