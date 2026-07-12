@@ -989,3 +989,17 @@ Provider chunks 仅在 matching active lease 下转发；terminal 先由 Schedul
 | Diagnostic record `model-runtime-readiness` | shared snapshot | 现有 paged AIDL、signature permission 和 capability policy，不增接口 |
 
 Deterministic Stub 报告 TEST_ONLY/COLD/HEALTHY/`STUB_IMPLEMENTATION_NOT_WIRED`；Vendor NPU 报告 EMPTY/UNAVAILABLE/UNAVAILABLE/`VENDOR_RUNTIME_UNAVAILABLE`。`HEALTHY` 只属于 immutable Stub descriptor/profile contract，不代表 provider instance。Snapshot 不引用 executable Router/Scheduler/provider class，不执行 warmup/infer/cancel/dispatch，production activation 固定 false。
+
+## Android R5D1 Target Deployment Evidence Contract
+
+| Evidence field | Source | Acceptance meaning |
+| --- | --- | --- |
+| `android_api`, `device_abi`, `device_fingerprint` | public Android properties | API must be exactly 33; identifies evidence environment |
+| artifact/signing SHA-256 | host artifacts + `apksigner` | reproducible SDK/APK and common signer identity |
+| package path/UID/version | `pm path` + `dumpsys package` | ordinary `/data/app` application deployment |
+| manifest SDK/service/permission | `apkanalyzer` | minSdk/targetSdk and three signature-protected Service shape |
+| network/native flags | manifest + archive listing | current artifacts request no INTERNET and carry no `.so` |
+| Model Runtime flags | protected Runtime dumpsys | production inference/provider/router/hardware remain blocked |
+| `evidence_scope` | `ro.kernel.qemu` | emulator vs device application-layer evidence is explicit |
+
+The script exits non-zero on any mismatch and prints key/value evidence only after every check passes. It does not expose a new Binder API. `target_hardware_validated=false` is invariant and application-layer acceptance does not close `DRV-GAP-001`.

@@ -24,7 +24,7 @@
 | R2 | Typed/async Protocol Binding | production/diagnostic AIDL、Parcelable、callback/cancel/death | 已完成：R2A contract、R2B runtime、R2C API 33 death/reconnect/race 验证通过 |
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 已完成：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B/C API 33 验证通过；真实 effect activation 仍受 gate 阻塞 |
-| R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 进行中：R5A1/A2、R5B1/B2、R5C1 readiness 已完成；R5D target acceptance 待完成 |
+| R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 软件基线已完成：R5A1/A2、R5B1/B2、R5C1、R5D1；production/hardware activation 仍阻塞 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 待开始 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
 
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R5D1 application-layer deployment：新增 Android 13 target acceptance 工具、静态分区写入守卫和详细证据合同；默认运行完整安装门禁后归档 artifact/signer/package/readiness 证据。
+- API 33 emulator 已验证普通 UID、`/data/app`、版本/hash/signer、3 个 signature-protected Service、no-INTERNET/no-native-payload 和 production model path fail-closed；`real_target_application_acceptance_required=true`、`target_hardware_validated=false`。
+- R5D1 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-011`、`NV-F-012`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。R5 contract/test software track 完成，下一步 R6 Event/Memory/Skill runtime。
 - 完成 R5C1 production-safe readiness：Runtime log、protected dumpsys 与 Diagnostic Binder 共享 immutable model-runtime snapshot，显示 Stub/Vendor profile configuration、lifecycle、health、detail code 和 ordered activation blockers。
 - JVM/API 33 验证 snapshot fail-closed 与三路 parity；production Service 不构造 Provider/Scheduler/Router，AIDL/Room/artifact shape 不变，production inference/Ollama/Vendor/hardware 均 false。
 - R5C1 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`NV-F-011`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`、`DEL-005`。下一步 R5D Android 13 target empty-interface/deployment acceptance。

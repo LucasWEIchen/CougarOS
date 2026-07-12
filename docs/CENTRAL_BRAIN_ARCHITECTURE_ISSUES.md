@@ -275,6 +275,8 @@
 
 2026-07-12 R5C1 进展：production Runtime log、protected dumpsys 与现有 Diagnostic Binder page 已共享 immutable model-runtime readiness snapshot，暴露 Stub/Vendor profile 的 configuration/lifecycle/health/detail code 和 ordered activation blockers；snapshot 不构造或执行 Provider/Scheduler/Router。ISSUE-024 保持 Open：当前信息是 immutable 配置元数据，不是 live provider/hardware health；production Router/provider、durable recovery、Ollama debug、Client2 Binder 迁移、目标 Android 13 部署验收和 `DRV-GAP-001` 后 Vendor NPU path 尚未完成。
 
+2026-07-12 R5D1 进展：已提供 Android 13 application-layer deployment acceptance tool/evidence contract，API 33 emulator 已验证普通 UID、`/data/app`、artifact hash/signer、三项 signature-protected Service、no-INTERNET/no-native-payload 和 blocked Model Runtime。R5 contract/test software track 可进入 R6，但 ISSUE-024 保持 Open：`evidence_scope=api33-emulator-application-layer` 且 `real_target_application_acceptance_required=true`、`target_hardware_validated=false`；production Provider/Router/fallback/recovery、Ollama/Client2 迁移和 Vendor NPU hardware path 仍未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-025 Event、Memory、Skill 生命周期与治理链

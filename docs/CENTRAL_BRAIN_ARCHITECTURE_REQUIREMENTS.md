@@ -895,3 +895,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Vendor NPU must report EMPTY, UNAVAILABLE/UNAVAILABLE, `VENDOR_RUNTIME_UNAVAILABLE`, provider unavailable and hardware untouched. These values are configuration metadata and are not target-hardware health evidence.
 - Ordered blockers are `PRODUCTION_PROVIDER_MISSING`, `PRODUCTION_ROUTE_MISSING`, `SCHEDULER_NOT_WIRED`, `MODEL_ROUTER_NOT_WIRED`, and `VENDOR_NPU_INTERFACE_EMPTY`. Any current configuration inconsistent with fail-closed profiles must fail class initialization.
 - API 33 must verify Diagnostic Binder, Runtime log and real dumpsys parity. Production inference, Scheduler/Router wiring, Ollama, Vendor NPU, service dispatch and hardware must remain false; release must retain three signature-protected Services and zero Activities/probes.
+
+### 2026-07-12 R5D1 Android 13 application-layer deployment acceptance trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-011`、`NV-F-012`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- The acceptance tool must require API 33, record ABI/model/fingerprint and produce SHA-256 evidence for SDK AAR, Runtime APK, Demo APK and the shared Runtime/Demo signer set.
+- Runtime and Demo must install as ordinary application UIDs under `/data/app`; SYSTEM, PRIVILEGED and PERSISTENT package requirements are forbidden. Runtime must expose exactly three signature-protected Services.
+- Runtime and Demo must not request INTERNET. SDK/APK artifacts must contain no native `.so` payload. This is a current artifact boundary, not a permanent prohibition on an approved future NDK adapter.
+- The tool may build/install normal APKs and use public adb/package/manifest/dumpsys diagnostics only. It must not include root/remount/flash/partition-write behavior and must not require vendor/AOSP/BSP source changes.
+- Dynamic evidence must confirm production inference, Stub configuration/routing, Scheduler/Router dispatch, Vendor NPU and hardware remain disabled. Emulator and device application evidence must use distinct scope labels.
+- `target_hardware_validated=false` is mandatory. R5D1 can close only the R5 contract/test software track; real target application acceptance and hardware qualification remain separate delivery evidence.

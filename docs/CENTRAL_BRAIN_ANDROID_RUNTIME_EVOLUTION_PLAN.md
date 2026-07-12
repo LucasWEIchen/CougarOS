@@ -149,7 +149,8 @@
 - Router 对 provider/request/lease identity 失败关闭；exact active replay 保留原 observer，changed duplicate 拒绝，duplicate terminal 只结算一次。Queued/running cancel、queue/running deadline、retryable/fault-isolated terminal 均有 JVM/API 33 evidence，fallback 固定 `NO_FALLBACK`。
 - `R5C1 production-safe model runtime readiness` 已完成：immutable snapshot 经 Runtime log、protected dumpsys 和现有 Diagnostic Binder page 暴露 profile configuration/lifecycle/health/detail code 与 ordered activation blockers，不构造或执行 Provider/Scheduler/Router。
 - Deterministic profile 明确 TEST_ONLY/COLD/HEALTHY/NOT_WIRED，Vendor NPU 明确 EMPTY/UNAVAILABLE/UNAVAILABLE；contract/test implementation availability 与 production activation 分离，AIDL/Room/artifact shape 不变。
-- R5 仍在进行中：R5D 做 Android 13 目标的 empty-interface/deployment acceptance；Ollama 只允许后续 debug profile，Vendor NPU 保持 empty 到 `DRV-GAP-001` 关闭。
+- `R5D1 Android 13 application-layer deployment acceptance` 已完成 tooling/emulator evidence：校验 API 33/ABI/fingerprint、artifact hash/signer、普通 UID、`/data/app` 安装、三项 signature-protected Service、no-INTERNET/no-native-payload 和 fail-closed Model Runtime。
+- R5 contract/test software track 已关闭，可进入 R6；production evolution stage 仍保持 R4 durable foundation。物理目标应用层验收、production Provider/Router、Ollama/Vendor NPU 和 hardware qualification 不包含在关闭声明内，继续由 ISSUE-024、DEV-019 与 `DRV-GAP-001` 跟踪。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

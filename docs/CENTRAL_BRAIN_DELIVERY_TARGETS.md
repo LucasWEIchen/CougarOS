@@ -830,3 +830,11 @@ R5C1 新增 immutable main-source readiness snapshot 和 JVM test，并复用现
 API 33 验收必须同时验证 Diagnostic Binder、Runtime startup log 和 protected dumpsys 的 profile ID、assurance、lifecycle、health、detail code、production wiring flags 与 ordered blocker parity。输出必须包含 `model_runtime_readiness_*_verified=true`，同时保持 production inference/router/scheduler/Ollama/Vendor/hardware false。
 
 该交付是座舱集成工程师的阻塞原因可见性，不是 production model service、实时健康监控、硬件探测、性能数据或 NPU 验收。当前 Android-only phase 不新增 Linux 前端；R5D 继续验证 Android 13 目标部署与 empty-interface 边界。
+
+## Android R5D1 Application-Layer Target Deployment Acceptance
+
+R5D1 交付 `tools/test_central_brain_android_target_deployment.sh`、静态守卫和 `CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md`。默认命令会构建并运行完整 API 33 安装/Binder/governance/readiness gate，再输出设备、artifact、签名、package 和 Model Runtime 证据。
+
+API 33 emulator 已通过：SDK/Runtime/Demo hash 可归档，Runtime/Demo signer 一致，两个 APK 均为普通 UID 且位于 `/data/app`，Runtime 有三项 signature-protected Service，不请求 INTERNET、无 native `.so`，production inference/Vendor NPU/hardware 均 false。证据明确为 emulator scope，真实目标应用层验收仍需在交付设备重跑默认命令。
+
+R5 contract/test software track 因此完成，但不提升为 `hardware_validated` 或 `production_qualified`。物理目标、量产 signer/MDM/SELinux 策略、真实 NPU/Driver/HAL、性能/热/故障与安全认证仍是后续集成工作。

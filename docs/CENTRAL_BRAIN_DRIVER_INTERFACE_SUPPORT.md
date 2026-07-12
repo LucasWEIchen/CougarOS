@@ -531,3 +531,9 @@ No network, JNI/C/C++, vendor library, HAL/AIDL service, device node, ioctl/sysf
 R5C1 reads immutable Java profile descriptors/snapshots and formats them for Runtime log, protected dumpsys and Diagnostic Binder. Vendor `UNAVAILABLE` and `VENDOR_RUNTIME_UNAVAILABLE` are empty-interface constants; no driver/HAL/vendor process was queried. Stub `HEALTHY` is contract metadata paired with COLD/NOT_WIRED, not a live process health signal.
 
 No network, JNI/C/C++, vendor library, HAL/AIDL service, device node, ioctl/sysfs, PCIe, DMA-BUF/IOMMU, VHAL, Safety Runtime or hardware metric polling is added. `DRV-GAP-001` remains open and added Driver/HAL development is zero. Production inference/router/scheduler/Ollama/Vendor access plus all hardware/virtualization flags remain false. Req IDs: `APP-004`, `XSC-004`, `XSC-005`, `NV-F-011`, `NV-F-012`, `NV-G-006`, `NV-G-007`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R5D1 Application-Layer Deployment Driver/HAL Boundary
+
+R5D1 uses adb install plus public package/property/manifest/dumpsys queries. Accepted APKs live under `/data/app` with ordinary application UIDs and do not require system/privileged flags. The tool has no system/vendor partition write capability and does not require platform source, vendor SDK, JNI/C/C++, HAL/AIDL hardware service, device node, PCIe, DMA-BUF/IOMMU, VHAL or Safety Runtime.
+
+The API 33 emulator result does not close any DRV-GAP. A physical device application-layer pass still leaves `target_hardware_validated=false`; `DRV-GAP-001` requires separate vendor NPU ABI, permission, memory, lifecycle, cancellation, fault and target smoke evidence. Added Driver/HAL development remains zero and all no-hardware/virtualization flags are mandatory. Req IDs: `APP-004`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-011`, `NV-F-012`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

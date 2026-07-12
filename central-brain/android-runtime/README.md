@@ -183,6 +183,12 @@ The snapshot separates contract/test implementation availability from production
 
 All three visibility surfaces report production inference false, profile configuration/routing false, production Router dispatch false, Ollama disabled and hardware untouched. R5C1 changes no AIDL, Room schema or artifact shape and does not promote the production evolution stage beyond the R4 durable foundation.
 
+## R5D1 Android 13 Application-Layer Deployment Acceptance
+
+`tools/test_central_brain_android_target_deployment.sh` validates the SDK AAR, Runtime APK and Demo APK against an API 33 device. The default run builds and invokes the complete installation gate, then records artifact hashes, signer identity, package versions/UIDs, `/data/app` placement, manifest SDK/service shape and fail-closed model readiness.
+
+The gate rejects INTERNET/native payload and any SYSTEM/PRIVILEGED/PERSISTENT package requirement. It does not require vendor/AOSP/BSP source or modify system/vendor partitions. Emulator evidence and physical-device application evidence are labeled separately, while `target_hardware_validated=false` remains mandatory for both. See `docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md`.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`
