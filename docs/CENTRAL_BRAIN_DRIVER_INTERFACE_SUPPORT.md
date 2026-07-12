@@ -619,3 +619,11 @@ The target deployment and Client2 recovery scripts are source-checkout test tool
 The seven delivery slots keep target owner, Effect/VHAL, vendor NPU, Event broker, encrypted Memory, Skill/Governance composition and hardware evidence inactive. They are interface declarations, not Driver/HAL implementations. `DRV-GAP-001` and all other existing gaps remain open/unchanged; added Driver/HAL development is zero. A future vendor Model Provider may use C/C++ only when a published NPU SDK/ABI proves Java/public Android APIs insufficient and the owner supplies lifecycle, memory, cancel, fault and target evidence.
 
 R7D does not access device nodes, ioctl/sysfs, PCIe, DMA-BUF/IOMMU, VHAL, DDS, vehicle bus, Safety Runtime or hardware metrics. It does not modify vendor Android/AOSP/BSP and does not develop Linux frontend or virtualization. Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-F-012`, `NV-G-003`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.
+
+### B0 Black-Box Native Driver/HAL Boundary
+
+B0 authorizes a userspace C runtime inside the application package, not a kernel driver or HAL. The planned `libcentral_brain_native.so` may implement ABI validation, lifecycle and provider bookkeeping only. It may not open device nodes, issue ioctl/sysfs calls, enumerate PCIe, call VHAL/vendor services, map DMA/shared memory or inspect Safety Runtime state.
+
+Java remains the owner of PackageManager/Binder identity, permissions, policy and storage. A vendor adapter can be added only after a published SDK/ABI is supplied and B3 proves the ordinary application can access it. Existing `DRV-GAP-001` and all hardware gaps remain open; added Driver/HAL development is zero.
+
+First packaged ABIs are `arm64-v8a` and `x86_64`. ABI packaging evidence is not hardware validation. No vendor/AOSP/BSP source, Linux frontend or virtualization code is added. Req IDs: `XSC-004`, `NV-F-001`, `NV-F-011`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-004`, `DEL-005`.

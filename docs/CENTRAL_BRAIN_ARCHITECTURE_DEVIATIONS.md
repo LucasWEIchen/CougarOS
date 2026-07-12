@@ -274,3 +274,13 @@ R7D 交付修正：bundle 另外携带 target deployment 与 Client2 recovery �
 2026-07-10 新增 `GET /observability/readiness`、Android Binder `getObservabilityReadinessJson`、Android Console `Observability`、Linux CLI `observability-readiness`、Linux IPC `observability.readiness.get` 和 Linux gRPC/RPC `GetObservabilityReadiness`，用于关闭 `PY-CL-002` / `NV-F-012` 当前 Python 原型 observability coverage。该补充不关闭生产观测性偏差：它只聚合 `/audit/recent`、`CENTRAL_BRAIN_AUDIT_LOG` JSONL audit persistence sample、`/delivery/readiness`、`/prototype/readiness` 和 `/governance/runtime`，`production_log_backend_ready=false`、`metric_daemon_ready=false`、`hardware_trace_capture_ready=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false` 仍是边界。
 
 2026-07-10 新增 `GET /prototype/completion-summary`、Android Binder `getPrototypeCompletionSummaryJson`、Android Console `Complete`、Linux CLI `prototype-completion-summary`、Linux IPC `prototype.completion.summary.get` 和 Linux gRPC/RPC `GetPrototypeCompletionSummary`，用于把当前 Python 原型范围标记为 `python_prototype_current_scope_complete=true`。该补充不关闭任何生产偏差：target hardware、production Android system service、real Driver/HAL、real event broker/DDS/high-rate data plane、production observability、Safety Runtime 和 virtualization 仍保持开放或非本阶段范围。
+
+## DEV-020 黑盒实际工程引入 Native C 运行时
+
+R7D 交付明确要求当前 APK 无 native payload；新的黑盒 Android 13 实际工程按用户要求引入 C/Java 混合实现，因此将产生 allowlist 内的 `libcentral_brain_native.so`，与 R7D 原型交付形状不同。涉及 `XSC-004`、`NV-F-001`、`NV-F-011`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
+
+处理方式：R7D 保留为历史无 native 原型证据，B0-B4 使用独立成熟度与交付门禁；C ABI 固定版本/结构大小/状态码，JNI 仅桥接，首版只支持 `arm64-v8a`/`x86_64`。Native library 不得读取 Binder 身份、访问私有设备节点或激活 Vendor NPU/VHAL。
+
+风险：native crash、ABI/符号漂移、错误 ownership 或 JNI 引用生命周期可能绕过 Java Runtime 的恢复与治理。B1-B3 必须增加 host C test、AAR/ELF 检查、API 33 load/lifecycle/process-death 证据和严格 native allowlist。
+
+状态：Accepted Temporary；B4 交付审计后重新评估。

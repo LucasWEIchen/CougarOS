@@ -1036,3 +1036,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The handoff bundle must carry the target deployment and Client2 recovery scripts alongside their source-checkout precondition; copying a script into the bundle must not imply that the bundle is a self-contained Gradle/Client2 build tree.
 - The delivery profile must preserve exactly seven inactive integration slots mapped one-to-one to target system owner, Effect delivery, Model/NPU runtime, Event runtime, Memory runtime, Skill/Governance runtime and target hardware evidence blockers.
 - R7D permits `software_handoff_ready=true` only. `production_ready=false`, `target_system_integration_owner_resolved=false`, `target_hardware_validated=false`, `hardware_accessed=false`, Driver/HAL development false and virtualization development false remain mandatory.
+
+### 2026-07-12 B0 black-box Android 13 engineering trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- Later user scope overrides the older paired Linux delivery rule for this actual-engineering phase: B0-B4 are Android-only and must not add a Linux frontend.
+- The black-box target contract assumes only API 33, ordinary APK installation and public Android/NDK APIs. Platform signing, priv-app placement, SELinux changes, private services, vendor SDK and device-node access are not assumed.
+- Java owns Binder identity, package/current-signer capability, Governance, Room, Android lifecycle and user-visible errors. C owns a versioned platform-neutral native runtime ABI and bounded provider state. JNI must remain a narrow bridge and may not become a second policy owner.
+- Initial packaged ABIs are exactly `arm64-v8a` and `x86_64`. Native presence does not activate Vendor NPU/VHAL or close any hardware blocker.
+- B0-B4 exit criteria and prohibited operations are authoritative in `CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md`.

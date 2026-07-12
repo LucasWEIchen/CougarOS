@@ -946,3 +946,11 @@ Package builder 必须验证四项 artifact 的 hash/size、APK package/minSdk/t
 Installer 默认 dry-run；执行安装必须同时提供 `--execute --allow-debug-signing`，且先完成 API 33 与全部已安装 package signer preflight。安装顺序固定 Runtime -> Demo -> Client2，只允许 `adb install -r`；自动卸载、root/remount/fastboot、system/vendor partition write 均无实现路径。
 
 交付状态为 `software_handoff_ready=true`、`production_ready=false`、`target_hardware_validated=false`。七项 target-owner/production/hardware blocker 保持为 inactive empty slots；真机 `/data/app` 验收、量产 subsystem 与硬件资格必须由后续目标证据分别关闭。
+
+## Android B0 Black-Box Engineering Baseline
+
+B0 新增 `CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md` 和静态门禁，固定实际工程的 Java/AIDL/Room、C ABI/JNI、APK/AAR 与黑盒设备预检边界。R7D 无 native 原型包继续保留；B1-B4 将形成新的 hybrid artifact，不覆盖历史证据。
+
+目标 artifact 形状为 SDK AAR、Native Runtime AAR、Runtime APK、Demo APK 和 Client2 APK。Native Runtime 首版只允许 `arm64-v8a`/`x86_64` 的 `libcentral_brain_native.so`，Vendor NPU/VHAL provider 保持 unavailable，`hardware_accessed=false`。
+
+B0 只定义 contract，尚未交付 `.so`。完成状态必须由 B1 build、B2 API 33 integration、B3 black-box preflight 和 B4 installation/usage handoff 逐级证明。

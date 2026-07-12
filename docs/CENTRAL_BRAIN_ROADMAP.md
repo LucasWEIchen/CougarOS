@@ -27,6 +27,11 @@
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 软件基线已完成：R5A1/A2、R5B1/B2、R5C1、R5D1；production/hardware activation 仍阻塞 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 软件基线已完成：R6A Event、R6B Memory、R6C1/C2/C3 Skill/Governance；production activation 仍阻塞 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证、Android 13 软件交付包 | 软件交付阶段已完成：R7A1/R7B/R7C/R7D；七项 system-owner/production/hardware blocker 保持开放 |
+| B0 | 黑盒 Android 13 实际工程基线 | C/Java 模块、ABI、JNI、安装和验收边界 | 进行中 |
+| B1 | Native Runtime | C ABI V1、JNI、Java wrapper、arm64/x86_64 AAR | 待开发 |
+| B2 | Runtime 集成 | Native lifecycle 接入 Binder Runtime 与 Diagnostic | 待开发 |
+| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 待开发 |
+| B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 待开发 |
 
 ## M0 任务清单
 
@@ -61,6 +66,9 @@
 
 ### 2026-07-12
 
+- 启动 B0 黑盒 Android 13 实际工程：Java 负责 Binder/治理/持久化，C 负责版本化 Native Runtime ABI，JNI 保持窄桥接；首版 ABI 为 `arm64-v8a` 与 `x86_64`。
+- 新阶段不依赖厂商源码或私有 SDK，不开发 Linux 前端/虚拟化，不扫描 device node；NPU/VHAL/车辆总线继续为不可激活 empty provider。
+- B0 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R7D Android 13 software handoff：四项 artifact、签名 cohort、SHA-256/manifest/checksum、目标输入模板、迁移说明、dry-run/install 工具、目标部署/Client2 recovery 脚本和静态门禁已形成可复验交付包；脚本的源代码检出前提已记录。
 - 安装器先检查 API 33 与全部现存 package signer，默认不安装；测试安装必须显式允许 debug signer。无自动卸载、root/remount/fastboot、分区写入、Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
 - `software_handoff_ready=true`，但 `production_ready=false`、`target_hardware_validated=false`；七项空接口/blocker 未被交付打包结果关闭。

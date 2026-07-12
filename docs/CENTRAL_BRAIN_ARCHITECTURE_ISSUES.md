@@ -342,3 +342,15 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 2026-07-10 `GET /observability/readiness` 用 read-only readiness summary 解决 `PY-CL-002` / `NV-F-012` 当前原型覆盖判断。生产观测性仍为待决问题：production log backend owner、metric daemon owner、hardware trace capture source、retention/export policy、fleet observability backend、Android system service log权限、Linux service identity 和 target privacy/security policy 尚未确认；当前接口只提供 closure evidence，不采集硬件 trace，不启动 metric daemon，不创建生产日志后端，不新增 Driver/HAL 或虚拟化开发。
 
 2026-07-10 `GET /prototype/completion-summary` 用 read-only completion summary 关闭当前 Python 原型范围。它不解决生产待决问题：真实 PCIe NPU、Driver/HAL ABI、vendor SDK、Android system service owner/sepolicy、Linux production package owner、real event broker/DDS/high-rate data plane、production observability backend、target Safety Runtime 和 virtualization owner 仍需后续项目阶段确认。
+
+## ISSUE-027 黑盒 Android 13 目标能力与部署身份未知
+
+目标设备当前只确定为 Android 13 黑盒座舱域控制器。Primary/supported ABI、64-bit 进程支持、普通 `/data/app` 安装策略、应用 signer、后台 Service 限制、RenderService 信任规则、可见 vendor package/service 和是否存在公开 NPU/VHAL SDK 均未提供。
+
+涉及需求：`APP-004`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-011`、`NV-G-005`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+
+当前处理：B1 交付 `arm64-v8a`/`x86_64` C runtime；B3 只用公开 Android/ADB 接口读取 API/ABI/install path/UID/permission/native-load/Binder 状态。任何未知项保持 unresolved；不遍历私有 device node、不猜 ioctl、不要求 root/priv-app/SELinux 修改。
+
+解除条件：目标设备执行 B3 preflight，并提供生产签名/升级策略、后台进程策略和任何公开 vendor SDK/服务 contract。真机应用层通过不自动关闭 NPU/VHAL/车辆/安全硬件验证。
+
+状态：Open，实施已获批准。

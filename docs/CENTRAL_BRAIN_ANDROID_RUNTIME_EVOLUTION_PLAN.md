@@ -51,6 +51,11 @@
 | R5 | Scheduler 与 Model Router | deadline/priority/quota/cancel + Stub/Ollama-debug/Vendor-empty provider | APP-004, NV-F-011, NV-G-004/006 |
 | R6 | Event、Memory、Skill 与 middleware | callback/cursor、memory lifecycle、signed built-in Skill、治理链测试通过 | FW-U-003/006/007, NV-G-005/007 |
 | R7 | Observability、Client2 SDK 迁移与验收 | Client2 不再直连固定 HTTP；trace/metric、端到端和故障测试通过 | APP-004, NV-F-012, XSC-005/006, DEL-001 |
+| B0 | 黑盒实际工程基线 | Java/C/JNI/ABI/部署和验收边界进入静态门禁 | XSC-004/005/006, NV-F-001/011, DEL-001/004/005 |
+| B1 | Native Runtime | C ABI V1、JNI wrapper、arm64/x86_64 AAR | XSC-004, NV-F-001/011, NV-P-002 |
+| B2 | Runtime integration | Java Runtime/Diagnostic 接入 native lifecycle | XSC-005/006, NV-G-003/006/007 |
+| B3 | Black-box acceptance | public-API preflight、API 33 install/load/recovery | DEL-001/003/004/005, KH-003/006 |
+| B4 | Hybrid handoff | artifact/signing/ABI/rollback 和安装使用指南 | APP-004, DEL-001/003/004/005 |
 
 ### R1 实施状态
 

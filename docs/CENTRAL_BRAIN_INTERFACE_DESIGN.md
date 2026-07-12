@@ -1166,3 +1166,14 @@ The seven empty slots are `target.system.owner.empty`, `effect.delivery.empty`, 
 The installer resolves `adb`, `aapt`, `apksigner` and Java from explicit variables, `PATH` or standard Android/JDK roots. It re-reads each delivered APK package/signer, then verifies all already-installed signer digests before issuing the first fixed-order `adb install -r`; a mismatch returns `SIGNER_MIGRATION_REQUIRED` with no package mutation.
 
 The target deployment and Client2 recovery commands are source-checkout acceptance bindings. Their inclusion in the bundle supplies the executable test entrypoints and traceability, not a claim that the archive contains the complete Gradle/Client2 build graph.
+
+## Android B0 C/Java Ownership Boundary
+
+| Boundary | Owner | Allowed data | Forbidden responsibility |
+| --- | --- | --- | --- |
+| App/SDK -> Runtime | Java/AIDL | typed task/action/status and callbacks | raw pointer, vendor SDK object, device handle |
+| Runtime -> Native | Java/JNI | ABI version, fixed-width values, bounded byte arrays | caller identity, permission assertion, long Binder work |
+| Native core | C ABI V1 | lifecycle, resource counters, provider descriptors/status | Binder/PackageManager, Room, network, device nodes, policy |
+| Native -> Vendor slot | versioned C provider contract | published SDK-owned descriptor and opaque adapter state | guessed ioctl/HAL, implicit ownership, unbounded buffers |
+
+Public C structs begin with `struct_size`/`abi_version`, use fixed-width integer types and caller-owned outputs. JNI registers through `JNI_OnLoad`/`RegisterNatives`, does not cache `JNIEnv*` or Java local references, and converts C status into immutable Java snapshots. Initial ABIs are `arm64-v8a` and `x86_64`; Vendor NPU/VHAL remain `UNAVAILABLE` with `hardware_accessed=false`.
