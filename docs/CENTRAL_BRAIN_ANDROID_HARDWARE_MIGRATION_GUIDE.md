@@ -79,8 +79,8 @@ bash tools/package_central_brain_android_delivery.sh
 
 Use `--skip-build` only after all four debug artifacts are current. The output
 contains artifacts, contracts, migration documents, self-verification tooling,
-`DELIVERY-MANIFEST.json`, `SHA256SUMS` and a tar archive under
-`builds/central-brain-android-delivery/`.
+the target deployment and Client2 recovery scripts, `DELIVERY-MANIFEST.json`,
+`SHA256SUMS` and a tar archive under `builds/central-brain-android-delivery/`.
 
 Validate the unpacked bundle:
 
@@ -170,6 +170,10 @@ bash tools/test_client2_central_brain_recovery.sh \
 The first command distinguishes emulator from physical-device application
 evidence. A physical `/data/app` pass still does not validate NPU, VHAL or
 production subsystem activation.
+
+The two scripts are included for source-checkout handoff. They require the full
+repository, Gradle modules, Client2 build outputs and related test tools; the
+bundle itself is not a self-contained source tree.
 
 ## Rollback Plan
 

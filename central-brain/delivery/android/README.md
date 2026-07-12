@@ -19,7 +19,8 @@ bash tools/package_central_brain_android_delivery.sh
 The command builds and verifies an unpacked bundle plus a normalized tar
 archive under `builds/central-brain-android-delivery/`. The bundle contains four
 artifacts, their hashes and signer metadata, target-input template, acceptance
-contracts, migration guidance and self-verification/install tools.
+contracts, migration guidance, self-verification/install tools and the two
+source-checkout acceptance scripts.
 
 ## Verify
 
@@ -47,6 +48,11 @@ before any install. A disposable test-device install additionally requires
 The generated hashes prove bundle consistency, not publisher authenticity.
 Obtain the archive SHA-256 through a trusted release channel before unpacking or
 installing the bundle.
+
+The target deployment and Client2 recovery scripts expect the complete
+repository checkout, Gradle modules, Client2 patch outputs and related tools.
+They are copied into the bundle for handoff and traceability; the bundle is not
+a self-contained build tree.
 
 ## Handoff Boundary
 

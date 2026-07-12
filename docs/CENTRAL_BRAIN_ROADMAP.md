@@ -61,12 +61,12 @@
 
 ### 2026-07-12
 
-- 完成 R7D Android 13 software handoff：四项 artifact、签名 cohort、SHA-256/manifest/checksum、目标输入模板、迁移说明、dry-run/install 工具和静态门禁已形成可复验交付包。
+- 完成 R7D Android 13 software handoff：四项 artifact、签名 cohort、SHA-256/manifest/checksum、目标输入模板、迁移说明、dry-run/install 工具、目标部署/Client2 recovery 脚本和静态门禁已形成可复验交付包；脚本的源代码检出前提已记录。
 - 安装器先检查 API 33 与全部现存 package signer，默认不安装；测试安装必须显式允许 debug signer。无自动卸载、root/remount/fastboot、分区写入、Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
 - `software_handoff_ready=true`，但 `production_ready=false`、`target_hardware_validated=false`；七项空接口/blocker 未被交付打包结果关闭。
 - R7D 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R7C Android 13 application integration acceptance：Runtime disabled/retry、Client2 single-flight、Runtime process death/唯一失败/retry、restart reconciliation、Client2 process restart 和既有 Binder lifecycle/cancel race 全部通过。
-- Debug fault receiver 仅存在于 DUMP-protected debug source；release 不包含。Aggregate snapshot 更新为 R7/API33 application complete，七项 system-owner/production/hardware blocker 保持。下一步 R7D Android 目标硬件移植包与最终交付边界。
+- Debug fault receiver 仅存在于 DUMP-protected debug source；release 不包含。Aggregate snapshot 更新为 R7/API33 application complete，七项 system-owner/production/hardware blocker 保持。R7D 软件交付边界已完成，后续只在目标输入/真机证据到位后推进外部 blocker。
 - R7C 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R7B Client2 SDK/Binder migration：SDK/AIDL 与两文件 bridge 进入 `classes2.dex`，12 场景从 HTTP 切换到 typed Binder；APK 无 INTERNET/cleartext，Client2/Runtime signer parity 和最小 capability policy 已固化。
 - API 33 自动验收已真实点击 `care.cold` 按钮，验证 signature permission、Runtime caller `com.tuanjie.urasclient2`、async completion 和 UI reply；HTTP/service dispatch/hardware 均 false。Aggregate snapshot 仅关闭 Client2 blocker，下一步 R7C API 33 fault/recovery 与总集成验收。

@@ -939,6 +939,8 @@ API 33 必须输出 Runtime absent/retry、single-flight、Runtime death unique 
 
 R7D 交付 Android 13 application-layer bundle：`central-brain-sdk-debug.aar`、`runtime-service-debug.apk`、`demo-hmi-debug.apk`、`client2-central-brain.debug.apk`，以及 delivery profile、target-input template、迁移/验收文档、bundle verifier、dry-run/install 工具、`DELIVERY-MANIFEST.json`、`SHA256SUMS` 和 normalized tar archive。
 
+Bundle 同时携带 `test_central_brain_android_target_deployment.sh` 与 `test_client2_central_brain_recovery.sh`。两者用于完整源代码检出环境，依赖 Gradle/Client2 构建产物和关联测试工具；交付包不宣称为自包含源码树。
+
 Package builder 必须验证四项 artifact 的 hash/size、APK package/minSdk/targetSdk、Runtime/Demo/Client2 signer cohort、所有 artifact 无 native payload、Client2 有 `classes2.dex`，并记录 source Git commit。Verifier 拒绝非规范路径/符号链接并把 manifest 逐项绑定回 profile；installer 再读取 bundle APK 实际 package/signer。SHA/checksum 只证明一致性，archive SHA 必须经可信发布通道传递。当前包明确为 debug signing；量产重签名、原 Client2 升级签名迁移和 RenderService/vendor trust 由目标 owner 决策。
 
 Installer 默认 dry-run；执行安装必须同时提供 `--execute --allow-debug-signing`，且先完成 API 33 与全部已安装 package signer preflight。安装顺序固定 Runtime -> Demo -> Client2，只允许 `adb install -r`；自动卸载、root/remount/fastboot、system/vendor partition write 均无实现路径。

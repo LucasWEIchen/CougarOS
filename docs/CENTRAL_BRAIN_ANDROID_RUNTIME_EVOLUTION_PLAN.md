@@ -198,6 +198,7 @@
 - `R7D Android 13 software handoff` 已完成：交付 profile 将 SDK AAR、Runtime APK、Demo APK 和 Client2 APK 固定为四项 debug artifact，构建器记录 SHA-256、包名、minSdk、signer cohort、native payload 和 source commit，并生成可复验 manifest/checksum/tar archive。
 - 设备安装器默认 dry-run，先校验 API 33 和全部已安装包 signer，再允许显式 `--execute --allow-debug-signing` 的测试安装；禁止自动卸载、root/remount/fastboot 和 system/vendor 分区写入。目标 owner/signing/MDM/RenderService/vendor ABI/evidence 通过 unresolved input template 移交。
 - `software_handoff_ready=true` 只关闭 R7 软件交付阶段，不改变 Runtime aggregate 的七项 blocker。`production_ready=false`、`target_system_integration_owner_resolved=false`、`target_hardware_validated=false`、`hardware_accessed=false`；真实 NPU/VHAL/Event/Memory/Skill 接口保持 empty。
+- R7D 交付修正补入 target deployment 与 Client2 recovery 脚本；脚本随 bundle 提供用于源代码检出环境的复现，bundle 不被宣称为自包含 Gradle/Client2 build tree。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

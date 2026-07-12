@@ -78,6 +78,8 @@ expected_support = {
     "docs/CENTRAL_BRAIN_ANDROID_HARDWARE_MIGRATION_GUIDE.md",
     "docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md",
     "docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md",
+    "tools/test_central_brain_android_target_deployment.sh",
+    "tools/test_client2_central_brain_recovery.sh",
     "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md",
     "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md",
     "tools/central_brain_android_delivery.py",

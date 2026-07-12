@@ -614,6 +614,8 @@ No C/C++, JNI, Driver/HAL ABI, device node, PCIe/NPU, shared memory, network, ve
 
 R7D reads APK/ZIP metadata, hashes files, invokes Android package/signing host tools and uses public adb/package/dumpsys interfaces. It packages application-layer AAR/APKs only; all delivered artifacts are checked for absence of native library payloads. The installer writes only through `adb install -r` to ordinary `/data/app` packages and has no root, remount, fastboot, system/vendor partition or automatic-uninstall path.
 
+The target deployment and Client2 recovery scripts are source-checkout test tooling only. They use the existing Android application/test interfaces and do not turn the delivery archive into a Driver/HAL or hardware qualification artifact.
+
 The seven delivery slots keep target owner, Effect/VHAL, vendor NPU, Event broker, encrypted Memory, Skill/Governance composition and hardware evidence inactive. They are interface declarations, not Driver/HAL implementations. `DRV-GAP-001` and all other existing gaps remain open/unchanged; added Driver/HAL development is zero. A future vendor Model Provider may use C/C++ only when a published NPU SDK/ABI proves Java/public Android APIs insufficient and the owner supplies lifecycle, memory, cancel, fault and target evidence.
 
 R7D does not access device nodes, ioctl/sysfs, PCIe, DMA-BUF/IOMMU, VHAL, DDS, vehicle bus, Safety Runtime or hardware metrics. It does not modify vendor Android/AOSP/BSP and does not develop Linux frontend or virtualization. Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-F-012`, `NV-G-003`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

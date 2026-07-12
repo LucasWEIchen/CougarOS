@@ -102,6 +102,14 @@
       "bundle_path": "docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md"
     },
     {
+      "source": "tools/test_central_brain_android_target_deployment.sh",
+      "bundle_path": "tools/test_central_brain_android_target_deployment.sh"
+    },
+    {
+      "source": "tools/test_client2_central_brain_recovery.sh",
+      "bundle_path": "tools/test_client2_central_brain_recovery.sh"
+    },
+    {
       "source": "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md",
       "bundle_path": "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
     },
