@@ -71,6 +71,7 @@
 - B5 不建立外网到内网 ADB 通道；测试人员执行真实设备命令，维护者按 Issue 的不可变版本修复。完整 Client2 交付继续由受控开发机生成，GitHub Actions 仅验证合同，不伪装为权威 APK build。
 - 发布 ref 审计已区分本地 Codex internal refs 与当前开发分支：当前分支全部可达历史最大 blob 为 1,221,099 字节且不含 forbidden APK/reverse/key 路径；后续只推送 `codex/github-publication:main`，禁止 mirror/internal-ref push。
 - B5b 维护者闭环已在 Private `LucasWEIchen/CougarOS` 激活：`gh` 已获 repo/workflow 权限，`codex/github-publication` 精确推送到 `main`，labels、Issue Form、Actions 静态门禁和每 15 分钟事件维护自动化均启用，`github_issue_intake_active=true`。
+- 首轮自动化已读取维护者 Issue #1：connector 对 Private 仓库返回 422 后按合同切换 `gh` CLI，重新下载 RC2 并验证 tag/source commit/archive SHA-256、身份与隐私字段；结果仅为 `CONTROL_PLANE_ONLY`，不接收物理证据，不改变 production/hardware 状态。
 - Private 仓库当前套餐拒绝 branch protection，使用 tracked pre-push hook + Actions 作为临时降低风险措施；GitHub connector 仍不可访问该仓库，但自动化使用 `gh` CLI。tester GitHub 用户列表仍待提供，物理/production/hardware 状态继续为 false。
 - 完成 B4 独立 hybrid C/Java 软件交付：Native AAR、SDK AAR、Runtime APK、Demo APK 和可选 Client2 APK 共 5 项 artifact 已纳入 path-safe manifest/SHA-256/signer/native ABI/ELF inventory；历史 R7D no-native bundle 未改写。
 - Bundle verifier 已验证 2 个 native artifact 只含 `arm64-v8a`/`x86_64` allowlist，三 APK signer cohort 与 Client2 `classes2.dex`；installer 默认 maintenance dry-run，Client2 必须显式 `--include-client2`，debug 执行必须显式授权。

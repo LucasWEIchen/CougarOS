@@ -100,6 +100,12 @@
     "transport": "gh-cli",
     "interval_minutes": 15,
     "active": true,
+    "first_poll_verified": true,
+    "first_poll_issue_number": 1,
+    "first_poll_transport": "gh-cli-fallback",
+    "first_poll_connector_result": "PRIVATE_REPOSITORY_INACCESSIBLE_422",
+    "first_poll_result": "CONTROL_PLANE_ONLY",
+    "first_poll_hardware_evidence_accepted": false,
     "automatic_issue_close_allowed": false
   },
   "tester_workflow": [
