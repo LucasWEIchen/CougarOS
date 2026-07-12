@@ -977,3 +977,15 @@ Provider output 只由 `modelId + inputDigest` 生成 synthetic bytes；不接�
 | `snapshot()` | debug diagnostics -> Router | bounded counters、`NO_FALLBACK`、production/hardware false |
 
 Provider chunks 仅在 matching active lease 下转发；terminal 先由 Scheduler settle，再向原 observer 交付且最多一次。Exact replay 不替换 observer；changed duplicate 拒绝。Router 不写 Room、不拥有最终 durable task 状态，也不允许 Ollama/Vendor fallback。Production Runtime/Governance 不引用该 class，current profile 仍 configuration/routing false。
+
+## Android R5C1 Model Runtime Readiness Snapshot
+
+| 接口/字段 | 数据来源 | 约束 |
+| --- | --- | --- |
+| `ModelRuntimeReadinessSnapshot.current()` | immutable `ModelProviderProfiles` | singleton；当前配置若可激活则初始化失败 |
+| `diagnosticDetail()` | profile metadata + fixed production wiring flags | bounded key/value detail；无 model material、caller input 或 runtime execution |
+| Runtime startup log | shared snapshot | configuration/lifecycle/health/detail/blocker visibility |
+| Runtime protected `dump()` | shared snapshot | 与 startup/Diagnostic 值一致；shell DUMP 只读 |
+| Diagnostic record `model-runtime-readiness` | shared snapshot | 现有 paged AIDL、signature permission 和 capability policy，不增接口 |
+
+Deterministic Stub 报告 TEST_ONLY/COLD/HEALTHY/`STUB_IMPLEMENTATION_NOT_WIRED`；Vendor NPU 报告 EMPTY/UNAVAILABLE/UNAVAILABLE/`VENDOR_RUNTIME_UNAVAILABLE`。`HEALTHY` 只属于 immutable Stub descriptor/profile contract，不代表 provider instance。Snapshot 不引用 executable Router/Scheduler/provider class，不执行 warmup/infer/cancel/dispatch，production activation 固定 false。

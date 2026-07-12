@@ -147,7 +147,9 @@
 - JVM/API 33 只实例化 debug/test provider；immutable production profile 仍 `implementationConfigured=false`、`routingEnabled=false`，Runtime/Governance/Scheduler/Router 不引用 instance。
 - `R5B2 test-only model router` 已完成：唯一 `test.deterministic.stub` route 把 trusted request、Scheduler admission/lease/directive/settlement 与 deterministic provider infer/stream/cancel 连接，production 无 factory/wiring。
 - Router 对 provider/request/lease identity 失败关闭；exact active replay 保留原 observer，changed duplicate 拒绝，duplicate terminal 只结算一次。Queued/running cancel、queue/running deadline、retryable/fault-isolated terminal 均有 JVM/API 33 evidence，fallback 固定 `NO_FALLBACK`。
-- R5 仍在进行中：R5C 补 production-safe diagnostics/health/fault visibility，R5D 做真实 Android 13 目标的 empty-interface/deployment acceptance；Ollama 只允许后续 debug profile，Vendor NPU 保持 empty 到 `DRV-GAP-001` 关闭。
+- `R5C1 production-safe model runtime readiness` 已完成：immutable snapshot 经 Runtime log、protected dumpsys 和现有 Diagnostic Binder page 暴露 profile configuration/lifecycle/health/detail code 与 ordered activation blockers，不构造或执行 Provider/Scheduler/Router。
+- Deterministic profile 明确 TEST_ONLY/COLD/HEALTHY/NOT_WIRED，Vendor NPU 明确 EMPTY/UNAVAILABLE/UNAVAILABLE；contract/test implementation availability 与 production activation 分离，AIDL/Room/artifact shape 不变。
+- R5 仍在进行中：R5D 做 Android 13 目标的 empty-interface/deployment acceptance；Ollama 只允许后续 debug profile，Vendor NPU 保持 empty 到 `DRV-GAP-001` 关闭。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点

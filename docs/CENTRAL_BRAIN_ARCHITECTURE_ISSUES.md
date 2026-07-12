@@ -273,6 +273,8 @@
 
 2026-07-12 R5B2 进展：已新增 TEST_ONLY Model Router，把 Scheduler admission/lease/cancel/deadline/settlement 与 deterministic provider infer/stream/cancel 连成可执行 debug/test 路径；identity mismatch、changed replay、duplicate terminal 均失败关闭，fallback 固定 `NO_FALLBACK`。JVM/API 33 只通过 `test.deterministic.stub` 运行，production Runtime/Governance 未引用，profile configured/routing 和 production dispatch 仍 false。ISSUE-024 保持 Open：R5C production-safe diagnostics/health/fault visibility、durable scheduler/provider recovery、Ollama debug provider、production Router policy/fallback、Client2 Binder 迁移和 `DRV-GAP-001` 后 Vendor NPU path 尚未完成。
 
+2026-07-12 R5C1 进展：production Runtime log、protected dumpsys 与现有 Diagnostic Binder page 已共享 immutable model-runtime readiness snapshot，暴露 Stub/Vendor profile 的 configuration/lifecycle/health/detail code 和 ordered activation blockers；snapshot 不构造或执行 Provider/Scheduler/Router。ISSUE-024 保持 Open：当前信息是 immutable 配置元数据，不是 live provider/hardware health；production Router/provider、durable recovery、Ollama debug、Client2 Binder 迁移、目标 Android 13 部署验收和 `DRV-GAP-001` 后 Vendor NPU path 尚未完成。
+
 状态：Open，实施已获批准。
 
 ## ISSUE-025 Event、Memory、Skill 生命周期与治理链

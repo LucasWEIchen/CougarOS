@@ -92,9 +92,10 @@ for marker in \
   require_text "$INSTALLER" "$marker"
 done
 
-if grep -Eq 'ModelProvider|ModelProviderProfiles|modelRouter|modelProvider' \
+if grep -Eq \
+    'import com\.centralbrain\.runtime\.model\.ModelProvider(Profiles)?;|DeterministicStubModelProvider|TestOnlyModelRouter|InferenceResourceScheduler|ModelProviderProfiles\.(deterministicStub|vendorNpuEmpty)|provider\.(warmup|infer|cancel)' \
     "$ROOT_DIR/$RUNTIME" "$ROOT_DIR/$GOVERNANCE"; then
-  echo "R5A1 provider contract must not be wired into production Services" >&2
+  echo "R5A1 executable provider path must not be wired into production Services" >&2
   exit 1
 fi
 if grep -R -Eiq \

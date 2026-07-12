@@ -15,6 +15,7 @@ import com.centralbrain.sdk.production.ICentralBrainRuntime;
 import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
+import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
@@ -27,6 +28,8 @@ public final class CentralBrainDiagnosticService extends Service {
     private static final String TAG = "CentralBrainDiagnostic";
     private final EffectDeliveryActivationSnapshot effectDeliveryActivation =
             EffectDeliveryActivationSnapshot.current();
+    private final ModelRuntimeReadinessSnapshot modelRuntimeReadiness =
+            ModelRuntimeReadinessSnapshot.current();
 
     private final ICentralBrainDiagnostics.Stub binder = new ICentralBrainDiagnostics.Stub() {
         @Override
@@ -84,6 +87,11 @@ public final class CentralBrainDiagnosticService extends Service {
                 + effectDeliveryActivation.isActivationAllowed()
                 + " production_effect_material_source="
                 + effectDeliveryActivation.getMaterialSourceId()
+                + " model_runtime_readiness_diagnostic_wired=true"
+                + " production_inference_allowed="
+                + modelRuntimeReadiness.isProductionInferenceAllowed()
+                + " vendor_npu_provider_available="
+                + modelRuntimeReadiness.isVendorNpuProviderAvailable()
                 + " hardware_accessed=false");
     }
 
@@ -140,7 +148,13 @@ public final class CentralBrainDiagnosticService extends Service {
                         "effect-delivery-activation",
                         "blocked",
                         effectDeliveryActivation.diagnosticDetail(),
-                        4)
+                        4),
+                record(
+                        "runtime",
+                        "model-runtime-readiness",
+                        "blocked",
+                        modelRuntimeReadiness.diagnosticDetail(),
+                        5)
         };
     }
 

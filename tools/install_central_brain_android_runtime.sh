@@ -170,6 +170,8 @@ for _ in {1..20}; do
   if grep -Fq "nonce=$DIAGNOSTIC_NONCE diagnostic_probe_passed=true" \
       <<<"$DIAGNOSTIC_LOG" \
       && grep -Fq "effect_delivery_activation_diagnostic_verified=true" \
+        <<<"$DIAGNOSTIC_LOG" \
+      && grep -Fq "model_runtime_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG"; then
     DIAGNOSTIC_PROBE_PASSED=true
     break
@@ -747,10 +749,32 @@ for marker in \
   "production_effect_apply_enabled=false" \
   "production_effect_status_query_enabled=false" \
   "production_effect_activation_blockers=ADAPTER_MISSING" \
+  "model_runtime_readiness_snapshot_wired=true" \
+  "production_inference_allowed=false" \
+  "model_provider_contract_available=true" \
+  "inference_scheduler_contract_available=true" \
+  "test_model_router_implementation_available=true" \
+  "model_router_test_only=true" \
+  "deterministic_stub_profile_id=deterministic.stub" \
+  "deterministic_stub_lifecycle=COLD" \
+  "deterministic_stub_health=HEALTHY" \
+  "deterministic_stub_detail_code=STUB_IMPLEMENTATION_NOT_WIRED" \
+  "deterministic_stub_implementation_configured=false" \
+  "deterministic_stub_routing_enabled=false" \
+  "vendor_npu_profile_id=vendor.npu.empty" \
+  "vendor_npu_lifecycle=UNAVAILABLE" \
+  "vendor_npu_health=UNAVAILABLE" \
+  "vendor_npu_detail_code=VENDOR_RUNTIME_UNAVAILABLE" \
+  "vendor_npu_provider_available=false" \
+  "scheduler_production_wired=false" \
+  "production_model_router_wired=false" \
+  "production_model_router_dispatch_enabled=false" \
+  "ollama_android_provider_configured=false" \
+  "model_runtime_activation_blockers=PRODUCTION_PROVIDER_MISSING" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
-    echo "Runtime dumpsys effect gate missing marker: $marker" >&2
+    echo "Runtime dumpsys missing marker: $marker" >&2
     exit 1
   fi
 done
@@ -832,6 +856,29 @@ for marker in \
   "production_effect_activation_blockers=ADAPTER_MISSING"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
     echo "Runtime effect delivery gate missing marker: $marker" >&2
+    exit 1
+  fi
+done
+for marker in \
+  "model_runtime_readiness_snapshot_wired=true" \
+  "production_inference_allowed=false" \
+  "deterministic_stub_profile_id=deterministic.stub" \
+  "deterministic_stub_lifecycle=COLD" \
+  "deterministic_stub_health=HEALTHY" \
+  "deterministic_stub_detail_code=STUB_IMPLEMENTATION_NOT_WIRED" \
+  "deterministic_stub_implementation_configured=false" \
+  "deterministic_stub_routing_enabled=false" \
+  "vendor_npu_profile_id=vendor.npu.empty" \
+  "vendor_npu_lifecycle=UNAVAILABLE" \
+  "vendor_npu_health=UNAVAILABLE" \
+  "vendor_npu_detail_code=VENDOR_RUNTIME_UNAVAILABLE" \
+  "vendor_npu_provider_available=false" \
+  "scheduler_production_wired=false" \
+  "production_model_router_wired=false" \
+  "production_model_router_dispatch_enabled=false" \
+  "model_runtime_activation_blockers=PRODUCTION_PROVIDER_MISSING"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
+    echo "Runtime model readiness missing marker: $marker" >&2
     exit 1
   fi
 done
@@ -931,6 +978,7 @@ printf '%s\n' \
   "diagnostic_permission_requested_by_demo=false" \
   "diagnostic_binder_page_verified=true" \
   "effect_delivery_activation_diagnostic_verified=true" \
+  "model_runtime_readiness_diagnostic_verified=true" \
   "room_schema_version=2" \
   "room_table_count=8" \
   "room_wal_enabled=true" \
@@ -1014,6 +1062,15 @@ printf '%s\n' \
   "production_effect_apply_enabled=false" \
   "production_effect_status_query_enabled=false" \
   "production_effect_gate_dumpsys_verified=true" \
+  "model_runtime_readiness_snapshot_wired=true" \
+  "model_runtime_readiness_log_verified=true" \
+  "model_runtime_readiness_dumpsys_verified=true" \
+  "production_inference_allowed=false" \
+  "model_provider_contract_available=true" \
+  "inference_scheduler_contract_available=true" \
+  "test_model_router_implementation_available=true" \
+  "model_router_test_only=true" \
+  "model_runtime_activation_blockers=PRODUCTION_PROVIDER_MISSING,PRODUCTION_ROUTE_MISSING,SCHEDULER_NOT_WIRED,MODEL_ROUTER_NOT_WIRED,VENDOR_NPU_INTERFACE_EMPTY" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "model_provider_contract_verified=true" \

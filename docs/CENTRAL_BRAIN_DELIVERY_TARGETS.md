@@ -822,3 +822,11 @@ R5B2 新增 main-source test-only Router、JVM unit test、DUMP-protected debug 
 API 33 验收必须输出 end-to-end dispatch、Scheduler/provider lease binding、stream、cancel、deadline、identity、replay、single-terminal 和 `NO_FALLBACK` evidence；同时保持 `model_router_test_only=true`、`production_model_router_wired=false`、`production_model_router_dispatch_enabled=false`、profile configured/routing false、Ollama/Vendor unavailable 和全部 no-hardware 标志。
 
 该交付不包含 production Binder/SDK inference API、真实模型输入、Room route recovery、production fallback/熔断、Ollama Android provider、Vendor NPU adapter 或 Linux 前端。R5B2 的 executable test route 不能作为量产 routing 或 NPU 验收声明。
+
+## Android R5C1 Production-Safe Model Runtime Readiness
+
+R5C1 新增 immutable main-source readiness snapshot 和 JVM test，并复用现有 Runtime Service、Diagnostic Service、debug Diagnostic probe 与安装验收脚本。AIDL/checksum、SDK public API、Room schema 和三项标准 artifact 形状不变；不新增 Activity，release 仍不得包含任何 probe。
+
+API 33 验收必须同时验证 Diagnostic Binder、Runtime startup log 和 protected dumpsys 的 profile ID、assurance、lifecycle、health、detail code、production wiring flags 与 ordered blocker parity。输出必须包含 `model_runtime_readiness_*_verified=true`，同时保持 production inference/router/scheduler/Ollama/Vendor/hardware false。
+
+该交付是座舱集成工程师的阻塞原因可见性，不是 production model service、实时健康监控、硬件探测、性能数据或 NPU 验收。当前 Android-only phase 不新增 Linux 前端；R5D 继续验证 Android 13 目标部署与 empty-interface 边界。

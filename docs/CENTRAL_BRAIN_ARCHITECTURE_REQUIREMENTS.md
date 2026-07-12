@@ -885,3 +885,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Exact active replay must consume no new quota and retain the original observer. A duplicate request ID with changed owner/model/input/priority/deadline/queue-wait/streaming content must be rejected.
 - Fallback policy is explicitly `NO_FALLBACK`; retryable or isolated provider faults cannot route to Ollama, Vendor NPU or another provider. Router state is process-memory test evidence and does not provide restart recovery or durable task ownership.
 - JVM/API 33 evidence must cover sequential slot dispatch, stream forwarding, cancel/deadline, provider identity, exact replay, duplicate terminal and no-fallback behavior. Release must exclude the debug Activity and retain three signature-protected Services with no production router/provider wiring or hardware access.
+
+### 2026-07-12 R5C1 production-safe model runtime readiness trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`NV-F-011`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`、`DEL-005`.
+- Production visibility must use one immutable snapshot shared by Runtime startup log, protected dumpsys and the existing capability/signature-protected Diagnostic Binder page. No AIDL method, checksum or schema may change.
+- Snapshot construction may read only immutable provider-profile metadata. It must not construct a concrete Provider, Scheduler or test Router, call warmup/infer/cancel/claim, open Room for model dispatch, probe network/device nodes or access hardware.
+- Visibility must distinguish contract and test implementation availability from production configuration, routing and dispatch. Deterministic Stub must report TEST_ONLY, COLD/HEALTHY, `STUB_IMPLEMENTATION_NOT_WIRED`, configuration false and routing false.
+- Vendor NPU must report EMPTY, UNAVAILABLE/UNAVAILABLE, `VENDOR_RUNTIME_UNAVAILABLE`, provider unavailable and hardware untouched. These values are configuration metadata and are not target-hardware health evidence.
+- Ordered blockers are `PRODUCTION_PROVIDER_MISSING`, `PRODUCTION_ROUTE_MISSING`, `SCHEDULER_NOT_WIRED`, `MODEL_ROUTER_NOT_WIRED`, and `VENDOR_NPU_INTERFACE_EMPTY`. Any current configuration inconsistent with fail-closed profiles must fail class initialization.
+- API 33 must verify Diagnostic Binder, Runtime log and real dumpsys parity. Production inference, Scheduler/Router wiring, Ollama, Vendor NPU, service dispatch and hardware must remain false; release must retain three signature-protected Services and zero Activities/probes.

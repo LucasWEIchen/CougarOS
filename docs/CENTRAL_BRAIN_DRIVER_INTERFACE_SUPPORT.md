@@ -525,3 +525,9 @@ No network, JNI/C/C++, vendor library, HAL/AIDL service, device node, ioctl/sysf
 R5B2 composes Java Scheduler and deterministic-provider objects only in JVM/debug evidence. Route, lease and cancellation identifiers are synthetic application-process values; model/input material is SHA-256 metadata and output is synthetic bytes. Provider slot accounting does not discover or reserve an NPU resource.
 
 No network, JNI/C/C++, vendor library, HAL/AIDL service, device node, ioctl/sysfs, PCIe, DMA-BUF/IOMMU, VHAL, Safety Runtime or hardware metric path is added. Production Services do not construct the Router, Vendor NPU remains EMPTY and `DRV-GAP-001` stays open. Added Driver/HAL development is zero; `production_model_router_wired=false`, `production_model_router_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false` are mandatory. Req IDs: `APP-004`, `XSC-004`, `NV-F-001`, `NV-F-011`, `NV-G-004`, `NV-G-006`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R5C1 Model Readiness Visibility Driver/HAL Boundary
+
+R5C1 reads immutable Java profile descriptors/snapshots and formats them for Runtime log, protected dumpsys and Diagnostic Binder. Vendor `UNAVAILABLE` and `VENDOR_RUNTIME_UNAVAILABLE` are empty-interface constants; no driver/HAL/vendor process was queried. Stub `HEALTHY` is contract metadata paired with COLD/NOT_WIRED, not a live process health signal.
+
+No network, JNI/C/C++, vendor library, HAL/AIDL service, device node, ioctl/sysfs, PCIe, DMA-BUF/IOMMU, VHAL, Safety Runtime or hardware metric polling is added. `DRV-GAP-001` remains open and added Driver/HAL development is zero. Production inference/router/scheduler/Ollama/Vendor access plus all hardware/virtualization flags remain false. Req IDs: `APP-004`, `XSC-004`, `XSC-005`, `NV-F-011`, `NV-F-012`, `NV-G-006`, `NV-G-007`, `DEL-001`, `DEL-004`, `DEL-005`.

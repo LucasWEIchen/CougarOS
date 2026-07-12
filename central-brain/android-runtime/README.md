@@ -175,6 +175,14 @@ Queued cancellation terminates locally. Running cancellation and deadline expiry
 
 JVM tests and the DUMP-protected debug API 33 probe exercise sequential slot dispatch, stream forwarding, cancellation, deadlines, provider identity, replay, duplicate-terminal settlement and retryable failure. The router is not referenced by production Runtime/Governance, no production factory or Binder API exists, and the immutable profile remains unconfigured/non-routable. Production inference, Ollama, Vendor NPU, network and hardware access remain disabled.
 
+## R5C1 Production-Safe Model Runtime Readiness
+
+`ModelRuntimeReadinessSnapshot` is an immutable metadata-only view shared by Runtime startup logging, protected dumpsys and the existing bounded Diagnostic Binder page. It reads only `ModelProviderProfiles`; it does not construct a provider, Scheduler or Router and cannot warm, infer, cancel or dispatch.
+
+The snapshot separates contract/test implementation availability from production activation. The deterministic profile reports TEST_ONLY, COLD/HEALTHY and `STUB_IMPLEMENTATION_NOT_WIRED`; the Vendor NPU profile reports EMPTY, UNAVAILABLE/UNAVAILABLE and `VENDOR_RUNTIME_UNAVAILABLE`. Ordered blockers explicitly report missing production provider/route, unwired Scheduler/Router and an empty Vendor NPU interface.
+
+All three visibility surfaces report production inference false, profile configuration/routing false, production Router dispatch false, Ollama disabled and hardware untouched. R5C1 changes no AIDL, Room schema or artifact shape and does not promote the production evolution stage beyond the R4 durable foundation.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

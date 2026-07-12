@@ -35,6 +35,7 @@ public final class DiagnosticProbeActivity extends Activity {
                 activationQuery.pageSize = ICentralBrainDiagnostics.MAX_PAGE_SIZE;
                 DiagnosticPage activationPage = diagnostics.getPage(activationQuery);
                 boolean activationVerified = hasBlockedEffectActivation(activationPage);
+                boolean modelRuntimeVerified = hasBlockedModelRuntime(activationPage);
                 boolean passed = diagnostics.getProtocolVersion() == 1
                         && ICentralBrainDiagnostics.INTERFACE_HASH.equals(
                                 diagnostics.getProtocolHash())
@@ -42,10 +43,13 @@ public final class DiagnosticProbeActivity extends Activity {
                         && page.records != null
                         && page.records.length == 1
                         && page.hasMore
-                        && activationVerified;
+                        && activationVerified
+                        && modelRuntimeVerified;
                 Log.i(TAG, "nonce=" + nonce + " diagnostic_probe_passed=" + passed
                         + " effect_delivery_activation_diagnostic_verified="
                         + activationVerified
+                        + " model_runtime_readiness_diagnostic_verified="
+                        + modelRuntimeVerified
                         + " record_count=" + (page == null || page.records == null
                                 ? -1 : page.records.length)
                         + " hardware_accessed=false");
@@ -112,6 +116,47 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail.contains("MATERIAL_SOURCE_EMPTY")
                     && record.detail.contains("apply_enabled=false")
                     && record.detail.contains("status_query_enabled=false")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasBlockedModelRuntime(DiagnosticPage page) {
+        if (page == null || page.records == null) {
+            return false;
+        }
+        for (DiagnosticRecord record : page.records) {
+            if (record != null
+                    && "model-runtime-readiness".equals(record.recordId)
+                    && "blocked".equals(record.summary)
+                    && record.detail != null
+                    && record.detail.contains("production_inference_allowed=false")
+                    && record.detail.contains("model_provider_contract_available=true")
+                    && record.detail.contains(
+                            "test_model_router_implementation_available=true")
+                    && record.detail.contains(
+                            "deterministic_stub_profile_id=deterministic.stub")
+                    && record.detail.contains("deterministic_stub_lifecycle=COLD")
+                    && record.detail.contains("deterministic_stub_health=HEALTHY")
+                    && record.detail.contains(
+                            "deterministic_stub_detail_code=STUB_IMPLEMENTATION_NOT_WIRED")
+                    && record.detail.contains(
+                            "deterministic_stub_implementation_configured=false")
+                    && record.detail.contains(
+                            "deterministic_stub_routing_enabled=false")
+                    && record.detail.contains("vendor_npu_profile_id=vendor.npu.empty")
+                    && record.detail.contains("vendor_npu_lifecycle=UNAVAILABLE")
+                    && record.detail.contains("vendor_npu_health=UNAVAILABLE")
+                    && record.detail.contains(
+                            "vendor_npu_detail_code=VENDOR_RUNTIME_UNAVAILABLE")
+                    && record.detail.contains("vendor_npu_provider_available=false")
+                    && record.detail.contains("scheduler_production_wired=false")
+                    && record.detail.contains("production_model_router_wired=false")
+                    && record.detail.contains(
+                            "production_model_router_dispatch_enabled=false")
+                    && record.detail.contains("VENDOR_NPU_INTERFACE_EMPTY")
+                    && record.detail.contains("hardware_accessed=false")) {
                 return true;
             }
         }

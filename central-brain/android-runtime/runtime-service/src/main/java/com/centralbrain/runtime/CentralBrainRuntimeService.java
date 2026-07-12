@@ -19,6 +19,7 @@ import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
+import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.persistence.CentralBrainDatabase;
 import com.centralbrain.runtime.persistence.DurableDigest;
 import com.centralbrain.runtime.persistence.DurableTaskRepository;
@@ -62,6 +63,8 @@ public final class CentralBrainRuntimeService extends Service {
     private final Object admissionLock = new Object();
     private final EffectDeliveryActivationSnapshot effectDeliveryActivation =
             EffectDeliveryActivationSnapshot.current();
+    private final ModelRuntimeReadinessSnapshot modelRuntimeReadiness =
+            ModelRuntimeReadinessSnapshot.current();
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
     private final JobSupervisor jobSupervisor = new JobSupervisor(
             MAX_TASK_RECORDS,
@@ -243,6 +246,39 @@ public final class CentralBrainRuntimeService extends Service {
                 + effectDeliveryActivation.isStatusQueryEnabled()
                 + " production_effect_activation_blockers="
                 + effectDeliveryActivation.getBlockersCsv()
+                + " model_runtime_readiness_snapshot_wired=true"
+                + " production_inference_allowed="
+                + modelRuntimeReadiness.isProductionInferenceAllowed()
+                + " deterministic_stub_profile_id="
+                + modelRuntimeReadiness.getDeterministicStubProfileId()
+                + " deterministic_stub_lifecycle="
+                + modelRuntimeReadiness.getDeterministicStubLifecycle()
+                + " deterministic_stub_health="
+                + modelRuntimeReadiness.getDeterministicStubHealth()
+                + " deterministic_stub_detail_code="
+                + modelRuntimeReadiness.getDeterministicStubDetailCode()
+                + " deterministic_stub_implementation_configured="
+                + modelRuntimeReadiness.isDeterministicStubImplementationConfigured()
+                + " deterministic_stub_routing_enabled="
+                + modelRuntimeReadiness.isDeterministicStubRoutingEnabled()
+                + " vendor_npu_profile_id="
+                + modelRuntimeReadiness.getVendorNpuProfileId()
+                + " vendor_npu_lifecycle="
+                + modelRuntimeReadiness.getVendorNpuLifecycle()
+                + " vendor_npu_health="
+                + modelRuntimeReadiness.getVendorNpuHealth()
+                + " vendor_npu_detail_code="
+                + modelRuntimeReadiness.getVendorNpuDetailCode()
+                + " vendor_npu_provider_available="
+                + modelRuntimeReadiness.isVendorNpuProviderAvailable()
+                + " scheduler_production_wired="
+                + modelRuntimeReadiness.isSchedulerProductionWired()
+                + " production_model_router_wired="
+                + modelRuntimeReadiness.isProductionModelRouterWired()
+                + " production_model_router_dispatch_enabled="
+                + modelRuntimeReadiness.isProductionModelRouterDispatchEnabled()
+                + " model_runtime_activation_blockers="
+                + modelRuntimeReadiness.getBlockersCsv()
                 + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
     }
@@ -276,6 +312,49 @@ public final class CentralBrainRuntimeService extends Service {
                 + effectDeliveryActivation.isStatusQueryEnabled());
         writer.println("production_effect_activation_blockers="
                 + effectDeliveryActivation.getBlockersCsv());
+        writer.println("model_runtime_readiness_snapshot_wired=true");
+        writer.println("production_inference_allowed="
+                + modelRuntimeReadiness.isProductionInferenceAllowed());
+        writer.println("model_provider_contract_available="
+                + modelRuntimeReadiness.isModelProviderContractAvailable());
+        writer.println("inference_scheduler_contract_available="
+                + modelRuntimeReadiness.isInferenceSchedulerContractAvailable());
+        writer.println("test_model_router_implementation_available="
+                + modelRuntimeReadiness.isTestModelRouterImplementationAvailable());
+        writer.println("model_router_test_only="
+                + modelRuntimeReadiness.isTestModelRouterTestOnly());
+        writer.println("deterministic_stub_profile_id="
+                + modelRuntimeReadiness.getDeterministicStubProfileId());
+        writer.println("deterministic_stub_lifecycle="
+                + modelRuntimeReadiness.getDeterministicStubLifecycle());
+        writer.println("deterministic_stub_health="
+                + modelRuntimeReadiness.getDeterministicStubHealth());
+        writer.println("deterministic_stub_detail_code="
+                + modelRuntimeReadiness.getDeterministicStubDetailCode());
+        writer.println("deterministic_stub_implementation_configured="
+                + modelRuntimeReadiness.isDeterministicStubImplementationConfigured());
+        writer.println("deterministic_stub_routing_enabled="
+                + modelRuntimeReadiness.isDeterministicStubRoutingEnabled());
+        writer.println("vendor_npu_profile_id="
+                + modelRuntimeReadiness.getVendorNpuProfileId());
+        writer.println("vendor_npu_lifecycle="
+                + modelRuntimeReadiness.getVendorNpuLifecycle());
+        writer.println("vendor_npu_health="
+                + modelRuntimeReadiness.getVendorNpuHealth());
+        writer.println("vendor_npu_detail_code="
+                + modelRuntimeReadiness.getVendorNpuDetailCode());
+        writer.println("vendor_npu_provider_available="
+                + modelRuntimeReadiness.isVendorNpuProviderAvailable());
+        writer.println("scheduler_production_wired="
+                + modelRuntimeReadiness.isSchedulerProductionWired());
+        writer.println("production_model_router_wired="
+                + modelRuntimeReadiness.isProductionModelRouterWired());
+        writer.println("production_model_router_dispatch_enabled="
+                + modelRuntimeReadiness.isProductionModelRouterDispatchEnabled());
+        writer.println("ollama_android_provider_configured="
+                + modelRuntimeReadiness.isOllamaAndroidProviderConfigured());
+        writer.println("model_runtime_activation_blockers="
+                + modelRuntimeReadiness.getBlockersCsv());
         writer.println("service_dispatch_triggered=false");
         writer.println("hardware_accessed=false");
     }
