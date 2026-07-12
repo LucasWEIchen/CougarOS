@@ -209,6 +209,12 @@ Room schema v3 keeps the existing eight-table artifact shape while rebuilding `e
 
 An isolated API 33 probe verifies database reopen while RESYNC_REQUIRED, continuation after resync, source-sequence regression rejection, cancellation idempotency and cancelled-record trimming. The implementation requires an upstream sequence that never resets. R6A1 is process-local and resets after process death, so the repository is not wired to R6A1 or production Services; Binder callbacks, broker activation and production cursor persistence remain false.
 
+## R6A3 Event Runtime Readiness
+
+`EventRuntimeReadinessSnapshot` is an immutable production-safe view shared by Runtime startup logging, protected Runtime dumpsys and the bounded Diagnostic Binder page. It reports the bounded Event runtime, Room v3 schema and repository implementation as available while activation, production wiring, durable publisher sequence, callback Binder, broker and middleware remain unavailable.
+
+The snapshot is fail closed with ordered blockers and does not open Room or construct an Event runtime/repository. R6A3 changes no AIDL and adds no dispatch path. It closes the Event software foundation visibility step, not production Event activation; durable publisher ownership and callback/broker integration remain ISSUE-025 work.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

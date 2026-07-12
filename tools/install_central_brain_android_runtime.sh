@@ -172,6 +172,8 @@ for _ in {1..20}; do
       && grep -Fq "effect_delivery_activation_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG" \
       && grep -Fq "model_runtime_readiness_diagnostic_verified=true" \
+        <<<"$DIAGNOSTIC_LOG" \
+      && grep -Fq "event_runtime_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG"; then
     DIAGNOSTIC_PROBE_PASSED=true
     break
@@ -888,6 +890,24 @@ for marker in \
   "production_model_router_dispatch_enabled=false" \
   "ollama_android_provider_configured=false" \
   "model_runtime_activation_blockers=PRODUCTION_PROVIDER_MISSING" \
+  "event_runtime_readiness_snapshot_wired=true" \
+  "event_runtime_activation_allowed=false" \
+  "bounded_event_runtime_implementation_available=true" \
+  "event_cursor_schema_ready=true" \
+  "event_repository_implementation_available=true" \
+  "trusted_event_topic_count=3" \
+  "durable_event_source_available=false" \
+  "event_runtime_production_wired=false" \
+  "event_cursor_repository_production_wired=false" \
+  "event_cursor_persistence_wired=false" \
+  "event_callback_binder_wired=false" \
+  "event_broker_production_wired=false" \
+  "event_middleware_chain_wired=false" \
+  "raw_event_payload_persisted=false" \
+  "dds_runtime_active=false" \
+  "network_transport_active=false" \
+  "vehicle_bus_accessed=false" \
+  "event_runtime_activation_blockers=DURABLE_PUBLISHER_SEQUENCE_MISSING" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
@@ -999,6 +1019,25 @@ for marker in \
     exit 1
   fi
 done
+for marker in \
+  "event_runtime_readiness_snapshot_wired=true" \
+  "event_runtime_activation_allowed=false" \
+  "bounded_event_runtime_implementation_available=true" \
+  "event_cursor_schema_ready=true" \
+  "event_repository_implementation_available=true" \
+  "durable_event_source_available=false" \
+  "event_runtime_production_wired=false" \
+  "event_cursor_repository_production_wired=false" \
+  "event_cursor_persistence_wired=false" \
+  "event_callback_binder_wired=false" \
+  "event_broker_production_wired=false" \
+  "event_middleware_chain_wired=false" \
+  "event_runtime_activation_blockers=DURABLE_PUBLISHER_SEQUENCE_MISSING"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
+    echo "Runtime Event readiness missing marker: $marker" >&2
+    exit 1
+  fi
+done
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not resolve the Demo Binder caller from trusted package evidence" >&2
   exit 1
@@ -1096,6 +1135,7 @@ printf '%s\n' \
   "diagnostic_binder_page_verified=true" \
   "effect_delivery_activation_diagnostic_verified=true" \
   "model_runtime_readiness_diagnostic_verified=true" \
+  "event_runtime_readiness_diagnostic_verified=true" \
   "room_schema_version=3" \
   "room_table_count=8" \
   "room_wal_enabled=true" \
@@ -1208,6 +1248,17 @@ printf '%s\n' \
   "test_model_router_implementation_available=true" \
   "model_router_test_only=true" \
   "model_runtime_activation_blockers=PRODUCTION_PROVIDER_MISSING,PRODUCTION_ROUTE_MISSING,SCHEDULER_NOT_WIRED,MODEL_ROUTER_NOT_WIRED,VENDOR_NPU_INTERFACE_EMPTY" \
+  "event_runtime_readiness_snapshot_wired=true" \
+  "event_runtime_readiness_log_verified=true" \
+  "event_runtime_readiness_dumpsys_verified=true" \
+  "event_runtime_activation_allowed=false" \
+  "bounded_event_runtime_implementation_available=true" \
+  "event_repository_implementation_available=true" \
+  "trusted_event_topic_count=3" \
+  "event_runtime_production_wired=false" \
+  "event_middleware_chain_wired=false" \
+  "raw_event_payload_persisted=false" \
+  "event_runtime_activation_blockers=DURABLE_PUBLISHER_SEQUENCE_MISSING,EVENT_RUNTIME_NOT_WIRED,EVENT_REPOSITORY_NOT_WIRED,CALLBACK_BINDER_NOT_DEFINED,BROKER_NOT_CONFIGURED,MIDDLEWARE_CHAIN_NOT_WIRED" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "model_provider_contract_verified=true" \

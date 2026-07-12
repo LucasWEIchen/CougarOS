@@ -555,3 +555,9 @@ No Driver/HAL ABI, JNI/C/C++, VHAL, DDS, network transport, device node, vendor 
 R6A2B executes Room transactions over subscription/cursor metadata and SHA-256 audit digests. Trusted latest sequence is an injected application-layer value; the repository does not read a timer device, vehicle bus, shared-memory counter or vendor event source. Source regression is rejected in software.
 
 No JNI/C/C++, Driver/HAL ABI, VHAL, DDS, network, device node, NPU, vendor service or Safety Runtime is accessed. The missing durable monotonic event source is a Runtime/broker activation blocker under ISSUE-025, not a reason to create a driver in the current environment. Existing `DRV-GAP-002/004/005` and added Driver/HAL work remain unchanged/zero.
+
+### R6A3 Event Readiness Driver/HAL Boundary
+
+R6A3 formats immutable Java booleans and blocker IDs for log, dumpsys and Diagnostic Binder. It does not query a publisher clock, database row, callback registry, broker process, network stack or vehicle source. `durable_event_source_available=false` is product/runtime integration evidence, not a device-driver probe result.
+
+No JNI/C/C++, Driver/HAL ABI, VHAL, DDS, network, shared memory, device node, NPU, vendor service or Safety Runtime is accessed. `DRV-GAP-002/004/005` remain unchanged, added Driver/HAL work remains zero, and no vendor/AOSP/BSP or virtualization change is introduced.

@@ -163,6 +163,8 @@
 - `MIGRATION_2_3` 把 v2 行映射为 `legacy:<cursor_id>` 并保留 owner/topic/sequence/time；本小步只有 schema/DAO/migration probe，不接 R6A1 runtime 或 production Service。R6A2B 继续 repository/reopen 状态机。
 - `R6A2B durable Event repository` 已完成：transactional register/replay/conflict、monotonic ACK、overflow/resync、owner isolation、bounded cancel tombstone 和 digest-only audit 已有跨 reopen API 33 evidence。
 - Repository implementation available 但 production wiring false。R6A1 sequence 在进程重启后重置，尚不满足 durable monotonic source 前置条件；R6A3 必须把该 blocker 暴露为 fail-closed readiness，不能直接接 Binder callback/broker。
+- `R6A3 Event runtime readiness` 已完成：immutable snapshot 通过 Runtime log、protected dumpsys 和现有 Diagnostic Binder 一致暴露 implementation availability、activation false 与六项 ordered blocker，不打开 repository 或变更 AIDL。
+- Event 软件 foundation visibility 已闭环，但 production callback/broker 仍未激活。下一小步进入 R6B Memory lifecycle；ISSUE-025 中 durable publisher sequence 和 Event middleware/binding blocker 继续开放。
 
 ## 架构落点
 

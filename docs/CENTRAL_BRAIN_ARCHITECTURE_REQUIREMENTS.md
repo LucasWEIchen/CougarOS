@@ -934,3 +934,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Cancellation must be owner isolated and idempotent while its row is retained. Active and cancelled records must be bounded; eviction of the oldest cancelled row may end idempotent replay for that expired tombstone and must never evict the newly cancelled row in the same transaction.
 - Every applied register/ACK/overflow/resync/cancel transition must append exactly one digest-only audit event in its Room transaction. Replayed/rejected operations must not append audit.
 - API 33 evidence must close/reopen an isolated database during RESYNC_REQUIRED and after final cancellation/registration. Production Services, R6A1 dispatch, Binder callback/broker and raw payload persistence remain unwired because no durable monotonic publisher sequence exists yet.
+
+### 2026-07-12 R6A3 Event runtime readiness trace
+
+- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-004`、`NV-F-012`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
+- One immutable snapshot must be shared by Runtime startup log, protected Runtime dumpsys and the existing bounded Diagnostic Binder record. No new AIDL method or artifact is allowed.
+- Visibility must distinguish bounded runtime/schema/repository implementation availability from production activation. `event_runtime_activation_allowed`, durable source, Runtime/repository/persistence wiring, callback Binder, broker and middleware must all remain false.
+- Ordered blockers are `DURABLE_PUBLISHER_SEQUENCE_MISSING`, `EVENT_RUNTIME_NOT_WIRED`, `EVENT_REPOSITORY_NOT_WIRED`, `CALLBACK_BINDER_NOT_DEFINED`, `BROKER_NOT_CONFIGURED` and `MIDDLEWARE_CHAIN_NOT_WIRED`.
+- Snapshot construction must not open Room, construct `DurableEventCursorRepository`, instantiate the bounded Event runtime, dispatch callbacks or access network/DDS/vehicle/hardware. Current trusted topic count is three and raw event payload persistence is false.
+- API 33 evidence must verify Diagnostic Binder, Runtime startup log and real dumpsys parity. Release must remain three signature-protected Services and zero Activities/probes.

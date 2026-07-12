@@ -862,3 +862,11 @@ R6A2B 交付 `DurableEventCursorRepository`、DAO capacity/retention query、DUM
 API 33 必须输出 registration idempotency/admission bounds、owner isolation、monotonic ACK、source regression blocked、overflow/resync、reopen recovery、cancel idempotency、record bounds、audit exactly-once 和 probe persistence evidence。同时必须输出 `event_cursor_repository_implementation_available=true`、`event_cursor_repository_production_wired=false`、`event_cursor_persistence_wired=false`、`durable_event_source_available=false`。
 
 该交付只证明 repository transaction/reopen contract。它不把 R6A1 events 写入 Room，不创建 durable publisher log，不接 production Service/Binder callback/broker，也不交付网络/DDS/车辆总线、NPU、Driver/HAL、Linux 前端或虚拟化。
+
+## Android R6A3 Event Runtime Readiness
+
+R6A3 交付 immutable `EventRuntimeReadinessSnapshot`、JVM tests、Runtime log/dumpsys integration、现有 Diagnostic Binder record/probe 扩展、安装门禁和静态检查。AIDL/checksum、Room schema、public SDK 与三项标准 artifact 不变。
+
+API 33 必须验证 Diagnostic Binder、Runtime log、真实 dumpsys 三路 parity，并输出 readiness snapshot wired、activation false、implementation availability、trusted topic count、durable source false、production wiring false 和完整 ordered blocker。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
+
+该交付不打开 Event repository，不激活 cursor persistence、callback Binder、broker、middleware 或 transport，不访问 raw payload、DDS、网络、车辆总线、NPU/Driver/HAL，也不修改厂商系统软件。

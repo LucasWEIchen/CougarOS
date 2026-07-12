@@ -16,6 +16,7 @@ import com.centralbrain.sdk.production.TaskHandle;
 import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
 import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
+import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
@@ -65,6 +66,8 @@ public final class CentralBrainRuntimeService extends Service {
             EffectDeliveryActivationSnapshot.current();
     private final ModelRuntimeReadinessSnapshot modelRuntimeReadiness =
             ModelRuntimeReadinessSnapshot.current();
+    private final EventRuntimeReadinessSnapshot eventRuntimeReadiness =
+            EventRuntimeReadinessSnapshot.current();
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
     private final JobSupervisor jobSupervisor = new JobSupervisor(
             MAX_TASK_RECORDS,
@@ -279,6 +282,31 @@ public final class CentralBrainRuntimeService extends Service {
                 + modelRuntimeReadiness.isProductionModelRouterDispatchEnabled()
                 + " model_runtime_activation_blockers="
                 + modelRuntimeReadiness.getBlockersCsv()
+                + " event_runtime_readiness_snapshot_wired=true"
+                + " event_runtime_activation_allowed="
+                + eventRuntimeReadiness.isActivationAllowed()
+                + " bounded_event_runtime_implementation_available="
+                + eventRuntimeReadiness.isBoundedEventRuntimeImplementationAvailable()
+                + " event_cursor_schema_ready="
+                + eventRuntimeReadiness.isEventCursorSchemaReady()
+                + " event_repository_implementation_available="
+                + eventRuntimeReadiness.isEventRepositoryImplementationAvailable()
+                + " durable_event_source_available="
+                + eventRuntimeReadiness.isDurableEventSourceAvailable()
+                + " event_runtime_production_wired="
+                + eventRuntimeReadiness.isEventRuntimeProductionWired()
+                + " event_cursor_repository_production_wired="
+                + eventRuntimeReadiness.isEventRepositoryProductionWired()
+                + " event_cursor_persistence_wired="
+                + eventRuntimeReadiness.isEventCursorPersistenceWired()
+                + " event_callback_binder_wired="
+                + eventRuntimeReadiness.isCallbackBinderWired()
+                + " event_broker_production_wired="
+                + eventRuntimeReadiness.isProductionBrokerWired()
+                + " event_middleware_chain_wired="
+                + eventRuntimeReadiness.isMiddlewareChainWired()
+                + " event_runtime_activation_blockers="
+                + eventRuntimeReadiness.getBlockersCsv()
                 + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
     }
@@ -355,6 +383,40 @@ public final class CentralBrainRuntimeService extends Service {
                 + modelRuntimeReadiness.isOllamaAndroidProviderConfigured());
         writer.println("model_runtime_activation_blockers="
                 + modelRuntimeReadiness.getBlockersCsv());
+        writer.println("event_runtime_readiness_snapshot_wired=true");
+        writer.println("event_runtime_activation_allowed="
+                + eventRuntimeReadiness.isActivationAllowed());
+        writer.println("bounded_event_runtime_implementation_available="
+                + eventRuntimeReadiness.isBoundedEventRuntimeImplementationAvailable());
+        writer.println("event_cursor_schema_ready="
+                + eventRuntimeReadiness.isEventCursorSchemaReady());
+        writer.println("event_repository_implementation_available="
+                + eventRuntimeReadiness.isEventRepositoryImplementationAvailable());
+        writer.println("trusted_event_topic_count="
+                + eventRuntimeReadiness.getTrustedTopicCount());
+        writer.println("durable_event_source_available="
+                + eventRuntimeReadiness.isDurableEventSourceAvailable());
+        writer.println("event_runtime_production_wired="
+                + eventRuntimeReadiness.isEventRuntimeProductionWired());
+        writer.println("event_cursor_repository_production_wired="
+                + eventRuntimeReadiness.isEventRepositoryProductionWired());
+        writer.println("event_cursor_persistence_wired="
+                + eventRuntimeReadiness.isEventCursorPersistenceWired());
+        writer.println("event_callback_binder_wired="
+                + eventRuntimeReadiness.isCallbackBinderWired());
+        writer.println("event_broker_production_wired="
+                + eventRuntimeReadiness.isProductionBrokerWired());
+        writer.println("event_middleware_chain_wired="
+                + eventRuntimeReadiness.isMiddlewareChainWired());
+        writer.println("raw_event_payload_persisted="
+                + eventRuntimeReadiness.isRawEventPayloadPersisted());
+        writer.println("dds_runtime_active=" + eventRuntimeReadiness.isDdsRuntimeActive());
+        writer.println("network_transport_active="
+                + eventRuntimeReadiness.isNetworkTransportActive());
+        writer.println("vehicle_bus_accessed="
+                + eventRuntimeReadiness.isVehicleBusAccessed());
+        writer.println("event_runtime_activation_blockers="
+                + eventRuntimeReadiness.getBlockersCsv());
         writer.println("service_dispatch_triggered=false");
         writer.println("hardware_accessed=false");
     }

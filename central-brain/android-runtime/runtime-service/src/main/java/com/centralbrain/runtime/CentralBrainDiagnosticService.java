@@ -13,6 +13,7 @@ import com.centralbrain.sdk.diagnostics.DiagnosticRecord;
 import com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics;
 import com.centralbrain.sdk.production.ICentralBrainRuntime;
 import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
+import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
@@ -30,6 +31,8 @@ public final class CentralBrainDiagnosticService extends Service {
             EffectDeliveryActivationSnapshot.current();
     private final ModelRuntimeReadinessSnapshot modelRuntimeReadiness =
             ModelRuntimeReadinessSnapshot.current();
+    private final EventRuntimeReadinessSnapshot eventRuntimeReadiness =
+            EventRuntimeReadinessSnapshot.current();
 
     private final ICentralBrainDiagnostics.Stub binder = new ICentralBrainDiagnostics.Stub() {
         @Override
@@ -92,6 +95,11 @@ public final class CentralBrainDiagnosticService extends Service {
                 + modelRuntimeReadiness.isProductionInferenceAllowed()
                 + " vendor_npu_provider_available="
                 + modelRuntimeReadiness.isVendorNpuProviderAvailable()
+                + " event_runtime_readiness_diagnostic_wired=true"
+                + " event_runtime_activation_allowed="
+                + eventRuntimeReadiness.isActivationAllowed()
+                + " durable_event_source_available="
+                + eventRuntimeReadiness.isDurableEventSourceAvailable()
                 + " hardware_accessed=false");
     }
 
@@ -154,7 +162,13 @@ public final class CentralBrainDiagnosticService extends Service {
                         "model-runtime-readiness",
                         "blocked",
                         modelRuntimeReadiness.diagnosticDetail(),
-                        5)
+                        5),
+                record(
+                        "runtime",
+                        "event-runtime-readiness",
+                        "blocked",
+                        eventRuntimeReadiness.diagnosticDetail(),
+                        6)
         };
     }
 

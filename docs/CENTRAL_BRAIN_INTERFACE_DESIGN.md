@@ -1042,3 +1042,13 @@ The schema remains eight tables at version 3. A v2 cursor becomes ACTIVE with re
 | `cancelOwned` | cursor + owner | APPLIED/REPLAYED/not found; bounded cancelled-row retention |
 
 Applied state changes and their digest-only audit rows share one Room transaction. `knownLatestSequence` is trusted Runtime input, not request-body authority. A latest value below persisted ACK returns `SOURCE_REGRESSION`; this prevents accidental reuse after a process-local publisher resets but does not itself provide a durable sequence source.
+
+## Android R6A3 Event Runtime Readiness
+
+| Surface | Record | Constraint |
+| --- | --- | --- |
+| Runtime startup log | `event_runtime_readiness_snapshot_wired=true` plus activation/wiring/blockers | immutable metadata only |
+| Runtime dumpsys | complete key/value readiness snapshot | protected framework diagnostic path; no repository query |
+| Diagnostic Binder | `runtime/event-runtime-readiness`, summary `blocked`, sequence 6 | existing paged V1 contract; no AIDL change |
+
+The snapshot reports implementation availability for R6A1/R6A2A/B, trusted topic count 3 and six ordered activation blockers. It never reports live subscription counts or opens the database; those would create a runtime dependency and a privacy surface before production Event ownership is approved.

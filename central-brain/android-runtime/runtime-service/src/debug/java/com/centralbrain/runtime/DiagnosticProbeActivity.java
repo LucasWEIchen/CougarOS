@@ -36,6 +36,7 @@ public final class DiagnosticProbeActivity extends Activity {
                 DiagnosticPage activationPage = diagnostics.getPage(activationQuery);
                 boolean activationVerified = hasBlockedEffectActivation(activationPage);
                 boolean modelRuntimeVerified = hasBlockedModelRuntime(activationPage);
+                boolean eventRuntimeVerified = hasBlockedEventRuntime(activationPage);
                 boolean passed = diagnostics.getProtocolVersion() == 1
                         && ICentralBrainDiagnostics.INTERFACE_HASH.equals(
                                 diagnostics.getProtocolHash())
@@ -44,12 +45,15 @@ public final class DiagnosticProbeActivity extends Activity {
                         && page.records.length == 1
                         && page.hasMore
                         && activationVerified
-                        && modelRuntimeVerified;
+                        && modelRuntimeVerified
+                        && eventRuntimeVerified;
                 Log.i(TAG, "nonce=" + nonce + " diagnostic_probe_passed=" + passed
                         + " effect_delivery_activation_diagnostic_verified="
                         + activationVerified
                         + " model_runtime_readiness_diagnostic_verified="
                         + modelRuntimeVerified
+                        + " event_runtime_readiness_diagnostic_verified="
+                        + eventRuntimeVerified
                         + " record_count=" + (page == null || page.records == null
                                 ? -1 : page.records.length)
                         + " hardware_accessed=false");
@@ -156,6 +160,39 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail.contains(
                             "production_model_router_dispatch_enabled=false")
                     && record.detail.contains("VENDOR_NPU_INTERFACE_EMPTY")
+                    && record.detail.contains("hardware_accessed=false")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasBlockedEventRuntime(DiagnosticPage page) {
+        if (page == null || page.records == null) {
+            return false;
+        }
+        for (DiagnosticRecord record : page.records) {
+            if (record != null
+                    && "event-runtime-readiness".equals(record.recordId)
+                    && "blocked".equals(record.summary)
+                    && record.detail != null
+                    && record.detail.contains("event_runtime_activation_allowed=false")
+                    && record.detail.contains(
+                            "bounded_event_runtime_implementation_available=true")
+                    && record.detail.contains("event_cursor_schema_ready=true")
+                    && record.detail.contains(
+                            "event_repository_implementation_available=true")
+                    && record.detail.contains("trusted_event_topic_count=3")
+                    && record.detail.contains("durable_event_source_available=false")
+                    && record.detail.contains("event_runtime_production_wired=false")
+                    && record.detail.contains(
+                            "event_cursor_repository_production_wired=false")
+                    && record.detail.contains("event_cursor_persistence_wired=false")
+                    && record.detail.contains("event_callback_binder_wired=false")
+                    && record.detail.contains("event_broker_production_wired=false")
+                    && record.detail.contains("event_middleware_chain_wired=false")
+                    && record.detail.contains("DURABLE_PUBLISHER_SEQUENCE_MISSING")
+                    && record.detail.contains("MIDDLEWARE_CHAIN_NOT_WIRED")
                     && record.detail.contains("hardware_accessed=false")) {
                 return true;
             }

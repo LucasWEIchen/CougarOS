@@ -98,7 +98,7 @@ for marker in \
   require_text "$INSTALLER" "$marker"
 done
 
-if grep -Eq 'BoundedEventRuntime' \
+if grep -Eq 'import .*BoundedEventRuntime|new BoundedEventRuntime|createForContractTest' \
     "$ROOT_DIR/$RUNTIME" "$ROOT_DIR/$GOVERNANCE" "$ROOT_DIR/$DIAGNOSTIC"; then
   echo "R6A1 Event runtime must not be wired into production Services" >&2
   exit 1
