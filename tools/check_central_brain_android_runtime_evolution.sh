@@ -248,6 +248,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_governance_middleware.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_skill_governance_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_application_acceptance.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

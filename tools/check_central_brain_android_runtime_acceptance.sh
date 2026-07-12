@@ -34,7 +34,6 @@ for path in "$SNAPSHOT" "$TEST" "$RUNTIME" "$DIAGNOSTIC" "$PROBE" "$INSTALLER"; 
 done
 
 for blocker in \
-  "API33_END_TO_END_ACCEPTANCE_PENDING" \
   "TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED" \
   "PRODUCTION_EFFECT_DELIVERY_BLOCKED" \
   "PRODUCTION_MODEL_RUNTIME_BLOCKED" \
@@ -60,7 +59,7 @@ for pattern in \
   "diagnosticDetail()"; do
   require_text "$SNAPSHOT" "$pattern"
 done
-require_text "$TEST" "coreAndClient2BinderAreReadyButR7AndProductionRemainBlocked"
+require_text "$TEST" "applicationIntegrationIsReadyButProductionRemainsBlocked"
 require_text "$TEST" "subsystemActivationAndDispatchRemainFailClosed"
 require_text "$TEST" "blockersRemainOrderedAndImmutable"
 require_text "$TEST" "diagnosticDetailSeparatesSoftwareFromProductionAcceptance"
@@ -79,9 +78,9 @@ for marker in \
   "runtime_acceptance_log_verified=true" \
   "runtime_acceptance_dumpsys_verified=true" \
   "core_software_baseline_ready=true" \
-  "r7_application_integration_complete=false" \
+  "r7_application_integration_complete=true" \
   "client2_binder_migration_complete=true" \
-  "api33_end_to_end_acceptance_complete=false" \
+  "api33_end_to_end_acceptance_complete=true" \
   "production_activation_allowed=false" \
   "target_hardware_validated=false" \
   "target_system_integration_owner_resolved=false" \
@@ -93,8 +92,10 @@ for marker in \
   require_text "$INSTALLER" "$marker"
 done
 
-if grep -Fq "CLIENT2_BINDER_MIGRATION_PENDING" "$ROOT_DIR/$SNAPSHOT"; then
-  echo "verified Client2 Binder migration must not remain an acceptance blocker" >&2
+if grep -Eq \
+    "CLIENT2_BINDER_MIGRATION_PENDING|API33_END_TO_END_ACCEPTANCE_PENDING" \
+    "$ROOT_DIR/$SNAPSHOT"; then
+  echo "verified R7 application integration must not retain closed blockers" >&2
   exit 1
 fi
 

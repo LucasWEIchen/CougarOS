@@ -191,6 +191,10 @@
 - Client2 debug APK 与 Runtime 使用同一调试 signer，通过 signature permission 后仍受 package/current-signer default-deny capability policy；只授予 protocol read 和 owned task submit/status/cancel。API 33 已验证按钮点击、异步 callback、UI reply、可信 package identity 和 no-HTTP/no-hardware 边界。
 - `client2_binder_migration_complete=true` 并移除对应 blocker；`r7_application_integration_complete=false`、API 33 总验收、system owner、五类 production subsystem 与 target hardware blocker 保持不变。下一步 R7C 做完整应用故障/恢复与总验收。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-G-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
+- `R7C Android 13 application integration acceptance` 已完成：API 33 自动矩阵覆盖 Runtime unavailable/re-enable retry、Client2 rapid-tap single-flight、任务中 Runtime process death/唯一 `ERROR_SERVICE_DIED`、fail-closed restart reconciliation/retry、Client2 process restart/rebind，以及既有 Binder reconnect/callback death/cancel race 回归。
+- Process death 只由 DUMP-protected debug receiver 注入，release 不包含该组件。验收合同与证据范围固定为 `api33-emulator-application-integration`，不升级为目标设备或量产证据。
+- `r7_application_integration_complete=true`、`api33_end_to_end_acceptance_complete=true`；剩余七项 blocker 为 target system owner、五类 production subsystem 和 target hardware。下一步 R7D 只做 Android 目标硬件移植/交付包与未决项收口，不开发 Linux 前端。
+- Req IDs：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

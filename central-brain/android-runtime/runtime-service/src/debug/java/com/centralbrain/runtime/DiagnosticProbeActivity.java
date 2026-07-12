@@ -313,10 +313,10 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail != null
                     && record.detail.contains("core_software_baseline_ready=true")
                     && record.detail.contains(
-                            "r7_application_integration_complete=false")
+                            "r7_application_integration_complete=true")
                     && record.detail.contains("client2_binder_migration_complete=true")
                     && record.detail.contains(
-                            "api33_end_to_end_acceptance_complete=false")
+                            "api33_end_to_end_acceptance_complete=true")
                     && record.detail.contains("production_activation_allowed=false")
                     && record.detail.contains("target_hardware_validated=false")
                     && record.detail.contains(
@@ -327,7 +327,6 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail.contains("room_schema_version=3")
                     && record.detail.contains("standard_artifact_count=3")
                     && record.detail.contains("signature_protected_service_count=3")
-                    && record.detail.contains("API33_END_TO_END_ACCEPTANCE_PENDING")
                     && record.detail.contains("TARGET_HARDWARE_NOT_VALIDATED")
                     && record.detail.contains("service_dispatch_triggered=false")
                     && record.detail.contains("hardware_accessed=false")) {

@@ -257,7 +257,7 @@ R6C3 changes no AIDL, Room schema or artifact shape. Event and Memory readiness 
 
 `RuntimeAcceptanceSnapshot` aggregates the immutable Effect, Model, Event, Memory and Skill/Governance readiness views with the typed Binder, trusted Governance and durable-workflow baseline. It is exposed through Runtime startup logging, protected dumpsys and Diagnostic Binder sequence 9 without opening storage or activating a blocked subsystem.
 
-The rollup deliberately separates `core_software_baseline_ready=true` from `r7_application_integration_complete=false`, `production_activation_allowed=false` and `target_hardware_validated=false`. Nine ordered blockers cover Client2 Binder migration, API 33 end-to-end evidence, target system owner, five blocked production subsystem groups and target hardware validation.
+The initial R7A1 rollup separated `core_software_baseline_ready=true` from `r7_application_integration_complete=false`, `production_activation_allowed=false` and `target_hardware_validated=false`. Its nine ordered blockers covered Client2 Binder migration, API 33 end-to-end evidence, target system owner, five blocked production subsystem groups and target hardware validation; later R7B/R7C sections record the evidence-backed application transitions.
 
 R7A1 is an acceptance contract, not a certificate embedded in the APK. The installer must still verify its three diagnostic surfaces and all underlying probes. R7B and R7C will remove only the application-integration blockers supported by concrete evidence; production and hardware blockers remain independent.
 
@@ -268,6 +268,12 @@ The isolated Client2 reverse-demo project now embeds the public SDK/AIDL contrac
 The generated Client2 debug APK uses the same debug signer as Runtime to pass `BIND_RUNTIME`. Runtime then applies its package/current-signer capability policy and grants Client2 only protocol read plus owned task submit/status/cancel. The API 33 acceptance taps the real overlay button, verifies Runtime identity resolution and UI reply, and records no HTTP, service dispatch or hardware access.
 
 This evidence changes only `client2_binder_migration_complete=true`. Full R7 application integration, target system ownership, production subsystem activation and target hardware validation remain blocked. Original Client2/RenderService signing compatibility must be validated on the target device.
+
+## R7C Android 13 Application Acceptance
+
+R7C adds a repeatable API 33 recovery matrix over Client2 and Runtime. It verifies visible Runtime-unavailable failure and same-Activity retry, rapid-tap single-flight, process-death `ERROR_SERVICE_DIED` uniqueness and retry, fail-closed restart reconciliation, Client2 process restart/rebind and all existing Binder death/reconnect/cancel-race instrumentation.
+
+The process-death receiver exists only in the Runtime debug source set and requires `android.permission.DUMP`; release packaging excludes it. Passing the matrix sets `r7_application_integration_complete=true` and `api33_end_to_end_acceptance_complete=true`. Seven production/system/hardware blockers remain, so this is not target-device or production qualification.
 
 ## Toolchain
 

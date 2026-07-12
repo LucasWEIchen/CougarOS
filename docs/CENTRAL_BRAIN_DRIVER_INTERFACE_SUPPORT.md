@@ -603,3 +603,9 @@ No JNI/C/C++, Driver/HAL ABI, system/vendor partition access, network, device no
 R7B uses Android application APIs only: explicit Binder service binding through the public SDK, AIDL parcelables/callbacks, PackageManager-enforced signature permission, APK signing tools and UI automation. The secondary dex contains Java SDK/bridge bytecode and does not load JNI or vendor libraries. Runtime returns the existing deterministic software reply and does not route to Python/Ollama, NPU or vehicle control.
 
 No C/C++, JNI, VHAL, vendor AIDL/HIDL, device node, PCIe/NPU, shared memory, network, vehicle bus, Safety Runtime, system/vendor partition or virtualization API is added. Existing DRV-GAP items remain unchanged and added Driver/HAL work is zero. Target RenderService signer trust is an application/vendor integration issue until published APIs prove a lower-layer gap. Req IDs: `APP-004`, `XSC-001`, `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`.
+
+### R7C Application Acceptance Driver/HAL Boundary
+
+R7C uses adb package enable/disable, Activity force-stop/relaunch, UIAutomator, typed Binder instrumentation and one debug-only `Process.killProcess` receiver. These actions fault Android application processes only; they do not reset a SoC, NPU, ECU, VHAL, vendor service or kernel driver. Interrupted task reconciliation remains app-private Room behavior with execution resume disabled.
+
+No C/C++, JNI, Driver/HAL ABI, device node, PCIe/NPU, shared memory, network, vehicle bus, Safety Runtime, system/vendor partition or virtualization API is added. API 33 emulator recovery evidence cannot close any DRV-GAP or target hardware claim. Existing gaps remain unchanged and added Driver/HAL work is zero. Req IDs: `APP-004`, `XSC-001`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-012`, `NV-G-003`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

@@ -1122,9 +1122,9 @@ for marker in \
   "skill_governance_activation_blockers=ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED" \
   "runtime_acceptance_snapshot_wired=true" \
   "core_software_baseline_ready=true" \
-  "r7_application_integration_complete=false" \
+  "r7_application_integration_complete=true" \
   "client2_binder_migration_complete=true" \
-  "api33_end_to_end_acceptance_complete=false" \
+  "api33_end_to_end_acceptance_complete=true" \
   "production_activation_allowed=false" \
   "target_hardware_validated=false" \
   "target_system_integration_owner_resolved=false" \
@@ -1133,7 +1133,7 @@ for marker in \
   "durable_workflow_foundation_ready=true" \
   "standard_artifact_count=3" \
   "signature_protected_service_count=3" \
-  "runtime_acceptance_blockers=API33_END_TO_END_ACCEPTANCE_PENDING" \
+  "runtime_acceptance_blockers=TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
@@ -1317,9 +1317,9 @@ done
 for marker in \
   "runtime_acceptance_snapshot_wired=true" \
   "core_software_baseline_ready=true" \
-  "r7_application_integration_complete=false" \
+  "r7_application_integration_complete=true" \
   "client2_binder_migration_complete=true" \
-  "api33_end_to_end_acceptance_complete=false" \
+  "api33_end_to_end_acceptance_complete=true" \
   "production_activation_allowed=false" \
   "target_hardware_validated=false" \
   "target_system_integration_owner_resolved=false" \
@@ -1329,7 +1329,7 @@ for marker in \
   "room_schema_version=3" \
   "standard_artifact_count=3" \
   "signature_protected_service_count=3" \
-  "runtime_acceptance_blockers=API33_END_TO_END_ACCEPTANCE_PENDING"; do
+  "runtime_acceptance_blockers=TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
     echo "Runtime acceptance missing marker: $marker" >&2
     exit 1
@@ -1603,9 +1603,9 @@ printf '%s\n' \
   "runtime_acceptance_log_verified=true" \
   "runtime_acceptance_dumpsys_verified=true" \
   "core_software_baseline_ready=true" \
-  "r7_application_integration_complete=false" \
+  "r7_application_integration_complete=true" \
   "client2_binder_migration_complete=true" \
-  "api33_end_to_end_acceptance_complete=false" \
+  "api33_end_to_end_acceptance_complete=true" \
   "production_activation_allowed=false" \
   "target_hardware_validated=false" \
   "target_system_integration_owner_resolved=false" \
@@ -1614,7 +1614,7 @@ printf '%s\n' \
   "durable_workflow_foundation_ready=true" \
   "standard_artifact_count=3" \
   "signature_protected_service_count=3" \
-  "runtime_acceptance_blockers=API33_END_TO_END_ACCEPTANCE_PENDING,TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED,PRODUCTION_EFFECT_DELIVERY_BLOCKED,PRODUCTION_MODEL_RUNTIME_BLOCKED,PRODUCTION_EVENT_RUNTIME_BLOCKED,PRODUCTION_MEMORY_RUNTIME_BLOCKED,PRODUCTION_SKILL_GOVERNANCE_BLOCKED,TARGET_HARDWARE_NOT_VALIDATED" \
+  "runtime_acceptance_blockers=TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED,PRODUCTION_EFFECT_DELIVERY_BLOCKED,PRODUCTION_MODEL_RUNTIME_BLOCKED,PRODUCTION_EVENT_RUNTIME_BLOCKED,PRODUCTION_MEMORY_RUNTIME_BLOCKED,PRODUCTION_SKILL_GOVERNANCE_BLOCKED,TARGET_HARDWARE_NOT_VALIDATED" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "model_provider_contract_verified=true" \

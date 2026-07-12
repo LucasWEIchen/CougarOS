@@ -1136,3 +1136,15 @@ The rollup consumes immutable child snapshots, SDK maturity/stage constants and 
 | API 33 acceptance script | signed Runtime/Client2 APKs and visible cold-scenario button | verifies Binder identity/callback/UI; reports no dispatch/hardware |
 
 The SDK AAR and the two bridge Java sources are compiled by D8 into an embedded `classes2.dex`; the existing Client2 Activity is hooked only after `setContentView`. The debug signer is intentionally shared with Runtime so Android can grant the signature permission, while the inner package/current-signer policy still applies least privilege. This is an APK-level test integration, not a claim that the original Client2 signer or RenderService trust contract is preserved.
+
+## Android R7C Application Integration Acceptance
+
+| Test surface | Trigger | Expected contract |
+| --- | --- | --- |
+| Runtime availability | disable/enable Runtime package from adb shell | visible bind failure, in-flight release, same-Activity retry success |
+| Client2 single-flight | two immediate taps | one `AgentTaskRequest`, one trusted admission, one terminal callback |
+| Runtime death | DUMP-protected debug broadcast after submit | one `ERROR_SERVICE_DIED`, no completion, next-click rebind and fail-closed reconciliation |
+| Client2 restart | force-stop/relaunch Activity process | fresh panel hook, SDK bind, callback and UI reply |
+| SDK lifecycle regression | existing androidTest instrumentation | service death/reconnect, callback death, terminal uniqueness, cancel/completion race |
+
+`RuntimeFaultProbeReceiver` is a debug-only test interface, not a Runtime product API. Client2 cannot invoke it, release packaging excludes it, and the acceptance script restores Runtime package state through an EXIT trap. The evidence contract is stored in `central_brain_android_r7c_acceptance.json`; its positive claims stop at API 33 application integration.

@@ -926,3 +926,11 @@ R7B 交付隔离 Client2 APK patch 工程、两文件 Java bridge、SDK/AIDL `cl
 API 33 必须验证 Client2/Runtime signer parity、signature permission granted、secondary SDK dex、12 场景 allowlist 中真实按钮点击、Runtime package identity、typed task completion 和 UI reply，并固定 `http_transport_used=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`。Client2 APK 不得声明 INTERNET/cleartext，也不得保留旧 HTTP RequestTask。
 
 该交付只关闭 Client2 Binder migration blocker。闭源 APK 维护、原始 signer/RenderService trust、目标系统 owner、R7 完整 E2E、production Effect/Model/Event/Memory/Skill-Governance 和目标硬件仍未通过；无 Driver/HAL、厂商 SDK/system binary、Linux 前端或虚拟化开发。
+
+## Android R7C Application Integration Acceptance
+
+R7C 交付 API 33 application acceptance JSON contract、详细说明、debug-only/DUMP-protected Runtime process-death receiver、Client2 恢复矩阵脚本、静态门禁和更新后的 aggregate snapshot。标准 SDK AAR + Runtime APK + Demo APK 形状、AIDL/checksum 与 Room v3 不变；release 不得包含 fault receiver 或任何 debug probe。
+
+API 33 必须输出 Runtime absent/retry、single-flight、Runtime death unique failure/retry、restart reconciliation fail-closed、Client2 process restart/rebind、Binder lifecycle/cancel race 和最终 aggregate state evidence。Client2 happy path、identity/capability、UI reply 与 no-HTTP/no-hardware 仍须回归通过。
+
+该交付允许 `r7_application_integration_complete=true` 和 `api33_end_to_end_acceptance_complete=true`，但证据范围仅为 emulator application integration。Target system owner、五类 production subsystem 和 target hardware 七项 blocker 保持；无 Driver/HAL、厂商系统软件、Linux 前端或虚拟化开发。

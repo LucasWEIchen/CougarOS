@@ -51,6 +51,12 @@ Run the typed Binder/UI acceptance on an Android 13 emulator:
 bash tools/test_client2_central_brain_binder.sh --require-api-33
 ```
 
+Run the R7C fault/recovery matrix after the happy-path check:
+
+```bash
+bash tools/test_client2_central_brain_recovery.sh --require-api-33
+```
+
 ## Current Patch
 
 The layout patch keeps the original render hierarchy full-screen and adds a

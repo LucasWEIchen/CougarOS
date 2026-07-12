@@ -183,6 +183,8 @@
 
 2026-07-12 R7B 进展：Client2 已嵌入 SDK/AIDL `classes2.dex`，12 场景经 signature-protected typed Binder 提交；Runtime 用 package/current-signer default-deny policy 只授予四项 owned-task 能力。API 33 自动点击验证 UI reply、可信调用方和 `http_transport_used=false`，因此 HTTP/固定 endpoint 子问题关闭。ISSUE-019 继续 Proposed，仅跟踪闭源维护、重签名/RenderService trust、ARM64 目标设备和真实模型/NPU 标定；该证据不证明车控或硬件能力。
 
+2026-07-12 R7C 进展：API 33 已验证 Runtime unavailable/death 与 Client2/process retry，不再把基础应用恢复能力列为 ISSUE-019 未决项。ISSUE-019 仍为 Proposed：x86_64 emulator 不能证明 ARM64 RenderService、原始/量产 signer trust、目标安装策略或真实模型/NPU 性能。
+
 状态：Proposed。
 
 ## ISSUE-020 KaKaClaw 公开产品参考边界
@@ -210,6 +212,8 @@
 2026-07-12 进展：R1 SDK AAR、Runtime Service APK、Demo HMI APK 和 API 33 生命周期退出验证已完成。R2A 已编译分离的业务/诊断 structured AIDL、oneway callback、显式 protocol version/hash 和 V1 checksum freeze；R2B 已实现独立 signature-permission production/diagnostic Service、typed SDK client、快速 handle、deterministic callback、异步/幂等 cancel、callback/service death recipient、API 33 权限拒绝和 diagnostic paging；R2C 已通过 service-process death、单次 `SERVICE_DIED`、显式重连、重复 disconnect 抑制、client-process death 和 15-task cancel-vs-completion race instrumentation。新 typed Protocol Binding 的 R2 退出条件已关闭并达到 `android_integrated`。因当前不是 VINTF stable AIDL，且旧 JSON Binder/同步 HTTP proxy/Client2 HTTP 尚未迁移，ISSUE-021 继续 Open 到 R7 compatibility migration 收口，不阻塞 R3 开始。
 
 2026-07-12 R7B 进展：Client2 compatibility client 已从 HTTP 迁移到 public typed SDK，API 33 验证 version/hash、async callback、signature permission、caller identity 与最小 capability policy。ISSUE-021 仍 Open：旧 107-method JSON Binder/同步 REST proxy 仍未完成退役，当前 AIDL 也不是 VINTF stable，target system/privileged owner 与 production service placement 尚未确认。
+
+2026-07-12 R7C 进展：Client2 路径已通过 service death、retry、terminal uniqueness、process restart 和 SDK cancel/completion race 回归，typed async Binder 的应用级生命周期收口。ISSUE-021 仍 Open，仅保留旧 JSON Binder/REST 退役、VINTF/stable 选择、target service owner/placement 和量产兼容迁移问题。
 
 状态：Open，实施已获批准。
 
@@ -320,6 +324,8 @@ R2-R6 已形成可验证的软件基线，R7B 也已关闭 Client2 临时 HTTP/B
 2026-07-12 R7A1 进展：新增 Runtime log、protected dumpsys 与 Diagnostic Binder sequence 9 聚合快照，明确 `core_software_baseline_ready=true`、`r7_application_integration_complete=false`、`production_activation_allowed=false`、`target_hardware_validated=false`，并列出九项 ordered blocker。ISSUE-026 保持 Open：R7B/R7C 尚未关闭 Client2 Binder 和 API33 E2E；system owner、production subsystem 与 hardware blocker 不得由模拟器应用层证据关闭。
 
 2026-07-12 R7B 进展：API 33 已验证 Client2 signer/permission、typed SDK Binder、Runtime identity/capability、async completion 和 UI reply，aggregate snapshot 更新为 `client2_binder_migration_complete=true`，ordered blocker 从九项降为八项。ISSUE-026 保持 Open：R7C API 33 fault/recovery 总验收尚未完成，system owner、五类 production subsystem 与 target hardware 不得由本次模拟器证据关闭。
+
+2026-07-12 R7C 进展：五类 application recovery evidence 全部通过，aggregate snapshot 更新为 `r7_application_integration_complete=true`、`api33_end_to_end_acceptance_complete=true`，ordered blocker 从八项降为七项。ISSUE-026 保持 Open：target system owner、Effect/Model/Event/Memory/Skill-Governance production activation 和 target hardware 仍未解决，API 33 emulator 证据不得关闭这些 blocker。
 
 状态：Open，实施已获批准。
 

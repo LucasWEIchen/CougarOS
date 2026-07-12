@@ -1013,3 +1013,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The panel must preserve one in-flight task, update status through the main executor, render terminal `TaskResult`/failure and release the in-flight gate exactly once. A failed bind or protocol mismatch must be visible and fail closed.
 - API 33 evidence must install both APKs, verify the signature permission, signer parity and secondary dex, tap a real Client2 button, observe trusted Runtime caller identity plus async completion, and confirm the reply in UI with `http_transport_used=false`, `service_dispatch_triggered=false` and `hardware_accessed=false`.
 - After that evidence only `client2_binder_migration_complete` becomes true and `CLIENT2_BINDER_MIGRATION_PENDING` is removed. R7 integration, production activation, target system ownership and target hardware validation remain false/open.
+
+### 2026-07-12 R7C Android 13 application integration acceptance trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- Acceptance evidence must run on exactly API 33 and cover five ordered scenarios: Runtime unavailable/retry, Client2 rapid-tap single-flight, Runtime process death/retry, Client2 process restart/rebind and existing SDK Binder lifecycle/cancel-race regression.
+- Runtime unavailable must produce a visible fail-closed Client2 error and release the in-flight gate. Re-enabling Runtime must allow a successful retry without restarting Client2.
+- Two rapid taps must produce exactly one trusted Runtime admission and one terminal callback. A task-time Runtime death must produce exactly one `ERROR_SERVICE_DIED` failure and no completion; the next click must restart Runtime and reconcile interrupted work with execution resume disabled.
+- Runtime process death may be injected only by a debug-source `BroadcastReceiver` protected by `android.permission.DUMP`, with one explicit action. It must be absent from the main/release manifest and inaccessible to Client2.
+- Client2 force-stop/relaunch must create a new process, reinstall the panel hook, bind through the SDK and render a completed reply. Existing instrumentation must remain green for service death, reconnect, callback death, terminal uniqueness and cancel/completion race.
+- The UI currently exposes no cancellation or timeout command; R7C must state that boundary and may use existing SDK instrumentation for cancellation semantics, but must not claim UI coverage that does not exist.
+- Passing all scenarios permits `api33_end_to_end_acceptance_complete=true` and `r7_application_integration_complete=true`. Production activation, target system owner and target hardware remain false, with exactly seven preserved blockers.

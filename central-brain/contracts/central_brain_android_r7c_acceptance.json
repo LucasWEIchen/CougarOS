@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "acceptance_id": "android-r7c-api33-application-integration",
+  "status": "verified",
+  "evidence_scope": "api33-emulator-application-integration",
+  "required_android_api": 33,
+  "req_ids": [
+    "APP-004",
+    "XSC-001",
+    "XSC-005",
+    "XSC-006",
+    "NV-F-001",
+    "NV-F-012",
+    "NV-G-003",
+    "NV-G-006",
+    "NV-G-007",
+    "NV-P-002",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "test_command": "bash tools/test_client2_central_brain_recovery.sh --require-api-33",
+  "evidence": [
+    {
+      "id": "R7C-E-001",
+      "scenario": "runtime_unavailable_and_retry",
+      "required_markers": [
+        "runtime_absent_failure_visible=true",
+        "runtime_reenable_retry_completed=true"
+      ]
+    },
+    {
+      "id": "R7C-E-002",
+      "scenario": "client2_single_flight",
+      "required_markers": [
+        "client2_single_flight_verified=true"
+      ]
+    },
+    {
+      "id": "R7C-E-003",
+      "scenario": "runtime_process_death_and_retry",
+      "required_markers": [
+        "runtime_process_death_injected=true",
+        "runtime_service_death_failure_visible=true",
+        "runtime_service_death_terminal_unique=true",
+        "runtime_service_restart_retry_completed=true",
+        "runtime_restart_reconciliation_fail_closed=true"
+      ]
+    },
+    {
+      "id": "R7C-E-004",
+      "scenario": "client2_process_restart",
+      "required_markers": [
+        "client2_process_restart_rebind_completed=true"
+      ]
+    },
+    {
+      "id": "R7C-E-005",
+      "scenario": "sdk_binder_lifecycle_regression",
+      "required_markers": [
+        "binder_lifecycle_regression_verified=true",
+        "binder_cancel_completion_race_verified=true"
+      ]
+    }
+  ],
+  "claim_state": {
+    "core_software_baseline_ready": true,
+    "client2_binder_migration_complete": true,
+    "api33_end_to_end_acceptance_complete": true,
+    "r7_application_integration_complete": true,
+    "production_activation_allowed": false,
+    "target_system_integration_owner_resolved": false,
+    "target_hardware_validated": false
+  },
+  "preserved_blockers": [
+    "TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED",
+    "PRODUCTION_EFFECT_DELIVERY_BLOCKED",
+    "PRODUCTION_MODEL_RUNTIME_BLOCKED",
+    "PRODUCTION_EVENT_RUNTIME_BLOCKED",
+    "PRODUCTION_MEMORY_RUNTIME_BLOCKED",
+    "PRODUCTION_SKILL_GOVERNANCE_BLOCKED",
+    "TARGET_HARDWARE_NOT_VALIDATED"
+  ],
+  "non_claims": [
+    "target Android hardware acceptance",
+    "system or privileged service ownership",
+    "production Effect Model Event Memory or Skill Governance activation",
+    "real model or NPU execution",
+    "Driver HAL vendor system or virtualization development",
+    "Client2 UI cancellation or timeout controls"
+  ]
+}

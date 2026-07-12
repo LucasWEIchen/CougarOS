@@ -53,6 +53,7 @@ for path in \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectDeliveryActivationSnapshot.java \
   central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml \
   central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java \
+  central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeFaultProbeReceiver.java \
   central-brain/android-runtime/demo-hmi/build.gradle.kts \
   central-brain/android-runtime/demo-hmi/src/main/AndroidManifest.xml \
   central-brain/android-runtime/demo-hmi/src/main/java/com/centralbrain/demo/DemoActivity.java \
@@ -76,7 +77,9 @@ for path in \
   tools/check_central_brain_android_effect_activation_gate.sh \
   tools/check_central_brain_android_effect_gate_wiring.sh \
   tools/check_central_brain_android_client2_binder.sh \
+  tools/check_central_brain_android_application_acceptance.sh \
   tools/test_client2_central_brain_binder.sh \
+  tools/test_client2_central_brain_recovery.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
@@ -155,5 +158,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_governance_middleware.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_skill_governance_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_application_acceptance.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

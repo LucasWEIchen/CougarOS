@@ -26,7 +26,7 @@
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 已完成：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B/C API 33 验证通过；真实 effect activation 仍受 gate 阻塞 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 软件基线已完成：R5A1/A2、R5B1/B2、R5C1、R5D1；production/hardware activation 仍阻塞 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 软件基线已完成：R6A Event、R6B Memory、R6C1/C2/C3 Skill/Governance；production activation 仍阻塞 |
-| R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 进行中：R7A1 aggregate acceptance、R7B Client2 Binder 已完成；R7C 总验收待推进 |
+| R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 应用集成完成：R7A1/R7B/R7C 已完成；R7D 目标硬件移植交付待推进 |
 
 ## M0 任务清单
 
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R7C Android 13 application integration acceptance：Runtime disabled/retry、Client2 single-flight、Runtime process death/唯一失败/retry、restart reconciliation、Client2 process restart 和既有 Binder lifecycle/cancel race 全部通过。
+- Debug fault receiver 仅存在于 DUMP-protected debug source；release 不包含。Aggregate snapshot 更新为 R7/API33 application complete，七项 system-owner/production/hardware blocker 保持。下一步 R7D Android 目标硬件移植包与最终交付边界。
+- R7C 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R7B Client2 SDK/Binder migration：SDK/AIDL 与两文件 bridge 进入 `classes2.dex`，12 场景从 HTTP 切换到 typed Binder；APK 无 INTERNET/cleartext，Client2/Runtime signer parity 和最小 capability policy 已固化。
 - API 33 自动验收已真实点击 `care.cold` 按钮，验证 signature permission、Runtime caller `com.tuanjie.urasclient2`、async completion 和 UI reply；HTTP/service dispatch/hardware 均 false。Aggregate snapshot 仅关闭 Client2 blocker，下一步 R7C API 33 fault/recovery 与总集成验收。
 - R7B 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-G-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
