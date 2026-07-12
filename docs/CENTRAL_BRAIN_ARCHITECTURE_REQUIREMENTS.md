@@ -905,3 +905,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The tool may build/install normal APKs and use public adb/package/manifest/dumpsys diagnostics only. It must not include root/remount/flash/partition-write behavior and must not require vendor/AOSP/BSP source changes.
 - Dynamic evidence must confirm production inference, Stub configuration/routing, Scheduler/Router dispatch, Vendor NPU and hardware remain disabled. Emulator and device application evidence must use distinct scope labels.
 - `target_hardware_validated=false` is mandatory. R5D1 can close only the R5 contract/test software track; real target application acceptance and hardware qualification remain separate delivery evidence.
+
+### 2026-07-12 R6A1 bounded Event runtime trace
+
+- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
+- R6A1 must expose only the trusted low-frequency topics `runtime.task.state`, `governance.policy.decision` and `model.runtime.health`. Publication construction must be Runtime-policy-only and retain schema plus lowercase SHA-256 digest metadata, not raw business payload.
+- One process-local global sequence must increase monotonically without reuse. Retained replay events, global/per-owner subscriptions, per-subscription queues, dispatch batches and cancelled tombstones must all be bounded.
+- Subscription identity is owner fingerprint plus client subscription ID. Exact replay returns the original subscription and observer without consuming quota; changed topic/cursor/queue content conflicts. Status, dispatch and cancellation must not reveal another owner.
+- A cursor greater than the latest sequence and an unknown topic fail with typed outcomes. A cursor older than retained history or a full delivery queue accumulates an explicit dropped range/count; overflow callback must succeed before any retained event callback.
+- Observer event failure must retain the head event and not advance `lastDeliveredSequence`. Observer callbacks must not reenter publish/subscribe/dispatch/cancel; reentrant mutation fails closed as an observer failure without changing the queued head. Owner cancellation removes pending work, emits close at most once and remains idempotent through a bounded tombstone.
+- JVM/API 33 evidence must cover topics, sequence/retention, replay/conflict, overflow ordering, owner isolation, observer retry and cancellation. Production Service, Room cursor persistence, Binder callback, broker, DDS/network/vehicle transport and hardware remain unwired.

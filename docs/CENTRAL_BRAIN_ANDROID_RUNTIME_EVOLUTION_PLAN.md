@@ -153,6 +153,13 @@
 - R5 contract/test software track 已关闭，可进入 R6；production evolution stage 仍保持 R4 durable foundation。物理目标应用层验收、production Provider/Router、Ollama/Vendor NPU 和 hardware qualification 不包含在关闭声明内，继续由 ISSUE-024、DEV-019 与 `DRV-GAP-001` 跟踪。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`。
 
+### R6 实施状态
+
+- `R6A1 bounded Event runtime contract` 已完成：pure-Java process-local state machine 仅允许 task state、policy decision、model health 三个 trusted low-frequency topic，publication 只携带 schema/digest metadata。
+- 全局 monotonic sequence、bounded retention、owner/client-idempotent subscription、global cursor replay、overflow-before-event、observer failure retry、observer reentrant mutation fail-closed、owner-isolated idempotent cancel 和 global/per-owner/queue/batch limits 已有 JVM/API 33 evidence。
+- 当前不接 Room `event_cursor`、production Service、Binder callback、DDS/SSE/WebSocket、网络、车辆总线或硬件。R6A2 将定义 durable cursor/subscription recovery，R6B/R6C 再推进 Memory、Skill 与 middleware。
+- Req IDs：`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`。
+
 ## 架构落点
 
 | 架构图层 | 本计划新增实现 |

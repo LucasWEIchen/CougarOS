@@ -189,6 +189,14 @@ All three visibility surfaces report production inference false, profile configu
 
 The gate rejects INTERNET/native payload and any SYSTEM/PRIVILEGED/PERSISTENT package requirement. It does not require vendor/AOSP/BSP source or modify system/vendor partitions. Emulator evidence and physical-device application evidence are labeled separately, while `target_hardware_validated=false` remains mandatory for both. See `docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md`.
 
+## R6A1 Bounded Event Runtime Contract
+
+`BoundedEventRuntime` is a synchronized pure-Java contract fixture for three trusted low-frequency topics: task state, policy decision and model health. Publications are created through a Runtime-policy factory and carry schema/digest metadata only. The runtime assigns one global monotonic sequence and retains a bounded in-process replay window.
+
+Owner-scoped subscriptions use client idempotency keys, a global cursor and bounded delivery queues. Exact replay returns the original subscription and observer; changed content conflicts. Retention or queue loss produces an explicit overflow callback before retained events. Observer failure does not remove the event or advance the delivered cursor. Observer callbacks cannot reenter a mutating runtime operation; an attempt fails closed as an observer failure without changing the queue. Owner cancellation is isolated and idempotent with bounded tombstones.
+
+R6A1 is instantiated only by JVM tests and a DUMP-protected API 33 probe. It does not use the existing Room cursor table, expose Binder callbacks, start a broker, DDS/network transport or vehicle data plane, or wire production Services. R6A2 owns durable cursor/subscription recovery.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

@@ -838,3 +838,11 @@ R5D1 交付 `tools/test_central_brain_android_target_deployment.sh`、静态守�
 API 33 emulator 已通过：SDK/Runtime/Demo hash 可归档，Runtime/Demo signer 一致，两个 APK 均为普通 UID 且位于 `/data/app`，Runtime 有三项 signature-protected Service，不请求 INTERNET、无 native `.so`，production inference/Vendor NPU/hardware 均 false。证据明确为 emulator scope，真实目标应用层验收仍需在交付设备重跑默认命令。
 
 R5 contract/test software track 因此完成，但不提升为 `hardware_validated` 或 `production_qualified`。物理目标、量产 signer/MDM/SELinux 策略、真实 NPU/Driver/HAL、性能/热/故障与安全认证仍是后续集成工作。
+
+## Android R6A1 Bounded Event Runtime
+
+R6A1 交付 main-source `BoundedEventRuntime`、JVM tests、DUMP-protected debug probe、安装门禁与 `tools/check_central_brain_android_event_runtime.sh`。AIDL、Room schema、SDK public API 和标准 SDK AAR + Runtime APK + Demo APK 形状不变；release 不得包含 Event probe。
+
+API 33 验收必须输出 trusted-topic、monotonic-sequence、cursor-replay、overflow-before-delivery、owner isolation、subscription idempotency、cancel idempotency 和 observer retry evidence，同时固定 process-only/cursor-persistence/broker/Binder/DDS/network/vehicle-bus/hardware 边界。
+
+该交付不是 production Event broker，不持久化订阅/cursor，不发送真实业务 payload，不接 Binder callback、SSE/WebSocket、DDS、车辆总线或 Linux 前端。现有 Room `event_cursor` table 只保留为 R6A2 schema foundation，本阶段不得写入。

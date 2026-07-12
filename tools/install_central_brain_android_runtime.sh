@@ -721,6 +721,61 @@ if [[ "$MODEL_ROUTER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+EVENT_RUNTIME_NONCE="$(date +%s%N)"
+EVENT_RUNTIME_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.events.BoundedEventRuntimeProbeActivity \
+  --es nonce "$EVENT_RUNTIME_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$EVENT_RUNTIME_PROBE_OUTPUT"; then
+  echo "$EVENT_RUNTIME_PROBE_OUTPUT" >&2
+  echo "bounded event runtime debug probe did not start successfully" >&2
+  exit 1
+fi
+EVENT_RUNTIME_PROBE_PASSED=false
+for _ in {1..40}; do
+  EVENT_RUNTIME_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbEventRuntimeProbe:I)"
+  if grep -Fq "nonce=$EVENT_RUNTIME_NONCE event_runtime_probe_complete=true" \
+      <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_runtime_contract_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_trusted_topic_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_monotonic_sequence_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_cursor_replay_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_overflow_before_delivery_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_owner_isolation_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_subscription_idempotency_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_cancel_idempotency_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_observer_retry_verified=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_runtime_process_only=true" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_cursor_persistence_wired=false" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_broker_production_wired=false" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "event_callback_binder_wired=false" \
+        <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "dds_runtime_active=false" <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "network_transport_active=false" <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "vehicle_bus_accessed=false" <<<"$EVENT_RUNTIME_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$EVENT_RUNTIME_LOG"; then
+    EVENT_RUNTIME_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$EVENT_RUNTIME_PROBE_PASSED" != true ]]; then
+  echo "$EVENT_RUNTIME_LOG" >&2
+  echo "bounded event runtime probe did not pass" >&2
+  exit 1
+fi
+
 PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.runtime/.RuntimeProbeActivity)"
 if ! grep -Fq "Status: ok" <<<"$PROBE_OUTPUT"; then
   echo "$PROBE_OUTPUT" >&2
@@ -1126,6 +1181,22 @@ printf '%s\n' \
   "production_model_router_wired=false" \
   "production_model_router_dispatch_enabled=false" \
   "production_inference_enabled=false" \
+  "event_runtime_contract_verified=true" \
+  "event_trusted_topic_verified=true" \
+  "event_monotonic_sequence_verified=true" \
+  "event_cursor_replay_verified=true" \
+  "event_overflow_before_delivery_verified=true" \
+  "event_owner_isolation_verified=true" \
+  "event_subscription_idempotency_verified=true" \
+  "event_cancel_idempotency_verified=true" \
+  "event_observer_retry_verified=true" \
+  "event_runtime_process_only=true" \
+  "event_cursor_persistence_wired=false" \
+  "event_broker_production_wired=false" \
+  "event_callback_binder_wired=false" \
+  "dds_runtime_active=false" \
+  "network_transport_active=false" \
+  "vehicle_bus_accessed=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

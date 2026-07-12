@@ -1003,3 +1003,17 @@ Deterministic Stub 报告 TEST_ONLY/COLD/HEALTHY/`STUB_IMPLEMENTATION_NOT_WIRED`
 | `evidence_scope` | `ro.kernel.qemu` | emulator vs device application-layer evidence is explicit |
 
 The script exits non-zero on any mismatch and prints key/value evidence only after every check passes. It does not expose a new Binder API. `target_hardware_validated=false` is invariant and application-layer acceptance does not close `DRV-GAP-001`.
+
+## Android R6A1 Bounded Event Runtime
+
+| Interface/type | Input | Output/constraint |
+| --- | --- | --- |
+| `TrustedPublication.fromRuntimePolicy` | trusted topic, schema ID, payload SHA-256 | no raw payload; unknown topic is typed rejection |
+| `publish` | trusted publication | global monotonic `EventEnvelope`, bounded retention, subscriber enqueue |
+| `TrustedSubscription.fromRuntimePolicy` | client ID, owner fingerprint, topic set, global cursor, queue capacity | 1..8 unique topics; owner is lowercase SHA-256 |
+| `subscribe` | trusted request + process observer | CREATED/REPLAYED/CONFLICT/topic/cursor/quota outcome; replay keeps original observer |
+| `dispatchOwned` | subscription ID, owner, bounded batch | overflow callback first, then events; observer failure or reentrant mutation retains head |
+| `cancelOwned` | subscription ID + owner | CANCELLED/ALREADY_CANCELLED/not-owner; one close callback |
+| `findOwned` / `snapshot` | trusted owner or diagnostics | no cross-owner leakage; bounded counts and no-production flags |
+
+The cursor is global across the three trusted low-frequency topics. A retention gap is therefore a conservative global overflow range; consumers must resynchronize state after overflow. An observer callback cannot reenter publish, subscribe, dispatch or cancel on the same runtime; the attempt is treated as `OBSERVER_FAILED` before queue ownership advances. Event/subscription/cursor state is process-only, callback dispatch is an explicit test call, and no Room/Binder/DDS/network/hardware path is active.
