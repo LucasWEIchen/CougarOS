@@ -159,6 +159,8 @@
 - 全局 monotonic sequence、bounded retention、owner/client-idempotent subscription、global cursor replay、overflow-before-event、observer failure retry、observer reentrant mutation fail-closed、owner-isolated idempotent cancel 和 global/per-owner/queue/batch limits 已有 JVM/API 33 evidence。
 - 当前不接 Room `event_cursor`、production Service、Binder callback、DDS/SSE/WebSocket、网络、车辆总线或硬件。R6A2 将定义 durable cursor/subscription recovery，R6B/R6C 再推进 Memory、Skill 与 middleware。
 - Req IDs：`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`。
+- `R6A2A durable Event schema` 已完成：Room v3 保持 8-table artifact shape，把 event cursor 从 owner/topic 单游标演进为 owner/client subscription、canonical topics、request/ACK cursor、queue、state 和 overflow metadata。
+- `MIGRATION_2_3` 把 v2 行映射为 `legacy:<cursor_id>` 并保留 owner/topic/sequence/time；本小步只有 schema/DAO/migration probe，不接 R6A1 runtime 或 production Service。R6A2B 继续 repository/reopen 状态机。
 
 ## 架构落点
 

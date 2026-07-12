@@ -198,11 +198,16 @@ for _ in {1..40}; do
   if grep -Fq "nonce=$MIGRATION_NONCE migration_probe_complete=true" \
       <<<"$MIGRATION_LOG" \
       && grep -Fq "room_migration_1_2_verified=true" <<<"$MIGRATION_LOG" \
-      && grep -Fq "room_schema_version=2" <<<"$MIGRATION_LOG" \
+      && grep -Fq "room_migration_2_3_verified=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "room_schema_version=3" <<<"$MIGRATION_LOG" \
       && grep -Fq "room_table_count=8" <<<"$MIGRATION_LOG" \
       && grep -Fq "room_wal_enabled=true" <<<"$MIGRATION_LOG" \
       && grep -Fq "legacy_task_preserved=true" <<<"$MIGRATION_LOG" \
       && grep -Fq "legacy_approval_preserved=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "legacy_event_cursor_preserved=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "event_cursor_schema_v3_verified=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "event_cursor_schema_ready=true" <<<"$MIGRATION_LOG" \
+      && grep -Fq "event_cursor_repository_wired=false" <<<"$MIGRATION_LOG" \
       && grep -Fq "durable_dispatch_enabled=false" <<<"$MIGRATION_LOG"; then
     MIGRATION_PROBE_PASSED=true
     break
@@ -1034,12 +1039,17 @@ printf '%s\n' \
   "diagnostic_binder_page_verified=true" \
   "effect_delivery_activation_diagnostic_verified=true" \
   "model_runtime_readiness_diagnostic_verified=true" \
-  "room_schema_version=2" \
+  "room_schema_version=3" \
   "room_table_count=8" \
   "room_wal_enabled=true" \
   "room_migration_1_2_verified=true" \
+  "room_migration_2_3_verified=true" \
   "legacy_task_preserved=true" \
   "legacy_approval_preserved=true" \
+  "legacy_event_cursor_preserved=true" \
+  "event_cursor_schema_v3_verified=true" \
+  "event_cursor_schema_ready=true" \
+  "event_cursor_repository_wired=false" \
   "task_admission_transaction_verified=true" \
   "task_idempotent_replay_verified=true" \
   "task_idempotency_conflict_verified=true" \

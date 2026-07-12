@@ -5,7 +5,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PERSISTENCE_ROOT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence"
-SCHEMA="central-brain/android-runtime/runtime-service/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/2.json"
+SCHEMA_V2="central-brain/android-runtime/runtime-service/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/2.json"
+SCHEMA="central-brain/android-runtime/runtime-service/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/3.json"
 DATABASE="$PERSISTENCE_ROOT/CentralBrainDatabase.java"
 DAO="$PERSISTENCE_ROOT/RuntimeStateDao.java"
 PROBE="central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/persistence/MigrationProbeActivity.java"
@@ -41,6 +42,7 @@ for name in \
   CentralBrainDatabase.java; do
   require_file "$PERSISTENCE_ROOT/$name"
 done
+require_file "$SCHEMA_V2"
 require_file "$SCHEMA"
 require_file "$PROBE"
 
@@ -50,16 +52,23 @@ require_text "central-brain/android-runtime/runtime-service/build.gradle.kts" "l
 require_text "central-brain/android-runtime/runtime-service/build.gradle.kts" "room.schemaLocation"
 require_text "$DATABASE" "version = CentralBrainDatabase.VERSION"
 require_text "$DATABASE" "MIGRATION_1_2"
+require_text "$DATABASE" "MIGRATION_2_3"
 require_text "$DATABASE" "JournalMode.WRITE_AHEAD_LOGGING"
 require_text "$DATABASE" "index_runtime_task_owner_idempotency"
 require_text "$DATABASE" "index_approval_owner_idempotency"
 require_text "$DATABASE" "index_pending_effect_idempotency"
 require_text "$DATABASE" "index_effect_outbox_effect"
+require_text "$DATABASE" "index_event_cursor_owner_client"
 require_text "$PROBE" "room_migration_1_2_verified="
+require_text "$PROBE" "room_migration_2_3_verified="
+require_text "$PROBE" "legacy_event_cursor_preserved="
+require_text "$PROBE" "event_cursor_schema_v3_verified="
 require_text "$PROBE" "durable_dispatch_enabled=false"
 require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml" ".persistence.MigrationProbeActivity"
 require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidManifest.xml" 'android:permission="android.permission.DUMP"'
 require_text "tools/install_central_brain_android_runtime.sh" "room_migration_1_2_verified=true"
+require_text "tools/install_central_brain_android_runtime.sh" "room_migration_2_3_verified=true"
+require_text "tools/install_central_brain_android_runtime.sh" "event_cursor_schema_v3_verified=true"
 require_text "tools/install_central_brain_android_runtime.sh" "durable_dispatch_enabled=false"
 require_text "$MAIN_MANIFEST" "androidx.room.MultiInstanceInvalidationService"
 require_text "$MAIN_MANIFEST" 'tools:node="remove"'
@@ -79,16 +88,21 @@ if grep -Fq "MigrationProbeActivity" "$ROOT_DIR/$MAIN_MANIFEST"; then
   exit 1
 fi
 
-python3 - "$ROOT_DIR/$SCHEMA" <<'PY'
+python3 - "$ROOT_DIR/$SCHEMA_V2" "$ROOT_DIR/$SCHEMA" <<'PY'
 import json
 import pathlib
 import sys
 
-schema = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+schema_v2 = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+schema = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
+database_v2 = schema_v2.get("database", {})
 database = schema.get("database", {})
-if database.get("version") != 2:
-    raise SystemExit("Room schema version must be 2")
+if database_v2.get("version") != 2:
+    raise SystemExit("historical Room schema version 2 must be retained")
+if database.get("version") != 3:
+    raise SystemExit("current Room schema version must be 3")
 entities = {item["tableName"]: item for item in database.get("entities", [])}
+entities_v2 = {item["tableName"]: item for item in database_v2.get("entities", [])}
 expected = {
     "runtime_session",
     "runtime_task",
@@ -101,6 +115,16 @@ expected = {
 }
 if set(entities) != expected:
     raise SystemExit(f"Room durable table set mismatch: {sorted(entities)}")
+if set(entities_v2) != expected:
+    raise SystemExit(f"historical Room durable table set mismatch: {sorted(entities_v2)}")
+
+v2_event_indices = {
+    index["name"]
+    for index in entities_v2["event_cursor"].get("indices", [])
+    if index.get("unique") is True
+}
+if "index_event_cursor_owner_topic" not in v2_event_indices:
+    raise SystemExit("historical event cursor owner/topic index is missing")
 
 required_unique = {
     "runtime_session": {"index_runtime_session_owner_key"},
@@ -110,7 +134,7 @@ required_unique = {
     "effect_outbox": {"index_effect_outbox_effect"},
     "approval_request": {"index_approval_owner_idempotency"},
     "audit_event": {"index_audit_event_id"},
-    "event_cursor": {"index_event_cursor_owner_topic"},
+    "event_cursor": {"index_event_cursor_owner_client"},
 }
 for table, names in required_unique.items():
     actual = {
@@ -131,6 +155,29 @@ if foreign_keys["pending_effect"] != {"runtime_task"}:
     raise SystemExit("pending_effect must be owned by runtime_task")
 if foreign_keys["effect_outbox"] != {"pending_effect"}:
     raise SystemExit("effect_outbox must be owned by pending_effect")
+
+event_columns = {
+    field["columnName"] for field in entities["event_cursor"].get("fields", [])
+}
+required_event_columns = {
+    "cursor_id",
+    "owner_fingerprint",
+    "client_subscription_id",
+    "topics_canonical",
+    "requested_after_sequence",
+    "acknowledged_sequence",
+    "queue_capacity",
+    "state",
+    "overflow_first_sequence",
+    "overflow_last_sequence",
+    "overflow_count",
+    "created_at_wall_ms",
+    "updated_at_wall_ms",
+}
+if event_columns != required_event_columns:
+    raise SystemExit(
+        f"event cursor v3 columns mismatch: {sorted(event_columns)}"
+    )
 PY
 
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "R4A Room durable schema trace"

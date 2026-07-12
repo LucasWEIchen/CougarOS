@@ -1017,3 +1017,15 @@ The script exits non-zero on any mismatch and prints key/value evidence only aft
 | `findOwned` / `snapshot` | trusted owner or diagnostics | no cross-owner leakage; bounded counts and no-production flags |
 
 The cursor is global across the three trusted low-frequency topics. A retention gap is therefore a conservative global overflow range; consumers must resynchronize state after overflow. An observer callback cannot reenter publish, subscribe, dispatch or cancel on the same runtime; the attempt is treated as `OBSERVER_FAILED` before queue ownership advances. Event/subscription/cursor state is process-only, callback dispatch is an explicit test call, and no Room/Binder/DDS/network/hardware path is active.
+
+## Android R6A2A Durable Event Schema
+
+| Interface/type | Persisted input | Constraint |
+| --- | --- | --- |
+| `EventCursorEntity` identity | cursor ID, owner fingerprint, client subscription ID | unique owner + client; no cross-owner key |
+| Subscription shape | canonical topics, requested cursor, queue capacity | metadata only; compared by R6A2B repository |
+| Recovery state | acknowledged cursor, ACTIVE/RESYNC/CANCELLED, overflow range/count | no event payload or callback object |
+| `MIGRATION_2_3` | v2 owner/topic/last sequence/update time | deterministic legacy client identity; all source values retained |
+| DAO shape | find by cursor, find by owner/client, insert, update | repository-only foundation; no production Service call |
+
+The schema remains eight tables at version 3. A v2 cursor becomes ACTIVE with requested and acknowledged sequence both equal to its prior `last_sequence`, queue capacity 1, zero overflow and `created_at_wall_ms` copied from the previous update time. This compatibility mapping does not claim that a historical callback registration existed.

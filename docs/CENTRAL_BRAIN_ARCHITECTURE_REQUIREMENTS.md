@@ -915,3 +915,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - A cursor greater than the latest sequence and an unknown topic fail with typed outcomes. A cursor older than retained history or a full delivery queue accumulates an explicit dropped range/count; overflow callback must succeed before any retained event callback.
 - Observer event failure must retain the head event and not advance `lastDeliveredSequence`. Observer callbacks must not reenter publish/subscribe/dispatch/cancel; reentrant mutation fails closed as an observer failure without changing the queued head. Owner cancellation removes pending work, emits close at most once and remains idempotent through a bounded tombstone.
 - JVM/API 33 evidence must cover topics, sequence/retention, replay/conflict, overflow ordering, owner isolation, observer retry and cancellation. Production Service, Room cursor persistence, Binder callback, broker, DDS/network/vehicle transport and hardware remain unwired.
+
+### 2026-07-12 R6A2A durable Event schema trace
+
+- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-004`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
+- Room schema v3 must retain the existing eight tables and historical v2 export. `event_cursor` identity becomes unique owner fingerprint plus client subscription ID and must explicitly store canonical trusted topics, requested/acknowledged global sequence, queue capacity, lifecycle state, overflow range/count and create/update time.
+- `MIGRATION_2_3` must rebuild the table without destructive fallback. Every v2 owner/topic cursor must retain cursor ID, owner, topic, acknowledged sequence and update time under a deterministic `legacy:<cursor_id>` client identity.
+- Event cursor storage is metadata-only. Raw event payload, utterance, model output, signer certificate, vehicle frame, sensor buffer and shared-memory handle are forbidden.
+- R6A2A may add DAO lookup/update shape but must not construct a repository from production Services, write from R6A1, expose Binder methods, dispatch callbacks or start a broker/transport.
+- API 33 evidence must verify v1 -> v2 -> v3 chaining, legacy task/approval/cursor preservation, schema v3 fields/index, WAL and unchanged table count. Release must continue to exclude the migration probe.

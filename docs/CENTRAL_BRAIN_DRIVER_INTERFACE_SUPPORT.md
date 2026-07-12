@@ -543,3 +543,9 @@ The API 33 emulator result does not close any DRV-GAP. A physical device applica
 R6A1 is Java collection/state-machine code using injected elapsed time and synthetic IDs. Trusted topics describe Runtime/Governance/Model metadata only; events carry schema and SHA-256 digest metadata, not vehicle frames, sensor buffers or shared-memory handles. API 33 evidence runs in one app process.
 
 No Binder callback, DDS, SOME/IP, MQTT, SSE/WebSocket, SocketCAN, VHAL, shared memory, JNI/C/C++, vendor library, device node, vehicle bus or Safety Runtime is accessed. Existing `DRV-GAP-002/004/005` remain unchanged and added Driver/HAL work is zero. `dds_runtime_active=false`, `network_transport_active=false`, `vehicle_bus_accessed=false`, `hardware_accessed=false`, and virtualization false are mandatory. Req IDs: `XSC-002`, `XSC-004`, `XSC-005`, `FW-U-003`, `NV-G-004`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `NV-P-006`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R6A2A Event Schema Driver/HAL Boundary
+
+R6A2A changes only the app-private Room/SQLite metadata schema and debug migration evidence. It stores subscription identity, topic names, sequence numbers, queue/state/overflow metadata and timestamps; no event body, vehicle frame, sensor buffer, shared-memory handle or hardware address is stored.
+
+No Driver/HAL ABI, JNI/C/C++, VHAL, DDS, network transport, device node, vendor service, NPU or Safety Runtime is required. `DRV-GAP-002/004/005` remain open and unchanged; added Driver/HAL development is zero. Req IDs: `XSC-002`, `XSC-004`, `XSC-005`, `FW-U-003`, `FW-U-004`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `NV-P-006`, `DEL-001`, `DEL-004`, `DEL-005`.

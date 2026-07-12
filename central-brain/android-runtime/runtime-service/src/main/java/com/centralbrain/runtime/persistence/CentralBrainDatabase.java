@@ -23,7 +23,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
         version = CentralBrainDatabase.VERSION,
         exportSchema = true)
 public abstract class CentralBrainDatabase extends RoomDatabase {
-    public static final int VERSION = 2;
+    public static final int VERSION = 3;
     public static final String DATABASE_NAME = "central_brain_runtime.db";
 
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
@@ -78,6 +78,40 @@ public abstract class CentralBrainDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL(
+                    "CREATE TABLE event_cursor_v3 ("
+                            + "cursor_id TEXT NOT NULL, owner_fingerprint TEXT NOT NULL, "
+                            + "client_subscription_id TEXT NOT NULL, "
+                            + "topics_canonical TEXT NOT NULL, "
+                            + "requested_after_sequence INTEGER NOT NULL, "
+                            + "acknowledged_sequence INTEGER NOT NULL, "
+                            + "queue_capacity INTEGER NOT NULL, state TEXT NOT NULL, "
+                            + "overflow_first_sequence INTEGER NOT NULL, "
+                            + "overflow_last_sequence INTEGER NOT NULL, "
+                            + "overflow_count INTEGER NOT NULL, "
+                            + "created_at_wall_ms INTEGER NOT NULL, "
+                            + "updated_at_wall_ms INTEGER NOT NULL, PRIMARY KEY(cursor_id))");
+            database.execSQL(
+                    "INSERT INTO event_cursor_v3("
+                            + "cursor_id, owner_fingerprint, client_subscription_id, "
+                            + "topics_canonical, requested_after_sequence, "
+                            + "acknowledged_sequence, queue_capacity, state, "
+                            + "overflow_first_sequence, overflow_last_sequence, overflow_count, "
+                            + "created_at_wall_ms, updated_at_wall_ms) "
+                            + "SELECT cursor_id, owner_fingerprint, 'legacy:' || cursor_id, "
+                            + "topic, last_sequence, last_sequence, 1, 'ACTIVE', 0, 0, 0, "
+                            + "updated_at_wall_ms, updated_at_wall_ms FROM event_cursor");
+            database.execSQL("DROP TABLE event_cursor");
+            database.execSQL("ALTER TABLE event_cursor_v3 RENAME TO event_cursor");
+            database.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_event_cursor_owner_client "
+                            + "ON event_cursor(owner_fingerprint, client_subscription_id)");
+        }
+    };
+
     public abstract RuntimeStateDao runtimeStateDao();
 
     public static CentralBrainDatabase open(Context context) {
@@ -90,7 +124,7 @@ public abstract class CentralBrainDatabase extends RoomDatabase {
                         CentralBrainDatabase.class,
                         databaseName)
                 .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build();
     }
 

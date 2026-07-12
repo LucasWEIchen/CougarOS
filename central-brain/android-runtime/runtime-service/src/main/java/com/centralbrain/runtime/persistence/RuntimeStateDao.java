@@ -86,6 +86,18 @@ public interface RuntimeStateDao {
             String ownerFingerprint,
             String idempotencyKey);
 
+    @Nullable
+    @Query("SELECT * FROM event_cursor WHERE cursor_id = :cursorId LIMIT 1")
+    EventCursorEntity findEventCursor(String cursorId);
+
+    @Nullable
+    @Query("SELECT * FROM event_cursor "
+            + "WHERE owner_fingerprint = :ownerFingerprint "
+            + "AND client_subscription_id = :clientSubscriptionId LIMIT 1")
+    EventCursorEntity findEventCursorByOwnerAndClient(
+            String ownerFingerprint,
+            String clientSubscriptionId);
+
     @Query("SELECT * FROM approval_request "
             + "WHERE state = 'PENDING' AND expires_at_wall_ms <= :nowWallMs")
     List<ApprovalRequestEntity> findExpiredPendingApprovals(long nowWallMs);
@@ -122,6 +134,9 @@ public interface RuntimeStateDao {
 
     @Update
     int updateApproval(ApprovalRequestEntity entity);
+
+    @Update
+    int updateEventCursor(EventCursorEntity entity);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertEventCursor(EventCursorEntity entity);

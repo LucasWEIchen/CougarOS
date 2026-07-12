@@ -846,3 +846,11 @@ R6A1 交付 main-source `BoundedEventRuntime`、JVM tests、DUMP-protected debug
 API 33 验收必须输出 trusted-topic、monotonic-sequence、cursor-replay、overflow-before-delivery、owner isolation、subscription idempotency、cancel idempotency 和 observer retry evidence，同时固定 process-only/cursor-persistence/broker/Binder/DDS/network/vehicle-bus/hardware 边界。
 
 该交付不是 production Event broker，不持久化订阅/cursor，不发送真实业务 payload，不接 Binder callback、SSE/WebSocket、DDS、车辆总线或 Linux 前端。现有 Room `event_cursor` table 只保留为 R6A2 schema foundation，本阶段不得写入。
+
+## Android R6A2A Durable Event Schema
+
+R6A2A 交付 `CentralBrainDatabase` v3、保留的 v2 schema export、v3 schema export、`MIGRATION_2_3`、扩展后的 `EventCursorEntity`/DAO、迁移 probe 和静态门禁。标准 artifact 仍是 SDK AAR + Runtime APK + Demo APK，表数量仍为 8，AIDL 与 public SDK 不变。
+
+API 33 必须新增 `room_schema_version=3`、`room_migration_2_3_verified=true`、`legacy_event_cursor_preserved=true`、`event_cursor_schema_v3_verified=true`、`event_cursor_schema_ready=true` 和 `event_cursor_repository_wired=false`，同时保留 v1/v2 task/approval migration、WAL 与 release probe isolation 证据。
+
+该小步不交付 Event repository、reopen recovery、production callback 或 broker，也不把 R6A1 process events 写入 Room。Raw payload、网络/DDS/车辆总线、NPU、Driver/HAL、Linux 前端和虚拟化均不在交付范围；R6A2B 才实现 repository-only 状态机。

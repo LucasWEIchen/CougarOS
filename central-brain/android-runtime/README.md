@@ -197,6 +197,12 @@ Owner-scoped subscriptions use client idempotency keys, a global cursor and boun
 
 R6A1 is instantiated only by JVM tests and a DUMP-protected API 33 probe. It does not use the existing Room cursor table, expose Binder callbacks, start a broker, DDS/network transport or vehicle data plane, or wire production Services. R6A2 owns durable cursor/subscription recovery.
 
+## R6A2A Durable Event Schema
+
+Room schema v3 keeps the existing eight-table artifact shape while rebuilding `event_cursor` around owner plus client-subscription identity. It stores canonical trusted topics, requested and acknowledged global sequence, queue capacity, ACTIVE/RESYNC/CANCELLED state, overflow range/count and timestamps. It stores no event payload, model output or vehicle frame.
+
+`MIGRATION_2_3` preserves each v2 owner/topic cursor as `legacy:<cursor_id>`, retaining its cursor ID, owner, topic, acknowledged sequence and update time. API 33 migration evidence validates the complete v1 -> v2 -> v3 path. R6A2A adds DAO shape only; production Services, the R6A1 process runtime and Binder APIs do not read or write these rows. R6A2B owns repository semantics and restart recovery.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

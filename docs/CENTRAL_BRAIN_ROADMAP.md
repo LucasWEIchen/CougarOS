@@ -25,7 +25,7 @@
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 已完成：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B/C API 33 验证通过；真实 effect activation 仍受 gate 阻塞 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 软件基线已完成：R5A1/A2、R5B1/B2、R5C1、R5D1；production/hardware activation 仍阻塞 |
-| R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 进行中：R6A1 process-local bounded Event runtime 已完成 |
+| R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 进行中：R6A1 runtime + R6A2A durable schema 已完成 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
 
 ## M0 任务清单
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R6A2A durable Event schema：Room v3 保持 8 tables，新增 owner/client subscription、canonical topics、request/ACK cursor、queue/state/overflow metadata 和唯一索引；v2 export 保留。
+- `MIGRATION_2_3` 将旧 cursor 映射为 deterministic legacy client 并保留 owner/topic/sequence/time；API 33 v1 -> v2 -> v3 迁移、WAL、完整安装回归、aggregate/evolution static gate、release build/lint 与 3-Service/0-probe isolation 已通过。Repository/production wiring 仍为 false。
+- R6A2A 覆盖 Req ID：`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-004`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`。下一步 R6A2B durable Event repository/reopen recovery。
 - 完成 R6A1 bounded Event runtime：3 个 trusted low-frequency topic、global monotonic sequence、bounded retention/queue、owner/client idempotent subscription、cursor overflow、observer retry 和 idempotent cancel 已实现。
 - JVM/API 33 probe、aggregate static gate、release build/lint 与 manifest isolation 已通过；release 保持 3 个 signature-protected Service、0 Activity/probe。Production Service、Room cursor、Binder callback、broker、DDS/network/vehicle bus/hardware 均未接线。
 - R6A1 覆盖 Req ID：`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`。下一步 R6A2 durable cursor/subscription recovery。
