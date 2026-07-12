@@ -954,3 +954,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Expiry and deletion must clear the exportable digest. A domain-separated request fingerprint may remain for bounded replay, but raw utterance, transcript, model output or business content must never be accepted or stored.
 - R6B1 uses injected elapsed time and is process-local. Its consent/export factories are contract fixtures, not production authorization sources. Room/AIDL/production Service wiring, restart durability, consent revocation, trusted wall-clock policy, encryption/key ownership and durable PROFILE storage remain false/open.
 - JVM/API 33 evidence must cover scope/TTL, consent, replay/conflict/quota, owner isolation, redacted query, expiry/delete, export authorization and bounded retention. Release must remain three signature-protected Services and zero Activities/probes.
+
+### 2026-07-12 R6B2 Memory runtime readiness trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-012`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`.
+- One immutable snapshot must be shared by Runtime startup log, protected Runtime dumpsys and the existing bounded Diagnostic Binder record. No new AIDL method, Room schema version or artifact is allowed.
+- Visibility must distinguish the R6B1 bounded lifecycle implementation from production activation. Current scope count is three; schema readiness, repository implementation, durable encrypted storage, key lifecycle, consent authority, consent revocation, trusted retention clock, Runtime/repository production wiring and middleware wiring must remain false.
+- Ordered blockers are `DURABLE_ENCRYPTED_STORAGE_MISSING`, `KEY_LIFECYCLE_NOT_CONFIGURED`, `CONSENT_AUTHORITY_NOT_WIRED`, `CONSENT_REVOCATION_NOT_WIRED`, `TRUSTED_RETENTION_CLOCK_NOT_WIRED`, `MEMORY_REPOSITORY_NOT_IMPLEMENTED`, `MEMORY_RUNTIME_NOT_WIRED` and `MIDDLEWARE_CHAIN_NOT_WIRED`.
+- Snapshot construction may validate the R6B1 enum/TTL baseline but must not instantiate `BoundedMemoryLifecycle`, open Room, access a Keystore key, call a consent service, persist raw/digest content, dispatch middleware or access hardware. Raw content and durable PROFILE storage remain false.
+- API 33 evidence must verify Diagnostic Binder, Runtime startup log and real dumpsys parity. Release must remain three signature-protected Services and zero Activities/probes.

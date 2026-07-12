@@ -147,5 +147,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_event_persistence_schema.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_event_repository.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_event_runtime_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_memory_lifecycle.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_memory_runtime_readiness.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

@@ -20,6 +20,7 @@ import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
+import com.centralbrain.runtime.memory.MemoryRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.persistence.CentralBrainDatabase;
 import com.centralbrain.runtime.persistence.DurableDigest;
@@ -68,6 +69,8 @@ public final class CentralBrainRuntimeService extends Service {
             ModelRuntimeReadinessSnapshot.current();
     private final EventRuntimeReadinessSnapshot eventRuntimeReadiness =
             EventRuntimeReadinessSnapshot.current();
+    private final MemoryRuntimeReadinessSnapshot memoryRuntimeReadiness =
+            MemoryRuntimeReadinessSnapshot.current();
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
     private final JobSupervisor jobSupervisor = new JobSupervisor(
             MAX_TASK_RECORDS,
@@ -307,6 +310,35 @@ public final class CentralBrainRuntimeService extends Service {
                 + eventRuntimeReadiness.isMiddlewareChainWired()
                 + " event_runtime_activation_blockers="
                 + eventRuntimeReadiness.getBlockersCsv()
+                + " memory_runtime_readiness_snapshot_wired=true"
+                + " memory_runtime_activation_allowed="
+                + memoryRuntimeReadiness.isActivationAllowed()
+                + " bounded_memory_lifecycle_implementation_available="
+                + memoryRuntimeReadiness.isBoundedMemoryLifecycleImplementationAvailable()
+                + " memory_scope_count="
+                + memoryRuntimeReadiness.getScopeCount()
+                + " memory_schema_ready="
+                + memoryRuntimeReadiness.isMemorySchemaReady()
+                + " memory_repository_implementation_available="
+                + memoryRuntimeReadiness.isMemoryRepositoryImplementationAvailable()
+                + " durable_encrypted_memory_storage_available="
+                + memoryRuntimeReadiness.isDurableEncryptedStorageAvailable()
+                + " memory_encryption_key_lifecycle_configured="
+                + memoryRuntimeReadiness.isEncryptionKeyLifecycleConfigured()
+                + " memory_consent_authority_wired="
+                + memoryRuntimeReadiness.isConsentAuthorityWired()
+                + " memory_consent_revocation_wired="
+                + memoryRuntimeReadiness.isConsentRevocationWired()
+                + " trusted_memory_retention_clock_wired="
+                + memoryRuntimeReadiness.isTrustedRetentionClockWired()
+                + " memory_runtime_production_wired="
+                + memoryRuntimeReadiness.isMemoryRuntimeProductionWired()
+                + " memory_repository_production_wired="
+                + memoryRuntimeReadiness.isMemoryRepositoryProductionWired()
+                + " memory_middleware_chain_wired="
+                + memoryRuntimeReadiness.isMiddlewareChainWired()
+                + " memory_runtime_activation_blockers="
+                + memoryRuntimeReadiness.getBlockersCsv()
                 + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
     }
@@ -417,6 +449,38 @@ public final class CentralBrainRuntimeService extends Service {
                 + eventRuntimeReadiness.isVehicleBusAccessed());
         writer.println("event_runtime_activation_blockers="
                 + eventRuntimeReadiness.getBlockersCsv());
+        writer.println("memory_runtime_readiness_snapshot_wired=true");
+        writer.println("memory_runtime_activation_allowed="
+                + memoryRuntimeReadiness.isActivationAllowed());
+        writer.println("bounded_memory_lifecycle_implementation_available="
+                + memoryRuntimeReadiness.isBoundedMemoryLifecycleImplementationAvailable());
+        writer.println("memory_scope_count=" + memoryRuntimeReadiness.getScopeCount());
+        writer.println("memory_schema_ready="
+                + memoryRuntimeReadiness.isMemorySchemaReady());
+        writer.println("memory_repository_implementation_available="
+                + memoryRuntimeReadiness.isMemoryRepositoryImplementationAvailable());
+        writer.println("durable_encrypted_memory_storage_available="
+                + memoryRuntimeReadiness.isDurableEncryptedStorageAvailable());
+        writer.println("memory_encryption_key_lifecycle_configured="
+                + memoryRuntimeReadiness.isEncryptionKeyLifecycleConfigured());
+        writer.println("memory_consent_authority_wired="
+                + memoryRuntimeReadiness.isConsentAuthorityWired());
+        writer.println("memory_consent_revocation_wired="
+                + memoryRuntimeReadiness.isConsentRevocationWired());
+        writer.println("trusted_memory_retention_clock_wired="
+                + memoryRuntimeReadiness.isTrustedRetentionClockWired());
+        writer.println("memory_runtime_production_wired="
+                + memoryRuntimeReadiness.isMemoryRuntimeProductionWired());
+        writer.println("memory_repository_production_wired="
+                + memoryRuntimeReadiness.isMemoryRepositoryProductionWired());
+        writer.println("memory_middleware_chain_wired="
+                + memoryRuntimeReadiness.isMiddlewareChainWired());
+        writer.println("raw_memory_content_stored="
+                + memoryRuntimeReadiness.isRawMemoryContentStored());
+        writer.println("profile_memory_storage_durable="
+                + memoryRuntimeReadiness.isProfileMemoryStorageDurable());
+        writer.println("memory_runtime_activation_blockers="
+                + memoryRuntimeReadiness.getBlockersCsv());
         writer.println("service_dispatch_triggered=false");
         writer.println("hardware_accessed=false");
     }

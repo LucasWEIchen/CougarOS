@@ -168,6 +168,9 @@
 - `R6B1 bounded Memory lifecycle` 已完成：pure-Java process-local fixture 定义 EPHEMERAL/SESSION/PROFILE scope、purpose binding、owner/client idempotency、TTL、PROFILE consent、redacted query、authorized digest export、delete/expiry 和 bounded terminal retention。
 - Raw Memory content 从不进入 API；expiry/delete 清除 digest reference，仅保留 domain-separated request fingerprint 以提供有界 replay。JVM/API 33 只运行 test/debug fixture，production Service、AIDL、Room、consent revocation、encryption/key lifecycle 与 durable PROFILE storage 均未接线。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
+- `R6B2 Memory runtime readiness` 已完成：immutable snapshot 通过 Runtime log、protected dumpsys 和 existing Diagnostic Binder 暴露 R6B1 implementation availability、三种 scope 与八项 ordered prerequisite blocker。
+- Snapshot 只校验 scope/TTL 常量，不构造 lifecycle、不打开 Room。Memory schema/repository、durable encrypted storage、key lifecycle、consent/revocation authority、trusted retention clock、production wiring 与 middleware 均保持 false；R6B 软件可见性闭环后转入 R6C1 signed built-in Skill contract。
+- Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-012`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

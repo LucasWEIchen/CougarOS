@@ -25,7 +25,7 @@
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 已完成：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B/C API 33 验证通过；真实 effect activation 仍受 gate 阻塞 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 软件基线已完成：R5A1/A2、R5B1/B2、R5C1、R5D1；production/hardware activation 仍阻塞 |
-| R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 进行中：R6A Event foundation、R6B1 process-local Memory contract 已完成 |
+| R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 进行中：R6A Event、R6B Memory software visibility 已完成；R6C 待推进 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
 
 ## M0 任务清单
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R6B2 Memory runtime readiness：immutable snapshot 已接 Runtime startup log、protected dumpsys 和 existing Diagnostic Binder page，八项 durable Memory prerequisite blocker 顺序固定。
+- Snapshot 只校验 R6B1 scope/TTL baseline，不构造 lifecycle、不打开 Room/Keystore、不变更 AIDL。JVM/API 33 三路 parity、aggregate/evolution static gate、release build/lint 与 3-Service/0-probe isolation 通过；production activation/storage/key/consent/revocation/clock/repository/middleware 均 false。
+- R6B2 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-012`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。下一步 R6C1 signed built-in Skill contract。
 - 完成 R6B1 bounded Memory lifecycle：EPHEMERAL/SESSION/PROFILE、purpose/owner/client binding、TTL、PROFILE consent、redacted query、authorized digest export、delete/expiry 和 bounded terminal retention 已实现。
 - JVM/API 33 验证 scope policy、consent、idempotency、owner isolation、redaction、expiry/delete/export/bounds；aggregate/evolution static gate、release build/lint 与 3-Service/0-probe isolation 通过。Process-only、persistence/production/durable-profile/consent-revocation/encryption/raw-content/hardware 均保持 false。
 - R6B1 覆盖 Req ID：`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。下一步 R6B2 durable Memory storage prerequisite/readiness gate。

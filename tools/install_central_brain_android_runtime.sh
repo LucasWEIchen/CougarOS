@@ -174,6 +174,8 @@ for _ in {1..20}; do
       && grep -Fq "model_runtime_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG" \
       && grep -Fq "event_runtime_readiness_diagnostic_verified=true" \
+        <<<"$DIAGNOSTIC_LOG" \
+      && grep -Fq "memory_runtime_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG"; then
     DIAGNOSTIC_PROBE_PASSED=true
     break
@@ -963,6 +965,23 @@ for marker in \
   "network_transport_active=false" \
   "vehicle_bus_accessed=false" \
   "event_runtime_activation_blockers=DURABLE_PUBLISHER_SEQUENCE_MISSING" \
+  "memory_runtime_readiness_snapshot_wired=true" \
+  "memory_runtime_activation_allowed=false" \
+  "bounded_memory_lifecycle_implementation_available=true" \
+  "memory_scope_count=3" \
+  "memory_schema_ready=false" \
+  "memory_repository_implementation_available=false" \
+  "durable_encrypted_memory_storage_available=false" \
+  "memory_encryption_key_lifecycle_configured=false" \
+  "memory_consent_authority_wired=false" \
+  "memory_consent_revocation_wired=false" \
+  "trusted_memory_retention_clock_wired=false" \
+  "memory_runtime_production_wired=false" \
+  "memory_repository_production_wired=false" \
+  "memory_middleware_chain_wired=false" \
+  "raw_memory_content_stored=false" \
+  "profile_memory_storage_durable=false" \
+  "memory_runtime_activation_blockers=DURABLE_ENCRYPTED_STORAGE_MISSING" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
@@ -1093,6 +1112,27 @@ for marker in \
     exit 1
   fi
 done
+for marker in \
+  "memory_runtime_readiness_snapshot_wired=true" \
+  "memory_runtime_activation_allowed=false" \
+  "bounded_memory_lifecycle_implementation_available=true" \
+  "memory_scope_count=3" \
+  "memory_schema_ready=false" \
+  "memory_repository_implementation_available=false" \
+  "durable_encrypted_memory_storage_available=false" \
+  "memory_encryption_key_lifecycle_configured=false" \
+  "memory_consent_authority_wired=false" \
+  "memory_consent_revocation_wired=false" \
+  "trusted_memory_retention_clock_wired=false" \
+  "memory_runtime_production_wired=false" \
+  "memory_repository_production_wired=false" \
+  "memory_middleware_chain_wired=false" \
+  "memory_runtime_activation_blockers=DURABLE_ENCRYPTED_STORAGE_MISSING"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
+    echo "Runtime Memory readiness missing marker: $marker" >&2
+    exit 1
+  fi
+done
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not resolve the Demo Binder caller from trusted package evidence" >&2
   exit 1
@@ -1191,6 +1231,7 @@ printf '%s\n' \
   "effect_delivery_activation_diagnostic_verified=true" \
   "model_runtime_readiness_diagnostic_verified=true" \
   "event_runtime_readiness_diagnostic_verified=true" \
+  "memory_runtime_readiness_diagnostic_verified=true" \
   "room_schema_version=3" \
   "room_table_count=8" \
   "room_wal_enabled=true" \
@@ -1314,6 +1355,22 @@ printf '%s\n' \
   "event_middleware_chain_wired=false" \
   "raw_event_payload_persisted=false" \
   "event_runtime_activation_blockers=DURABLE_PUBLISHER_SEQUENCE_MISSING,EVENT_RUNTIME_NOT_WIRED,EVENT_REPOSITORY_NOT_WIRED,CALLBACK_BINDER_NOT_DEFINED,BROKER_NOT_CONFIGURED,MIDDLEWARE_CHAIN_NOT_WIRED" \
+  "memory_runtime_readiness_snapshot_wired=true" \
+  "memory_runtime_readiness_log_verified=true" \
+  "memory_runtime_readiness_dumpsys_verified=true" \
+  "memory_runtime_activation_allowed=false" \
+  "bounded_memory_lifecycle_implementation_available=true" \
+  "memory_scope_count=3" \
+  "memory_schema_ready=false" \
+  "memory_repository_implementation_available=false" \
+  "durable_encrypted_memory_storage_available=false" \
+  "memory_encryption_key_lifecycle_configured=false" \
+  "memory_consent_authority_wired=false" \
+  "trusted_memory_retention_clock_wired=false" \
+  "memory_runtime_production_wired=false" \
+  "memory_repository_production_wired=false" \
+  "memory_middleware_chain_wired=false" \
+  "memory_runtime_activation_blockers=DURABLE_ENCRYPTED_STORAGE_MISSING,KEY_LIFECYCLE_NOT_CONFIGURED,CONSENT_AUTHORITY_NOT_WIRED,CONSENT_REVOCATION_NOT_WIRED,TRUSTED_RETENTION_CLOCK_NOT_WIRED,MEMORY_REPOSITORY_NOT_IMPLEMENTED,MEMORY_RUNTIME_NOT_WIRED,MIDDLEWARE_CHAIN_NOT_WIRED" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "model_provider_contract_verified=true" \

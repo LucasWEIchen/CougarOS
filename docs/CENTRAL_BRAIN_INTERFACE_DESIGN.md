@@ -1066,3 +1066,13 @@ The snapshot reports implementation availability for R6A1/R6A2A/B, trusted topic
 | `snapshot` | none | bounded counts plus persistence/production/raw-content false flags |
 
 TTL uses an injected monotonic elapsed clock and therefore has no restart guarantee. `TrustedConsentEvidence.grantedByGovernance` and `TrustedExportAuthorization.grantedByGovernance` are internal contract factories, not Binder APIs or production decision authorities. Delete/expiry preserve only a domain-separated request fingerprint for bounded replay; once terminal retention evicts a record, its replay guarantee ends.
+
+## Android R6B2 Memory Runtime Readiness
+
+| Surface | Record | Constraint |
+| --- | --- | --- |
+| Runtime startup log | `memory_runtime_readiness_snapshot_wired=true` plus activation/prerequisites/blockers | immutable metadata only; no lifecycle instance |
+| Runtime dumpsys | complete Memory readiness key/value snapshot | protected framework diagnostics; no Room/Keystore query |
+| Diagnostic Binder | `runtime/memory-runtime-readiness`, summary `blocked`, sequence 7 | existing paged V1 contract; no AIDL change |
+
+The snapshot reports R6B1 implementation availability and scope count 3, while schema/repository, encrypted storage, key lifecycle, consent/revocation, trusted retention clock and production wiring remain false. Its eight ordered blocker IDs are the admission gate for any later durable Memory design; the record is not a consent decision or storage-health probe.

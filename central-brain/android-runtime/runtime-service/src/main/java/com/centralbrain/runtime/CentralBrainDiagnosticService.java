@@ -16,6 +16,7 @@ import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
+import com.centralbrain.runtime.memory.MemoryRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
@@ -33,6 +34,8 @@ public final class CentralBrainDiagnosticService extends Service {
             ModelRuntimeReadinessSnapshot.current();
     private final EventRuntimeReadinessSnapshot eventRuntimeReadiness =
             EventRuntimeReadinessSnapshot.current();
+    private final MemoryRuntimeReadinessSnapshot memoryRuntimeReadiness =
+            MemoryRuntimeReadinessSnapshot.current();
 
     private final ICentralBrainDiagnostics.Stub binder = new ICentralBrainDiagnostics.Stub() {
         @Override
@@ -100,6 +103,11 @@ public final class CentralBrainDiagnosticService extends Service {
                 + eventRuntimeReadiness.isActivationAllowed()
                 + " durable_event_source_available="
                 + eventRuntimeReadiness.isDurableEventSourceAvailable()
+                + " memory_runtime_readiness_diagnostic_wired=true"
+                + " memory_runtime_activation_allowed="
+                + memoryRuntimeReadiness.isActivationAllowed()
+                + " durable_encrypted_memory_storage_available="
+                + memoryRuntimeReadiness.isDurableEncryptedStorageAvailable()
                 + " hardware_accessed=false");
     }
 
@@ -168,7 +176,13 @@ public final class CentralBrainDiagnosticService extends Service {
                         "event-runtime-readiness",
                         "blocked",
                         eventRuntimeReadiness.diagnosticDetail(),
-                        6)
+                        6),
+                record(
+                        "runtime",
+                        "memory-runtime-readiness",
+                        "blocked",
+                        memoryRuntimeReadiness.diagnosticDetail(),
+                        7)
         };
     }
 

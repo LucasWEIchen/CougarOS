@@ -223,6 +223,12 @@ Owner-scoped queries expose redacted lifecycle metadata and never return the con
 
 R6B1 is process-local test/debug code. It uses injected elapsed time, does not survive process death, and is not wired to Room, AIDL, production Services, consent revocation, encryption keys or hardware. The Governance consent/export factories model trusted inputs but are not production authorities. Durable PROFILE storage and key/consent ownership must be resolved before any persistence increment.
 
+## R6B2 Memory Runtime Readiness
+
+`MemoryRuntimeReadinessSnapshot` is an immutable production-safe view shared by Runtime startup logging, protected Runtime dumpsys and the existing bounded Diagnostic Binder page. It validates only the R6B1 scope/TTL constants and reports implementation availability without constructing `BoundedMemoryLifecycle`, opening Room or creating a Memory write path.
+
+Activation is fail closed behind eight ordered blockers: durable encrypted storage, key lifecycle, consent authority, consent revocation, trusted retention clock, repository implementation, Runtime wiring and middleware wiring. Schema/repository/production wiring remain false, raw content remains absent, and PROFILE storage remains non-durable. R6B2 changes no AIDL or database schema; it makes the prerequisite gap auditable before any persistence design is approved.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

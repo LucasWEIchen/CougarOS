@@ -878,3 +878,11 @@ R6B1 交付 main-source `BoundedMemoryLifecycle`、JVM tests、DUMP-protected de
 API 33 必须输出 scope policy、PROFILE consent、write idempotency、owner isolation、query redaction、TTL expiry、delete idempotency、export authorization 和 record bounds evidence，并固定 `memory_process_only=true`、persistence/production/durable-profile/consent-revocation/encryption false、raw content false 与 hardware false。
 
 该交付不是可量产的个人记忆库。它不存 raw utterance/model output，不跨进程恢复，不新增 Binder API/Room table/production Service，也不声称 consent revocation、trusted wall clock、encrypted key lifecycle 或 durable PROFILE storage 已完成；Driver/HAL、Linux 前端和虚拟化均不在本阶段范围。
+
+## Android R6B2 Memory Runtime Readiness
+
+R6B2 交付 immutable `MemoryRuntimeReadinessSnapshot`、JVM tests、Runtime log/dumpsys integration、现有 Diagnostic Binder record/probe 扩展、安装门禁和静态检查。AIDL/checksum、Room v3 schema、public SDK 与 SDK AAR + Runtime APK + Demo APK artifact 形状不变。
+
+API 33 必须验证 Diagnostic Binder、Runtime log、真实 dumpsys 三路 parity，并输出 snapshot wired、activation false、R6B1 implementation available、scope count 3、schema/repository/storage/key/consent/revocation/clock/production/middleware false 和完整 ordered blocker。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
+
+该交付不构造 Memory lifecycle，不新增持久化、Keystore key、consent authority、Binder method 或 middleware dispatch。它只把后续 durable encrypted Memory 的必要前置条件显式化；raw content、NPU、Driver/HAL、Linux 前端和虚拟化均不在交付范围。

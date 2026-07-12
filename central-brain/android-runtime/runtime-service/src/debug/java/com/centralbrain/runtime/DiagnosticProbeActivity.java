@@ -37,6 +37,7 @@ public final class DiagnosticProbeActivity extends Activity {
                 boolean activationVerified = hasBlockedEffectActivation(activationPage);
                 boolean modelRuntimeVerified = hasBlockedModelRuntime(activationPage);
                 boolean eventRuntimeVerified = hasBlockedEventRuntime(activationPage);
+                boolean memoryRuntimeVerified = hasBlockedMemoryRuntime(activationPage);
                 boolean passed = diagnostics.getProtocolVersion() == 1
                         && ICentralBrainDiagnostics.INTERFACE_HASH.equals(
                                 diagnostics.getProtocolHash())
@@ -46,7 +47,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         && page.hasMore
                         && activationVerified
                         && modelRuntimeVerified
-                        && eventRuntimeVerified;
+                        && eventRuntimeVerified
+                        && memoryRuntimeVerified;
                 Log.i(TAG, "nonce=" + nonce + " diagnostic_probe_passed=" + passed
                         + " effect_delivery_activation_diagnostic_verified="
                         + activationVerified
@@ -54,6 +56,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         + modelRuntimeVerified
                         + " event_runtime_readiness_diagnostic_verified="
                         + eventRuntimeVerified
+                        + " memory_runtime_readiness_diagnostic_verified="
+                        + memoryRuntimeVerified
                         + " record_count=" + (page == null || page.records == null
                                 ? -1 : page.records.length)
                         + " hardware_accessed=false");
@@ -192,6 +196,45 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail.contains("event_broker_production_wired=false")
                     && record.detail.contains("event_middleware_chain_wired=false")
                     && record.detail.contains("DURABLE_PUBLISHER_SEQUENCE_MISSING")
+                    && record.detail.contains("MIDDLEWARE_CHAIN_NOT_WIRED")
+                    && record.detail.contains("hardware_accessed=false")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasBlockedMemoryRuntime(DiagnosticPage page) {
+        if (page == null || page.records == null) {
+            return false;
+        }
+        for (DiagnosticRecord record : page.records) {
+            if (record != null
+                    && "memory-runtime-readiness".equals(record.recordId)
+                    && "blocked".equals(record.summary)
+                    && record.detail != null
+                    && record.detail.contains("memory_runtime_activation_allowed=false")
+                    && record.detail.contains(
+                            "bounded_memory_lifecycle_implementation_available=true")
+                    && record.detail.contains("memory_scope_count=3")
+                    && record.detail.contains("memory_schema_ready=false")
+                    && record.detail.contains(
+                            "memory_repository_implementation_available=false")
+                    && record.detail.contains(
+                            "durable_encrypted_memory_storage_available=false")
+                    && record.detail.contains(
+                            "memory_encryption_key_lifecycle_configured=false")
+                    && record.detail.contains("memory_consent_authority_wired=false")
+                    && record.detail.contains("memory_consent_revocation_wired=false")
+                    && record.detail.contains(
+                            "trusted_memory_retention_clock_wired=false")
+                    && record.detail.contains("memory_runtime_production_wired=false")
+                    && record.detail.contains(
+                            "memory_repository_production_wired=false")
+                    && record.detail.contains("memory_middleware_chain_wired=false")
+                    && record.detail.contains("raw_memory_content_stored=false")
+                    && record.detail.contains("profile_memory_storage_durable=false")
+                    && record.detail.contains("DURABLE_ENCRYPTED_STORAGE_MISSING")
                     && record.detail.contains("MIDDLEWARE_CHAIN_NOT_WIRED")
                     && record.detail.contains("hardware_accessed=false")) {
                 return true;
