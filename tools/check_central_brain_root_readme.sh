@@ -44,10 +44,12 @@ for marker in \
   'policy-probe' \
   'apk-labs/client2-central-brain/' \
   'central-brain/backend/mock_npu_service.py' \
+  '[软件详细设计](docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md)' \
   'central-brain/bindings/linux/ipc/' \
   'central_brain_github_remote_testing.json' \
   'tools/check_central_brain_android_runtime_evolution.sh' \
   'tools/check_central_brain_root_readme.sh' \
+  'tools/check_central_brain_software_detailed_design.sh' \
   'android13-hwtest-v0.5.0-rc.2' \
   '5708dfa6' \
   '6ca306f4' \
@@ -83,10 +85,12 @@ for path in \
   central-brain/deploy/linux/central-brain.package-profile.json \
   central-brain/linux-cli/central_brain_cli.py \
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md \
+  docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md \
   docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md \
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
   docs/CENTRAL_BRAIN_ROADMAP.md \
   tools/check_central_brain_android_runtime_evolution.sh \
+  tools/check_central_brain_software_detailed_design.sh \
   tools/check_central_brain_github_remote_testing.sh; do
   [[ -f "$ROOT_DIR/$path" ]] \
     || { echo "README-mapped repository file is missing: $path" >&2; exit 1; }

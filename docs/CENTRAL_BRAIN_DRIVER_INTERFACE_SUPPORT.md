@@ -206,6 +206,15 @@ NpuDevice.reset(reason)
 | --- | --- | --- | --- | --- | --- |
 | DRV-GAP-001 | NPU | 无真实 PCIe NPU driver/vendor SDK | 用户提供硬件和 SDK | NPU runtime adapter + driver/HAL bridge | Open |
 
+## Software Detailed Design Driver/HAL Boundary
+
+`CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md` 只把 Android、C/JNI、Python/Linux 和未来 vendor adapter 的
+职责、接口、状态机、准入步骤与验证门禁整理为工程师详设。该文档及其静态 checker 不打开 device node，
+不加载 vendor SDK，不实现 ioctl、DMA/IOMMU、VHAL、车辆总线、Safety Runtime 或 Hypervisor，也不关闭
+任何现有 gap。`hardware_accessed=false`、`driver_development_triggered=false` 和
+`virtualization_development_triggered=false` 是本增量的验收条件；真实 adapter 仍须按下列 backlog 和
+目标 owner evidence 单独立项。
+
 ## 当前 Driver/HAL gap backlog
 
 `GET /native/driver-gaps` 是当前可查询 backlog，供 Android/Linux 座舱域工程师确认哪些底层接口尚未进入开发。该接口的 `summary.driver_development_triggered=false` 是本轮验收条件，表示只建立缺口记录，不启动真实驱动工作。

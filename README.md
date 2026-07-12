@@ -46,9 +46,10 @@ CougarOS 是面向黑盒 Android 13 座舱域控制器的车载中央大脑工�
 
 ```bash
 bash tools/check_central_brain_root_readme.sh
+bash tools/check_central_brain_software_detailed_design.sh
 ```
 
-该检查已接入 Android 演化门禁和 GitHub Actions。
+上述检查已接入 Android 演化门禁和 GitHub Actions。
 
 ## 软件总架构
 
@@ -147,17 +148,16 @@ flowchart TB
 ```text
 Client2 / Demo HMI
   -> CentralBrainClient
-  -> ICentralBrainRuntime.submitTask(AgentTaskRequest, callback)
+  -> ICentralBrainRuntime.submitAgentTask(AgentTaskRequest, callback)
   -> Binder caller identity + package/current-signer capability policy
-  -> JobSupervisor + InferenceResourceScheduler
-  -> Room checkpoint / approval / outbox / audit
-  -> fixed Governance middleware
-  -> deterministic test provider or empty production provider
+  -> DurableTaskRepository + JobSupervisor
+  -> deterministic task stub
   -> TaskUpdate / TaskResult / TaskFailure callback
 ```
 
 Runtime 进程死亡、callback death、cancel/completion race 和 Client2 重连已有 API 33 测试。生产 Effect、
-Vendor NPU 和车辆动作仍由 activation gate 阻断。
+Scheduler、Model Router、Governance middleware、Vendor NPU 和车辆动作尚未接入该 production task path；
+Effect 和硬件路径继续由 activation gate 阻断。
 
 ### Native 生命周期
 
@@ -395,6 +395,7 @@ bash tools/run_central_brain_backend.sh
 | --- | --- |
 | [产品设计](docs/CENTRAL_BRAIN_PRODUCT_DESIGN.md) | 用户、场景、产品边界和参考能力 |
 | [软件总架构](docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md) | 架构图分层、职责和目标拓扑 |
+| [软件详细设计](docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md) | Android、C/JNI、Room、Python、Binding 各模块的实现级接口、状态机和扩展规则 |
 | [需求拆解](docs/CENTRAL_BRAIN_REQUIREMENTS_BREAKDOWN.md) | Req ID 与任务拆解 |
 | [架构需求基线](docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md) | 每个增量的不可变需求和退出条件 |
 | [接口设计](docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md) | Envelope、UIB、SOA、AIDL、Runtime 和硬件接口 |
@@ -428,6 +429,7 @@ bash tools/run_central_brain_backend.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-12 | 当前变更 | 新增面向软件工程师的模块级详设、源码一致性门禁和开发扩展步骤 | 仅文档与门禁，不启用 Scheduler、Model、Effect 或硬件 |
 | 2026-07-12 | 当前变更 | 根 README 升级为仓库级技术架构、模块文件映射和维护门禁 | 仅文档与门禁，不改变 Runtime/hardware 状态 |
 | 2026-07-12 | [`5708dfa6`](https://github.com/LucasWEIchen/CougarOS/commit/5708dfa62d91624e9fe81e94077e8b630cb3d70b) | 首次 15 分钟 Issue 轮询验证经 PR #2 合入，Issue #1 转入 `state/retest` | `CONTROL_PLANE_ONLY`，无物理证据 |
 | 2026-07-12 | [`6ca306f4`](https://github.com/LucasWEIchen/CougarOS/commit/6ca306f4bc3adf65111969e4748a8111edec5317) | 激活 Private CougarOS remote、labels、Actions、pre-push guard 和 RC2 | production/hardware 仍为 false |
