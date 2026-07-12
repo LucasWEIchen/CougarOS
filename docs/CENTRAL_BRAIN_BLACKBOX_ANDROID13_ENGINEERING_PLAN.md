@@ -4,7 +4,7 @@
 
 日期：2026-07-12
 
-状态：B2 complete / B3 in progress
+状态：B3 emulator scope complete / B4 in progress
 
 ## 目标
 
@@ -86,7 +86,11 @@ build fingerprint、package install path、应用 UID、签名权限、native li
 不使用定时心跳。
 
 B2 已在 API 33 x86_64 完成 Runtime APK native load/lifecycle/dumpsys/Diagnostic/process
-recovery 验证；这不构成物理目标验证。B3 必须继续将模拟器证据与目标设备证据分开记录。
+recovery 验证；这不构成物理目标验证。B3 证据始终将模拟器结果与目标设备结果分开记录。
+
+B3 已形成只读 preflight、existing-signer fail-closed gate 和应用内 PackageManager probe，
+并在 API 33 x86_64 模拟器通过。物理控制器、production signer、后台策略、RenderService
+trust 与 vendor contract 仍 unresolved；B4 不得用交付包生成结果替代这些输入。
 
 ## 完成判定
 

@@ -1200,3 +1200,16 @@ The B1 interface is process-local and does not accept caller identity, Binder ob
 | Host verifier | Runtime APK native payload and ELF metadata | exact arm64/x86_64 allowlist, signer and hardening checks |
 
 The production call relationship is `Binder client -> Java Runtime/Governance -> durable Java workflow`; it does not continue into C in B2. Native Runtime is a process-health and future-provider boundary only. `software_provider_available`, `vendor_npu_provider_available`, `runtime_dispatch_enabled` and `hardware_accessed` remain false on every production and diagnostic surface.
+
+## Android B3 Black-Box Preflight Interfaces
+
+| Interface | Producer -> consumer | Fail-closed rule |
+| --- | --- | --- |
+| Host read-only preflight | adb/getprop/pm/apksigner -> integration owner | API/64-bit ABI/signer mismatch stops before install |
+| Existing package signer check | `pm path` + readable installed base APK -> apksigner | unreadable or mismatched signer is not auto-bypassed |
+| Signer negative fixture | temporary alternate keystore/APK copies -> read-only preflight | mismatch rejected before install; fixture deleted; device unchanged |
+| Java environment probe | PackageManager/Build/Process -> DUMP-protected log | exact API 33, ordinary app, private data, signer and native readiness required |
+| B3 acceptance contract | checked-in JSON -> CI/integrator | emulator and physical target claims remain separate |
+| Evidence properties | pre/post/install/native tools -> delivery audit | raw observed feature/SELinux/boot values retained; no inferred hardware claim |
+
+The Java probe is in the debug source set and is not a public production Binder API. It neither discovers vendor interfaces nor transfers package/signer authority into C. The only native input is the existing immutable readiness snapshot; Vendor NPU, dispatch and hardware remain false.

@@ -1062,3 +1062,11 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The Runtime APK must contain exactly the arm64-v8a and x86_64 `libcentral_brain_native.so` payloads and preserve the B1 symbol, hardening and no-vendor-linkage checks. It must not request INTERNET.
 - API 33 evidence must cover native load/init, capacity exhaustion, busy close, duplicate release, drain/close, Runtime dumpsys, Diagnostic parity and process force-stop/recreation with a clean crash buffer.
 - Passing B2 does not validate the physical controller or activate software inference, Vendor NPU, VHAL, vehicle control or Driver/HAL. `native_runtime_dispatch_enabled=false` and `native_hardware_accessed=false` remain mandatory.
+
+### 2026-07-12 B3 black-box Android 13 preflight trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- Before any package mutation, a public-API/adb preflight must verify exact API 33 when requested, an allowlisted 64-bit ABI, artifact signer cohort and every readable existing Runtime/Demo signer. Unknown or mismatched existing signer must stop before install; a temporary alternate-signer negative test must prove this path without mutating the device.
+- The read-only preflight may observe build/fingerprint, Automotive feature, SELinux/verified-boot properties and ordinary package metadata. It must not install/uninstall, elevate privilege, remount, change SELinux, inspect private device nodes or probe unpublished vendor services.
+- A DUMP-protected debug-only Java probe must independently verify PackageManager signer SHA-256, ordinary `/data/app` placement, app-private storage, ordinary UID, 64-bit process and Native Runtime readiness. It must remain absent from release.
+- Controlled API 33 acceptance must preserve the complete Binder/Room/Governance/HMI and Native Runtime process-recovery gates. Emulator evidence must be labeled separately and cannot set physical-controller, production-signing, background-policy, RenderService, vendor-interface or hardware claims true.

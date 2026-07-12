@@ -218,12 +218,13 @@
 | Protocol Binding | production/diagnostic AIDL 分离和版本协商 |
 | Native adapters | deterministic stub、Vendor NPU empty provider、按需 JNI/C ABI |
 
-## B0-B2 黑盒 Android 实际工程状态
+## B0-B3 黑盒 Android 实际工程状态
 
 - B0 已完成：Android 13 普通 APK、Java/C/JNI ownership、双 ABI、empty hardware provider 和禁止操作已进入静态门禁。
 - B1 已完成：独立 `native-runtime` AAR、C ABI V1、JNI/Java wrapper、ASan/UBSan host test、Java unit test 和 arm64/x86_64 ELF verifier 已通过。
 - B2 已完成：process-owned native lifecycle 已接 Runtime startup/dumpsys 和现有 Diagnostic Binder sequence 10；API 33 load/lifecycle/process-recovery 通过，不变更 AIDL/Room，不激活 NPU/VHAL/dispatch。
-- B3 进行中：使用公开 Android/ADB 接口实现只读黑盒能力预检和安全安装验收；模拟器与物理目标证据必须分开。
+- B3 已完成模拟器范围：公开 Android/ADB 只读 preflight、现有包 signer gate、debug Java PackageManager probe、受控安装与 post-install parity 已通过 API 33 x86_64；物理控制器证据保持 unresolved。
+- B4 进行中：生成独立 hybrid package、hash/signer/ABI manifest、dry-run installer、rollback 与安装/使用指南。
 - Req IDs：`XSC-004`、`XSC-005`、`NV-F-001`、`NV-F-011`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 问题与偏差绑定

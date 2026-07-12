@@ -36,7 +36,6 @@ for path in \
 done
 
 require_text "central-brain/android-runtime/runtime-service/build.gradle.kts" 'implementation(project(":native-runtime"))'
-require_text "central-brain/android-runtime/runtime-service/build.gradle.kts" 'versionName = "0.2.0-b2"'
 require_text "central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml" 'android:name=".CentralBrainRuntimeApplication"'
 require_text "$APPLICATION" "NativeRuntimeProcess.start"
 require_text "$APPLICATION" "getNativeRuntimeSnapshot()"

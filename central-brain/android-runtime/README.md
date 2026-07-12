@@ -295,6 +295,23 @@ bash tools/test_central_brain_android_native_runtime.sh --require-api-33
 
 The probe verifies load/init, bounded leases, capacity, busy close, duplicate release, drain/close, Runtime dumpsys, Diagnostic Binder sequence 10 and process recreation. All provider, dispatch and hardware fields remain false; this is not NPU/VHAL or target-controller evidence.
 
+## B3 Black-Box Android 13 Preflight
+
+Run the mutation-free device and existing-package check before installation:
+
+```bash
+bash tools/preflight_central_brain_android13_blackbox.sh \
+  --serial <serial> --require-api-33 --report <path>
+```
+
+Then run controlled API 33 acceptance:
+
+```bash
+bash tools/test_central_brain_android_blackbox_acceptance.sh --serial <serial>
+```
+
+The first command verifies API/ABI, delivered and existing package signers, `/data/app` placement and read-only build/security observations without package mutation. The second runs the existing Binder/Room/HMI and native recovery gates plus a debug-only public-API Java probe for PackageManager signer parity, ordinary UID and app-private storage. Emulator results are never promoted to physical-controller or hardware evidence.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

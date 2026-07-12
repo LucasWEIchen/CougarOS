@@ -639,3 +639,9 @@ No Driver/HAL gap is closed or newly triggered. `DRV-GAP-001` remains open becau
 B2 packages the same B1 userspace library into the ordinary Runtime APK and owns it from the Java `Application` lifecycle. Runtime and Diagnostic only query immutable health metadata; neither Service acquires a native slot, invokes a provider, opens a device node, calls VHAL/vendor service, maps shared memory or performs PCIe/DMA/IOMMU work.
 
 API 33 process recovery proves Android application lifecycle behavior only. It does not prove target ABI, NPU/VHAL access, Driver/HAL availability or hardware recovery. `DRV-GAP-001` and all existing hardware gaps remain open, no new gap is triggered, and added Driver/HAL development remains zero. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-G-003`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.
+
+### B3 Black-Box Preflight Driver/HAL Result
+
+B3 reads public Android build/package properties and the installed application APK only. The Java probe uses `PackageManager`, `Build` and `Process`; the host tool uses read-only `getprop`, `pm path`, `dumpsys package`, APK pull and signer verification. It does not enumerate vendor services or device nodes, call ioctl/sysfs/VHAL, change SELinux, elevate privilege or write a partition.
+
+Observed SELinux/verified-boot values are evidence fields, not a request to alter policy. The API 33 emulator result closes no Driver/HAL gap. `DRV-GAP-001` and all target hardware gaps remain open; added Driver/HAL development is zero. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-G-005`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

@@ -968,3 +968,11 @@ B2 Runtime APK `runtime-service-debug.apk` 已升级为 versionCode 2/versionNam
 `CentralBrainRuntimeApplication` 是进程 owner；Runtime log/dumpsys 与 Diagnostic Binder sequence 10 读取同一 snapshot。API 33 x86_64 设备测试已输出 `native_runtime_apk_verified=true`、`native_runtime_load_verified=true`、`native_runtime_diagnostic_verified=true` 与 `native_runtime_process_recovery_verified=true`。
 
 B2 交付不提供 native inference 或硬件 adapter。`native_software_provider_available=false`、`native_vendor_npu_provider_available=false`、`native_runtime_dispatch_enabled=false`、`native_hardware_accessed=false`，目标黑盒预检和 hybrid package 分别由 B3/B4 完成。
+
+## Android B3 Black-Box Preflight And Acceptance
+
+B3 交付 `central_brain_android_b3_blackbox_acceptance.json`、只读 preflight、临时异签名负向测试、受控 acceptance、debug-only Java PackageManager probe 和详细设备执行文档。Runtime APK versionCode 3/versionName `0.3.0-b3`；安装前和安装后都比较已安装 Runtime/Demo 与交付 APK signer，任一 mismatch 在安装前失败关闭。
+
+API 33 x86_64 模拟器已通过 ordinary `/data/app`、普通 UID、app-private data/native library path、64-bit process、PackageManager signer parity、Native Runtime process recovery 和 Binder/Room/HMI regression。证据 scope 固定 `api33-emulator-blackbox-application`。
+
+B3 没有物理控制器输入，因此 `physical_controller_evidence_available=false`、`production_signing_approved=false`、`background_policy_approved=false`、`render_service_trust_approved=false`、`vendor_interface_contract_available=false`、`target_hardware_validated=false`。B4 只能交付可执行命令和 unresolved target checklist，不能伪造这些状态。

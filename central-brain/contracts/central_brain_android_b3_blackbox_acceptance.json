@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "acceptance_id": "android-b3-api33-blackbox-application",
+  "status": "verified_api33_emulator",
+  "evidence_scope": "api33-emulator-blackbox-application",
+  "required_android_api": 33,
+  "allowed_64_bit_abis": [
+    "arm64-v8a",
+    "x86_64"
+  ],
+  "req_ids": [
+    "APP-004",
+    "XSC-001",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "NV-F-001",
+    "NV-F-011",
+    "NV-F-012",
+    "NV-G-003",
+    "NV-G-005",
+    "NV-G-006",
+    "NV-G-007",
+    "NV-P-002",
+    "KH-003",
+    "KH-006",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "commands": {
+    "read_only_preflight": "bash tools/preflight_central_brain_android13_blackbox.sh --serial <serial> --require-api-33 --report <path>",
+    "controlled_acceptance": "bash tools/test_central_brain_android_blackbox_acceptance.sh --serial <serial>"
+  },
+  "preflight_reads": [
+    "Android release API build identity and fingerprint",
+    "primary supported and 64-bit ABI lists",
+    "automotive feature advertisement",
+    "read-only SELinux and verified-boot properties when visible to shell",
+    "ordinary package path UID flags version and signer",
+    "delivered APK package signer and native ABI payload"
+  ],
+  "preflight_mutations": [],
+  "required_markers": [
+    "blackbox_preflight_passed=true",
+    "preflight_mutation_performed=false",
+    "preinstall_signer_gate_passed=true",
+    "existing_signer_mismatch_rejected=true",
+    "signer_mismatch_failed_before_install=true",
+    "blackbox_android13_acceptance_passed=true",
+    "package_manager_signer_parity_verified=true",
+    "ordinary_data_app_verified=true",
+    "app_private_data_dir_verified=true",
+    "target_64_bit_abi_supported=true",
+    "native_runtime_process_recovery_verified=true",
+    "binder_room_hmi_regression_verified=true"
+  ],
+  "prohibited_operations": [
+    "privilege escalation",
+    "filesystem remount",
+    "bootloader or partition write",
+    "SELinux policy change",
+    "private device-node scan",
+    "unpublished vendor API probe",
+    "automatic uninstall"
+  ],
+  "claim_state": {
+    "api33_emulator_evidence_available": true,
+    "physical_controller_evidence_available": false,
+    "ordinary_data_app_supported": true,
+    "production_signing_approved": false,
+    "background_policy_approved": false,
+    "render_service_trust_approved": false,
+    "vendor_interface_contract_available": false,
+    "target_hardware_validated": false,
+    "native_vendor_npu_provider_available": false,
+    "native_runtime_dispatch_enabled": false,
+    "hardware_accessed": false
+  },
+  "observed_emulator_evidence": {
+    "device_model": "sdk_gphone64_x86_64",
+    "android_api": 33,
+    "primary_abi": "x86_64",
+    "process_64_bit": true,
+    "selinux_state": "Enforcing",
+    "automotive_feature_advertised": false,
+    "runtime_version_name": "0.3.0-b3",
+    "runtime_application_uid": 10174,
+    "runtime_installed_under_data_app": true,
+    "runtime_signer_sha256": "2079de9bf19818b40d25acbcd8cb7643549b04a536b057997ef9103e1dc241a1",
+    "verified_boot_state_visible": false
+  }
+}

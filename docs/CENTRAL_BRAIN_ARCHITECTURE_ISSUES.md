@@ -355,6 +355,8 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 
 2026-07-12 B2 进展：API 33 x86_64 模拟器已证明 Runtime APK 的 native load、进程生命周期、Binder/Diagnostic 可见性和 force-stop 重建；这只是模拟器应用层证据。目标控制器 ABI、普通安装/升级、后台限制、量产 signer、RenderService 信任和公开 vendor contract 仍未知，因此 ISSUE-027 保持 Open，等待 B3 真机 preflight 输入。
 
+2026-07-12 B3 进展：黑盒 preflight/受控验收实现已完成，API 33 x86_64 模拟器 signer/ABI/`/data/app`/app-private/native/Binder 证据通过。该 AVD 的 Automotive feature 为 false，verified-boot/flash-lock/vbmeta shell visibility 为 UNKNOWN；这些值未被改写。ISSUE-027 保持 Open：物理控制器执行结果、production signer/升级、后台/MDM、Client2/RenderService trust 和任何公开 vendor contract 仍未提供。
+
 解除条件：目标设备执行 B3 preflight，并提供生产签名/升级策略、后台进程策略和任何公开 vendor SDK/服务 contract。真机应用层通过不自动关闭 NPU/VHAL/车辆/安全硬件验证。
 
 状态：Open，实施已获批准。

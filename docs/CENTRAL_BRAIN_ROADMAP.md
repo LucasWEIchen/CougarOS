@@ -30,8 +30,8 @@
 | B0 | 黑盒 Android 13 实际工程基线 | C/Java 模块、ABI、JNI、安装和验收边界 | 已完成 |
 | B1 | Native Runtime | C ABI V1、JNI、Java wrapper、arm64/x86_64 AAR | 已完成 |
 | B2 | Runtime 集成 | Native lifecycle 接入 Binder Runtime 与 Diagnostic | 已完成 |
-| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 进行中 |
-| B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 待开发 |
+| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器） |
+| B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 进行中 |
 
 ## M0 任务清单
 
@@ -66,9 +66,12 @@
 
 ### 2026-07-12
 
+- 完成 B3 黑盒应用层验收工具：安装前只读 API/ABI/build/feature/SELinux/verified-boot/package signer 门禁、临时异签名负向测试、受控安装、debug-only Java PackageManager probe 和安装后 signer 复检已形成。
+- API 33 x86_64 模拟器已通过 version `0.3.0-b3`、普通 UID/`/data/app`/app-private path、PackageManager signer parity、Native Runtime process recovery 和 Binder/Room/HMI 回归；Automotive feature=false、verified-boot visibility=UNKNOWN 按事实保留。
+- B3 只关闭模拟器应用层实现与证据，`ISSUE-027` 的物理控制器、生产签名、后台策略、RenderService trust 和 vendor contract 仍开放；B4 开始生成独立 hybrid 交付包、安装和使用指南。
 - 完成 B2 Runtime 集成：`CentralBrainRuntimeApplication` 持有唯一进程级 native handle；Runtime startup log/dumpsys 与 Diagnostic Binder sequence 10 暴露同一 fail-closed snapshot，production Service 不获取 native slot、不触发 dispatch。
 - API 33 x86_64 已通过 APK 双 ABI/ELF allowlist、native load/init/query/lease/close、容量与重复释放、Runtime dumpsys、Diagnostic parity、force-stop/PID 重建和 crash-buffer 验证；Runtime APK 版本为 `0.2.0-b2`。
-- B2 固定 `native_software_provider_available=false`、`native_vendor_npu_provider_available=false`、`native_runtime_dispatch_enabled=false`、`native_hardware_accessed=false`；B3 开始推进公开 API 黑盒预检。
+- B2 固定 `native_software_provider_available=false`、`native_vendor_npu_provider_available=false`、`native_runtime_dispatch_enabled=false`、`native_hardware_accessed=false`；后续 B3 已完成模拟器范围公开 API 黑盒预检。
 - 完成 B1 Native Runtime：C11 ABI V1、JNI `RegisterNatives`、同步 Java wrapper、严格不可变 health snapshot、容量 lease 和生命周期已实现。
 - Host C 在 ASan/UBSan 下通过生命周期、容量、重复释放和 4 线程并发测试；Java snapshot 6 项单测通过。Android Gradle 141-task build 成功，AAR 只含 `arm64-v8a`/`x86_64` 的 `libcentral_brain_native.so`，ELF machine、七个导出入口、无 `Java_*`、RELRO/NOW 和无 vendor/hardware linkage 门禁通过。
 - B1 固定 `software_provider_available=false`、`vendor_npu_provider_available=false`、`hardware_accessed=false`；没有 Driver/HAL、device node、Vendor NPU/VHAL、Linux 前端或虚拟化开发。覆盖 Req ID：`XSC-004`、`XSC-005`、`NV-F-001`、`NV-F-011`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-004`、`DEL-005`。

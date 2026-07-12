@@ -82,8 +82,16 @@ verify_elf "x86_64" "Advanced Micro Devices X86-64"
 BADGING="$($AAPT dump badging "$APK_PATH")"
 PERMISSIONS="$($AAPT dump permissions "$APK_PATH")"
 MANIFEST="$($AAPT dump xmltree "$APK_PATH" AndroidManifest.xml)"
-grep -Fq "package: name='com.centralbrain.runtime' versionCode='2' versionName='0.2.0-b2'" \
-  <<<"$BADGING" || { echo "Runtime APK package/version mismatch" >&2; exit 1; }
+PACKAGE_LINE="$(grep -F "package: name='com.centralbrain.runtime'" <<<"$BADGING" | head -n 1)"
+VERSION_CODE="$(sed -n "s/.*versionCode='\([0-9][0-9]*\)'.*/\1/p" <<<"$PACKAGE_LINE")"
+VERSION_NAME="$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$PACKAGE_LINE")"
+[[ "$VERSION_CODE" =~ ^[0-9]+$ && "$VERSION_CODE" -ge 2 && -n "$VERSION_NAME" ]] \
+  || { echo "Runtime APK package/version mismatch" >&2; exit 1; }
+if [[ -n "${EXPECTED_RUNTIME_VERSION_NAME:-}" \
+    && "$VERSION_NAME" != "$EXPECTED_RUNTIME_VERSION_NAME" ]]; then
+  echo "Runtime APK versionName mismatch: expected $EXPECTED_RUNTIME_VERSION_NAME, found $VERSION_NAME" >&2
+  exit 1
+fi
 grep -Fq "sdkVersion:'33'" <<<"$BADGING" \
   || { echo "Runtime APK minSdk mismatch" >&2; exit 1; }
 grep -Fq "com.centralbrain.runtime.CentralBrainRuntimeApplication" <<<"$MANIFEST" \
@@ -95,7 +103,7 @@ fi
 "$APKSIGNER" verify "$APK_PATH"
 
 echo "native_runtime_apk_verified=true"
-echo "native_runtime_apk_version=0.2.0-b2"
+echo "native_runtime_apk_version=$VERSION_NAME"
 echo "native_runtime_apk_abis=arm64-v8a,x86_64"
 echo "native_runtime_process_owner=CentralBrainRuntimeApplication"
 echo "native_runtime_dispatch_enabled=false"

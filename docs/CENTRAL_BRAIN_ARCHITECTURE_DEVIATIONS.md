@@ -287,4 +287,6 @@ R7D 交付明确要求当前 APK 无 native payload；新的黑盒 Android 13 �
 
 2026-07-12 B2 进展：Runtime APK 已依赖 Native Runtime AAR，并由进程级 `Application` owner 初始化唯一 native handle；Runtime log/dumpsys 与 Diagnostic Binder sequence 10 只读暴露同一 fail-closed snapshot。API 33 已验证 load/lifecycle/capacity/close、Diagnostic parity 和 force-stop 后进程重建，production Service 不 acquire slot，dispatch/provider/hardware 均为 false。DEV-020 保持 Accepted Temporary：R7D 历史 no-native 包不改写，B3 仍需黑盒预检，B4 仍需形成独立 hybrid 交付审计和回滚指南。
 
+2026-07-12 B3 进展：新增安装前只读 signer/ABI gate 和 debug-only Java PackageManager probe；API 33 x86_64 模拟器已通过普通 `/data/app`、UID/app-private path、交付/已安装 signer parity、Native Runtime recovery 和全量 Java Runtime 回归。DEV-020 保持 Accepted Temporary：当前证据不是物理控制器/量产 signer/后台策略或 vendor adapter 证据，B4 仍需独立 hybrid package、checksum/signer/rollback/使用指南审计。
+
 状态：Accepted Temporary；B4 交付审计后重新评估。
