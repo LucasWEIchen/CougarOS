@@ -49,6 +49,8 @@ require_text "$GUIDE" "B4 hybrid software handoff verified on API 33 emulator"
 require_text "$PY_TOOL" "hybrid_delivery_bundle_verified=true"
 require_text "$PY_TOOL" "ELF_MACHINES"
 require_text "$PACKAGE_TOOL" "native_artifact_count=2"
+require_text "$PACKAGE_TOOL" 'ARCHIVE_BASENAME="$(basename "$ARCHIVE")"'
+require_text "$PACKAGE_TOOL" 'printf '\''%s  %s\n'\'' "$ARCHIVE_SHA256" "$ARCHIVE_BASENAME"'
 require_text "$INSTALLER" "EXECUTE=false"
 require_text "$INSTALLER" "INCLUDE_CLIENT2=false"
 require_text "$INSTALLER" "automatic_uninstall_enabled=false"

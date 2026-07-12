@@ -6,18 +6,26 @@ on:
       - main
     paths:
       - ".github/**"
+      - ".githooks/**"
       - "central-brain/contracts/central_brain_github_remote_testing.json"
       - "central-brain/delivery/android-hybrid/**"
       - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+      - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
+      - "tools/check_central_brain_github_publication_tree.sh"
+      - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
   pull_request:
     paths:
       - ".github/**"
+      - ".githooks/**"
       - "central-brain/contracts/central_brain_github_remote_testing.json"
       - "central-brain/delivery/android-hybrid/**"
       - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+      - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
+      - "tools/check_central_brain_github_publication_tree.sh"
+      - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
 
 permissions:

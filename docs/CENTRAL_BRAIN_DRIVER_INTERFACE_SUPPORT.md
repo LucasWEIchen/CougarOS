@@ -664,3 +664,7 @@ Runtime or vendor service is added or called. Raw target evidence remains local 
 `hardware_accessed=false`/`target_hardware_validated=false` remain required until separately reviewed
 target evidence exists. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-012`,
 `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.
+
+The Private CougarOS repository, immutable RC2 release and 15-minute Issue polling change only the
+host-side handoff path. GitHub/`gh` activation does not add a target service, socket, Binder, JNI, HAL or
+driver call; Driver/HAL added development remains zero.

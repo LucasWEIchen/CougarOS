@@ -999,12 +999,12 @@ Bundle 增加 `central_brain_github_remote_testing.json`、远程测试指南和
 GitHub Actions 只运行 B5 静态合同门禁，不构建完整 Client2 delivery。
 publication-tree guard 会扫描目标 ref 全部可达历史，拒绝旧 APK/reverse/key 路径、20 MiB 以上
 blob 和 credential marker；发布只能精确推送 `codex/github-publication:main`，禁止 mirror/internal
-ref push。当前本地合同完成，
-但 remote/repository/Issue intake 尚未激活；private repo URL、write/tester access、labels、
-branch protection、首个 Release 和 Issue trigger 到位前保持
-`github_repository_configured=false`、`github_issue_intake_active=false`、
-`physical_controller_evidence_available=false`、`production_ready=false` 和
-`target_hardware_validated=false`。
+ref push。Private `LucasWEIchen/CougarOS` 的 remote、维护者写权限、labels、`main`、首个 RC2
+Release 和每 15 分钟 Issue 维护自动化已经激活，`github_repository_configured=true`、
+`github_issue_intake_active=true`。Codex GitHub connector 仍不可见该仓库，自动化使用已授权
+`gh` CLI。tester access list 和服务端 branch protection 仍阻塞；当前 Private 套餐拒绝后者，
+tracked pre-push hook + Actions 不等价于服务端保护。`physical_controller_evidence_available=false`、
+`production_ready=false` 和 `target_hardware_validated=false` 继续保持。
 
 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、
 `NV-F-001`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、

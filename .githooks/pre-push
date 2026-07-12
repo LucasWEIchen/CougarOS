@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Req IDs: XSC-005, NV-G-006/007, DEL-001/003/004/005.
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+CHECKER="$ROOT_DIR/tools/check_central_brain_github_publication_tree.sh"
+ZERO_SHA="0000000000000000000000000000000000000000"
+
+[[ -x "$CHECKER" ]] || { echo "publication checker is unavailable: $CHECKER" >&2; exit 1; }
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ "$local_ref" == refs/codex/* ]]; then
+    echo "refusing to publish Codex internal ref: $local_ref" >&2
+    exit 1
+  fi
+  if [[ "$local_sha" == "$ZERO_SHA" ]]; then
+    echo "remote ref deletion requires an explicit owner-reviewed procedure: $remote_ref" >&2
+    exit 1
+  fi
+  if [[ "$remote_ref" == refs/heads/main \
+      && "$local_ref" != refs/heads/codex/github-publication ]]; then
+    echo "main may only be updated from codex/github-publication" >&2
+    exit 1
+  fi
+  bash "$CHECKER" "$local_sha" >/dev/null
+done
+
+printf '%s\n' \
+  "central_brain_pre_push_guard_passed=true" \
+  "codex_internal_refs_published=false" \
+  "publication_history_verified=true"

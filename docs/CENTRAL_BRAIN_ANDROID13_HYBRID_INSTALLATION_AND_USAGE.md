@@ -255,6 +255,11 @@ bash tools/test_central_brain_android_blackbox_acceptance.sh \
 可选安装和脱敏证据生成。测试人员通过私有 GitHub Issue 回传 `github-safe/` 内容；原始
 ADB 标识、fingerprint、target-input 和未审查日志保留在内网。
 
+当前使用 Private `LucasWEIchen/CougarOS` 的
+`android13-hwtest-v0.5.0-rc.2` Release。下载归档和 `.sha256` 到同一目录后执行
+`sha256sum -c central-brain-android13-hybrid.tar.gz.sha256`；校验文件只记录 basename，不能使用
+没有 Release 资产的撤回 RC1 标签。新 Issue 由 15 分钟维护自动化通过 `gh` CLI 轮询。
+
 该流程解决异步版本与问题传递，不提供外网到内网设备的控制通道，也不会使
-`github_issue_intake_active`、`physical_controller_evidence_available` 或
-`target_hardware_validated` 自动变为 true。
+`physical_controller_evidence_available` 或 `target_hardware_validated` 自动变为 true。远端 Issue
+intake 已激活为 `github_issue_intake_active=true`，但 tester access 和 branch protection 仍需外部输入。

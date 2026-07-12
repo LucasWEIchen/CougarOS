@@ -1,6 +1,11 @@
 name: Android 13 hardware test report
 description: Report a physical-controller pass or failure against one immutable Central Brain release.
 title: "[HWTEST] "
+labels:
+  - "kind/hardware-test"
+  - "state/triage"
+assignees:
+  - "LucasWEIchen"
 body:
   - type: markdown
     attributes:
@@ -11,7 +16,7 @@ body:
     attributes:
       label: Release tag
       description: Must match android13-hwtest-vX.Y.Z-rc.N.
-      placeholder: android13-hwtest-v0.5.0-rc.1
+      placeholder: android13-hwtest-v0.5.0-rc.2
     validations:
       required: true
   - type: input

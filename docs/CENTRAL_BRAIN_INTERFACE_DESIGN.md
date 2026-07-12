@@ -1238,8 +1238,9 @@ The AARs are integration inputs and are not device packages. Runtime owns the C 
 | `github-safe/summary.env` | evidence collector -> Issue Form | non-secret alias/evidence reference and exit states only; no raw or derived device identity, logs or payload |
 | local `private/` evidence | evidence collector -> approved target owner channel | never automatically uploaded; security/privacy review required |
 | hardware-test Issue | target tester -> maintainer | immutable release identity, manual scenario result and retest timeline |
+| 15-minute Issue poll | Private CougarOS Issue -> maintenance automation through authenticated `gh` | structured reports or maintainer instructions only; one Req-ID increment; never auto-close |
 
 The asynchronous relationship is `maintainer Release -> target tester ADB -> GitHub-safe Issue ->
-maintainer fix -> replacement Release -> target retest`. GitHub is not a Protocol Binding to the vehicle,
-does not invoke Runtime and cannot close a hardware gate. An Issue does not automatically trigger Codex
-until a separate approved human or event binding exists.
+15-minute poll -> maintainer fix -> replacement Release -> target retest`. GitHub is not a Protocol Binding
+to the vehicle, does not invoke Runtime and cannot close a hardware gate. The poll is not an immediate
+webhook and a target tester's named-release verification remains mandatory before issue closure.

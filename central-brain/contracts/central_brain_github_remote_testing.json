@@ -20,13 +20,28 @@
   ],
   "status": {
     "local_remote_test_contract_ready": true,
-    "github_repository_configured": false,
-    "github_remote_pushed": false,
-    "github_issue_intake_active": false,
+    "github_repository_configured": true,
+    "github_remote_pushed": true,
+    "github_issue_intake_active": true,
+    "gh_cli_repository_access": true,
+    "github_connector_repository_access": false,
+    "event_automation_active": true,
+    "event_poll_interval_minutes": 15,
+    "branch_protection_active": false,
+    "branch_protection_unavailable_on_current_private_plan": true,
+    "first_immutable_release_published": true,
     "direct_target_access_available": false,
     "physical_controller_evidence_available": false,
     "production_ready": false,
     "target_hardware_validated": false
+  },
+  "repository": {
+    "owner": "LucasWEIchen",
+    "name": "CougarOS",
+    "visibility": "private",
+    "maintainer": "LucasWEIchen",
+    "remote_default_branch": "main",
+    "local_publication_branch": "codex/github-publication"
   },
   "roles": {
     "maintainer": [
@@ -60,6 +75,13 @@
     ],
     "controlled_workstation_build_required": true,
     "github_actions_build_authoritative": false,
+    "first_published_tag": "android13-hwtest-v0.5.0-rc.2",
+    "withdrawn_unreleased_tags": [
+      {
+        "tag": "android13-hwtest-v0.5.0-rc.1",
+        "reason": "The generated checksum named an absolute workstation path; no GitHub Release or assets were published."
+      }
+    ],
     "reason": "The complete Client2 baseline and signing inputs are controlled artifacts and are not committed to Git."
   },
   "publication_history_guard": {
@@ -69,7 +91,16 @@
     "max_reachable_blob_bytes": 20971520,
     "targeted_ref_push_required": true,
     "mirror_push_allowed": false,
-    "codex_internal_refs_publish_allowed": false
+    "codex_internal_refs_publish_allowed": false,
+    "local_pre_push_hook_path": ".githooks/pre-push",
+    "local_pre_push_hook_installed": true
+  },
+  "issue_polling": {
+    "automation_id": "cougaros-github-issue-maintenance",
+    "transport": "gh-cli",
+    "interval_minutes": 15,
+    "active": true,
+    "automatic_issue_close_allowed": false
   },
   "tester_workflow": [
     "download an immutable release and its external checksum",
@@ -130,14 +161,8 @@
     "raw_evidence_upload_allowed": false
   },
   "activation_blockers": [
-    "GITHUB_PRIVATE_REPOSITORY_URL_REQUIRED",
-    "GITHUB_MAINTAINER_WRITE_ACCESS_REQUIRED",
     "GITHUB_TESTER_ACCESS_LIST_REQUIRED",
-    "GITHUB_REQUIRED_LABELS_NOT_CREATED",
-    "GITHUB_BRANCH_PROTECTION_NOT_CONFIGURED",
-    "GITHUB_PUBLICATION_BRANCH_NOT_PUSHED",
-    "FIRST_IMMUTABLE_RELEASE_NOT_PUBLISHED",
-    "ISSUE_TO_CODEX_TRIGGER_NOT_CONFIGURED"
+    "PRIVATE_PLAN_REMOTE_BRANCH_PROTECTION_UNAVAILABLE"
   ],
   "prohibited_operations": [
     "publish the repository or release assets publicly by default",

@@ -13,9 +13,10 @@ ISSUE_CONFIG="$ROOT_DIR/.github/ISSUE_TEMPLATE/config.yml"
 WORKFLOW="$ROOT_DIR/.github/workflows/central-brain-remote-test-contract.yml"
 RUNNER="$ROOT_DIR/tools/run_central_brain_android_remote_acceptance.sh"
 PUBLICATION_CHECKER="$ROOT_DIR/tools/check_central_brain_github_publication_tree.sh"
+PRE_PUSH_HOOK="$ROOT_DIR/.githooks/pre-push"
 
 for file in "$CONTRACT" "$PROFILE" "$DOC" "$ISSUE_FORM" "$ISSUE_CONFIG" \
-    "$WORKFLOW" "$RUNNER" "$PUBLICATION_CHECKER"; do
+    "$WORKFLOW" "$RUNNER" "$PUBLICATION_CHECKER" "$PRE_PUSH_HOOK"; do
   [[ -f "$file" ]] || { echo "missing GitHub remote testing artifact: $file" >&2; exit 1; }
 done
 
@@ -42,6 +43,16 @@ for key in (
     "github_repository_configured",
     "github_remote_pushed",
     "github_issue_intake_active",
+    "gh_cli_repository_access",
+    "event_automation_active",
+    "first_immutable_release_published",
+):
+    assert status[key] is True, key
+assert status["event_poll_interval_minutes"] == 15
+assert status["github_connector_repository_access"] is False
+assert status["branch_protection_active"] is False
+assert status["branch_protection_unavailable_on_current_private_plan"] is True
+for key in (
     "direct_target_access_available",
     "physical_controller_evidence_available",
     "production_ready",
@@ -50,13 +61,25 @@ for key in (
     assert status[key] is False, key
 
 release = contract["release_contract"]
-assert re.fullmatch(release["tag_pattern"], "android13-hwtest-v0.5.0-rc.1")
+assert re.fullmatch(release["tag_pattern"], "android13-hwtest-v0.5.0-rc.2")
 assert release["required_assets"] == [
     "central-brain-android13-hybrid.tar.gz",
     "central-brain-android13-hybrid.tar.gz.sha256",
 ]
 assert release["controlled_workstation_build_required"] is True
 assert release["github_actions_build_authoritative"] is False
+assert release["first_published_tag"] == "android13-hwtest-v0.5.0-rc.2"
+assert release["withdrawn_unreleased_tags"][0]["tag"] == "android13-hwtest-v0.5.0-rc.1"
+
+repository = contract["repository"]
+assert repository == {
+    "owner": "LucasWEIchen",
+    "name": "CougarOS",
+    "visibility": "private",
+    "maintainer": "LucasWEIchen",
+    "remote_default_branch": "main",
+    "local_publication_branch": "codex/github-publication",
+}
 
 publication = contract["publication_history_guard"]
 assert publication["checker_path"] == "tools/check_central_brain_github_publication_tree.sh"
@@ -66,6 +89,15 @@ assert publication["max_reachable_blob_bytes"] == 20 * 1024 * 1024
 assert publication["targeted_ref_push_required"] is True
 assert publication["mirror_push_allowed"] is False
 assert publication["codex_internal_refs_publish_allowed"] is False
+assert publication["local_pre_push_hook_path"] == ".githooks/pre-push"
+assert publication["local_pre_push_hook_installed"] is True
+
+polling = contract["issue_polling"]
+assert polling["automation_id"] == "cougaros-github-issue-maintenance"
+assert polling["transport"] == "gh-cli"
+assert polling["interval_minutes"] == 15
+assert polling["active"] is True
+assert polling["automatic_issue_close_allowed"] is False
 
 evidence = contract["evidence_policy"]
 assert evidence["github_safe_files"] == [
@@ -74,8 +106,10 @@ assert evidence["github_safe_files"] == [
 ]
 assert evidence["automatic_upload_enabled"] is False
 assert evidence["raw_evidence_upload_allowed"] is False
-assert "ISSUE_TO_CODEX_TRIGGER_NOT_CONFIGURED" in contract["activation_blockers"]
-assert "GITHUB_PUBLICATION_BRANCH_NOT_PUSHED" in contract["activation_blockers"]
+assert contract["activation_blockers"] == [
+    "GITHUB_TESTER_ACCESS_LIST_REQUIRED",
+    "PRIVATE_PLAN_REMOTE_BRANCH_PROTECTION_UNAVAILABLE",
+]
 
 support = {item["bundle_path"] for item in profile["support_files"]}
 for expected in (
@@ -86,12 +120,13 @@ for expected in (
     assert expected in support, expected
 
 print("github_remote_contract_json_verified=true")
-print("github_repository_configured=false")
-print("github_issue_intake_active=false")
+print("github_repository_configured=true")
+print("github_issue_intake_active=true")
+print("event_poll_interval_minutes=15")
 print("target_hardware_validated=false")
 PY
 
-bash -n "$RUNNER" "$PUBLICATION_CHECKER"
+bash -n "$RUNNER" "$PUBLICATION_CHECKER" "$PRE_PUSH_HOOK"
 "$RUNNER" --help >/dev/null
 
 for field in release_tag source_git_commit archive_sha256 device_alias evidence_reference install_profile \
@@ -100,6 +135,10 @@ for field in release_tag source_git_commit archive_sha256 device_alias evidence_
   grep -Fq "id: $field" "$ISSUE_FORM" \
     || { echo "hardware-test Issue Form field missing: $field" >&2; exit 1; }
 done
+grep -Fq 'labels:' "$ISSUE_FORM"
+grep -Fq '"kind/hardware-test"' "$ISSUE_FORM"
+grep -Fq '"state/triage"' "$ISSUE_FORM"
+grep -Fq '"LucasWEIchen"' "$ISSUE_FORM"
 grep -Fq 'blank_issues_enabled: false' "$ISSUE_CONFIG"
 grep -Fq 'permissions:' "$WORKFLOW"
 grep -Fq 'contents: read' "$WORKFLOW"
@@ -112,8 +151,10 @@ if grep -Eq 'gh release|upload-artifact|adb install|gradlew' "$WORKFLOW"; then
 fi
 
 for marker in \
-  'GitHub Issue 本身不会自动唤醒 Codex' \
+  'LucasWEIchen/CougarOS' \
+  'cougaros-github-issue-maintenance' \
   'github_issue_intake_active=true' \
+  'android13-hwtest-v0.5.0-rc.2' \
   'state/triage -> state/reproduced -> state/fix-ready -> state/retest ->' \
   'central-brain-android13-hybrid.tar.gz.sha256' \
   'codex/github-publication:main'; do
@@ -139,8 +180,9 @@ grep -Fq 'B5 GitHub Remote Test Driver/HAL Result' \
 printf '%s\n' \
   'Central Brain B5 GitHub remote testing check passed' \
   'local_remote_test_contract_ready=true' \
-  'github_repository_configured=false' \
-  'github_issue_intake_active=false' \
+  'github_repository_configured=true' \
+  'github_issue_intake_active=true' \
+  'event_poll_interval_minutes=15' \
   'automatic_upload_enabled=false' \
   'raw_evidence_upload_allowed=false' \
   'physical_controller_evidence_available=false' \

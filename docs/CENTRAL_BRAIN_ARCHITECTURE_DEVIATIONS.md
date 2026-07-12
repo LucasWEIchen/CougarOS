@@ -304,13 +304,15 @@ Form。测试人员运行 bundle 内 remote acceptance 工具；工具默认 dry
 GitHub-safe 摘要和 private raw evidence 分离。完整 Client2 Release 继续由受控开发机产生，
 GitHub Actions 仅验证合同。
 
-当前状态：Accepted Temporary。`local_remote_test_contract_ready=true`，但仓库 URL/写权限、
-tester access、labels、branch protection、首个 Release 和 Issue trigger 未配置，因此
-`github_issue_intake_active=false`。物理、production 和 hardware gate 不由该偏差关闭。
+当前状态：Accepted Temporary。Private `LucasWEIchen/CougarOS`、维护者写权限、labels、
+`main`、首个不可变 RC2 和 15 分钟 Issue 轮询已激活，
+`github_issue_intake_active=true`。GitHub connector 对该仓库仍返回 404，轮询改用已授权 `gh`
+CLI；tester access list 尚未提供。当前 Private 套餐拒绝 branch protection，tracked pre-push hook
+与 Actions 只作为临时风险控制且不等价。物理、production 和 hardware gate 不由该偏差关闭。
 
 发布边界：本地 Codex turn-diff refs 可达旧大对象，但当前开发分支可达历史已通过独立
-publication-tree guard。只允许精确推送后续 `codex/github-publication` ref；不执行
-`--mirror`、不推送 internal refs、不改写或删除用户现有本地历史。
+publication-tree guard。只允许精确推送 `codex/github-publication:main`；tracked pre-push hook 对
+每个 SHA 重跑该检查。不执行 `--mirror`、不推送 internal refs、不改写或删除用户现有本地历史。
 
 Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
 `NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、

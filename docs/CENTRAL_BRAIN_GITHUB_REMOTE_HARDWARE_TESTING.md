@@ -15,7 +15,8 @@ GitHub 不连接目标 ADB，不保存生产签名材料，不构建缺少受控
 
 ## 2. 仓库和权限模型
 
-仓库必须默认为 Private。建议权限如下：
+已激活仓库为 Private [LucasWEIchen/CougarOS](https://github.com/LucasWEIchen/CougarOS)，
+维护者为 `LucasWEIchen`，默认分支为 `main`。权限模型如下：
 
 | 角色 | 权限 | 责任 |
 | --- | --- | --- |
@@ -23,9 +24,11 @@ GitHub 不连接目标 ADB，不保存生产签名材料，不构建缺少受控
 | Target tester | Triage/Read | 下载 Release、创建/更新 Issue、复测 |
 | Target owner | Triage/Read | 审批签名、后台、rollback、RenderService 和证据处理 |
 
-`main` 必须启用保护：禁止 force-push、要求 Pull Request、要求
-`Central Brain remote test contract` 检查通过。GitHub Actions 只检查合同和模板，不是完整
-APK/Client2 的权威构建者。
+目标策略要求 `main` 禁止 force-push、要求 Pull Request、要求
+`Central Brain remote test contract` 检查通过。当前 Private 仓库套餐拒绝配置 branch protection；
+该差异由 `ISSUE-028` 跟踪。现阶段使用已提交的 `.githooks/pre-push`、精确 ref 推送和远端
+Actions 静态门禁降低风险，但这些措施不等同于服务端 branch protection。GitHub Actions 只检查
+合同和模板，不是完整 APK/Client2 的权威构建者。
 
 推荐标签：`kind/hardware-test`、`state/triage`、`state/reproduced`、
 `state/fix-ready`、`state/retest`、`state/verified`、`severity/blocker`、
@@ -49,6 +52,8 @@ git push -u origin codex/github-publication:main
 
 后续 PR 分支必须从该发布分支或远端 `main` 创建。发布检查器扫描目标 ref 的全部可达历史，
 拒绝 20 MiB 以上 blob、旧 APK/逆向路径、二进制/密钥扩展名和常见 credential marker。
+本工作区已设置 `core.hooksPath=.githooks`；钩子只允许
+`refs/heads/codex/github-publication -> refs/heads/main`，并对每个推送 SHA 重跑发布检查。
 
 ## 3. Release 合同
 
@@ -68,6 +73,10 @@ central-brain-android13-hybrid.tar.gz.sha256
 Release tag 所指提交必须与归档内 `DELIVERY-MANIFEST.json` 的 `source_git_commit` 一致。
 Issue 必须同时引用 release tag、完整 source commit 和外层 archive SHA-256；只写“最新版”
 的报告不可验收。
+
+`android13-hwtest-v0.5.0-rc.1` 只保留为撤回标签：其旧校验文件写入了开发机绝对路径，未创建
+GitHub Release、未上传资产，也不得用于测试。首个可用候选版本为
+`android13-hwtest-v0.5.0-rc.2`；校验文件只包含归档 basename，可在任意下载目录执行。
 
 ## 4. 测试人员准备
 
@@ -97,7 +106,7 @@ tar -xzf central-brain-android13-hybrid.tar.gz
 ```bash
 bash central-brain-android13-hybrid/tools/run_central_brain_android_remote_acceptance.sh \
   --bundle-dir central-brain-android13-hybrid \
-  --release-tag android13-hwtest-v0.5.0-rc.1 \
+  --release-tag android13-hwtest-v0.5.0-rc.2 \
   --archive-sha256 <verified-archive-sha256> \
   --target-inputs <completed-target-inputs.json> \
   --device-alias <non-secret-device-alias> \
@@ -158,19 +167,21 @@ state/verified` 推进。只有测试人员在 Issue 中确认具体替代 Relea
 5. 将 Issue 标为 `state/retest`，由原测试人员复测。
 6. 复测通过后标为 `state/verified` 并关闭；失败则保留同一 Issue 的版本时间线。
 
-GitHub Issue 本身不会自动唤醒 Codex。仓库激活后，用户需把 Issue URL/编号发送到当前任务，
-或另行配置获批的 Issue 触发自动化；不得声称当前已经存在事件触发器。
+事件维护自动化 `cougaros-github-issue-maintenance` 已激活，每 15 分钟轮询一次仓库的新增或
+更新 Issue。自动化通过已授权的 `gh` CLI 访问该 Private 仓库；Codex GitHub connector 当前
+仍返回 404，因此只作为不可用的首选通道记录。轮询不是即时 webhook；自动化只能处理结构化
+hardware-test Issue 或维护者明确指令，每轮只做一个带 Req ID 的可验证增量，并且绝不自动关闭
+Issue。测试人员对指定替代 Release 的复测确认仍是关闭前置条件。
 
 ## 9. 当前激活阻塞项
 
-本地 B5 合同和工具可先交付，但实际 GitHub 闭环在以下输入完成前保持未激活：
+远端仓库、维护者凭据、标签、`main` 推送、首个不可变 Release、Issue Form 和 15 分钟事件
+自动化已经激活，因此 `github_repository_configured=true`、
+`github_issue_intake_active=true`。仍有两个外部阻塞项：
 
-- 私有仓库 `owner/name` 或 URL；
-- 维护者写权限和 Git push 凭据；
-- 测试人员 GitHub 用户列表；
-- branch protection、labels 和 Release 权限；
-- 首个不可变 Release；
-- Issue 到 Codex 的人工或自动触发方式。
+- 尚未提供测试人员 GitHub 用户列表，无法完成 Private repository 成员授权；
+- 当前 Private 仓库套餐不支持所需 branch protection，必须升级套餐后补齐服务端保护。
 
-这些阻塞项不影响内网测试人员执行本地 ADB，但在解除前不能声称
-`github_issue_intake_active=true`。
+这些阻塞项不影响维护者侧版本发布和 Issue intake，但内网测试人员在获得仓库访问权之前不能
+下载 Release。远端激活不代表物理设备通过，`physical_controller_evidence_available=false`、
+`production_ready=false`、`target_hardware_validated=false` 继续保持。

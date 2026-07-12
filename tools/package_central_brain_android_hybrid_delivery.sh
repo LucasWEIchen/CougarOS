@@ -61,6 +61,7 @@ case "$OUTPUT_ROOT" in
 esac
 BUNDLE_DIR="$OUTPUT_ROOT/$BUNDLE_NAME"
 ARCHIVE="$OUTPUT_ROOT/$BUNDLE_NAME.tar.gz"
+ARCHIVE_BASENAME="$(basename "$ARCHIVE")"
 
 if [[ "$BUILD" == true ]]; then
   bash "$ROOT_DIR/tools/build_client2_central_brain_demo.sh"
@@ -96,7 +97,8 @@ tar \
   -C "$OUTPUT_ROOT" \
   -czf "$ARCHIVE" \
   "$BUNDLE_NAME"
-sha256sum "$ARCHIVE" >"$ARCHIVE.sha256"
+ARCHIVE_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+printf '%s  %s\n' "$ARCHIVE_SHA256" "$ARCHIVE_BASENAME" >"$ARCHIVE.sha256"
 
 printf '%s\n' \
   "android_hybrid_delivery_package_ready=true" \
@@ -110,5 +112,5 @@ printf '%s\n' \
   "target_hardware_validated=false" \
   "bundle_dir=$BUNDLE_DIR" \
   "bundle_archive=$ARCHIVE" \
-  "bundle_archive_sha256=$(awk '{print $1}' "$ARCHIVE.sha256")" \
+  "bundle_archive_sha256=$ARCHIVE_SHA256" \
   "source_git_commit=$GIT_COMMIT"

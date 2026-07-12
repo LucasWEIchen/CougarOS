@@ -32,7 +32,7 @@
 | B2 | Runtime 集成 | Native lifecycle 接入 Binder Runtime 与 Diagnostic | 已完成 |
 | B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器） |
 | B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 已完成（软件交付） |
-| B5 | GitHub 远程硬件测试闭环 | 私有 Release、脱敏证据、Issue Form、复测状态机 | B5a 本地合同完成；B5b 仓库激活待输入 |
+| B5 | GitHub 远程硬件测试闭环 | 私有 Release、脱敏证据、Issue Form、复测状态机 | 维护者闭环已激活；tester access/branch protection 待外部输入 |
 
 ## M0 任务清单
 
@@ -70,7 +70,8 @@
 - 完成 B5a GitHub 远程硬件测试本地合同：版本化 Release、source commit/archive SHA-256 回溯、目标侧 dry-run/可选安装、GitHub-safe/private evidence 分流、Issue Form 和复测状态机已形成。
 - B5 不建立外网到内网 ADB 通道；测试人员执行真实设备命令，维护者按 Issue 的不可变版本修复。完整 Client2 交付继续由受控开发机生成，GitHub Actions 仅验证合同，不伪装为权威 APK build。
 - 发布 ref 审计已区分本地 Codex internal refs 与当前开发分支：当前分支全部可达历史最大 blob 为 1,221,099 字节且不含 forbidden APK/reverse/key 路径；后续只推送 `codex/github-publication:main`，禁止 mirror/internal-ref push。
-- B5b 尚未激活：当前仓库无 remote，GitHub 连接器无可访问仓库，本机无 `gh`；等待 private repo URL、维护者写权限、tester 列表、labels/branch protection 和 Issue 触发方式。`github_issue_intake_active=false`、`physical_controller_evidence_available=false`、`target_hardware_validated=false`。
+- B5b 维护者闭环已在 Private `LucasWEIchen/CougarOS` 激活：`gh` 已获 repo/workflow 权限，`codex/github-publication` 精确推送到 `main`，labels、Issue Form、Actions 静态门禁和每 15 分钟事件维护自动化均启用，`github_issue_intake_active=true`。
+- Private 仓库当前套餐拒绝 branch protection，使用 tracked pre-push hook + Actions 作为临时降低风险措施；GitHub connector 仍不可访问该仓库，但自动化使用 `gh` CLI。tester GitHub 用户列表仍待提供，物理/production/hardware 状态继续为 false。
 - 完成 B4 独立 hybrid C/Java 软件交付：Native AAR、SDK AAR、Runtime APK、Demo APK 和可选 Client2 APK 共 5 项 artifact 已纳入 path-safe manifest/SHA-256/signer/native ABI/ELF inventory；历史 R7D no-native bundle 未改写。
 - Bundle verifier 已验证 2 个 native artifact 只含 `arm64-v8a`/`x86_64` allowlist，三 APK signer cohort 与 Client2 `classes2.dex`；installer 默认 maintenance dry-run，Client2 必须显式 `--include-client2`，debug 执行必须显式授权。
 - API 33 x86_64 已通过 maintenance/client2-demo 两种 dry-run 与实际安装、普通 `/data/app`、signature permission、Demo 自动验收、Client2 真实按钮/Binder callback 和完整 Runtime/Client2 recovery matrix。
