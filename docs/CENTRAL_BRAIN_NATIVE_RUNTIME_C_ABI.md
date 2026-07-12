@@ -4,7 +4,7 @@
 
 日期：2026-07-12
 
-状态：B1 implemented / B2 Runtime integration pending
+状态：B1 implemented / B2 Runtime integration verified
 
 ## 范围
 
@@ -111,6 +111,8 @@ machine 正确、七个 C/JNI 入口可见、没有 name-based `Java_*` 导出�
 ELF machine、七个公开 C/JNI 入口、无 name-based JNI、RELRO/NOW 与无
 NPU/OpenCL/Vehicle/vendor dependency 检查通过。
 
-B1 只证明 native artifact 与 ABI contract。B2 才允许 Runtime APK 依赖该 AAR；B3
-才在 API 33/黑盒设备验证 load、lifecycle 和 recovery。任何这些证据都不等于 NPU/VHAL
-硬件验证。
+B2 已让 Runtime APK 依赖该 AAR，并由 `CentralBrainRuntimeApplication` 持有唯一进程级
+handle。Runtime startup log/dumpsys 与 Diagnostic Binder sequence 10 只读查询同一
+fail-closed snapshot；production Service 不 acquire slot 或 dispatch。API 33 x86_64 已验证
+load、lifecycle、容量/关闭错误、Diagnostic parity 和 force-stop 后进程重建。B3 继续负责
+黑盒目标预检；任何这些证据都不等于 NPU/VHAL 硬件验证。

@@ -20,6 +20,7 @@ import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.memory.MemoryRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
+import com.centralbrain.runtime.nativebridge.NativeRuntimeProcessSnapshot;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
@@ -115,6 +116,8 @@ public final class CentralBrainDiagnosticService extends Service {
                 + " durable_encrypted_memory_storage_available="
                 + memoryRuntimeReadiness.isDurableEncryptedStorageAvailable()
                 + " hardware_accessed=false");
+        Log.i(TAG, "native_runtime_diagnostic_wired=true "
+                + nativeRuntimeSnapshot().logFields());
     }
 
     @Override
@@ -156,6 +159,7 @@ public final class CentralBrainDiagnosticService extends Service {
     }
 
     private DiagnosticRecord[] records() {
+        NativeRuntimeProcessSnapshot nativeRuntime = nativeRuntimeSnapshot();
         return new DiagnosticRecord[] {
                 record("protocol", "production", "version=1", ICentralBrainRuntime.INTERFACE_HASH, 1),
                 record("protocol", "diagnostic", "version=1", ICentralBrainDiagnostics.INTERFACE_HASH, 2),
@@ -200,8 +204,21 @@ public final class CentralBrainDiagnosticService extends Service {
                         "runtime-acceptance",
                         "core-ready-production-blocked",
                         runtimeAcceptance.diagnosticDetail(),
-                        9)
+                        9),
+                record(
+                        "runtime",
+                        "native-runtime-readiness",
+                        nativeRuntime.isRuntimeReady()
+                                ? "ready-provider-empty"
+                                : "unavailable",
+                        nativeRuntime.diagnosticDetail(),
+                        10)
         };
+    }
+
+    private NativeRuntimeProcessSnapshot nativeRuntimeSnapshot() {
+        return ((CentralBrainRuntimeApplication) getApplication())
+                .getNativeRuntimeSnapshot();
     }
 
     private static DiagnosticRecord record(

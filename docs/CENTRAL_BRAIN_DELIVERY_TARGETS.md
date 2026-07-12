@@ -960,3 +960,11 @@ B0 只定义 contract，尚未交付 `.so`。完成状态必须由 B1 build、B2
 B1 已交付 `native-runtime-debug.aar`，其中只包含 `jni/arm64-v8a/libcentral_brain_native.so` 与 `jni/x86_64/libcentral_brain_native.so`。Host C ASan/UBSan、Java 6 项单测、Gradle build、ELF machine、公开符号、RELRO/NOW 和 vendor/hardware linkage 门禁均通过。
 
 该 AAR 当前是独立 artifact，尚未进入 Runtime APK。B2 才接入进程生命周期和 Diagnostic，B3 才提供 API 33/目标黑盒部署证据。B1 不改变 R7D 历史无-native bundle，也不表示 NPU/VHAL/Driver/HAL 或目标硬件可用；`vendor_npu_provider_available=false`、`hardware_accessed=false`。
+
+## Android B2 Native Runtime Integration Artifact
+
+B2 Runtime APK `runtime-service-debug.apk` 已升级为 versionCode 2/versionName `0.2.0-b2`，并且只包含 `lib/arm64-v8a/libcentral_brain_native.so` 与 `lib/x86_64/libcentral_brain_native.so`。构建流程同时验证 Native AAR 与最终 APK 的 ABI、ELF machine、七个导出入口、RELRO/NOW、无 vendor/hardware linkage、无 INTERNET 和 APK signer。
+
+`CentralBrainRuntimeApplication` 是进程 owner；Runtime log/dumpsys 与 Diagnostic Binder sequence 10 读取同一 snapshot。API 33 x86_64 设备测试已输出 `native_runtime_apk_verified=true`、`native_runtime_load_verified=true`、`native_runtime_diagnostic_verified=true` 与 `native_runtime_process_recovery_verified=true`。
+
+B2 交付不提供 native inference 或硬件 adapter。`native_software_provider_available=false`、`native_vendor_npu_provider_available=false`、`native_runtime_dispatch_enabled=false`、`native_hardware_accessed=false`，目标黑盒预检和 hybrid package 分别由 B3/B4 完成。

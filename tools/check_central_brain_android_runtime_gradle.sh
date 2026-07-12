@@ -86,6 +86,9 @@ for path in \
   tools/check_central_brain_android_application_acceptance.sh \
   tools/check_central_brain_android_delivery_handoff.sh \
   tools/check_central_brain_native_runtime.sh \
+  tools/check_central_brain_android_native_runtime_integration.sh \
+  tools/verify_central_brain_native_runtime_apk.sh \
+  tools/test_central_brain_android_native_runtime.sh \
   tools/test_client2_central_brain_binder.sh \
   tools/test_client2_central_brain_recovery.sh \
   tools/test_central_brain_android_capability_policy.sh \
@@ -172,5 +175,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_application_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_delivery_handoff.sh"
 bash "$ROOT_DIR/tools/check_central_brain_native_runtime.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_native_runtime_integration.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

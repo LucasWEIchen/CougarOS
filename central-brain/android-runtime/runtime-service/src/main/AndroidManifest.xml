@@ -11,6 +11,7 @@
         android:protectionLevel="signature" />
 
     <application
+        android:name=".CentralBrainRuntimeApplication"
         android:allowBackup="false"
         android:label="@string/runtime_service_name"
         android:supportsRtl="true">

@@ -1,10 +1,10 @@
 # Central Brain 黑盒 Android 13 实际工程计划
 
-版本：0.1
+版本：0.2
 
 日期：2026-07-12
 
-状态：Approved / In progress
+状态：B2 complete / B3 in progress
 
 ## 目标
 
@@ -84,6 +84,9 @@ build fingerprint、package install path、应用 UID、签名权限、native li
 
 每个阶段完成代码、验证、文档、偏差/问题跟踪与 Git commit 后，直接进入下一阶段；
 不使用定时心跳。
+
+B2 已在 API 33 x86_64 完成 Runtime APK native load/lifecycle/dumpsys/Diagnostic/process
+recovery 验证；这不构成物理目标验证。B3 必须继续将模拟器证据与目标设备证据分开记录。
 
 ## 完成判定
 

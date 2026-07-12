@@ -74,6 +74,7 @@ for artifact in "$RUNTIME_APK" "$DEMO_APK"; do
     exit 1
   fi
 done
+bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_apk.sh" "$RUNTIME_APK"
 
 if [[ -z "$SERIAL" ]]; then
   mapfile -t ONLINE_DEVICES < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
@@ -180,6 +181,8 @@ for _ in {1..20}; do
       && grep -Fq "skill_governance_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG" \
       && grep -Fq "runtime_acceptance_diagnostic_verified=true" \
+        <<<"$DIAGNOSTIC_LOG" \
+      && grep -Fq "native_runtime_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG"; then
     DIAGNOSTIC_PROBE_PASSED=true
     break
@@ -1033,6 +1036,21 @@ fi
 RUNTIME_CLIENT_DUMP="$("${ADB_DEVICE[@]}" shell dumpsys activity service \
   com.centralbrain.runtime/.CentralBrainRuntimeService)"
 for marker in \
+  "native_runtime_process_wired=true" \
+  "native_runtime_process_ready=true" \
+  "native_runtime_process_lifecycle=READY" \
+  "native_runtime_detail_code=READY" \
+  "native_library_loaded=true" \
+  "native_runtime_initialized=true" \
+  "native_runtime_abi_version=1" \
+  "native_runtime_max_slots=4" \
+  "native_runtime_active_slots=0" \
+  "native_runtime_generation=1" \
+  "native_runtime_last_status=OK" \
+  "native_software_provider_available=false" \
+  "native_vendor_npu_provider_available=false" \
+  "native_runtime_dispatch_enabled=false" \
+  "native_hardware_accessed=false" \
   "production_effect_activation_gate_wired=true" \
   "production_effect_delivery_activation_allowed=false" \
   "production_effect_adapter_configured=false" \
@@ -1184,6 +1202,27 @@ for expected in \
 done
 
 RUNTIME_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CentralBrainRuntime:I '*:S')"
+for marker in \
+  "native_runtime_process_wired=true" \
+  "native_runtime_process_ready=true" \
+  "native_runtime_process_lifecycle=READY" \
+  "native_runtime_detail_code=READY" \
+  "native_library_loaded=true" \
+  "native_runtime_initialized=true" \
+  "native_runtime_abi_version=1" \
+  "native_runtime_max_slots=4" \
+  "native_runtime_active_slots=0" \
+  "native_runtime_generation=1" \
+  "native_runtime_last_status=OK" \
+  "native_software_provider_available=false" \
+  "native_vendor_npu_provider_available=false" \
+  "native_runtime_dispatch_enabled=false" \
+  "native_hardware_accessed=false"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
+    echo "Runtime Native Runtime integration missing marker: $marker" >&2
+    exit 1
+  fi
+done
 if ! grep -Fq "job_supervisor_max_records=128 terminal_retention_ms=300000" \
     <<<"$RUNTIME_LOG"; then
   echo "Runtime did not report the bounded R3A Job Supervisor" >&2
@@ -1436,6 +1475,18 @@ printf '%s\n' \
   "memory_runtime_readiness_diagnostic_verified=true" \
   "skill_governance_readiness_diagnostic_verified=true" \
   "runtime_acceptance_diagnostic_verified=true" \
+  "native_runtime_apk_verified=true" \
+  "native_runtime_process_wired=true" \
+  "native_runtime_load_verified=true" \
+  "native_runtime_lifecycle_verified=true" \
+  "native_runtime_dumpsys_verified=true" \
+  "native_runtime_diagnostic_verified=true" \
+  "native_runtime_abi_version=1" \
+  "native_runtime_abis=arm64-v8a,x86_64" \
+  "native_software_provider_available=false" \
+  "native_vendor_npu_provider_available=false" \
+  "native_runtime_dispatch_enabled=false" \
+  "native_hardware_accessed=false" \
   "room_schema_version=3" \
   "room_table_count=8" \
   "room_wal_enabled=true" \

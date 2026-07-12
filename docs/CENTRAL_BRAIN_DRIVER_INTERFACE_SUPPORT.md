@@ -633,3 +633,9 @@ First packaged ABIs are `arm64-v8a` and `x86_64`. ABI packaging evidence is not 
 B1 now produces the two allowlisted userspace libraries and verifies that their dynamic dependencies contain no OpenCL, NPU, neural, vehicle or vendor library. Static source gating also rejects file/device, dynamic-loader and network calls. The C code owns only ABI validation, mutex-protected lease bookkeeping and health state.
 
 No Driver/HAL gap is closed or newly triggered. `DRV-GAP-001` remains open because no published vendor NPU SDK/ABI or target hardware evidence exists; VHAL, PCIe, ioctl/sysfs, DMA/shared memory and Safety Runtime remain untouched. Added Driver/HAL development is zero. Req IDs: `XSC-004`, `NV-F-001`, `NV-F-011`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### B2 Native Process Integration Driver/HAL Result
+
+B2 packages the same B1 userspace library into the ordinary Runtime APK and owns it from the Java `Application` lifecycle. Runtime and Diagnostic only query immutable health metadata; neither Service acquires a native slot, invokes a provider, opens a device node, calls VHAL/vendor service, maps shared memory or performs PCIe/DMA/IOMMU work.
+
+API 33 process recovery proves Android application lifecycle behavior only. It does not prove target ABI, NPU/VHAL access, Driver/HAL availability or hardware recovery. `DRV-GAP-001` and all existing hardware gaps remain open, no new gap is triggered, and added Driver/HAL development remains zero. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-G-003`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

@@ -24,6 +24,7 @@ import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
 import com.centralbrain.runtime.memory.MemoryRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
+import com.centralbrain.runtime.nativebridge.NativeRuntimeProcessSnapshot;
 import com.centralbrain.runtime.persistence.CentralBrainDatabase;
 import com.centralbrain.runtime.persistence.DurableDigest;
 import com.centralbrain.runtime.persistence.DurableTaskRepository;
@@ -428,6 +429,8 @@ public final class CentralBrainRuntimeService extends Service {
                 + runtimeAcceptance.getBlockersCsv()
                 + " service_dispatch_triggered=false"
                 + " hardware_accessed=false");
+        Log.i(TAG, "native_runtime_process_wired=true "
+                + nativeRuntimeSnapshot().logFields());
     }
 
     @Override
@@ -444,6 +447,8 @@ public final class CentralBrainRuntimeService extends Service {
 
     @Override
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
+        writer.println("native_runtime_process_wired=true");
+        writer.println(nativeRuntimeSnapshot().logFields());
         writer.println("production_effect_activation_gate_wired=true");
         writer.println("production_effect_delivery_activation_allowed="
                 + effectDeliveryActivation.isActivationAllowed());
@@ -670,6 +675,11 @@ public final class CentralBrainRuntimeService extends Service {
 
     private AndroidCallerIdentityResolver identityResolver;
     private CallerCapabilityPolicy capabilityPolicy;
+
+    private NativeRuntimeProcessSnapshot nativeRuntimeSnapshot() {
+        return ((CentralBrainRuntimeApplication) getApplication())
+                .getNativeRuntimeSnapshot();
+    }
 
     private static void validateRequest(
             AgentTaskRequest request,

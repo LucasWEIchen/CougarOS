@@ -30,6 +30,7 @@ export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.tools/gradle-home}"
   :demo-hmi:assembleDebug
 
 bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_aar.sh"
+bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_apk.sh"
 
 printf '%s\n' \
   "$RUNTIME_DIR/native-runtime/build/outputs/aar/native-runtime-debug.aar" \

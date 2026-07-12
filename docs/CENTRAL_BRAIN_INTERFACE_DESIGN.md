@@ -1188,3 +1188,15 @@ Public C structs begin with `struct_size`/`abi_version`, use fixed-width integer
 | Diagnostic value | `NativeRuntimeSnapshot` | immutable strict 10-field parse; ABI/range/boolean/provider/hardware drift fails closed |
 
 The B1 interface is process-local and does not accept caller identity, Binder objects, file descriptors, model buffers or hardware handles. B2 may expose its readiness through existing Runtime/Diagnostic surfaces but may not transfer Governance ownership into C or enable provider dispatch.
+
+## Android B2 Native Runtime Process Integration
+
+| Caller/surface | Callee/data | Invariant |
+| --- | --- | --- |
+| Android process start | `CentralBrainRuntimeApplication -> NativeRuntimeProcess.start(4)` | one process-owned handle; failure becomes `UNAVAILABLE` |
+| Runtime Service log/dumpsys | `NativeRuntimeProcessSnapshot` | read-only readiness; no slot lease or dispatch |
+| Diagnostic Service | sequence 10 `runtime/native-runtime-readiness` | same snapshot and ordered ABI/lifecycle/provider fields |
+| Debug native probe | isolated `NativeRuntime(2)` | load/capacity/busy-close/release/drain/close only |
+| Host verifier | Runtime APK native payload and ELF metadata | exact arm64/x86_64 allowlist, signer and hardening checks |
+
+The production call relationship is `Binder client -> Java Runtime/Governance -> durable Java workflow`; it does not continue into C in B2. Native Runtime is a process-health and future-provider boundary only. `software_provider_available`, `vendor_npu_provider_available`, `runtime_dispatch_enabled` and `hardware_accessed` remain false on every production and diagnostic surface.

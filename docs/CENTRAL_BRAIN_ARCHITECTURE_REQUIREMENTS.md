@@ -1053,3 +1053,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - JNI must use `JNI_OnLoad` plus `RegisterNatives`, retain no Java reference or `JNIEnv*`, perform no I/O and expose only a `long` handle, fixed status values and a fixed-length health array. Java must serialize handle access and reject malformed or positive provider/hardware claims.
 - Host evidence must run C lifecycle/capacity/concurrency under ASan/UBSan. Android evidence must build exactly `arm64-v8a` and `x86_64`, verify ELF machine/exported symbols/RELRO/NOW and reject any NPU/OpenCL/Vehicle/vendor linkage.
 - B1 is artifact evidence only. Runtime APK lifecycle/Diagnostic integration belongs to B2 and API 33 process recovery belongs to B3. `software_provider_available=false`, `vendor_npu_provider_available=false` and `hardware_accessed=false` remain mandatory.
+
+### 2026-07-12 B2 Native Runtime process integration trace
+
+- Req IDs: `XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- `CentralBrainRuntimeApplication` must create exactly one process-owned `NativeRuntimeProcess` before any Binder Service is created. Native linkage, initialization, query or close failure must become an immutable `UNAVAILABLE` snapshot instead of a positive provider or hardware claim.
+- Runtime startup log and protected dumpsys plus Diagnostic Binder sequence 10 must expose the same ABI/lifecycle/capacity/generation/status/provider/hardware fields. The production Runtime and Diagnostic Services may query readiness but must not acquire native slots or dispatch through the C runtime in B2.
+- The Runtime APK must contain exactly the arm64-v8a and x86_64 `libcentral_brain_native.so` payloads and preserve the B1 symbol, hardening and no-vendor-linkage checks. It must not request INTERNET.
+- API 33 evidence must cover native load/init, capacity exhaustion, busy close, duplicate release, drain/close, Runtime dumpsys, Diagnostic parity and process force-stop/recreation with a clean crash buffer.
+- Passing B2 does not validate the physical controller or activate software inference, Vendor NPU, VHAL, vehicle control or Driver/HAL. `native_runtime_dispatch_enabled=false` and `native_hardware_accessed=false` remain mandatory.

@@ -283,6 +283,18 @@ R7D packages the public SDK AAR, Runtime debug APK, Demo debug APK and patched C
 
 The R7D result is `software_handoff_ready=true`, not production or physical-hardware qualification. Seven explicit empty integration slots preserve target system ownership, Effect delivery, vendor NPU Model Runtime, Event Runtime, encrypted Memory, Skill/Governance composition and target-hardware evidence as external blockers.
 
+## B1-B2 Native Runtime
+
+`native-runtime` is a C11/Java AAR with a versioned C ABI, registered JNI bridge and exactly two payloads: `arm64-v8a` and `x86_64`. `CentralBrainRuntimeApplication` owns one native handle for the Runtime APK process. Production Runtime and Diagnostic Services query its immutable snapshot but never acquire a native slot or dispatch work through it.
+
+Build-time verification checks both the AAR and final Runtime APK for exact ABI payloads, ELF machine/export/hardening properties, signer validity, no vendor/hardware dynamic linkage and no INTERNET permission. API 33 integration is exercised with:
+
+```bash
+bash tools/test_central_brain_android_native_runtime.sh --require-api-33
+```
+
+The probe verifies load/init, bounded leases, capacity, busy close, duplicate release, drain/close, Runtime dumpsys, Diagnostic Binder sequence 10 and process recreation. All provider, dispatch and hardware fields remain false; this is not NPU/VHAL or target-controller evidence.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`
@@ -305,6 +317,7 @@ bash tools/build_central_brain_android_runtime.sh
 
 Expected outputs:
 
+- `central-brain/android-runtime/native-runtime/build/outputs/aar/native-runtime-debug.aar`
 - `central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar`
 - `central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk`
 - `central-brain/android-runtime/demo-hmi/build/outputs/apk/debug/demo-hmi-debug.apk`

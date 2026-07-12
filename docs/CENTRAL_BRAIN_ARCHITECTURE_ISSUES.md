@@ -353,6 +353,8 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 
 2026-07-12 B1 进展：两套 allowlisted AAR payload 和 ABI/ELF evidence 已完成，证明构建产物覆盖预期 64-bit ABI，但不证明未知目标实际支持其中任一 ABI、允许普通安装或满足后台策略。ISSUE-027 保持 Open；只有 B3 在目标设备执行公开接口 preflight 后才能填充这些字段。
 
+2026-07-12 B2 进展：API 33 x86_64 模拟器已证明 Runtime APK 的 native load、进程生命周期、Binder/Diagnostic 可见性和 force-stop 重建；这只是模拟器应用层证据。目标控制器 ABI、普通安装/升级、后台限制、量产 signer、RenderService 信任和公开 vendor contract 仍未知，因此 ISSUE-027 保持 Open，等待 B3 真机 preflight 输入。
+
 解除条件：目标设备执行 B3 preflight，并提供生产签名/升级策略、后台进程策略和任何公开 vendor SDK/服务 contract。真机应用层通过不自动关闭 NPU/VHAL/车辆/安全硬件验证。
 
 状态：Open，实施已获批准。

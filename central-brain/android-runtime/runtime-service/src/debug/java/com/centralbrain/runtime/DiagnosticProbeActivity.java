@@ -40,6 +40,7 @@ public final class DiagnosticProbeActivity extends Activity {
                 boolean memoryRuntimeVerified = hasBlockedMemoryRuntime(activationPage);
                 boolean skillGovernanceVerified = hasBlockedSkillGovernance(activationPage);
                 boolean runtimeAcceptanceVerified = hasRuntimeAcceptance(activationPage);
+                boolean nativeRuntimeVerified = hasNativeRuntime(activationPage);
                 boolean passed = diagnostics.getProtocolVersion() == 1
                         && ICentralBrainDiagnostics.INTERFACE_HASH.equals(
                                 diagnostics.getProtocolHash())
@@ -52,7 +53,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         && eventRuntimeVerified
                         && memoryRuntimeVerified
                         && skillGovernanceVerified
-                        && runtimeAcceptanceVerified;
+                        && runtimeAcceptanceVerified
+                        && nativeRuntimeVerified;
                 Log.i(TAG, "nonce=" + nonce + " diagnostic_probe_passed=" + passed
                         + " effect_delivery_activation_diagnostic_verified="
                         + activationVerified
@@ -66,6 +68,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         + skillGovernanceVerified
                         + " runtime_acceptance_diagnostic_verified="
                         + runtimeAcceptanceVerified
+                        + " native_runtime_diagnostic_verified="
+                        + nativeRuntimeVerified
                         + " record_count=" + (page == null || page.records == null
                                 ? -1 : page.records.length)
                         + " hardware_accessed=false");
@@ -329,6 +333,39 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail.contains("signature_protected_service_count=3")
                     && record.detail.contains("TARGET_HARDWARE_NOT_VALIDATED")
                     && record.detail.contains("service_dispatch_triggered=false")
+                    && record.detail.contains("hardware_accessed=false")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasNativeRuntime(DiagnosticPage page) {
+        if (page == null || page.records == null) {
+            return false;
+        }
+        for (DiagnosticRecord record : page.records) {
+            if (record != null
+                    && "native-runtime-readiness".equals(record.recordId)
+                    && "ready-provider-empty".equals(record.summary)
+                    && record.sequence == 10
+                    && record.detail != null
+                    && record.detail.contains("native_runtime_process_ready=true")
+                    && record.detail.contains("native_runtime_process_lifecycle=READY")
+                    && record.detail.contains("native_runtime_detail_code=READY")
+                    && record.detail.contains("native_library_loaded=true")
+                    && record.detail.contains("native_runtime_initialized=true")
+                    && record.detail.contains("native_runtime_abi_version=1")
+                    && record.detail.contains("native_runtime_max_slots=4")
+                    && record.detail.contains("native_runtime_active_slots=0")
+                    && record.detail.contains("native_runtime_generation=1")
+                    && record.detail.contains("native_runtime_last_status=OK")
+                    && record.detail.contains(
+                            "native_software_provider_available=false")
+                    && record.detail.contains(
+                            "native_vendor_npu_provider_available=false")
+                    && record.detail.contains("native_runtime_dispatch_enabled=false")
+                    && record.detail.contains("native_hardware_accessed=false")
                     && record.detail.contains("hardware_accessed=false")) {
                 return true;
             }

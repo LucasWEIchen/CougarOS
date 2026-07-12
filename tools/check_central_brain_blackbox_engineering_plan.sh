@@ -45,6 +45,11 @@ require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android B0 Black-Box Engi
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "B0 Black-Box Native Driver/HAL Boundary"
 require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android B0 C/Java Ownership Boundary"
 require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| B0 |"
+require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "B2 Native Runtime process integration trace"
+require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android B2 Native Runtime Integration Artifact"
+require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "B2 Native Process Integration Driver/HAL Result"
+require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android B2 Native Runtime Process Integration"
+require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| B2 | Runtime 集成 | Native lifecycle 接入 Binder Runtime 与 Diagnostic | 已完成 |"
 
 if grep -Eiq \
     'implement (hypervisor|virtualization)|scan .*device node|guess .*ioctl|modify .*vendor partition' \

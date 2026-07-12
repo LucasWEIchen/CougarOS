@@ -16,6 +16,13 @@
             android:permission="android.permission.DUMP"
             android:theme="@android:style/Theme.NoDisplay" />
         <activity
+            android:name=".nativebridge.NativeRuntimeProbeActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:permission="android.permission.DUMP"
+            android:theme="@android:style/Theme.NoDisplay" />
+        <activity
             android:name=".DiagnosticProbeActivity"
             android:excludeFromRecents="true"
             android:exported="true"
