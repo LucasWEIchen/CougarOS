@@ -368,7 +368,13 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 维护者无法直接访问目标内网 ADB，用户选择由测试人员下载 GitHub 更新并通过 Issue 回传。
 用户已提供 Private `LucasWEIchen/CougarOS` 和维护者身份 `LucasWEIchen`；本机 `gh` 已授权
 `repo`/`workflow`，远端 `main`、labels、Issue Form、Actions 静态门禁与 15 分钟事件自动化已
-激活。Codex GitHub connector 仍因未获该 Private 仓库授权返回 404，自动化使用 `gh` CLI。
+激活。Codex GitHub connector 仍因未获该 Private 仓库授权而按端点返回 404/422，自动化使用
+`gh` CLI。
+
+2026-07-12 首轮轮询补充：connector 搜索实际返回不可访问 422；自动化按合同切换 `gh`，验证
+Issue #1 作者为 `LucasWEIchen`，RC2 tag 与 remote `main` 均指向 `6ca306f4`，归档重新下载后
+SHA-256 为 `ab9fac914b1d28fe75ee31a36625e2c5ce7ffac60661d882e66f157e24996248`。结果为
+`CONTROL_PLANE_ONLY`，未接收物理证据，Issue 保持 Open 并等待 target tester。
 
 影响：维护者侧版本和 Issue intake 已可使用，`github_issue_intake_active=true`。但测试人员
 GitHub 用户列表仍未提供，Private 仓库下载授权无法完成；当前套餐的 branch protection API

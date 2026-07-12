@@ -306,9 +306,13 @@ GitHub Actions 仅验证合同。
 
 当前状态：Accepted Temporary。Private `LucasWEIchen/CougarOS`、维护者写权限、labels、
 `main`、首个不可变 RC2 和 15 分钟 Issue 轮询已激活，
-`github_issue_intake_active=true`。GitHub connector 对该仓库仍返回 404，轮询改用已授权 `gh`
-CLI；tester access list 尚未提供。当前 Private 套餐拒绝 branch protection，tracked pre-push hook
+`github_issue_intake_active=true`。GitHub connector 对该仓库仍返回 404/422 可见性错误，轮询改用
+已授权 `gh` CLI；tester access list 尚未提供。当前 Private 套餐拒绝 branch protection，tracked pre-push hook
 与 Actions 只作为临时风险控制且不等价。物理、production 和 hardware gate 不由该偏差关闭。
+
+首轮事件维护已通过 Issue #1 验证 fallback：connector 返回 Private repository inaccessible 422，
+`gh` CLI 成功读取 Issue/Release 并重新校验 RC2 资产。该结果只证明 GitHub 控制面可用，不是目标
+ADB、物理控制器、production 或 hardware 证据，DEV-021 继续保持 Accepted Temporary。
 
 发布边界：本地 Codex turn-diff refs 可达旧大对象，但当前开发分支可达历史已通过独立
 publication-tree guard。只允许精确推送 `codex/github-publication:main`；tracked pre-push hook 对

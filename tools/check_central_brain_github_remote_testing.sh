@@ -97,6 +97,12 @@ assert polling["automation_id"] == "cougaros-github-issue-maintenance"
 assert polling["transport"] == "gh-cli"
 assert polling["interval_minutes"] == 15
 assert polling["active"] is True
+assert polling["first_poll_verified"] is True
+assert polling["first_poll_issue_number"] == 1
+assert polling["first_poll_transport"] == "gh-cli-fallback"
+assert polling["first_poll_connector_result"] == "PRIVATE_REPOSITORY_INACCESSIBLE_422"
+assert polling["first_poll_result"] == "CONTROL_PLANE_ONLY"
+assert polling["first_poll_hardware_evidence_accepted"] is False
 assert polling["automatic_issue_close_allowed"] is False
 
 evidence = contract["evidence_policy"]
@@ -123,6 +129,7 @@ print("github_remote_contract_json_verified=true")
 print("github_repository_configured=true")
 print("github_issue_intake_active=true")
 print("event_poll_interval_minutes=15")
+print("first_issue_poll_verified=true")
 print("target_hardware_validated=false")
 PY
 
@@ -154,6 +161,7 @@ for marker in \
   'LucasWEIchen/CougarOS' \
   'cougaros-github-issue-maintenance' \
   'github_issue_intake_active=true' \
+  'Issue #1' \
   'android13-hwtest-v0.5.0-rc.2' \
   'state/triage -> state/reproduced -> state/fix-ready -> state/retest ->' \
   'central-brain-android13-hybrid.tar.gz.sha256' \
@@ -183,6 +191,7 @@ printf '%s\n' \
   'github_repository_configured=true' \
   'github_issue_intake_active=true' \
   'event_poll_interval_minutes=15' \
+  'first_issue_poll_verified=true' \
   'automatic_upload_enabled=false' \
   'raw_evidence_upload_allowed=false' \
   'physical_controller_evidence_available=false' \

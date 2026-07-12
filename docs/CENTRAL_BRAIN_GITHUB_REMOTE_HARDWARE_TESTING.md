@@ -169,9 +169,14 @@ state/verified` 推进。只有测试人员在 Issue 中确认具体替代 Relea
 
 事件维护自动化 `cougaros-github-issue-maintenance` 已激活，每 15 分钟轮询一次仓库的新增或
 更新 Issue。自动化通过已授权的 `gh` CLI 访问该 Private 仓库；Codex GitHub connector 当前
-仍返回 404，因此只作为不可用的首选通道记录。轮询不是即时 webhook；自动化只能处理结构化
-hardware-test Issue 或维护者明确指令，每轮只做一个带 Req ID 的可验证增量，并且绝不自动关闭
+按端点返回 404/422 可见性错误，因此只作为不可用的首选通道记录。轮询不是即时 webhook；
+自动化只能处理结构化 hardware-test Issue 或维护者明确指令，每轮只做一个带 Req ID 的可验证增量，并且绝不自动关闭
 Issue。测试人员对指定替代 Release 的复测确认仍是关闭前置条件。
+
+首次轮询已通过维护者 Issue #1 验证：connector 搜索该 Private 仓库返回 422 后，自动化使用
+`gh` CLI 读取 Issue 和 RC2，重新下载两个 Release 资产并匹配 tag、source commit 和 archive
+SHA-256。该记录是 `CONTROL_PLANE_ONLY`；`first_poll_hardware_evidence_accepted=false`，Issue
+保持 Open，并在控制面检查完成后等待真实 target tester 复测。
 
 ## 9. 当前激活阻塞项
 
