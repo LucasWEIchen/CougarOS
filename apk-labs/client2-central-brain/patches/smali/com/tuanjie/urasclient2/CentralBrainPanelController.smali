@@ -1,6 +1,7 @@
 .class public Lcom/tuanjie/urasclient2/CentralBrainPanelController;
 .super Ljava/lang/Object;
 .implements Landroid/view/View$OnClickListener;
+.implements Lcom/centralbrain/client2/ScenarioCallback;
 .source "CentralBrainPanelController.java"
 
 .field private final activity:Landroid/app/Activity;
@@ -188,7 +189,7 @@
 .end method
 
 .method private submitScenario(Ljava/lang/String;Ljava/lang/String;)V
-    .locals 4
+    .locals 3
 
     if-eqz p1, :cond_0
 
@@ -218,17 +219,55 @@
 
     invoke-virtual {p0, v0}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->setReplyNow(Ljava/lang/String;)V
 
-    new-instance v2, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;
+    iget-object v1, p0, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->activity:Landroid/app/Activity;
 
-    invoke-direct {v2, p0, p1, p2}, Lcom/tuanjie/urasclient2/CentralBrainPanelController$RequestTask;-><init>(Lcom/tuanjie/urasclient2/CentralBrainPanelController;Ljava/lang/String;Ljava/lang/String;)V
+    invoke-static {v1, p1, p2, p0}, Lcom/centralbrain/client2/Client2ScenarioBridge;->submit(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Lcom/centralbrain/client2/ScenarioCallback;)Z
 
-    new-instance v3, Ljava/lang/Thread;
+    move-result v2
 
-    invoke-direct {v3, v2}, Ljava/lang/Thread;-><init>(Ljava/lang/Runnable;)V
+    if-nez v2, :cond_0
 
-    invoke-virtual {v3}, Ljava/lang/Thread;->start()V
+    invoke-virtual {p0}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->completeRequest()V
 
     :cond_0
+    return-void
+.end method
+
+.method public onBridgeStatus(Ljava/lang/String;)V
+    .locals 0
+
+    invoke-virtual {p0, p1}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->setReplyNow(Ljava/lang/String;)V
+
+    return-void
+.end method
+
+.method public onBridgeReply(Ljava/lang/String;)V
+    .locals 0
+
+    invoke-virtual {p0, p1}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->showReply(Ljava/lang/String;)V
+
+    return-void
+.end method
+
+.method public onBridgeFailure(Ljava/lang/String;)V
+    .locals 2
+
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v1, "Binder failed: "
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v0, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    invoke-virtual {p0, v0}, Lcom/tuanjie/urasclient2/CentralBrainPanelController;->showReply(Ljava/lang/String;)V
+
     return-void
 .end method
 

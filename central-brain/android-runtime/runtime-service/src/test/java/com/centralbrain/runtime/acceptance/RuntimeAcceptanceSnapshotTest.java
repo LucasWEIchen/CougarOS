@@ -12,12 +12,12 @@ import org.junit.Test;
 
 public final class RuntimeAcceptanceSnapshotTest {
     @Test
-    public void coreBaselineIsReadyButR7AndProductionRemainBlocked() {
+    public void coreAndClient2BinderAreReadyButR7AndProductionRemainBlocked() {
         RuntimeAcceptanceSnapshot current = RuntimeAcceptanceSnapshot.current();
         assertSame(current, RuntimeAcceptanceSnapshot.current());
         assertTrue(current.isCoreSoftwareBaselineReady());
         assertFalse(current.isR7ApplicationIntegrationComplete());
-        assertFalse(current.isClient2BinderMigrationComplete());
+        assertTrue(current.isClient2BinderMigrationComplete());
         assertFalse(current.isApi33EndToEndAcceptanceComplete());
         assertFalse(current.isProductionActivationAllowed());
         assertFalse(current.isTargetHardwareValidated());
@@ -46,7 +46,6 @@ public final class RuntimeAcceptanceSnapshotTest {
     public void blockersRemainOrderedAndImmutable() {
         RuntimeAcceptanceSnapshot current = RuntimeAcceptanceSnapshot.current();
         assertEquals(Arrays.asList(
-                        RuntimeAcceptanceSnapshot.Blocker.CLIENT2_BINDER_MIGRATION_PENDING,
                         RuntimeAcceptanceSnapshot.Blocker
                                 .API33_END_TO_END_ACCEPTANCE_PENDING,
                         RuntimeAcceptanceSnapshot.Blocker
@@ -76,7 +75,7 @@ public final class RuntimeAcceptanceSnapshotTest {
         String detail = RuntimeAcceptanceSnapshot.current().diagnosticDetail();
         assertTrue(detail.contains("core_software_baseline_ready=true"));
         assertTrue(detail.contains("r7_application_integration_complete=false"));
-        assertTrue(detail.contains("client2_binder_migration_complete=false"));
+        assertTrue(detail.contains("client2_binder_migration_complete=true"));
         assertTrue(detail.contains("api33_end_to_end_acceptance_complete=false"));
         assertTrue(detail.contains("production_activation_allowed=false"));
         assertTrue(detail.contains("target_hardware_validated=false"));
@@ -86,7 +85,7 @@ public final class RuntimeAcceptanceSnapshotTest {
         assertTrue(detail.contains("room_schema_version=3"));
         assertTrue(detail.contains("standard_artifact_count=3"));
         assertTrue(detail.contains("signature_protected_service_count=3"));
-        assertTrue(detail.contains("CLIENT2_BINDER_MIGRATION_PENDING"));
+        assertFalse(detail.contains("CLIENT2_BINDER_MIGRATION_PENDING"));
         assertTrue(detail.contains("TARGET_HARDWARE_NOT_VALIDATED"));
         assertTrue(detail.contains("service_dispatch_triggered=false"));
         assertTrue(detail.contains("hardware_accessed=false"));

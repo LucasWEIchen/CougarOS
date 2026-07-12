@@ -5,7 +5,12 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import xml.etree.ElementTree as ET
 from pathlib import Path
+
+
+ANDROID_NAME = "{http://schemas.android.com/apk/res/android}name"
+ANDROID_CLEARTEXT = "{http://schemas.android.com/apk/res/android}usesCleartextTraffic"
 
 
 def patch_layout(work_dir: Path, patch_xml: Path) -> None:
@@ -77,24 +82,57 @@ def patch_manifest(work_dir: Path) -> None:
     if not manifest.is_file():
         raise SystemExit(f"missing AndroidManifest.xml: {manifest}")
 
+    try:
+        ET.parse(manifest)
+    except ET.ParseError as exc:
+        raise SystemExit(f"invalid source manifest: {exc}") from exc
+
     text = manifest.read_text(encoding="utf-8")
-    if "android.permission.INTERNET" not in text:
+    text = text.replace(
+        '    <uses-permission android:name="android.permission.INTERNET"/>\n', ""
+    )
+    text = text.replace('android:usesCleartextTraffic="true" ', "")
+
+    bind_permission = (
+        '<uses-permission android:name="com.centralbrain.permission.BIND_RUNTIME"/>'
+    )
+    if bind_permission not in text:
         anchor = '<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>'
         if anchor not in text:
             raise SystemExit("manifest missing QUERY_ALL_PACKAGES permission anchor")
-        text = text.replace(
-            anchor,
-            anchor + '\n    <uses-permission android:name="android.permission.INTERNET"/>',
-            1,
-        )
+        text = text.replace(anchor, anchor + "\n    " + bind_permission, 1)
 
-    if "android:usesCleartextTraffic=" not in text:
-        app_anchor = "<application "
+    runtime_query = '<package android:name="com.centralbrain.runtime"/>'
+    if runtime_query not in text:
+        app_anchor = "    <application "
         if app_anchor not in text:
             raise SystemExit("manifest missing application tag")
-        text = text.replace(app_anchor, '<application android:usesCleartextTraffic="true" ', 1)
+        queries = (
+            "    <queries>\n"
+            f"        {runtime_query}\n"
+            "    </queries>\n"
+        )
+        text = text.replace(app_anchor, queries + app_anchor, 1)
 
     manifest.write_text(text, encoding="utf-8")
+    root = ET.parse(manifest).getroot()
+    permissions = {
+        element.attrib.get(ANDROID_NAME, "")
+        for element in root.findall("uses-permission")
+    }
+    if "com.centralbrain.permission.BIND_RUNTIME" not in permissions:
+        raise SystemExit("manifest missing Central Brain Runtime signature permission")
+    if "android.permission.INTERNET" in permissions:
+        raise SystemExit("Client2 Binder demo must not request INTERNET")
+    runtime_packages = {
+        element.attrib.get(ANDROID_NAME, "")
+        for element in root.findall("queries/package")
+    }
+    if "com.centralbrain.runtime" not in runtime_packages:
+        raise SystemExit("manifest missing explicit Central Brain Runtime package query")
+    application = root.find("application")
+    if application is None or ANDROID_CLEARTEXT in application.attrib:
+        raise SystemExit("Client2 Binder demo must not opt into cleartext traffic")
     print(f"patched {manifest}")
 
 
@@ -144,8 +182,8 @@ def copy_smali_patches(work_dir: Path, project_dir: Path) -> None:
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         copied += 1
-    if copied < 3:
-        raise SystemExit(f"expected at least 3 smali patch files, copied {copied}")
+    if copied != 2:
+        raise SystemExit(f"expected exactly 2 smali patch files, copied {copied}")
     print(f"copied {copied} smali patch files into {smali_dst}")
 
 

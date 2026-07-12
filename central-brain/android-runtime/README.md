@@ -261,6 +261,14 @@ The rollup deliberately separates `core_software_baseline_ready=true` from `r7_a
 
 R7A1 is an acceptance contract, not a certificate embedded in the APK. The installer must still verify its three diagnostic surfaces and all underlying probes. R7B and R7C will remove only the application-integration blockers supported by concrete evidence; production and hardware blockers remain independent.
 
+## R7B Client2 SDK/Binder Migration
+
+The isolated Client2 reverse-demo project now embeds the public SDK/AIDL contract and a narrow scenario bridge as `classes2.dex`. Its 12 scenario buttons submit typed `AgentTaskRequest` values to the explicit Runtime service and receive asynchronous callbacks; the previous HTTP RequestTask, INTERNET permission and cleartext opt-in are absent.
+
+The generated Client2 debug APK uses the same debug signer as Runtime to pass `BIND_RUNTIME`. Runtime then applies its package/current-signer capability policy and grants Client2 only protocol read plus owned task submit/status/cancel. The API 33 acceptance taps the real overlay button, verifies Runtime identity resolution and UI reply, and records no HTTP, service dispatch or hardware access.
+
+This evidence changes only `client2_binder_migration_complete=true`. Full R7 application integration, target system ownership, production subsystem activation and target hardware validation remain blocked. Original Client2/RenderService signing compatibility must be validated on the target device.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

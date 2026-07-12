@@ -12,6 +12,7 @@ if [[ -f "$ROOT_DIR/env.sh" ]]; then
 fi
 
 bash -n "$PROJECT_DIR/scripts/prepare_workspace.sh"
+bash -n "$PROJECT_DIR/scripts/build_binder_bridge_dex.sh"
 bash -n "$PROJECT_DIR/scripts/build_debug_apk.sh"
 bash -n "$PROJECT_DIR/scripts/verify_project.sh"
 bash -n "$PROJECT_DIR/scripts/install_debug_apk.sh"
@@ -28,12 +29,14 @@ done
 
 for smali_file in \
   'CentralBrainPanelController.smali' \
-  'CentralBrainPanelController$RequestTask.smali' \
   'CentralBrainPanelController$UiUpdate.smali'; do
   test -f "$PROJECT_DIR/patches/smali/com/tuanjie/urasclient2/$smali_file"
 done
+test ! -f "$PROJECT_DIR/patches/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$RequestTask.smali"
+test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
+test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/ScenarioCallback.java"
 
-for tool in apktool apksigner zipalign aapt adb; do
+for tool in apktool apksigner zipalign aapt adb jar javac d8; do
   command -v "$tool" >/dev/null
 done
 
@@ -83,22 +86,50 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q '#B8F1F3F5' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
   rg -q '#E8FFFFFF' "$WORK_DIR/res/drawable/central_brain_action_button.xml"
   rg -q '#C8FFFFFF' "$WORK_DIR/res/drawable/central_brain_reply_background.xml"
-  rg -q "android.permission.INTERNET" "$WORK_DIR/AndroidManifest.xml"
-  rg -q 'android:usesCleartextTraffic="true"' "$WORK_DIR/AndroidManifest.xml"
+  rg -q "com.centralbrain.permission.BIND_RUNTIME" "$WORK_DIR/AndroidManifest.xml"
+  rg -q 'package android:name="com.centralbrain.runtime"' "$WORK_DIR/AndroidManifest.xml"
+  if rg -q "android.permission.INTERNET|android:usesCleartextTraffic" \
+      "$WORK_DIR/AndroidManifest.xml"; then
+    echo "Client2 Binder demo must not request network or cleartext access" >&2
+    exit 1
+  fi
   rg -q "CentralBrainPanelController;->install" "$WORK_DIR/smali/com/tuanjie/urasclient2/MainActivity.smali"
-  rg -q "http://10.0.2.2:8787/agent/scenarios/run" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$RequestTask.smali"
-  rg -q "scenarioId" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$RequestTask.smali"
-  rg -q "generated_text" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$RequestTask.smali"
-  rg -q "requestInFlight" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
-  rg -q "bindButtons" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
-  rg -q "setBackgroundTintList" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
+  CONTROLLER="$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
+  rg -q "ScenarioCallback" "$CONTROLLER"
+  rg -q "Client2ScenarioBridge;->submit" "$CONTROLLER"
+  rg -q "onBridgeStatus" "$CONTROLLER"
+  rg -q "onBridgeReply" "$CONTROLLER"
+  rg -q "onBridgeFailure" "$CONTROLLER"
+  rg -q "requestInFlight" "$CONTROLLER"
+  rg -q "bindButtons" "$CONTROLLER"
+  rg -q "setBackgroundTintList" "$CONTROLLER"
   rg -q "completeRequest" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$UiUpdate.smali"
+  test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$RequestTask.smali"
+  test -f "$WORK_DIR/unknown/classes2.dex"
+  if rg -a -q "http://10.0.2.2:8787|HttpURLConnection" "$WORK_DIR"; then
+    echo "legacy Client2 HTTP transport remains in generated workdir" >&2
+    exit 1
+  fi
 fi
 
 if [[ -f "$SIGNED_APK" ]]; then
   apksigner verify --verbose --print-certs "$SIGNED_APK" >/dev/null
   aapt dump badging "$SIGNED_APK" | rg -q "package: name='com.tuanjie.urasclient2'"
-  aapt dump permissions "$SIGNED_APK" | rg -q "android.permission.INTERNET"
+  aapt dump permissions "$SIGNED_APK" | rg -q "com.centralbrain.permission.BIND_RUNTIME"
+  if aapt dump permissions "$SIGNED_APK" | rg -q "android.permission.INTERNET"; then
+    echo "signed Client2 Binder APK unexpectedly requests INTERNET" >&2
+    exit 1
+  fi
+  jar tf "$SIGNED_APK" | rg -q '^classes2\.dex$'
+
+  RUNTIME_APK="$ROOT_DIR/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk"
+  test -f "$RUNTIME_APK"
+  RUNTIME_SIGNER="$(apksigner verify --print-certs "$RUNTIME_APK" \
+    | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+  CLIENT2_SIGNER="$(apksigner verify --print-certs "$SIGNED_APK" \
+    | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+  test -n "$RUNTIME_SIGNER"
+  test "$RUNTIME_SIGNER" = "$CLIENT2_SIGNER"
 fi
 
 echo "Client2 Central Brain APK reverse demo project verified"

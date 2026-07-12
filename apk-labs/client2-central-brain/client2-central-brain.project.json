@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -27,10 +27,10 @@
       ]
     },
     {
-      "id": "client2-manifest-central-brain-http-demo",
+      "id": "client2-manifest-central-brain-binder-client",
       "type": "apktool-manifest-patch",
       "target": "AndroidManifest.xml",
-      "summary": "Adds INTERNET and cleartext traffic for the temporary emulator HTTP demo path to the Python prototype.",
+      "summary": "Requests the Runtime signature permission and declares explicit Runtime package visibility without INTERNET or cleartext access.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -57,13 +57,30 @@
       "type": "apktool-smali-addition",
       "target": "smali/com/tuanjie/urasclient2/CentralBrainPanelController*.smali",
       "source": "apk-labs/client2-central-brain/patches/smali/com/tuanjie/urasclient2",
-      "http_endpoint": "http://10.0.2.2:8787/agent/scenarios/run",
-      "summary": "Recursively binds 12 tagged scenario buttons with one in-flight request per Activity, posts stable scenario IDs to the Agent test harness, and displays result.generated_text in the right-side text box.",
+      "summary": "Recursively binds 12 tagged scenario buttons with one in-flight task per Activity, submits typed AgentTaskRequest values through the SDK Binder bridge, and displays asynchronous TaskResult replies.",
       "req_ids": [
         "APP-004",
         "XSC-001",
         "NV-F-011",
         "XSC-006",
+        "DEL-001",
+        "DEL-003",
+        "DEL-004"
+      ]
+    },
+    {
+      "id": "client2-central-brain-sdk-bridge-dex",
+      "type": "embedded-secondary-dex",
+      "target": "classes2.dex",
+      "source": "apk-labs/client2-central-brain/bridge/src",
+      "summary": "Embeds CentralBrainClient, generated AIDL parcelables, a 12-scenario allowlist and callback bridge; the output is signed with the Runtime debug signer so the signature Binder permission is enforceable.",
+      "req_ids": [
+        "APP-004",
+        "XSC-001",
+        "XSC-005",
+        "XSC-006",
+        "NV-G-006",
+        "NV-P-002",
         "DEL-001",
         "DEL-003",
         "DEL-004"
@@ -78,7 +95,6 @@
     "RenderService Unity asset modification"
   ],
   "tracked_deviations": [
-    "DEV-017: APK reverse demo path",
-    "DEV-001: temporary direct HTTP demo path before Binder/system-service migration"
+    "DEV-017: APK reverse demo path remains a test integration path rather than a vendor source-tree build"
   ]
 }

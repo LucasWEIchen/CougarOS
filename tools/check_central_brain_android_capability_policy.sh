@@ -96,8 +96,10 @@ if root.tag != "capability-policy":
 if root.attrib != {"version": "1", "defaultDecision": "deny"}:
     raise SystemExit("capability policy root attributes are not strict default-deny V1")
 principals = list(root)
-if len(principals) != 2:
-    raise SystemExit("R3B baseline must contain Runtime diagnostic and Demo principals")
+if len(principals) != 3:
+    raise SystemExit(
+        "R7B baseline must contain Runtime diagnostic, Demo and Client2 principals"
+    )
 expected = {
     "com.centralbrain.runtime": {"runtime.diagnostics.read"},
     "com.centralbrain.demo": {
@@ -111,13 +113,19 @@ expected = {
         "governance.approval.status.own",
         "governance.approval.cancel.own",
     },
+    "com.tuanjie.urasclient2": {
+        "runtime.protocol.read",
+        "runtime.task.submit",
+        "runtime.task.status.own",
+        "runtime.task.cancel.own",
+    },
 }
 actual_by_package = {}
 for principal in principals:
     if principal.tag != "principal" or set(principal.attrib) != {"packageName", "signer"}:
-        raise SystemExit("R3B principal shape is invalid")
+        raise SystemExit("R7B principal shape is invalid")
     if principal.attrib["signer"] != "runtime-current":
-        raise SystemExit("R3B principal must use runtime-current signer")
+        raise SystemExit("R7B principal must use runtime-current signer")
     package = principal.attrib["packageName"]
     if package in actual_by_package:
         raise SystemExit("capability policy contains a duplicate principal")

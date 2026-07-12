@@ -918,3 +918,11 @@ R7A1 交付 immutable `RuntimeAcceptanceSnapshot`、JVM tests、Runtime log/dump
 API 33 必须验证 aggregate diagnostic/log/dumpsys parity、core software ready、R7 integration false、production/hardware false 和完整九项 blocker，同时复跑所有 R2-R6 probes。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
 
 该交付不代表 R7 完成或目标硬件通过。R7B 处理 Client2 Binder/SDK，R7C 处理 API 33 E2E；system integration owner、production adapters/runtimes 和 target hardware 只能由后续目标平台证据关闭。
+
+## Android R7B Client2 SDK/Binder Migration
+
+R7B 交付隔离 Client2 APK patch 工程、两文件 Java bridge、SDK/AIDL `classes2.dex` 构建、Runtime 最小 capability principal、可重复 API 33 验收脚本和更新后的 aggregate acceptance snapshot。原 APK 与 decoded baseline 不进入提交，标准 SDK AAR + Runtime APK + Demo APK 的三项 Gradle artifact shape 不变。
+
+API 33 必须验证 Client2/Runtime signer parity、signature permission granted、secondary SDK dex、12 场景 allowlist 中真实按钮点击、Runtime package identity、typed task completion 和 UI reply，并固定 `http_transport_used=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`。Client2 APK 不得声明 INTERNET/cleartext，也不得保留旧 HTTP RequestTask。
+
+该交付只关闭 Client2 Binder migration blocker。闭源 APK 维护、原始 signer/RenderService trust、目标系统 owner、R7 完整 E2E、production Effect/Model/Event/Memory/Skill-Governance 和目标硬件仍未通过；无 Driver/HAL、厂商 SDK/system binary、Linux 前端或虚拟化开发。

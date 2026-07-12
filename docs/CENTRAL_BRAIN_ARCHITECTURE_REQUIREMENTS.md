@@ -1002,3 +1002,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Ordered blockers are `CLIENT2_BINDER_MIGRATION_PENDING`, `API33_END_TO_END_ACCEPTANCE_PENDING`, `TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED`, `PRODUCTION_EFFECT_DELIVERY_BLOCKED`, `PRODUCTION_MODEL_RUNTIME_BLOCKED`, `PRODUCTION_EVENT_RUNTIME_BLOCKED`, `PRODUCTION_MEMORY_RUNTIME_BLOCKED`, `PRODUCTION_SKILL_GOVERNANCE_BLOCKED` and `TARGET_HARDWARE_NOT_VALIDATED`.
 - The snapshot must retain Room schema version 3, standard artifact count 3 and signature-protected Runtime Service count 3 as contract baseline values. Dynamic device evidence remains the installer/acceptance tool's responsibility.
 - No AIDL/Room change, Client2 patch, service dispatch, network or hardware access is allowed in R7A1. API 33 evidence must verify Diagnostic Binder sequence 9 plus Runtime log/dumpsys parity while all previous probes remain green; release remains three Services and zero Activities/probes.
+
+### 2026-07-12 R7B Client2 SDK/Binder migration trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-G-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`.
+- The original APK and decoded baseline remain read-only. An isolated patch project may change copied resources/Smali and embed a generated secondary dex, but it must not edit vendor/AOSP/BSP/system binaries or Client2's original render hierarchy.
+- All 12 stable scenario IDs must pass an exact bridge allowlist and create typed `AgentTaskRequest` values through the public `CentralBrainClient`. Client2 must not call the Python/Ollama endpoint, NPU, vehicle service or hardware adapter directly, and no HTTP fallback is permitted.
+- The generated APK must contain `classes2.dex`, request `com.centralbrain.permission.BIND_RUNTIME`, declare explicit visibility for `com.centralbrain.runtime`, omit INTERNET/cleartext access and have signer parity with the Runtime debug APK.
+- Runtime capability policy must remain default deny and bind `com.tuanjie.urasclient2` to the Runtime current signer with exactly `runtime.protocol.read`, `runtime.task.submit`, `runtime.task.status.own` and `runtime.task.cancel.own`.
+- The panel must preserve one in-flight task, update status through the main executor, render terminal `TaskResult`/failure and release the in-flight gate exactly once. A failed bind or protocol mismatch must be visible and fail closed.
+- API 33 evidence must install both APKs, verify the signature permission, signer parity and secondary dex, tap a real Client2 button, observe trusted Runtime caller identity plus async completion, and confirm the reply in UI with `http_transport_used=false`, `service_dispatch_triggered=false` and `hardware_accessed=false`.
+- After that evidence only `client2_binder_migration_complete` becomes true and `CLIENT2_BINDER_MIGRATION_PENDING` is removed. R7 integration, production activation, target system ownership and target hardware validation remain false/open.

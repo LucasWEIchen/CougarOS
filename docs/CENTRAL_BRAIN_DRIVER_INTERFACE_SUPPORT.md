@@ -597,3 +597,9 @@ No JNI/C/C++, Driver/HAL ABI, VHAL, DDS, network, shared memory, device node, NP
 R7A1 reads immutable Java readiness snapshots and compile-time baseline constants. `TARGET_HARDWARE_NOT_VALIDATED` is deliberately preserved as an aggregate blocker; the snapshot does not probe PCIe, NPU, VHAL, vehicle bus, shared memory, vendor services or device state.
 
 No JNI/C/C++, Driver/HAL ABI, system/vendor partition access, network, device node or Safety Runtime is added. The aggregate software-ready flag cannot close any DRV-GAP. Existing gaps remain unchanged, added Driver/HAL work is zero, and no vendor/AOSP/BSP or virtualization change is introduced. Req IDs: `APP-004`, `XSC-001`, `XSC-002`, `XSC-004`, `XSC-005`, `XSC-006`, `FW-U-003`, `FW-U-004`, `FW-U-005`, `FW-U-006`, `FW-U-007`, `FW-U-008`, `NV-F-001`, `NV-F-011`, `NV-F-012`, `NV-G-003`, `NV-G-004`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.
+
+### R7B Client2 Binder Driver/HAL Boundary
+
+R7B uses Android application APIs only: explicit Binder service binding through the public SDK, AIDL parcelables/callbacks, PackageManager-enforced signature permission, APK signing tools and UI automation. The secondary dex contains Java SDK/bridge bytecode and does not load JNI or vendor libraries. Runtime returns the existing deterministic software reply and does not route to Python/Ollama, NPU or vehicle control.
+
+No C/C++, JNI, VHAL, vendor AIDL/HIDL, device node, PCIe/NPU, shared memory, network, vehicle bus, Safety Runtime, system/vendor partition or virtualization API is added. Existing DRV-GAP items remain unchanged and added Driver/HAL work is zero. Target RenderService signer trust is an application/vendor integration issue until published APIs prove a lower-layer gap. Req IDs: `APP-004`, `XSC-001`, `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`.

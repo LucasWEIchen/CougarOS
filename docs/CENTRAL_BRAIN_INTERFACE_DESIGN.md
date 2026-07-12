@@ -1123,3 +1123,16 @@ The snapshot distinguishes compile-time signer evidence from cryptographic artif
 | Diagnostic Binder | `runtime/runtime-acceptance`, summary `core-ready-production-blocked`, sequence 9 | existing paged V1 contract; no AIDL change |
 
 The rollup consumes immutable child snapshots, SDK maturity/stage constants and Room schema version only. `core_software_baseline_ready` is a software composition statement; Client2 migration and API 33 E2E remain explicit R7 blockers, while system owner, production subsystems and target hardware are independent blockers that application-layer tests cannot close.
+
+## Android R7B Client2 SDK/Binder Migration
+
+| Surface | Input/output | Constraint |
+| --- | --- | --- |
+| `Client2ScenarioBridge.submit` | Activity, allowlisted scenario ID, bounded UI text, callback | creates one typed `AgentTaskRequest`; no HTTP/model/hardware API |
+| `CentralBrainClient` | explicit Runtime component, protocol version/hash, async task callback | signature permission plus Runtime capability policy remain authoritative |
+| `ScenarioCallback` | status, terminal reply or terminal failure | main-executor UI update; one in-flight panel task |
+| Client2 manifest | Runtime package query and `BIND_RUNTIME` permission | no INTERNET or cleartext opt-in |
+| Runtime capability principal | package + complete current signer set | exactly protocol read and owned task submit/status/cancel |
+| API 33 acceptance script | signed Runtime/Client2 APKs and visible cold-scenario button | verifies Binder identity/callback/UI; reports no dispatch/hardware |
+
+The SDK AAR and the two bridge Java sources are compiled by D8 into an embedded `classes2.dex`; the existing Client2 Activity is hooked only after `setContentView`. The debug signer is intentionally shared with Runtime so Android can grant the signature permission, while the inner package/current-signer policy still applies least privilege. This is an APK-level test integration, not a claim that the original Client2 signer or RenderService trust contract is preserved.

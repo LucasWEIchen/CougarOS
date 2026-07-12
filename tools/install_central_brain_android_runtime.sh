@@ -1123,7 +1123,7 @@ for marker in \
   "runtime_acceptance_snapshot_wired=true" \
   "core_software_baseline_ready=true" \
   "r7_application_integration_complete=false" \
-  "client2_binder_migration_complete=false" \
+  "client2_binder_migration_complete=true" \
   "api33_end_to_end_acceptance_complete=false" \
   "production_activation_allowed=false" \
   "target_hardware_validated=false" \
@@ -1133,7 +1133,7 @@ for marker in \
   "durable_workflow_foundation_ready=true" \
   "standard_artifact_count=3" \
   "signature_protected_service_count=3" \
-  "runtime_acceptance_blockers=CLIENT2_BINDER_MIGRATION_PENDING" \
+  "runtime_acceptance_blockers=API33_END_TO_END_ACCEPTANCE_PENDING" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
@@ -1194,7 +1194,7 @@ if ! grep -Fq "maturity=android_integrated evolution_stage=R4_DURABLE_WORKFLOW" 
   echo "Runtime did not report the R4 durable workflow stage" >&2
   exit 1
 fi
-if ! grep -Fq "capability_default=deny capability_rule_count=2" <<<"$RUNTIME_LOG"; then
+if ! grep -Fq "capability_default=deny capability_rule_count=3" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not load the strict R3B capability policy" >&2
   exit 1
 fi
@@ -1318,7 +1318,7 @@ for marker in \
   "runtime_acceptance_snapshot_wired=true" \
   "core_software_baseline_ready=true" \
   "r7_application_integration_complete=false" \
-  "client2_binder_migration_complete=false" \
+  "client2_binder_migration_complete=true" \
   "api33_end_to_end_acceptance_complete=false" \
   "production_activation_allowed=false" \
   "target_hardware_validated=false" \
@@ -1329,7 +1329,7 @@ for marker in \
   "room_schema_version=3" \
   "standard_artifact_count=3" \
   "signature_protected_service_count=3" \
-  "runtime_acceptance_blockers=CLIENT2_BINDER_MIGRATION_PENDING"; do
+  "runtime_acceptance_blockers=API33_END_TO_END_ACCEPTANCE_PENDING"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
     echo "Runtime acceptance missing marker: $marker" >&2
     exit 1
@@ -1604,7 +1604,7 @@ printf '%s\n' \
   "runtime_acceptance_dumpsys_verified=true" \
   "core_software_baseline_ready=true" \
   "r7_application_integration_complete=false" \
-  "client2_binder_migration_complete=false" \
+  "client2_binder_migration_complete=true" \
   "api33_end_to_end_acceptance_complete=false" \
   "production_activation_allowed=false" \
   "target_hardware_validated=false" \
@@ -1614,7 +1614,7 @@ printf '%s\n' \
   "durable_workflow_foundation_ready=true" \
   "standard_artifact_count=3" \
   "signature_protected_service_count=3" \
-  "runtime_acceptance_blockers=CLIENT2_BINDER_MIGRATION_PENDING,API33_END_TO_END_ACCEPTANCE_PENDING,TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED,PRODUCTION_EFFECT_DELIVERY_BLOCKED,PRODUCTION_MODEL_RUNTIME_BLOCKED,PRODUCTION_EVENT_RUNTIME_BLOCKED,PRODUCTION_MEMORY_RUNTIME_BLOCKED,PRODUCTION_SKILL_GOVERNANCE_BLOCKED,TARGET_HARDWARE_NOT_VALIDATED" \
+  "runtime_acceptance_blockers=API33_END_TO_END_ACCEPTANCE_PENDING,TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED,PRODUCTION_EFFECT_DELIVERY_BLOCKED,PRODUCTION_MODEL_RUNTIME_BLOCKED,PRODUCTION_EVENT_RUNTIME_BLOCKED,PRODUCTION_MEMORY_RUNTIME_BLOCKED,PRODUCTION_SKILL_GOVERNANCE_BLOCKED,TARGET_HARDWARE_NOT_VALIDATED" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "model_provider_contract_verified=true" \

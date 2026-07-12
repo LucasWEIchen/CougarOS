@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 /** Immutable application-layer acceptance rollup for the Android Runtime baseline. */
 public final class RuntimeAcceptanceSnapshot {
     public enum Blocker {
-        CLIENT2_BINDER_MIGRATION_PENDING,
         API33_END_TO_END_ACCEPTANCE_PENDING,
         TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED,
         PRODUCTION_EFFECT_DELIVERY_BLOCKED,
@@ -66,7 +65,6 @@ public final class RuntimeAcceptanceSnapshot {
                     "Android Runtime acceptance baseline is inconsistent");
         }
         return new RuntimeAcceptanceSnapshot(Arrays.asList(
-                Blocker.CLIENT2_BINDER_MIGRATION_PENDING,
                 Blocker.API33_END_TO_END_ACCEPTANCE_PENDING,
                 Blocker.TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED,
                 Blocker.PRODUCTION_EFFECT_DELIVERY_BLOCKED,
@@ -86,7 +84,7 @@ public final class RuntimeAcceptanceSnapshot {
     }
 
     public boolean isClient2BinderMigrationComplete() {
-        return false;
+        return true;
     }
 
     public boolean isApi33EndToEndAcceptanceComplete() {
@@ -168,7 +166,7 @@ public final class RuntimeAcceptanceSnapshot {
     public String diagnosticDetail() {
         return "core_software_baseline_ready=true"
                 + ";r7_application_integration_complete=false"
-                + ";client2_binder_migration_complete=false"
+                + ";client2_binder_migration_complete=true"
                 + ";api33_end_to_end_acceptance_complete=false"
                 + ";production_activation_allowed=false"
                 + ";target_hardware_validated=false"

@@ -18,9 +18,18 @@ fi
 
 mkdir -p "$UNSIGNED_DIR" "$ALIGNED_DIR" "$SIGNED_DIR" "$LOG_DIR"
 
+bash "$ROOT_DIR/tools/build_central_brain_android_runtime.sh" \
+  > "$LOG_DIR/runtime-build.log" 2>&1
 "$PROJECT_DIR/scripts/prepare_workspace.sh" > "$LOG_DIR/prepare.log" 2>&1
+"$PROJECT_DIR/scripts/build_binder_bridge_dex.sh" \
+  > "$LOG_DIR/binder-bridge.log" 2>&1
 
-KEYSTORE="$("$ROOT_DIR/tools/create_debug_keystore.sh")"
+DEFAULT_ANDROID_USER_HOME="${ANDROID_USER_HOME:-$HOME/.android}"
+KEYSTORE="${CENTRAL_BRAIN_ANDROID_DEBUG_KEYSTORE:-$DEFAULT_ANDROID_USER_HOME/debug.keystore}"
+if [[ ! -f "$KEYSTORE" ]]; then
+  echo "Missing Runtime-compatible Android debug keystore: $KEYSTORE" >&2
+  exit 1
+fi
 UNSIGNED_APK="$UNSIGNED_DIR/client2-central-brain.unsigned.apk"
 ALIGNED_APK="$ALIGNED_DIR/client2-central-brain.aligned.apk"
 SIGNED_APK="$SIGNED_DIR/client2-central-brain.debug.apk"
@@ -37,6 +46,20 @@ apksigner sign \
   "$ALIGNED_APK" > "$LOG_DIR/apksigner-sign.log" 2>&1
 apksigner verify --verbose --print-certs "$SIGNED_APK" > "$LOG_DIR/apksigner-verify.log" 2>&1
 aapt dump badging "$SIGNED_APK" > "$LOG_DIR/aapt-badging.log" 2>&1
+
+RUNTIME_APK="$ROOT_DIR/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk"
+RUNTIME_SIGNER="$(apksigner verify --print-certs "$RUNTIME_APK" \
+  | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+CLIENT2_SIGNER="$(apksigner verify --print-certs "$SIGNED_APK" \
+  | awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}')"
+if [[ -z "$RUNTIME_SIGNER" || "$RUNTIME_SIGNER" != "$CLIENT2_SIGNER" ]]; then
+  echo "Client2 and Runtime debug signer mismatch" >&2
+  exit 1
+fi
+printf 'runtime_signer_sha256=%s\nclient2_signer_sha256=%s\n' \
+  "$RUNTIME_SIGNER" "$CLIENT2_SIGNER" > "$LOG_DIR/signer-parity.log"
+
+"$PROJECT_DIR/scripts/verify_project.sh" > "$LOG_DIR/project-verify.log" 2>&1
 
 ln -sfn "$LOG_DIR" "$ROOT_DIR/logs/test/client2-central-brain/latest"
 echo "signed APK: $SIGNED_APK"

@@ -167,11 +167,11 @@
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
-图中应用层没有规定必须基于既有闭源 APK 逆向开发；用户现在明确选择 Client2 作为演示 App 基座。该路径存在六个待确认点：Client2 与 RenderService 是否存在签名信任约束、RenderService ARM64 依赖是否影响本地模拟器完整验收、右侧面板当前临时 HTTP 何时迁移到 Binder/SDK、固定 `10.0.2.2:8787` endpoint 如何配置化、APK patch 成果是否只作为 demo fork 而非生产交付形态、以及 Ollama thinking/output token 预算与 APK 120 秒超时如何在目标算力上标定。
+图中应用层没有规定必须基于既有闭源 APK 逆向开发；用户现在明确选择 Client2 作为演示 App 基座。R7B 已解决临时 HTTP/Binder 迁移和固定 endpoint 两项，但仍有四类待确认点：Client2 与 RenderService 的原始/调试/量产 signer 信任约束、ARM64 RenderService 对目标设备完整验收的影响、APK patch 是否只作为 demo fork 而非生产交付形态，以及真实模型/NPU 的输出预算与时延如何在目标算力上标定。
 
 影响：如果上述边界不清，集成方可能把 APK patch demo 误认为生产 Android system service 或正式 SDK 交付；也可能在 x86_64 模拟器上误判 RenderService 不可用为中央大脑 UI patch 失败。
 
-当前建议：短期把 `apk-labs/client2-central-brain/` 定义为 Android 演示分支，验收 APK rebuild/sign/install、车模全屏且右侧约 1/3 半透明悬浮面板不压缩渲染区域、12 个场景按钮滚动、`/agent/scenarios/run` 回复文本和默认拒绝；HTTP 只作为本地演示路径并登记偏差；RenderService 完整渲染验收放到 ARM64 设备或可运行 RenderService 的目标环境；下一步优先补 endpoint 配置化或 Binder/SDK 接入。
+当前建议：继续把 `apk-labs/client2-central-brain/` 定义为隔离 Android 演示分支，验收 APK rebuild/sign/install、全屏车模、右侧悬浮面板、12 个场景和 typed Binder callback；禁止恢复 HTTP fallback。RenderService 完整渲染、signer/allowlist 与安装策略必须在 ARM64 目标设备验证，量产交付优先回到可维护源码 App 或正式 SDK 集成。
 
 2026-07-11 初版运行时证据（历史）：API 36 x86_64 模拟器通过 `-gpu host` 可同时显示 Client2 原始座舱/3D 车辆和右侧面板，两个初版按钮均能触发请求，`/ai/infer` 返回过 HTTP 200，App 无崩溃。该轮 Ollama 自然语言回复未通过：`num_predict=96` 时模型把预算耗尽在 thinking，观测到 `done_reason=length`、`response_length=0`、`thinking_length=337`，UI 只能显示摘要回退；提高到 `192` 后又观测到 `请求失败: timeout`。该问题随后由 single-flight、关闭 thinking 和输出预算修复，并由 12 场景最终复测取代当前状态。
 
@@ -180,6 +180,8 @@
 2026-07-11 overlay 修正与复测：初版右侧面板使用横向 weight 与车模形成 2/3 + 1/3 分屏，会改变原始车模 viewport，不符合用户要求。现将 `centralBrainRenderRegion` 恢复为全屏，将 `centralBrainPanelOverlay` 放在同一 `FrameLayout` 的上层并保持右侧约 1/3 宽度；静态验收确认渲染区无横向 weight。API 36、`1920x1080` 可视模拟器的 UI dump 显示车模渲染区和 overlay 都覆盖 Activity 全内容区 `[0,128][1920,1080]`，面板位于 `[1265,160][1888,1048]`；截图确认车身延伸到半透明面板下方，App 无崩溃。该修正只改变 APK 资源布局，不改变临时 HTTP、Binder/SDK 迁移或目标平台风险边界。
 
 2026-07-11 12 场景最终复测：Client2 通过控件内独立滚动暴露全部 12 个稳定 `scenario_id`，`回家规划`、`越权拦截`、`NPU状态`、`系统总览` 均从 `/agent/scenarios/run` 返回预期文本；`我冷了` 经本地 Ollama 仿真约 77.6 秒返回非空中文。`ollama ps` 显示 27B 模型当前约 `90%/10% CPU/GPU`，因此性能和 GPU/NPU 利用率问题没有被关闭；它只证明用户态仿真链路可达。固定 HTTP endpoint、Binder/SDK 迁移、闭源 APK 维护、ARM64 RenderService 和目标算力标定仍保持未决。
+
+2026-07-12 R7B 进展：Client2 已嵌入 SDK/AIDL `classes2.dex`，12 场景经 signature-protected typed Binder 提交；Runtime 用 package/current-signer default-deny policy 只授予四项 owned-task 能力。API 33 自动点击验证 UI reply、可信调用方和 `http_transport_used=false`，因此 HTTP/固定 endpoint 子问题关闭。ISSUE-019 继续 Proposed，仅跟踪闭源维护、重签名/RenderService trust、ARM64 目标设备和真实模型/NPU 标定；该证据不证明车控或硬件能力。
 
 状态：Proposed。
 
@@ -206,6 +208,8 @@
 当前处理：按 `CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` 拆分量产业务 AIDL 与诊断 AIDL；业务接口使用 versioned Parcelable，任务提交快速返回 handle，状态通过 callback 推送，并定义 cancel、timeout、death-recipient 和兼容迁移窗口。诊断接口允许 JSON，但必须分页且不得阻塞业务 Binder 线程。
 
 2026-07-12 进展：R1 SDK AAR、Runtime Service APK、Demo HMI APK 和 API 33 生命周期退出验证已完成。R2A 已编译分离的业务/诊断 structured AIDL、oneway callback、显式 protocol version/hash 和 V1 checksum freeze；R2B 已实现独立 signature-permission production/diagnostic Service、typed SDK client、快速 handle、deterministic callback、异步/幂等 cancel、callback/service death recipient、API 33 权限拒绝和 diagnostic paging；R2C 已通过 service-process death、单次 `SERVICE_DIED`、显式重连、重复 disconnect 抑制、client-process death 和 15-task cancel-vs-completion race instrumentation。新 typed Protocol Binding 的 R2 退出条件已关闭并达到 `android_integrated`。因当前不是 VINTF stable AIDL，且旧 JSON Binder/同步 HTTP proxy/Client2 HTTP 尚未迁移，ISSUE-021 继续 Open 到 R7 compatibility migration 收口，不阻塞 R3 开始。
+
+2026-07-12 R7B 进展：Client2 compatibility client 已从 HTTP 迁移到 public typed SDK，API 33 验证 version/hash、async callback、signature permission、caller identity 与最小 capability policy。ISSUE-021 仍 Open：旧 107-method JSON Binder/同步 REST proxy 仍未完成退役，当前 AIDL 也不是 VINTF stable，target system/privileged owner 与 production service placement 尚未确认。
 
 状态：Open，实施已获批准。
 
@@ -309,11 +313,13 @@
 
 ## ISSUE-026 Android 聚合验收与量产激活边界
 
-R2-R6 已形成可验证的软件基线，但 Client2 仍走临时 HTTP，目标 system/privileged owner 未确认，Effect/Model/Event/Memory/Skill-Governance production activation 和真实硬件均被阻塞。单一“ready”布尔值会让交付方误把核心软件、应用集成、量产激活和硬件验收混为一谈。
+R2-R6 已形成可验证的软件基线，R7B 也已关闭 Client2 临时 HTTP/Binder migration，但 API 33 总集成、目标 system/privileged owner、Effect/Model/Event/Memory/Skill-Governance production activation 和真实硬件仍被阻塞。单一“ready”布尔值会让交付方误把核心软件、应用集成、量产激活和硬件验收混为一谈。
 
 涉及需求：`APP-004`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-011`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 2026-07-12 R7A1 进展：新增 Runtime log、protected dumpsys 与 Diagnostic Binder sequence 9 聚合快照，明确 `core_software_baseline_ready=true`、`r7_application_integration_complete=false`、`production_activation_allowed=false`、`target_hardware_validated=false`，并列出九项 ordered blocker。ISSUE-026 保持 Open：R7B/R7C 尚未关闭 Client2 Binder 和 API33 E2E；system owner、production subsystem 与 hardware blocker 不得由模拟器应用层证据关闭。
+
+2026-07-12 R7B 进展：API 33 已验证 Client2 signer/permission、typed SDK Binder、Runtime identity/capability、async completion 和 UI reply，aggregate snapshot 更新为 `client2_binder_migration_complete=true`，ordered blocker 从九项降为八项。ISSUE-026 保持 Open：R7C API 33 fault/recovery 总验收尚未完成，system owner、五类 production subsystem 与 target hardware 不得由本次模拟器证据关闭。
 
 状态：Open，实施已获批准。
 

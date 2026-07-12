@@ -22,7 +22,8 @@ then rebuilds and signs a debug APK.
 | Android demo delivery | `DEL-001`, `DEL-003` | Produces a debuggable APK for emulator/device validation. |
 | Platform difference visibility | `DEL-004` | Documents that this is an APK patch path, not a production system-service path. |
 | AI SDK entry point | `APP-004`, `XSC-001` | The right panel is reserved for AI SDK/Agent state and must not call NPU directly. |
-| Uni Info Bus / SOA / Governance | `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006` | Future interactive calls must go through the Central Brain prototype boundary. |
+| Typed Binder boundary | `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002` | Client2 uses the public SDK/AIDL contract, Runtime package visibility, signature permission and package/current-signer capability policy. |
+| Uni Info Bus / SOA / Governance | `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006` | Runtime remains the single app-facing ingress; Client2 does not bypass it for model or vehicle access. |
 
 ## Commands
 
@@ -44,6 +45,12 @@ Install to the currently selected Android device or emulator:
 bash tools/install_client2_central_brain_demo.sh
 ```
 
+Run the typed Binder/UI acceptance on an Android 13 emulator:
+
+```bash
+bash tools/test_client2_central_brain_binder.sh --require-api-33
+```
+
 ## Current Patch
 
 The layout patch keeps the original render hierarchy full-screen and adds a
@@ -58,9 +65,16 @@ Activity
 The overlay does not resize the vehicle scene. Empty space outside the panel
 continues to pass input to Client2, while the panel consumes touches over its
 own surface. The scrollable control area groups 12 stable scenario IDs under
-task service, context/growth, and safety/runtime. Each button calls
-`POST /agent/scenarios/run`; the response area renders compact module and
-policy evidence from the Python prototype.
+task service, context/growth, and safety/runtime. Each button creates a typed
+`AgentTaskRequest` through `CentralBrainClient`; asynchronous Binder callbacks
+update the response area. The SDK, AIDL parcelables and a narrow Client2 bridge
+are compiled into `classes2.dex`. The APK requests no network permission and
+contains no direct HTTP fallback.
+
+The debug build is deliberately signed with the same Gradle debug signer as
+the Runtime APK. Runtime still applies default-deny package/current-signer
+capability policy and grants Client2 only protocol read plus submit/status/cancel
+for its own tasks.
 
 ## Boundaries
 
@@ -68,6 +82,6 @@ policy evidence from the Python prototype.
 - No RenderService or Unity asset is modified.
 - No Driver/HAL, PCIe NPU, vendor SDK, device node, shared memory, or
   virtualization code is accessed.
-- Rebuilt APKs are signed with the local debug key. If RenderService enforces
-  original signature trust later, Client2 and RenderService signing must be
-  re-evaluated together.
+- Rebuilt APKs use the Runtime-compatible local debug key. This invalidates any
+  trust tied to the original Client2 signer; target-device RenderService or
+  vendor allowlist compatibility remains an explicit integration risk.

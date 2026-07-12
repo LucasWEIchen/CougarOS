@@ -75,6 +75,8 @@ for path in \
   tools/check_central_brain_android_effect_adapter_contract.sh \
   tools/check_central_brain_android_effect_activation_gate.sh \
   tools/check_central_brain_android_effect_gate_wiring.sh \
+  tools/check_central_brain_android_client2_binder.sh \
+  tools/test_client2_central_brain_binder.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh; do
   require_file "$path"
@@ -152,5 +154,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_built_in_skill_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_governance_middleware.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_skill_governance_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

@@ -14,4 +14,10 @@
         <capability name="governance.approval.status.own" />
         <capability name="governance.approval.cancel.own" />
     </principal>
+    <principal packageName="com.tuanjie.urasclient2" signer="runtime-current">
+        <capability name="runtime.protocol.read" />
+        <capability name="runtime.task.submit" />
+        <capability name="runtime.task.status.own" />
+        <capability name="runtime.task.cancel.own" />
+    </principal>
 </capability-policy>
