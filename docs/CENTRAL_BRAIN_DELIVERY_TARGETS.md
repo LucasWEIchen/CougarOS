@@ -886,3 +886,11 @@ R6B2 交付 immutable `MemoryRuntimeReadinessSnapshot`、JVM tests、Runtime log
 API 33 必须验证 Diagnostic Binder、Runtime log、真实 dumpsys 三路 parity，并输出 snapshot wired、activation false、R6B1 implementation available、scope count 3、schema/repository/storage/key/consent/revocation/clock/production/middleware false 和完整 ordered blocker。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
 
 该交付不构造 Memory lifecycle，不新增持久化、Keystore key、consent authority、Binder method 或 middleware dispatch。它只把后续 durable encrypted Memory 的必要前置条件显式化；raw content、NPU、Driver/HAL、Linux 前端和虚拟化均不在交付范围。
+
+## Android R6C1 Signed Built-In Skill Runtime
+
+R6C1 交付 main-source `BoundedBuiltInSkillRuntime`、JVM tests、DUMP-protected debug probe、安装门禁与 `tools/check_central_brain_android_built_in_skill_runtime.sh`。AIDL/checksum、Room v3 schema、public SDK 与 SDK AAR + Runtime APK + Demo APK artifact 形状不变；release 不得包含 Skill probe。
+
+API 33 必须输出 catalog、signer allowlist、manifest schema、invocation idempotency、capability policy、safety state、owner isolation、cancel idempotency 和 record bounds evidence，并固定 process-only、compile-time signer evidence、dynamic-loading false、artifact crypto verification false、production/network/raw-input/hardware false。
+
+该交付不执行 Skill route，不扫描或加载 APK/JAR/dex/native plugin，不验证真实 artifact bytes，不新增 Binder/Room/production Service，也不访问网络、车辆总线或硬件。真实签名发布流水线、撤销/version rollback policy、sandbox 和 production dispatcher 仍需后续设计；Linux 前端和虚拟化不在当前阶段。

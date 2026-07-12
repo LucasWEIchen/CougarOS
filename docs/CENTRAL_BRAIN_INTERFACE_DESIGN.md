@@ -1076,3 +1076,16 @@ TTL uses an injected monotonic elapsed clock and therefore has no restart guaran
 | Diagnostic Binder | `runtime/memory-runtime-readiness`, summary `blocked`, sequence 7 | existing paged V1 contract; no AIDL change |
 
 The snapshot reports R6B1 implementation availability and scope count 3, while schema/repository, encrypted storage, key lifecycle, consent/revocation, trusted retention clock and production wiring remain false. Its eight ordered blocker IDs are the admission gate for any later durable Memory design; the record is not a consent decision or storage-health probe.
+
+## Android R6C1 Signed Built-In Skill Runtime
+
+| Interface/type | Input | Result/constraint |
+| --- | --- | --- |
+| `listManifests` / `findManifest` | built-in Skill ID | immutable 3-item catalog; no filesystem/package scan |
+| `SkillManifest` | compiled version/schema/route/capability/risk/safety/digest/signer constants | allowlist matched, artifact digest bound, real artifact crypto verification false |
+| `TrustedInvocation.fromRuntimePolicy` | owner/client, Skill/version/schema, input SHA-256, granted capabilities, trusted safety state | metadata only; no raw input or request-provided identity |
+| `admit` | trusted invocation | ADMITTED/REPLAYED/CONFLICT/unknown/version/schema/capability/safety/quota outcome; dispatch false |
+| `findOwned` / `cancelOwned` | invocation ID + owner | no cross-owner disclosure; owner cancel idempotent while retained |
+| `snapshot` | none | catalog/active/cancelled counts and no-loading/no-network/no-production/no-hardware flags |
+
+Routes (`SOA_OPERATION`, `UIB_ACTION`, `AGENT_PLAN`) are declarative targets only. R6C1 neither calls the route nor performs cryptographic verification over artifact bytes. The signer digest is compile-time contract evidence awaiting a real build/publish verifier and production Skill dispatcher.

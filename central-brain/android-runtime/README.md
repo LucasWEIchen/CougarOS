@@ -229,6 +229,14 @@ R6B1 is process-local test/debug code. It uses injected elapsed time, does not s
 
 Activation is fail closed behind eight ordered blockers: durable encrypted storage, key lifecycle, consent authority, consent revocation, trusted retention clock, repository implementation, Runtime wiring and middleware wiring. Schema/repository/production wiring remain false, raw content remains absent, and PROFILE storage remains non-durable. R6B2 changes no AIDL or database schema; it makes the prerequisite gap auditable before any persistence design is approved.
 
+## R6C1 Signed Built-In Skill Runtime
+
+`BoundedBuiltInSkillRuntime` defines three compiled-in manifests aligned with the existing prototype: `vehicle.state.query`, `cabin.precondition` and `cabin.scene.nap`. Each immutable manifest fixes version `0.1.0`, input/output schema IDs, semantic route kind/target, required capabilities, risk class, allowed safety states, artifact digest and signer digest evidence.
+
+Manifest construction accepts only the compile-time signer allowlist. This proves deterministic catalog policy, not artifact cryptography: `cryptographic_artifact_verification_performed=false`, and no APK/JAR/native code is loaded. Trusted invocation admission is owner/client idempotent, schema/version/capability/safety-state gated and digest-only. Active/cancelled records are bounded and owner cancellation is idempotent, while every admitted snapshot keeps dispatch false.
+
+R6C1 is test/debug process-local code and is not referenced by production Services. It adds no AIDL, Room schema, network, dynamic plugin loader or hardware path. A real signed Skill packaging/publishing pipeline and production dispatcher remain open prerequisites.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

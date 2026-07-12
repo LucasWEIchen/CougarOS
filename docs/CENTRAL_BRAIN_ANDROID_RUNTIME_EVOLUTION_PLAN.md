@@ -171,6 +171,10 @@
 - `R6B2 Memory runtime readiness` 已完成：immutable snapshot 通过 Runtime log、protected dumpsys 和 existing Diagnostic Binder 暴露 R6B1 implementation availability、三种 scope 与八项 ordered prerequisite blocker。
 - Snapshot 只校验 scope/TTL 常量，不构造 lifecycle、不打开 Room。Memory schema/repository、durable encrypted storage、key lifecycle、consent/revocation authority、trusted retention clock、production wiring 与 middleware 均保持 false；R6B 软件可见性闭环后转入 R6C1 signed built-in Skill contract。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-012`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
+- `R6C1 signed built-in Skill runtime` 已完成：三个 prototype-compatible manifest 固定 version/schema/route/capability/risk/safety-state/artifact digest/signer evidence；catalog immutable 且只允许 compile-time signer digest。
+- Owner/client invocation admission 支持 exact replay/conflict、version/schema/capability/safety fail-closed、global/per-owner quota、owner isolation、idempotent cancel 与 bounded tombstone。只接收 input digest，所有 admission dispatch false。
+- 当前仅验证 compile-time signer allowlist，不读取 artifact bytes，`cryptographic_artifact_verification_performed=false`；无 APK/JAR/native 动态加载、production Service/AIDL/Room/network/hardware。下一步 R6C2 fixed governance middleware chain。
+- Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

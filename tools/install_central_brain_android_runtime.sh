@@ -336,6 +336,54 @@ if [[ "$MEMORY_LIFECYCLE_PASSED" != true ]]; then
   exit 1
 fi
 
+SKILL_RUNTIME_NONCE="$(date +%s%N)"
+SKILL_RUNTIME_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.skills.BuiltInSkillRuntimeProbeActivity \
+  --es nonce "$SKILL_RUNTIME_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SKILL_RUNTIME_OUTPUT"; then
+  echo "$SKILL_RUNTIME_OUTPUT" >&2
+  echo "built-in Skill runtime debug probe did not start successfully" >&2
+  exit 1
+fi
+SKILL_RUNTIME_PASSED=false
+for _ in {1..40}; do
+  SKILL_RUNTIME_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbBuiltInSkill:I)"
+  if grep -Fq "nonce=$SKILL_RUNTIME_NONCE skill_runtime_probe_complete=true" \
+      <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_runtime_contract_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_catalog_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_signer_allowlist_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_manifest_schema_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_invocation_idempotency_verified=true" \
+        <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_capability_policy_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_safety_state_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_owner_isolation_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_cancel_idempotency_verified=true" \
+        <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_record_bounds_verified=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_process_only=true" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_manifest_signer_evidence_compile_time_only=true" \
+        <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_dynamic_loading_enabled=false" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_cryptographic_artifact_verification_performed=false" \
+        <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_production_service_wired=false" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "raw_skill_input_stored=false" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "skill_network_access_enabled=false" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "service_dispatch_triggered=false" <<<"$SKILL_RUNTIME_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SKILL_RUNTIME_LOG"; then
+    SKILL_RUNTIME_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SKILL_RUNTIME_PASSED" != true ]]; then
+  echo "$SKILL_RUNTIME_LOG" >&2
+  echo "built-in Skill runtime probe did not pass" >&2
+  exit 1
+fi
+
 REPOSITORY_NONCE="$(date +%s%N)"
 REPOSITORY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.persistence.DurableRepositoryProbeActivity \
@@ -1459,6 +1507,23 @@ printf '%s\n' \
   "memory_profile_storage_durable=false" \
   "memory_consent_revocation_wired=false" \
   "memory_encryption_key_configured=false" \
+  "skill_runtime_contract_verified=true" \
+  "skill_catalog_verified=true" \
+  "skill_signer_allowlist_verified=true" \
+  "skill_manifest_schema_verified=true" \
+  "skill_invocation_idempotency_verified=true" \
+  "skill_capability_policy_verified=true" \
+  "skill_safety_state_verified=true" \
+  "skill_owner_isolation_verified=true" \
+  "skill_cancel_idempotency_verified=true" \
+  "skill_record_bounds_verified=true" \
+  "skill_process_only=true" \
+  "skill_manifest_signer_evidence_compile_time_only=true" \
+  "skill_dynamic_loading_enabled=false" \
+  "skill_cryptographic_artifact_verification_performed=false" \
+  "skill_production_service_wired=false" \
+  "raw_skill_input_stored=false" \
+  "skill_network_access_enabled=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \
