@@ -1103,3 +1103,13 @@ Routes (`SOA_OPERATION`, `UIB_ACTION`, `AGENT_PLAN`) are declarative targets onl
 | `snapshot` | none | counts plus production/dispatch/raw/audit-persistence/network/hardware false flags |
 
 `DISPATCH_GATE` is a route admission check, not a dispatcher. `dispatchContractAllowed=true` can coexist with `serviceDispatchTriggered=false`, including a later output-guard rejection. AUDIT is deliberately a terminal finalizer after the short-circuited decision chain so denied requests remain observable without evaluating skipped business stages.
+
+## Android R6C3 Skill And Governance Readiness
+
+| Surface | Record | Constraint |
+| --- | --- | --- |
+| Runtime startup log | Skill/middleware implementation, fixed counts/order, wiring flags and blockers | immutable constants only; no runtime construction |
+| Runtime dumpsys | complete Skill/Governance readiness key/value snapshot | protected framework diagnostic path; no catalog/storage query |
+| Diagnostic Binder | `runtime/skill-governance-readiness`, summary `blocked`, sequence 8 | existing paged V1 contract; no AIDL change |
+
+The snapshot distinguishes compile-time signer evidence from cryptographic artifact verification and fixed middleware code from production wiring. It reports lifecycle/revocation/rollback, sandbox, authority, route owner, audit persistence and dispatcher gaps without probing an APK, package signer, database, service or hardware device.

@@ -179,6 +179,10 @@
 - 首个 decision rejection 后续 decision stage 全部 `SKIPPED`；AUDIT 作为 mandatory terminal finalizer 对 allowed/denied 恰好记录一次。Dispatch gate 只准入 route metadata，不调用任何服务；output guard 只检查 schema/size/redaction metadata。
 - Audit records bounded/process-local/non-durable，raw input/output 不进入 API。Production Service/AIDL/Room/network/hardware wiring 保持 false；下一步 R6C3 暴露 Skill/middleware activation blocker，并保持 Event/Memory 的 `MIDDLEWARE_CHAIN_NOT_WIRED`。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
+- `R6C3 Skill and Governance readiness` 已完成：immutable snapshot 通过 Runtime startup log、protected dumpsys 和 existing Diagnostic Binder sequence 8 暴露 R6C1/R6C2 implementation availability 与十项 ordered activation blocker。
+- Snapshot 只校验三个 built-in Skill ID 和九阶段 enum baseline，不构造 Skill runtime/middleware、不打开 Room、不改变 AIDL。Artifact crypto verifier、lifecycle/revoke/rollback、sandbox、production authorities、route owner、middleware/audit/dispatcher wiring 均保持 false。
+- R6 software foundation 至此完成，可进入 R7 integration/acceptance；ISSUE-025 不关闭，Event/Memory `MIDDLEWARE_CHAIN_NOT_WIRED` 与真实 Skill ecosystem/dispatch blocker 继续开放。
+- Req IDs：`APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

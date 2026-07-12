@@ -902,3 +902,11 @@ R6C2 交付 main-source `FixedGovernanceMiddlewareChain`、JVM tests、DUMP-prot
 API 33 必须输出 fixed order、allow path、first rejection、audit finalizer、privacy/policy/QoS/output guard 和 audit bounds evidence，并固定 process-only、production wiring false、dispatch execution false、service dispatch false、raw input/output false、audit persistence false、network/hardware false。
 
 该交付是治理执行顺序和 fail-closed 行为的 contract evidence，不是量产 middleware activation。它不新增 Binder/Room，不调用 SOA/UIB/Agent route，不持久化/导出 audit，也不访问网络、NPU、车辆总线或硬件。R6C3 将交付 production-safe readiness visibility；Linux 前端和虚拟化不在当前阶段。
+
+## Android R6C3 Skill And Governance Readiness
+
+R6C3 交付 immutable `SkillGovernanceReadinessSnapshot`、JVM tests、Runtime log/dumpsys integration、现有 Diagnostic Binder record/probe 扩展、安装门禁和静态检查。AIDL/checksum、Room v3 schema、public SDK 与 SDK AAR + Runtime APK + Demo APK artifact 形状不变。
+
+API 33 必须验证 Diagnostic Binder sequence 8、Runtime log、真实 dumpsys 三路 parity，并输出 Skill count 3、middleware stage count 9/order fixed、R6C1/R6C2 implementation available 和完整十项 blocker。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
+
+该交付不构造 Skill runtime/middleware，不执行 artifact crypto verification、动态加载、route dispatch、audit persistence 或 sandbox，也不新增 Binder/Room/network/hardware。R6 software foundation 可结束，但 production activation 和 ISSUE-025 仍开放；Linux 前端和虚拟化不在当前阶段。

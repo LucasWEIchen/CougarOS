@@ -14,6 +14,7 @@ import com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics;
 import com.centralbrain.sdk.production.ICentralBrainRuntime;
 import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
+import com.centralbrain.runtime.governance.SkillGovernanceReadinessSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.memory.MemoryRuntimeReadinessSnapshot;
@@ -36,6 +37,8 @@ public final class CentralBrainDiagnosticService extends Service {
             EventRuntimeReadinessSnapshot.current();
     private final MemoryRuntimeReadinessSnapshot memoryRuntimeReadiness =
             MemoryRuntimeReadinessSnapshot.current();
+    private final SkillGovernanceReadinessSnapshot skillGovernanceReadiness =
+            SkillGovernanceReadinessSnapshot.current();
 
     private final ICentralBrainDiagnostics.Stub binder = new ICentralBrainDiagnostics.Stub() {
         @Override
@@ -182,7 +185,13 @@ public final class CentralBrainDiagnosticService extends Service {
                         "memory-runtime-readiness",
                         "blocked",
                         memoryRuntimeReadiness.diagnosticDetail(),
-                        7)
+                        7),
+                record(
+                        "runtime",
+                        "skill-governance-readiness",
+                        "blocked",
+                        skillGovernanceReadiness.diagnosticDetail(),
+                        8)
         };
     }
 

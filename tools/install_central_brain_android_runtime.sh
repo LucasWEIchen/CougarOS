@@ -176,6 +176,8 @@ for _ in {1..20}; do
       && grep -Fq "event_runtime_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG" \
       && grep -Fq "memory_runtime_readiness_diagnostic_verified=true" \
+        <<<"$DIAGNOSTIC_LOG" \
+      && grep -Fq "skill_governance_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG"; then
     DIAGNOSTIC_PROBE_PASSED=true
     break
@@ -1093,6 +1095,29 @@ for marker in \
   "raw_memory_content_stored=false" \
   "profile_memory_storage_durable=false" \
   "memory_runtime_activation_blockers=DURABLE_ENCRYPTED_STORAGE_MISSING" \
+  "skill_governance_readiness_snapshot_wired=true" \
+  "skill_governance_activation_allowed=false" \
+  "bounded_built_in_skill_runtime_implementation_available=true" \
+  "compiled_built_in_skill_count=3" \
+  "compile_time_skill_signer_evidence_available=true" \
+  "skill_artifact_cryptographic_verification_performed=false" \
+  "fixed_governance_middleware_implementation_available=true" \
+  "governance_middleware_stage_count=9" \
+  "governance_middleware_order_fixed=true" \
+  "skill_lifecycle_store_implemented=false" \
+  "skill_revocation_configured=false" \
+  "skill_rollback_configured=false" \
+  "skill_sandbox_configured=false" \
+  "governance_production_authorities_wired=false" \
+  "skill_route_owner_registry_wired=false" \
+  "skill_governance_middleware_production_wired=false" \
+  "skill_governance_audit_persistence_wired=false" \
+  "skill_dispatcher_production_wired=false" \
+  "skill_dynamic_loading_enabled=false" \
+  "raw_skill_input_stored=false" \
+  "raw_skill_output_stored=false" \
+  "skill_network_access_enabled=false" \
+  "skill_governance_activation_blockers=ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
@@ -1244,6 +1269,35 @@ for marker in \
     exit 1
   fi
 done
+for marker in \
+  "skill_governance_readiness_snapshot_wired=true" \
+  "skill_governance_activation_allowed=false" \
+  "bounded_built_in_skill_runtime_implementation_available=true" \
+  "compiled_built_in_skill_count=3" \
+  "compile_time_skill_signer_evidence_available=true" \
+  "skill_artifact_cryptographic_verification_performed=false" \
+  "fixed_governance_middleware_implementation_available=true" \
+  "governance_middleware_stage_count=9" \
+  "governance_middleware_order_fixed=true" \
+  "skill_lifecycle_store_implemented=false" \
+  "skill_revocation_configured=false" \
+  "skill_rollback_configured=false" \
+  "skill_sandbox_configured=false" \
+  "governance_production_authorities_wired=false" \
+  "skill_route_owner_registry_wired=false" \
+  "skill_governance_middleware_production_wired=false" \
+  "skill_governance_audit_persistence_wired=false" \
+  "skill_dispatcher_production_wired=false" \
+  "skill_dynamic_loading_enabled=false" \
+  "raw_skill_input_stored=false" \
+  "raw_skill_output_stored=false" \
+  "skill_network_access_enabled=false" \
+  "skill_governance_activation_blockers=ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
+    echo "Runtime Skill/Governance readiness missing marker: $marker" >&2
+    exit 1
+  fi
+done
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not resolve the Demo Binder caller from trusted package evidence" >&2
   exit 1
@@ -1343,6 +1397,7 @@ printf '%s\n' \
   "model_runtime_readiness_diagnostic_verified=true" \
   "event_runtime_readiness_diagnostic_verified=true" \
   "memory_runtime_readiness_diagnostic_verified=true" \
+  "skill_governance_readiness_diagnostic_verified=true" \
   "room_schema_version=3" \
   "room_table_count=8" \
   "room_wal_enabled=true" \
@@ -1482,6 +1537,30 @@ printf '%s\n' \
   "memory_repository_production_wired=false" \
   "memory_middleware_chain_wired=false" \
   "memory_runtime_activation_blockers=DURABLE_ENCRYPTED_STORAGE_MISSING,KEY_LIFECYCLE_NOT_CONFIGURED,CONSENT_AUTHORITY_NOT_WIRED,CONSENT_REVOCATION_NOT_WIRED,TRUSTED_RETENTION_CLOCK_NOT_WIRED,MEMORY_REPOSITORY_NOT_IMPLEMENTED,MEMORY_RUNTIME_NOT_WIRED,MIDDLEWARE_CHAIN_NOT_WIRED" \
+  "skill_governance_readiness_snapshot_wired=true" \
+  "skill_governance_readiness_log_verified=true" \
+  "skill_governance_readiness_dumpsys_verified=true" \
+  "skill_governance_activation_allowed=false" \
+  "bounded_built_in_skill_runtime_implementation_available=true" \
+  "compiled_built_in_skill_count=3" \
+  "compile_time_skill_signer_evidence_available=true" \
+  "skill_artifact_cryptographic_verification_performed=false" \
+  "fixed_governance_middleware_implementation_available=true" \
+  "governance_middleware_stage_count=9" \
+  "governance_middleware_order_fixed=true" \
+  "skill_lifecycle_store_implemented=false" \
+  "skill_revocation_configured=false" \
+  "skill_rollback_configured=false" \
+  "skill_sandbox_configured=false" \
+  "governance_production_authorities_wired=false" \
+  "skill_route_owner_registry_wired=false" \
+  "skill_governance_middleware_production_wired=false" \
+  "skill_governance_audit_persistence_wired=false" \
+  "skill_dispatcher_production_wired=false" \
+  "skill_dynamic_loading_enabled=false" \
+  "raw_skill_output_stored=false" \
+  "skill_network_access_enabled=false" \
+  "skill_governance_activation_blockers=ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED,SKILL_LIFECYCLE_STORE_NOT_IMPLEMENTED,SKILL_REVOCATION_NOT_CONFIGURED,SKILL_ROLLBACK_NOT_CONFIGURED,SKILL_SANDBOX_NOT_CONFIGURED,GOVERNANCE_AUTHORITIES_NOT_WIRED,ROUTE_OWNER_REGISTRY_NOT_WIRED,MIDDLEWARE_CHAIN_NOT_WIRED,AUDIT_PERSISTENCE_NOT_WIRED,SKILL_DISPATCHER_NOT_WIRED" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "model_provider_contract_verified=true" \

@@ -17,6 +17,7 @@ import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
 import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
+import com.centralbrain.runtime.governance.SkillGovernanceReadinessSnapshot;
 import com.centralbrain.runtime.identity.AndroidCallerIdentityResolver;
 import com.centralbrain.runtime.identity.CallerIdentitySnapshot;
 import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
@@ -71,6 +72,8 @@ public final class CentralBrainRuntimeService extends Service {
             EventRuntimeReadinessSnapshot.current();
     private final MemoryRuntimeReadinessSnapshot memoryRuntimeReadiness =
             MemoryRuntimeReadinessSnapshot.current();
+    private final SkillGovernanceReadinessSnapshot skillGovernanceReadiness =
+            SkillGovernanceReadinessSnapshot.current();
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
     private final JobSupervisor jobSupervisor = new JobSupervisor(
             MAX_TASK_RECORDS,
@@ -341,6 +344,56 @@ public final class CentralBrainRuntimeService extends Service {
                 + memoryRuntimeReadiness.getBlockersCsv()
                 + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
+        Log.i(TAG, "skill_governance_readiness_snapshot_wired=true"
+                + " skill_governance_activation_allowed="
+                + skillGovernanceReadiness.isActivationAllowed()
+                + " bounded_built_in_skill_runtime_implementation_available="
+                + skillGovernanceReadiness
+                        .isBoundedBuiltInSkillRuntimeImplementationAvailable()
+                + " compiled_built_in_skill_count="
+                + skillGovernanceReadiness.getCompiledBuiltInSkillCount()
+                + " compile_time_skill_signer_evidence_available="
+                + skillGovernanceReadiness.isCompileTimeSignerEvidenceAvailable()
+                + " skill_artifact_cryptographic_verification_performed="
+                + skillGovernanceReadiness
+                        .isCryptographicArtifactVerificationPerformed()
+                + " fixed_governance_middleware_implementation_available="
+                + skillGovernanceReadiness
+                        .isFixedGovernanceMiddlewareImplementationAvailable()
+                + " governance_middleware_stage_count="
+                + skillGovernanceReadiness.getMiddlewareStageCount()
+                + " governance_middleware_order_fixed="
+                + skillGovernanceReadiness.isMiddlewareOrderFixed()
+                + " skill_lifecycle_store_implemented="
+                + skillGovernanceReadiness.isSkillLifecycleStoreImplemented()
+                + " skill_revocation_configured="
+                + skillGovernanceReadiness.isSkillRevocationConfigured()
+                + " skill_rollback_configured="
+                + skillGovernanceReadiness.isSkillRollbackConfigured()
+                + " skill_sandbox_configured="
+                + skillGovernanceReadiness.isSkillSandboxConfigured()
+                + " governance_production_authorities_wired="
+                + skillGovernanceReadiness.areGovernanceProductionAuthoritiesWired()
+                + " skill_route_owner_registry_wired="
+                + skillGovernanceReadiness.isRouteOwnerRegistryWired()
+                + " skill_governance_middleware_production_wired="
+                + skillGovernanceReadiness.isMiddlewareProductionWired()
+                + " skill_governance_audit_persistence_wired="
+                + skillGovernanceReadiness.isAuditPersistenceWired()
+                + " skill_dispatcher_production_wired="
+                + skillGovernanceReadiness.isSkillDispatcherProductionWired()
+                + " skill_dynamic_loading_enabled="
+                + skillGovernanceReadiness.isDynamicSkillLoadingEnabled()
+                + " raw_skill_input_stored="
+                + skillGovernanceReadiness.isRawSkillInputStored()
+                + " raw_skill_output_stored="
+                + skillGovernanceReadiness.isRawSkillOutputStored()
+                + " skill_network_access_enabled="
+                + skillGovernanceReadiness.isNetworkAccessEnabled()
+                + " skill_governance_activation_blockers="
+                + skillGovernanceReadiness.getBlockersCsv()
+                + " service_dispatch_triggered=false"
+                + " hardware_accessed=false");
     }
 
     @Override
@@ -481,6 +534,54 @@ public final class CentralBrainRuntimeService extends Service {
                 + memoryRuntimeReadiness.isProfileMemoryStorageDurable());
         writer.println("memory_runtime_activation_blockers="
                 + memoryRuntimeReadiness.getBlockersCsv());
+        writer.println("skill_governance_readiness_snapshot_wired=true");
+        writer.println("skill_governance_activation_allowed="
+                + skillGovernanceReadiness.isActivationAllowed());
+        writer.println("bounded_built_in_skill_runtime_implementation_available="
+                + skillGovernanceReadiness
+                        .isBoundedBuiltInSkillRuntimeImplementationAvailable());
+        writer.println("compiled_built_in_skill_count="
+                + skillGovernanceReadiness.getCompiledBuiltInSkillCount());
+        writer.println("compile_time_skill_signer_evidence_available="
+                + skillGovernanceReadiness.isCompileTimeSignerEvidenceAvailable());
+        writer.println("skill_artifact_cryptographic_verification_performed="
+                + skillGovernanceReadiness
+                        .isCryptographicArtifactVerificationPerformed());
+        writer.println("fixed_governance_middleware_implementation_available="
+                + skillGovernanceReadiness
+                        .isFixedGovernanceMiddlewareImplementationAvailable());
+        writer.println("governance_middleware_stage_count="
+                + skillGovernanceReadiness.getMiddlewareStageCount());
+        writer.println("governance_middleware_order_fixed="
+                + skillGovernanceReadiness.isMiddlewareOrderFixed());
+        writer.println("skill_lifecycle_store_implemented="
+                + skillGovernanceReadiness.isSkillLifecycleStoreImplemented());
+        writer.println("skill_revocation_configured="
+                + skillGovernanceReadiness.isSkillRevocationConfigured());
+        writer.println("skill_rollback_configured="
+                + skillGovernanceReadiness.isSkillRollbackConfigured());
+        writer.println("skill_sandbox_configured="
+                + skillGovernanceReadiness.isSkillSandboxConfigured());
+        writer.println("governance_production_authorities_wired="
+                + skillGovernanceReadiness.areGovernanceProductionAuthoritiesWired());
+        writer.println("skill_route_owner_registry_wired="
+                + skillGovernanceReadiness.isRouteOwnerRegistryWired());
+        writer.println("skill_governance_middleware_production_wired="
+                + skillGovernanceReadiness.isMiddlewareProductionWired());
+        writer.println("skill_governance_audit_persistence_wired="
+                + skillGovernanceReadiness.isAuditPersistenceWired());
+        writer.println("skill_dispatcher_production_wired="
+                + skillGovernanceReadiness.isSkillDispatcherProductionWired());
+        writer.println("skill_dynamic_loading_enabled="
+                + skillGovernanceReadiness.isDynamicSkillLoadingEnabled());
+        writer.println("raw_skill_input_stored="
+                + skillGovernanceReadiness.isRawSkillInputStored());
+        writer.println("raw_skill_output_stored="
+                + skillGovernanceReadiness.isRawSkillOutputStored());
+        writer.println("skill_network_access_enabled="
+                + skillGovernanceReadiness.isNetworkAccessEnabled());
+        writer.println("skill_governance_activation_blockers="
+                + skillGovernanceReadiness.getBlockersCsv());
         writer.println("service_dispatch_triggered=false");
         writer.println("hardware_accessed=false");
     }

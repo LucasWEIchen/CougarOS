@@ -38,6 +38,7 @@ public final class DiagnosticProbeActivity extends Activity {
                 boolean modelRuntimeVerified = hasBlockedModelRuntime(activationPage);
                 boolean eventRuntimeVerified = hasBlockedEventRuntime(activationPage);
                 boolean memoryRuntimeVerified = hasBlockedMemoryRuntime(activationPage);
+                boolean skillGovernanceVerified = hasBlockedSkillGovernance(activationPage);
                 boolean passed = diagnostics.getProtocolVersion() == 1
                         && ICentralBrainDiagnostics.INTERFACE_HASH.equals(
                                 diagnostics.getProtocolHash())
@@ -48,7 +49,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         && activationVerified
                         && modelRuntimeVerified
                         && eventRuntimeVerified
-                        && memoryRuntimeVerified;
+                        && memoryRuntimeVerified
+                        && skillGovernanceVerified;
                 Log.i(TAG, "nonce=" + nonce + " diagnostic_probe_passed=" + passed
                         + " effect_delivery_activation_diagnostic_verified="
                         + activationVerified
@@ -58,6 +60,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         + eventRuntimeVerified
                         + " memory_runtime_readiness_diagnostic_verified="
                         + memoryRuntimeVerified
+                        + " skill_governance_readiness_diagnostic_verified="
+                        + skillGovernanceVerified
                         + " record_count=" + (page == null || page.records == null
                                 ? -1 : page.records.length)
                         + " hardware_accessed=false");
@@ -236,6 +240,56 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail.contains("profile_memory_storage_durable=false")
                     && record.detail.contains("DURABLE_ENCRYPTED_STORAGE_MISSING")
                     && record.detail.contains("MIDDLEWARE_CHAIN_NOT_WIRED")
+                    && record.detail.contains("hardware_accessed=false")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasBlockedSkillGovernance(DiagnosticPage page) {
+        if (page == null || page.records == null) {
+            return false;
+        }
+        for (DiagnosticRecord record : page.records) {
+            if (record != null
+                    && "skill-governance-readiness".equals(record.recordId)
+                    && "blocked".equals(record.summary)
+                    && record.sequence == 8
+                    && record.detail != null
+                    && record.detail.contains("skill_governance_activation_allowed=false")
+                    && record.detail.contains(
+                            "bounded_built_in_skill_runtime_implementation_available=true")
+                    && record.detail.contains("compiled_built_in_skill_count=3")
+                    && record.detail.contains(
+                            "compile_time_skill_signer_evidence_available=true")
+                    && record.detail.contains(
+                            "skill_artifact_cryptographic_verification_performed=false")
+                    && record.detail.contains(
+                            "fixed_governance_middleware_implementation_available=true")
+                    && record.detail.contains("governance_middleware_stage_count=9")
+                    && record.detail.contains("governance_middleware_order_fixed=true")
+                    && record.detail.contains("skill_lifecycle_store_implemented=false")
+                    && record.detail.contains("skill_revocation_configured=false")
+                    && record.detail.contains("skill_rollback_configured=false")
+                    && record.detail.contains("skill_sandbox_configured=false")
+                    && record.detail.contains(
+                            "governance_production_authorities_wired=false")
+                    && record.detail.contains("skill_route_owner_registry_wired=false")
+                    && record.detail.contains(
+                            "skill_governance_middleware_production_wired=false")
+                    && record.detail.contains(
+                            "skill_governance_audit_persistence_wired=false")
+                    && record.detail.contains("skill_dispatcher_production_wired=false")
+                    && record.detail.contains("skill_dynamic_loading_enabled=false")
+                    && record.detail.contains("raw_skill_input_stored=false")
+                    && record.detail.contains("raw_skill_output_stored=false")
+                    && record.detail.contains("skill_network_access_enabled=false")
+                    && record.detail.contains(
+                            "ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED")
+                    && record.detail.contains("MIDDLEWARE_CHAIN_NOT_WIRED")
+                    && record.detail.contains("SKILL_DISPATCHER_NOT_WIRED")
+                    && record.detail.contains("service_dispatch_triggered=false")
                     && record.detail.contains("hardware_accessed=false")) {
                 return true;
             }
