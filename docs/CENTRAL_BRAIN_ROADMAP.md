@@ -67,6 +67,7 @@
 
 ### 2026-07-12
 
+- 根 `README.md` 已从早期 APK 逆向工作区说明升级为仓库级技术架构入口，覆盖 Android Java/AIDL/C 实际工程、Python 架构原型、Client2 Binder 演示、正式文件到模块映射、总调用链、交付边界和近期修改日志；新增静态门禁并接入 Android 演化检查与 GitHub Actions。
 - 完成 B5a GitHub 远程硬件测试本地合同：版本化 Release、source commit/archive SHA-256 回溯、目标侧 dry-run/可选安装、GitHub-safe/private evidence 分流、Issue Form 和复测状态机已形成。
 - B5 不建立外网到内网 ADB 通道；测试人员执行真实设备命令，维护者按 Issue 的不可变版本修复。完整 Client2 交付继续由受控开发机生成，GitHub Actions 仅验证合同，不伪装为权威 APK build。
 - 发布 ref 审计已区分本地 Codex internal refs 与当前开发分支：当前分支全部可达历史最大 blob 为 1,221,099 字节且不含 forbidden APK/reverse/key 路径；后续只推送 `codex/github-publication:main`，禁止 mirror/internal-ref push。
