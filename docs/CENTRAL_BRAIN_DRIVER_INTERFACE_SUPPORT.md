@@ -549,3 +549,9 @@ No Binder callback, DDS, SOME/IP, MQTT, SSE/WebSocket, SocketCAN, VHAL, shared m
 R6A2A changes only the app-private Room/SQLite metadata schema and debug migration evidence. It stores subscription identity, topic names, sequence numbers, queue/state/overflow metadata and timestamps; no event body, vehicle frame, sensor buffer, shared-memory handle or hardware address is stored.
 
 No Driver/HAL ABI, JNI/C/C++, VHAL, DDS, network transport, device node, vendor service, NPU or Safety Runtime is required. `DRV-GAP-002/004/005` remain open and unchanged; added Driver/HAL development is zero. Req IDs: `XSC-002`, `XSC-004`, `XSC-005`, `FW-U-003`, `FW-U-004`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `NV-P-006`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R6A2B Event Repository Driver/HAL Boundary
+
+R6A2B executes Room transactions over subscription/cursor metadata and SHA-256 audit digests. Trusted latest sequence is an injected application-layer value; the repository does not read a timer device, vehicle bus, shared-memory counter or vendor event source. Source regression is rejected in software.
+
+No JNI/C/C++, Driver/HAL ABI, VHAL, DDS, network, device node, NPU, vendor service or Safety Runtime is accessed. The missing durable monotonic event source is a Runtime/broker activation blocker under ISSUE-025, not a reason to create a driver in the current environment. Existing `DRV-GAP-002/004/005` and added Driver/HAL work remain unchanged/zero.

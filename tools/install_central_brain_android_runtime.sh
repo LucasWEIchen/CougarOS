@@ -220,6 +220,63 @@ if [[ "$MIGRATION_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+EVENT_CURSOR_NONCE="$(date +%s%N)"
+EVENT_CURSOR_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.DurableEventCursorRepositoryProbeActivity \
+  --es nonce "$EVENT_CURSOR_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$EVENT_CURSOR_PROBE_OUTPUT"; then
+  echo "$EVENT_CURSOR_PROBE_OUTPUT" >&2
+  echo "durable Event cursor repository debug probe did not start successfully" >&2
+  exit 1
+fi
+EVENT_CURSOR_PROBE_PASSED=false
+for _ in {1..40}; do
+  EVENT_CURSOR_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbEventCursorRepo:I)"
+  if grep -Fq "nonce=$EVENT_CURSOR_NONCE durable_event_cursor_probe_complete=true" \
+      <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "durable_event_cursor_repository_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_registration_idempotency_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_admission_bounds_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_owner_isolation_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_ack_monotonic_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_source_regression_blocked=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_overflow_resync_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_reopen_recovery_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_cancel_idempotency_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_record_bounds_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_audit_exactly_once_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_probe_persistence_verified=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_repository_implementation_available=true" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_repository_production_wired=false" \
+        <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_cursor_persistence_wired=false" <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "durable_event_source_available=false" <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "event_broker_production_wired=false" <<<"$EVENT_CURSOR_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$EVENT_CURSOR_LOG"; then
+    EVENT_CURSOR_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$EVENT_CURSOR_PROBE_PASSED" != true ]]; then
+  echo "$EVENT_CURSOR_LOG" >&2
+  echo "durable Event cursor repository probe did not pass" >&2
+  exit 1
+fi
+
 REPOSITORY_NONCE="$(date +%s%N)"
 REPOSITORY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.persistence.DurableRepositoryProbeActivity \
@@ -1050,6 +1107,21 @@ printf '%s\n' \
   "event_cursor_schema_v3_verified=true" \
   "event_cursor_schema_ready=true" \
   "event_cursor_repository_wired=false" \
+  "durable_event_cursor_repository_verified=true" \
+  "event_cursor_registration_idempotency_verified=true" \
+  "event_cursor_admission_bounds_verified=true" \
+  "event_cursor_owner_isolation_verified=true" \
+  "event_cursor_ack_monotonic_verified=true" \
+  "event_cursor_source_regression_blocked=true" \
+  "event_cursor_overflow_resync_verified=true" \
+  "event_cursor_reopen_recovery_verified=true" \
+  "event_cursor_cancel_idempotency_verified=true" \
+  "event_cursor_record_bounds_verified=true" \
+  "event_cursor_audit_exactly_once_verified=true" \
+  "event_cursor_probe_persistence_verified=true" \
+  "event_cursor_repository_implementation_available=true" \
+  "event_cursor_repository_production_wired=false" \
+  "durable_event_source_available=false" \
   "task_admission_transaction_verified=true" \
   "task_idempotent_replay_verified=true" \
   "task_idempotency_conflict_verified=true" \

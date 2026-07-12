@@ -1029,3 +1029,16 @@ The cursor is global across the three trusted low-frequency topics. A retention 
 | DAO shape | find by cursor, find by owner/client, insert, update | repository-only foundation; no production Service call |
 
 The schema remains eight tables at version 3. A v2 cursor becomes ACTIVE with requested and acknowledged sequence both equal to its prior `last_sequence`, queue capacity 1, zero overflow and `created_at_wall_ms` copied from the previous update time. This compatibility mapping does not claim that a historical callback registration existed.
+
+## Android R6A2B Durable Event Repository
+
+| Method | Input | Result/constraint |
+| --- | --- | --- |
+| `register` | owner, client ID, trusted topics, after cursor, queue, trusted latest | CREATED/REPLAYED/CONFLICT/future/global limit/owner limit/source regression |
+| `findOwned` | cursor ID + owner | snapshot or null without cross-owner existence disclosure |
+| `acknowledgeOwned` | cursor, owner, ACK, trusted latest | monotonic apply/replay; regression/future/source reset/RESYNC blocked |
+| `markOverflowOwned` | cursor, owner, dropped range, trusted latest | conservative union; ACTIVE -> RESYNC_REQUIRED; exact range replay |
+| `completeResyncOwned` | cursor, owner, snapshot sequence, trusted latest | requires coverage through overflow last; clears range atomically |
+| `cancelOwned` | cursor + owner | APPLIED/REPLAYED/not found; bounded cancelled-row retention |
+
+Applied state changes and their digest-only audit rows share one Room transaction. `knownLatestSequence` is trusted Runtime input, not request-body authority. A latest value below persisted ACK returns `SOURCE_REGRESSION`; this prevents accidental reuse after a process-local publisher resets but does not itself provide a durable sequence source.

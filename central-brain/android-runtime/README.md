@@ -203,6 +203,12 @@ Room schema v3 keeps the existing eight-table artifact shape while rebuilding `e
 
 `MIGRATION_2_3` preserves each v2 owner/topic cursor as `legacy:<cursor_id>`, retaining its cursor ID, owner, topic, acknowledged sequence and update time. API 33 migration evidence validates the complete v1 -> v2 -> v3 path. R6A2A adds DAO shape only; production Services, the R6A1 process runtime and Binder APIs do not read or write these rows. R6A2B owns repository semantics and restart recovery.
 
+## R6A2B Durable Event Repository
+
+`DurableEventCursorRepository` owns Room transactions for owner/client registration, monotonic acknowledgement, conservative overflow, explicit resynchronization and owner-isolated cancellation. Canonical topic sets make request order irrelevant; exact replay returns the existing row, changed parameters conflict, and active plus cancelled records are bounded. Each applied transition writes one digest-only audit event in the same transaction.
+
+An isolated API 33 probe verifies database reopen while RESYNC_REQUIRED, continuation after resync, source-sequence regression rejection, cancellation idempotency and cancelled-record trimming. The implementation requires an upstream sequence that never resets. R6A1 is process-local and resets after process death, so the repository is not wired to R6A1 or production Services; Binder callbacks, broker activation and production cursor persistence remain false.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

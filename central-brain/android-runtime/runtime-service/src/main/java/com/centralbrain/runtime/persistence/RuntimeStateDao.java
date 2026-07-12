@@ -98,6 +98,28 @@ public interface RuntimeStateDao {
             String ownerFingerprint,
             String clientSubscriptionId);
 
+    @Query("SELECT COUNT(*) FROM event_cursor WHERE state IN ('ACTIVE', 'RESYNC_REQUIRED')")
+    int countActiveEventCursors();
+
+    @Query("SELECT COUNT(*) FROM event_cursor "
+            + "WHERE owner_fingerprint = :ownerFingerprint "
+            + "AND state IN ('ACTIVE', 'RESYNC_REQUIRED')")
+    int countActiveEventCursorsByOwner(String ownerFingerprint);
+
+    @Query("SELECT COUNT(*) FROM event_cursor WHERE state = 'CANCELLED'")
+    int countCancelledEventCursors();
+
+    @Nullable
+    @Query("SELECT * FROM event_cursor WHERE state = 'CANCELLED' "
+            + "ORDER BY updated_at_wall_ms, cursor_id LIMIT 1")
+    EventCursorEntity findOldestCancelledEventCursor();
+
+    @Nullable
+    @Query("SELECT * FROM event_cursor WHERE state = 'CANCELLED' "
+            + "AND cursor_id != :retainedCursorId "
+            + "ORDER BY updated_at_wall_ms, cursor_id LIMIT 1")
+    EventCursorEntity findOldestCancelledEventCursorExcept(String retainedCursorId);
+
     @Query("SELECT * FROM approval_request "
             + "WHERE state = 'PENDING' AND expires_at_wall_ms <= :nowWallMs")
     List<ApprovalRequestEntity> findExpiredPendingApprovals(long nowWallMs);
@@ -140,6 +162,9 @@ public interface RuntimeStateDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertEventCursor(EventCursorEntity entity);
+
+    @Query("DELETE FROM event_cursor WHERE cursor_id = :cursorId AND state = 'CANCELLED'")
+    int deleteCancelledEventCursor(String cursorId);
 
     @Query("SELECT COUNT(*) FROM runtime_task")
     int countTasks();

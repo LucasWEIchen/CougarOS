@@ -924,3 +924,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Event cursor storage is metadata-only. Raw event payload, utterance, model output, signer certificate, vehicle frame, sensor buffer and shared-memory handle are forbidden.
 - R6A2A may add DAO lookup/update shape but must not construct a repository from production Services, write from R6A1, expose Binder methods, dispatch callbacks or start a broker/transport.
 - API 33 evidence must verify v1 -> v2 -> v3 chaining, legacy task/approval/cursor preservation, schema v3 fields/index, WAL and unchanged table count. Release must continue to exclude the migration probe.
+
+### 2026-07-12 R6A2B durable Event repository trace
+
+- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-004`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
+- Registration must be one Room transaction keyed by owner plus client subscription ID. Canonically equivalent trusted topic sets and equal cursor/queue parameters replay the original row; any changed parameter conflicts. Future cursors and global/per-owner active limits fail with typed outcomes.
+- ACK must be monotonic, owner isolated and idempotent. It must reject a sequence beyond the trusted latest value, a regression below the persisted ACK, normal ACK while RESYNC_REQUIRED and any trusted source whose latest value regresses below the persisted ACK.
+- Overflow must persist a conservative union range and enter RESYNC_REQUIRED without double-counting exact replay. Only explicit resynchronization at or beyond the dropped range may clear overflow and reactivate ACK progression.
+- Cancellation must be owner isolated and idempotent while its row is retained. Active and cancelled records must be bounded; eviction of the oldest cancelled row may end idempotent replay for that expired tombstone and must never evict the newly cancelled row in the same transaction.
+- Every applied register/ACK/overflow/resync/cancel transition must append exactly one digest-only audit event in its Room transaction. Replayed/rejected operations must not append audit.
+- API 33 evidence must close/reopen an isolated database during RESYNC_REQUIRED and after final cancellation/registration. Production Services, R6A1 dispatch, Binder callback/broker and raw payload persistence remain unwired because no durable monotonic publisher sequence exists yet.

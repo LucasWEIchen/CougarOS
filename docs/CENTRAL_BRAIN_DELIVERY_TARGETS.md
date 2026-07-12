@@ -854,3 +854,11 @@ R6A2A 交付 `CentralBrainDatabase` v3、保留的 v2 schema export、v3 schema 
 API 33 必须新增 `room_schema_version=3`、`room_migration_2_3_verified=true`、`legacy_event_cursor_preserved=true`、`event_cursor_schema_v3_verified=true`、`event_cursor_schema_ready=true` 和 `event_cursor_repository_wired=false`，同时保留 v1/v2 task/approval migration、WAL 与 release probe isolation 证据。
 
 该小步不交付 Event repository、reopen recovery、production callback 或 broker，也不把 R6A1 process events 写入 Room。Raw payload、网络/DDS/车辆总线、NPU、Driver/HAL、Linux 前端和虚拟化均不在交付范围；R6A2B 才实现 repository-only 状态机。
+
+## Android R6A2B Durable Event Repository
+
+R6A2B 交付 `DurableEventCursorRepository`、DAO capacity/retention query、DUMP-protected isolated reopen probe、安装门禁和静态检查。AIDL、SDK API、Room v3 schema 和 SDK AAR + Runtime APK + Demo APK artifact 形状不变；release 不得包含 repository probe。
+
+API 33 必须输出 registration idempotency/admission bounds、owner isolation、monotonic ACK、source regression blocked、overflow/resync、reopen recovery、cancel idempotency、record bounds、audit exactly-once 和 probe persistence evidence。同时必须输出 `event_cursor_repository_implementation_available=true`、`event_cursor_repository_production_wired=false`、`event_cursor_persistence_wired=false`、`durable_event_source_available=false`。
+
+该交付只证明 repository transaction/reopen contract。它不把 R6A1 events 写入 Room，不创建 durable publisher log，不接 production Service/Binder callback/broker，也不交付网络/DDS/车辆总线、NPU、Driver/HAL、Linux 前端或虚拟化。

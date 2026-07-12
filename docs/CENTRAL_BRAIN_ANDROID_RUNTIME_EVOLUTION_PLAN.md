@@ -161,6 +161,8 @@
 - Req IDs：`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`。
 - `R6A2A durable Event schema` 已完成：Room v3 保持 8-table artifact shape，把 event cursor 从 owner/topic 单游标演进为 owner/client subscription、canonical topics、request/ACK cursor、queue、state 和 overflow metadata。
 - `MIGRATION_2_3` 把 v2 行映射为 `legacy:<cursor_id>` 并保留 owner/topic/sequence/time；本小步只有 schema/DAO/migration probe，不接 R6A1 runtime 或 production Service。R6A2B 继续 repository/reopen 状态机。
+- `R6A2B durable Event repository` 已完成：transactional register/replay/conflict、monotonic ACK、overflow/resync、owner isolation、bounded cancel tombstone 和 digest-only audit 已有跨 reopen API 33 evidence。
+- Repository implementation available 但 production wiring false。R6A1 sequence 在进程重启后重置，尚不满足 durable monotonic source 前置条件；R6A3 必须把该 blocker 暴露为 fail-closed readiness，不能直接接 Binder callback/broker。
 
 ## 架构落点
 
