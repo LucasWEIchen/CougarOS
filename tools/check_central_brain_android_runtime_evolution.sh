@@ -119,6 +119,7 @@ for path in \
   tools/check_central_brain_android_effect_adapter_contract.sh \
   tools/check_central_brain_android_effect_activation_gate.sh \
   tools/check_central_brain_android_effect_gate_wiring.sh \
+  tools/check_central_brain_android_delivery_handoff.sh \
   tools/test_central_brain_android_capability_policy.sh \
   tools/test_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_runtime_gradle.sh; do
@@ -249,6 +250,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_skill_governance_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_application_acceptance.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_delivery_handoff.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

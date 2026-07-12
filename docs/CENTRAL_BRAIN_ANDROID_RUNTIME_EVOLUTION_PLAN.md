@@ -195,6 +195,10 @@
 - Process death 只由 DUMP-protected debug receiver 注入，release 不包含该组件。验收合同与证据范围固定为 `api33-emulator-application-integration`，不升级为目标设备或量产证据。
 - `r7_application_integration_complete=true`、`api33_end_to_end_acceptance_complete=true`；剩余七项 blocker 为 target system owner、五类 production subsystem 和 target hardware。下一步 R7D 只做 Android 目标硬件移植/交付包与未决项收口，不开发 Linux 前端。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+- `R7D Android 13 software handoff` 已完成：交付 profile 将 SDK AAR、Runtime APK、Demo APK 和 Client2 APK 固定为四项 debug artifact，构建器记录 SHA-256、包名、minSdk、signer cohort、native payload 和 source commit，并生成可复验 manifest/checksum/tar archive。
+- 设备安装器默认 dry-run，先校验 API 33 和全部已安装包 signer，再允许显式 `--execute --allow-debug-signing` 的测试安装；禁止自动卸载、root/remount/fastboot 和 system/vendor 分区写入。目标 owner/signing/MDM/RenderService/vendor ABI/evidence 通过 unresolved input template 移交。
+- `software_handoff_ready=true` 只关闭 R7 软件交付阶段，不改变 Runtime aggregate 的七项 blocker。`production_ready=false`、`target_system_integration_owner_resolved=false`、`target_hardware_validated=false`、`hardware_accessed=false`；真实 NPU/VHAL/Event/Memory/Skill 接口保持 empty。
+- Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

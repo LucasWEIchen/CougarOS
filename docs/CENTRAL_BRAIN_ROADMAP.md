@@ -26,7 +26,7 @@
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 已完成：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B/C API 33 验证通过；真实 effect activation 仍受 gate 阻塞 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 软件基线已完成：R5A1/A2、R5B1/B2、R5C1、R5D1；production/hardware activation 仍阻塞 |
 | R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 软件基线已完成：R6A Event、R6B Memory、R6C1/C2/C3 Skill/Governance；production activation 仍阻塞 |
-| R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 应用集成完成：R7A1/R7B/R7C 已完成；R7D 目标硬件移植交付待推进 |
+| R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证、Android 13 软件交付包 | 软件交付阶段已完成：R7A1/R7B/R7C/R7D；七项 system-owner/production/hardware blocker 保持开放 |
 
 ## M0 任务清单
 
@@ -61,6 +61,10 @@
 
 ### 2026-07-12
 
+- 完成 R7D Android 13 software handoff：四项 artifact、签名 cohort、SHA-256/manifest/checksum、目标输入模板、迁移说明、dry-run/install 工具和静态门禁已形成可复验交付包。
+- 安装器先检查 API 33 与全部现存 package signer，默认不安装；测试安装必须显式允许 debug signer。无自动卸载、root/remount/fastboot、分区写入、Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
+- `software_handoff_ready=true`，但 `production_ready=false`、`target_hardware_validated=false`；七项空接口/blocker 未被交付打包结果关闭。
+- R7D 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 - 完成 R7C Android 13 application integration acceptance：Runtime disabled/retry、Client2 single-flight、Runtime process death/唯一失败/retry、restart reconciliation、Client2 process restart 和既有 Binder lifecycle/cancel race 全部通过。
 - Debug fault receiver 仅存在于 DUMP-protected debug source；release 不包含。Aggregate snapshot 更新为 R7/API33 application complete，七项 system-owner/production/hardware blocker 保持。下一步 R7D Android 目标硬件移植包与最终交付边界。
 - R7C 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。

@@ -1,0 +1,213 @@
+{
+  "profile_version": "1.0.0",
+  "delivery_id": "central-brain-android13-application-handoff",
+  "delivery_scope": "android13-application-layer",
+  "status": {
+    "software_handoff_ready": true,
+    "r7_application_integration_complete": true,
+    "production_ready": false,
+    "target_system_integration_owner_resolved": false,
+    "target_hardware_validated": false,
+    "hardware_accessed": false,
+    "driver_development_triggered": false,
+    "virtualization_development_triggered": false
+  },
+  "req_ids": [
+    "APP-004",
+    "XSC-001",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "NV-F-001",
+    "NV-F-011",
+    "NV-F-012",
+    "NV-G-003",
+    "NV-G-006",
+    "NV-G-007",
+    "NV-P-002",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "artifacts": [
+    {
+      "id": "central-brain-sdk",
+      "source": "central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar",
+      "bundle_path": "artifacts/central-brain-sdk-debug.aar",
+      "kind": "aar",
+      "required": true,
+      "install_order": null,
+      "package_name": null,
+      "expected_min_sdk": null
+    },
+    {
+      "id": "runtime-service",
+      "source": "central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk",
+      "bundle_path": "artifacts/runtime-service-debug.apk",
+      "kind": "apk",
+      "required": true,
+      "install_order": 1,
+      "package_name": "com.centralbrain.runtime",
+      "expected_min_sdk": 33
+    },
+    {
+      "id": "demo-hmi",
+      "source": "central-brain/android-runtime/demo-hmi/build/outputs/apk/debug/demo-hmi-debug.apk",
+      "bundle_path": "artifacts/demo-hmi-debug.apk",
+      "kind": "apk",
+      "required": true,
+      "install_order": 2,
+      "package_name": "com.centralbrain.demo",
+      "expected_min_sdk": 33
+    },
+    {
+      "id": "client2-demo",
+      "source": "builds/client2-central-brain/signed/client2-central-brain.debug.apk",
+      "bundle_path": "artifacts/client2-central-brain.debug.apk",
+      "kind": "apk",
+      "required": true,
+      "install_order": 3,
+      "package_name": "com.tuanjie.urasclient2",
+      "expected_min_sdk": 24
+    }
+  ],
+  "support_files": [
+    {
+      "source": "central-brain/delivery/android/README.md",
+      "bundle_path": "README.md"
+    },
+    {
+      "source": "central-brain/contracts/central_brain_android_r7c_acceptance.json",
+      "bundle_path": "contracts/central_brain_android_r7c_acceptance.json"
+    },
+    {
+      "source": "central-brain/delivery/android/central-brain.android-delivery-profile.json",
+      "bundle_path": "contracts/central-brain.android-delivery-profile.json"
+    },
+    {
+      "source": "central-brain/delivery/android/target-inputs.example.json",
+      "bundle_path": "contracts/target-inputs.example.json"
+    },
+    {
+      "source": "docs/CENTRAL_BRAIN_ANDROID_HARDWARE_MIGRATION_GUIDE.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_ANDROID_HARDWARE_MIGRATION_GUIDE.md"
+    },
+    {
+      "source": "docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_ANDROID_TARGET_DEPLOYMENT_ACCEPTANCE.md"
+    },
+    {
+      "source": "docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md"
+    },
+    {
+      "source": "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md"
+    },
+    {
+      "source": "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
+    },
+    {
+      "source": "tools/central_brain_android_delivery.py",
+      "bundle_path": "tools/central_brain_android_delivery.py"
+    },
+    {
+      "source": "tools/install_central_brain_android_delivery.sh",
+      "bundle_path": "tools/install_central_brain_android_delivery.sh"
+    }
+  ],
+  "signing": {
+    "current_artifact_class": "debug",
+    "same_signer_required_for": [
+      "runtime-service",
+      "demo-hmi",
+      "client2-demo"
+    ],
+    "production_resigning_required": true,
+    "target_render_service_trust_validation_required": true,
+    "automatic_uninstall_on_signer_mismatch": false
+  },
+  "install_sequence": [
+    "runtime-service",
+    "demo-hmi",
+    "client2-demo"
+  ],
+  "rollback_sequence": [
+    "client2-demo",
+    "demo-hmi",
+    "runtime-service"
+  ],
+  "empty_interfaces": [
+    {
+      "id": "target.system.owner.empty",
+      "blocker": "TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED",
+      "activation_allowed": false,
+      "replacement_requires": "named target service owner, package placement, signing and SELinux/MDM decision"
+    },
+    {
+      "id": "effect.delivery.empty",
+      "blocker": "PRODUCTION_EFFECT_DELIVERY_BLOCKED",
+      "activation_allowed": false,
+      "replacement_requires": "approved VHAL/SOA adapter contract, trusted state source, idempotency and fault evidence"
+    },
+    {
+      "id": "model.vendor.npu.empty",
+      "blocker": "PRODUCTION_MODEL_RUNTIME_BLOCKED",
+      "activation_allowed": false,
+      "replacement_requires": "vendor NPU SDK/ABI, memory ownership, lifecycle, cancel, fault and target smoke evidence",
+      "current_native_code_present": false,
+      "future_native_adapter_language": "C or C++ only when required by the published vendor SDK"
+    },
+    {
+      "id": "event.runtime.empty",
+      "blocker": "PRODUCTION_EVENT_RUNTIME_BLOCKED",
+      "activation_allowed": false,
+      "replacement_requires": "durable publisher sequence, callback Binder/broker owner and middleware evidence"
+    },
+    {
+      "id": "memory.runtime.empty",
+      "blocker": "PRODUCTION_MEMORY_RUNTIME_BLOCKED",
+      "activation_allowed": false,
+      "replacement_requires": "encrypted durable store, key lifecycle, consent/revocation and trusted retention clock"
+    },
+    {
+      "id": "skill.governance.empty",
+      "blocker": "PRODUCTION_SKILL_GOVERNANCE_BLOCKED",
+      "activation_allowed": false,
+      "replacement_requires": "artifact verifier, lifecycle/revoke/rollback, sandbox, authority, audit and dispatcher"
+    },
+    {
+      "id": "target.hardware.evidence.empty",
+      "blocker": "TARGET_HARDWARE_NOT_VALIDATED",
+      "activation_allowed": false,
+      "replacement_requires": "physical Android 13 device application pass plus subsystem and hardware qualification evidence"
+    }
+  ],
+  "preserved_blockers": [
+    "TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED",
+    "PRODUCTION_EFFECT_DELIVERY_BLOCKED",
+    "PRODUCTION_MODEL_RUNTIME_BLOCKED",
+    "PRODUCTION_EVENT_RUNTIME_BLOCKED",
+    "PRODUCTION_MEMORY_RUNTIME_BLOCKED",
+    "PRODUCTION_SKILL_GOVERNANCE_BLOCKED",
+    "TARGET_HARDWARE_NOT_VALIDATED"
+  ],
+  "validation_commands": [
+    "python3 tools/central_brain_android_delivery.py verify --bundle-dir <bundle-dir>",
+    "bash tools/install_central_brain_android_delivery.sh --bundle-dir <bundle-dir> --serial <serial>",
+    "bash tools/test_central_brain_android_target_deployment.sh --serial <serial> --skip-build",
+    "bash tools/test_client2_central_brain_recovery.sh --serial <serial> --skip-build --require-api-33"
+  ],
+  "prohibited_operations": [
+    "adb root",
+    "adb remount",
+    "fastboot flash",
+    "system or vendor partition writes",
+    "automatic package uninstall",
+    "vendor AOSP or BSP source modification",
+    "virtualization implementation",
+    "speculative Driver HAL or NPU implementation"
+  ]
+}

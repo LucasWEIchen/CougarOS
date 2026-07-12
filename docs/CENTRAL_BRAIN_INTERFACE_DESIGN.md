@@ -1148,3 +1148,19 @@ The SDK AAR and the two bridge Java sources are compiled by D8 into an embedded 
 | SDK lifecycle regression | existing androidTest instrumentation | service death/reconnect, callback death, terminal uniqueness, cancel/completion race |
 
 `RuntimeFaultProbeReceiver` is a debug-only test interface, not a Runtime product API. Client2 cannot invoke it, release packaging excludes it, and the acceptance script restores Runtime package state through an EXIT trap. The evidence contract is stored in `central_brain_android_r7c_acceptance.json`; its positive claims stop at API 33 application integration.
+
+## Android R7D Delivery And Empty Integration Slots
+
+R7D adds deployment contracts and host tooling, not a new runtime service API. The application call path remains Client2/HMI -> public SDK -> typed Binder -> identity/capability/governance -> durable Runtime. Packaging never bypasses this path.
+
+| Contract | Producer | Consumer | Invariant |
+| --- | --- | --- | --- |
+| `central-brain.android-delivery-profile.json` | repository owner | package builder/static gate | four ordered artifacts, one signer cohort, seven inactive slots |
+| `DELIVERY-MANIFEST.json` | package builder | verifier/installer/integrator | source commit, artifact facts, support inventory, status and blocker snapshot |
+| `SHA256SUMS` | package builder | verifier/integrator | exact path-safe coverage of every non-symlink bundle file except the checksum list itself; consistency only, not publisher authentication |
+| `target-inputs.example.json` | project team | target integration owner | unresolved owner/deployment/vendor/evidence decisions; no guessed positive claim |
+| installer dry-run output | bundle installer | release/acceptance owner | API 33, existing signer parity, no install/uninstall and blocked production/hardware state |
+
+The seven empty slots are `target.system.owner.empty`, `effect.delivery.empty`, `model.vendor.npu.empty`, `event.runtime.empty`, `memory.runtime.empty`, `skill.governance.empty` and `target.hardware.evidence.empty`. Each slot carries one blocker ID, `activation_allowed=false` and replacement evidence requirements. The vendor NPU slot contains no native implementation; C/C++ is allowed only after a published vendor SDK requires a native adapter at the existing Model Provider boundary.
+
+The installer resolves `adb`, `aapt`, `apksigner` and Java from explicit variables, `PATH` or standard Android/JDK roots. It re-reads each delivered APK package/signer, then verifies all already-installed signer digests before issuing the first fixed-order `adb install -r`; a mismatch returns `SIGNER_MIGRATION_REQUIRED` with no package mutation.

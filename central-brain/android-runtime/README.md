@@ -275,6 +275,14 @@ R7C adds a repeatable API 33 recovery matrix over Client2 and Runtime. It verifi
 
 The process-death receiver exists only in the Runtime debug source set and requires `android.permission.DUMP`; release packaging excludes it. Passing the matrix sets `r7_application_integration_complete=true` and `api33_end_to_end_acceptance_complete=true`. Seven production/system/hardware blockers remain, so this is not target-device or production qualification.
 
+## R7D Android Software Handoff
+
+R7D packages the public SDK AAR, Runtime debug APK, Demo debug APK and patched Client2 debug APK with an immutable delivery profile, per-file SHA-256 inventory, package/minSdk/signer facts, target-input template, migration documents and self-verification/install tools. Runtime, Demo and Client2 must remain one signer cohort because the Runtime service uses a signature permission.
+
+`tools/package_central_brain_android_delivery.sh` builds the bundle and deterministic tar archive. The bundle installer is dry-run by default, requires API 33, checks every existing package signer before the first `adb install -r`, and requires explicit debug-signing consent for execution. It has no automatic uninstall, root, remount, fastboot or partition-write path.
+
+The R7D result is `software_handoff_ready=true`, not production or physical-hardware qualification. Seven explicit empty integration slots preserve target system ownership, Effect delivery, vendor NPU Model Runtime, Event Runtime, encrypted Memory, Skill/Governance composition and target-hardware evidence as external blockers.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

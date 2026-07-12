@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "status": "template",
+  "device": {
+    "android_api_expected": 33,
+    "adb_serial": null,
+    "model": null,
+    "abi": null,
+    "build_fingerprint": null
+  },
+  "owners": {
+    "application_install_owner": null,
+    "production_signing_owner": null,
+    "system_integration_owner": null,
+    "rollback_owner": null,
+    "acceptance_evidence_owner": null
+  },
+  "deployment_decisions": {
+    "ordinary_data_app_install_allowed": null,
+    "mdm_policy_allows_install": null,
+    "same_signer_strategy_approved": null,
+    "client2_render_service_signer_trust_approved": null,
+    "system_or_privileged_placement_required": null,
+    "selinux_change_required": null
+  },
+  "vendor_interfaces": {
+    "npu_sdk_available": false,
+    "npu_sdk_version": null,
+    "npu_userspace_abi": null,
+    "npu_kernel_driver_abi": null,
+    "vhal_or_vehicle_service_contract_available": false,
+    "event_broker_contract_available": false,
+    "safety_runtime_contract_available": false
+  },
+  "evidence_references": {
+    "target_application_acceptance": null,
+    "render_service_compatibility": null,
+    "production_signing_approval": null,
+    "npu_smoke_test": null,
+    "vehicle_effect_fault_test": null,
+    "rollback_test": null
+  },
+  "claim_state": {
+    "target_system_integration_owner_resolved": false,
+    "production_activation_allowed": false,
+    "target_hardware_validated": false
+  }
+}

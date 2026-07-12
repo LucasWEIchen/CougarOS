@@ -934,3 +934,13 @@ R7C 交付 API 33 application acceptance JSON contract、详细说明、debug-on
 API 33 必须输出 Runtime absent/retry、single-flight、Runtime death unique failure/retry、restart reconciliation fail-closed、Client2 process restart/rebind、Binder lifecycle/cancel race 和最终 aggregate state evidence。Client2 happy path、identity/capability、UI reply 与 no-HTTP/no-hardware 仍须回归通过。
 
 该交付允许 `r7_application_integration_complete=true` 和 `api33_end_to_end_acceptance_complete=true`，但证据范围仅为 emulator application integration。Target system owner、五类 production subsystem 和 target hardware 七项 blocker 保持；无 Driver/HAL、厂商系统软件、Linux 前端或虚拟化开发。
+
+## Android R7D Software Handoff Package
+
+R7D 交付 Android 13 application-layer bundle：`central-brain-sdk-debug.aar`、`runtime-service-debug.apk`、`demo-hmi-debug.apk`、`client2-central-brain.debug.apk`，以及 delivery profile、target-input template、迁移/验收文档、bundle verifier、dry-run/install 工具、`DELIVERY-MANIFEST.json`、`SHA256SUMS` 和 normalized tar archive。
+
+Package builder 必须验证四项 artifact 的 hash/size、APK package/minSdk/targetSdk、Runtime/Demo/Client2 signer cohort、所有 artifact 无 native payload、Client2 有 `classes2.dex`，并记录 source Git commit。Verifier 拒绝非规范路径/符号链接并把 manifest 逐项绑定回 profile；installer 再读取 bundle APK 实际 package/signer。SHA/checksum 只证明一致性，archive SHA 必须经可信发布通道传递。当前包明确为 debug signing；量产重签名、原 Client2 升级签名迁移和 RenderService/vendor trust 由目标 owner 决策。
+
+Installer 默认 dry-run；执行安装必须同时提供 `--execute --allow-debug-signing`，且先完成 API 33 与全部已安装 package signer preflight。安装顺序固定 Runtime -> Demo -> Client2，只允许 `adb install -r`；自动卸载、root/remount/fastboot、system/vendor partition write 均无实现路径。
+
+交付状态为 `software_handoff_ready=true`、`production_ready=false`、`target_hardware_validated=false`。七项 target-owner/production/hardware blocker 保持为 inactive empty slots；真机 `/data/app` 验收、量产 subsystem 与硬件资格必须由后续目标证据分别关闭。
