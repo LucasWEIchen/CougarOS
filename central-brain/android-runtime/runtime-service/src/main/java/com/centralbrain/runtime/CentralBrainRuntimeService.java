@@ -15,6 +15,7 @@ import com.centralbrain.sdk.production.TaskFailure;
 import com.centralbrain.sdk.production.TaskHandle;
 import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
+import com.centralbrain.runtime.acceptance.RuntimeAcceptanceSnapshot;
 import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.governance.SkillGovernanceReadinessSnapshot;
@@ -74,6 +75,8 @@ public final class CentralBrainRuntimeService extends Service {
             MemoryRuntimeReadinessSnapshot.current();
     private final SkillGovernanceReadinessSnapshot skillGovernanceReadiness =
             SkillGovernanceReadinessSnapshot.current();
+    private final RuntimeAcceptanceSnapshot runtimeAcceptance =
+            RuntimeAcceptanceSnapshot.current();
     private final ConcurrentMap<String, TaskRecord> tasks = new ConcurrentHashMap<>();
     private final JobSupervisor jobSupervisor = new JobSupervisor(
             MAX_TASK_RECORDS,
@@ -394,6 +397,37 @@ public final class CentralBrainRuntimeService extends Service {
                 + skillGovernanceReadiness.getBlockersCsv()
                 + " service_dispatch_triggered=false"
                 + " hardware_accessed=false");
+        Log.i(TAG, "runtime_acceptance_snapshot_wired=true"
+                + " core_software_baseline_ready="
+                + runtimeAcceptance.isCoreSoftwareBaselineReady()
+                + " r7_application_integration_complete="
+                + runtimeAcceptance.isR7ApplicationIntegrationComplete()
+                + " client2_binder_migration_complete="
+                + runtimeAcceptance.isClient2BinderMigrationComplete()
+                + " api33_end_to_end_acceptance_complete="
+                + runtimeAcceptance.isApi33EndToEndAcceptanceComplete()
+                + " production_activation_allowed="
+                + runtimeAcceptance.isProductionActivationAllowed()
+                + " target_hardware_validated="
+                + runtimeAcceptance.isTargetHardwareValidated()
+                + " target_system_integration_owner_resolved="
+                + runtimeAcceptance.isTargetSystemIntegrationOwnerResolved()
+                + " typed_binder_integrated="
+                + runtimeAcceptance.isTypedBinderIntegrated()
+                + " trusted_governance_integrated="
+                + runtimeAcceptance.isTrustedGovernanceIntegrated()
+                + " durable_workflow_foundation_ready="
+                + runtimeAcceptance.isDurableWorkflowFoundationReady()
+                + " room_schema_version="
+                + runtimeAcceptance.getRoomSchemaVersion()
+                + " standard_artifact_count="
+                + runtimeAcceptance.getStandardArtifactCount()
+                + " signature_protected_service_count="
+                + runtimeAcceptance.getSignatureProtectedServiceCount()
+                + " runtime_acceptance_blockers="
+                + runtimeAcceptance.getBlockersCsv()
+                + " service_dispatch_triggered=false"
+                + " hardware_accessed=false");
     }
 
     @Override
@@ -582,6 +616,42 @@ public final class CentralBrainRuntimeService extends Service {
                 + skillGovernanceReadiness.isNetworkAccessEnabled());
         writer.println("skill_governance_activation_blockers="
                 + skillGovernanceReadiness.getBlockersCsv());
+        writer.println("runtime_acceptance_snapshot_wired=true");
+        writer.println("core_software_baseline_ready="
+                + runtimeAcceptance.isCoreSoftwareBaselineReady());
+        writer.println("r7_application_integration_complete="
+                + runtimeAcceptance.isR7ApplicationIntegrationComplete());
+        writer.println("client2_binder_migration_complete="
+                + runtimeAcceptance.isClient2BinderMigrationComplete());
+        writer.println("api33_end_to_end_acceptance_complete="
+                + runtimeAcceptance.isApi33EndToEndAcceptanceComplete());
+        writer.println("production_activation_allowed="
+                + runtimeAcceptance.isProductionActivationAllowed());
+        writer.println("target_hardware_validated="
+                + runtimeAcceptance.isTargetHardwareValidated());
+        writer.println("target_system_integration_owner_resolved="
+                + runtimeAcceptance.isTargetSystemIntegrationOwnerResolved());
+        writer.println("typed_binder_integrated="
+                + runtimeAcceptance.isTypedBinderIntegrated());
+        writer.println("trusted_governance_integrated="
+                + runtimeAcceptance.isTrustedGovernanceIntegrated());
+        writer.println("durable_workflow_foundation_ready="
+                + runtimeAcceptance.isDurableWorkflowFoundationReady());
+        writer.println("room_schema_version=" + runtimeAcceptance.getRoomSchemaVersion());
+        writer.println("standard_artifact_count="
+                + runtimeAcceptance.getStandardArtifactCount());
+        writer.println("signature_protected_service_count="
+                + runtimeAcceptance.getSignatureProtectedServiceCount());
+        writer.println("effect_delivery_activation_allowed="
+                + runtimeAcceptance.isEffectDeliveryActivationAllowed());
+        writer.println("event_runtime_activation_allowed="
+                + runtimeAcceptance.isEventRuntimeActivationAllowed());
+        writer.println("memory_runtime_activation_allowed="
+                + runtimeAcceptance.isMemoryRuntimeActivationAllowed());
+        writer.println("skill_governance_activation_allowed="
+                + runtimeAcceptance.isSkillGovernanceActivationAllowed());
+        writer.println("runtime_acceptance_blockers="
+                + runtimeAcceptance.getBlockersCsv());
         writer.println("service_dispatch_triggered=false");
         writer.println("hardware_accessed=false");
     }

@@ -178,6 +178,8 @@ for _ in {1..20}; do
       && grep -Fq "memory_runtime_readiness_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG" \
       && grep -Fq "skill_governance_readiness_diagnostic_verified=true" \
+        <<<"$DIAGNOSTIC_LOG" \
+      && grep -Fq "runtime_acceptance_diagnostic_verified=true" \
         <<<"$DIAGNOSTIC_LOG"; then
     DIAGNOSTIC_PROBE_PASSED=true
     break
@@ -1118,6 +1120,20 @@ for marker in \
   "raw_skill_output_stored=false" \
   "skill_network_access_enabled=false" \
   "skill_governance_activation_blockers=ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED" \
+  "runtime_acceptance_snapshot_wired=true" \
+  "core_software_baseline_ready=true" \
+  "r7_application_integration_complete=false" \
+  "client2_binder_migration_complete=false" \
+  "api33_end_to_end_acceptance_complete=false" \
+  "production_activation_allowed=false" \
+  "target_hardware_validated=false" \
+  "target_system_integration_owner_resolved=false" \
+  "typed_binder_integrated=true" \
+  "trusted_governance_integrated=true" \
+  "durable_workflow_foundation_ready=true" \
+  "standard_artifact_count=3" \
+  "signature_protected_service_count=3" \
+  "runtime_acceptance_blockers=CLIENT2_BINDER_MIGRATION_PENDING" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   if ! grep -Fq "$marker" <<<"$RUNTIME_CLIENT_DUMP"; then
@@ -1298,6 +1314,27 @@ for marker in \
     exit 1
   fi
 done
+for marker in \
+  "runtime_acceptance_snapshot_wired=true" \
+  "core_software_baseline_ready=true" \
+  "r7_application_integration_complete=false" \
+  "client2_binder_migration_complete=false" \
+  "api33_end_to_end_acceptance_complete=false" \
+  "production_activation_allowed=false" \
+  "target_hardware_validated=false" \
+  "target_system_integration_owner_resolved=false" \
+  "typed_binder_integrated=true" \
+  "trusted_governance_integrated=true" \
+  "durable_workflow_foundation_ready=true" \
+  "room_schema_version=3" \
+  "standard_artifact_count=3" \
+  "signature_protected_service_count=3" \
+  "runtime_acceptance_blockers=CLIENT2_BINDER_MIGRATION_PENDING"; do
+  if ! grep -Fq "$marker" <<<"$RUNTIME_LOG"; then
+    echo "Runtime acceptance missing marker: $marker" >&2
+    exit 1
+  fi
+done
 if ! grep -Fq "packages=[com.centralbrain.demo] resolved=true" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not resolve the Demo Binder caller from trusted package evidence" >&2
   exit 1
@@ -1398,6 +1435,7 @@ printf '%s\n' \
   "event_runtime_readiness_diagnostic_verified=true" \
   "memory_runtime_readiness_diagnostic_verified=true" \
   "skill_governance_readiness_diagnostic_verified=true" \
+  "runtime_acceptance_diagnostic_verified=true" \
   "room_schema_version=3" \
   "room_table_count=8" \
   "room_wal_enabled=true" \
@@ -1561,6 +1599,22 @@ printf '%s\n' \
   "raw_skill_output_stored=false" \
   "skill_network_access_enabled=false" \
   "skill_governance_activation_blockers=ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED,SKILL_LIFECYCLE_STORE_NOT_IMPLEMENTED,SKILL_REVOCATION_NOT_CONFIGURED,SKILL_ROLLBACK_NOT_CONFIGURED,SKILL_SANDBOX_NOT_CONFIGURED,GOVERNANCE_AUTHORITIES_NOT_WIRED,ROUTE_OWNER_REGISTRY_NOT_WIRED,MIDDLEWARE_CHAIN_NOT_WIRED,AUDIT_PERSISTENCE_NOT_WIRED,SKILL_DISPATCHER_NOT_WIRED" \
+  "runtime_acceptance_snapshot_wired=true" \
+  "runtime_acceptance_log_verified=true" \
+  "runtime_acceptance_dumpsys_verified=true" \
+  "core_software_baseline_ready=true" \
+  "r7_application_integration_complete=false" \
+  "client2_binder_migration_complete=false" \
+  "api33_end_to_end_acceptance_complete=false" \
+  "production_activation_allowed=false" \
+  "target_hardware_validated=false" \
+  "target_system_integration_owner_resolved=false" \
+  "typed_binder_integrated=true" \
+  "trusted_governance_integrated=true" \
+  "durable_workflow_foundation_ready=true" \
+  "standard_artifact_count=3" \
+  "signature_protected_service_count=3" \
+  "runtime_acceptance_blockers=CLIENT2_BINDER_MIGRATION_PENDING,API33_END_TO_END_ACCEPTANCE_PENDING,TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED,PRODUCTION_EFFECT_DELIVERY_BLOCKED,PRODUCTION_MODEL_RUNTIME_BLOCKED,PRODUCTION_EVENT_RUNTIME_BLOCKED,PRODUCTION_MEMORY_RUNTIME_BLOCKED,PRODUCTION_SKILL_GOVERNANCE_BLOCKED,TARGET_HARDWARE_NOT_VALIDATED" \
   "synthetic_material_source_process_only=true" \
   "raw_effect_material_persisted=false" \
   "model_provider_contract_verified=true" \

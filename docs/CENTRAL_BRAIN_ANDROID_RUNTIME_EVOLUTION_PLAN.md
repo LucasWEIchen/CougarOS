@@ -183,6 +183,10 @@
 - Snapshot 只校验三个 built-in Skill ID 和九阶段 enum baseline，不构造 Skill runtime/middleware、不打开 Room、不改变 AIDL。Artifact crypto verifier、lifecycle/revoke/rollback、sandbox、production authorities、route owner、middleware/audit/dispatcher wiring 均保持 false。
 - R6 software foundation 至此完成，可进入 R7 integration/acceptance；ISSUE-025 不关闭，Event/Memory `MIDDLEWARE_CHAIN_NOT_WIRED` 与真实 Skill ecosystem/dispatch blocker 继续开放。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
+- `R7A1 aggregate Runtime acceptance` 已完成：immutable rollup 聚合 typed Binder、trusted Governance、durable workflow 与 Effect/Model/Event/Memory/Skill-Governance readiness，经 Runtime log、protected dumpsys 和 Diagnostic Binder sequence 9 暴露。
+- Core software baseline ready 与 R7 application integration、production activation、target hardware validation 分离。首版 9 个 blocker 包含 Client2 Binder migration、API 33 E2E、target system owner、五类 production subsystem 和 hardware evidence。
+- Snapshot 不打开 Room、不启动 subsystem、不改变 AIDL；R7B/R7C 只能基于实际迁移/验收证据关闭 application blockers，不能关闭 production/hardware blockers。
+- Req IDs：`APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-004`、`FW-U-005`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-004`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

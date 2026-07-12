@@ -1113,3 +1113,13 @@ Routes (`SOA_OPERATION`, `UIB_ACTION`, `AGENT_PLAN`) are declarative targets onl
 | Diagnostic Binder | `runtime/skill-governance-readiness`, summary `blocked`, sequence 8 | existing paged V1 contract; no AIDL change |
 
 The snapshot distinguishes compile-time signer evidence from cryptographic artifact verification and fixed middleware code from production wiring. It reports lifecycle/revocation/rollback, sandbox, authority, route owner, audit persistence and dispatcher gaps without probing an APK, package signer, database, service or hardware device.
+
+## Android R7A1 Runtime Acceptance Snapshot
+
+| Surface | Record | Constraint |
+| --- | --- | --- |
+| Runtime startup log | core/R7/production/hardware dimensions plus ordered blockers | separate bounded log entry; no subsystem activation |
+| Runtime dumpsys | complete aggregate acceptance key/value snapshot | protected framework diagnostic path; no Room query |
+| Diagnostic Binder | `runtime/runtime-acceptance`, summary `core-ready-production-blocked`, sequence 9 | existing paged V1 contract; no AIDL change |
+
+The rollup consumes immutable child snapshots, SDK maturity/stage constants and Room schema version only. `core_software_baseline_ready` is a software composition statement; Client2 migration and API 33 E2E remain explicit R7 blockers, while system owner, production subsystems and target hardware are independent blockers that application-layer tests cannot close.

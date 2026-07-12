@@ -253,6 +253,14 @@ Visibility separates R6C1/R6C2 implementation availability from production activ
 
 R6C3 changes no AIDL, Room schema or artifact shape. Event and Memory readiness continue to report `MIDDLEWARE_CHAIN_NOT_WIRED`; the new snapshot proves a contract implementation exists, not that it is wired into production request execution.
 
+## R7A1 Runtime Acceptance Snapshot
+
+`RuntimeAcceptanceSnapshot` aggregates the immutable Effect, Model, Event, Memory and Skill/Governance readiness views with the typed Binder, trusted Governance and durable-workflow baseline. It is exposed through Runtime startup logging, protected dumpsys and Diagnostic Binder sequence 9 without opening storage or activating a blocked subsystem.
+
+The rollup deliberately separates `core_software_baseline_ready=true` from `r7_application_integration_complete=false`, `production_activation_allowed=false` and `target_hardware_validated=false`. Nine ordered blockers cover Client2 Binder migration, API 33 end-to-end evidence, target system owner, five blocked production subsystem groups and target hardware validation.
+
+R7A1 is an acceptance contract, not a certificate embedded in the APK. The installer must still verify its three diagnostic surfaces and all underlying probes. R7B and R7C will remove only the application-integration blockers supported by concrete evidence; production and hardware blockers remain independent.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

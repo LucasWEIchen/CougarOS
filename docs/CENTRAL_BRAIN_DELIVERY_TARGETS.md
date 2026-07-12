@@ -910,3 +910,11 @@ R6C3 交付 immutable `SkillGovernanceReadinessSnapshot`、JVM tests、Runtime l
 API 33 必须验证 Diagnostic Binder sequence 8、Runtime log、真实 dumpsys 三路 parity，并输出 Skill count 3、middleware stage count 9/order fixed、R6C1/R6C2 implementation available 和完整十项 blocker。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
 
 该交付不构造 Skill runtime/middleware，不执行 artifact crypto verification、动态加载、route dispatch、audit persistence 或 sandbox，也不新增 Binder/Room/network/hardware。R6 software foundation 可结束，但 production activation 和 ISSUE-025 仍开放；Linux 前端和虚拟化不在当前阶段。
+
+## Android R7A1 Runtime Acceptance Snapshot
+
+R7A1 交付 immutable `RuntimeAcceptanceSnapshot`、JVM tests、Runtime log/dumpsys integration、现有 Diagnostic Binder sequence 9/probe 扩展、安装门禁与静态检查。AIDL/checksum、Room v3 schema、public SDK 和三项 artifact shape 不变。
+
+API 33 必须验证 aggregate diagnostic/log/dumpsys parity、core software ready、R7 integration false、production/hardware false 和完整九项 blocker，同时复跑所有 R2-R6 probes。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
+
+该交付不代表 R7 完成或目标硬件通过。R7B 处理 Client2 Binder/SDK，R7C 处理 API 33 E2E；system integration owner、production adapters/runtimes 和 target hardware 只能由后续目标平台证据关闭。

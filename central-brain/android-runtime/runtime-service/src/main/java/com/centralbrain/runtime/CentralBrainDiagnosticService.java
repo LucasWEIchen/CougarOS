@@ -12,6 +12,7 @@ import com.centralbrain.sdk.diagnostics.DiagnosticQuery;
 import com.centralbrain.sdk.diagnostics.DiagnosticRecord;
 import com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics;
 import com.centralbrain.sdk.production.ICentralBrainRuntime;
+import com.centralbrain.runtime.acceptance.RuntimeAcceptanceSnapshot;
 import com.centralbrain.runtime.effects.EffectDeliveryActivationSnapshot;
 import com.centralbrain.runtime.events.EventRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.governance.SkillGovernanceReadinessSnapshot;
@@ -39,6 +40,8 @@ public final class CentralBrainDiagnosticService extends Service {
             MemoryRuntimeReadinessSnapshot.current();
     private final SkillGovernanceReadinessSnapshot skillGovernanceReadiness =
             SkillGovernanceReadinessSnapshot.current();
+    private final RuntimeAcceptanceSnapshot runtimeAcceptance =
+            RuntimeAcceptanceSnapshot.current();
 
     private final ICentralBrainDiagnostics.Stub binder = new ICentralBrainDiagnostics.Stub() {
         @Override
@@ -191,7 +194,13 @@ public final class CentralBrainDiagnosticService extends Service {
                         "skill-governance-readiness",
                         "blocked",
                         skillGovernanceReadiness.diagnosticDetail(),
-                        8)
+                        8),
+                record(
+                        "runtime",
+                        "runtime-acceptance",
+                        "core-ready-production-blocked",
+                        runtimeAcceptance.diagnosticDetail(),
+                        9)
         };
     }
 

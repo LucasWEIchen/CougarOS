@@ -39,6 +39,7 @@ public final class DiagnosticProbeActivity extends Activity {
                 boolean eventRuntimeVerified = hasBlockedEventRuntime(activationPage);
                 boolean memoryRuntimeVerified = hasBlockedMemoryRuntime(activationPage);
                 boolean skillGovernanceVerified = hasBlockedSkillGovernance(activationPage);
+                boolean runtimeAcceptanceVerified = hasRuntimeAcceptance(activationPage);
                 boolean passed = diagnostics.getProtocolVersion() == 1
                         && ICentralBrainDiagnostics.INTERFACE_HASH.equals(
                                 diagnostics.getProtocolHash())
@@ -50,7 +51,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         && modelRuntimeVerified
                         && eventRuntimeVerified
                         && memoryRuntimeVerified
-                        && skillGovernanceVerified;
+                        && skillGovernanceVerified
+                        && runtimeAcceptanceVerified;
                 Log.i(TAG, "nonce=" + nonce + " diagnostic_probe_passed=" + passed
                         + " effect_delivery_activation_diagnostic_verified="
                         + activationVerified
@@ -62,6 +64,8 @@ public final class DiagnosticProbeActivity extends Activity {
                         + memoryRuntimeVerified
                         + " skill_governance_readiness_diagnostic_verified="
                         + skillGovernanceVerified
+                        + " runtime_acceptance_diagnostic_verified="
+                        + runtimeAcceptanceVerified
                         + " record_count=" + (page == null || page.records == null
                                 ? -1 : page.records.length)
                         + " hardware_accessed=false");
@@ -289,6 +293,43 @@ public final class DiagnosticProbeActivity extends Activity {
                             "ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED")
                     && record.detail.contains("MIDDLEWARE_CHAIN_NOT_WIRED")
                     && record.detail.contains("SKILL_DISPATCHER_NOT_WIRED")
+                    && record.detail.contains("service_dispatch_triggered=false")
+                    && record.detail.contains("hardware_accessed=false")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasRuntimeAcceptance(DiagnosticPage page) {
+        if (page == null || page.records == null) {
+            return false;
+        }
+        for (DiagnosticRecord record : page.records) {
+            if (record != null
+                    && "runtime-acceptance".equals(record.recordId)
+                    && "core-ready-production-blocked".equals(record.summary)
+                    && record.sequence == 9
+                    && record.detail != null
+                    && record.detail.contains("core_software_baseline_ready=true")
+                    && record.detail.contains(
+                            "r7_application_integration_complete=false")
+                    && record.detail.contains("client2_binder_migration_complete=false")
+                    && record.detail.contains(
+                            "api33_end_to_end_acceptance_complete=false")
+                    && record.detail.contains("production_activation_allowed=false")
+                    && record.detail.contains("target_hardware_validated=false")
+                    && record.detail.contains(
+                            "target_system_integration_owner_resolved=false")
+                    && record.detail.contains("typed_binder_integrated=true")
+                    && record.detail.contains("trusted_governance_integrated=true")
+                    && record.detail.contains("durable_workflow_foundation_ready=true")
+                    && record.detail.contains("room_schema_version=3")
+                    && record.detail.contains("standard_artifact_count=3")
+                    && record.detail.contains("signature_protected_service_count=3")
+                    && record.detail.contains("CLIENT2_BINDER_MIGRATION_PENDING")
+                    && record.detail.contains("API33_END_TO_END_ACCEPTANCE_PENDING")
+                    && record.detail.contains("TARGET_HARDWARE_NOT_VALIDATED")
                     && record.detail.contains("service_dispatch_triggered=false")
                     && record.detail.contains("hardware_accessed=false")) {
                 return true;
