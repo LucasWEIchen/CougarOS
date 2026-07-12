@@ -121,8 +121,16 @@
       "bundle_path": "contracts/central_brain_android_b3_blackbox_acceptance.json"
     },
     {
+      "source": "central-brain/contracts/central_brain_github_remote_testing.json",
+      "bundle_path": "contracts/central_brain_github_remote_testing.json"
+    },
+    {
       "source": "docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md",
       "bundle_path": "docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md"
+    },
+    {
+      "source": "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
     },
     {
       "source": "docs/CENTRAL_BRAIN_ANDROID13_BLACKBOX_PREFLIGHT.md",
@@ -155,6 +163,10 @@
     {
       "source": "tools/install_central_brain_android_hybrid_delivery.sh",
       "bundle_path": "tools/install_central_brain_android_hybrid_delivery.sh"
+    },
+    {
+      "source": "tools/run_central_brain_android_remote_acceptance.sh",
+      "bundle_path": "tools/run_central_brain_android_remote_acceptance.sh"
     },
     {
       "source": "tools/preflight_central_brain_android13_blackbox.sh",

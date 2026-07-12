@@ -4,7 +4,7 @@
 
 日期：2026-07-12
 
-状态：B0-B4 hybrid software handoff complete / physical target pending
+状态：B0-B4 hybrid software handoff complete / B5a remote-test contract complete / GitHub and physical target pending
 
 ## 目标
 
@@ -81,6 +81,7 @@ build fingerprint、package install path、应用 UID、签名权限、native li
 | B2 | Native Runtime 接入 Java Runtime/Diagnostic | API 33 load/lifecycle/dumpsys/Binder parity 通过 |
 | B3 | 黑盒能力探测和安全安装验收 | 模拟器通过；真机命令可执行且不伪造真机结果 |
 | B4 | 实际工程交付包与安装/使用指南 | artifact、hash、signer、ABI、rollback 和指南可复验 |
+| B5 | GitHub 远程硬件测试闭环 | 本地合同/工具通过；private repo、首个 Release 和 Issue retest 激活待输入 |
 
 每个阶段完成代码、验证、文档、偏差/问题跟踪与 Git commit 后，直接进入下一阶段；
 不使用定时心跳。
@@ -95,6 +96,11 @@ trust 与 vendor contract 仍 unresolved；B4 不得用交付包生成结果替�
 B4 已生成独立 hybrid profile、5 项 artifact/hash/signer inventory、Native 双 ABI/ELF
 inventory、默认 dry-run installer、maintenance/Client2 两种安装 profile 和完整使用/rollback/
 adapter 指南，并通过 API 33 x86_64。该 software handoff 完成不改变上述目标输入状态。
+
+B5a 已形成 Private Release/Issue 合同、脱敏证据采集器和 Issue Form，并从 bundle 在 API 33
+验证 dry-run 与显式安装路径。B5b 只有在 private repository URL/权限、测试人员账号、
+branch protection/labels、首个不可变 Release 和 Issue 触发方式明确后才激活；GitHub 不直接
+连接目标 ADB，Issue 也不会在未配置触发器时自动唤醒 Codex。
 
 ## 完成判定
 

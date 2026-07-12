@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "central-brain.github-remote-hardware-testing.v1",
+  "stage": "B5",
+  "req_ids": [
+    "APP-004",
+    "XSC-001",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "NV-F-001",
+    "NV-F-012",
+    "NV-G-006",
+    "NV-G-007",
+    "NV-P-002",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "status": {
+    "local_remote_test_contract_ready": true,
+    "github_repository_configured": false,
+    "github_remote_pushed": false,
+    "github_issue_intake_active": false,
+    "direct_target_access_available": false,
+    "physical_controller_evidence_available": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  },
+  "roles": {
+    "maintainer": [
+      "publish immutable release assets from the controlled build workstation",
+      "triage issues against the reported release tag, source commit, and archive SHA-256",
+      "land fixes on a review branch and publish a new release candidate"
+    ],
+    "target_tester": [
+      "verify the release checksum before extraction",
+      "run dry-run before any requested install",
+      "execute the manual scenario matrix on the physical controller",
+      "submit only GitHub-safe evidence through the hardware-test issue form"
+    ],
+    "target_owner": [
+      "approve signing, install, background, rollback, and Client2 RenderService decisions",
+      "retain raw device evidence through an approved internal channel",
+      "decide whether a physical application-layer result closes an ISSUE-027 field"
+    ]
+  },
+  "release_contract": {
+    "tag_pattern": "^android13-hwtest-v[0-9]+\\.[0-9]+\\.[0-9]+-rc\\.[0-9]+$",
+    "required_assets": [
+      "central-brain-android13-hybrid.tar.gz",
+      "central-brain-android13-hybrid.tar.gz.sha256"
+    ],
+    "immutable_identifiers": [
+      "release_tag",
+      "source_git_commit",
+      "archive_sha256",
+      "delivery_id"
+    ],
+    "controlled_workstation_build_required": true,
+    "github_actions_build_authoritative": false,
+    "reason": "The complete Client2 baseline and signing inputs are controlled artifacts and are not committed to Git."
+  },
+  "publication_history_guard": {
+    "checker_path": "tools/check_central_brain_github_publication_tree.sh",
+    "local_publication_branch": "codex/github-publication",
+    "remote_default_branch": "main",
+    "max_reachable_blob_bytes": 20971520,
+    "targeted_ref_push_required": true,
+    "mirror_push_allowed": false,
+    "codex_internal_refs_publish_allowed": false
+  },
+  "tester_workflow": [
+    "download an immutable release and its external checksum",
+    "verify SHA-256 and extract the bundle",
+    "complete the target-input file without changing false production or hardware claims",
+    "run remote acceptance in dry-run mode",
+    "run an explicitly approved test install when required",
+    "execute the manual scenario matrix",
+    "run evidence collection again after the failure or pass",
+    "open a hardware-test issue using only github-safe evidence"
+  ],
+  "issue_contract": {
+    "template_path": ".github/ISSUE_TEMPLATE/hardware-test.yml",
+    "required_fields": [
+      "release_tag",
+      "source_git_commit",
+      "archive_sha256",
+      "device_alias",
+      "evidence_reference",
+      "install_profile",
+      "test_phase",
+      "result",
+      "failing_scenarios",
+      "expected_behavior",
+      "actual_behavior",
+      "github_safe_summary",
+      "privacy_confirmation"
+    ],
+    "issue_state_machine": [
+      "state/triage",
+      "state/reproduced",
+      "state/fix-ready",
+      "state/retest",
+      "state/verified"
+    ],
+    "issue_close_rule": "Close only after a tester verifies a named replacement release on the target controller."
+  },
+  "evidence_policy": {
+    "github_safe_files": [
+      "github-safe/summary.env",
+      "github-safe/issue-body.md"
+    ],
+    "local_only_files": [
+      "private/device.env",
+      "private/*.log",
+      "private-evidence.tar.gz"
+    ],
+    "forbidden_github_content": [
+      "adb serial",
+      "raw build fingerprint",
+      "hash derived from an ADB serial or raw build fingerprint",
+      "production signing material",
+      "target-input file",
+      "unreviewed logcat or dumpsys output",
+      "user utterance, model reply, memory, token, or vehicle payload"
+    ],
+    "automatic_upload_enabled": false,
+    "raw_evidence_upload_allowed": false
+  },
+  "activation_blockers": [
+    "GITHUB_PRIVATE_REPOSITORY_URL_REQUIRED",
+    "GITHUB_MAINTAINER_WRITE_ACCESS_REQUIRED",
+    "GITHUB_TESTER_ACCESS_LIST_REQUIRED",
+    "GITHUB_REQUIRED_LABELS_NOT_CREATED",
+    "GITHUB_BRANCH_PROTECTION_NOT_CONFIGURED",
+    "GITHUB_PUBLICATION_BRANCH_NOT_PUSHED",
+    "FIRST_IMMUTABLE_RELEASE_NOT_PUBLISHED",
+    "ISSUE_TO_CODEX_TRIGGER_NOT_CONFIGURED"
+  ],
+  "prohibited_operations": [
+    "publish the repository or release assets publicly by default",
+    "push with --mirror or publish refs/codex/turn-diffs",
+    "commit original or reverse-engineered APK workspaces",
+    "commit signing keys, target-input files, device serials, or raw hardware logs",
+    "build the complete Client2 delivery from an incomplete GitHub checkout",
+    "install before checksum, API, ABI, package, and signer preflight",
+    "close production, NPU, VHAL, Driver/HAL, or hardware gates from application-layer evidence"
+  ]
+}

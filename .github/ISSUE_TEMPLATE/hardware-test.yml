@@ -1,0 +1,118 @@
+name: Android 13 hardware test report
+description: Report a physical-controller pass or failure against one immutable Central Brain release.
+title: "[HWTEST] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use only the files under `github-safe/` from the evidence collector. Do not paste an ADB serial, raw build fingerprint, a hash derived from either value, target-input file, signing material, unreviewed logcat/dumpsys output, user text, model output, memory, token, or vehicle payload.
+  - type: input
+    id: release_tag
+    attributes:
+      label: Release tag
+      description: Must match android13-hwtest-vX.Y.Z-rc.N.
+      placeholder: android13-hwtest-v0.5.0-rc.1
+    validations:
+      required: true
+  - type: input
+    id: source_git_commit
+    attributes:
+      label: Source Git commit
+      description: Full commit from DELIVERY-MANIFEST.json.
+    validations:
+      required: true
+  - type: input
+    id: archive_sha256
+    attributes:
+      label: Release archive SHA-256
+      description: Digest verified before extraction.
+    validations:
+      required: true
+  - type: input
+    id: device_alias
+    attributes:
+      label: Device alias
+      description: Internal non-secret alias only; never enter the ADB serial.
+      placeholder: cockpit-a13-lab-01
+    validations:
+      required: true
+  - type: input
+    id: evidence_reference
+    attributes:
+      label: Internal evidence reference
+      description: Non-secret internal ticket or lab record ID used to retrieve approved raw evidence.
+      placeholder: LAB-20260712-001
+    validations:
+      required: true
+  - type: dropdown
+    id: install_profile
+    attributes:
+      label: Install profile
+      options:
+        - maintenance (Runtime + Demo)
+        - client2-demo (Runtime + Demo + Client2)
+    validations:
+      required: true
+  - type: dropdown
+    id: test_phase
+    attributes:
+      label: Test phase
+      options:
+        - checksum or extraction
+        - dry-run preflight
+        - install or upgrade
+        - application launch
+        - Binder or task execution
+        - process death or recovery
+        - suspend or resume
+        - rollback
+        - complete matrix
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - PASS
+        - FAIL
+        - BLOCKED
+    validations:
+      required: true
+  - type: textarea
+    id: failing_scenarios
+    attributes:
+      label: Failing scenarios
+      description: List stable scenario IDs or `none` for a pass.
+      placeholder: care.cold, runtime.npu, process-death-retry
+    validations:
+      required: true
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual behavior
+      description: Do not include raw sensitive logs.
+    validations:
+      required: true
+  - type: textarea
+    id: github_safe_summary
+    attributes:
+      label: GitHub-safe evidence summary
+      description: Paste `github-safe/issue-body.md`; attach only reviewed safe files.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy_confirmation
+    attributes:
+      label: Evidence handling confirmation
+      options:
+        - label: I verified that this issue contains no raw or derived device identity, target-input file, signing material, unreviewed raw logs, user/model text, memory, token, or vehicle payload.
+          required: true
+        - label: Raw evidence remains on the approved internal system and was not automatically uploaded.
+          required: true

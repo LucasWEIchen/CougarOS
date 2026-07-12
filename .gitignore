@@ -26,6 +26,7 @@ env.local.sh
 builds/
 keystores/
 logs/test/
+central-brain-remote-evidence-*/
 
 # Central brain prototype build outputs
 central-brain/android-console/out/

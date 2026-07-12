@@ -984,3 +984,28 @@ B4 新建 `android-hybrid` 交付轨道，打包 `native-runtime-debug.aar`、`c
 Manifest 记录 5 项 artifact 的 path/size/SHA-256；Native AAR 和 Runtime APK 是唯一 2 项 native artifact，各自只允许 arm64-v8a/x86_64 `libcentral_brain_native.so` 并记录 ELF machine。Runtime/Demo/Client2 signer cohort、Client2 `classes2.dex`、support inventory、七项 blocker、install profiles 和 target-input template 均被 checksum 绑定。
 
 Installer 默认 maintenance dry-run，Client2 需显式 `--include-client2`；执行 debug 测试安装需 `--execute --allow-debug-signing`。API 33 x86_64 已通过两个 dry-run 和两个实际安装 profile、Demo/Client2 启动、Client2 button/Binder UI 与 recovery regression。交付状态为 `hybrid_software_handoff_ready=true`、`production_ready=false`、`physical_controller_evidence_available=false`、`target_hardware_validated=false`。
+
+## B5 GitHub Remote Hardware Test Loop
+
+B5 面向维护者无法直接访问的内网 Android 13 控制器。Private GitHub Release 只分发 B4
+归档和外层 SHA-256；Issue 必须绑定 release tag、manifest source commit、archive SHA-256
+和 delivery ID。测试人员在目标侧执行 ADB，维护者按不可变版本修复并发布新的 RC。
+
+Bundle 增加 `central_brain_github_remote_testing.json`、远程测试指南和
+`run_central_brain_android_remote_acceptance.sh`。工具默认 bundle verify + installer dry-run +
+只读证据采集；安装需要显式 `--execute-install`，debug signer 还需显式授权。输出拆分为
+`github-safe/` 和 local-only `private/`，不自动上传任何内容。
+
+GitHub Actions 只运行 B5 静态合同门禁，不构建完整 Client2 delivery。
+publication-tree guard 会扫描目标 ref 全部可达历史，拒绝旧 APK/reverse/key 路径、20 MiB 以上
+blob 和 credential marker；发布只能精确推送 `codex/github-publication:main`，禁止 mirror/internal
+ref push。当前本地合同完成，
+但 remote/repository/Issue intake 尚未激活；private repo URL、write/tester access、labels、
+branch protection、首个 Release 和 Issue trigger 到位前保持
+`github_repository_configured=false`、`github_issue_intake_active=false`、
+`physical_controller_evidence_available=false`、`production_ready=false` 和
+`target_hardware_validated=false`。
+
+覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、
+`NV-F-001`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、
+`DEL-003`、`DEL-004`、`DEL-005`。

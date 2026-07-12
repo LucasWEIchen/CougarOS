@@ -1226,3 +1226,20 @@ The Java probe is in the debug source set and is not a public production Binder 
 | target input template | target owners -> installer/review | no guessed physical/production/hardware claims |
 
 The AARs are integration inputs and are not device packages. Runtime owns the C library through Java/JNI; clients continue to call typed Binder rather than native symbols. Packaging does not create a Vendor NPU provider, and the optional Client2 artifact remains behind a target RenderService/signer decision.
+
+## Android B5 GitHub Remote Test Contracts
+
+| Contract | Producer -> consumer | Invariant |
+| --- | --- | --- |
+| immutable Release | controlled maintainer workstation -> target tester | tag, source commit, archive SHA-256 and delivery ID identify one build |
+| publication history guard | selected local ref -> remote `main` | complete reachable history clean; exact ref push only; no mirror/internal refs |
+| completed target inputs | target owner -> installer | local-only input; positive production/hardware claims remain forbidden before review |
+| remote acceptance runner | target tester host -> B4 verifier/installer/ADB | dry-run default; explicit install; no upload or privileged/system operation |
+| `github-safe/summary.env` | evidence collector -> Issue Form | non-secret alias/evidence reference and exit states only; no raw or derived device identity, logs or payload |
+| local `private/` evidence | evidence collector -> approved target owner channel | never automatically uploaded; security/privacy review required |
+| hardware-test Issue | target tester -> maintainer | immutable release identity, manual scenario result and retest timeline |
+
+The asynchronous relationship is `maintainer Release -> target tester ADB -> GitHub-safe Issue ->
+maintainer fix -> replacement Release -> target retest`. GitHub is not a Protocol Binding to the vehicle,
+does not invoke Runtime and cannot close a hardware gate. An Issue does not automatically trigger Codex
+until a separate approved human or event binding exists.

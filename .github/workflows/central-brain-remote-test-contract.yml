@@ -1,0 +1,37 @@
+name: Central Brain remote test contract
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/**"
+      - "central-brain/contracts/central_brain_github_remote_testing.json"
+      - "central-brain/delivery/android-hybrid/**"
+      - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+      - "tools/check_central_brain_github_remote_testing.sh"
+      - "tools/run_central_brain_android_remote_acceptance.sh"
+  pull_request:
+    paths:
+      - ".github/**"
+      - "central-brain/contracts/central_brain_github_remote_testing.json"
+      - "central-brain/delivery/android-hybrid/**"
+      - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+      - "tools/check_central_brain_github_remote_testing.sh"
+      - "tools/run_central_brain_android_remote_acceptance.sh"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify remote hardware-test contract
+        run: |
+          bash tools/check_central_brain_github_publication_tree.sh HEAD
+          bash tools/check_central_brain_github_remote_testing.sh

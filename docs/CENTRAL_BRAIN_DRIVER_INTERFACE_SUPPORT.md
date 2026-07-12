@@ -651,3 +651,16 @@ Observed SELinux/verified-boot values are evidence fields, not a request to alte
 B4 packages and inspects userspace AAR/APK files only. The two native artifacts contain the same B1 lifecycle library; manifest `current_native_lifecycle_code_present=true` is paired with `vendor_npu_adapter_present=false`. Package verification reads ZIP/ELF/package/signer metadata and installer uses ordinary `adb install -r` after public package signer preflight.
 
 No kernel module, HAL, VHAL, PCIe enumeration, device node, ioctl/sysfs, DMA/shared memory, Safety Runtime or vendor service is added or called. `DRV-GAP-001` remains open and added Driver/HAL development is zero. Hybrid package readiness cannot close physical NPU/vehicle/hardware evidence. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-G-005`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.
+
+### B5 GitHub Remote Test Driver/HAL Result
+
+B5 adds only release identity, host-side ADB orchestration, redacted evidence packaging and GitHub Issue
+contracts. Target testers invoke the existing public application/package/Binder/logcat/dumpsys surfaces;
+GitHub never connects to a device and the collector has no root/remount/fastboot/system-write path.
+
+No kernel module, HAL, VHAL, PCIe enumeration, device node, ioctl/sysfs, DMA/shared memory, Safety
+Runtime or vendor service is added or called. Raw target evidence remains local pending owner review.
+`DRV-GAP-001` and every existing gap remain open, added Driver/HAL development is zero, and
+`hardware_accessed=false`/`target_hardware_validated=false` remain required until separately reviewed
+target evidence exists. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-012`,
+`NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

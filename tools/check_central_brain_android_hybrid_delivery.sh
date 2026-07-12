@@ -12,6 +12,9 @@ GUIDE="docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md"
 PY_TOOL="tools/central_brain_android_hybrid_delivery.py"
 PACKAGE_TOOL="tools/package_central_brain_android_hybrid_delivery.sh"
 INSTALLER="tools/install_central_brain_android_hybrid_delivery.sh"
+REMOTE_CONTRACT="central-brain/contracts/central_brain_github_remote_testing.json"
+REMOTE_GUIDE="docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+REMOTE_RUNNER="tools/run_central_brain_android_remote_acceptance.sh"
 
 require_file() {
   [[ -f "$ROOT_DIR/$1" ]] || { echo "missing B4 hybrid delivery file: $1" >&2; exit 1; }
@@ -23,7 +26,8 @@ require_text() {
 }
 
 for path in "$PROFILE" "$TARGET_INPUTS" "$README" "$GUIDE" "$PY_TOOL" \
-    "$PACKAGE_TOOL" "$INSTALLER"; do
+    "$PACKAGE_TOOL" "$INSTALLER" "$REMOTE_CONTRACT" "$REMOTE_GUIDE" \
+    "$REMOTE_RUNNER"; do
   require_file "$path"
 done
 
@@ -35,6 +39,8 @@ require_text "$PROFILE" '"vendor_npu_provider_available": false'
 require_text "$PROFILE" '"runtime_dispatch_enabled": false'
 require_text "$PROFILE" '"default_install": false'
 require_text "$PROFILE" '"automatic_uninstall_on_signer_mismatch": false'
+require_text "$PROFILE" '"bundle_path": "contracts/central_brain_github_remote_testing.json"'
+require_text "$PROFILE" '"bundle_path": "tools/run_central_brain_android_remote_acceptance.sh"'
 require_text "$TARGET_INPUTS" '"physical_controller_evidence_available": false'
 require_text "$GUIDE" "SIGNER_MIGRATION_REQUIRED"
 require_text "$GUIDE" "--include-client2"
@@ -76,7 +82,7 @@ PY
 python3 -B "$ROOT_DIR/$PY_TOOL" validate-profile \
   --profile "$ROOT_DIR/$PROFILE" \
   --target-inputs "$ROOT_DIR/$TARGET_INPUTS"
-bash -n "$ROOT_DIR/$PACKAGE_TOOL" "$ROOT_DIR/$INSTALLER"
+bash -n "$ROOT_DIR/$PACKAGE_TOOL" "$ROOT_DIR/$INSTALLER" "$ROOT_DIR/$REMOTE_RUNNER"
 bash "$ROOT_DIR/tools/check_central_brain_android_blackbox_preflight.sh"
 
 echo "Central Brain Android B4 hybrid delivery check passed"

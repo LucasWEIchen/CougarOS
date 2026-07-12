@@ -1079,3 +1079,13 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Runtime, Demo and Client2 must form one signer cohort. Client2 remains optional at install time and requires an explicit profile because target RenderService/vendor trust is unresolved.
 - Installer must default to dry-run, verify API/ABI/bundle identity and every selected existing signer before first install, require explicit debug-signer authorization, preserve Runtime -> Demo -> Client2 order and provide no automatic uninstall or partition-write path.
 - The guide must cover build, package verification, target inputs, dry-run/install, Demo and Client2 use, diagnostics, rollback ownership and future vendor adapter entry. Passing package and emulator gates permits only `hybrid_software_handoff_ready=true`; production/physical/hardware claims remain false.
+
+### 2026-07-12 B5 GitHub remote hardware-test trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- When the maintainer cannot reach target ADB, an immutable private GitHub Release may carry the B4 archive and external SHA-256. Every report must bind release tag, manifest source commit, archive SHA-256 and delivery ID; a moving branch or unversioned attachment is not acceptance evidence.
+- The target tester owns all ADB execution. Remote collection must default to B4 dry-run, require a non-template target-input file for physical testing, retain raw device evidence locally and produce a separate GitHub-safe summary without raw serial/fingerprint/logs or user/model/vehicle payload.
+- GitHub Issue intake must use the hardware-test Issue Form and a triage/reproduce/fix/retest/verify state machine. An Issue closes only after a tester verifies a named replacement release on the target controller.
+- The complete Client2 archive must remain a controlled-workstation release because its baseline/signing inputs are not committed. GitHub Actions may validate the contract but must not claim an authoritative full APK build.
+- Publication must scan the selected ref's complete reachable history for forbidden legacy paths, binary/key extensions, credential markers and blobs above 20 MiB. Only `codex/github-publication:main` may be pushed; mirror or Codex internal-ref publication is prohibited.
+- The local contract may set `local_remote_test_contract_ready=true`. Until a private repository URL, write/tester access, labels, branch protection, first Release and Issue trigger are configured, `github_repository_configured=false`, `github_issue_intake_active=false`, `physical_controller_evidence_available=false`, `production_ready=false` and `target_hardware_validated=false` remain mandatory.

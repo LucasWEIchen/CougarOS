@@ -362,3 +362,34 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 解除条件：目标设备执行 B3 preflight，并提供生产签名/升级策略、后台进程策略和任何公开 vendor SDK/服务 contract。真机应用层通过不自动关闭 NPU/VHAL/车辆/安全硬件验证。
 
 状态：Open，实施已获批准。
+
+## ISSUE-028 GitHub 远程硬件测试仓库与触发身份未知
+
+维护者无法直接访问目标内网 ADB，用户选择由测试人员下载 GitHub 更新并通过 Issue 回传。
+当前本地 Git 仓库没有 remote，本机没有 `gh`，GitHub connector 未返回任何可访问仓库；
+private repository owner/name、维护者写权限、tester 用户列表、labels、branch protection、
+Release 权限和 Issue 到 Codex 的触发方式均未提供。
+
+影响：B5 本地合同、Issue Form、证据工具和文档可以完成，但无法创建 remote、推送代码、
+发布第一个 Release 或声称 `github_issue_intake_active=true`。GitHub Issue 也不会在没有人工消息
+或获批事件自动化时自动唤醒 Codex。
+
+当前处理：固定 Private repository、immutable release tag/source commit/archive SHA-256、
+GitHub-safe/private evidence 分流和 triage/reproduce/fix/retest/verify 状态机。原始 ADB serial、
+fingerprint、target-input、签名材料和未审查日志不得上传。仓库输入到位前不猜测 owner、
+不创建公开仓库，也不把本地工具完成误记为远程闭环激活。
+
+发布历史审计：全本地 refs 包含 Codex turn-diff 引用的旧大对象，最大约 374 MB；当前
+`codex/central-brain-ecosystem` 分支的可达历史独立通过发布检查，最大 blob 为 1,221,099
+字节且无 forbidden path/extension。后续建立 `codex/github-publication` 并只精确推送该 ref；
+禁止 `--mirror` 或推送 `refs/codex/turn-diffs/*`，不删除或改写用户现有本地历史。
+
+解除条件：提供 Private GitHub repository URL 或 owner/name、可用写凭据、tester access list，
+并确认 labels/branch protection/Release 与 Issue 触发策略。随后推送当前提交、发布首个不可变
+候选版本并通过一个测试 Issue 验证状态闭环。
+
+涉及需求：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
+`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、
+`DEL-004`、`DEL-005`。
+
+状态：Open。

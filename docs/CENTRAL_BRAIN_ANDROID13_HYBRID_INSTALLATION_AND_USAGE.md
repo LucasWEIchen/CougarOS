@@ -246,3 +246,15 @@ bash tools/test_central_brain_android_blackbox_acceptance.sh \
 
 因此本交付状态是 `hybrid_software_handoff_ready=true`，不是 production 或 physical-hardware
 完成。七项 blocker 继续保留在 delivery profile 和 ISSUE-027 中。
+
+## 13. 内网目标的 GitHub 远程测试
+
+当维护者不能直接访问目标 ADB 时，使用
+`CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md` 的 B5 流程。Bundle 已携带
+`tools/run_central_brain_android_remote_acceptance.sh`，用于在目标侧执行版本校验、dry-run、
+可选安装和脱敏证据生成。测试人员通过私有 GitHub Issue 回传 `github-safe/` 内容；原始
+ADB 标识、fingerprint、target-input 和未审查日志保留在内网。
+
+该流程解决异步版本与问题传递，不提供外网到内网设备的控制通道，也不会使
+`github_issue_intake_active`、`physical_controller_evidence_available` 或
+`target_hardware_validated` 自动变为 true。

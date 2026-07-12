@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Req IDs: APP-004, XSC-001/004/005/006, NV-F-001/012,
+# NV-G-006/007, NV-P-002, DEL-001/003/004/005.
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_github_remote_testing.json"
+PROFILE="$ROOT_DIR/central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json"
+DOC="$ROOT_DIR/docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
+ISSUE_FORM="$ROOT_DIR/.github/ISSUE_TEMPLATE/hardware-test.yml"
+ISSUE_CONFIG="$ROOT_DIR/.github/ISSUE_TEMPLATE/config.yml"
+WORKFLOW="$ROOT_DIR/.github/workflows/central-brain-remote-test-contract.yml"
+RUNNER="$ROOT_DIR/tools/run_central_brain_android_remote_acceptance.sh"
+PUBLICATION_CHECKER="$ROOT_DIR/tools/check_central_brain_github_publication_tree.sh"
+
+for file in "$CONTRACT" "$PROFILE" "$DOC" "$ISSUE_FORM" "$ISSUE_CONFIG" \
+    "$WORKFLOW" "$RUNNER" "$PUBLICATION_CHECKER"; do
+  [[ -f "$file" ]] || { echo "missing GitHub remote testing artifact: $file" >&2; exit 1; }
+done
+
+python3 -B - "$CONTRACT" "$PROFILE" <<'PY'
+import json
+import pathlib
+import re
+import sys
+
+contract = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+profile = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
+
+assert contract["schema_version"] == "1.0.0"
+assert contract["contract_id"] == "central-brain.github-remote-hardware-testing.v1"
+assert contract["stage"] == "B5"
+assert set(contract["req_ids"]) == {
+    "APP-004", "XSC-001", "XSC-004", "XSC-005", "XSC-006",
+    "NV-F-001", "NV-F-012", "NV-G-006", "NV-G-007", "NV-P-002",
+    "DEL-001", "DEL-003", "DEL-004", "DEL-005",
+}
+status = contract["status"]
+assert status["local_remote_test_contract_ready"] is True
+for key in (
+    "github_repository_configured",
+    "github_remote_pushed",
+    "github_issue_intake_active",
+    "direct_target_access_available",
+    "physical_controller_evidence_available",
+    "production_ready",
+    "target_hardware_validated",
+):
+    assert status[key] is False, key
+
+release = contract["release_contract"]
+assert re.fullmatch(release["tag_pattern"], "android13-hwtest-v0.5.0-rc.1")
+assert release["required_assets"] == [
+    "central-brain-android13-hybrid.tar.gz",
+    "central-brain-android13-hybrid.tar.gz.sha256",
+]
+assert release["controlled_workstation_build_required"] is True
+assert release["github_actions_build_authoritative"] is False
+
+publication = contract["publication_history_guard"]
+assert publication["checker_path"] == "tools/check_central_brain_github_publication_tree.sh"
+assert publication["local_publication_branch"] == "codex/github-publication"
+assert publication["remote_default_branch"] == "main"
+assert publication["max_reachable_blob_bytes"] == 20 * 1024 * 1024
+assert publication["targeted_ref_push_required"] is True
+assert publication["mirror_push_allowed"] is False
+assert publication["codex_internal_refs_publish_allowed"] is False
+
+evidence = contract["evidence_policy"]
+assert evidence["github_safe_files"] == [
+    "github-safe/summary.env",
+    "github-safe/issue-body.md",
+]
+assert evidence["automatic_upload_enabled"] is False
+assert evidence["raw_evidence_upload_allowed"] is False
+assert "ISSUE_TO_CODEX_TRIGGER_NOT_CONFIGURED" in contract["activation_blockers"]
+assert "GITHUB_PUBLICATION_BRANCH_NOT_PUSHED" in contract["activation_blockers"]
+
+support = {item["bundle_path"] for item in profile["support_files"]}
+for expected in (
+    "contracts/central_brain_github_remote_testing.json",
+    "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md",
+    "tools/run_central_brain_android_remote_acceptance.sh",
+):
+    assert expected in support, expected
+
+print("github_remote_contract_json_verified=true")
+print("github_repository_configured=false")
+print("github_issue_intake_active=false")
+print("target_hardware_validated=false")
+PY
+
+bash -n "$RUNNER" "$PUBLICATION_CHECKER"
+"$RUNNER" --help >/dev/null
+
+for field in release_tag source_git_commit archive_sha256 device_alias evidence_reference install_profile \
+    test_phase result failing_scenarios expected_behavior actual_behavior \
+    github_safe_summary privacy_confirmation; do
+  grep -Fq "id: $field" "$ISSUE_FORM" \
+    || { echo "hardware-test Issue Form field missing: $field" >&2; exit 1; }
+done
+grep -Fq 'blank_issues_enabled: false' "$ISSUE_CONFIG"
+grep -Fq 'permissions:' "$WORKFLOW"
+grep -Fq 'contents: read' "$WORKFLOW"
+grep -Fq 'persist-credentials: false' "$WORKFLOW"
+grep -Fq 'bash tools/check_central_brain_github_publication_tree.sh HEAD' "$WORKFLOW"
+grep -Fq 'bash tools/check_central_brain_github_remote_testing.sh' "$WORKFLOW"
+if grep -Eq 'gh release|upload-artifact|adb install|gradlew' "$WORKFLOW"; then
+  echo "GitHub contract workflow must not publish, install, or claim full Android builds" >&2
+  exit 1
+fi
+
+for marker in \
+  'GitHub Issue 本身不会自动唤醒 Codex' \
+  'github_issue_intake_active=true' \
+  'state/triage -> state/reproduced -> state/fix-ready -> state/retest ->' \
+  'central-brain-android13-hybrid.tar.gz.sha256' \
+  'codex/github-publication:main'; do
+  grep -Fq -- "$marker" "$DOC" \
+    || { echo "remote hardware testing document marker missing: $marker" >&2; exit 1; }
+done
+
+grep -Fq 'target input status must be a bounded ASCII identifier' "$RUNNER"
+grep -Fq 'manifest delivery ID is invalid' "$RUNNER"
+grep -Fq 'raw_or_derived_device_identity_included=false' "$RUNNER"
+grep -Fq 'central-brain-remote-evidence-*/' "$ROOT_DIR/.gitignore"
+
+grep -Fq 'B5' "$ROOT_DIR/docs/CENTRAL_BRAIN_ROADMAP.md"
+grep -Fq '| B5 | GitHub 远程硬件测试闭环 |' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md"
+grep -Fq 'ISSUE-028' "$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
+grep -Fq 'DEV-021' "$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
+grep -Fq 'B5 GitHub Remote Hardware Test Loop' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
+grep -Fq 'B5 GitHub Remote Test Driver/HAL Result' \
+  "$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
+
+printf '%s\n' \
+  'Central Brain B5 GitHub remote testing check passed' \
+  'local_remote_test_contract_ready=true' \
+  'github_repository_configured=false' \
+  'github_issue_intake_active=false' \
+  'automatic_upload_enabled=false' \
+  'raw_evidence_upload_allowed=false' \
+  'physical_controller_evidence_available=false' \
+  'production_ready=false' \
+  'target_hardware_validated=false'

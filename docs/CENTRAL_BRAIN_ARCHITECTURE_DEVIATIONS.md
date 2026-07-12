@@ -292,3 +292,26 @@ R7D 交付明确要求当前 APK 无 native payload；新的黑盒 Android 13 �
 2026-07-12 B4 结果：独立 hybrid profile/bundle 已交付 5 项 artifact，Native AAR/Runtime APK 双 ABI allowlist、ELF、hash、三 APK signer cohort、Client2 secondary dex、dry-run/实际安装、UI/Binder/recovery 和详细 rollback/adapter 指南通过。R7D 历史 no-native 交付保持不变。DEV-020 在 B0-B4 软件 artifact 分轨与审计范围内 Resolved；物理控制器、production signer/vendor adapter/hardware activation 不由该偏差关闭，继续由 ISSUE-027、DEV-005/019 与 DRV-GAP-001 跟踪。
 
 状态：Resolved（B0-B4 software handoff shape）；production/hardware scope remains open elsewhere.
+
+## DEV-021 目标内网导致维护者无法直接执行 ADB
+
+架构影响：原计划中的维护者直接真机调试无法用于当前目标平台；设备控制和原始证据留在
+内网测试侧，GitHub 只承担版本、脱敏摘要和 Issue 状态交换。该偏差不改变 Runtime、Binder、
+Native ABI 或硬件空接口设计。
+
+处理方式：B5 使用 Private repository + immutable Release + external SHA-256 + structured Issue
+Form。测试人员运行 bundle 内 remote acceptance 工具；工具默认 dry-run、不自动上传，将
+GitHub-safe 摘要和 private raw evidence 分离。完整 Client2 Release 继续由受控开发机产生，
+GitHub Actions 仅验证合同。
+
+当前状态：Accepted Temporary。`local_remote_test_contract_ready=true`，但仓库 URL/写权限、
+tester access、labels、branch protection、首个 Release 和 Issue trigger 未配置，因此
+`github_issue_intake_active=false`。物理、production 和 hardware gate 不由该偏差关闭。
+
+发布边界：本地 Codex turn-diff refs 可达旧大对象，但当前开发分支可达历史已通过独立
+publication-tree guard。只允许精确推送后续 `codex/github-publication` ref；不执行
+`--mirror`、不推送 internal refs、不改写或删除用户现有本地历史。
+
+Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
+`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、
+`DEL-004`、`DEL-005`。
