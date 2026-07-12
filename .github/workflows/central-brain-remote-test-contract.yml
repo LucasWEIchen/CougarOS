@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - "README.md"
       - ".github/**"
       - ".githooks/**"
       - "central-brain/contracts/central_brain_github_remote_testing.json"
@@ -13,10 +14,12 @@ on:
       - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
       - "tools/check_central_brain_github_publication_tree.sh"
+      - "tools/check_central_brain_root_readme.sh"
       - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
   pull_request:
     paths:
+      - "README.md"
       - ".github/**"
       - ".githooks/**"
       - "central-brain/contracts/central_brain_github_remote_testing.json"
@@ -25,6 +28,7 @@ on:
       - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
       - "tools/check_central_brain_github_publication_tree.sh"
+      - "tools/check_central_brain_root_readme.sh"
       - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
 
@@ -43,3 +47,4 @@ jobs:
         run: |
           bash tools/check_central_brain_github_publication_tree.sh HEAD
           bash tools/check_central_brain_github_remote_testing.sh
+          bash tools/check_central_brain_root_readme.sh

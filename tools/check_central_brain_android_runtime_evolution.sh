@@ -269,6 +269,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_native_runtime_integration.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_blackbox_preflight.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_hybrid_delivery.sh"
 bash "$ROOT_DIR/tools/check_central_brain_github_remote_testing.sh"
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 
