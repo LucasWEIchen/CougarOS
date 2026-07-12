@@ -31,7 +31,7 @@
 | B1 | Native Runtime | C ABI V1、JNI、Java wrapper、arm64/x86_64 AAR | 已完成 |
 | B2 | Runtime 集成 | Native lifecycle 接入 Binder Runtime 与 Diagnostic | 已完成 |
 | B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器） |
-| B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 进行中 |
+| B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 已完成（软件交付） |
 
 ## M0 任务清单
 
@@ -66,6 +66,10 @@
 
 ### 2026-07-12
 
+- 完成 B4 独立 hybrid C/Java 软件交付：Native AAR、SDK AAR、Runtime APK、Demo APK 和可选 Client2 APK 共 5 项 artifact 已纳入 path-safe manifest/SHA-256/signer/native ABI/ELF inventory；历史 R7D no-native bundle 未改写。
+- Bundle verifier 已验证 2 个 native artifact 只含 `arm64-v8a`/`x86_64` allowlist，三 APK signer cohort 与 Client2 `classes2.dex`；installer 默认 maintenance dry-run，Client2 必须显式 `--include-client2`，debug 执行必须显式授权。
+- API 33 x86_64 已通过 maintenance/client2-demo 两种 dry-run 与实际安装、普通 `/data/app`、signature permission、Demo 自动验收、Client2 真实按钮/Binder callback 和完整 Runtime/Client2 recovery matrix。
+- B0-B4 实际工程软件范围完成；`hybrid_software_handoff_ready=true`，但物理控制器、production signer/后台/RenderService/vendor contract 和七项 production/hardware blocker 保持开放，`production_ready=false`、`target_hardware_validated=false`。
 - 完成 B3 黑盒应用层验收工具：安装前只读 API/ABI/build/feature/SELinux/verified-boot/package signer 门禁、临时异签名负向测试、受控安装、debug-only Java PackageManager probe 和安装后 signer 复检已形成。
 - API 33 x86_64 模拟器已通过 version `0.3.0-b3`、普通 UID/`/data/app`/app-private path、PackageManager signer parity、Native Runtime process recovery 和 Binder/Room/HMI 回归；Automotive feature=false、verified-boot visibility=UNKNOWN 按事实保留。
 - B3 只关闭模拟器应用层实现与证据，`ISSUE-027` 的物理控制器、生产签名、后台策略、RenderService trust 和 vendor contract 仍开放；B4 开始生成独立 hybrid 交付包、安装和使用指南。

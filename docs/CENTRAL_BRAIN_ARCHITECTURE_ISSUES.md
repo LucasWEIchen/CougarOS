@@ -357,6 +357,8 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 
 2026-07-12 B3 进展：黑盒 preflight/受控验收实现已完成，API 33 x86_64 模拟器 signer/ABI/`/data/app`/app-private/native/Binder 证据通过。该 AVD 的 Automotive feature 为 false，verified-boot/flash-lock/vbmeta shell visibility 为 UNKNOWN；这些值未被改写。ISSUE-027 保持 Open：物理控制器执行结果、production signer/升级、后台/MDM、Client2/RenderService trust 和任何公开 vendor contract 仍未提供。
 
+2026-07-12 B4 进展：hybrid bundle、双 ABI inventory、same-signer fail-closed installer、maintenance/Client2 安装 profile 和完整指南已通过 API 33 模拟器；Client2 Binder/UI/recovery 也通过。Bundle 生成不会提供目标输入，因此 ISSUE-027 仍为 Open：物理设备 ABI/安装/休眠后台、production signer/升级/rollback、RenderService trust、SELinux/MDM owner 和公开 vendor interface contract 均需目标团队填充。
+
 解除条件：目标设备执行 B3 preflight，并提供生产签名/升级策略、后台进程策略和任何公开 vendor SDK/服务 contract。真机应用层通过不自动关闭 NPU/VHAL/车辆/安全硬件验证。
 
 状态：Open，实施已获批准。

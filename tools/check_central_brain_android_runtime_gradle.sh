@@ -88,11 +88,14 @@ for path in \
   tools/check_central_brain_native_runtime.sh \
   tools/check_central_brain_android_native_runtime_integration.sh \
   tools/check_central_brain_android_blackbox_preflight.sh \
+  tools/check_central_brain_android_hybrid_delivery.sh \
   tools/verify_central_brain_native_runtime_apk.sh \
   tools/test_central_brain_android_native_runtime.sh \
   tools/preflight_central_brain_android13_blackbox.sh \
   tools/test_central_brain_android_blackbox_acceptance.sh \
   tools/test_central_brain_android_blackbox_signer_guard.sh \
+  tools/package_central_brain_android_hybrid_delivery.sh \
+  tools/install_central_brain_android_hybrid_delivery.sh \
   tools/test_client2_central_brain_binder.sh \
   tools/test_client2_central_brain_recovery.sh \
   tools/test_central_brain_android_capability_policy.sh \
@@ -181,5 +184,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_delivery_handoff.sh"
 bash "$ROOT_DIR/tools/check_central_brain_native_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_native_runtime_integration.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_blackbox_preflight.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_hybrid_delivery.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

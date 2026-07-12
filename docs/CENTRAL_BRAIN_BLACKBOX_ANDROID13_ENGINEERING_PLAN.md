@@ -1,10 +1,10 @@
 # Central Brain 黑盒 Android 13 实际工程计划
 
-版本：0.2
+版本：1.0
 
 日期：2026-07-12
 
-状态：B3 emulator scope complete / B4 in progress
+状态：B0-B4 hybrid software handoff complete / physical target pending
 
 ## 目标
 
@@ -91,6 +91,10 @@ recovery 验证；这不构成物理目标验证。B3 证据始终将模拟器�
 B3 已形成只读 preflight、existing-signer fail-closed gate 和应用内 PackageManager probe，
 并在 API 33 x86_64 模拟器通过。物理控制器、production signer、后台策略、RenderService
 trust 与 vendor contract 仍 unresolved；B4 不得用交付包生成结果替代这些输入。
+
+B4 已生成独立 hybrid profile、5 项 artifact/hash/signer inventory、Native 双 ABI/ELF
+inventory、默认 dry-run installer、maintenance/Client2 两种安装 profile 和完整使用/rollback/
+adapter 指南，并通过 API 33 x86_64。该 software handoff 完成不改变上述目标输入状态。
 
 ## 完成判定
 

@@ -645,3 +645,9 @@ API 33 process recovery proves Android application lifecycle behavior only. It d
 B3 reads public Android build/package properties and the installed application APK only. The Java probe uses `PackageManager`, `Build` and `Process`; the host tool uses read-only `getprop`, `pm path`, `dumpsys package`, APK pull and signer verification. It does not enumerate vendor services or device nodes, call ioctl/sysfs/VHAL, change SELinux, elevate privilege or write a partition.
 
 Observed SELinux/verified-boot values are evidence fields, not a request to alter policy. The API 33 emulator result closes no Driver/HAL gap. `DRV-GAP-001` and all target hardware gaps remain open; added Driver/HAL development is zero. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-G-005`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.
+
+### B4 Hybrid Delivery Driver/HAL Result
+
+B4 packages and inspects userspace AAR/APK files only. The two native artifacts contain the same B1 lifecycle library; manifest `current_native_lifecycle_code_present=true` is paired with `vendor_npu_adapter_present=false`. Package verification reads ZIP/ELF/package/signer metadata and installer uses ordinary `adb install -r` after public package signer preflight.
+
+No kernel module, HAL, VHAL, PCIe enumeration, device node, ioctl/sysfs, DMA/shared memory, Safety Runtime or vendor service is added or called. `DRV-GAP-001` remains open and added Driver/HAL development is zero. Hybrid package readiness cannot close physical NPU/vehicle/hardware evidence. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-011`, `NV-G-005`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

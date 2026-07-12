@@ -976,3 +976,11 @@ B3 交付 `central_brain_android_b3_blackbox_acceptance.json`、只读 preflight
 API 33 x86_64 模拟器已通过 ordinary `/data/app`、普通 UID、app-private data/native library path、64-bit process、PackageManager signer parity、Native Runtime process recovery 和 Binder/Room/HMI regression。证据 scope 固定 `api33-emulator-blackbox-application`。
 
 B3 没有物理控制器输入，因此 `physical_controller_evidence_available=false`、`production_signing_approved=false`、`background_policy_approved=false`、`render_service_trust_approved=false`、`vendor_interface_contract_available=false`、`target_hardware_validated=false`。B4 只能交付可执行命令和 unresolved target checklist，不能伪造这些状态。
+
+## Android B4 Hybrid C/Java Software Handoff
+
+B4 新建 `android-hybrid` 交付轨道，打包 `native-runtime-debug.aar`、`central-brain-sdk-debug.aar`、`runtime-service-debug.apk`、`demo-hmi-debug.apk` 与 `client2-central-brain.debug.apk`。R7D 四项 no-native 交付继续作为历史证据，不被新 profile 改写。
+
+Manifest 记录 5 项 artifact 的 path/size/SHA-256；Native AAR 和 Runtime APK 是唯一 2 项 native artifact，各自只允许 arm64-v8a/x86_64 `libcentral_brain_native.so` 并记录 ELF machine。Runtime/Demo/Client2 signer cohort、Client2 `classes2.dex`、support inventory、七项 blocker、install profiles 和 target-input template 均被 checksum 绑定。
+
+Installer 默认 maintenance dry-run，Client2 需显式 `--include-client2`；执行 debug 测试安装需 `--execute --allow-debug-signing`。API 33 x86_64 已通过两个 dry-run 和两个实际安装 profile、Demo/Client2 启动、Client2 button/Binder UI 与 recovery regression。交付状态为 `hybrid_software_handoff_ready=true`、`production_ready=false`、`physical_controller_evidence_available=false`、`target_hardware_validated=false`。

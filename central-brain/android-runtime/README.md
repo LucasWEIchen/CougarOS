@@ -312,6 +312,16 @@ bash tools/test_central_brain_android_blackbox_acceptance.sh --serial <serial>
 
 The first command verifies API/ABI, delivered and existing package signers, `/data/app` placement and read-only build/security observations without package mutation. The second runs the existing Binder/Room/HMI and native recovery gates plus a debug-only public-API Java probe for PackageManager signer parity, ordinary UID and app-private storage. Emulator results are never promoted to physical-controller or hardware evidence.
 
+## B4 Hybrid Delivery
+
+Build the five-artifact C/Java handoff with:
+
+```bash
+bash tools/package_central_brain_android_hybrid_delivery.sh
+```
+
+The generated bundle has a default Runtime+Demo maintenance profile and an explicit optional Client2 profile. Use `docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md` for package verification, dry-run, install, UI, diagnostics, rollback and future vendor-adapter integration. Bundle readiness remains separate from production signing and physical target qualification.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

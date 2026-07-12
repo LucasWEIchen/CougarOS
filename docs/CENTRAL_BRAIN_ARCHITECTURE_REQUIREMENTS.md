@@ -1070,3 +1070,12 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The read-only preflight may observe build/fingerprint, Automotive feature, SELinux/verified-boot properties and ordinary package metadata. It must not install/uninstall, elevate privilege, remount, change SELinux, inspect private device nodes or probe unpublished vendor services.
 - A DUMP-protected debug-only Java probe must independently verify PackageManager signer SHA-256, ordinary `/data/app` placement, app-private storage, ordinary UID, 64-bit process and Native Runtime readiness. It must remain absent from release.
 - Controlled API 33 acceptance must preserve the complete Binder/Room/Governance/HMI and Native Runtime process-recovery gates. Emulator evidence must be labeled separately and cannot set physical-controller, production-signing, background-policy, RenderService, vendor-interface or hardware claims true.
+
+### 2026-07-12 B4 hybrid C/Java software handoff trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- B4 must use a new hybrid profile and must not rewrite R7D no-native evidence. The bundle must contain Native AAR, SDK AAR, Runtime APK, Demo APK and Client2 Binder demo APK with exact path-safe hash/size inventory.
+- Native AAR and Runtime APK must be the only native artifacts and must contain exactly arm64-v8a/x86_64 `libcentral_brain_native.so`; the manifest must record ELF machine and C ABI V1. SDK/Demo/Client2 native payload remains forbidden.
+- Runtime, Demo and Client2 must form one signer cohort. Client2 remains optional at install time and requires an explicit profile because target RenderService/vendor trust is unresolved.
+- Installer must default to dry-run, verify API/ABI/bundle identity and every selected existing signer before first install, require explicit debug-signer authorization, preserve Runtime -> Demo -> Client2 order and provide no automatic uninstall or partition-write path.
+- The guide must cover build, package verification, target inputs, dry-run/install, Demo and Client2 use, diagnostics, rollback ownership and future vendor adapter entry. Passing package and emulator gates permits only `hybrid_software_handoff_ready=true`; production/physical/hardware claims remain false.

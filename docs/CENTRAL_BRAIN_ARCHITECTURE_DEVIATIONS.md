@@ -289,4 +289,6 @@ R7D 交付明确要求当前 APK 无 native payload；新的黑盒 Android 13 �
 
 2026-07-12 B3 进展：新增安装前只读 signer/ABI gate 和 debug-only Java PackageManager probe；API 33 x86_64 模拟器已通过普通 `/data/app`、UID/app-private path、交付/已安装 signer parity、Native Runtime recovery 和全量 Java Runtime 回归。DEV-020 保持 Accepted Temporary：当前证据不是物理控制器/量产 signer/后台策略或 vendor adapter 证据，B4 仍需独立 hybrid package、checksum/signer/rollback/使用指南审计。
 
-状态：Accepted Temporary；B4 交付审计后重新评估。
+2026-07-12 B4 结果：独立 hybrid profile/bundle 已交付 5 项 artifact，Native AAR/Runtime APK 双 ABI allowlist、ELF、hash、三 APK signer cohort、Client2 secondary dex、dry-run/实际安装、UI/Binder/recovery 和详细 rollback/adapter 指南通过。R7D 历史 no-native 交付保持不变。DEV-020 在 B0-B4 软件 artifact 分轨与审计范围内 Resolved；物理控制器、production signer/vendor adapter/hardware activation 不由该偏差关闭，继续由 ISSUE-027、DEV-005/019 与 DRV-GAP-001 跟踪。
+
+状态：Resolved（B0-B4 software handoff shape）；production/hardware scope remains open elsewhere.

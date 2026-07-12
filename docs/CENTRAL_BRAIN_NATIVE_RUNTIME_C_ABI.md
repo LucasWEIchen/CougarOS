@@ -116,3 +116,8 @@ handle。Runtime startup log/dumpsys 与 Diagnostic Binder sequence 10 只读查
 fail-closed snapshot；production Service 不 acquire slot 或 dispatch。API 33 x86_64 已验证
 load、lifecycle、容量/关闭错误、Diagnostic parity 和 force-stop 后进程重建。B3 继续负责
 黑盒目标预检；任何这些证据都不等于 NPU/VHAL 硬件验证。
+
+B4 hybrid bundle 同时携带 Native Runtime AAR 与已嵌入该库的 Runtime APK，manifest 对
+两者分别记录 `arm64-v8a`/`x86_64` entry 和 ELF machine。它们是 bundle 中唯一允许的
+native artifact；SDK、Demo 和 Client2 不含 `.so`。该打包证据保持 ABI V1/provider/hardware
+false 边界，不引入 Vendor NPU adapter。

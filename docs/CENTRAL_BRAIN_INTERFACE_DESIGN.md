@@ -1213,3 +1213,16 @@ The production call relationship is `Binder client -> Java Runtime/Governance ->
 | Evidence properties | pre/post/install/native tools -> delivery audit | raw observed feature/SELinux/boot values retained; no inferred hardware claim |
 
 The Java probe is in the debug source set and is not a public production Binder API. It neither discovers vendor interfaces nor transfers package/signer authority into C. The only native input is the existing immutable readiness snapshot; Vendor NPU, dispatch and hardware remain false.
+
+## Android B4 Hybrid Delivery Contracts
+
+| Contract | Producer -> consumer | Invariant |
+| --- | --- | --- |
+| hybrid delivery profile | repository -> package builder/verifier | five fixed artifacts, two fixed native artifacts, seven blockers |
+| `DELIVERY-MANIFEST.json` | builder -> installer/integrator | source commit/date, hash/size, APK/signer, ABI/ELF and support inventory |
+| `SHA256SUMS` | builder -> verifier | exact non-symlink bundle file coverage; consistency, not publisher authentication |
+| maintenance install profile | installer -> Runtime+Demo | default; Client2 untouched |
+| Client2 install profile | explicit `--include-client2` -> three APKs | same signer and Runtime -> Demo -> Client2 order |
+| target input template | target owners -> installer/review | no guessed physical/production/hardware claims |
+
+The AARs are integration inputs and are not device packages. Runtime owns the C library through Java/JNI; clients continue to call typed Binder rather than native symbols. Packaging does not create a Vendor NPU provider, and the optional Client2 artifact remains behind a target RenderService/signer decision.
