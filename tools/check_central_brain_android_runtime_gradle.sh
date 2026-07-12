@@ -30,6 +30,12 @@ for path in \
   central-brain/android-runtime/gradle/wrapper/gradle-wrapper.properties \
   central-brain/android-runtime/gradlew \
   central-brain/android-runtime/central-brain-sdk/build.gradle.kts \
+  central-brain/android-runtime/native-runtime/build.gradle.kts \
+  central-brain/android-runtime/native-runtime/src/main/cpp/CMakeLists.txt \
+  central-brain/android-runtime/native-runtime/src/main/cpp/include/central_brain_native.h \
+  central-brain/android-runtime/native-runtime/src/main/cpp/central_brain_native.c \
+  central-brain/android-runtime/native-runtime/src/main/cpp/central_brain_jni.c \
+  central-brain/android-runtime/native-runtime/src/main/java/com/centralbrain/nativebridge/NativeRuntime.java \
   central-brain/android-runtime/central-brain-sdk/src/main/AndroidManifest.xml \
   central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java \
   central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainClient.java \
@@ -79,6 +85,7 @@ for path in \
   tools/check_central_brain_android_client2_binder.sh \
   tools/check_central_brain_android_application_acceptance.sh \
   tools/check_central_brain_android_delivery_handoff.sh \
+  tools/check_central_brain_native_runtime.sh \
   tools/test_client2_central_brain_binder.sh \
   tools/test_client2_central_brain_recovery.sh \
   tools/test_central_brain_android_capability_policy.sh \
@@ -89,6 +96,9 @@ done
 for module in central-brain-sdk runtime-service demo-hmi; do
   require_text "central-brain/android-runtime/settings.gradle.kts" "include(\":$module\")"
 done
+require_text "central-brain/android-runtime/settings.gradle.kts" 'include(":native-runtime")'
+require_text "central-brain/android-runtime/native-runtime/build.gradle.kts" "minSdk = 33"
+require_text "central-brain/android-runtime/native-runtime/build.gradle.kts" 'ndkVersion = "27.3.13750724"'
 
 require_text "central-brain/android-runtime/gradle/libs.versions.toml" 'agp = "8.10.1"'
 require_text "central-brain/android-runtime/gradle/wrapper/gradle-wrapper.properties" "gradle-8.11.1-bin.zip"
@@ -161,5 +171,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_application_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_delivery_handoff.sh"
+bash "$ROOT_DIR/tools/check_central_brain_native_runtime.sh"
 
 echo "Central Brain Android runtime Gradle foundation check passed"

@@ -283,4 +283,6 @@ R7D 交付明确要求当前 APK 无 native payload；新的黑盒 Android 13 �
 
 风险：native crash、ABI/符号漂移、错误 ownership 或 JNI 引用生命周期可能绕过 Java Runtime 的恢复与治理。B1-B3 必须增加 host C test、AAR/ELF 检查、API 33 load/lifecycle/process-death 证据和严格 native allowlist。
 
+2026-07-12 B1 进展：C ABI/JNI/Java wrapper 和独立 AAR 已完成；ASan/UBSan、Java 单测、双 ABI ELF machine、导出符号、RELRO/NOW 与无 vendor/hardware linkage 门禁通过。R7D 历史包未改写，Runtime APK 尚未依赖 native AAR。DEV-020 保持 Accepted Temporary，B2/B3 仍需验证进程级生命周期、Diagnostic parity 与 API 33 recovery。
+
 状态：Accepted Temporary；B4 交付审计后重新评估。

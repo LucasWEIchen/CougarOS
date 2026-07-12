@@ -1,0 +1,2 @@
+-keep class com.centralbrain.nativebridge.NativeRuntime { *; }
+-keep class com.centralbrain.nativebridge.NativeRuntimeSnapshot { *; }

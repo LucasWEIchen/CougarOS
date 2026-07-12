@@ -1045,3 +1045,11 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Java owns Binder identity, package/current-signer capability, Governance, Room, Android lifecycle and user-visible errors. C owns a versioned platform-neutral native runtime ABI and bounded provider state. JNI must remain a narrow bridge and may not become a second policy owner.
 - Initial packaged ABIs are exactly `arm64-v8a` and `x86_64`. Native presence does not activate Vendor NPU/VHAL or close any hardware blocker.
 - B0-B4 exit criteria and prohibited operations are authoritative in `CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md`.
+
+### 2026-07-12 B1 Native Runtime C ABI trace
+
+- Req IDs: `XSC-004`、`XSC-005`、`NV-F-001`、`NV-F-011`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-004`、`DEL-005`.
+- The `native-runtime` AAR must expose a C11 ABI V1 with opaque runtime ownership, `struct_size`/`abi_version`, fixed-width values, bounded leases, deterministic status codes and caller-serialized destroy. C must serialize query/acquire/release internally and reject active-lease destroy.
+- JNI must use `JNI_OnLoad` plus `RegisterNatives`, retain no Java reference or `JNIEnv*`, perform no I/O and expose only a `long` handle, fixed status values and a fixed-length health array. Java must serialize handle access and reject malformed or positive provider/hardware claims.
+- Host evidence must run C lifecycle/capacity/concurrency under ASan/UBSan. Android evidence must build exactly `arm64-v8a` and `x86_64`, verify ELF machine/exported symbols/RELRO/NOW and reject any NPU/OpenCL/Vehicle/vendor linkage.
+- B1 is artifact evidence only. Runtime APK lifecycle/Diagnostic integration belongs to B2 and API 33 process recovery belongs to B3. `software_provider_available=false`, `vendor_npu_provider_available=false` and `hardware_accessed=false` remain mandatory.

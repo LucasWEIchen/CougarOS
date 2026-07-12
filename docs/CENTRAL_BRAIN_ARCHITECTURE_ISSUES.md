@@ -351,6 +351,8 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 
 当前处理：B1 交付 `arm64-v8a`/`x86_64` C runtime；B3 只用公开 Android/ADB 接口读取 API/ABI/install path/UID/permission/native-load/Binder 状态。任何未知项保持 unresolved；不遍历私有 device node、不猜 ioctl、不要求 root/priv-app/SELinux 修改。
 
+2026-07-12 B1 进展：两套 allowlisted AAR payload 和 ABI/ELF evidence 已完成，证明构建产物覆盖预期 64-bit ABI，但不证明未知目标实际支持其中任一 ABI、允许普通安装或满足后台策略。ISSUE-027 保持 Open；只有 B3 在目标设备执行公开接口 preflight 后才能填充这些字段。
+
 解除条件：目标设备执行 B3 preflight，并提供生产签名/升级策略、后台进程策略和任何公开 vendor SDK/服务 contract。真机应用层通过不自动关闭 NPU/VHAL/车辆/安全硬件验证。
 
 状态：Open，实施已获批准。

@@ -21,13 +21,18 @@ export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.tools/gradle-home}"
   --project-dir "$RUNTIME_DIR" \
   --no-daemon \
   --stacktrace \
+  :native-runtime:testDebugUnitTest \
+  :native-runtime:assembleDebug \
   :central-brain-sdk:testDebugUnitTest \
   :runtime-service:testDebugUnitTest \
   :central-brain-sdk:assembleDebug \
   :runtime-service:assembleDebug \
   :demo-hmi:assembleDebug
 
+bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_aar.sh"
+
 printf '%s\n' \
+  "$RUNTIME_DIR/native-runtime/build/outputs/aar/native-runtime-debug.aar" \
   "$RUNTIME_DIR/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar" \
   "$RUNTIME_DIR/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk" \
   "$RUNTIME_DIR/demo-hmi/build/outputs/apk/debug/demo-hmi-debug.apk"

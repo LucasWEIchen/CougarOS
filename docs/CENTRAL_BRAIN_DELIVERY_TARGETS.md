@@ -954,3 +954,9 @@ B0 新增 `CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md` 和静态门禁
 目标 artifact 形状为 SDK AAR、Native Runtime AAR、Runtime APK、Demo APK 和 Client2 APK。Native Runtime 首版只允许 `arm64-v8a`/`x86_64` 的 `libcentral_brain_native.so`，Vendor NPU/VHAL provider 保持 unavailable，`hardware_accessed=false`。
 
 B0 只定义 contract，尚未交付 `.so`。完成状态必须由 B1 build、B2 API 33 integration、B3 black-box preflight 和 B4 installation/usage handoff 逐级证明。
+
+## Android B1 Native Runtime Artifact
+
+B1 已交付 `native-runtime-debug.aar`，其中只包含 `jni/arm64-v8a/libcentral_brain_native.so` 与 `jni/x86_64/libcentral_brain_native.so`。Host C ASan/UBSan、Java 6 项单测、Gradle build、ELF machine、公开符号、RELRO/NOW 和 vendor/hardware linkage 门禁均通过。
+
+该 AAR 当前是独立 artifact，尚未进入 Runtime APK。B2 才接入进程生命周期和 Diagnostic，B3 才提供 API 33/目标黑盒部署证据。B1 不改变 R7D 历史无-native bundle，也不表示 NPU/VHAL/Driver/HAL 或目标硬件可用；`vendor_npu_provider_available=false`、`hardware_accessed=false`。

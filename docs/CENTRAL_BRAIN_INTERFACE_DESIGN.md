@@ -1177,3 +1177,14 @@ The target deployment and Client2 recovery commands are source-checkout acceptan
 | Native -> Vendor slot | versioned C provider contract | published SDK-owned descriptor and opaque adapter state | guessed ioctl/HAL, implicit ownership, unbounded buffers |
 
 Public C structs begin with `struct_size`/`abi_version`, use fixed-width integer types and caller-owned outputs. JNI registers through `JNI_OnLoad`/`RegisterNatives`, does not cache `JNIEnv*` or Java local references, and converts C status into immutable Java snapshots. Initial ABIs are `arm64-v8a` and `x86_64`; Vendor NPU/VHAL remain `UNAVAILABLE` with `hardware_accessed=false`.
+
+## Android B1 Native Runtime API V1
+
+| Surface | Operations | Ownership/error model |
+| --- | --- | --- |
+| C ABI | `create/get_health/acquire_slot/release_slot/destroy/status_name` | opaque handle; caller-owned outputs; typed status; active lease blocks destroy |
+| JNI | `nativeCreate/nativeSnapshot/nativeAcquireSlot/nativeReleaseSlot/nativeDestroy` | static registered methods; no cached refs; Java owns handle serialization |
+| Java | `NativeRuntime.snapshot/acquireSlot/releaseSlot/close` | synchronized, `AutoCloseable`, invalid/closed state fails visibly |
+| Diagnostic value | `NativeRuntimeSnapshot` | immutable strict 10-field parse; ABI/range/boolean/provider/hardware drift fails closed |
+
+The B1 interface is process-local and does not accept caller identity, Binder objects, file descriptors, model buffers or hardware handles. B2 may expose its readiness through existing Runtime/Diagnostic surfaces but may not transfer Governance ownership into C or enable provider dispatch.

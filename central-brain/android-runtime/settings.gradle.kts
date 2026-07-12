@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 rootProject.name = "central-brain-android-runtime"
 
 include(":central-brain-sdk")
+include(":native-runtime")
 include(":runtime-service")
 include(":demo-hmi")
 include(":policy-probe")

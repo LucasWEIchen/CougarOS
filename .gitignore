@@ -14,6 +14,7 @@ Thumbs.db
 # Android local build state
 local.properties
 .gradle/
+.cxx/
 build/
 captures/
 

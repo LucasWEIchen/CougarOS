@@ -627,3 +627,9 @@ B0 authorizes a userspace C runtime inside the application package, not a kernel
 Java remains the owner of PackageManager/Binder identity, permissions, policy and storage. A vendor adapter can be added only after a published SDK/ABI is supplied and B3 proves the ordinary application can access it. Existing `DRV-GAP-001` and all hardware gaps remain open; added Driver/HAL development is zero.
 
 First packaged ABIs are `arm64-v8a` and `x86_64`. ABI packaging evidence is not hardware validation. No vendor/AOSP/BSP source, Linux frontend or virtualization code is added. Req IDs: `XSC-004`, `NV-F-001`, `NV-F-011`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### B1 Native Artifact Driver/HAL Result
+
+B1 now produces the two allowlisted userspace libraries and verifies that their dynamic dependencies contain no OpenCL, NPU, neural, vehicle or vendor library. Static source gating also rejects file/device, dynamic-loader and network calls. The C code owns only ABI validation, mutex-protected lease bookkeeping and health state.
+
+No Driver/HAL gap is closed or newly triggered. `DRV-GAP-001` remains open because no published vendor NPU SDK/ABI or target hardware evidence exists; VHAL, PCIe, ioctl/sysfs, DMA/shared memory and Safety Runtime remain untouched. Added Driver/HAL development is zero. Req IDs: `XSC-004`, `NV-F-001`, `NV-F-011`, `NV-P-002`, `KH-003`, `KH-006`, `DEL-001`, `DEL-004`, `DEL-005`.
