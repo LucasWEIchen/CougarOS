@@ -165,6 +165,9 @@
 - Repository implementation available 但 production wiring false。R6A1 sequence 在进程重启后重置，尚不满足 durable monotonic source 前置条件；R6A3 必须把该 blocker 暴露为 fail-closed readiness，不能直接接 Binder callback/broker。
 - `R6A3 Event runtime readiness` 已完成：immutable snapshot 通过 Runtime log、protected dumpsys 和现有 Diagnostic Binder 一致暴露 implementation availability、activation false 与六项 ordered blocker，不打开 repository 或变更 AIDL。
 - Event 软件 foundation visibility 已闭环，但 production callback/broker 仍未激活。下一小步进入 R6B Memory lifecycle；ISSUE-025 中 durable publisher sequence 和 Event middleware/binding blocker 继续开放。
+- `R6B1 bounded Memory lifecycle` 已完成：pure-Java process-local fixture 定义 EPHEMERAL/SESSION/PROFILE scope、purpose binding、owner/client idempotency、TTL、PROFILE consent、redacted query、authorized digest export、delete/expiry 和 bounded terminal retention。
+- Raw Memory content 从不进入 API；expiry/delete 清除 digest reference，仅保留 domain-separated request fingerprint 以提供有界 replay。JVM/API 33 只运行 test/debug fixture，production Service、AIDL、Room、consent revocation、encryption/key lifecycle 与 durable PROFILE storage 均未接线。
+- Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

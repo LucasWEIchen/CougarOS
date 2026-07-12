@@ -561,3 +561,9 @@ No JNI/C/C++, Driver/HAL ABI, VHAL, DDS, network, device node, NPU, vendor servi
 R6A3 formats immutable Java booleans and blocker IDs for log, dumpsys and Diagnostic Binder. It does not query a publisher clock, database row, callback registry, broker process, network stack or vehicle source. `durable_event_source_available=false` is product/runtime integration evidence, not a device-driver probe result.
 
 No JNI/C/C++, Driver/HAL ABI, VHAL, DDS, network, shared memory, device node, NPU, vendor service or Safety Runtime is accessed. `DRV-GAP-002/004/005` remain unchanged, added Driver/HAL work remains zero, and no vendor/AOSP/BSP or virtualization change is introduced.
+
+### R6B1 Memory Lifecycle Driver/HAL Boundary
+
+R6B1 is Java collection/state-machine code over owner IDs, purpose enums, SHA-256 references and an injected elapsed clock. It stores no raw utterance/model output, vehicle frame, sensor buffer, shared-memory handle or hardware address. PROFILE consent and export authorization are synthetic trusted contract inputs, not calls into a vendor security service.
+
+No JNI/C/C++, keystore vendor extension, Driver/HAL ABI, VHAL, network, shared memory, device node, NPU, vendor service or Safety Runtime is accessed. Durable encrypted PROFILE storage may later use Android application-private storage and Keystore; only an unmet requirement after inspecting published target APIs may create a new DRV-GAP. Existing gaps remain unchanged, added Driver/HAL work is zero, and no vendor/AOSP/BSP or virtualization change is introduced. Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `FW-U-006`, `FW-U-007`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.

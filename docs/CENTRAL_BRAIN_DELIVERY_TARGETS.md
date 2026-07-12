@@ -870,3 +870,11 @@ R6A3 交付 immutable `EventRuntimeReadinessSnapshot`、JVM tests、Runtime log/
 API 33 必须验证 Diagnostic Binder、Runtime log、真实 dumpsys 三路 parity，并输出 readiness snapshot wired、activation false、implementation availability、trusted topic count、durable source false、production wiring false 和完整 ordered blocker。Release 仍须为 3 个 signature-protected Service、0 Activity/probe。
 
 该交付不打开 Event repository，不激活 cursor persistence、callback Binder、broker、middleware 或 transport，不访问 raw payload、DDS、网络、车辆总线、NPU/Driver/HAL，也不修改厂商系统软件。
+
+## Android R6B1 Bounded Memory Lifecycle
+
+R6B1 交付 main-source `BoundedMemoryLifecycle`、JVM tests、DUMP-protected debug probe、安装门禁与 `tools/check_central_brain_android_memory_lifecycle.sh`。AIDL/checksum、Room v3 schema、public SDK 与 SDK AAR + Runtime APK + Demo APK artifact 形状不变；release 不得包含 Memory probe。
+
+API 33 必须输出 scope policy、PROFILE consent、write idempotency、owner isolation、query redaction、TTL expiry、delete idempotency、export authorization 和 record bounds evidence，并固定 `memory_process_only=true`、persistence/production/durable-profile/consent-revocation/encryption false、raw content false 与 hardware false。
+
+该交付不是可量产的个人记忆库。它不存 raw utterance/model output，不跨进程恢复，不新增 Binder API/Room table/production Service，也不声称 consent revocation、trusted wall clock、encrypted key lifecycle 或 durable PROFILE storage 已完成；Driver/HAL、Linux 前端和虚拟化均不在本阶段范围。

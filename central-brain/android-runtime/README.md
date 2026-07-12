@@ -215,6 +215,14 @@ An isolated API 33 probe verifies database reopen while RESYNC_REQUIRED, continu
 
 The snapshot is fail closed with ordered blockers and does not open Room or construct an Event runtime/repository. R6A3 changes no AIDL and adds no dispatch path. It closes the Event software foundation visibility step, not production Event activation; durable publisher ownership and callback/broker integration remain ISSUE-025 work.
 
+## R6B1 Bounded Memory Lifecycle
+
+`BoundedMemoryLifecycle` is a synchronized pure-Java contract fixture for `EPHEMERAL`, `SESSION` and `PROFILE` Memory metadata. Every write is bound to a trusted owner, client idempotency key, purpose, schema, lowercase SHA-256 content reference and bounded TTL. PROFILE writes additionally require matching, unexpired Governance consent that covers the complete requested retention interval; only profile-eligible purposes are accepted.
+
+Owner-scoped queries expose redacted lifecycle metadata and never return the content digest. SESSION/PROFILE export returns the digest reference only after matching Governance authorization; EPHEMERAL export is forbidden. Expiry and delete clear the exportable digest, keep only a domain-separated request fingerprint for bounded idempotency, and retain a bounded terminal history whose eviction ends replay guarantees for the evicted request.
+
+R6B1 is process-local test/debug code. It uses injected elapsed time, does not survive process death, and is not wired to Room, AIDL, production Services, consent revocation, encryption keys or hardware. The Governance consent/export factories model trusted inputs but are not production authorities. Durable PROFILE storage and key/consent ownership must be resolved before any persistence increment.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

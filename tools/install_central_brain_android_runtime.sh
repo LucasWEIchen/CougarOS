@@ -279,6 +279,61 @@ if [[ "$EVENT_CURSOR_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MEMORY_LIFECYCLE_NONCE="$(date +%s%N)"
+MEMORY_LIFECYCLE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.memory.MemoryLifecycleProbeActivity \
+  --es nonce "$MEMORY_LIFECYCLE_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MEMORY_LIFECYCLE_OUTPUT"; then
+  echo "$MEMORY_LIFECYCLE_OUTPUT" >&2
+  echo "Memory lifecycle debug probe did not start successfully" >&2
+  exit 1
+fi
+MEMORY_LIFECYCLE_PASSED=false
+for _ in {1..40}; do
+  MEMORY_LIFECYCLE_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbMemoryLifecycle:I)"
+  if grep -Fq "nonce=$MEMORY_LIFECYCLE_NONCE memory_lifecycle_probe_complete=true" \
+      <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_lifecycle_contract_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_scope_policy_verified=true" <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_profile_consent_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_write_idempotency_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_owner_isolation_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_query_redaction_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_ttl_expiry_verified=true" <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_delete_idempotency_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_export_authorization_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_record_bounds_verified=true" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_process_only=true" <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_persistence_wired=false" <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_production_service_wired=false" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "raw_memory_content_stored=false" <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_profile_storage_durable=false" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_consent_revocation_wired=false" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "memory_encryption_key_configured=false" \
+        <<<"$MEMORY_LIFECYCLE_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$MEMORY_LIFECYCLE_LOG"; then
+    MEMORY_LIFECYCLE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MEMORY_LIFECYCLE_PASSED" != true ]]; then
+  echo "$MEMORY_LIFECYCLE_LOG" >&2
+  echo "Memory lifecycle probe did not pass" >&2
+  exit 1
+fi
+
 REPOSITORY_NONCE="$(date +%s%N)"
 REPOSITORY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.persistence.DurableRepositoryProbeActivity \
@@ -1330,6 +1385,23 @@ printf '%s\n' \
   "dds_runtime_active=false" \
   "network_transport_active=false" \
   "vehicle_bus_accessed=false" \
+  "memory_lifecycle_contract_verified=true" \
+  "memory_scope_policy_verified=true" \
+  "memory_profile_consent_verified=true" \
+  "memory_write_idempotency_verified=true" \
+  "memory_owner_isolation_verified=true" \
+  "memory_query_redaction_verified=true" \
+  "memory_ttl_expiry_verified=true" \
+  "memory_delete_idempotency_verified=true" \
+  "memory_export_authorization_verified=true" \
+  "memory_record_bounds_verified=true" \
+  "memory_process_only=true" \
+  "memory_persistence_wired=false" \
+  "memory_production_service_wired=false" \
+  "raw_memory_content_stored=false" \
+  "memory_profile_storage_durable=false" \
+  "memory_consent_revocation_wired=false" \
+  "memory_encryption_key_configured=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

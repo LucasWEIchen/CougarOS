@@ -1052,3 +1052,17 @@ Applied state changes and their digest-only audit rows share one Room transactio
 | Diagnostic Binder | `runtime/event-runtime-readiness`, summary `blocked`, sequence 6 | existing paged V1 contract; no AIDL change |
 
 The snapshot reports implementation availability for R6A1/R6A2A/B, trusted topic count 3 and six ordered activation blockers. It never reports live subscription counts or opens the database; those would create a runtime dependency and a privacy surface before production Event ownership is approved.
+
+## Android R6B1 Bounded Memory Lifecycle
+
+| Interface/type | Input | Result/constraint |
+| --- | --- | --- |
+| `TrustedWrite.fromRuntimePolicy` | owner, client ID, scope, purpose, session, schema, SHA-256 digest, TTL, optional consent | metadata only; PROFILE has no session and requires eligible purpose/consent |
+| `write` | trusted write | CREATED/REPLAYED/CONFLICT/policy/consent/quota outcome |
+| `queryOwned` | owner plus optional scope/purpose and bounded limit | active redacted records; no digest or cross-owner disclosure |
+| `findOwned` | memory ID + owner | lifecycle state/expiry/content-reference-presence only |
+| `deleteOwned` | memory ID + owner | APPLIED/REPLAYED/not found; digest cleared and terminal retention bounded |
+| `exportOwned` | memory ID + owner + Governance authorization | digest-only SESSION/PROFILE export; EPHEMERAL forbidden |
+| `snapshot` | none | bounded counts plus persistence/production/raw-content false flags |
+
+TTL uses an injected monotonic elapsed clock and therefore has no restart guarantee. `TrustedConsentEvidence.grantedByGovernance` and `TrustedExportAuthorization.grantedByGovernance` are internal contract factories, not Binder APIs or production decision authorities. Delete/expiry preserve only a domain-separated request fingerprint for bounded replay; once terminal retention evicts a record, its replay guarantee ends.

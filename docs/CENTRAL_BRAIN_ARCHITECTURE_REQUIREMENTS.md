@@ -943,3 +943,14 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Ordered blockers are `DURABLE_PUBLISHER_SEQUENCE_MISSING`, `EVENT_RUNTIME_NOT_WIRED`, `EVENT_REPOSITORY_NOT_WIRED`, `CALLBACK_BINDER_NOT_DEFINED`, `BROKER_NOT_CONFIGURED` and `MIDDLEWARE_CHAIN_NOT_WIRED`.
 - Snapshot construction must not open Room, construct `DurableEventCursorRepository`, instantiate the bounded Event runtime, dispatch callbacks or access network/DDS/vehicle/hardware. Current trusted topic count is three and raw event payload persistence is false.
 - API 33 evidence must verify Diagnostic Binder, Runtime startup log and real dumpsys parity. Release must remain three signature-protected Services and zero Activities/probes.
+
+### 2026-07-12 R6B1 bounded Memory lifecycle trace
+
+- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`.
+- Memory scope must be explicit: EPHEMERAL is capped at five minutes, SESSION at 24 hours and PROFILE at 30 days. Every accepted record must bind trusted owner fingerprint, client idempotency ID, purpose, schema, content digest reference and a positive TTL.
+- PROFILE must reject session binding, ineligible purposes and missing/mismatched/expired Governance consent. Consent expiry must cover the complete Memory expiry. Non-PROFILE writes carrying consent must fail closed.
+- Exact owner/client replay must return the original record without consuming quota; changed request material conflicts. Active records, per-owner records, query results and terminal records must be bounded. Eviction of an old terminal record may end idempotent replay for that record and must not be represented as durable exactly-once behavior.
+- Owner-scoped query and lookup must not disclose another owner. Query records must redact the content digest. EPHEMERAL export is forbidden; SESSION/PROFILE export requires matching owner/purpose/memory ID and unexpired Governance authorization and returns digest metadata only.
+- Expiry and deletion must clear the exportable digest. A domain-separated request fingerprint may remain for bounded replay, but raw utterance, transcript, model output or business content must never be accepted or stored.
+- R6B1 uses injected elapsed time and is process-local. Its consent/export factories are contract fixtures, not production authorization sources. Room/AIDL/production Service wiring, restart durability, consent revocation, trusted wall-clock policy, encryption/key ownership and durable PROFILE storage remain false/open.
+- JVM/API 33 evidence must cover scope/TTL, consent, replay/conflict/quota, owner isolation, redacted query, expiry/delete, export authorization and bounded retention. Release must remain three signature-protected Services and zero Activities/probes.
