@@ -1089,3 +1089,17 @@ The snapshot reports R6B1 implementation availability and scope count 3, while s
 | `snapshot` | none | catalog/active/cancelled counts and no-loading/no-network/no-production/no-hardware flags |
 
 Routes (`SOA_OPERATION`, `UIB_ACTION`, `AGENT_PLAN`) are declarative targets only. R6C1 neither calls the route nor performs cryptographic verification over artifact bytes. The signer digest is compile-time contract evidence awaiting a real build/publish verifier and production Skill dispatcher.
+
+## Android R6C2 Fixed Governance Middleware Chain
+
+| Interface/type | Input | Result/constraint |
+| --- | --- | --- |
+| `stageOrder` | none | immutable identity/schema/privacy/policy/QoS/trace/dispatch/output/audit order |
+| `TrustedExchange.fromRuntimePolicy` | trusted identity, compiled Skill manifest, schema/digests, privacy, capabilities/safety, QoS, trace, route and output metadata | metadata only; no raw request/output or request-provided authority |
+| `evaluate` | trusted exchange | ALLOWED or first-stage DENIED; later decision stages skipped; AUDIT always recorded once |
+| `StageEvidence` | stage/status/reason | domain-separated SHA-256 evidence; immutable and ordered |
+| `AuditRecord` | request fingerprint, decision and first rejection | bounded process-local sequence/digest; no raw data or durable claim |
+| `recentAudits` | bounded count | immutable newest retained audit window |
+| `snapshot` | none | counts plus production/dispatch/raw/audit-persistence/network/hardware false flags |
+
+`DISPATCH_GATE` is a route admission check, not a dispatcher. `dispatchContractAllowed=true` can coexist with `serviceDispatchTriggered=false`, including a later output-guard rejection. AUDIT is deliberately a terminal finalizer after the short-circuited decision chain so denied requests remain observable without evaluating skipped business stages.

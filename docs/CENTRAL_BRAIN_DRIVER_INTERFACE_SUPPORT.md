@@ -579,3 +579,9 @@ No JNI/C/C++, Driver/HAL ABI, VHAL, network, shared memory, device node, NPU, ve
 R6C1 uses Java immutable manifests, SHA-256 strings, enum policy and bounded in-process admission records. Route targets are metadata only; no SOA/UIB/Agent route is called. Signer allowlist matching compares compile-time digest evidence and does not invoke PackageManager, APK signature APIs, a vendor trust service or hardware-backed key verification.
 
 No APK/JAR/dex/native loader, JNI/C/C++, Driver/HAL ABI, VHAL, network, shared memory, device node, NPU, vendor service or Safety Runtime is accessed. A later target requirement for hardware-backed attestation creates a DRV-GAP only if published Android/target APIs cannot satisfy an approved verifier design. Existing gaps remain unchanged, added Driver/HAL work is zero, and no vendor/AOSP/BSP or virtualization change is introduced. Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `FW-U-006`, `FW-U-007`, `FW-U-008`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.
+
+### R6C2 Governance Middleware Driver/HAL Boundary
+
+R6C2 evaluates Java enums, immutable Skill manifest metadata, trusted identity/policy booleans, elapsed-time QoS values and SHA-256 digests. The dispatch stage is a software admission gate and never calls an adapter, service or device. Output guard receives only schema/digest/size/redaction metadata, not a vehicle frame, model buffer or shared-memory handle.
+
+No JNI/C/C++, Driver/HAL ABI, VHAL, DDS, network, shared memory, device node, NPU, vendor service or Safety Runtime is accessed. Existing DRV-GAP items remain unchanged, added Driver/HAL work is zero, and no vendor/AOSP/BSP or virtualization change is introduced. Req IDs: `APP-004`, `XSC-001`, `XSC-002`, `XSC-004`, `XSC-005`, `FW-U-003`, `FW-U-006`, `FW-U-007`, `FW-U-008`, `NV-F-001`, `NV-G-003`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-004`, `DEL-005`.

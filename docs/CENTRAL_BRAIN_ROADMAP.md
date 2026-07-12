@@ -25,7 +25,7 @@
 | R3 | Android Runtime 核心 | Job Supervisor、可信 Binder 身份、capability/policy | 已完成：R3A Supervisor/identity、R3B default-deny capability、R3C typed Governance/API 33 验证通过 |
 | R4 | Durable workflow | Room/SQLite checkpoint、idempotency/outbox、审批恢复 | 已完成：R4A、R4B1-3、R4C1、R4C2A/B、R4C3A/B/C API 33 验证通过；真实 effect activation 仍受 gate 阻塞 |
 | R5 | Scheduler 与 Model Router | priority/deadline/quota + Stub/Ollama-debug/Vendor-empty | 软件基线已完成：R5A1/A2、R5B1/B2、R5C1、R5D1；production/hardware activation 仍阻塞 |
-| R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 进行中：R6A Event、R6B Memory、R6C1 Skill contract 已完成；R6C2 待推进 |
+| R6 | Event/Memory/Skill runtime | callback/cursor、memory lifecycle、signed built-in Skill、middleware | 进行中：R6A Event、R6B Memory、R6C1 Skill、R6C2 middleware contract 已完成；R6C3 readiness 待推进 |
 | R7 | 集成与验收 | observability、Client2 SDK/Binder 迁移、API 33 端到端验证 | 待开始 |
 
 ## M0 任务清单
@@ -61,6 +61,9 @@
 
 ### 2026-07-12
 
+- 完成 R6C2 fixed governance middleware chain：identity/schema/privacy/policy/QoS/trace/dispatch gate/output guard/audit 固定顺序、首拒绝短路、后续 decision skip 和 mandatory audit finalizer 已实现。
+- JVM/API 33 验证 allow path、privacy/policy/QoS/output fail-closed、audit once/bounds；production wiring、dispatch execution、raw input/output、audit persistence、network/hardware 均 false。下一步 R6C3 Skill/middleware readiness。
+- R6C2 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。下一步 R6C3 production-safe readiness visibility。
 - 完成 R6C1 signed built-in Skill runtime：3 个 prototype-compatible immutable manifest、compile-time signer allowlist、schema/version/capability/risk/safety metadata 和 bounded owner/client invocation admission 已实现。
 - JVM/API 33 验证 catalog/signer/schema、idempotency、capability/safety、owner isolation、cancel/bounds；aggregate/evolution static gate、release build/lint 与 3-Service/0-probe isolation 通过。Artifact crypto verification、dynamic loading、production dispatch/network/raw-input/hardware 均 false。
 - R6C1 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。下一步 R6C2 fixed governance middleware chain。

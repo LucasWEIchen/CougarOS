@@ -384,6 +384,69 @@ if [[ "$SKILL_RUNTIME_PASSED" != true ]]; then
   exit 1
 fi
 
+GOVERNANCE_MIDDLEWARE_NONCE="$(date +%s%N)"
+GOVERNANCE_MIDDLEWARE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.governance.GovernanceMiddlewareProbeActivity \
+  --es nonce "$GOVERNANCE_MIDDLEWARE_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$GOVERNANCE_MIDDLEWARE_OUTPUT"; then
+  echo "$GOVERNANCE_MIDDLEWARE_OUTPUT" >&2
+  echo "governance middleware debug probe did not start successfully" >&2
+  exit 1
+fi
+GOVERNANCE_MIDDLEWARE_PASSED=false
+for _ in {1..40}; do
+  GOVERNANCE_MIDDLEWARE_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbGovMiddleware:I)"
+  if grep -Fq \
+      "nonce=$GOVERNANCE_MIDDLEWARE_NONCE governance_middleware_probe_complete=true" \
+      <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_contract_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_order_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_allow_path_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_first_rejection_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_audit_finalizer_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_privacy_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_policy_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_qos_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_output_guard_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_audit_bounds_verified=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_process_only=true" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_middleware_production_wired=false" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_dispatch_execution_enabled=false" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_service_dispatch_triggered=false" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "raw_governance_input_stored=false" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "raw_governance_output_stored=false" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_audit_persistence_wired=false" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "governance_network_access_enabled=false" \
+        <<<"$GOVERNANCE_MIDDLEWARE_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$GOVERNANCE_MIDDLEWARE_LOG"; then
+    GOVERNANCE_MIDDLEWARE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$GOVERNANCE_MIDDLEWARE_PASSED" != true ]]; then
+  echo "$GOVERNANCE_MIDDLEWARE_LOG" >&2
+  echo "governance middleware probe did not pass" >&2
+  exit 1
+fi
+
 REPOSITORY_NONCE="$(date +%s%N)"
 REPOSITORY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.persistence.DurableRepositoryProbeActivity \
@@ -1524,6 +1587,24 @@ printf '%s\n' \
   "skill_production_service_wired=false" \
   "raw_skill_input_stored=false" \
   "skill_network_access_enabled=false" \
+  "governance_middleware_contract_verified=true" \
+  "governance_middleware_order_verified=true" \
+  "governance_middleware_allow_path_verified=true" \
+  "governance_middleware_first_rejection_verified=true" \
+  "governance_middleware_audit_finalizer_verified=true" \
+  "governance_middleware_privacy_verified=true" \
+  "governance_middleware_policy_verified=true" \
+  "governance_middleware_qos_verified=true" \
+  "governance_middleware_output_guard_verified=true" \
+  "governance_middleware_audit_bounds_verified=true" \
+  "governance_middleware_process_only=true" \
+  "governance_middleware_production_wired=false" \
+  "governance_dispatch_execution_enabled=false" \
+  "governance_service_dispatch_triggered=false" \
+  "raw_governance_input_stored=false" \
+  "raw_governance_output_stored=false" \
+  "governance_audit_persistence_wired=false" \
+  "governance_network_access_enabled=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

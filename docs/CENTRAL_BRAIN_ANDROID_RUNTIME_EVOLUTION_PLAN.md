@@ -175,6 +175,10 @@
 - Owner/client invocation admission 支持 exact replay/conflict、version/schema/capability/safety fail-closed、global/per-owner quota、owner isolation、idempotent cancel 与 bounded tombstone。只接收 input digest，所有 admission dispatch false。
 - 当前仅验证 compile-time signer allowlist，不读取 artifact bytes，`cryptographic_artifact_verification_performed=false`；无 APK/JAR/native 动态加载、production Service/AIDL/Room/network/hardware。下一步 R6C2 fixed governance middleware chain。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
+- `R6C2 fixed governance middleware chain` 已完成：pure-Java contract 固定 identity -> schema -> privacy -> policy -> QoS -> trace -> dispatch gate -> output guard -> audit 顺序，并为每个阶段生成 immutable digest evidence。
+- 首个 decision rejection 后续 decision stage 全部 `SKIPPED`；AUDIT 作为 mandatory terminal finalizer 对 allowed/denied 恰好记录一次。Dispatch gate 只准入 route metadata，不调用任何服务；output guard 只检查 schema/size/redaction metadata。
+- Audit records bounded/process-local/non-durable，raw input/output 不进入 API。Production Service/AIDL/Room/network/hardware wiring 保持 false；下一步 R6C3 暴露 Skill/middleware activation blocker，并保持 Event/Memory 的 `MIDDLEWARE_CHAIN_NOT_WIRED`。
+- Req IDs：`APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ## 架构落点
 

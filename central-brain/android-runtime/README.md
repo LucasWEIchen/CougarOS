@@ -237,6 +237,14 @@ Manifest construction accepts only the compile-time signer allowlist. This prove
 
 R6C1 is test/debug process-local code and is not referenced by production Services. It adds no AIDL, Room schema, network, dynamic plugin loader or hardware path. A real signed Skill packaging/publishing pipeline and production dispatcher remain open prerequisites.
 
+## R6C2 Fixed Governance Middleware Chain
+
+`FixedGovernanceMiddlewareChain` fixes the contract order to identity, schema, privacy, policy, QoS, trace, dispatch gate, output guard and audit. Each stage emits immutable digest-only evidence. The first rejected decision stage stops all later decision stages, which are marked `SKIPPED`; the final audit stage is a mandatory terminal recorder and executes exactly once for both allowed and denied evaluations.
+
+The dispatch gate validates compiled manifest, route-owner and route-policy metadata only. A passed gate means the contract may continue to output validation; it never invokes SOA, UIB, Agent, network or hardware, and `serviceDispatchTriggered` remains false. Output guarding checks schema, bounded size and required redaction without receiving or storing raw output.
+
+R6C2 is process-local JVM/debug evidence and is not referenced by production Services. Its audit ring is bounded and non-durable. It adds no AIDL, Room schema, production middleware wiring, network or hardware path; R6C3 will expose these activation blockers through production-safe readiness diagnostics.
+
 ## Toolchain
 
 - Android Gradle Plugin: `8.10.1`

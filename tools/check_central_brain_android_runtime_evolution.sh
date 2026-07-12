@@ -244,6 +244,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_event_runtime_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_memory_lifecycle.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_memory_runtime_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_built_in_skill_runtime.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_governance_middleware.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
 

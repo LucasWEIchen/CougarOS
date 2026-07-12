@@ -894,3 +894,11 @@ R6C1 交付 main-source `BoundedBuiltInSkillRuntime`、JVM tests、DUMP-protecte
 API 33 必须输出 catalog、signer allowlist、manifest schema、invocation idempotency、capability policy、safety state、owner isolation、cancel idempotency 和 record bounds evidence，并固定 process-only、compile-time signer evidence、dynamic-loading false、artifact crypto verification false、production/network/raw-input/hardware false。
 
 该交付不执行 Skill route，不扫描或加载 APK/JAR/dex/native plugin，不验证真实 artifact bytes，不新增 Binder/Room/production Service，也不访问网络、车辆总线或硬件。真实签名发布流水线、撤销/version rollback policy、sandbox 和 production dispatcher 仍需后续设计；Linux 前端和虚拟化不在当前阶段。
+
+## Android R6C2 Fixed Governance Middleware Chain
+
+R6C2 交付 main-source `FixedGovernanceMiddlewareChain`、JVM tests、DUMP-protected debug probe、安装门禁与 `tools/check_central_brain_android_governance_middleware.sh`。AIDL/checksum、Room v3 schema、public SDK 与 SDK AAR + Runtime APK + Demo APK artifact 形状不变；release 不得包含 middleware probe。
+
+API 33 必须输出 fixed order、allow path、first rejection、audit finalizer、privacy/policy/QoS/output guard 和 audit bounds evidence，并固定 process-only、production wiring false、dispatch execution false、service dispatch false、raw input/output false、audit persistence false、network/hardware false。
+
+该交付是治理执行顺序和 fail-closed 行为的 contract evidence，不是量产 middleware activation。它不新增 Binder/Room，不调用 SOA/UIB/Agent route，不持久化/导出 audit，也不访问网络、NPU、车辆总线或硬件。R6C3 将交付 production-safe readiness visibility；Linux 前端和虚拟化不在当前阶段。
