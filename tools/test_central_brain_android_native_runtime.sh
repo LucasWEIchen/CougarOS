@@ -63,7 +63,7 @@ fi
 bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_apk.sh" "$RUNTIME_APK"
 
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t devices < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t devices < <("$ADB" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   if [[ ${#devices[@]} -ne 1 ]]; then
     echo "expected exactly one online adb device; use --serial" >&2
     exit 1
@@ -71,7 +71,7 @@ if [[ -z "$SERIAL" ]]; then
   SERIAL="${devices[0]}"
 fi
 ADB_DEVICE=("$ADB" -s "$SERIAL")
-[[ "$("${ADB_DEVICE[@]}" get-state)" == "device" ]] \
+[[ "$("${ADB_DEVICE[@]}" get-state | tr -d '\r')" == "device" ]] \
   || { echo "adb device is not online: $SERIAL" >&2; exit 1; }
 
 SDK="$("${ADB_DEVICE[@]}" shell getprop ro.build.version.sdk | tr -d '\r')"

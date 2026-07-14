@@ -14,7 +14,7 @@ CougarOS 是面向黑盒 Android 13 座舱域控制器的车载中央大脑工�
 
 ## 当前状态
 
-更新时间：2026-07-12
+更新时间：2026-07-14
 
 | 项目 | 当前值 | 含义 |
 | --- | --- | --- |
@@ -383,8 +383,8 @@ bash tools/run_central_brain_backend.sh
 - Vendor NPU、VHAL、Vehicle bus、Camera/Audio/Sensor、Ethernet/SOME-IP/DDS/TSN 和 Safety Runtime
   当前均为 fail-closed empty interface。
 - `runtime.npu` 或 Ollama 返回成功只证明软件模拟链路，不证明 PCIe NPU、GPU 性能或目标硬件通过。
-- 模拟器、debug signer 和普通 `/data/app` 证据不能关闭生产签名、后台存活、RenderService trust、
-  vendor ABI 或物理硬件 blocker。
+- 模拟器或物理设备上的 debug signer 和普通 `/data/app` 应用层证据不能关闭生产签名、后台存活、
+  RenderService trust、vendor ABI、NPU/VHAL 或整机硬件 blocker。
 
 当前两个 GitHub 控制面阻塞项：测试人员用户名/access list 未提供；当前 Private 仓库套餐无法启用
 所需服务端 branch protection。tracked pre-push hook 和 Actions 只是临时风险控制，不等价于服务端保护。
@@ -402,6 +402,7 @@ bash tools/run_central_brain_backend.sh
 | [Python 模块接口图](docs/CENTRAL_BRAIN_PROTOTYPE_MODULE_INTERFACE_MAP.md) | Python 原型模块、接口族和调用链 |
 | [Android Runtime 演化计划](docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md) | R0-R7 Android 软件演进 |
 | [黑盒 Android 13 工程计划](docs/CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md) | B0-B5 C/Java 实际工程范围 |
+| [物理 Android 13 测试报告](docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md) | WSL/Windows ADB、Runtime/Demo 真机证据、Client2 signer blocker 和修复记录 |
 | [Native C ABI](docs/CENTRAL_BRAIN_NATIVE_RUNTIME_C_ABI.md) | C11 ABI V1、JNI 和生命周期 |
 | [NPU Runtime 接口](docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md) | 未来 PCIe NPU adapter/driver 合同 |
 | [Driver/HAL 支持矩阵](docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md) | Android/Linux 能力、缺口和新增开发量 |
@@ -429,6 +430,7 @@ bash tools/run_central_brain_backend.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-14 | 当前变更 | Runtime/Demo 首轮物理 API 33 ARM64 验收；修复 Windows ADB CRLF 与嵌套 ADB 选择 | Client2 signer blocked；production/NPU/hardware false |
 | 2026-07-12 | 当前变更 | 新增面向软件工程师的模块级详设、源码一致性门禁和开发扩展步骤 | 仅文档与门禁，不启用 Scheduler、Model、Effect 或硬件 |
 | 2026-07-12 | 当前变更 | 根 README 升级为仓库级技术架构、模块文件映射和维护门禁 | 仅文档与门禁，不改变 Runtime/hardware 状态 |
 | 2026-07-12 | [`5708dfa6`](https://github.com/LucasWEIchen/CougarOS/commit/5708dfa62d91624e9fe81e94077e8b630cb3d70b) | 首次 15 分钟 Issue 轮询验证经 PR #2 合入，Issue #1 转入 `state/retest` | `CONTROL_PLANE_ONLY`，无物理证据 |

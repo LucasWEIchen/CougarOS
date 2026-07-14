@@ -1,6 +1,6 @@
 # 车载中央大脑路线图与进展
 
-更新时间：2026-07-12
+更新时间：2026-07-14
 
 ## 长期任务拆解
 
@@ -64,6 +64,24 @@
 - 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
+
+### 2026-07-14
+
+- 在用户直连的黑盒 Android 13 座舱域控制器完成首轮 B3/B4 物理应用层验收：API 33、
+  UNISOC、`arm64-v8a`、Automotive、普通 `/data/app`、signature permission、Typed Binder、
+  Room/Governance/HMI、Native C ABI V1 和 Runtime process recovery 均通过，Crash/ANR buffer 为空。
+- 修复 WSL 调 Windows `adb.exe` 的三项宿主兼容缺陷：`adb devices` CRLF 枚举误判、
+  `adb get-state` CRLF 离线误判，以及 black-box signer guard 无条件切换回 Linux ADB。
+  新增 `tools/check_central_brain_windows_adb_compatibility.sh` 并接入 Android evolution gate。
+- B4 maintenance profile 已真实安装 Runtime/Demo 并显示维护型 UI。目标机现有 Client2 与 debug
+  Client2 signer 不一致，`--include-client2` dry-run 按设计在首次安装前返回
+  `SIGNER_MIGRATION_REQUIRED`；未卸载、未覆盖厂商 Client2。
+- 新增脱敏报告 `CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md`。本轮只建立
+  `physical_controller_application_evidence_available=true`，仍保持 `production_ready=false`、
+  `target_hardware_validated=false`、NPU/VHAL/Driver-HAL/virtualization 未激活。
+- 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
+  `NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、
+  `NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 ### 2026-07-12
 

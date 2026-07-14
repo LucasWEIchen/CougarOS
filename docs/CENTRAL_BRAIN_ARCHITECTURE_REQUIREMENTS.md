@@ -1106,3 +1106,22 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The document must describe module intent and non-responsibility, public and internal interfaces, Binder permissions/death behavior, task and durable state machines, data ownership, wall/elapsed clock domains, concurrency, error semantics, configuration, extension procedures and validation gates.
 - Source-level markers must remain synchronized with Android Gradle modules, Runtime/Governance/Diagnostics AIDL methods, the C ABI V1 exported function set, the Client2 12-scenario allowlist and the Ollama environment contract.
 - `tools/check_central_brain_software_detailed_design.sh` must run in the Android evolution gate and the GitHub contract workflow. It may validate documentation/source consistency but cannot set `production_ready`, `target_hardware_validated`, `hardware_accessed`, Driver/HAL development or virtualization development true.
+
+### 2026-07-14 physical Android 13 application-layer trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
+  `NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、
+  `NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- WSL-hosted acceptance may use a caller-selected Windows `adb.exe` while Windows retains USB ownership.
+  Every device-list and get-state parser in the Central Brain Android test path must accept both LF and CRLF,
+  and nested test tools must preserve the caller-selected `ADB` executable.
+- The physical target passed API 33/arm64/Automotive read-only preflight, ordinary `/data/app` Runtime and
+  Demo installation, signer parity, signature permission, Typed Binder, Room/Governance/HMI, Native C ABI V1
+  lifecycle and process recovery. Evidence is application-layer only and is recorded without raw serial,
+  fingerprint, signer digest or unrestricted logs in Git.
+- The existing target Client2 package has a different signer from the debug Client2 delivery. The installer
+  must fail before the first package mutation with `SIGNER_MIGRATION_REQUIRED`; automatic uninstall or
+  signature-gate bypass remains prohibited.
+- This evidence permits `physical_controller_application_evidence_available=true` only. It must not set
+  `target_hardware_validated`, `production_ready`, Vendor NPU/VHAL availability, hardware access,
+  Driver/HAL development or virtualization development true.

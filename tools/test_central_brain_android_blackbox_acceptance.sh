@@ -65,13 +65,13 @@ RUNTIME_APK="$RUNTIME_DIR/runtime-service/build/outputs/apk/debug/runtime-servic
 DEMO_APK="$RUNTIME_DIR/demo-hmi/build/outputs/apk/debug/demo-hmi-debug.apk"
 
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t DEVICES < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t DEVICES < <("$ADB" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   [[ ${#DEVICES[@]} -eq 1 ]] \
     || { echo "expected exactly one online adb device; use --serial" >&2; exit 1; }
   SERIAL="${DEVICES[0]}"
 fi
 ADB_DEVICE=("$ADB" -s "$SERIAL")
-[[ "$("${ADB_DEVICE[@]}" get-state)" == "device" ]] \
+[[ "$("${ADB_DEVICE[@]}" get-state | tr -d '\r')" == "device" ]] \
   || { echo "adb device is not online: $SERIAL" >&2; exit 1; }
 
 mkdir -p "$REPORT_DIR"

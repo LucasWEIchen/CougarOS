@@ -75,7 +75,7 @@ for tool in "$ADB" "$APKSIGNER" "$AAPT" "$JAR"; do
 done
 
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t ONLINE_DEVICES < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t ONLINE_DEVICES < <("$ADB" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   if [[ ${#ONLINE_DEVICES[@]} -ne 1 ]]; then
     echo "expected exactly one online adb device; use --serial when multiple exist" >&2
     "$ADB" devices -l >&2

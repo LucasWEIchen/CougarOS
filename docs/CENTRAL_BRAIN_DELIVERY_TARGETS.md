@@ -1006,6 +1006,36 @@ Release 和每 15 分钟 Issue 维护自动化已经激活，`github_repository_
 tracked pre-push hook + Actions 不等价于服务端保护。`physical_controller_evidence_available=false`、
 `production_ready=false` 和 `target_hardware_validated=false` 继续保持。
 
+## 2026-07-14 Physical Android 13 Application-Layer Acceptance
+
+首轮直接 USB/ADB 目标测试使用 WSL 脚本调用 Windows `adb.exe`。B3 read-only preflight、B4
+maintenance dry-run、Runtime -> Demo 安装、普通 `/data/app`、signature permission、Typed Binder、
+Room/Governance/HMI、Native C ABI V1 和 process recovery 均在 Android 13/API 33/arm64-v8a
+Automotive 控制器通过。
+
+交付工具新增 Windows ADB CRLF compatibility gate。所有设备枚举和 `get-state` 解析兼容 LF/CRLF，
+嵌套 signer guard 保留调用方 ADB。该修复只改变 host-side test orchestration，不改变 APK/AAR、
+AIDL、C ABI、Room schema、Driver/HAL 或系统软件。
+
+目标机现有 `com.tuanjie.urasclient2` 与 debug Client2 signer 不一致；Client2 profile dry-run 按设计
+在首次安装前失败关闭。当前交付状态为：
+
+```text
+physical_controller_application_evidence_available=true
+runtime_demo_physical_acceptance_passed=true
+client2_physical_acceptance_passed=false
+production_ready=false
+target_hardware_validated=false
+hardware_accessed=false
+driver_development_triggered=false
+virtualization_development_triggered=false
+```
+
+脱敏过程和完整边界见 `CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md`。Req IDs：
+`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、
+`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、
+`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
+
 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、
 `NV-F-001`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、
 `DEL-003`、`DEL-004`、`DEL-005`。

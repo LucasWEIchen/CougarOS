@@ -129,6 +129,10 @@
       "bundle_path": "docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md"
     },
     {
+      "source": "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md",
+      "bundle_path": "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md"
+    },
+    {
       "source": "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md",
       "bundle_path": "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
     },

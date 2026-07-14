@@ -42,14 +42,14 @@ fi
 : "${ANDROID_HOME:?ANDROID_HOME or ANDROID_SDK_ROOT must point to the Android SDK}"
 export PATH="$JAVA_HOME/bin:$PATH"
 
-ADB="$ANDROID_HOME/platform-tools/adb"
+ADB="${ADB:-$ANDROID_HOME/platform-tools/adb}"
 APKSIGNER="$ANDROID_HOME/build-tools/37.0.0/apksigner"
 KEYTOOL="$JAVA_HOME/bin/keytool"
 for tool in "$ADB" "$APKSIGNER" "$KEYTOOL"; do
   [[ -x "$tool" ]] || { echo "missing signer-guard tool: $tool" >&2; exit 1; }
 done
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t DEVICES < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t DEVICES < <("$ADB" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   [[ ${#DEVICES[@]} -eq 1 ]] \
     || { echo "expected exactly one online adb device; use --serial" >&2; exit 1; }
   SERIAL="${DEVICES[0]}"

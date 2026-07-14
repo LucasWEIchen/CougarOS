@@ -9,6 +9,7 @@ PROFILE="central-brain/delivery/android-hybrid/central-brain.android-hybrid-deli
 TARGET_INPUTS="central-brain/delivery/android-hybrid/target-inputs.example.json"
 README="central-brain/delivery/android-hybrid/README.md"
 GUIDE="docs/CENTRAL_BRAIN_ANDROID13_HYBRID_INSTALLATION_AND_USAGE.md"
+PHYSICAL_REPORT="docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md"
 PY_TOOL="tools/central_brain_android_hybrid_delivery.py"
 PACKAGE_TOOL="tools/package_central_brain_android_hybrid_delivery.sh"
 INSTALLER="tools/install_central_brain_android_hybrid_delivery.sh"
@@ -25,7 +26,7 @@ require_text() {
     || { echo "missing B4 hybrid pattern '$2' in $1" >&2; exit 1; }
 }
 
-for path in "$PROFILE" "$TARGET_INPUTS" "$README" "$GUIDE" "$PY_TOOL" \
+for path in "$PROFILE" "$TARGET_INPUTS" "$README" "$GUIDE" "$PHYSICAL_REPORT" "$PY_TOOL" \
     "$PACKAGE_TOOL" "$INSTALLER" "$REMOTE_CONTRACT" "$REMOTE_GUIDE" \
     "$REMOTE_RUNNER"; do
   require_file "$path"
@@ -40,12 +41,16 @@ require_text "$PROFILE" '"runtime_dispatch_enabled": false'
 require_text "$PROFILE" '"default_install": false'
 require_text "$PROFILE" '"automatic_uninstall_on_signer_mismatch": false'
 require_text "$PROFILE" '"bundle_path": "contracts/central_brain_github_remote_testing.json"'
+require_text "$PROFILE" '"bundle_path": "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md"'
 require_text "$PROFILE" '"bundle_path": "tools/run_central_brain_android_remote_acceptance.sh"'
 require_text "$TARGET_INPUTS" '"physical_controller_evidence_available": false'
 require_text "$GUIDE" "SIGNER_MIGRATION_REQUIRED"
 require_text "$GUIDE" "--include-client2"
 require_text "$GUIDE" "native_runtime_process_ready=true"
-require_text "$GUIDE" "B4 hybrid software handoff verified on API 33 emulator"
+require_text "$GUIDE" "Runtime/Demo 已通过物理 API 33 ARM64 应用层验收"
+require_text "$PHYSICAL_REPORT" "runtime_demo_physical_acceptance_passed=true"
+require_text "$PHYSICAL_REPORT" "client2_physical_acceptance_passed=false"
+require_text "$PHYSICAL_REPORT" "target_hardware_validated=false"
 require_text "$PY_TOOL" "hybrid_delivery_bundle_verified=true"
 require_text "$PY_TOOL" "ELF_MACHINES"
 require_text "$PACKAGE_TOOL" "native_artifact_count=2"

@@ -90,7 +90,7 @@ for artifact in "$RUNTIME_APK" "$DEMO_APK" "$TEST_APK"; do
 done
 
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t ONLINE_DEVICES < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t ONLINE_DEVICES < <("$ADB" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   if [[ ${#ONLINE_DEVICES[@]} -ne 1 ]]; then
     echo "expected exactly one online adb device; use --serial when multiple exist" >&2
     "$ADB" devices -l >&2
@@ -100,7 +100,7 @@ if [[ -z "$SERIAL" ]]; then
 fi
 
 ADB_DEVICE=("$ADB" -s "$SERIAL")
-if [[ "$("${ADB_DEVICE[@]}" get-state)" != "device" ]]; then
+if [[ "$("${ADB_DEVICE[@]}" get-state | tr -d '\r')" != "device" ]]; then
   echo "adb device is not online: $SERIAL" >&2
   exit 1
 fi
