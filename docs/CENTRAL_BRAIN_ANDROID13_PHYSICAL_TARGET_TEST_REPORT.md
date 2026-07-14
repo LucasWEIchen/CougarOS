@@ -1,6 +1,6 @@
 # Central Brain Android 13 物理目标测试报告
 
-版本：1.0
+版本：1.1
 
 日期：2026-07-14
 
@@ -60,6 +60,7 @@ WSL bash/test scripts
 | Room/Governance/HMI 回归 | PASS | B3 自动验收通过 |
 | Native Runtime C ABI V1 | PASS | ARM64 load、lifecycle、capacity、dumpsys 和 Diagnostic parity 通过 |
 | Runtime 进程恢复 | PASS | force-stop/recreate 后 native snapshot 恢复 |
+| 恢复后 Demo Binder/Governance UI | PASS | 有界显式重连后 UI 恢复 connected/verified，非陈旧 disconnected |
 | Signer mismatch 负向门禁 | PASS | 异签名 APK 在首次安装命令前被拒绝 |
 | Crash/ANR buffer | PASS | 测试结束后没有 Central Brain crash 或 ANR |
 | Client2 include dry-run | BLOCKED | 目标机现有 Client2 signer 与 debug Client2 signer 不同 |
@@ -87,11 +88,23 @@ Client2 阻塞是预期的安全结果。工具输出 `SIGNER_MIGRATION_REQUIRED
 `tools/check_central_brain_windows_adb_compatibility.sh` 同时验证 LF/CRLF 解析、所有相关脚本的
 归一化规则和 signer guard 的 ADB override。
 
+### HMI-001 Runtime 恢复后连接状态陈旧
+
+首轮 Native Runtime process-recovery 结束后，SDK 已报告 Binder death，但 Demo 没有调用公开
+`reconnect()`，UI 持续显示 Runtime/Governance `disconnected`。同时 B3 汇总沿用了安装阶段 UI 结果，
+没有读取 process-recovery 后的 UI，却输出 `binder_room_hmi_regression_verified=true`。
+
+Demo 现按 Activity 生命周期执行 500 ms 间隔、最多 10 次的有界 Runtime/Governance 显式重连；
+连接成功或 Activity 销毁时取消 pending retry，重连后重新校验协议 version/hash 并刷新状态。B3
+验收现必须读取恢复后的真实 UI tree，确认 connected/verified 且不存在 disconnected，才可输出
+`post_recovery_hmi_rebind_verified=true` 和 HMI regression PASS。
+
 ## 6. 当前结论
 
 ```text
 physical_controller_application_evidence_available=true
 runtime_demo_physical_acceptance_passed=true
+post_recovery_hmi_rebind_verified=true
 client2_physical_acceptance_passed=false
 production_ready=false
 target_hardware_validated=false

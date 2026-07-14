@@ -43,6 +43,7 @@ require_text "$PREFLIGHT" "ro.product.cpu.abilist64"
 require_text "$PREFLIGHT" "target_hardware_validated=false"
 require_text "$ACCEPTANCE" "package_manager_signer_parity_verified=true"
 require_text "$ACCEPTANCE" "binder_room_hmi_regression_verified=true"
+require_text "$ACCEPTANCE" "post_recovery_hmi_rebind_verified=true"
 require_text "$SIGNER_GUARD" "blackbox_preflight_failed_before_install=true"
 require_text "$CONTRACT" '"preflight_mutations": []'
 require_text "$DOC" "ISSUE-027"
@@ -52,7 +53,7 @@ require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" "2026-07-12 B3 进展"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android B3 Black-Box Preflight And Acceptance"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "B3 Black-Box Preflight Driver/HAL Result"
 require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android B3 Black-Box Preflight Interfaces"
-require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器） |"
+require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器 + 物理应用层） |"
 
 if grep -Fq "BlackBoxEnvironmentProbeActivity" \
     "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml"; then

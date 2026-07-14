@@ -23,6 +23,7 @@ require_text() {
 SDK_CLIENT="central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainClient.java"
 RUNTIME_SERVICE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
 DEMO_BUILD="central-brain/android-runtime/demo-hmi/build.gradle.kts"
+DEMO_ACTIVITY="central-brain/android-runtime/demo-hmi/src/main/java/com/centralbrain/demo/DemoActivity.java"
 DEBUG_MANIFEST="central-brain/android-runtime/demo-hmi/src/debug/AndroidManifest.xml"
 CLIENT_DEATH_PROBE="central-brain/android-runtime/demo-hmi/src/debug/java/com/centralbrain/demo/ClientDeathProbeActivity.java"
 INSTRUMENTATION="central-brain/android-runtime/demo-hmi/src/androidTest/java/com/centralbrain/demo/test/CentralBrainBinderInstrumentation.java"
@@ -32,6 +33,7 @@ for path in \
   "$SDK_CLIENT" \
   "$RUNTIME_SERVICE" \
   "$DEMO_BUILD" \
+  "$DEMO_ACTIVITY" \
   "$DEBUG_MANIFEST" \
   "$CLIENT_DEATH_PROBE" \
   "$INSTRUMENTATION" \
@@ -47,6 +49,13 @@ require_text "$SDK_CLIENT" "hasLiveConnection()"
 require_text "$SDK_CLIENT" "safeUnbind()"
 require_text "$RUNTIME_SERVICE" "BuildConfig.DEBUG ? 3000 : 160"
 require_text "$DEMO_BUILD" "CentralBrainBinderInstrumentation"
+require_text "$DEMO_ACTIVITY" "governance protocol verification failed after reconnect"
+require_text "$DEMO_ACTIVITY" '"Typed Binder: connected v" + version'
+require_text "$DEMO_ACTIVITY" "client.reconnect();"
+require_text "$DEMO_ACTIVITY" "governanceClient.reconnect();"
+require_text "$DEMO_ACTIVITY" "MAX_RECONNECT_ATTEMPTS = 10"
+require_text "$DEMO_ACTIVITY" "postDelayed(runtimeReconnectTask, RECONNECT_DELAY_MS)"
+require_text "$DEMO_ACTIVITY" "postDelayed(governanceReconnectTask, RECONNECT_DELAY_MS)"
 require_text "$DEBUG_MANIFEST" 'android:name=".ClientDeathProbeActivity"'
 require_text "$DEBUG_MANIFEST" 'android:permission="android.permission.DUMP"'
 require_text "$DEBUG_MANIFEST" 'android:process=":death_probe"'

@@ -365,6 +365,10 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 Runtime process recovery 和 PackageManager signer parity 全部通过，Crash/ANR buffer 为空。
 因此 primary/supported ABI、64-bit process、Runtime/Demo 普通安装和活动态 Service 基础路径已不再未知。
 
+同轮 process-recovery 后 UI 检查曾发现 Demo 未显式重连而保留 `disconnected`；应用层已增加
+有界 Runtime/Governance reconnect，并由恢复后真实 UI tree 输出
+`post_recovery_hmi_rebind_verified=true`。该修复不解决后台休眠/MDM 或硬件资格问题。
+
 同轮 `--include-client2` dry-run 发现目标机现有 Client2 signer 与 debug 交付 signer 不一致，
 并在首次安装前返回 `SIGNER_MIGRATION_REQUIRED`；未卸载或覆盖原包。ISSUE-027 继续 Open，
 剩余项为 production signer/升级/rollback、后台休眠与 MDM 策略、Client2/RenderService trust、

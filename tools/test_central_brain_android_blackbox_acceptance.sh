@@ -101,6 +101,30 @@ bash "$ROOT_DIR/tools/test_central_brain_android_native_runtime.sh" \
   --skip-build \
   --require-api-33 >"$NATIVE_REPORT"
 
+RECOVERY_DEMO_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.demo/.DemoActivity)"
+grep -Fq "Status: ok" <<<"$RECOVERY_DEMO_OUTPUT" \
+  || { echo "post-recovery Demo HMI did not start" >&2; exit 1; }
+
+RECOVERY_UI_DUMP=""
+RECOVERY_HMI_VERIFIED=false
+for _ in {1..40}; do
+  "${ADB_DEVICE[@]}" shell uiautomator dump \
+    /sdcard/central-brain-demo-recovery.xml >/dev/null
+  RECOVERY_UI_DUMP="$("${ADB_DEVICE[@]}" exec-out cat \
+    /sdcard/central-brain-demo-recovery.xml | tr -d '\r')"
+  if grep -Fq "Typed Binder: connected v1" <<<"$RECOVERY_UI_DUMP" \
+      && grep -Fq "Governance: verified v1" <<<"$RECOVERY_UI_DUMP" \
+      && ! grep -Fq "Typed Binder: disconnected" <<<"$RECOVERY_UI_DUMP" \
+      && ! grep -Fq "Governance: disconnected" <<<"$RECOVERY_UI_DUMP"; then
+    RECOVERY_HMI_VERIFIED=true
+    break
+  fi
+  sleep 0.5
+done
+[[ "$RECOVERY_HMI_VERIFIED" == true ]] \
+  || { echo "post-recovery Demo HMI did not refresh Binder status" >&2; exit 1; }
+
 "${ADB_DEVICE[@]}" logcat -c
 NONCE="b3-blackbox-$(date +%s%N)"
 START_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
@@ -189,6 +213,7 @@ printf '%s\n' \
   "app_private_data_dir_verified=true" \
   "target_64_bit_abi_supported=true" \
   "native_runtime_process_recovery_verified=true" \
+  "post_recovery_hmi_rebind_verified=true" \
   "binder_room_hmi_regression_verified=true" \
   "automotive_feature_advertised=$AUTOMOTIVE_FEATURE" \
   "selinux_state_observed=$SELINUX_STATE" \

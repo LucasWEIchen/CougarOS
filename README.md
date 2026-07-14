@@ -23,7 +23,7 @@ CougarOS 是面向黑盒 Android 13 座舱域控制器的车载中央大脑工�
 | 模拟器验收 | `b3_emulator_acceptance_complete=true` | API 33 x86_64 应用层、Binder、Native 和恢复测试通过 |
 | GitHub 闭环 | `github_repository_configured=true`、`github_issue_intake_active=true` | Private Release、Issue Form、Actions 和 15 分钟轮询已激活 |
 | 当前测试版本 | `android13-hwtest-v0.5.0-rc.2` | RC1 已撤回且没有 Release 资产，只允许使用 RC2 |
-| 物理控制器证据 | `physical_controller_evidence_available=false` | 尚无目标内网 Android 13 设备证据 |
+| 物理控制器应用层证据 | `physical_controller_application_evidence_available=true` | Runtime/Demo 已完成目标 Android 13 设备验收；不包含 NPU/VHAL/整机硬件资格 |
 | 生产状态 | `production_ready=false` | 生产签名、系统 owner、后台策略和 vendor contract 未关闭 |
 | 目标硬件状态 | `target_hardware_validated=false` | PCIe NPU、VHAL、车辆总线和 Driver/HAL 未验证 |
 | 新增 Driver/HAL | `driver_development_triggered=false` | 当前能力缺口只记录接口，不新增推测性驱动代码 |
@@ -430,7 +430,7 @@ bash tools/run_central_brain_backend.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
-| 2026-07-14 | 当前变更 | Runtime/Demo 首轮物理 API 33 ARM64 验收；修复 Windows ADB CRLF 与嵌套 ADB 选择 | Client2 signer blocked；production/NPU/hardware false |
+| 2026-07-14 | 当前变更 | Runtime/Demo 物理 API 33 ARM64 验收；修复 Windows ADB 兼容和 Runtime force-stop 后 Demo Binder/Governance 有界重连 | Client2 signer blocked；production/NPU/hardware false |
 | 2026-07-12 | 当前变更 | 新增面向软件工程师的模块级详设、源码一致性门禁和开发扩展步骤 | 仅文档与门禁，不启用 Scheduler、Model、Effect 或硬件 |
 | 2026-07-12 | 当前变更 | 根 README 升级为仓库级技术架构、模块文件映射和维护门禁 | 仅文档与门禁，不改变 Runtime/hardware 状态 |
 | 2026-07-12 | [`5708dfa6`](https://github.com/LucasWEIchen/CougarOS/commit/5708dfa62d91624e9fe81e94077e8b630cb3d70b) | 首次 15 分钟 Issue 轮询验证经 PR #2 合入，Issue #1 转入 `state/retest` | `CONTROL_PLANE_ONLY`，无物理证据 |

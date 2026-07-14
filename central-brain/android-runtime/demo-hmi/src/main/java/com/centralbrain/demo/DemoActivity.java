@@ -3,6 +3,8 @@ package com.centralbrain.demo;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
@@ -36,6 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class DemoActivity extends Activity {
     private static final String TAG = "CentralBrainGovernanceDemo";
     private static final int CONTENT_PADDING_DP = 32;
+    private static final int MAX_RECONNECT_ATTEMPTS = 10;
+    private static final long RECONNECT_DELAY_MS = 500L;
 
     private TextView protocolStatus;
     private TextView completionStatus;
@@ -47,6 +51,12 @@ public final class DemoActivity extends Activity {
     private CentralBrainGovernanceClient governanceClient;
     private boolean demoStarted;
     private boolean governanceDemoStarted;
+    private boolean destroyed;
+    private int runtimeReconnectAttempts;
+    private int governanceReconnectAttempts;
+    private final Handler reconnectHandler = new Handler(Looper.getMainLooper());
+    private final Runnable runtimeReconnectTask = this::retryRuntimeConnection;
+    private final Runnable governanceReconnectTask = this::retryGovernanceConnection;
     private final ExecutorService replayExecutor = Executors.newFixedThreadPool(2);
 
     @Override
@@ -107,6 +117,9 @@ public final class DemoActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        destroyed = true;
+        reconnectHandler.removeCallbacks(runtimeReconnectTask);
+        reconnectHandler.removeCallbacks(governanceReconnectTask);
         if (client != null) {
             client.close();
         }
@@ -121,15 +134,17 @@ public final class DemoActivity extends Activity {
             new CentralBrainClient.ConnectionListener() {
                 @Override
                 public void onConnected(CentralBrainClient connectedClient) {
-                    if (demoStarted) {
-                        return;
-                    }
-                    demoStarted = true;
+                    runtimeReconnectAttempts = 0;
+                    reconnectHandler.removeCallbacks(runtimeReconnectTask);
                     try {
                         int version = connectedClient.getProtocolVersion();
                         String hash = connectedClient.getProtocolHash();
                         protocolStatus.setText(
                                 "Typed Binder: connected v" + version + " " + hash.substring(0, 8));
+                        if (demoStarted) {
+                            return;
+                        }
+                        demoStarted = true;
                         submitCompletionTask(connectedClient);
                         submitCancellationTask(connectedClient);
                         submitConcurrentReplayTask(connectedClient);
@@ -141,11 +156,13 @@ public final class DemoActivity extends Activity {
                 @Override
                 public void onDisconnected() {
                     protocolStatus.setText("Typed Binder: disconnected");
+                    scheduleRuntimeReconnect();
                 }
 
                 @Override
                 public void onConnectionFailed(String reason) {
                     protocolStatus.setText("Typed Binder: failed " + reason);
+                    scheduleRuntimeReconnect();
                 }
             };
 
@@ -153,12 +170,24 @@ public final class DemoActivity extends Activity {
             new CentralBrainGovernanceClient.ConnectionListener() {
                 @Override
                 public void onConnected(CentralBrainGovernanceClient connectedClient) {
-                    if (governanceDemoStarted) {
-                        return;
-                    }
-                    governanceDemoStarted = true;
+                    governanceReconnectAttempts = 0;
+                    reconnectHandler.removeCallbacks(governanceReconnectTask);
                     try {
+                        if (governanceDemoStarted) {
+                            int version = connectedClient.getProtocolVersion();
+                            String hash = connectedClient.getProtocolHash();
+                            if (version != ICentralBrainGovernance.INTERFACE_VERSION
+                                    || !hash.equals(ICentralBrainGovernance.INTERFACE_HASH)) {
+                                throw new IllegalStateException(
+                                        "governance protocol verification failed after reconnect");
+                            }
+                            governanceStatus.setText(getString(
+                                    R.string.governance_verified,
+                                    version));
+                            return;
+                        }
                         runGovernanceProbe(connectedClient);
+                        governanceDemoStarted = true;
                     } catch (RemoteException | RuntimeException exception) {
                         governanceStatus.setText(getString(
                                 R.string.governance_failed,
@@ -170,13 +199,67 @@ public final class DemoActivity extends Activity {
                 @Override
                 public void onDisconnected() {
                     governanceStatus.setText(R.string.governance_disconnected);
+                    scheduleGovernanceReconnect();
                 }
 
                 @Override
                 public void onConnectionFailed(String reason) {
                     governanceStatus.setText(getString(R.string.governance_failed, reason));
+                    scheduleGovernanceReconnect();
                 }
             };
+
+    private void scheduleRuntimeReconnect() {
+        if (destroyed || client == null || client.isConnected()) {
+            return;
+        }
+        if (runtimeReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            protocolStatus.setText("Typed Binder: failed reconnect timeout");
+            return;
+        }
+        reconnectHandler.removeCallbacks(runtimeReconnectTask);
+        reconnectHandler.postDelayed(runtimeReconnectTask, RECONNECT_DELAY_MS);
+    }
+
+    private void retryRuntimeConnection() {
+        if (destroyed || client == null || client.isConnected()) {
+            return;
+        }
+        runtimeReconnectAttempts++;
+        try {
+            client.reconnect();
+        } catch (IllegalStateException ignored) {
+            return;
+        }
+        scheduleRuntimeReconnect();
+    }
+
+    private void scheduleGovernanceReconnect() {
+        if (destroyed || governanceClient == null || governanceClient.isConnected()) {
+            return;
+        }
+        if (governanceReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            governanceStatus.setText(getString(
+                    R.string.governance_failed,
+                    "reconnect timeout"));
+            return;
+        }
+        reconnectHandler.removeCallbacks(governanceReconnectTask);
+        reconnectHandler.postDelayed(governanceReconnectTask, RECONNECT_DELAY_MS);
+    }
+
+    private void retryGovernanceConnection() {
+        if (destroyed || governanceClient == null || governanceClient.isConnected()) {
+            return;
+        }
+        governanceReconnectAttempts++;
+        try {
+            governanceClient.reconnect();
+        } catch (IllegalStateException ignored) {
+            return;
+        }
+        scheduleGovernanceReconnect();
+    }
 
     private void runGovernanceProbe(CentralBrainGovernanceClient connectedClient)
             throws RemoteException {

@@ -30,7 +30,7 @@
 | B0 | 黑盒 Android 13 实际工程基线 | C/Java 模块、ABI、JNI、安装和验收边界 | 已完成 |
 | B1 | Native Runtime | C ABI V1、JNI、Java wrapper、arm64/x86_64 AAR | 已完成 |
 | B2 | Runtime 集成 | Native lifecycle 接入 Binder Runtime 与 Diagnostic | 已完成 |
-| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器） |
+| B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器 + 物理应用层） |
 | B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 已完成（软件交付） |
 | B5 | GitHub 远程硬件测试闭环 | 私有 Release、脱敏证据、Issue Form、复测状态机 | 维护者闭环已激活；tester access/branch protection 待外部输入 |
 
@@ -73,6 +73,10 @@
 - 修复 WSL 调 Windows `adb.exe` 的三项宿主兼容缺陷：`adb devices` CRLF 枚举误判、
   `adb get-state` CRLF 离线误判，以及 black-box signer guard 无条件切换回 Linux ADB。
   新增 `tools/check_central_brain_windows_adb_compatibility.sh` 并接入 Android evolution gate。
+- 物理 process-recovery 截图发现 Demo 在 Runtime `force-stop` 后保留 `disconnected` 状态。根因是
+  Demo 未按 SDK contract 执行显式重连，且 B3 汇总未读取恢复后 UI。现增加生命周期内 500 ms、
+  最多 10 次的有界 Runtime/Governance 重连，并将真实 UI 树断言纳入 B3；物理复测输出
+  `post_recovery_hmi_rebind_verified=true`。
 - B4 maintenance profile 已真实安装 Runtime/Demo 并显示维护型 UI。目标机现有 Client2 与 debug
   Client2 signer 不一致，`--include-client2` dry-run 按设计在首次安装前返回
   `SIGNER_MIGRATION_REQUIRED`；未卸载、未覆盖厂商 Client2。

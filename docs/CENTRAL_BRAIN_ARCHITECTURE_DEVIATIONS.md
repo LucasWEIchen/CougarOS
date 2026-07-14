@@ -344,3 +344,26 @@ Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`
 脚本覆盖面和 ADB 选择。修复后物理 API 33 B3 全流程与 B4 maintenance 安装通过。
 
 状态：Resolved。
+
+## DEV-023 B3 process-recovery 后 Demo HMI 连接状态未复验
+
+偏差：B3 安装阶段会验证 Demo Typed Binder/Governance UI，但后续 Native Runtime 测试会
+`force-stop` Runtime。Demo 收到 Binder death 后只显示 `disconnected`，没有按 SDK contract 调用
+显式 `reconnect()`；B3 汇总脚本也没有重新读取恢复后 UI，却固定输出
+`binder_room_hmi_regression_verified=true`。
+
+涉及需求：`APP-004`、`XSC-001`、`XSC-006`、`NV-G-003`、`NV-G-006`、`NV-P-002`、
+`DEL-001`、`DEL-003`、`DEL-004`。
+
+影响：Runtime 进程已恢复而维护型 UI 仍显示离线，测试报告会把安装前 HMI 结果错误归因到
+process-recovery 后，无法发现座舱应用重连缺陷。
+
+修正：Demo 对 Runtime/Governance 分别执行 500 ms 间隔、最多 10 次的 Activity-lifecycle 有界
+显式重连；连接成功和 `onDestroy()` 均取消 pending retry，重连后重新校验 version/hash 并刷新
+状态。B3 现在在 Native Runtime process recovery 后读取真实 UI tree，只有 connected/verified
+存在且 disconnected 不存在时才输出 `post_recovery_hmi_rebind_verified=true` 和 HMI PASS。
+
+物理 Android 13/API 33 ARM64 设备复测通过。该修复不改变 Room/AIDL/C ABI，不新增 HTTP fallback、
+Driver/HAL、Vendor NPU/VHAL、硬件访问或虚拟化开发。
+
+状态：Resolved。

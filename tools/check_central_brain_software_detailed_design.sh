@@ -62,6 +62,7 @@ for marker in \
   'Python REST gateway 不得成为' \
   '当前类有完整 contract test，但 `CentralBrainRuntimeService` 未将 production task 接入 Scheduler' \
   'AIDL 故意不提供 `grantApproval`' \
+  '最多 10 次' \
   'Linux “gRPC” 当前是 JSON TCP sample' \
   'Runtime Service 未实例化它' \
   '不开发 Hypervisor' \
