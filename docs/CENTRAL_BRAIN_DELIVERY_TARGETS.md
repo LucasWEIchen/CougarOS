@@ -1020,13 +1020,15 @@ Automotive 控制器通过。
 嵌套 signer guard 保留调用方 ADB。该修复只改变 host-side test orchestration，不改变 APK/AAR、
 AIDL、C ABI、Room schema、Driver/HAL 或系统软件。
 
-目标机现有 `com.tuanjie.urasclient2` 与 debug Client2 signer 不一致；Client2 profile dry-run 按设计
-在首次安装前失败关闭。当前交付状态为：
+目标机原 `com.tuanjie.urasclient2` 与 debug Client2 signer 不一致；Client2 profile dry-run 按设计
+在首次安装前失败关闭。用户随后明确授权清除普通 `/data/app` 原包及数据，完成同包 debug signer
+迁移。新增的 `--replace-conflicting-client2` 只在显式调用且 Android 确认 signer mismatch 时执行；
+迁移后 Client2 Binder/UI/RenderService 与 R7C Runtime/Client2 恢复矩阵通过。当前交付状态为：
 
 ```text
 physical_controller_application_evidence_available=true
 runtime_demo_physical_acceptance_passed=true
-client2_physical_acceptance_passed=false
+client2_physical_acceptance_passed=true
 production_ready=false
 target_hardware_validated=false
 hardware_accessed=false

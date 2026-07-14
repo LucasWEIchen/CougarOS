@@ -1123,9 +1123,15 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
   refresh protocol/Governance status on every successful connection and cancel pending retries on Activity
   destruction. B3 may emit `binder_room_hmi_regression_verified=true` only after the post-recovery UI tree
   contains connected/verified markers and no disconnected marker.
-- The existing target Client2 package has a different signer from the debug Client2 delivery. The installer
-  must fail before the first package mutation with `SIGNER_MIGRATION_REQUIRED`; automatic uninstall or
-  signature-gate bypass remains prohibited.
+- The existing target Client2 package has a different signer from the debug Client2 delivery. The default
+  installer path must fail before package mutation with `SIGNER_MIGRATION_REQUIRED`. On an explicitly
+  authorized test target, `--replace-conflicting-client2` may remove only the ordinary `/data/app`
+  `com.tuanjie.urasclient2` package after Android confirms a signer mismatch; the tool must disclose app-data
+  loss, must not react to other install errors, and must never treat this as an automatic or production migration.
+- After the approved replacement, physical API 33 evidence must re-verify Runtime/Client2 signer parity,
+  signature permission, package/current-signer capability, a real panel button, typed Binder completion,
+  visible UI reply, Client2 render continuity and the R7C Runtime/Client2 recovery matrix. This permits
+  `client2_physical_acceptance_passed=true` only for the debug application-layer test scope.
 - This evidence permits `physical_controller_application_evidence_available=true` only. It must not set
   `target_hardware_validated`, `production_ready`, Vendor NPU/VHAL availability, hardware access,
   Driver/HAL development or virtualization development true.

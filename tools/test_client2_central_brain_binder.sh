@@ -7,6 +7,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERIAL="${ANDROID_SERIAL:-}"
 BUILD=true
 REQUIRE_API_33=false
+REPLACE_CONFLICTING_CLIENT2=false
 
 usage() {
   cat <<'EOF'
@@ -16,6 +17,8 @@ Options:
   --serial SERIAL    Select an adb device explicitly.
   --skip-build       Reuse existing Runtime and Client2 debug APKs.
   --require-api-33   Fail unless the selected device is exactly Android API 33.
+  --replace-conflicting-client2
+                     Remove an installed Client2 only on signer mismatch.
   -h, --help         Show this help.
 EOF
 }
@@ -33,6 +36,10 @@ while (($# > 0)); do
       ;;
     --require-api-33)
       REQUIRE_API_33=true
+      shift
+      ;;
+    --replace-conflicting-client2)
+      REPLACE_CONFLICTING_CLIENT2=true
       shift
       ;;
     -h|--help)
@@ -62,6 +69,15 @@ AAPT="${AAPT:-$ROOT_DIR/.tools/android-build-tools-current/aapt}"
 JAR="${JAR:-$JAVA_HOME/bin/jar}"
 RUNTIME_APK="$ROOT_DIR/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk"
 CLIENT2_APK="$ROOT_DIR/builds/client2-central-brain/signed/client2-central-brain.debug.apk"
+
+adb_apk_path() {
+  local path="$1"
+  if [[ "$ADB" == *.exe ]] && command -v wslpath >/dev/null; then
+    wslpath -w "$path"
+  else
+    printf '%s\n' "$path"
+  fi
+}
 
 if [[ "$BUILD" == true ]]; then
   bash "$ROOT_DIR/tools/build_client2_central_brain_demo.sh"
@@ -126,19 +142,28 @@ if ! "$AAPT" dump xmltree "$CLIENT2_APK" AndroidManifest.xml \
   exit 1
 fi
 
-"${ADB_DEVICE[@]}" install -r "$RUNTIME_APK" >/dev/null
+RUNTIME_APK_ARGUMENT="$(adb_apk_path "$RUNTIME_APK")"
+CLIENT2_APK_ARGUMENT="$(adb_apk_path "$CLIENT2_APK")"
+"${ADB_DEVICE[@]}" install -r "$RUNTIME_APK_ARGUMENT" >/dev/null
 set +e
-CLIENT2_INSTALL_OUTPUT="$("${ADB_DEVICE[@]}" install -r "$CLIENT2_APK" 2>&1)"
+CLIENT2_INSTALL_OUTPUT="$("${ADB_DEVICE[@]}" install -r "$CLIENT2_APK_ARGUMENT" 2>&1)"
 CLIENT2_INSTALL_STATUS=$?
 set -e
+SIGNER_MIGRATION_PERFORMED=false
 if [[ $CLIENT2_INSTALL_STATUS -ne 0 ]]; then
   if ! grep -Eq 'INSTALL_FAILED_UPDATE_INCOMPATIBLE|signatures do not match' \
       <<<"$CLIENT2_INSTALL_OUTPUT"; then
     echo "$CLIENT2_INSTALL_OUTPUT" >&2
     exit 1
   fi
-  "${ADB_DEVICE[@]}" uninstall com.tuanjie.urasclient2 >/dev/null || true
-  "${ADB_DEVICE[@]}" install "$CLIENT2_APK" >/dev/null
+  if [[ "$REPLACE_CONFLICTING_CLIENT2" != true ]]; then
+    echo "SIGNER_MIGRATION_REQUIRED package=com.tuanjie.urasclient2" >&2
+    echo "No package was removed. Re-run with --replace-conflicting-client2 only after approving data loss." >&2
+    exit 1
+  fi
+  "${ADB_DEVICE[@]}" uninstall com.tuanjie.urasclient2 >/dev/null
+  "${ADB_DEVICE[@]}" install "$CLIENT2_APK_ARGUMENT" >/dev/null
+  SIGNER_MIGRATION_PERFORMED=true
 fi
 
 PACKAGE_DUMP="$("${ADB_DEVICE[@]}" shell dumpsys package com.tuanjie.urasclient2)"
@@ -239,6 +264,8 @@ printf '%s\n' \
   "client2_ui_reply_verified=true" \
   "client2_identity_resolved=true" \
   "client2_capability_policy_allowed=true" \
+  "client2_signer_migration_performed=$SIGNER_MIGRATION_PERFORMED" \
+  "automatic_uninstall_enabled=false" \
   "http_transport_used=false" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false" \

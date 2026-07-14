@@ -179,9 +179,14 @@
 
 2026-07-14 物理设备进展：目标 Android 13 ARM64 控制器已存在厂商 Client2。B4
 `--include-client2` dry-run 证明现有包 signer 与 debug Client2 signer 不一致，并在首次安装前返回
-`SIGNER_MIGRATION_REQUIRED`；未卸载、未覆盖原包。该结果确认 DEV-017 的 signer/RenderService
-trust 风险在真实目标上存在，不能通过应用层脚本规避。Runtime/Demo 物理应用层通过不等于
-Client2 物理验收通过；仍需目标 owner 提供同签升级、厂商测试签名包或独立源码 App 方案。
+`SIGNER_MIGRATION_REQUIRED`。用户随后明确批准清除普通 `/data/app` 原包及其数据，已安装与
+Runtime 同签的 debug Client2，并通过 signature permission、current-signer capability、真实按钮、
+Binder callback、UI reply 和 RenderService 车模画面验证。工具新增显式
+`--replace-conflicting-client2`，默认仍不删除包，且其他安装错误不得触发卸载。
+
+该处理解决当前测试设备的 debug 应用层 signer 冲突，但不消除 DEV-017：闭源 APK patch、生产
+私钥、OTA/MDM 升级回滚与长期源码维护仍未解决。RenderService 在当前 debug 包上可运行，不等于
+量产 allowlist/trust 已获批。
 
 状态：Accepted Temporary。
 

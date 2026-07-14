@@ -77,9 +77,14 @@
   Demo 未按 SDK contract 执行显式重连，且 B3 汇总未读取恢复后 UI。现增加生命周期内 500 ms、
   最多 10 次的有界 Runtime/Governance 重连，并将真实 UI 树断言纳入 B3；物理复测输出
   `post_recovery_hmi_rebind_verified=true`。
-- B4 maintenance profile 已真实安装 Runtime/Demo 并显示维护型 UI。目标机现有 Client2 与 debug
-  Client2 signer 不一致，`--include-client2` dry-run 按设计在首次安装前返回
-  `SIGNER_MIGRATION_REQUIRED`；未卸载、未覆盖厂商 Client2。
+- B4 maintenance profile 已真实安装 Runtime/Demo 并显示维护型 UI。目标机原 Client2 与 debug
+  Client2 signer 不一致；失败关闭确认后，用户明确授权清除原包及应用数据，已完成同包 debug
+  signer 迁移。`install_debug_apk.sh` 与 Binder 验收新增显式 `--replace-conflicting-client2`，默认仍
+  返回 `SIGNER_MIGRATION_REQUIRED` 且不修改设备。
+- 迁移后 API 33 ARM64 真机通过 Client2 signature permission、current-signer capability、真实
+  `care.cold` 按钮、typed Binder callback、UI reply、车模/半透明面板渲染和 R7C 完整恢复矩阵，
+  记录 `client2_physical_acceptance_passed=true`、`api33_end_to_end_acceptance_complete=true`；
+  生产签名、升级/回滚与硬件资格仍未关闭。
 - 新增脱敏报告 `CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md`。本轮只建立
   `physical_controller_application_evidence_available=true`，仍保持 `production_ready=false`、
   `target_hardware_validated=false`、NPU/VHAL/Driver-HAL/virtualization 未激活。

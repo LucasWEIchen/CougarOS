@@ -111,6 +111,12 @@ for marker in \
   require_text "$DEVICE_TEST" "$marker"
 done
 require_text "$DEVICE_TEST" "--require-api-33"
+require_text "$DEVICE_TEST" "--replace-conflicting-client2"
+require_text "$DEVICE_TEST" "SIGNER_MIGRATION_REQUIRED"
+require_text "$DEVICE_TEST" "automatic_uninstall_enabled=false"
+require_text "$PROJECT/scripts/install_debug_apk.sh" "--replace-conflicting-client2"
+require_text "$PROJECT/scripts/install_debug_apk.sh" "SIGNER_MIGRATION_REQUIRED"
+require_text "$PROJECT/scripts/install_debug_apk.sh" "automatic_uninstall_enabled=false"
 
 python3 - "$ROOT_DIR/$POLICY" <<'PY'
 import pathlib

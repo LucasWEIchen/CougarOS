@@ -1,10 +1,10 @@
 # Central Brain Android 13 物理目标测试报告
 
-版本：1.1
+版本：1.2
 
 日期：2026-07-14
 
-状态：Runtime/Demo 物理设备应用层验收通过；Client2 签名迁移阻塞；整机硬件与量产验收未完成
+状态：Runtime/Demo/Client2 物理设备应用层验收通过；整机硬件与量产验收未完成
 
 ## 1. 范围与需求
 
@@ -63,10 +63,14 @@ WSL bash/test scripts
 | 恢复后 Demo Binder/Governance UI | PASS | 有界显式重连后 UI 恢复 connected/verified，非陈旧 disconnected |
 | Signer mismatch 负向门禁 | PASS | 异签名 APK 在首次安装命令前被拒绝 |
 | Crash/ANR buffer | PASS | 测试结束后没有 Central Brain crash 或 ANR |
-| Client2 include dry-run | BLOCKED | 目标机现有 Client2 signer 与 debug Client2 signer 不同 |
+| Client2 signer migration | PASS | 经用户明确授权，卸载普通 `/data/app` 原包后安装 Runtime 同签 debug Client2 |
+| Client2 Binder/UI | PASS | 真实按钮、可信调用身份、异步完成回调和 UI 回复通过 |
+| Client2/Runtime recovery | PASS | Runtime 缺失/死亡/重启、single-flight、Client2 重启和 Binder race 回归通过 |
 
-Client2 阻塞是预期的安全结果。工具输出 `SIGNER_MIGRATION_REQUIRED` 后停止，未安装、未卸载、
-未覆盖目标机现有 Client2。不得通过自动卸载绕过该门禁。
+首次 dry-run 对 signer mismatch 的失败关闭是预期安全结果。用户随后明确批准清除原 Client2
+及其应用数据；迁移按 `uninstall com.tuanjie.urasclient2`、安装 Runtime 同签 debug APK、重新执行
+Binder/UI 验收的顺序完成。仓库工具不会默认删除包，只有显式
+`--replace-conflicting-client2` 且安装错误确认为 signer mismatch 时才执行该迁移。
 
 ## 5. 本轮修复
 
@@ -99,13 +103,26 @@ Demo 现按 Activity 生命周期执行 500 ms 间隔、最多 10 次的有界 R
 验收现必须读取恢复后的真实 UI tree，确认 connected/verified 且不存在 disconnected，才可输出
 `post_recovery_hmi_rebind_verified=true` 和 HMI regression PASS。
 
+### SIGN-001 Client2 同包 signer 迁移
+
+目标机原 Client2 与 Central Brain debug signer cohort 不一致，Android 正确拒绝同包覆盖。缺少厂商
+私钥时不能生成可覆盖原包的伪同签 APK。本轮按用户明确授权移除普通 `/data/app` 原包及应用数据，
+随后安装与 Runtime 同签的 debug Client2。`install_debug_apk.sh` 和 Binder 验收脚本新增显式
+`--replace-conflicting-client2`；默认仍输出 `SIGNER_MIGRATION_REQUIRED` 且不修改设备。
+
+迁移后 API 33 ARM64 目标上已确认 signature permission、Runtime current-signer capability、
+`care.cold` 真实按钮、typed Binder completion、确定性 UI 回复和原车模/半透明面板同时渲染。
+完整恢复矩阵同时输出 `api33_end_to_end_acceptance_complete=true` 和
+`r7_application_integration_complete=true`。
+该结果只解决当前测试设备的 debug 同包安装，不解决生产私钥、OTA/MDM 升级或量产 signer 审批。
+
 ## 6. 当前结论
 
 ```text
 physical_controller_application_evidence_available=true
 runtime_demo_physical_acceptance_passed=true
 post_recovery_hmi_rebind_verified=true
-client2_physical_acceptance_passed=false
+client2_physical_acceptance_passed=true
 production_ready=false
 target_hardware_validated=false
 native_vendor_npu_provider_available=false
@@ -117,12 +134,11 @@ virtualization_development_triggered=false
 
 这里的 `physical_controller_application_evidence_available=true` 只表示物理控制器上的 Android
 应用层证据已经存在，不表示真实 NPU、VHAL、车辆总线、Safety Runtime、性能、热、休眠唤醒、
-量产签名或整车功能安全已经通过。
+生产签名/升级策略或整车功能安全已经通过。
 
 ## 7. 后续测试顺序
 
-1. 由目标 owner 给出 Client2 原始/测试/量产 signer 与 RenderService allowlist 迁移方案。
-2. 在不卸载厂商 Client2 的前提下决定同签升级、厂商测试签名包或独立可维护 Demo 包路径。
-3. 执行后台/休眠唤醒、长稳、存储升级和 MDM 策略测试。
-4. 获取公开 Vendor NPU/VHAL SDK 或 service contract 后，再评审 `DRV-GAP-001` 和 adapter 工作量。
-5. 每一类硬件能力单独提供目标 smoke、故障、性能和回滚证据；不得由本次应用层 PASS 推断。
+1. 由目标 owner 给出生产 Client2/Runtime signer、OTA/MDM 升级和回滚策略。
+2. 执行后台/休眠唤醒、长稳、存储升级和 MDM 策略测试。
+3. 获取公开 Vendor NPU/VHAL SDK 或 service contract 后，再评审 `DRV-GAP-001` 和 adapter 工作量。
+4. 每一类硬件能力单独提供目标 smoke、故障、性能和回滚证据；不得由本次应用层 PASS 推断。

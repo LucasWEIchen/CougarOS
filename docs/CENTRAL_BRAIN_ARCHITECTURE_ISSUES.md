@@ -369,11 +369,17 @@ Runtime process recovery 和 PackageManager signer parity 全部通过，Crash/A
 有界 Runtime/Governance reconnect，并由恢复后真实 UI tree 输出
 `post_recovery_hmi_rebind_verified=true`。该修复不解决后台休眠/MDM 或硬件资格问题。
 
-同轮 `--include-client2` dry-run 发现目标机现有 Client2 signer 与 debug 交付 signer 不一致，
-并在首次安装前返回 `SIGNER_MIGRATION_REQUIRED`；未卸载或覆盖原包。ISSUE-027 继续 Open，
-剩余项为 production signer/升级/rollback、后台休眠与 MDM 策略、Client2/RenderService trust、
-公开 Vendor NPU/VHAL contract、性能/热/长稳和整机硬件资格。当前只记录
-`physical_controller_application_evidence_available=true`，`target_hardware_validated=false`。
+同轮 `--include-client2` dry-run 发现目标机原 Client2 signer 与 debug 交付 signer 不一致，并在
+首次安装前返回 `SIGNER_MIGRATION_REQUIRED`。用户随后明确授权清除普通 `/data/app` 原包及其
+数据；同包 debug signer 迁移后，Client2 signature permission、current-signer capability、真实
+按钮、Binder callback、UI reply、RenderService 画面和 Runtime/Client2 完整恢复矩阵均通过，记录
+`client2_physical_acceptance_passed=true`。工具默认仍不删除包，只有显式
+`--replace-conflicting-client2` 且 Android 确认 signer mismatch 才执行替换。
+
+ISSUE-027 继续 Open，剩余项为 production signer/升级/rollback、后台休眠与 MDM 策略、量产
+Client2/RenderService trust、公开 Vendor NPU/VHAL contract、性能/热/长稳和整机硬件资格。当前
+记录 `physical_controller_application_evidence_available=true`，但
+`target_hardware_validated=false`、`production_ready=false`。
 
 解除条件：物理 B3 application-layer preflight 已完成；仍须提供生产签名/升级策略、后台进程
 策略、Client2/RenderService trust 决策和任何公开 vendor SDK/服务 contract。真机应用层通过不

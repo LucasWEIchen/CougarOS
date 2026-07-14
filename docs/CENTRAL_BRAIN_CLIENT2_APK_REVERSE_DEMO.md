@@ -90,6 +90,17 @@ bash tools/check_client2_central_brain_demo.sh
 bash tools/install_client2_central_brain_demo.sh
 ```
 
+若目标已安装同包但 signer 不同，默认命令返回 `SIGNER_MIGRATION_REQUIRED` 且不修改设备。
+在明确允许清除原 Client2 及其应用数据的测试目标上，可执行：
+
+```bash
+bash tools/install_client2_central_brain_demo.sh \
+  --serial <serial> \
+  --replace-conflicting-client2
+```
+
+只有 Android 明确返回 signer mismatch 时才会执行卸载；其他安装错误继续失败关闭。
+
 ## 非目标
 
 - 不开发虚拟化层。
@@ -147,8 +158,8 @@ UI dump 验证首屏和滚动后全部 12 个按钮可见且可点击，Activity
 ## 已知风险
 
 1. Client2 原始源码不可用，长期维护风险高于源码工程。
-2. Debug 重签名可能影响 Client2 与 RenderService 的信任关系，需要在真机或 ARM64 环境验证。
-3. RenderService 是 ARM64/Unity/Tuanjie 运行时，本地 x86_64 模拟器可能只能验证 Client2 UI 壳和右侧面板。
+2. Debug 重签名已在当前 API 33 ARM64 测试设备通过 RenderService 画面验证，但不代表生产 signer、OTA/MDM 或量产 allowlist 已批准。
+3. RenderService 是 ARM64/Unity/Tuanjie 运行时；x86_64 模拟器证据仍不能替代目标 ARM64 验收。
 4. 面板访问 Python 原型后端使用 `INTERNET`/cleartext，直接 HTTP 演示路径已记录为偏差；量产必须迁移到 Binder/service/SDK。
 5. 当前 HTTP endpoint 固定为 `10.0.2.2:8787`，只适合本地模拟器演示；真实座舱域环境应替换为 Binder/SDK 或目标平台允许的 IPC/RPC 接入。
 6. 本地演示已用 `think=false`、single-flight 和受控输出预算解决连续 timeout；27B 模型在当前环境仍以 CPU 为主且单次约 77.6 秒，目标模型和目标算力必须独立标定。

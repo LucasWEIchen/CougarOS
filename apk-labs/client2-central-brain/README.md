@@ -45,11 +45,25 @@ Install to the currently selected Android device or emulator:
 bash tools/install_client2_central_brain_demo.sh
 ```
 
+If Android rejects an already installed `com.tuanjie.urasclient2` because its
+signer differs, an authorized test owner may explicitly replace it. This
+removes the existing package and its app data; no replacement occurs without
+the flag:
+
+```bash
+bash tools/install_client2_central_brain_demo.sh \
+  --serial <serial> \
+  --replace-conflicting-client2
+```
+
 Run the typed Binder/UI acceptance on an Android 13 emulator:
 
 ```bash
 bash tools/test_client2_central_brain_binder.sh --require-api-33
 ```
+
+The Binder test accepts the same `--replace-conflicting-client2` option for an
+owner-approved signer migration. Other install failures remain fail-closed.
 
 Run the R7C fault/recovery matrix after the happy-path check:
 

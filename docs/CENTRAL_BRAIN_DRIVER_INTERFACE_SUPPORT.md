@@ -684,11 +684,14 @@ The physical-target test used public adb, PackageManager, Binder, Room, app-priv
 dumpsys and the packaged userspace C ABI only. Windows adb CRLF normalization and caller-selected ADB
 propagation are host test-tool fixes; they do not add a device API, JNI entry, HAL service or driver call.
 
-The target confirmed Android 13/API 33, arm64-v8a and ordinary `/data/app` execution for Runtime/Demo.
+The target confirmed Android 13/API 33, arm64-v8a and ordinary `/data/app` execution for Runtime, Demo
+and the replacement Client2 debug package.
 This closes no Driver/HAL gap. No private vendor service or device node was enumerated; NPU, VHAL,
-vehicle bus, DMA/shared memory, Safety Runtime and hardware metrics were not accessed. The existing
-Client2 signer mismatch is an application signing/RenderService trust decision unless a published target
-contract later proves a lower-layer gap.
+vehicle bus, DMA/shared memory, Safety Runtime and hardware metrics were not accessed. The Client2
+signer mismatch was handled as an explicitly authorized application-package remove/install migration;
+signature permission, Binder/UI and RenderService rendering then passed. This remains an application
+signing/upgrade decision and triggers no Driver/HAL work unless a published target contract later proves
+a lower-layer gap.
 
 `DRV-GAP-001` remains Open and added Driver/HAL development remains zero. The accepted state is
 `physical_controller_application_evidence_available=true`, `target_hardware_validated=false`,
