@@ -60,7 +60,7 @@ ADB="${ADB:-$ANDROID_HOME/platform-tools/adb}"
 [[ -x "$ADB" ]] || { echo "adb not executable: $ADB" >&2; exit 1; }
 
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t ONLINE_DEVICES < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t ONLINE_DEVICES < <("$ADB" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   if [[ ${#ONLINE_DEVICES[@]} -ne 1 ]]; then
     echo "expected exactly one online adb device; use --serial when multiple exist" >&2
     "$ADB" devices -l >&2

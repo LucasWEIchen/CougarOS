@@ -359,7 +359,25 @@ R7D 交付修正：bundle 已补入目标部署与 Client2 recovery 脚本，同
 
 2026-07-12 B4 进展：hybrid bundle、双 ABI inventory、same-signer fail-closed installer、maintenance/Client2 安装 profile 和完整指南已通过 API 33 模拟器；Client2 Binder/UI/recovery 也通过。Bundle 生成不会提供目标输入，因此 ISSUE-027 仍为 Open：物理设备 ABI/安装/休眠后台、production signer/升级/rollback、RenderService trust、SELinux/MDM owner 和公开 vendor interface contract 均需目标团队填充。
 
-解除条件：目标设备执行 B3 preflight，并提供生产签名/升级策略、后台进程策略和任何公开 vendor SDK/服务 contract。真机应用层通过不自动关闭 NPU/VHAL/车辆/安全硬件验证。
+2026-07-14 物理设备进展：直接 ADB 已确认目标为 Android 13/API 33、UNISOC、
+`arm64-v8a`、Automotive、SELinux Enforcing 和 Verified Boot green。Runtime/Demo 已以普通
+`/data/app` 安装，signature permission、Typed Binder、Room/Governance/HMI、Native C ABI V1、
+Runtime process recovery 和 PackageManager signer parity 全部通过，Crash/ANR buffer 为空。
+因此 primary/supported ABI、64-bit process、Runtime/Demo 普通安装和活动态 Service 基础路径已不再未知。
+
+同轮 process-recovery 后 UI 检查曾发现 Demo 未显式重连而保留 `disconnected`；应用层已增加
+有界 Runtime/Governance reconnect，并由恢复后真实 UI tree 输出
+`post_recovery_hmi_rebind_verified=true`。该修复不解决后台休眠/MDM 或硬件资格问题。
+
+同轮 `--include-client2` dry-run 发现目标机现有 Client2 signer 与 debug 交付 signer 不一致，
+并在首次安装前返回 `SIGNER_MIGRATION_REQUIRED`；未卸载或覆盖原包。ISSUE-027 继续 Open，
+剩余项为 production signer/升级/rollback、后台休眠与 MDM 策略、Client2/RenderService trust、
+公开 Vendor NPU/VHAL contract、性能/热/长稳和整机硬件资格。当前只记录
+`physical_controller_application_evidence_available=true`，`target_hardware_validated=false`。
+
+解除条件：物理 B3 application-layer preflight 已完成；仍须提供生产签名/升级策略、后台进程
+策略、Client2/RenderService trust 决策和任何公开 vendor SDK/服务 contract。真机应用层通过不
+自动关闭 NPU/VHAL/车辆/安全硬件验证。
 
 状态：Open，实施已获批准。
 

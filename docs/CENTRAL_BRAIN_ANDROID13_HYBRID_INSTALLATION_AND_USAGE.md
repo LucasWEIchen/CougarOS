@@ -2,9 +2,9 @@
 
 版本：1.0
 
-日期：2026-07-12
+日期：2026-07-14
 
-状态：B4 hybrid software handoff verified on API 33 emulator
+状态：B4 hybrid software handoff verified；Runtime/Demo 已通过物理 API 33 ARM64 应用层验收
 
 ## 1. 交付范围
 
@@ -43,6 +43,18 @@ adb devices -l
 ```
 
 只允许一个 online device，或在后续命令中始终指定 `--serial <serial>`。
+
+当 USB 与驱动由外层 Windows 11 管理时，推荐继续在 WSL 执行全部脚本，但把 `ADB` 指向
+Windows platform-tools：
+
+```bash
+export ADB=/mnt/e/platform-tools/adb.exe
+"$ADB" devices -l
+```
+
+该模式已在物理 Android 13 控制器验证。Central Brain 脚本会归一化 Windows ADB 的 CRLF
+输出，并把调用方选择的 `ADB` 贯穿 preflight、signer guard、安装和验收。不要同时启动另一套
+Linux ADB server；若改回 Linux ADB，先确保 USB 已通过 `usbipd-win` 转交 WSL。
 
 ## 3. 从源码构建
 
@@ -237,9 +249,11 @@ bash tools/test_central_brain_android_blackbox_acceptance.sh \
 
 ## 12. 当前未完成的目标项
 
-- 物理 Android 13 控制器 B3 evidence；
+- Runtime/Demo 的物理 Android 13 B3 应用层 evidence 已于 2026-07-14 通过，详见
+  `CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md`；
 - production signer、升级、rollback、MDM/后台策略；
-- Client2/RenderService 真机 trust；
+- Client2/RenderService 真机 trust；当前目标机已安装 Client2 与 debug 交付 signer 不一致，
+  `--include-client2` dry-run 按设计返回 `SIGNER_MIGRATION_REQUIRED`，未修改原包；
 - Vendor NPU、VHAL、车辆总线、Safety Runtime contract；
 - production Effect/Model/Event/Memory/Skill-Governance activation；
 - 性能、热、长稳、休眠唤醒、功能安全和整车验收。

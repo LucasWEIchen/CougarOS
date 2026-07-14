@@ -55,7 +55,7 @@ for marker in \
   '6ca306f4' \
   '909dfd83' \
   '74b71868' \
-  'physical_controller_evidence_available=false' \
+  'physical_controller_application_evidence_available=true' \
   'production_ready=false' \
   'target_hardware_validated=false' \
   'driver_development_triggered=false' \

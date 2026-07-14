@@ -799,7 +799,9 @@ C 层不得拥有 Binder identity、Android permission、Room、用户 session�
 - 通过 `CentralBrainClient` 提交 typed task；
 - 通过 `CentralBrainGovernanceClient` 做 action evaluate/approval；
 - UI 不直接访问 Room、Native 或 Python gateway；
-- Service 未连接时显示明确失败，不自动切换 HTTP。
+- Service 未连接时显示明确失败，不自动切换 HTTP；
+- Runtime/Governance Binder death 后由 Activity 延迟 500 ms 显式调用 SDK `reconnect()`，最多 10 次；
+  任一路连接成功即取消对应重试并刷新 version/hash 状态，`onDestroy()` 取消全部 pending callback。
 
 ### 14.2 Policy Probe
 

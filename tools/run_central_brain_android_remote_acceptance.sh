@@ -203,12 +203,12 @@ SOURCE_GIT_COMMIT="${MANIFEST_VALUES[1]}"
 [[ "$SOURCE_GIT_COMMIT" =~ ^[0-9a-f]{40}$ ]] || die "manifest source commit is invalid"
 
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t ONLINE_DEVICES < <("$ADB_TOOL" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t ONLINE_DEVICES < <("$ADB_TOOL" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   [[ ${#ONLINE_DEVICES[@]} -eq 1 ]] \
     || die "expected exactly one online ADB device; provide --serial"
   SERIAL="${ONLINE_DEVICES[0]}"
 fi
-[[ "$($ADB_TOOL -s "$SERIAL" get-state 2>/dev/null)" == "device" ]] \
+[[ "$($ADB_TOOL -s "$SERIAL" get-state 2>/dev/null | tr -d '\r')" == "device" ]] \
   || die "selected ADB device is not online"
 
 if [[ -z "$OUTPUT_DIR" ]]; then

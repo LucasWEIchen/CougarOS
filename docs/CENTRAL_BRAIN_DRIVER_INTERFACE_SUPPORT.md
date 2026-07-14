@@ -677,3 +677,22 @@ target evidence exists. Req IDs: `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `N
 The Private CougarOS repository, immutable RC2 release and 15-minute Issue polling change only the
 host-side handoff path. GitHub/`gh` activation does not add a target service, socket, Binder, JNI, HAL or
 driver call; Driver/HAL added development remains zero.
+
+### 2026-07-14 Physical Android 13 Application Test Driver/HAL Result
+
+The physical-target test used public adb, PackageManager, Binder, Room, app-private storage, Runtime
+dumpsys and the packaged userspace C ABI only. Windows adb CRLF normalization and caller-selected ADB
+propagation are host test-tool fixes; they do not add a device API, JNI entry, HAL service or driver call.
+
+The target confirmed Android 13/API 33, arm64-v8a and ordinary `/data/app` execution for Runtime/Demo.
+This closes no Driver/HAL gap. No private vendor service or device node was enumerated; NPU, VHAL,
+vehicle bus, DMA/shared memory, Safety Runtime and hardware metrics were not accessed. The existing
+Client2 signer mismatch is an application signing/RenderService trust decision unless a published target
+contract later proves a lower-layer gap.
+
+`DRV-GAP-001` remains Open and added Driver/HAL development remains zero. The accepted state is
+`physical_controller_application_evidence_available=true`, `target_hardware_validated=false`,
+`hardware_accessed=false`, `driver_development_triggered=false` and
+`virtualization_development_triggered=false`. Req IDs: `APP-004`, `XSC-004`, `XSC-005`, `XSC-006`,
+`NV-F-001`, `NV-F-011`, `NV-F-012`, `NV-G-005`, `NV-P-002`, `KH-003`, `KH-006`,
+`DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.

@@ -2,9 +2,9 @@
 
 版本：0.1
 
-日期：2026-07-12
+日期：2026-07-14
 
-状态：B3 verified on API 33 emulator / physical controller pending
+状态：B3 verified on API 33 emulator and physical Android 13 ARM64 controller
 
 ## 目的与范围
 
@@ -23,6 +23,7 @@ Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、
 
 ```bash
 source env.sh
+export ADB=/mnt/e/platform-tools/adb.exe  # Windows owns USB; omit for native Linux adb
 bash tools/preflight_central_brain_android13_blackbox.sh \
   --serial <serial> \
   --require-api-33 \
@@ -87,7 +88,7 @@ API 验证：
 - Client2/RenderService 信任和覆盖安装规则；
 - 公开 vendor service/NPU/VHAL contract（若存在）及其权限/ABI 文档。
 
-在这些输入和物理设备证据到位前，`ISSUE-027` 保持 Open，
+在这些生产签名、后台策略、Client2 trust 和 vendor contract 输入到位前，`ISSUE-027` 保持 Open，
 `target_hardware_validated=false`、`native_vendor_npu_provider_available=false`、
 `native_runtime_dispatch_enabled=false` 和 `hardware_accessed=false` 不得改为 true。
 
@@ -102,3 +103,18 @@ preflight、受控安装、完整 Binder/Room/HMI 回归、Native Runtime force-
 该 AVD 未声明 `android.hardware.type.automotive`，verified-boot/flash-lock/vbmeta 属性对
 shell 返回 UNKNOWN。上述结果保持原值，不据此推断物理控制器策略；
 `physical_controller_evidence_available=false` 和 `target_hardware_validated=false`。
+
+## 2026-07-14 物理设备证据
+
+非秘密设备别名 `local-cockpit-a13-01` 已通过 WSL 调 Windows ADB 完成同一 B3 流程。目标为
+Android 13/API 33、UNISOC、arm64-v8a、Automotive、SELinux Enforcing；Runtime/Demo 普通
+`/data/app` 安装、signature permission、Binder/Room/Governance/HMI、Native Runtime lifecycle
+和 process recovery 通过，测试结束后 Crash/ANR buffer 为空。
+
+测试中修复了 Windows ADB CRLF 设备枚举/get-state 误判和 signer guard 切换回 Linux ADB 的
+问题。物理设备的 raw serial、fingerprint、signer digest 和完整日志未写入仓库。目标机现有
+Client2 与 debug Client2 signer 不一致，Client2 dry-run 在首次安装前失败关闭且没有修改原包。
+
+详细脱敏结果见 `CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md`。当前只允许
+`physical_controller_application_evidence_available=true`；`target_hardware_validated=false`、
+`production_ready=false` 和所有 NPU/VHAL/Driver-HAL 激活标志继续保持 false。

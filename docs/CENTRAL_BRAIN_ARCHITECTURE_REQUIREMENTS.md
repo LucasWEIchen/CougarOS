@@ -1096,7 +1096,7 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - Root `README.md` is the repository-level technical entry and must distinguish the Android Java/AIDL/C actual-engineering track, the Python architecture-prototype track, the isolated Client2 APK patch path and target hardware empty interfaces.
 - The README must map every tracked top-level module and each Android Gradle module to its source paths, interface responsibility and delivery output. Local `apks/`, `reverse/`, `builds/`, logs, tool caches, signing material and raw evidence must be identified as non-published inputs rather than repository modules.
 - The total architecture and call chains must preserve Binder identity/Governance/Room ownership in Java, a narrow JNI bridge, the C11 ABI lifecycle boundary, protocol-binding separation and fail-closed Vendor NPU/VHAL/Driver/HAL/virtualization gates.
-- Current delivery and acceptance values must not overstate evidence: `physical_controller_evidence_available=false`, `production_ready=false` and `target_hardware_validated=false` remain mandatory until separately approved target evidence exists.
+- Current delivery and acceptance values must not overstate evidence: physical Runtime/Demo application evidence may set `physical_controller_application_evidence_available=true`, while `production_ready=false` and `target_hardware_validated=false` remain mandatory until separately approved production and hardware evidence exists.
 - Architecture/interface/delivery changes must update the README recent-change table. `tools/check_central_brain_root_readme.sh` validates headings, tracked path mappings, Gradle modules, relative links, Req IDs, negative readiness states and retained architecture commits; it must run in the Android evolution gate and the remote GitHub contract workflow.
 
 ### 2026-07-12 software detailed design trace
@@ -1106,3 +1106,26 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - The document must describe module intent and non-responsibility, public and internal interfaces, Binder permissions/death behavior, task and durable state machines, data ownership, wall/elapsed clock domains, concurrency, error semantics, configuration, extension procedures and validation gates.
 - Source-level markers must remain synchronized with Android Gradle modules, Runtime/Governance/Diagnostics AIDL methods, the C ABI V1 exported function set, the Client2 12-scenario allowlist and the Ollama environment contract.
 - `tools/check_central_brain_software_detailed_design.sh` must run in the Android evolution gate and the GitHub contract workflow. It may validate documentation/source consistency but cannot set `production_ready`, `target_hardware_validated`, `hardware_accessed`, Driver/HAL development or virtualization development true.
+
+### 2026-07-14 physical Android 13 application-layer trace
+
+- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
+  `NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、
+  `NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
+- WSL-hosted acceptance may use a caller-selected Windows `adb.exe` while Windows retains USB ownership.
+  Every device-list and get-state parser in the Central Brain Android test path must accept both LF and CRLF,
+  and nested test tools must preserve the caller-selected `ADB` executable.
+- The physical target passed API 33/arm64/Automotive read-only preflight, ordinary `/data/app` Runtime and
+  Demo installation, signer parity, signature permission, Typed Binder, Room/Governance/HMI, Native C ABI V1
+  lifecycle and process recovery. Evidence is application-layer only and is recorded without raw serial,
+  fingerprint, signer digest or unrestricted logs in Git.
+- After Runtime process death, Demo must perform bounded explicit reconnect through both public SDK clients,
+  refresh protocol/Governance status on every successful connection and cancel pending retries on Activity
+  destruction. B3 may emit `binder_room_hmi_regression_verified=true` only after the post-recovery UI tree
+  contains connected/verified markers and no disconnected marker.
+- The existing target Client2 package has a different signer from the debug Client2 delivery. The installer
+  must fail before the first package mutation with `SIGNER_MIGRATION_REQUIRED`; automatic uninstall or
+  signature-gate bypass remains prohibited.
+- This evidence permits `physical_controller_application_evidence_available=true` only. It must not set
+  `target_hardware_validated`, `production_ready`, Vendor NPU/VHAL availability, hardware access,
+  Driver/HAL development or virtualization development true.

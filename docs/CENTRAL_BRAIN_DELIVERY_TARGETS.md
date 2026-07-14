@@ -973,9 +973,9 @@ B2 交付不提供 native inference 或硬件 adapter。`native_software_provide
 
 B3 交付 `central_brain_android_b3_blackbox_acceptance.json`、只读 preflight、临时异签名负向测试、受控 acceptance、debug-only Java PackageManager probe 和详细设备执行文档。Runtime APK versionCode 3/versionName `0.3.0-b3`；安装前和安装后都比较已安装 Runtime/Demo 与交付 APK signer，任一 mismatch 在安装前失败关闭。
 
-API 33 x86_64 模拟器已通过 ordinary `/data/app`、普通 UID、app-private data/native library path、64-bit process、PackageManager signer parity、Native Runtime process recovery 和 Binder/Room/HMI regression。证据 scope 固定 `api33-emulator-blackbox-application`。
+API 33 x86_64 模拟器已通过 ordinary `/data/app`、普通 UID、app-private data/native library path、64-bit process、PackageManager signer parity、Native Runtime process recovery 和 Binder/Room/HMI regression。其证据 scope 固定 `api33-emulator-blackbox-application`。2026-07-14 物理 API 33 ARM64 Automotive 控制器又通过同一 B3 应用层流程，并增加 Runtime force-stop 后 Demo Runtime/Governance 有界重连 UI 断言。
 
-B3 没有物理控制器输入，因此 `physical_controller_evidence_available=false`、`production_signing_approved=false`、`background_policy_approved=false`、`render_service_trust_approved=false`、`vendor_interface_contract_available=false`、`target_hardware_validated=false`。B4 只能交付可执行命令和 unresolved target checklist，不能伪造这些状态。
+B3 物理结果只允许 `physical_controller_application_evidence_available=true`。`production_signing_approved=false`、`background_policy_approved=false`、`render_service_trust_approved=false`、`vendor_interface_contract_available=false`、`target_hardware_validated=false` 仍保持；B4 交付不能从应用层证据推断这些状态。
 
 ## Android B4 Hybrid C/Java Software Handoff
 
@@ -1005,6 +1005,39 @@ Release 和每 15 分钟 Issue 维护自动化已经激活，`github_repository_
 `gh` CLI。tester access list 和服务端 branch protection 仍阻塞；当前 Private 套餐拒绝后者，
 tracked pre-push hook + Actions 不等价于服务端保护。`physical_controller_evidence_available=false`、
 `production_ready=false` 和 `target_hardware_validated=false` 继续保持。
+
+## 2026-07-14 Physical Android 13 Application-Layer Acceptance
+
+首轮直接 USB/ADB 目标测试使用 WSL 脚本调用 Windows `adb.exe`。B3 read-only preflight、B4
+maintenance dry-run、Runtime -> Demo 安装、普通 `/data/app`、signature permission、Typed Binder、
+Room/Governance/HMI、Native C ABI V1 和 process recovery 均在 Android 13/API 33/arm64-v8a
+Automotive 控制器通过。
+
+物理截图随后暴露 process recovery 后 Demo 状态陈旧；修复后 Demo 使用两个公开 SDK client 执行
+有界显式重连，B3 必须读取恢复后 UI tree 才能输出 `post_recovery_hmi_rebind_verified=true`。
+
+交付工具新增 Windows ADB CRLF compatibility gate。所有设备枚举和 `get-state` 解析兼容 LF/CRLF，
+嵌套 signer guard 保留调用方 ADB。该修复只改变 host-side test orchestration，不改变 APK/AAR、
+AIDL、C ABI、Room schema、Driver/HAL 或系统软件。
+
+目标机现有 `com.tuanjie.urasclient2` 与 debug Client2 signer 不一致；Client2 profile dry-run 按设计
+在首次安装前失败关闭。当前交付状态为：
+
+```text
+physical_controller_application_evidence_available=true
+runtime_demo_physical_acceptance_passed=true
+client2_physical_acceptance_passed=false
+production_ready=false
+target_hardware_validated=false
+hardware_accessed=false
+driver_development_triggered=false
+virtualization_development_triggered=false
+```
+
+脱敏过程和完整边界见 `CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md`。Req IDs：
+`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、
+`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、
+`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
 
 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、
 `NV-F-001`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、

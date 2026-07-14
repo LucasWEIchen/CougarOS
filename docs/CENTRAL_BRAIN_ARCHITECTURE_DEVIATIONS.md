@@ -177,6 +177,12 @@
 
 2026-07-12 R7B 进展：Client2 旧 HTTP RequestTask、INTERNET 与 cleartext 已移除；SDK/AIDL bridge、Runtime current-signer capability principal 和 API 33 点击/UI/Binder identity 证据已完成。`CLIENT2_BINDER_MIGRATION_PENDING` 已关闭，但 DEV-017 保持 Accepted Temporary：闭源 APK patch、重签名、RenderService 信任和目标 ARM64 设备验收仍未解决。无 Driver/HAL、厂商系统源码、Linux 前端或虚拟化开发。
 
+2026-07-14 物理设备进展：目标 Android 13 ARM64 控制器已存在厂商 Client2。B4
+`--include-client2` dry-run 证明现有包 signer 与 debug Client2 signer 不一致，并在首次安装前返回
+`SIGNER_MIGRATION_REQUIRED`；未卸载、未覆盖原包。该结果确认 DEV-017 的 signer/RenderService
+trust 风险在真实目标上存在，不能通过应用层脚本规避。Runtime/Demo 物理应用层通过不等于
+Client2 物理验收通过；仍需目标 owner 提供同签升级、厂商测试签名包或独立源码 App 方案。
+
 状态：Accepted Temporary。
 
 ## DEV-018 Android AIDL 业务面与诊断面混合
@@ -321,3 +327,43 @@ publication-tree guard。只允许精确推送 `codex/github-publication:main`�
 Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
 `NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、
 `DEL-004`、`DEL-005`。
+
+## DEV-022 WSL 调 Windows ADB 的 CRLF 与工具选择兼容性
+
+偏差：Android 验收脚本最初按 Linux ADB 的 LF 输出实现。通过 WSL 调 Windows
+`E:\platform-tools\adb.exe` 时，`adb devices` 的状态列和 `adb get-state` 带 `\r`，导致在线设备
+被误判为缺失或离线；black-box signer guard 还会无条件切回 Linux ADB。
+
+涉及需求：`APP-004`、`XSC-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
+
+影响：B3/B4 在实际 USB 设备上会在任何功能测试前错误停止；嵌套工具切换 ADB server 还可能
+把验收执行到错误设备或空设备列表。
+
+修正：所有 Central Brain Android 设备枚举和 `get-state` 门禁先归一化 CRLF；signer guard
+遵循调用方 `ADB` override；新增 `check_central_brain_windows_adb_compatibility.sh` 验证 LF/CRLF、
+脚本覆盖面和 ADB 选择。修复后物理 API 33 B3 全流程与 B4 maintenance 安装通过。
+
+状态：Resolved。
+
+## DEV-023 B3 process-recovery 后 Demo HMI 连接状态未复验
+
+偏差：B3 安装阶段会验证 Demo Typed Binder/Governance UI，但后续 Native Runtime 测试会
+`force-stop` Runtime。Demo 收到 Binder death 后只显示 `disconnected`，没有按 SDK contract 调用
+显式 `reconnect()`；B3 汇总脚本也没有重新读取恢复后 UI，却固定输出
+`binder_room_hmi_regression_verified=true`。
+
+涉及需求：`APP-004`、`XSC-001`、`XSC-006`、`NV-G-003`、`NV-G-006`、`NV-P-002`、
+`DEL-001`、`DEL-003`、`DEL-004`。
+
+影响：Runtime 进程已恢复而维护型 UI 仍显示离线，测试报告会把安装前 HMI 结果错误归因到
+process-recovery 后，无法发现座舱应用重连缺陷。
+
+修正：Demo 对 Runtime/Governance 分别执行 500 ms 间隔、最多 10 次的 Activity-lifecycle 有界
+显式重连；连接成功和 `onDestroy()` 均取消 pending retry，重连后重新校验 version/hash 并刷新
+状态。B3 现在在 Native Runtime process recovery 后读取真实 UI tree，只有 connected/verified
+存在且 disconnected 不存在时才输出 `post_recovery_hmi_rebind_verified=true` 和 HMI PASS。
+
+物理 Android 13/API 33 ARM64 设备复测通过。该修复不改变 Room/AIDL/C ABI，不新增 HTTP fallback、
+Driver/HAL、Vendor NPU/VHAL、硬件访问或虚拟化开发。
+
+状态：Resolved。

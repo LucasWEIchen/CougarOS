@@ -125,6 +125,7 @@ for path in \
   tools/check_central_brain_android_native_runtime_integration.sh \
   tools/check_central_brain_android_blackbox_preflight.sh \
   tools/check_central_brain_android_hybrid_delivery.sh \
+  tools/check_central_brain_windows_adb_compatibility.sh \
   tools/check_central_brain_software_detailed_design.sh \
   tools/verify_central_brain_native_runtime_apk.sh \
   tools/test_central_brain_android_native_runtime.sh \
@@ -269,6 +270,7 @@ bash "$ROOT_DIR/tools/check_central_brain_native_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_native_runtime_integration.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_blackbox_preflight.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_hybrid_delivery.sh"
+bash "$ROOT_DIR/tools/check_central_brain_windows_adb_compatibility.sh"
 bash "$ROOT_DIR/tools/check_central_brain_github_remote_testing.sh"
 bash "$ROOT_DIR/tools/check_central_brain_software_detailed_design.sh"
 bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh"

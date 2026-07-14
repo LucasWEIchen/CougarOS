@@ -170,7 +170,7 @@ print(f"target_input_status={payload.get('status', 'unknown')}")
 PY
 
 if [[ -z "$SERIAL" ]]; then
-  mapfile -t DEVICES < <("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+  mapfile -t DEVICES < <("$ADB" devices | tr -d '\r' | awk 'NR > 1 && $2 == "device" { print $1 }')
   if [[ ${#DEVICES[@]} -ne 1 ]]; then
     echo "expected exactly one online adb device; use --serial" >&2
     exit 1
@@ -178,7 +178,7 @@ if [[ -z "$SERIAL" ]]; then
   SERIAL="${DEVICES[0]}"
 fi
 ADB_DEVICE=("$ADB" -s "$SERIAL")
-[[ "$("${ADB_DEVICE[@]}" get-state)" == "device" ]] \
+[[ "$("${ADB_DEVICE[@]}" get-state | tr -d '\r')" == "device" ]] \
   || { echo "adb device is not online: $SERIAL" >&2; exit 1; }
 SDK="$("${ADB_DEVICE[@]}" shell getprop ro.build.version.sdk | tr -d '\r\n')"
 MODEL="$("${ADB_DEVICE[@]}" shell getprop ro.product.model | tr -d '\r\n')"
