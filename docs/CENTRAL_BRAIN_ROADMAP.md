@@ -1,6 +1,6 @@
 # 车载中央大脑路线图与进展
 
-更新时间：2026-07-14
+更新时间：2026-07-15
 
 ## 长期任务拆解
 
@@ -64,6 +64,21 @@
 - 发现图中边界不清或工程风险，必须同步更新 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
 
 ## 最近进展
+
+### 2026-07-15
+
+- Client2 右侧半透明面板从常驻浮窗改为底部导航触发菜单，原面板宽度、颜色、圆角、
+  elevation、12 个场景按钮和结果区均保持不变。Activity 启动后面板为 `GONE`；首次点击
+  `centralBrainNavigationTrigger` 显示，第二次点击或点击面板外区域隐藏，面板内交互不关闭菜单。
+- Client2 底部导航由 Tuanjie/RenderService 绘制而非 Android `View`。隔离 patch 在根
+  `FrameLayout` 增加透明、可访问性可识别的比例触摸目标，映射当前导航图标；该闭源 UI 几何
+  依赖继续由 `DEV-017`/`ISSUE-019` 跟踪，不修改 RenderService 或 Unity/Tuanjie 资产。
+- API 33 ARM64 物理控制器已通过默认隐藏、导航首次显示、二次隐藏、面板外关闭、再次打开、
+  `care.cold` typed Binder/UI reply 和 Client2/Runtime 完整恢复矩阵；Client2 进程重启后菜单可重新
+  打开。APK 不申请网络权限，`hardware_accessed=false`、`driver_development_triggered=false`、
+  `virtualization_development_triggered=false`。
+- 覆盖 Req ID：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-G-006`、`NV-P-002`、
+  `DEL-001`、`DEL-003`、`DEL-004`。
 
 ### 2026-07-14
 

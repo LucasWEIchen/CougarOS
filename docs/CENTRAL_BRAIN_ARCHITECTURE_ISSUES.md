@@ -185,6 +185,13 @@
 
 2026-07-12 R7C 进展：API 33 已验证 Runtime unavailable/death 与 Client2/process retry，不再把基础应用恢复能力列为 ISSUE-019 未决项。ISSUE-019 仍为 Proposed：x86_64 emulator 不能证明 ARM64 RenderService、原始/量产 signer trust、目标安装策略或真实模型/NPU 性能。
 
+2026-07-15 导航菜单进展：当前底部导航是 RenderService/Tuanjie 绘制内容，没有 Android 控件
+回调可供 APK patch 绑定。测试实现以透明 Android 触摸目标按 1920x1080 当前布局比例覆盖导航
+图标，并通过物理 API 33 目标上的默认隐藏、首次显示、二次隐藏、面板外关闭和 Client2 重启后
+重开验收。该结果关闭当前测试分辨率的交互可用性问题，但不关闭闭源几何依赖：不同分辨率、
+density、主题或厂商导航布局变更仍可能导致触点漂移。量产解除条件是获得源码 HMI 导航事件或
+厂商稳定公开回调，并在支持的显示矩阵执行坐标/可访问性回归。
+
 状态：Proposed。
 
 ## ISSUE-020 KaKaClaw 公开产品参考边界

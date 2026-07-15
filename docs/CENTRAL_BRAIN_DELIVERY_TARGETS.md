@@ -58,7 +58,7 @@ R3B 已交付 Runtime APK 内的 V1 strict default-deny capability XML、四项 
 
 ## Agent 场景验收交付
 
-Client2 Android 演示主路径通过右侧半透明悬浮面板提供 12 个稳定 `scenario_id`，统一调用 `POST /agent/scenarios/run`；控件区独立滚动，结果区固定。Linux 同步路径提供 `agent-scenarios` 和 `agent-scenario-home` CLI，并与 Android 共用 `GET /agent/scenarios`、`POST /agent/scenarios/run` 以及 `central_brain_api.json` `0.1.108` contract。详细场景、KaKaClaw 公开概念参考和验收矩阵见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`。
+Client2 Android 演示主路径通过底部导航触发右侧半透明菜单，提供 12 个稳定 `scenario_id`；菜单默认隐藏，同一导航再次点击或点击面板外区域关闭，控件区独立滚动，结果区固定。当前 APK 通过 public SDK/typed Binder 提交任务，不申请网络权限且不保留 HTTP fallback。Linux/Python 原型同步路径继续提供 `agent-scenarios`、`agent-scenario-home`、`GET /agent/scenarios` 和 `POST /agent/scenarios/run`，两条路径共享场景 ID 和产品边界，不宣称共享同一运行时实现。详细场景、KaKaClaw 公开概念参考和验收矩阵见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`。
 
 该交付覆盖 `APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-011`、`NV-G-005`、`NV-G-007`、`DEL-001`、`DEL-002` 和 `DEL-003`。它只组合现有 mock/contract/readiness 接口，固定 `product_compatibility_claimed=false`、`real_vehicle_control=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `production_ready=false`。
 
@@ -343,7 +343,7 @@ Linux systemd 部署样例：
 Android 版本必须提供：
 
 - 可安装 APK 或 Android library sample。
-- 可重复构建的 Client2 APK reverse demo patch 工程，用于覆盖在全屏车模右侧约 1/3 的半透明 Central Brain 悬浮面板；当前已含 `我冷了`/`我累了` 两个按钮、`centralBrainReplyText` 回复文本框、Manifest `INTERNET`/cleartext patch、MainActivity smali hook，并通过临时 `http://10.0.2.2:8787/ai/infer` 调用 Python 原型显示 `result.generated_text`。
+- 可重复构建的 Client2 APK reverse demo patch 工程，用于在全屏车模上提供底部导航触发、右侧约 1/3 的半透明 Central Brain 菜单；当前包含 12 个稳定场景按钮、`centralBrainReplyText` 回复区域、public SDK/typed Binder `classes2.dex` bridge、MainActivity smali hook，以及默认隐藏、同键切换和面板外关闭。APK 不申请 `INTERNET`，不允许 cleartext/HTTP fallback。
 - 与 Linux 共用的 contract。
 - 模拟器或设备验证脚本。
 - 日志与截图留档。
@@ -1025,10 +1025,15 @@ AIDL、C ABI、Room schema、Driver/HAL 或系统软件。
 迁移。新增的 `--replace-conflicting-client2` 只在显式调用且 Android 确认 signer mismatch 时执行；
 迁移后 Client2 Binder/UI/RenderService 与 R7C Runtime/Client2 恢复矩阵通过。当前交付状态为：
 
+2026-07-15 在同一目标上复验导航菜单：Activity 启动后面板隐藏，底部导航首次点击显示、再次
+点击隐藏，面板外点击关闭，再次打开后 `care.cold` Binder/UI reply 通过；Client2 进程重启后菜单
+可重新打开。面板视觉、typed Binder contract、签名 cohort 和硬件边界均未改变。
+
 ```text
 physical_controller_application_evidence_available=true
 runtime_demo_physical_acceptance_passed=true
 client2_physical_acceptance_passed=true
+client2_navigation_menu_acceptance_passed=true
 production_ready=false
 target_hardware_validated=false
 hardware_accessed=false

@@ -188,6 +188,13 @@ Binder callback、UI reply 和 RenderService 车模画面验证。工具新增�
 私钥、OTA/MDM 升级回滚与长期源码维护仍未解决。RenderService 在当前 debug 包上可运行，不等于
 量产 allowlist/trust 已获批。
 
+2026-07-15 导航菜单进展：Client2 底部导航图标位于 Tuanjie/RenderService 绘制面，不存在可直接
+绑定的 Android `View`。隔离 patch 因此在根 `FrameLayout` 增加透明比例触摸目标，将当前底部导航
+位置映射为 Central Brain 菜单开关；面板默认隐藏，第二次导航点击或面板外点击关闭。该实现没有
+修改 RenderService、Unity/Tuanjie 资产或面板视觉设计，并已在 1920x1080 API 33 ARM64 物理目标
+通过 UI/Binder/重启恢复验收。此几何映射仍属于 DEV-017：分辨率、density、厂商主题或导航布局
+变化可能造成触点漂移，量产应由可维护源码 HMI 或厂商公开导航回调替换。
+
 状态：Accepted Temporary。
 
 ## DEV-018 Android AIDL 业务面与诊断面混合

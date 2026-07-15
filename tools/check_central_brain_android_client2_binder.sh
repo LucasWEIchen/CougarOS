@@ -8,11 +8,13 @@ PROJECT="apk-labs/client2-central-brain"
 BRIDGE="$PROJECT/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
 CALLBACK="$PROJECT/bridge/src/com/centralbrain/client2/ScenarioCallback.java"
 CONTROLLER="$PROJECT/patches/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
+LAYOUT="$PROJECT/patches/main_layout.central_brain_panel.xml"
 PATCHER="$PROJECT/scripts/apply_static_panel_patch.py"
 DEX_BUILD="$PROJECT/scripts/build_binder_bridge_dex.sh"
 APK_BUILD="$PROJECT/scripts/build_debug_apk.sh"
 PROJECT_VERIFY="$PROJECT/scripts/verify_project.sh"
 DEVICE_TEST="tools/test_client2_central_brain_binder.sh"
+RECOVERY_TEST="tools/test_client2_central_brain_recovery.sh"
 POLICY="central-brain/android-runtime/runtime-service/src/main/res/xml/central_brain_capability_policy.xml"
 SNAPSHOT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/acceptance/RuntimeAcceptanceSnapshot.java"
 
@@ -34,8 +36,9 @@ require_text() {
 }
 
 for path in \
-  "$BRIDGE" "$CALLBACK" "$CONTROLLER" "$PATCHER" "$DEX_BUILD" \
-  "$APK_BUILD" "$PROJECT_VERIFY" "$DEVICE_TEST" "$POLICY" "$SNAPSHOT" \
+  "$BRIDGE" "$CALLBACK" "$CONTROLLER" "$LAYOUT" "$PATCHER" "$DEX_BUILD" \
+  "$APK_BUILD" "$PROJECT_VERIFY" "$DEVICE_TEST" "$RECOVERY_TEST" \
+  "$POLICY" "$SNAPSHOT" \
   "$PROJECT/client2-central-brain.project.json" "$PROJECT/README.md"; do
   require_file "$path"
 done
@@ -44,6 +47,7 @@ bash -n "$ROOT_DIR/$DEX_BUILD"
 bash -n "$ROOT_DIR/$APK_BUILD"
 bash -n "$ROOT_DIR/$PROJECT_VERIFY"
 bash -n "$ROOT_DIR/$DEVICE_TEST"
+bash -n "$ROOT_DIR/$RECOVERY_TEST"
 python3 -m py_compile "$ROOT_DIR/$PATCHER"
 rm -rf "$ROOT_DIR/$PROJECT/scripts/__pycache__"
 python3 -m json.tool "$ROOT_DIR/$PROJECT/client2-central-brain.project.json" >/dev/null
@@ -67,6 +71,13 @@ require_text "$CONTROLLER" "onBridgeStatus"
 require_text "$CONTROLLER" "onBridgeReply"
 require_text "$CONTROLLER" "onBridgeFailure"
 require_text "$CONTROLLER" "requestInFlight"
+require_text "$CONTROLLER" "central_brain_menu_toggle"
+require_text "$CONTROLLER" "togglePanel"
+require_text "$CONTROLLER" "hidePanel"
+require_text "$CONTROLLER" "setVisibility"
+require_text "$LAYOUT" "centralBrainNavigationTrigger"
+require_text "$LAYOUT" 'android:visibility="gone"'
+require_text "$LAYOUT" 'android:background="@android:color/transparent"'
 
 if find "$ROOT_DIR/$PROJECT/patches/smali" -name '*RequestTask.smali' -print -quit \
     | grep -q .; then
@@ -103,6 +114,10 @@ for marker in \
   "runtime_client2_signer_parity=true" \
   "client2_binder_task_completed=true" \
   "client2_ui_reply_verified=true" \
+  "client2_panel_initially_hidden=true" \
+  "client2_navigation_toggle_show_verified=true" \
+  "client2_navigation_toggle_hide_verified=true" \
+  "client2_outside_tap_dismiss_verified=true" \
   "client2_identity_resolved=true" \
   "client2_capability_policy_allowed=true" \
   "http_transport_used=false" \
@@ -110,6 +125,7 @@ for marker in \
   "hardware_accessed=false"; do
   require_text "$DEVICE_TEST" "$marker"
 done
+require_text "$RECOVERY_TEST" "client2_navigation_menu_reopen_verified=true"
 require_text "$DEVICE_TEST" "--require-api-33"
 require_text "$DEVICE_TEST" "--replace-conflicting-client2"
 require_text "$DEVICE_TEST" "SIGNER_MIGRATION_REQUIRED"
@@ -158,6 +174,22 @@ for doc_pattern in \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|R7B 进展" \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|R7B 进展" \
   "docs/CENTRAL_BRAIN_ROADMAP.md|R7B Client2 SDK/Binder migration"; do
+  path="${doc_pattern%%|*}"
+  pattern="${doc_pattern#*|}"
+  require_text "$path" "$pattern"
+done
+
+for doc_pattern in \
+  "README.md|导航触发的 12 场景悬浮菜单" \
+  "apk-labs/client2-central-brain/README.md|bottom navigation" \
+  "docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md|2026-07-15 导航菜单真机验收" \
+  "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|Client2 navigation-triggered menu trace" \
+  "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|client2_navigation_menu_acceptance_passed=true" \
+  "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|Client2 Navigation Menu Driver/HAL Result" \
+  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|2026-07-15 导航菜单进展" \
+  "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|2026-07-15 导航菜单进展" \
+  "docs/CENTRAL_BRAIN_ROADMAP.md|### 2026-07-15" \
+  "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md|client2_navigation_menu_acceptance_passed=true"; do
   path="${doc_pattern%%|*}"
   pattern="${doc_pattern#*|}"
   require_text "$path" "$pattern"

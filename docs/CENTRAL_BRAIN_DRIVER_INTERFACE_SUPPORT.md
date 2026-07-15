@@ -699,3 +699,16 @@ a lower-layer gap.
 `virtualization_development_triggered=false`. Req IDs: `APP-004`, `XSC-004`, `XSC-005`, `XSC-006`,
 `NV-F-001`, `NV-F-011`, `NV-F-012`, `NV-G-005`, `NV-P-002`, `KH-003`, `KH-006`,
 `DEL-001`, `DEL-003`, `DEL-004`, `DEL-005`.
+
+### 2026-07-15 Client2 Navigation Menu Driver/HAL Result
+
+The navigation-menu increment changes only the isolated Client2 Android resource/Smali patch. It uses
+ordinary `FrameLayout`/`View` visibility and click listeners plus UIAutomator/ADB acceptance. The transparent
+touch target maps a Tuanjie-rendered bottom navigation location; it does not call or alter RenderService,
+Unity/Tuanjie assets, a vendor service, VHAL, NPU or system UI.
+
+No C/C++, JNI, Driver/HAL ABI, device node, ioctl/sysfs, PCIe, shared memory, vehicle bus, Safety Runtime,
+system/vendor partition or virtualization API is added. The geometry dependency is an application/HMI
+integration deviation under `DEV-017`/`ISSUE-019`, not evidence of a Driver/HAL gap. Existing DRV-GAP items
+remain unchanged and added Driver/HAL development is zero. Req IDs: `APP-004`, `XSC-001`, `XSC-005`,
+`XSC-006`, `NV-G-006`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`.

@@ -1135,3 +1135,22 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - This evidence permits `physical_controller_application_evidence_available=true` only. It must not set
   `target_hardware_validated`, `production_ready`, Vendor NPU/VHAL availability, hardware access,
   Driver/HAL development or virtualization development true.
+
+### 2026-07-15 Client2 navigation-triggered menu trace
+
+- Req IDs: `APP-004`, `XSC-001`, `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002`,
+  `DEL-001`, `DEL-003`, `DEL-004`.
+- The existing translucent light-gray right-side panel, its one-third width, control grouping, scrolling,
+  reply surface and typed Binder scenario behavior must remain unchanged. The Activity must install the
+  panel as hidden and expose it as a menu from the existing bottom navigation location.
+- One navigation activation must show the panel. A second activation of the same navigation target or a
+  tap anywhere outside the panel must hide it. Taps inside the panel must remain available to its controls
+  and must not dismiss the panel.
+- Because the Client2 bottom navigation is drawn inside the Tuanjie render surface and is not an Android
+  `View`, the isolated APK patch may add one transparent, accessibility-visible Android touch target over
+  the current navigation location. It must not modify RenderService, Unity/Tuanjie assets, the full-screen
+  render hierarchy or vendor/system binaries. The geometry dependency remains tracked by `DEV-017` and
+  `ISSUE-019`.
+- API 33 physical evidence must verify initial hidden state, navigation show/hide, outside-tap dismissal,
+  reopening, a real scenario button, typed Binder completion, visible reply and menu reopening after a
+  Client2 process restart. No HTTP fallback, Driver/HAL, hardware access or virtualization path may be added.

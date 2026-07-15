@@ -188,30 +188,97 @@ if ! grep -Fq 'Status: ok' "$LOG_DIR/activity-start.txt"; then
 fi
 
 DEVICE_UI_XML=/sdcard/client2-central-brain-binder.xml
-BUTTON_NODE=""
-for _ in {1..10}; do
+dump_ui() {
+  local output_file="$1"
   "${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null
-  "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$LOG_DIR/ui-before.xml"
-  BUTTON_NODE="$(grep -o '<node[^>]*centralBrainColdButton[^>]*/>' \
-    "$LOG_DIR/ui-before.xml" | head -n 1 || true)"
-  [[ -n "$BUTTON_NODE" ]] && break
-  sleep 0.2
-done
-if [[ -z "$BUTTON_NODE" ]]; then
-  echo "Client2 cold scenario button was not visible" >&2
+  "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$output_file"
+}
+
+node_center() {
+  local resource_id="$1"
+  local ui_file="$2"
+  local node bounds left top right bottom
+  node="$(grep -o "<node[^>]*${resource_id}[^>]*/>" "$ui_file" \
+    | head -n 1 || true)"
+  [[ -n "$node" ]] || return 1
+  bounds="$(sed -nE \
+    's/.*bounds="\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]".*/\1 \2 \3 \4/p' \
+    <<<"$node")"
+  read -r left top right bottom <<<"$bounds"
+  [[ -n "${bottom:-}" ]] || return 1
+  printf '%s %s\n' "$(((left + right) / 2))" "$(((top + bottom) / 2))"
+}
+
+wait_for_resource_state() {
+  local resource_id="$1"
+  local expected_state="$2"
+  local output_file="$3"
+  local actual_state
+  for _ in {1..20}; do
+    dump_ui "$output_file"
+    if grep -Fq "$resource_id" "$output_file"; then
+      actual_state=visible
+    else
+      actual_state=hidden
+    fi
+    [[ "$actual_state" == "$expected_state" ]] && return 0
+    sleep 0.1
+  done
+  echo "Client2 resource $resource_id did not become $expected_state" >&2
+  return 1
+}
+
+wait_for_resource_state \
+  centralBrainNavigationTrigger visible "$LOG_DIR/ui-initial.xml"
+if grep -Fq 'centralBrainColdButton' "$LOG_DIR/ui-initial.xml"; then
+  echo "Client2 Central Brain panel must be hidden after launch" >&2
   exit 1
 fi
 
-BOUNDS="$(sed -nE \
-  's/.*bounds="\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]".*/\1 \2 \3 \4/p' \
-  <<<"$BUTTON_NODE")"
-read -r LEFT TOP RIGHT BOTTOM <<<"$BOUNDS"
-if [[ -z "${BOTTOM:-}" ]]; then
+TRIGGER_CENTER="$(node_center centralBrainNavigationTrigger \
+  "$LOG_DIR/ui-initial.xml" || true)"
+read -r TRIGGER_X TRIGGER_Y <<<"$TRIGGER_CENTER"
+if [[ -z "${TRIGGER_Y:-}" ]]; then
+  echo "Client2 Central Brain navigation trigger was not visible" >&2
+  exit 1
+fi
+
+"${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
+wait_for_resource_state \
+  centralBrainColdButton visible "$LOG_DIR/ui-menu-shown.xml"
+
+"${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
+wait_for_resource_state \
+  centralBrainColdButton hidden "$LOG_DIR/ui-menu-toggle-hidden.xml"
+
+"${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
+wait_for_resource_state \
+  centralBrainColdButton visible "$LOG_DIR/ui-menu-shown-again.xml"
+
+DISPLAY_SIZE="$("${ADB_DEVICE[@]}" shell wm size | tr -d '\r' | tail -n 1 \
+  | sed -nE 's/.*: ([0-9]+)x([0-9]+)/\1 \2/p')"
+read -r DISPLAY_WIDTH DISPLAY_HEIGHT <<<"$DISPLAY_SIZE"
+if [[ -z "${DISPLAY_HEIGHT:-}" ]]; then
+  echo "cannot determine display size for outside-panel dismissal" >&2
+  exit 1
+fi
+OUTSIDE_X=$((DISPLAY_WIDTH / 6))
+OUTSIDE_Y=$((DISPLAY_HEIGHT / 3))
+"${ADB_DEVICE[@]}" shell input tap "$OUTSIDE_X" "$OUTSIDE_Y"
+wait_for_resource_state \
+  centralBrainColdButton hidden "$LOG_DIR/ui-outside-dismissed.xml"
+
+"${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
+wait_for_resource_state \
+  centralBrainColdButton visible "$LOG_DIR/ui-before.xml"
+
+BUTTON_CENTER="$(node_center centralBrainColdButton \
+  "$LOG_DIR/ui-before.xml" || true)"
+read -r TAP_X TAP_Y <<<"$BUTTON_CENTER"
+if [[ -z "${TAP_Y:-}" ]]; then
   echo "cannot parse Client2 cold button bounds" >&2
   exit 1
 fi
-TAP_X=$(((LEFT + RIGHT) / 2))
-TAP_Y=$(((TOP + BOTTOM) / 2))
 "${ADB_DEVICE[@]}" shell input tap "$TAP_X" "$TAP_Y"
 
 BINDER_LOG=""
@@ -262,6 +329,10 @@ printf '%s\n' \
   "client2_binder_task_submitted=true" \
   "client2_binder_task_completed=true" \
   "client2_ui_reply_verified=true" \
+  "client2_panel_initially_hidden=true" \
+  "client2_navigation_toggle_show_verified=true" \
+  "client2_navigation_toggle_hide_verified=true" \
+  "client2_outside_tap_dismiss_verified=true" \
   "client2_identity_resolved=true" \
   "client2_capability_policy_allowed=true" \
   "client2_signer_migration_performed=$SIGNER_MIGRATION_PERFORMED" \

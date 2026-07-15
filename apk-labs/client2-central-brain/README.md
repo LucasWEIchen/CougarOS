@@ -79,17 +79,25 @@ right-side overlay in the existing root `FrameLayout`:
 ```text
 Activity
 ├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
-└── floating overlay: translucent right 1/3 Central Brain demo panel
+├── floating overlay: translucent right 1/3 Central Brain demo panel, initially hidden
+└── bottom trigger rail: transparent target over the rendered navigation icon
 ```
 
-The overlay does not resize the vehicle scene. Empty space outside the panel
-continues to pass input to Client2, while the panel consumes touches over its
-own surface. The scrollable control area groups 12 stable scenario IDs under
+The overlay does not resize the vehicle scene. One navigation-target click
+shows the panel; a second click or a click outside the panel hides it. The panel
+consumes touches over its own surface so its controls do not dismiss it. The
+scrollable control area groups 12 stable scenario IDs under
 task service, context/growth, and safety/runtime. Each button creates a typed
 `AgentTaskRequest` through `CentralBrainClient`; asynchronous Binder callbacks
 update the response area. The SDK, AIDL parcelables and a narrow Client2 bridge
 are compiled into `classes2.dex`. The APK requests no network permission and
 contains no direct HTTP fallback.
+
+The bottom navigation is drawn by the Tuanjie render surface and has no Android
+`View` callback. The patch therefore uses a transparent, accessibility-visible
+touch target aligned to the current navigation location. This is verified on
+the 1920x1080 API 33 target and remains a closed-source geometry dependency;
+supported display variants need their own coordinate/accessibility regression.
 
 The debug build is deliberately signed with the same Gradle debug signer as
 the Runtime APK. Runtime still applies default-deny package/current-signer

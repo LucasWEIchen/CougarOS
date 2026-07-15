@@ -1,7 +1,7 @@
 # Client2 APK Reverse Demo Path
 
-版本：0.2
-日期：2026-07-11
+版本：0.3
+日期：2026-07-15
 
 ## 目标
 
@@ -27,31 +27,35 @@
 Client2 MainActivity
 ├── res/layout/main_layout.xml
 │   ├── full-screen: original TuanjieView containers view1/view2/view3
-│   └── overlay: translucent right 1/3 Central Brain interaction panel
+│   ├── overlay: translucent right 1/3 Central Brain menu, initially hidden
+│   └── transparent bottom navigation trigger rail
 ├── AndroidManifest.xml
-│   └── INTERNET + usesCleartextTraffic=true for temporary emulator HTTP demo
+│   └── Runtime package query + signature Binder permission, no INTERNET
+├── classes2.dex
+│   └── public SDK/AIDL + Client2ScenarioBridge
 └── smali/com/tuanjie/urasclient2
     ├── MainActivity.smali setContentView 后安装 CentralBrainPanelController
     ├── CentralBrainPanelController.smali
-    ├── CentralBrainPanelController$RequestTask.smali
     └── CentralBrainPanelController$UiUpdate.smali
 ```
 
 原始 `TuanjieView` 容器保持 `match_parent` 全屏，不因新增 UI 改变车模 viewport。右侧约 1/3 面板通过根 `FrameLayout` 上的 `centralBrainPanelOverlay` 覆盖车模，使用半透明浅灰背景、12dp 外边距、6dp 圆角、8dp elevation、浅色按钮和浅色回复区。上部固定高度控件区可独立滚动，按“场景任务”“状态与成长”“安全与系统”三组提供 12 个按钮；下部 `centralBrainReplyText` 保持固定结果区域。
 
-每个按钮通过 `android:tag` 绑定稳定 `scenario_id`。smali 控制器递归绑定控件区内的全部 `Button`，点击后向 `http://10.0.2.2:8787/agent/scenarios/run` 发起临时 HTTP POST，并显示根对象 `result.generated_text`。12 个场景和底层接口映射见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`。控制器继续使用进程内 `requestInFlight` 阻止同一 Activity 内的重复并发请求。
+面板启动状态为 `GONE`。Client2 底部导航由 Tuanjie/RenderService 绘制，没有 Android `View` 回调；patch 在底部增加透明、可访问性可识别的 `centralBrainNavigationTrigger`，映射当前导航图标。首次点击显示菜单，第二次点击或点击面板外区域隐藏；面板自身消费点击，内部按钮和滚动不会关闭菜单。
 
-该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、smali 网络请求、rebuild、zipalign、debug sign 和静态验证链路成立。
+每个按钮通过 `android:tag` 绑定稳定 `scenario_id`。smali 控制器递归绑定控件区内全部 `Button`，由 `Client2ScenarioBridge` 和 public `CentralBrainClient` 创建 typed `AgentTaskRequest`，异步 Binder callback 更新回复区。APK 不申请网络权限，不保留 HTTP fallback。12 个场景和底层接口映射见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`；进程内 `requestInFlight` 继续阻止同一 Activity 内的重复并发请求。
+
+该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、secondary dex、typed Binder、rebuild、zipalign、debug sign 和静态/真机验证链路成立。
 
 ## 架构映射
 
 | Req ID | 映射 |
 | --- | --- |
-| `APP-004` / `XSC-001` | 右侧面板作为 AI SDK/Agent 可视入口；本轮为了本地演示临时直连 Python 原型 `/agent/scenarios/run`，该编排器继续组合既有 Agent/Skill/Memory/Model Runtime 接口，偏差登记在 DEV-017/DEV-001。 |
-| `XSC-002` | 后续面板状态必须来自 Uni Info Bus 语义对象。 |
-| `XSC-003` | 后续动作必须经 SOA 服务入口，不直接 dispatch 车控或 NPU。 |
-| `XSC-005` | 后续调用必须保留 Runtime & Governance 状态、Policy 和 Audit 可见性。 |
-| `XSC-006` | APK 内 HTTP 接入只作为 Android Protocol Binding demo，生产路径仍应迁移到 system/privileged service、Binder 或 SDK。 |
+| `APP-004` / `XSC-001` | 导航触发的右侧菜单作为 AI SDK/Agent 可视入口，通过 public SDK 提交任务。 |
+| `XSC-002` | 后续真实车辆状态必须来自 Uni Info Bus 语义对象；当前 deterministic reply 不读取车辆数据。 |
+| `XSC-003` | 后续真实动作必须经 SOA 服务入口，不直接 dispatch 车控或 NPU。 |
+| `XSC-005` | Runtime 是唯一调用入口，继续执行可信身份、Capability、Policy 和 Audit 边界。 |
+| `XSC-006` | Android Protocol Binding 使用 signature-protected typed Binder；APK 不含 HTTP fallback。 |
 | `DEL-001` | Android 是主验证路径，输出可安装 debug APK。 |
 | `DEL-003` | 文档给出工程位置、构建命令和边界。 |
 | `DEL-004` | 明确 APK patch 与量产 Android system service 的平台差异。 |
@@ -64,19 +68,13 @@ Client2 MainActivity
 bash tools/build_client2_central_brain_demo.sh
 ```
 
-启动 Python 原型后端，供模拟器内 APK 访问：
+执行 Android 13 typed Binder/UI 验收：
 
 ```bash
-CENTRAL_BRAIN_SIMULATED_NPU_BACKEND=ollama \
-CENTRAL_BRAIN_OLLAMA_URL=http://127.0.0.1:11434 \
-CENTRAL_BRAIN_OLLAMA_MODEL=qwen3.5:27b-optimized \
-CENTRAL_BRAIN_OLLAMA_TIMEOUT_MS=90000 \
-CENTRAL_BRAIN_OLLAMA_NUM_PREDICT=64 \
-CENTRAL_BRAIN_OLLAMA_THINK=false \
-bash tools/run_central_brain_backend.sh
+bash tools/test_client2_central_brain_binder.sh --require-api-33
 ```
 
-APK 内固定访问 `http://10.0.2.2:8787/agent/scenarios/run`。在 Android emulator 中，`10.0.2.2` 指向模拟器宿主环境；如果后端不在该宿主上，需要后续把 endpoint 配置化或迁移到 Binder/system-service。
+该脚本验证面板默认隐藏、导航显示/隐藏、面板外关闭、真实 `care.cold` 按钮、Binder callback 和 UI 回复。故障恢复矩阵使用 `tools/test_client2_central_brain_recovery.sh --require-api-33`。
 
 验证：
 
@@ -155,12 +153,23 @@ bash tools/install_client2_central_brain_demo.sh \
 
 UI dump 验证首屏和滚动后全部 12 个按钮可见且可点击，Activity 保持 resumed。稳定截图位于 `logs/test/client2-central-brain/20260711_scenarios/`；该目录是本地测试证据，不纳入源码提交。当前环境图形后端回退到 `llvmpipe`，紧邻 Unity 帧更新的瞬时 `screencap` 可能出现黑块，延迟后的稳定截图正常。
 
+## 2026-07-15 导航菜单真机验收
+
+在 1920x1080、160 dpi、Android 13/API 33 ARM64 物理控制器上重新构建、安装并验收。UIAutomator
+识别到透明导航目标 `[760,984][840,1080]`，与当前底部导航图标对齐。自动化依次验证启动时
+`centralBrainColdButton` 不可见、首次导航点击显示、第二次点击隐藏、再次显示后点击面板外隐藏、
+再次打开并完成 `care.cold` typed Binder/UI 回复。R7C 恢复矩阵确认 Client2 进程重启后菜单可以
+重新打开，且 Runtime 不可用/死亡/恢复、single-flight 和 Binder race 未回归。
+
+该坐标只记录当前受测显示配置，不是跨分辨率稳定接口。量产应改用源码 HMI 导航事件或厂商公开
+回调；在此之前，其他 density、分辨率或主题必须单独执行触点与可访问性回归。
+
 ## 已知风险
 
 1. Client2 原始源码不可用，长期维护风险高于源码工程。
 2. Debug 重签名已在当前 API 33 ARM64 测试设备通过 RenderService 画面验证，但不代表生产 signer、OTA/MDM 或量产 allowlist 已批准。
 3. RenderService 是 ARM64/Unity/Tuanjie 运行时；x86_64 模拟器证据仍不能替代目标 ARM64 验收。
-4. 面板访问 Python 原型后端使用 `INTERNET`/cleartext，直接 HTTP 演示路径已记录为偏差；量产必须迁移到 Binder/service/SDK。
-5. 当前 HTTP endpoint 固定为 `10.0.2.2:8787`，只适合本地模拟器演示；真实座舱域环境应替换为 Binder/SDK 或目标平台允许的 IPC/RPC 接入。
-6. 本地演示已用 `think=false`、single-flight 和受控输出预算解决连续 timeout；27B 模型在当前环境仍以 CPU 为主且单次约 77.6 秒，目标模型和目标算力必须独立标定。
+4. 底部导航是闭源渲染内容，透明触摸目标依赖当前显示几何；分辨率、density、主题或导航布局变化可能造成触点漂移。
+5. 当前 Client2 已迁移到 Binder/SDK 且无网络 fallback；Runtime deterministic reply 不代表 Python/Ollama、真实模型或 NPU 已接入 Android 实际工程。
+6. 历史 Ollama 演示只证明用户态仿真可达；目标模型、输出预算、目标算力和端到端时延仍须独立标定。
 7. KaKaClaw 只作为公开产品概念参考；连续多轮、人格/方言、零代码 Skill、主动触发、真实导航/媒体/车控/ADAS、量产 Skill sandbox 和 Privacy Router 尚未实现，见 ISSUE-020。

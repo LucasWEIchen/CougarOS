@@ -1,8 +1,8 @@
 # Central Brain Android 13 物理目标测试报告
 
-版本：1.2
+版本：1.3
 
-日期：2026-07-14
+日期：2026-07-15
 
 状态：Runtime/Demo/Client2 物理设备应用层验收通过；整机硬件与量产验收未完成
 
@@ -65,6 +65,7 @@ WSL bash/test scripts
 | Crash/ANR buffer | PASS | 测试结束后没有 Central Brain crash 或 ANR |
 | Client2 signer migration | PASS | 经用户明确授权，卸载普通 `/data/app` 原包后安装 Runtime 同签 debug Client2 |
 | Client2 Binder/UI | PASS | 真实按钮、可信调用身份、异步完成回调和 UI 回复通过 |
+| Client2 导航菜单 | PASS | 启动隐藏、导航首次显示/二次隐藏、面板外关闭、再次打开均通过 |
 | Client2/Runtime recovery | PASS | Runtime 缺失/死亡/重启、single-flight、Client2 重启和 Binder race 回归通过 |
 
 首次 dry-run 对 signer mismatch 的失败关闭是预期安全结果。用户随后明确批准清除原 Client2
@@ -116,6 +117,17 @@ Demo 现按 Activity 生命周期执行 500 ms 间隔、最多 10 次的有界 R
 `r7_application_integration_complete=true`。
 该结果只解决当前测试设备的 debug 同包安装，不解决生产私钥、OTA/MDM 升级或量产 signer 审批。
 
+### UI-001 Client2 浮窗改为导航菜单
+
+Client2 底部导航由 Tuanjie/RenderService 绘制，UI 树中没有可直接绑定的原生按钮。隔离 patch
+在根 `FrameLayout` 增加透明、带可访问性描述的触摸目标，按当前 1920x1080 布局覆盖导航图标；
+右侧面板本身的半透明浅灰样式、宽度、圆角、按钮和结果区均未改变。
+
+真机 UIAutomator/ADB 验收确认 Activity 启动后面板不可见，首次导航点击显示，第二次点击隐藏，
+重新显示后点击面板外区域隐藏，再次打开后 `care.cold` typed Binder/UI reply 正常。R7C 回归还
+确认 Client2 进程重启后菜单可以重新打开。该触摸映射不修改 RenderService 或 Unity/Tuanjie
+资产；不同分辨率、density 或厂商导航布局仍须单独验证，见 `DEV-017`/`ISSUE-019`。
+
 ## 6. 当前结论
 
 ```text
@@ -123,6 +135,7 @@ physical_controller_application_evidence_available=true
 runtime_demo_physical_acceptance_passed=true
 post_recovery_hmi_rebind_verified=true
 client2_physical_acceptance_passed=true
+client2_navigation_menu_acceptance_passed=true
 production_ready=false
 target_hardware_validated=false
 native_vendor_npu_provider_available=false

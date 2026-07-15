@@ -14,7 +14,7 @@ CougarOS 是面向黑盒 Android 13 座舱域控制器的车载中央大脑工�
 
 ## 当前状态
 
-更新时间：2026-07-14
+更新时间：2026-07-15
 
 | 项目 | 当前值 | 含义 |
 | --- | --- | --- |
@@ -56,7 +56,7 @@ bash tools/check_central_brain_software_detailed_design.sh
 ```mermaid
 flowchart TB
   subgraph HMI["应用与 HMI"]
-    Client2["Client2 座舱演示\n12 场景悬浮面板"]
+    Client2["Client2 座舱演示\n导航触发的 12 场景悬浮菜单"]
     Demo["Demo HMI APK"]
     Console["Android Console\nPython 原型调试入口"]
     LinuxCli["Linux CLI"]
@@ -244,10 +244,10 @@ Android Gradle 根目录为 `central-brain/android-runtime/`。
 | 路径 | 职责 |
 | --- | --- |
 | `apk-labs/client2-central-brain/bridge/` | 编译进 `classes2.dex` 的 `Client2ScenarioBridge` 和 callback |
-| `apk-labs/client2-central-brain/patches/` | 右侧约 1/3 半透明悬浮面板、12 个稳定场景按钮和 smali controller |
+| `apk-labs/client2-central-brain/patches/` | 底部导航触发、右侧约 1/3 半透明悬浮菜单、12 个稳定场景按钮和 smali controller |
 | `apk-labs/client2-central-brain/scripts/` | 从本地受控基线复制、patch、重建、签名和验证 |
 | `tools/build_client2_central_brain_demo.sh` | 生成 Runtime 同 signer 的 debug APK |
-| `tools/test_client2_central_brain_binder.sh` | API 33 真实按钮、Binder callback 和 UI reply 验收 |
+| `tools/test_client2_central_brain_binder.sh` | API 33 默认隐藏、导航显隐、面板外关闭、真实按钮、Binder callback 和 UI reply 验收 |
 | `tools/test_client2_central_brain_recovery.sh` | Runtime death、single-flight、重连和 Client2 重启矩阵 |
 
 当前 Client2 不申请网络权限，不包含直接 HTTP fallback；所有 12 个场景通过公开 SDK/AIDL 进入
@@ -430,6 +430,7 @@ bash tools/run_central_brain_backend.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-15 | 当前变更 | Client2 右侧浮窗改为底部导航触发菜单；默认隐藏，二次导航点击或面板外点击关闭，并通过 API 33 ARM64 真机 UI/Binder/恢复回归 | 应用层透明触摸映射；面板样式、Binder contract 和 hardware 状态不变 |
 | 2026-07-14 | 当前变更 | Runtime/Demo 物理 API 33 ARM64 验收；修复 Windows ADB 兼容和 Runtime force-stop 后 Demo Binder/Governance 有界重连 | production/NPU/hardware false |
 | 2026-07-14 | 当前变更 | 用户授权清除异签原 Client2 后完成同包 debug signer 迁移；新增显式替换工具并通过真机 Binder/UI/RenderService 与恢复矩阵 | 仅测试应用层；production signer/upgrade false |
 | 2026-07-12 | 当前变更 | 新增面向软件工程师的模块级详设、源码一致性门禁和开发扩展步骤 | 仅文档与门禁，不启用 Scheduler、Model、Effect 或硬件 |
