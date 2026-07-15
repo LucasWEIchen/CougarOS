@@ -1154,3 +1154,45 @@ Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHand
 - API 33 physical evidence must verify initial hidden state, navigation show/hide, outside-tap dismissal,
   reopening, a real scenario button, typed Binder completion, visible reply and menu reopening after a
   Client2 process restart. No HTTP fallback, Driver/HAL, hardware access or virtualization path may be added.
+
+### 2026-07-15 AIOS Stage 2 derived requirement baseline
+
+The following IDs are implementation-level derived requirements. They do not replace or extend the layers in
+the supplied architecture diagram; every item is traceable to existing baseline Req IDs.
+
+| Derived ID | Implementation requirement | Architecture baseline mapping | Current state |
+| --- | --- | --- | --- |
+| `S2-UX-001` | HMI must expose durable session, plan, node and effect progress instead of only model text | `APP-001`、`APP-004`、`XSC-001` | Design complete |
+| `S2-UX-002` | HMI must adapt to parked/moving/unknown driving state; unknown is restricted | `APP-001`、`FW-S-005`、`NV-G-005` | Design complete |
+| `S2-UX-003` | Approval, cancel, retry, partial failure and governed undo must be user visible | `FW-U-004`、`FW-U-007`、`NV-G-005..007` | Design complete |
+| `S2-SES-001` | Session and immutable Action/Observation event tree must survive process restart | `FW-U-003`、`NV-F-001`、`NV-G-003`、`NV-G-007` | Not started |
+| `S2-CTX-001` | ContextSnapshot must carry typed values, source, freshness, quality, revision and digest | `FW-U-001`、`FW-U-002`、`NV-F-004` | Not started |
+| `S2-TWN-001` | Vehicle Digital Twin must separate desired and reported last-known state | `FW-U-001..003`、`NV-F-004`、`NV-G-006` | Not started |
+| `S2-SCN-001` | Registered scenario manifests must compile deterministically into validated plan DAGs | `APP-003`、`FW-S-001`、`NV-F-001` | Not started |
+| `S2-GRF-001` | Agent Graph Runtime must support checkpoint, retry, timeout, interrupt, resume and compensation | `NV-F-001`、`NV-F-008`、`NV-G-004..007` | Not started |
+| `S2-SAF-001` | Caller, capability, driving state, risk and approval checks must fail closed; confirmation cannot override a hard interlock | `FW-U-007`、`FW-S-005`、`NV-F-009`、`NV-G-005` | Not started |
+| `S2-EFF-001` | Effects must distinguish prepare/dispatch/deliver/apply/verify and support reconcile/compensate | `FW-U-004`、`FW-S-003`、`NV-F-003..005`、`NV-G-006..007` | Not started |
+| `S2-ADP-001` | Debug-only HVAC/Seat/Nav/Media simulation must use the same Effect contract and remain visibly simulated | `NV-F-003..005`、`DEL-001`、`DEL-005` | Not started |
+| `S2-TOL-001` | Tools/Skills require manifest, schema, signer, rules, health, bounded executor and audit | `FW-U-006..008`、`NV-F-001`、`NV-G-001..006` | Not started |
+| `S2-MEM-001` | Working/Profile/Episodic memory must enforce consent, purpose, budget, TTL, delete and export | `FW-U-001`、`FW-U-006..007`、`NV-F-001`、`NV-G-005..007` | Not started |
+| `S2-EVT-001` | Typed Event broker must provide durable terminal events, cursor replay, backpressure and governed triggers | `FW-U-003`、`NV-P-006`、`NV-G-004..007` | Not started |
+| `S2-MDL-001` | Model routing must enforce privacy/latency/resource budgets, schema validation, bounded fallback and evaluation | `APP-004`、`NV-F-001`、`NV-F-011..012`、`NV-G-004..007` | Not started |
+| `S2-ADP-002` | Real AAOS/Vendor/NPU adapters remain inactive until owner, API/ABI, permission, safety, smoke and rollback evidence pass | `NV-F-003..005`、`NV-F-011`、`KH-003`、`KH-006`、`DEL-005` | External blocked |
+| `S2-OBS-001` | Trace, metric, audit and scenario evaluation must cover every governed execution boundary | `APP-009`、`NV-F-012`、`NV-G-007` | Not started |
+| `S2-REL-001` | Production signer, migration, rollback, long-run and target release evidence must be independently qualified | `NV-G-006..007`、`DEL-001`、`DEL-003..005` | External blocked |
+
+Additional hard requirements:
+
+- A model may propose only registered scenario/tool IDs and schema-bounded parameters. It must never call an
+  Effect adapter, `CarPropertyManager`, vendor service, device node or Driver/HAL directly.
+- `scene.fatigue.assist.v1` must never produce a dispatchable driver-seat recline Effect while motion is
+  moving or unknown. A user confirmation cannot override this hard interlock.
+- A dispatched or delivered Effect must not be presented as completed. Product completion requires the
+  configured applied/readback verification policy.
+- Simulation profile and production profile must use disjoint adapter registration. Production failure must
+  return adapter unavailable rather than silently falling back to simulation.
+- Stage 2 P0-P7 must remain implementable without real VHAL/NPU. P8 activates one real capability at a time
+  only after `S2-ADP-002` evidence; this design increment does not trigger Driver/HAL or virtualization work.
+- Detailed source paths, interfaces, tests and work-package DoD are normative in
+  `CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md` and
+  `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`.

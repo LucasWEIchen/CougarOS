@@ -431,3 +431,51 @@ Issue 和复测结论。Issue 在目标侧确认前保持 Open。
 `DEL-004`、`DEL-005`。
 
 状态：Open。
+
+## ISSUE-029 “我累了”场景的驾驶席座椅安全策略与批准 authority
+
+Stage 2 需要在“我累了/休息模式”中编排 HVAC、座椅、媒体和导航。设计已经固定：车辆 moving
+或 motion unknown 时，驾驶席 recline/large movement 为 hard interlock，用户确认也不能覆盖；
+驻车执行仍要求 gear P、speed 0、seat occupied、belt unbuckled、fresh reported angle 和 durable
+approval。但量产允许角度、速度、分段曲线、occupancy/belt race、故障回退及 Safety owner 尚未由
+OEM/整车团队确认。
+
+影响：`APP-001`、`APP-003`、`FW-U-001`、`FW-U-004`、`FW-S-005`、`NV-F-003..005`、
+`NV-F-009`、`NV-G-005..007`、`S2-SAF-001`、`S2-EFF-001`、`S2-ADP-002`。
+
+当前处理：P0-P7 只用 debug simulation 验证 hard interlock、approval、partial failure、readback 和
+undo；production Seat adapter activation 保持 false。解除条件是 OEM Safety owner 提供 versioned
+seat policy、property/service contract、权限、实车 fault/rollback 和批准证据。
+
+状态：Open。
+
+## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定
+
+目标机已确认 Android Automotive/API 33 和普通 `/data/app` 应用层路径，但尚未提供可写
+`CarPropertyManager` property list、标准/自定义 property area mapping、`CONTROL_CAR_*` 权限
+授予方式、Vendor service AIDL/SDK、service version/hash、readback/error contract 或生产 signer。
+普通 APK 是否能控制 HVAC/Seat/Nav/Media 不能由 Android Automotive feature 推断。
+
+影响：`NV-F-003..005`、`NV-P-002`、`KH-003`、`KH-006`、`S2-TWN-001`、`S2-EFF-001`、
+`S2-ADP-002`、`DEL-001`、`DEL-004`、`DEL-005`。
+
+当前处理：使用 VSS-style canonical schema 和 inactive adapter contract；不修改 framework/VHAL，
+不猜 vendor property/device node/ioctl，production 不回退 simulation。解除条件是目标 owner 交付
+公开 contract、权限/签名策略、property/capability matrix、target smoke、fault 和 rollback evidence。
+
+状态：Open。
+
+## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
+
+Stage 2 规划 working/profile/episodic memory、主动建议和低风险场景的可选 auto-execute grant。
+当前尚未确定 OEM 场景目录 owner、用户身份来源、profile consent 文案、retention/delete/export、
+云模型数据分类、跨用户/座位隔离和允许自动执行的 capability 清单。
+
+影响：`APP-001`、`APP-003`、`APP-004`、`FW-U-001`、`FW-U-003`、`FW-U-006..007`、
+`NV-F-001`、`NV-G-005..007`、`S2-SCN-001`、`S2-MEM-001`、`S2-EVT-001`、`S2-MDL-001`。
+
+当前处理：Profile Memory 和 proactive auto-execute 默认关闭；无可信 user identity 时不退化为全车
+共享 profile；trigger 默认只生成 suggestion；HIGH/CRITICAL 不接受通用授权。解除条件是产品、
+隐私、网络安全和 OEM owner 联合批准 versioned policy、consent、retention 和 test matrix。
+
+状态：Open。

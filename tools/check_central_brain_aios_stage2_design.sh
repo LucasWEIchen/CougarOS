@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Req IDs: APP-001/003/004, FW-U-001/003/004/006/007, FW-S-001/003/005,
+# NV-F-001/003/004/005/008/009/011/012, NV-G-003/004/005/006/007,
+# NV-P-002/006, XSC-001/002/003/004/005/006, KH-003/006, DEL-001/003/004/005.
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+RESEARCH="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md"
+UX="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md"
+BACKLOG="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md"
+DESIGN="$ROOT_DIR/docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md"
+REQUIREMENTS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
+ROADMAP="$ROOT_DIR/docs/CENTRAL_BRAIN_ROADMAP.md"
+DEVIATIONS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
+ISSUES="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
+DELIVERY="$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
+DRIVER="$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
+README="$ROOT_DIR/README.md"
+
+for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$REQUIREMENTS" "$ROADMAP" \
+    "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README"; do
+  [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
+done
+
+require_text() {
+  local file="$1"
+  local marker="$2"
+  grep -Fq -- "$marker" "$file" \
+    || { echo "AIOS Stage 2 marker missing in ${file#$ROOT_DIR/}: $marker" >&2; exit 1; }
+}
+
+for marker in \
+  '# Central Brain AIOS 开源项目与车载行业架构调研' \
+  '## 4. 开源项目源码结论' \
+  '## 5. 车载行业设计输入' \
+  '## 8. 不采纳或延后能力' \
+  '4171a8ea2d56f7d119a109c5317e998575b679e1' \
+  '49ae27c2ae983cfb92091b0dea9f7bc37a716479' \
+  'c2e72045b26d18b1e2a9ad7098a40c7690f5263e' \
+  'ce67f9276aa360d16b2e9e619d41c96e5d9f19d2' \
+  'e49a6e3610d40399b2b5ae858ec5f3f136066915'; do
+  require_text "$RESEARCH" "$marker"
+done
+
+for marker in \
+  '# Central Brain AIOS Stage 2 产品与 UI/UX 计划' \
+  '## 6. “我累了”场景详设' \
+  '## 7. “我冷了”场景详设' \
+  '## 10. 失败、补偿和撤销 UX' \
+  '## 13. 产品验收指标' \
+  '行驶中不会调整驾驶席靠背' \
+  'UNKNOWN_RESTRICTED' \
+  'PARTIALLY_COMPLETED'; do
+  require_text "$UX" "$marker"
+done
+
+for marker in \
+  '# Central Brain AIOS Stage 2 开发计划与最小工作包' \
+  'P0-P7 总计约 124-168 人日' \
+  '### `P1-W01` Session DTO/AIDL' \
+  '### `P2-W10` Simulated Seat adapter' \
+  '### `P3-W09` Restart recovery' \
+  '### `P8-W03` AaosCarPropertyEffectAdapter' \
+  '## 16. 阶段性完成定义'; do
+  require_text "$BACKLOG" "$marker"
+done
+
+for marker in \
+  '# Central Brain AIOS 完整软件开发设计说明' \
+  '`DEVELOPED`' \
+  '`PROTOTYPE`' \
+  '`CONTRACT_ONLY`' \
+  '`NOT_STARTED`' \
+  '`EXTERNAL_BLOCKED`' \
+  '## 8. SDK 与 Binder 设计' \
+  '## 11. Context 与 Vehicle Digital Twin' \
+  '## 13. Durable Agent Graph Runtime' \
+  '## 15. Effect 系统' \
+  '## 23. Room v4 数据设计' \
+  '## 30. 测试设计' \
+  '`P1-W01 Session DTO/AIDL`'; do
+  require_text "$DESIGN" "$marker"
+done
+
+derived_ids=(
+  S2-UX-001 S2-UX-002 S2-UX-003 S2-SES-001 S2-CTX-001 S2-TWN-001
+  S2-SCN-001 S2-GRF-001 S2-SAF-001 S2-EFF-001 S2-ADP-001 S2-TOL-001
+  S2-MEM-001 S2-EVT-001 S2-MDL-001 S2-ADP-002 S2-OBS-001 S2-REL-001
+)
+for id in "${derived_ids[@]}"; do
+  require_text "$REQUIREMENTS" "$id"
+  require_text "$BACKLOG" "$id"
+  require_text "$DESIGN" "$id"
+done
+
+require_text "$REQUIREMENTS" 'AIOS Stage 2 derived requirement baseline'
+require_text "$REQUIREMENTS" 'A user confirmation cannot override this hard interlock'
+require_text "$REQUIREMENTS" 'return adapter unavailable rather than silently falling back to simulation.'
+require_text "$ROADMAP" '| S2-P0 | 完整 AIOS Stage 2 设计冻结'
+require_text "$ROADMAP" '| S2-P1 | Runtime Contract v2'
+require_text "$ROADMAP" '下一实现工作包为 `P1-W01 Session DTO/AIDL`'
+require_text "$DEVIATIONS" '## DEV-024 Stage 2 车辆多设备动作先使用 Digital Twin 仿真'
+require_text "$DEVIATIONS" '## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI'
+require_text "$ISSUES" '## ISSUE-029 “我累了”场景的驾驶席座椅安全策略与批准 authority'
+require_text "$ISSUES" '## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定'
+require_text "$ISSUES" '## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定'
+require_text "$DELIVERY" '## 2026-07-15 AIOS Stage 2 交付范围'
+require_text "$DRIVER" '## 2026-07-15 AIOS Stage 2 Driver/HAL 边界'
+require_text "$README" 'design_baseline_complete=true'
+require_text "$README" 'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md'
+
+for file in "$UX" "$BACKLOG" "$DESIGN" "$REQUIREMENTS" "$DEVIATIONS" "$DRIVER"; do
+  require_text "$file" 'driver_development_triggered=false'
+  require_text "$file" 'virtualization_development_triggered=false'
+done
+
+python3 -B - "$BACKLOG" "$DEVIATIONS" "$ISSUES" <<'PY'
+import pathlib
+import re
+import sys
+
+backlog = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+deviations = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
+issues = pathlib.Path(sys.argv[3]).read_text(encoding="utf-8")
+
+work_packages = re.findall(r"^### `((?:P[0-9])-W[0-9]{2})`", backlog, re.MULTILINE)
+if len(work_packages) < 55:
+    raise SystemExit(f"AIOS Stage 2 backlog is not minimum-granularity enough: {len(work_packages)} work packages")
+if len(work_packages) != len(set(work_packages)):
+    raise SystemExit("AIOS Stage 2 backlog contains duplicate work package IDs")
+
+for current, expected in ((deviations, [f"DEV-{n:03d}" for n in range(1, 26)]),
+                          (issues, [f"ISSUE-{n:03d}" for n in range(1, 32)])):
+    present = set(re.findall(r"(?:^## |^\| )(DEV-[0-9]{3}|ISSUE-[0-9]{3})\b", current, re.MULTILINE))
+    missing = [item for item in expected if item not in present]
+    if missing:
+        raise SystemExit(f"architecture tracking IDs missing: {missing}")
+
+print(f"aios_stage2_work_package_count={len(work_packages)}")
+PY
+
+echo "Central Brain AIOS Stage 2 design check passed"

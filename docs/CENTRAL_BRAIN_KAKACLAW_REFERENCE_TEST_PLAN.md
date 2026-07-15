@@ -1,13 +1,20 @@
 # Central Brain 咖咖虾参考场景测试计划
 
-版本：0.1
-日期：2026-07-11
+版本：0.2
+日期：2026-07-15
 
 ## 1. 定位
 
 本文把地平线 KaKaClaw（咖咖虾）公开展示的产品概念转换为 Central Brain Python 原型的可验证场景。它是独立实现的产品参考和验收设计，不声明接口兼容、代码复用、功能等价或品牌授权。
 
 架构图仍是最高需求基线。参考功能只能落到 `APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-011`、`NV-G-005`、`NV-G-007` 和 `DEL-001..003` 所定义的模块与接口，不能建立绕过 AI SDK、Uni Info Bus、SOA 或 Runtime & Governance 的旁路。
+
+2026-07-15 状态说明：本文继续作为 Stage 1 Python/Client2 的 12 场景验收基线，表中
+“建议/mock/不下发真实车控”描述仍代表当前已开发状态。Stage 2 的目标产品行为、驾驶态规则、
+多设备 Effect、Digital Twin、approval、partial failure、undo 和最小开发工作包已转入
+`CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`、
+`CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md` 和
+`CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md`。计划态不得被误报为当前功能。
 
 ## 2. 公开资料基线
 

@@ -379,3 +379,46 @@ process-recovery 后，无法发现座舱应用重连缺陷。
 Driver/HAL、Vendor NPU/VHAL、硬件访问或虚拟化开发。
 
 状态：Resolved。
+
+## DEV-024 Stage 2 车辆多设备动作先使用 Digital Twin 仿真
+
+偏差：Stage 2 产品要求“我冷了”“我累了”“休息模式”等场景编排 HVAC、Seat、Media、
+Navigation，并向 HMI 提供 applied/verified 状态。当前黑盒 Android 13 只完成普通应用层验收，
+尚无公开 CarProperty/Vendor service property 目录、写权限、area mapping、Safety owner 或车辆
+readback contract，因此 P0-P7 只能使用 debug-only `SimulatedEffectAdapter` 和
+`VehicleDigitalTwinStore` 验证执行闭环。
+
+涉及需求：`APP-001`、`APP-003`、`FW-U-001`、`FW-U-004`、`FW-S-001`、`FW-S-003`、
+`FW-S-005`、`NV-F-003..005`、`NV-G-005..007`、`S2-CTX-001`、`S2-TWN-001`、
+`S2-SCN-001`、`S2-EFF-001`、`S2-ADP-001/002`、`DEL-001`、`DEL-005`。
+
+风险：如果仿真 observation 未显式标识，可能被误认为真实车辆控制；如果 production profile
+自动回退 simulation，可能在真实接口失效时向用户误报成功。
+
+处理：simulation 与 production adapter registry 完全分离；所有仿真 Event/Effect/Digital Twin
+值标记 `source=SIMULATED`、`productionAuthorized=false`，只进入 debug/test build。Production
+无 activated adapter 时返回 `CB_ERR_ADAPTER_UNAVAILABLE`，不得回退仿真。P8 按 capability
+逐项取得 owner/API/ABI/permission/safety/smoke/rollback evidence 后才替换，且不修改已刷机
+framework/VHAL，不猜 vendor property/device node/ioctl。
+
+状态：Accepted Temporary；P8 外部证据到位后按 capability 分项关闭。
+
+## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI
+
+偏差：当前 Client2 通过隔离 patch 工程增加底部导航触发的半透明悬浮面板，已在物理 Android 13
+上验证 UI、typed Binder 和恢复。但原始工程源码/RenderService/Tuanjie 底部导航并不开放，触摸
+入口依赖当前画面比例几何；现有面板也尚未实现完整 Car UX Restrictions、plan timeline、
+approval、partial failure、undo、无障碍和 OEM 设计系统。
+
+涉及需求：`APP-001`、`APP-004`、`XSC-001`、`FW-S-005`、`NV-G-005..007`、`NV-P-002`、
+`S2-UX-001..003`、`DEL-001`、`DEL-003`、`DEL-004`。
+
+风险：若直接把 patched APK 作为量产 HMI，闭源画布坐标变化、分辨率/旋转、驾驶分心规则、
+无障碍、升级签名和 RenderService trust 可能导致不可控回归。
+
+处理：P4 继续以 maintained patch input 验证产品交互，但权威 session/plan/effect state 全部在
+Runtime，HMI 只做 reducer/render；unknown driving state 使用 restricted UI。量产前必须由 OEM
+选择可维护的正式 HMI 源码/扩展点并完成 UX restriction、签名、升级、分辨率和整车验证；不修改
+厂商系统已编译部分。
+
+状态：Accepted Temporary；对应 `ISSUE-019`、`ISSUE-030`、`ISSUE-031`。

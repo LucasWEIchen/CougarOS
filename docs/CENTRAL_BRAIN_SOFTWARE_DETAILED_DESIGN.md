@@ -7,6 +7,11 @@
 | 受众 | Central Brain Android、Native、Python、Linux Binding、测试与集成软件工程师 |
 | 状态 | 与当前仓库源码同步；物理控制器、Vendor NPU、VHAL、Driver/HAL 未验证 |
 
+> 2026-07-15：本文继续作为 Stage 1 已有源码说明。Stage 2 的完整当前/计划模块设计、
+> Scenario/Graph/Digital Twin/Effect/Tool/Memory/Event/Model/HMI 接口和 Room v4 设计见
+> `CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md`；两份文档冲突时以架构 Req ID 和
+> Stage 2 完整详设为准。
+
 ## 1. 文档目的
 
 本文是工程实现级详细设计，不是产品介绍，也不是目标平台能力承诺。它回答以下问题：

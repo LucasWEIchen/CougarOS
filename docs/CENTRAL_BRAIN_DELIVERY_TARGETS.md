@@ -1,11 +1,38 @@
 # Android/Linux 座舱域交付目标
 
-版本：0.1
-日期：2026-07-08
+版本：0.2
+日期：2026-07-15
 
 ## 交付对象
 
 本项目交付对象是使用 Android 和 Linux 系统的座舱域软件工程师。交付物必须能帮助他们完成集成、调试、验证和二次开发，而不只是展示 Demo。
+
+## 2026-07-15 AIOS Stage 2 交付范围
+
+当前新增实现范围聚焦黑盒 Android 13。Stage 2 P0-P7 的交付目标是：在不依赖真实 VHAL/NPU
+的前提下，形成可恢复、可治理、可观察的完整 AIOS 原型，而不是继续扩展“按钮 + 模型文本”。
+
+| 交付里程碑 | 必须包含 | 明确不代表 |
+| --- | --- | --- |
+| Design Baseline | 开源/行业源码调研、产品 UX、派生 Req ID、P0-P9 backlog、完整详设 | 任何新 Runtime 能力已实现 |
+| Runtime Contract v2 | Session/Plan/Event/Effect typed AIDL、SDK、Room v4 migration | 真实车辆动作 |
+| AIOS Demo Alpha | Context、Digital Twin、Scenario plan、debug simulation、HMI action progress | VHAL/Vendor/NPU 已接入 |
+| AIOS Demo Beta | Durable graph、approval、partial/retry/undo、restart recovery、Android 13 真机 | production ready 或整车安全通过 |
+| Complete AIOS Prototype | P0-P7 Tool/Skill/Memory/Event Trigger/Model Router/evaluation 全部通过 | 真实硬件、生产 signer 或量产资格 |
+| Target Integration RC | P8 单 capability AAOS/Vendor/NPU adapter 通过 activation evidence | 未验证 capability 自动通过 |
+| Production Candidate | P9 性能/长稳/安全/隐私/签名/升级/回滚/整车 owner 全部关闭 | 最终车型 SOP 批准，仍由 OEM 决定 |
+
+Stage 2 P0-P7 预计 124-168 人日。P8/P9 工作量依赖公开 property/service/NPU contract、权限、
+production signer、MDM 和整车 Safety owner；在这些输入缺失时保持 `EXTERNAL_BLOCKED`，不得给出
+虚假固定完成日期。
+
+Android 交付必须继续提供 SDK AAR、Native AAR、Runtime APK、Client2/Demo APK、版本/hash/signer、
+Room migration、构建/安装/回滚和脱敏验收结果。当前阶段不新增 Linux 前端；既有 Linux contract
+和样例保留，不删除黄色小太阳跨 SoC 接口设计。
+
+交付边界：simulation observation 必须标识 `SIMULATED`；production adapter registry 不得回退
+simulation；`production_ready=false`、`target_hardware_validated=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false` 保持不变。
 
 ## 2026-07-12 当前实施阶段
 

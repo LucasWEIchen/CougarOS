@@ -24,6 +24,7 @@ CougarOS 是面向黑盒 Android 13 座舱域控制器的车载中央大脑工�
 | GitHub 闭环 | `github_repository_configured=true`、`github_issue_intake_active=true` | Private Release、Issue Form、Actions 和 15 分钟轮询已激活 |
 | 当前测试版本 | `android13-hwtest-v0.5.0-rc.2` | RC1 已撤回且没有 Release 资产，只允许使用 RC2 |
 | 物理控制器应用层证据 | `physical_controller_application_evidence_available=true` | Runtime/Demo/Client2 已完成目标 Android 13 应用层验收；不包含 NPU/VHAL/整机硬件资格 |
+| AIOS Stage 2 | `design_baseline_complete=true`、`implementation_stage=P1-W01` | 开源/行业调研、车载 UX、P0-P9 backlog 和完整详设已冻结；新 Runtime 能力尚未实现 |
 | 生产状态 | `production_ready=false` | 生产签名、系统 owner、后台策略和 vendor contract 未关闭 |
 | 目标硬件状态 | `target_hardware_validated=false` | PCIe NPU、VHAL、车辆总线和 Driver/HAL 未验证 |
 | 新增 Driver/HAL | `driver_development_triggered=false` | 当前能力缺口只记录接口，不新增推测性驱动代码 |
@@ -47,6 +48,7 @@ CougarOS 是面向黑盒 Android 13 座舱域控制器的车载中央大脑工�
 ```bash
 bash tools/check_central_brain_root_readme.sh
 bash tools/check_central_brain_software_detailed_design.sh
+bash tools/check_central_brain_aios_stage2_design.sh
 ```
 
 上述检查已接入 Android 演化门禁和 GitHub Actions。
@@ -396,6 +398,10 @@ bash tools/run_central_brain_backend.sh
 | [产品设计](docs/CENTRAL_BRAIN_PRODUCT_DESIGN.md) | 用户、场景、产品边界和参考能力 |
 | [软件总架构](docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md) | 架构图分层、职责和目标拓扑 |
 | [软件详细设计](docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md) | Android、C/JNI、Room、Python、Binding 各模块的实现级接口、状态机和扩展规则 |
+| [AIOS 开源与行业调研](docs/CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md) | AIOS/Cerebrum/LangGraph/AutoGen/OpenHands/Letta/VSS/uProtocol 源码结论与采纳边界 |
+| [AIOS Stage 2 产品与 UX](docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md) | 驾驶态 UI、“我累了/我冷了”、多设备动作、失败补偿和验收规则 |
+| [AIOS Stage 2 开发清单](docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md) | P0-P9、人日、依赖、最小工作包、接口、测试和 DoD |
+| [完整软件开发详设](docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md) | 当前/计划模块状态、AIDL/Java/C、Room v4、状态机、线程、安全、测试和发布设计 |
 | [需求拆解](docs/CENTRAL_BRAIN_REQUIREMENTS_BREAKDOWN.md) | Req ID 与任务拆解 |
 | [架构需求基线](docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md) | 每个增量的不可变需求和退出条件 |
 | [接口设计](docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md) | Envelope、UIB、SOA、AIDL、Runtime 和硬件接口 |
@@ -430,6 +436,7 @@ bash tools/run_central_brain_backend.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-15 | 当前变更 | 完成 AIOS Stage 2 开源/行业源码对照、车载场景 UX、P0-P9 最小工作包和完整软件开发详设；新增派生 Req ID、偏差/问题与静态门禁 | 仅设计基线；下一实现项 `P1-W01`，production/hardware/Driver-HAL/virtualization 仍为 false |
 | 2026-07-15 | 当前变更 | Client2 右侧浮窗改为底部导航触发菜单；默认隐藏，二次导航点击或面板外点击关闭，并通过 API 33 ARM64 真机 UI/Binder/恢复回归 | 应用层透明触摸映射；面板样式、Binder contract 和 hardware 状态不变 |
 | 2026-07-14 | 当前变更 | Runtime/Demo 物理 API 33 ARM64 验收；修复 Windows ADB 兼容和 Runtime force-stop 后 Demo Binder/Governance 有界重连 | production/NPU/hardware false |
 | 2026-07-14 | 当前变更 | 用户授权清除异签原 Client2 后完成同包 debug signer 迁移；新增显式替换工具并通过真机 Binder/UI/RenderService 与恢复矩阵 | 仅测试应用层；production signer/upgrade false |

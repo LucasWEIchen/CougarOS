@@ -17,6 +17,11 @@ on:
       - "tools/check_central_brain_github_publication_tree.sh"
       - "tools/check_central_brain_root_readme.sh"
       - "tools/check_central_brain_software_detailed_design.sh"
+      - "tools/check_central_brain_aios_stage2_design.sh"
+      - "docs/CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md"
+      - "docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md"
+      - "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md"
+      - "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md"
       - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
   pull_request:
@@ -33,6 +38,11 @@ on:
       - "tools/check_central_brain_github_publication_tree.sh"
       - "tools/check_central_brain_root_readme.sh"
       - "tools/check_central_brain_software_detailed_design.sh"
+      - "tools/check_central_brain_aios_stage2_design.sh"
+      - "docs/CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md"
+      - "docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md"
+      - "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md"
+      - "docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md"
       - "tools/package_central_brain_android_hybrid_delivery.sh"
       - "tools/run_central_brain_android_remote_acceptance.sh"
 
@@ -52,4 +62,5 @@ jobs:
           bash tools/check_central_brain_github_publication_tree.sh HEAD
           bash tools/check_central_brain_github_remote_testing.sh
           bash tools/check_central_brain_software_detailed_design.sh
+          bash tools/check_central_brain_aios_stage2_design.sh
           bash tools/check_central_brain_root_readme.sh

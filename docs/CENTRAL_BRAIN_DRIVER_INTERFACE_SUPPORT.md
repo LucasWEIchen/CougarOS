@@ -1,13 +1,45 @@
 # 驱动层接口支持矩阵
 
-版本：0.1
-日期：2026-07-08
+版本：0.2
+日期：2026-07-15
 
 ## 范围声明
 
 驱动层不作为默认开发范围。只有当前 Android/Linux 环境无法满足中央大脑架构接口时，才新增最小开发量。即便不开发驱动，驱动接口支持必须被明确记录，供座舱域工程师评估集成风险。
 
 虚拟化层不开发；如果某个驱动接口依赖 Hypervisor、跨 VM 共享内存或安全域通信，本项目只记录依赖假设和 fallback，不实现虚拟化功能。
+
+## 2026-07-15 AIOS Stage 2 Driver/HAL 边界
+
+Stage 2 P0-P7 新增的 Context、Vehicle Digital Twin、Scenario、Durable Agent Graph、Effect
+Coordinator、Tool/Memory/Event/Model 和 Client2 UX 都是 Android 用户态软件开发，不需要也不触发
+Driver/HAL 新增开发。HVAC/Seat/Nav/Media 使用 debug-only simulated adapter，所有值标记
+`source=SIMULATED`；production profile 无 adapter 时返回 unavailable，不回退仿真。
+
+P8 真实接入按下列优先级选择接口：
+
+1. Android 标准 `CarPropertyManager`/`VehiclePropertyIds`；
+2. OEM 正式发布的 Vendor AIDL/Java/NDK service contract；
+3. 已有 userspace daemon 的受控 Binder/socket adapter；
+4. 只有以上接口明确不能满足、且目标 owner/ABI/permission/safety/smoke/rollback 已确认时，才登记
+   新的最小 Driver/HAL 缺口。
+
+Stage 2 不允许：修改已刷机 framework/VHAL、猜测 vendor property、扫描私有 device node、猜 ioctl、
+绕过 `CONTROL_CAR_*` 权限、从模型输出直接访问硬件、因仿真需求开发 PCIe/CAN driver。Vendor NPU
+仍通过 `ModelProvider`/C ABI empty interface 预留；SDK、模型格式、内存 ownership、cancel/health、
+thermal 和 fault contract 未提供前不实现 backend。
+
+| Stage 2 adapter | 当前状态 | 真实接口候选 | Driver/HAL 触发条件 |
+| --- | --- | --- | --- |
+| HVAC | debug simulation planned | standard AAOS property 或 OEM service | 公开 userspace API 确认不足后单独评审 |
+| Seat heat/vent/recline | debug simulation planned | standard AAOS property 或 OEM seat service | Safety owner + property/permission 缺口确认后评审 |
+| Media/Nav | debug simulation planned | Android Media/Intent/OEM navigation SDK | 通常不触发 Driver/HAL |
+| Vehicle Context read | Digital Twin simulation planned | CarProperty subscribe/OEM state service | 高频/跨域需求明确且现有 API 不足时评审 |
+| NPU Model Provider | empty interface | Vendor userspace SDK/JNI/native daemon | Vendor 明确要求内核缺口且提供 Driver owner 后评审 |
+
+本设计增量固定 `hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`；真实 adapter 激活由 `S2-ADP-002`、`ISSUE-029/030` 和
+`DEV-024` 跟踪。
 
 2026-07-04/05 本轮语义网关、Runtime & Governance、Protocol Binding contract skeleton、Native adapters mock、Linux IPC active sample、Linux gRPC/RPC JSON contract sample、Android Binder service stub sample、Linux systemd 部署样例与 Android/Linux 平台差异说明增量只新增 Uni Info Bus/SOA/Governance/Binding/Native Adapter mock、Policy/Audit active prototype、Android AIDL 与 Binder service/client sample、Linux Unix socket IPC daemon/client sample、Linux gRPC/RPC contract sample、Linux CLI、systemd unit 和交付文档，不访问真实 NPU/GPU/Camera/Audio/ETH/Vehicle bus 驱动，因此未触发新增驱动开发条件。
 

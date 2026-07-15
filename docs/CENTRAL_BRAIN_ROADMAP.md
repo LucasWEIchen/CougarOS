@@ -33,6 +33,16 @@
 | B3 | 黑盒验收 | 公开 API 能力探测、安全安装、API 33 设备证据 | 已完成（模拟器 + 物理应用层） |
 | B4 | 实际工程交付 | APK/AAR、hash/signer/ABI、安装和使用指南 | 已完成（软件交付） |
 | B5 | GitHub 远程硬件测试闭环 | 私有 Release、脱敏证据、Issue Form、复测状态机 | 维护者闭环已激活；tester access/branch protection 待外部输入 |
+| S2-P0 | 完整 AIOS Stage 2 设计冻结 | 开源/行业源码调研、车载 UX、P0-P9 backlog、完整详设、派生 Req ID | 已完成（设计基线；未启用新 Runtime 能力） |
+| S2-P1 | Runtime Contract v2 | typed Session/Plan/Event/Effect AIDL、SDK facade、Room v4 | 未开始；下一项 `P1-W01` |
+| S2-P2 | 场景与仿真闭环 | Context、Digital Twin、Scenario compiler、HVAC/Seat/Nav/Media simulation | 未开始 |
+| S2-P3 | Durable Agent Graph | node executor、checkpoint、approval interrupt、Effect verify/reconcile/undo | 未开始 |
+| S2-P4 | 产品化座舱 HMI | plan timeline、进度、partial/retry/undo、driving-state UX | 未开始 |
+| S2-P5 | Tool/Skill 与 Memory | manifest/registry/rules/executor、working/profile/episodic memory | 未开始 |
+| S2-P6 | Event 与主动智能 | durable broker、cursor/backpressure、TriggerEngine、主动建议 | 未开始 |
+| S2-P7 | Model Runtime 与评测 | policy-aware router、local provider、output validator、evaluation | 未开始 |
+| S2-P8 | 真实目标 Adapter | AAOS/Vendor/NPU 分项 adapter 与 activation evidence | 外部阻塞 |
+| S2-P9 | 量产加固 | 性能、长稳、安全、隐私、签名、升级/回滚、整车验收 | 未开始；依赖 P8/OEM owner |
 
 ## M0 任务清单
 
@@ -67,6 +77,22 @@
 
 ### 2026-07-15
 
+- 完成 AIOS Stage 2 设计基线：审阅 AIOS、Cerebrum、LangGraph、AutoGen、OpenHands SDK、
+  Letta、COVESA VSS 和 Eclipse uProtocol 的源码/规范，记录固定 commit、源码入口、采纳与拒绝模式；
+  通用 Agent 机制不被误写为车规认证能力。
+- 新增产品与 UI/UX 计划，将 Client2 从“按钮 + 模型文本”规划为 session/plan/effect 可视化面板；
+  `scene.fatigue.assist.v1` 明确 moving/unknown 状态禁止驾驶席放平，驻车 seat 动作要求 fresh
+  Context、hard policy、durable approval、readback 和 governed undo。
+- 新增 P0-P9 开发计划，拆为 74 个唯一的最小工作包，主要工作包约 0.5-3 人日；P0-P7 预计 124-168 人日，
+  可在不接真实 VHAL/NPU 的前提下完成完整 AIOS 原型。P8/P9 依赖公开 OEM/Vendor contract、
+  production signer、权限和整车 owner，不给出虚假固定日期。
+- 新增完整软件开发详设，逐项标注 `DEVELOPED`、`PROTOTYPE`、`CONTRACT_ONLY`、
+  `NOT_STARTED`、`EXTERNAL_BLOCKED`，冻结 AIDL/Java/C 接口、Room v4、状态机、线程、错误码、
+  安全/隐私、测试与发布边界。下一实现工作包为 `P1-W01 Session DTO/AIDL`。
+- 新增派生需求 `S2-UX/SES/CTX/TWN/SCN/GRF/SAF/EFF/ADP/TOL/MEM/EVT/MDL/OBS/REL`，
+  全部反向映射既有架构图 Req ID；本设计增量保持 `production_ready=false`、
+  `target_hardware_validated=false`、`driver_development_triggered=false`、
+  `virtualization_development_triggered=false`。
 - Client2 右侧半透明面板从常驻浮窗改为底部导航触发菜单，原面板宽度、颜色、圆角、
   elevation、12 个场景按钮和结果区均保持不变。Activity 启动后面板为 `GONE`；首次点击
   `centralBrainNavigationTrigger` 显示，第二次点击或点击面板外区域隐藏，面板内交互不关闭菜单。

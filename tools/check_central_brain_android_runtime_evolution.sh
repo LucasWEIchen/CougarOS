@@ -273,6 +273,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_hybrid_delivery.sh"
 bash "$ROOT_DIR/tools/check_central_brain_windows_adb_compatibility.sh"
 bash "$ROOT_DIR/tools/check_central_brain_github_remote_testing.sh"
 bash "$ROOT_DIR/tools/check_central_brain_software_detailed_design.sh"
+bash "$ROOT_DIR/tools/check_central_brain_aios_stage2_design.sh"
 bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_gradle.sh"
