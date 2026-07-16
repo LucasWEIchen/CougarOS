@@ -8,7 +8,7 @@
 
 目标平台：黑盒 Android 13 座舱域控制器
 
-主要语言：Java、AIDL、C；构建/验收脚本使用 Bash；Python 原型仅作兼容参考和测试 oracle
+主要语言：Java、AIDL、C；构建/验收脚本使用 Bash；Python AIOS 原型已退役且不得作为兼容参考或测试 oracle
 
 ## 1. 计划摘要
 
@@ -445,7 +445,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 ### `P7-W02` ModelProviderRegistry/health
 
 - 状态：`NOT_STARTED`；2 人日；需求：`S2-MDL-001`。
-- provider：deterministic、local HTTP/Ollama simulation、vendor NPU placeholder、cloud placeholder。
+- provider：deterministic Android test provider、可选 Android 本地开发 provider、vendor NPU placeholder、cloud placeholder。
 - DoD：production readiness 与 test availability 分离。
 
 ### `P7-W03` PolicyAwareModelRouter
@@ -456,7 +456,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 ### `P7-W04` LocalModelProvider
 
 - 状态：`NOT_STARTED`；2.5 人日；需求：`S2-MDL-001`。
-- DoD：OpenAI-compatible/Ollama-compatible adapter、deadline/cancel/streaming limit；仅开发/仿真 profile。
+- DoD：Android 进程内本地开发 provider 支持 deadline/cancel/streaming limit；仅允许开发 profile，禁止作为生产路径或 Vendor NPU 的隐式回退。
 
 ### `P7-W05` Prompt/Output schema
 

@@ -6,15 +6,16 @@
 
 ## 目标与范围
 
-本计划把已完成的 Central Brain Python contract/mock 原型演进为可安装在 Android 13 座舱硬件上的用户态中央大脑运行时。架构图仍是需求基线；本计划只补齐现有层内的量产化能力，不增加新的顶层架构层。
+本计划描述可安装在 Android 13 座舱硬件上的用户态中央大脑 Runtime。架构图仍是需求基线；Python contract/mock 原型已于 2026-07-16 退役，不再是实现输入、兼容层或测试 oracle。
 
 本阶段约束：
 
-- 只聚焦 Android 交付，不开发 Linux 前端；既有 Linux 样例保留但不扩展。
+- 只聚焦 Android 交付，不开发 Linux 前端；早期 Linux Python 样例已移除。
 - 不修改厂商 Android Framework、BSP、预编译系统组件或芯片 SDK 源码。
 - 交付形态为 AI SDK AAR、独立 Runtime Service APK、Demo HMI APK，以及按需启用的 NDK/JNI adapter。
-- Python 保留为仿真后端、contract conformance 和回归测试工具，不作为 Android 产品运行时。
-- NPU 当前使用 deterministic stub；Ollama 只允许出现在 debug provider；Vendor NPU provider 保持 empty adapter。
+- Android deterministic provider 只用于 unit/debug contract；不提供 Python 仿真后端。
+- NPU 当前保留 `vendor.npu.empty` 和 ModelProvider/C ABI 合同；真实 Provider 只有取得 Vendor SDK 和目标证据后才能激活。
+- Vendor NPU provider 保持 empty adapter，直到目标 owner、ABI、权限、buffer、fault 和 smoke 证据齐全。
 - 不开发虚拟化。Driver/HAL 只在公开/vendor SDK 无法满足明确接口时登记最小缺口。
 
 涉及 Req IDs：`APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-004`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-004`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。
@@ -26,16 +27,16 @@
 | 状态 | 含义 | 最低证据 |
 | --- | --- | --- |
 | `contract_defined` | Schema、边界、错误和 Req ID 已定义 | contract parse + static check |
-| `prototype_implemented` | 仿真环境中存在可执行实现 | deterministic unit/smoke test |
+| `prototype_implemented` | Android debug/test 中存在可执行实现 | deterministic unit/instrumentation test |
 | `android_integrated` | Android 13 APK/AAR 路径可运行 | Binder/instrumentation + API 33 device test |
 | `hardware_validated` | 目标硬件与 vendor 接口已验证 | target-device smoke + fault/rollback evidence |
 | `production_qualified` | 性能、安全、隐私、升级和运维门禁关闭 | signed acceptance package |
 
 状态规则：
 
-- `python_prototype_current_scope_complete=true` 只说明旧 Python 原型范围完成，不提升任何模块到 `android_integrated`。
+- `python_prototype_runtime_maintained=false` 表示旧 Python 原型已退役，不提升任何模块到 `android_integrated`。
 - readiness、checklist、rollup 和 no-store evidence 接口最多证明 `contract_defined`。
-- mock、Ollama 和 Client2 HTTP 演示最多证明 `prototype_implemented`。
+- Android debug/test double 最多证明 `prototype_implemented`；Client2 当前只证明 typed Binder 应用集成。
 - hardware empty interface 永远不能标记为 `hardware_validated`。
 - 每次状态提升必须记录验证命令、设备/ABI、commit 和未关闭风险。
 
@@ -48,9 +49,9 @@
 | R2 | 量产业务 AIDL 与诊断 AIDL 拆分 | typed Parcelable、快速返回、callback、cancel、Binder death 测试通过 | XSC-006, NV-G-003/006, NV-P-002 |
 | R3 | Job Supervisor 与可信身份 | 任务状态机、Binder UID/package/signature capability mapping、default deny 生效 | NV-F-001, FW-U-007, NV-G-005/006 |
 | R4 | Durable workflow | Room/SQLite checkpoint、pending effect、idempotency/outbox、重启恢复通过 | FW-U-004, NV-F-001, NV-G-006/007 |
-| R5 | Scheduler 与 Model Router | deadline/priority/quota/cancel + Stub/Ollama-debug/Vendor-empty provider | APP-004, NV-F-011, NV-G-004/006 |
+| R5 | Scheduler 与 Model Router | deadline/priority/quota/cancel + test stub/Vendor-empty provider | APP-004, NV-F-011, NV-G-004/006 |
 | R6 | Event、Memory、Skill 与 middleware | callback/cursor、memory lifecycle、signed built-in Skill、治理链测试通过 | FW-U-003/006/007, NV-G-005/007 |
-| R7 | Observability、Client2 SDK 迁移与验收 | Client2 不再直连固定 HTTP；trace/metric、端到端和故障测试通过 | APP-004, NV-F-012, XSC-005/006, DEL-001 |
+| R7 | Observability、Client2 SDK 迁移与验收 | Client2 typed Binder、trace/metric、端到端和故障测试通过 | APP-004, NV-F-012, XSC-005/006, DEL-001 |
 | B0 | 黑盒实际工程基线 | Java/C/JNI/ABI/部署和验收边界进入静态门禁 | XSC-004/005/006, NV-F-001/011, DEL-001/004/005 |
 | B1 | Native Runtime | C ABI V1、JNI wrapper、arm64/x86_64 AAR | XSC-004, NV-F-001/011, NV-P-002 |
 | B2 | Runtime integration | Java Runtime/Diagnostic 接入 native lifecycle | XSC-005/006, NV-G-003/006/007 |
@@ -84,7 +85,7 @@
 - `R2C Binder lifecycle/race instrumentation` 已完成：SDK death recipient 与具体 Binder 实例绑定，stale/duplicate death 被忽略，`reconnect()` 明确执行 unbind/rebind，terminal 后排队 update 被抑制。
 - Custom Android instrumentation 在 API 33 x86_64 上 force-stop Runtime，验证活动任务只收到一次 `SERVICE_DIED`、只通知一次 disconnect、显式重连后新任务完成；15-task 并发测试同时得到 completed/cancelled 且每任务只有一个 terminal callback。
 - Debug-only client-death probe 在独立 app process 提交任务后被 force-stop；保持 started 的 Runtime 观察 callback Binder death 并以 `CANCEL_REASON_CLIENT_DIED` 取消。所有测试组件受 DUMP 保护且 release APK 不包含。
-- R2 退出条件已关闭，`central-brain-sdk`/typed Android Protocol Binding 提升到 `android_integrated`。这不代表 R3..R7、真实硬件或量产资格完成；`DEV-018`/`ISSUE-021` 继续跟踪旧 JSON Binder/HTTP compatibility migration。
+- R2 退出条件已关闭，`central-brain-sdk`/typed Android Protocol Binding 提升到 `android_integrated`。这不代表 R3..R7、真实硬件或量产资格完成；`DEV-018`/`ISSUE-021` 继续跟踪 app-local AIDL 与目标 VINTF/system owner 边界。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
 
 ### R3 实施状态
@@ -141,7 +142,7 @@
 ### R5 实施状态
 
 - `R5A1 model provider contract` 已完成：新增纯 Java `ModelProvider`，统一 descriptor、health/lifecycle snapshot、warmup、infer/stream、cancel、metrics、fault 和 close 语义；stream chunk 有界且 defensive copy。
-- Descriptor 默认失败关闭：deterministic stub 与 Ollama debug 不得声明 hardware-backed/production，EMPTY provider 不得声明 inference slot、warmup/stream/cancel/metrics 或 fallback。
+- Descriptor 默认失败关闭：deterministic test 与可选 local-development provider 不得声明 hardware-backed/production，EMPTY provider 不得声明 inference slot、warmup/stream/cancel/metrics 或 fallback。
 - 当前只登记 `deterministic.stub` 与 `vendor.npu.empty` 两个 immutable profile。前者 TEST_ONLY/COLD、后者 EMPTY/UNAVAILABLE；两者 `implementationConfigured=false`、`routingEnabled=false`，production Runtime/Governance 不引用 provider。
 - JVM 与 debug-only API 33 probe 验证 profile、unsafe descriptor rejection 和 no-hardware/no-routing 边界；frozen AIDL、Room schema、标准 artifact shape 均未改变。
 - `R5A2 inference resource scheduler` 已完成：pure-Java synchronized state machine 使用 Runtime-policy-only effective priority、elapsed-realtime task/queue deadline、global/per-owner queue/running quota、provider slot 和 priority/deadline/FIFO 稳定排序。
@@ -155,7 +156,7 @@
 - `R5C1 production-safe model runtime readiness` 已完成：immutable snapshot 经 Runtime log、protected dumpsys 和现有 Diagnostic Binder page 暴露 profile configuration/lifecycle/health/detail code 与 ordered activation blockers，不构造或执行 Provider/Scheduler/Router。
 - Deterministic profile 明确 TEST_ONLY/COLD/HEALTHY/NOT_WIRED，Vendor NPU 明确 EMPTY/UNAVAILABLE/UNAVAILABLE；contract/test implementation availability 与 production activation 分离，AIDL/Room/artifact shape 不变。
 - `R5D1 Android 13 application-layer deployment acceptance` 已完成 tooling/emulator evidence：校验 API 33/ABI/fingerprint、artifact hash/signer、普通 UID、`/data/app` 安装、三项 signature-protected Service、no-INTERNET/no-native-payload 和 fail-closed Model Runtime。
-- R5 contract/test software track 已关闭，可进入 R6；production evolution stage 仍保持 R4 durable foundation。物理目标应用层验收、production Provider/Router、Ollama/Vendor NPU 和 hardware qualification 不包含在关闭声明内，继续由 ISSUE-024、DEV-019 与 `DRV-GAP-001` 跟踪。
+- R5 contract/test software track 已关闭，可进入 R6；production evolution stage 仍保持 R4 durable foundation。物理目标应用层验收、production Provider/Router、Vendor NPU 和 hardware qualification 不包含在关闭声明内，继续由 ISSUE-024、DEV-019 与 `DRV-GAP-001` 跟踪。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`。
 
 ### R6 实施状态
@@ -176,7 +177,7 @@
 - `R6B2 Memory runtime readiness` 已完成：immutable snapshot 通过 Runtime log、protected dumpsys 和 existing Diagnostic Binder 暴露 R6B1 implementation availability、三种 scope 与八项 ordered prerequisite blocker。
 - Snapshot 只校验 scope/TTL 常量，不构造 lifecycle、不打开 Room。Memory schema/repository、durable encrypted storage、key lifecycle、consent/revocation authority、trusted retention clock、production wiring 与 middleware 均保持 false；R6B 软件可见性闭环后转入 R6C1 signed built-in Skill contract。
 - Req IDs：`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-012`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
-- `R6C1 signed built-in Skill runtime` 已完成：三个 prototype-compatible manifest 固定 version/schema/route/capability/risk/safety-state/artifact digest/signer evidence；catalog immutable 且只允许 compile-time signer digest。
+- `R6C1 signed built-in Skill runtime` 已完成：三个 test-compatible manifest 固定 version/schema/route/capability/risk/safety-state/artifact digest/signer evidence；catalog immutable 且只允许 compile-time signer digest。
 - Owner/client invocation admission 支持 exact replay/conflict、version/schema/capability/safety fail-closed、global/per-owner quota、owner isolation、idempotent cancel 与 bounded tombstone。只接收 input digest，所有 admission dispatch false。
 - 当前仅验证 compile-time signer allowlist，不读取 artifact bytes，`cryptographic_artifact_verification_performed=false`；无 APK/JAR/native 动态加载、production Service/AIDL/Room/network/hardware。下一步 R6C2 fixed governance middleware chain。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`。
@@ -235,8 +236,8 @@
 - `ISSUE-023`: Android 可信身份、capability 和高风险审批。
 - `ISSUE-024`: Model Router、资源准入、fallback 和 NPU empty-provider 边界。
 - `ISSUE-025`: Event、Memory、Skill 生命周期和治理链。
-- `DEV-018`: 当前 107 个 String/JSON AIDL 方法与同步 HTTP proxy 偏离目标 Protocol Binding。
-- `DEV-019`: 当前请求体自报权限与进程内非持久状态偏离目标 Runtime & Governance/AIOS Kernel。
+- `DEV-018`: 当前 Gradle app-local typed AIDL 不能声明为 AOSP/VINTF stable system interface。
+- `DEV-019`: target Safety/Vehicle/approval/model/effect authority 尚未接入生产 Runtime。
 
 ## 自动推进规则
 

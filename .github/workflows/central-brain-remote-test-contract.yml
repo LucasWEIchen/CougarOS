@@ -9,14 +9,17 @@ on:
       - ".github/**"
       - ".githooks/**"
       - "central-brain/contracts/central_brain_github_remote_testing.json"
+      - "central-brain/android-runtime/**"
       - "central-brain/delivery/android-hybrid/**"
       - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
-      - "docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md"
+      - "docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md"
+      - "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
+      - "docs/CENTRAL_BRAIN_ROADMAP.md"
       - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
       - "tools/check_central_brain_github_publication_tree.sh"
       - "tools/check_central_brain_root_readme.sh"
-      - "tools/check_central_brain_software_detailed_design.sh"
+      - "tools/check_central_brain_python_prototype_retirement.sh"
       - "tools/check_central_brain_aios_stage2_design.sh"
       - "docs/CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md"
       - "docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md"
@@ -30,14 +33,17 @@ on:
       - ".github/**"
       - ".githooks/**"
       - "central-brain/contracts/central_brain_github_remote_testing.json"
+      - "central-brain/android-runtime/**"
       - "central-brain/delivery/android-hybrid/**"
       - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
-      - "docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md"
+      - "docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md"
+      - "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
+      - "docs/CENTRAL_BRAIN_ROADMAP.md"
       - "tools/check_central_brain_android_hybrid_delivery.sh"
       - "tools/check_central_brain_github_remote_testing.sh"
       - "tools/check_central_brain_github_publication_tree.sh"
       - "tools/check_central_brain_root_readme.sh"
-      - "tools/check_central_brain_software_detailed_design.sh"
+      - "tools/check_central_brain_python_prototype_retirement.sh"
       - "tools/check_central_brain_aios_stage2_design.sh"
       - "docs/CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md"
       - "docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md"
@@ -61,6 +67,6 @@ jobs:
         run: |
           bash tools/check_central_brain_github_publication_tree.sh HEAD
           bash tools/check_central_brain_github_remote_testing.sh
-          bash tools/check_central_brain_software_detailed_design.sh
+          bash tools/check_central_brain_python_prototype_retirement.sh
           bash tools/check_central_brain_aios_stage2_design.sh
           bash tools/check_central_brain_root_readme.sh

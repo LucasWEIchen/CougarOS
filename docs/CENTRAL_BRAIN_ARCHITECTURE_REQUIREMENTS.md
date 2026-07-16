@@ -1,1198 +1,251 @@
-# 中央大脑架构图需求基线
+# 中央大脑架构需求基线
 
-版本：0.1
-日期：2026-07-04
-来源：`docs/assets/central_brain_architecture_source.png`
+版本：0.3
+日期：2026-07-16
+状态：Android 13 实际工程基线
 
-## 基线声明
+## 1. 基线声明
 
-用户提供的《中央大脑软件部分展开》不是概念示意图，而是本项目的架构需求基线。后续开发计划、接口设计、代码实现和验证都必须追踪到该图中的层级、模块和接口。
+用户提供的架构图是需求基线，不是示意图。实现、测试、交付和文档必须引用 Req ID；任何偏离图中
+层级、所有权、调用关系或交付范围的内容必须登记到架构偏差和问题台账。
 
-任何未按图实现的内容必须进入 `docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md`；任何图中表达不清、边界重叠、工程上有风险或需要用户确认的内容必须进入 `docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md`。
+## 2. 用户明确约束
 
-## 用户明确约束
+1. 目标是黑盒 Android 13 座舱控制器；不得修改不可获得源码的厂商 Framework、BSP 或预编译组件。
+2. 当前只开发 Android 版本，主语言为 Java、AIDL、C 和 JNI。
+3. Python 仿真 runtime 不再维护；Linux Python 前端/daemon 不再交付。
+4. 不开发虚拟化；只维护 Safety、ASIL/QM 和跨域接口约束。
+5. Driver/HAL 仅在公开或 Vendor SDK 不能满足明确接口时登记最小缺口。
+6. 外置 PCIe NPU 当前保留 ModelProvider、C ABI/JNI、Vendor empty provider 和 Driver/HAL 合同。
+7. 真实车辆、模型、NPU 或安全 authority 不可用时，production 必须失败关闭。
+8. Android debug/test double 不能作为真实硬件、production 或量产验收证据。
 
-以下约束优先级高于此前计划：
+## 3. 分层需求
 
-1. 虚拟化层不需要被开发。Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信只作为架构接口、部署约束和适配说明记录，不产生代码开发量。
-2. 驱动层仅在当前 Android/Linux 环境不能满足需求时新增开发量。驱动接口支持范围必须明确写入文档，包括 NPU/GPU/Camera/Audio/ETH 等接口边界。
-3. 图中带黄色小太阳标记的组件会在多个 SoC 中出现，必须按跨 SoC 可移植平台组件设计。
-4. 开发以 Android 环境为主，但交付时必须同时提供 Linux 版本。
-5. 交付对象是使用 Android 和 Linux 系统的座舱域软件工程师，因此交付物必须包括接口说明、集成路径、验证命令和平台差异说明。
+| 层级 | Req ID | 必须包含 | 当前 Android 映射 |
+| --- | --- | --- | --- |
+| L1 应用 | APP-001..010 | HMI、座舱/Cluster/TBOX/ADAS/其他 App 与 AI SDK 接入 | Client2、Demo HMI、Central Brain SDK |
+| L2 Framework | FW-U-001..008, FW-S-001..006 | Uni Info Bus 语义对象、SOA 服务入口、Safety State | typed AIDL、Context/Event/Memory/Action/Skill 合同 |
+| L3 Native | NV-F-001..012, NV-G-001..007, NV-P-001..007 | AIOS Kernel、adapter、Runtime & Governance、Protocol Binding | Runtime Service、Room、policy、scheduler、C ABI/JNI |
+| L4 Kernel/HAL | KH-001..009 | OS 基础能力、Driver、HAL、Safety Runtime | 只使用公开能力；缺口按 Driver/HAL 文档登记 |
+| L5 虚拟化 | HV-001..003 | Hypervisor/ASIL-QM/跨域约束 | 只记录接口，不开发 |
+| L6 硬件 | HW-001..002 | UniSOC 基座与外置 PCIe NPU | 真实 NPU 未接入，Vendor provider 为空 |
 
-## 所有权颜色
+## 4. 应用层需求
 
-| 颜色 | 图中含义 | 项目处理 |
+| Req ID | 要求 | 实现规则 | 当前状态 |
+| --- | --- | --- | --- |
+| APP-001 | 座舱 HMI | 只能经 SDK/Binder 访问 Runtime，不直连模型或车控 | Client2/Demo 已集成 |
+| APP-002 | 座舱服务 | 作为受治理 Business/Foundation/Atomic service 暴露 | 外部阻塞 |
+| APP-003 | Agent App | 通过 Session/Plan/Tool/Action/Effect 执行 | Stage 2 待开发 |
+| APP-004 | AI SDK | 提供稳定 typed client facade、异步任务和故障语义 | Android AAR 已实现 |
+| APP-005 | Cluster/TBOX App | 与座舱域按服务合同隔离 | 外部阻塞 |
+| APP-006 | Cluster/TBOX Service | 声明显示、媒体、远控、OTA 边界 | 外部阻塞 |
+| APP-007 | ADAS App | 只读状态或发起受控请求，不进入安全闭环 | 外部阻塞 |
+| APP-008 | ADAS Service | 通过受治理 adapter/Protocol Binding 暴露 | 外部阻塞 |
+| APP-009 | 诊断/标定/Trace App | 必须受身份、capability 和 audit 控制 | 部分实现 |
+| APP-010 | 诊断/标定/Trace Service | 不允许 App 绕过 Runtime 直达底层 | 合同已定义 |
+
+## 5. Framework 需求
+
+### 5.1 Uni Info Bus
+
+| Req ID | 对象 | 必须语义 | 当前状态 |
+| --- | --- | --- | --- |
+| FW-U-001 | Context | 车辆、用户、环境的版本化 snapshot | Stage 2 待开发 |
+| FW-U-002 | State | 服务、模型、车辆状态查询 | diagnostics/readiness 部分实现 |
+| FW-U-003 | Event | publish/subscribe/cursor/overflow/replay | Android bounded + durable cursor 基础完成 |
+| FW-U-004 | Action | 所有副作用必须经过 policy/approval/audit | typed governance + effect gate 完成 |
+| FW-U-005 | Service | 统一服务调用和错误 envelope | Stage 2 待接真实 adapter |
+| FW-U-006 | Tool | schema、capability、安全状态和超时 | built-in Skill 合同基础完成 |
+| FW-U-007 | Permission | 身份来自 Binder，不接受请求体自报权限 | 已实现 |
+| FW-U-008 | Extension | 扩展不得绕过核心语义和治理 | production loader 未实现 |
+
+### 5.2 SOA 服务入口
+
+| Req ID | 服务类 | 实现规则 | 当前状态 |
+| --- | --- | --- | --- |
+| FW-S-001 | Business Service | 场景编排必须生成可审计 plan/effect | Stage 2 待开发 |
+| FW-S-002 | Foundation Service | 账号、配置、时间、权限采用可替换 adapter | 外部阻塞 |
+| FW-S-003 | Atomic Service | 最小 HVAC/Seat/Media/Navigation 能力 | 外部阻塞 |
+| FW-S-004 | Service Contract | IDL/schema/version/error 必须冻结 | typed AIDL 基础完成 |
+| FW-S-005 | Safety State | 强制 interlock，用户确认不能覆盖硬联锁 | owner 未接入 |
+| FW-S-006 | Extension Service | 必须注册、发现、授权、审计和撤销 | 未实现 |
+
+## 6. Native 层需求
+
+### 6.1 功能与适配
+
+| Req ID | 模块 | 实现规则 | 当前状态 |
+| --- | --- | --- | --- |
+| NV-F-001 | AIOS Kernel | Session/Task/Plan/Model/Tool/Memory/Safety 由 Runtime 拥有 | Android Runtime 基础完成 |
+| NV-F-002 | Sensor/Actuator | 统一输入输出 adapter，不猜 vendor API | 外部阻塞 |
+| NV-F-003 | Service Adapter | 语义 service 到目标 API 的唯一桥接 | empty/contract |
+| NV-F-004 | Vehicle/Body Signal | BCM/HVAC/Seat/Door/Light 需真实目录和 readback | 外部阻塞 |
+| NV-F-005 | ECU Proxy/Signal Adapter | 需 property/DBC/ARXML/area/error owner | 外部阻塞 |
+| NV-F-006 | Data/Time Sync | 高频数据需时间域和 frame metadata | 未实现 |
+| NV-F-007 | Connected Funcware | TBOX/V2X/OTA/Diag 经 adapter 接入 | 外部阻塞 |
+| NV-F-008 | SOA Runtime | 服务生命周期、超时、取消、健康状态 | 部分实现 |
+| NV-F-009 | Security/Policy Adapter | Safety/zone/ASIL-QM/default-deny | 软件 policy 完成，目标 owner 阻塞 |
+| NV-F-010 | ADAS Funcware | 安全域闭环不由用户态 AIOS 接管 | 非本阶段 |
+| NV-F-011 | Model Runtime Adapter | 抽象 CPU/GPU/NPU/Cloud，受 scheduler/governance 控制 | Provider contract + Vendor empty |
+| NV-F-012 | Observability | trace/metric/audit 不得记录敏感原文 | 软件 snapshot/audit 部分完成 |
+
+### 6.2 Runtime & Governance
+
+| Req ID | 能力 | 实现规则 | 当前状态 |
+| --- | --- | --- | --- |
+| NV-G-001 | Registry | 稳定 ID、版本、owner、health | production registry 待 Stage 2 |
+| NV-G-002 | Discovery | App 不硬编码 provider/service 地址 | Binder explicit component 当前受控 |
+| NV-G-003 | Schema/IDL | typed、versioned、checksum/hash | 已实现 |
+| NV-G-004 | QoS | deadline、priority、quota、cancel | scheduler contract 完成 |
+| NV-G-005 | Policy | identity/capability/safety/privacy/default-deny | 软件基础完成 |
+| NV-G-006 | Lifecycle | submit/status/cancel/death/restart/recovery | 软件基础完成 |
+| NV-G-007 | Audit/Diagnostics | durable metadata/digest、受保护查询 | 软件基础完成 |
+
+### 6.3 Protocol Binding
+
+| Req ID | Binding | 当前规则 | 当前状态 |
+| --- | --- | --- | --- |
+| NV-P-001 | SOME/IP | 只有目标网络/IDL/owner 到位后实现 | 外部阻塞 |
+| NV-P-002 | IPC | Android typed Binder 是当前唯一应用主线 | android_integrated |
+| NV-P-003 | gRPC/RPC | 当前 Android 范围不交付 | 非本阶段 |
+| NV-P-004 | MQTT | 必须经过 Privacy/Policy；当前不交付 | 非本阶段 |
+| NV-P-005 | REST | 不作为本地 AIOS Runtime binding，不得恢复 Python gateway | Retired |
+| NV-P-006 | DDS | 高频 topic owner/QoS/Driver-HAL 明确后实现 | 外部阻塞 |
+| NV-P-007 | 其他 | 必须登记 schema、identity、QoS 和治理 | 未实现 |
+
+## 7. Kernel/HAL、虚拟化与硬件需求
+
+| Req ID | 要求 | 当前边界 |
 | --- | --- | --- |
-| 蓝色 | 展锐负责 | 默认按平台/底座能力实现或预留接口 |
-| 肤色 | 芯片原有 | 默认按底层 OS/芯片能力依赖，不在 App 侧重造 |
-| 绿色 | 生态合作 | 默认按 adapter/plugin/provider 接入 |
-| 黄色 | 客户开发 | 默认按上层应用/业务服务实现 |
+| KH-001 | 复用 Android 文件系统、网络和系统服务基础能力 | 不重造 OS |
+| KH-002 | 共享内存和 NPU buffer 需明确 ownership/cache/IOMMU | 外部阻塞 |
+| KH-003 | Drivers 只在明确缺口时新增 | DRV-GAP 文档化，未触发 |
+| KH-004 | 其他底层扩展需单独审批 | 未实现 |
+| KH-005 | 基础 Libs 需锁定版本/ABI/license | Gradle/NDK 依赖受控 |
+| KH-006 | HAL 必须有版本、错误、取消、恢复和安全边界 | NPU/VHAL 合同，未实现真实 HAL |
+| KH-007 | Safety Runtime 是硬联锁 authority | 目标接口未提供 |
+| KH-008 | 图中第二组 Libs 含义不明 | 不猜测，见 ISSUE-007/027 |
+| KH-009 | 调度/中断/异常由 OS/vendor runtime 负责 | 上层只消费稳定错误 |
+| HV-001 | 不开发 Hypervisor | 只记录接口约束 |
+| HV-002 | 不开发 ASIL/QM 隔离机制 | 只定义服务到安全域映射 |
+| HV-003 | 不开发跨 VM transport | 只定义 envelope/fallback |
+| HW-001 | UniSOC Automotive-solution 是硬件基线 | 黑盒目标，不修改 BSP |
+| HW-002 | 外置 PCIe NPU 是模型计算底座 | 当前只保留空接口和 C ABI/JNI |
 
-## 分层基线
+虚拟化和 Safety 详细约束见 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md`。
 
-| 层级 ID | 图中层级 | 需求约束 | 当前状态 |
+## 8. 跨 SoC 组件与交付
+
+| Req ID | 图中黄色小太阳组件 | 平台无关合同 | 当前 Android 交付 |
 | --- | --- | --- | --- |
-| L1 | 应用层 | 承载客户开发的 Apps/Services，以及平台提供的 AI SDK | 部分原型 |
-| L2 | Framework 层 | 必须包含 Uni Info Bus 语义接口和 SOA 服务入口 | 文档化，未完整实现 |
-| L3 | Native 层 | 必须包含 AIOS Kernel、Signal/Service/Runtime/Policy/Model adapters，以及 Runtime & Governance、Protocol Binding | mock 后端仅覆盖极小子集 |
-| L4 | Kernel & HAL 层 | 必须依托文件系统、网络、内存、Drivers、Libs、HAL、Safety Runtime、调度/中断/系统调用；新增开发仅限当前环境缺口 | 驱动接口矩阵 + NPU runtime interface 初版 + `/native/driver-gaps` + `/hardware/interfaces` 空接口注册表 + `/hardware/interfaces/activation-checklist` 激活前门禁 + `/hardware/interfaces/owner-decision-status` owner 决策状态 + `/hardware/interfaces/owner-decision-evidence` no-store evidence intake + `/hardware/interfaces/owner-decision-evidence/status` no-store evidence status + `/hardware/interfaces/owner-decision-evidence/retention-checklist` retention/closure checklist + `/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` replacement trigger checklist + `/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist` selected-adapter readiness checklist + `/hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup` adapter-load blocker rollup + `/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run` adapter-load approval dry-run + `/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status` no-store status + `/hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency` audit consistency + `/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist` approval authority checklist + `/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status` approval authority no-store status + `/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency` approval authority audit consistency + `/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix` approval decision reviewer matrix + `/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist` approval reviewer evidence handoff checklist + `/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status` approval reviewer evidence handoff acceptance status + `/hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/audit-consistency` approval reviewer evidence handoff acceptance audit consistency |
-| L5 | 虚拟化层 | 必须体现 Hypervisor、ASIL/QM 隔离、跨 VM 共享内存与安全域通信的接口约束；不开发虚拟化功能 | `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 初版 |
-| L6 | 硬件层 | 基线硬件为 UniSOC Automotive-solution，并扩展接入外置 PCIe NPU | 未实现真实硬件，仅 Python 原型 mock + hardware empty-interface registry |
-
-## 跨 SoC 黄色小太阳组件
-
-图中带黄色小太阳标记的组件按跨 SoC 复用平台组件处理。这些组件不能绑定单一 SoC、单一 Android 版本或单一 Linux 发行版。
-
-| Req ID | 图中组件 | 所属层级 | 跨 SoC 要求 | Android 交付 | Linux 交付 |
-| --- | --- | --- | --- | --- | --- |
-| XSC-001 | AI SDK | 应用层 | SDK API 稳定，底层 runtime 可替换 | Android Binder/AIDL contract sample + Console `planAgentTaskJson`/`executeAgentTaskJson`/`invokeSkillJson`/`queryMemoryJson` debug path + `/ai/sdk/capabilities` + `/agent/plan` + `/agent/execute` + Skill/Memory contract mock + `getPrototypeReadinessJson` 成熟度总览 | Linux CLI/IPC/gRPC active sample + `/ai/sdk/capabilities` + `/agent/plan` + `/agent/execute` + Skill/Memory contract mock + `prototype-readiness`/`prototype.readiness.get`/`GetPrototypeReadiness` |
-| XSC-002 | Uni Info Bus 语义接口 | Framework 层 | 语义对象和 contract 跨 SoC 一致 | Android client/API + Binder `getEventSubscriptionsJson`、`requestEventSubscriptionJson`、`cancelEventSubscriptionJson`、`getEventSubscriptionTransportReadinessJson`、`getEventSubscriptionDecisionMatrixJson`、`getEventSubscriptionActivationChecklistJson`、`getEventSubscriptionCallbackWatchShapeJson`、`getEventSubscriptionCursorReplayStorageJson`、`getEventSubscriptionBackpressureQosEvidenceJson`、`getEventSubscriptionReadinessRollupJson` 事件订阅生命周期、callback/watch transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage、backpressure/QoS evidence 与 readiness rollup 契约 + `getUibExtensionsJson` + `getVehicleSignalsJson` 只读信号目录可见性 + `getVehicleSignalActivationJson` 读桥激活准入可见性 + `getVehicleSignalValidationJson` 读桥校验证据可见性 | Linux client/API + CLI/IPC/gRPC `event-subscriptions`/`event-subscribe-request`/`event-subscribe-cancel`/`event-subscription-transport-readiness`/`event-subscription-decision-matrix`/`event-subscription-activation-checklist`/`event-subscription-callback-watch-shape`/`event-subscription-cursor-replay-storage`/`event-subscription-backpressure-qos-evidence`/`event-subscription-readiness-rollup`、`uib.events.subscriptions.get`/`uib.events.subscriptions.request`/`uib.events.subscriptions.cancel`/`uib.events.subscriptions.transport.readiness`/`uib.events.subscriptions.decision.matrix`/`uib.events.subscriptions.activation.checklist`/`uib.events.subscriptions.callback.watch.shape`/`uib.events.subscriptions.cursor.replay.storage`/`uib.events.subscriptions.backpressure.qos.evidence`/`uib.events.subscriptions.readiness.rollup`、`GetEventSubscriptions`/`RequestEventSubscription`/`CancelEventSubscription`/`GetEventSubscriptionTransportReadiness`/`GetEventSubscriptionDecisionMatrix`/`GetEventSubscriptionActivationChecklist`/`GetEventSubscriptionCallbackWatchShape`/`GetEventSubscriptionCursorReplayStorage`/`GetEventSubscriptionBackpressureQosEvidence`/`GetEventSubscriptionReadinessRollup` + `extensions`/`uib.extensions.get`/`GetUibExtensions` + `vehicle-signals`/`vehicle.signals.list`/`GetVehicleSignals` + `vehicle-signal-activation`/`vehicle.signals.activation.get`/`GetVehicleSignalActivation` + `vehicle-signal-validation`/`vehicle.signals.validation.get`/`GetVehicleSignalValidation` |
-| XSC-003 | SOA 服务入口 | Framework 层 | 服务目录、契约、安全状态跨 SoC 一致 | Android service/client + Binder `getServiceContractsJson` | Linux daemon/client + CLI/IPC/gRPC `service-contracts`/`soa.contracts.get`/`GetServiceContracts` |
-| XSC-004 | AIOS Kernel | Native 层 | Agent/Model/Tool/Memory/Safety 核心可移植 | Android native service adapter + Console `Driver Gaps`/`Hardware IF`/`HW Gate`/`HW Owner`/`HW Evidence`/`HW EvStatus`/`HW Retain`/`HW Replace`/`HW Adapter`/`Prototype`/`Vehicle Signals`/`Signal Gate`/`Signal Check` 调试入口调用 `getDriverHalGapsJson`/`getHardwareInterfacesJson`/`getHardwareInterfaceActivationChecklistJson`/`getHardwareInterfaceOwnerDecisionStatusJson`/`submitHardwareInterfaceOwnerDecisionEvidenceJson`/`getHardwareInterfaceOwnerDecisionEvidenceStatusJson`/`getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson`/`getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson`/`getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson`/`getPrototypeReadinessJson`/`getVehicleSignalsJson`/`getVehicleSignalActivationJson`/`getVehicleSignalValidationJson` contract visibility | Linux service adapter；adapter registry 初版；`driver-gaps`、`hardware-interfaces`、`hardware-interface-activation-checklist`、`hardware-interface-owner-decision-status`、`hardware-interface-owner-decision-evidence`、`hardware-interface-owner-decision-evidence-status`、`hardware-interface-owner-decision-evidence-retention-checklist`、`hardware-interface-owner-decision-evidence-replacement-trigger-checklist`、`hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist`、`prototype-readiness`、`vehicle-signals`、`vehicle-signal-activation` 和 `vehicle-signal-validation` CLI 可查 Driver/HAL backlog、硬件空接口、硬件激活前门禁、硬件 owner 决策状态、硬件 owner evidence intake/status/retention-closure/replacement-trigger/selected-adapter readiness checklist、原型成熟度、只读信号目录、读桥激活准入条件与读桥校验证据 |
-| XSC-005 | Uni Info Bus Runtime & Governance | Native 层 | Registry/Discovery/Schema/QoS/Policy/Lifecycle/Audit 可移植 | Android runtime integration + Console `Precheck` 调试入口调用 `precheckGovernanceJson` contract + Binder `getGovernanceBackendContractJson`/`getGovernanceMigrationCheckJson`/`getGovernanceDeploymentPlanJson` 目标契约、迁移检查与部署计划可见性 | Linux runtime integration；JSONL audit persistence sample；QoS fixed-window active prototype；`/governance/precheck`/`governance-precheck`；`/governance/backend-contract`/`governance-backend-contract`；`/governance/migration-check`/`governance-migration-check`；`/governance/deployment-plan`/`governance-deployment-plan`；Linux shared governance daemon 提供 precheck/runtime/audit diagnostics；IPC/gRPC 通过 shared governance client 复用 precheck envelope、runtime/audit diagnostic envelope + fallback |
-| XSC-006 | Uni Info Bus Protocol Binding | Native 层 | 协议 binding 可按平台启停，但上层语义不变 | Console 已绑定 Binder service sample；system/privileged service integration note 初版；Binder contract 暴露 shared governance backend target、migration readiness、deployment plan、binding readiness、delivery readiness 和 prototype readiness；REST 仍为 service 上游 prototype binding | REST active prototype + Unix socket IPC active sample with shared governance client precheck/runtime/audit direct diagnostics/backend contract/migration/deployment/binding readiness/delivery readiness/prototype readiness visibility + Linux gRPC/RPC JSON contract sample with same diagnostics + systemd hardening sample + Linux package profile check，MQTT/SOME-IP/DDS 计划态 |
-
-## 交付对象与平台要求
-
-| Req ID | 要求 | 说明 | 当前状态 |
-| --- | --- | --- | --- |
-| DEL-001 | Android 主开发路径 | 优先在 Android 模拟器/Android 设备验证 App、SDK、服务接口 | Android Console 已通过 Binder client 调用 Uni Info Bus State、AI SDK/Agent plan、Agent execute、Skill invoke、Memory query、`getEventSubscriptionsJson`、`requestEventSubscriptionJson`、`cancelEventSubscriptionJson`、`getEventSubscriptionTransportReadinessJson`、`getEventSubscriptionDecisionMatrixJson`、`getEventSubscriptionActivationChecklistJson`、`getEventSubscriptionCallbackWatchShapeJson`、`getEventSubscriptionCursorReplayStorageJson`、`getEventSubscriptionBackpressureQosEvidenceJson`、`getEventSubscriptionReadinessRollupJson`、`submitEventSubscriptionActivationEvidenceJson`、`getEventSubscriptionActivationEvidenceStatusJson`、`getEventSubscriptionActivationEvidenceRetentionChecklistJson`、`getEventSubscriptionActivationEvidenceDecisionStatusRollupJson`、`getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson`、`getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson`、`getPrototypeReadinessJson`、`getVehicleSignalsJson`、`getVehicleSignalActivationJson` 和 `getVehicleSignalValidationJson` contract mock；Android system/privileged service integration note 初版；`/delivery/readiness` 汇总 Android debug 和 system service note 状态 |
-| DEL-002 | Linux 同步交付路径 | 每个核心接口需要 Linux 版示例、CLI 或 daemon 集成说明 | CLI、IPC/gRPC daemon 样例 + systemd hardening check + package profile check；`event-subscriptions`/`event-subscribe-request`/`event-subscribe-cancel`/`event-subscription-transport-readiness`/`event-subscription-decision-matrix`/`event-subscription-activation-checklist`/`event-subscription-callback-watch-shape`/`event-subscription-cursor-replay-storage`/`event-subscription-backpressure-qos-evidence`/`event-subscription-readiness-rollup`/`event-subscription-activation-evidence`/`event-subscription-activation-evidence-status`/`event-subscription-activation-evidence-retention-checklist`/`event-subscription-activation-evidence-decision-status-rollup`/`hardware-interface-owner-decision-evidence-replacement-trigger-checklist`/`hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist`、`uib.events.subscriptions.get`/`uib.events.subscriptions.request`/`uib.events.subscriptions.cancel`/`uib.events.subscriptions.transport.readiness`/`uib.events.subscriptions.decision.matrix`/`uib.events.subscriptions.activation.checklist`/`uib.events.subscriptions.callback.watch.shape`/`uib.events.subscriptions.cursor.replay.storage`/`uib.events.subscriptions.backpressure.qos.evidence`/`uib.events.subscriptions.readiness.rollup`/`uib.events.subscriptions.activation.evidence`/`uib.events.subscriptions.activation.evidence.status`/`uib.events.subscriptions.activation.evidence.retention.checklist`/`uib.events.subscriptions.activation.evidence.decision.status.rollup`/`hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist`/`hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist`、`GetEventSubscriptions`/`RequestEventSubscription`/`CancelEventSubscription`/`GetEventSubscriptionTransportReadiness`/`GetEventSubscriptionDecisionMatrix`/`GetEventSubscriptionActivationChecklist`/`GetEventSubscriptionCallbackWatchShape`/`GetEventSubscriptionCursorReplayStorage`/`GetEventSubscriptionBackpressureQosEvidence`/`GetEventSubscriptionReadinessRollup`/`SubmitEventSubscriptionActivationEvidence`/`GetEventSubscriptionActivationEvidenceStatus`/`GetEventSubscriptionActivationEvidenceRetentionChecklist`/`GetEventSubscriptionActivationEvidenceDecisionStatusRollup`/`GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist`/`GetHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklist` 可查 Linux 同步交付、事件订阅生命周期命令、transport readiness、owner decision matrix、activation checklist、callback/watch shape、activation evidence intake/status/retention checklist/decision status rollup、硬件 replacement trigger 与 selected-adapter readiness checklist 契约、原型成熟度、只读信号目录、读桥激活准入条件和读桥校验证据 |
-| DEL-003 | 座舱域工程师文档 | 交付给 Android/Linux 座舱软件工程师，必须给出集成步骤、接口、验证命令 | Android system service integration note + Linux 部署文档初版 + `/delivery/readiness` validation bundle + `/prototype/readiness` 模块成熟度总览 |
-| DEL-004 | 平台差异说明 | Android 与 Linux 的 IPC、权限、服务部署、日志、驱动接口差异必须记录 | `CENTRAL_BRAIN_PLATFORM_DELTA.md` + Android system service integration note + Linux systemd sample + Linux unit hardening/package profile constraints + `/delivery/readiness` blockers + `/prototype/readiness` open issues/deviations |
-| DEL-005 | 驱动接口支持文档 | 明确当前环境已有能力、缺口、新增开发边界和 mock/fallback | 初版 + Driver/HAL gap backlog contract + hardware activation checklist + hardware owner evidence intake/status/retention/replacement-trigger/selected-adapter readiness checklist + `/delivery/readiness` Driver/HAL gap target + `/prototype/readiness` no-driver/no-hardware summary |
-
-## L1 应用层需求
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| APP-001 | 座舱 Apps | 客户开发 | HMI/车控/场景/... | Android 前端必须支持座舱 HMI 与车控场景入口 | console 原型仅健康/推理 |
-| APP-002 | 座舱服务 | 客户开发 | 音频/蓝牙/车控/... | 应作为 Business/Foundation/Atomic services 暴露 | 未实现 |
-| APP-003 | Agent Apps | 客户开发 | 车控/座舱/诊断/导航/... | Agent 应通过 Tool/Permission/Action 调用底层能力 | 仅接口设计 |
-| APP-004 | AI SDK | 展锐负责 | 多模态/意图/模型路由/工具规划/... | App 不应直连模型，应经 AI SDK 到 Uni Info Bus/AIOS Kernel | `/ai/sdk/capabilities`、`/agent/plan`、`/agent/execute` active contract mock；Android Console 已调用 `planAgentTaskJson`、`executeAgentTaskJson`、`invokeSkillJson`、`queryMemoryJson`；Skill/Memory contract mock 已可见；仍未实现真实 SDK/Agent 执行，偏差 DEV-003 |
-| APP-005 | Cluster & TBOX | 客户开发 | 仪表/警告/TSP/OTA/远控/... | Cluster/TBOX 应独立服务域建模 | 未实现 |
-| APP-006 | Cluster/TBOX 服务 | 客户开发 | Weston/GStreamer/... | 应声明显示/媒体服务边界 | 未实现 |
-| APP-007 | 智驾应用 | 客户开发 | NOA/TJA/APA/... | App 只能读取/请求智驾服务，不能绕过 Safety State | 未实现 |
-| APP-008 | 智驾服务 | 客户开发 | 感知/地图/位置/... | 通过 ADAS Funcware/Protocol Binding 暴露 | 未实现 |
-| APP-009 | 其他应用 | 客户开发 | 诊断/标定/Trace/... | 必须接入权限、审计和 Trace | 未实现 |
-| APP-010 | 其他服务 | 客户开发 | 网关管理/诊断/标定/Trace/... | 应作为受控服务，不允许直连底层 | 未实现 |
-
-## L2 Framework 层需求
-
-### Uni Info Bus 语义接口
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| FW-U-001 | Context | 展锐负责 | 车辆/用户/环境 | 必须有统一 Context API | `/context` 与 `/uib/context` mock |
-| FW-U-002 | State | 展锐负责 | 服务状态查询 | 必须有服务/模型/车辆状态查询 API | Android/Linux 调用 `/uib/state` |
-| FW-U-003 | Event | 展锐负责 | 事件订阅 | 必须支持订阅/发布模型 | `/uib/events/topics`、`/uib/events/publish`、`/uib/events/recent` active mock；`/uib/events/subscriptions` 订阅 lifecycle/cursor/backpressure/governance 契约；`POST /uib/events/subscriptions/request` 与 `POST /uib/events/subscriptions/cancel` 提供 contract-only request/cancel lifecycle command；`GET /uib/events/subscriptions/transport-readiness` 提供 callback/watch transport readiness contract；`GET /uib/events/subscriptions/decision-matrix` 提供 broker/cursor/backpressure owner decision matrix contract；`GET /uib/events/subscriptions/activation-checklist` 提供 broker activation 前置证据清单 contract；`GET /uib/events/subscriptions/callback-watch-shape` 提供 Android callback 与 Linux watch API shape contract；`GET /uib/events/subscriptions/cursor-replay-storage` 提供 cursor/replay storage contract；`GET /uib/events/subscriptions/backpressure-qos-evidence` 提供 backpressure/QoS evidence contract；`GET /uib/events/subscriptions/readiness-rollup` 聚合所有前置证据和 activation blockers；`POST /uib/events/subscriptions/activation-evidence` 提供 activation evidence reference intake contract；`GET /uib/events/subscriptions/activation-evidence/status` 提供 no-store review status；`GET /uib/events/subscriptions/activation-evidence/retention-checklist` 提供 evidence URI/retention owner/delete-export/gate-closure checklist；`GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` 提供 no-store decision status rollup；`GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status` 提供 activation approval dry-run no-store status；`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist` 提供 approval authority checklist；`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency` 提供 approval authority audit consistency；`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup` 提供 approval decision blocker rollup；`POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run` 提供 blocked/no-store approval decision dry-run request contract；legacy `/events/*` 兼容 |
-| FW-U-004 | Action | 展锐负责 | 受控动作 | 车控/诊断/OTA 等必须经 Action + Policy | `/uib/actions/request` architecture-named active mock；legacy `/actions/request` 兼容；Android Binder/Linux IPC/gRPC contract 已映射 |
-| FW-U-005 | Service | 展锐负责 | 方法调用 | 必须有统一服务调用入口 | `/service/invoke` 与 `/soa/invoke` mock |
-| FW-U-006 | Tool | 展锐负责 | AI 工具 Schema | Agent 工具必须声明 schema、权限、安全状态 | `/tools` mock + `/agent/plan` 输出 policy-aware task graph；`/agent/execute`、`/skills`、`/skills/{skill_id}/invoke`、`/memory/query` contract mock 已执行 Policy/Safety State 检查并暴露 sandbox/dispatch 边界 |
-| FW-U-007 | Permission | 展锐负责 | 权限检查 | 所有跨域调用必须先检查 Permission | `/permission/check` + `/soa/invoke` mock |
-| FW-U-008 | 其他 | 展锐负责 | 扩展语义 | 必须有扩展机制且不可破坏核心对象 | `/uib/extensions` read-only extension registry contract；Android Binder/Linux IPC/gRPC 已映射 |
-
-### SOA 服务入口
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| FW-S-001 | Business Services | 展锐负责 | 场景服务 | 按场景编排应用能力 | registry 中已有 planned business service |
-| FW-S-002 | Foundation Services | 展锐负责 | 复用能力 | 账号、配置、时间、权限等公共能力 | registry 中已有 foundation service |
-| FW-S-003 | Atomic Services | 展锐负责 | 最小能力 | 最小车控/信号/诊断能力 | registry 中已有 vehicle-state atomic service |
-| FW-S-004 | Service Contract | 展锐负责 | IDL/Schema | 所有服务必须有 contract 和版本 | JSON contract + runtime registry + `/soa/contracts` contract visibility |
-| FW-S-005 | Safety State | 展锐负责 | 降级/互锁 | 必须作为服务入口的强制检查项 | `/soa/invoke` 强制 policy/lifecycle precheck |
-| FW-S-006 | 其他 | 展锐负责 | 扩展服务 | 必须纳入 registry/discovery/schema/policy | 未实现 |
-
-## L3 Native 层需求
-
-### 功能与适配模块
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| NV-F-001 | AIOS Kernel | 展锐负责 | Agent/Model/Tool/Memory/Safety/... | AI/Agent 核心不能仅在 App 或后端散落实现 | `native_adapters.py` contract mock + `agent-task-planner`/`agent-task-executor`/`skill-registry`/`memory-query` registry entries + `/agent/plan`、`/agent/execute`、Skill/Memory contract mock |
-| NV-F-002 | Sensor/Actuator | 展锐负责 | Camera/Radar/USS/IMU/Mic/... | 传感器/执行器统一适配 | 未实现 |
-| NV-F-003 | Service Adapters | 展锐负责 | Signal Map/ECU Proxy/Impl/... | 业务服务到 ECU/Signal 的 adapter | SOA Service Adapter registry 初版 |
-| NV-F-004 | Vehicle/Body Signal | 生态合作 | BCM/HVAC/Seat/Door/Light/... | 车辆/车身信号按合作生态接入 | `/vehicle/signals` read-only VSS-style catalog + `/vehicle/signals/activation` read-bridge activation criteria + `/vehicle/signals/validation` read-bridge validation envelope + mock VSS snapshot + adapter boundary；Android/Linux binding 可见；真实 Vehicle/Body Signal 源仍未接入 |
-| NV-F-005 | ECU Proxy / Signal Adapter | 生态合作 | DBC/ARXML/... | CAN/Ethernet 信号需 DBC/ARXML 映射 | `/vehicle/signals` 暴露 ECU/Signal Adapter 目录边界和 DRV-GAP-002 链接；`/vehicle/signals/activation` 暴露 DBC/ARXML、Android VHAL/vendor AIDL、Linux SocketCAN、vendor gateway/SOME-IP 准入门禁；`/vehicle/signals/validation` 暴露 schema source metadata、adapter owner、ABI owner、Android/Linux parity 和 DRV-GAP-002 evidence 门禁；DBC/ARXML/VHAL/SocketCAN/vendor gateway 未加载 |
-| NV-F-006 | Data/Time Sync | 展锐负责 | TSN/PTP/Frame Meta/... | 高频数据必须有时间同步和帧元数据 | 未实现 |
-| NV-F-007 | Connected Funcware | 生态合作 | TBOX/V2X/OTA/Diag/... | 互联功能软件经 adapter 接入 | 未实现 |
-| NV-F-008 | SOA Service Runtime | 展锐负责 | 服务容器/状态机/Impl/... | 服务生命周期和状态机运行时 | SOA Service Adapter active prototype |
-| NV-F-009 | Security/Policy Adapter | 生态合作 | ASIL/QM/Zone/... | 安全域、权限、区域策略适配 | Policy adapter active prototype + 虚拟化约束 |
-| NV-F-010 | ADAS Funcware | 生态合作 | Perception/Fusion/Scene/... | 智驾能力通过 ADAS adapter 接入 | 未实现 |
-| NV-F-011 | Model Runtime Adapter | 展锐负责 | GPU/NPU/Cloud/... | 模型运行时必须抽象 GPU/NPU/Cloud | mock NPU runtime adapter boundary + `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` |
-| NV-F-012 | 其他 | 展锐负责 | Trace/Logging/Metric/... | 原生层可观测性必须平台化 | 未实现 |
-
-### Uni Info Bus Runtime & Governance
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| NV-G-001 | Registry | 展锐负责/生态合作 | 服务注册 | 服务必须注册后被发现和调用 | `runtime_governance.py` service catalog + `/soa/services`；Linux shared governance daemon 可直接查询 `governance.runtime.get`，且 Linux IPC/gRPC runtime diagnostic path 优先复用该 socket |
-| NV-G-002 | Discovery | 展锐负责/生态合作 | 服务发现 | 调用方不能硬编码服务位置 | `/soa/invoke` 通过 runtime discovery precheck；`/governance/precheck` 可只检查服务发现结果而不调用服务 |
-| NV-G-003 | Schema/IDL | 展锐负责/生态合作 | 契约管理 | 契约必须版本化和校验 | JSON contract + registry contract metadata + `/soa/contracts` service contract visibility |
-| NV-G-004 | QoS | 展锐负责/生态合作 | 优先级/限流 | 车控/智驾/AI 请求必须有优先级与限流 | `/soa/invoke` 已执行单进程 fixed-window QoS active prototype；`/governance/precheck` 默认以 `consume_qos=false` 返回诊断决策；`/governance/backend-contract` 固定未来共享治理后端的 QoS precheck 替换规则；`/governance/migration-check` 固定替换时不得在各 transport 复制 QoS 逻辑；`/governance/deployment-plan` 固定 Android/Linux/gRPC 部署形态中 Policy/QoS 不复制的约束；Linux IPC/gRPC 对 `soa.service.invoke` 可通过 shared governance client 调用共享 governance daemon 执行 QoS precheck，不可用时回退本地 precheck；Linux IPC/gRPC runtime diagnostic path 可直接查询 shared governance daemon 的 runtime/QoS 状态；仍未覆盖量产多进程/多协议限流 |
-| NV-G-005 | Policy | 展锐负责/生态合作 | 权限/安全 | 所有 Action/Tool/Service 必须经 Policy | `/policy/evaluate` + `/soa/invoke` + `/governance/precheck` active prototype |
-| NV-G-006 | Lifecycle | 展锐负责/生态合作 | 启动/升级/降级 | 服务和模型必须有生命周期状态 | `/soa/invoke` 拒绝非 ready service；`/governance/precheck` 暴露 lifecycle 决策 |
-| NV-G-007 | 其他 | 展锐负责/生态合作 | 审计/诊断/... | 审计和诊断不可作为后补项 | `/audit/recent` 记录 SOA 与 governance precheck；`CENTRAL_BRAIN_AUDIT_LOG` 可选 JSONL 恢复最近 50 条；Linux shared governance daemon 可用 `CENTRAL_BRAIN_GOVERNANCE_AUDIT_LOG`，并通过 direct socket `audit.recent.get` 查询；Linux IPC/gRPC audit diagnostic path 优先复用 shared governance socket，不可用时回退 REST；IPC fallback 可用 `CENTRAL_BRAIN_IPC_AUDIT_LOG` |
-
-### Uni Info Bus Protocol Binding
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| NV-P-001 | SOME/IP | 展锐负责/生态合作 | 跨 ECU 服务 | 车内跨 ECU 服务优先通过 SOME/IP binding | `/bindings` 计划态，待车载网络环境 |
-| NV-P-002 | IPC | 展锐负责/生态合作 | 同 SoC 调用 | 同 SoC 调用必须有 IPC/Binder/UDS 路径 | Android Console 绑定 Binder/AIDL service sample；Android Binder 暴露 `getEventSubscriptionsJson`、`requestEventSubscriptionJson`、`cancelEventSubscriptionJson`、`getEventSubscriptionTransportReadinessJson`、`getEventSubscriptionDecisionMatrixJson`、`getEventSubscriptionActivationChecklistJson`、`getEventSubscriptionCallbackWatchShapeJson`、`getUibExtensionsJson`、`getServiceContractsJson`、`getGovernanceBackendContractJson`、`getGovernanceMigrationCheckJson`、`getGovernanceDeploymentPlanJson`、`getBindingReadinessJson`、`getDeliveryReadinessJson`、`getPrototypeReadinessJson`、`getVehicleSignalsJson`、`getVehicleSignalActivationJson` 和 `getVehicleSignalValidationJson`；Android system/privileged service integration note 初版；Linux Unix socket IPC active sample 已通过 reusable shared governance client 对 SOA 调用执行 shared governance daemon precheck，并保留本地 fallback；`uib.events.subscriptions.get`、`uib.events.subscriptions.request`、`uib.events.subscriptions.cancel`、`uib.events.subscriptions.transport.readiness`、`uib.events.subscriptions.decision.matrix`、`uib.events.subscriptions.activation.checklist`、`uib.events.subscriptions.callback.watch.shape` 可查 Event 订阅生命周期命令、transport readiness、owner decision matrix、activation checklist 与 callback/watch shape 契约；`uib.extensions.get` 可查 Uni Info Bus extension registry contract；`vehicle.signals.list` 可查只读 VSS-style Vehicle/Body Signal catalog；`vehicle.signals.activation.get` 可查读桥激活准入条件；`vehicle.signals.validation.get` 可查读桥校验证据 envelope；`soa.contracts.get` 可查 SOA service contract；`governance.runtime.get`/`audit.recent.get` 也优先复用 shared governance socket diagnostic path；`governance.backend.contract.get`/`governance.migration.check`/`governance.deployment.plan.get`/`bindings.readiness.get`/`delivery.readiness.get`/`prototype.readiness.get` 可查共享治理后端目标契约、迁移 readiness、部署计划、Protocol Binding readiness、Android/Linux delivery readiness 和 Python prototype readiness |
-| NV-P-003 | gRPC/RPC | 展锐负责/生态合作 | AI/工具服务/... | AI/工具服务可通过 RPC | Linux `central_brain_gateway.proto` + JSON TCP contract sample；新增 `GetEventSubscriptions`、`RequestEventSubscription`、`CancelEventSubscription`、`GetEventSubscriptionTransportReadiness`、`GetEventSubscriptionDecisionMatrix`、`GetEventSubscriptionActivationChecklist`、`GetEventSubscriptionCallbackWatchShape`、`GetUibExtensions`、`GetServiceContracts`、`GetGovernanceBackendContract`、`GetGovernanceMigrationCheck`、`GetGovernanceDeploymentPlan`、`GetBindingReadiness`、`GetDeliveryReadiness`、`GetPrototypeReadiness`、`GetVehicleSignals`、`GetVehicleSignalActivation` 与 `GetVehicleSignalValidation` RPC 映射；`InvokeService` 通过同一 shared governance client 复用 shared governance daemon precheck；`GetRuntimeGovernance`/`GetRecentAudit` 优先复用 shared governance socket diagnostic path；真实 gRPC runtime 待目标环境提供 `grpcio`/C++ gRPC |
-| NV-P-004 | MQTT | 展锐负责/生态合作 | 云车消息 | 云车消息必须受 Privacy/Policy 管控 | `/bindings` 计划态 |
-| NV-P-005 | REST | 展锐负责/生态合作 | 云/工具 API/... | REST 仅作为 binding，不能绕过语义层 | Android App 层经 Binder sample；Linux IPC 对 SOA 调用先做本地治理 precheck 后再代理 REST prototype gateway；Binder 仍代理 REST prototype gateway |
-| NV-P-006 | DDS | 展锐负责/生态合作 | Topic/Context/... | 高频 Topic/Context 订阅预留 DDS | `/uib/events/*` 已建立 Event 语义 contract、bounded recent log、`/uib/events/subscriptions` 订阅契约、`POST /uib/events/subscriptions/request`/`POST /uib/events/subscriptions/cancel` 生命周期命令契约、`GET /uib/events/subscriptions/transport-readiness` callback/watch transport readiness 契约、`GET /uib/events/subscriptions/decision-matrix` broker/cursor/backpressure owner decision matrix、`GET /uib/events/subscriptions/activation-checklist` broker activation 前置证据清单、`GET /uib/events/subscriptions/callback-watch-shape` Android callback/Linux watch API shape contract、`POST /uib/events/subscriptions/activation-evidence` activation evidence intake contract、`GET /uib/events/subscriptions/activation-evidence/status` review status contract、`GET /uib/events/subscriptions/activation-evidence/retention-checklist` retention/owner decision checklist、`GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` decision status rollup、`GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status` approval dry-run no-store status、`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist` approval authority checklist、`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency` approval authority audit consistency、`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup` approval decision blocker rollup 和 `POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run` blocked/no-store approval decision dry-run request，并完成 Android Binder/Linux IPC/gRPC 映射；DDS/SSE/WebSocket/broker 数据面仍为计划态，待高频 topic 环境 |
-| NV-P-007 | 其他 | 展锐负责/生态合作 | 大数据/... | 大数据通道必须纳入协议绑定与治理 | 未实现 |
-
-## L4 Kernel & HAL 层需求
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| KH-001 | 文件系统管理/网络协议栈/... | 芯片原有 | OS 基础能力 | 上层不得重造基础 OS 能力 | 依赖宿主/Android |
-| KH-002 | 内存管理 | 芯片原有 | 内存管理 | NPU/ADAS/多媒体需考虑共享内存与隔离 | 未实现 |
-| KH-003 | Drivers | 芯片原有 | NPU/GPU/Camera/Audio/ETH/... | 仅在当前 Android/Linux 环境能力不足时新增开发；必须明确驱动接口支持矩阵 | 驱动接口矩阵 + NPU runtime interface 初版；`/native/driver-gaps` 记录触发条件和最小新增开发量；`/hardware/interfaces` 暴露空接口 reserved methods；`/hardware/interfaces/activation-checklist` 暴露激活前 owner/ABI/smoke 门禁；`/hardware/interfaces/owner-decision-status` 汇总未决 owner/ABI/Driver-HAL/smoke 决策；`/hardware/interfaces/owner-decision-evidence` 校验 no-store evidence reference envelope；`/hardware/interfaces/owner-decision-evidence/status` 汇总 no-store/no-review 状态；`/hardware/interfaces/owner-decision-evidence/retention-checklist` 固定 retention/closure 前置决策；`/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` 固定空接口替换真实 adapter 前的 Driver/HAL gap closure evidence 与 rollback-to-empty-interface 决策；`/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist` 固定真实 adapter 候选加载前的 Driver/HAL gap evidence 与 no-adapter-load 决策；真实 driver 未实现 |
-| KH-004 | 其他 | 芯片原有 | 底层扩展 | 需后续明确 | 未实现 |
-| KH-005 | Libs | 芯片原有 | 基础库 | 需记录依赖库边界 | 未实现 |
-| KH-006 | HAL | 芯片原有 | 硬件抽象层 | NPU、传感器、车身信号需 HAL 边界 | NPU HAL 边界文档化；Driver/HAL gap backlog、`/hardware/interfaces`、`/hardware/interfaces/activation-checklist`、`/hardware/interfaces/owner-decision-status`、`/hardware/interfaces/owner-decision-evidence`、`/hardware/interfaces/owner-decision-evidence/status`、`/hardware/interfaces/owner-decision-evidence/retention-checklist`、`/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` 和 `/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist` 暴露 Android/Linux 目标接口、ABI owner 门禁、未决 owner 状态、no-store evidence intake/status、retention/closure checklist、replacement trigger checklist 与 selected-adapter readiness checklist；真实 HAL 未实现 |
-| KH-007 | Safety Runtime | 芯片原有 | 安全运行时 | ASIL/QM 策略必须落到 runtime | Safety/NPU fault state 约束文档化；`shared-memory-safety-runtime` gap、`/hardware/interfaces`、`/hardware/interfaces/activation-checklist`、`/hardware/interfaces/owner-decision-status`、`/hardware/interfaces/owner-decision-evidence`、`/hardware/interfaces/owner-decision-evidence/status`、`/hardware/interfaces/owner-decision-evidence/retention-checklist`、`/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` 和 `/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist` 记录空接口、触发条件、Safety/Policy 门禁、rollback/fault owner 状态、evidence reference intake/status、retention/closure checklist、replacement trigger checklist 与 selected-adapter readiness checklist；真实 Safety Runtime 未实现 |
-| KH-008 | Libs | 芯片原有 | 另一组基础库 | 图中重复 Libs 需确认含义，见 ISSUE-007 | 未实现 |
-| KH-009 | 进程&线程调度/中断与异常管理/系统调用接口/... | 芯片原有 | OS 调度和异常 | 真实 NPU/ADAS 接入必须定义异常恢复 | 未实现 |
-
-## L5 虚拟化层需求
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| HV-001 | Hypervisor | 展锐负责 | 虚拟化基座 | 不开发虚拟化功能；仅记录依赖、接口假设和部署约束 | `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 初版 |
-| HV-002 | ASIL/QM 隔离 | 芯片原有 | 安全等级隔离 | 不开发隔离机制；必须定义服务到 ASIL/QM 的映射和假设 | Safety State 到安全域映射初版 |
-| HV-003 | 跨 VM 共享内存与安全域通信 | 芯片原有 | 跨域通信 | 不开发跨 VM 通信；仅定义接口需求、fallback 和集成说明 | 跨 VM envelope 约束初版 |
-
-## L6 硬件层需求
-
-| Req ID | 图中模块 | 所有权 | 内容 | 实现要求 | 当前状态 |
-| --- | --- | --- | --- | --- | --- |
-| HW-001 | UniSOC Automotive-solution | 展锐负责 | 中央计算硬件基线 | 软件架构默认基于 UniSOC 车规方案 | 未实现 |
-| HW-002 | 外置 PCIe NPU 算力卡 | 用户补充需求 | 后端 AI 基座由 PCIe NPU 实现 | 必须映射到 KH-003、KH-006、NV-F-011 | mock + `CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md` + DRV-GAP-001 + `/hardware/interfaces` 的 `npu-runtime` 空接口 + `/hardware/interfaces/activation-checklist` 的激活前 owner/ABI/smoke 门禁 + `/hardware/interfaces/owner-decision-status` 的未决 owner 决策汇总 + `/hardware/interfaces/owner-decision-evidence` 的 no-store owner evidence intake + `/hardware/interfaces/owner-decision-evidence/status` 的 no-store status rollup + `/hardware/interfaces/owner-decision-evidence/retention-checklist` 的 retention/closure checklist + `/hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` 的 replacement trigger checklist + `/hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist` 的 selected-adapter readiness checklist |
-
-## FW-U-003/NV-P-006 当前补充：Event subscription cursor/replay storage
-
-`GET /uib/events/subscriptions/cursor-replay-storage` 是 FW-U-003 Event 与 NV-P-006 DDS/high-rate topic reservation 的 contract-only 增量，用于固定 cursor schema、ack shape、replay window、retention/cleanup、Runtime & Governance audit binding 和 `EV-CRS-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionCursorReplayStorageJson`，Linux 同步路径暴露 `event-subscription-cursor-replay-storage`、`uib.events.subscriptions.cursor.replay.storage` 和 `GetEventSubscriptionCursorReplayStorage`。
-
-该增量只补需求基线中的订阅 cursor/replay 存储接口形状，不创建 cursor row，不建立 replay index，不持久化 subscription，不启动 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription backpressure/QoS evidence
-
-`GET /uib/events/subscriptions/backpressure-qos-evidence` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 增量，用于固定 overflow schema、per-caller throttling、per-topic limit、replay rate、ack timeout、Runtime & Governance QoS evidence、高频 transport QoS mapping 和 `EV-QOS-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionBackpressureQosEvidenceJson`，Linux 同步路径暴露 `event-subscription-backpressure-qos-evidence`、`uib.events.subscriptions.backpressure.qos.evidence` 和 `GetEventSubscriptionBackpressureQosEvidence`。
-
-该增量只补需求基线中的订阅 backpressure/QoS evidence 接口形状，不激活事件 QoS，不发送 overflow，不分配 Runtime & Governance QoS owner，不启动 broker、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription readiness rollup
-
-`GET /uib/events/subscriptions/readiness-rollup` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 聚合视图，用于把 lifecycle、transport readiness、owner decision matrix、activation checklist、callback/watch shape、cursor/replay storage、backpressure/QoS evidence 的 blocked gates 汇总为 `EV-RU-001..006` activation blockers。Android 主路径暴露 `getEventSubscriptionReadinessRollupJson`，Linux 同步路径暴露 `event-subscription-readiness-rollup`、`uib.events.subscriptions.readiness.rollup` 和 `GetEventSubscriptionReadinessRollup`。
-
-该增量只补需求基线中的订阅端到端 readiness 报告，不自动通过任何 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation evidence intake
-
-`POST /uib/events/subscriptions/activation-evidence` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 增量，用于固定 activation gate 的 evidence reference envelope、reviewer identity、policy/audit check 和 `EV-AE-001..008` 门禁。Android 主路径暴露 `submitEventSubscriptionActivationEvidenceJson`，Linux 同步路径暴露 `event-subscription-activation-evidence`、`uib.events.subscriptions.activation.evidence` 和 `SubmitEventSubscriptionActivationEvidence`。
-
-该增量只补需求基线中的 evidence intake 接口形状，不持久化 evidence，不更新 review queue，不关闭 readiness gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation evidence review status
-
-`GET /uib/events/subscriptions/activation-evidence/status` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 只读状态增量，用于固定 activation evidence intake 之后的 review status 语义：当前 Python 原型没有 durable evidence store、没有 review workflow、没有 gate closure authority、没有 retention policy owner，因此返回 `EV-AES-001..006` 门禁、`persisted_submission_count=0`、`pending_review_count=0`、`evidence_store_active=false`、`review_workflow_active=false`、`gates_closed=false` 和 `activation_allowed=false`。Android 主路径暴露 `getEventSubscriptionActivationEvidenceStatusJson`，Linux 同步路径暴露 `event-subscription-activation-evidence-status`、`uib.events.subscriptions.activation.evidence.status` 和 `GetEventSubscriptionActivationEvidenceStatus`。
-
-该增量只补需求基线中的 evidence review status 接口形状，不读取 evidence store，不创建 review queue，不关闭 readiness gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation evidence retention checklist
-
-`GET /uib/events/subscriptions/activation-evidence/retention-checklist` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 决策清单增量，用于固定 evidence URI rules、durable evidence store owner、retention policy owner、review workflow owner、gate closure authority、delete/export semantics 和 `EV-AER-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionActivationEvidenceRetentionChecklistJson`，Linux 同步路径暴露 `event-subscription-activation-evidence-retention-checklist`、`uib.events.subscriptions.activation.evidence.retention.checklist` 和 `GetEventSubscriptionActivationEvidenceRetentionChecklist`。
-
-该增量只补需求基线中的 evidence retention/owner 决策接口形状，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 delete/export workflow，不创建 review queue，不关闭 readiness gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation evidence decision status rollup
-
-`GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only 汇总增量，用于把 readiness rollup、activation evidence intake/status、retention checklist 和 `EV-AED-001..008` 决策门禁汇总为 no-store decision status。Android 主路径暴露 `getEventSubscriptionActivationEvidenceDecisionStatusRollupJson`，Linux 同步路径暴露 `event-subscription-activation-evidence-decision-status-rollup`、`uib.events.subscriptions.activation.evidence.decision.status.rollup` 和 `GetEventSubscriptionActivationEvidenceDecisionStatusRollup`。
-
-该增量只补需求基线中的 activation evidence 决策状态汇总，不调用 activation evidence POST，不持久化 evidence，不读取 evidence store，不创建 review queue，不创建 delete/export workflow，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval dry-run status
-
-`GET /uib/events/subscriptions/activation-evidence/approval-dry-run/status` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only no-store 状态增量，用于把 `GET /uib/events/subscriptions/activation-evidence/decision-status-rollup` 之后的 activation approval dry-run last-result/status 形状固定为 `EV-AAS-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionActivationApprovalDryRunStatusJson`，Linux 同步路径暴露 `event-subscription-activation-approval-dry-run-status`、`uib.events.subscriptions.activation.approval.dry.run.status` 和 `GetEventSubscriptionActivationApprovalDryRunStatus`。
-
-该增量只补需求基线中的 approval dry-run status 接口形状，不调用 approval dry-run POST，不持久化 approval request 或 last-result，不创建 approval result store/evidence store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval authority checklist
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval authority 清单增量，用于在任何真实 approval dry-run command 前固定 approval authority、approval policy、signature/RBAC、approval result store、review queue、gate closure authority、broker activation owner、DRV-GAP-004/005 owner 和 `EV-AAA-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionActivationApprovalAuthorityChecklistJson`，Linux 同步路径暴露 `event-subscription-activation-approval-authority-checklist`、`uib.events.subscriptions.activation.approval.authority.checklist` 和 `GetEventSubscriptionActivationApprovalAuthorityChecklist`。
-
-该增量只补需求基线中的 approval authority checklist 接口形状，不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval authority audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/audit-consistency` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval authority 审计一致性增量，用于只读核对 approval authority checklist、approval dry-run status、activation evidence decision status rollup、authority item/blocker counters、Android/Linux parity 和 no-store/no-side-effect 约束，并固定 `EV-AAC-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionActivationApprovalAuthorityAuditConsistencyJson`，Linux 同步路径暴露 `event-subscription-activation-approval-authority-audit-consistency`、`uib.events.subscriptions.activation.approval.authority.audit.consistency` 和 `GetEventSubscriptionActivationApprovalAuthorityAuditConsistency`。
-
-该增量只补需求基线中的 approval authority audit consistency 接口形状，不调用 approval dry-run POST，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision blocker rollup
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup` 是 FW-U-003 Event、XSC-005 Runtime & Governance 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval decision 阻塞汇总增量，用于在 approval authority audit consistency 之后把仍阻止真实 approval dry-run、approval result store、review queue、gate closure、broker activation、DRV-GAP-004/005 owner 和 Android/Linux parity 的原因固定为 `EV-ADB-001..008`。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionBlockerRollupJson`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-blocker-rollup`、`uib.events.subscriptions.activation.approval.decision.blocker.rollup` 和 `GetEventSubscriptionActivationApprovalDecisionBlockerRollup`。
-
-该增量只补需求基线中的 approval decision blocker rollup 接口形状，固定 `approval_decision_ready=false`、`approval_dry_run_allowed=false`、`approval_result_store_created=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；不持久化 approval decision，不分配 approval authority，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision dry-run request
-
-`POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run` 是 FW-U-003 Event、XSC-005 Runtime & Governance、XSC-006 Protocol Binding 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval decision dry-run 请求增量，用于校验 `approval_request_id`、source blocker rollup reference、`target_gate_ids`、`approval_decision`、approval authority、reviewer、evidence refs、rollback plan 和 Runtime & Governance policy ref，并把结果绑定到 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup` 的 `EV-ADB-001..008` 开放阻塞项。Android 主路径暴露 `dryRunEventSubscriptionActivationApprovalDecisionJson` 与 Console `Sub ApDec`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-dry-run`、`uib.events.subscriptions.activation.approval.decision.dry.run` 和 `DryRunEventSubscriptionActivationApprovalDecision`。
-
-该增量只补需求基线中的 blocked/no-store approval decision dry-run request contract，固定返回 `rejected_blocked_contract_only`，并保持 `approval_decision_ready=false`、`approval_dry_run_allowed=false`、`approval_result_store_created=false`、`dry_run_request_persisted=false`、`dry_run_result_persisted=false`、`approval_decision_persisted=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；不保存请求或结果，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision dry-run status
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status` 是 FW-U-003 Event、XSC-005 Runtime & Governance、XSC-006 Protocol Binding 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval decision dry-run no-store 状态增量，用于在 blocked decision dry-run request contract 之后固定 last-result/status、zero persisted counters、source blocker rollup binding 和 `EV-ADS-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionDryRunStatusJson` 与 Console `Sub ApDStat`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-dry-run-status`、`uib.events.subscriptions.activation.approval.decision.dry.run.status` 和 `GetEventSubscriptionActivationApprovalDecisionDryRunStatus`。
-
-该增量只补需求基线中的 approval decision dry-run status 接口形状，固定 `last_approval_decision_result_available=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、`persisted_approval_decision_count=0`、`pending_approval_decision_review_count=0`、`decision_dry_run_post_called_by_status=false`、`approval_decision_status_passed=false`、`approval_result_store_created=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；不调用 decision dry-run POST，不保存 last-result、请求、结果或 approval decision，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision dry-run audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/audit-consistency` 是 FW-U-003 Event、XSC-005 Runtime & Governance、XSC-006 Protocol Binding 和 NV-P-006 DDS/high-rate topic reservation 的 contract-only approval decision dry-run 审计一致性视图，用于在 decision dry-run no-store status 之后只读交叉核对 `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-blocker-rollup`、`POST /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run` 的 request contract metadata、`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/status` 的 zero persisted counters、Android/Linux parity、blocked rejection 和 no-side-effect 边界，并固定 `EV-ADA-001..008` 门禁。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionDryRunAuditConsistencyJson` 与 Console `Sub ApDAudit`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-dry-run-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.dry.run.audit.consistency` 和 `GetEventSubscriptionActivationApprovalDecisionDryRunAuditConsistency`。
-
-该增量只补需求基线中的 approval decision dry-run audit consistency 接口形状，固定 `activation_approval_decision_dry_run_audit_consistency_active=true`、`consistency_passed=true`、`source_decision_dry_run_contract_bound=true`、`source_decision_blocker_rollup_bound=true`、`blocker_count_consistent=true`、`no_store_consistent=true`、`decision_dry_run_rejection_consistent=true`、`android_linux_parity_consistent=true`、`no_side_effects_consistent=true`、`decision_dry_run_post_called_by_audit_consistency=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、`persisted_approval_decision_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false` 和 `virtualization_development_triggered=false`；不调用 decision dry-run POST，不保存请求、结果或 approval decision，不创建 approval result store，不更新 review queue，不关闭 gate，不允许 broker activation，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层；这些偏差继续由 DEV-007 和 ISSUE-018 跟踪。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface activation checklist
-
-`GET /hardware/interfaces/activation-checklist` 是硬件依赖空接口从 contract-only 走向目标平台集成前的门禁清单，用于固定 `HW-ACT-001..008`：target interface owner、Driver/HAL gap review、Android ABI、Linux ABI、Safety/Policy binding、smoke test harness、rollback/fault semantics 和 no-hardware-access 证据。Android 主路径暴露 `getHardwareInterfaceActivationChecklistJson`，Linux 同步路径暴露 `hardware-interface-activation-checklist`、`hardware.interfaces.activation.checklist` 和 `GetHardwareInterfaceActivationChecklist`。
-
-该增量只补需求基线中的硬件激活前 owner/ABI/smoke evidence 接口形状，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实硬件、vendor SDK、目标 ABI 与 Safety/Policy owner 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision status
-
-`GET /hardware/interfaces/owner-decision-status` 是硬件依赖空接口的 no-hardware owner decision status rollup，用于固定 `HW-ODS-001..008`：target interface owner、Android ABI owner、Linux ABI owner、Driver/HAL gap owner、Safety/Policy owner、target smoke evidence owner、rollback/fault semantics owner 和 no-hardware-access-in-prototype。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionStatusJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-status`、`hardware.interfaces.owner.decision.status` 和 `GetHardwareInterfaceOwnerDecisionStatus`。
-
-该增量只补需求基线中的 owner 决策状态可见性，不分配量产 owner，不关闭 activation gate，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实硬件、vendor SDK、目标 ABI、Safety/Policy owner、target smoke evidence 与 rollback/fault 语义明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence intake
-
-`POST /hardware/interfaces/owner-decision-evidence` 是硬件依赖空接口的 no-store owner decision evidence intake，用于固定 `HW-ODE-001..008`：target interfaces declared、target gates declared、evidence reference shape、reviewer identity、Runtime & Governance policy check、evidence store owner、no-gate-auto-close claim 和 Android/Linux contract parity。Android 主路径暴露 `submitHardwareInterfaceOwnerDecisionEvidenceJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence`、`hardware.interfaces.owner.decision.evidence` 和 `SubmitHardwareInterfaceOwnerDecisionEvidence`。
-
-该增量只补需求基线中的 evidence reference envelope 入站形状，不持久化 evidence，不更新 review queue，不分配 owner，不关闭 activation gate，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 evidence store owner、review workflow、target hardware smoke evidence、vendor SDK、目标 ABI 与 Safety/Policy owner 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence status
-
-`GET /hardware/interfaces/owner-decision-evidence/status` 是硬件依赖空接口的 no-store owner decision evidence status rollup，用于固定 `HW-OES-001..008`：evidence store owner、review workflow owner、gate closure authority、target smoke evidence rules、no persisted submissions、no review queue/gate closure、no hardware access 和 Android/Linux status contract parity。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceStatusJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-status`、`hardware.interfaces.owner.decision.evidence.status` 和 `GetHardwareInterfaceOwnerDecisionEvidenceStatus`。
-
-该增量只补需求基线中的 evidence intake 后状态可见性，不读取 evidence store，不创建 review queue，不分配 owner，不关闭 gate，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 evidence store owner、review workflow、gate closure authority、target hardware smoke evidence、vendor SDK、目标 ABI 与 Safety/Policy owner 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence retention checklist
-
-`GET /hardware/interfaces/owner-decision-evidence/retention-checklist` 是硬件依赖空接口的 no-store owner evidence retention/closure 决策清单，用于固定 `HW-OER-001..008`：durable evidence store owner、evidence URI rules、retention policy owner、review workflow owner、gate closure authority、delete/export semantics、rollback/fault closure evidence 和 Android/Linux retention-closure contract parity。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceRetentionChecklistJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-retention-checklist`、`hardware.interfaces.owner.decision.evidence.retention.checklist` 和 `GetHardwareInterfaceOwnerDecisionEvidenceRetentionChecklist`。
-
-该增量只补需求基线中的 evidence retention/closure 决策接口形状，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不创建 delete/export workflow，不分配 owner，不关闭 gate，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 evidence store owner、URI rules、retention policy、review workflow、gate closure authority、approval signature、delete/export semantics、rollback/fault closure evidence、vendor SDK、目标 ABI 与 Safety/Policy owner 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence replacement trigger checklist
-
-`GET /hardware/interfaces/owner-decision-evidence/replacement-trigger-checklist` 是硬件依赖空接口从 contract-only registry 替换为真实 adapter 前的 no-store replacement trigger 决策清单，用于固定 `HW-OET-001..008`：replacement target interface、adapter readiness criteria、Driver/HAL gap closure evidence、Android/Linux ABI replacement parity、rollback-to-empty-interface plan、Safety/Policy replacement review、smoke harness replacement evidence 和 no-auto-replacement contract parity。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklistJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-replacement-trigger-checklist`、`hardware.interfaces.owner.decision.evidence.replacement.trigger.checklist` 和 `GetHardwareInterfaceOwnerDecisionEvidenceReplacementTriggerChecklist`。
-
-该增量只补需求基线中的空接口替换触发条件，不替换 adapter，不激活 adapter，不关闭 gate，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不创建 delete/export workflow，不分配 owner，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 adapter owner、Driver/HAL gap closure evidence、目标 ABI、Safety/Policy review、target hardware smoke evidence、rollback-to-empty-interface plan 和 vendor SDK 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence selected-adapter readiness checklist
-
-`GET /hardware/interfaces/owner-decision-evidence/selected-adapter-readiness-checklist` 是硬件依赖空接口在目标平台提出真实 adapter 候选之后、任何 adapter load/activation 之前的 no-store readiness evidence 决策清单，用于固定 `HW-OEA-001..008`：selected adapter owner、adapter interface contract、Driver/HAL gap evidence、Android/Linux binding parity、Safety/Policy fault model review、smoke harness plan、rollback-to-empty-interface review 和 no-adapter-load contract parity。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklistJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-selected-adapter-readiness-checklist`、`hardware.interfaces.owner.decision.evidence.selected.adapter.readiness.checklist` 和 `GetHardwareInterfaceOwnerDecisionEvidenceSelectedAdapterReadinessChecklist`。
-
-该增量只补需求基线中的 selected-adapter readiness evidence 接口形状，不选择 adapter，不加载 adapter，不激活 adapter，不关闭 gate，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配 owner，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 adapter owner、adapter contract、Driver/HAL gap evidence、目标 ABI、Safety/Policy fault model、target hardware smoke harness 和 rollback-to-empty-interface plan 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load blocker rollup
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup` 是硬件依赖空接口在真实 adapter load 前的 contract-only 聚合视图，用于把 activation checklist、owner decision status、owner evidence status、retention checklist、replacement trigger checklist 和 selected-adapter readiness checklist 的未清阻塞项汇总为 `HW-ALB-001..008`。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollupJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-blocker-rollup`、`hardware.interfaces.owner.decision.evidence.adapter.load.blocker.rollup` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadBlockerRollup`。
-
-该增量只补需求基线中的 adapter-load blocker rollup 接口形状，不选择 adapter，不加载 adapter，不替换 adapter，不激活 adapter，不关闭 gate，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配 owner，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 adapter owner、adapter contract、Driver/HAL gap evidence、目标 ABI、Safety/Policy fault model、target hardware smoke harness、rollback-to-empty-interface plan 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load dry-run
-
-`POST /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run` 是硬件依赖空接口在真实 adapter load 前的 contract-only approval dry-run request，用于校验 `HW-ALD-001..008`、`selected_interface_id`、`selected_adapter_id`、`adapter_version`、`requested_by` 和 `evidence_refs` 的请求形状，并把 dry-run 结果绑定到 `GET /hardware/interfaces/owner-decision-evidence/adapter-load-blocker-rollup` 的开放阻塞项。Android 主路径暴露 `dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-dry-run`、`hardware.interfaces.owner.decision.evidence.adapter.load.dry.run` 和 `DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoad`。
-
-该增量只补需求基线中的 adapter-load approval dry-run 接口形状，固定返回 `rejected_blocked_contract_only`，不选择 adapter，不加载 adapter，不替换 adapter，不激活 adapter，不关闭 gate，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配 owner，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 adapter load approval authority、evidence store、review workflow、target hardware smoke evidence、rollback/fault semantics 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load dry-run status
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/status` 是 adapter-load dry-run 之后的 no-store status/last-result 视图，用于固定 `HW-ALS-001..008`：status endpoint、zero persisted dry-run records、no review queue/evidence store、last-result not stored、blocker rollup still open、Android/Linux contract parity、no hardware access 和 no Driver/HAL/virtualization trigger。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatusJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-dry-run-status`、`hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.status` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunStatus`。
-
-该增量只补需求基线中的 dry-run no-store 状态可见性，固定 `last_result_available=false`、`persisted_dry_run_count=0`、`pending_review_count=0`、`review_queue_updated=false`、`evidence_persisted=false`、`adapter_load_allowed=false`、`adapter_activation_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不保存 dry-run 请求或结果，不选择 adapter，不加载 adapter，不激活 adapter，不关闭 gate，不创建 evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配 owner，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 evidence store、review workflow、gate closure authority 和 adapter-load approval authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load dry-run audit consistency
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-dry-run/audit-consistency` 是 adapter-load dry-run、dry-run/status、adapter-load blocker rollup 和 gate family 的 no-store 审计一致性视图，用于固定 `HW-ALC-001..008`：dry-run/status surface binding、zero persisted counters、blocker rollup consistency、rejection-only terminal state、gate-set cross-check、Android/Linux audit parity、no-side-effect audit 和 no Driver/HAL/virtualization trigger。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistencyJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-dry-run-audit-consistency`、`hardware.interfaces.owner.decision.evidence.adapter.load.dry.run.audit.consistency` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadDryRunAuditConsistency`。
-
-该增量只补需求基线中的 dry-run audit consistency 可见性，固定 `consistency_passed=true`、`no_store_consistent=true`、`blocker_rollup_consistent=true`、`dry_run_rejection_consistent=true`、`adapter_load_allowed=false`、`adapter_activation_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不调用 dry-run POST，不保存 dry-run 请求或结果，不选择 adapter，不加载 adapter，不激活 adapter，不关闭 gate，不创建 evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配 owner，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 evidence store、review workflow、gate closure authority、last-result retention 和 adapter-load approval authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval authority checklist
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist` 是 adapter-load dry-run 进入真实 approval/load 前的 approval authority 决策清单，用于固定 `HW-ALA-001..008`：source surfaces binding、approval authority assignment、approval policy、signature/RBAC/audit、durable evidence/review workflow、target smoke/rollback/fault evidence、Android/Linux approval parity、no adapter load/hardware access。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklistJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-authority-checklist`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.checklist` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityChecklist`。
-
-该增量只补需求基线中的 approval authority/policy/signature/RBAC/evidence workflow 决策可见性，固定 `approval_authority_assigned=false`、`approval_policy_confirmed=false`、`approval_signature_rules_confirmed=false`、`approval_rbac_confirmed=false`、`approval_workflow_active=false`、`approval_record_persisted=false`、`adapter_load_allowed=false`、`adapter_activation_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不调用 dry-run POST，不持久化 approval record，不选择 adapter，不加载 adapter，不激活 adapter，不关闭 gate，不创建 evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配量产 owner，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 approval authority、approval policy、signature/RBAC、durable evidence store、review workflow、target smoke evidence、rollback/fault semantics 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval authority status
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/status` 是 adapter-load approval authority checklist 之后的 no-store status 视图，用于固定 `HW-AAS-001..008`：status surface binding、zero persisted approval records、no approval review queue、approval decisions still open、adapter load still blocked、Android/Linux approval status parity、no hardware access、no Driver/HAL or virtualization trigger。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatusJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-authority-status`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.status` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityStatus`。
-
-该增量只补需求基线中的 approval authority no-store 状态可见性，固定 `approval_record_available=false`、`persisted_approval_record_count=0`、`pending_approval_review_count=0`、`approval_review_queue_updated=false`、`approval_evidence_store_active=false`、`approval_decision_passed=false`、`no_store_consistent=true`、`approval_decisions_open=true`、`adapter_load_still_blocked=true`、`adapter_load_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不调用 dry-run POST，不持久化 approval record，不创建 evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配量产 owner，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 approval authority、approval policy、signature/RBAC、approval evidence store、review workflow、target smoke evidence、rollback/fault semantics 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval authority audit consistency
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/audit-consistency` 是 approval authority checklist、approval no-store status、dry-run audit consistency 与 adapter-load blocker rollup 的只读一致性视图，用于固定 `HW-AAC-001..008`：approval checklist/status surface binding、approval status no-store consistency、approval decisions open consistency、adapter-load blocked consistency、gate-family cross-check、Android/Linux approval audit parity、no-side-effect audit 和 no Driver/HAL/virtualization trigger。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistencyJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-authority-audit-consistency`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.authority.audit.consistency` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalAuthorityAuditConsistency`。
-
-该增量只补需求基线中的 approval authority audit consistency 可见性，固定 `consistency_passed=true`、`approval_status_no_store_consistent=true`、`approval_decisions_open_consistent=true`、`adapter_load_blocked_consistent=true`、`dry_run_audit_consistency_passed=true`、`approval_record_available=false`、`persisted_approval_record_count=0`、`approval_review_queue_updated=false`、`approval_decision_passed=false`、`adapter_load_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不调用 dry-run POST，不持久化 approval record，不创建 evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配量产 owner，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 approval authority、approval policy、signature/RBAC、approval evidence store、review workflow、target smoke evidence、rollback/fault semantics 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval decision dry-run
-
-`POST /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run` 是 approval authority checklist/audit 之后、真实 approval workflow 或 adapter load 之前的 contract-only 决策请求干跑入口，用于固定 `HW-APD-001..008`：approval decision dry-run surface binding、request shape、approval status no-store binding、approval evidence ref shape、reviewer identity/signature、blocked contract-only rejection、no approval side effects 和 no Driver/HAL/virtualization trigger。Android 主路径暴露 `dryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run` 和 `DryRunHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecision`。
-
-该增量只补需求基线中的 approval decision request 形状和 rejected dry-run 状态，固定 `approval_decision_dry_run_state=rejected_blocked_contract_only`、`approval_decision_dry_run_validated=true`、`approval_authority_ready=false`、`approval_record_persisted=false`、`approval_decision_persisted=false`、`approval_review_queue_updated=false`、`approval_evidence_store_active=false`、`adapter_load_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不持久化 approval decision，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配量产 owner，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 approval authority、approval policy、signature/RBAC、approval evidence store、review workflow、target smoke evidence、rollback/fault semantics 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval decision dry-run status
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/status` 是 approval decision dry-run 之后的 contract-only no-store 状态视图，用于固定 `HW-APS-001..008`：approval decision dry-run status surface binding、zero persisted approval decisions、no approval review queue、no approval evidence store、last approval decision result not stored、approval decision dry-run still blocked、Android/Linux status parity 和 no Driver/HAL/virtualization trigger。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatusJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-status`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.status` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunStatus`。
-
-该增量只补需求基线中的 approval decision dry-run status/last-result no-store 视图，固定 `last_approval_decision_result_available=false`、`persisted_approval_decision_count=0`、`pending_approval_decision_review_count=0`、`approval_decision_review_queue_updated=false`、`approval_decision_evidence_store_active=false`、`decision_dry_run_post_called_by_status=false`、`approval_decision_persisted=false`、`approval_decision_passed=false`、`adapter_load_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不调用 dry-run POST，不持久化 approval decision，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配量产 owner，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 approval authority、approval policy、signature/RBAC、approval evidence store、review workflow、target smoke evidence、rollback/fault semantics 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval decision dry-run audit consistency
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/audit-consistency` 是 approval decision dry-run/status 之后的 contract-only audit consistency 视图，用于固定 `HW-APA-001..008`：approval decision audit surfaces binding、approval decision status no-store consistency、approval decision dry-run rejection consistency、approval authority audit consistency、adapter-load blocked consistency、gate family cross-check、Android/Linux approval decision audit parity 和 no side-effect/Driver/HAL/virtualization trigger。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistencyJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-dry-run-audit-consistency`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.dry.run.audit.consistency` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionDryRunAuditConsistency`。
-
-该增量只补需求基线中的 approval decision dry-run audit consistency 只读视图，固定 `consistency_passed=true`、`no_store_consistent=true`、`decision_dry_run_rejection_consistent=true`、`approval_authority_audit_consistent=true`、`adapter_load_blocked_consistent=true`、`decision_dry_run_post_called_by_audit_consistency=false`、`approval_decision_persisted=false`、`approval_decision_review_queue_updated=false`、`approval_decision_evidence_store_active=false`、`adapter_load_allowed=false`、`hardware_access_allowed=false` 和 `gate_closure_allowed=false`；不调用 dry-run POST，不持久化 approval decision，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配量产 owner，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 approval authority、approval policy、signature/RBAC、approval evidence store、review workflow、approval record schema、target smoke evidence、rollback/fault semantics、Driver/HAL gap closure evidence、audit owner 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval decision closure blocker matrix
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix` 是 approval decision dry-run/status/audit 之后的 contract-only closure blocker matrix，用于固定 `HW-APM-001..008`：closure blocker matrix surface binding、approval authority/policy blockers、signature/RBAC blockers、approval record/evidence/review blockers、target smoke/rollback/fault blockers、Driver/HAL/audit/gate-closure blockers、Android/Linux parity 和 no side-effect matrix。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrixJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-closure-blocker-matrix`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.closure.blocker.matrix` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionClosureBlockerMatrix`。
-
-该增量只补需求基线中的 approval decision closure blocker matrix 只读视图，固定 `closure_ready=false`、`approval_decision_closure_allowed=false`、`unresolved_blocker_count=13`、`approval_authority_assigned=false`、`approval_policy_confirmed=false`、`approval_signature_rules_confirmed=false`、`approval_rbac_confirmed=false`、`approval_record_schema_confirmed=false`、`approval_evidence_store_owner_confirmed=false`、`review_workflow_owner_confirmed=false`、`target_smoke_evidence_attached=false`、`rollback_plan_confirmed=false`、`fault_model_confirmed=false`、`driver_hal_gap_closure_evidence_attached=false`、`audit_owner_confirmed=false`、`gate_closure_authority_confirmed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不调用 dry-run POST，不持久化 approval decision，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不分配量产 owner，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 approval closure authority 和目标硬件证据明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval decision reviewer matrix
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix` 是 approval decision closure blocker matrix 之后的 contract-only reviewer matrix，用于固定 `HW-APR-001..008`：reviewer matrix surface binding、approval authority reviewer、approval record/evidence reviewer、review workflow reviewer、target smoke/rollback/fault reviewer、Driver/HAL gap reviewer、Android/Linux reviewer parity 和 no-side-effect reviewer matrix。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrixJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-decision-reviewer-matrix`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.decision.reviewer.matrix` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalDecisionReviewerMatrix`。
-
-该增量只补需求基线中的 approval decision reviewer/retention 责任可见性，固定 `approval_decision_reviewer_matrix_state=contract-only-approval-decision-reviewers-unassigned`、`approval_decision_reviewer_matrix_active=true`、`unassigned_reviewer_count=11`、`review_ready=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不分配 reviewer，不调用 dry-run POST，不持久化 approval decision，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 reviewer assignment、approval evidence store、review workflow、audit export、Driver/HAL gap closure evidence 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff checklist
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist` 是 approval decision reviewer matrix 之后的 contract-only evidence handoff checklist，用于固定 `HW-ARH-001..008`：reviewer evidence handoff surface binding、handoff packet schema、approval authority/policy/signature handoff、record/evidence store handoff、workflow/audit/gate handoff、target/Driver-HAL/fault handoff、Android/Linux handoff parity 和 no-side-effect handoff。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklistJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-checklist`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.checklist` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffChecklist`。
-
-该增量只补需求基线中的 reviewer evidence handoff packet 字段可见性，固定 `approval_reviewer_evidence_handoff_state=contract-only-reviewer-evidence-handoff-blocked`、`approval_reviewer_evidence_handoff_checklist_active=true`、`required_handoff_packet_count=11`、`missing_handoff_packet_count=11`、`handoff_ready=false`、`evidence_handoff_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不附加或持久化 evidence，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 reviewer identity、evidence URI rule、owner signature、acceptance rule、retention policy、audit export 和 rollback/fault handoff 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance status
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status` 是 approval reviewer evidence handoff checklist 之后的 contract-only handoff acceptance status，用于固定 `HW-AHA-001..008`：handoff acceptance surface binding、handoff packet presence check、reviewer identity acceptance blocked、evidence signature acceptance blocked、retention audit acceptance blocked、rollback/fault Driver-HAL acceptance blocked、Android/Linux handoff acceptance parity 和 no-side-effect acceptance。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatusJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-status`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.status` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceStatus`。
-
-该增量只补需求基线中的 reviewer evidence handoff acceptance 状态可见性，固定 `approval_reviewer_evidence_handoff_acceptance_state=contract-only-handoff-acceptance-blocked`、`approval_reviewer_evidence_handoff_acceptance_status_active=true`、`required_acceptance_count=11`、`blocked_acceptance_count=11`、`accepted_handoff_packet_count=0`、`acceptance_record_persisted_count=0`、`handoff_ready=false`、`handoff_acceptance_ready=false`、`handoff_acceptance_allowed=false`、`evidence_handoff_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不接收或接受 handoff packet，不持久化 acceptance record，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 handoff packet、acceptance authority、acceptance record store、audit retention 和 rollback/fault acceptance 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance audit consistency
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/audit-consistency` 是 approval reviewer evidence handoff acceptance status 之后的 contract-only audit consistency view，用于固定 `HW-AHC-001..008`：handoff acceptance audit surface binding、handoff checklist count consistency、acceptance status count consistency、blocked acceptance state consistency、no-store acceptance audit、no-review-gate-load audit、Android/Linux acceptance audit parity 和 no-side-effect acceptance audit。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistencyJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-audit-consistency`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.audit.consistency` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceAuditConsistency`。
-
-该增量只补需求基线中的 reviewer evidence handoff acceptance 审计一致性，固定 `approval_reviewer_evidence_handoff_acceptance_audit_state=contract-only-handoff-acceptance-audit-consistent`、`approval_reviewer_evidence_handoff_acceptance_audit_consistency_active=true`、`consistency_passed=true`、`handoff_checklist_consistent=true`、`acceptance_status_consistent=true`、`blocked_acceptance_state_consistent=true`、`no_store_consistent=true`、`no_review_gate_load_consistent=true`、`no_side_effects_consistent=true`、`required_handoff_packet_count=11`、`missing_handoff_packet_count=11`、`required_acceptance_count=11`、`blocked_acceptance_count=11`、`accepted_handoff_packet_count=0`、`acceptance_record_persisted_count=0`、`handoff_acceptance_allowed=false`、`evidence_handoff_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不接收或接受 handoff packet，不持久化 acceptance record，不创建 durable evidence store，不读取或 dereference evidence URI，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 handoff packet、acceptance authority、acceptance record store、audit retention 和 rollback/fault acceptance 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance decision rollup
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup` 是 approval reviewer evidence handoff acceptance audit consistency 之后的 contract-only decision rollup view，用于固定 `HW-AHD-001..008`：handoff acceptance decision rollup surface binding、acceptance authority decision blocked、acceptance record store decision blocked、review workflow decision blocked、audit retention decision blocked、Driver/HAL acceptance decision blocked、Android/Linux decision rollup parity 和 no-side-effect decision rollup。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollupJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-decision-rollup`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.decision.rollup` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceDecisionRollup`。
-
-该增量只补需求基线中的 reviewer evidence handoff acceptance 决策汇总，固定 `approval_reviewer_evidence_handoff_acceptance_decision_rollup_state=contract-only-handoff-acceptance-decision-blocked`、`approval_reviewer_evidence_handoff_acceptance_decision_rollup_active=true`、`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`required_decision_count=8`、`blocked_decision_count=8`、`required_handoff_packet_count=11`、`missing_handoff_packet_count=11`、`required_acceptance_count=11`、`blocked_acceptance_count=11`、`accepted_handoff_packet_count=0`、`acceptance_record_persisted_count=0`、`acceptance_decision_ready=false`、`handoff_acceptance_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 acceptance authority、record store、review workflow、audit retention、rollback/fault acceptance、Driver/HAL acceptance reviewer、gate closure authority 和 handoff packet presence 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance closure readiness checklist
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist` 是 approval reviewer evidence handoff acceptance decision rollup 之后的 contract-only closure readiness checklist，用于固定 `HW-AHE-001..008`：closure readiness surface binding、acceptance authority ready blocked、acceptance record store ready blocked、review workflow ready blocked、rollback/fault acceptance ready blocked、Driver/HAL acceptance ready blocked、Android/Linux closure readiness parity 和 no-side-effect closure readiness。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklistJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-checklist`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.checklist` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessChecklist`。
-
-该增量只补需求基线中的 reviewer evidence handoff acceptance closure readiness 条件清单，固定 `approval_reviewer_evidence_handoff_acceptance_closure_readiness_state=contract-only-handoff-acceptance-closure-not-ready`、`approval_reviewer_evidence_handoff_acceptance_closure_readiness_checklist_active=true`、`closure_readiness_complete=true`、`closure_ready=false`、`required_closure_check_count=8`、`ready_closure_check_count=0`、`closure_blocker_count=8`、`decision_rollup_consistent=true`、`required_decision_count=8`、`blocked_decision_count=8`、`required_handoff_packet_count=11`、`missing_handoff_packet_count=11`、`required_acceptance_count=11`、`blocked_acceptance_count=11`、`accepted_handoff_packet_count=0`、`acceptance_record_persisted_count=0`、`handoff_acceptance_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 closure readiness authority、acceptance record store、review workflow、audit retention、rollback/fault acceptance、Driver/HAL acceptance reviewer、gate closure authority 和 handoff packet presence 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance closure readiness audit consistency
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency` 是 approval reviewer evidence handoff acceptance closure readiness checklist 之后的 contract-only audit consistency view，用于固定 `HW-AHF-001..008`：closure readiness audit surface binding、closure readiness check count consistency、closure blocker state consistency、decision rollup closure consistency、no-store closure readiness audit、no-review-gate-load closure audit、Android/Linux closure readiness audit parity 和 no-side-effect closure readiness audit。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistencyJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-audit-consistency`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.audit.consistency` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessAuditConsistency`。
-
-该增量只补需求基线中的 reviewer evidence handoff acceptance closure readiness 审计一致性，固定 `approval_reviewer_evidence_handoff_acceptance_closure_readiness_audit_state=contract-only-handoff-acceptance-closure-readiness-audit-consistent`、`approval_reviewer_evidence_handoff_acceptance_closure_readiness_audit_consistency_active=true`、`consistency_passed=true`、`closure_readiness_checklist_consistent=true`、`closure_check_count_consistent=true`、`closure_blocker_state_consistent=true`、`decision_rollup_closure_consistent=true`、`no_store_consistent=true`、`no_review_gate_load_consistent=true`、`no_side_effects_consistent=true`、`closure_readiness_complete=true`、`closure_ready=false`、`required_closure_check_count=8`、`closure_blocker_count=8`、`ready_closure_check_count=0`、`accepted_handoff_packet_count=0`、`acceptance_record_persisted_count=0`、`handoff_acceptance_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 closure readiness authority、acceptance record store、review workflow、audit retention、rollback/fault acceptance、Driver/HAL acceptance reviewer、gate closure authority 和 handoff packet presence 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance closure readiness decision rollup
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup` 是 closure readiness audit consistency 之后的 contract-only decision rollup view，用于固定 `HW-AHG-001..008`：closure readiness decision rollup surface binding、closure readiness audit decision consistency、closure ready decision blocked、evidence handoff acceptance decision blocked、no-store decision rollup、no-review-gate-load decision rollup、Android/Linux closure readiness decision rollup parity 和 no-side-effect closure readiness decision rollup。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollupJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-rollup`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.rollup` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionRollup`。
-
-该增量只补需求基线中的 reviewer evidence handoff acceptance closure readiness 决策汇总，固定 `approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_rollup_state=contract-only-handoff-acceptance-closure-readiness-decision-blocked`、`approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_rollup_active=true`、`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`closure_readiness_audit_consistent=true`、`closure_ready=false`、`closure_decision_ready=false`、`required_decision_count=8`、`blocked_decision_count=8`、`closure_blocker_count=8`、`required_handoff_packet_count=11`、`missing_handoff_packet_count=11`、`required_acceptance_count=11`、`blocked_acceptance_count=11`、`accepted_handoff_packet_count=0`、`acceptance_record_persisted_count=0`、`handoff_acceptance_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 closure readiness authority、acceptance authority、acceptance record store、review workflow owner、audit retention owner、rollback/fault acceptance owner、Driver/HAL acceptance reviewer、gate closure authority 和 handoff packet presence 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance closure decision reviewer assignment checklist
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist` 是 closure readiness decision rollup 之后的 contract-only reviewer assignment checklist，用于固定 `HW-AHH-001..008`：closure decision reviewer assignment surface binding、closure readiness authority reviewer unassigned、acceptance authority reviewer unassigned、acceptance record store reviewer unassigned、review workflow/audit retention reviewer unassigned、Driver/HAL gate closure reviewer unassigned、Android/Linux reviewer assignment parity 和 no-side-effect reviewer assignment。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-checklist`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.checklist` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist`。
-
-该增量只补需求基线中的 closure decision reviewer assignment 可见性，固定 `approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_state=contract-only-handoff-acceptance-closure-readiness-decision-reviewers-unassigned`、`approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_checklist_active=true`、`reviewer_assignment_checklist_complete=true`、`reviewer_assignment_ready=false`、`reviewer_assignment_allowed=false`、`source_decision_rollup_bound=true`、`required_reviewer_assignment_count=8`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=8`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不分配 reviewer，不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 reviewer assignment authority、closure readiness authority、acceptance authority、evidence store owner、review workflow owner、audit retention owner、Driver/HAL acceptance reviewer 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance closure decision reviewer assignment audit consistency
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency` 是 reviewer assignment checklist 之后的 contract-only audit consistency view，用于固定 `HW-AHI-001..008`：reviewer assignment audit surface binding、reviewer assignment checklist consistency、reviewer assignment count consistency、reviewer assignment blocker state consistency、no-store reviewer assignment audit、no-review/gate/load reviewer assignment audit、Android/Linux reviewer assignment audit parity 和 no-side-effect reviewer assignment audit。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.consistency` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency`。
-
-该增量只补需求基线中的 closure decision reviewer assignment 审计一致性，固定 `approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_state=contract-only-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistent`、`approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_consistency_active=true`、`consistency_passed=true`、`source_reviewer_assignment_checklist_bound=true`、`reviewer_assignment_checklist_consistent=true`、`reviewer_assignment_count_consistent=true`、`reviewer_assignment_blocker_state_consistent=true`、`no_store_consistent=true`、`no_review_queue_gate_load_consistent=true`、`no_side_effects_consistent=true`、`reviewer_assignment_ready=false`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=8`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不分配 reviewer，不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence/reviewer assignment，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 reviewer assignment authority、review workflow owner、audit retention owner、Driver/HAL acceptance reviewer 和 gate closure authority 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load approval reviewer evidence handoff acceptance closure decision reviewer assignment audit decision rollup
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup` 是 reviewer assignment audit consistency 之后的 contract-only decision rollup view，用于固定 `HW-AHJ-001..008`：reviewer assignment audit decision rollup surface binding、reviewer assignment audit consistency binding、reviewer assignment decision blocked、adapter load decision blocked by unassigned reviewers、no-store decision rollup、no-review/gate/load decision rollup、Android/Linux reviewer assignment audit decision rollup parity 和 no-side-effect reviewer assignment audit decision rollup。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup`。
-
-该增量只补需求基线中的 closure decision reviewer assignment audit 决策汇总，固定 `approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_state=contract-only-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-blocked`、`approval_reviewer_evidence_handoff_acceptance_closure_readiness_decision_reviewer_assignment_audit_decision_rollup_active=true`、`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`source_reviewer_assignment_audit_bound=true`、`reviewer_assignment_audit_consistent=true`、`reviewer_assignment_decision_blocked=true`、`adapter_load_decision=blocked-by-unassigned-reviewers`、`required_decision_count=8`、`blocked_decision_count=8`、`required_reviewer_assignment_count=8`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=8`、`reviewer_assignment_ready=false`、`reviewer_assignment_allowed=false`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不分配 reviewer，不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence/reviewer assignment，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 reviewer assignment authority、review workflow owner、audit retention owner、Driver/HAL acceptance reviewer、gate closure authority 和 adapter load approval owner 明确前保持 Open/Proposed。
-
-## HW-002/KH-003/KH-006/KH-007 当前补充：Hardware interface owner decision evidence adapter-load closure handoff readiness summary
-
-`GET /hardware/interfaces/owner-decision-evidence/adapter-load-approval-authority-checklist/decision-dry-run/closure-blocker-matrix/reviewer-matrix/evidence-handoff-checklist/acceptance-status/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary` 是 reviewer assignment audit decision rollup 之后的 contract-only closure handoff readiness summary，用于固定 `HW-AHK-001..008`：closure handoff readiness surface binding、source decision rollup consistency binding、closure handoff dependencies summarized、reviewer assignment handoff blocker carried forward、no-store closure handoff readiness summary、no-review/gate/load closure handoff readiness summary、Android/Linux closure handoff readiness summary parity 和 no-side-effect closure handoff readiness summary。Android 主路径暴露 `getHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson`，Linux 同步路径暴露 `hardware-interface-owner-decision-evidence-adapter-load-approval-reviewer-evidence-handoff-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary`、`hardware.interfaces.owner.decision.evidence.adapter.load.approval.reviewer.evidence.handoff.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary` 和 `GetHardwareInterfaceOwnerDecisionEvidenceAdapterLoadApprovalReviewerEvidenceHandoffAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary`。
-
-该增量只补需求基线中的 adapter-load closure handoff readiness summary，固定 `closure_handoff_readiness_summary_state=contract-only-closure-handoff-readiness-blocked`、`closure_handoff_readiness_summary_active=true`、`source_decision_rollup_bound=true`、`decision_rollup_consistent=true`、`closure_handoff_readiness_complete=true`、`closure_handoff_ready=false`、`handoff_ready=false`、`adapter_load_decision=blocked-by-unassigned-reviewers`、`reviewer_assignment_decision_blocked=true`、`required_handoff_dependency_count=8`、`open_handoff_dependency_count=8`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=8`、`reviewer_assignment_ready=false`、`reviewer_assignment_allowed=false`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`handoff_acceptance_allowed=false`、`evidence_handoff_allowed=false`、`approval_review_allowed=false`、`retention_review_allowed=false`、`gate_closure_allowed=false`、`adapter_load_allowed=false`、`hardware_accessed=false` 和 `driver_development_triggered=false`；不分配 reviewer，不接收或接受 handoff packet，不持久化 acceptance record/approval/evidence/reviewer assignment，不创建 durable evidence store，不创建 review queue，不关闭 gate，不选择 adapter，不加载 adapter，不激活 PCIe NPU、Vehicle bus、Camera/Audio/Sensors、Ethernet/SOME-IP/DDS/TSN、shared memory 或 Safety Runtime，不打开 device node，不调用 HAL/vendor SDK，不 dispatch service，不新增 Driver/HAL 或虚拟化层；DEV-005、DEV-016 和 ISSUE-016 在真实 closure handoff authority、reviewer assignment authority、review workflow owner、audit retention owner、Driver/HAL acceptance reviewer、gate closure authority 和 adapter load approval owner 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision closure blocker matrix
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix` 是 activation approval decision dry-run audit consistency 之后的 contract-only closure blocker matrix，用于固定 `EV-ACB-001..010`：approval authority owner、approval policy、signature/RBAC、approval result store、review queue owner、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux closure parity evidence 和 high-rate transport activation evidence。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionClosureBlockerMatrixJson` 和 Console `Sub ApClose`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-closure-blocker-matrix`、`uib.events.subscriptions.activation.approval.decision.closure.blocker.matrix` 和 `GetEventSubscriptionActivationApprovalDecisionClosureBlockerMatrix`。
-
-该增量只补需求基线中的 Event subscription activation approval decision closure blocker 可见性，固定 `approval_decision_closure_blocker_matrix_state=contract-only-approval-decision-closure-blocked`、`approval_decision_closure_blocker_matrix_active=true`、`closure_blocker_matrix_complete=true`、`closure_ready=false`、`required_closure_blocker_count=10`、`open_closure_blocker_count=10`、`decision_dry_run_post_called_by_closure_blocker_matrix=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、`persisted_approval_decision_count=0`、`approval_result_store_created=false`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不调用 decision dry-run POST，不保存 request/result/approval decision，不创建 approval result store，不更新 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 approval authority、approval policy、signature/RBAC、result store、review queue、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux parity evidence 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff checklist
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist` 是 activation approval decision closure blocker matrix 之后的 contract-only owner handoff checklist，用于固定 `EV-ACH-001..010`：approval decision authority owner、approval policy owner、signature/RBAC owner、approval result store owner、review queue owner、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux closure parity owner 和 high-rate transport activation owner。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklistJson` 和 Console `Sub ApHand`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-checklist`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.checklist` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffChecklist`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff 可见性，固定 `approval_decision_owner_handoff_checklist_state=contract-only-owner-handoff-blocked`、`approval_decision_owner_handoff_checklist_active=true`、`owner_handoff_checklist_complete=true`、`owner_handoff_ready=false`、`required_owner_handoff_count=10`、`open_owner_handoff_count=10`、`assigned_owner_count=0`、`unassigned_owner_count=10`、`owner_assignments_persisted=false`、`owner_handoff_queue_updated=false`、`decision_dry_run_post_called_by_owner_handoff_checklist=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、`persisted_approval_decision_count=0`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 owner，不调用 decision dry-run POST，不保存 handoff/request/result/approval decision，不创建 approval result store，不更新 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 owner assignment authority、evidence handoff workflow、review queue owner、gate closure authority 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency` 是 activation approval decision owner handoff checklist 之后的 contract-only audit consistency 视图，用于固定 `EV-AHA-001..010`：owner handoff checklist binding、closure blocker matrix binding、`EV-ACH`/`EV-ACB` count parity、source blocker binding、no owner assignment、no evidence attachment、no-store/no-review-queue、Android/Linux parity、DRV-GAP-004/005 边界和 no-POST/no-side-effect summary。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistencyJson` 和 Console `Sub ApHAud`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.audit.consistency` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffAuditConsistency`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff audit consistency 可见性，固定 `approval_decision_owner_handoff_audit_consistency_state=contract-only-owner-handoff-audit-consistent`、`approval_decision_owner_handoff_audit_consistency_active=true`、`consistency_passed=true`、`owner_handoff_ready=false`、`required_owner_handoff_count=10`、`open_owner_handoff_count=10`、`assigned_owner_count=0`、`unassigned_owner_count=10`、`attached_evidence_count=0`、`owner_assignments_persisted=false`、`owner_handoff_queue_updated=false`、`decision_dry_run_post_called_by_owner_handoff_audit_consistency=false`、`persisted_dry_run_request_count=0`、`persisted_dry_run_result_count=0`、`persisted_approval_decision_count=0`、`pending_approval_decision_review_count=0`、`review_queue_updated=false`、`gate_state_changed=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 owner，不附加 evidence，不调用 decision dry-run POST，不保存 handoff/request/result/approval/review state，不创建 approval result store，不更新 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 owner assignment authority、evidence handoff workflow、review queue owner、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff decision rollup
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup` 是 activation approval decision owner handoff audit consistency 之后的 contract-only decision rollup 视图，用于固定 `EV-AHD-001..010`：source owner handoff audit binding、owner handoff checklist binding、unassigned owner blocker、missing evidence blocker、no review/result store boundary、no gate closure/broker activation boundary、DRV-GAP-004/005 boundary、Android/Linux parity、no-POST/no-store/no-side-effect boundary 和 blocked decision summary。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollupJson` 和 Console `Sub ApHRoll`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-decision-rollup`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.decision.rollup` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffDecisionRollup`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff 决策汇总可见性，固定 `approval_decision_owner_handoff_decision_rollup_state=contract-only-owner-handoff-decision-blocked`、`activation_approval_decision_owner_handoff_decision_rollup_active=true`、`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`owner_handoff_decision_blocked=true`、`owner_handoff_decision_ready=false`、`approval_decision_ready=false`、`approval_dry_run_allowed=false`、`handoff_evidence_ready=false`、`required_decision_count=10`、`blocked_decision_count=10`、`assigned_owner_count=0`、`unassigned_owner_count=10`、`attached_evidence_count=0`、`decision=blocked-by-unassigned-owners-and-missing-evidence`、`approval_result_store_created=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 owner，不附加 evidence，不调用 decision dry-run POST，不保存 handoff/request/result/approval/review state，不创建 approval result store，不更新 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 owner assignment authority、evidence handoff workflow、review/result store、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence readiness matrix
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix` 是 owner handoff decision rollup 之后的 contract-only evidence readiness matrix，用于固定 `EV-AHE-001..010`：source decision gate、source handoff、source blocker、owner slot、expected owner role、required evidence、packet state、evidence URI/hash/signature presence、persistence state、review queue state 和 open blocker state。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrixJson` 和 Console `Sub ApHEv`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-matrix`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.matrix` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessMatrix`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff evidence readiness 可见性，固定 `approval_decision_owner_handoff_evidence_readiness_matrix_state=contract-only-handoff-evidence-missing`、`activation_approval_decision_owner_handoff_evidence_readiness_matrix_active=true`、`readiness_matrix_complete=true`、`readiness_matrix_consistent=true`、`handoff_evidence_ready=false`、`approval_decision_ready=false`、`approval_dry_run_allowed=false`、`required_evidence_packet_count=10`、`missing_evidence_packet_count=10`、`attached_evidence_count=0`、`persisted_evidence_packet_count=0`、`evidence_uri_count=0`、`evidence_hash_count=0`、`owner_signature_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 owner，不附加 evidence，不调用 POST，不持久化 evidence/request/result/approval/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 handoff evidence packet、review workflow、evidence store、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence readiness audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency` 是 owner handoff evidence readiness matrix 之后的 contract-only audit consistency 视图，用于固定 `EV-AHF-001..010`：`EV-AHE` packet count、packet missing/open state、`EV-AHD`/`EV-ACH`/`EV-ACB` source binding、Android/Linux parity、no-store counters、no-POST boundary、DRV-GAP-004/005 reference 和 no-side-effect summary。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistencyJson` 和 Console `Sub ApHEvAud`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-readiness-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.readiness.audit.consistency` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceReadinessAuditConsistency`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff evidence readiness audit consistency 可见性，固定 `approval_decision_owner_handoff_evidence_readiness_audit_consistency_state=contract-only-handoff-evidence-audit-consistent`、`activation_approval_decision_owner_handoff_evidence_readiness_audit_consistency_active=true`、`consistency_passed=true`、`packet_count_consistent=true`、`packet_state_consistent=true`、`source_binding_consistent=true`、`android_linux_parity_consistent=true`、`no_store_consistent=true`、`no_post_consistent=true`、`no_side_effects_consistent=true`、`handoff_evidence_ready=false`、`approval_decision_ready=false`、`approval_dry_run_allowed=false`、`required_evidence_packet_count=10`、`missing_evidence_packet_count=10`、`attached_evidence_count=0`、`persisted_evidence_packet_count=0`、`evidence_uri_count=0`、`evidence_hash_count=0`、`owner_signature_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 owner，不附加 evidence，不调用 POST，不持久化 evidence/request/result/approval/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 handoff evidence packet、review workflow、evidence store、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance status
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status` 是 owner handoff evidence readiness audit consistency 之后的 contract-only acceptance status 视图，用于固定 `EV-AHG-001..010`：source audit gate、source evidence packet、source decision gate、source handoff slot、source closure blocker、acceptance allowed flag、accepted flag、evidence attachment flag、acceptance record persistence flag 和 review queue update flag。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatusJson` 和 Console `Sub ApHAcc`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-status`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.status` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceStatus`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff evidence acceptance status 可见性，固定 `approval_decision_owner_handoff_evidence_acceptance_status_state=contract-only-handoff-evidence-acceptance-blocked`、`activation_approval_decision_owner_handoff_evidence_acceptance_status_active=true`、`acceptance_status_complete=true`、`acceptance_status_consistent=true`、`handoff_evidence_acceptance_allowed=false`、`handoff_evidence_ready=false`、`approval_decision_ready=false`、`approval_dry_run_allowed=false`、`required_acceptance_count=10`、`blocked_acceptance_count=10`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`required_evidence_packet_count=10`、`missing_evidence_packet_count=10`、`attached_evidence_count=0`、`persisted_evidence_packet_count=0`、`evidence_uri_count=0`、`evidence_hash_count=0`、`owner_signature_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不持久化 evidence/request/result/approval/handoff/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 evidence acceptance authority、evidence packet 格式、review workflow、evidence store、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency` 是 owner handoff evidence acceptance status 之后的 contract-only audit consistency 视图，用于固定 `EV-AHH-001..010`：source acceptance gate、source readiness audit gate、source evidence packet、source decision gate、source handoff slot、source closure blocker、acceptance blocked state、no acceptance record、no evidence attachment 和 no review/gate side effect。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistencyJson` 和 Console `Sub ApHAcAud`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.audit.consistency` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceAuditConsistency`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff evidence acceptance audit consistency 可见性，固定 `approval_decision_owner_handoff_evidence_acceptance_audit_consistency_state=contract-only-handoff-evidence-acceptance-audit-consistent`、`activation_approval_decision_owner_handoff_evidence_acceptance_audit_consistency_active=true`、`consistency_passed=true`、`source_acceptance_status_bound=true`、`source_handoff_evidence_readiness_audit_bound=true`、`acceptance_count_consistent=true`、`blocked_acceptance_state_consistent=true`、`android_linux_parity_consistent=true`、`no_store_consistent=true`、`no_post_consistent=true`、`no_side_effects_consistent=true`、`required_audit_count=10`、`blocked_acceptance_count=10`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`missing_evidence_packet_count=10`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`broker_active=false`、`high_rate_data_plane_active=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不持久化 evidence/request/result/approval/handoff/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 evidence acceptance authority、evidence packet 格式、review workflow、evidence store、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## 开发顺序约束
-
-1. 先补齐 L2/L3 的契约和治理骨架，再扩展上层 App。
-2. 所有 App 能力必须经 Uni Info Bus 语义接口进入 SOA 服务入口。
-3. REST/gRPC/MQTT/SOME-IP/DDS 只能作为 Protocol Binding，不能成为绕过 Uni Info Bus 的主架构。
-4. NPU 调用必须经 Model Runtime Adapter，最终接口落到 Driver/HAL；mock 只能作为开发阶段替身。
-5. Safety State、Policy、Lifecycle、Audit 不是后续附加模块，必须与接口设计同步推进。
-6. 虚拟化层不产生开发任务，只产生文档、接口假设和集成约束。
-7. 驱动层不默认产生开发任务，只在当前 Android/Linux 环境不能满足接口时记录缺口并新增最小开发量。
-8. 跨 SoC 黄色小太阳组件必须同时提供 Android 与 Linux 交付路径。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance decision rollup
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup` 是 owner handoff evidence acceptance audit consistency 之后的 contract-only decision rollup，用于固定 `EV-AHI-001..010`：source acceptance gate、source audit gate、source evidence packet、source decision gate、source handoff slot、source blocker、acceptance authority missing、record store missing、review workflow missing、gate closure/broker activation still blocked。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollupJson` 和 Console `Sub ApHDec`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-decision-rollup`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.decision.rollup` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceDecisionRollup`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff evidence acceptance decision 可见性，固定 `approval_decision_owner_handoff_evidence_acceptance_decision_rollup_state=contract-only-handoff-evidence-acceptance-decision-blocked`、`activation_approval_decision_owner_handoff_evidence_acceptance_decision_rollup_active=true`、`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`source_surfaces_bound=true`、`required_decision_count=10`、`blocked_decision_count=10`、`required_acceptance_count=10`、`blocked_acceptance_count=10`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`missing_evidence_packet_count=10`、`acceptance_decision_ready=false`、`handoff_evidence_acceptance_allowed=false`、`approval_review_allowed=false`、`gate_closure_allowed=false`、`broker_activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不持久化 evidence/request/result/approval/handoff/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 evidence acceptance authority、acceptance record store、review workflow、evidence packet 格式、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness checklist
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist` 是 owner handoff evidence acceptance decision rollup 之后的 contract-only closure readiness checklist，用于固定 `EV-AHJ-001..010`：source decision rollup binding、source acceptance audit/status binding、source evidence readiness binding、acceptance authority readiness、acceptance record store readiness、review workflow readiness、audit retention readiness、evidence packet presence readiness、gate closure authority readiness、broker activation readiness、DRV-GAP-004/005 readiness、Android/Linux parity 和 no-side-effect boundary。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklistJson` 和 Console `Sub ApHClose`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-checklist`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.checklist` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessChecklist`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff evidence acceptance closure readiness 可见性，固定 `approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_state=contract-only-handoff-evidence-acceptance-closure-not-ready`、`activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_checklist_active=true`、`closure_readiness_checklist_complete=true`、`closure_readiness_consistent=true`、`closure_ready=false`、`required_closure_check_count=10`、`open_closure_check_count=10`、`blocked_decision_count=10`、`blocked_acceptance_count=10`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`missing_evidence_packet_count=10`、`approval_review_allowed=false`、`gate_closure_allowed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不持久化 evidence/request/result/approval/handoff/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 closure readiness authority、acceptance authority、acceptance record store、review workflow、audit retention owner、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency` 是 owner handoff evidence acceptance closure readiness checklist 之后的 contract-only audit consistency 视图，用于固定 `EV-AHK-001..010`：closure readiness checklist binding、closure blocker state、source decision rollup binding、source acceptance audit/status binding、source evidence readiness binding、Android/Linux parity、no-store、no-POST 和 no-side-effect。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistencyJson` 和 Console `Sub ApHClAud`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.audit.consistency` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessAuditConsistency`。
-
-该增量只补需求基线中的 Event subscription activation approval decision owner handoff evidence acceptance closure readiness audit consistency 可见性，固定 `approval_decision_owner_handoff_evidence_acceptance_closure_readiness_audit_consistency_state=contract-only-handoff-evidence-acceptance-closure-audit-consistent`、`activation_approval_decision_owner_handoff_evidence_acceptance_closure_readiness_audit_consistency_active=true`、`consistency_passed=true`、`source_closure_readiness_checklist_bound=true`、`source_decision_rollup_bound=true`、`source_acceptance_audit_bound=true`、`source_acceptance_status_bound=true`、`source_evidence_readiness_bound=true`、`closure_check_count_consistent=true`、`closure_blocker_state_consistent=true`、`android_linux_parity_consistent=true`、`no_store_consistent=true`、`no_post_consistent=true`、`no_side_effects_consistent=true`、`required_audit_count=10`、`required_closure_check_count=10`、`open_closure_check_count=10`、`blocked_decision_count=10`、`blocked_acceptance_count=10`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`missing_evidence_packet_count=10`、`closure_ready=false`、`approval_review_allowed=false`、`gate_closure_allowed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不持久化 evidence/request/result/approval/handoff/review state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 closure readiness authority、acceptance authority、acceptance record store、review workflow、audit retention owner、gate closure authority、DRV-GAP-004/005 owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness decision rollup
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup` 是 closure readiness audit consistency 之后的 contract-only decision rollup，用于固定 `EV-AHL-001..010`：source surface binding、closure readiness audit consistency、closure-ready blocked decision、evidence acceptance blocked decision、no-store decision rollup、no-POST decision rollup、Android/Linux decision rollup parity、no-side-effect rollup、broker activation blocked decision 和 Driver/HAL/virtualization blocked decision。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollupJson` 和 Console `Sub ApHClR`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-rollup`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.rollup` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionRollup`。
-
-该增量只补需求基线中的 Event subscription activation closure readiness decision rollup 可见性，固定 `decision_rollup_complete=true`、`decision_rollup_consistent=true`、`closure_readiness_audit_consistent=true`、`closure_ready=false`、`closure_decision_ready=false`、`required_decision_count=10`、`blocked_decision_count=10`、`open_closure_check_count=10`、`blocked_acceptance_count=10`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不接受 packet，不附加 evidence，不分配 owner，不调用 POST，不持久化 request/result/approval/handoff/review/evidence state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 closure readiness authority、acceptance authority、acceptance record store、review workflow、audit retention owner、evidence packet URI/hash/signature、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux parity evidence 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment checklist
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist` 是 EV-AHL closure readiness decision rollup 之后的 contract-only reviewer assignment checklist，用于固定 `EV-AHM-001..010`：source decision rollup binding、closure review authority、evidence acceptance reviewer、gate closure reviewer、broker activation reviewer、Driver/HAL gap reviewer、Android/Linux reviewer assignment parity、no-store、no-POST 和 no-side-effect boundary。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentChecklistJson` 和 Console `Sub ApHRev`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-checklist`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.checklist` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentChecklist`。
-
-该增量只补需求基线中的 Event subscription activation closure readiness decision reviewer assignment 可见性，固定 `state=contract-only-handoff-evidence-acceptance-closure-reviewers-unassigned`、`reviewer_assignment_checklist_complete=true`、`reviewer_assignment_ready=false`、`source_decision_rollup_bound=true`、`required_reviewer_assignment_count=10`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`closure_ready=false`、`closure_decision_ready=false`、`approval_review_allowed=false`、`gate_closure_allowed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`accepted_evidence_packet_count=0`、`acceptance_record_persisted_count=0`、`missing_evidence_packet_count=10`、`review_queue_updated=false`、`gates_closed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 reviewer，不接受 packet，不附加 evidence，不调用 POST，不持久化 request/result/approval/handoff/review/evidence/reviewer state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 reviewer assignment authority、review workflow、acceptance record store、evidence packet URI/hash/signature、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux parity evidence 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency` 是 EV-AHM reviewer assignment checklist 之后的 contract-only audit consistency 视图，用于固定 `EV-AHN-001..010`：source reviewer assignment checklist binding、reviewer assignment count consistency、reviewer assignment blocker state consistency、no-store reviewer assignment audit、no-POST reviewer assignment audit、no-queue/gate/broker reviewer assignment audit、Android/Linux reviewer assignment audit parity、no-side-effect reviewer assignment audit、Driver/HAL gap reviewer audit 和 virtualization boundary audit。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistencyJson` 和 Console `Sub ApHRvA`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.consistency` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditConsistency`。
-
-该增量只补需求基线中的 Event subscription activation closure readiness decision reviewer assignment audit consistency 可见性，固定 `state=contract-only-handoff-evidence-acceptance-closure-reviewer-assignment-audit-consistent`、`consistency_passed=true`、`source_reviewer_assignment_checklist_bound=true`、`reviewer_assignment_count_consistent=true`、`reviewer_assignment_blocker_state_consistent=true`、`no_store_consistent=true`、`no_post_consistent=true`、`no_queue_gate_broker_consistent=true`、`no_side_effects_consistent=true`、`android_linux_reviewer_assignment_audit_parity=true`、`reviewer_assignment_ready=false`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 reviewer，不接受 packet，不附加 evidence，不调用 POST，不持久化 request/result/approval/handoff/review/evidence/reviewer state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 reviewer assignment authority、review workflow、acceptance record store、evidence packet URI/hash/signature、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux parity evidence、reviewer assignment audit exporter 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit decision rollup
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup` 是 EV-AHN reviewer assignment audit consistency 之后的 contract-only decision rollup，用于固定 `EV-AHO-001..010`：source reviewer assignment audit binding、audit consistency decision、reviewer assignment blocked decision、no-store decision rollup、no-POST decision rollup、Android/Linux decision parity、no-side-effect rollup、Driver/HAL blocked decision、virtualization blocked decision 和 activation blocked decision。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupJson` 和 Console `Sub ApHRvRoll`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollup`。
-
-该增量只补需求基线中的 Event subscription activation closure readiness decision reviewer assignment audit decision rollup 可见性，固定 `state=contract-only-handoff-evidence-acceptance-closure-reviewer-assignment-decision-blocked`、`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`source_reviewer_assignment_audit_bound=true`、`reviewer_assignment_audit_consistent=true`、`reviewer_assignment_decision_blocked=true`、`reviewer_assignment_decision_ready=false`、`reviewer_assignment_decision=blocked-by-unassigned-reviewers`、`required_decision_count=10`、`blocked_decision_count=10`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 reviewer，不接受 packet，不附加 evidence，不调用 POST，不持久化 request/result/approval/handoff/review/evidence/reviewer state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在真实 reviewer assignment authority、review workflow、acceptance record store、evidence packet URI/hash/signature、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux parity evidence、reviewer assignment audit exporter 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit decision rollup closure handoff readiness summary
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary` 是 EV-AHO reviewer assignment audit decision rollup 之后的 contract-only closure handoff readiness summary，用于固定 `EV-AHP-001..010`：closure handoff readiness surface binding、source decision rollup consistency binding、closure handoff dependency summary、reviewer assignment handoff blocker carry-forward、no-store closure handoff readiness summary、no-POST closure handoff readiness summary、Android/Linux closure handoff readiness parity、no-side-effect closure handoff summary、Driver/HAL blocked handoff summary 和 virtualization boundary handoff summary。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummaryJson` 和 Console `Sub ApHReady`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-summary`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.summary` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessSummary`。
-
-该增量只补需求基线中的 Event subscription activation closure handoff readiness summary 可见性，固定 `state=contract-only-handoff-evidence-acceptance-closure-handoff-readiness-blocked`、`closure_handoff_readiness_complete=true`、`closure_handoff_ready=false`、`handoff_ready=false`、`source_decision_rollup_bound=true`、`decision_rollup_consistent=true`、`reviewer_assignment_decision_blocked=true`、`reviewer_assignment_decision=blocked-by-unassigned-reviewers`、`required_handoff_dependency_count=10`、`open_handoff_dependency_count=10`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 reviewer，不接受 packet，不附加 evidence，不调用 POST，不持久化 request/result/approval/handoff/review/evidence/reviewer state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在 closure handoff owner、reviewer assignment authority、review workflow、acceptance record store、evidence packet URI/hash/signature、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux handoff parity evidence 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure readiness decision reviewer assignment audit decision rollup closure handoff readiness audit consistency
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency` 是 EV-AHP closure handoff readiness summary 之后的 contract-only audit consistency，用于固定 `EV-AHQ-001..010`：audit surface binding、source closure handoff summary binding、handoff dependency count consistency、blocked state consistency、no-store audit、no-POST audit、Android/Linux closure handoff readiness audit parity、no-queue/gate/broker consistency、Driver/HAL/virtualization boundary 和 no-side-effect consistency。Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditConsistencyJson` 和 Console `Sub ApHReadyA`，Linux 同步路径暴露 `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-consistency`、`uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.consistency` 和 `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditConsistency`。
-
-该增量只补需求基线中的 Event subscription activation closure handoff readiness audit consistency 可见性，固定 `state=contract-only-handoff-evidence-acceptance-closure-handoff-readiness-audit-consistent`、`consistency_passed=true`、`source_closure_handoff_readiness_summary_bound=true`、`closure_handoff_dependency_count_consistent=true`、`closure_handoff_blocker_state_consistent=true`、`no_store_consistent=true`、`no_post_consistent=true`、`no_queue_gate_broker_consistent=true`、`no_side_effects_consistent=true`、`android_linux_closure_handoff_readiness_audit_parity=true`、`required_handoff_dependency_count=10`、`open_handoff_dependency_count=10`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 reviewer，不接受 packet，不附加 evidence，不调用 POST，不持久化 request/result/approval/handoff/review/evidence/reviewer state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在 closure handoff owner、reviewer assignment authority、review workflow、acceptance record store、evidence packet URI/hash/signature、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux handoff parity evidence、closure handoff audit exporter 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-## FW-U-003/NV-P-006 当前补充：Event subscription activation approval decision owner handoff evidence acceptance closure handoff readiness audit decision rollup
-
-`GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup` 是 EV-AHQ closure handoff readiness audit consistency 之后的 contract-only decision rollup，用于固定 `EV-AHR-001..010`：closure handoff readiness audit decision surfaces、source audit binding、audit decision count consistency、audit blocker state consistency、no-store audit decision、no-POST audit decision、Android/Linux parity、no-queue/gate/broker decision、Driver/HAL/virtualization boundary 和 no-side-effect decision。
-
-Android 主路径暴露 `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupJson` 与 Console `Sub ApHReadyR`；Linux 同步路径暴露 CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup`、IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup` 和 gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollup`。
-
-该增量只补需求基线中的 Event subscription activation closure handoff readiness audit decision rollup 可见性，固定 `state=contract-only-handoff-evidence-acceptance-closure-handoff-readiness-audit-decision-blocked`、`decision_rollup_complete=true`、`decision_rollup_consistent=true`、`closure_handoff_audit_decision_ready=false`、`closure_handoff_audit_decision_blocked=true`、`closure_handoff_audit_decision=blocked-by-unassigned-reviewers`、`required_decision_count=10`、`blocked_decision_count=10`、`passed_audit_count=10`、`failed_audit_count=0`、`closure_handoff_ready=false`、`handoff_ready=false`、`assigned_reviewer_count=0`、`unassigned_reviewer_count=10`、`reviewer_assignments_persisted=false`、`reviewer_assignment_queue_updated=false`、`review_queue_updated=false`、`gates_closed=false`、`broker_activation_allowed=false`、`activation_allowed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false` 和 `service_dispatch_triggered=false`；不分配 reviewer，不接受 packet，不附加 evidence，不调用 POST，不持久化 request/result/approval/handoff/review/evidence/reviewer state，不创建 evidence store、approval result store 或 review queue，不关闭 gate，不启动 broker、cursor store、callback/watch、SSE/WebSocket、DDS runtime、高频数据面、Driver/HAL、Safety Runtime 或虚拟化层。DEV-007 和 ISSUE-018 在 closure handoff owner、reviewer assignment authority、review workflow、acceptance record store、evidence packet URI/hash/signature、gate closure authority、broker activation owner、DRV-GAP-004/005 owner、Android/Linux handoff parity evidence、closure handoff audit exporter、decision approval owner 和 high-rate transport activation evidence 明确前保持 Open/Proposed。
-
-### 2026-07-10 EV-AHS closure blocker matrix requirement trace
-
-- Req IDs: XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-004.
-- Added `GET /uib/events/subscriptions/activation-evidence/approval-authority-checklist/decision-dry-run/closure-blocker-matrix/owner-handoff-checklist/audit-consistency/decision-rollup/handoff-evidence-readiness-matrix/audit-consistency/acceptance-status/audit-consistency/decision-rollup/closure-readiness-checklist/audit-consistency/decision-rollup/reviewer-assignment-checklist/audit-consistency/decision-rollup/closure-handoff-readiness-summary/audit-consistency/decision-rollup/closure-blocker-matrix` as a contract-only read-only Uni Info Bus Event subscription closure blocker matrix. It exposes `EV-AHS-001..010` for the closure handoff audit decision rollup and keeps all blockers open until owner authority, approval review, gate closure, broker activation, evidence store, review queue, Android/Linux parity evidence, DRV-GAP-004/005 ownership, virtualization boundary, and no-side-effect closure decision are confirmed.
-- Android primary delivery: Binder `getEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrixJson` and Console `Sub ApHReadyB`.
-- Linux synchronized delivery: CLI `event-subscription-activation-approval-decision-owner-handoff-evidence-acceptance-closure-readiness-decision-reviewer-assignment-audit-decision-rollup-closure-handoff-readiness-audit-decision-rollup-closure-blocker-matrix`, IPC `uib.events.subscriptions.activation.approval.decision.owner.handoff.evidence.acceptance.closure.readiness.decision.reviewer.assignment.audit.decision.rollup.closure.handoff.readiness.audit.decision.rollup.closure.blocker.matrix`, and gRPC/RPC `GetEventSubscriptionActivationApprovalDecisionOwnerHandoffEvidenceAcceptanceClosureReadinessDecisionReviewerAssignmentAuditDecisionRollupClosureHandoffReadinessAuditDecisionRollupClosureBlockerMatrix`.
-- Boundary: no POST, no persistence, no reviewer/owner assignment, no queue/gate/broker activation, no hardware access, no Driver/HAL development, and no virtualization implementation.
-
-### 2026-07-10 EV-AE..EV-AHS prototype readiness closure chain trace
-
-- Req IDs: XSC-002、FW-U-003、XSC-005、XSC-006、NV-P-002、NV-P-003、NV-P-006、DEL-001、DEL-002、DEL-003、DEL-004.
-- `GET /prototype/readiness` now includes `event_subscription_activation_closure_chain_summary` as a compact audit view for the EV-AE..EV-AHS event subscription activation closure chain. This is the required closure-chain summary for the architecture baseline after EV-AHS and does not replace the individual EV-AE..EV-AHS contract surfaces.
-- Android primary delivery remains Binder `getPrototypeReadinessJson` plus the existing EV-AE..EV-AHS Binder/Console methods. Linux synchronized delivery remains CLI `prototype-readiness`, IPC `prototype.readiness.get`, and gRPC/RPC `GetPrototypeReadiness`.
-- The summary must keep `event_subscription_activation_closure_chain_stage_count=30`, `first_gate=EV-AE-001`, `last_gate=EV-AHS-010`, `event_subscription_activation_closure_chain_ready=false`, Android/Linux parity, no-store, no-POST, no-side-effect, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
-
-### 2026-07-10 prototype handoff manifest trace
-
-- Req IDs: XSC-001、XSC-002、XSC-003、XSC-004、XSC-005、XSC-006、DEL-001、DEL-002、DEL-003、DEL-004、DEL-005.
-- `central-brain/contracts/central_brain_prototype_handoff_manifest.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_HANDOFF_MANIFEST.md` are the static Android/Linux prototype handoff index for cockpit-domain engineers.
-- The manifest must report `prototype_handoff_ready=true`, `production_ready=false`, Android primary path ready, Linux synchronized path ready, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
-- The manifest is documentation/contract delivery only; it must not add runtime endpoints, call POST, persist state, close gates, activate broker/DDS/high-rate transport, access hardware, implement Driver/HAL, or implement virtualization.
-
-### 2026-07-10 prototype completion audit trace
-
-- Req IDs: XSC-001..006、DEL-001..005、APP-004、FW-U-001..008、FW-S-001..005、NV-F-001/NV-F-003/NV-F-004/NV-F-005/NV-F-008/NV-F-009/NV-F-011、NV-G-001..007、NV-P-002/NV-P-003/NV-P-005/NV-P-006、HW-002、KH-003、KH-006、KH-007.
-- `central-brain/contracts/central_brain_prototype_completion_audit.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_COMPLETION_AUDIT.md` are the current-state completion matrix for the Python prototype.
-- The audit must report `completion_audit_ready=true`, `python_prototype_current_scope_complete=true`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false` after `GET /prototype/completion-summary` is delivered.
-- The audit is evidence-only; it must not add runtime endpoints, call POST, persist state, close gates, activate broker/DDS/high-rate transport, access hardware, implement Driver/HAL, or implement virtualization.
-
-### 2026-07-10 prototype closure plan trace
-
-- Req IDs: APP-001..010、FW-U-001..008、FW-S-001..006、NV-F-001..012、NV-G-001..007、NV-P-001..007、KH-001..009、HV-001..003、HW-001..002、XSC-001..006、DEL-001..005.
-- `central-brain/contracts/central_brain_prototype_closure_plan.json` and `docs/CENTRAL_BRAIN_PROTOTYPE_CLOSURE_PLAN.md` split all architecture Req IDs into delivered current-prototype surfaces, current Python prototype closure actions, and production-only or target-platform blockers.
-- The plan must keep `closure_plan_ready=true`, `python_prototype_current_scope_complete=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false` after final current-scope closure.
-- Current Python prototype closure actions are `PY-CL-001` for `FW-S-006` extension service coverage and `PY-CL-002` for `NV-F-012` observability coverage. Customer apps, target OS/hardware, real sensors/time sync/connected/ADAS/SOME-IP/MQTT/big-data channels, and virtualization remain outside current Python prototype implementation scope unless a read-only placeholder is missing.
-
-### 2026-07-10 FW-S-006 SOA extension service closure summary
-
-- Req IDs: `FW-S-006`、`XSC-003`、`XSC-005`、`XSC-006`、`NV-G-001`、`NV-G-002`、`NV-G-003`、`DEL-001`、`DEL-002`、`DEL-003`.
-- `GET /soa/extensions/closure-summary` resolves `PY-CL-001` by binding SOA service contracts and Uni Info Bus extension registry visibility into one read-only closure evidence surface.
-- Android primary delivery: Binder `getSoaExtensionClosureSummaryJson` and Console `SOA Ext Close`.
-- Linux synchronized delivery: CLI `soa-extension-closure-summary`, IPC `soa.extensions.closure.summary`, and gRPC/RPC `GetSoaExtensionClosureSummary`.
-- Boundary: this is not a dynamic extension runtime, schema registry, plugin loader, service implementation, service dispatch path, Driver/HAL integration, hardware access path, or virtualization implementation. `ISSUE-015` remains Proposed until target extension lifecycle and plugin sandbox rules are confirmed.
-
-### 2026-07-10 NV-F-012 observability readiness closure
-
-- Req IDs: `NV-F-012`、`XSC-005`、`XSC-006`、`NV-G-007`、`NV-P-002`、`NV-P-003`、`DEL-001`、`DEL-002`、`DEL-003`、`DEL-004`.
-- `GET /observability/readiness` resolves `PY-CL-002` by binding Runtime & Governance audit, optional JSONL audit persistence, delivery readiness, prototype readiness, and governance runtime diagnostics into one read-only observability readiness surface.
-- Android primary delivery: Binder `getObservabilityReadinessJson` and Console `Observability`.
-- Linux synchronized delivery: CLI `observability-readiness`, IPC `observability.readiness.get`, and gRPC/RPC `GetObservabilityReadiness`.
-- The surface must report `observability_readiness_active=true`, `nv_f_012_closure_ready=true`, `py_cl_002_resolved=true`, `audit_recent_bound=true`, `jsonl_audit_persistence_sample_bound=true`, `delivery_readiness_bound=true`, `prototype_readiness_bound=true`, `production_log_backend_ready=false`, `metric_daemon_ready=false`, `hardware_trace_capture_ready=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
-- Boundary: this closes the current Python prototype observability classification only. It does not implement a production log backend, metric daemon, hardware trace capture, retention/export policy, fleet observability backend, Driver/HAL, or virtualization.
-
-### 2026-07-10 prototype completion summary trace
-
-- Req IDs: `XSC-001`..`XSC-006`、`DEL-001`..`DEL-005`、`FW-S-006`、`NV-F-012`、`NV-G-007`、`NV-P-002`、`NV-P-003`、`HW-002`、`KH-003`、`KH-006`、`KH-007`.
-- `GET /prototype/completion-summary` marks the current Python prototype scope complete by binding `central_brain_prototype_closure_plan.json`, `central_brain_prototype_completion_audit.json`, `central_brain_prototype_handoff_manifest.json`, `GET /soa/extensions/closure-summary`, `GET /observability/readiness`, `GET /delivery/readiness`, `GET /prototype/readiness`, and `GET /bindings/readiness`.
-- Android primary delivery: Binder `getPrototypeCompletionSummaryJson` and Console `Complete`.
-- Linux synchronized delivery: CLI `prototype-completion-summary`, IPC `prototype.completion.summary.get`, and gRPC/RPC `GetPrototypeCompletionSummary`.
-- The surface must report `prototype_completion_summary_active=true`, `python_prototype_current_scope_complete=true`, `current_python_prototype_implementation_actions_complete=true`, `current_python_prototype_audit_actions_complete=true`, `prototype_handoff_ready=true`, `production_ready=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
-- Boundary: this is a current Python prototype completion claim only. It does not implement target hardware integration, production Android system service deployment, production Linux packaging, production observability, real event broker/DDS/high-rate data plane, Driver/HAL, Safety Runtime, or virtualization.
-
-### 2026-07-11 Client2 Agent scenario demo trace
-
-- Req IDs: `APP-004`, `XSC-001`, `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006`, `FW-U-004`, `FW-U-006`, `FW-U-007`, `NV-F-001`, `NV-F-011`, `NV-G-005`, `NV-G-007`, `DEL-001`, `DEL-002`, `DEL-003`, `DEL-004`.
-- Android primary demo delivery must use a translucent light-gray right-side overlay, preserve the full-screen Client2 vehicle render region, expose 12 stable scenario controls in an independently scrollable area, keep a fixed reply text surface, and prevent duplicate in-flight requests within the Activity.
-- `GET /agent/scenarios` must expose exactly 12 stable IDs, explicit reference capability gaps, Req IDs, and `product_compatibility_claimed=false`.
-- `POST /agent/scenarios/run` must compose existing AI SDK, Uni Info Bus, SOA, Runtime & Governance, Policy/Audit, Model Runtime and readiness operations. The scenario harness is a test orchestrator, not an additional architecture layer or production Agent runtime.
-- `security.denied` and `security.privacy` must return `blocked_as_expected`; unknown IDs must return `unknown_scenario`. Every scenario response must keep `real_vehicle_control=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `production_ready=false`.
-- The shared Python Model Runtime Adapter must expose configurable Ollama thinking mode, default the local demo to non-thinking output, preserve raw model output, and expose non-empty visible `generated_text` when the model returns `response_text` JSON.
-- Linux synchronized delivery must provide `agent-scenarios` and `agent-scenario-home` over the same REST contract and document the same Ollama environment controls in `central-brain.env.example`.
-- KaKaClaw public product concepts are test references only. Continuous multi-turn sessions, personality/dialect runtime, zero-code Skill lifecycle, proactive triggers, real navigation/media/vehicle/ADAS dispatch, production Skill sandbox, and Privacy Router remain ISSUE-020 gaps.
-- This increment does not add Driver/HAL, PCIe NPU, vehicle bus, Safety Runtime, hardware access, or virtualization implementation.
-
-### 2026-07-12 Android Runtime evolution baseline
-
-- Req IDs: `APP-004`、`XSC-001`..`XSC-006`、`FW-U-003`、`FW-U-004`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`..`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- `docs/CENTRAL_BRAIN_ANDROID_RUNTIME_EVOLUTION_PLAN.md` is the approved R0..R7 implementation baseline for moving from the completed Python contract/mock scope to an Android 13 user-space runtime.
-- Maturity must use exactly `contract_defined`, `prototype_implemented`, `android_integrated`, `hardware_validated`, or `production_qualified`. Readiness/checklist visibility cannot promote a module beyond its executable evidence.
-- The Android product path must deliver an AI SDK AAR, independent Runtime Service APK, Demo HMI APK, typed/async Binder contracts, trusted Binder identity, durable task state, scheduler, Model Router, governed Event/Memory/Skill runtime, and production-facing observability tests.
-- The Android runtime must not use request-provided `caller_permissions` as authorization input. Binder UID/package/signature and trusted Safety/Vehicle State inputs are mandatory Policy context.
-- The current Python gateway, legacy String/JSON AIDL and Client2 HTTP path remain temporary compatibility/test adapters under `DEV-001`, `DEV-017`, `DEV-018`, and `DEV-019`.
-- Current phase scope is Android only. Existing Linux artifacts are preserved without new Linux front-end implementation. Vendor Android/BSP/framework binaries are not modified.
-- Real NPU, vehicle bus and high-rate data paths remain empty adapters until target SDK/ABI evidence closes the relevant DRV-GAP. No virtualization runtime is developed.
-
-### 2026-07-12 R1A Android Gradle foundation trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- `central-brain/android-runtime` is the source-built Android 13 product root. It owns three explicit artifacts: `central-brain-sdk` AAR, non-exported `runtime-service` APK, and launcher `demo-hmi` APK.
-- All modules use `minSdk=33`; the reproducible build pins AGP `8.10.1`, Gradle `8.11.1`, JDK 17 and the official Gradle distribution SHA-256.
-- R1A must keep AIDL absent, `runtime-service` non-exported, and all network/vehicle/device permissions absent. Typed production and diagnostic Binder contracts belong to R2.
-- Build, SDK unit test, AAR structure, APK package/minSdk and APK signature evidence prove `contract_defined`. API 33 device/emulator install/runtime evidence is mandatory but not sufficient for `android_integrated`; production Binder/instrumentation evidence is also required.
-- R1A does not modify vendor Android system binaries, access hardware, add Driver/HAL, extend the Linux front-end, or implement virtualization.
-
-### 2026-07-12 R1B Android device lifecycle trace
-
-- Req IDs: `XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- The production manifest must keep `CentralBrainRuntimeService exported=false`. An ADB lifecycle entrypoint is allowed only in the debug source set, must require `android.permission.DUMP`, must start the service from its own package, and must be absent from release artifacts.
-- `tools/install_central_brain_android_runtime.sh` must require API 33 or newer, support explicit device selection, install both APKs, verify the service process, resumed Demo Activity and visible maturity text, and expose a strict `--require-api-33` exit gate.
-- Compatibility validation on API 36 may prove install/launch portability but must return `r1_api33_exit_criteria_met=false`; it cannot promote the path to `android_integrated` or close R1.
-- Device validation must report `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; it must not probe vendor SDK, device node, NPU or vehicle interfaces.
-
-### 2026-07-12 R1C Android 13 exit trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- The R1 exit device is `central_brain_api33_x86_64`, Android 13/API 33, Google APIs x86_64 system image revision 17, fingerprint `google/sdk_gphone64_x86_64/emu64x:13/TE1A.240213.009/12342917:userdebug/dev-keys`.
-- The strict `--require-api-33` check must install Runtime/Demo `versionName=0.1.0`, verify `CentralBrainRuntimeService`, Demo resumed state and visible `contract_defined`, and return `r1_api33_exit_criteria_met=true`.
-- R1 completion does not close `ISSUE-021` or `DEV-018`. Production/diagnostic typed AIDL, callback/cancel/death and instrumentation remain R2 requirements, so overall Runtime maturity stays `contract_defined`.
-- The API 33 test remains user-space only and reports `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
-
-### 2026-07-12 R2A compiled AIDL contract trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`.
-- `central-brain-sdk` must compile separate `ICentralBrainRuntime`, `ICentralBrainTaskCallback`, and `ICentralBrainDiagnostics` AIDL interfaces plus versioned structured parcelables.
-- Production AIDL must expose typed agent-task submit/cancel/status only and reject JSON, Bundle, file descriptors and shared memory. Diagnostic AIDL must be read-only, cursor-paged and bounded to 100 records.
-- Callback methods must be `oneway`; generated Java must transact with `IBinder.FLAG_ONEWAY`. R2B/R2C must implement callback, cancel and Binder death behavior without blocking a Binder thread.
-- This Gradle APK/AAR project uses application structured AIDL with explicit `getProtocolVersion/getProtocolHash` and a V1 SHA-256 source freeze. It is not Soong `aidl_interface` or VINTF stable AIDL; DEV-018/ISSUE-021 remain open.
-- R2A publishes no Binder Service and does not promote maturity. No hardware, vendor SDK, Driver/HAL, Linux front-end or virtualization work is triggered.
-
-### 2026-07-12 R2B typed Binder runtime trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Runtime APK must publish production and diagnostic AIDL from separate exported Service components protected by separate signature permissions. Demo HMI may request production binding only and must not request diagnostic access.
-- SDK AAR must use an explicit component plus a narrow `<queries>` package declaration, dispatch callbacks through a caller-supplied executor, and link a `DeathRecipient` to the production Binder. It must not request `QUERY_ALL_PACKAGES`.
-- Task submission must return a typed handle before deterministic work begins. ACCEPTED/RUNNING/COMPLETED callbacks, asynchronous cancellation, duplicate-cancel idempotency and callback-death cancellation must execute without hardware access or synchronous HTTP proxying on Binder threads.
-- Diagnostic replies must remain read-only, structured and cursor-paged with a maximum of 100 records. The Demo APK must not gain the diagnostic permission; the shell caller must be rejected by both signature permissions.
-- API 33 device evidence must cover production bind/version/hash, terminal callback, duplicate cancel, diagnostic page access through a DUMP-protected debug-only probe, permission rejection and release exclusion of both debug probes.
-- R2B does not close `ISSUE-021` or promote maturity. R2C must still prove service-process death, client/callback death, explicit rebind, duplicate disconnect suppression and cancel-vs-completion races.
-- This increment does not modify vendor Android sources, access Driver/HAL/vendor SDK/NPU/vehicle interfaces, add a Linux front-end or implement virtualization.
-
-### 2026-07-12 R2C Binder lifecycle and race trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- SDK death handling must associate each `DeathRecipient` with the exact Binder instance, ignore stale/duplicate death notifications, fail every active callback exactly once with `ERROR_SERVICE_DIED`, and expose an explicit unbind/rebind operation.
-- A callback queued before a terminal completion/failure must be suppressed if it executes after the terminal transition. Service death, disconnect and cancel-completion races must not emit duplicate terminal callbacks.
-- API 33 instrumentation must force-stop the independent Runtime process, verify one disconnect and one `SERVICE_DIED`, explicitly reconnect, and complete a new typed task after recovery.
-- A concurrent multi-task race must produce both completed and cancelled outcomes, preserve duplicate-cancel consistency, emit exactly one terminal callback per task and emit no update after terminal.
-- A separate debug-only client process must submit an active task and then be force-stopped; the started Runtime must observe callback Binder death and cancel with `CANCEL_REASON_CLIENT_DIED`.
-- Test components must require `android.permission.DUMP`, exist only in debug/androidTest source sets and be absent from release. Device tests report no hardware, Driver/HAL or virtualization access.
-- R2 exit promotes the typed Android Protocol Binding module to `android_integrated`, not `hardware_validated` or `production_qualified`. The legacy JSON Binder/HTTP migration remains under DEV-018/ISSUE-021 and R7.
-
-### 2026-07-12 R3A Job Supervisor foundation trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- AIOS Kernel must own an explicit task state machine. Allowed paths are `ACCEPTED -> RUNNING -> COMPLETED`, `ACCEPTED/RUNNING -> FAILED`, and `ACCEPTED/RUNNING -> CANCELLED`; terminal transitions and progress regression are rejected.
-- The in-memory R3A registry is bounded to 128 records. Active work and terminal work whose callback delivery is not settled must never be evicted to admit new work; a full non-evictable registry rejects admission. Settled terminal records use a five-minute retention and deterministic expiration/pressure eviction. R4 must replace this process-local owner with durable SQLite state.
-- Production Binder caller identity must be captured before leaving Binder context from `Binder.getCallingUid()`, Android user serial, PackageManager UID-to-package evidence and each package's current APK signer SHA-256. `AgentTaskRequest` contains no identity, permission or capability assertion.
-- Unresolved identity is denied. Job ownership compares the complete trusted snapshot; a non-owner status lookup returns `UNKNOWN` and a non-owner cancel returns false without disclosing whether the task exists.
-- Deterministic JVM tests must cover valid/invalid transitions, monotonic progress, terminal uniqueness, idempotent cancellation, owner isolation, active-capacity exhaustion, terminal pressure eviction and retention expiry.
-- API 33 evidence must show the Demo caller as `packages=[com.centralbrain.demo] resolved=true`, return `job_supervisor_active=true`, `trusted_caller_identity_resolved=true`, and preserve the R2 completion/cancel/death/reconnect/race checks.
-- R3A does not close R3, DEV-019 or ISSUE-023. Package + signer capability mapping, default-deny unknown clients, independent cross-package device tests, action risk classes and high-risk approval remain R3B/R3C work.
-- This increment must keep `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`; it must not modify vendor Android sources or add Linux front-end work.
-
-### 2026-07-12 R3B capability policy trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Runtime capability configuration must be structured APK-owned XML with `version=1` and `defaultDecision=deny`; wildcard package rules, unknown attributes/elements, duplicate principals/capabilities and any non-deny default are invalid and fail Runtime startup closed.
-- A principal is the literal package name paired with the complete current signer SHA-256 set. R3B uses `signer=runtime-current`, resolved after APK signing, so it does not hard-code a debug certificate. Partial signer intersection and caller-supplied package/permission fields are forbidden.
-- Production capabilities are `runtime.protocol.read`, `runtime.task.submit`, `runtime.task.status.own`, and `runtime.task.cancel.own`; every V1 production Binder method must enforce its matching capability before request parsing or task lookup. Diagnostic version/hash/page methods must separately enforce `runtime.diagnostics.read`.
-- For a shared UID, capabilities from correctly signed configured packages may be combined because Android treats the UID as the security principal; any configured package with a current-signer mismatch fails the decision closed.
-- The standard allowed Demo must complete protocol, submit, status and cancel checks, and the Runtime-owned diagnostic probe must read a page on API 33. A separate test-only package with the same signer and both granted outer signature permissions must bind both surfaces successfully but receive `SecurityException` for all unconfigured production and diagnostic capabilities.
-- Runtime denial audit must include capability ID, stable reason and resolved caller package without logging signer bytes. API 33 evidence reports `unknown_client_default_deny_verified=true`, `diagnostic_capability_default_deny_verified=true`, `package_and_current_signer_mapping_verified=true`, and `production_capability_denial_audited=true`.
-- `policy-probe` is test-only, exposes no non-debug variant, requires test-only ADB installation and must not be built by the standard Android delivery build. R3B changes no frozen V1 AIDL transaction or Parcelable.
-- R3 remains open for trusted Safety/Vehicle State, action risk classes and high-risk approval. No hardware, Driver/HAL, Linux front-end or virtualization implementation is triggered.
-
-### 2026-07-12 R3C1 action governance core trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Action risk is derived only from a Runtime-owned exact Action ID catalog. The required classes are `READ_ONLY`, `COMFORT_CONTROL`, `DRIVER_DISTRACTION`, `DIAGNOSTIC_WRITE`, and `OTA`; unknown IDs fail closed and no caller-supplied risk class is accepted.
-- `SafetyVehicleStateProvider` is the only policy-state boundary. The current provider is caller-independent and Runtime-owned but explicitly a hardware-free stub with `RUNTIME_OWNED_STUB`, `hardwareBacked=false`, and `productionTrusted=false`; it does not claim VHAL, Safety Runtime or target-hardware trust.
-- Read and comfort actions may return `ALLOW_POLICY_ONLY`; all decisions keep `dispatchAllowed=false`. Driver-distraction, diagnostic-write and OTA actions are denied while moving and return `APPROVAL_REQUIRED` only when parked, Safety State permits and a driver is available.
-- The R3C1 approval registry is bounded, owner-isolated and process-local. It accepts only high-risk approval-required decisions, never pressure-evicts pending records, expires/cancels deterministically, and must report `supportsApprovalGrant=false` and `isDurable=false`.
-- R3C1 changes no frozen V1 AIDL and does not close R3. R3C2 must add a separate typed Governance Binder/capability/device test; R4 owns durable approval resolution, checkpoint and outbox recovery.
-- This increment keeps `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`; it adds no Linux front-end work and modifies no vendor Android source.
-
-### 2026-07-12 R3C2 typed Governance Binder trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-004`、`FW-U-007`、`FW-S-005`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Governance must be a separate structured AIDL surface and Service protected by `com.centralbrain.permission.BIND_GOVERNANCE`; it must not append action/approval transactions to the frozen task/diagnostic V1 interfaces.
-- Governance V1 must provide typed protocol negotiation, Action evaluation, pending approval request, owner status and owner cancel. It must have a frozen checksum and no approve/grant/resolve method.
-- `ActionRequest` may contain only schema version, client request ID, exact Action ID and idempotency key. Risk, Safety/Vehicle State, caller identity, package, signer and permission assertions are forbidden.
-- The Demo principal must receive five Governance capabilities: protocol read, Action evaluate, approval request, owner status and owner cancel. Every method enforces its capability before parsing request/handle data.
-- API 33 allowed-client evidence must prove read/comfort policy-only, OTA approval-required, pending status, idempotent cancel, Runtime-owned state and no grant/durability/dispatch. A separately packaged same-signer unknown client must pass the outer signature permission and bind but receive `SecurityException` for all five capability groups.
-- Missing/non-owner approval status returns `UNKNOWN`; cancel returns false. R3C2 remains process-local and does not enforce idempotency durability or restart recovery; those are R4 requirements.
-- R3 exit is `R3_TRUSTED_GOVERNANCE` at `android_integrated`. This does not close target VHAL/Safety Runtime trust, approval authority, hardware validation or production qualification. Hardware, Driver/HAL, Linux front-end and virtualization flags remain false.
-
-### 2026-07-12 R4A Room durable schema trace
-
-- Req IDs: `XSC-001`、`XSC-005`、`XSC-006`、`FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Android Runtime durable state must use an app-private Room/SQLite WAL database with exported schema and explicit migrations. `fallbackToDestructiveMigration` is forbidden.
-- Schema v2 must contain exactly session, task, checkpoint, pending effect, effect outbox, approval, audit event and event cursor tables. Task/approval/effect/outbox/cursor idempotency or owner keys require unique indexes; checkpoint/effect/outbox ownership requires foreign keys with cascade deletion.
-- `MIGRATION_1_2` must preserve legacy task and approval rows, derive collision-safe legacy idempotency keys, and pass Room schema validation. API 33 evidence must verify version 2, eight tables, WAL, task preservation and approval preservation in an isolated test database.
-- The migration probe must be DUMP-protected, debug-only and absent from release. It must never open/delete the production database.
-- R4A may persist only structured metadata and payload/detail digests; raw utterance, model output, signer certificate and vehicle frame storage are outside this increment. Encryption/key-management requirements remain a target product decision under ISSUE-022.
-- R4A does not wire production Services, recover work, enqueue/dispatch effects or grant approvals. It must report `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, `virtualization_development_triggered=false`, and `service_dispatch_triggered=false`.
-
-### 2026-07-12 R4B1 durable task admission trace
-
-- Req IDs: `FW-U-004`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`XSC-005`、`DEL-001`、`DEL-004`.
-- Durable ownership must be a domain-separated SHA-256 over Android user serial and canonical PackageManager package/current-signer pairs. It must not persist signer bytes or bind durable ownership to an ephemeral UID; live Binder identity and capability checks remain authoritative before repository use.
-- Task admission must atomically query `(owner_fingerprint, idempotency_key)`, insert one `runtime_task`, and insert one `TASK_ACCEPTED` audit event. No task may become visible without its acceptance audit.
-- An exact replay over session ID, client request ID and payload digest must return the original task with no second task/audit. Reusing the same owner/key with any changed admission field must return an explicit idempotency conflict. A different owner may use the same key.
-- Device evidence must close and reopen an isolated Room database before replay and prove `task_admission_transaction_verified=true`, `task_idempotent_replay_verified=true`, `task_idempotency_conflict_verified=true`, `task_owner_isolation_verified=true`, exactly two task rows and exactly two acceptance audits.
-- R4B1 is repository-only. Production Services must not reference the repository yet and must report `runtime_repository_wired=false`, `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false`.
-
-### 2026-07-12 R4B2 durable Runtime wiring trace
-
-- Req IDs: `FW-U-004`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-004`.
-- Production task submit must resolve live Binder identity/capability, compute the stable owner fingerprint and a domain-separated request digest, and commit admission before returning a handle. Raw utterance/reply text must not enter Room.
-- Admission must include ACCEPTED checkpoint sequence 1. Every subsequent state change must atomically update task state/progress, insert exactly the next checkpoint and insert a transition audit before the in-memory supervisor advances. Decreasing progress, skipped sequence and illegal state transitions fail closed.
-- Terminal callback attempts must precede an idempotent terminal-delivery settlement transaction/audit. Failed database settlement must leave the in-memory terminal record pending rather than claiming successful settlement.
-- A same-process exact replay must return the original handle. A bounded admission critical section must cover Room admission through Supervisor/callback registration and live-map publication so concurrent same-key calls cannot observe a false recovery gap. Active replay observers are bounded to four and receive the same terminal outcome; terminal replay receives a reconstructed deterministic stub outcome. Another payload under the same owner/key is rejected. Exact existing replay remains valid after its deadline, while a new expired request inserts nothing.
-- Owner status may read durable metadata when no live record exists. R4B2 must not automatically execute an unrecovered database task; it returns the existing handle plus retryable `ERROR_INTERNAL` and reports `task_recovery_enabled=false`. Restart execution/cancel reconciliation belongs to R4C.
-- API 33 evidence must include `runtime_repository_wired=true`, `durable_replay_callback_verified=true`, `durable_concurrent_replay_verified=true`, `durable_recovery_pending_verified=true`, completed/cancelled/checkpoint/settlement verification, `task_recovery_enabled=false`, `durable_dispatch_enabled=false` and all no-hardware flags. Governance approval remains non-durable in R4B2.
-
-### 2026-07-12 R4B3 durable approval trace
-
-- Req IDs: `FW-U-004`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-004`.
-- Governance request/status/cancel must use the stable trusted owner fingerprint and the app-private Room database. The production Service must not reference `InMemoryApprovalRegistry` after this increment.
-- Request must atomically expire due rows, query `(owner_fingerprint, idempotency_key)`, and either return the original same-action approval or insert one PENDING row plus one request audit. Reusing the key for another action is a conflict. Current policy may prevent only new creation; it must not rewrite an existing idempotent result.
-- Cancel must be owner-isolated and idempotent, updating one PENDING row plus one cancel audit. Status/cancel must convert due PENDING rows to EXPIRED plus one expiry audit. At most 64 PENDING rows are allowed; terminal rows are retained until a separately approved retention policy exists.
-- AIDL remains unchanged and exposes no approve/grant operation. `ApprovalStatus.durable=true` means request/status/cancel/expiry survive process loss; it does not mean approval authority exists. `grantSupported=false`, `dispatchAllowed=false` and `service_dispatch_triggered=false` remain mandatory.
-- API 33 must verify database reopen replay, action mismatch conflict, owner isolation, cancel replay, expiry and production Binder persistence. Expiry currently uses wall clock and is swept on access; trusted-clock/background sweep and retention are R4C/ISSUE-022 work.
-
-### 2026-07-12 R4C1 fail-closed restart reconciliation trace
-
-- Req IDs: `FW-U-004`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`XSC-005`、`XSC-006`、`DEL-001`、`DEL-004`.
-- Room restart reconciliation must run off the Android main thread. Runtime task submit/cancel/status must wait on the same startup barrier so no new admission can race ahead of reconciliation; startup failure must fail Binder task calls closed.
-- One transaction must select ACCEPTED/RUNNING tasks and COMPLETED tasks whose terminal delivery is unsettled, update each to FAILED, append the next checkpoint, append `TASK_RESTART_RECONCILED` audit evidence, and leave terminal delivery unsettled. Re-running reconciliation must change no rows or audits.
-- R4C1 must not reconstruct or resume execution because Room does not retain raw utterance or result payloads. Exact owner/idempotency replay returns the existing handle, emits durable FAILED status followed by retryable `ERROR_INTERNAL`, and settles terminal delivery only after the callback attempt.
-- SDK callbacks for one task must preserve Binder arrival order even when the caller supplies a concurrent executor. No task update may be dropped merely because its following terminal callback was already queued.
-- API 33 evidence must include active and incomplete-completion reconciliation, idempotent second pass, same-handle FAILED replay after process death, terminal uniqueness and cancel/completion regression. `task_execution_resume_enabled=false`, `durable_dispatch_enabled=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false` remain mandatory.
-
-### 2026-07-12 R4C2A effect prepare and claim trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`.
-- A new effect may be prepared only for an owner-matched RUNNING durable task. One Room transaction must insert the PREPARED effect, one PENDING outbox row and one `EFFECT_PREPARED` audit before any future adapter may observe the operation.
-- The caller idempotency key must not be stored or indexed globally as plain owner-independent input. The repository must persist a domain-separated digest over owner fingerprint + caller key; exact task/route/action/payload/envelope replay returns the original rows, changed input conflicts, and another owner may use the same caller key.
-- The only valid route pairs are ACTION→UIB_ACTION, SOA→SOA_OPERATION and SKILL→SKILL. Stored payload/envelope content remains SHA-256 metadata, not raw commands or model output.
-- Claim must atomically select one due PENDING outbox whose effect is PREPARED and task is RUNNING, move effect/outbox to IN_FLIGHT, increment attempt exactly once and append `EFFECT_CLAIMED` audit. R4C2A must not invoke a destination.
-- Reopen reconciliation must atomically return each IN_FLIGHT pair to PREPARED/PENDING without decrementing attempt, append one recovery audit and be idempotent. Requeued work uses current `not_before`, so older pending work retains priority.
-- This is not cross-boundary exactly-once delivery. Before production wiring, R4C2B/R4C3 must define retry/terminal outcomes and prove every adapter consumes the persisted idempotency token or exposes status reconciliation. Until then `effect_repository_wired=false`, `outbox_dispatch_enabled=false`, `service_dispatch_triggered=false` and all no-hardware flags are mandatory.
-
-### 2026-07-12 R4C2B effect retry and terminal state trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`.
-- An IN_FLIGHT effect/outbox pair may transition atomically to APPLIED/DELIVERED on success, PREPARED/PENDING on retry, or FAILED/DEAD_LETTER on terminal failure. A PREPARED/PENDING pair may transition to CANCELLED/CANCELLED. Each mutation must append its matching audit event in the same Room transaction.
-- Every mutation must validate owner fingerprint, effect ID, outbox ID and expected attempt. Exact operation replay returns `REPLAYED` without another write; changed result/failure/reason digest, retry delay or stale attempt must fail with a state conflict.
-- Retry delay is bounded to 0..24 hours and persisted as `not_before_wall_ms`. The default maximum is three claims; claim selection excludes exhausted rows and retry at the maximum attempt is rejected.
-- Restart reconciliation requeues an interrupted claim only while attempts remain. An interrupted final claim must fail closed to FAILED/DEAD_LETTER with one `EFFECT_CLAIM_EXHAUSTED` audit, and a second reconciliation pass must change nothing.
-- Final-claim crash handling is not proof of cross-boundary exactly-once delivery. The real adapter may already have applied a side effect before the local outcome commit. R4C3 must require the persisted idempotency token or trusted status reconciliation and exercise crash points before production wiring.
-- R4C2B remains repository/debug-probe only. Runtime and Governance Services must not reference `DurableEffectRepository`; `effect_repository_wired=false`, `outbox_dispatch_enabled=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`, `driver_development_triggered=false`, and `virtualization_development_triggered=false` remain mandatory.
-
-### 2026-07-12 R4C3A effect adapter contract trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`.
-- An adapter is activation-safe only when it accepts the persisted idempotency token, deduplicates apply, returns the original result for duplicate apply, and provides a linearizable status query by the same token whose APPLIED evidence equals the original apply result. Eventual/absent status, changed evidence and non-idempotent apply fail closed.
-- Adapter invocation material is transient, bounded to 64 KiB payload and 128 KiB envelope, defensively copied, and rejected unless its raw SHA-256 matches the durable payload/envelope digests. R4C3A must not add raw material to Room.
-- Interrupted-claim reconciliation must query status and must never call apply. APPLIED records success; NOT_APPLIED may schedule retry only while attempts remain; REJECTED or UNKNOWN dead-letters; status transport unavailability leaves IN_FLIGHT unchanged; final-attempt NOT_APPLIED dead-letters.
-- API 33 evidence must cover destination/unsafe-contract rejection, duplicate token apply count=1, crash after adapter apply before local commit, crash before apply, unavailable and UNKNOWN status, final-attempt NOT_APPLIED, exact replay and terminal/audit counts.
-- The deterministic adapter is debug-only and process-memory simulation. It is not a UIB/SOA/Skill/vendor implementation and cannot prove process-restart durability, hardware status or production dispatch.
-- R4C3A remains unwired to production Runtime/Governance. `transient_effect_material_durable=false`, `effect_adapter_production_wired=false`, `real_adapter_dispatch_enabled=false`, `service_dispatch_triggered=false`, and all no-hardware flags are mandatory. R4C3B owns the trusted durable material source and activation gate.
-
-### 2026-07-12 R4C3B effect material activation trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`.
-- A production-eligible material source must be available, explicitly production-assured, durable across process restart, encrypted at rest, integrity-bound to the exact effect, deletable and retained for a positive bounded period no longer than 30 days. Missing or self-declared test-only sources fail closed.
-- The activation gate must combine the material requirements with the R4C3A adapter requirements and return stable blocker codes. Gate evaluation must not resolve material, query adapter status or invoke adapter apply.
-- Resolution is allowed only after a blocker-free gate. The resolved effect ID must match the claim; canonical payload/envelope must pass the invocation digest checks and remain defensive copies. Missing or mismatched material is rejected before adapter invocation.
-- Current main code must provide only `EmptyEffectMaterialSource`, with no production `EffectAdapter` implementation. The empty provider cannot resolve material and must keep production activation false.
-- API 33 evidence must verify the current empty blocker set, TEST_ONLY rejection, synthetic positive contract, Room close/reopen resolution, defensive copies, digest mismatch, missing material, empty-source resolution rejection and zero adapter/repository side effects.
-- Synthetic debug material is process-memory only and cannot satisfy target security evidence. `production_effect_delivery_activation_allowed=false`, `production_effect_material_source=empty`, `production_effect_material_durable=false`, `raw_effect_material_persisted=false`, `real_adapter_dispatch_enabled=false`, and all no-hardware flags are mandatory. R4C3C owns production fail-closed gate visibility, not dispatch.
-
-### 2026-07-12 R4C3C production fail-closed activation visibility trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`FW-U-004`、`FW-U-005`、`NV-F-001`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`.
-- Runtime and Diagnostic Services must consume the same immutable current-product activation snapshot. The snapshot must evaluate `adapter missing + EmptyEffectMaterialSource` once and fail closed if that configuration is ever reported allowed.
-- Runtime startup log and Service dumpsys must expose gate wired, activation allowed, adapter configured, material source/durability, apply/status enabled and ordered blockers. Output must contain no raw material, signer evidence or hardware data.
-- Existing read-only diagnostic AIDL must add one bounded `effect-delivery-activation` record without changing its frozen interface/checksum. The record must match Runtime snapshot values and remain capability/signature protected.
-- Production Runtime must not instantiate an `EffectAdapter`, resolve material, query status, call apply, reference `DurableEffectRepository` or start a dispatcher. Gate visibility is not effect wiring.
-- API 33 must verify Runtime log, dumpsys and diagnostic-page parity, plus existing Binder lifecycle/default-deny regressions. Release must retain exactly the three signature-protected Services and no debug Activity/probe.
-- R4 exits at `R4_DURABLE_WORKFLOW` / `android_integrated` with activation blocked. `production_effect_delivery_activation_allowed=false`, adapter/material/apply/status/dispatch false and all no-hardware flags remain mandatory; target material/key/clock/adapter evidence remains open.
-
-### 2026-07-12 R5A1 model provider contract trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- The Android Model Runtime Adapter must expose one internal typed contract for descriptor, lifecycle/health snapshot, warmup, asynchronous infer/stream, cancel, metrics, fault and close. Stream chunks must be bounded to 64 KiB and defensively copied.
-- A descriptor must bind backend kind, assurance, fallback class, concurrency slots and operation support. Stub/Ollama-debug descriptors cannot claim hardware or production eligibility; EMPTY descriptors cannot expose inference, warmup, stream, cancel, device metrics, concurrency slots or fallback.
-- R5A1 must publish exactly the current `deterministic.stub` TEST_ONLY/COLD profile and `vendor.npu.empty` EMPTY/UNAVAILABLE profile. Both profiles remain immutable, unconfigured and non-routable. Vendor empty has zero concurrency and no hardware access.
-- The debug probe must be DUMP-protected and absent from release. JVM/API 33 evidence must verify both profiles, unsafe descriptor rejection, bounded defensive stream material and all no-routing/no-hardware flags.
-- R5A1 must not instantiate a provider or wire production Runtime/Governance. It must report `deterministic_stub_implementation_configured=false`, `deterministic_stub_routing_enabled=false`, `vendor_npu_provider_available=false`, `model_provider_runtime_wired=false`, `model_router_dispatch_enabled=false`, `ollama_android_provider_configured=false`, and `hardware_accessed=false`.
-- Scheduler admission/priority/deadline/quota/cancel state belongs to R5A2. Executable deterministic routing belongs to R5B; real Vendor NPU remains blocked by `DRV-GAP-001`.
-
-### 2026-07-12 R5A2 inference resource scheduler trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`NV-F-001`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- Effective inference priority must be represented by a Runtime-policy-created internal type; no client/Binder payload field may directly select HIGH priority. Supported priority order is HIGH, NORMAL, BACKGROUND.
-- Queue/task deadlines must use an injected elapsed-realtime clock. Effective queue deadline is the earlier of the trusted task deadline and bounded queue wait; wall-clock APIs are forbidden for scheduling.
-- Admission must independently enforce global queue, per-owner queue, global running and per-owner running limits. Dispatch must additionally enforce the selected route's concurrency slots and use priority, earliest queue deadline, FIFO sequence and request ID as the deterministic order.
-- Exact active replay may return the current admission without consuming quota. Changed duplicate IDs, expired deadline, out-of-range queue timeout, unavailable route and exceeded quotas must return distinct typed outcomes.
-- Queued cancel removes local scheduler state. Running cancel/deadline must retain its slot, enter `CANCEL_REQUESTED` and return one lease-bound provider cancellation directive; the Scheduler must not call provider infer/cancel. Any terminal provider acknowledgement releases the scheduler record, while a late completion maps to local CANCELLED/DEADLINE_EXCEEDED and its output is not accepted. Durable task state remains owned by Job Supervisor/Room.
-- Current `deterministic.stub` and `vendor.npu.empty` profiles must map to disabled routes. Enabled routes are restricted to explicit `test.*` contract fixtures in R5A2. Production Runtime/Governance must not instantiate the Scheduler.
-- JVM/API 33 evidence must cover trusted priority, priority/deadline/FIFO, all four quota classes, provider slots, queued expiry, running deadline directive, queued/running cancel, completion-after-cancel deterministic resolution and current-profile non-routing. `provider_cancel_invoked=false`, `scheduler_production_wired=false`, `model_provider_runtime_wired=false`, `model_router_dispatch_enabled=false` and all no-hardware flags remain mandatory.
-
-### 2026-07-12 R5B1 deterministic stub provider trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- The executable deterministic provider must implement the R5A1 interface while retaining TEST_ONLY assurance, `hardwareBacked=false` and `productionEligible=false`. It may not use network, vendor SDK, native library, device node or hardware discovery.
-- Lifecycle must begin COLD, allow only the configured model ID/version/artifact digest to warm to READY, reject infer before readiness or after close/fault isolation, and expose loaded/active counts through the provider snapshot.
-- Infer must use an injected executor and elapsed-realtime deadline, enforce the declared single slot, reject duplicate request IDs, and emit bounded ordered stream chunks plus one terminal result. Equal model/input digests must yield identical content and output digest across provider instances.
-- Cancel must return `PENDING_PROVIDER_ACK`, then a provider execution phase must emit CANCELLED and release the slot. Terminal IDs are retained in a bounded 64-entry history so repeated cancel returns `ALREADY_TERMINAL` without unbounded growth.
-- Metrics must maintain accepted >= completed+cancelled+failed. Test-only fault modes must cover retryable failure before stream, terminal failure after the first chunk and fault isolation before stream; isolated state rejects new inference.
-- R5B1 implementation availability must not change the immutable current profile or production wiring. API 33/release evidence must report `deterministic_stub_implementation_available=true`, `deterministic_stub_implementation_configured=false`, `deterministic_stub_routing_enabled=false`, `model_provider_runtime_wired=false`, `model_router_dispatch_enabled=false`, `production_inference_enabled=false` and all no-hardware flags.
-
-### 2026-07-12 R5B2 test-only model router trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`NV-F-001`、`NV-F-011`、`NV-G-004`、`NV-G-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- The first executable Router must expose only a contract-test factory and an explicit `test.*` route. It must accept only the deterministic TEST_ONLY, non-hardware, non-production provider and must not be referenced by Runtime or Governance production Services.
-- Routing must bind one trusted request to Scheduler admission, claim and lease settlement. Provider infer may run only after claim; returned provider/request identity and terminal request/lease identity must match before output or settlement is accepted.
-- Stream chunks are transient and forwarded only while the matching route is active. Exactly one terminal is delivered and settled; duplicate or late provider terminals cannot change terminal state. Observer exceptions cannot prevent provider/Scheduler settlement.
-- Queued cancellation terminates locally. Running cancellation and deadline expiry must consume the lease-bound Scheduler directive, call provider cancellation at most once and normalize any acknowledgement to the Scheduler-owned CANCELLED or DEADLINE_EXCEEDED state.
-- Exact active replay must consume no new quota and retain the original observer. A duplicate request ID with changed owner/model/input/priority/deadline/queue-wait/streaming content must be rejected.
-- Fallback policy is explicitly `NO_FALLBACK`; retryable or isolated provider faults cannot route to Ollama, Vendor NPU or another provider. Router state is process-memory test evidence and does not provide restart recovery or durable task ownership.
-- JVM/API 33 evidence must cover sequential slot dispatch, stream forwarding, cancel/deadline, provider identity, exact replay, duplicate terminal and no-fallback behavior. Release must exclude the debug Activity and retain three signature-protected Services with no production router/provider wiring or hardware access.
-
-### 2026-07-12 R5C1 production-safe model runtime readiness trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`NV-F-011`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`DEL-001`、`DEL-004`、`DEL-005`.
-- Production visibility must use one immutable snapshot shared by Runtime startup log, protected dumpsys and the existing capability/signature-protected Diagnostic Binder page. No AIDL method, checksum or schema may change.
-- Snapshot construction may read only immutable provider-profile metadata. It must not construct a concrete Provider, Scheduler or test Router, call warmup/infer/cancel/claim, open Room for model dispatch, probe network/device nodes or access hardware.
-- Visibility must distinguish contract and test implementation availability from production configuration, routing and dispatch. Deterministic Stub must report TEST_ONLY, COLD/HEALTHY, `STUB_IMPLEMENTATION_NOT_WIRED`, configuration false and routing false.
-- Vendor NPU must report EMPTY, UNAVAILABLE/UNAVAILABLE, `VENDOR_RUNTIME_UNAVAILABLE`, provider unavailable and hardware untouched. These values are configuration metadata and are not target-hardware health evidence.
-- Ordered blockers are `PRODUCTION_PROVIDER_MISSING`, `PRODUCTION_ROUTE_MISSING`, `SCHEDULER_NOT_WIRED`, `MODEL_ROUTER_NOT_WIRED`, and `VENDOR_NPU_INTERFACE_EMPTY`. Any current configuration inconsistent with fail-closed profiles must fail class initialization.
-- API 33 must verify Diagnostic Binder, Runtime log and real dumpsys parity. Production inference, Scheduler/Router wiring, Ollama, Vendor NPU, service dispatch and hardware must remain false; release must retain three signature-protected Services and zero Activities/probes.
-
-### 2026-07-12 R5D1 Android 13 application-layer deployment acceptance trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-011`、`NV-F-012`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- The acceptance tool must require API 33, record ABI/model/fingerprint and produce SHA-256 evidence for SDK AAR, Runtime APK, Demo APK and the shared Runtime/Demo signer set.
-- Runtime and Demo must install as ordinary application UIDs under `/data/app`; SYSTEM, PRIVILEGED and PERSISTENT package requirements are forbidden. Runtime must expose exactly three signature-protected Services.
-- Runtime and Demo must not request INTERNET. SDK/APK artifacts must contain no native `.so` payload. This is a current artifact boundary, not a permanent prohibition on an approved future NDK adapter.
-- The tool may build/install normal APKs and use public adb/package/manifest/dumpsys diagnostics only. It must not include root/remount/flash/partition-write behavior and must not require vendor/AOSP/BSP source changes.
-- Dynamic evidence must confirm production inference, Stub configuration/routing, Scheduler/Router dispatch, Vendor NPU and hardware remain disabled. Emulator and device application evidence must use distinct scope labels.
-- `target_hardware_validated=false` is mandatory. R5D1 can close only the R5 contract/test software track; real target application acceptance and hardware qualification remain separate delivery evidence.
-
-### 2026-07-12 R6A1 bounded Event runtime trace
-
-- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- R6A1 must expose only the trusted low-frequency topics `runtime.task.state`, `governance.policy.decision` and `model.runtime.health`. Publication construction must be Runtime-policy-only and retain schema plus lowercase SHA-256 digest metadata, not raw business payload.
-- One process-local global sequence must increase monotonically without reuse. Retained replay events, global/per-owner subscriptions, per-subscription queues, dispatch batches and cancelled tombstones must all be bounded.
-- Subscription identity is owner fingerprint plus client subscription ID. Exact replay returns the original subscription and observer without consuming quota; changed topic/cursor/queue content conflicts. Status, dispatch and cancellation must not reveal another owner.
-- A cursor greater than the latest sequence and an unknown topic fail with typed outcomes. A cursor older than retained history or a full delivery queue accumulates an explicit dropped range/count; overflow callback must succeed before any retained event callback.
-- Observer event failure must retain the head event and not advance `lastDeliveredSequence`. Observer callbacks must not reenter publish/subscribe/dispatch/cancel; reentrant mutation fails closed as an observer failure without changing the queued head. Owner cancellation removes pending work, emits close at most once and remains idempotent through a bounded tombstone.
-- JVM/API 33 evidence must cover topics, sequence/retention, replay/conflict, overflow ordering, owner isolation, observer retry and cancellation. Production Service, Room cursor persistence, Binder callback, broker, DDS/network/vehicle transport and hardware remain unwired.
-
-### 2026-07-12 R6A2A durable Event schema trace
-
-- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-004`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- Room schema v3 must retain the existing eight tables and historical v2 export. `event_cursor` identity becomes unique owner fingerprint plus client subscription ID and must explicitly store canonical trusted topics, requested/acknowledged global sequence, queue capacity, lifecycle state, overflow range/count and create/update time.
-- `MIGRATION_2_3` must rebuild the table without destructive fallback. Every v2 owner/topic cursor must retain cursor ID, owner, topic, acknowledged sequence and update time under a deterministic `legacy:<cursor_id>` client identity.
-- Event cursor storage is metadata-only. Raw event payload, utterance, model output, signer certificate, vehicle frame, sensor buffer and shared-memory handle are forbidden.
-- R6A2A may add DAO lookup/update shape but must not construct a repository from production Services, write from R6A1, expose Binder methods, dispatch callbacks or start a broker/transport.
-- API 33 evidence must verify v1 -> v2 -> v3 chaining, legacy task/approval/cursor preservation, schema v3 fields/index, WAL and unchanged table count. Release must continue to exclude the migration probe.
-
-### 2026-07-12 R6A2B durable Event repository trace
-
-- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-004`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- Registration must be one Room transaction keyed by owner plus client subscription ID. Canonically equivalent trusted topic sets and equal cursor/queue parameters replay the original row; any changed parameter conflicts. Future cursors and global/per-owner active limits fail with typed outcomes.
-- ACK must be monotonic, owner isolated and idempotent. It must reject a sequence beyond the trusted latest value, a regression below the persisted ACK, normal ACK while RESYNC_REQUIRED and any trusted source whose latest value regresses below the persisted ACK.
-- Overflow must persist a conservative union range and enter RESYNC_REQUIRED without double-counting exact replay. Only explicit resynchronization at or beyond the dropped range may clear overflow and reactivate ACK progression.
-- Cancellation must be owner isolated and idempotent while its row is retained. Active and cancelled records must be bounded; eviction of the oldest cancelled row may end idempotent replay for that expired tombstone and must never evict the newly cancelled row in the same transaction.
-- Every applied register/ACK/overflow/resync/cancel transition must append exactly one digest-only audit event in its Room transaction. Replayed/rejected operations must not append audit.
-- API 33 evidence must close/reopen an isolated database during RESYNC_REQUIRED and after final cancellation/registration. Production Services, R6A1 dispatch, Binder callback/broker and raw payload persistence remain unwired because no durable monotonic publisher sequence exists yet.
-
-### 2026-07-12 R6A3 Event runtime readiness trace
-
-- Req IDs: `XSC-002`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-004`、`NV-F-012`、`NV-G-004`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`NV-P-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- One immutable snapshot must be shared by Runtime startup log, protected Runtime dumpsys and the existing bounded Diagnostic Binder record. No new AIDL method or artifact is allowed.
-- Visibility must distinguish bounded runtime/schema/repository implementation availability from production activation. `event_runtime_activation_allowed`, durable source, Runtime/repository/persistence wiring, callback Binder, broker and middleware must all remain false.
-- Ordered blockers are `DURABLE_PUBLISHER_SEQUENCE_MISSING`, `EVENT_RUNTIME_NOT_WIRED`, `EVENT_REPOSITORY_NOT_WIRED`, `CALLBACK_BINDER_NOT_DEFINED`, `BROKER_NOT_CONFIGURED` and `MIDDLEWARE_CHAIN_NOT_WIRED`.
-- Snapshot construction must not open Room, construct `DurableEventCursorRepository`, instantiate the bounded Event runtime, dispatch callbacks or access network/DDS/vehicle/hardware. Current trusted topic count is three and raw event payload persistence is false.
-- API 33 evidence must verify Diagnostic Binder, Runtime startup log and real dumpsys parity. Release must remain three signature-protected Services and zero Activities/probes.
-
-### 2026-07-12 R6B1 bounded Memory lifecycle trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`.
-- Memory scope must be explicit: EPHEMERAL is capped at five minutes, SESSION at 24 hours and PROFILE at 30 days. Every accepted record must bind trusted owner fingerprint, client idempotency ID, purpose, schema, content digest reference and a positive TTL.
-- PROFILE must reject session binding, ineligible purposes and missing/mismatched/expired Governance consent. Consent expiry must cover the complete Memory expiry. Non-PROFILE writes carrying consent must fail closed.
-- Exact owner/client replay must return the original record without consuming quota; changed request material conflicts. Active records, per-owner records, query results and terminal records must be bounded. Eviction of an old terminal record may end idempotent replay for that record and must not be represented as durable exactly-once behavior.
-- Owner-scoped query and lookup must not disclose another owner. Query records must redact the content digest. EPHEMERAL export is forbidden; SESSION/PROFILE export requires matching owner/purpose/memory ID and unexpired Governance authorization and returns digest metadata only.
-- Expiry and deletion must clear the exportable digest. A domain-separated request fingerprint may remain for bounded replay, but raw utterance, transcript, model output or business content must never be accepted or stored.
-- R6B1 uses injected elapsed time and is process-local. Its consent/export factories are contract fixtures, not production authorization sources. Room/AIDL/production Service wiring, restart durability, consent revocation, trusted wall-clock policy, encryption/key ownership and durable PROFILE storage remain false/open.
-- JVM/API 33 evidence must cover scope/TTL, consent, replay/conflict/quota, owner isolation, redacted query, expiry/delete, export authorization and bounded retention. Release must remain three signature-protected Services and zero Activities/probes.
-
-### 2026-07-12 R6B2 Memory runtime readiness trace
-
-- Req IDs: `XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-006`、`FW-U-007`、`NV-F-001`、`NV-F-012`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`.
-- One immutable snapshot must be shared by Runtime startup log, protected Runtime dumpsys and the existing bounded Diagnostic Binder record. No new AIDL method, Room schema version or artifact is allowed.
-- Visibility must distinguish the R6B1 bounded lifecycle implementation from production activation. Current scope count is three; schema readiness, repository implementation, durable encrypted storage, key lifecycle, consent authority, consent revocation, trusted retention clock, Runtime/repository production wiring and middleware wiring must remain false.
-- Ordered blockers are `DURABLE_ENCRYPTED_STORAGE_MISSING`, `KEY_LIFECYCLE_NOT_CONFIGURED`, `CONSENT_AUTHORITY_NOT_WIRED`, `CONSENT_REVOCATION_NOT_WIRED`, `TRUSTED_RETENTION_CLOCK_NOT_WIRED`, `MEMORY_REPOSITORY_NOT_IMPLEMENTED`, `MEMORY_RUNTIME_NOT_WIRED` and `MIDDLEWARE_CHAIN_NOT_WIRED`.
-- Snapshot construction may validate the R6B1 enum/TTL baseline but must not instantiate `BoundedMemoryLifecycle`, open Room, access a Keystore key, call a consent service, persist raw/digest content, dispatch middleware or access hardware. Raw content and durable PROFILE storage remain false.
-- API 33 evidence must verify Diagnostic Binder, Runtime startup log and real dumpsys parity. Release must remain three signature-protected Services and zero Activities/probes.
-
-### 2026-07-12 R6C1 signed built-in Skill runtime trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`.
-- The Android contract catalog must contain exactly `vehicle.state.query`, `cabin.precondition` and `cabin.scene.nap`, preserving prototype version `0.1.0` while adding immutable input/output schema, route, capability, risk, safety-state, artifact-digest and signer-digest metadata.
-- Catalog construction must be compiled-in and signer-allowlist-only. Artifact digest binding and signer digest matching must be visible, but without artifact-byte verification the implementation must report `cryptographic_artifact_verification_performed=false`; it must not claim production signature verification.
-- Invocation identity is trusted owner fingerprint plus client invocation ID. Exact request replay returns the original invocation; changed version/schema/digest/capability/safety material conflicts. Unknown Skill, version/schema mismatch, missing capability, denied safety state and quota must have typed fail-closed outcomes.
-- Active and cancelled invocations must be bounded globally/per owner. Lookup/cancel must not reveal another owner; cancellation is idempotent while its bounded tombstone remains. Admission never means execution and every invocation snapshot must report dispatch false.
-- Raw Skill input, APK/JAR/dex/native dynamic loading, network/cloud access, Room/AIDL persistence and production Service wiring are forbidden. JVM/API 33 evidence must cover catalog/signature metadata, schema, replay/conflict, capability/safety policy, owner isolation, cancellation and record bounds; release remains three signature-protected Services and zero Activities/probes.
-
-### 2026-07-12 R6C2 fixed governance middleware trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`.
-- One immutable order is mandatory: `IDENTITY`, `SCHEMA`, `PRIVACY`, `POLICY`, `QOS`, `TRACE`, `DISPATCH_GATE`, `OUTPUT_GUARD`, `AUDIT`. No caller or Skill may reorder, omit or insert a decision stage.
-- The first rejected decision stage must be retained as the terminal reason. Every later decision stage is `SKIPPED` with `PREVIOUS_STAGE_REJECTED`; it must not evaluate policy, route or output metadata after rejection. `AUDIT` is a mandatory terminal finalizer, not another authorization decision, and records exactly once for allowed and denied evaluations.
-- Identity must require trusted and same-signer evidence. Schema must match the compiled Skill input schema. Privacy denies external routing, unauthorized purpose and missing CABIN_PROFILE consent. Policy requires all manifest capabilities and an allowed safety state. QoS rejects expired deadlines and invalid execution/output budgets. Trace requires trusted digest context.
-- Dispatch gate validates only compiled-in/signer-bound manifest and trusted route-owner/policy metadata. Passing it may set `dispatchContractAllowed=true`, but dispatch execution and service invocation remain false. Output guard validates the compiled output schema, bounded output size and redaction for non-public data without receiving raw output.
-- Request, stage and audit evidence must be domain-separated lowercase SHA-256 values. The process-local audit ring must be bounded and immutable to readers; eviction explicitly means no durable audit or replay guarantee. Raw input/output, persistence and audit export are forbidden.
-- R6C2 may be constructed only by JVM/debug contract evidence. Production Services, Binder/AIDL, Room, network, SOA/UIB/Agent execution, NPU, vehicle bus and hardware remain unwired. API 33 evidence must cover fixed order, allow path, first-rejection short circuit, mandatory audit finalizer, privacy/policy/QoS/output guards and audit bounds; release remains three signature-protected Services and zero Activities/probes.
-
-### 2026-07-12 R6C3 Skill and Governance readiness trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-004`、`DEL-005`.
-- One immutable snapshot must be shared by Runtime startup log, protected Runtime dumpsys and the existing bounded Diagnostic Binder record at sequence 8. No new AIDL method, Room schema or artifact is allowed.
-- Visibility must report bounded built-in Skill runtime implementation available with count three, compile-time signer evidence available, fixed Governance middleware implementation available with nine stages/order fixed, while activation and real artifact cryptographic verification remain false.
-- Ordered blockers are `ARTIFACT_CRYPTO_VERIFIER_NOT_CONFIGURED`, `SKILL_LIFECYCLE_STORE_NOT_IMPLEMENTED`, `SKILL_REVOCATION_NOT_CONFIGURED`, `SKILL_ROLLBACK_NOT_CONFIGURED`, `SKILL_SANDBOX_NOT_CONFIGURED`, `GOVERNANCE_AUTHORITIES_NOT_WIRED`, `ROUTE_OWNER_REGISTRY_NOT_WIRED`, `MIDDLEWARE_CHAIN_NOT_WIRED`, `AUDIT_PERSISTENCE_NOT_WIRED` and `SKILL_DISPATCHER_NOT_WIRED`.
-- Snapshot construction may compare the three compiled Skill ID constants and nine middleware stage enum values only. It must not call a Skill catalog method, construct the Skill runtime or middleware chain, open Room, scan/verify an APK, load code, invoke a route, persist/export audit or access network/hardware.
-- Production authorities, route registry, middleware, audit persistence and Skill dispatcher remain unwired. Dynamic loading, raw input/output storage, network, service dispatch and hardware remain false. Event/Memory readiness must continue reporting `MIDDLEWARE_CHAIN_NOT_WIRED` until actual production composition exists.
-- API 33 evidence must verify Diagnostic Binder sequence 8, Runtime startup log and real dumpsys parity. Release remains three signature-protected Services and zero Activities/probes.
-
-### 2026-07-12 R7A1 aggregate Runtime acceptance trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-002`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-003`、`FW-U-004`、`FW-U-005`、`FW-U-006`、`FW-U-007`、`FW-U-008`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-004`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- One immutable acceptance snapshot must be shared by Runtime startup log, protected dumpsys and the existing Diagnostic Binder record at sequence 9. It may consume current immutable readiness snapshots and compile-time version constants but must not open Room or activate any subsystem.
-- `core_software_baseline_ready=true` means typed Binder, trusted Governance, durable workflow and R5/R6 contract implementations are present and internally consistent. It must not imply R7 application integration, production activation, target system ownership or target hardware validation.
-- Initial R7 application state is `r7_application_integration_complete=false`, `client2_binder_migration_complete=false` and `api33_end_to_end_acceptance_complete=false`. Production and all five Effect/Model/Event/Memory/Skill-Governance activation states remain false.
-- Ordered blockers are `CLIENT2_BINDER_MIGRATION_PENDING`, `API33_END_TO_END_ACCEPTANCE_PENDING`, `TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED`, `PRODUCTION_EFFECT_DELIVERY_BLOCKED`, `PRODUCTION_MODEL_RUNTIME_BLOCKED`, `PRODUCTION_EVENT_RUNTIME_BLOCKED`, `PRODUCTION_MEMORY_RUNTIME_BLOCKED`, `PRODUCTION_SKILL_GOVERNANCE_BLOCKED` and `TARGET_HARDWARE_NOT_VALIDATED`.
-- The snapshot must retain Room schema version 3, standard artifact count 3 and signature-protected Runtime Service count 3 as contract baseline values. Dynamic device evidence remains the installer/acceptance tool's responsibility.
-- No AIDL/Room change, Client2 patch, service dispatch, network or hardware access is allowed in R7A1. API 33 evidence must verify Diagnostic Binder sequence 9 plus Runtime log/dumpsys parity while all previous probes remain green; release remains three Services and zero Activities/probes.
-
-### 2026-07-12 R7B Client2 SDK/Binder migration trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-G-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`.
-- The original APK and decoded baseline remain read-only. An isolated patch project may change copied resources/Smali and embed a generated secondary dex, but it must not edit vendor/AOSP/BSP/system binaries or Client2's original render hierarchy.
-- All 12 stable scenario IDs must pass an exact bridge allowlist and create typed `AgentTaskRequest` values through the public `CentralBrainClient`. Client2 must not call the Python/Ollama endpoint, NPU, vehicle service or hardware adapter directly, and no HTTP fallback is permitted.
-- The generated APK must contain `classes2.dex`, request `com.centralbrain.permission.BIND_RUNTIME`, declare explicit visibility for `com.centralbrain.runtime`, omit INTERNET/cleartext access and have signer parity with the Runtime debug APK.
-- Runtime capability policy must remain default deny and bind `com.tuanjie.urasclient2` to the Runtime current signer with exactly `runtime.protocol.read`, `runtime.task.submit`, `runtime.task.status.own` and `runtime.task.cancel.own`.
-- The panel must preserve one in-flight task, update status through the main executor, render terminal `TaskResult`/failure and release the in-flight gate exactly once. A failed bind or protocol mismatch must be visible and fail closed.
-- API 33 evidence must install both APKs, verify the signature permission, signer parity and secondary dex, tap a real Client2 button, observe trusted Runtime caller identity plus async completion, and confirm the reply in UI with `http_transport_used=false`, `service_dispatch_triggered=false` and `hardware_accessed=false`.
-- After that evidence only `client2_binder_migration_complete` becomes true and `CLIENT2_BINDER_MIGRATION_PENDING` is removed. R7 integration, production activation, target system ownership and target hardware validation remain false/open.
-
-### 2026-07-12 R7C Android 13 application integration acceptance trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Acceptance evidence must run on exactly API 33 and cover five ordered scenarios: Runtime unavailable/retry, Client2 rapid-tap single-flight, Runtime process death/retry, Client2 process restart/rebind and existing SDK Binder lifecycle/cancel-race regression.
-- Runtime unavailable must produce a visible fail-closed Client2 error and release the in-flight gate. Re-enabling Runtime must allow a successful retry without restarting Client2.
-- Two rapid taps must produce exactly one trusted Runtime admission and one terminal callback. A task-time Runtime death must produce exactly one `ERROR_SERVICE_DIED` failure and no completion; the next click must restart Runtime and reconcile interrupted work with execution resume disabled.
-- Runtime process death may be injected only by a debug-source `BroadcastReceiver` protected by `android.permission.DUMP`, with one explicit action. It must be absent from the main/release manifest and inaccessible to Client2.
-- Client2 force-stop/relaunch must create a new process, reinstall the panel hook, bind through the SDK and render a completed reply. Existing instrumentation must remain green for service death, reconnect, callback death, terminal uniqueness and cancel/completion race.
-- The UI currently exposes no cancellation or timeout command; R7C must state that boundary and may use existing SDK instrumentation for cancellation semantics, but must not claim UI coverage that does not exist.
-- Passing all scenarios permits `api33_end_to_end_acceptance_complete=true` and `r7_application_integration_complete=true`. Production activation, target system owner and target hardware remain false, with exactly seven preserved blockers.
-
-### 2026-07-12 R7D Android 13 software handoff trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- The Android-only handoff must contain exactly four artifacts: public SDK AAR, Runtime APK, Demo APK and patched Client2 APK. Its generated manifest must record source commit, byte size, SHA-256, APK package/minSdk/targetSdk/signer facts, native-payload result and Client2 secondary-dex result.
-- Runtime, Demo and Client2 must form one signer cohort. Current artifacts remain explicitly debug-signed; production re-signing and RenderService trust are target-owner decisions. A signer mismatch must stop before the first install and must never trigger an automatic uninstall.
-- The verifier must reject non-normalized paths and symbolic links and bind manifest artifact/support inventory back to the delivery profile. Before device mutation, the installer must re-read every bundle APK package name and signer from `aapt`/`apksigner`; manifest/checksum self-consistency is not publisher authentication, so the archive SHA-256 requires a trusted release channel.
-- Installation must default to dry-run, require Android API 33, preserve Runtime -> Demo -> Client2 order and use only application-layer `adb install -r`. Root, remount, fastboot, system/vendor partition writes, vendor source changes and virtualization are prohibited.
-- The target-input contract must leave unknown owner, signing, MDM, RenderService, vendor ABI and evidence fields unresolved. It must not infer physical-device or production claims from emulator evidence.
-- The handoff bundle must carry the target deployment and Client2 recovery scripts alongside their source-checkout precondition; copying a script into the bundle must not imply that the bundle is a self-contained Gradle/Client2 build tree.
-- The delivery profile must preserve exactly seven inactive integration slots mapped one-to-one to target system owner, Effect delivery, Model/NPU runtime, Event runtime, Memory runtime, Skill/Governance runtime and target hardware evidence blockers.
-- R7D permits `software_handoff_ready=true` only. `production_ready=false`, `target_system_integration_owner_resolved=false`, `target_hardware_validated=false`, `hardware_accessed=false`, Driver/HAL development false and virtualization development false remain mandatory.
-
-### 2026-07-12 B0 black-box Android 13 engineering trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Later user scope overrides the older paired Linux delivery rule for this actual-engineering phase: B0-B4 are Android-only and must not add a Linux frontend.
-- The black-box target contract assumes only API 33, ordinary APK installation and public Android/NDK APIs. Platform signing, priv-app placement, SELinux changes, private services, vendor SDK and device-node access are not assumed.
-- Java owns Binder identity, package/current-signer capability, Governance, Room, Android lifecycle and user-visible errors. C owns a versioned platform-neutral native runtime ABI and bounded provider state. JNI must remain a narrow bridge and may not become a second policy owner.
-- Initial packaged ABIs are exactly `arm64-v8a` and `x86_64`. Native presence does not activate Vendor NPU/VHAL or close any hardware blocker.
-- B0-B4 exit criteria and prohibited operations are authoritative in `CENTRAL_BRAIN_BLACKBOX_ANDROID13_ENGINEERING_PLAN.md`.
-
-### 2026-07-12 B1 Native Runtime C ABI trace
-
-- Req IDs: `XSC-004`、`XSC-005`、`NV-F-001`、`NV-F-011`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-004`、`DEL-005`.
-- The `native-runtime` AAR must expose a C11 ABI V1 with opaque runtime ownership, `struct_size`/`abi_version`, fixed-width values, bounded leases, deterministic status codes and caller-serialized destroy. C must serialize query/acquire/release internally and reject active-lease destroy.
-- JNI must use `JNI_OnLoad` plus `RegisterNatives`, retain no Java reference or `JNIEnv*`, perform no I/O and expose only a `long` handle, fixed status values and a fixed-length health array. Java must serialize handle access and reject malformed or positive provider/hardware claims.
-- Host evidence must run C lifecycle/capacity/concurrency under ASan/UBSan. Android evidence must build exactly `arm64-v8a` and `x86_64`, verify ELF machine/exported symbols/RELRO/NOW and reject any NPU/OpenCL/Vehicle/vendor linkage.
-- B1 is artifact evidence only. Runtime APK lifecycle/Diagnostic integration belongs to B2 and API 33 process recovery belongs to B3. `software_provider_available=false`, `vendor_npu_provider_available=false` and `hardware_accessed=false` remain mandatory.
-
-### 2026-07-12 B2 Native Runtime process integration trace
-
-- Req IDs: `XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- `CentralBrainRuntimeApplication` must create exactly one process-owned `NativeRuntimeProcess` before any Binder Service is created. Native linkage, initialization, query or close failure must become an immutable `UNAVAILABLE` snapshot instead of a positive provider or hardware claim.
-- Runtime startup log and protected dumpsys plus Diagnostic Binder sequence 10 must expose the same ABI/lifecycle/capacity/generation/status/provider/hardware fields. The production Runtime and Diagnostic Services may query readiness but must not acquire native slots or dispatch through the C runtime in B2.
-- The Runtime APK must contain exactly the arm64-v8a and x86_64 `libcentral_brain_native.so` payloads and preserve the B1 symbol, hardening and no-vendor-linkage checks. It must not request INTERNET.
-- API 33 evidence must cover native load/init, capacity exhaustion, busy close, duplicate release, drain/close, Runtime dumpsys, Diagnostic parity and process force-stop/recreation with a clean crash buffer.
-- Passing B2 does not validate the physical controller or activate software inference, Vendor NPU, VHAL, vehicle control or Driver/HAL. `native_runtime_dispatch_enabled=false` and `native_hardware_accessed=false` remain mandatory.
-
-### 2026-07-12 B3 black-box Android 13 preflight trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Before any package mutation, a public-API/adb preflight must verify exact API 33 when requested, an allowlisted 64-bit ABI, artifact signer cohort and every readable existing Runtime/Demo signer. Unknown or mismatched existing signer must stop before install; a temporary alternate-signer negative test must prove this path without mutating the device.
-- The read-only preflight may observe build/fingerprint, Automotive feature, SELinux/verified-boot properties and ordinary package metadata. It must not install/uninstall, elevate privilege, remount, change SELinux, inspect private device nodes or probe unpublished vendor services.
-- A DUMP-protected debug-only Java probe must independently verify PackageManager signer SHA-256, ordinary `/data/app` placement, app-private storage, ordinary UID, 64-bit process and Native Runtime readiness. It must remain absent from release.
-- Controlled API 33 acceptance must preserve the complete Binder/Room/Governance/HMI and Native Runtime process-recovery gates. Emulator evidence must be labeled separately and cannot set physical-controller, production-signing, background-policy, RenderService, vendor-interface or hardware claims true.
-
-### 2026-07-12 B4 hybrid C/Java software handoff trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- B4 must use a new hybrid profile and must not rewrite R7D no-native evidence. The bundle must contain Native AAR, SDK AAR, Runtime APK, Demo APK and Client2 Binder demo APK with exact path-safe hash/size inventory.
-- Native AAR and Runtime APK must be the only native artifacts and must contain exactly arm64-v8a/x86_64 `libcentral_brain_native.so`; the manifest must record ELF machine and C ABI V1. SDK/Demo/Client2 native payload remains forbidden.
-- Runtime, Demo and Client2 must form one signer cohort. Client2 remains optional at install time and requires an explicit profile because target RenderService/vendor trust is unresolved.
-- Installer must default to dry-run, verify API/ABI/bundle identity and every selected existing signer before first install, require explicit debug-signer authorization, preserve Runtime -> Demo -> Client2 order and provide no automatic uninstall or partition-write path.
-- The guide must cover build, package verification, target inputs, dry-run/install, Demo and Client2 use, diagnostics, rollback ownership and future vendor adapter entry. Passing package and emulator gates permits only `hybrid_software_handoff_ready=true`; production/physical/hardware claims remain false.
-
-### 2026-07-12 B5 GitHub remote hardware-test trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- When the maintainer cannot reach target ADB, an immutable private GitHub Release may carry the B4 archive and external SHA-256. Every report must bind release tag, manifest source commit, archive SHA-256 and delivery ID; a moving branch or unversioned attachment is not acceptance evidence.
-- The target tester owns all ADB execution. Remote collection must default to B4 dry-run, require a non-template target-input file for physical testing, retain raw device evidence locally and produce a separate GitHub-safe summary without raw serial/fingerprint/logs or user/model/vehicle payload.
-- GitHub Issue intake must use the hardware-test Issue Form and a triage/reproduce/fix/retest/verify state machine. An Issue closes only after a tester verifies a named replacement release on the target controller.
-- The complete Client2 archive must remain a controlled-workstation release because its baseline/signing inputs are not committed. GitHub Actions may validate the contract but must not claim an authoritative full APK build.
-- Publication must scan the selected ref's complete reachable history for forbidden legacy paths, binary/key extensions, credential markers and blobs above 20 MiB. Only `codex/github-publication:main` may be pushed; mirror or Codex internal-ref publication is prohibited.
-- The Private `LucasWEIchen/CougarOS` repository, maintainer write access, labels, `main`, first immutable Release and 15-minute Issue polling are activated, so `github_repository_configured=true` and `github_issue_intake_active=true`. The authenticated `gh` CLI is the active transport because the Codex GitHub connector cannot see this repository. Tester access remains unconfigured and the current Private plan rejects branch protection; neither the tracked pre-push hook nor Actions may be represented as equivalent server-side protection. `physical_controller_evidence_available=false`, `production_ready=false` and `target_hardware_validated=false` remain mandatory.
-
-### 2026-07-12 repository architecture README trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- Root `README.md` is the repository-level technical entry and must distinguish the Android Java/AIDL/C actual-engineering track, the Python architecture-prototype track, the isolated Client2 APK patch path and target hardware empty interfaces.
-- The README must map every tracked top-level module and each Android Gradle module to its source paths, interface responsibility and delivery output. Local `apks/`, `reverse/`, `builds/`, logs, tool caches, signing material and raw evidence must be identified as non-published inputs rather than repository modules.
-- The total architecture and call chains must preserve Binder identity/Governance/Room ownership in Java, a narrow JNI bridge, the C11 ABI lifecycle boundary, protocol-binding separation and fail-closed Vendor NPU/VHAL/Driver/HAL/virtualization gates.
-- Current delivery and acceptance values must not overstate evidence: physical Runtime/Demo application evidence may set `physical_controller_application_evidence_available=true`, while `production_ready=false` and `target_hardware_validated=false` remain mandatory until separately approved production and hardware evidence exists.
-- Architecture/interface/delivery changes must update the README recent-change table. `tools/check_central_brain_root_readme.sh` validates headings, tracked path mappings, Gradle modules, relative links, Req IDs, negative readiness states and retained architecture commits; it must run in the Android evolution gate and the remote GitHub contract workflow.
-
-### 2026-07-12 software detailed design trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-002`、`XSC-003`、`XSC-004`、`XSC-005`、`XSC-006`、`FW-U-001..008`、`FW-S-001..006`、`NV-F-001`、`NV-F-011`、`NV-F-012`、`NV-G-001..007`、`NV-P-001..006`、`HW-002`、`KH-003`、`KH-006`、`KH-007`、`DEL-001..005`.
-- `docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md` is the implementation-level guide for software engineers. It must cover the actual Android Java/AIDL/Room/C/JNI path and the separate Python/Linux prototype path without presenting either contract-test code or simulated-NPU as production hardware.
-- The document must describe module intent and non-responsibility, public and internal interfaces, Binder permissions/death behavior, task and durable state machines, data ownership, wall/elapsed clock domains, concurrency, error semantics, configuration, extension procedures and validation gates.
-- Source-level markers must remain synchronized with Android Gradle modules, Runtime/Governance/Diagnostics AIDL methods, the C ABI V1 exported function set, the Client2 12-scenario allowlist and the Ollama environment contract.
-- `tools/check_central_brain_software_detailed_design.sh` must run in the Android evolution gate and the GitHub contract workflow. It may validate documentation/source consistency but cannot set `production_ready`, `target_hardware_validated`, `hardware_accessed`, Driver/HAL development or virtualization development true.
-
-### 2026-07-14 physical Android 13 application-layer trace
-
-- Req IDs: `APP-004`、`XSC-001`、`XSC-004`、`XSC-005`、`XSC-006`、`NV-F-001`、
-  `NV-F-011`、`NV-F-012`、`NV-G-003`、`NV-G-005`、`NV-G-006`、`NV-G-007`、
-  `NV-P-002`、`KH-003`、`KH-006`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`.
-- WSL-hosted acceptance may use a caller-selected Windows `adb.exe` while Windows retains USB ownership.
-  Every device-list and get-state parser in the Central Brain Android test path must accept both LF and CRLF,
-  and nested test tools must preserve the caller-selected `ADB` executable.
-- The physical target passed API 33/arm64/Automotive read-only preflight, ordinary `/data/app` Runtime and
-  Demo installation, signer parity, signature permission, Typed Binder, Room/Governance/HMI, Native C ABI V1
-  lifecycle and process recovery. Evidence is application-layer only and is recorded without raw serial,
-  fingerprint, signer digest or unrestricted logs in Git.
-- After Runtime process death, Demo must perform bounded explicit reconnect through both public SDK clients,
-  refresh protocol/Governance status on every successful connection and cancel pending retries on Activity
-  destruction. B3 may emit `binder_room_hmi_regression_verified=true` only after the post-recovery UI tree
-  contains connected/verified markers and no disconnected marker.
-- The existing target Client2 package has a different signer from the debug Client2 delivery. The default
-  installer path must fail before package mutation with `SIGNER_MIGRATION_REQUIRED`. On an explicitly
-  authorized test target, `--replace-conflicting-client2` may remove only the ordinary `/data/app`
-  `com.tuanjie.urasclient2` package after Android confirms a signer mismatch; the tool must disclose app-data
-  loss, must not react to other install errors, and must never treat this as an automatic or production migration.
-- After the approved replacement, physical API 33 evidence must re-verify Runtime/Client2 signer parity,
-  signature permission, package/current-signer capability, a real panel button, typed Binder completion,
-  visible UI reply, Client2 render continuity and the R7C Runtime/Client2 recovery matrix. This permits
-  `client2_physical_acceptance_passed=true` only for the debug application-layer test scope.
-- This evidence permits `physical_controller_application_evidence_available=true` only. It must not set
-  `target_hardware_validated`, `production_ready`, Vendor NPU/VHAL availability, hardware access,
-  Driver/HAL development or virtualization development true.
-
-### 2026-07-15 Client2 navigation-triggered menu trace
-
-- Req IDs: `APP-004`, `XSC-001`, `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002`,
-  `DEL-001`, `DEL-003`, `DEL-004`.
-- The existing translucent light-gray right-side panel, its one-third width, control grouping, scrolling,
-  reply surface and typed Binder scenario behavior must remain unchanged. The Activity must install the
-  panel as hidden and expose it as a menu from the existing bottom navigation location.
-- One navigation activation must show the panel. A second activation of the same navigation target or a
-  tap anywhere outside the panel must hide it. Taps inside the panel must remain available to its controls
-  and must not dismiss the panel.
-- Because the Client2 bottom navigation is drawn inside the Tuanjie render surface and is not an Android
-  `View`, the isolated APK patch may add one transparent, accessibility-visible Android touch target over
-  the current navigation location. It must not modify RenderService, Unity/Tuanjie assets, the full-screen
-  render hierarchy or vendor/system binaries. The geometry dependency remains tracked by `DEV-017` and
-  `ISSUE-019`.
-- API 33 physical evidence must verify initial hidden state, navigation show/hide, outside-tap dismissal,
-  reopening, a real scenario button, typed Binder completion, visible reply and menu reopening after a
-  Client2 process restart. No HTTP fallback, Driver/HAL, hardware access or virtualization path may be added.
-
-### 2026-07-15 AIOS Stage 2 derived requirement baseline
-
-The following IDs are implementation-level derived requirements. They do not replace or extend the layers in
-the supplied architecture diagram; every item is traceable to existing baseline Req IDs.
-
-| Derived ID | Implementation requirement | Architecture baseline mapping | Current state |
-| --- | --- | --- | --- |
-| `S2-UX-001` | HMI must expose durable session, plan, node and effect progress instead of only model text | `APP-001`、`APP-004`、`XSC-001` | Design complete |
-| `S2-UX-002` | HMI must adapt to parked/moving/unknown driving state; unknown is restricted | `APP-001`、`FW-S-005`、`NV-G-005` | Design complete |
-| `S2-UX-003` | Approval, cancel, retry, partial failure and governed undo must be user visible | `FW-U-004`、`FW-U-007`、`NV-G-005..007` | Design complete |
-| `S2-SES-001` | Session and immutable Action/Observation event tree must survive process restart | `FW-U-003`、`NV-F-001`、`NV-G-003`、`NV-G-007` | Not started |
-| `S2-CTX-001` | ContextSnapshot must carry typed values, source, freshness, quality, revision and digest | `FW-U-001`、`FW-U-002`、`NV-F-004` | Not started |
-| `S2-TWN-001` | Vehicle Digital Twin must separate desired and reported last-known state | `FW-U-001..003`、`NV-F-004`、`NV-G-006` | Not started |
-| `S2-SCN-001` | Registered scenario manifests must compile deterministically into validated plan DAGs | `APP-003`、`FW-S-001`、`NV-F-001` | Not started |
-| `S2-GRF-001` | Agent Graph Runtime must support checkpoint, retry, timeout, interrupt, resume and compensation | `NV-F-001`、`NV-F-008`、`NV-G-004..007` | Not started |
-| `S2-SAF-001` | Caller, capability, driving state, risk and approval checks must fail closed; confirmation cannot override a hard interlock | `FW-U-007`、`FW-S-005`、`NV-F-009`、`NV-G-005` | Not started |
-| `S2-EFF-001` | Effects must distinguish prepare/dispatch/deliver/apply/verify and support reconcile/compensate | `FW-U-004`、`FW-S-003`、`NV-F-003..005`、`NV-G-006..007` | Not started |
-| `S2-ADP-001` | Debug-only HVAC/Seat/Nav/Media simulation must use the same Effect contract and remain visibly simulated | `NV-F-003..005`、`DEL-001`、`DEL-005` | Not started |
-| `S2-TOL-001` | Tools/Skills require manifest, schema, signer, rules, health, bounded executor and audit | `FW-U-006..008`、`NV-F-001`、`NV-G-001..006` | Not started |
-| `S2-MEM-001` | Working/Profile/Episodic memory must enforce consent, purpose, budget, TTL, delete and export | `FW-U-001`、`FW-U-006..007`、`NV-F-001`、`NV-G-005..007` | Not started |
-| `S2-EVT-001` | Typed Event broker must provide durable terminal events, cursor replay, backpressure and governed triggers | `FW-U-003`、`NV-P-006`、`NV-G-004..007` | Not started |
-| `S2-MDL-001` | Model routing must enforce privacy/latency/resource budgets, schema validation, bounded fallback and evaluation | `APP-004`、`NV-F-001`、`NV-F-011..012`、`NV-G-004..007` | Not started |
-| `S2-ADP-002` | Real AAOS/Vendor/NPU adapters remain inactive until owner, API/ABI, permission, safety, smoke and rollback evidence pass | `NV-F-003..005`、`NV-F-011`、`KH-003`、`KH-006`、`DEL-005` | External blocked |
-| `S2-OBS-001` | Trace, metric, audit and scenario evaluation must cover every governed execution boundary | `APP-009`、`NV-F-012`、`NV-G-007` | Not started |
-| `S2-REL-001` | Production signer, migration, rollback, long-run and target release evidence must be independently qualified | `NV-G-006..007`、`DEL-001`、`DEL-003..005` | External blocked |
-
-Additional hard requirements:
-
-- A model may propose only registered scenario/tool IDs and schema-bounded parameters. It must never call an
-  Effect adapter, `CarPropertyManager`, vendor service, device node or Driver/HAL directly.
-- `scene.fatigue.assist.v1` must never produce a dispatchable driver-seat recline Effect while motion is
-  moving or unknown. A user confirmation cannot override this hard interlock.
-- A dispatched or delivered Effect must not be presented as completed. Product completion requires the
-  configured applied/readback verification policy.
-- Simulation profile and production profile must use disjoint adapter registration. Production failure must
-  return adapter unavailable rather than silently falling back to simulation.
-- Stage 2 P0-P7 must remain implementable without real VHAL/NPU. P8 activates one real capability at a time
-  only after `S2-ADP-002` evidence; this design increment does not trigger Driver/HAL or virtualization work.
-- Detailed source paths, interfaces, tests and work-package DoD are normative in
-  `CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md` and
-  `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`.
+| XSC-001 | AI SDK | Task/Session/Plan/Result/Error | SDK AAR + typed Binder |
+| XSC-002 | Uni Info Bus | Context/State/Event/Action/Tool/Permission | Runtime typed objects |
+| XSC-003 | SOA 服务入口 | Service/Method/Effect/Error | adapter contract，真实服务阻塞 |
+| XSC-004 | AIOS Kernel | lifecycle/model/memory/safety C/Java boundary | Runtime Service + Native AAR |
+| XSC-005 | Runtime & Governance | identity/policy/QoS/lifecycle/audit | Binder/Room/middleware |
+| XSC-006 | Protocol Binding | version/hash/error/death/cancel | Android app-local AIDL |
+
+`XSC-001..006` 原要求具备 Android/Linux parity；当前用户批准 Android-only，偏差记录为
+`DEV-026`。平台无关数据合同继续避免绑定 Vendor API。
+
+| Req ID | 交付要求 | 当前实现 |
+| --- | --- | --- |
+| DEL-001 | Android 13 APK/AAR/C ABI、安装和验证 | 已有软件交付链 |
+| DEL-002 | Linux 同步交付 | 当前范围暂停，旧 Python 样例已删除 |
+| DEL-003 | 工程师文档、接口、状态机、命令 | 当前文档集 |
+| DEL-004 | 黑盒 Android 平台差异、签名、SELinux、Vendor/Driver-HAL 边界 | delivery/driver/preflight docs |
+| DEL-005 | Driver/HAL 接口支持和最小 gap | Driver/HAL matrix + NPU contract |
+
+## 9. AIOS Stage 2 derived requirement baseline
+
+| Req ID | 最小要求 | 验收边界 |
+| --- | --- | --- |
+| S2-UX-001 | 面板显示 session/plan/effect 状态 | reducer/render，不持有权威状态 |
+| S2-UX-002 | approval/partial failure/undo UX | driving restriction 优先 |
+| S2-UX-003 | 可访问性、显示矩阵、错误恢复 | Client2 demo 与量产 HMI 分离 |
+| S2-SES-001 | versioned durable Session | owner、TTL、state、idempotency |
+| S2-CTX-001 | typed Context snapshot | source/freshness/trust |
+| S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
+| S2-SCN-001 | versioned scenario catalog | owner、precondition、rollback |
+| S2-GRF-001 | durable Agent Graph | step/checkpoint/dependency/terminal |
+| S2-SAF-001 | hard safety interlock | A user confirmation cannot override this hard interlock |
+| S2-EFF-001 | typed Effect lifecycle | prepare/apply/verify/compensate |
+| S2-ADP-001 | adapter registry | source/profile/capability/evidence |
+| S2-TOL-001 | retry/timeout/partial failure | deterministic terminal result |
+| S2-MEM-001 | memory lifecycle | purpose/retention/delete/export |
+| S2-EVT-001 | proactive Event trigger | consent/rate-limit/DND/policy |
+| S2-MDL-001 | model routing | deadline/quota/privacy/provider |
+| S2-ADP-002 | real vehicle adapter | owner/API/permission/readback/rollback |
+| S2-OBS-001 | trace/metric/audit | no raw user/model/vehicle payload |
+| S2-REL-001 | release/rollback/compatibility | signed manifest + replacement evidence |
+
+Production adapter registry must return adapter unavailable rather than silently falling back to simulation.
+
+## 10. Android 软件增量追踪
+
+下列追踪标题是源码/检查器与需求的稳定关联键：
+
+- R1A Android Gradle foundation trace
+- R1B Android device lifecycle trace
+- R1C Android 13 exit trace
+- R2A compiled AIDL contract trace
+- R2B typed Binder runtime trace
+- R2C Binder lifecycle and race trace
+- R3A Job Supervisor foundation trace
+- R3B capability policy trace
+- R3C1 action governance core trace
+- R3C2 typed Governance Binder trace
+- R4A Room durable schema trace
+- R4B1 durable task admission trace
+- R4B2 durable Runtime wiring trace
+- R4B3 durable approval trace
+- R4C1 fail-closed restart reconciliation trace
+- R4C2A effect prepare and claim trace
+- R4C2B effect retry and terminal state trace
+- R4C3A effect adapter contract trace
+- R4C3B effect material activation trace
+- R4C3C production fail-closed activation visibility trace
+- R5A1 model provider contract trace
+- R5A2 inference resource scheduler trace
+- R5B1 deterministic stub provider trace
+- R5B2 test-only model router trace
+- R5C1 production-safe model runtime readiness trace
+- R5D1 Android 13 application-layer deployment acceptance trace
+- R6A1 bounded Event runtime trace
+- R6A2A durable Event schema trace
+- R6A2B durable Event repository trace
+- R6A3 Event runtime readiness trace
+- R6B1 bounded Memory lifecycle trace
+- R6B2 Memory runtime readiness trace
+- R6C1 signed built-in Skill runtime trace
+- R6C2 fixed governance middleware trace
+- R6C3 Skill and Governance readiness trace
+- R7A1 aggregate Runtime acceptance trace
+- R7B Client2 SDK/Binder migration trace
+- R7C Android 13 application integration acceptance trace
+- R7D Android 13 software handoff trace
+- Client2 navigation-triggered menu trace
+- B0 black-box Android 13 engineering trace
+- B1 Native Runtime C ABI trace
+- B2 Native Runtime process integration trace
+- B3 black-box Android 13 preflight trace
+- B4 hybrid C/Java software handoff trace
+
+这些追踪键只证明对应 Android 软件增量通过其门禁，不代表真实车辆/NPU、Driver/HAL 或量产状态。
+
+## 11. Python 原型退役需求
+
+1. `central-brain/` 下不得存在 Python runtime。
+2. 当前 README、架构、接口、交付和 CI 不得引用已删除的 gateway、Linux binding 或旧 Console。
+3. Python 只允许作为宿主侧确定性构建/打包工具，不得承载 AIOS 服务或推理。
+4. Android ModelProvider、NPU C ABI/JNI、Driver/HAL 和 Safety 合同必须保留。
+5. 未来本机模型调试只能作为显式 Android ModelProvider development profile。
+6. 未来 Linux 交付必须建立新的非 Python 工作包。
+
+对应 `DEV-026`、`ISSUE-032` 和
+`CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md`。
+
+`production_ready=false`、`target_hardware_validated=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。

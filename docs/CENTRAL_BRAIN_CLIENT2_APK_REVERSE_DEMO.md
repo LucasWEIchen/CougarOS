@@ -5,7 +5,7 @@
 
 ## 目标
 
-本文件定义基于 `Client2` APK 底层逆向产物进行中央大脑演示 App 二次开发的测试工程。该路径用于快速构建接近用户真实座舱界面的演示 APK，同时保留架构图基线、Req ID、Driver/HAL 边界和 Android/Linux 交付边界。
+本文件定义基于 `Client2` APK 底层逆向产物进行中央大脑演示 App 二次开发的测试工程。该路径用于快速构建接近用户真实座舱界面的演示 APK，同时保留架构图基线、Req ID、Driver/HAL 边界和 Android 13 交付边界。
 
 ## 输入与工程位置
 
@@ -43,7 +43,7 @@ Client2 MainActivity
 
 面板启动状态为 `GONE`。Client2 底部导航由 Tuanjie/RenderService 绘制，没有 Android `View` 回调；patch 在底部增加透明、可访问性可识别的 `centralBrainNavigationTrigger`，映射当前导航图标。首次点击显示菜单，第二次点击或点击面板外区域隐藏；面板自身消费点击，内部按钮和滚动不会关闭菜单。
 
-每个按钮通过 `android:tag` 绑定稳定 `scenario_id`。smali 控制器递归绑定控件区内全部 `Button`，由 `Client2ScenarioBridge` 和 public `CentralBrainClient` 创建 typed `AgentTaskRequest`，异步 Binder callback 更新回复区。APK 不申请网络权限，不保留 HTTP fallback。12 个场景和底层接口映射见 `CENTRAL_BRAIN_KAKACLAW_REFERENCE_TEST_PLAN.md`；进程内 `requestInFlight` 继续阻止同一 Activity 内的重复并发请求。
+每个按钮通过 `android:tag` 绑定稳定 `scenario_id`。smali 控制器递归绑定控件区内全部 `Button`，由 `Client2ScenarioBridge` 和 public `CentralBrainClient` 创建 typed `AgentTaskRequest`，异步 Binder callback 更新回复区。APK 不申请网络权限，不保留 HTTP fallback。场景产品定义和实现顺序见 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md` 与 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；进程内 `requestInFlight` 继续阻止同一 Activity 内的重复并发请求。
 
 该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、secondary dex、typed Binder、rebuild、zipalign、debug sign 和静态/真机验证链路成立。
 
@@ -107,51 +107,14 @@ bash tools/install_client2_central_brain_demo.sh \
 - 不把 APK patch 路径描述为量产 Android system service。
 - 不让 App UI 绕过 AI SDK、Uni Info Bus、SOA 和 Runtime & Governance 直接访问模型或 NPU。
 
-## 2026-07-11 模拟器运行测试
+## 退役测试路径记录
 
-测试环境为 `cabin_client_api36_x86_64`、Android API 36、`1920x1080` 和 `-gpu host`。为让测试过程出现在 WSLg/Windows 桌面，本轮直接启动 `emulator`，没有使用 `tools/start_client2_emulator.sh` 中的 `-no-window` 参数。
+2026-07-11 曾使用 API 36 模拟器、HTTP gateway 和本机模型验证 UI 布局及早期请求链路。该链路已于
+2026-07-16 随 Python 原型整体退役，不再提供构建、启动、回归或故障处理支持，也不能作为当前
+APK 的验收依据。现行 Client2 只允许通过 public typed Android SDK/Binder 访问 Runtime。
 
-已通过：
-
-- APK 增量安装成功，包名保持 `com.tuanjie.urasclient2`，`MainActivity` 进入 resumed 状态。
-- Client2 原始座舱背景、3D 车辆和右侧约 1/3 Central Brain 面板同时可见；初版运行证据为分屏布局，后续 overlay 修正已重新验证车模 viewport 保持全屏且面板悬浮其上。
-- 12 个按钮通过稳定 `scenario_id` 共用同一个后台执行入口；文本框可显示 `请求中`、场景结果和错误。
-- APK 到 `http://10.0.2.2:8787/agent/scenarios/run` 的 HTTP 路径返回 `200`；App 无崩溃，未触发 Driver/HAL、硬件或虚拟化访问。
-
-首次测试未通过（历史记录）：
-
-- Ollama 自然语言 `result.generated_text` 尚未通过验收。默认 `CENTRAL_BRAIN_OLLAMA_NUM_PREDICT=96` 时，`qwen3.5:27b-optimized` 返回 `done_reason=length`、`response_length=0`、`thinking_length=337`，APK 因而回退显示 `ollama simulated NPU inference accepted`。
-- 将生成上限提高到 `192` 后，端到端请求仍可能超过 APK `120000 ms` read timeout，界面会显示 `请求失败: timeout`。该结果登记到 `ISSUE-019`，不能视为 Ollama 自然语言回复验收通过。
-
-### 修复复测
-
-超时由四项叠加造成：27B 模型约 90% CPU/10% GPU 运行、thinking 消耗输出 token、APK 允许重复点击形成 Ollama 队列，以及测试用 `monkey ... 1` 可能随机注入额外点击。后端与 APK 同时使用 120 秒边界进一步放大了队列超时。
-
-2026-07-11 修复后，Ollama adapter 默认 `think=false`，可通过 `CENTRAL_BRAIN_OLLAMA_THINK` 显式覆盖；本地演示使用 90 秒后端 timeout、64 token 上限，并从结构化模型输出中优先提取 `response_text`。APK 增加 single-flight，测试启动改用确定性的 `adb shell am start -n com.tuanjie.urasclient2/.MainActivity`。
-
-清空旧 Ollama 队列后的可信单请求复测只产生一条 HTTP 请求，在 APK 120 秒 read timeout 内返回 HTTP 200，面板显示非空中文建议。`CENTRAL_BRAIN_OLLAMA_THINK=false` 下直接推理与 SOA `npu-inference` smoke 均通过，`generated_text` 非空且 `thinking_text_available=false`。
-
-生产路径仍按计划迁移到 Binder/SDK，不因本次演示修复改变架构边界。
-
-### Overlay 布局复测
-
-2026-07-11 使用 API 36 可视模拟器和 `1920x1080` skin 重新安装、冷启动最终签名 APK。UI dump 显示 `centralBrainRenderRegion` 与 `centralBrainPanelOverlay` 均为 Activity 全内容区 `[0,128][1920,1080]`，说明新增 UI 没有改变车模渲染宽度；`centralBrainPanel` 位于 `[1265,160][1888,1048]`，约占物理屏宽三分之一并保留四周外边距。
-
-运行截图确认车身、天气和底部座舱控件继续绘制到面板下方，浅灰面板可透出原车模内容；当时的两个初版按钮和回复区均在面板内，Activity 保持 resumed，过滤后的 logcat 未出现 `FATAL EXCEPTION`。证据位于 `logs/test/client2-central-brain-live/20260711_193406/`；该目录只作为本地测试输出，不纳入源码交付。
-
-### 12 场景面板与最终复测
-
-最终面板包含 `care.cold`、`care.fatigue`、`task.home`、`skill.nap`、`state.vehicle`、`memory.preference`、`skills.catalog`、`governance.audit`、`security.denied`、`security.privacy`、`runtime.npu` 和 `system.overview`。控件区高度固定并独立滚动，动态内容不会挤压下部结果区；两列按钮使用稳定尺寸，避免滚动或状态文本引发布局跳动。
-
-2026-07-11 在 API 36、`1920x1080` 可视模拟器中重新构建、签名、安装和启动 APK。实机抽样结果：
-
-- `回家规划` 返回 5 步任务图和 `validated_mock`，同时说明未调用真实导航或车控。
-- `越权拦截` 返回 `DENY` 和缺少权限/安全状态原因。
-- `NPU状态` 返回 `ollama-simulated-npu`、`qwen3.5:27b-optimized` 和 `hardware_accessed=false`。
-- `系统总览` 返回当前 Python 原型范围完成、Android/Linux 同步就绪、`production_ready=false`。
-- `我冷了` 通过本地 Ollama 仿真链路约 77.6 秒返回中文建议和 Action 门禁状态；当时 `ollama ps` 显示模型约为 `90%/10% CPU/GPU`，不作为真实 NPU 性能验收。
-
-UI dump 验证首屏和滚动后全部 12 个按钮可见且可点击，Activity 保持 resumed。稳定截图位于 `logs/test/client2-central-brain/20260711_scenarios/`；该目录是本地测试证据，不纳入源码提交。当前环境图形后端回退到 `llvmpipe`，紧邻 Unity 帧更新的瞬时 `screencap` 可能出现黑块，延迟后的稳定截图正常。
+旧测试日志保留在本地 `logs/` 时也不属于源码、发布包或当前证据。当前验收入口只有本文件所列
+Binder/UI 脚本、Android 13 目标设备证据和受控 GitHub 硬件测试流程。
 
 ## 2026-07-15 导航菜单真机验收
 
@@ -170,6 +133,6 @@ UI dump 验证首屏和滚动后全部 12 个按钮可见且可点击，Activity
 2. Debug 重签名已在当前 API 33 ARM64 测试设备通过 RenderService 画面验证，但不代表生产 signer、OTA/MDM 或量产 allowlist 已批准。
 3. RenderService 是 ARM64/Unity/Tuanjie 运行时；x86_64 模拟器证据仍不能替代目标 ARM64 验收。
 4. 底部导航是闭源渲染内容，透明触摸目标依赖当前显示几何；分辨率、density、主题或导航布局变化可能造成触点漂移。
-5. 当前 Client2 已迁移到 Binder/SDK 且无网络 fallback；Runtime deterministic reply 不代表 Python/Ollama、真实模型或 NPU 已接入 Android 实际工程。
-6. 历史 Ollama 演示只证明用户态仿真可达；目标模型、输出预算、目标算力和端到端时延仍须独立标定。
+5. 当前 Client2 已迁移到 Binder/SDK 且无网络 fallback；Runtime deterministic test reply 不代表真实模型或 NPU 已接入 Android 实际工程。
+6. 目标模型、输出预算、目标算力和端到端时延仍须在 Vendor provider 与真实 NPU 可用后独立标定。
 7. KaKaClaw 只作为公开产品概念参考；连续多轮、人格/方言、零代码 Skill、主动触发、真实导航/媒体/车控/ADAS、量产 Skill sandbox 和 Privacy Router 尚未实现，见 ISSUE-020。

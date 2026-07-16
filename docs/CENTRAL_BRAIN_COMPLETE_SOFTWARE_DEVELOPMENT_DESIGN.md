@@ -10,7 +10,7 @@
 
 目标平台：黑盒 Android 13 座舱域控制器
 
-主要语言：Java/AIDL/C；Bash 用于构建与验收；Python 原型不进入目标 APK 运行路径
+主要语言：Java/AIDL/C；Bash 用于构建与验收；仓库不再维护 Python AIOS 运行时
 
 ## 1. 文档目的
 
@@ -23,7 +23,7 @@
 - 真实 Android 车辆/NPU 接口到位后的替换方式；
 - 开发人员可直接采用的目录、类、AIDL、Room schema 和测试设计。
 
-历史文档 `CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md` 保留为 Stage 1 代码说明。发生冲突时，架构图 Req ID 优先，其次是本文，再其次是历史实现说明。
+本文是当前唯一实现级总详设。发生冲突时，架构图 Req ID 优先，其次是本文，再其次是分模块接口和验收文档。Python 原型退役边界见 `CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md`。
 
 ## 2. 状态定义
 
@@ -51,7 +51,7 @@
 7. **可恢复优先**：approval、plan、node、effect、observation 必须可在进程重启后恢复和 reconcile。
 8. **黑盒平台边界**：不修改已刷机 Android/framework/VHAL，不猜私有设备节点/ioctl，不需要 root。
 9. **无虚拟化开发**：不开发 Hypervisor/VM；Tool containment 是应用进程/allowlist 级边界，不称为虚拟化安全。
-10. **Android 当前主线**：Stage 2 不开发 Linux 前端；跨 SoC contract 保持平台无关，历史 Linux 交付不删除。
+10. **Android 当前主线**：Stage 2 不开发 Linux 前端；跨 SoC contract 保持平台无关，早期 Python/Linux 样例已经退役。
 
 ## 4. 总体架构
 
@@ -135,7 +135,7 @@ flowchart TB
 | Client2 Demo APK | `apk-labs/client2-central-brain` | `DEVELOPED` simple UX | 入口、悬浮面板、场景请求、回复 | 不调用模型/vehicle API，不持久化权威状态 |
 | Demo HMI APK | `demo-hmi` | `DEVELOPED` maintenance | SDK/Runtime/Governance 调试与验收 | 不作为产品 HMI |
 | Policy probe | `policy-probe` | `DEVELOPED` test | caller/capability negative tests | 不随产品发布 |
-| Python prototype | `central-brain/backend` | `PROTOTYPE` reference | contract oracle、Ollama/HTTP 仿真、Linux 历史路径 | 不进入目标 Android 产品路径 |
+| Retired prototype | none | `OUT_OF_SCOPE` | 不再提供 gateway、模型仿真或 Linux runtime | 不得恢复为 Android fallback |
 | AAOS adapter | planned Runtime package | `EXTERNAL_BLOCKED` | 公开 CarProperty API 映射 | 不修改 VHAL/framework |
 | Vendor NPU adapter | planned Runtime/native package | `EXTERNAL_BLOCKED` | 公开 vendor SDK lifecycle | 不自行开发未知 PCIe driver |
 
@@ -932,7 +932,7 @@ interface ModelProvider {
 }
 ```
 
-Provider 类型：deterministic test、local HTTP/Ollama simulation、vendor NPU、cloud。每个 profile 独立 readiness，不以 GPU/CPU 使用率推断成功。
+Provider 类型：deterministic Android test、可选 Android local-development provider、vendor NPU、cloud。每个 profile 独立 readiness；local-development provider 当前未实现且不得成为 production fallback，不以 GPU/CPU 使用率推断成功。
 
 ### 20.2 PolicyAwareModelRouter
 
@@ -1020,7 +1020,7 @@ compensate: set absolute before value after fresh policy
 
 ### 22.4 Driver/HAL 边界
 
-普通 APK 不实现 Drivers/HAL。只有公开 Android/Linux 能力明确不足、接口 owner 和最小缺口经 `CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` 审核后，才新增单独 Driver/HAL 项。本 Stage 2 仿真不触发 driver development。
+普通 APK 不实现 Drivers/HAL。只有公开 Android 或 Vendor SDK 能力明确不足、接口 owner 和最小缺口经 `CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md` 审核后，才新增单独 Driver/HAL 项。Android debug/test Digital Twin 不触发 driver development。
 
 ## 23. Room v4 数据设计
 
@@ -1284,12 +1284,12 @@ central-brain-sdk AAR
 ### 32.1 当前阶段已完成
 
 - 架构图需求追踪、平台/Driver/HAL/虚拟化边界；
-- Python 架构原型、Ollama simulated NPU path；
+- Python 架构原型和 Python Ollama gateway 已退役；Android Model/NPU contract 继续保留；
 - Android C/Java/AIDL Runtime 工程基础；
 - typed task/governance/diagnostics Binder；
 - identity/capability/policy/approval 骨架；
 - Room v3 durable task/effect/outbox/checkpoint/event cursor；
-- model/event/memory/skill bounded prototype；
+- model/event/memory/skill bounded Android software foundation；
 - production Effect adapter fail-closed contract；
 - Native C ABI/JNI lifecycle；
 - Demo HMI/Client2 SDK Binder 集成；
@@ -1303,7 +1303,7 @@ central-brain-sdk AAR
 - Vehicle Digital Twin 和 trusted Context；
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
-- simulated HVAC/Seat/Nav/Media Effect；
+- Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
 - Client2 plan/progress/approval/partial/undo/driving UX；
 - Tool/Skill registry/rules/executor/artifact verifier；
 - working/profile/episodic Memory 与 consent；
@@ -1314,7 +1314,7 @@ central-brain-sdk AAR
 
 ### 32.3 完成判定
 
-“AIOS 原型完成”指 P0-P7 全部通过，可在无真实硬件接口时以明确标注的 simulation profile 展示可恢复的场景闭环。“目标平台集成完成”还要求 P8 分项通过。“可量产”必须额外完成 P9 和 OEM/整车 owner 审批，三者不能混用。
+“Stage 2 软件闭环完成”指 P0-P7 全部通过，可在无真实硬件接口时以明确标注的 Android debug/test profile 展示可恢复的场景闭环。“目标平台集成完成”还要求 P8 分项通过。“可量产”必须额外完成 P9 和 OEM/整车 owner 审批，三者不能混用。
 
 ## 33. 开发人员起始点
 
