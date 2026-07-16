@@ -52,7 +52,7 @@
 | ISSUE-030 | 车辆控制 API、权限、area mapping、readback 和 owner 未确定。 | S2-ADP-002 | Open |
 | ISSUE-031 | 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定。 | S2-MEM-001, S2-EVT-001 | Open |
 | ISSUE-032 | Python 原型退役后禁止把已删除 gateway/test oracle 当成 Android fallback。 | DEV-026 | Closed |
-| ISSUE-033 | Client2 尚无 HVAC/Seat 中控页和可观察控制闭环。 | S2-HMI-001..005, DEV-024/025 | Open |
+| ISSUE-033 | Client2 尚无意图编排四阶段、HVAC/Seat Effect 详情和可观察控制闭环。 | S2-HMI-001..006, DEV-024/025 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -155,12 +155,15 @@ systemd 样例及专用测试。CI 新增退役门禁，确保 `central-brain/` 
 状态、Effect timeline、approval、partial、retry、undo 或 restart rehydration。因此“我冷了”或
 “我累了”的文本回复不能构成 AIOS 中控演示闭环。
 
-处理计划：在 Client2 APK 现有 overlay 内增加“关怀/空调/座椅/执行”四视图；业务状态和 renderer
-进入 maintained Java secondary-dex，Smali 只保留 bootstrap；手动控制和 AI 场景均通过 typed SDK
-进入 Runtime。无真实车身信号时使用持续标注 SIMULATED 的 Android debug/test Digital Twin，
-真实 adapter 仍由 `ISSUE-030` 跟踪。
+2026-07-16 设计审查又发现首版高保真稿以 HVAC/Seat 按钮为顶层导航，仍更像智能中控而不是
+AIOS。设计已纠正为“意图/计划/执行/结果”四阶段：用户只表达自然场景，界面明确展示 Intent、
+Context、Plan、Policy、Effect 和 readback；HVAC/Seat 降为 Effect 详情与受治理手动兜底。
 
-关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AC/ST/CL 验收
+处理计划：业务状态和 renderer 进入 maintained Java secondary-dex，Smali 只保留 bootstrap；自然
+场景与手动微调均通过 typed SDK 进入 Runtime。无真实车身信号时使用持续标注 SIMULATED 的 Android
+debug/test Digital Twin，真实 adapter 仍由 `ISSUE-030` 跟踪。
+
+关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。
 

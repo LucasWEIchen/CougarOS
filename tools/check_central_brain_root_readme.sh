@@ -61,12 +61,13 @@ for marker in \
   'android13-hwtest-v0.5.0-rc.2' \
   'physical_controller_application_evidence_available=true' \
   'cockpit_hmi_design_mockups_ready=true' \
+  'aios_intent_orchestration_ux_ready=true' \
   'cockpit_demo_control_loop_implemented=false' \
-  'S2-HMI-001..005' \
-  'HVAC 控制页（规划）' \
-  'Seat 控制页（规划）' \
-  '中控 HVAC/Seat 演示闭环' \
-  'Media/Nav Effect projection' \
+  'S2-HMI-001..006' \
+  '意图输入（设计稿已交付）' \
+  '计划与 Policy（设计稿已交付）' \
+  '中控 AIOS 演示闭环' \
+  'HVAC/Seat/Media/Nav Effect 详情' \
   'production_ready=false' \
   'target_hardware_validated=false' \
   'driver_development_triggered=false' \
@@ -96,10 +97,10 @@ required_paths=(
   docs/ui/cockpit-hmi-design/index.html
   docs/ui/cockpit-hmi-design/styles.css
   docs/ui/cockpit-hmi-design/app.js
-  docs/assets/cockpit-hmi-design/01-care.png
-  docs/assets/cockpit-hmi-design/02-hvac.png
-  docs/assets/cockpit-hmi-design/03-seat.png
-  docs/assets/cockpit-hmi-design/04-execution.png
+  docs/assets/cockpit-hmi-design/01-intent.png
+  docs/assets/cockpit-hmi-design/02-plan.png
+  docs/assets/cockpit-hmi-design/03-execution.png
+  docs/assets/cockpit-hmi-design/04-result.png
   docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
   docs/CENTRAL_BRAIN_ROADMAP.md

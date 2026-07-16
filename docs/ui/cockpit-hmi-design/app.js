@@ -1,152 +1,168 @@
 (() => {
-  const validViews = ["care", "hvac", "seat", "execution"];
-  const panel = document.getElementById("cockpitPanel");
-  const strip = panel.querySelector(".execution-strip");
-  const stripTitle = document.getElementById("stripTitle");
-  const stripDetail = document.getElementById("stripDetail");
-  const stripAction = document.getElementById("stripAction");
-  const temperature = document.getElementById("targetTemperature");
+  const stage = document.querySelector(".design-stage");
+  const panel = document.querySelector(".brain-panel");
+  const launcher = document.querySelector(".panel-launcher");
+  const drawer = document.querySelector(".device-drawer");
+  const tabs = [...document.querySelectorAll(".flow-tab")];
+  const surfaces = [...document.querySelectorAll(".surface")];
+  const input = document.querySelector("#intent-input");
+  const quoteTargets = [...document.querySelectorAll("[data-intent-quote]")];
+  const strip = document.querySelector(".session-strip");
+  const stripLabel = document.querySelector("[data-session-label]");
+  const stripDetail = document.querySelector("[data-session-detail]");
+  const views = ["intent", "plan", "execution", "result"];
 
   const stripState = {
-    care: ["当前无执行任务", "选择场景或手动调节以开始", false, "查看"],
-    hvac: ["正在调整主驾温度", "目标 24.0°C · 等待回读确认", true, "详情"],
-    seat: ["座椅设置已预览", "主驾加热 2 档 · 靠背 28°", false, "提交"],
-    execution: ["舒适升温 · 正在确认", "1 项已完成 · 1 项执行中", true, "收起"]
+    intent: ["等待场景输入", "一句话描述你的感受或目的", "idle"],
+    plan: ["恢复精力 · 等待安全确认", "计划已生成，低风险动作可自动执行", "active"],
+    execution: ["恢复精力 · 自动执行中", "3 个 Effect 已下发，正在等待座椅回读", "active"],
+    result: ["恢复精力 · 已完成", "3 个 Effect 已通过回读确认", "completed"],
+  };
+
+  const drawerData = {
+    climate: {
+      title: "HVAC Effect 详情",
+      values: [
+        ["目标温度", "23.5°C", "Plan target"],
+        ["设备回读", "23.5°C", "VERIFIED · SIMULATED"],
+        ["模式", "AUTO / 新风", "CapabilityCatalog allowed"],
+        ["风量", "2 档", "reported=desired"],
+      ],
+    },
+    seat: {
+      title: "Seat Effect 详情",
+      values: [
+        ["靠背目标", "42°", "approval required"],
+        ["当前回读", "34°", "APPLYING · 2/3"],
+        ["座椅通风", "1 档", "VERIFIED"],
+        ["安全上下文", "P / 0 km/h", "context revision #184"],
+      ],
+    },
+    media: {
+      title: "Media Effect 详情",
+      values: [
+        ["当前内容", "Recover Focus", "built-in media catalog"],
+        ["剩余时间", "14:42", "PLAYING"],
+        ["执行来源", "AIOS Plan", "scene.fatigue.assist.v1"],
+        ["停止能力", "可用", "governed cancel"],
+      ],
+    },
+    overview: {
+      title: "本次方案设备状态",
+      values: [
+        ["HVAC", "23.5°C", "READBACK VERIFIED"],
+        ["Seat", "通风 1 / 42°", "READBACK VERIFIED"],
+        ["Media", "Recover Focus", "PLAYING"],
+        ["Navigation", "未执行", "SUGGESTION ONLY"],
+      ],
+    },
   };
 
   function scaleStage() {
     const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-    document.documentElement.style.setProperty("--stage-scale", String(scale));
+    stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
 
-  function updateStrip(view) {
-    const [title, detail, running, action] = stripState[view];
-    stripTitle.textContent = title;
+  function showView(view, updateUrl = true) {
+    const normalized = views.includes(view) ? view : "intent";
+    const activeIndex = views.indexOf(normalized);
+    surfaces.forEach((surface) => surface.classList.toggle("active", surface.dataset.view === normalized));
+    tabs.forEach((tab, index) => {
+      tab.classList.toggle("active", tab.dataset.target === normalized);
+      tab.classList.toggle("completed", index < activeIndex);
+      tab.setAttribute("aria-current", tab.dataset.target === normalized ? "step" : "false");
+    });
+
+    const [label, detail, state] = stripState[normalized];
+    stripLabel.textContent = label;
     stripDetail.textContent = detail;
-    stripAction.textContent = action;
-    strip.classList.toggle("running", running);
-  }
+    strip.classList.toggle("active-session", state === "active");
+    strip.classList.toggle("completed-session", state === "completed");
+    closeDrawer();
 
-  function setView(view, updateUrl = true) {
-    const selected = validViews.includes(view) ? view : "care";
-    document.body.dataset.view = selected;
-    panel.querySelectorAll("[data-view]").forEach((surface) => {
-      surface.classList.toggle("active", surface.dataset.view === selected);
-    });
-    panel.querySelectorAll("[data-view-target]").forEach((button) => {
-      const active = button.dataset.viewTarget === selected;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-selected", String(active));
-      button.tabIndex = active ? 0 : -1;
-    });
-    updateStrip(selected);
     if (updateUrl) {
       const url = new URL(window.location.href);
-      url.searchParams.set("view", selected);
-      history.replaceState(null, "", url);
+      url.searchParams.set("view", normalized);
+      window.history.replaceState({}, "", url);
     }
-  }
-
-  function showPanel() {
-    panel.classList.remove("hidden");
-    panel.setAttribute("aria-hidden", "false");
   }
 
   function hidePanel() {
     panel.classList.add("hidden");
-    panel.setAttribute("aria-hidden", "true");
+    launcher.classList.add("visible");
   }
 
-  panel.querySelectorAll("[data-view-target], [data-view-link]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const view = button.dataset.viewTarget || button.dataset.viewLink;
-      setView(view);
-    });
-  });
+  function showPanel() {
+    panel.classList.remove("hidden");
+    launcher.classList.remove("visible");
+  }
 
-  panel.querySelectorAll("[data-run-scene]").forEach((button) => {
-    button.addEventListener("click", () => {
-      stripState.execution = [
-        button.dataset.runScene === "fatigue" ? "疲劳关怀 · 正在评估" : "舒适升温 · 正在确认",
-        "策略已通过 · Effect 逐项回读",
-        true,
-        "收起"
-      ];
-      setView("execution");
-    });
-  });
+  function openDrawer(kind) {
+    const data = drawerData[kind] || drawerData.overview;
+    drawer.querySelector("[data-drawer-title]").textContent = data.title;
+    drawer.querySelector("[data-drawer-content]").innerHTML = data.values
+      .map(([label, value, detail]) => `<div><span>${label}</span><strong>${value}</strong><small>${detail}</small></div>`)
+      .join("");
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
+  }
 
-  panel.querySelectorAll("[data-temp-step]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const next = Math.max(16, Math.min(30, Number(temperature.textContent) + Number(button.dataset.tempStep)));
-      temperature.textContent = next.toFixed(1);
-      stripState.hvac = ["正在调整主驾温度", `目标 ${next.toFixed(1)}°C · 等待回读确认`, true, "详情"];
-      updateStrip("hvac");
-    });
-  });
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
+  }
 
-  panel.querySelectorAll(".segmented-control").forEach((control) => {
-    control.querySelectorAll("button").forEach((button) => {
-      button.addEventListener("click", () => {
-        control.querySelectorAll("button").forEach((item) => item.classList.remove("active"));
-        button.classList.add("active");
-      });
-    });
-  });
+  tabs.forEach((tab) => tab.addEventListener("click", () => showView(tab.dataset.target)));
 
-  panel.querySelectorAll(".mode-control, .power-button, .toggle-row").forEach((button) => {
-    button.addEventListener("click", () => {
-      button.classList.toggle("active");
-      button.setAttribute("aria-pressed", String(button.classList.contains("active")));
-    });
-  });
-
-  panel.querySelectorAll("[data-level-group]").forEach((group) => {
-    group.querySelectorAll("button").forEach((button) => {
-      button.addEventListener("click", () => {
-        group.querySelectorAll("button").forEach((item) => item.classList.remove("active", "warm", "cool"));
-        button.classList.add("active", group.dataset.levelGroup === "heat" ? "warm" : "cool");
-        if (button.textContent !== "0") {
-          const oppositeName = group.dataset.levelGroup === "heat" ? "vent" : "heat";
-          const opposite = panel.querySelector(`[data-level-group="${oppositeName}"]`);
-          opposite.querySelectorAll("button").forEach((item, index) => {
-            item.classList.toggle("active", index === 0);
-            item.classList.toggle(oppositeName === "heat" ? "warm" : "cool", index === 0);
-          });
-        }
-      });
-    });
-  });
-
-  document.getElementById("closePanel").addEventListener("click", hidePanel);
-  document.getElementById("panelTrigger").addEventListener("click", () => {
-    panel.classList.contains("hidden") ? showPanel() : hidePanel();
-  });
-
-  document.getElementById("stage").addEventListener("click", (event) => {
-    if (!panel.contains(event.target) && event.target.id !== "panelTrigger") {
-      hidePanel();
+  document.querySelector(".intent-composer").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = input.value.trim();
+    if (!value) {
+      input.focus();
+      return;
     }
+    quoteTargets.forEach((target) => {
+      target.textContent = value;
+    });
+    showView("plan");
   });
 
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") hidePanel();
+  document.querySelectorAll("[data-suggestion]").forEach((button) => {
+    button.addEventListener("click", () => {
+      input.value = button.dataset.suggestion;
+      input.focus();
+    });
+  });
+
+  document.querySelector("[data-action='approve-plan']").addEventListener("click", () => showView("execution"));
+  document.querySelector("[data-action='complete-session']").addEventListener("click", () => showView("result"));
+  document.querySelector("[data-action='open-execution']").addEventListener("click", () => showView("execution"));
+  document.querySelectorAll("[data-detail]").forEach((button) => button.addEventListener("click", () => openDrawer(button.dataset.detail)));
+  document.querySelector("[data-action='close-drawer']").addEventListener("click", closeDrawer);
+  document.querySelector(".close-panel").addEventListener("click", hidePanel);
+  document.querySelector(".outside-dismiss").addEventListener("click", hidePanel);
+  launcher.addEventListener("click", showPanel);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      if (drawer.classList.contains("open")) closeDrawer();
+      else hidePanel();
+      return;
+    }
     const index = Number(event.key) - 1;
-    if (index >= 0 && index < validViews.length) {
-      showPanel();
-      setView(validViews[index]);
-    }
+    if (index >= 0 && index < views.length) showView(views[index]);
   });
 
   window.addEventListener("resize", scaleStage);
   scaleStage();
+  showView(new URLSearchParams(window.location.search).get("view") || "intent", false);
 
-  const requestedView = new URL(window.location.href).searchParams.get("view") || "care";
-  setView(requestedView, false);
-  if (new URL(window.location.href).searchParams.get("panel") === "hidden") hidePanel();
-
-  Promise.all(Array.from(document.images).map((image) => image.decode().catch(() => undefined))).then(() => {
+  Promise.all(
+    [...document.images].map((img) => (img.complete ? Promise.resolve() : new Promise((resolve) => {
+      img.addEventListener("load", resolve, { once: true });
+      img.addEventListener("error", resolve, { once: true });
+    }))),
+  ).then(() => {
     window.__COCKPIT_HMI_READY__ = true;
-    document.body.dataset.ready = "true";
   });
 })();

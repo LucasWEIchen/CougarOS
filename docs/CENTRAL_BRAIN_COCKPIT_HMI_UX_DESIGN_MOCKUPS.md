@@ -1,31 +1,35 @@
 # Central Brain Client2 中控 UI/UX 设计稿
 
-版本：1.0
+版本：2.0
 
 日期：2026-07-16
 
-状态：High-fidelity design baseline；非 APK 实现
+状态：Intent-first high-fidelity design baseline；非 APK 实现
 
-Req ID：`APP-001/003/004`、`FW-U-001/003/004`、`FW-S-003/005`、`XSC-001`、
+Req ID：`APP-001/003/004`、`FW-U-001/003/004`、`FW-S-001/003/005`、`XSC-001`、
 `NV-F-001/003/004/009`、`NV-G-005/006/007`、`NV-P-002`、`DEL-001/004`、
-`S2-UX-001..003`、`S2-HMI-001..005`。
+`S2-UX-001..003`、`S2-HMI-001..006`。
 
-## 1. 交付结论
+## 1. 设计纠偏
 
-本设计稿把当前 Client2 的右侧半透明测试面板升级为可开发的中控闭环视觉基线，保留以下现有
-产品特征：
+首版设计把“关怀、空调、座椅、执行”作为顶层 tab，虽然覆盖了设备控制，却把 AIOS 表现成按钮
+较多的智能中控。用户审查明确指出：AIOS 的输入应是“我有些疲惫”这类简单场景表达，其余动作
+由系统自动完成，同时 UI 必须清晰呈现自动化执行链。
 
-- 1920x1080 横屏和全屏车模；
-- 底部导航触发，二次点击或面板外点击关闭；
-- 右侧约三分之一悬浮，不把车模改为分屏；
-- 浅灰高透明材质，底层车模和原有导航仍可辨认；
-- Client2 内承载，不另起产品 HMI APK。
+第二版将顶层信息架构改为：
 
-新增“关怀、空调、座椅、执行”四个主视图。设计图中的状态、按钮和车身回读均为设计示例，
-不代表 Runtime、Digital Twin、Effect adapter 或真实车辆已经接入。
+```text
+意图 -> 计划 -> 执行 -> 结果
+          |
+          +-> Intent -> Context -> Plan -> Policy/Approval -> Effect -> Readback
+```
+
+用户不需要先选择 HVAC 或 Seat。设备界面仍然保留，但降为 Effect 详情与受治理的手动兜底抽屉，
+从而同时满足 AIOS 主叙事和中控闭环要求。
 
 ```text
 cockpit_hmi_design_mockups_ready=true
+aios_intent_orchestration_ux_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
@@ -34,169 +38,154 @@ production_ready=false
 target_hardware_validated=false
 ```
 
-## 2. 设计资产
+## 2. 产品原则
+
+1. **一句话表达目标**：voice/text 只描述感受或目的，不暴露设备参数作为前置条件。
+2. **自动生成方案**：系统读取可信 Context，归一化 allowlisted scenario，编译可审计 Plan。
+3. **默认自动执行**：LOW/MEDIUM Effect 经 Policy 允许后自动调度；只确认 HIGH 风险节点。
+4. **完整链路可见**：Intent、Context、Plan、Policy、Effect、Readback 必须在 UI 中有明确投影。
+5. **结果由回读决定**：模型回复、按钮状态和动画都不能替代 adapter observation。
+6. **设备控制是次级入口**：HVAC/Seat 详情用于解释、诊断和手动兜底，不是产品首页。
+7. **可恢复可撤销**：隐藏面板不停止 Session；失败、partial、retry、undo 和重连均可见。
+
+## 3. 设计资产
 
 | 资产 | 用途 |
 | --- | --- |
-| [`index.html`](ui/cockpit-hmi-design/index.html) | 可点击高保真原型；支持四 tab、面板开关和部分控件交互 |
-| [`styles.css`](ui/cockpit-hmi-design/styles.css) | 1920x1080 几何、组件、视觉 token 和响应缩放 |
-| [`app.js`](ui/cockpit-hmi-design/app.js) | tab、场景、温度、模式、座椅等级和面板交互 |
-| [`render_mockups.sh`](ui/cockpit-hmi-design/render_mockups.sh) | 自动选择 Windows Chrome 或 Playwright 复现四张 1920x1080 PNG |
-| [`01-care.png`](assets/cockpit-hmi-design/01-care.png) | 关怀场景首页 |
-| [`02-hvac.png`](assets/cockpit-hmi-design/02-hvac.png) | HVAC 手动控制与 desired/reported |
-| [`03-seat.png`](assets/cockpit-hmi-design/03-seat.png) | Seat 舒适控制与驾驶状态限制 |
-| [`04-execution.png`](assets/cockpit-hmi-design/04-execution.png) | Effect timeline、逐项回读、停止与撤销 |
+| [`index.html`](ui/cockpit-hmi-design/index.html) | 可点击高保真原型；支持自然输入、四阶段、Effect 详情和面板开关 |
+| [`styles.css`](ui/cockpit-hmi-design/styles.css) | 1920x1080 几何、视觉 token、稳定组件和响应缩放 |
+| [`app.js`](ui/cockpit-hmi-design/app.js) | intent submit、阶段切换、approval、result 和设备详情交互 |
+| [`render_mockups.sh`](ui/cockpit-hmi-design/render_mockups.sh) | Windows Chrome/Playwright 可复现渲染 |
+| [`01-intent.png`](assets/cockpit-hmi-design/01-intent.png) | 一句话场景意图和可信 Context |
+| [`02-plan.png`](assets/cockpit-hmi-design/02-plan.png) | 意图归一化、自动编排和安全门 |
+| [`03-execution.png`](assets/cockpit-hmi-design/03-execution.png) | 多 Effect 自动执行和实时调用链 |
+| [`04-result.png`](assets/cockpit-hmi-design/04-result.png) | readback evidence、反馈和 governed undo |
 
 参考背景来自 API 33 模拟器 Client2 截图，SHA-256：
-`ea67855e9ec184559546c35f8be0d3a87abc5fc7f8edff02d5e411fe98479e80`。仓库中的副本只作为
-设计画布，不是目标硬件证据，也不得用于关闭 B3/P8/Driver-HAL gate。
+`ea67855e9ec184559546c35f8be0d3a87abc5fc7f8edff02d5e411fe98479e80`。该副本仅作为设计画布，
+不是目标硬件证据，不得用于关闭 B3/P8/Driver-HAL gate。
 
-## 3. 总体画布与几何
+## 4. 画布与视觉规范
 
-| 对象 | 1920x1080 基准值 | Android 实现建议 |
+| 对象 | 1920x1080 基准 | Android 实现建议 |
 | --- | --- | --- |
-| Panel bounds | x=1272，y=12，w=636，h=1056 | 右侧 1/3，外边距 12dp，宽度使用约束而非硬编码像素 |
-| Panel radius | 8px | 8dp |
-| Panel material | `rgba(246,248,248,0.88)` + blur | Android 低版本不支持 blur 时使用 90% 实色降级 |
-| Panel padding | 20px 横向 | 20dp；紧凑屏降至 16dp |
-| Header | 108px，含 Runtime 状态 | 标题、连接、source、driving state 固定，不随内容滚动 |
-| Tabs | 48px | 四等分 segmented navigation |
-| Execution strip | 76px | 所有页面固定可见；隐藏面板不 cancel session |
-| Touch target | 最小 48px | 图标和主操作均不低于 48dp |
+| Panel | x=1272，y=12，w=636，h=1056 | 右侧约 1/3，外边距 12dp，约束布局 |
+| Radius | 8px | 8dp，重复 Effect row 使用 6dp |
+| Material | `rgba(244,247,247,0.91)` + blur | blur 不可用时 92% 浅灰实色降级 |
+| Header | 110px | connection/source/driving/context revision 固定 |
+| Stage nav | 72px | 意图/计划/执行/结果四等分，显示已完成阶段 |
+| Session strip | 76px | 全局固定；隐藏面板不 cancel Session |
+| Touch target | 最小 48px | 图标、主命令和详情操作均不低于 48dp |
 
-Panel 只覆盖右侧区域，车模不 resize。背景点击发出 Dismiss；Panel 自身消费点击。底部原有
-Central Brain 触发区保持透明，不增加第二个可见导航按钮。
-
-## 4. 视觉语言
-
-### 4.1 Color token
-
-| Token | 值 | 语义 |
-| --- | --- | --- |
-| Ink | `#172129` | 主文字 |
-| Muted | `#60707B` | 次级文字、metadata |
-| Teal | `#176F68` | active、manual control、primary action |
-| Warm | `#B84E3D` | 加热、升温 |
-| Cool | `#397793` | 制冷、通风、疲劳唤醒 |
-| Amber | `#9A6A22` | SIMULATED、pending、verifying |
-| Success | `#2F7448` | connected、verified、safe context |
-| Divider | `rgba(49,64,74,0.16)` | section 分隔 |
-
-状态不得只依赖颜色；所有状态同时使用中文文案、source 和图形/位置。全局不使用装饰性渐变、
-大圆角卡片或嵌套 card。重复场景和 Effect 使用 8px card；其他内容使用全宽 section 和分隔线。
-
-### 4.2 Typography
-
-- H1：22px/700；页面 H2：25px/700；section：13px/800；正文：10-12px；
-- 中文优先 `Microsoft YaHei/Noto Sans SC/PingFang SC`，Android 实现使用系统 sans-serif；
-- 不随 viewport 宽度缩放字号；长文案换行，值和状态使用稳定网格防止跳动。
+主色 `#176F68` 表示 AIOS active/primary；`#2F7448` 表示 verified；`#9A6A22` 表示 approval/
+applying；`#397793` 表示 readback/secondary information；`#B84E3D` 仅用于座椅/热相关提示。
+状态必须同时使用文字、位置和 source，不能只依赖颜色。
 
 ## 5. 四个主视图
 
-### 5.1 关怀
+### 5.1 意图
 
-![关怀场景设计稿](assets/cockpit-hmi-design/01-care.png)
+![AIOS 意图输入设计稿](assets/cockpit-hmi-design/01-intent.png)
 
-- 首屏只保留四个高频入口：“我冷了”“我累了”“午休模式”“回家规划”；
-- 每个入口同时显示确定性结果摘要，不能只显示场景名字；
-- 座舱快照显示 HVAC、Seat、Media 最近回读；
-- AI 文本仅解释状态，Effect 是否完成以执行页和 reported state 为准；
-- 点击场景进入执行页，不能在关怀页直接把控件改成成功状态。
+- 首屏主操作是 voice/text composer，示例值为“我有些疲惫”；
+- “车里有点冷”“我想休息一会”“准备回家”只是表达示例，不是设备操作按钮；
+- Context 摘要显示车辆状态、座舱温度、乘员和媒体，并携带 source/trust/freshness；
+- 文案明确区分模型理解、Runtime 计划、Policy 授权和车辆回读；
+- 提交后自动进入计划阶段，不要求用户逐项配置设备。
 
-### 5.2 空调
+### 5.2 计划
 
-![空调控制设计稿](assets/cockpit-hmi-design/02-hvac.png)
+![AIOS 自动计划设计稿](assets/cockpit-hmi-design/02-plan.png)
 
-- 首版包含 power、主驾/副驾、temperature、fan、AUTO、A/C、SYNC、airflow 和快捷 preset；
-- 目标 24.0°C 与当前 26.5°C 分开显示，并明确“正在确认”；
-- 连续温度/风量输入在实现中使用 300ms debounce；
-- target 范围由 `CapabilityCatalog` 提供，设计中的 16-30°C 和 0.5°C 只属于 debug/demo；
-- 底部执行条在 tab 切换后仍显示 active session。
+- 显示原始表达、归一化场景 `scene.fatigue.assist.v1` 和模型置信度；
+- 自动化链固定展示“理解意图、读取 Context、编译 Plan、安全与权限、执行并回读”；
+- 恢复方案包含 HVAC、Seat、Media 和 Navigation，每项标记自动/需确认/建议；
+- LOW/MEDIUM 节点默认自动执行，只有驾驶席靠背等 HIGH 节点要求一次确认；
+- approval 展示目标、原因和重检条件，不允许确认覆盖 hard interlock。
 
-### 5.3 座椅
+### 5.3 执行
 
-![座椅控制设计稿](assets/cockpit-hmi-design/03-seat.png)
+![AIOS 自动执行设计稿](assets/cockpit-hmi-design/03-execution.png)
 
-- 主驾/副驾独立；加热、通风互斥；按摩为 toggle；
-- 靠背使用稳定 slider 和直立/舒适/休息 preset，不使用自由拖拽车模作为唯一输入；
-- `PARKED` 只表示 HMI 允许提交，Runtime 仍需重新检查 speed/gear/belt/occupancy；
-- `MOVING` 或 `UNKNOWN_RESTRICTED` 时驾驶席靠背和休息 preset disabled；
-- HIGH risk preset 在真正实现时进入 durable approval，而不是简单确认弹窗后直达 adapter。
+- 顶部阶段 rail 显示 Intent、Plan、Policy、Effect 和 Readback 当前进度；
+- HVAC/Seat/Media/Navigation 使用通用 Effect row，显示 state、target、current、source；
+- `DISPATCHED/APPLYING/VERIFIED/SKIPPED` 不合并为一个“已完成”；
+- 实时调用链展示 `policy.allowed`、`approval.validated`、`effect.verified/applying`；
+- Effect “详情”打开设备抽屉，用户无需回到顶层设备 tab；
+- 用户可以停止未完成项，但隐藏面板不会停止 Session。
 
-### 5.4 执行
+### 5.4 结果
 
-![执行详情设计稿](assets/cockpit-hmi-design/04-execution.png)
+![AIOS 执行结果设计稿](assets/cockpit-hmi-design/04-result.png)
 
-- 顶部 timeline 区分 request、policy、dispatch 和 verify；
-- HVAC、Seat、Media、Navigation 使用通用 Effect row，逐项显示 target/source/result；
-- `DISPATCHED` 不显示“已完成”；只有回读匹配后才显示“已确认”；
-- Media/Navigation 即使没有独立 tab，也必须提供 stop/cancel projection；
-- partial、retry、readback mismatch、cancel 和 governed undo 在该页统一呈现；
-- 面板隐藏和 Activity recreate 后从 Session snapshot + cursor 恢复。
+- 结果摘要重新串联“自然意图 -> 计划节点 -> 已验证 Effect”；
+- HVAC、Seat、Media 逐项显示 desired/reported 一致性，只有 readback matched 才显示 verified；
+- 用户反馈只影响后续建议，不会覆盖设备回读；
+- “查看设备详情”打开同一 DeviceDetailDrawer；
+- 撤销创建 governed compensation Session，并再次等待 readback。
 
-## 6. 核心 UX 流程
+## 6. AIOS 自动化调用链
+
+| UI 阶段 | Runtime 对象 | 用户需要看到 | 用户可操作 |
+| --- | --- | --- | --- |
+| 意图 | `IntentRequest` / normalized scenario | 原始表达、识别结果、Context freshness | 修改或提交表达 |
+| Context | `ContextSnapshot` | source、trust、revision、关键值 | 查看；不能自报 speed/gear/belt |
+| Plan | `PlanSnapshot` / nodes | 自动选择的能力、顺序、预计时间 | 查看计划 |
+| Policy | decision / approval | 自动允许项、拒绝原因、高风险确认 | 只确认/拒绝 HIGH 节点 |
+| Effect | `EffectObservation` | requested/prepared/dispatched/applied 状态 | stop/retry/inspect |
+| Readback | Digital Twin reported state | desired/reported/source/quality | feedback/undo |
 
 ```mermaid
 flowchart LR
-    Entry["底部导航打开面板"] --> Care["关怀 / 手动控制"]
-    Care --> Intent["bounded HMI intent"]
-    Intent --> Session["Session + Policy + Approval"]
-    Session --> Effect["Durable Effect"]
-    Effect --> Adapter["SIMULATED / TARGET adapter"]
-    Adapter --> Readback["EffectObservation + reported state"]
-    Readback --> Execute["执行页逐项确认"]
-    Execute --> Undo["retry / cancel / governed undo"]
+    Phrase["我有些疲惫"] --> Intent["Bounded intent resolver"]
+    Intent --> Context["Fresh ContextSnapshot"]
+    Context --> Plan["Scenario + Plan compiler"]
+    Plan --> Policy["Policy / Safety / Approval"]
+    Policy --> Effects["HVAC / Seat / Media / Nav Effects"]
+    Effects --> Adapter["SIMULATED or TARGET adapter"]
+    Adapter --> Readback["Observation + reported state"]
+    Readback --> Result["Verified result / partial / undo"]
 ```
 
-### 6.1 “我冷了”
+## 7. HVAC/Seat 次级详情
 
-1. 点击关怀入口，立即进入执行页；
-2. 显示 HVAC 目标和 occupied seat heating 目标；
-3. policy 通过后逐项进入 applying；
-4. HVAC/Seat 页同步 desired，但 reported 只由 observation 更新；
-5. partial failure 时保留成功项，展示失败项 retry/undo。
+Effect 详情抽屉必须显示 Plan -> Policy -> Adapter -> Readback 链，以及 target、reported、quality、
+source 和 context revision。HVAC 可包含 power/zone/temp/fan/AUTO/A/C/SYNC/airflow；Seat 可包含
+heat/vent/massage/recline/preset。手动修改产生新的 bounded intent，经 `ScenarioClient` 进入同一
+Governance/Effect 链，不允许 View 直调 adapter。
 
-### 6.2 “我累了”
+在 `MOVING/UNKNOWN_RESTRICTED` 时，驾驶席 recline/休息姿态在抽屉内 disabled，Runtime dispatch
+count 仍必须为 0。抽屉禁用仅是呈现层，不能替代 Runtime Safety authority。
 
-1. MOVING/UNKNOWN：只能使用允许的通风、媒体和建议；驾驶席 recline dispatch count=0；
-2. PARKED：可生成 rest preview，满足 fresh Context 后进入 approval；
-3. approval 后 Context revision 变化时拒绝旧批准并重新展示原因；
-4. 所有 Media/Navigation 动作在执行页提供停止/取消。
+## 8. Android 开发映射
 
-## 7. Android 开发映射
-
-| 设计区域 | 计划 Java/Resource | 事件/状态 |
+| 设计模块 | 计划 Java/Resource | 输入/输出 |
 | --- | --- | --- |
-| Header/Tabs/Strip | `main_layout.central_brain_panel.xml` | connection/source/driving/session aggregate |
-| 关怀 | `Client2CockpitHmiController` + scenario resources | `OpenSessionIntent` |
-| 空调 | `ClimateSurfaceBinder` | `ManualHvacIntent`、ClimateState |
-| 座椅 | `SeatSurfaceBinder` | `ManualSeatIntent`、SeatState |
-| 执行 | `ExecutionSurfaceBinder` | SessionSnapshot、EffectObservation、UndoHandle |
-| 全局状态 | `CockpitHmiState/Reducer/Renderer` | immutable state + single-thread reducer |
-| SDK 协调 | `CockpitControlCoordinator` | snapshot -> cursor replay -> callback attach |
+| Header/StageNav/Strip | `main_layout.central_brain_panel.xml` | connection/source/driving/session aggregate |
+| IntentComposer | `IntentComposerBinder` | voice/text -> bounded intent request |
+| ContextDigest | `ContextDigestBinder` | `ContextSnapshot` projection |
+| Plan | `PlanSurfaceBinder` | normalized scenario、PlanSnapshot、approval |
+| Execution | `ExecutionSurfaceBinder` | Session event、EffectObservation、live trace |
+| Result | `ResultSurfaceBinder` | verified evidence、feedback、UndoHandle |
+| Device detail | `DeviceDetailDrawer` + Climate/Seat binders | effect detail -> governed manual intent |
+| Global state | `CockpitHmiState/Reducer/Renderer` | immutable state + single-thread reducer |
+| SDK coordinator | `CockpitControlCoordinator` | snapshot -> cursor replay -> callback attach |
 
-Smali 只保留 Activity bootstrap/show/hide/lifecycle forwarding。设计稿中的业务状态、控件规则和
-renderer 不进入 Smali，也不直接调用 Simulated/Target adapter。
-
-## 8. 分辨率与可访问性
-
-- 基准：1920x1080；后续验收：1280x720、2560x1440；
-- 宽屏保持右侧约 1/3，最小 panel 宽 480dp，最大 680dp；
-- 小于最小宽度时减少双列场景为单列，不缩小触控目标或动态缩放字体；
-- 所有图标按钮需要 contentDescription；状态必须有文字；focus 顺序 Header -> Tabs -> Content -> Strip；
-- moving presentation 减少长文本和可操作项，但不隐藏安全拒绝原因。
+Smali 只保留 Activity bootstrap/show/hide/lifecycle forwarding。自然语言 resolver、业务状态、控件规则、
+renderer 和 SDK 协调进入 maintained Java secondary dex。
 
 ## 9. 设计验收
 
-1. 四张 PNG 必须是 1920x1080，车模保持全屏且 panel 不改变底层布局；
-2. Panel bounds、12px margin、8px radius、四 tab 和固定 execution strip 一致；
-3. 页面无文本溢出、卡片嵌套、纯颜色状态或小于 48px 的关键触控目标；
-4. HVAC 和 Seat 页面同时显示 desired/reported 或明确的回读状态；
-5. 执行页覆盖 HVAC/Seat/Media/Navigation projection；
-6. 所有稿件持续显示 `SIMULATED` 和 `DESIGN ONLY`；
-7. 设计稿不得把 `cockpit_demo_control_loop_implemented` 改为 true。
+1. 四张 PNG 均为 1920x1080，Client2 车模保持全屏，Panel 仍是右侧悬浮层；
+2. 首屏唯一主命令是自然场景输入，“我有些疲惫”无需先操作 HVAC/Seat；
+3. 四阶段固定为意图、计划、执行、结果，计划/执行页可追踪完整自动化链；
+4. LOW/MEDIUM 自动执行，HIGH 节点只请求一次有理由的确认；
+5. HVAC/Seat/Media/Navigation 全部有 Effect projection，设备控件只在次级详情中出现；
+6. 结果页逐项区分 desired/reported/source，不能用模型文本或本地按钮宣称完成；
+7. partial、stop、retry、approval、undo、reconnect 有明确位置；
+8. 所有稿件持续显示 `SIMULATED` 和 `DESIGN ONLY`；
+9. 设计稿不得把 `cockpit_demo_control_loop_implemented` 或硬件/量产状态改为 true。
 
-复现设计稿：`bash docs/ui/cockpit-hmi-design/render_mockups.sh`。WSL 环境默认复用 Windows
-Chrome；其他 Linux 环境使用 Playwright，也可通过 `RENDER_BACKEND` 显式选择。
+复现：`bash docs/ui/cockpit-hmi-design/render_mockups.sh`。
 
-验证入口：`bash tools/check_central_brain_cockpit_hmi_design.sh`。
+验证：`bash tools/check_central_brain_cockpit_hmi_design.sh`。

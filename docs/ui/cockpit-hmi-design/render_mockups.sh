@@ -101,15 +101,15 @@ if [[ "$RENDER_BACKEND" == "windows-chrome" ]]; then
   RENDER_PORT="${COCKPIT_HMI_DESIGN_PORT:-8765}"
   prepare_windows_temp
   start_windows_render_server "$RENDER_PORT"
-  render_with_windows_chrome care 01-care.png "$RENDER_PORT"
-  render_with_windows_chrome hvac 02-hvac.png "$RENDER_PORT"
-  render_with_windows_chrome seat 03-seat.png "$RENDER_PORT"
-  render_with_windows_chrome execution 04-execution.png "$RENDER_PORT"
+  render_with_windows_chrome intent 01-intent.png "$RENDER_PORT"
+  render_with_windows_chrome plan 02-plan.png "$RENDER_PORT"
+  render_with_windows_chrome execution 03-execution.png "$RENDER_PORT"
+  render_with_windows_chrome result 04-result.png "$RENDER_PORT"
 elif [[ "$RENDER_BACKEND" == "playwright" ]]; then
-  render_with_playwright care 01-care.png
-  render_with_playwright hvac 02-hvac.png
-  render_with_playwright seat 03-seat.png
-  render_with_playwright execution 04-execution.png
+  render_with_playwright intent 01-intent.png
+  render_with_playwright plan 02-plan.png
+  render_with_playwright execution 03-execution.png
+  render_with_playwright result 04-result.png
 else
   echo "unsupported cockpit HMI render backend: $RENDER_BACKEND" >&2
   exit 1

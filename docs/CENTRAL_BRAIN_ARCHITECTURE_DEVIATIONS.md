@@ -125,7 +125,7 @@ Client2 HVAC/Seat 中控页面可以在该 debug/test profile 下形成演示闭
 把截图或动画作为真实车辆证据；请求必须经 SDK/Governance/Durable Effect/readback 返回。
 
 涉及需求：`S2-CTX-001`、`S2-TWN-001`、`S2-SCN-001`、`S2-EFF-001`、
-`S2-ADP-001/002`、`S2-HMI-001..005`。状态：`Accepted Temporary`。
+`S2-ADP-001/002`、`S2-HMI-001..006`。状态：`Accepted Temporary`。
 
 ## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI
 

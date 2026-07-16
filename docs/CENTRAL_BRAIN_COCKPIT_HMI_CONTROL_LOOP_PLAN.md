@@ -1,6 +1,6 @@
 # Central Brain 中控屏 HVAC/Seat 演示闭环规划
 
-版本：1.1
+版本：1.2
 
 日期：2026-07-16
 
@@ -10,9 +10,9 @@
 
 ## 1. 决策与需求映射
 
-座椅与空调不是仅由 AI 回复文本描述的未来能力。它们必须作为 Client2 所承载中控屏中的正式
-演示界面进入 Android APK，并与“我冷了”“我累了”“休息模式”和手动控制形成可观察、可失败、
-可撤销和可恢复的软件闭环。
+AIOS 的主入口不是设备按钮集合。用户应只表达“我有些疲惫”等场景目标，Runtime 自动完成意图
+归一化、Context 读取、Plan 编译、Policy/Approval、Effect 调度和 readback。座椅与空调仍必须作为
+Client2 中可观察、可失败、可撤销的 Effect 详情与手动兜底界面，但不得取代 AIOS 主调用链。
 
 本规划新增派生需求：
 
@@ -23,11 +23,13 @@
 | `S2-HMI-003` | desired/reported、effect timeline、partial、retry、undo、recovery 可见 | `FW-U-001/003/004`、`NV-G-006/007` |
 | `S2-HMI-004` | 无真实信号时使用显式 Android debug/test Digital Twin，禁止伪装真实车控 | `S2-TWN-001`、`S2-ADP-001`、`DEL-001/004` |
 | `S2-HMI-005` | 场景操作与手动操作复用同一 SDK/Governance/Effect 链路 | `APP-004`、`NV-F-001/003/004/009`、`NV-P-002` |
+| `S2-HMI-006` | 自然场景意图为主入口并显示自动化调用链 | `APP-001/003/004`、`FW-U-001/004`、`NV-F-001`、`NV-G-005..007` |
 
 状态边界：
 
 ```text
 cockpit_hmi_design_mockups_ready=true
+aios_intent_orchestration_ux_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
@@ -42,8 +44,9 @@ virtualization_development_triggered=false
 ### 1.1 高保真设计基线
 
 `CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md` 已按现有 Client2 1920x1080 车模、底部导航
-入口和右侧半透明悬浮面板完成关怀、HVAC、Seat、执行四视图设计。仓库同时提供可点击 HTML/CSS/JS
-原型、四张 1920x1080 PNG、视觉 token、Android 类/资源映射和可复现渲染脚本。
+入口和右侧半透明悬浮面板完成“意图、计划、执行、结果”四阶段设计。首屏只接收自然场景表达，
+HVAC/Seat 降为 Effect 详情与手动兜底抽屉。仓库同时提供可点击 HTML/CSS/JS 原型、四张
+1920x1080 PNG、视觉 token、Android 类/资源映射和可复现渲染脚本。
 
 该资产补全 HMI-D0 视觉基线，不是 HMI-D1 的 Android resource/Java controller，也不能证明
 HVAC/Seat 控制、Effect readback、目标硬件或量产能力已经实现。
@@ -54,8 +57,10 @@ HVAC/Seat 控制、Effect readback、目标硬件或量产能力已经实现。
 
 1. Client2 底部导航继续作为 Central Brain 菜单入口。
 2. 现有半透明右侧悬浮面板保留，不改回分屏，不遮断原车模主体交互。
-3. 面板增加“关怀”“空调”“座椅”“执行”四个视图。
-4. 空调和座椅控件产生真实 typed SDK 请求，而不是只改变本地控件颜色或文本。
+3. 面板顶层增加“意图”“计划”“执行”“结果”四阶段，持续展示 Intent -> Context -> Plan ->
+   Policy -> Effect -> readback。
+4. HVAC/Seat 状态和手动微调从 Effect 详情打开；控件产生真实 typed SDK 请求，而不是只改变本地
+   控件颜色或文本。
 5. Android debug/test Runtime 使用 Vehicle Digital Twin 和 Simulated Effect Adapter 生成 desired、
    reported、delay、failure、readback mismatch 和 restart recovery。
 6. Runtime 事件驱动 HMI reducer 更新当前值、目标值、进度、失败、撤销和来源标识。
@@ -79,9 +84,10 @@ Client2 中有可观察 projection；否则模型或 Runtime 说“已经完成�
 | 中控能力 | 最小闭环 UI | 阶段/工作包 | HMI-D4 要求 |
 | --- | --- | --- | --- |
 | 全局入口与状态 | 底部入口、连接、source、驾驶态、active plan badge、关闭/恢复 | P4-W02/W03/W08 | 必须完整 |
-| 关怀场景 | cold/fatigue/rest/manual 入口、可用性、限制原因、当前 session | P4-W03/W10 | 必须完整 |
-| HVAC | 独立控制页、desired/reported、模式、失败、undo | P4-W04 | 必须完整 |
-| Seat | 独立控制页、安全限制、desired/reported、失败、undo | P4-W05/W08 | 必须完整 |
+| 自然场景意图 | voice/text、bounded suggestion、归一化 scenario、可信 Context | P4-W03/W10 | 必须完整 |
+| 自动化调用链 | Intent/Context/Plan/Policy/Effect/readback 阶段和实时事件 | P4-W02/W03/W06 | 必须完整 |
+| HVAC | Effect 详情、desired/reported、模式、失败、undo、手动兜底 | P4-W04 | 必须完整 |
+| Seat | Effect 详情、安全限制、desired/reported、失败、undo、手动兜底 | P4-W05/W08 | 必须完整 |
 | 通用 Effect 执行 | HVAC/Seat/Media/Navigation 每项 timeline、target、source、result | P4-W06/W07 | 必须完整 |
 | Media | now-playing/volume/pause/stop 的 compact projection | P4-W06/W10；完整媒体页可后续扩展 | 场景涉及时必须可见 |
 | Navigation | destination/route state/confirm/cancel 的 compact projection | P4-W06/W10；真实导航由 P8 接入 | 场景涉及时必须可见 |
@@ -143,9 +149,14 @@ Central Brain Overlay
     current driving presentation: PARKED / MOVING / RESTRICTED
     close icon
   Segmented navigation
-    关怀 | 空调 | 座椅 | 执行
+    意图 | 计划 | 执行 | 结果
   Content viewport
-    active surface
+    IntentComposer / ContextDigest
+    OrchestrationChain / PlanTimeline
+    EffectTimeline / LiveTrace
+    ResultEvidence / Undo
+  Secondary device drawer
+    HVAC / Seat / Media / Navigation detail and governed manual fallback
   Persistent execution strip
     active plan summary / approval / partial failure / undo
 ```
@@ -159,24 +170,21 @@ Central Brain Overlay
 ```text
 +------------------------------------------------+
 | Central Brain   SIMULATED  PARKED           [x]|
-| [关怀] [空调] [座椅] [执行]                    |
+| [意图] [计划] [执行] [结果]                    |
 |------------------------------------------------|
-| 空调                                            |
-| [Power]  AUTO [on]  A/C [on]  SYNC [off]       |
-| 主驾       当前 22.0 C                          |
-|          [-]  24.0 C  [+]       目标/正在确认   |
-| 风量       [-]  3  [+]     吹风 [面部/脚部]     |
-| 快捷       [更暖] [更凉] [自动舒适]             |
+| 你现在需要什么？                                |
+| “我有些疲惫”                         [语音]     |
+|                                  [交给 AIOS]    |
 |------------------------------------------------|
-| 执行  调整主驾温度                              |
-| requested > applying > verifying                |
-| [查看详情]                         [撤销]        |
+| 可信上下文：P 挡 / 0 km/h / 26.5 C / 仅主驾     |
+| Intent > Context > Plan > Policy > Effect       |
+|                                     > Readback  |
 +------------------------------------------------+
 ```
 
-座椅页替换中间内容，Header、segmented navigation 和执行条保持位置不变。
+Effect 行的“详情”打开 HVAC/Seat 状态与手动微调抽屉；Header、四阶段导航和执行条保持位置不变。
 
-## 5. HVAC 控制页
+## 5. HVAC 控制页（Effect 详情与手动兜底）
 
 ### 5.1 首版能力
 
@@ -218,7 +226,7 @@ readback 到达后才显示 verified；超时或 mismatch 必须保留目标/当
 - 切换页面、隐藏面板或 Activity pause 不取消已接受 session。
 - 显式 Cancel 只取消尚未产生不可逆副作用的节点。
 
-## 6. Seat 控制页
+## 6. Seat 控制页（Effect 详情与手动兜底）
 
 ### 6.1 首版能力
 
@@ -253,15 +261,18 @@ UI 的 enable/disable 不是安全 authority。Runtime 在 plan compile、approv
 Effect，但只有 Runtime 编译后的 plan 是权威顺序。partial failure 时必须显示哪一项已经 verified，
 不得只显示“座椅已调整”。
 
-## 7. 关怀场景与手动控制统一
+## 7. 自然场景意图与手动控制统一
 
-### 7.1 场景入口
+### 7.1 场景意图入口
 
-- `scene.comfort.cold.v1`：更新 HVAC 页和 Seat heating 状态；
-- `scene.fatigue.assist.v1`：根据 driving state 更新 HVAC、Seat、Media plan；
-- `scene.rest.nap.v1`：驻车条件满足后进入 approval，并在 Seat/HVAC 页显示目标；
+- “车里有点冷”归一化为 `scene.comfort.cold.v1`，生成 HVAC/Seat plan；
+- “我有些疲惫”归一化为 `scene.fatigue.assist.v1`，根据 driving state 生成 HVAC/Seat/Media plan；
+- “我想休息一会”归一化为 `scene.rest.nap.v1`，驻车条件满足后只确认高风险节点；
 - `scene.manual.hvac.adjust.v1`：手动 HVAC 控件的确定性场景；
 - `scene.manual.seat.adjust.v1`：手动 Seat 控件的确定性场景。
+
+自然语言只负责选择 allowlisted scenario 和 bounded parameter。模型不能创建未注册 capability，
+不能直接生成 Effect，也不能把回复文本标记为执行成功。
 
 HMI 不允许直接调用 `SimulatedHvacEffectAdapter` 或 `SimulatedSeatEffectAdapter`。手动控件同样通过
 `ScenarioClient.openSession` 创建场景 session，进入 policy、approval、durable effect、readback 和
@@ -269,13 +280,13 @@ audit。区别只在 `source=HMI_CONTROL` 和 bounded parameters。
 
 ### 7.2 同步规则
 
-1. 从“关怀”点击“我冷了”后自动切换到“执行”，HVAC/Seat tab 同时显示 desired state。
-2. 用户切到 HVAC/Seat 页不会创建新请求，除非实际修改控件。
-3. session event 到达后由 reducer 一次更新 timeline 和两个控制页。
-4. 手动操作产生的 session 同样出现在“执行”页和审计中。
+1. 提交自然场景后自动切换到“计划”，展示归一化意图、Context、Plan 和 Policy 状态。
+2. LOW/MEDIUM Effect 经策略允许后自动执行；HIGH Effect 仅请求一次明确确认。
+3. session event 到达后由 reducer 一次更新四阶段、Effect timeline 和设备详情。
+4. 从 Effect 详情发起的手动操作产生新 session，同样出现在“执行”和审计中。
 5. 同 capability 冲突时，Runtime 根据 session priority/owner/policy 决策，HMI 不在本地抢占。
 
-## 8. 执行与反馈页
+## 8. 执行、结果与反馈页
 
 ### 8.1 Effect timeline
 
@@ -317,10 +328,15 @@ CockpitHmiState
   presentationMode
   dataSourceBadge
   selectedSurface
+  intentDraft
+  normalizedScenario
+  contextDigest
+  planSummary
   activeSessionId
   climateState
   seatState
   executionState
+  resultEvidence
   approvalState
   undoState
   lastError
@@ -374,15 +390,20 @@ Renderer 只能消费 immutable `CockpitHmiState`。View listener 只发出 `Coc
 
 | 计划路径 | 职责 |
 | --- | --- |
-| `patches/main_layout.central_brain_panel.xml` | 四视图容器、稳定 layout slot、content description |
+| `patches/main_layout.central_brain_panel.xml` | 意图/计划/执行/结果四阶段容器、稳定 layout slot、content description |
 | `patches/res/drawable/` | power/fan/HVAC/seat/heat/vent/undo 等 vector/state drawable |
 | `bridge/src/com/centralbrain/client2/hmi/Client2CockpitHmiController.java` | 生命周期和 intent 协调 |
 | `bridge/src/com/centralbrain/client2/hmi/CockpitHmiState.java` | immutable 根状态 |
 | `bridge/src/com/centralbrain/client2/hmi/CockpitHmiReducer.java` | event -> state |
 | `bridge/src/com/centralbrain/client2/hmi/CockpitHmiRenderer.java` | state -> Android Views |
+| `bridge/src/com/centralbrain/client2/hmi/IntentComposerBinder.java` | voice/text -> bounded intent request |
+| `bridge/src/com/centralbrain/client2/hmi/ContextDigestBinder.java` | source/freshness/trust projection |
+| `bridge/src/com/centralbrain/client2/hmi/PlanSurfaceBinder.java` | orchestration chain/plan/approval |
 | `bridge/src/com/centralbrain/client2/hmi/ClimateSurfaceBinder.java` | HVAC 控件与 intent |
 | `bridge/src/com/centralbrain/client2/hmi/SeatSurfaceBinder.java` | Seat 控件与 intent |
 | `bridge/src/com/centralbrain/client2/hmi/ExecutionSurfaceBinder.java` | timeline/approval/undo |
+| `bridge/src/com/centralbrain/client2/hmi/ResultSurfaceBinder.java` | verified evidence/feedback/undo |
+| `bridge/src/com/centralbrain/client2/hmi/DeviceDetailDrawer.java` | Effect 详情和受治理手动兜底 |
 | `bridge/src/com/centralbrain/client2/hmi/CockpitControlCoordinator.java` | SDK session/event/snapshot |
 | `patches/smali/.../CentralBrainPanelController.smali` | 最小 bootstrap/show/hide，逐步移除业务逻辑 |
 
@@ -430,7 +451,7 @@ HMI 只获取展示所需的 projection，不能查询原始连续车身信号�
 | --- | --- | ---: |
 | P4-W01 | Bridge session/event API migration | 2 |
 | P4-W02 | Cockpit state/reducer/reconnect | 2.5 |
-| P4-W03 | 四视图 overlay shell 和资源 | 2 |
+| P4-W03 | 意图/计划/执行/结果四阶段 overlay shell 和资源 | 2 |
 | P4-W04 | HVAC control surface | 3 |
 | P4-W05 | Seat control surface + restriction preview | 3.5 |
 | P4-W06 | Plan/effect execution timeline | 2.5 |
@@ -469,13 +490,15 @@ P4 依赖 P1 typed contracts、P2 Digital Twin/simulated adapter 和 P3 durable 
 | HMI-CL-08 | 物理 Android 13 | Client2 scene、导航、overlay、Binder、UI tree、crash buffer 通过 |
 | HMI-CL-09 | fatigue plan 含 Media | 执行页显示目标/播放状态/source，并可 stop；不只显示文本 |
 | HMI-CL-10 | plan 含 Navigation | 执行页显示目的地/route state/source，并可 cancel；真实 adapter 缺失时 unavailable |
+| HMI-AI-01 | 输入“我有些疲惫” | 无设备级前置操作；归一化 scenario 并展示 Context/Plan/Policy/Effect/readback 链 |
+| HMI-AI-02 | fatigue plan 含 HIGH seat node | LOW/MEDIUM 自动执行；仅 seat node 请求一次明确确认 |
 
 ## 16. 交付阶段
 
 | 里程碑 | 结果 | 完成条件 |
 | --- | --- | --- |
 | HMI-D0 | 需求/UX/模块/验收和高保真视觉基线冻结 | 规划、设计稿、四张 PNG 和 checker 通过 |
-| HMI-D1 | Client2 四视图静态壳 | 资源、Java controller、layout screenshot |
+| HMI-D1 | Client2 意图/计划/执行/结果四阶段静态壳和设备详情抽屉 | 资源、Java controller、layout screenshot |
 | HMI-D2 | 手动 HVAC/Seat 仿真闭环 | P1/P2 + HMI-AC/ST 基础场景通过 |
 | HMI-D3 | AI 场景多 Effect 闭环 | P3 + cold/fatigue/rest/partial/undo |
 | HMI-D4 | 设备演示验收 | P4 全部 + Android 13 ARM64 fault/recovery |

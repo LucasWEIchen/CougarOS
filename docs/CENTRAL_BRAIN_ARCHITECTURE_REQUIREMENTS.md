@@ -1,6 +1,6 @@
 # 中央大脑架构需求基线
 
-版本：0.3
+版本：0.4
 日期：2026-07-16
 状态：Android 13 实际工程基线
 
@@ -21,6 +21,8 @@
 8. Android debug/test double 不能作为真实硬件、production 或量产验收证据。
 9. Client2 APK 必须规划并实现 HVAC/Seat 中控演示页；无真实信号时使用显式 SIMULATED 来源，
    手动控制和 AI 场景必须复用 Runtime 治理/Effect/readback 链路。
+10. Client2 的 AIOS 主交互必须以自然场景意图为入口，自动展示 Context、Plan、Policy、Effect 和
+    readback 调用链；HVAC/Seat 手动控件只能作为 Effect 详情和受治理的次级兜底入口。
 
 ## 3. 分层需求
 
@@ -172,6 +174,7 @@
 | S2-HMI-003 | 执行闭环 UX | timeline/approval/partial/retry/undo/recovery |
 | S2-HMI-004 | 无真实信号的演示来源 | Android debug/test Digital Twin；持续显示 SIMULATED |
 | S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
+| S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
 | S2-SES-001 | versioned durable Session | owner、TTL、state、idempotency |
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
@@ -272,27 +275,35 @@ Production adapter registry must return adapter unavailable rather than silently
 状态：`github_source_of_truth=true`、`github_sync_required=true`、
 `maintained_project_files_synced=true`、`github_homepage_architecture_current=true`。
 
-## 13. Client2 中控 HVAC/Seat 闭环需求
+## 13. Client2 AIOS 意图编排与 HVAC/Seat 闭环需求
 
-1. 底部导航打开的现有右侧悬浮菜单必须扩展为“关怀/空调/座椅/执行”四视图，保持 overlay
-   形态，不改成分屏，不另起脱离 Client2 的演示 App。
-2. HVAC 首版至少包含 power、zone、temperature、fan、AUTO、A/C、SYNC、airflow 和 comfort
+1. 底部导航打开的现有右侧悬浮菜单必须扩展为“意图/计划/执行/结果”四阶段，保持 overlay
+   形态，不改成分屏，不另起脱离 Client2 的演示 App。HVAC/Seat 只能作为 Effect 详情和手动兜底，
+   不得成为顶层主导航。
+2. 用户主输入必须是“我有些疲惫”等简短自然场景表达。模型/规则只能将表达归一化为 allowlist 中
+   的 bounded scenario，不能直接创建 Effect 或绕过 Runtime/Governance。
+3. HMI 必须连续显示 Intent -> Context -> Plan -> Policy/Approval -> Effect -> Readback 链路，
+   包含每一步的状态、原因、目标/当前值和证据；不得只显示模型文本或最终动画。
+4. LOW/MEDIUM 且 Policy 允许的 Effect 自动执行；只有 HIGH-risk 或 Policy 明确要求的步骤请求用户
+   批准。以疲劳关怀为例，空调/媒体可自动执行，驾驶席靠背调整必须单独确认。
+5. HVAC 首版至少包含 power、zone、temperature、fan、AUTO、A/C、SYNC、airflow 和 comfort
    preset；Seat 首版至少包含 zone、heating、ventilation、massage、recline 和三种 preset。
-3. 控件不能直接调用 Adapter。手动 HVAC/Seat 必须创建 bounded deterministic scenario session，
+6. 控件不能直接调用 Adapter。手动 HVAC/Seat 必须创建 bounded deterministic scenario session，
    与 cold/fatigue/rest 场景复用 SDK、Policy、Approval、Durable Effect、readback 和 Audit。
-4. HMI 必须分别显示 desired/reported/source/quality/revision/effect state；dispatch 不得直接显示完成。
-5. 无真实车身信号时，只有 debug/test profile 可以注册 Simulated Adapter，并持续显示 SIMULATED；
+7. HMI 必须分别显示 desired/reported/source/quality/revision/effect state；dispatch 不得直接显示完成。
+8. 无真实车身信号时，只有 debug/test profile 可以注册 Simulated Adapter，并持续显示 SIMULATED；
    release/production adapter unavailable 时控件必须禁用，不得隐式 fallback。
-6. 默认 driving state 为 UNKNOWN_RESTRICTED。HMI 不得提交 speed/gear/belt/occupancy；驾驶席
+9. 默认 driving state 为 UNKNOWN_RESTRICTED。HMI 不得提交 speed/gear/belt/occupancy；驾驶席
    recline 在 MOVING/UNKNOWN 下 UI 禁用且 Runtime dispatch count 必须为 0。
-7. approval、partial failure、readback mismatch、retry、governed undo、Runtime restart 和面板
+10. approval、partial failure、readback mismatch、retry、governed undo、Runtime restart 和面板
    隐藏/重开必须进入 Android 13 ARM64 验收。
-8. 所有进入演示 plan 的 HVAC/Seat/Media/Navigation Effect 必须在中控“执行”视图有 target、source、
+11. 所有进入演示 plan 的 HVAC/Seat/Media/Navigation Effect 必须在中控“执行”视图有 target、source、
    progress、reported result 和适用的 stop/cancel/undo projection；禁止只在模型文本中宣称完成。
 
-完整设计和 20 项验收矩阵见 `CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。当前状态：
+完整设计和 22 项验收矩阵见 `CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。当前状态：
 
 ```text
+aios_intent_orchestration_ux_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
