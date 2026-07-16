@@ -1,6 +1,6 @@
 # 中央大脑架构偏差登记表
 
-版本：0.4
+版本：0.5
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -77,6 +77,11 @@ cancel、version/hash 和 Binder death。R2C 已通过 API 33 service/client dea
 2026-07-17 P1-W01 新增独立 Session app-layer AIDL V1，并单独冻结 interface hash 与 source checksum；
 既有三套 V1 checksum 未改变。该接口当前仅为 `contract_defined`，没有 Service publication 或 VINTF
 声明。原 backlog 的 reconnect 测试已移到拥有 Binder 连接生命周期的 P1-W05，避免 DTO 层伪证据。
+
+同日 P1-W02 新增独立 Plan/Node app-layer structured AIDL V1、DAG validator 与
+`plan-v1.sha256`；task/diagnostic/governance/session checksum 均未改变。Plan 合同同样只达到
+`contract_defined`，没有 Binder publication、Compiler、Graph Runtime 或 VINTF 声明。API 33 ARM64
+Parcel 证据不能继承为 target platform stable-AIDL 或 Graph 执行证据。
 
 偏差仍存在：黑盒厂商系统不能用 Soong `aidl_interface` 注册 VINTF stable AIDL，当前接口是
 Gradle 应用层 Binder 合同。目标 system/privileged placement、SELinux 和稳定性 owner 未确定。

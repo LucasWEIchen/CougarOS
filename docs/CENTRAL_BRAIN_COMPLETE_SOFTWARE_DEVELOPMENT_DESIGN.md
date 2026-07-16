@@ -1,6 +1,6 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.3
+版本：2.4
 
 日期：2026-07-16
 
@@ -193,6 +193,7 @@ flowchart TB
 | 域 | 最小模块 | 状态 | 派生需求 |
 | --- | --- | --- | --- |
 | Session contract | 5 个 Session DTO、`ICentralBrainSessionRuntime` V1、`SessionContract` | `CONTRACT_ONLY`（P1-W01） | `S2-SES-001` |
+| Plan/Node contract | 4 个 Plan DTO、`PlanContract`、DAG/补偿/重试边界 | `CONTRACT_ONLY`（P1-W02） | `S2-SCN-001`、`S2-GRF-001` |
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `NOT_STARTED` | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `NOT_STARTED` | `S2-TWN-001` |
@@ -333,7 +334,34 @@ scenario ID 形状、source/seat allowlist、utterance <= 1024、locale <= 32、
 AIDL，不是 VINTF stable AIDL；V1 文件由 `aidl-api/session-v1.sha256` 冻结，interface hash 由
 `tools/check_central_brain_android_session_contract.sh` 对规范化源文件重算。
 
-### 8.5 Java SDK facade
+### 8.5 Plan/Node contract V1
+
+实现路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/plan/`。P1-W02 冻结
+`ScenarioPlan`、`PlanNode`、`NodeDependency` 和 `NodePolicy` 四个 structured parcelable，AIDL 合并
+hash 为 `8dbf27424a09ecac969aff444e7fc9e3c939c7bc5c6687de2d8a5a627d60dabd`，逐文件 checksum 位于
+`aidl-api/plan-v1.sha256`。
+
+`ScenarioPlan` 字段固定为 schemaVersion、canonical plan/session ID、scenario ID、positive revision、
+context/plan SHA-256 digest、compiled/deadline 和 bounded node/dependency 数组。`PlanNode` 固定携带
+node/type/capability/input digest/resource key、timeout、maxAttempts、idempotencyKey、required、
+compensationNodeId 和 `NodePolicy`；这些字段不得隐藏在 JSON、Bundle 或任意 Parcel blob 中。
+
+`PlanContract` 的 V1 上限和拒绝规则：
+
+- nodes 1..64、dependencies 0..256、graph depth <=16、同层 width <=8；plan deadline <=15 分钟；
+- node timeout 1..120000 ms、maxAttempts 1..3；retryable 或 side-effect node 必须有 idempotency key；
+- node ID、edge 和非空 idempotency key 在 plan 内唯一；dependency 必须引用存在节点且不可 self-edge；
+- node type 只允许 13.2 节列出的 11 类 executor；schema、dependency condition、risk 和 failure mode
+  未知时失败关闭；
+- compensation 必须引用 plan 内 `compensate` node，不可 self-reference 或形成 compensation loop；
+- HIGH/CRITICAL policy 必须携带 approval-required metadata，但最终 approval、Safety、Context 和
+  capability 必须由 Runtime 在 dispatch 前重新求值，DTO 不能授予权限。
+
+本工作包只实现 wire contract 与结构校验。P2-W07 才实现 `ScenarioPlanCompiler`、完整语义
+`PlanGraphValidator`、required-effect verify、approval predecessor 和 moving branch 检查；P3 才实现
+durable Graph 执行。`plan_runtime_published=false`，不得由 Client2 动画或本地 DTO 构造宣称已执行。
+
+### 8.6 Java SDK facade
 
 计划类：
 
@@ -1456,9 +1484,10 @@ central-brain-sdk AAR
 
 ## 33. 开发人员起始点
 
-`P1-W01 Session DTO/AIDL` 已完成 contract layer：5 个有界 DTO、独立 Session Binder V1、校验器、
-JVM/Android Parcel 测试和 checksum 门禁已进入工程，Runtime service 尚未发布。下一实现工作包固定为
-`P1-W02 Plan/Node DTO/AIDL`；不得越过 contract 层直接在 Client2 中硬编码仿真动画。
+`P1-W01 Session DTO/AIDL` 和 `P1-W02 Plan/Node DTO/AIDL` 已完成 contract layer：9 个有界 DTO、
+独立 Session Binder V1、Session/Plan 校验器、JVM/Android 13 ARM64 Parcel 测试和独立 checksum
+门禁已进入工程，Session Service、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
+`P1-W03 Typed Event DTO/AIDL`；不得越过 contract 层直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

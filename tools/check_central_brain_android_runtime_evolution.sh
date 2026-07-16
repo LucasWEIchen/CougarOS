@@ -52,6 +52,7 @@ for path in \
   tools/install_central_brain_android_runtime.sh \
   tools/check_central_brain_android_aidl_contract.sh \
   tools/check_central_brain_android_session_contract.sh \
+  tools/check_central_brain_android_plan_contract.sh \
   tools/check_central_brain_android_binder_runtime.sh \
   tools/check_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_job_supervisor.sh \
@@ -183,6 +184,7 @@ require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4C3C Production 
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_session_contract.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_plan_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_schema.sh"

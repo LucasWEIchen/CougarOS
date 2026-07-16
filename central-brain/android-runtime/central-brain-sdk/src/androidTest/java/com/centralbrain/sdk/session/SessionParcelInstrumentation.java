@@ -7,6 +7,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.centralbrain.sdk.plan.NodeDependency;
+import com.centralbrain.sdk.plan.NodePolicy;
+import com.centralbrain.sdk.plan.PlanContract;
+import com.centralbrain.sdk.plan.PlanNode;
+import com.centralbrain.sdk.plan.ScenarioPlan;
+
 /** Physical/API 33 parcel evidence for Stage 2 P1-W01. */
 public final class SessionParcelInstrumentation extends Instrumentation {
     private static final String TAG = "CbSessionParcelTest";
@@ -26,6 +32,8 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         try {
             verifyRoundTrips();
             verifyOversizeRejection();
+            verifyPlanRoundTrips();
+            verifyPlanRejections();
             result.putString(
                     "stream",
                     "\nsession_contract_version=1"
@@ -33,6 +41,11 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                             + "\nsession_oversize_rejected=true"
                             + "\nsession_unknown_version_rejected=true"
                             + "\nsession_runtime_service_published=false"
+                            + "\nplan_contract_version=1"
+                            + "\nplan_parcel_round_trip_verified=true"
+                            + "\nplan_cycle_rejected=true"
+                            + "\nplan_unknown_node_type_rejected=true"
+                            + "\nplan_runtime_published=false"
                             + "\nhardware_accessed=false\n");
             finish(Activity.RESULT_OK, result);
         } catch (Throwable failure) {
@@ -116,6 +129,88 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         expectViolation(() -> SessionContract.validateRequest(request, NOW));
     }
 
+    private static void verifyPlanRoundTrips() {
+        ScenarioPlan plan = validPlan();
+        ScenarioPlan copy = roundTrip(plan, ScenarioPlan.CREATOR);
+        assertEquals(plan.planId, copy.planId, "planId");
+        assertEquals(plan.nodes.length, copy.nodes.length, "plan node count");
+        assertEquals(plan.dependencies.length, copy.dependencies.length, "plan dependency count");
+        PlanContract.validatePlan(copy);
+    }
+
+    private static void verifyPlanRejections() {
+        ScenarioPlan cycle = validPlan();
+        cycle.dependencies = new NodeDependency[] {
+                dependency("capture-context", "apply-hvac"),
+                dependency("apply-hvac", "verify-hvac"),
+                dependency("verify-hvac", "capture-context")
+        };
+        expectPlanViolation(() -> PlanContract.validatePlan(cycle));
+
+        ScenarioPlan unknown = validPlan();
+        unknown.nodes[1].nodeType = "shell.execute";
+        expectPlanViolation(() -> PlanContract.validatePlan(unknown));
+    }
+
+    private static ScenarioPlan validPlan() {
+        String digest =
+                "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+        PlanNode capture = node("capture-context", "context.capture", digest, false);
+        PlanNode apply = node("apply-hvac", "effect.execute", digest, true);
+        apply.capabilityId = "vehicle.hvac.temperature";
+        apply.resourceKey = "vehicle:hvac:row1-driver";
+        apply.idempotencyKey = "device-plan:apply-hvac";
+        apply.compensationNodeId = "compensate-hvac";
+        apply.policy.verificationRequired = true;
+        apply.policy.failureMode = PlanContract.FAILURE_COMPENSATE;
+        PlanNode verify = node("verify-hvac", "effect.verify", digest, false);
+        PlanNode compensate = node("compensate-hvac", "compensate", digest, false);
+        compensate.idempotencyKey = "device-plan:compensate-hvac";
+
+        ScenarioPlan plan = new ScenarioPlan();
+        plan.planId = "c9c1ec9f-4d04-4c49-9156-d8e1be2e60a0";
+        plan.sessionId = SESSION_ID;
+        plan.scenarioId = "scene.cold.assist.v1";
+        plan.revision = 1;
+        plan.contextDigest = digest;
+        plan.planDigest = digest;
+        plan.compiledAtEpochMs = NOW;
+        plan.deadlineEpochMs = NOW + 120_000;
+        plan.nodes = new PlanNode[] {capture, apply, verify, compensate};
+        plan.dependencies = new NodeDependency[] {
+                dependency("capture-context", "apply-hvac"),
+                dependency("apply-hvac", "verify-hvac")
+        };
+        return plan;
+    }
+
+    private static PlanNode node(
+            String nodeId, String nodeType, String inputDigest, boolean required) {
+        NodePolicy policy = new NodePolicy();
+        policy.policyId = "policy.cabin.default";
+        policy.policyVersion = 1;
+        policy.riskClass = PlanContract.RISK_LOW;
+        policy.failureMode = PlanContract.FAILURE_FAIL_PLAN;
+
+        PlanNode node = new PlanNode();
+        node.nodeId = nodeId;
+        node.nodeType = nodeType;
+        node.inputDigest = inputDigest;
+        node.timeoutMs = 30_000;
+        node.maxAttempts = 1;
+        node.required = required;
+        node.policy = policy;
+        return node;
+    }
+
+    private static NodeDependency dependency(String prerequisite, String dependent) {
+        NodeDependency dependency = new NodeDependency();
+        dependency.prerequisiteNodeId = prerequisite;
+        dependency.dependentNodeId = dependent;
+        dependency.condition = PlanContract.DEPENDENCY_ON_SUCCESS;
+        return dependency;
+    }
+
     private static <T extends Parcelable> T roundTrip(T value, Parcelable.Creator<T> creator) {
         Parcel parcel = Parcel.obtain();
         try {
@@ -133,6 +228,17 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             throw new AssertionError("expected a Session contract violation");
         } catch (IllegalArgumentException expected) {
             if (!expected.getMessage().startsWith("CB_SESSION_CONTRACT:")) {
+                throw expected;
+            }
+        }
+    }
+
+    private static void expectPlanViolation(Runnable operation) {
+        try {
+            operation.run();
+            throw new AssertionError("expected a Plan contract violation");
+        } catch (IllegalArgumentException expected) {
+            if (!expected.getMessage().startsWith("CB_PLAN_CONTRACT:")) {
                 throw expected;
             }
         }
