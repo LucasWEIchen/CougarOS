@@ -10,6 +10,7 @@ RESEARCH="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md
 UX="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md"
 BACKLOG="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md"
 DESIGN="$ROOT_DIR/docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md"
+COCKPIT_HMI="$ROOT_DIR/docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md"
 REQUIREMENTS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
 ROADMAP="$ROOT_DIR/docs/CENTRAL_BRAIN_ROADMAP.md"
 DEVIATIONS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
@@ -18,7 +19,7 @@ DELIVERY="$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
 DRIVER="$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
 README="$ROOT_DIR/README.md"
 
-for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$REQUIREMENTS" "$ROADMAP" \
+for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
@@ -57,10 +58,12 @@ done
 
 for marker in \
   '# Central Brain AIOS Stage 2 开发计划与最小工作包' \
-  'P0-P7 总计约 124-168 人日' \
+  'P0-P7 总计约' \
+  '136-184 人日' \
   '### `P1-W01` Session DTO/AIDL' \
   '### `P2-W10` Simulated Seat adapter' \
   '### `P3-W09` Restart recovery' \
+  '### `P4-W12` Android device acceptance/fault/recovery' \
   '### `P8-W03` AaosCarPropertyEffectAdapter' \
   '## 16. 阶段性完成定义'; do
   require_text "$BACKLOG" "$marker"
@@ -79,12 +82,31 @@ for marker in \
   '## 15. Effect 系统' \
   '## 23. Room v4 数据设计' \
   '## 30. 测试设计' \
+  '## 34. Client2 中控闭环实施顺序' \
   '`P1-W01 Session DTO/AIDL`'; do
   require_text "$DESIGN" "$marker"
 done
 
+for marker in \
+  '# Central Brain 中控屏 HVAC/Seat 演示闭环规划' \
+  '### 2.3 中控屏闭环 UI/UX 全量清单' \
+  '### 2.4 单项能力的闭环完成定义' \
+  '## 5. HVAC 控制页' \
+  '## 6. Seat 控制页' \
+  '## 14. 最小工作包与工作量' \
+  'HMI-AC-01' \
+  'HMI-ST-02' \
+  'HMI-CL-06' \
+  'HMI-CL-09' \
+  'HMI-CL-10' \
+  'SIMULATED' \
+  'cockpit_demo_control_loop_implemented=false'; do
+  require_text "$COCKPIT_HMI" "$marker"
+done
+
 derived_ids=(
-  S2-UX-001 S2-UX-002 S2-UX-003 S2-SES-001 S2-CTX-001 S2-TWN-001
+  S2-UX-001 S2-UX-002 S2-UX-003 S2-HMI-001 S2-HMI-002 S2-HMI-003
+  S2-HMI-004 S2-HMI-005 S2-SES-001 S2-CTX-001 S2-TWN-001
   S2-SCN-001 S2-GRF-001 S2-SAF-001 S2-EFF-001 S2-ADP-001 S2-TOL-001
   S2-MEM-001 S2-EVT-001 S2-MDL-001 S2-ADP-002 S2-OBS-001 S2-REL-001
 )
@@ -105,12 +127,17 @@ require_text "$DEVIATIONS" '## DEV-025 Client2 patched APK 是演示 HMI，不�
 require_text "$ISSUES" '## ISSUE-029 “我累了”场景的驾驶席座椅安全策略与批准 authority'
 require_text "$ISSUES" '## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定'
 require_text "$ISSUES" '## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定'
+require_text "$ISSUES" '## ISSUE-033 Client2 HVAC/Seat 中控演示闭环缺口'
 require_text "$DELIVERY" '## 2026-07-15 AIOS Stage 2 交付范围'
+require_text "$DELIVERY" '## 2026-07-16 Client2 中控 HVAC/Seat 交付规划'
 require_text "$DRIVER" '## 2026-07-15 AIOS Stage 2 Driver/HAL 边界'
+require_text "$DRIVER" '## 2026-07-16 Client2 中控 HVAC/Seat 规划边界'
 require_text "$README" 'design_baseline_complete=true'
+require_text "$README" 'cockpit_demo_control_loop_implemented=false'
 require_text "$README" 'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md'
+require_text "$README" 'CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md'
 
-for file in "$UX" "$BACKLOG" "$DESIGN" "$REQUIREMENTS" "$DEVIATIONS" "$DRIVER"; do
+for file in "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$REQUIREMENTS" "$DEVIATIONS" "$DRIVER"; do
   require_text "$file" 'driver_development_triggered=false'
   require_text "$file" 'virtualization_development_triggered=false'
 done
@@ -125,13 +152,13 @@ deviations = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
 issues = pathlib.Path(sys.argv[3]).read_text(encoding="utf-8")
 
 work_packages = re.findall(r"^### `((?:P[0-9])-W[0-9]{2})`", backlog, re.MULTILINE)
-if len(work_packages) < 55:
-    raise SystemExit(f"AIOS Stage 2 backlog is not minimum-granularity enough: {len(work_packages)} work packages")
+if len(work_packages) != 79:
+    raise SystemExit(f"AIOS Stage 2 backlog work package count changed unexpectedly: {len(work_packages)} != 79")
 if len(work_packages) != len(set(work_packages)):
     raise SystemExit("AIOS Stage 2 backlog contains duplicate work package IDs")
 
-for current, expected in ((deviations, [f"DEV-{n:03d}" for n in range(1, 26)]),
-                          (issues, [f"ISSUE-{n:03d}" for n in range(1, 32)])):
+for current, expected in ((deviations, [f"DEV-{n:03d}" for n in range(1, 27)]),
+                          (issues, [f"ISSUE-{n:03d}" for n in range(1, 34)])):
     present = set(re.findall(r"(?:^## |^\| )(DEV-[0-9]{3}|ISSUE-[0-9]{3})\b", current, re.MULTILINE))
     missing = [item for item in expected if item not in present]
     if missing:

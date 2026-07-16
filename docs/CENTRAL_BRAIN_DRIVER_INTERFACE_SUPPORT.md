@@ -1,6 +1,6 @@
 # 驱动层接口支持矩阵
 
-版本：2.0
+版本：2.1
 
 日期：2026-07-16
 
@@ -34,6 +34,18 @@ capability 评审 `DRV-GAP-001..005`；production adapter 缺失时返回 unavai
 - Android deterministic provider 只用于 unit/debug 合同测试，不关闭任何硬件 gap。
 - `driver_development_triggered=false`、`hardware_accessed=false`、
   `target_hardware_validated=false`、`production_ready=false`。
+
+## 2026-07-16 Client2 中控 HVAC/Seat 规划边界
+
+`S2-HMI-001..005` 的 Client2 关怀/HVAC/Seat/执行界面、Java reducer、typed Binder、Room session、
+debug/test Digital Twin 和 Simulated Effect adapter 都是 Android 用户态工作，不新增 Driver/HAL。
+HMI 只能经 SDK/Governance/Effect 调用 adapter；不得打开 device node、猜测 VHAL property 或将本地
+View 状态当作车身回读。
+
+演示闭环阶段保持 `source=SIMULATED`、`hardware_accessed=false`、
+`driver_development_triggered=false`。真实 target profile 无可用 Vehicle adapter 时返回 unavailable；
+只有 OEM/Vendor 提供 HVAC/Seat API/ABI、area/capability、权限、Safety、readback、fault 和 rollback
+证据后，才在 P8 评审 `DRV-GAP-002`。因此 HMI-D0..D4 不改变任何 Driver/HAL gap，新增驱动开发量为 0。
 
 ## 驱动接口矩阵
 

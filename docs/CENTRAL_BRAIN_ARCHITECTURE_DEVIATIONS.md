@@ -120,8 +120,12 @@ Demo HMI 已实现有界显式重连，B3 在 force-stop/recovery 后重新读�
 set 使用 `source=SIMULATED`、`productionAuthorized=false` 的 Digital Twin/Effect test double。
 Production profile 不包含它们；adapter 缺失时必须失败关闭。该边界不允许恢复 Python 仿真。
 
+Client2 HVAC/Seat 中控页面可以在该 debug/test profile 下形成演示闭环，但 Header 和每项 Effect
+必须持续显示 SIMULATED。页面不能直接修改本地 reported state，不能调用模拟 adapter，也不能
+把截图或动画作为真实车辆证据；请求必须经 SDK/Governance/Durable Effect/readback 返回。
+
 涉及需求：`S2-CTX-001`、`S2-TWN-001`、`S2-SCN-001`、`S2-EFF-001`、
-`S2-ADP-001/002`。状态：`Accepted Temporary`。
+`S2-ADP-001/002`、`S2-HMI-001..005`。状态：`Accepted Temporary`。
 
 ## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI
 
