@@ -1,6 +1,6 @@
 # 中央大脑架构偏差登记表
 
-版本：0.5
+版本：0.6
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -82,6 +82,13 @@ cancel、version/hash 和 Binder death。R2C 已通过 API 33 service/client dea
 `plan-v1.sha256`；task/diagnostic/governance/session checksum 均未改变。Plan 合同同样只达到
 `contract_defined`，没有 Binder publication、Compiler、Graph Runtime 或 VINTF 声明。API 33 ARM64
 Parcel 证据不能继承为 target platform stable-AIDL 或 Graph 执行证据。
+
+同日 P1-W03 新增独立 Event/callback app-layer AIDL V1、五个 structured DTO、cursor replay/parent/
+redaction/immutability validator 与 `events-v1.sha256`；此前全部 V1 checksum 均未改变。Event 合同
+同样只达到 `contract_defined`，`event_runtime_service_published=false`、
+`event_callback_service_published=false`，没有 Room publication 或 VINTF 声明。独立 Event surface
+避免改动已冻结 Session transaction order；callback 仅通知，cursor replay 才是权威恢复路径。API 33
+ARM64 Parcel 证据不能继承为 Event broker、target stable-AIDL、车辆/NPU 或 production 证据。
 
 偏差仍存在：黑盒厂商系统不能用 Soong `aidl_interface` 注册 VINTF stable AIDL，当前接口是
 Gradle 应用层 Binder 合同。目标 system/privileged placement、SELinux 和稳定性 owner 未确定。
@@ -198,6 +205,7 @@ Python 工作包和 contract parity，不得复活旧样例。
 | R7B 进展 | Client2 typed Binder migration 完成。 |
 | R7C 进展 | Client2/Runtime recovery matrix 完成。 |
 | R7D 进展 | Android application handoff 完成。 |
+| P1-W03 进展 | Event/callback V1 合同完成；Service/Room/hardware 均未发布。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。

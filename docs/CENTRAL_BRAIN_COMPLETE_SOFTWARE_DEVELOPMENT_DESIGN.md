@@ -1,6 +1,6 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.4
+版本：2.5
 
 日期：2026-07-16
 
@@ -194,6 +194,7 @@ flowchart TB
 | --- | --- | --- | --- |
 | Session contract | 5 个 Session DTO、`ICentralBrainSessionRuntime` V1、`SessionContract` | `CONTRACT_ONLY`（P1-W01） | `S2-SES-001` |
 | Plan/Node contract | 4 个 Plan DTO、`PlanContract`、DAG/补偿/重试边界 | `CONTRACT_ONLY`（P1-W02） | `S2-SCN-001`、`S2-GRF-001` |
+| Event contract | 5 个 Event DTO、`ICentralBrainSessionEvents`/callback V1、`EventContract` | `CONTRACT_ONLY`（P1-W03） | `S2-SES-001`、`S2-EVT-001` |
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `NOT_STARTED` | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `NOT_STARTED` | `S2-TWN-001` |
@@ -263,8 +264,9 @@ public final class Envelope<T> {
 ### 8.2 新增 AIDL 文件
 
 实现路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/`。P1-W01 先冻结
-`ICentralBrainSessionRuntime` V1 的 `open/get/list/cancel` 和 5 个有界 DTO；Event/callback、approval、undo
-在对应 DTO 就绪后通过后续版本追加，不能改变 V1 事务顺序或 checksum。
+`ICentralBrainSessionRuntime` V1 的 `open/get/list/cancel` 和 5 个有界 DTO。P1-W03 通过独立
+`com.centralbrain.sdk.event` surface 冻结 Event/callback V1；approval/undo 继续使用后续独立版本，
+不能改变任何已冻结 V1 事务顺序或 checksum。
 
 ```aidl
 interface ICentralBrainSessionRuntime {
@@ -280,19 +282,12 @@ interface ICentralBrainSessionRuntime {
 }
 ```
 
-P1-W03 在 Event DTO 完成后定义 callback/event 增量；P1-W04 定义 approval/undo DTO；P1-W05 才拥有
-SDK bind/death/reconnect/resubscribe 生命周期。把 reconnect 测试放在 P1-W01 的 DTO-only 层没有可测试
-owner，因此已在 backlog 中纠正，不降低最终 P1 验收要求。
+P1-W03 已定义 callback/event 合同；P1-W04 定义 Effect/Approval/undo DTO；P1-W05 才拥有 SDK
+bind/death/reconnect/resubscribe 生命周期。把 reconnect 测试放在 DTO-only 层没有可测试 owner，因此
+已在 backlog 中纠正，不降低最终 P1 验收要求。
 
-```aidl
-oneway interface ICentralBrainSessionCallback {
-    void onSessionChanged(in SessionSnapshot snapshot);
-    void onEvent(in RuntimeEvent event);
-    void onCallbackClosed(in SessionHandle handle, int reasonCode);
-}
-```
-
-Callback 是提示，不是权威数据源。丢 callback 后客户端用 `getEvents` cursor 补齐。
+P1-W03 的 callback 是提示，不是权威数据源。overflow、Binder death 或重连后客户端必须用
+`ICentralBrainSessionEvents.getEvents` 的 opaque cursor 补齐，不能从 callback 队列推断完整状态。
 
 ### 8.3 SessionRequest
 
@@ -361,7 +356,41 @@ compensationNodeId 和 `NodePolicy`；这些字段不得隐藏在 JSON、Bundle 
 `PlanGraphValidator`、required-effect verify、approval predecessor 和 moving branch 检查；P3 才实现
 durable Graph 执行。`plan_runtime_published=false`，不得由 Client2 动画或本地 DTO 构造宣称已执行。
 
-### 8.6 Java SDK facade
+### 8.6 Event contract V1
+
+实现路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/`。P1-W03 冻结
+`RuntimeEvent`、`ActionEvent`、`ObservationEvent`、`MessageEvent`、`EventPage`、
+`ICentralBrainSessionEvents` 和 one-way `ICentralBrainSessionEventCallback`，七文件合并 hash 为
+`bb3618ca5f5818ce70b3a889a928b54ad83c70f0e439db5b62c67eb3234957d5`。
+
+`RuntimeEvent` 的 canonical key 是 `(sessionId, sequence, eventId)`；`eventDigest` 绑定不可变 replay
+identity，`parentEventId/parentSequence` 建立因果树。每个事件必须且只能包含匹配 `payloadKind` 的一个
+typed payload。`EventPage` 要求 sequence 严格连续，页内 parent 必须先于 child，initial/subsequent
+cursor 语义、`nextCursor/nextSequence/hasMore` 必须一致。每页最多 100，display text 最多 1024。
+
+```aidl
+interface ICentralBrainSessionEvents {
+    int getProtocolVersion();
+    String getProtocolHash();
+    EventPage getEvents(String sessionId, String cursor, int limit);
+    boolean registerSessionCallback(String sessionId, String cursor,
+        ICentralBrainSessionEventCallback callback);
+    boolean unregisterSessionCallback(String sessionId,
+        ICentralBrainSessionEventCallback callback);
+}
+
+oneway interface ICentralBrainSessionEventCallback {
+    void onEvent(in RuntimeEvent event);
+    void onOverflow(String resumeCursor);
+    void onClosed(int reasonCode, String resumeCursor);
+}
+```
+
+P1-W03 不发布 Service、不写 Room、不执行 Effect。未来 Service 必须从 Binder principal 派生 session
+owner/capability；query/callback 参数不得携带 caller、signer、permission、speed、gear 或 belt 断言。
+`event_runtime_service_published=false`、`event_callback_service_published=false`。
+
+### 8.7 Java SDK facade
 
 计划类：
 
@@ -605,7 +634,8 @@ stateDiagram-v2
 - `CompensationStarted/Observed`；
 - `AssistantSummaryCreated`、`SessionStateChanged`。
 
-事件 immutable；修正通过新事件表达，不能 update 旧事件。
+事件 immutable；修正通过新事件表达，不能 update 旧事件。P1-W03 已冻结上述 23 类事件的 wire
+合同和结构校验，但 `EventTreeStore`、durable sequence source、Room v4、Service publication 仍未实现。
 
 ### 10.4 SessionCallbackHub
 
@@ -1460,10 +1490,11 @@ central-brain-sdk AAR
 - 物理 Android 13 应用层安装、UI、Binder、恢复和 signer migration 验收；
 - Client2 底部导航触发的悬浮面板。
 - Client2 HVAC/Seat 中控闭环的需求、意图驱动四阶段、模块、状态、验收和高保真 UI/UX 设计基线（HMI-D0）。
+- P1-W01 Session、P1-W02 Plan/Node 与 P1-W03 Event/callback typed contract、checksum/JVM/API 33 ARM64 Parcel 证据。
 
 ### 32.2 下一阶段未完成
 
-- typed Scenario/Session/Event/Effect contract v2；
+- typed Effect/Approval contract、Session/Event Service 与 SDK facade；
 - Room v4 session/plan/event/observation/memory schema；
 - Vehicle Digital Twin 和 trusted Context；
 - deterministic Scenario/Plan/DAG；
@@ -1484,10 +1515,11 @@ central-brain-sdk AAR
 
 ## 33. 开发人员起始点
 
-`P1-W01 Session DTO/AIDL` 和 `P1-W02 Plan/Node DTO/AIDL` 已完成 contract layer：9 个有界 DTO、
-独立 Session Binder V1、Session/Plan 校验器、JVM/Android 13 ARM64 Parcel 测试和独立 checksum
-门禁已进入工程，Session Service、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
-`P1-W03 Typed Event DTO/AIDL`；不得越过 contract 层直接在 Client2 中硬编码仿真动画。
+`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL` 和 `P1-W03 Typed Event DTO/AIDL` 已完成
+contract layer：14 个有界 DTO、独立 Session 与 Event/Callback Binder V1、三组校验器、JVM/Android
+13 ARM64 Parcel 测试和独立 checksum 门禁已进入工程。Session/Event Service、Plan Compiler 和 Graph
+Runtime 均未发布。下一实现工作包固定为 `P1-W04 Effect/Approval DTO 扩展`；不得越过 contract 层
+直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

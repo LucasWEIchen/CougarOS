@@ -1,6 +1,6 @@
 # Central Brain AIOS Stage 2 开发计划与最小工作包
 
-版本：1.2
+版本：1.3
 
 日期：2026-07-16
 
@@ -151,11 +151,21 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P1-W03` Typed Event DTO/AIDL
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-SES-001`、`S2-EVT-001`。
-- 文件：`RuntimeEvent.aidl`、`ActionEvent.aidl`、`ObservationEvent.aidl`、`MessageEvent.aidl`、`EventPage.aidl`。
-- 接口：`getEvents(sessionId, cursor, limit)`、`registerSessionCallback`。
+- 状态：`DONE`（contract layer，2026-07-17）；2 人日；需求：`S2-SES-001`、`S2-EVT-001`。
+- 路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/`。
+- 文件：`RuntimeEvent.aidl`、`ActionEvent.aidl`、`ObservationEvent.aidl`、`MessageEvent.aidl`、
+  `EventPage.aidl`、`ICentralBrainSessionEvents.aidl`、`ICentralBrainSessionEventCallback.aidl`、
+  `EventContract.java`。
+- 接口合同：独立 `ICentralBrainSessionEvents` V1 的 `getEvents(sessionId,cursor,limit)`、
+  `registerSessionCallback`、`unregisterSessionCallback`；不修改 Session V1 checksum。
 - DoD：event immutable、UUID/timestamp/source/parent/schemaVersion 完整；page limit <= 100。
-- 测试：ordering、parent validation、redaction、cursor replay。
+- 测试：typed payload/schema/source/enum、contiguous ordering、parent ID+sequence、page limit、redaction、
+  immutable replay 和 cursor continuation；独立 `events-v1.sha256` 与 checker 冻结。
+- 边界：callback 只是 commit 后提示，`EventPage` replay 才是权威恢复路径；
+  `event_runtime_service_published=false`、`event_callback_service_published=false`。P1-W05 才实现 Binder
+  principal/capability、Service、callback death/overflow/reattach；P1-W06 才接 Room v4。
+- 设备证据：Android 13/API 33 ARM64 物理控制器完成五个 DTO Parcel、ordering/parent/redaction reject
+  和 cursor replay；临时 test APK 已卸载，`event_parcel_physical_android13_arm64_verified=true`。
 
 ### `P1-W04` Effect/Approval DTO 扩展
 

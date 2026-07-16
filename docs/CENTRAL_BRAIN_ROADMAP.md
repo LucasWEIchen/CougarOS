@@ -1,6 +1,6 @@
 # Central Brain Android 13 开发路线图
 
-版本：0.9
+版本：1.0
 日期：2026-07-17
 状态：Stage 2 P1 in progress
 
@@ -97,6 +97,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | R7D Android 13 software handoff | Android artifacts/manifest/install/rollback 已结构化。 |
 | P1-W01 Session contract V1 | 5 DTO、独立 Binder V1、边界校验、Parcel/checksum 门禁完成；服务未发布。 |
 | P1-W02 Plan/Node contract V1 | 4 DTO、11 类 allowlist、DAG/补偿/重试校验、Parcel/checksum 完成；Runtime 未发布。 |
+| P1-W03 Event contract V1 | 5 DTO、23 类 allowlist、独立 Event/callback V1、顺序/父链/脱敏/cursor/replay 校验、Parcel/checksum 完成；服务未发布。 |
 
 ## 5. Python 原型退役
 
@@ -118,7 +119,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | 阶段 | 目标 | 主要交付 | 状态 |
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
-| S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 进行中（W01 完成） |
+| S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 进行中（W01-W03 完成） |
 | S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 未开始 |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
@@ -139,10 +140,15 @@ SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
 DAG/重试/补偿/容量校验、JVM/Android Parcel 测试和独立 `plan-v1.sha256` 已进入工程；既有及
 Session V1 checksum 未改变，Plan Compiler/Graph Runtime 尚未发布。
 
-下一实现工作包为 `P1-W03 Typed Event DTO/AIDL`。执行顺序：
+`P1-W03 Typed Event DTO/AIDL` 已完成：5 个 bounded DTO、23 类 event allowlist、独立
+`ICentralBrainSessionEvents`/one-way callback V1、`EventContract` 的顺序/父链/脱敏/cursor/immutable
+replay 校验、JVM/API 33 ARM64 Parcel 测试和 `events-v1.sha256` 已进入工程；Event Service/callback
+publication/Room persistence 均关闭。
 
-1. 增加 immutable Runtime/Action/Observation/Message/EventPage DTO 和 bounded cursor contract。
-2. 随后实现 Effect/Approval DTO 和 SDK facade；Runtime owner/capability 不得由请求体自报。
+下一实现工作包为 `P1-W04 Effect/Approval DTO 扩展`。执行顺序：
+
+1. 冻结 EffectIntent/EffectResult/ApprovalRequest/ApprovalResponse/Undo DTO 与失败关闭边界。
+2. 随后实现 SDK facade；Runtime owner/capability 不得由请求体自报。
 3. 每个 DTO 工作包增加 JVM/AIDL/static checks 和 API 33 Parcel instrumentation。
 4. 更新 requirements/roadmap/deviation/issue/delivery/driver trace。
 5. 不接入车辆/NPU/Driver/HAL，不恢复 Python gateway。
@@ -186,6 +192,12 @@ Session V1 checksum 未改变，Plan Compiler/Graph Runtime 尚未发布。
 - Android 13/API 33 ARM64 物理控制器通过 Plan Parcel round-trip、cycle 和 unknown-type reject；
   临时 test APK 验证后卸载，未访问车辆/NPU。
 - 保持 `plan_runtime_published=false`；Compiler/完整 Graph Validator 属于 P2-W07，durable 执行属于 P3。
+- 完成 `P1-W03` Event contract V1：5 个有界 DTO、23 类 event allowlist、独立 Event/callback V1、
+  顺序/父链/脱敏/cursor/immutable replay 校验和独立 hash/checksum 门禁。
+- Android 13/API 33 ARM64 物理控制器通过 Event Parcel round-trip、ordering/parent/redaction/cursor replay
+  验证；临时 test APK 验证后卸载，未访问车辆/NPU。
+- 保持 `event_runtime_service_published=false`、`event_callback_service_published=false`；Service/Room
+  分别属于 P1-W05/P1-W06，下一工作包为 P1-W04。
 
 ## 8. 当前门禁
 
@@ -199,6 +211,7 @@ bash tools/check_central_brain_virtualization_docs.sh
 bash tools/check_central_brain_cockpit_hmi_design.sh
 bash tools/check_central_brain_aios_stage2_design.sh
 bash tools/check_central_brain_android_plan_contract.sh
+bash tools/check_central_brain_android_event_contract.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -221,6 +234,10 @@ session_runtime_service_published=false
 plan_contract_v1_defined=true
 plan_parcel_physical_android13_arm64_verified=true
 plan_runtime_published=false
+event_contract_v1_defined=true
+event_parcel_physical_android13_arm64_verified=true
+event_runtime_service_published=false
+event_callback_service_published=false
 production_ready=false
 target_hardware_validated=false
 driver_development_triggered=false

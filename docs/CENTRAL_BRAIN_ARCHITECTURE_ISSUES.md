@@ -1,6 +1,6 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.5
+版本：0.6
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -81,7 +81,14 @@ death/reconnect 和 VINTF 边界仍由本问题跟踪，不能继承 R2 已集�
 P1-W02 Plan/Node V1 也只达到 `contract_defined`：4 个 DTO、allowlist、DAG/补偿/重试边界、Parcel 和
 checksum 已验证，但 `plan_runtime_published=false`。未来 Plan publication、caller isolation、
 Compiler/Graph owner、Room v4 persistence、Binder payload sizing 和 app-local AIDL/VINTF 边界仍由本问题
-及 P1-W03..P1-W07 跟踪。
+及 P1-W04..P1-W07 跟踪。
+
+P1-W03 Event/callback V1 只达到 `contract_defined`：5 个 DTO、23 类 allowlist、顺序/父链/脱敏/
+cursor/immutable replay、Parcel 和 checksum 已验证，但 `event_runtime_service_published=false`、
+`event_callback_service_published=false`。未来 Event Service owner、signature permission/capability、
+callback death/overflow/resubscribe、Room v4 durable source、Binder payload sizing 和 app-local AIDL/VINTF
+边界继续由本问题及 P1-W05/P1-W06 跟踪。当前独立 surface 解决了不破坏 Session V1 的版本所有权，
+但没有解决目标 system/privileged service ownership。
 
 ## ISSUE-022 Durable task/session/checkpoint 与副作用恢复
 
@@ -223,3 +230,4 @@ Driver/HAL、target hardware 或 production。状态：`Open`。
 | 2026-07-12 B3 进展 | black-box preflight/acceptance 软件链完成。 |
 | 2026-07-12 B4 进展 | hybrid delivery 软件包完成。 |
 | 2026-07-15 导航菜单进展 | 当前物理设备 Client2 菜单交互完成。 |
+| P1-W03 进展 | Event/callback V1 合同与物理 API 33 Parcel 证据完成；Service/Room/hardware 均未发布。 |

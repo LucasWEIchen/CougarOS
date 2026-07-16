@@ -1,6 +1,6 @@
 # 驱动层接口支持矩阵
 
-版本：2.4
+版本：2.5
 
 日期：2026-07-17
 
@@ -465,3 +465,17 @@ PCIe, DMA/IOMMU, shared memory, vehicle bus, Safety Runtime, system/vendor parti
 interface is added or changed. No Driver/HAL gap is closed or triggered and added Driver/HAL work is
 zero. Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-G-007`, `DEL-001`,
 `DEL-003`, `DEL-004`, `DEL-005`.
+
+### P1-W03 Event Contract Driver/HAL Boundary
+
+P1-W03 adds application structured AIDL carriers, Java validation, checksum/static guards and Parcel tests.
+The Event page contains bounded IDs, enums, timestamps, display text and SHA-256 digests only. It carries no
+FD, SharedMemory, DMA buffer, raw vehicle/model payload, service handle or caller-supplied Safety authority.
+The independent Event/callback interfaces are contract-only and have no Android Service owner in this increment.
+
+No Binder publication, Room write, VHAL/CarProperty call, vendor service, JNI/C/C++ path, NPU runtime, PCIe,
+device node, ioctl/sysfs, shared memory, vehicle bus, Safety Runtime, system/vendor partition or virtualization
+interface is added or accessed. Existing `DRV-GAP-*` entries remain unchanged; added Driver/HAL work is zero and
+`driver_development_triggered=false`. A later target API gap may be opened only after a published interface,
+owner, permission and minimum missing capability are evidenced. Req IDs: `S2-SES-001`, `S2-EVT-001`,
+`FW-U-003`, `NV-F-009`, `NV-G-003`, `NV-G-007`, `KH-003`, `KH-006`, `DEL-004`, `DEL-005`.
