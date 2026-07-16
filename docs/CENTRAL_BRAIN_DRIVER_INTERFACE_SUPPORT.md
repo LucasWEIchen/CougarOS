@@ -37,7 +37,7 @@ capability 评审 `DRV-GAP-001..005`；production adapter 缺失时返回 unavai
 
 ## 2026-07-16 Client2 中控 HVAC/Seat 规划边界
 
-`S2-HMI-001..005` 的 Client2 关怀/HVAC/Seat/执行界面、Java reducer、typed Binder、Room session、
+`S2-HMI-001..006` 的 Client2 意图/计划/执行/结果界面、HVAC/Seat Effect 详情、Java reducer、typed Binder、Room session、
 debug/test Digital Twin 和 Simulated Effect adapter 都是 Android 用户态工作，不新增 Driver/HAL。
 HMI 只能经 SDK/Governance/Effect 调用 adapter；不得打开 device node、猜测 VHAL property 或将本地
 View 状态当作车身回读。

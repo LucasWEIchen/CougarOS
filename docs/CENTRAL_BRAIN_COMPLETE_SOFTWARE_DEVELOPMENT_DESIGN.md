@@ -1,6 +1,6 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.1
+版本：2.2
 
 日期：2026-07-16
 
@@ -148,7 +148,7 @@ flowchart TB
 | AIOS Runtime APK | `central-brain/android-runtime/runtime-service` | `DEVELOPED/PROTOTYPE` | Binder、治理、持久任务、模型/事件/记忆/技能骨架、native lifecycle | 不直接包含 Client2 UI，不访问私有硬件 node |
 | Java SDK AAR | `central-brain-sdk` | `DEVELOPED` v1 | typed AIDL DTO/client、重连、callback | 不含 Policy/vehicle action 实现 |
 | Native Runtime AAR | `native-runtime` | `DEVELOPED` lifecycle | C ABI、JNI、process-owned handle/capacity | 不读取 Binder identity，不加载 vendor NPU |
-| Client2 Demo APK | `apk-labs/client2-central-brain` | `DEVELOPED` basic / HMI control `NOT_STARTED` | 当前入口、悬浮面板、场景请求和文本回复；规划关怀/HVAC/Seat/执行四视图 | 不直连模型/vehicle adapter，不把 View 状态当回读 |
+| Client2 Demo APK | `apk-labs/client2-central-brain` | `DEVELOPED` basic / HMI control `NOT_STARTED` | 当前入口、悬浮面板、场景请求和文本回复；规划意图/计划/执行/结果四阶段与 Effect 详情抽屉 | 不直连模型/vehicle adapter，不把 View 状态当回读 |
 | Demo HMI APK | `demo-hmi` | `DEVELOPED` maintenance | SDK/Runtime/Governance 调试与验收 | 不作为产品 HMI |
 | Policy probe | `policy-probe` | `DEVELOPED` test | caller/capability negative tests | 不随产品发布 |
 | Retired prototype | none | `OUT_OF_SCOPE` | 不再提供 gateway、模型仿真或 Linux runtime | 不得恢复为 Android fallback |
@@ -214,6 +214,7 @@ flowchart TB
 | Cockpit control loop | reducer、desired/reported、timeline、recovery | `NOT_STARTED` | `S2-HMI-003` |
 | Cockpit simulation presentation | SIMULATED/UNAVAILABLE source and engineer fault profile | `NOT_STARTED` | `S2-HMI-004` |
 | Cockpit unified command path | manual and AI scenario share governed Effect flow | `NOT_STARTED` | `S2-HMI-005` |
+| Cockpit intent orchestration UX | natural intent、Context/Plan/Policy/Effect/readback chain、device detail drawer | `NOT_STARTED` | `S2-HMI-006` |
 | Real adapters | AAOS/Vendor/NPU | `EXTERNAL_BLOCKED` | `S2-ADP-002` |
 | Release qualification | signer/migration/rollback/long-run/target evidence | `EXTERNAL_BLOCKED` | `S2-REL-001` |
 
@@ -352,12 +353,14 @@ SDK 必须：
 - 组成：透明 scrim + 浅灰半透明 panel；outside touch 发出 dismiss。
 - 规则：panel touch 消费事件；outside dismiss 不 cancel；Activity 重建后由 reducer 恢复。
 
-### 9.3 ScenarioQuickGrid
+### 9.3 IntentComposer
 
-- 状态：简单按钮 `DEVELOPED`；动态 catalog `NOT_STARTED`。
-- 输入：`ScenarioAvailabilitySnapshot`。
-- 输出：`SessionRequest`，按钮绑定 immutable scenario ID，不发送自然语言模拟按钮语义。
-- moving 最多显示 4 个 allowlisted scenario；不可用按钮显示原因而非静默消失。
+- 状态：当前简单场景按钮 `DEVELOPED`；自然场景输入和 bounded resolver `NOT_STARTED`。
+- 输入：voice/text phrase、`ScenarioAvailabilitySnapshot`、driving presentation。
+- 输出：`IntentRequest`，经 allowlisted resolver 归一化为 immutable scenario ID 和 bounded parameter，
+  再创建 `SessionRequest`。
+- 模型不能从自然文本直接创建 capability/Effect；moving 使用语音优先且只允许低风险 scenario。
+- 原快捷按钮降为示例短语，不作为顶层设备导航。
 
 ### 9.4 CentralBrainPanelState
 
@@ -372,6 +375,10 @@ final class CentralBrainPanelState {
     List<PlanNodeViewState> nodes;
     ApprovalViewState approval;
     UndoViewState undo;
+    IntentDraftViewState intentDraft;
+    ContextDigestViewState contextDigest;
+    PlanSummaryViewState planSummary;
+    ResultEvidenceViewState resultEvidence;
     String conciseSummary;
     FaultViewState fault;
 }
@@ -411,22 +418,25 @@ PanelPresentationMode modeFor(DrivingState state,
 
 `UNKNOWN` 和异常按 `MOVING_RESTRICTED`。该类只控制呈现，不授权 Effect。
 
-### 9.8 Client2 四视图信息架构
+### 9.8 Client2 AIOS 四阶段信息架构
 
 `BrainOverlay` 保留原有右侧半透明悬浮形态，在同一 APK 内增加稳定的 segmented navigation：
 
 | 视图 | 责任 | 不允许承担的责任 |
 | --- | --- | --- |
-| 关怀 | “我冷了”“我累了”“休息模式”等场景入口和简要结果 | 不直接改变 HVAC/Seat View 状态 |
-| 空调 | power、zone、temperature、fan、AUTO、A/C、SYNC、airflow、comfort preset | 不直接调用 simulated/target adapter |
-| 座椅 | zone、heating、ventilation、massage、recline、upright/comfort/rest preset | 不接受 HMI 提交的 speed/gear/belt 作为可信输入 |
-| 执行 | plan/effect timeline、approval、partial、retry、undo、recovery | 不把 DISPATCHED 显示成 VERIFIED |
+| 意图 | 自然场景 voice/text、示例短语、可信 Context 摘要 | 不直接生成 Effect 或把模型文本当权威计划 |
+| 计划 | normalized scenario、Context、Plan、Policy、HIGH-risk approval | 不由 HMI 本地决定 capability 或安全授权 |
+| 执行 | Effect timeline、live trace、partial、retry、stop | 不把 DISPATCHED 显示成 VERIFIED |
+| 结果 | desired/reported/source/quality、feedback、undo | 不用本地 feedback 覆盖设备 readback |
 
 Header 固定显示 connection、`SIMULATED/TARGET/UNAVAILABLE` source 和
-`PARKED/MOVING/UNKNOWN_RESTRICTED` presentation。Persistent execution strip 在所有视图可见；
+`PARKED/MOVING/UNKNOWN_RESTRICTED` presentation。Intent -> Context -> Plan -> Policy -> Effect ->
+readback 主链在计划/执行/结果阶段持续可见。Persistent execution strip 在所有视图可见；
 隐藏 overlay 只影响呈现，不取消已接受 session。
 
-“执行”视图是通用 Effect projection，不只服务 HVAC/Seat。任何 cold/fatigue/rest plan 中的
+HVAC 和 Seat 不再占据顶层 tab，而是由 Effect row 打开 `DeviceDetailDrawer`。抽屉保留完整
+desired/reported 和手动微调，但手动请求仍创建 governed scenario。“执行”视图是通用 Effect
+projection，不只服务 HVAC/Seat。任何 cold/fatigue/rest plan 中的
 Media/Navigation Effect 也必须显示 target、source、progress、reported result 和适用的 stop/cancel；
 专用 Media/Nav 页面可以后续增加，但文本回复不能替代该最小中控闭环。
 
@@ -456,8 +466,9 @@ Media/Navigation Effect 也必须显示 target、source、progress、reported re
 
 ### 9.11 CockpitHmiState、Reducer 与 Renderer
 
-计划根状态包含 connection、presentation、source badge、selected surface、active session、climate、
-seat、execution、approval、undo 和 last error。`CockpitHmiReducer` 在单线程 executor 顺序消费 SDK
+计划根状态包含 connection、presentation、source badge、selected surface、intent draft、context
+digest、plan summary、active session、climate、seat、execution、result evidence、approval、undo 和
+last error。`CockpitHmiReducer` 在单线程 executor 顺序消费 SDK
 snapshot/event；`CockpitHmiRenderer` 只在 main thread 将 immutable state 渲染到 View。
 
 重连顺序固定为 Binder connected -> session/twin snapshot -> cursor replay -> callback attach。页面重开、
@@ -467,20 +478,21 @@ Effect。`PARTIALLY_COMPLETED` 必须逐项显示成功/失败；undo 是新的 
 ### 9.12 CockpitControlCoordinator 与运行 profile
 
 ```text
-HMI intent or care scenario
+Natural scene phrase or governed manual detail
+ -> IntentResolver / allowlisted scenario
  -> ScenarioClient
  -> Session / Policy / Approval / Durable Graph
  -> EffectCoordinator
  -> Simulated adapter (debug/test) or target adapter (future)
  -> EffectObservation / DigitalTwin reported state
  -> CockpitHmiReducer
- -> four-surface render
+ -> intent / plan / execution / result render
 ```
 
 Debug/test profile 注册 `SimulatedHvacEffectAdapter` 和 `SimulatedSeatEffectAdapter`，永久显示
 `SIMULATED`，默认驾驶态为 `UNKNOWN_RESTRICTED`，并可通过受保护工程入口注入 delay、timeout、
 failure 和 mismatch。Release/production profile 不包含工程入口或隐式模拟 fallback；真实 adapter
-缺失时 source=`UNAVAILABLE` 且控件禁用。详细控件、状态机、工作包和 20 项验收见
+缺失时 source=`UNAVAILABLE` 且控件禁用。详细控件、状态机、工作包和 22 项验收见
 `CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。
 
 ## 10. Session 与 Event Tree
@@ -1184,7 +1196,8 @@ sequenceDiagram
     participant E as Effect Coordinator
     participant A as Seat/HVAC Adapter
 
-    U->>H: Tap fatigue
+    U->>H: Say "我有些疲惫"
+    H->>H: resolve allowlisted scene.fatigue.assist.v1
     H->>S: openSession(scene.fatigue.assist.v1)
     S->>R: trusted Binder request
     R->>C: capture fresh ContextSnapshot
@@ -1393,7 +1406,7 @@ central-brain-sdk AAR
 - Demo HMI/Client2 SDK Binder 集成；
 - 物理 Android 13 应用层安装、UI、Binder、恢复和 signer migration 验收；
 - Client2 底部导航触发的悬浮面板。
-- Client2 HVAC/Seat 中控闭环的需求、四视图、模块、状态、验收和高保真 UI/UX 设计基线（HMI-D0）。
+- Client2 HVAC/Seat 中控闭环的需求、意图驱动四阶段、模块、状态、验收和高保真 UI/UX 设计基线（HMI-D0）。
 
 ### 32.2 下一阶段未完成
 
@@ -1403,7 +1416,7 @@ central-brain-sdk AAR
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
 - Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
-- Client2 关怀/HVAC/Seat/执行四视图与 state reducer；
+- Client2 意图/计划/执行/结果四阶段、Effect 设备详情抽屉与 state reducer；
 - Client2 manual/AI 共用 Session/Effect 链路、desired/reported、approval、partial、retry、undo、recovery；
 - Tool/Skill registry/rules/executor/artifact verifier；
 - working/profile/episodic Memory 与 consent；
@@ -1430,8 +1443,8 @@ central-brain-sdk AAR
 
 | Gate | 必须完成 | 可验收输出 | 当前状态 |
 | --- | --- | --- | --- |
-| HMI-D0 | `S2-HMI-001..005`、四视图、状态机、工作包、验收和高保真稿件冻结 | 设计文档、可点击原型、四张 PNG 与静态 checker | `DONE` |
-| HMI-D1 | overlay shell、资源、Java controller/reducer/renderer | 1920x1080 layout/UI tree | `NOT_STARTED` |
+| HMI-D0 | `S2-HMI-001..006`、意图驱动四阶段、状态机、工作包、验收和高保真稿件冻结 | 设计文档、可点击原型、四张 PNG 与静态 checker | `DONE` |
+| HMI-D1 | 四阶段 overlay shell、Effect 详情抽屉、资源、Java controller/reducer/renderer | 1920x1080 layout/UI tree | `NOT_STARTED` |
 | HMI-D2 | manual HVAC/Seat -> simulated Effect -> delayed readback | `HMI-AC-*`、`HMI-ST-*` 基础用例 | `NOT_STARTED` |
 | HMI-D3 | cold/fatigue/rest 多 Effect、approval、partial、undo | graph/effect/recovery instrumentation | `NOT_STARTED` |
 | HMI-D4 | Android 13 ARM64 UI/Binder/fault/restart 全矩阵 | Client2 APK 演示闭环证据 | `NOT_STARTED` |

@@ -1,8 +1,8 @@
 # Central Brain AIOS Stage 2 产品与 UI/UX 计划
 
-版本：1.0
+版本：1.1
 
-日期：2026-07-15
+日期：2026-07-16
 
 状态：Approved for implementation planning
 
@@ -12,12 +12,13 @@
 
 ## 1. 产品目标
 
-Stage 2 的目标不是把聊天窗口做得更复杂，而是让用户看到 AIOS 的四个核心特征：
+Stage 2 的目标不是把聊天窗口做得更复杂，而是让用户看到 AIOS 的五个核心特征：
 
-1. **理解上下文**：同一句“我累了”会根据车速、挡位、座椅占用、安全带、时间和用户偏好生成不同计划；
-2. **编排多能力**：一次请求可组合空调、座椅、媒体、导航等多个受治理动作；
-3. **过程可见且可控**：用户能看到计划、确认高风险动作、观察每项动作状态并撤销可逆动作；
-4. **失败可恢复**：部分失败、Runtime 重启、adapter 暂不可用时不谎报成功，能够重试、降级或补偿。
+1. **简单表达意图**：用户只需说“我有些疲惫”等自然场景目标，不需要先理解或逐项操作设备；
+2. **理解上下文**：同一句表达会根据车速、挡位、座椅占用、安全带、时间和用户偏好生成不同计划；
+3. **编排多能力**：一次请求可组合空调、座椅、媒体、导航等多个受治理动作；
+4. **过程可见且可控**：用户能看到 Intent、Context、Plan、Policy、Effect 和 readback，且只确认高风险部分；
+5. **失败可恢复**：部分失败、Runtime 重启、adapter 暂不可用时不谎报成功，能够重试、降级或补偿。
 
 ## 2. 非目标
 
@@ -61,7 +62,7 @@ FAULT_RESTRICTED
 
 | 能力 | PARKED | IDLE | MOVING_RESTRICTED | UNKNOWN/FAULT |
 | --- | --- | --- | --- | --- |
-| 场景快捷按钮 | 全量 | 全量 | 最多 4 个常用项 | 仅低风险项 |
+| 自然场景意图输入 | 语音/文本完整入口 | 语音优先 | 语音优先、简短表达 | 仅低风险建议和错误恢复 |
 | 长文本回复 | 可展开 | 可展开 | 仅一行摘要 | 仅错误/降级摘要 |
 | 参数编辑 | 允许 | 限制 | 禁止 | 禁止 |
 | 多步骤确认 | 允许 | 单步骤 | 单步骤且仅低/中风险 | 仅取消/关闭 |
@@ -78,6 +79,8 @@ FAULT_RESTRICTED
 - 同一座位同一 actuator 的冲突场景不能并发，后到请求进入 replace/queue/reject 决策；
 - 任何模型生成文本均使用“建议/计划”语气，只有 verified Effect 可使用“已完成”；
 - 所有用户可见动作必须提供来源：系统规则、用户请求、已保存偏好或主动触发。
+- 顶层界面不以设备按钮为导航；HVAC/Seat 手动控件只在 Effect 详情或明确的手动兜底入口出现。
+- 自然语言先归一化为 allowlisted bounded scenario/intent，不能把模型文本直接当作 Effect。
 
 ## 5. 悬浮面板信息架构
 
@@ -86,22 +89,23 @@ FAULT_RESTRICTED
 ```text
 +----------------------------------+
 | Central Brain  [状态]       [关闭] |
-| [我冷了] [我热了] [我累了] [休息] |
+| [1 意图] [2 计划] [3 执行] [4 结果]|
 |----------------------------------|
-| 计划：休息建议                    |
-| [✓] 读取车辆状态                  |
-| [●] 调整温度到 23 C               |
-| [ ] 查找最近休息区                |
-| [!] 座椅放平：驻车后可用           |
+| 你现在需要什么？                  |
+| “我有些疲惫”                 [语音]|
+|                     [交给 AIOS]   |
 |----------------------------------|
-| 需要确认：驻车后进入休息模式       |
-| [取消]                    [确认]   |
+| 可信上下文                         |
+| P 挡 / 0 km/h / 26.5 C / 仅主驾   |
 |----------------------------------|
-| 回复/摘要                         |
-| ...                              |
-| [撤销可逆动作]                    |
+| 模型理解 -> Context -> Plan        |
+| -> Policy -> Effect -> Readback    |
 +----------------------------------+
 ```
+
+提交后自动进入计划链。低风险 Effect 由策略通过后自动调度；只有座椅大角度等高风险节点请求一次
+明确确认。执行页逐项显示 HVAC/Seat/Media/Navigation 的 target、source、state 和 observation；
+结果页只使用 readback verified 的值。设备手动控件从 Effect 详情打开，不占据顶层 tab。
 
 ### 5.2 组件拆分
 
@@ -109,12 +113,15 @@ FAULT_RESTRICTED
 | --- | --- | --- | --- |
 | `BrainNavEntry` | icon、状态点、badge | active session summary | toggle event |
 | `BrainOverlay` | scrim、panel、outside touch | visibility state | dismiss request |
-| `ScenarioQuickGrid` | 2xN icon button | available scenario list | scenario request |
+| `IntentComposer` | voice/text、bounded suggestions、submit | user phrase + availability | normalized intent request |
+| `ContextDigest` | source/freshness/trust/value | ContextSnapshot projection | inspect context |
 | `SessionHeader` | title、runtime state、cancel | session summary | cancel/open detail |
-| `PlanTimeline` | node row list | plan + node state | inspect node |
+| `OrchestrationChain` | Intent/Context/Plan/Policy/Effect/Readback | session event stream | inspect stage |
+| `PlanTimeline` | node row list | plan + node state | inspect node/approve risk |
 | `EffectRow` | device icon、target、state | effect observation | retry/inspect |
 | `ApprovalBar` | risk、reason、timeout | approval request | approve/reject |
-| `AssistantSummary` | concise text、expand | model/system message | expand/collapse |
+| `ResultEvidence` | desired/reported/source/quality | verified observation | feedback/inspect |
+| `DeviceDetailDrawer` | HVAC/Seat status and manual fallback | selected Effect | bounded manual intent |
 | `UndoBar` | undoable action count | compensation plan | undo request |
 | `FaultBanner` | fault code、next action | terminal/recoverable fault | retry/dismiss |
 | `EngineerDrawer` | mock context、fault injection | debug entitlement | test command |
@@ -125,7 +132,7 @@ FAULT_RESTRICTED
 stateDiagram-v2
     [*] --> Hidden
     Hidden --> Idle: nav tap
-    Idle --> Planning: scenario tap
+    Idle --> Planning: submit bounded natural intent
     Planning --> AwaitingConfirmation: approval required
     Planning --> Executing: plan committed
     AwaitingConfirmation --> Executing: approved
@@ -147,7 +154,7 @@ stateDiagram-v2
 
 场景 ID：`scene.fatigue.assist.v1`
 
-派生需求：`S2-UX-001`、`S2-SCN-001`、`S2-EFF-001`、`S2-SAF-001`
+派生需求：`S2-UX-001`、`S2-HMI-006`、`S2-SCN-001`、`S2-EFF-001`、`S2-SAF-001`
 
 基线映射：`APP-001`、`APP-003`、`FW-U-001`、`FW-U-004`、`FW-U-006`、`FW-U-007`、`FW-S-001`、`FW-S-005`、`NV-F-001`、`NV-F-003..005`、`NV-G-005..007`
 
@@ -194,14 +201,14 @@ stateDiagram-v2
 
 计划：
 
-1. 显示“休息模式”动作明细；
-2. 对座椅目标角度、HVAC 目标温度、媒体动作进行一次明确确认；
-3. 先记录可逆动作的 before snapshot；
-4. 并行调节 HVAC 与媒体；
-5. 座椅采用限速/分段 target，等待 adapter applied callback；
+1. 用户只表达“我有些疲惫”，系统自动展示归一化意图、可信 Context 和恢复计划；
+2. LOW/MEDIUM 且策略允许的 HVAC/media Effect 自动调度，不要求逐项点击；
+3. 仅对座椅大角度目标显示一次明确确认，并在确认前记录可逆动作 before snapshot；
+4. HVAC 与媒体并行执行，座椅在批准和 Context 重检后采用限速/分段 target；
+5. 全程显示 Plan、Policy、Effect 和 observation 事件；
 6. readback 验证 target tolerance；
 7. 创建可撤销 compensation plan；
-8. 返回简短完成摘要。
+8. 结果页返回简短摘要和逐项可验证证据。
 
 ### 6.3 场景执行图
 
@@ -445,8 +452,9 @@ Stage 2 后半程增加受控主动触发，规则如下：
 
 ## 15. Client2 中控 HVAC/Seat 界面闭环
 
-用户确认空调和座椅必须成为 APK 中控屏可操作内容，而不是仅显示模型回复。现有右侧半透明悬浮
-菜单因此扩展为“关怀/空调/座椅/执行”四视图；底部导航入口、二次点击关闭和面板外关闭保持。
+用户确认 AIOS 主交互必须是“我有些疲惫”等简单场景表达，而不是设备按钮集合。现有右侧半透明
+悬浮菜单因此扩展为“意图/计划/执行/结果”四阶段；底部导航入口、二次点击关闭和面板外关闭保持。
+HVAC/Seat 作为 Effect 详情与手动兜底由执行条目打开，不占用顶层导航。
 
 手动 HVAC/Seat 控件与“我冷了”“我累了”“休息模式”必须复用 `ScenarioClient -> Governance ->
 Durable Effect -> Adapter -> readback -> Runtime Event -> HMI reducer`。无真实车身信号时，Android
@@ -458,8 +466,8 @@ debug/test 使用持续标注 `SIMULATED` 的 Digital Twin；release/production 
 UNKNOWN/MOVING 时驾驶席 recline 禁用且 Runtime fail closed；驻车动作仍需 fresh Context、policy、
 approval 和 readback。
 
-完整布局、状态模型、planned Java/Resource 文件、24-32 人日工作包和 20 项验收矩阵见
-`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。派生需求：`S2-HMI-001..005`。
+完整布局、状态模型、planned Java/Resource 文件、24-32 人日工作包和 22 项验收矩阵见
+`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。派生需求：`S2-HMI-001..006`。
 
 中控闭环还覆盖所有场景 Effect 的可观察 projection：Media/Navigation 首版可在“执行”视图使用
 通用状态卡，但场景涉及它们时必须显示目标、当前状态、source、失败和停止/取消，不能只在模型文本

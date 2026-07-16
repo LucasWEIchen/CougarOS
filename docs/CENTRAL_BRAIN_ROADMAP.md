@@ -1,6 +1,6 @@
 # Central Brain Android 13 开发路线图
 
-版本：0.5
+版本：0.6
 日期：2026-07-16
 状态：Stage 2 implementation ready
 
@@ -27,7 +27,7 @@
 `NV-G-003/004/005/006/007`、`NV-P-002/006`、`KH-003/006`、
 `DEL-001/003/004/005`、`S2-UX-001..003`、`S2-SES-001`、`S2-CTX-001`、
 `S2-TWN-001`、`S2-SCN-001`、`S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`、
-`S2-HMI-001..005`、
+`S2-HMI-001..006`、
 `S2-ADP-001/002`、`S2-TOL-001`、`S2-MEM-001`、`S2-EVT-001`、
 `S2-MDL-001`、`S2-OBS-001`、`S2-REL-001`。
 
@@ -120,7 +120,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 未开始 |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
-| S2-P5 | Client2 中控 HMI 闭环 | HVAC/Seat 四视图、timeline、approval、partial、undo | 未开始 |
+| S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
 | S2-P7 | 质量与发布 | fault matrix、性能、隐私、安全、升级 | 未开始 |
 | S2-P8 | 真实车辆适配 | 按 capability 引入已确认的 vendor/public adapter | 外部阻塞 |
@@ -154,10 +154,11 @@ SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
 - 退役门禁、NPU 接口、交付文档、Stage 2 设计和 Android Runtime 聚合门禁全部通过。
 - README 新增 GitHub source-of-truth、完整项目发布边界和已开发/未开发进度总表；pre-push 与
   Actions 扩展为覆盖全部 Central Brain 正式源码、Client2 patch、工程文档和工具。
-- 冻结 Client2 中控 HVAC/Seat 演示闭环：四视图、手动/AI 统一 Effect 链、SIMULATED 标识、
+- 冻结 Client2 中控 HVAC/Seat 演示闭环：意图驱动四阶段、手动/AI 统一 Effect 链、SIMULATED 标识、
   desired/reported、partial/undo/recovery，并将 P4 扩展为 12 个最小工作包。
-- 基于现有 Client2 车模和右侧悬浮面板交付可点击四视图 UI/UX 原型、四张 1920x1080 PNG、
-  视觉 token、Android 映射和静态门禁；仅完成 HMI-D0，HMI-D1/APK 实现仍未开始。
+- 基于现有 Client2 车模和右侧悬浮面板交付可点击“意图/计划/执行/结果”原型、四张 1920x1080
+  PNG、Intent -> Context -> Plan -> Policy -> Effect -> Readback 可观察链、Android 映射和静态门禁；
+  仅完成 HMI-D0，HMI-D1/APK 实现仍未开始。
 - GitHub 默认分支 `main` 是权威进度基线；开发分支合并后不得单独保留状态结论。
 
 ## 8. 当前门禁
@@ -183,6 +184,7 @@ github_sync_required=true
 maintained_project_files_synced=true
 github_homepage_architecture_current=true
 design_baseline_complete=true
+aios_intent_orchestration_ux_ready=true
 cockpit_hmi_design_mockups_ready=true
 production_ready=false
 target_hardware_validated=false

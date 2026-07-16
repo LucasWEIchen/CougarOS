@@ -36,8 +36,8 @@ for marker in \
   '# Central Brain Client2 中控 UI/UX 设计稿' \
   'cockpit_hmi_design_mockups_ready=true' \
   '## 5. 四个主视图' \
-  '## 6. 核心 UX 流程' \
-  '## 7. Android 开发映射' \
+  '## 6. AIOS 自动化调用链' \
+  '## 8. Android 开发映射' \
   'cockpit_demo_control_loop_implemented=false'; do
   require_text "$COCKPIT_HMI_MOCKUPS" "$marker"
 done
@@ -117,7 +117,7 @@ done
 
 derived_ids=(
   S2-UX-001 S2-UX-002 S2-UX-003 S2-HMI-001 S2-HMI-002 S2-HMI-003
-  S2-HMI-004 S2-HMI-005 S2-SES-001 S2-CTX-001 S2-TWN-001
+  S2-HMI-004 S2-HMI-005 S2-HMI-006 S2-SES-001 S2-CTX-001 S2-TWN-001
   S2-SCN-001 S2-GRF-001 S2-SAF-001 S2-EFF-001 S2-ADP-001 S2-TOL-001
   S2-MEM-001 S2-EVT-001 S2-MDL-001 S2-ADP-002 S2-OBS-001 S2-REL-001
 )
@@ -145,6 +145,7 @@ require_text "$DRIVER" '## 2026-07-15 AIOS Stage 2 Driver/HAL 边界'
 require_text "$DRIVER" '## 2026-07-16 Client2 中控 HVAC/Seat 规划边界'
 require_text "$README" 'design_baseline_complete=true'
 require_text "$README" 'cockpit_hmi_design_mockups_ready=true'
+require_text "$README" 'aios_intent_orchestration_ux_ready=true'
 require_text "$README" 'cockpit_demo_control_loop_implemented=false'
 require_text "$README" 'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md'
 require_text "$README" 'CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md'

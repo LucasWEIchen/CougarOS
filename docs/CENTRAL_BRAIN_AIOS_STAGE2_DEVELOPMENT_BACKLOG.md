@@ -79,6 +79,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 | `S2-HMI-003` | desired/reported/timeline/partial/undo/recovery 可见 | `FW-U-001/003/004`、`NV-G-006/007` |
 | `S2-HMI-004` | 无真实信号时显式标注 Android debug/test Digital Twin | `NV-F-004`、`DEL-001/004` |
 | `S2-HMI-005` | 场景与手动控制复用 SDK/Governance/Effect 链路 | `APP-004`、`NV-F-001/003/009`、`NV-P-002` |
+| `S2-HMI-006` | 自然场景意图为主入口并展示完整自动化链 | `APP-001/003/004`、`FW-U-001/004`、`NV-F-001`、`NV-G-005..007` |
 | `S2-SES-001` | 持久 session 与 action/observation event tree | `FW-U-003`、`NV-F-001`、`NV-G-003`、`NV-G-007` |
 | `S2-CTX-001` | 统一、带新鲜度和质量的 ContextSnapshot | `FW-U-001`、`FW-U-002`、`NV-F-004` |
 | `S2-TWN-001` | desired/reported last-known Vehicle Digital Twin | `FW-U-001..003`、`NV-F-004`、`NV-G-006` |
@@ -106,7 +107,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P0-W02` 产品与 UX 基线
 
-- 状态：`DONE`；预计/实际：2 人日；需求：`S2-UX-001..003`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`。
+- 状态：`DONE`；预计/实际：2 人日；需求：`S2-UX-001..003`、`S2-HMI-006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`。
 - 交付：`CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`。
 - DoD：“我累了/我冷了”均有 Context、计划图、Effect、失败/撤销、验收；moving seat recline 明确 fail closed。
 
@@ -325,17 +326,17 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W02` Cockpit HMI state/reducer/reconnect
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001..003`、`S2-HMI-003/005`。
+- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001..003`、`S2-HMI-003/005/006`。
 - 新增 maintained Java source：`CockpitHmiState.java`、`CockpitHmiReducer.java`、
   `CockpitControlCoordinator.java`。
 - DoD：UI state 只由 immutable event reduce；snapshot+cursor 重连；隐藏/recreate 不丢 state。
 
-### `P4-W03` Four-surface overlay shell
+### `P4-W03` Intent-first four-stage overlay shell
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..003`。
+- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..003/006`。
 - 修改 maintained XML/vector resources 和最小 Smali bootstrap，不手改 build/reverse output。
-- DoD：现有 overlay 内提供“关怀/空调/座椅/执行”；Header 固定 source/driving/connection；
-  仍由底部导航显示/隐藏，面板外点击关闭。
+- DoD：现有 overlay 顶层提供“意图/计划/执行/结果”；Header 固定 source/driving/connection；
+  HVAC/Seat 位于 Effect 详情和手动兜底抽屉；仍由底部导航显示/隐藏，面板外点击关闭。
 
 ### `P4-W04` HVAC control surface
 
@@ -353,10 +354,11 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W06` Plan/effect execution timeline
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001`、`S2-HMI-003`。
+- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001`、`S2-HMI-003/006`。
 - DoD：HVAC/Seat/Media/Navigation 每个 node/effect 显示
   requested/policy/approval/prepared/dispatched/applied/verified/failed/skipped/compensated，附带
-  target/source/result；Media/Nav 场景至少提供 stop/cancel projection；全局状态不得掩盖 partial。
+  target/source/result；Intent -> Context -> Plan -> Policy -> Effect -> readback 主链始终可见；
+  Media/Nav 场景至少提供 stop/cancel projection；全局状态不得掩盖 partial。
 
 ### `P4-W07` Approval/partial/retry/undo UX
 
@@ -378,9 +380,9 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W10` Scenario/manual-control synchronization
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..005`、`S2-SCN-001`。
-- DoD：cold/fatigue/rest 与 manual HVAC/Seat 都通过 `ScenarioClient`；同一 session event 同步关怀、
-  HVAC、Seat、执行页；HMI 不直调 adapter。
+- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..006`、`S2-SCN-001`。
+- DoD：自然场景输入先归一化为 bounded scenario；cold/fatigue/rest 与 manual HVAC/Seat 都通过
+  `ScenarioClient`；同一 session event 同步意图、计划、执行、结果和设备详情；HMI 不直调 adapter。
 
 ### `P4-W11` Accessibility/display matrix
 
@@ -391,7 +393,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 ### `P4-W12` Android device acceptance/fault/recovery
 
 - 状态：`NOT_STARTED`；2.5-4 人日；需求：P4 全部。
-- DoD：Android 13 ARM64 真机完成 navigation/show/hide、manual HVAC/Seat、cold/fatigue/rest、
+- DoD：Android 13 ARM64 真机完成 navigation/show/hide、自然场景输入、自动计划链、manual HVAC/Seat、cold/fatigue/rest、
   Media/Nav Effect projection、moving/unknown rejection、approval、partial、mismatch、undo、Runtime
   restart、UI tree/crash buffer；
   release build 无 simulation drawer/adapter。
@@ -638,7 +640,7 @@ flowchart LR
 ### AIOS Demo Beta 完成
 
 - P3、P4 全部 DONE；
-- Client2 APK 的关怀/HVAC/Seat/执行四视图形成闭环；
+- Client2 APK 的意图/计划/执行/结果四阶段与 HVAC/Seat Effect 详情形成闭环；
 - 手动控制和 cold/fatigue/rest 场景的 approval、partial、retry、undo、restart recovery 真机通过；
 - 同一 Effect 不因恢复重复执行；
 - Client2 只通过 SDK/Binder 与 Runtime 交互。

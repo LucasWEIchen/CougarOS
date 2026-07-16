@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: APP-001/003/004, FW-U-001/003/004, FW-S-003/005,
+# Req IDs: APP-001/003/004, FW-U-001/003/004, FW-S-001/003/005,
 # XSC-001, NV-F-001/003/004/009, NV-G-005/006/007, NV-P-002,
-# DEL-001/004, S2-UX-001..003, S2-HMI-001..005.
+# DEL-001/004, S2-UX-001..003, S2-HMI-001..006.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOC="$ROOT_DIR/docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md"
@@ -18,10 +18,10 @@ required_files=(
   "$SOURCE_DIR/app.js"
   "$SOURCE_DIR/render_mockups.sh"
   "$REFERENCE"
-  "$ASSET_DIR/01-care.png"
-  "$ASSET_DIR/02-hvac.png"
-  "$ASSET_DIR/03-seat.png"
-  "$ASSET_DIR/04-execution.png"
+  "$ASSET_DIR/01-intent.png"
+  "$ASSET_DIR/02-plan.png"
+  "$ASSET_DIR/03-execution.png"
+  "$ASSET_DIR/04-result.png"
 )
 for file in "${required_files[@]}"; do
   [[ -f "$file" ]] || { echo "missing cockpit HMI design asset: ${file#$ROOT_DIR/}" >&2; exit 1; }
@@ -37,28 +37,41 @@ require_text() {
 for marker in \
   '# Central Brain Client2 中控 UI/UX 设计稿' \
   'cockpit_hmi_design_mockups_ready=true' \
+  'aios_intent_orchestration_ux_ready=true' \
   'cockpit_hvac_surface_implemented=false' \
   'cockpit_seat_surface_implemented=false' \
   'cockpit_demo_control_loop_implemented=false' \
   '## 5. 四个主视图' \
-  '## 6. 核心 UX 流程' \
-  '## 7. Android 开发映射' \
+  '## 6. AIOS 自动化调用链' \
+  '## 7. HVAC/Seat 次级详情' \
+  '## 8. Android 开发映射' \
   '## 9. 设计验收' \
-  'S2-HMI-001..005'; do
+  'S2-HMI-001..006'; do
   require_text "$DOC" "$marker"
 done
 
 for marker in \
-  'data-view="care"' \
-  'data-view="hvac"' \
-  'data-view="seat"' \
+  'data-view="intent"' \
+  'data-view="plan"' \
   'data-view="execution"' \
+  'data-view="result"' \
   'SIMULATED' \
-  'HMI-D1 DESIGN ONLY' \
-  '保持当前音乐播放' \
-  '导航未参与本次计划'; do
+  'AIOS INTENT ORCHESTRATION' \
+  '我有些疲惫' \
+  '理解意图' \
+  '读取 Context' \
+  '编译 Plan' \
+  '安全与权限' \
+  '实时调用链' \
+  '可验证结果' \
+  'data-drawer-content'; do
   require_text "$SOURCE_DIR/index.html" "$marker"
 done
+
+if rg -n 'data-view="(care|hvac|seat)"' "$SOURCE_DIR/index.html"; then
+  echo "cockpit HMI top-level navigation must be intent-first, not device-first" >&2
+  exit 1
+fi
 
 for marker in \
   'width: 1920px' \
@@ -92,10 +105,10 @@ import sys
 
 asset_dir = pathlib.Path(sys.argv[1])
 expected = {
-    "01-care.png",
-    "02-hvac.png",
-    "03-seat.png",
-    "04-execution.png",
+    "01-intent.png",
+    "02-plan.png",
+    "03-execution.png",
+    "04-result.png",
 }
 for name in sorted(expected):
     path = asset_dir / name
@@ -111,6 +124,7 @@ PY
 printf '%s\n' \
   'Central Brain cockpit HMI design check passed' \
   'cockpit_hmi_design_mockups_ready=true' \
+  'aios_intent_orchestration_ux_ready=true' \
   'cockpit_hmi_design_only=true' \
   'cockpit_hvac_surface_implemented=false' \
   'cockpit_seat_surface_implemented=false' \

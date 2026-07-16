@@ -43,10 +43,10 @@ required_tracked_paths=(
   docs/ui/cockpit-hmi-design/styles.css
   docs/ui/cockpit-hmi-design/app.js
   docs/ui/cockpit-hmi-design/render_mockups.sh
-  docs/assets/cockpit-hmi-design/01-care.png
-  docs/assets/cockpit-hmi-design/02-hvac.png
-  docs/assets/cockpit-hmi-design/03-seat.png
-  docs/assets/cockpit-hmi-design/04-execution.png
+  docs/assets/cockpit-hmi-design/01-intent.png
+  docs/assets/cockpit-hmi-design/02-plan.png
+  docs/assets/cockpit-hmi-design/03-execution.png
+  docs/assets/cockpit-hmi-design/04-result.png
   tools/check_central_brain_root_readme.sh
   tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_publication_tree.sh
