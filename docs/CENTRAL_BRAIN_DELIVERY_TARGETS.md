@@ -1,8 +1,8 @@
 # Android 13 座舱域交付目标
 
-版本：3.4
+版本：3.5
 
-日期：2026-07-16
+日期：2026-07-17
 
 ## 交付对象
 
@@ -82,9 +82,20 @@ bash tools/check_central_brain_root_readme.sh
 
 ## 2026-07-15 AIOS Stage 2 交付范围
 
-Stage 2 P0 设计基线已完成，下一工作包为 `P1-W01 Session DTO/AIDL`。P1-P7 交付必须进入
+Stage 2 P0 设计基线和 `P1-W01 Session DTO/AIDL` contract layer 已完成，下一工作包为
+`P1-W02 Plan/Node DTO/AIDL`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
+
+P1-W01 当前交付为 SDK AAR 中的 5 个 Session parcelable、独立 Session interface、Java validator、
+JVM/Android Parcel tests 和 checksum checker。`session_contract_v1_defined=true`，但
+`session_runtime_service_published=false`、`session_runtime_persistence_wired=false`；因此现有 hybrid
+bundle 不能宣称 Session 场景闭环，直到后续 Runtime/SDK/HMI 工作包进入新的受审查交付版本。
+
+2026-07-17 在 Android 13/API 33 ARM64 物理控制器上安装临时 SDK instrumentation APK，5 个 DTO
+round-trip、oversize 和 unknown-version reject 均通过，随后卸载。状态：
+`session_parcel_physical_android13_arm64_verified=true`；该应用层 Parcel 证据不提升
+`target_hardware_validated=false`。
 
 Android debug/test 中的 Digital Twin 或 deterministic provider 必须明确 `TEST_ONLY` 或
 `SIMULATED`，且 production registry 不得包含它们。

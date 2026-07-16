@@ -1,7 +1,7 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.3
-日期：2026-07-16
+版本：0.4
+日期：2026-07-17
 状态：Android 13 实际工程基线
 
 ## 使用规则
@@ -73,6 +73,10 @@ Android Runtime 模块、治理门禁和可验证工作包。
 R2 typed production/governance/diagnostic AIDL、callback/cancel/death/version/hash 已达到
 `android_integrated`。由于没有 AOSP/Soong SDK，当前不能声明 VINTF stable；目标
 system/privileged service owner、SELinux、签名和 service placement 仍需厂商或 OEM 输入。
+
+P1-W01 Session V1 只达到 `contract_defined`：5 个 DTO、边界校验、Parcel 和 checksum 已验证，但
+`session_runtime_service_published=false`。其未来 service placement、permission/capability、Binder
+death/reconnect 和 VINTF 边界仍由本问题跟踪，不能继承 R2 已集成结论。
 
 ## ISSUE-022 Durable task/session/checkpoint 与副作用恢复
 

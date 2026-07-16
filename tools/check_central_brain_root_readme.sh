@@ -64,6 +64,10 @@ for marker in \
   'aios_intent_orchestration_ux_ready=true' \
   'cockpit_hmi_1920x1080_safe_frame_verified=true' \
   'cockpit_hmi_translucent_material_ready=true' \
+  'session_contract_v1_defined=true' \
+  'session_parcel_physical_android13_arm64_verified=true' \
+  'session_runtime_service_published=false' \
+  'ICentralBrainSessionRuntime V1（合同已冻结）' \
   'cockpit_demo_control_loop_implemented=false' \
   'S2-HMI-001..006' \
   '意图输入（设计稿已交付）' \
@@ -108,6 +112,7 @@ required_paths=(
   docs/CENTRAL_BRAIN_ROADMAP.md
   docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md
   tools/check_central_brain_android_runtime_evolution.sh
+  tools/check_central_brain_android_session_contract.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_repository_completeness.sh
@@ -182,8 +187,8 @@ remaining_rows = sum(
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
-if "`P1-W01`" not in remaining:
-    raise SystemExit("README remaining-work table must name the next work package")
+if "`P1-W01`" not in remaining or "`P1-W02`" not in remaining:
+    raise SystemExit("README remaining-work table must preserve P1-W01 status and name P1-W02")
 
 for group in (
     "APP-004",

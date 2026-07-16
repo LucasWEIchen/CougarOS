@@ -15,7 +15,7 @@ Mermaid 架构图、已开发/未开发表和近期记录。`github_source_of_tr
 
 | 路径 | 职责 |
 | --- | --- |
-| `android-runtime/central-brain-sdk` | Java SDK、typed AIDL、Binder client |
+| `android-runtime/central-brain-sdk` | Java SDK、typed task/Governance/Session AIDL、Binder client |
 | `android-runtime/runtime-service` | Runtime/Governance/Diagnostics、Room、Model/Event/Memory/Skill/Effect |
 | `android-runtime/native-runtime` | C ABI V1、JNI、Native Runtime lifecycle |
 | `android-runtime/demo-hmi` | 维护与验收 HMI |
@@ -39,6 +39,10 @@ Client2 / Demo
 
 当前 Binder task path 仍使用有界 deterministic 行为完成应用层验收；生产 Scheduler、Model Router、
 Effect dispatch、车辆服务和 Vendor NPU 不得从该行为推断为已接入。
+
+Stage 2 `P1-W01` 已增加 5 个有界 Session DTO、独立 `ICentralBrainSessionRuntime` V1、Java validator
+和 JVM/Android Parcel/checksum 门禁。`session_contract_v1_defined=true`，但
+`session_runtime_service_published=false`；下一工作包是 `P1-W02 Plan/Node DTO/AIDL`。
 
 计划中的 Client2 HVAC/Seat 手动控件和“我冷了/我累了”场景必须走同一条 SDK -> Session ->
 Governance -> Durable Effect -> readback 链路。Android debug/test 可使用持续标记为 `SIMULATED` 的
