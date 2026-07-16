@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CougarOS Cockpit HMI Design</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="viewport" aria-label="CougarOS cockpit HMI design prototype">
+    <section id="stage" class="stage" aria-label="1920 by 1080 cockpit canvas">
+      <img class="vehicle-scene" src="../../assets/cockpit-hmi-design/client2-emulator-scene-reference.png" alt="Client2 emulator vehicle scene reference">
+      <div class="scene-tint" aria-hidden="true"></div>
+
+      <button id="panelTrigger" class="panel-trigger" type="button" aria-label="打开 Central Brain 菜单" title="打开 Central Brain 菜单"></button>
+
+      <aside id="cockpitPanel" class="cockpit-panel" aria-label="Central Brain 中控浮层">
+        <header class="panel-header">
+          <div>
+            <div class="brand-row">
+              <h1>Central Brain</h1>
+              <span class="connection"><span aria-hidden="true"></span>已连接</span>
+            </div>
+            <p>智能座舱中枢</p>
+          </div>
+          <button id="closePanel" class="icon-button" type="button" aria-label="关闭面板" title="关闭面板">×</button>
+        </header>
+
+        <div class="runtime-status" aria-label="运行状态">
+          <span class="source-badge">SIMULATED</span>
+          <span class="context-badge">PARKED · 已驻车</span>
+          <span class="status-meta">上下文 #184</span>
+        </div>
+
+        <nav class="surface-tabs" role="tablist" aria-label="中控功能">
+          <button type="button" role="tab" data-view-target="care">关怀</button>
+          <button type="button" role="tab" data-view-target="hvac">空调</button>
+          <button type="button" role="tab" data-view-target="seat">座椅</button>
+          <button type="button" role="tab" data-view-target="execution">执行</button>
+        </nav>
+
+        <div class="surface-viewport">
+          <section class="surface care-surface" data-view="care" aria-label="关怀场景">
+            <div class="surface-heading">
+              <div>
+                <span class="eyebrow">关怀场景</span>
+                <h2>现在需要什么？</h2>
+              </div>
+              <span class="quiet-state">4 项可用</span>
+            </div>
+
+            <div class="scenario-grid">
+              <button class="scenario-card warm" type="button" data-run-scene="cold">
+                <span class="scenario-icon" aria-hidden="true">☀</span>
+                <span class="scenario-copy"><strong>我冷了</strong><small>升高温度 · 开启座椅加热</small></span>
+                <span class="arrow" aria-hidden="true">›</span>
+              </button>
+              <button class="scenario-card rest" type="button" data-run-scene="fatigue">
+                <span class="scenario-icon" aria-hidden="true">◷</span>
+                <span class="scenario-copy"><strong>我累了</strong><small>通风唤醒 · 评估休息方案</small></span>
+                <span class="arrow" aria-hidden="true">›</span>
+              </button>
+              <button class="scenario-card" type="button" data-run-scene="nap">
+                <span class="scenario-icon" aria-hidden="true">⌁</span>
+                <span class="scenario-copy"><strong>午休模式</strong><small>驻车确认后调整座舱</small></span>
+                <span class="arrow" aria-hidden="true">›</span>
+              </button>
+              <button class="scenario-card" type="button" data-run-scene="home">
+                <span class="scenario-icon" aria-hidden="true">⌂</span>
+                <span class="scenario-copy"><strong>回家规划</strong><small>路线、温度与到家提醒</small></span>
+                <span class="arrow" aria-hidden="true">›</span>
+              </button>
+            </div>
+
+            <div class="section-band snapshot-band">
+              <div class="section-title-row">
+                <h3>座舱快照</h3>
+                <button class="text-command" type="button" data-view-link="execution">查看详情</button>
+              </div>
+              <div class="snapshot-grid">
+                <div><span>主驾温度</span><strong>26.5°C</strong><small>有效 · 刚刚</small></div>
+                <div><span>座椅状态</span><strong>加热 1 档</strong><small>已回读</small></div>
+                <div><span>当前媒体</span><strong>Simple Times</strong><small>正在播放</small></div>
+              </div>
+            </div>
+
+            <div class="assistant-band">
+              <span class="assistant-mark" aria-hidden="true">AI</span>
+              <div>
+                <strong>座舱状态正常</strong>
+                <p>我会在执行动作前展示目标、风险和车辆回读。</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="surface hvac-surface" data-view="hvac" aria-label="空调控制">
+            <div class="surface-heading compact">
+              <div>
+                <span class="eyebrow">座舱空调</span>
+                <h2>舒适温度</h2>
+              </div>
+              <button class="power-button active" type="button" aria-pressed="true" title="空调电源"><span aria-hidden="true">⏻</span> 已开启</button>
+            </div>
+
+            <div class="segmented-control zone-selector" aria-label="空调区域">
+              <button class="active" type="button">主驾</button>
+              <button type="button">副驾</button>
+            </div>
+
+            <div class="temperature-section section-band">
+              <div class="temperature-readout">
+                <span>目标温度</span>
+                <strong><span id="targetTemperature">24.0</span><small>°C</small></strong>
+                <em>当前 26.5°C · 正在确认</em>
+              </div>
+              <div class="stepper" aria-label="目标温度调节">
+                <button type="button" data-temp-step="-0.5" aria-label="降低目标温度">−</button>
+                <div class="temperature-track" aria-hidden="true"><span></span></div>
+                <button type="button" data-temp-step="0.5" aria-label="升高目标温度">＋</button>
+              </div>
+            </div>
+
+            <div class="section-band">
+              <div class="section-title-row">
+                <h3>风量</h3>
+                <strong class="value-label">3 档</strong>
+              </div>
+              <div class="fan-level" aria-label="风量 3 档">
+                <button type="button" aria-label="降低风量">−</button>
+                <div class="fan-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <button type="button" aria-label="升高风量">＋</button>
+              </div>
+            </div>
+
+            <div class="mode-grid section-band" aria-label="空调模式">
+              <button class="mode-control active" type="button"><span>AUTO</span><strong>自动</strong></button>
+              <button class="mode-control cooling active" type="button"><span>A/C</span><strong>制冷</strong></button>
+              <button class="mode-control" type="button"><span>SYNC</span><strong>同步</strong></button>
+            </div>
+
+            <div class="section-band airflow-section">
+              <div class="section-title-row"><h3>出风模式</h3><span class="muted">面部 + 脚部</span></div>
+              <div class="segmented-control airflow-selector">
+                <button type="button">面部</button>
+                <button type="button">脚部</button>
+                <button class="active" type="button">面部 + 脚部</button>
+              </div>
+            </div>
+
+            <div class="quick-actions" aria-label="空调快捷操作">
+              <button type="button">更暖</button>
+              <button type="button">更凉</button>
+              <button class="accent" type="button">自动舒适</button>
+            </div>
+          </section>
+
+          <section class="surface seat-surface" data-view="seat" aria-label="座椅控制">
+            <div class="surface-heading compact">
+              <div>
+                <span class="eyebrow">座椅舒适</span>
+                <h2>主驾座椅</h2>
+              </div>
+              <span class="safety-ok">安全条件满足</span>
+            </div>
+
+            <div class="segmented-control zone-selector" aria-label="座椅区域">
+              <button class="active" type="button">主驾</button>
+              <button type="button">副驾</button>
+            </div>
+
+            <div class="seat-overview section-band">
+              <div class="seat-visual" aria-label="座椅靠背角度 28 度">
+                <div class="seat-back"></div>
+                <div class="seat-base"></div>
+                <span>28°</span>
+              </div>
+              <div class="seat-modes">
+                <div class="level-control">
+                  <span>座椅加热</span>
+                  <div class="level-buttons" data-level-group="heat">
+                    <button type="button">0</button><button type="button">1</button><button class="active warm" type="button">2</button><button type="button">3</button>
+                  </div>
+                </div>
+                <div class="level-control">
+                  <span>座椅通风</span>
+                  <div class="level-buttons" data-level-group="vent">
+                    <button class="active cool" type="button">0</button><button type="button">1</button><button type="button">2</button><button type="button">3</button>
+                  </div>
+                </div>
+                <button class="toggle-row active" type="button" aria-pressed="true"><span>按摩模式</span><i aria-hidden="true"></i></button>
+              </div>
+            </div>
+
+            <div class="section-band recline-section">
+              <div class="section-title-row"><h3>靠背角度</h3><strong class="value-label">28° · 舒适</strong></div>
+              <div class="recline-slider" aria-label="靠背角度 28 度"><span></span><i></i></div>
+              <div class="preset-grid">
+                <button type="button">直立<br><small>18°</small></button>
+                <button class="active" type="button">舒适<br><small>28°</small></button>
+                <button type="button">休息<br><small>42° · 需确认</small></button>
+              </div>
+            </div>
+
+            <div class="safety-band">
+              <span aria-hidden="true">✓</span>
+              <div><strong>车辆已驻车</strong><small>执行前仍会重新检查挡位、车速、安全带和乘员状态。</small></div>
+            </div>
+          </section>
+
+          <section class="surface execution-surface" data-view="execution" aria-label="执行详情">
+            <div class="surface-heading compact">
+              <div>
+                <span class="eyebrow">ACTIVE SESSION · #CB-0184</span>
+                <h2>舒适升温</h2>
+              </div>
+              <span class="running-state">正在确认</span>
+            </div>
+
+            <div class="timeline" aria-label="执行进度">
+              <div class="done"><i></i><span>已请求</span></div>
+              <div class="done"><i></i><span>策略通过</span></div>
+              <div class="done"><i></i><span>已下发</span></div>
+              <div class="active"><i></i><span>回读确认</span></div>
+            </div>
+
+            <div class="effect-list" aria-label="Effect 执行列表">
+              <article class="effect-row verified">
+                <span class="effect-icon" aria-hidden="true">°C</span>
+                <div class="effect-copy"><strong>主驾温度调至 24.0°C</strong><small>当前 24.0°C · source=SIMULATED</small></div>
+                <span class="effect-state">已确认</span>
+              </article>
+              <article class="effect-row applying">
+                <span class="effect-icon warm" aria-hidden="true">热</span>
+                <div class="effect-copy"><strong>主驾座椅加热至 2 档</strong><small>当前 1 档 · 目标 2 档</small></div>
+                <span class="effect-state">正在应用</span>
+              </article>
+              <article class="effect-row verified">
+                <span class="effect-icon media" aria-hidden="true">Ⅱ</span>
+                <div class="effect-copy"><strong>保持当前音乐播放</strong><small>Simple Times · 可随时停止</small></div>
+                <button class="row-command" type="button">停止</button>
+              </article>
+              <article class="effect-row unavailable">
+                <span class="effect-icon" aria-hidden="true">⌖</span>
+                <div class="effect-copy"><strong>导航未参与本次计划</strong><small>目标能力可用，但未请求</small></div>
+                <span class="effect-state">未执行</span>
+              </article>
+            </div>
+
+            <div class="readback-band section-band">
+              <div class="section-title-row"><h3>执行摘要</h3><span class="source-badge small">SIMULATED</span></div>
+              <p>空调已达到目标；座椅加热正在等待第二次车身回读。隐藏面板不会中断任务。</p>
+              <div class="summary-actions">
+                <button type="button">取消未完成项</button>
+                <button class="accent" type="button">撤销已完成动作</button>
+              </div>
+            </div>
+
+            <div class="audit-line"><span>策略</span> PARKED_ALLOWED <i></i><span>重试</span> 0/2 <i></i><span>预计</span> 1.2s</div>
+          </section>
+        </div>
+
+        <footer class="execution-strip" aria-live="polite">
+          <div class="execution-indicator"><span></span></div>
+          <div class="execution-summary"><strong id="stripTitle">当前无执行任务</strong><small id="stripDetail">选择场景或手动调节以开始</small></div>
+          <button id="stripAction" class="strip-action" type="button" data-view-link="execution">查看</button>
+        </footer>
+      </aside>
+
+      <div class="design-watermark">COUGAROS · HMI-D1 DESIGN ONLY · NOT IMPLEMENTED</div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

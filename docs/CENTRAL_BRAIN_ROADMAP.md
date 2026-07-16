@@ -1,6 +1,6 @@
 # Central Brain Android 13 开发路线图
 
-版本：0.4
+版本：0.5
 日期：2026-07-16
 状态：Stage 2 implementation ready
 
@@ -115,7 +115,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 
 | 阶段 | 目标 | 主要交付 | 状态 |
 | --- | --- | --- | --- |
-| S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、验收指标 | 已完成 |
+| S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 下一阶段 |
 | S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 未开始 |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
@@ -156,6 +156,8 @@ SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
   Actions 扩展为覆盖全部 Central Brain 正式源码、Client2 patch、工程文档和工具。
 - 冻结 Client2 中控 HVAC/Seat 演示闭环：四视图、手动/AI 统一 Effect 链、SIMULATED 标识、
   desired/reported、partial/undo/recovery，并将 P4 扩展为 12 个最小工作包。
+- 基于现有 Client2 车模和右侧悬浮面板交付可点击四视图 UI/UX 原型、四张 1920x1080 PNG、
+  视觉 token、Android 映射和静态门禁；仅完成 HMI-D0，HMI-D1/APK 实现仍未开始。
 - GitHub 默认分支 `main` 是权威进度基线；开发分支合并后不得单独保留状态结论。
 
 ## 8. 当前门禁
@@ -167,6 +169,7 @@ bash tools/check_central_brain_python_prototype_retirement.sh
 bash tools/check_central_brain_github_repository_completeness.sh
 bash tools/check_central_brain_npu_interface.sh
 bash tools/check_central_brain_virtualization_docs.sh
+bash tools/check_central_brain_cockpit_hmi_design.sh
 bash tools/check_central_brain_aios_stage2_design.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
@@ -180,6 +183,7 @@ github_sync_required=true
 maintained_project_files_synced=true
 github_homepage_architecture_current=true
 design_baseline_complete=true
+cockpit_hmi_design_mockups_ready=true
 production_ready=false
 target_hardware_validated=false
 driver_development_triggered=false

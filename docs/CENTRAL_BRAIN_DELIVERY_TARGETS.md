@@ -1,6 +1,6 @@
 # Android 13 座舱域交付目标
 
-版本：3.1
+版本：3.2
 
 日期：2026-07-16
 
@@ -21,6 +21,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 | Runtime Service APK | 已形成 | signature Binder、Room、Governance、readiness |
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
 | Client2 Demo APK | 可选 | 当前为底部导航触发悬浮面板、12 场景和 typed Binder；尚无 HVAC/Seat 控制页 |
+| Client2 中控 UI/UX 设计稿 | 已形成 | 可点击关怀/HVAC/Seat/执行原型和四张 1920x1080 PNG；仅设计资产 |
 | Android 13 安装/验收 | 已形成 | dry-run、signer guard、ADB、恢复矩阵 |
 | GitHub 源码/文档基线 | 已形成 | 完整正式工程文件、首页架构/进度、pre-push/Actions 门禁 |
 | Vendor NPU adapter | 空接口 | 保留 ModelProvider/C ABI；未接硬件 |
@@ -35,8 +36,8 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 ## 2026-07-16 Client2 中控 HVAC/Seat 交付规划
 
 `S2-HMI-001..005` 将 HVAC 和 Seat 明确为 `com.tuanjie.urasclient2` APK 内的中控屏交付内容，
-不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前只完成 HMI-D0 需求、UX、模块、工作包和
-验收冻结；现有 hybrid bundle 中的 Client2 APK 不包含这些控制页。
+不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前已完成 HMI-D0 需求、UX、模块、工作包、
+验收和高保真视觉基线；现有 hybrid bundle 中的 Client2 APK 不包含这些控制页。
 
 P4 计划用 24-32 人日交付关怀/HVAC/Seat/执行四视图，以及 manual/AI 共用 Session、Governance、
 Effect、readback、partial、retry、undo 和 restart recovery 的闭环。在真实车身信号尚未接入时，
@@ -44,6 +45,7 @@ Android debug/test 版本使用明确标记为 `SIMULATED` 的 Digital Twin/Effe
 缺少 target adapter 时必须显示 unavailable，不得回退仿真。
 
 ```text
+cockpit_hmi_design_mockups_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
@@ -56,7 +58,8 @@ fault 和 rollback 仍属于 P8/HMI-D5 外部集成，不因界面或 Digital Tw
 ## GitHub 完整项目交付边界
 
 Private `LucasWEIchen/CougarOS` 必须承载所有受维护的 Android Java/AIDL/C/JNI 源码、Client2
-可复验 patch、接口/配置、构建/测试/安装/打包工具和 `CENTRAL_BRAIN_*` 工程文档。每个完成增量
+可复验 patch、中控 UI/UX 原型与设计稿、接口/配置、构建/测试/安装/打包工具和
+`CENTRAL_BRAIN_*` 工程文档。每个完成增量
 必须在本轮 commit、push 并通过远端 `contract` 检查；影响架构或状态时必须同时更新根 README
 的 Mermaid 架构图、已开发/未开发表和近期记录。
 

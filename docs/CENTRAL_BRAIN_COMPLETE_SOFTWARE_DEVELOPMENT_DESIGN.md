@@ -1393,7 +1393,7 @@ central-brain-sdk AAR
 - Demo HMI/Client2 SDK Binder 集成；
 - 物理 Android 13 应用层安装、UI、Binder、恢复和 signer migration 验收；
 - Client2 底部导航触发的悬浮面板。
-- Client2 HVAC/Seat 中控闭环的需求、四视图、模块、状态和验收规划（HMI-D0）。
+- Client2 HVAC/Seat 中控闭环的需求、四视图、模块、状态、验收和高保真 UI/UX 设计基线（HMI-D0）。
 
 ### 32.2 下一阶段未完成
 
@@ -1422,14 +1422,15 @@ central-brain-sdk AAR
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见
-`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`；设计来源和采纳边界见
+`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`；可点击原型、视觉 token、Android 映射和
+1920x1080 稿件见 `CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md`；设计来源和采纳边界见
 `CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md`。
 
 ## 34. Client2 中控闭环实施顺序
 
 | Gate | 必须完成 | 可验收输出 | 当前状态 |
 | --- | --- | --- | --- |
-| HMI-D0 | `S2-HMI-001..005`、四视图、状态机、工作包和验收冻结 | 文档与静态 checker | `DONE` |
+| HMI-D0 | `S2-HMI-001..005`、四视图、状态机、工作包、验收和高保真稿件冻结 | 设计文档、可点击原型、四张 PNG 与静态 checker | `DONE` |
 | HMI-D1 | overlay shell、资源、Java controller/reducer/renderer | 1920x1080 layout/UI tree | `NOT_STARTED` |
 | HMI-D2 | manual HVAC/Seat -> simulated Effect -> delayed readback | `HMI-AC-*`、`HMI-ST-*` 基础用例 | `NOT_STARTED` |
 | HMI-D3 | cold/fatigue/rest 多 Effect、approval、partial、undo | graph/effect/recovery instrumentation | `NOT_STARTED` |

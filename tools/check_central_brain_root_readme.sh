@@ -54,11 +54,13 @@ for marker in \
   'apk-labs/client2-central-brain/' \
   'vendor.npu.empty' \
   'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md' \
+  'CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md' \
   'CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md' \
   'tools/check_central_brain_python_prototype_retirement.sh' \
   'central_brain_github_remote_testing.json' \
   'android13-hwtest-v0.5.0-rc.2' \
   'physical_controller_application_evidence_available=true' \
+  'cockpit_hmi_design_mockups_ready=true' \
   'cockpit_demo_control_loop_implemented=false' \
   'S2-HMI-001..005' \
   'HVAC 控制页（规划）' \
@@ -90,12 +92,21 @@ required_paths=(
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
   docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md
+  docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md
+  docs/ui/cockpit-hmi-design/index.html
+  docs/ui/cockpit-hmi-design/styles.css
+  docs/ui/cockpit-hmi-design/app.js
+  docs/assets/cockpit-hmi-design/01-care.png
+  docs/assets/cockpit-hmi-design/02-hvac.png
+  docs/assets/cockpit-hmi-design/03-seat.png
+  docs/assets/cockpit-hmi-design/04-execution.png
   docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
   docs/CENTRAL_BRAIN_ROADMAP.md
   docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md
   tools/check_central_brain_android_runtime_evolution.sh
   tools/check_central_brain_aios_stage2_design.sh
+  tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_repository_completeness.sh
   tools/check_central_brain_python_prototype_retirement.sh
   tools/check_central_brain_github_remote_testing.sh
