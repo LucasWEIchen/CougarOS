@@ -1,6 +1,6 @@
 # 驱动层接口支持矩阵
 
-版本：2.3
+版本：2.4
 
 日期：2026-07-17
 
@@ -37,6 +37,21 @@ Android 13/API 33 ARM64 物理控制器已通过该 Parcel instrumentation，临
 状态：`session_contract_v1_defined=true`、`session_runtime_service_published=false`、
 `driver_development_triggered=false`。没有发现需要新增 Driver/HAL 的明确 gap，`DRV-GAP-001..005`
 均不因本工作包改变。
+
+### P1-W02 Plan Contract Driver/HAL Boundary
+
+P1-W02 只在 Android SDK AAR 中新增 app-layer Plan/Node structured parcelable、纯 Java DAG/容量/
+重试/补偿校验和 Parcel/checksum 测试。合同只传递 canonical ID、digest 和有界执行 metadata，不包含
+device node、fd/shared memory、vehicle property、CAN/DBC、Vendor NPU handle、DMA/IOMMU 或 ioctl。
+
+Android 13/API 33 ARM64 物理控制器仅执行四个 DTO Parcel round-trip、cycle/unknown-type reject，
+报告 `hardware_accessed=false` 并卸载临时 test APK。状态：`plan_contract_v1_defined=true`、
+`plan_parcel_physical_android13_arm64_verified=true`、`plan_runtime_published=false`、
+`driver_development_triggered=false`。
+
+本工作包没有发现新的公开 Android/Vendor SDK 能力缺口，不触发 Driver/HAL 开发；
+`DRV-GAP-001..005` 保持原状态。真实 effect dispatch、车辆 readback、NPU 和 Safety authority 仍受 P8
+及既有 gap gate 约束。
 
 ## 2026-07-16 Android 实机边界
 

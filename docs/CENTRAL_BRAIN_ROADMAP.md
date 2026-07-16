@@ -1,6 +1,6 @@
 # Central Brain Android 13 开发路线图
 
-版本：0.8
+版本：0.9
 日期：2026-07-17
 状态：Stage 2 P1 in progress
 
@@ -96,6 +96,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | R7C Android 13 application integration acceptance | Binder/UI/recovery 应用层矩阵完成。 |
 | R7D Android 13 software handoff | Android artifacts/manifest/install/rollback 已结构化。 |
 | P1-W01 Session contract V1 | 5 DTO、独立 Binder V1、边界校验、Parcel/checksum 门禁完成；服务未发布。 |
+| P1-W02 Plan/Node contract V1 | 4 DTO、11 类 allowlist、DAG/补偿/重试校验、Parcel/checksum 完成；Runtime 未发布。 |
 
 ## 5. Python 原型退役
 
@@ -134,10 +135,14 @@ SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
 `SessionContract`、JVM/Android Parcel 测试、独立 hash/checksum 门禁均已进入工程；既有 V1 checksum
 未改变，Session Runtime Service 尚未发布。
 
-下一实现工作包为 `P1-W02 Plan/Node DTO/AIDL`。执行顺序：
+`P1-W02 Plan/Node DTO/AIDL` 已完成：4 个 bounded DTO、11 类 node allowlist、`PlanContract` 的
+DAG/重试/补偿/容量校验、JVM/Android Parcel 测试和独立 `plan-v1.sha256` 已进入工程；既有及
+Session V1 checksum 未改变，Plan Compiler/Graph Runtime 尚未发布。
 
-1. 增加 versioned Plan/Node DTO/AIDL，不修改既有或 Session V1 checksum。
-2. 继续 Typed Event、Effect/Approval 和 SDK facade；Runtime owner/capability 不得由请求体自报。
+下一实现工作包为 `P1-W03 Typed Event DTO/AIDL`。执行顺序：
+
+1. 增加 immutable Runtime/Action/Observation/Message/EventPage DTO 和 bounded cursor contract。
+2. 随后实现 Effect/Approval DTO 和 SDK facade；Runtime owner/capability 不得由请求体自报。
 3. 每个 DTO 工作包增加 JVM/AIDL/static checks 和 API 33 Parcel instrumentation。
 4. 更新 requirements/roadmap/deviation/issue/delivery/driver trace。
 5. 不接入车辆/NPU/Driver/HAL，不恢复 Python gateway。
@@ -176,6 +181,11 @@ SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
   reject；临时 test APK 验证后卸载，该证据不访问车辆/NPU。
 - 保持 `session_runtime_service_published=false`、车辆/NPU/Driver-HAL 未接入；SDK reconnect 验收按
   正确所有权保留到 `P1-W05`。
+- 完成 `P1-W02` Plan/Node contract V1：4 个有界 AIDL DTO、11 类节点 allowlist、DAG/补偿/重试
+  校验、独立 hash/checksum 门禁。
+- Android 13/API 33 ARM64 物理控制器通过 Plan Parcel round-trip、cycle 和 unknown-type reject；
+  临时 test APK 验证后卸载，未访问车辆/NPU。
+- 保持 `plan_runtime_published=false`；Compiler/完整 Graph Validator 属于 P2-W07，durable 执行属于 P3。
 
 ## 8. 当前门禁
 
@@ -188,6 +198,7 @@ bash tools/check_central_brain_npu_interface.sh
 bash tools/check_central_brain_virtualization_docs.sh
 bash tools/check_central_brain_cockpit_hmi_design.sh
 bash tools/check_central_brain_aios_stage2_design.sh
+bash tools/check_central_brain_android_plan_contract.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -207,6 +218,9 @@ cockpit_hmi_translucent_material_ready=true
 session_contract_v1_defined=true
 session_parcel_physical_android13_arm64_verified=true
 session_runtime_service_published=false
+plan_contract_v1_defined=true
+plan_parcel_physical_android13_arm64_verified=true
+plan_runtime_published=false
 production_ready=false
 target_hardware_validated=false
 driver_development_triggered=false

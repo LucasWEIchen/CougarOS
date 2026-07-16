@@ -1,6 +1,6 @@
 # 车载中央大脑接口设计
 
-版本：3.1
+版本：3.2
 
 日期：2026-07-17
 
@@ -595,3 +595,23 @@ service connectivity. P1-W05 owns Binder bind/death/reconnect once Runtime publi
 
 Status: `session_contract_v1_defined=true`, `session_runtime_service_published=false`,
 `session_runtime_persistence_wired=false`, `hardware_accessed=false`.
+
+## Stage 2 P1-W02 Plan/Node Contract V1
+
+| Type | Core fields | Contract responsibility |
+| --- | --- | --- |
+| `ScenarioPlan` | IDs/revision/digests/times/nodes/dependencies | immutable bounded graph envelope |
+| `PlanNode` | type/capability/input/resource/timeout/retry/idempotency/required/compensation/policy | complete node execution metadata without raw payload |
+| `NodeDependency` | prerequisite/dependent/condition | directed DAG edge with existing endpoints |
+| `NodePolicy` | policy version/risk/approval/verification/failure mode | metadata only; never an authorization grant |
+| `PlanContract` | schema/range/allowlist/DAG/compensation validation | throws stable `CB_PLAN_CONTRACT` failure before runtime use |
+
+The 11 node types and graph limits are frozen by `PlanContract`; the four AIDL sources are frozen by
+`aidl-api/plan-v1.sha256` with concatenated identity
+`8dbf27424a09ecac969aff444e7fc9e3c939c7bc5c6687de2d8a5a627d60dabd`. Existing task, Governance and Session
+checksums remain unchanged. Android 13/API 33 ARM64 instrumentation proves Parcel and rejection behavior only.
+
+There is no new Binder surface in P1-W02. A future Scenario/Session Runtime may return these DTOs only after
+P1-W03..P1-W05 define event/callback/facade ownership. `plan_runtime_published=false`; P2-W07 owns compilation and
+full semantic graph validation, and P3 owns durable scheduling/recovery. Req IDs: `S2-SCN-001`, `S2-GRF-001`,
+`FW-S-001`, `NV-F-001`, `NV-F-008`, `NV-G-004`.

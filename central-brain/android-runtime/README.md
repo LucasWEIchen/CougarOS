@@ -8,7 +8,7 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 
 | Module | Artifact | Current responsibility |
 | --- | --- | --- |
-| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session AIDL types, callback bridge and protocol identity |
+| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session/Plan AIDL types, callback bridge and protocol identity |
 | `runtime-service` | APK without launcher | Signature-protected task/diagnostic/Governance Binders, bounded supervisors and deterministic hardware-free runtime |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
 | `policy-probe` | Test-only APK | Same-signer, unconfigured-package default-deny device probe; excluded from standard delivery build |
@@ -40,6 +40,23 @@ JVM tests cover validation and rejection. `SessionParcelInstrumentation` verifie
 Android. This is a contract-only P1-W01 result: no Android Service publishes the Session Binder yet, no SDK facade
 binds it and no Room/vehicle/NPU path consumes it. `session_runtime_service_published=false` and
 `hardware_accessed=false` remain explicit; P1-W05 owns bind/death/reconnect behavior.
+
+## Stage 2 P1-W02 Plan/Node Contract
+
+`central-brain-sdk` now also contains the bounded `ScenarioPlan`, `PlanNode`, `NodeDependency` and `NodePolicy`
+structured parcelables. `PlanContract` accepts only the 11 executor types frozen in the detailed design and rejects
+unknown versions/types/policy enums, duplicate IDs/edges/idempotency keys, missing dependencies, graph or
+compensation cycles and limits violations. A plan is capped at 64 nodes, 256 edges, depth 16, width 8 and a
+15-minute deadline; a node is capped at 120 seconds and three attempts. Retryable and side-effect nodes require an
+idempotency key.
+
+`central-brain-sdk/aidl-api/plan-v1.sha256` and
+`tools/check_central_brain_android_plan_contract.sh` freeze the four AIDL sources independently while rechecking
+the task/diagnostic, Governance and Session checksums. JVM tests and the cumulative
+`SessionParcelInstrumentation` passed on an Android 13/API 33 ARM64 physical controller; the temporary test APK
+was removed. This is wire/validation evidence only: `plan_contract_v1_defined=true`,
+`plan_parcel_physical_android13_arm64_verified=true`, `plan_runtime_published=false` and
+`hardware_accessed=false`. P2-W07 still owns the real Plan Compiler/Graph Validator and P3 owns execution.
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 

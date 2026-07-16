@@ -93,6 +93,7 @@ bash tools/check_central_brain_android_runtime_evolution.sh
 
 ## 7. 后续起点
 
-清理完成后继续 Stage 2 `P1-W01 Session DTO/AIDL`。所有新功能只进入 Android Java/AIDL/C
-主线；依赖真实车辆服务、Vendor NPU 或 Driver/HAL 的部分继续保持 empty interface，直到
+清理完成后，Stage 2 `P1-W01 Session DTO/AIDL` 与 `P1-W02 Plan/Node DTO/AIDL` 已沿 Android 主线
+完成 contract layer，当前继续 `P1-W03 Typed Event DTO/AIDL`。所有新功能只进入 Android
+Java/AIDL/C 主线；依赖真实车辆服务、Vendor NPU 或 Driver/HAL 的部分继续保持 empty interface，直到
 `S2-ADP-002`、`ISSUE-022`、`ISSUE-024`、`ISSUE-027`、`ISSUE-030` 的 owner/evidence 条件满足。

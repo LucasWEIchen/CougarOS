@@ -67,6 +67,9 @@ for marker in \
   'session_contract_v1_defined=true' \
   'session_parcel_physical_android13_arm64_verified=true' \
   'session_runtime_service_published=false' \
+  'plan_contract_v1_defined=true' \
+  'plan_parcel_physical_android13_arm64_verified=true' \
+  'plan_runtime_published=false' \
   'ICentralBrainSessionRuntime V1（合同已冻结）' \
   'cockpit_demo_control_loop_implemented=false' \
   'S2-HMI-001..006' \
@@ -113,6 +116,7 @@ required_paths=(
   docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md
   tools/check_central_brain_android_runtime_evolution.sh
   tools/check_central_brain_android_session_contract.sh
+  tools/check_central_brain_android_plan_contract.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_repository_completeness.sh
@@ -187,8 +191,8 @@ remaining_rows = sum(
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
-if "`P1-W01`" not in remaining or "`P1-W02`" not in remaining:
-    raise SystemExit("README remaining-work table must preserve P1-W01 status and name P1-W02")
+if "`P1-W01/P1-W02`" not in remaining or "`P1-W03`" not in remaining:
+    raise SystemExit("README remaining-work table must preserve P1-W01/P1-W02 status and name P1-W03")
 
 for group in (
     "APP-004",

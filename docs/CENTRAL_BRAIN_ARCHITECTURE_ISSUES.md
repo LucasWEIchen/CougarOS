@@ -1,6 +1,6 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.4
+版本：0.5
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -77,6 +77,11 @@ system/privileged service owner、SELinux、签名和 service placement 仍需�
 P1-W01 Session V1 只达到 `contract_defined`：5 个 DTO、边界校验、Parcel 和 checksum 已验证，但
 `session_runtime_service_published=false`。其未来 service placement、permission/capability、Binder
 death/reconnect 和 VINTF 边界仍由本问题跟踪，不能继承 R2 已集成结论。
+
+P1-W02 Plan/Node V1 也只达到 `contract_defined`：4 个 DTO、allowlist、DAG/补偿/重试边界、Parcel 和
+checksum 已验证，但 `plan_runtime_published=false`。未来 Plan publication、caller isolation、
+Compiler/Graph owner、Room v4 persistence、Binder payload sizing 和 app-local AIDL/VINTF 边界仍由本问题
+及 P1-W03..P1-W07 跟踪。
 
 ## ISSUE-022 Durable task/session/checkpoint 与副作用恢复
 

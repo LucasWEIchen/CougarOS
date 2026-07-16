@@ -1,6 +1,6 @@
 # 中央大脑架构需求基线
 
-版本：0.6
+版本：0.7
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -178,8 +178,8 @@
 | S2-SES-001 | versioned durable Session | P1-W01 contract 已完成；owner/持久化 Runtime 待开发 |
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
-| S2-SCN-001 | versioned scenario catalog | owner、precondition、rollback |
-| S2-GRF-001 | durable Agent Graph | step/checkpoint/dependency/terminal |
+| S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract 已完成；catalog/compiler 待开发 |
+| S2-GRF-001 | durable Agent Graph | P1-W02 node/DAG contract 已完成；durable runtime 待开发 |
 | S2-SAF-001 | hard safety interlock | A user confirmation cannot override this hard interlock |
 | S2-EFF-001 | typed Effect lifecycle | prepare/apply/verify/compensate |
 | S2-ADP-001 | adapter registry | source/profile/capability/evidence |
@@ -243,6 +243,7 @@ Production adapter registry must return adapter unavailable rather than silently
 - B3 black-box Android 13 preflight trace
 - B4 hybrid C/Java software handoff trace
 - P1-W01 Session contract V1 trace
+- P1-W02 Plan/Node contract V1 trace
 
 这些追踪键只证明对应 Android 软件增量通过其门禁，不代表真实车辆/NPU、Driver/HAL 或量产状态。
 
@@ -336,3 +337,22 @@ real_vehicle_effect_adapter_available=false
 `session_parcel_physical_android13_arm64_verified=true`、`session_runtime_service_published=false`、
 `session_runtime_persistence_wired=false`。P1-W01 是 `contract_defined`，不是 Session Runtime、Client2
 闭环、车辆控制或目标硬件验收。
+
+## 15. P1-W02 Plan/Node contract V1 trace
+
+本增量映射 `S2-SCN-001`、`S2-GRF-001`、`FW-S-001`、`NV-F-001`、`NV-F-008` 和 `NV-G-004`：
+
+1. SDK 新增 `ScenarioPlan`、`PlanNode`、`NodeDependency`、`NodePolicy` 四个 versioned structured
+   parcelable；既有 task/diagnostic/governance/session V1 文件和 checksum 不变。
+2. `PlanNode` 显式携带 timeout、maxAttempts、idempotency、required、compensation 和 policy metadata；
+   不允许 JSON、Bundle、FD、SharedMemory 或 HMI 自报 Safety/identity authority。
+3. `PlanContract` 只允许详设定义的 11 类 node，限制 node/edge/depth/parallelism/deadline，并拒绝
+   unknown schema/type/policy、重复 ID、断链、DAG cycle、unsafe retry 和 compensation loop。
+4. JVM 测试覆盖正反合同；Android 13/API 33 ARM64 物理控制器验证 Parcel round-trip、cycle reject 和
+   unknown-type reject，随后卸载临时 test APK，`hardware_accessed=false`。
+5. `plan-v1.sha256` 和独立 checker 冻结四个 AIDL 源文件并复验前三组 V1 checksum。
+
+当前状态：`plan_contract_v1_defined=true`、
+`plan_parcel_physical_android13_arm64_verified=true`、`plan_runtime_published=false`。
+P1-W02 是 `contract_defined`，不是 Scenario Catalog/Compiler、完整语义 Graph Validator、durable Graph
+执行、车辆控制、NPU 或目标硬件资格。

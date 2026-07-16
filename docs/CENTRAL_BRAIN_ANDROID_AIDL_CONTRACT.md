@@ -1,14 +1,14 @@
 # Central Brain Android AIDL Contract
 
-Version: 1.1-draft
+Version: 1.2-draft
 Date: 2026-07-17
-Stage: R2 complete / Stage 2 P1-W01 Session contract `contract_defined`
+Stage: R2 complete / Stage 2 P1-W01 Session and P1-W02 Plan contracts `contract_defined`
 
 ## Scope
 
 This document defines the Android 13 user-space Protocol Binding between the Central Brain SDK AAR and Runtime Service APK. The architecture diagram remains the requirement baseline. This contract implements only the Binder boundary owned by `AI SDK -> Protocol Binding -> Runtime & Governance/AIOS Kernel`; it does not add a new architecture layer.
 
-Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-G-003`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`.
+Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-008`, `NV-G-003`, `NV-G-004`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `S2-SES-001`, `S2-SCN-001`, `S2-GRF-001`.
 
 R2A delivered Gradle application structured AIDL in `central-brain-sdk`; R2B publishes and consumes that frozen V1 contract from separate application APKs. It is not VINTF stable AIDL: the project cannot add a Soong `aidl_interface`, freeze platform API under `aidl_api`, or modify vendor/system build files because the target Android SDK and system image are prebuilt. This accepted temporary limitation is tracked under `DEV-018` and `ISSUE-021`.
 
@@ -163,6 +163,37 @@ Android instrumentation in P1-W01 tests real Parcel round trips only and reports
 The test passed on an Android 13/API 33 ARM64 physical controller on 2026-07-17 and its temporary test package
 was removed afterwards: `session_parcel_physical_android13_arm64_verified=true`. This is serialization evidence,
 not Session Service, vehicle, NPU or target-hardware qualification.
+
+## Stage 2 P1-W02 Plan/Node AIDL V1
+
+P1-W02 adds four independent structured parcelables under `com.centralbrain.sdk.plan` without changing the
+task/diagnostic, Governance or Session V1 files and transaction order:
+
+| Type | Required contract fields | Boundaries |
+| --- | --- | --- |
+| `ScenarioPlan` | schema, plan/session/scenario IDs, revision, context/plan digests, compiled/deadline, nodes, dependencies | 1..64 nodes, <=256 edges, <=15 minute plan window |
+| `PlanNode` | schema, node/type/capability/input digest/resource, timeout, maxAttempts, idempotency, required, compensation, policy | timeout 1..120000 ms, attempts 1..3, allowlisted type only |
+| `NodeDependency` | schema, prerequisite, dependent, success/terminal condition | both nodes must exist; self/duplicate edge rejected |
+| `NodePolicy` | schema, policy ID/version, risk, approval/verification flags, failure mode | unknown version/risk/failure mode fails closed |
+
+The V1 node-type allowlist is `context.capture`, `policy.evaluate`, `approval.interrupt`, `effect.execute`,
+`effect.verify`, `tool.invoke`, `model.invoke`, `memory.query`, `memory.write`, `summary.render` and `compensate`.
+`PlanContract` validates canonical IDs and lowercase SHA-256 digests, unique node/idempotency identities, referenced
+edges, an acyclic graph, compensation target/type/loop rules, maximum graph depth 16 and width 8. Retryable nodes
+and side-effect types require an idempotency key. HIGH/CRITICAL policy metadata requires approval, but Runtime
+Governance must still re-evaluate current caller, Context, Safety and capability immediately before dispatch.
+
+The concatenated AIDL identity is
+`8dbf27424a09ecac969aff444e7fc9e3c939c7bc5c6687de2d8a5a627d60dabd`; per-file sources are frozen in
+`central-brain-sdk/aidl-api/plan-v1.sha256` and checked by
+`tools/check_central_brain_android_plan_contract.sh`. The cumulative instrumentation passed Parcel round trips,
+cycle rejection and unknown-type rejection on an Android 13/API 33 ARM64 physical controller and then removed the
+temporary test package.
+
+`plan_contract_v1_defined=true`, `plan_parcel_physical_android13_arm64_verified=true` and
+`plan_runtime_published=false`. No Binder method publishes a Plan, no compiler/graph scheduler consumes it, no
+Room schema changed and no vehicle/NPU/Driver-HAL path was accessed. This is contract evidence, not execution,
+hardware validation or production qualification.
 
 ## References
 

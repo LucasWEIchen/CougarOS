@@ -1,6 +1,6 @@
 # Central Brain AIOS Stage 2 开发计划与最小工作包
 
-版本：1.1
+版本：1.2
 
 日期：2026-07-16
 
@@ -136,10 +136,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P1-W02` Plan/Node DTO/AIDL
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-SCN-001`、`S2-GRF-001`。
-- 文件：`ScenarioPlan.aidl`、`PlanNode.aidl`、`NodeDependency.aidl`、`NodePolicy.aidl`。
+- 状态：`DONE`（contract layer，2026-07-17）；1.5 人日；需求：`S2-SCN-001`、`S2-GRF-001`。
+- 路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/plan/`。
+- 文件：`ScenarioPlan.aidl`、`PlanNode.aidl`、`NodeDependency.aidl`、`NodePolicy.aidl`、
+  `PlanContract.java`。
 - DoD：node type 只允许 allowlist；每个 node 含 timeout/retry/idempotency/required/compensation metadata。
-- 测试：DAG schema validation、cycle/unknown type reject。
+- 测试：DAG schema、节点/边/深度/并行度/deadline 上限、cycle/unknown type/missing dependency、
+  retry without idempotency 和 compensation loop reject；独立 `plan-v1.sha256` 与 checker 冻结。
+- 边界：`plan_contract_v1_defined=true`、`plan_runtime_published=false`；本包不实现
+  `ScenarioPlanCompiler`、`PlanGraphValidator` Runtime owner、Graph 调度、Room 或车辆/NPU adapter。
+- 设备证据：Android 13/API 33 ARM64 物理控制器完成四个 DTO Parcel round-trip 及 cycle/unknown type
+  reject；临时 test APK 已卸载，`plan_parcel_physical_android13_arm64_verified=true`。该证据只证明
+  Android wire contract，不表示 Plan 执行或目标硬件集成。
 
 ### `P1-W03` Typed Event DTO/AIDL
 

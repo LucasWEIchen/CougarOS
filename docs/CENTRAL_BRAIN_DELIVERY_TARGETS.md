@@ -1,6 +1,6 @@
 # Android 13 座舱域交付目标
 
-版本：3.5
+版本：3.6
 
 日期：2026-07-17
 
@@ -16,7 +16,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 
 | 交付项 | 状态 | 说明 |
 | --- | --- | --- |
-| Java SDK AAR | 已形成 | typed Runtime/Governance/Diagnostics AIDL client |
+| Java SDK AAR | 已形成 | typed Runtime/Governance/Diagnostics AIDL client；Session 与 Plan/Node contract |
 | Native Runtime AAR | 已形成 | C ABI V1/JNI，arm64-v8a/x86_64 |
 | Runtime Service APK | 已形成 | signature Binder、Room、Governance、readiness |
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
@@ -82,8 +82,8 @@ bash tools/check_central_brain_root_readme.sh
 
 ## 2026-07-15 AIOS Stage 2 交付范围
 
-Stage 2 P0 设计基线和 `P1-W01 Session DTO/AIDL` contract layer 已完成，下一工作包为
-`P1-W02 Plan/Node DTO/AIDL`。P1-P7 交付必须进入
+Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL` 和 `P1-W02 Plan/Node DTO/AIDL` contract layer
+已完成，下一工作包为 `P1-W03 Typed Event DTO/AIDL`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -95,6 +95,16 @@ bundle 不能宣称 Session 场景闭环，直到后续 Runtime/SDK/HMI 工作�
 2026-07-17 在 Android 13/API 33 ARM64 物理控制器上安装临时 SDK instrumentation APK，5 个 DTO
 round-trip、oversize 和 unknown-version reject 均通过，随后卸载。状态：
 `session_parcel_physical_android13_arm64_verified=true`；该应用层 Parcel 证据不提升
+`target_hardware_validated=false`。
+
+P1-W02 当前交付为 SDK AAR 中的 4 个 Plan/Node parcelable、11 类节点 allowlist、Java DAG/容量/
+重试/补偿 validator、JVM/Android Parcel tests、`plan-v1.sha256` 和独立 checker。
+`plan_contract_v1_defined=true`，但 `plan_runtime_published=false`：当前 bundle 不包含 Plan Compiler、
+Graph 调度、Room v4 持久化或可由 HMI 调用的 Plan Service。
+
+2026-07-17 同一 Android 13/API 33 ARM64 物理控制器通过 Plan/Node Parcel round-trip、cycle reject 和
+unknown-node-type reject，随后卸载临时 test APK：
+`plan_parcel_physical_android13_arm64_verified=true`。该应用层 wire 证据不访问车辆/NPU，且不提升
 `target_hardware_validated=false`。
 
 Android debug/test 中的 Digital Twin 或 deterministic provider 必须明确 `TEST_ONLY` 或
