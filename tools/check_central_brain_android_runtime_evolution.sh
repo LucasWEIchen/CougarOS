@@ -51,6 +51,7 @@ for path in \
   tools/build_central_brain_android_runtime.sh \
   tools/install_central_brain_android_runtime.sh \
   tools/check_central_brain_android_aidl_contract.sh \
+  tools/check_central_brain_android_session_contract.sh \
   tools/check_central_brain_android_binder_runtime.sh \
   tools/check_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_job_supervisor.sh \
@@ -181,6 +182,7 @@ require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" "Android R4C3C Production 
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" "R4C3C Production Gate Visibility Driver/HAL Boundary"
 
 bash "$ROOT_DIR/tools/check_central_brain_android_job_supervisor.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_session_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_schema.sh"

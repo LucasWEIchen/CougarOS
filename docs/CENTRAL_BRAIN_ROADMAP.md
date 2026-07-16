@@ -1,8 +1,8 @@
 # Central Brain Android 13 开发路线图
 
-版本：0.7
-日期：2026-07-16
-状态：Stage 2 implementation ready
+版本：0.8
+日期：2026-07-17
+状态：Stage 2 P1 in progress
 
 ## 1. 基线与范围
 
@@ -95,6 +95,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | R7B Client2 SDK/Binder migration | HTTP/INTERNET fallback 已移除。 |
 | R7C Android 13 application integration acceptance | Binder/UI/recovery 应用层矩阵完成。 |
 | R7D Android 13 software handoff | Android artifacts/manifest/install/rollback 已结构化。 |
+| P1-W01 Session contract V1 | 5 DTO、独立 Binder V1、边界校验、Parcel/checksum 门禁完成；服务未发布。 |
 
 ## 5. Python 原型退役
 
@@ -116,7 +117,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | 阶段 | 目标 | 主要交付 | 状态 |
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
-| S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 下一阶段 |
+| S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 进行中（W01 完成） |
 | S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 未开始 |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
@@ -129,11 +130,15 @@ P0-P7 估算为 136-184 人日；其中 Client2 HVAC/Seat 中控闭环为 24-32 
 SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
 整车标定。详细工作包见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`。
 
-下一实现工作包为 `P1-W01 Session DTO/AIDL`。执行顺序：
+`P1-W01 Session DTO/AIDL` 已完成：5 个 bounded DTO、`ICentralBrainSessionRuntime` V1、
+`SessionContract`、JVM/Android Parcel 测试、独立 hash/checksum 门禁均已进入工程；既有 V1 checksum
+未改变，Session Runtime Service 尚未发布。
 
-1. 增加 versioned Session DTO/AIDL，不修改既有 V1 checksum。
-2. 增加 SDK client API、Runtime owner 和 default-deny capability。
-3. 增加 JVM/AIDL/static checks，再执行 API 33 Binder instrumentation。
+下一实现工作包为 `P1-W02 Plan/Node DTO/AIDL`。执行顺序：
+
+1. 增加 versioned Plan/Node DTO/AIDL，不修改既有或 Session V1 checksum。
+2. 继续 Typed Event、Effect/Approval 和 SDK facade；Runtime owner/capability 不得由请求体自报。
+3. 每个 DTO 工作包增加 JVM/AIDL/static checks 和 API 33 Parcel instrumentation。
 4. 更新 requirements/roadmap/deviation/issue/delivery/driver trace。
 5. 不接入车辆/NPU/Driver/HAL，不恢复 Python gateway。
 
@@ -163,6 +168,15 @@ SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
   调整为 0.60 半透明浅灰玻璃，并修复 Windows Chrome 连续渲染 profile 隔离。
 - GitHub 默认分支 `main` 是权威进度基线；开发分支合并后不得单独保留状态结论。
 
+### 2026-07-17
+
+- 完成 `P1-W01` Session contract V1：5 个有界 AIDL DTO、独立 Session Binder 合同、Java 边界
+  校验、JVM/Android Parcel 测试和 checksum 门禁。
+- Android 13/API 33 ARM64 物理控制器通过 5 个 DTO Parcel round-trip、oversize 和 unknown-version
+  reject；临时 test APK 验证后卸载，该证据不访问车辆/NPU。
+- 保持 `session_runtime_service_published=false`、车辆/NPU/Driver-HAL 未接入；SDK reconnect 验收按
+  正确所有权保留到 `P1-W05`。
+
 ## 8. 当前门禁
 
 必须通过：
@@ -190,6 +204,9 @@ aios_intent_orchestration_ux_ready=true
 cockpit_hmi_design_mockups_ready=true
 cockpit_hmi_1920x1080_safe_frame_verified=true
 cockpit_hmi_translucent_material_ready=true
+session_contract_v1_defined=true
+session_parcel_physical_android13_arm64_verified=true
+session_runtime_service_published=false
 production_ready=false
 target_hardware_validated=false
 driver_development_triggered=false

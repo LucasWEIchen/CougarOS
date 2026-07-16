@@ -1,8 +1,8 @@
 # 车载中央大脑接口设计
 
-版本：3.0
+版本：3.1
 
-日期：2026-07-16
+日期：2026-07-17
 
 状态：Android 13 实际工程接口基线
 
@@ -575,3 +575,23 @@ The asynchronous relationship is `maintainer Release -> target tester ADB -> Git
 15-minute poll -> maintainer fix -> replacement Release -> target retest`. GitHub is not a Protocol Binding
 to the vehicle, does not invoke Runtime and cannot close a hardware gate. The poll is not an immediate
 webhook and a target tester's named-release verification remains mandatory before issue closure.
+
+## Stage 2 P1-W01 Session Contract V1
+
+| Type/surface | Fields or methods | Boundary |
+| --- | --- | --- |
+| `SessionRequest` | request/scenario/utterance/source/seat/locale/deadline/context version | owner and vehicle Safety state forbidden in payload |
+| `SessionHandle` | session ID, accepted time, expiry | Runtime assigns ID/TTL; client cannot assert owner |
+| `SessionSnapshot` | state, plan revision, event sequence, timestamps, bounded summary | unknown version/state rejected |
+| `SessionQuery` | state filter, terminal flag, opaque cursor, page size | caller owner scope implicit; max page 50 |
+| `SessionPage` | bounded snapshots, opaque next cursor, hasMore, generated time | typical Binder reply target <=64 KiB |
+| `ICentralBrainSessionRuntime` V1 | version/hash, open/get/list/cancel | contract only; no published Service in P1-W01 |
+| `SessionContract` | structural/admission validation | throws stable `CB_SESSION_CONTRACT` argument failure before Binder use |
+
+Protocol identity is
+`f4b3ac677b3294e7cb20382652d37ef995432a2e5ca335d131295d6a43d4024c`; six source files are frozen in
+`central-brain-sdk/aidl-api/session-v1.sha256`. Android Parcel instrumentation verifies wire serialization, not
+service connectivity. P1-W05 owns Binder bind/death/reconnect once Runtime publication and capability policy exist.
+
+Status: `session_contract_v1_defined=true`, `session_runtime_service_published=false`,
+`session_runtime_persistence_wired=false`, `hardware_accessed=false`.

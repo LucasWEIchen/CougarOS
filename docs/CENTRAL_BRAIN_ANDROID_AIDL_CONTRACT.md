@@ -1,8 +1,8 @@
 # Central Brain Android AIDL Contract
 
-Version: 1.0-draft
-Date: 2026-07-12
-Stage: R2 complete / typed Android Protocol Binding `android_integrated`
+Version: 1.1-draft
+Date: 2026-07-17
+Stage: R2 complete / Stage 2 P1-W01 Session contract `contract_defined`
 
 ## Scope
 
@@ -19,6 +19,7 @@ R2A delivered Gradle application structured AIDL in `central-brain-sdk`; R2B pub
 | Production | `com.centralbrain.sdk.production.ICentralBrainRuntime` | Typed agent-task submit, cancel, small status query | JSON, readiness rollups, audit dumps, hardware evidence |
 | Callback | `com.centralbrain.sdk.production.ICentralBrainTaskCallback` | Oneway progress, completion and failure notifications | Blocking work, request dispatch, large payloads |
 | Diagnostic | `com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics` | Bounded, read-only, cursor-paged diagnostics | Task submit/cancel, state mutation, hardware activation |
+| Session V1 | `com.centralbrain.sdk.session.ICentralBrainSessionRuntime` | Stage 2 open/get/list/cancel contract | Runtime publication, callback/event stream, vehicle/NPU dispatch |
 
 R2B publishes production and diagnostic interfaces from separate Android Service components with separate signature-level permissions. The Demo and production SDK path request only `com.centralbrain.permission.BIND_RUNTIME`; diagnostic access is independently protected by `com.centralbrain.permission.ACCESS_DIAGNOSTICS`.
 
@@ -136,6 +137,32 @@ R3C2 publishes a third, independent app-layer structured AIDL surface:
 Methods are bounded quick-return calls: protocol version/hash, evaluate exact Action ID, create pending approval, owner status and owner cancel. There is intentionally no approval grant method. `ActionRequest` contains no risk class, Safety/Vehicle State, identity, permission, package or signer field; those contexts remain Runtime-owned. Missing/non-owner status returns `APPROVAL_STATUS_UNKNOWN`, and cancel returns false without disclosing another owner's record.
 
 API 33 allowed-client evidence verifies policy-only read/comfort, OTA approval-required, pending creation and idempotent cancel with `sourceHardwareBacked=false`, `sourceProductionTrusted=false`, `grantSupported=false`, `durable=false`, and `dispatchAllowed=false`. A same-signer unconfigured package passes the outer Governance permission and bind, then receives `SecurityException` for protocol/evaluate/request/status/cancel from the inner capability policy. The task/diagnostic V1 files, transaction order and checksum remain unchanged.
+
+## Stage 2 P1-W01 Session AIDL V1
+
+P1-W01 adds an independent app-layer contract without changing the frozen task/diagnostic or Governance V1
+surfaces:
+
+- Interface: `com.centralbrain.sdk.session.ICentralBrainSessionRuntime`, version 1, hash
+  `f4b3ac677b3294e7cb20382652d37ef995432a2e5ca335d131295d6a43d4024c`.
+- Parcelables: `SessionRequest`, `SessionHandle`, `SessionSnapshot`, `SessionQuery`, `SessionPage`.
+- Methods: constant-time version/hash negotiation plus bounded `openSession`, `getSession`, `listSessions` and
+  `cancelSession` contract declarations.
+- Freeze evidence: `central-brain-sdk/aidl-api/session-v1.sha256` and
+  `tools/check_central_brain_android_session_contract.sh`.
+
+`SessionContract` rejects unknown schema/source/seat/state values, non-canonical IDs, oversized strings/pages,
+invalid timestamp ordering and deadlines beyond the five-minute admission window. Page size is limited to 50,
+summary to 512 characters and utterance to 1024 characters to preserve the 64 KiB Binder target.
+
+The request contains no owner, permission, signer, speed, gear or belt assertion. A future Runtime implementation
+must derive owner from Binder identity, assign TTL and enforce idempotency by request ID plus canonical content.
+`session_contract_v1_defined=true`, but `session_runtime_service_published=false` and
+`session_runtime_persistence_wired=false`. SDK bind/death/reconnect belongs to P1-W05 after a service owner exists.
+Android instrumentation in P1-W01 tests real Parcel round trips only and reports `hardware_accessed=false`.
+The test passed on an Android 13/API 33 ARM64 physical controller on 2026-07-17 and its temporary test package
+was removed afterwards: `session_parcel_physical_android13_arm64_verified=true`. This is serialization evidence,
+not Session Service, vehicle, NPU or target-hardware qualification.
 
 ## References
 

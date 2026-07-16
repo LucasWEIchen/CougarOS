@@ -10,6 +10,8 @@ android {
     defaultConfig {
         minSdk = 33
         consumerProguardFiles("consumer-rules.pro")
+        testInstrumentationRunner =
+            "com.centralbrain.sdk.session.SessionParcelInstrumentation"
     }
 
     buildFeatures {

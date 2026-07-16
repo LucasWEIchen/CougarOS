@@ -8,7 +8,7 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 
 | Module | Artifact | Current responsibility |
 | --- | --- | --- |
-| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured AIDL types, callback bridge and protocol identity |
+| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session AIDL types, callback bridge and protocol identity |
 | `runtime-service` | APK without launcher | Signature-protected task/diagnostic/Governance Binders, bounded supervisors and deterministic hardware-free runtime |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
 | `policy-probe` | Test-only APK | Same-signer, unconfigured-package default-deny device probe; excluded from standard delivery build |
@@ -26,6 +26,20 @@ The Runtime debug variant adds `RuntimeProbeActivity` and `DiagnosticProbeActivi
 - Detailed semantics: `docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md`
 
 Production AIDL contains only typed task fields; JSON, `Bundle`, file descriptors and shared memory are rejected by `tools/check_central_brain_android_aidl_contract.sh`. Diagnostic records are structured, read-only and cursor-paged with a maximum page size of 100.
+
+## Stage 2 P1-W01 Session Contract
+
+`central-brain-sdk` now contains `SessionRequest`, `SessionHandle`, `SessionSnapshot`, `SessionQuery`,
+`SessionPage` and independent `ICentralBrainSessionRuntime` V1. `SessionContract` rejects unknown schema/enums,
+non-canonical IDs, oversized strings/pages and invalid deadline/timestamp bounds. The Session source list is frozen by
+`central-brain-sdk/aidl-api/session-v1.sha256`; the protocol hash is reproduced by
+`tools/check_central_brain_android_session_contract.sh` while the original task/diagnostic and Governance V1
+checksums remain unchanged.
+
+JVM tests cover validation and rejection. `SessionParcelInstrumentation` verifies all five DTO round trips on real
+Android. This is a contract-only P1-W01 result: no Android Service publishes the Session Binder yet, no SDK facade
+binds it and no Room/vehicle/NPU path consumes it. `session_runtime_service_published=false` and
+`hardware_accessed=false` remain explicit; P1-W05 owns bind/death/reconnect behavior.
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 

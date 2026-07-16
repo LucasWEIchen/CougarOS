@@ -121,13 +121,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P1-W01` Session DTO/AIDL
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-SES-001`、`S2-UX-001`。
+- 状态：`DONE`（contract layer，2026-07-17）；1.5 人日；需求：`S2-SES-001`、`S2-UX-001`。
 - 新增路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/`。
 - 文件：`SessionRequest.aidl`、`SessionHandle.aidl`、`SessionSnapshot.aidl`、`SessionQuery.aidl`、
-  `SessionPage.aidl`。
+  `SessionPage.aidl`、`ICentralBrainSessionRuntime.aidl`、`SessionContract.java`。
 - 接口：`openSession`、`getSession`、`listSessions`、`cancelSession`。
 - DoD：DTO 使用定长/有界字段；未知 enum/version fail closed；AIDL hash 更新。
-- 测试：parcel round-trip、oversize reject、SDK disconnected/reconnect。
+- 测试：JVM oversize/enum/version/deadline reject；Android Parcel round-trip；独立 interface hash 和
+  `session-v1.sha256` 冻结；既有 Runtime/Governance V1 checksum 保持不变。
+- 边界：`session_contract_v1_defined=true`，`session_runtime_service_published=false`。原计划放在本包的
+  SDK disconnected/reconnect 验收移至拥有连接生命周期的 `P1-W05`，不得为 DTO-only 合同伪造服务证据。
+- 设备证据：Android 13/API 33 ARM64 物理控制器 Parcel/oversize/version 验证通过；临时 test APK 已卸载，
+  `session_parcel_physical_android13_arm64_verified=true`，不表示 Session Service 或车辆硬件已接入。
 
 ### `P1-W02` Plan/Node DTO/AIDL
 

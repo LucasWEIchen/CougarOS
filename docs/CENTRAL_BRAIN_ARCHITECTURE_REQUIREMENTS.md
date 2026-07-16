@@ -1,7 +1,7 @@
 # 中央大脑架构需求基线
 
-版本：0.5
-日期：2026-07-16
+版本：0.6
+日期：2026-07-17
 状态：Android 13 实际工程基线
 
 ## 1. 基线声明
@@ -175,7 +175,7 @@
 | S2-HMI-004 | 无真实信号的演示来源 | Android debug/test Digital Twin；持续显示 SIMULATED |
 | S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
-| S2-SES-001 | versioned durable Session | owner、TTL、state、idempotency |
+| S2-SES-001 | versioned durable Session | P1-W01 contract 已完成；owner/持久化 Runtime 待开发 |
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
 | S2-SCN-001 | versioned scenario catalog | owner、precondition、rollback |
@@ -242,6 +242,7 @@ Production adapter registry must return adapter unavailable rather than silently
 - B2 Native Runtime process integration trace
 - B3 black-box Android 13 preflight trace
 - B4 hybrid C/Java software handoff trace
+- P1-W01 Session contract V1 trace
 
 这些追踪键只证明对应 Android 软件增量通过其门禁，不代表真实车辆/NPU、Driver/HAL 或量产状态。
 
@@ -316,3 +317,22 @@ real_vehicle_effect_adapter_available=false
 
 `production_ready=false`、`target_hardware_validated=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。
+
+## 14. P1-W01 Session contract V1 trace
+
+本增量映射 `S2-SES-001`、`S2-UX-001`、`APP-004`、`XSC-001/006` 和 `NV-G-003`：
+
+1. SDK 新增 `SessionRequest/Handle/Snapshot/Query/Page` 和独立
+   `ICentralBrainSessionRuntime` V1；既有 production/diagnostic/governance V1 文件和 checksum 不变。
+2. `SessionContract` 限制 UUID、scenario/source/seat/state enum、字符串、deadline、revision、cursor
+   和 page；未知 schema/enum 失败关闭。
+3. owner 不进入请求体，只能由未来 Runtime Binder principal 派生；HMI 不能提交 speed、gear、belt、
+   permission、caller 或 signer 断言。
+4. JVM 验证边界和拒绝行为；Android 13/API 33 ARM64 物理控制器 instrumentation 验证 5 个 DTO 的
+   真实 Parcel round-trip、oversize reject 和 unknown-version reject，随后卸载临时 test APK。
+5. `session-v1.sha256` 和规范化 interface hash 由独立 checker 冻结，并复验既有 V1 checksum。
+
+当前状态：`session_contract_v1_defined=true`、
+`session_parcel_physical_android13_arm64_verified=true`、`session_runtime_service_published=false`、
+`session_runtime_persistence_wired=false`。P1-W01 是 `contract_defined`，不是 Session Runtime、Client2
+闭环、车辆控制或目标硬件验收。

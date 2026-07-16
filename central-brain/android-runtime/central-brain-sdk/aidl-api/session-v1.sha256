@@ -1,0 +1,6 @@
+877d2006cb3058cf075172e95caa89f1d5a5396a03df411cb9878cb7a2d4e993  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/SessionRequest.aidl
+38c5f4766e66773bebf0ab7a91fa0065faabf57190213de23d2b5385ad5a03ab  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/SessionHandle.aidl
+8e450f9a989ea45b7dc35d3cddbf5d0a093542d488a1b2cce98fb411a882e90e  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/SessionSnapshot.aidl
+59f815f1a392aee2a3673b039237b848ea121162f1e90da6193f23b85917a2a2  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/SessionQuery.aidl
+cea4eb00cdbde035417243f087f50d2591c4129916d0918d293c42dc76f420be  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/SessionPage.aidl
+fcf154e91768e76a64339f2f34a8dce8a7439a3f8ea857d20d7e5d98837b1d8b  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/ICentralBrainSessionRuntime.aidl

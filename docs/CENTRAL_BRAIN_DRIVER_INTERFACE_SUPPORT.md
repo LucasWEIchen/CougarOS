@@ -1,8 +1,8 @@
 # 驱动层接口支持矩阵
 
-版本：2.2
+版本：2.3
 
-日期：2026-07-16
+日期：2026-07-17
 
 ## 范围声明
 
@@ -24,6 +24,19 @@ P8 只有取得目标车辆/NPU owner、API/ABI、权限、Safety、smoke 和 ro
 capability 评审 `DRV-GAP-001..005`；production adapter 缺失时返回 unavailable，不回退仿真。
 
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。
+
+### P1-W01 Session Contract Driver/HAL Boundary
+
+P1-W01 只在 Android SDK AAR 中新增 app-layer AIDL DTO/interface、Java 边界校验和 Parcel/checksum
+测试。合同不包含 device node、fd/shared memory、vehicle property、CAN/DBC、Vendor NPU handle、
+DMA/IOMMU 或 ioctl；Android instrumentation 仅做 Parcel round-trip，报告 `hardware_accessed=false`。
+
+Android 13/API 33 ARM64 物理控制器已通过该 Parcel instrumentation，临时 test APK 随后卸载；该证据
+只设置 `session_parcel_physical_android13_arm64_verified=true`，不触发任何 Driver/HAL 结论。
+
+状态：`session_contract_v1_defined=true`、`session_runtime_service_published=false`、
+`driver_development_triggered=false`。没有发现需要新增 Driver/HAL 的明确 gap，`DRV-GAP-001..005`
+均不因本工作包改变。
 
 ## 2026-07-16 Android 实机边界
 

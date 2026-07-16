@@ -192,7 +192,8 @@ flowchart TB
 
 | 域 | 最小模块 | 状态 | 派生需求 |
 | --- | --- | --- | --- |
-| Session | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
+| Session contract | 5 个 Session DTO、`ICentralBrainSessionRuntime` V1、`SessionContract` | `CONTRACT_ONLY`（P1-W01） | `S2-SES-001` |
+| Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `NOT_STARTED` | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `NOT_STARTED` | `S2-TWN-001` |
 | Scenario | ScenarioCatalog、Resolver、PlanCompiler、GraphValidator | `NOT_STARTED` | `S2-SCN-001` |
@@ -260,7 +261,9 @@ public final class Envelope<T> {
 
 ### 8.2 新增 AIDL 文件
 
-计划路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/`。
+实现路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/`。P1-W01 先冻结
+`ICentralBrainSessionRuntime` V1 的 `open/get/list/cancel` 和 5 个有界 DTO；Event/callback、approval、undo
+在对应 DTO 就绪后通过后续版本追加，不能改变 V1 事务顺序或 checksum。
 
 ```aidl
 interface ICentralBrainSessionRuntime {
@@ -269,19 +272,16 @@ interface ICentralBrainSessionRuntime {
 
     int getProtocolVersion();
     String getProtocolHash();
-    SessionHandle openSession(in SessionRequest request,
-                              ICentralBrainSessionCallback callback);
+    SessionHandle openSession(in SessionRequest request);
     SessionSnapshot getSession(in SessionHandle handle);
     SessionPage listSessions(in SessionQuery query);
-    EventPage getEvents(in SessionHandle handle, long afterSequence, int limit);
-    boolean registerSessionCallback(in SessionHandle handle,
-                                    ICentralBrainSessionCallback callback);
     boolean cancelSession(in SessionHandle handle, int reasonCode);
-    boolean approve(in ApprovalResponse response);
-    boolean reject(in ApprovalResponse response);
-    UndoHandle requestUndo(in SessionHandle handle, in UndoRequest request);
 }
 ```
+
+P1-W03 在 Event DTO 完成后定义 callback/event 增量；P1-W04 定义 approval/undo DTO；P1-W05 才拥有
+SDK bind/death/reconnect/resubscribe 生命周期。把 reconnect 测试放在 P1-W01 的 DTO-only 层没有可测试
+owner，因此已在 backlog 中纠正，不降低最终 P1 验收要求。
 
 ```aidl
 oneway interface ICentralBrainSessionCallback {
@@ -313,7 +313,27 @@ HMI 不得提交 `speed/gear/belt` 作为权威输入。
 Runtime admission 后将 `SessionRequest` 的场景目标映射为内部 immutable `ScenarioRequest`，供
 `ScenarioResolver` 使用。AIDL 不暴露内部 resolver object。
 
-### 8.4 Java SDK facade
+P1-W01 的 `SessionContract.validateRequest(request, nowEpochMs)` 强制：schema=1、canonical UUID、
+scenario ID 形状、source/seat allowlist、utterance <= 1024、locale <= 32、deadline 位于未来 5 分钟内，
+且 HMI 不得提交 speed/gear/belt/permission/caller/signer 字段。`requestId` 是 admission 幂等键；owner
+只能由未来 Session Service 的 Binder caller principal 派生。
+
+### 8.4 Handle、Snapshot、Query 与 Page
+
+- `SessionHandle`：canonical `sessionId`、accepted/expires wall-clock；TTL 由 Runtime 创建，客户端不能
+  自报 owner。
+- `SessionSnapshot`：session/request/scenario、完整 Session state allowlist、active plan revision、
+  last event sequence、created/updated/deadline 和 <=512 字符摘要；UNKNOWN state 不可作为有效 snapshot。
+- `SessionQuery`：state filter、includeTerminal、opaque cursor <=256、pageSize 1..50；owner scope 由
+  Binder identity 隐式固定。
+- `SessionPage`：最多 50 个已校验 snapshot、opaque next cursor、hasMore、generated timestamp；
+  `hasMore=true` 时 next cursor 必填。
+
+这些限制将单次典型 Session 页控制在 64 KiB 目标内。所有 DTO 是 Gradle application structured
+AIDL，不是 VINTF stable AIDL；V1 文件由 `aidl-api/session-v1.sha256` 冻结，interface hash 由
+`tools/check_central_brain_android_session_contract.sh` 对规范化源文件重算。
+
+### 8.5 Java SDK facade
 
 计划类：
 
@@ -1436,7 +1456,9 @@ central-brain-sdk AAR
 
 ## 33. 开发人员起始点
 
-下一实现工作包固定为 `P1-W01 Session DTO/AIDL`。提交范围仅包含新 AIDL DTO、SDK parcel tests、AIDL hash/checker 和需求/路线图状态更新。完成后自动进入 `P1-W02 Plan/Node DTO/AIDL`，不得越过 contract 层直接在 Client2 中硬编码仿真动画。
+`P1-W01 Session DTO/AIDL` 已完成 contract layer：5 个有界 DTO、独立 Session Binder V1、校验器、
+JVM/Android Parcel 测试和 checksum 门禁已进入工程，Runtime service 尚未发布。下一实现工作包固定为
+`P1-W02 Plan/Node DTO/AIDL`；不得越过 contract 层直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

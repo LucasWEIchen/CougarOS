@@ -21,7 +21,7 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 | 物理应用层证据 | `physical_controller_application_evidence_available=true` | Runtime/Demo/Client2 的安装、Binder、UI、恢复已验证 |
 | GitHub 基线 | `maintained_project_files_synced=true` | 正式源码/文档已跟踪；首页架构与进度由门禁维护 |
 | Python 原型 | `python_prototype_runtime_maintained=false` | 源码、合同、样例、部署和对应门禁已移除 |
-| AIOS Stage 2 | `design_baseline_complete=true`；`implementation_stage=P1-W01` | 下一步为 Session DTO/AIDL；P0 设计基线已完成 |
+| AIOS Stage 2 | `design_baseline_complete=true`；`session_contract_v1_defined=true`；`session_parcel_physical_android13_arm64_verified=true`；`session_runtime_service_published=false`；`implementation_stage=P1-W02` | P1-W01 Session 合同和真机 Parcel 验证完成；下一步为 Plan/Node DTO/AIDL |
 | 中控 AIOS UI/UX 设计稿 | `cockpit_hmi_design_mockups_ready=true`；`aios_intent_orchestration_ux_ready=true`；`cockpit_hmi_1920x1080_safe_frame_verified=true`；`cockpit_hmi_translucent_material_ready=true` | 四阶段原型、自动化链、画布内安全框、60% 半透明浅灰玻璃和四张 1920x1080 稿件已形成；仅 HMI-D0 设计基线 |
 | 中控 AIOS 闭环 | `cockpit_demo_control_loop_implemented=false` | Client2 四阶段、Effect 详情和闭环合同已规划；P4 预计 24-32 人日 |
 | 测试版本 | `android13-hwtest-v0.5.0-rc.2` | 远程硬件测试合同的当前 RC；不是量产版本 |
@@ -81,6 +81,7 @@ bash tools/check_central_brain_github_repository_completeness.sh
 bash tools/check_central_brain_root_readme.sh
 bash tools/check_central_brain_cockpit_hmi_design.sh
 bash tools/check_central_brain_aios_stage2_design.sh
+bash tools/check_central_brain_android_session_contract.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -103,6 +104,7 @@ flowchart TB
     RuntimeApi["ICentralBrainRuntime"]
     GovApi["ICentralBrainGovernance"]
     DiagApi["ICentralBrainDiagnostics"]
+    SessionApi["ICentralBrainSessionRuntime V1（合同已冻结）"]
   end
 
   subgraph Runtime["Android AIOS Runtime"]
@@ -146,9 +148,11 @@ flowchart TB
   Sdk --> RuntimeApi
   Sdk --> GovApi
   Sdk --> DiagApi
+  Sdk --> SessionApi
   RuntimeApi --> Services
   GovApi --> Services
   DiagApi --> Services
+  SessionApi -. "service owner / persistence pending" .-> Services
   Services --> Identity --> Durable
   Durable --> Domains
   Domains --> Model
@@ -175,6 +179,7 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 | --- | --- | --- | --- |
 | 架构与产品基线 | Req ID、Stage 2 UX/backlog、完整软件设计、偏差/问题台账 | 文档和静态门禁 | `DEVELOPED` |
 | Android SDK 与 Protocol Binding | Java SDK AAR、typed/versioned AIDL、callback/cancel/death | JVM、API 33 Binder | `DEVELOPED` |
+| Stage 2 Session 合同 | 5 个有界 DTO、独立 Session Binder V1、Java validator、hash/checksum | JVM + Android Parcel；服务未发布 | `DEVELOPED` |
 | Runtime 与 Governance | Binder identity、capability/policy、Job Supervisor、诊断 | JVM、Binder、dumpsys | `DEVELOPED` |
 | Durable workflow | Room task/checkpoint/approval/effect/outbox/audit/recovery | repository 和进程恢复 | `DEVELOPED` |
 | Model/Event/Memory/Skill 软件合同 | scheduler、ModelProvider、bounded runtime、middleware/readiness | deterministic debug/test；无真实 NPU | `DEVELOPED` |
@@ -188,7 +193,7 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 
 | 模块 | 最小剩余工作 | 阻塞或下一步 | 状态 |
 | --- | --- | --- | --- |
-| Session Contract v2 | Session DTO/AIDL、SDK、Runtime owner、parcel/hash tests | 下一工作包 `P1-W01` | `NOT_STARTED` |
+| Session Runtime v2 剩余层 | Plan/Node/Event/Effect DTO、SDK facade、Runtime owner/persistence/callback | `P1-W01` 合同已完成；下一工作包 `P1-W02` | `NOT_STARTED` |
 | Context 与 Digital Twin | versioned snapshot、freshness、debug/test twin | Stage 2 P2 | `NOT_STARTED` |
 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | Stage 2 P3 | `NOT_STARTED` |
 | 场景与仿真 Effect 编排 | “我冷了/我累了”、approval、simulated readback、undo | Stage 2 P2/P3；不依赖真实车身信号 | `NOT_STARTED` |
@@ -351,6 +356,7 @@ bash tools/test_client2_central_brain_recovery.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-17 | [P1-W01 Session contract V1](docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md) | 新增 5 个 bounded Session DTO、独立 Binder V1、Java validator、JVM/Android Parcel 测试和 checksum 门禁；API 33 ARM64 控制器验证后卸载临时 test APK | `session_parcel_physical_android13_arm64_verified=true`；Service/hardware activation 仍为 false |
 | 2026-07-16 | [HMI 画布与材质修正](docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md) | Panel 收敛到 `(1264,160)-(1888,1048)`，预览只等比缩小；主材质从 0.91 改为 0.60 半透明浅灰玻璃 | `cockpit_hmi_1920x1080_safe_frame_verified=true`；仍是 HMI-D0 设计资产 |
 | 2026-07-16 | [AIOS 意图编排 UI/UX](docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md) | 将控制按钮式主导航纠正为“意图/计划/执行/结果”，以“我有些疲惫”驱动自动 Context、Plan、Policy、Effect 与 readback，并显式展示全链路 | `aios_intent_orchestration_ux_ready=true`；HMI-D1/APK/车控仍未实现 |
 | 2026-07-16 | [中控 HMI 规划](docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md) | 将 HVAC/Seat 作为次级 Effect 详情与手动兜底，冻结四阶段、全 Effect projection、仿真回读和 22 项验收 | 仅完成 HMI-D0 规划；`cockpit_demo_control_loop_implemented=false` |
