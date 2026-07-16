@@ -38,6 +38,8 @@ for marker in \
   '# Central Brain Client2 中控 UI/UX 设计稿' \
   'cockpit_hmi_design_mockups_ready=true' \
   'aios_intent_orchestration_ux_ready=true' \
+  'cockpit_hmi_1920x1080_safe_frame_verified=true' \
+  'cockpit_hmi_translucent_material_ready=true' \
   'cockpit_hvac_surface_implemented=false' \
   'cockpit_seat_surface_implemented=false' \
   'cockpit_demo_control_loop_implemented=false' \
@@ -55,6 +57,8 @@ for marker in \
   'data-view="plan"' \
   'data-view="execution"' \
   'data-view="result"' \
+  'data-canvas-width="1920"' \
+  'data-canvas-height="1080"' \
   'SIMULATED' \
   'AIOS INTENT ORCHESTRATION' \
   '我有些疲惫' \
@@ -76,11 +80,13 @@ fi
 for marker in \
   'width: 1920px' \
   'height: 1080px' \
-  'width: 636px' \
-  'top: 12px' \
-  'right: 12px' \
+  'width: 624px' \
+  'top: 160px' \
+  'right: 32px' \
+  'bottom: 32px' \
+  '--panel: rgba(238, 242, 243, 0.6)' \
   'border-radius: 8px' \
-  'backdrop-filter: blur(20px)' \
+  'backdrop-filter: blur(14px)' \
   'height: 48px'; do
   require_text "$SOURCE_DIR/styles.css" "$marker"
 done
@@ -90,20 +96,27 @@ if rg -n 'linear-gradient|radial-gradient|conic-gradient' "$SOURCE_DIR/styles.cs
   exit 1
 fi
 
+require_text "$SOURCE_DIR/app.js" 'const CANVAS_WIDTH = 1920'
+require_text "$SOURCE_DIR/app.js" 'const CANVAS_HEIGHT = 1080'
+require_text "$SOURCE_DIR/app.js" 'document.documentElement.clientWidth'
+require_text "$SOURCE_DIR/app.js" 'Math.min(1, viewportWidth / CANVAS_WIDTH, viewportHeight / CANVAS_HEIGHT)'
 require_text "$SOURCE_DIR/app.js" 'window.__COCKPIT_HMI_READY__ = true'
 require_text "$SOURCE_DIR/render_mockups.sh" 'cockpit_hmi_design_output_count=4'
+require_text "$SOURCE_DIR/render_mockups.sh" 'local profile_linux="$WINDOWS_PROFILE_DIR/$view"'
 
 expected_reference_sha="ea67855e9ec184559546c35f8be0d3a87abc5fc7f8edff02d5e411fe98479e80"
 actual_reference_sha="$(sha256sum "$REFERENCE" | awk '{print $1}')"
 [[ "$actual_reference_sha" == "$expected_reference_sha" ]] \
   || { echo "cockpit HMI reference image digest mismatch" >&2; exit 1; }
 
-python3 -B - "$ASSET_DIR" <<'PY'
+python3 -B - "$ASSET_DIR" "$SOURCE_DIR/styles.css" <<'PY'
 import pathlib
+import re
 import struct
 import sys
 
 asset_dir = pathlib.Path(sys.argv[1])
+styles = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
 expected = {
     "01-intent.png",
     "02-plan.png",
@@ -119,12 +132,45 @@ for name in sorted(expected):
     if (width, height) != (1920, 1080):
         raise SystemExit(f"unexpected design asset size for {name}: {width}x{height}")
 print("cockpit_hmi_design_png_dimensions_verified=4")
+
+panel_match = re.search(r"\.brain-panel\s*\{([^}]+)\}", styles, re.DOTALL)
+if not panel_match:
+    raise SystemExit("cockpit HMI panel style block missing")
+panel = panel_match.group(1)
+
+def px(name):
+    match = re.search(rf"\b{name}:\s*(\d+)px;", panel)
+    if not match:
+        raise SystemExit(f"cockpit HMI panel {name} missing")
+    return int(match.group(1))
+
+top = px("top")
+right = px("right")
+bottom = px("bottom")
+width = px("width")
+height = 1080 - top - bottom
+left = 1920 - right - width
+if (left, top, width, height) != (1264, 160, 624, 888):
+    raise SystemExit(f"unexpected cockpit HMI safe frame: {(left, top, width, height)}")
+if left < 0 or top < 0 or left + width > 1920 or top + height > 1080:
+    raise SystemExit("cockpit HMI panel exceeds 1920x1080 canvas")
+
+alpha_match = re.search(r"--panel:\s*rgba\([^,]+,[^,]+,[^,]+,\s*([0-9.]+)\)", styles)
+if not alpha_match:
+    raise SystemExit("cockpit HMI panel alpha missing")
+alpha = float(alpha_match.group(1))
+if not 0.45 <= alpha <= 0.65:
+    raise SystemExit(f"cockpit HMI panel alpha is not translucent: {alpha}")
+print("cockpit_hmi_1920x1080_safe_frame_verified=true")
+print("cockpit_hmi_translucent_material_ready=true")
 PY
 
 printf '%s\n' \
   'Central Brain cockpit HMI design check passed' \
   'cockpit_hmi_design_mockups_ready=true' \
   'aios_intent_orchestration_ux_ready=true' \
+  'cockpit_hmi_1920x1080_safe_frame_verified=true' \
+  'cockpit_hmi_translucent_material_ready=true' \
   'cockpit_hmi_design_only=true' \
   'cockpit_hvac_surface_implemented=false' \
   'cockpit_seat_surface_implemented=false' \

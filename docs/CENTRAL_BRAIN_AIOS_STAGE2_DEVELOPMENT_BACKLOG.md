@@ -336,7 +336,8 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..003/006`。
 - 修改 maintained XML/vector resources 和最小 Smali bootstrap，不手改 build/reverse output。
 - DoD：现有 overlay 顶层提供“意图/计划/执行/结果”；Header 固定 source/driving/connection；
-  HVAC/Seat 位于 Effect 详情和手动兜底抽屉；仍由底部导航显示/隐藏，面板外点击关闭。
+  HVAC/Seat 位于 Effect 详情和手动兜底抽屉；1920x1080 安全框固定为
+  `(1264,160)-(1888,1048)`，主玻璃 alpha=0.60；仍由底部导航显示/隐藏，面板外点击关闭。
 
 ### `P4-W04` HVAC control surface
 
@@ -387,8 +388,8 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 ### `P4-W11` Accessibility/display matrix
 
 - 状态：`NOT_STARTED`；1.5-2.5 人日；需求：`S2-UX-003`、`S2-HMI-001/002`。
-- DoD：48dp target、content description、状态不只靠颜色、最长中文不重叠；1920x1080、
-  1280x720、2560x1440 screenshot/layout gate。
+- DoD：48dp target、content description、状态不只靠颜色、最长中文不重叠；1920x1080 不越界，
+  1280x720、2560x1440 只按定义的显示矩阵适配；Web 设计预览 scale 不得大于 1。
 
 ### `P4-W12` Android device acceptance/fault/recovery
 

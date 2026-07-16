@@ -1,6 +1,6 @@
 # 中央大脑架构偏差登记表
 
-版本：0.2
+版本：0.3
 日期：2026-07-16
 状态：Android 13 实际工程基线
 
@@ -132,6 +132,9 @@ Client2 HVAC/Seat 中控页面可以在该 debug/test profile 下形成演示闭
 Client2 只验证面板 UX、typed Binder 和故障恢复。权威 session/plan/effect 状态必须保留在
 Runtime，HMI 只做 reducer/render；unknown driving state 使用 restricted UI。量产前 OEM 必须提供
 可维护扩展点并完成 UX restriction、签名、升级、分辨率和整车验证。状态：`Accepted Temporary`。
+
+2026-07-16 HMI-D0 已将设计 Panel 收敛到 Client2 1920x1080 安全框并提高透明度，但这仍是设计资产；
+多 DPI、多窗口、system inset 和真实 Android View 边界必须在 HMI-D1/D4 重新取证，不能由 PNG 关闭。
 
 ## DEV-026 Python 原型退役与 Android-only 范围
 

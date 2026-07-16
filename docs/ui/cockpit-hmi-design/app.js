@@ -11,6 +11,8 @@
   const stripLabel = document.querySelector("[data-session-label]");
   const stripDetail = document.querySelector("[data-session-detail]");
   const views = ["intent", "plan", "execution", "result"];
+  const CANVAS_WIDTH = 1920;
+  const CANVAS_HEIGHT = 1080;
 
   const stripState = {
     intent: ["等待场景输入", "一句话描述你的感受或目的", "idle"],
@@ -59,8 +61,14 @@
   };
 
   function scaleStage() {
-    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+    const scale = Math.min(1, viewportWidth / CANVAS_WIDTH, viewportHeight / CANVAS_HEIGHT);
+
+    stage.style.left = `${viewportWidth / 2}px`;
+    stage.style.top = `${viewportHeight / 2}px`;
     stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    stage.dataset.previewScale = scale.toFixed(4);
   }
 
   function showView(view, updateUrl = true) {

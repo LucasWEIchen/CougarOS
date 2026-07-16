@@ -62,6 +62,8 @@ for marker in \
   'physical_controller_application_evidence_available=true' \
   'cockpit_hmi_design_mockups_ready=true' \
   'aios_intent_orchestration_ux_ready=true' \
+  'cockpit_hmi_1920x1080_safe_frame_verified=true' \
+  'cockpit_hmi_translucent_material_ready=true' \
   'cockpit_demo_control_loop_implemented=false' \
   'S2-HMI-001..006' \
   '意图输入（设计稿已交付）' \
