@@ -37,8 +37,18 @@ required_tracked_paths=(
   apk-labs/client2-central-brain/README.md
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
+  docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md
   docs/CENTRAL_BRAIN_ROADMAP.md
+  docs/ui/cockpit-hmi-design/index.html
+  docs/ui/cockpit-hmi-design/styles.css
+  docs/ui/cockpit-hmi-design/app.js
+  docs/ui/cockpit-hmi-design/render_mockups.sh
+  docs/assets/cockpit-hmi-design/01-care.png
+  docs/assets/cockpit-hmi-design/02-hvac.png
+  docs/assets/cockpit-hmi-design/03-seat.png
+  docs/assets/cockpit-hmi-design/04-execution.png
   tools/check_central_brain_root_readme.sh
+  tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_publication_tree.sh
   tools/check_central_brain_github_repository_completeness.sh
 )
@@ -48,8 +58,8 @@ for path in "${required_tracked_paths[@]}"; do
     || { echo "maintained project path is not tracked: $path" >&2; exit 1; }
 done
 
-FORMAL_UNTRACKED_PATTERN='^(central-brain/|apk-labs/client2-central-brain/|\.github/|\.githooks/|docs/CENTRAL_BRAIN_[^/]*|tools/(build|check|install|package|run|test)_central_brain_)'
-FORMAL_CHANGE_PATTERN='^(central-brain/|apk-labs/client2-central-brain/|docs/CENTRAL_BRAIN_|tools/.*central_brain|\.github/|\.githooks/)'
+FORMAL_UNTRACKED_PATTERN='^(central-brain/|apk-labs/client2-central-brain/|\.github/|\.githooks/|docs/CENTRAL_BRAIN_[^/]*|docs/(ui|assets)/cockpit-hmi-design/|tools/(build|check|install|package|run|test)_central_brain_)'
+FORMAL_CHANGE_PATTERN='^(central-brain/|apk-labs/client2-central-brain/|docs/CENTRAL_BRAIN_|docs/(ui|assets)/cockpit-hmi-design/|tools/.*central_brain|\.github/|\.githooks/)'
 untracked_formal="$({
   git -C "$ROOT_DIR" ls-files --others --exclude-standard \
     | grep -E "$FORMAL_UNTRACKED_PATTERN"
@@ -87,7 +97,7 @@ fi
 
 tracked_project_file_count="$(
   git -C "$ROOT_DIR" ls-files \
-    | grep -E '^(README\.md$|central-brain/|apk-labs/client2-central-brain/|\.github/|\.githooks/|docs/CENTRAL_BRAIN_|tools/.*central_brain)' \
+    | grep -E '^(README\.md$|central-brain/|apk-labs/client2-central-brain/|\.github/|\.githooks/|docs/CENTRAL_BRAIN_|docs/(ui|assets)/cockpit-hmi-design/|tools/.*central_brain)' \
     | wc -l
 )"
 tracked_central_brain_doc_count="$(

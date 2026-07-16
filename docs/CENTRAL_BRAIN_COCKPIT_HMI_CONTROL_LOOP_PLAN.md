@@ -1,10 +1,10 @@
 # Central Brain 中控屏 HVAC/Seat 演示闭环规划
 
-版本：1.0
+版本：1.1
 
 日期：2026-07-16
 
-状态：Implementation plan baseline
+状态：Implementation plan + high-fidelity design baseline
 
 目标平台：黑盒 Android 13 座舱域控制器上的 Client2 APK
 
@@ -27,6 +27,7 @@
 状态边界：
 
 ```text
+cockpit_hmi_design_mockups_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
@@ -37,6 +38,15 @@ target_hardware_validated=false
 driver_development_triggered=false
 virtualization_development_triggered=false
 ```
+
+### 1.1 高保真设计基线
+
+`CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md` 已按现有 Client2 1920x1080 车模、底部导航
+入口和右侧半透明悬浮面板完成关怀、HVAC、Seat、执行四视图设计。仓库同时提供可点击 HTML/CSS/JS
+原型、四张 1920x1080 PNG、视觉 token、Android 类/资源映射和可复现渲染脚本。
+
+该资产补全 HMI-D0 视觉基线，不是 HMI-D1 的 Android resource/Java controller，也不能证明
+HVAC/Seat 控制、Effect readback、目标硬件或量产能力已经实现。
 
 ## 2. 交付范围
 
@@ -464,7 +474,7 @@ P4 依赖 P1 typed contracts、P2 Digital Twin/simulated adapter 和 P3 durable 
 
 | 里程碑 | 结果 | 完成条件 |
 | --- | --- | --- |
-| HMI-D0 | 需求/UX/模块/验收冻结 | 本文档和 checker 通过 |
+| HMI-D0 | 需求/UX/模块/验收和高保真视觉基线冻结 | 规划、设计稿、四张 PNG 和 checker 通过 |
 | HMI-D1 | Client2 四视图静态壳 | 资源、Java controller、layout screenshot |
 | HMI-D2 | 手动 HVAC/Seat 仿真闭环 | P1/P2 + HMI-AC/ST 基础场景通过 |
 | HMI-D3 | AI 场景多 Effect 闭环 | P3 + cold/fatigue/rest/partial/undo |

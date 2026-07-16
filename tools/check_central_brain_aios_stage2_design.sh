@@ -11,6 +11,7 @@ UX="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md"
 BACKLOG="$ROOT_DIR/docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md"
 DESIGN="$ROOT_DIR/docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md"
 COCKPIT_HMI="$ROOT_DIR/docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md"
+COCKPIT_HMI_MOCKUPS="$ROOT_DIR/docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md"
 REQUIREMENTS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md"
 ROADMAP="$ROOT_DIR/docs/CENTRAL_BRAIN_ROADMAP.md"
 DEVIATIONS="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md"
@@ -19,7 +20,7 @@ DELIVERY="$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
 DRIVER="$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
 README="$ROOT_DIR/README.md"
 
-for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$REQUIREMENTS" "$ROADMAP" \
+for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
@@ -30,6 +31,16 @@ require_text() {
   grep -Fq -- "$marker" "$file" \
     || { echo "AIOS Stage 2 marker missing in ${file#$ROOT_DIR/}: $marker" >&2; exit 1; }
 }
+
+for marker in \
+  '# Central Brain Client2 中控 UI/UX 设计稿' \
+  'cockpit_hmi_design_mockups_ready=true' \
+  '## 5. 四个主视图' \
+  '## 6. 核心 UX 流程' \
+  '## 7. Android 开发映射' \
+  'cockpit_demo_control_loop_implemented=false'; do
+  require_text "$COCKPIT_HMI_MOCKUPS" "$marker"
+done
 
 for marker in \
   '# Central Brain AIOS 开源项目与车载行业架构调研' \
@@ -133,6 +144,7 @@ require_text "$DELIVERY" '## 2026-07-16 Client2 中控 HVAC/Seat 交付规划'
 require_text "$DRIVER" '## 2026-07-15 AIOS Stage 2 Driver/HAL 边界'
 require_text "$DRIVER" '## 2026-07-16 Client2 中控 HVAC/Seat 规划边界'
 require_text "$README" 'design_baseline_complete=true'
+require_text "$README" 'cockpit_hmi_design_mockups_ready=true'
 require_text "$README" 'cockpit_demo_control_loop_implemented=false'
 require_text "$README" 'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md'
 require_text "$README" 'CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md'
@@ -166,5 +178,7 @@ for current, expected in ((deviations, [f"DEV-{n:03d}" for n in range(1, 27)]),
 
 print(f"aios_stage2_work_package_count={len(work_packages)}")
 PY
+
+bash "$ROOT_DIR/tools/check_central_brain_cockpit_hmi_design.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"
