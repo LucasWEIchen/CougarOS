@@ -409,3 +409,16 @@ system/vendor partition or virtualization API is added. The geometry dependency 
 integration deviation under `DEV-017`/`ISSUE-019`, not evidence of a Driver/HAL gap. Existing DRV-GAP items
 remain unchanged and added Driver/HAL development is zero. Req IDs: `APP-004`, `XSC-001`, `XSC-005`,
 `XSC-006`, `NV-G-006`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`.
+
+### 2026-07-16 GitHub Source-Of-Truth And Homepage Result
+
+This increment changes repository governance, the root README architecture/progress presentation,
+pre-push checks and GitHub Actions path coverage. It tracks maintained Java/AIDL/C/JNI source,
+Client2 patch source, contracts, tools and engineering documents; it neither packages nor invokes a
+target-side runtime.
+
+No Binder/AIDL/C ABI, JNI entrypoint, Vendor NPU provider, VHAL service, device node, ioctl/sysfs,
+PCIe, DMA/IOMMU, shared memory, vehicle bus, Safety Runtime, system/vendor partition or virtualization
+interface is added or changed. No Driver/HAL gap is closed or triggered and added Driver/HAL work is
+zero. Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-G-007`, `DEL-001`,
+`DEL-003`, `DEL-004`, `DEL-005`.

@@ -247,5 +247,23 @@ Production adapter registry must return adapter unavailable rather than silently
 对应 `DEV-026`、`ISSUE-032` 和
 `CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md`。
 
+## 12. GitHub 源码与文档基线需求
+
+本节映射 `APP-004`、`XSC-001/004/005/006`、`NV-G-007` 和
+`DEL-001/003/004/005`：
+
+1. Private `LucasWEIchen/CougarOS` 是受维护源码、接口、配置、检查器和工程文档的唯一远端基线。
+2. 每个完成的增量必须在同一轮形成 commit、push 和远端检查结果，不允许仅保存在本地工作区。
+3. 默认分支根 `README.md` 必须维护当前 Mermaid 总架构图、已开发模块、未开发/外部阻塞模块和近期记录。
+4. 架构、模块、接口、交付或状态变化必须与对应 README 更新处于同一推送范围。
+5. `central-brain/`、`apk-labs/client2-central-brain/`、`docs/CENTRAL_BRAIN_*`、`.github/`、
+   `.githooks/` 和 Central Brain 工具中的正式文件必须由 Git 跟踪。
+6. 原始 APK/逆向输入、生成包、密钥、凭据、原始设备日志和车辆/用户/模型 payload 不属于源码
+   完整性范围，必须继续排除；可发布二进制只允许进入受审查 GitHub Release。
+7. pre-push 与 GitHub Actions 必须执行仓库完整性、发布历史和 README 状态门禁。
+
+状态：`github_source_of_truth=true`、`github_sync_required=true`、
+`maintained_project_files_synced=true`、`github_homepage_architecture_current=true`。
+
 `production_ready=false`、`target_hardware_validated=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。

@@ -14,12 +14,13 @@ WORKFLOW="$ROOT_DIR/.github/workflows/central-brain-remote-test-contract.yml"
 RUNNER="$ROOT_DIR/tools/run_central_brain_android_remote_acceptance.sh"
 PUBLICATION_CHECKER="$ROOT_DIR/tools/check_central_brain_github_publication_tree.sh"
 ROOT_README_CHECKER="$ROOT_DIR/tools/check_central_brain_root_readme.sh"
+REPOSITORY_COMPLETENESS_CHECKER="$ROOT_DIR/tools/check_central_brain_github_repository_completeness.sh"
 RETIREMENT_CHECKER="$ROOT_DIR/tools/check_central_brain_python_prototype_retirement.sh"
 PRE_PUSH_HOOK="$ROOT_DIR/.githooks/pre-push"
 
 for file in "$CONTRACT" "$PROFILE" "$DOC" "$ISSUE_FORM" "$ISSUE_CONFIG" \
     "$WORKFLOW" "$RUNNER" "$PUBLICATION_CHECKER" "$ROOT_README_CHECKER" \
-    "$RETIREMENT_CHECKER" "$PRE_PUSH_HOOK"; do
+    "$REPOSITORY_COMPLETENESS_CHECKER" "$RETIREMENT_CHECKER" "$PRE_PUSH_HOOK"; do
   [[ -f "$file" ]] || { echo "missing GitHub remote testing artifact: $file" >&2; exit 1; }
 done
 
@@ -137,6 +138,7 @@ print("target_hardware_validated=false")
 PY
 
 bash -n "$RUNNER" "$PUBLICATION_CHECKER" "$ROOT_README_CHECKER" \
+  "$REPOSITORY_COMPLETENESS_CHECKER" \
   "$RETIREMENT_CHECKER" "$PRE_PUSH_HOOK"
 "$RUNNER" --help >/dev/null
 
@@ -154,12 +156,18 @@ grep -Fq 'blank_issues_enabled: false' "$ISSUE_CONFIG"
 grep -Fq 'permissions:' "$WORKFLOW"
 grep -Fq 'contents: read' "$WORKFLOW"
 grep -Fq 'persist-credentials: false' "$WORKFLOW"
+grep -Fq 'fetch-depth: 0' "$WORKFLOW"
 grep -Fq 'bash tools/check_central_brain_github_publication_tree.sh HEAD' "$WORKFLOW"
 grep -Fq 'bash tools/check_central_brain_github_remote_testing.sh' "$WORKFLOW"
 grep -Fq 'bash tools/check_central_brain_root_readme.sh' "$WORKFLOW"
+grep -Fq 'bash tools/check_central_brain_github_repository_completeness.sh' "$WORKFLOW"
+grep -Fq -- '--changed-range "$base_revision" "$GITHUB_SHA"' "$WORKFLOW"
 grep -Fq 'bash tools/check_central_brain_python_prototype_retirement.sh' "$WORKFLOW"
 grep -Fq -- '- "README.md"' "$WORKFLOW"
-grep -Fq -- '- "docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md"' "$WORKFLOW"
+grep -Fq -- '- "central-brain/**"' "$WORKFLOW"
+grep -Fq -- '- "apk-labs/client2-central-brain/**"' "$WORKFLOW"
+grep -Fq -- '- "docs/CENTRAL_BRAIN_*"' "$WORKFLOW"
+grep -Fq -- '- "tools/*central_brain*"' "$WORKFLOW"
 if grep -Eq 'gh release|upload-artifact|adb install|gradlew' "$WORKFLOW"; then
   echo "GitHub contract workflow must not publish, install, or claim full Android builds" >&2
   exit 1
@@ -173,6 +181,8 @@ for marker in \
   'android13-hwtest-v0.5.0-rc.2' \
   'state/triage -> state/reproduced -> state/fix-ready -> state/retest ->' \
   'central-brain-android13-hybrid.tar.gz.sha256' \
+  'github_source_of_truth=true' \
+  'tools/check_central_brain_github_repository_completeness.sh' \
   'codex/github-publication:main'; do
   grep -Fq -- "$marker" "$DOC" \
     || { echo "remote hardware testing document marker missing: $marker" >&2; exit 1; }

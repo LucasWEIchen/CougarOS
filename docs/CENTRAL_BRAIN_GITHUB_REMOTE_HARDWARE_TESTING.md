@@ -55,6 +55,27 @@ git push -u origin codex/github-publication:main
 本工作区已设置 `core.hooksPath=.githooks`；钩子只允许
 `refs/heads/codex/github-publication -> refs/heads/main`，并对每个推送 SHA 重跑发布检查。
 
+### 2.2 源码、文档与 GitHub 首页完整性
+
+`LucasWEIchen/CougarOS` 同时是正式源码和工程文档的唯一远端基线。每个完成增量必须在同一轮
+commit、push 并取得远端检查结果；架构、模块、接口、交付或开发状态变化必须同步根 README。
+默认分支首页固定展示当前 Mermaid 总架构图、已开发模块、未开发/外部阻塞模块和近期记录。
+
+`tools/check_central_brain_github_repository_completeness.sh` 验证正式文件由 Git 跟踪且没有把受控
+输入、生成包或原始证据当作源码发布；pre-push 另外拒绝尚未提交的 tracked 修改、未跟踪的正式
+Central Brain 文件，以及没有 README 更新的项目变更。GitHub Actions 对 `central-brain/**`、
+`apk-labs/client2-central-brain/**`、`docs/CENTRAL_BRAIN_*` 和 Central Brain 工具统一触发。
+
+```text
+github_source_of_truth=true
+github_sync_required=true
+maintained_project_files_synced=true
+github_homepage_architecture_current=true
+```
+
+原始 APK/逆向输入、设备日志、身份、密钥、target-input、车辆/用户/模型 payload 和生成包继续
+排除。该排除是安全/隐私和可复现性边界，不代表正式项目文件缺失。
+
 ## 3. Release 合同
 
 标签格式固定为：

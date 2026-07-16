@@ -19,6 +19,8 @@
 - Android deterministic provider、Digital Twin 和 Effect adapter 只允许位于 debug/test 范围，
   不得进入 production profile，也不得替代真实硬件验收。
 - Driver/HAL 只有在公开/vendor SDK 确认不能满足具体接口后，才登记最小新增工作量。
+- GitHub `LucasWEIchen/CougarOS` 是完整受维护源码和文档的唯一远端基线；每个完成增量必须
+  commit、push、通过远端检查，并同步默认分支首页的架构、开发进度和近期记录。
 
 主要 Req IDs：`APP-001/003/004`、`XSC-001..006`、`FW-U-001/003/004/006/007`、
 `FW-S-001/003/005`、`NV-F-001/003/004/005/008/009/011/012`、
@@ -148,6 +150,8 @@ P0-P7 估算为 124-168 人日；该估算不含 Vendor SDK、Driver/HAL、功�
 - README、软件架构、接口、NPU、Driver/HAL、Safety、交付、偏差、问题和路线图改为 Android-only。
 - 新增 Python 原型退役门禁，保留 Android 模型/NPU/Driver-HAL 真实硬件接口。
 - 退役门禁、NPU 接口、交付文档、Stage 2 设计和 Android Runtime 聚合门禁全部通过。
+- README 新增 GitHub source-of-truth、完整项目发布边界和已开发/未开发进度总表；pre-push 与
+  Actions 扩展为覆盖全部 Central Brain 正式源码、Client2 patch、工程文档和工具。
 - 当前 Git 分支：`codex/retire-python-prototype`。
 
 ## 8. 当前门禁
@@ -156,6 +160,7 @@ P0-P7 估算为 124-168 人日；该估算不含 Vendor SDK、Driver/HAL、功�
 
 ```bash
 bash tools/check_central_brain_python_prototype_retirement.sh
+bash tools/check_central_brain_github_repository_completeness.sh
 bash tools/check_central_brain_npu_interface.sh
 bash tools/check_central_brain_virtualization_docs.sh
 bash tools/check_central_brain_aios_stage2_design.sh
@@ -166,6 +171,10 @@ bash tools/check_central_brain_android_runtime_evolution.sh
 
 ```text
 python_prototype_runtime_maintained=false
+github_source_of_truth=true
+github_sync_required=true
+maintained_project_files_synced=true
+github_homepage_architecture_current=true
 design_baseline_complete=true
 production_ready=false
 target_hardware_validated=false

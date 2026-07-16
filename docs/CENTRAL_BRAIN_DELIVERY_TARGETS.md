@@ -22,6 +22,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
 | Client2 Demo APK | 可选 | 底部导航触发悬浮面板、typed Binder |
 | Android 13 安装/验收 | 已形成 | dry-run、signer guard、ADB、恢复矩阵 |
+| GitHub 源码/文档基线 | 已形成 | 完整正式工程文件、首页架构/进度、pre-push/Actions 门禁 |
 | Vendor NPU adapter | 空接口 | 保留 ModelProvider/C ABI；未接硬件 |
 | Vehicle adapter | 空接口 | 未获得 AAOS/OEM 车辆 API/权限 |
 | Driver/HAL | 未触发 | 仅保留接口矩阵和 gap gate |
@@ -30,6 +31,26 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 `python_prototype_runtime_maintained=false`、`production_ready=false`、
 `target_hardware_validated=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。
+
+## GitHub 完整项目交付边界
+
+Private `LucasWEIchen/CougarOS` 必须承载所有受维护的 Android Java/AIDL/C/JNI 源码、Client2
+可复验 patch、接口/配置、构建/测试/安装/打包工具和 `CENTRAL_BRAIN_*` 工程文档。每个完成增量
+必须在本轮 commit、push 并通过远端 `contract` 检查；影响架构或状态时必须同时更新根 README
+的 Mermaid 架构图、已开发/未开发表和近期记录。
+
+`apks/`、`reverse/`、`builds/`、原始日志、设备身份、target-input、签名材料、用户/模型/车辆
+payload 和本机环境不属于源码交付，不得提交。经过 manifest、hash、signer 和隐私审查的 APK/AAR
+归档只通过 GitHub Release 交付。门禁：
+
+```bash
+bash tools/check_central_brain_github_repository_completeness.sh
+bash tools/check_central_brain_github_publication_tree.sh HEAD
+bash tools/check_central_brain_root_readme.sh
+```
+
+状态：`github_source_of_truth=true`、`github_sync_required=true`、
+`maintained_project_files_synced=true`、`github_homepage_architecture_current=true`。
 
 ## 2026-07-15 AIOS Stage 2 交付范围
 

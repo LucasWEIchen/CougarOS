@@ -20,8 +20,12 @@ require_text() {
 for heading in \
   '# CougarOS Central Brain' \
   '## 当前状态' \
+  '## GitHub 同步与仓库完整性' \
   '## README 维护规则' \
   '## 软件总架构' \
+  '## 开发进度总表' \
+  '### 已开发并验证' \
+  '### 未开发或外部阻塞' \
   '## 核心调用链' \
   '## 仓库目录与模块映射' \
   '## 语言与所有权边界' \
@@ -35,6 +39,11 @@ done
 
 for marker in \
   '用户提供的架构图是需求基线，不是示意图' \
+  'github_source_of_truth=true' \
+  'github_sync_required=true' \
+  'maintained_project_files_synced=true' \
+  'github_homepage_architecture_current=true' \
+  '每个完成的开发增量必须在同一轮完成 Git commit、push 和远端检查' \
   'python_prototype_runtime_maintained=false' \
   'central-brain/android-runtime/' \
   'central-brain-sdk' \
@@ -80,6 +89,7 @@ required_paths=(
   docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md
   tools/check_central_brain_android_runtime_evolution.sh
   tools/check_central_brain_aios_stage2_design.sh
+  tools/check_central_brain_github_repository_completeness.sh
   tools/check_central_brain_python_prototype_retirement.sh
   tools/check_central_brain_github_remote_testing.sh
 )
@@ -136,6 +146,24 @@ commit_links = re.findall(
 if len(commit_links) < 8:
     raise SystemExit("README recent log must retain at least eight commit links")
 
+developed = readme.split("### 已开发并验证", 1)[1].split(
+    "### 未开发或外部阻塞", 1
+)[0]
+if developed.count("`DEVELOPED`") < 9:
+    raise SystemExit("README developed table must contain at least nine modules")
+
+remaining = readme.split("### 未开发或外部阻塞", 1)[1].split(
+    "## 核心调用链", 1
+)[0]
+remaining_rows = sum(
+    remaining.count(status)
+    for status in ("`NOT_STARTED`", "`EXTERNAL_BLOCKED`", "`OUT_OF_SCOPE`")
+)
+if remaining_rows < 10:
+    raise SystemExit("README remaining-work table must contain at least ten modules")
+if "`P1-W01`" not in remaining:
+    raise SystemExit("README remaining-work table must name the next work package")
+
 for group in (
     "APP-004",
     "XSC-001..006",
@@ -155,6 +183,8 @@ printf '%s\n' \
   'Central Brain repository architecture README check passed' \
   'root_readme_architecture_documented=true' \
   'root_readme_module_mapping_documented=true' \
+  'root_readme_development_progress_documented=true' \
+  'github_homepage_architecture_current=true' \
   'python_prototype_runtime_maintained=false' \
   'production_ready=false' \
   'target_hardware_validated=false'

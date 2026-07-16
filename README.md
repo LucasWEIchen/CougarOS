@@ -18,6 +18,7 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 | 目标平台 | Android 13 / API 33 黑盒座舱控制器 | 普通 APK、公开 Android/NDK API；不修改已刷机系统 |
 | Android 软件交付 | `hybrid_software_handoff_ready=true` | SDK/Native AAR、Runtime/Demo APK 和可选 Client2 APK 已形成 |
 | 物理应用层证据 | `physical_controller_application_evidence_available=true` | Runtime/Demo/Client2 的安装、Binder、UI、恢复已验证 |
+| GitHub 基线 | `maintained_project_files_synced=true` | 正式源码/文档已跟踪；首页架构与进度由门禁维护 |
 | Python 原型 | `python_prototype_runtime_maintained=false` | 源码、合同、样例、部署和对应门禁已移除 |
 | AIOS Stage 2 | `design_baseline_complete=true`；`implementation_stage=P1-W01` | 下一步为 Session DTO/AIDL；P0 设计基线已完成 |
 | 测试版本 | `android13-hwtest-v0.5.0-rc.2` | 远程硬件测试合同的当前 RC；不是量产版本 |
@@ -31,10 +32,39 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 [架构偏差](docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)，风险见
 [架构问题](docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
+## GitHub 同步与仓库完整性
+
+[LucasWEIchen/CougarOS](https://github.com/LucasWEIchen/CougarOS) 是本项目正式源码与文档的
+唯一远端基线。每个完成的开发增量必须在同一轮完成 Git commit、push 和远端检查；影响架构、
+模块、接口或开发状态的变更还必须更新本 README，并在检查通过后进入默认分支 `main`，保证
+GitHub 首页展示当前架构和进度，而不是只存在于开发机或临时分支。
+
+```text
+github_source_of_truth=true
+github_sync_required=true
+maintained_project_files_synced=true
+github_homepage_architecture_current=true
+```
+
+“完整项目”指全部受维护、可评审和可复现的工程内容：
+
+| GitHub 必须承载 | 不得进入 GitHub |
+| --- | --- |
+| 根 README、`.github/`、`.githooks/` | 签名私钥、keystore、token、账号凭据 |
+| `central-brain/` Android Java/AIDL/C/JNI 源码和合同 | `build/`、`.gradle/`、`.cxx/`、生成 APK/AAR 和临时包 |
+| `apk-labs/client2-central-brain/` 可复验 patch 工程 | `apks/`、`reverse/` 原始/逆向受控输入 |
+| `docs/CENTRAL_BRAIN_*` 产品、架构、接口、交付和验收文档 | 原始设备日志、序列号、fingerprint、车辆/用户/模型 payload |
+| Central Brain 构建、安装、测试、打包和门禁工具 | 本机 SDK、环境脚本、未经审查的测试证据 |
+
+推送门禁会拒绝未提交的受维护文件、未跟踪的 Central Brain 正式文件、缺少 README 同步的项目
+变更和包含敏感/二进制历史的发布。GitHub Release 只发布经过 manifest/hash/signer 审查的交付包，
+不把生成物提交到源码树。
+
 ## README 维护规则
 
 以下变化必须同步更新本文件：
 
+- 每个完成的开发增量必须刷新近期记录；状态变化必须同时刷新开发进度总表；
 - Android Gradle module、AIDL、Java/C ABI、Room schema、Client2 bridge 或交付物变化；
 - Model/NPU、车辆服务、Driver/HAL、权限、签名和目标部署边界变化；
 - 新增/删除正式模块或改变 production/hardware readiness；
@@ -44,6 +74,7 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 
 ```bash
 bash tools/check_central_brain_python_prototype_retirement.sh
+bash tools/check_central_brain_github_repository_completeness.sh
 bash tools/check_central_brain_root_readme.sh
 bash tools/check_central_brain_aios_stage2_design.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
@@ -116,6 +147,40 @@ flowchart TB
 
 不存在 Python gateway、REST fallback 或 Linux daemon 产品路径。跨 SoC 语义通过 AIDL/Java/C
 contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Python 工作包。
+
+## 开发进度总表
+
+以下状态按最小可验收模块维护。“已开发”只说明对应软件退出条件已通过，不自动提升为量产或
+目标硬件资格；“未开发”与“外部阻塞”不得用 test double 或界面演示冒充完成。
+
+### 已开发并验证
+
+| 模块 | 当前交付 | 证据边界 | 状态 |
+| --- | --- | --- | --- |
+| 架构与产品基线 | Req ID、Stage 2 UX/backlog、完整软件设计、偏差/问题台账 | 文档和静态门禁 | `DEVELOPED` |
+| Android SDK 与 Protocol Binding | Java SDK AAR、typed/versioned AIDL、callback/cancel/death | JVM、API 33 Binder | `DEVELOPED` |
+| Runtime 与 Governance | Binder identity、capability/policy、Job Supervisor、诊断 | JVM、Binder、dumpsys | `DEVELOPED` |
+| Durable workflow | Room task/checkpoint/approval/effect/outbox/audit/recovery | repository 和进程恢复 | `DEVELOPED` |
+| Model/Event/Memory/Skill 软件合同 | scheduler、ModelProvider、bounded runtime、middleware/readiness | deterministic debug/test；无真实 NPU | `DEVELOPED` |
+| Native Runtime | C11 ABI V1、JNI、arm64-v8a/x86_64 AAR、进程生命周期 | host sanitizer、ELF、API 33 load/recovery | `DEVELOPED` |
+| Client2 与 Demo HMI | 导航触发悬浮菜单、12 场景、typed Binder、故障恢复 | Android 13 ARM64 应用层 | `DEVELOPED` |
+| 构建、交付与远程测试 | 五项 hybrid bundle、安装/回滚、Private Release、Issue 闭环 | 软件交付；非量产资格 | `DEVELOPED` |
+| Python 仿真退役 | Python/REST/Linux runtime、旧 Console 和关联门禁已删除 | `central-brain/` Python 文件为 0 | `DEVELOPED` |
+
+### 未开发或外部阻塞
+
+| 模块 | 最小剩余工作 | 阻塞或下一步 | 状态 |
+| --- | --- | --- | --- |
+| Session Contract v2 | Session DTO/AIDL、SDK、Runtime owner、parcel/hash tests | 下一工作包 `P1-W01` | `NOT_STARTED` |
+| Context 与 Digital Twin | versioned snapshot、freshness、debug/test twin | Stage 2 P2 | `NOT_STARTED` |
+| Durable Agent Graph | plan/step/checkpoint/recovery/compensation | Stage 2 P3 | `NOT_STARTED` |
+| 场景与真实 Effect 编排 | “我冷了/我累了”、approval、readback、undo | 缺车辆服务与 Safety owner | `EXTERNAL_BLOCKED` |
+| 量产 HMI | plan timeline、partial failure、restricted UX、多分辨率 | Client2 目前只是演示壳 | `NOT_STARTED` |
+| Vendor NPU 与模型底座 | Vendor provider、模型格式、内存/取消/故障/性能 | 缺 Vendor SDK、PCIe NPU 和目标证据 | `EXTERNAL_BLOCKED` |
+| 车辆/VHAL/SOA adapter | HVAC/Seat/Media/Nav property/service 和权限 | 缺 OEM/Vendor contract | `EXTERNAL_BLOCKED` |
+| 生产部署与运维 | production signer、system owner、MDM、OTA、rollback、long-run | 缺目标平台 owner/策略 | `EXTERNAL_BLOCKED` |
+| Driver/HAL | 仅在公开/Vendor API 已确认不足后实现最小 gap | 当前未触发 | `EXTERNAL_BLOCKED` |
+| Safety/ASIL-QM/虚拟化 | 接入外部 Safety authority；不开发 Hypervisor | 用户明确当前不开发虚拟化 | `OUT_OF_SCOPE` |
 
 ## 核心调用链
 
@@ -245,7 +310,8 @@ bash tools/test_client2_central_brain_recovery.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
-| 2026-07-16 | 当前变更 | 退役 Python/REST/Linux 仿真运行时及其合同、部署、文档和门禁；Android Model/NPU/C ABI/Driver-HAL 保留 | `python_prototype_runtime_maintained=false`；production/hardware 不变 |
+| 2026-07-16 | [PR #8](https://github.com/LucasWEIchen/CougarOS/pull/8) | 固化 GitHub source-of-truth、完整项目同步、首页架构图和已开发/未开发进度表门禁 | 合并后 `main` 首页为权威状态 |
+| 2026-07-16 | [`498e4bd4`](https://github.com/LucasWEIchen/CougarOS/commit/498e4bd40f15525b1d60af0485b870184251c992) | 退役 Python/REST/Linux 仿真运行时及其合同、部署、文档和门禁；Android Model/NPU/C ABI/Driver-HAL 保留 | `python_prototype_runtime_maintained=false`；production/hardware 不变 |
 | 2026-07-15 | `7df9620e` | 冻结 AIOS Stage 2 产品、架构、backlog 和完整详设 | 下一实现项 `P1-W01` |
 | 2026-07-15 | `8aabc7bc` | Client2 悬浮面板改为底部导航触发并完成真机复测 | 应用层 UI/Binder 范围 |
 | 2026-07-14 | `1973e4ea` | 显式 Client2 signer 迁移和物理 Binder/UI 验收 | 仅 debug 应用层 |

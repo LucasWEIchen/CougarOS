@@ -5,9 +5,14 @@ set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 CHECKER="$ROOT_DIR/tools/check_central_brain_github_publication_tree.sh"
+COMPLETENESS_CHECKER="$ROOT_DIR/tools/check_central_brain_github_repository_completeness.sh"
 ZERO_SHA="0000000000000000000000000000000000000000"
 
 [[ -x "$CHECKER" ]] || { echo "publication checker is unavailable: $CHECKER" >&2; exit 1; }
+[[ -x "$COMPLETENESS_CHECKER" ]] \
+  || { echo "repository completeness checker is unavailable: $COMPLETENESS_CHECKER" >&2; exit 1; }
+
+bash "$COMPLETENESS_CHECKER" --pre-push >/dev/null
 
 while read -r local_ref local_sha remote_ref remote_sha; do
   if [[ "$local_ref" == refs/codex/* ]]; then
@@ -23,10 +28,21 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     echo "main may only be updated from codex/github-publication" >&2
     exit 1
   fi
+
+  if [[ "$remote_sha" == "$ZERO_SHA" ]]; then
+    comparison_base="$(git merge-base "$local_sha" refs/remotes/origin/main 2>/dev/null \
+      || git rev-parse "$local_sha^")"
+  else
+    comparison_base="$remote_sha"
+  fi
+  bash "$COMPLETENESS_CHECKER" --changed-range "$comparison_base" "$local_sha" >/dev/null
+
   bash "$CHECKER" "$local_sha" >/dev/null
 done
 
 printf '%s\n' \
   "central_brain_pre_push_guard_passed=true" \
+  "maintained_project_files_synced=true" \
+  "github_homepage_readme_updated=true" \
   "codex_internal_refs_published=false" \
   "publication_history_verified=true"

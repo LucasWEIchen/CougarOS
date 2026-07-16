@@ -6,6 +6,11 @@
 Req ID：`APP-004`、`XSC-001`、`XSC-004..006`、`NV-F-001/011/012`、
 `NV-G-003/005/006/007`、`NV-P-002`、`KH-003/006`、`DEL-001/003/004/005`。
 
+根 [README](../README.md) 是 GitHub 首页的架构和开发状态入口。所有本目录正式源码、合同和
+交付配置都必须由 Git 跟踪，并在完成增量的同一轮 commit/push；模块或状态变化必须同步首页的
+Mermaid 架构图、已开发/未开发表和近期记录。`github_source_of_truth=true`、
+`github_sync_required=true`。
+
 ## 目录
 
 | 路径 | 职责 |
