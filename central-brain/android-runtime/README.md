@@ -8,7 +8,7 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 
 | Module | Artifact | Current responsibility |
 | --- | --- | --- |
-| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session/Plan AIDL types, callback bridge and protocol identity |
+| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session/Plan/Event AIDL types, callback bridge and protocol identity |
 | `runtime-service` | APK without launcher | Signature-protected task/diagnostic/Governance Binders, bounded supervisors and deterministic hardware-free runtime |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
 | `policy-probe` | Test-only APK | Same-signer, unconfigured-package default-deny device probe; excluded from standard delivery build |
@@ -57,6 +57,27 @@ the task/diagnostic, Governance and Session checksums. JVM tests and the cumulat
 was removed. This is wire/validation evidence only: `plan_contract_v1_defined=true`,
 `plan_parcel_physical_android13_arm64_verified=true`, `plan_runtime_published=false` and
 `hardware_accessed=false`. P2-W07 still owns the real Plan Compiler/Graph Validator and P3 owns execution.
+
+## Stage 2 P1-W03 Event Contract
+
+`central-brain-sdk` now contains `RuntimeEvent`, `ActionEvent`, `ObservationEvent`, `MessageEvent` and
+`EventPage`, plus independent contract-only `ICentralBrainSessionEvents` and one-way
+`ICentralBrainSessionEventCallback` V1. The existing Session V1 file and transaction order are unchanged. The Event
+surface declares bounded `getEvents`, register and unregister methods; P1-W05 still owns a Service implementation,
+Binder identity/capability enforcement and callback lifecycle.
+
+`EventContract` validates 23 event types, canonical event/session/parent IDs, contiguous session sequence,
+parent sequence ordering, typed payload matching, owner-page size <=100, explicit message redaction, opaque cursor
+continuity and immutable replay identity. Callback delivery is notification only; `EventPage` replay is the future
+authoritative recovery path. `events-v1.sha256` and
+`tools/check_central_brain_android_event_contract.sh` freeze the seven AIDL files and recheck all earlier V1
+checksums.
+
+JVM tests and cumulative instrumentation passed on an Android 13/API 33 ARM64 physical controller; the temporary
+test APK was removed. Status is `event_contract_v1_defined=true`,
+`event_parcel_physical_android13_arm64_verified=true`, `event_runtime_service_published=false`,
+`event_callback_service_published=false` and `hardware_accessed=false`. This is wire/validation evidence only;
+EventTreeStore, Room v4, callback queues and Runtime publication remain later work.
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 

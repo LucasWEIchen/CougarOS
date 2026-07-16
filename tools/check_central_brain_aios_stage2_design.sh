@@ -73,6 +73,7 @@ for marker in \
   '136-184 人日' \
   '### `P1-W01` Session DTO/AIDL' \
   '### `P1-W02` Plan/Node DTO/AIDL' \
+  '### `P1-W03` Typed Event DTO/AIDL' \
   '### `P2-W10` Simulated Seat adapter' \
   '### `P3-W09` Restart recovery' \
   '### `P4-W12` Android device acceptance/fault/recovery' \
@@ -96,7 +97,8 @@ for marker in \
   '## 30. 测试设计' \
   '## 34. Client2 中控闭环实施顺序' \
   '`P1-W01 Session DTO/AIDL`' \
-  '`P1-W02 Plan/Node DTO/AIDL`'; do
+  '`P1-W02 Plan/Node DTO/AIDL`' \
+  '`P1-W03 Typed Event DTO/AIDL`'; do
   require_text "$DESIGN" "$marker"
 done
 
@@ -136,14 +138,15 @@ require_text "$ROADMAP" '| S2-P0 | 完整 AIOS Stage 2 设计冻结'
 require_text "$ROADMAP" '| S2-P1 | Runtime Contract v2'
 require_text "$ROADMAP" '`P1-W01 Session DTO/AIDL` 已完成'
 require_text "$ROADMAP" '`P1-W02 Plan/Node DTO/AIDL` 已完成'
-require_text "$ROADMAP" '下一实现工作包为 `P1-W03 Typed Event DTO/AIDL`'
+require_text "$ROADMAP" '`P1-W03 Typed Event DTO/AIDL` 已完成'
+require_text "$ROADMAP" '下一实现工作包为 `P1-W04 Effect/Approval DTO 扩展`'
 require_text "$DEVIATIONS" '## DEV-024 Stage 2 车辆多设备动作先使用 Digital Twin 仿真'
 require_text "$DEVIATIONS" '## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI'
 require_text "$ISSUES" '## ISSUE-029 “我累了”场景的驾驶席座椅安全策略与批准 authority'
 require_text "$ISSUES" '## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定'
 require_text "$ISSUES" '## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定'
 require_text "$ISSUES" '## ISSUE-033 Client2 HVAC/Seat 中控演示闭环缺口'
-require_text "$DELIVERY" '## 2026-07-15 AIOS Stage 2 交付范围'
+require_text "$DELIVERY" '## 2026-07-17 AIOS Stage 2 交付范围'
 require_text "$DELIVERY" '## 2026-07-16 Client2 中控 HVAC/Seat 交付规划'
 require_text "$DRIVER" '## 2026-07-15 AIOS Stage 2 Driver/HAL 边界'
 require_text "$DRIVER" '## 2026-07-16 Client2 中控 HVAC/Seat 规划边界'

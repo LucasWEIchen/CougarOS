@@ -1,14 +1,14 @@
 # Central Brain Android AIDL Contract
 
-Version: 1.2-draft
+Version: 1.3
 Date: 2026-07-17
-Stage: R2 complete / Stage 2 P1-W01 Session and P1-W02 Plan contracts `contract_defined`
+Stage: R2 complete / Stage 2 P1-W01..P1-W03 contracts `contract_defined`
 
 ## Scope
 
 This document defines the Android 13 user-space Protocol Binding between the Central Brain SDK AAR and Runtime Service APK. The architecture diagram remains the requirement baseline. This contract implements only the Binder boundary owned by `AI SDK -> Protocol Binding -> Runtime & Governance/AIOS Kernel`; it does not add a new architecture layer.
 
-Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-F-008`, `NV-G-003`, `NV-G-004`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `S2-SES-001`, `S2-SCN-001`, `S2-GRF-001`.
+Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `FW-U-003`, `NV-F-001`, `NV-F-008`, `NV-F-009`, `NV-G-003`, `NV-G-004`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `S2-SES-001`, `S2-SCN-001`, `S2-GRF-001`, `S2-EVT-001`.
 
 R2A delivered Gradle application structured AIDL in `central-brain-sdk`; R2B publishes and consumes that frozen V1 contract from separate application APKs. It is not VINTF stable AIDL: the project cannot add a Soong `aidl_interface`, freeze platform API under `aidl_api`, or modify vendor/system build files because the target Android SDK and system image are prebuilt. This accepted temporary limitation is tracked under `DEV-018` and `ISSUE-021`.
 
@@ -20,6 +20,7 @@ R2A delivered Gradle application structured AIDL in `central-brain-sdk`; R2B pub
 | Callback | `com.centralbrain.sdk.production.ICentralBrainTaskCallback` | Oneway progress, completion and failure notifications | Blocking work, request dispatch, large payloads |
 | Diagnostic | `com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics` | Bounded, read-only, cursor-paged diagnostics | Task submit/cancel, state mutation, hardware activation |
 | Session V1 | `com.centralbrain.sdk.session.ICentralBrainSessionRuntime` | Stage 2 open/get/list/cancel contract | Runtime publication, callback/event stream, vehicle/NPU dispatch |
+| Session Event V1 | `com.centralbrain.sdk.event.ICentralBrainSessionEvents` | Bounded cursor replay and callback registration contract | Service publication, caller authority, raw payload, vehicle/NPU dispatch |
 
 R2B publishes production and diagnostic interfaces from separate Android Service components with separate signature-level permissions. The Demo and production SDK path request only `com.centralbrain.permission.BIND_RUNTIME`; diagnostic access is independently protected by `com.centralbrain.permission.ACCESS_DIAGNOSTICS`.
 
@@ -194,6 +195,42 @@ temporary test package.
 `plan_runtime_published=false`. No Binder method publishes a Plan, no compiler/graph scheduler consumes it, no
 Room schema changed and no vehicle/NPU/Driver-HAL path was accessed. This is contract evidence, not execution,
 hardware validation or production qualification.
+
+## Stage 2 P1-W03 Event AIDL V1
+
+P1-W03 freezes an independent Event surface instead of changing `ICentralBrainSessionRuntime` V1. It adds five
+structured parcelables, one one-way callback and one query/registration interface under
+`com.centralbrain.sdk.event`:
+
+| Type/surface | Contract | Boundaries |
+| --- | --- | --- |
+| `RuntimeEvent` | immutable event identity, sequence, parent, type/source/time, privacy class and digests | exactly one typed payload; no raw vehicle/model/blob/handle |
+| `ActionEvent` | action/node/capability/state/action digest and required flag | metadata only; never grants authorization |
+| `ObservationEvent` | observation/subject/outcome/quality/evidence digest and terminal flag | evidence remains digest-oriented |
+| `MessageEvent` | message/role/locale/bounded display text/content digest/redaction metadata | display text <=1024; redaction is explicit |
+| `EventPage` | request cursor, contiguous events, next cursor/sequence, hasMore/redaction/time | page 1..100; cursor is opaque and bounded |
+| `ICentralBrainSessionEvents` | version/hash, `getEvents`, register/unregister callback | contract only; owner/capability derived by future Service |
+| `ICentralBrainSessionEventCallback` | one-way event, overflow and close notifications | notification only; cursor replay remains authoritative |
+
+`EventContract` recognizes 23 event types from `UserMessageReceived` through `SessionStateChanged`. It rejects
+unknown schema/type/source/privacy/payload enums, non-canonical UUID/digest values, payload/type mismatch,
+sequence gaps, invalid or forward parent references, unsafe redaction, cursor discontinuity and replay mutation.
+Events have semantic immutability: a correction is a new event, and `validateImmutableReplay` requires the same
+event identity/digest when a replay overlaps prior evidence. There is no event update method.
+
+The normalized seven-file interface identity is
+`bb3618ca5f5818ce70b3a889a928b54ad83c70f0e439db5b62c67eb3234957d5`. Per-file checksums are frozen in
+`central-brain-sdk/aidl-api/events-v1.sha256` and verified by
+`tools/check_central_brain_android_event_contract.sh`, which also rechecks all earlier AIDL checksums.
+
+JVM tests cover positive typed pages plus version/type/payload, ordering/parent, redaction/page-marker,
+cursor/replay mutation and size/enum rejection. Cumulative instrumentation passed Parcel round trips and those
+rejection paths on the Android 13/API 33 ARM64 physical controller on 2026-07-17; the temporary test APK was then
+removed. The evidence reports `event_contract_v1_defined=true`,
+`event_parcel_physical_android13_arm64_verified=true`, `event_runtime_service_published=false`,
+`event_callback_service_published=false` and `hardware_accessed=false`. P1-W05 owns publication and callback
+lifecycle; P1-W06 owns Room v4 persistence. This increment is not Event runtime, vehicle/NPU access, Driver/HAL
+development or production qualification.
 
 ## References
 

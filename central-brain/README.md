@@ -15,7 +15,7 @@ Mermaid 架构图、已开发/未开发表和近期记录。`github_source_of_tr
 
 | 路径 | 职责 |
 | --- | --- |
-| `android-runtime/central-brain-sdk` | Java SDK、typed task/Governance/Session/Plan AIDL、Binder client |
+| `android-runtime/central-brain-sdk` | Java SDK、typed task/Governance/Session/Plan/Event AIDL、Binder client |
 | `android-runtime/runtime-service` | Runtime/Governance/Diagnostics、Room、Model/Event/Memory/Skill/Effect |
 | `android-runtime/native-runtime` | C ABI V1、JNI、Native Runtime lifecycle |
 | `android-runtime/demo-hmi` | 维护与验收 HMI |
@@ -40,11 +40,12 @@ Client2 / Demo
 当前 Binder task path 仍使用有界 deterministic 行为完成应用层验收；生产 Scheduler、Model Router、
 Effect dispatch、车辆服务和 Vendor NPU 不得从该行为推断为已接入。
 
-Stage 2 `P1-W01` 已冻结 5 个 Session DTO 和独立 `ICentralBrainSessionRuntime` V1；`P1-W02` 已增加
-`ScenarioPlan`、`PlanNode`、`NodeDependency`、`NodePolicy`、11 类节点 allowlist、DAG/补偿/重试校验和
-独立 checksum。两组合同都通过 JVM 与 Android 13 ARM64 Parcel 验证，但
-`session_runtime_service_published=false`、`plan_runtime_published=false`；下一工作包是
-`P1-W03 Typed Event DTO/AIDL`。
+Stage 2 `P1-W01` 已冻结 Session V1，`P1-W02` 已冻结 Plan/Node V1，`P1-W03` 已增加 5 个 Event DTO、
+独立 `ICentralBrainSessionEvents`/one-way callback V1、顺序/父链/脱敏/cursor/immutability 校验和独立
+checksum。三组合同都通过 JVM 与 Android 13 ARM64 Parcel 验证，但
+`session_runtime_service_published=false`、`plan_runtime_published=false`、
+`event_runtime_service_published=false`、`event_callback_service_published=false`；下一工作包是
+`P1-W04 Effect/Approval DTO 扩展`。
 
 计划中的 Client2 HVAC/Seat 手动控件和“我冷了/我累了”场景必须走同一条 SDK -> Session ->
 Governance -> Durable Effect -> readback 链路。Android debug/test 可使用持续标记为 `SIMULATED` 的

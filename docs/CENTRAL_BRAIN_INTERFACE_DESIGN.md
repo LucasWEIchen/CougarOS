@@ -1,6 +1,6 @@
 # 车载中央大脑接口设计
 
-版本：3.2
+版本：3.3
 
 日期：2026-07-17
 
@@ -33,7 +33,8 @@ Req ID：`APP-004`、`XSC-001..006`、`FW-U-001..008`、`FW-S-001..006`、
 | Model | `ModelProvider` / Scheduler / readiness | contract and test-only implementation |
 | Effect | `EffectAdapter` / material source / activation gate | contract, production blocked |
 | Native | `central_brain_native.h` / JNI / Java wrapper | lifecycle ABI integrated |
-| Session/Plan/Event/Effect v2 | Stage 2 P1 | not started |
+| Session/Plan/Event contract | Stage 2 P1-W01..P1-W03 | contract defined; services not published |
+| Effect/Approval contract | Stage 2 P1-W04 | not started |
 | Vehicle/NPU adapter | AAOS/Vendor published API/ABI | external blocked |
 
 早期通用 JSON envelope、HTTP endpoint、第一阶段 JSON Binder 和 Linux binding 已退役。下列章节保留
@@ -615,3 +616,25 @@ There is no new Binder surface in P1-W02. A future Scenario/Session Runtime may 
 P1-W03..P1-W05 define event/callback/facade ownership. `plan_runtime_published=false`; P2-W07 owns compilation and
 full semantic graph validation, and P3 owns durable scheduling/recovery. Req IDs: `S2-SCN-001`, `S2-GRF-001`,
 `FW-S-001`, `NV-F-001`, `NV-F-008`, `NV-G-004`.
+
+## Stage 2 P1-W03 Event Contract V1
+
+| Type/surface | Core fields or calls | Contract responsibility |
+| --- | --- | --- |
+| `RuntimeEvent` | event/sequence/session/parent/type/source/time/privacy/digests/payload kind | immutable typed event envelope and causal identity |
+| `ActionEvent` | action/node/capability/state/action digest/required | governed action metadata, not authorization |
+| `ObservationEvent` | observation/subject/outcome/quality/evidence digest/terminal | bounded readback metadata |
+| `MessageEvent` | message/role/locale/display text/content digest/redaction | bounded HMI text and explicit redaction |
+| `EventPage` | request cursor/after sequence/events/next marker/hasMore/redaction/time | authoritative bounded replay page |
+| `ICentralBrainSessionEvents` V1 | version/hash/get/register/unregister | independent contract-only Event surface |
+| one-way callback | event/overflow/closed | notification only; cursor replay recovers gaps |
+
+The seven AIDL sources are frozen by `aidl-api/events-v1.sha256`; the normalized interface identity is
+`bb3618ca5f5818ce70b3a889a928b54ad83c70f0e439db5b62c67eb3234957d5`. `EventContract` validates a 23-type
+allowlist, exact typed payload mapping, canonical identifiers/digests, contiguous sequence and parent ordering,
+explicit redaction, page markers and immutable cursor continuation. No event update method exists.
+
+Status: `event_contract_v1_defined=true`, `event_parcel_physical_android13_arm64_verified=true`,
+`event_runtime_service_published=false`, `event_callback_service_published=false`, `hardware_accessed=false`.
+P1-W05 owns Binder publication/lifecycle and P1-W06 owns durable storage; neither is implied by this interface
+definition. Req IDs: `S2-SES-001`, `S2-EVT-001`, `FW-U-003`, `NV-F-009`, `NV-G-003`, `NV-G-007`.

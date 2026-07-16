@@ -1,6 +1,6 @@
 # 车载中央大脑软件架构设计
 
-版本：3.2
+版本：3.3
 
 日期：2026-07-17
 
@@ -96,8 +96,9 @@ Client2 和 Demo 只能通过 `central-brain-sdk` 调用 Runtime。应用不能�
 
 Context、State、Event、Action、Service、Tool 和 Permission 是稳定语义对象。当前 typed AIDL v1
 承载 task/governance/diagnostics；P1-W01 已新增独立 Session V1 contract，P1-W02 已新增 4 个
-Plan/Node DTO、11 类节点 allowlist、DAG/补偿/重试 validator 和独立 checksum。Session Service、Plan
-Compiler 和 Graph Runtime 尚未发布；后续 Event/Effect 按独立版本演进，不破坏已有 AIDL hash。
+Plan/Node DTO，P1-W03 已新增 5 个 Event DTO、独立 Event/callback V1、23 类 allowlist 及
+顺序/父链/脱敏/cursor/replay validator。Session/Event Service、Plan Compiler、Room v4 和 Graph Runtime
+尚未发布；后续 Effect/Approval 按独立版本演进，不破坏已有 AIDL hash。
 
 ### Runtime 与 Governance
 
@@ -173,7 +174,8 @@ bash tools/check_central_brain_npu_interface.sh
 bash tools/check_central_brain_virtualization_docs.sh
 ```
 
-`P1-W01 Session DTO/AIDL` 与 `P1-W02 Plan/Node DTO/AIDL` contract layer 已完成，下一开发工作包是
-`P1-W03 Typed Event DTO/AIDL`。
+`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL` 与 `P1-W03 Event DTO/AIDL` contract layer
+已完成，下一开发工作包是 `P1-W04 Effect/Approval DTO 扩展`。Event Service、callback publication 和
+Room persistence 仍为 false。
 真实 AAOS/Vendor/NPU adapter 继续受
 `S2-ADP-002` 和 Driver/HAL gap gate 阻塞。

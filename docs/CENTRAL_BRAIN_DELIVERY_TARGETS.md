@@ -1,6 +1,6 @@
 # Android 13 座舱域交付目标
 
-版本：3.6
+版本：3.7
 
 日期：2026-07-17
 
@@ -16,7 +16,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 
 | 交付项 | 状态 | 说明 |
 | --- | --- | --- |
-| Java SDK AAR | 已形成 | typed Runtime/Governance/Diagnostics AIDL client；Session 与 Plan/Node contract |
+| Java SDK AAR | 已形成 | typed Runtime/Governance/Diagnostics AIDL client；Session、Plan/Node 与 Event/callback contract |
 | Native Runtime AAR | 已形成 | C ABI V1/JNI，arm64-v8a/x86_64 |
 | Runtime Service APK | 已形成 | signature Binder、Room、Governance、readiness |
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
@@ -80,10 +80,11 @@ bash tools/check_central_brain_root_readme.sh
 状态：`github_source_of_truth=true`、`github_sync_required=true`、
 `maintained_project_files_synced=true`、`github_homepage_architecture_current=true`。
 
-## 2026-07-15 AIOS Stage 2 交付范围
+## 2026-07-17 AIOS Stage 2 交付范围
 
-Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL` 和 `P1-W02 Plan/Node DTO/AIDL` contract layer
-已完成，下一工作包为 `P1-W03 Typed Event DTO/AIDL`。P1-P7 交付必须进入
+Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL` 和
+`P1-W03 Typed Event DTO/AIDL` contract layer 已完成，下一工作包为 `P1-W04 Effect/Approval DTO
+扩展`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -106,6 +107,11 @@ Graph 调度、Room v4 持久化或可由 HMI 调用的 Plan Service。
 unknown-node-type reject，随后卸载临时 test APK：
 `plan_parcel_physical_android13_arm64_verified=true`。该应用层 wire 证据不访问车辆/NPU，且不提升
 `target_hardware_validated=false`。
+
+P1-W03 当前交付为 SDK AAR 中的 5 个 Event parcelable、独立 Event/callback V1、23 类 allowlist、
+Java ordering/parent/redaction/cursor/replay validator、JVM/Android Parcel tests、`events-v1.sha256` 和
+独立 checker。`event_contract_v1_defined=true`，但 `event_runtime_service_published=false`、
+`event_callback_service_published=false`：当前 bundle 不包含 Event Service、Room v4 或 durable broker。
 
 Android debug/test 中的 Digital Twin 或 deterministic provider 必须明确 `TEST_ONLY` 或
 `SIMULATED`，且 production registry 不得包含它们。
@@ -525,3 +531,29 @@ virtualization_development_triggered=false
 该文档交付只证明工程设计可追踪，不新增 APK/AAR artifact，不启用 production Scheduler/Model Router、
 Effect adapter、Event broker、Memory store、Skill dispatcher、Vendor NPU、VHAL、Driver/HAL 或虚拟化。
 `production_ready=false`、`target_hardware_validated=false`、`hardware_accessed=false` 保持不变。
+
+## Stage 2 P1-W03 Event Contract V1 Delivery
+
+P1-W03 在 Java SDK AAR 源码中交付 `RuntimeEvent`、`ActionEvent`、`ObservationEvent`、
+`MessageEvent`、`EventPage`、独立 `ICentralBrainSessionEvents` V1、one-way callback、
+`EventContract`、JVM/Android instrumentation 和 `tools/check_central_brain_android_event_contract.sh`。
+合同由 `central-brain-sdk/aidl-api/events-v1.sha256` 冻结；既有 task、Governance、Session 和 Plan
+checksums 不变，标准 artifact 形状仍为 SDK AAR、Native AAR、Runtime APK、Demo APK 与可选 Client2 APK。
+
+Android 13/API 33 ARM64 物理控制器验证五类 DTO 的 Parcel round trip，以及 ordering、parent、redaction
+和 cursor replay 的失败关闭行为。验证后卸载临时 instrumentation APK，证据状态固定为：
+
+```text
+event_contract_v1_defined=true
+event_parcel_physical_android13_arm64_verified=true
+event_runtime_service_published=false
+event_callback_service_published=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该交付不发布 Event Binder Service，不连接现有 R6 process-only Event runtime，不打开 Room v3 event
+cursor repository，不发送业务 payload，不创建主动触发，也不访问 Vehicle/VHAL/NPU/Driver/HAL。
+P1-W05 才负责 Service/callback 生命周期，P1-W06 才负责 Room v4 持久化。Req IDs：`S2-SES-001`、
+`S2-EVT-001`、`FW-U-003`、`NV-F-009`、`NV-G-003`、`NV-G-007`、`DEL-001/003/004/005`。

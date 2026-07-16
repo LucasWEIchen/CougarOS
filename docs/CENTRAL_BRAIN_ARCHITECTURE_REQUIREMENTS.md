@@ -1,6 +1,6 @@
 # 中央大脑架构需求基线
 
-版本：0.7
+版本：0.8
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -175,7 +175,7 @@
 | S2-HMI-004 | 无真实信号的演示来源 | Android debug/test Digital Twin；持续显示 SIMULATED |
 | S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
-| S2-SES-001 | versioned durable Session | P1-W01 contract 已完成；owner/持久化 Runtime 待开发 |
+| S2-SES-001 | versioned durable Session | P1-W01 Session + P1-W03 Event/callback contract 已完成；owner/持久化 Runtime 待开发 |
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
 | S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract 已完成；catalog/compiler 待开发 |
@@ -185,7 +185,7 @@
 | S2-ADP-001 | adapter registry | source/profile/capability/evidence |
 | S2-TOL-001 | retry/timeout/partial failure | deterministic terminal result |
 | S2-MEM-001 | memory lifecycle | purpose/retention/delete/export |
-| S2-EVT-001 | proactive Event trigger | consent/rate-limit/DND/policy |
+| S2-EVT-001 | proactive Event trigger | P1-W03 typed event/replay/callback contract 已完成；durable broker/trigger/consent/rate-limit/DND/policy 待开发 |
 | S2-MDL-001 | model routing | deadline/quota/privacy/provider |
 | S2-ADP-002 | real vehicle adapter | owner/API/permission/readback/rollback |
 | S2-OBS-001 | trace/metric/audit | no raw user/model/vehicle payload |
@@ -244,6 +244,7 @@ Production adapter registry must return adapter unavailable rather than silently
 - B4 hybrid C/Java software handoff trace
 - P1-W01 Session contract V1 trace
 - P1-W02 Plan/Node contract V1 trace
+- P1-W03 Event contract V1 trace
 
 这些追踪键只证明对应 Android 软件增量通过其门禁，不代表真实车辆/NPU、Driver/HAL 或量产状态。
 
@@ -356,3 +357,25 @@ real_vehicle_effect_adapter_available=false
 `plan_parcel_physical_android13_arm64_verified=true`、`plan_runtime_published=false`。
 P1-W02 是 `contract_defined`，不是 Scenario Catalog/Compiler、完整语义 Graph Validator、durable Graph
 执行、车辆控制、NPU 或目标硬件资格。
+
+## 16. P1-W03 Event contract V1 trace
+
+本增量映射 `S2-SES-001`、`S2-EVT-001`、`FW-U-003`、`NV-F-009`、`NV-G-003` 和
+`NV-G-007`：
+
+1. SDK 新增 `RuntimeEvent`、`ActionEvent`、`ObservationEvent`、`MessageEvent`、`EventPage` 五个
+   versioned structured parcelable，以及独立 `ICentralBrainSessionEvents` V1 和 one-way callback；
+   task/diagnostic/governance/session/plan V1 文件和 checksum 不变。
+2. `EventContract` 只允许详设定义的 23 类事件，限制 UUID、digest、source/privacy/payload enum、
+   page/cursor/display text，并拒绝 payload/type mismatch、sequence gap、forward/missing parent、unsafe
+   redaction、cursor discontinuity 和 immutable replay mutation。
+3. `getEvents` 的 cursor replay 是权威恢复路径；callback 只通知 event/overflow/closed。query 和 callback
+   不接受 caller、signer、permission 或车辆 Safety 断言，未来 Service 必须由 Binder principal 派生 owner。
+4. JVM 测试覆盖正反合同；Android 13/API 33 ARM64 物理控制器验证五类 DTO Parcel round-trip、排序、
+   parent、redaction 和 cursor replay 拒绝路径，随后卸载临时 test APK，`hardware_accessed=false`。
+5. `events-v1.sha256`、七文件合并 interface hash 和独立 checker 冻结合同，并复验全部既有 V1 checksum。
+
+当前状态：`event_contract_v1_defined=true`、
+`event_parcel_physical_android13_arm64_verified=true`、`event_runtime_service_published=false`、
+`event_callback_service_published=false`。P1-W03 是 `contract_defined`，不是 durable Event broker、主动触发、
+Room persistence、车辆控制、NPU、Driver/HAL 或目标硬件资格。

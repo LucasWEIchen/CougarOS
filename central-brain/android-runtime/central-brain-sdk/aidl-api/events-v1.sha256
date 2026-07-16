@@ -1,0 +1,7 @@
+bd149f099d6999eaa5650a9679585e985011b143d2a1fb32b25f4a7a93f1b51b  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/RuntimeEvent.aidl
+b21dc4ea7fbbd5439fbd9f861be20ddc5e9fde4d9f04f639b69778f04fa15b3e  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/ActionEvent.aidl
+fb5cb4e537ff5cf958f47ea86085e7dd5e67b34d1b2bb5adb8351b2122e14afb  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/ObservationEvent.aidl
+7d18760e3ebdffbd682a9e23eb49a6a22bd2ff487ccc5f42bc82755209ef7fbc  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/MessageEvent.aidl
+b29111c45b00fd8e9fc82c5cca73394626b6722796de5c23adf18825fc9687b5  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/EventPage.aidl
+1592d3292d0e11bc8614851f65ecdb117b960c6a31ae0d332c9678bd26d7b61b  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/ICentralBrainSessionEventCallback.aidl
+d784a0d787e792cdee3a3acb6367aaeed515a9fbb362013711971db1d8a32b89  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/event/ICentralBrainSessionEvents.aidl
