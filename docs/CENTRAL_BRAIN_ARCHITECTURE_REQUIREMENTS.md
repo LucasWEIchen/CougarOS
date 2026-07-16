@@ -1,6 +1,6 @@
 # 中央大脑架构需求基线
 
-版本：0.4
+版本：0.5
 日期：2026-07-16
 状态：Android 13 实际工程基线
 
@@ -299,11 +299,15 @@ Production adapter registry must return adapter unavailable rather than silently
    隐藏/重开必须进入 Android 13 ARM64 验收。
 11. 所有进入演示 plan 的 HVAC/Seat/Media/Navigation Effect 必须在中控“执行”视图有 target、source、
    progress、reported result 和适用的 stop/cancel/undo projection；禁止只在模型文本中宣称完成。
+12. HMI-D0/HMI-D1 以 1920x1080 为固定设计坐标，Panel 必须完全位于 Client2 可见安全区；浏览器
+   预览只能等比缩小。主 Panel 使用可辨认背景的半透明浅灰材质，不得恢复接近实色的 0.91 alpha。
 
 完整设计和 22 项验收矩阵见 `CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。当前状态：
 
 ```text
 aios_intent_orchestration_ux_ready=true
+cockpit_hmi_1920x1080_safe_frame_verified=true
+cockpit_hmi_translucent_material_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false

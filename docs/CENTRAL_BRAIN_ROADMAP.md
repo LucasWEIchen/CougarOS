@@ -1,6 +1,6 @@
 # Central Brain Android 13 开发路线图
 
-版本：0.6
+版本：0.7
 日期：2026-07-16
 状态：Stage 2 implementation ready
 
@@ -159,6 +159,8 @@ SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
 - 基于现有 Client2 车模和右侧悬浮面板交付可点击“意图/计划/执行/结果”原型、四张 1920x1080
   PNG、Intent -> Context -> Plan -> Policy -> Effect -> Readback 可观察链、Android 映射和静态门禁；
   仅完成 HMI-D0，HMI-D1/APK 实现仍未开始。
+- 将 HMI-D0 Panel 收敛为 `(1264,160)-(1888,1048)` 1920x1080 安全框，主材质由 0.91 实色感
+  调整为 0.60 半透明浅灰玻璃，并修复 Windows Chrome 连续渲染 profile 隔离。
 - GitHub 默认分支 `main` 是权威进度基线；开发分支合并后不得单独保留状态结论。
 
 ## 8. 当前门禁
@@ -186,6 +188,8 @@ github_homepage_architecture_current=true
 design_baseline_complete=true
 aios_intent_orchestration_ux_ready=true
 cockpit_hmi_design_mockups_ready=true
+cockpit_hmi_1920x1080_safe_frame_verified=true
+cockpit_hmi_translucent_material_ready=true
 production_ready=false
 target_hardware_validated=false
 driver_development_triggered=false

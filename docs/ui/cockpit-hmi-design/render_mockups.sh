@@ -69,10 +69,12 @@ render_with_windows_chrome() {
   local output="$2"
   local port="$3"
   local temp_linux="$WINDOWS_TEMP_DIR/cougaros-$output"
+  local profile_linux="$WINDOWS_PROFILE_DIR/$view"
   local temp_windows
   local profile_windows
+  mkdir -p "$profile_linux"
   temp_windows="$(wslpath -w "$temp_linux")"
-  profile_windows="$(wslpath -w "$WINDOWS_PROFILE_DIR")"
+  profile_windows="$(wslpath -w "$profile_linux")"
 
   "$WINDOWS_CHROME" \
     --headless=new \

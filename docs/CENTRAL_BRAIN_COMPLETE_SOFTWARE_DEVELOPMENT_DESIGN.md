@@ -1,6 +1,6 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.2
+版本：2.3
 
 日期：2026-07-16
 
@@ -433,6 +433,11 @@ Header 固定显示 connection、`SIMULATED/TARGET/UNAVAILABLE` source 和
 `PARKED/MOVING/UNKNOWN_RESTRICTED` presentation。Intent -> Context -> Plan -> Policy -> Effect ->
 readback 主链在计划/执行/结果阶段持续可见。Persistent execution strip 在所有视图可见；
 隐藏 overlay 只影响呈现，不取消已接受 session。
+
+HMI-D0/HMI-D1 使用固定 1920x1080 设计坐标。`BrainOverlay` 的安全框为
+`left=1264, top=160, width=624, height=888`，右边界 1888、下边界 1048；Panel 内 Surface 独立滚动，
+不得通过扩大根 View 或超出 RenderService 画布承载内容。主玻璃 alpha 为 0.60，Android blur 不可用
+时才切换到 0.82 浅灰 fallback。浏览器原型只负责等比预览，不改变 Android layout contract。
 
 HVAC 和 Seat 不再占据顶层 tab，而是由 Effect row 打开 `DeviceDetailDrawer`。抽屉保留完整
 desired/reported 和手动微调，但手动请求仍创建 governed scenario。“执行”视图是通用 Effect
@@ -1444,7 +1449,7 @@ central-brain-sdk AAR
 | Gate | 必须完成 | 可验收输出 | 当前状态 |
 | --- | --- | --- | --- |
 | HMI-D0 | `S2-HMI-001..006`、意图驱动四阶段、状态机、工作包、验收和高保真稿件冻结 | 设计文档、可点击原型、四张 PNG 与静态 checker | `DONE` |
-| HMI-D1 | 四阶段 overlay shell、Effect 详情抽屉、资源、Java controller/reducer/renderer | 1920x1080 layout/UI tree | `NOT_STARTED` |
+| HMI-D1 | 四阶段 overlay shell、Effect 详情抽屉、资源、Java controller/reducer/renderer | 1920x1080 安全框 layout/UI tree、alpha/blur fallback | `NOT_STARTED` |
 | HMI-D2 | manual HVAC/Seat -> simulated Effect -> delayed readback | `HMI-AC-*`、`HMI-ST-*` 基础用例 | `NOT_STARTED` |
 | HMI-D3 | cold/fatigue/rest 多 Effect、approval、partial、undo | graph/effect/recovery instrumentation | `NOT_STARTED` |
 | HMI-D4 | Android 13 ARM64 UI/Binder/fault/restart 全矩阵 | Client2 APK 演示闭环证据 | `NOT_STARTED` |

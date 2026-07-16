@@ -1,6 +1,6 @@
 # Android 13 座舱域交付目标
 
-版本：3.3
+版本：3.4
 
 日期：2026-07-16
 
@@ -21,7 +21,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 | Runtime Service APK | 已形成 | signature Binder、Room、Governance、readiness |
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
 | Client2 Demo APK | 可选 | 当前为底部导航触发悬浮面板、12 场景和 typed Binder；尚无 HVAC/Seat 控制页 |
-| Client2 中控 UI/UX 设计稿 | 已形成 | 可点击意图/计划/执行/结果原型、可观察自动化链和四张 1920x1080 PNG；仅设计资产 |
+| Client2 中控 UI/UX 设计稿 | 已形成 | 四阶段原型、可观察自动化链、1920x1080 安全框、60% 半透明玻璃和四张 PNG；仅设计资产 |
 | Android 13 安装/验收 | 已形成 | dry-run、signer guard、ADB、恢复矩阵 |
 | GitHub 源码/文档基线 | 已形成 | 完整正式工程文件、首页架构/进度、pre-push/Actions 门禁 |
 | Vendor NPU adapter | 空接口 | 保留 ModelProvider/C ABI；未接硬件 |
@@ -48,6 +48,8 @@ Android debug/test 版本使用明确标记为 `SIMULATED` 的 Digital Twin/Effe
 ```text
 aios_intent_orchestration_ux_ready=true
 cockpit_hmi_design_mockups_ready=true
+cockpit_hmi_1920x1080_safe_frame_verified=true
+cockpit_hmi_translucent_material_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false

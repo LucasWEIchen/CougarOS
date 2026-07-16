@@ -1,6 +1,6 @@
 # Central Brain Client2 中控 UI/UX 设计稿
 
-版本：2.0
+版本：2.1
 
 日期：2026-07-16
 
@@ -27,9 +27,15 @@ Req ID：`APP-001/003/004`、`FW-U-001/003/004`、`FW-S-001/003/005`、`XSC-001`
 用户不需要先选择 HVAC 或 Seat。设备界面仍然保留，但降为 Effect 详情与受治理的手动兜底抽屉，
 从而同时满足 AIOS 主叙事和中控闭环要求。
 
+第三次视觉审查指出原 Panel `y=12, h=1056` 几乎占满 1080px 高度，浏览器或 Android 非全屏
+内容区中容易产生越界观感；`alpha=0.91` 及其叠加层也过于接近实色。当前基线改为经过 Client2
+界面证据校准的安全框 `x=1264, y=160, w=624, h=888`，并采用 60% 浅灰玻璃主材质。
+
 ```text
 cockpit_hmi_design_mockups_ready=true
 aios_intent_orchestration_ux_ready=true
+cockpit_hmi_1920x1080_safe_frame_verified=true
+cockpit_hmi_translucent_material_ready=true
 cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
@@ -47,6 +53,7 @@ target_hardware_validated=false
 5. **结果由回读决定**：模型回复、按钮状态和动画都不能替代 adapter observation。
 6. **设备控制是次级入口**：HVAC/Seat 详情用于解释、诊断和手动兜底，不是产品首页。
 7. **可恢复可撤销**：隐藏面板不停止 Session；失败、partial、retry、undo 和重连均可见。
+8. **画布内安全呈现**：1920x1080 是唯一设计坐标系；Panel 必须完全位于画布内，预览只能等比缩小。
 
 ## 3. 设计资产
 
@@ -69,9 +76,10 @@ target_hardware_validated=false
 
 | 对象 | 1920x1080 基准 | Android 实现建议 |
 | --- | --- | --- |
-| Panel | x=1272，y=12，w=636，h=1056 | 右侧约 1/3，外边距 12dp，约束布局 |
+| Canvas | x=0，y=0，w=1920，h=1080 | 固定设计坐标；预览 `scale <= 1`，不改写 Android 资源尺寸 |
+| Panel | x=1264，y=160，w=624，h=888 | 对齐 Client2 已验证安全区；right=32、bottom=32，内容区独立滚动 |
 | Radius | 8px | 8dp，重复 Effect row 使用 6dp |
-| Material | `rgba(244,247,247,0.91)` + blur | blur 不可用时 92% 浅灰实色降级 |
+| Material | `rgba(238,242,243,0.60)` + 14px blur | 支持 blur 时保持背景可辨；不支持时 82% 浅灰降级 |
 | Header | 110px | connection/source/driving/context revision 固定 |
 | Stage nav | 72px | 意图/计划/执行/结果四等分，显示已完成阶段 |
 | Session strip | 76px | 全局固定；隐藏面板不 cancel Session |
@@ -80,6 +88,9 @@ target_hardware_validated=false
 主色 `#176F68` 表示 AIOS active/primary；`#2F7448` 表示 verified；`#9A6A22` 表示 approval/
 applying；`#397793` 表示 readback/secondary information；`#B84E3D` 仅用于座椅/热相关提示。
 状态必须同时使用文字、位置和 source，不能只依赖颜色。
+
+边界计算固定为 `1264 + 624 = 1888 <= 1920`、`160 + 888 = 1048 <= 1080`。浏览器预览使用
+`min(1, viewportWidth/1920, viewportHeight/1080)`，任何窗口尺寸都不得裁切或放大设计画布。
 
 ## 5. 四个主视图
 
@@ -184,7 +195,9 @@ renderer 和 SDK 协调进入 maintained Java secondary dex。
 6. 结果页逐项区分 desired/reported/source，不能用模型文本或本地按钮宣称完成；
 7. partial、stop、retry、approval、undo、reconnect 有明确位置；
 8. 所有稿件持续显示 `SIMULATED` 和 `DESIGN ONLY`；
-9. 设计稿不得把 `cockpit_demo_control_loop_implemented` 或硬件/量产状态改为 true。
+9. Panel 边界固定为 `(1264,160)-(1888,1048)`，四张稿件不得越过 1920x1080 画布；
+10. 主玻璃 alpha 为 0.60，背景车模在 Panel 下仍可辨认；fallback 不得影响硬件/量产结论；
+11. 设计稿不得把 `cockpit_demo_control_loop_implemented` 或硬件/量产状态改为 true。
 
 复现：`bash docs/ui/cockpit-hmi-design/render_mockups.sh`。
 

@@ -1,6 +1,6 @@
 # Central Brain 中控屏 HVAC/Seat 演示闭环规划
 
-版本：1.2
+版本：1.3
 
 日期：2026-07-16
 
@@ -47,6 +47,10 @@ virtualization_development_triggered=false
 入口和右侧半透明悬浮面板完成“意图、计划、执行、结果”四阶段设计。首屏只接收自然场景表达，
 HVAC/Seat 降为 Effect 详情与手动兜底抽屉。仓库同时提供可点击 HTML/CSS/JS 原型、四张
 1920x1080 PNG、视觉 token、Android 类/资源映射和可复现渲染脚本。
+
+Panel 在固定画布中的基线为 `x=1264, y=160, w=624, h=888`，右/下安全边距均为 32px；
+内容通过 Panel 内滚动承载，不允许扩高画布。主玻璃为 `rgba(238,242,243,0.60)` 与 14px blur，
+Header/导航/底栏使用低 alpha 叠层，保证车模背景仍可辨认。
 
 该资产补全 HMI-D0 视觉基线，不是 HMI-D1 的 Android resource/Java controller，也不能证明
 HVAC/Seat 控制、Effect readback、目标硬件或量产能力已经实现。

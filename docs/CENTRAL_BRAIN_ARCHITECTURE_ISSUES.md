@@ -1,6 +1,6 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.2
+版本：0.3
 日期：2026-07-16
 状态：Android 13 实际工程基线
 
@@ -158,6 +158,10 @@ systemd 样例及专用测试。CI 新增退役门禁，确保 `central-brain/` 
 2026-07-16 设计审查又发现首版高保真稿以 HVAC/Seat 按钮为顶层导航，仍更像智能中控而不是
 AIOS。设计已纠正为“意图/计划/执行/结果”四阶段：用户只表达自然场景，界面明确展示 Intent、
 Context、Plan、Policy、Effect 和 readback；HVAC/Seat 降为 Effect 详情与受治理手动兜底。
+
+同日第二次视觉审查发现原高保真 Panel `y=12, h=1056` 几乎贴满 1920x1080 画布，且 0.91 alpha
+过于接近实色。HMI-D0 已改为 `(1264,160)-(1888,1048)` 安全框和 0.60 浅灰玻璃；浏览器预览
+scale 上限为 1。该修正只关闭设计越界风险，不代表 HMI-D1 APK 或多显示矩阵已完成。
 
 处理计划：业务状态和 renderer 进入 maintained Java secondary-dex，Smali 只保留 bootstrap；自然
 场景与手动微调均通过 typed SDK 进入 Runtime。无真实车身信号时使用持续标注 SIMULATED 的 Android

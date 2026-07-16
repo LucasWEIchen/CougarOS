@@ -1,6 +1,6 @@
 # 驱动层接口支持矩阵
 
-版本：2.1
+版本：2.2
 
 日期：2026-07-16
 
@@ -46,6 +46,9 @@ View 状态当作车身回读。
 `driver_development_triggered=false`。真实 target profile 无可用 Vehicle adapter 时返回 unavailable；
 只有 OEM/Vendor 提供 HVAC/Seat API/ABI、area/capability、权限、Safety、readback、fault 和 rollback
 证据后，才在 P8 评审 `DRV-GAP-002`。因此 HMI-D0..D4 不改变任何 Driver/HAL gap，新增驱动开发量为 0。
+
+1920x1080 Panel 安全框、预览缩放和半透明材质均属于 Android HMI 用户态设计，不新增 Surface、
+Display、GPU、Kernel、Driver 或 HAL 接口要求；HMI-D1 只能使用厂商已提供的公开渲染能力。
 
 ## 驱动接口矩阵
 
