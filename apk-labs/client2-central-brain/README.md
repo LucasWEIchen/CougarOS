@@ -104,6 +104,43 @@ the Runtime APK. Runtime still applies default-deny package/current-signer
 capability policy and grants Client2 only protocol read plus submit/status/cancel
 for its own tasks.
 
+## Planned Cockpit HVAC/Seat Control Loop
+
+The existing 12-button panel and text response are the Stage 1 baseline, not a
+vehicle-control completion claim. Stage 2 P4 keeps the same bottom-navigation
+entry and translucent overlay, then adds four in-APK surfaces:
+
+```text
+Care scenarios | HVAC | Seat | Effect execution
+```
+
+The HVAC surface will expose power, zone, temperature, fan, AUTO, A/C, SYNC,
+airflow and comfort presets. The Seat surface will expose zone, heating,
+ventilation, massage, recline and upright/comfort/rest presets with driving-state
+restrictions. The execution surface will show desired versus reported values,
+plan/effect progress, approval, partial failure, retry, undo and recovery.
+
+Maintained Java code in `classes2.dex` will own immutable HMI state, reducer,
+rendering and SDK coordination. Smali remains a narrow lifecycle/show-hide
+bootstrap. Manual controls and AI scenarios both submit through the future
+Scenario/Session SDK, Governance and durable Effect path; neither the View nor
+the bridge may call a simulated or target vehicle adapter directly.
+
+Without real vehicle signals, only debug/test builds may use the Android Digital
+Twin and simulated HVAC/Seat adapters. The panel must continuously display
+`SIMULATED`; a release/production build with no target adapter displays
+`UNAVAILABLE` and disables controls. Current flags remain:
+
+```text
+cockpit_hvac_surface_implemented=false
+cockpit_seat_surface_implemented=false
+cockpit_demo_control_loop_implemented=false
+real_vehicle_effect_adapter_available=false
+```
+
+The implementation plan, class/file map and acceptance matrix are maintained in
+[`docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`](../../docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md).
+
 ## Boundaries
 
 - No original APK is modified.

@@ -40,6 +40,12 @@ Client2 / Demo
 当前 Binder task path 仍使用有界 deterministic 行为完成应用层验收；生产 Scheduler、Model Router、
 Effect dispatch、车辆服务和 Vendor NPU 不得从该行为推断为已接入。
 
+计划中的 Client2 HVAC/Seat 手动控件和“我冷了/我累了”场景必须走同一条 SDK -> Session ->
+Governance -> Durable Effect -> readback 链路。Android debug/test 可使用持续标记为 `SIMULATED` 的
+Digital Twin；release/production 不允许在 target adapter unavailable 时隐式回退仿真。当前
+`cockpit_demo_control_loop_implemented=false`，详见
+[`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`](../docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md)。
+
 ## 模型与硬件边界
 
 - `ModelProvider.java` 是模型底座的正式 Java contract。

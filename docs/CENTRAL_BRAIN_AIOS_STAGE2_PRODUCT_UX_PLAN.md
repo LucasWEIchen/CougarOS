@@ -442,3 +442,30 @@ Stage 2 后半程增加受控主动触发，规则如下：
 | UX-P6 | 目标公开接口的真实 adapter 灰度激活 | OEM/Vendor contract + permission |
 
 详细工程任务、路径、接口、测试和工作量见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`。
+
+## 15. Client2 中控 HVAC/Seat 界面闭环
+
+用户确认空调和座椅必须成为 APK 中控屏可操作内容，而不是仅显示模型回复。现有右侧半透明悬浮
+菜单因此扩展为“关怀/空调/座椅/执行”四视图；底部导航入口、二次点击关闭和面板外关闭保持。
+
+手动 HVAC/Seat 控件与“我冷了”“我累了”“休息模式”必须复用 `ScenarioClient -> Governance ->
+Durable Effect -> Adapter -> readback -> Runtime Event -> HMI reducer`。无真实车身信号时，Android
+debug/test 使用持续标注 `SIMULATED` 的 Digital Twin；release/production 在 adapter 不可用时禁用
+控件并显示 unavailable，不允许本地 View 动画或模拟 readback 冒充真实车辆动作。
+
+空调首版包含 power、zone、temperature、fan、AUTO、A/C、SYNC、airflow 和 comfort preset；座椅
+首版包含 zone、heating、ventilation、massage、recline 和 upright/comfort/rest preset。驾驶状态
+UNKNOWN/MOVING 时驾驶席 recline 禁用且 Runtime fail closed；驻车动作仍需 fresh Context、policy、
+approval 和 readback。
+
+完整布局、状态模型、planned Java/Resource 文件、24-32 人日工作包和 20 项验收矩阵见
+`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。派生需求：`S2-HMI-001..005`。
+
+中控闭环还覆盖所有场景 Effect 的可观察 projection：Media/Navigation 首版可在“执行”视图使用
+通用状态卡，但场景涉及它们时必须显示目标、当前状态、source、失败和停止/取消，不能只在模型文本
+中描述。Profile/Memory 偏好入口纳入 P5，主动建议 inbox 纳入 P6，模型澄清/降级纳入 P7；这些
+后续界面同样不得绕过 Session/Governance/Effect 或用 View 状态伪造结果。
+
+`cockpit_hvac_surface_implemented=false`、`cockpit_seat_surface_implemented=false`、
+`cockpit_demo_control_loop_implemented=false`、`real_vehicle_effect_adapter_available=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。

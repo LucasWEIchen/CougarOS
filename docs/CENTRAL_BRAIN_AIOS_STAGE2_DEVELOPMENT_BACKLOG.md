@@ -1,8 +1,8 @@
 # Central Brain AIOS Stage 2 开发计划与最小工作包
 
-版本：1.0
+版本：1.1
 
-日期：2026-07-15
+日期：2026-07-16
 
 状态：Implementation backlog baseline
 
@@ -12,7 +12,9 @@
 
 ## 1. 计划摘要
 
-Stage 2 分为九个阶段。P0-P3 先交付可演示且可恢复的 AIOS 场景闭环，P4-P7 扩展成完整的 Tool/Memory/Event/Model 平台，P8 在外部条件满足后接真实车辆/NPU adapter，P9 做量产化加固。
+Stage 2 分为九个阶段。P0-P3 交付可恢复的 AIOS Runtime 场景闭环，P4 在 Client2 APK 中完成
+HVAC/Seat 中控 UI 和演示闭环，P5-P7 扩展 Tool/Memory/Event/Model 平台，P8 在外部条件满足后
+接真实车辆/NPU adapter，P9 做量产化加固。
 
 | 阶段 | 目标 | 预计人日 | 外部依赖 | 出口版本 |
 | --- | --- | ---: | --- | --- |
@@ -20,14 +22,16 @@ Stage 2 分为九个阶段。P0-P3 先交付可演示且可恢复的 AIOS 场景
 | P1 | typed Session/Plan/Event/Effect SDK 与 Room v4 | 12-16 | 无 | Runtime Contract v2 |
 | P2 | Context/Digital Twin/Scenario/Simulated Effect | 20-26 | 无 | AIOS Demo Alpha |
 | P3 | Durable Agent Graph、恢复、确认、补偿 | 18-24 | 无 | AIOS Demo Beta |
-| P4 | Client2 产品化 HMI、驾驶态 UX、工程模式 | 12-16 | Client2 maintained patch pipeline | UX Beta |
+| P4 | Client2 HVAC/Seat 中控闭环、执行 UX、工程模式 | 24-32 | Client2 maintained patch pipeline | Cockpit UX Beta |
 | P5 | Tool/Skill 平台与分层 Memory | 24-32 | signer/update policy 的量产部分可延后 | AIOS SDK Alpha |
 | P6 | Event Trigger、主动智能、跨模块消息 | 16-22 | 目标事件源可用性 | Proactive Alpha |
 | P7 | Model Router、local/NPU/cloud profile、评测 | 16-24 | NPU SDK/云策略可延后 | Model Runtime Beta |
 | P8 | AAOS/Vendor/NPU 真实 adapter | 20-40+ | OEM property/service/permission/ABI | Target Integration RC |
 | P9 | 性能、长稳、安全、发布、OTA/回滚 | 30-45 | 生产 signer/MDM/整车测试 | Production Candidate |
 
-估算基于 1 名熟悉当前仓库的 Android/系统工程师和 1 名可兼职测试工程师。P0-P7 总计约 124-168 人日；P8-P9 受厂商接口、签名、车辆权限和整车验证影响，不承诺固定完成日期。若 3 名开发并行且接口及时冻结，P0-P7 约 10-14 个日历周；单人串行约 6-8 个月。
+估算基于 1 名熟悉当前仓库的 Android/系统工程师和 1 名可兼职测试工程师。P0-P7 总计约
+136-184 人日；P8-P9 受厂商接口、签名、车辆权限和整车验证影响，不承诺固定完成日期。若 3 名
+开发并行且接口及时冻结，P0-P7 约 11-16 个日历周；单人串行约 7-9 个月。
 
 ## 2. 交付优先级
 
@@ -70,6 +74,11 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 | `S2-UX-001` | 面板显示 session、plan、node、effect 状态 | `APP-001`、`APP-004`、`XSC-001` |
 | `S2-UX-002` | driving state 自适应布局和交互限制 | `APP-001`、`FW-S-005`、`NV-G-005` |
 | `S2-UX-003` | approval/cancel/retry/undo/partial failure UX | `FW-U-004`、`FW-U-007`、`NV-G-005..007` |
+| `S2-HMI-001` | Client2 APK 内中控 HVAC 控制页 | `APP-001/003/004`、`FW-S-003`、`XSC-001` |
+| `S2-HMI-002` | Client2 APK 内中控 Seat 页和驾驶态限制 | `APP-001/003`、`FW-S-003/005`、`NV-G-005` |
+| `S2-HMI-003` | desired/reported/timeline/partial/undo/recovery 可见 | `FW-U-001/003/004`、`NV-G-006/007` |
+| `S2-HMI-004` | 无真实信号时显式标注 Android debug/test Digital Twin | `NV-F-004`、`DEL-001/004` |
+| `S2-HMI-005` | 场景与手动控制复用 SDK/Governance/Effect 链路 | `APP-004`、`NV-F-001/003/009`、`NV-P-002` |
 | `S2-SES-001` | 持久 session 与 action/observation event tree | `FW-U-003`、`NV-F-001`、`NV-G-003`、`NV-G-007` |
 | `S2-CTX-001` | 统一、带新鲜度和质量的 ContextSnapshot | `FW-U-001`、`FW-U-002`、`NV-F-004` |
 | `S2-TWN-001` | desired/reported last-known Vehicle Digital Twin | `FW-U-001..003`、`NV-F-004`、`NV-G-006` |
@@ -113,7 +122,8 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 - 状态：`NOT_STARTED`；1.5 人日；需求：`S2-SES-001`、`S2-UX-001`。
 - 新增路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/`。
-- 文件：`SessionRequest.aidl`、`SessionHandle.aidl`、`SessionSnapshot.aidl`、`SessionQuery.aidl`。
+- 文件：`SessionRequest.aidl`、`SessionHandle.aidl`、`SessionSnapshot.aidl`、`SessionQuery.aidl`、
+  `SessionPage.aidl`。
 - 接口：`openSession`、`getSession`、`listSessions`、`cancelSession`。
 - DoD：DTO 使用定长/有界字段；未知 enum/version fail closed；AIDL hash 更新。
 - 测试：parcel round-trip、oversize reject、SDK disconnected/reconnect。
@@ -305,46 +315,86 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 类：`GraphRestartReconciler`。
 - DoD：恢复 WAITING/EXECUTING/UNKNOWN；先 reconcile 再继续；process death test 无重复副作用。
 
-## 8. P4 Client2 产品化 HMI
+## 8. P4 Client2 HVAC/Seat 中控演示闭环
 
-### `P4-W01` Bridge session API migration
+### `P4-W01` Bridge session/event API migration
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-UX-001`、`XSC-001`。
+- 状态：`NOT_STARTED`；2 人日；需求：`S2-UX-001`、`S2-HMI-005`、`XSC-001`。
 - 修改：`Client2ScenarioBridge.java`、`ScenarioCallback.java`。
 - DoD：从单 reply callback 迁移为 session/event stream；旧 API 只保留兼容层。
 
-### `P4-W02` Panel state reducer
+### `P4-W02` Cockpit HMI state/reducer/reconnect
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-UX-001..003`。
-- 新增 maintained Java source：`CentralBrainPanelState.java`、`CentralBrainPanelReducer.java`。
-- DoD：UI state 只由 immutable event reduce；旋转/recreate/reconnect 不丢 timeline。
+- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001..003`、`S2-HMI-003/005`。
+- 新增 maintained Java source：`CockpitHmiState.java`、`CockpitHmiReducer.java`、
+  `CockpitControlCoordinator.java`。
+- DoD：UI state 只由 immutable event reduce；snapshot+cursor 重连；隐藏/recreate 不丢 state。
 
-### `P4-W03` Plan timeline UI
+### `P4-W03` Four-surface overlay shell
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-UX-001`。
-- 修改 maintained XML/smali generation inputs，不手改 build/reverse output。
-- DoD：每 node/effect 显示 pending/running/waiting/verified/failed/skipped。
+- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..003`。
+- 修改 maintained XML/vector resources 和最小 Smali bootstrap，不手改 build/reverse output。
+- DoD：现有 overlay 内提供“关怀/空调/座椅/执行”；Header 固定 source/driving/connection；
+  仍由底部导航显示/隐藏，面板外点击关闭。
 
-### `P4-W04` Approval/Undo/Partial UX
+### `P4-W04` HVAC control surface
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-UX-003`。
-- DoD：approval reason/expiry，partial result，retry failed，undo verified；outside dismiss 不取消 session。
+- 状态：`NOT_STARTED`；3 人日；需求：`S2-HMI-001/003/004/005`、`S2-ADP-001`。
+- 控件：power、zone、temperature stepper、fan、AUTO、A/C、SYNC、airflow、comfort presets。
+- DoD：desired/reported/source/quality 分离；300 ms debounce；手动操作创建 governed scenario；
+  readback 前不显示 verified。
 
-### `P4-W05` Driving restriction renderer
+### `P4-W05` Seat control surface
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-UX-002`。
+- 状态：`NOT_STARTED`；3.5 人日；需求：`S2-HMI-002..005`、`S2-SAF-001`。
+- 控件：zone、heat/vent 0-3、massage、recline、upright/comfort/rest presets。
+- DoD：heat/vent 互斥；UNKNOWN_RESTRICTED/MOVING 禁止驾驶席 recline；UI 不是安全 authority；
+  parked rest 进入 approval 并在 dispatch 前重查 Context。
+
+### `P4-W06` Plan/effect execution timeline
+
+- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001`、`S2-HMI-003`。
+- DoD：HVAC/Seat/Media/Navigation 每个 node/effect 显示
+  requested/policy/approval/prepared/dispatched/applied/verified/failed/skipped/compensated，附带
+  target/source/result；Media/Nav 场景至少提供 stop/cancel projection；全局状态不得掩盖 partial。
+
+### `P4-W07` Approval/partial/retry/undo UX
+
+- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`。
+- DoD：approval reason/target/expiry，partial success/failure，retry failed，governed compensation；
+  outside dismiss 不取消 session。
+
+### `P4-W08` Driving restriction renderer
+
+- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-UX-002`、`S2-HMI-002`。
 - 类：`DrivingUxPolicy`、`PanelPresentationMode`。
-- DoD：unknown treated restricted；moving 隐藏长文本/参数；Runtime policy 独立存在。
+- DoD：unknown treated restricted；moving 隐藏长文本并禁用高风险控件；Runtime policy 独立存在。
 
-### `P4-W06` Engineer simulation drawer
+### `P4-W09` Engineer simulation drawer
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-ADP-001`、`S2-OBS-001`。
-- DoD：debug-only；可设置 Context/故障；无原始设备标识导出。
+- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`。
+- DoD：debug-only；signature/capability protected；可设置 PARKED/MOVING/UNKNOWN、occupancy、belt、
+  delay/timeout/failure/mismatch；每次更新 Context revision；release absent。
 
-### `P4-W07` Device UI acceptance
+### `P4-W10` Scenario/manual-control synchronization
 
-- 状态：`NOT_STARTED`；2-4 人日；需求：P4 全部。
-- DoD：Android 13 ARM64 实机 P0 场景、导航显示/隐藏、outside dismiss、restart、partial/undo 通过；截图/UI tree 脱敏。
+- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..005`、`S2-SCN-001`。
+- DoD：cold/fatigue/rest 与 manual HVAC/Seat 都通过 `ScenarioClient`；同一 session event 同步关怀、
+  HVAC、Seat、执行页；HMI 不直调 adapter。
+
+### `P4-W11` Accessibility/display matrix
+
+- 状态：`NOT_STARTED`；1.5-2.5 人日；需求：`S2-UX-003`、`S2-HMI-001/002`。
+- DoD：48dp target、content description、状态不只靠颜色、最长中文不重叠；1920x1080、
+  1280x720、2560x1440 screenshot/layout gate。
+
+### `P4-W12` Android device acceptance/fault/recovery
+
+- 状态：`NOT_STARTED`；2.5-4 人日；需求：P4 全部。
+- DoD：Android 13 ARM64 真机完成 navigation/show/hide、manual HVAC/Seat、cold/fatigue/rest、
+  Media/Nav Effect projection、moving/unknown rejection、approval、partial、mismatch、undo、Runtime
+  restart、UI tree/crash buffer；
+  release build 无 simulation drawer/adapter。
 
 ## 9. P5 Tool/Skill 与 Memory
 
@@ -546,7 +596,8 @@ flowchart LR
     P0["P0 Design"] --> P1["P1 Contract v2"]
     P1 --> P2["P2 Context/Twin/Scenario/Simulation"]
     P2 --> P3["P3 Durable Graph/Effect"]
-    P1 --> P4["P4 HMI shell"]
+    P1 --> P4["P4 Client2 HVAC/Seat HMI"]
+    P2 --> P4
     P3 --> P4
     P3 --> P5["P5 Tool/Memory"]
     P2 --> P6["P6 Event/Proactive"]
@@ -579,14 +630,16 @@ flowchart LR
 ### AIOS Demo Alpha 完成
 
 - P1、P2 全部 DONE；
-- HMI 能展示 deterministic plan 和 simulated HVAC/Seat/Nav/Media 状态；
+- Demo HMI/diagnostics 能展示 deterministic plan 和 simulated HVAC/Seat/Nav/Media snapshot；
+- Client2 中控 HVAC/Seat 页尚不在 Alpha 完成声明内；
 - moving fatigue plan 无 seat recline；
 - 无真实 Driver/HAL/NPU 访问。
 
 ### AIOS Demo Beta 完成
 
 - P3、P4 全部 DONE；
-- approval、partial failure、retry、undo、restart recovery 真机通过；
+- Client2 APK 的关怀/HVAC/Seat/执行四视图形成闭环；
+- 手动控制和 cold/fatigue/rest 场景的 approval、partial、retry、undo、restart recovery 真机通过；
 - 同一 Effect 不因恢复重复执行；
 - Client2 只通过 SDK/Binder 与 Runtime 交互。
 

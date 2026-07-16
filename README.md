@@ -21,6 +21,7 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 | GitHub 基线 | `maintained_project_files_synced=true` | 正式源码/文档已跟踪；首页架构与进度由门禁维护 |
 | Python 原型 | `python_prototype_runtime_maintained=false` | 源码、合同、样例、部署和对应门禁已移除 |
 | AIOS Stage 2 | `design_baseline_complete=true`；`implementation_stage=P1-W01` | 下一步为 Session DTO/AIDL；P0 设计基线已完成 |
+| 中控 HVAC/Seat | `cockpit_demo_control_loop_implemented=false` | Client2 四视图和闭环合同已规划；P4 预计 24-32 人日 |
 | 测试版本 | `android13-hwtest-v0.5.0-rc.2` | 远程硬件测试合同的当前 RC；不是量产版本 |
 | 模型/NPU | `vendor_npu_provider_available=false` | Model contract/C ABI 保留，Vendor provider 仍为空 |
 | 生产状态 | `production_ready=false` | 生产签名、系统 owner、权限、升级/回滚未关闭 |
@@ -86,6 +87,10 @@ bash tools/check_central_brain_android_runtime_evolution.sh
 flowchart TB
   subgraph App["应用与 HMI"]
     Client2["Client2 导航触发悬浮菜单"]
+    Care["关怀场景（当前基础入口）"]
+    ClimateUi["HVAC 控制页（规划）"]
+    SeatUi["Seat 控制页（规划）"]
+    ExecutionUi["Effect 执行页（规划）"]
     Demo["Demo HMI"]
     Sdk["Central Brain Java SDK"]
   end
@@ -125,7 +130,14 @@ flowchart TB
     Issue["脱敏 GitHub Issue / retest"]
   end
 
-  Client2 --> Sdk
+  Client2 --> Care
+  Client2 --> ClimateUi
+  Client2 --> SeatUi
+  Client2 --> ExecutionUi
+  Care --> Sdk
+  ClimateUi --> Sdk
+  SeatUi --> Sdk
+  ExecutionUi --> Sdk
   Demo --> Sdk
   Sdk --> RuntimeApi
   Sdk --> GovApi
@@ -163,7 +175,7 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 | Durable workflow | Room task/checkpoint/approval/effect/outbox/audit/recovery | repository 和进程恢复 | `DEVELOPED` |
 | Model/Event/Memory/Skill 软件合同 | scheduler、ModelProvider、bounded runtime、middleware/readiness | deterministic debug/test；无真实 NPU | `DEVELOPED` |
 | Native Runtime | C11 ABI V1、JNI、arm64-v8a/x86_64 AAR、进程生命周期 | host sanitizer、ELF、API 33 load/recovery | `DEVELOPED` |
-| Client2 与 Demo HMI | 导航触发悬浮菜单、12 场景、typed Binder、故障恢复 | Android 13 ARM64 应用层 | `DEVELOPED` |
+| Client2 基础演示 HMI 与 Demo HMI | 导航触发悬浮菜单、12 场景、文本回复、typed Binder、故障恢复 | Android 13 ARM64 应用层；尚无 HVAC/Seat 控制页 | `DEVELOPED` |
 | 构建、交付与远程测试 | 五项 hybrid bundle、安装/回滚、Private Release、Issue 闭环 | 软件交付；非量产资格 | `DEVELOPED` |
 | Python 仿真退役 | Python/REST/Linux runtime、旧 Console 和关联门禁已删除 | `central-brain/` Python 文件为 0 | `DEVELOPED` |
 
@@ -174,8 +186,10 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 | Session Contract v2 | Session DTO/AIDL、SDK、Runtime owner、parcel/hash tests | 下一工作包 `P1-W01` | `NOT_STARTED` |
 | Context 与 Digital Twin | versioned snapshot、freshness、debug/test twin | Stage 2 P2 | `NOT_STARTED` |
 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | Stage 2 P3 | `NOT_STARTED` |
-| 场景与真实 Effect 编排 | “我冷了/我累了”、approval、readback、undo | 缺车辆服务与 Safety owner | `EXTERNAL_BLOCKED` |
-| 量产 HMI | plan timeline、partial failure、restricted UX、多分辨率 | Client2 目前只是演示壳 | `NOT_STARTED` |
+| 场景与仿真 Effect 编排 | “我冷了/我累了”、approval、simulated readback、undo | Stage 2 P2/P3；不依赖真实车身信号 | `NOT_STARTED` |
+| 中控 HVAC/Seat 演示闭环 | 四视图、完整 HVAC/Seat 控件、Media/Nav Effect projection、手动和 AI 共用链路 | Stage 2 P4；`S2-HMI-001..005` | `NOT_STARTED` |
+| 量产 HMI 加固 | 驾驶分心、多分辨率、性能、长稳、OEM UX 验收 | Stage 2 P9；Client2 当前只是基础演示壳 | `NOT_STARTED` |
+| 真实车辆 Effect 编排 | HVAC/Seat/Media/Nav target readback、Safety、rollback | 缺车辆服务、权限与 Safety owner | `EXTERNAL_BLOCKED` |
 | Vendor NPU 与模型底座 | Vendor provider、模型格式、内存/取消/故障/性能 | 缺 Vendor SDK、PCIe NPU 和目标证据 | `EXTERNAL_BLOCKED` |
 | 车辆/VHAL/SOA adapter | HVAC/Seat/Media/Nav property/service 和权限 | 缺 OEM/Vendor contract | `EXTERNAL_BLOCKED` |
 | 生产部署与运维 | production signer、system owner、MDM、OTA、rollback、long-run | 缺目标平台 owner/策略 | `EXTERNAL_BLOCKED` |
@@ -209,6 +223,22 @@ Agent Graph (planned)
 
 当前 activation gate 失败关闭，不能把 Client2 文本回复解释成真实空调或座椅动作。
 
+### Client2 中控控制闭环
+
+```text
+Client2 HVAC/Seat control (planned)
+  -> ScenarioClient manual scenario
+  -> Session / Governance / Durable Agent Graph
+  -> EffectCoordinator
+  -> debug/test Digital Twin adapter (SIMULATED) or target adapter (future)
+  -> EffectObservation / reported state
+  -> CockpitHmiReducer
+  -> HVAC/Seat values + execution timeline + retry/undo
+```
+
+控件不得直接调用仿真或真实 adapter，也不得用本地 View 状态伪造回读。无真实车身信号时，
+Android debug/test 版本持续显示 `SIMULATED`；release/production 中 adapter 缺失即显示 unavailable。
+
 ### 模型/NPU
 
 ```text
@@ -232,7 +262,7 @@ Android deterministic provider 只用于 unit/debug contract test。它不是 Py
 | `central-brain/android-runtime/native-runtime` | Native Runtime | C ABI、JNI、provider 生命周期边界 |
 | `central-brain/android-runtime/demo-hmi` | 维护 HMI | SDK/Binder 和治理验收 |
 | `central-brain/android-runtime/policy-probe` | 负向测试 | testOnly caller/capability 检查 |
-| `apk-labs/client2-central-brain/` | 座舱演示 HMI | 导航触发的 12 场景悬浮菜单、typed Binder bridge、UI/恢复测试 |
+| `apk-labs/client2-central-brain/` | 座舱演示 HMI | 当前为 12 场景/文本回复；规划在同一 overlay 增加 HVAC/Seat/Effect 闭环 |
 | `central-brain/contracts/` | Android 验收合同 | `central_brain_android_b3_blackbox_acceptance.json`、`central_brain_android_r7c_acceptance.json`、`central_brain_github_remote_testing.json` |
 | `central-brain/delivery/android-hybrid/` | Android 交付 profile | 五项 artifact、inactive slots、目标输入模板 |
 | `docs/CENTRAL_BRAIN_*` | 工程基线 | 需求、设计、Driver/NPU、部署、验收、偏差与风险 |
@@ -295,6 +325,7 @@ bash tools/test_client2_central_brain_recovery.sh
 | [完整软件开发设计](docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md) | 当前模块、接口、状态机和 Stage 2 实现基线 |
 | [Stage 2 backlog](docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md) | P0-P9 最小工作包与 DoD |
 | [产品 UX](docs/CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md) | 场景、驾驶状态、审批和 Effect UX |
+| [中控 HVAC/Seat 闭环](docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md) | Client2 四视图、控件、状态、仿真边界和验收矩阵 |
 | [接口设计](docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md) | Android AIDL/Java/C 当前接口 |
 | [NPU Runtime](docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md) | Vendor NPU/PCIe 接入合同 |
 | [Driver/HAL](docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md) | 能力矩阵和最小缺口规则 |
@@ -310,6 +341,7 @@ bash tools/test_client2_central_brain_recovery.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-16 | [中控 HMI 规划](docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md) | 将 HVAC/Seat 作为 Client2 APK 必交付中控界面，冻结四视图、全 Effect 中控 projection、仿真回读和 20 项验收 | 仅完成 HMI-D0 规划；`cockpit_demo_control_loop_implemented=false` |
 | 2026-07-16 | [PR #8](https://github.com/LucasWEIchen/CougarOS/pull/8) | 固化 GitHub source-of-truth、完整项目同步、首页架构图和已开发/未开发进度表门禁 | 合并后 `main` 首页为权威状态 |
 | 2026-07-16 | [`498e4bd4`](https://github.com/LucasWEIchen/CougarOS/commit/498e4bd40f15525b1d60af0485b870184251c992) | 退役 Python/REST/Linux 仿真运行时及其合同、部署、文档和门禁；Android Model/NPU/C ABI/Driver-HAL 保留 | `python_prototype_runtime_maintained=false`；production/hardware 不变 |
 | 2026-07-15 | `7df9620e` | 冻结 AIOS Stage 2 产品、架构、backlog 和完整详设 | 下一实现项 `P1-W01` |

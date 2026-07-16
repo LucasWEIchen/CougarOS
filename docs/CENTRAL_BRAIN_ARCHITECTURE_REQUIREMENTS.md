@@ -19,6 +19,8 @@
 6. 外置 PCIe NPU 当前保留 ModelProvider、C ABI/JNI、Vendor empty provider 和 Driver/HAL 合同。
 7. 真实车辆、模型、NPU 或安全 authority 不可用时，production 必须失败关闭。
 8. Android debug/test double 不能作为真实硬件、production 或量产验收证据。
+9. Client2 APK 必须规划并实现 HVAC/Seat 中控演示页；无真实信号时使用显式 SIMULATED 来源，
+   手动控制和 AI 场景必须复用 Runtime 治理/Effect/readback 链路。
 
 ## 3. 分层需求
 
@@ -35,7 +37,7 @@
 
 | Req ID | 要求 | 实现规则 | 当前状态 |
 | --- | --- | --- | --- |
-| APP-001 | 座舱 HMI | 只能经 SDK/Binder 访问 Runtime，不直连模型或车控 | Client2/Demo 已集成 |
+| APP-001 | 座舱 HMI | 只能经 SDK/Binder 访问 Runtime，不直连模型或车控 | Client2 场景面板已集成；HVAC/Seat 页待开发 |
 | APP-002 | 座舱服务 | 作为受治理 Business/Foundation/Atomic service 暴露 | 外部阻塞 |
 | APP-003 | Agent App | 通过 Session/Plan/Tool/Action/Effect 执行 | Stage 2 待开发 |
 | APP-004 | AI SDK | 提供稳定 typed client facade、异步任务和故障语义 | Android AAR 已实现 |
@@ -67,7 +69,7 @@
 | --- | --- | --- | --- |
 | FW-S-001 | Business Service | 场景编排必须生成可审计 plan/effect | Stage 2 待开发 |
 | FW-S-002 | Foundation Service | 账号、配置、时间、权限采用可替换 adapter | 外部阻塞 |
-| FW-S-003 | Atomic Service | 最小 HVAC/Seat/Media/Navigation 能力 | 外部阻塞 |
+| FW-S-003 | Atomic Service | 最小 HVAC/Seat/Media/Navigation 能力 | debug/demo adapter 待开发；真实服务外部阻塞 |
 | FW-S-004 | Service Contract | IDL/schema/version/error 必须冻结 | typed AIDL 基础完成 |
 | FW-S-005 | Safety State | 强制 interlock，用户确认不能覆盖硬联锁 | owner 未接入 |
 | FW-S-006 | Extension Service | 必须注册、发现、授权、审计和撤销 | 未实现 |
@@ -165,6 +167,11 @@
 | S2-UX-001 | 面板显示 session/plan/effect 状态 | reducer/render，不持有权威状态 |
 | S2-UX-002 | approval/partial failure/undo UX | driving restriction 优先 |
 | S2-UX-003 | 可访问性、显示矩阵、错误恢复 | Client2 demo 与量产 HMI 分离 |
+| S2-HMI-001 | Client2 APK 内中控 HVAC 控制页 | 只经 SDK/Runtime；desired/reported 分离 |
+| S2-HMI-002 | Client2 APK 内中控 Seat 控制页 | unknown/moving 驾驶席动作 fail closed |
+| S2-HMI-003 | 执行闭环 UX | timeline/approval/partial/retry/undo/recovery |
+| S2-HMI-004 | 无真实信号的演示来源 | Android debug/test Digital Twin；持续显示 SIMULATED |
+| S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
 | S2-SES-001 | versioned durable Session | owner、TTL、state、idempotency |
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
@@ -264,6 +271,33 @@ Production adapter registry must return adapter unavailable rather than silently
 
 状态：`github_source_of_truth=true`、`github_sync_required=true`、
 `maintained_project_files_synced=true`、`github_homepage_architecture_current=true`。
+
+## 13. Client2 中控 HVAC/Seat 闭环需求
+
+1. 底部导航打开的现有右侧悬浮菜单必须扩展为“关怀/空调/座椅/执行”四视图，保持 overlay
+   形态，不改成分屏，不另起脱离 Client2 的演示 App。
+2. HVAC 首版至少包含 power、zone、temperature、fan、AUTO、A/C、SYNC、airflow 和 comfort
+   preset；Seat 首版至少包含 zone、heating、ventilation、massage、recline 和三种 preset。
+3. 控件不能直接调用 Adapter。手动 HVAC/Seat 必须创建 bounded deterministic scenario session，
+   与 cold/fatigue/rest 场景复用 SDK、Policy、Approval、Durable Effect、readback 和 Audit。
+4. HMI 必须分别显示 desired/reported/source/quality/revision/effect state；dispatch 不得直接显示完成。
+5. 无真实车身信号时，只有 debug/test profile 可以注册 Simulated Adapter，并持续显示 SIMULATED；
+   release/production adapter unavailable 时控件必须禁用，不得隐式 fallback。
+6. 默认 driving state 为 UNKNOWN_RESTRICTED。HMI 不得提交 speed/gear/belt/occupancy；驾驶席
+   recline 在 MOVING/UNKNOWN 下 UI 禁用且 Runtime dispatch count 必须为 0。
+7. approval、partial failure、readback mismatch、retry、governed undo、Runtime restart 和面板
+   隐藏/重开必须进入 Android 13 ARM64 验收。
+8. 所有进入演示 plan 的 HVAC/Seat/Media/Navigation Effect 必须在中控“执行”视图有 target、source、
+   progress、reported result 和适用的 stop/cancel/undo projection；禁止只在模型文本中宣称完成。
+
+完整设计和 20 项验收矩阵见 `CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。当前状态：
+
+```text
+cockpit_hvac_surface_implemented=false
+cockpit_seat_surface_implemented=false
+cockpit_demo_control_loop_implemented=false
+real_vehicle_effect_adapter_available=false
+```
 
 `production_ready=false`、`target_hardware_validated=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。

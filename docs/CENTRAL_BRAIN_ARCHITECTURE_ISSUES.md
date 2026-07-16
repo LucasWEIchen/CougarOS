@@ -52,6 +52,7 @@
 | ISSUE-030 | 车辆控制 API、权限、area mapping、readback 和 owner 未确定。 | S2-ADP-002 | Open |
 | ISSUE-031 | 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定。 | S2-MEM-001, S2-EVT-001 | Open |
 | ISSUE-032 | Python 原型退役后禁止把已删除 gateway/test oracle 当成 Android fallback。 | DEV-026 | Closed |
+| ISSUE-033 | Client2 尚无 HVAC/Seat 中控页和可观察控制闭环。 | S2-HMI-001..005, DEV-024/025 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -147,6 +148,21 @@ systemd 样例及专用测试。CI 新增退役门禁，确保 `central-brain/` 
 
 该问题在仓库一致性范围内 `Closed`。未来若恢复 Linux 或本机模型调试，必须建立新的非 Python
 工作包或 Android ModelProvider development profile，禁止恢复旧 gateway 作为隐式 fallback。
+
+## ISSUE-033 Client2 HVAC/Seat 中控演示闭环缺口
+
+当前 Client2 只有导航触发的场景按钮和回复文本，没有独立 HVAC/Seat 控制页、desired/reported
+状态、Effect timeline、approval、partial、retry、undo 或 restart rehydration。因此“我冷了”或
+“我累了”的文本回复不能构成 AIOS 中控演示闭环。
+
+处理计划：在 Client2 APK 现有 overlay 内增加“关怀/空调/座椅/执行”四视图；业务状态和 renderer
+进入 maintained Java secondary-dex，Smali 只保留 bootstrap；手动控制和 AI 场景均通过 typed SDK
+进入 Runtime。无真实车身信号时使用持续标注 SIMULATED 的 Android debug/test Digital Twin，
+真实 adapter 仍由 `ISSUE-030` 跟踪。
+
+关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AC/ST/CL 验收
+全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
+Driver/HAL、target hardware 或 production。状态：`Open`。
 
 ## Android 实现证据索引
 

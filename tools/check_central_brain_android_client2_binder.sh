@@ -180,7 +180,8 @@ for doc_pattern in \
 done
 
 for doc_pattern in \
-  "README.md|导航触发的 12 场景悬浮菜单" \
+  "README.md|12 场景、文本回复、typed Binder" \
+  "README.md|cockpit_demo_control_loop_implemented=false" \
   "apk-labs/client2-central-brain/README.md|bottom navigation" \
   "docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md|2026-07-15 导航菜单真机验收" \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|Client2 navigation-triggered menu trace" \

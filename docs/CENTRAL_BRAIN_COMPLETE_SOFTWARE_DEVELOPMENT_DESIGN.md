@@ -1,8 +1,8 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.0
+版本：2.1
 
-日期：2026-07-15
+日期：2026-07-16
 
 状态：Stage 2 implementation baseline
 
@@ -40,6 +40,10 @@
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。Android 13
 物理设备应用层验收通过不等于车辆/NPU/整车硬件验收。
 
+中控闭环状态保持：`cockpit_hvac_surface_implemented=false`、
+`cockpit_seat_surface_implemented=false`、`cockpit_demo_control_loop_implemented=false`。
+Client2 当前的基础悬浮面板不能作为 HVAC/Seat 闭环完成证据。
+
 ## 3. 架构原则
 
 1. **架构图为需求基线**：所有 Stage 2 模块必须映射到原有 `APP/FW/NV/KH/XSC/DEL` Req ID。
@@ -52,6 +56,7 @@
 8. **黑盒平台边界**：不修改已刷机 Android/framework/VHAL，不猜私有设备节点/ioctl，不需要 root。
 9. **无虚拟化开发**：不开发 Hypervisor/VM；Tool containment 是应用进程/allowlist 级边界，不称为虚拟化安全。
 10. **Android 当前主线**：Stage 2 不开发 Linux 前端；跨 SoC contract 保持平台无关，早期 Python/Linux 样例已经退役。
+11. **中控操作不直连设备**：Client2 中的 HVAC/Seat 手动控件与 AI 场景必须复用 Session、Governance、Effect 和 readback 链路；View 本地状态不是车辆状态。
 
 ## 4. 总体架构
 
@@ -59,6 +64,10 @@
 flowchart TB
     subgraph APP["Application layer"]
         C2["Client2 Central Brain panel"]
+        CARE["Care scenario surface: current basic"]
+        HVACUI["HVAC control surface: planned"]
+        SEATUI["Seat control surface: planned"]
+        EXECUI["Effect execution surface: planned"]
         DH["Demo/Engineer HMI"]
         SDK["Central Brain Java SDK"]
     end
@@ -97,7 +106,14 @@ flowchart TB
         HW["Driver/HAL and external NPU"]
     end
 
-    C2 --> SDK
+    C2 --> CARE
+    C2 --> HVACUI
+    C2 --> SEATUI
+    C2 --> EXECUI
+    CARE --> SDK
+    HVACUI --> SDK
+    SEATUI --> SDK
+    EXECUI --> SDK
     DH --> SDK
     SDK --> BND
     BND --> UIB
@@ -132,7 +148,7 @@ flowchart TB
 | AIOS Runtime APK | `central-brain/android-runtime/runtime-service` | `DEVELOPED/PROTOTYPE` | Binder、治理、持久任务、模型/事件/记忆/技能骨架、native lifecycle | 不直接包含 Client2 UI，不访问私有硬件 node |
 | Java SDK AAR | `central-brain-sdk` | `DEVELOPED` v1 | typed AIDL DTO/client、重连、callback | 不含 Policy/vehicle action 实现 |
 | Native Runtime AAR | `native-runtime` | `DEVELOPED` lifecycle | C ABI、JNI、process-owned handle/capacity | 不读取 Binder identity，不加载 vendor NPU |
-| Client2 Demo APK | `apk-labs/client2-central-brain` | `DEVELOPED` simple UX | 入口、悬浮面板、场景请求、回复 | 不调用模型/vehicle API，不持久化权威状态 |
+| Client2 Demo APK | `apk-labs/client2-central-brain` | `DEVELOPED` basic / HMI control `NOT_STARTED` | 当前入口、悬浮面板、场景请求和文本回复；规划关怀/HVAC/Seat/执行四视图 | 不直连模型/vehicle adapter，不把 View 状态当回读 |
 | Demo HMI APK | `demo-hmi` | `DEVELOPED` maintenance | SDK/Runtime/Governance 调试与验收 | 不作为产品 HMI |
 | Policy probe | `policy-probe` | `DEVELOPED` test | caller/capability negative tests | 不随产品发布 |
 | Retired prototype | none | `OUT_OF_SCOPE` | 不再提供 gateway、模型仿真或 Linux runtime | 不得恢复为 Android fallback |
@@ -193,6 +209,11 @@ flowchart TB
 | Product HMI state | state reducer、plan timeline、session/effect renderer | `NOT_STARTED` | `S2-UX-001` |
 | Product HMI driving mode | moving/parked/unknown presentation policy | `NOT_STARTED` | `S2-UX-002` |
 | Product HMI control | approval/cancel/retry/partial/undo controls | `NOT_STARTED` | `S2-UX-003` |
+| Cockpit HVAC surface | power/zone/temp/fan/mode/preset controls | `NOT_STARTED` | `S2-HMI-001` |
+| Cockpit Seat surface | heat/vent/massage/recline/preset/restriction | `NOT_STARTED` | `S2-HMI-002` |
+| Cockpit control loop | reducer、desired/reported、timeline、recovery | `NOT_STARTED` | `S2-HMI-003` |
+| Cockpit simulation presentation | SIMULATED/UNAVAILABLE source and engineer fault profile | `NOT_STARTED` | `S2-HMI-004` |
+| Cockpit unified command path | manual and AI scenario share governed Effect flow | `NOT_STARTED` | `S2-HMI-005` |
 | Real adapters | AAOS/Vendor/NPU | `EXTERNAL_BLOCKED` | `S2-ADP-002` |
 | Release qualification | signer/migration/rollback/long-run/target evidence | `EXTERNAL_BLOCKED` | `S2-REL-001` |
 
@@ -238,21 +259,22 @@ public final class Envelope<T> {
 
 ### 8.2 新增 AIDL 文件
 
-计划路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/scenario/`。
+计划路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/session/`。
 
 ```aidl
-interface ICentralBrainScenarioRuntime {
+interface ICentralBrainSessionRuntime {
     const int INTERFACE_VERSION = 1;
     const String INTERFACE_HASH = "<generated-by-checker>";
 
     int getProtocolVersion();
     String getProtocolHash();
-    SessionHandle startScenario(in ScenarioRequest request,
-                                ICentralBrainSessionCallback callback);
+    SessionHandle openSession(in SessionRequest request,
+                              ICentralBrainSessionCallback callback);
     SessionSnapshot getSession(in SessionHandle handle);
-    EventPage getSessionEvents(in SessionHandle handle, long afterSequence, int limit);
-    boolean attachCallback(in SessionHandle handle,
-                           ICentralBrainSessionCallback callback);
+    SessionPage listSessions(in SessionQuery query);
+    EventPage getEvents(in SessionHandle handle, long afterSequence, int limit);
+    boolean registerSessionCallback(in SessionHandle handle,
+                                    ICentralBrainSessionCallback callback);
     boolean cancelSession(in SessionHandle handle, int reasonCode);
     boolean approve(in ApprovalResponse response);
     boolean reject(in ApprovalResponse response);
@@ -268,9 +290,9 @@ oneway interface ICentralBrainSessionCallback {
 }
 ```
 
-Callback 是提示，不是权威数据源。丢 callback 后客户端用 `getSessionEvents` cursor 补齐。
+Callback 是提示，不是权威数据源。丢 callback 后客户端用 `getEvents` cursor 补齐。
 
-### 8.3 ScenarioRequest
+### 8.3 SessionRequest
 
 字段：
 
@@ -287,14 +309,18 @@ clientContextVersion  int, informational only
 
 HMI 不得提交 `speed/gear/belt` 作为权威输入。
 
+Runtime admission 后将 `SessionRequest` 的场景目标映射为内部 immutable `ScenarioRequest`，供
+`ScenarioResolver` 使用。AIDL 不暴露内部 resolver object。
+
 ### 8.4 Java SDK facade
 
 计划类：
 
 ```java
 public interface ScenarioClient extends AutoCloseable {
-    SessionHandle start(ScenarioRequest request, SessionListener listener);
+    SessionHandle openSession(SessionRequest request, SessionListener listener);
     SessionSnapshot get(SessionHandle handle);
+    SessionPage list(SessionQuery query);
     EventPage events(SessionHandle handle, long afterSequence, int limit);
     boolean approve(ApprovalResponse response);
     boolean reject(ApprovalResponse response);
@@ -330,7 +356,7 @@ SDK 必须：
 
 - 状态：简单按钮 `DEVELOPED`；动态 catalog `NOT_STARTED`。
 - 输入：`ScenarioAvailabilitySnapshot`。
-- 输出：`ScenarioRequest`，按钮绑定 immutable scenario ID，不发送自然语言模拟按钮语义。
+- 输出：`SessionRequest`，按钮绑定 immutable scenario ID，不发送自然语言模拟按钮语义。
 - moving 最多显示 4 个 allowlisted scenario；不可用按钮显示原因而非静默消失。
 
 ### 9.4 CentralBrainPanelState
@@ -384,6 +410,78 @@ PanelPresentationMode modeFor(DrivingState state,
 ```
 
 `UNKNOWN` 和异常按 `MOVING_RESTRICTED`。该类只控制呈现，不授权 Effect。
+
+### 9.8 Client2 四视图信息架构
+
+`BrainOverlay` 保留原有右侧半透明悬浮形态，在同一 APK 内增加稳定的 segmented navigation：
+
+| 视图 | 责任 | 不允许承担的责任 |
+| --- | --- | --- |
+| 关怀 | “我冷了”“我累了”“休息模式”等场景入口和简要结果 | 不直接改变 HVAC/Seat View 状态 |
+| 空调 | power、zone、temperature、fan、AUTO、A/C、SYNC、airflow、comfort preset | 不直接调用 simulated/target adapter |
+| 座椅 | zone、heating、ventilation、massage、recline、upright/comfort/rest preset | 不接受 HMI 提交的 speed/gear/belt 作为可信输入 |
+| 执行 | plan/effect timeline、approval、partial、retry、undo、recovery | 不把 DISPATCHED 显示成 VERIFIED |
+
+Header 固定显示 connection、`SIMULATED/TARGET/UNAVAILABLE` source 和
+`PARKED/MOVING/UNKNOWN_RESTRICTED` presentation。Persistent execution strip 在所有视图可见；
+隐藏 overlay 只影响呈现，不取消已接受 session。
+
+“执行”视图是通用 Effect projection，不只服务 HVAC/Seat。任何 cold/fatigue/rest plan 中的
+Media/Navigation Effect 也必须显示 target、source、progress、reported result 和适用的 stop/cancel；
+专用 Media/Nav 页面可以后续增加，但文本回复不能替代该最小中控闭环。
+
+### 9.9 ClimateSurfaceBinder
+
+计划路径：`bridge/src/com/centralbrain/client2/hmi/ClimateSurfaceBinder.java`；需求：
+`S2-HMI-001`、`S2-HMI-003..005`。
+
+- listener 将控件变更转换为 bounded `CockpitHmiIntent`，温度/风量连续输入使用 300 ms debounce；
+- coordinator 将 intent 转换为 `scene.manual.hvac.adjust.v1`，通过 `ScenarioClient` 提交；
+- renderer 同时显示 `desiredValue`、`reportedValue`、quality、source、revision 和 effect state；
+- debug demo 范围可为 16.0-30.0 C、0.5 C step、fan 0-7，但 target 范围只能来自
+  `CapabilityCatalog`，不支持项显示 unavailable；
+- pending 可以更新 desired，不得提前更新 reported；只有 observation/readback 匹配后进入 VERIFIED。
+
+### 9.10 SeatSurfaceBinder
+
+计划路径：`bridge/src/com/centralbrain/client2/hmi/SeatSurfaceBinder.java`；需求：
+`S2-HMI-002..005`。
+
+- heating 和 ventilation 互斥必须被编译为显式多 Effect plan，而非 UI 本地互斥动画；
+- recline 与 rest preset 在 `MOVING` 或 `UNKNOWN_RESTRICTED` 时 disabled；
+- `PARKED` 只允许用户预览/提交，Runtime 仍在 plan compile、approval resume、dispatch 前读取 fresh
+  Context 并 fail closed；
+- 驾驶席大角度动作使用 HIGH risk approval，approval 后 Context revision 改变必须拒绝旧批准；
+- passenger 行为独立使用 occupant/capability policy，不默认继承驾驶席规则。
+
+### 9.11 CockpitHmiState、Reducer 与 Renderer
+
+计划根状态包含 connection、presentation、source badge、selected surface、active session、climate、
+seat、execution、approval、undo 和 last error。`CockpitHmiReducer` 在单线程 executor 顺序消费 SDK
+snapshot/event；`CockpitHmiRenderer` 只在 main thread 将 immutable state 渲染到 View。
+
+重连顺序固定为 Binder connected -> session/twin snapshot -> cursor replay -> callback attach。页面重开、
+Activity recreate 或 Runtime process death后，不允许从控件默认值覆盖恢复状态，也不自动重发结果未知的
+Effect。`PARTIALLY_COMPLETED` 必须逐项显示成功/失败；undo 是新的 governed compensation session。
+
+### 9.12 CockpitControlCoordinator 与运行 profile
+
+```text
+HMI intent or care scenario
+ -> ScenarioClient
+ -> Session / Policy / Approval / Durable Graph
+ -> EffectCoordinator
+ -> Simulated adapter (debug/test) or target adapter (future)
+ -> EffectObservation / DigitalTwin reported state
+ -> CockpitHmiReducer
+ -> four-surface render
+```
+
+Debug/test profile 注册 `SimulatedHvacEffectAdapter` 和 `SimulatedSeatEffectAdapter`，永久显示
+`SIMULATED`，默认驾驶态为 `UNKNOWN_RESTRICTED`，并可通过受保护工程入口注入 delay、timeout、
+failure 和 mismatch。Release/production profile 不包含工程入口或隐式模拟 fallback；真实 adapter
+缺失时 source=`UNAVAILABLE` 且控件禁用。详细控件、状态机、工作包和 20 项验收见
+`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`。
 
 ## 10. Session 与 Event Tree
 
@@ -1087,7 +1185,7 @@ sequenceDiagram
     participant A as Seat/HVAC Adapter
 
     U->>H: Tap fatigue
-    H->>S: startScenario(scene.fatigue.assist.v1)
+    H->>S: openSession(scene.fatigue.assist.v1)
     S->>R: trusted Binder request
     R->>C: capture fresh ContextSnapshot
     C-->>R: parked, gear P, belt unbuckled
@@ -1295,6 +1393,7 @@ central-brain-sdk AAR
 - Demo HMI/Client2 SDK Binder 集成；
 - 物理 Android 13 应用层安装、UI、Binder、恢复和 signer migration 验收；
 - Client2 底部导航触发的悬浮面板。
+- Client2 HVAC/Seat 中控闭环的需求、四视图、模块、状态和验收规划（HMI-D0）。
 
 ### 32.2 下一阶段未完成
 
@@ -1304,7 +1403,8 @@ central-brain-sdk AAR
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
 - Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
-- Client2 plan/progress/approval/partial/undo/driving UX；
+- Client2 关怀/HVAC/Seat/执行四视图与 state reducer；
+- Client2 manual/AI 共用 Session/Effect 链路、desired/reported、approval、partial、retry、undo、recovery；
 - Tool/Skill registry/rules/executor/artifact verifier；
 - working/profile/episodic Memory 与 consent；
 - durable Event Broker/Trigger/主动建议；
@@ -1320,4 +1420,23 @@ central-brain-sdk AAR
 
 下一实现工作包固定为 `P1-W01 Session DTO/AIDL`。提交范围仅包含新 AIDL DTO、SDK parcel tests、AIDL hash/checker 和需求/路线图状态更新。完成后自动进入 `P1-W02 Plan/Node DTO/AIDL`，不得越过 contract 层直接在 Client2 中硬编码仿真动画。
 
-全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；设计来源和采纳边界见 `CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md`。
+全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
+`CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见
+`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md`；设计来源和采纳边界见
+`CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md`。
+
+## 34. Client2 中控闭环实施顺序
+
+| Gate | 必须完成 | 可验收输出 | 当前状态 |
+| --- | --- | --- | --- |
+| HMI-D0 | `S2-HMI-001..005`、四视图、状态机、工作包和验收冻结 | 文档与静态 checker | `DONE` |
+| HMI-D1 | overlay shell、资源、Java controller/reducer/renderer | 1920x1080 layout/UI tree | `NOT_STARTED` |
+| HMI-D2 | manual HVAC/Seat -> simulated Effect -> delayed readback | `HMI-AC-*`、`HMI-ST-*` 基础用例 | `NOT_STARTED` |
+| HMI-D3 | cold/fatigue/rest 多 Effect、approval、partial、undo | graph/effect/recovery instrumentation | `NOT_STARTED` |
+| HMI-D4 | Android 13 ARM64 UI/Binder/fault/restart 全矩阵 | Client2 APK 演示闭环证据 | `NOT_STARTED` |
+| HMI-D5 | target capability 分项接入 | P8 owner/API/permission/Safety/readback/rollback | `EXTERNAL_BLOCKED` |
+
+HMI-D4 是“不接真实车身信号情况下的演示级中控闭环”完成点。HMI-D5 才是实体车辆控制集成；
+两者不得使用同一个完成标志。P4 预计 24-32 人日，并依赖 P1 Session contract、P2 Context/Twin/
+Simulated Effect 和 P3 Durable Graph/Effect。P1 完成后可并行实现静态壳与 reducer，但控件闭环的
+完成证据不能由本地 fake controller 生成。

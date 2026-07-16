@@ -59,6 +59,12 @@ for marker in \
   'central_brain_github_remote_testing.json' \
   'android13-hwtest-v0.5.0-rc.2' \
   'physical_controller_application_evidence_available=true' \
+  'cockpit_demo_control_loop_implemented=false' \
+  'S2-HMI-001..005' \
+  'HVAC 控制页（规划）' \
+  'Seat 控制页（规划）' \
+  '中控 HVAC/Seat 演示闭环' \
+  'Media/Nav Effect projection' \
   'production_ready=false' \
   'target_hardware_validated=false' \
   'driver_development_triggered=false' \
@@ -83,6 +89,7 @@ required_paths=(
   central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
+  docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md
   docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
   docs/CENTRAL_BRAIN_ROADMAP.md
@@ -159,8 +166,8 @@ remaining_rows = sum(
     remaining.count(status)
     for status in ("`NOT_STARTED`", "`EXTERNAL_BLOCKED`", "`OUT_OF_SCOPE`")
 )
-if remaining_rows < 10:
-    raise SystemExit("README remaining-work table must contain at least ten modules")
+if remaining_rows < 12:
+    raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "`P1-W01`" not in remaining:
     raise SystemExit("README remaining-work table must name the next work package")
 
