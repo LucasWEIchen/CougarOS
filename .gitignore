@@ -28,6 +28,4 @@ keystores/
 logs/test/
 central-brain-remote-evidence-*/
 
-# Central brain prototype build outputs
-central-brain/android-console/out/
-central-brain/backend/.runtime/
+# Retired Central Brain Python runtime outputs are intentionally absent.

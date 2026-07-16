@@ -144,6 +144,37 @@ tap_cold() {
   "${ADB_DEVICE[@]}" shell input tap "$COLD_X" "$COLD_Y"
 }
 
+open_navigation_menu() {
+  local hidden_file="$1"
+  local visible_file="$2"
+  local trigger_center cold_center
+  dump_ui "$hidden_file"
+  if button_center centralBrainColdButton "$hidden_file" >/dev/null; then
+    echo "Client2 Central Brain panel must be hidden after launch" >&2
+    exit 1
+  fi
+  trigger_center="$(button_center centralBrainNavigationTrigger \
+    "$hidden_file" || true)"
+  read -r TRIGGER_X TRIGGER_Y <<<"$trigger_center"
+  if [[ -z "${TRIGGER_Y:-}" ]]; then
+    echo "Client2 Central Brain navigation trigger is not visible" >&2
+    exit 1
+  fi
+  "${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
+  for _ in {1..20}; do
+    dump_ui "$visible_file"
+    cold_center="$(button_center centralBrainColdButton \
+      "$visible_file" || true)"
+    if [[ -n "$cold_center" ]]; then
+      read -r COLD_X COLD_Y <<<"$cold_center"
+      return 0
+    fi
+    sleep 0.1
+  done
+  echo "Client2 Central Brain panel did not open from navigation trigger" >&2
+  exit 1
+}
+
 assert_ui_reply() {
   local expected="$1"
   local output_file="$2"
@@ -189,6 +220,10 @@ bash "$ROOT_DIR/tools/test_client2_central_brain_binder.sh" \
 for marker in \
   'client2_binder_task_completed=true' \
   'client2_ui_reply_verified=true' \
+  'client2_panel_initially_hidden=true' \
+  'client2_navigation_toggle_show_verified=true' \
+  'client2_navigation_toggle_hide_verified=true' \
+  'client2_outside_tap_dismiss_verified=true' \
   'client2_identity_resolved=true' \
   'http_transport_used=false' \
   'hardware_accessed=false'; do
@@ -201,12 +236,8 @@ done
 
 "${ADB_DEVICE[@]}" shell settings put secure immersive_mode_confirmations confirmed
 launch_client2 "$LOG_DIR/client2-launch.txt"
-dump_ui "$LOG_DIR/ui-initial.xml"
-read -r COLD_X COLD_Y <<<"$(button_center centralBrainColdButton "$LOG_DIR/ui-initial.xml")"
-if [[ -z "${COLD_Y:-}" ]]; then
-  echo "Client2 cold scenario button is not visible" >&2
-  exit 1
-fi
+open_navigation_menu \
+  "$LOG_DIR/ui-initial-hidden.xml" "$LOG_DIR/ui-initial.xml"
 
 # Runtime unavailable must be visible and must release the Client2 single-flight gate.
 "${ADB_DEVICE[@]}" shell pm disable-user --user 0 com.centralbrain.runtime \
@@ -312,9 +343,9 @@ if [[ -z "$CLIENT_PID_BEFORE" || -z "$CLIENT_PID_AFTER" \
   echo "Client2 process restart evidence is incomplete" >&2
   exit 1
 fi
-dump_ui "$LOG_DIR/ui-after-client-restart.xml"
-read -r COLD_X COLD_Y <<<"$(button_center centralBrainColdButton \
-  "$LOG_DIR/ui-after-client-restart.xml")"
+open_navigation_menu \
+  "$LOG_DIR/ui-after-client-restart-hidden.xml" \
+  "$LOG_DIR/ui-after-client-restart.xml"
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
 wait_for_log 'client2_binder_task_completed=true' \
@@ -345,6 +376,7 @@ printf '%s\n' \
   "runtime_service_restart_retry_completed=true" \
   "runtime_restart_reconciliation_fail_closed=true" \
   "client2_process_restart_rebind_completed=true" \
+  "client2_navigation_menu_reopen_verified=true" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \
   "ui_cancel_timeout_not_exposed=true" \

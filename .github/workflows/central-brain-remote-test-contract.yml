@@ -8,33 +8,19 @@ on:
       - "README.md"
       - ".github/**"
       - ".githooks/**"
-      - "central-brain/contracts/central_brain_github_remote_testing.json"
-      - "central-brain/delivery/android-hybrid/**"
-      - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
-      - "docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md"
-      - "tools/check_central_brain_android_hybrid_delivery.sh"
-      - "tools/check_central_brain_github_remote_testing.sh"
-      - "tools/check_central_brain_github_publication_tree.sh"
-      - "tools/check_central_brain_root_readme.sh"
-      - "tools/check_central_brain_software_detailed_design.sh"
-      - "tools/package_central_brain_android_hybrid_delivery.sh"
-      - "tools/run_central_brain_android_remote_acceptance.sh"
+      - "central-brain/**"
+      - "apk-labs/client2-central-brain/**"
+      - "docs/CENTRAL_BRAIN_*"
+      - "tools/*central_brain*"
   pull_request:
     paths:
       - "README.md"
       - ".github/**"
       - ".githooks/**"
-      - "central-brain/contracts/central_brain_github_remote_testing.json"
-      - "central-brain/delivery/android-hybrid/**"
-      - "docs/CENTRAL_BRAIN_GITHUB_REMOTE_HARDWARE_TESTING.md"
-      - "docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md"
-      - "tools/check_central_brain_android_hybrid_delivery.sh"
-      - "tools/check_central_brain_github_remote_testing.sh"
-      - "tools/check_central_brain_github_publication_tree.sh"
-      - "tools/check_central_brain_root_readme.sh"
-      - "tools/check_central_brain_software_detailed_design.sh"
-      - "tools/package_central_brain_android_hybrid_delivery.sh"
-      - "tools/run_central_brain_android_remote_acceptance.sh"
+      - "central-brain/**"
+      - "apk-labs/client2-central-brain/**"
+      - "docs/CENTRAL_BRAIN_*"
+      - "tools/*central_brain*"
 
 permissions:
   contents: read
@@ -46,10 +32,20 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Verify remote hardware-test contract
         run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_revision="${{ github.event.pull_request.base.sha }}"
+          else
+            base_revision="${{ github.event.before }}"
+          fi
           bash tools/check_central_brain_github_publication_tree.sh HEAD
+          bash tools/check_central_brain_github_repository_completeness.sh
+          bash tools/check_central_brain_github_repository_completeness.sh \
+            --changed-range "$base_revision" "$GITHUB_SHA"
           bash tools/check_central_brain_github_remote_testing.sh
-          bash tools/check_central_brain_software_detailed_design.sh
+          bash tools/check_central_brain_python_prototype_retirement.sh
+          bash tools/check_central_brain_aios_stage2_design.sh
           bash tools/check_central_brain_root_readme.sh

@@ -43,6 +43,9 @@ done
 if [[ -d "$WORK_DIR" ]]; then
   rg -q "centralBrainPanel" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainPanelOverlay" "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q "centralBrainNavigationTriggerRail" "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q "centralBrainNavigationTrigger" "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'central_brain_menu_toggle' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "@id/view1" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainColdButton" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainTiredButton" "$WORK_DIR/res/layout/main_layout.xml"
@@ -81,8 +84,12 @@ if [[ -d "$WORK_DIR" ]]; then
     echo "Client2 render region must remain full-screen behind the floating panel" >&2
     exit 1
   fi
-  rg -q 'centralBrainPanelOverlay.*android:layout_width="match_parent".*android:layout_height="match_parent"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'centralBrainPanelOverlay.*android:layout_width="match_parent".*android:layout_height="match_parent".*android:visibility="gone".*android:clickable="true"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainPanel.*android:layout_width="0.0dp".*android:layout_weight="1.0".*android:elevation="8.0dp"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'centralBrainNavigationTriggerRail.*android:layout_height="96.0dp".*android:layout_gravity="bottom".*android:weightSum="24.0"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'Space.*android:layout_weight="9.5"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'centralBrainNavigationTrigger.*android:tag="central_brain_menu_toggle".*android:layout_weight="1.0".*android:background="@android:color/transparent".*android:clickable="true".*android:contentDescription="Central Brain menu"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'Space.*android:layout_weight="13.5"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q '#B8F1F3F5' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
   rg -q '#E8FFFFFF' "$WORK_DIR/res/drawable/central_brain_action_button.xml"
   rg -q '#C8FFFFFF' "$WORK_DIR/res/drawable/central_brain_reply_background.xml"
@@ -101,6 +108,12 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q "onBridgeReply" "$CONTROLLER"
   rg -q "onBridgeFailure" "$CONTROLLER"
   rg -q "requestInFlight" "$CONTROLLER"
+  rg -q "panelOverlay" "$CONTROLLER"
+  rg -q "centralBrainNavigationTrigger" "$CONTROLLER"
+  rg -q "central_brain_menu_toggle" "$CONTROLLER"
+  rg -q "hidePanel" "$CONTROLLER"
+  rg -q "togglePanel" "$CONTROLLER"
+  rg -q "setVisibility" "$CONTROLLER"
   rg -q "bindButtons" "$CONTROLLER"
   rg -q "setBackgroundTintList" "$CONTROLLER"
   rg -q "completeRequest" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$UiUpdate.smali"

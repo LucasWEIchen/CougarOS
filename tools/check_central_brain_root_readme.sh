@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: APP-004, XSC-001/002/003/004/005/006, NV-F-001/011/012,
+# Req IDs: APP-004, XSC-001..006, NV-F-001/011/012,
 # NV-G-003/005/006/007, NV-P-002, KH-003/006, DEL-001/003/004/005.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 README="$ROOT_DIR/README.md"
 SETTINGS="$ROOT_DIR/central-brain/android-runtime/settings.gradle.kts"
 
-[[ -f "$README" ]] || { echo "missing repository architecture README: $README" >&2; exit 1; }
+[[ -f "$README" ]] || { echo "missing repository README" >&2; exit 1; }
+[[ -f "$SETTINGS" ]] || { echo "missing Android Gradle settings" >&2; exit 1; }
 
 require_text() {
   local marker="$1"
@@ -19,8 +20,12 @@ require_text() {
 for heading in \
   '# CougarOS Central Brain' \
   '## 当前状态' \
+  '## GitHub 同步与仓库完整性' \
   '## README 维护规则' \
   '## 软件总架构' \
+  '## 开发进度总表' \
+  '### 已开发并验证' \
+  '### 未开发或外部阻塞' \
   '## 核心调用链' \
   '## 仓库目录与模块映射' \
   '## 语言与所有权边界' \
@@ -34,8 +39,12 @@ done
 
 for marker in \
   '用户提供的架构图是需求基线，不是示意图' \
-  'Android 实际工程路径' \
-  'Python 架构原型路径' \
+  'github_source_of_truth=true' \
+  'github_sync_required=true' \
+  'maintained_project_files_synced=true' \
+  'github_homepage_architecture_current=true' \
+  '每个完成的开发增量必须在同一轮完成 Git commit、push 和远端检查' \
+  'python_prototype_runtime_maintained=false' \
   'central-brain/android-runtime/' \
   'central-brain-sdk' \
   'runtime-service' \
@@ -43,18 +52,12 @@ for marker in \
   'demo-hmi' \
   'policy-probe' \
   'apk-labs/client2-central-brain/' \
-  'central-brain/backend/mock_npu_service.py' \
-  '[软件详细设计](docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md)' \
-  'central-brain/bindings/linux/ipc/' \
+  'vendor.npu.empty' \
+  'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md' \
+  'CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md' \
+  'tools/check_central_brain_python_prototype_retirement.sh' \
   'central_brain_github_remote_testing.json' \
-  'tools/check_central_brain_android_runtime_evolution.sh' \
-  'tools/check_central_brain_root_readme.sh' \
-  'tools/check_central_brain_software_detailed_design.sh' \
   'android13-hwtest-v0.5.0-rc.2' \
-  '5708dfa6' \
-  '6ca306f4' \
-  '909dfd83' \
-  '74b71868' \
   'physical_controller_application_evidence_available=true' \
   'production_ready=false' \
   'target_hardware_validated=false' \
@@ -65,36 +68,42 @@ for marker in \
   require_text "$marker"
 done
 
-if grep -Fq '# Unity Cabin APK Reverse Engineering Workspace' "$README"; then
-  echo "root README still presents the local APK workspace as the repository architecture" >&2
-  exit 1
-fi
-
-for path in \
-  .github/ISSUE_TEMPLATE/hardware-test.yml \
-  .github/workflows/central-brain-remote-test-contract.yml \
-  .githooks/pre-push \
-  apk-labs/client2-central-brain/README.md \
-  central-brain/android-runtime/settings.gradle.kts \
-  central-brain/backend/mock_npu_service.py \
-  central-brain/bindings/android/README.md \
-  central-brain/bindings/linux/README.md \
-  central-brain/contracts/central_brain_api.json \
-  central-brain/contracts/central_brain_github_remote_testing.json \
-  central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json \
-  central-brain/deploy/linux/central-brain.package-profile.json \
-  central-brain/linux-cli/central_brain_cli.py \
-  docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md \
-  docs/CENTRAL_BRAIN_SOFTWARE_DETAILED_DESIGN.md \
-  docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md \
-  docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
-  docs/CENTRAL_BRAIN_ROADMAP.md \
-  tools/check_central_brain_android_runtime_evolution.sh \
-  tools/check_central_brain_software_detailed_design.sh \
-  tools/check_central_brain_github_remote_testing.sh; do
+required_paths=(
+  .github/ISSUE_TEMPLATE/hardware-test.yml
+  .github/workflows/central-brain-remote-test-contract.yml
+  .githooks/pre-push
+  apk-labs/client2-central-brain/README.md
+  central-brain/android-runtime/settings.gradle.kts
+  central-brain/android-runtime/central-brain-sdk/build.gradle.kts
+  central-brain/android-runtime/native-runtime/build.gradle.kts
+  central-brain/android-runtime/runtime-service/build.gradle.kts
+  central-brain/contracts/central_brain_android_b3_blackbox_acceptance.json
+  central-brain/contracts/central_brain_android_r7c_acceptance.json
+  central-brain/contracts/central_brain_github_remote_testing.json
+  central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json
+  docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
+  docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
+  docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md
+  docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_ROADMAP.md
+  docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md
+  tools/check_central_brain_android_runtime_evolution.sh
+  tools/check_central_brain_aios_stage2_design.sh
+  tools/check_central_brain_github_repository_completeness.sh
+  tools/check_central_brain_python_prototype_retirement.sh
+  tools/check_central_brain_github_remote_testing.sh
+)
+for path in "${required_paths[@]}"; do
   [[ -f "$ROOT_DIR/$path" ]] \
     || { echo "README-mapped repository file is missing: $path" >&2; exit 1; }
 done
+
+if rg -n \
+    'central-brain/(backend|android-console|bindings/(android|linux)|linux-cli|deploy/linux)|CENTRAL_BRAIN_(SOFTWARE_DETAILED_DESIGN|PLATFORM_DELTA|PROTOTYPE_|ANDROID_SYSTEM_SERVICE_INTEGRATION)|ollama_simulated_npu' \
+    "$README"; then
+  echo "root README references a retired Python prototype path" >&2
+  exit 1
+fi
 
 python3 -B - "$ROOT_DIR" "$README" "$SETTINGS" <<'PY'
 import pathlib
@@ -102,27 +111,25 @@ import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
-readme_path = pathlib.Path(sys.argv[2])
-settings_path = pathlib.Path(sys.argv[3])
-text = readme_path.read_text(encoding="utf-8")
-settings = settings_path.read_text(encoding="utf-8")
+readme = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
+settings = pathlib.Path(sys.argv[3]).read_text(encoding="utf-8")
 
 modules = re.findall(r'include\(":([a-z0-9-]+)"\)', settings)
-expected_modules = {
+expected = {
     "central-brain-sdk",
     "native-runtime",
     "runtime-service",
     "demo-hmi",
     "policy-probe",
 }
-if set(modules) != expected_modules:
+if set(modules) != expected:
     raise SystemExit(f"unexpected Android Gradle modules: {modules}")
 for module in modules:
-    if f"`{module}`" not in text:
+    if f"`{module}`" not in readme:
         raise SystemExit(f"Android Gradle module missing from README: {module}")
 
 relative_links = []
-for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", text):
+for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", readme):
     if target.startswith(("http://", "https://", "#")):
         continue
     target = target.split("#", 1)[0]
@@ -132,21 +139,40 @@ for target in relative_links:
     if not (root / target).exists():
         raise SystemExit(f"README relative link does not exist: {target}")
 
-recent_section = text.split("## 近期修改日志", 1)[1]
-commit_links = re.findall(r"https://github\.com/LucasWEIchen/CougarOS/commit/", recent_section)
+recent = readme.split("## 近期修改日志", 1)[1]
+commit_links = re.findall(
+    r"https://github\.com/LucasWEIchen/CougarOS/commit/", recent
+)
 if len(commit_links) < 8:
-    raise SystemExit("README recent change log must retain at least eight architecture commits")
+    raise SystemExit("README recent log must retain at least eight commit links")
 
-required_req_groups = (
+developed = readme.split("### 已开发并验证", 1)[1].split(
+    "### 未开发或外部阻塞", 1
+)[0]
+if developed.count("`DEVELOPED`") < 9:
+    raise SystemExit("README developed table must contain at least nine modules")
+
+remaining = readme.split("### 未开发或外部阻塞", 1)[1].split(
+    "## 核心调用链", 1
+)[0]
+remaining_rows = sum(
+    remaining.count(status)
+    for status in ("`NOT_STARTED`", "`EXTERNAL_BLOCKED`", "`OUT_OF_SCOPE`")
+)
+if remaining_rows < 10:
+    raise SystemExit("README remaining-work table must contain at least ten modules")
+if "`P1-W01`" not in remaining:
+    raise SystemExit("README remaining-work table must name the next work package")
+
+for group in (
     "APP-004",
     "XSC-001..006",
     "NV-F-001/011/012",
     "NV-G-003/005/006/007",
     "DEL-001/003/004/005",
-)
-for group in required_req_groups:
-    if group not in text:
-        raise SystemExit(f"README architecture Req ID group missing: {group}")
+):
+    if group not in readme:
+        raise SystemExit(f"README Req ID group missing: {group}")
 
 print("root_readme_android_gradle_modules_verified=true")
 print(f"root_readme_relative_links_verified={len(relative_links)}")
@@ -157,6 +183,8 @@ printf '%s\n' \
   'Central Brain repository architecture README check passed' \
   'root_readme_architecture_documented=true' \
   'root_readme_module_mapping_documented=true' \
-  'root_readme_recent_changes_documented=true' \
+  'root_readme_development_progress_documented=true' \
+  'github_homepage_architecture_current=true' \
+  'python_prototype_runtime_maintained=false' \
   'production_ready=false' \
   'target_hardware_validated=false'

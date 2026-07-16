@@ -127,8 +127,21 @@ bash tools/install_central_brain_android_hybrid_delivery.sh \
 dry-run 会校验 API 33、arm64-v8a/x86_64 兼容性、bundle checksum、APK package/signer、
 现有已安装包 signer 和普通 `/data/app` 边界。它不会安装或卸载任何包。
 
-遇到 `SIGNER_MIGRATION_REQUIRED` 时立即停止，由目标签名/升级 owner 决定迁移；本工具
+遇到 `SIGNER_MIGRATION_REQUIRED` 时立即停止，由目标签名/升级 owner 决定迁移；hybrid installer
 不会自动卸载旧包。遇到 ABI 或 API 不匹配时也不得绕过。
+
+在允许清除原 Client2 及其应用数据的测试目标上，可由授权 owner 显式执行：
+
+```bash
+ADB=/mnt/e/platform-tools/adb.exe \
+bash tools/install_client2_central_brain_demo.sh \
+  --serial <serial> \
+  --replace-conflicting-client2
+```
+
+该命令先尝试同包更新；只有 Android 明确返回 signer mismatch 且提供了上述开关时，才卸载
+`com.tuanjie.urasclient2` 并安装 Runtime 同签 debug APK。其他安装错误不会触发卸载。完成后必须
+重新执行包含 Client2 的 dry-run 和 Binder/UI 验收。
 
 ## 7. 执行测试安装
 
@@ -155,8 +168,8 @@ bash tools/install_central_brain_android_hybrid_delivery.sh \
   --include-client2
 ```
 
-安装顺序固定 Runtime -> Demo -> Client2。Client2 只有在目标 owner 已确认重签 APK 不会
-破坏 RenderService/vendor allowlist 时才可安装。
+安装顺序固定 Runtime -> Demo -> Client2。Client2 只有在目标 owner 已确认同签更新或显式清除
+原包的数据影响，并确认测试 APK 的 RenderService 路径后才可安装。
 
 ## 8. 启动和使用
 
@@ -233,10 +246,11 @@ bash tools/test_central_brain_android_blackbox_acceptance.sh \
 
 升级前必须重新执行 dry-run 并核对 signer/version/hash。安全回滚是由 rollback owner 提供
 上一受信版本 APK，按 Client2 -> Demo -> Runtime 依赖逆序重新安装；不得在不知道数据
-兼容性和签名迁移策略时自动卸载。
+兼容性和签名迁移策略时执行替换。
 
-本工具故意没有自动 uninstall/rollback。实验设备若需要人工清理，必须先导出验收证据，
-再由授权 owner 执行既定 MDM/ADB 流程。生产设备必须遵循厂商 OTA/MDM/签名策略。
+hybrid installer 故意没有自动 uninstall/rollback。专用 Client2 installer 只提供显式
+`--replace-conflicting-client2` 测试迁移，调用即表示 owner 接受原应用数据被清除；生产设备仍必须
+遵循厂商 OTA/MDM/签名策略。
 
 ## 11. 接入真实厂商 adapter
 
@@ -252,8 +266,8 @@ bash tools/test_central_brain_android_blackbox_acceptance.sh \
 - Runtime/Demo 的物理 Android 13 B3 应用层 evidence 已于 2026-07-14 通过，详见
   `CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md`；
 - production signer、升级、rollback、MDM/后台策略；
-- Client2/RenderService 真机 trust；当前目标机已安装 Client2 与 debug 交付 signer 不一致，
-  `--include-client2` dry-run 按设计返回 `SIGNER_MIGRATION_REQUIRED`，未修改原包；
+- Client2 debug 包已在用户明确授权的同包 signer 迁移后通过真机 Binder/UI/RenderService 应用层
+  验收；production signer、OTA/MDM 升级、rollback 和量产 RenderService trust 仍未完成；
 - Vendor NPU、VHAL、车辆总线、Safety Runtime contract；
 - production Effect/Model/Event/Memory/Skill-Governance activation；
 - 性能、热、长稳、休眠唤醒、功能安全和整车验收。

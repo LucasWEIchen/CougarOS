@@ -1,97 +1,91 @@
 # 虚拟化与 Safety 接口约束
 
-版本：0.1
-日期：2026-07-04
+版本：1.0
+
+日期：2026-07-16
 
 ## 范围声明
 
-本文件覆盖架构图 L5 虚拟化层的接口约束和部署假设，不开发 Hypervisor、ASIL/QM 隔离或跨 VM 共享内存实现。
+本仓库不开发 Hypervisor、VM 生命周期、ASIL/QM 隔离机制、vDevice、共享内存驱动、doorbell、
+中断或 hypercall。本文只固定 Android AIOS Runtime 与目标平台既有 Safety/跨域能力之间的合同。
 
-Req ID：HV-001、HV-002、HV-003、FW-S-005、NV-G-005、NV-F-009、KH-007、DEL-004。
+Req ID：`HV-001`、`HV-002`、`HV-003`、`FW-S-005`、`NV-G-005`、`NV-F-009`、
+`KH-007`、`DEL-004`。
 
-虚拟化层是集成边界，不是本仓库的代码交付范围。当前 Android/Linux 原型只通过 Uni Info Bus、SOA 服务入口、Runtime & Governance、Protocol Binding 和 Native adapter registry 表达上层约束；真实 Hypervisor、Safety Runtime、跨 VM channel 由目标 SoC/平台提供。
+## 外部责任边界
 
-## 分层约束
+| Req ID | 外部模块 | 本仓库职责 | 外部 owner 职责 |
+| --- | --- | --- | --- |
+| `HV-001` | Hypervisor | 记录 domain/transport/启动依赖 | 实现调度、隔离和 VM 生命周期 |
+| `HV-002` | ASIL/QM | 定义服务风险和 fallback 语义 | 认证隔离强度和故障覆盖 |
+| `HV-003` | 跨 VM channel | 定义 typed envelope 和有界 payload | 提供 virtio/shared-memory/vendor IPC |
+| `KH-007` | Safety Runtime | 消费不可伪造的 safety snapshot | 提供可信状态、fault/interlock 和恢复 |
 
-| Req ID | 图中模块 | 本项目处理 | 不做内容 | 下游依赖 |
-| --- | --- | --- | --- | --- |
-| HV-001 | Hypervisor | 记录 domain、transport、共享内存和启动依赖假设 | 不实现虚拟化调度、VM 生命周期或 vDevice | 目标 SoC Hypervisor、AAOS/Linux domain 配置 |
-| HV-002 | ASIL/QM 隔离 | 定义服务到 ASIL/QM domain 的映射和降级策略 | 不实现安全隔离机制或安全认证 | Safety Runtime、ASIL/QM domain policy |
-| HV-003 | 跨 VM 共享内存与安全域通信 | 定义跨 VM envelope、fallback 和协议 binding 约束 | 不实现共享内存驱动、doorbell、中断或 hypercall | Hypervisor shared memory、virtio、vendor IPC |
-| FW-S-005 | Safety State | 所有 SOA 调用必须带 safety state 并经 Policy/Lifecycle precheck | 不绕过 SOA 直接调用底层服务 | Runtime & Governance policy |
-| NV-G-005 | Policy | Policy decision 必须能表达 allow/deny/degraded/readonly | 不在 App 层硬编码安全判定 | Native Security/Policy Adapter |
-| NV-F-009 | Security/Policy Adapter | 记录 Android/Linux 到安全域策略的适配边界 | 不实现量产安全策略引擎 | 平台 policy engine、SELinux/LSM |
-| KH-007 | Safety Runtime | 记录 Safety Runtime 对 Kernel/HAL 的依赖和错误恢复假设 | 不实现 Safety Runtime | 目标 OS 与芯片安全能力 |
+## Safety State
 
-## Safety State 到安全域映射
+Android Runtime 的 `SafetyVehicleStateProvider` 当前没有真实车辆来源。目标 adapter 到位后至少提供：
 
-| 服务类别 | Req ID | 默认 Safety State | 目标安全域假设 | Android 主路径 | Linux 同步路径 | fallback |
-| --- | --- | --- | --- | --- | --- | --- |
-| 车况读取 / Context / State | FW-U-001, FW-U-002, XSC-002 | normal, degraded, diagnostic_readonly | QM domain read-only | Binder/AIDL 或 REST prototype，经 Policy allow | Unix socket IPC 或 CLI，经 Policy allow | 返回最近可信快照并标注 stale |
-| 座舱舒适控制 | FW-U-004, FW-S-005, XSC-003 | normal | QM domain controlled write | SOA invoke + Binder caller identity + Policy | SOA invoke + service user/group + Policy | driving 或 degraded 时拒绝写操作 |
-| 诊断读取 | APP-009, FW-S-005 | diagnostic_readonly | QM/ASIL boundary read-only | 受控诊断 service，不直连 VHAL/driver | 诊断 daemon/client 经 IPC binding | 只允许 readonly，写入和标定需独立授权 |
-| ADAS/智驾状态读取 | APP-007, NV-F-010 | normal, degraded | ASIL domain producer, QM consumer | App 只读 Safety State 或 ADAS service state | Linux client 只读 protocol binding | ASIL domain unavailable 时返回 unavailable |
-| 模型推理 / Agent 任务 | APP-004, NV-F-001, NV-F-011 | normal | QM domain，必要时隔离到 AI domain | AI SDK/AIOS Kernel -> Model Runtime Adapter | Linux CLI/daemon -> Model Runtime Adapter | NPU 不可用时 CPU/cloud fallback 需经 Policy |
-| OTA/远控/TBOX | APP-005, NV-F-007 | parked 或 diagnostic_readonly | QM domain with remote trust boundary | TBOX/OTA service 经 Privacy/Policy | Connected daemon 经 Policy 和 audit | 未满足车辆状态或身份时拒绝 |
+- gear、speed、occupancy、seat belt、door/seat state；
+- source、capture time、freshness、quality、revision 和 digest；
+- `NORMAL`、`DEGRADED`、`DIAGNOSTIC_READONLY`、`INTERLOCKED` 或 `UNAVAILABLE`；
+- status 的可信 owner 和错误恢复语义。
 
-## 跨 VM 通信 envelope 约束
+未知、过期、低质量或来源未认证的状态必须限制车辆写操作。驾驶员确认不能覆盖 hard interlock。
 
-跨 VM 通信必须保留 Uni Info Bus/SOA 语义，不允许把 Hypervisor channel 暴露成 App 可直接调用的底层接口。
+## 跨域 Envelope
 
-最小 envelope 字段：
+跨 VM 通信必须保留 Uni Info Bus/SOA 语义，不得把底层 channel 直接暴露给 App：
 
-```json
-{
-  "trace_id": "uuid",
-  "source_domain": "android-qm",
-  "target_domain": "safety-asil",
-  "req_ids": ["HV-003", "FW-S-005", "NV-G-005"],
-  "semantic_operation": "soa.service.invoke",
-  "safety_state": "normal",
-  "policy_decision": "allow",
-  "payload_ref": {
-    "type": "inline-json",
-    "handle": null,
-    "schema": "central-brain.soa.invoke.v1"
-  },
-  "deadline_ms": 100,
-  "fallback": "readonly-state"
-}
+```text
+trace_id
+source_domain / target_domain
+caller_principal_digest / capability
+schema_id / operation_id / payload_ref
+safety_state_revision / policy_decision
+deadline_elapsed_ms / idempotency_key
+result_status / fault_code / audit_digest
 ```
 
 约束：
 
-- `semantic_operation` 必须映射到 Uni Info Bus、SOA、Policy、Governance 或 Protocol Binding 的已登记操作。
-- `source_domain` 和 `target_domain` 必须由目标平台安全域配置提供，当前原型只记录假设。
-- 共享内存只允许放 `payload_ref`，不能绕过 schema、Policy、Lifecycle 和 Audit。
-- ASIL domain 不可用时，上层只允许 readonly fallback 或明确失败，不允许自动降级为不受控写操作。
-- 所有跨域调用必须进入 Audit；当前原型支持可选 JSONL 最近审计恢复，但仍不是量产审计后端，偏差见 DEV-006。
+1. `payload_ref` 必须有 size、lifetime、ownership、cache/coherency 和 revoke 规则。
+2. 共享内存不能绕过 schema、Policy、Lifecycle、Audit 或 effect idempotency。
+3. 远端域不可用时只能返回明确失败或 readonly fallback，禁止不受控写操作。
+4. deadline 使用 elapsed realtime；跨域 wall clock 只能用于展示和审计关联。
+5. 远端 reset/restart 后未知 effect 必须 query/reconcile，不得盲目重放。
 
-## Android/Linux 集成假设
+## Android 集成边界
 
-| 维度 | Android 主开发路径 | Linux 同步路径 | Req ID |
-| --- | --- | --- | --- |
-| 进程身份 | Binder caller identity、Android permission、SELinux domain | systemd service user/group、Unix socket mode、LSM/SELinux/AppArmor | DEL-001, DEL-002, DEL-004 |
-| 安全策略入口 | Runtime & Governance `/policy/evaluate`，后续接 Native policy adapter | 同一 policy contract，Linux daemon 保持 caller metadata | NV-G-005, NV-F-009 |
-| 跨 VM transport | 由目标平台提供 hypervisor IPC、virtio、vendor channel 或 shared memory | 由目标 Linux/Hypervisor stack 提供 virtio/shm/vendor IPC | HV-001, HV-003 |
-| Safety Runtime | 通过平台 service/HAL 暴露状态，不在 App 内实现 | 通过 daemon、sysfs、socket 或 vendor lib 暴露状态 | KH-007 |
-| fallback | Binder/REST/IPC 返回 degraded/readonly/unavailable | CLI/daemon 返回同一语义错误码 | FW-S-005, DEL-004 |
+| 维度 | Android Runtime 合同 | 激活前证据 |
+| --- | --- | --- |
+| 身份 | Binder caller + current signer + capability | package/signer/SELinux/system owner |
+| Safety | trusted snapshot provider | source API、freshness、fault injection、interlock |
+| Transport | vendor AIDL/NDK/native service adapter | interface version/hash、death、timeout、size |
+| Shared buffer | AHardwareBuffer/SharedMemory/native descriptor | ownership、IOMMU、cache、bounds、revocation |
+| Recovery | effect status/reconcile/compensate | remote restart、duplicate、timeout、rollback matrix |
+| Audit | digest metadata only | target log owner、retention、privacy、trusted clock |
+
+当前普通 APK 不扫描系统 service 或 device node 来猜测这些能力。系统能力必须由 OEM/Vendor
+发布合同和目标 owner 明确提供。
+
+## 降级策略
+
+| 场景 | 允许的 fallback | 禁止行为 |
+| --- | --- | --- |
+| Safety source unavailable | readonly last-known state，标注 stale；或失败 | 继续执行车辆写操作 |
+| 车辆 adapter death | effect 进入 unknown，query/reconcile | 自动重复 dispatch |
+| NPU domain unavailable | 策略明确允许的其他 provider；否则失败 | 静默使用未治理模型服务 |
+| 跨域 channel unavailable | bounded retry/timeout/失败 | 在 App 内绕过 Governance |
 
 ## 验证边界
 
-当前可验证内容：
+当前只可验证文档、Android fail-closed gate 和 no-activation 状态：
 
 ```bash
 bash tools/check_central_brain_virtualization_docs.sh
-bash tools/smoke_central_brain_semantic_gateway.sh
-bash tools/smoke_central_brain_linux_ipc.sh
+bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
-不可验证内容：
-
-- Hypervisor 启动、VM 生命周期、vDevice 创建。
-- ASIL/QM 隔离强度、安全认证或故障注入。
-- 跨 VM 共享内存驱动、DMA-BUF、IOMMU、doorbell 和中断。
-- 真实 Safety Runtime 与 Driver/HAL 的联动。
-
-以上内容必须在目标 SoC、目标 Hypervisor 和供应商 SDK 明确后作为集成验证，不在当前 Android/Linux mock 原型内开发。
+不可验证 Hypervisor 启动、ASIL/QM 认证、真实跨 VM 共享内存、Safety Runtime fault coverage 或
+Driver/HAL 联动。`virtualization_development_triggered=false`、`target_hardware_validated=false`、
+`production_ready=false` 必须保持。
