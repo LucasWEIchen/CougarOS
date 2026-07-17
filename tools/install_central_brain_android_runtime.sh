@@ -1027,6 +1027,66 @@ if [[ "$CONTEXT_SNAPSHOT_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SCENARIO_MANIFEST_NONCE="$(date +%s%N)"
+SCENARIO_MANIFEST_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.scenario.ScenarioManifestProbeActivity \
+  --es nonce "$SCENARIO_MANIFEST_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SCENARIO_MANIFEST_PROBE_OUTPUT"; then
+  echo "$SCENARIO_MANIFEST_PROBE_OUTPUT" >&2
+  echo "Scenario manifest debug probe did not start successfully" >&2
+  exit 1
+fi
+SCENARIO_MANIFEST_PROBE_PASSED=false
+for _ in {1..40}; do
+  SCENARIO_MANIFEST_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbScenarioManifest:I)"
+  if grep -Fq \
+      "nonce=$SCENARIO_MANIFEST_NONCE scenario_manifest_probe_complete=true" \
+      <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_parser_verified=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_schema_version_verified=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_catalog_count=3" <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_catalog_digest_verified=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_artifact_digest_verified=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_fatigue_policy_verified=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_unknown_field_rejected=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_oversize_rejected=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_catalog_duplicate_id_rejected=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_invalid_dag_rejected=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_catalog_isolation_verified=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_android13_arm64_verified=true" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_manifest_artifact_crypto_verified=false" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_catalog_production_trusted=false" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_runtime_wired=false" <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "scenario_graph_execution_enabled=false" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$SCENARIO_MANIFEST_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SCENARIO_MANIFEST_LOG"; then
+    SCENARIO_MANIFEST_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SCENARIO_MANIFEST_PROBE_PASSED" != true ]]; then
+  echo "$SCENARIO_MANIFEST_LOG" >&2
+  echo "Scenario manifest probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1702,6 +1762,13 @@ printf '%s\n' \
   "context_snapshot_android13_arm64_verified=true" \
   "context_snapshot_production_trusted=false" \
   "context_snapshot_production_wired=false" \
+  "scenario_manifest_schema_version=1" \
+  "scenario_catalog_count=3" \
+  "scenario_manifest_android13_arm64_verified=true" \
+  "scenario_manifest_artifact_crypto_verified=false" \
+  "scenario_catalog_production_trusted=false" \
+  "scenario_runtime_wired=false" \
+  "scenario_graph_execution_enabled=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

@@ -55,6 +55,9 @@
 | DEV-026 | Python 原型与 Linux Python 交付已退役；当前用户批准只维护 Android 13 Java/AIDL/C 工程。 | XSC-001..006, DEL-001..005 | Accepted Scope |
 | DEV-030 | P2-W01 canonical path 是内部语义合同，不是 OEM/VHAL property mapping。 | S2-CTX-001, S2-TWN-001, ISSUE-030 | Accepted Temporary |
 | DEV-031 | P2-W02 target ranges/risk 是 Stage 2 软件合同，不是 OEM 标定或生产授权。 | S2-TWN-001, S2-ADP-001, ISSUE-029/030 | Accepted Temporary |
+| DEV-032 | P2-W03 Digital Twin 是进程内非持久化 foundation。 | S2-TWN-001, ISSUE-030 | Accepted Temporary |
+| DEV-033 | P2-W04 Context 固定 non-production-trusted 且未接 Service/provider。 | S2-CTX-001, S2-SAF-001, ISSUE-029/030 | Accepted Temporary |
+| DEV-034 | P2-W05 Scenario asset 只有 Git/CI SHA-256 build identity，没有独立 artifact 密码学签名或 Runtime wiring。 | S2-SCN-001, ISSUE-031 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -328,6 +331,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W02 进展 | 8 项 capability/range/risk/readback/dependency 与 API 33 ARM64 probe 完成；production authorized count 为 0。 |
 | P2-W03 进展 | 进程内 desired/reported Twin、monotonic revision、TTL/quality、atomic snapshot/reconciliation 与 API 33 ARM64 probe 完成；持久化/production wiring 未接入。 |
 | P2-W04 进展 | versioned Context/freshness/trust/restricted foundation 与 API 33 ARM64 probe 完成；productionTrusted/Service/provider 仍关闭。 |
+| P2-W05 进展 | cold/fatigue/rest build-owned manifest、strict parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto/production trust/Runtime/Graph 仍关闭。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -366,3 +370,21 @@ evidence。完整 MOVING Context 也不自动 restricted，行驶中动作限制
 `hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。P8 必须用独立 provider/property/permission/readback evidence
 关闭 trust；本偏差不能由 debug probe 关闭。
+
+## DEV-034 P2-W05 Scenario 只有 build checksum，不是 production-signed catalog
+
+完整 AIOS 的 built-in Scenario catalog 应具备独立 artifact signer allowlist、证书/密钥生命周期、revoke、
+rollback、版本兼容与 activation owner。P2-W05 为完成最小 manifest/schema foundation，只把 cold/fatigue/
+rest JSON 和 strict schema 纳入 APK build，使用仓库受控 `scenarios-v1.sha256` 在 CI 与 debug APK assets
+中验证字节一致性。
+
+该 sidecar 与 APK signer 共同提供可复现 build identity，但 parser/catalog 没有执行独立 artifact
+signature verification，也没有 lifecycle store 或 revoke/rollback owner。因此 catalog 固定
+`isArtifactCryptographicallyVerified=false`、`isProductionTrusted=false`；即使 manifest 校验通过也不能
+接入 production Service、授予 approval 或执行 Graph/Effect。`ISSUE-031` 的场景产品/隐私 owner 保持开放。
+
+状态：`Accepted Temporary`。`scenario_manifest_artifact_crypto_verified=false`、
+`scenario_catalog_production_trusted=false`、`scenario_runtime_wired=false`、
+`scenario_graph_execution_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。未来独立签名机制必须
+单独版本化并通过 target/release evidence，不能把本 SHA-256 sidecar 重新解释为签名。

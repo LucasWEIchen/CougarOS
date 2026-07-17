@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01..W04 完成，P2-W05 下一步） |
+| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；production 无 fallback | 进行中（P2-W01..W05 完成，P2-W06 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -183,9 +183,14 @@ revision 和 Runtime state 构造 versioned/digested Context，显式输出 driv
 stale/conflict/trust report 和 restricted；JVM 与 Android 13/API 33 ARM64 debug probe 通过。当前
 `productionTrusted=false` 且未接 production Service/provider。
 
-下一实现工作包为 `P2-W05 Scenario manifest/schema`。只实现 build-owned versioned manifest、JSON schema、
-bounded parser/catalog 与 invalid-manifest isolation；不得启用 Graph/Effect、真实 Vehicle/VHAL/NPU、
-Driver/HAL 或 Python fallback。
+`P2-W05 Scenario manifest/schema` 已完成：cold/fatigue/rest 三份 build-owned v1 asset、Gson strict
+streaming parser、draft-2020-12 schema、SHA-256 sidecar、bounded template validator 和 invalid/duplicate
+asset isolation 已进入工程并通过 JVM 与 Android 13/API 33 ARM64 assets probe。该 checksum 不是 artifact
+密码学签名，catalog 未接 production Service，Resolver/Compiler/Graph/Effect 均未启用。
+
+下一实现工作包为 `P2-W06 DeterministicScenarioResolver`。只实现显式 scenario ID 与 allowlisted bounded
+文本规则到已注册场景的确定性解析、Context/source/zone availability 与 unknown/ambiguous fail-closed；
+不得调用模型、创建 capability、编译/执行 Graph、激活 Effect/vehicle/NPU/Driver-HAL 或 Python fallback。
 
 ## 7. 近期进展
 
@@ -267,6 +272,10 @@ Driver/HAL 或 Python fallback。
 - 完成 `P2-W04 ContextSnapshotBuilder`：固定 field policy、同 Twin revision、driving/safety 派生、
   freshness/trust/restricted report 和 deterministic digest 通过 JVM/API 33 ARM64 probe；production trusted/
   wiring/provider/hardware 保持 false，下一工作包为 `P2-W05 Scenario manifest/schema`。
+- 完成 `P2-W05 Scenario manifest/schema`：cold/fatigue/rest build-owned v1 assets、strict parser/schema、
+  checksum、bounded template/DAG/capability/risk/fallback/UI 校验与 invalid isolation 通过 JVM/API 33 ARM64
+  probe；artifact crypto/trust/runtime/graph/effect/hardware 保持 false，下一工作包为
+  `P2-W06 DeterministicScenarioResolver`。
 
 ## 8. 当前门禁
 
@@ -285,6 +294,7 @@ bash tools/check_central_brain_android_effect_contract.sh
 bash tools/check_central_brain_android_sdk_facade.sh
 bash tools/check_central_brain_android_vehicle_signal_schema.sh
 bash tools/check_central_brain_android_vehicle_capability_catalog.sh
+bash tools/check_central_brain_android_scenario_manifest.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -324,6 +334,13 @@ vehicle_capability_count=8
 vehicle_capability_catalog_android13_arm64_verified=true
 vehicle_production_capability_authorized_count=0
 vehicle_capability_adapter_registry_wired=false
+scenario_manifest_schema_version=1
+scenario_catalog_count=3
+scenario_manifest_android13_arm64_verified=true
+scenario_manifest_artifact_crypto_verified=false
+scenario_catalog_production_trusted=false
+scenario_runtime_wired=false
+scenario_graph_execution_enabled=false
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

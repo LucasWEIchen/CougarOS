@@ -279,11 +279,17 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W05` Scenario manifest/schema
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-SCN-001`。
+- 状态：`DONE`（2026-07-17）；2 人日；需求：`S2-SCN-001`、`S2-SAF-001`。
 - 新增：`runtime-service/src/main/assets/scenarios/*.json`。
 - 类：`ScenarioManifest`、`ScenarioManifestParser`、`ScenarioCatalog`。
 - DoD：JSON schema、version、supported zones、required context/capabilities、plan template、risk、fallback、UI metadata。
 - 测试：unknown field policy、oversize、duplicate ID、invalid DAG。
+- 实现：cold/fatigue/rest 三份 build-owned v1 asset、Gson strict streaming parser、draft-2020-12 schema、
+  SHA-256 sidecar、bounded node/dependency/depth/parallelism/capability/risk/fallback/UI validator 和 invalid
+  asset isolation；fatigue/rest seat recline 固定 `PARKED_ONLY` + approval-required metadata。
+- 边界：sidecar 不是 artifact 密码学签名；`scenario_manifest_artifact_crypto_verified=false`、
+  `scenario_catalog_production_trusted=false`、`scenario_runtime_wired=false`、
+  `scenario_graph_execution_enabled=false`、`hardware_accessed=false`。
 
 ### `P2-W06` DeterministicScenarioResolver
 

@@ -201,7 +201,7 @@ flowchart TB
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01/P2-W04 完成；production trust/wiring 未接） | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02/P2-W03 完成；persistence/adapter 未接） | `S2-TWN-001` |
-| Scenario | ScenarioCatalog、Resolver、PlanCompiler、GraphValidator | `NOT_STARTED` | `S2-SCN-001` |
+| Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05 manifest catalog 完成；Resolver/Compiler/Runtime 未接） | `S2-SCN-001` |
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `NOT_STARTED` | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
 | Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `NOT_STARTED` | `S2-EFF-001` |
@@ -930,7 +930,7 @@ snapshot 仍 `productionTrusted=false`，因为 property mapping/provider activa
 
 ## 12. Scenario Service
 
-### 12.1 ScenarioManifest
+### 12.1 ScenarioManifest（P2-W05 已实现）
 
 存放路径：`runtime-service/src/main/assets/scenarios/<scenario-id>.json`。
 
@@ -955,11 +955,43 @@ snapshot 仍 `productionTrusted=false`，因为 property mapping/provider activa
 }
 ```
 
-Manifest 必须有 JSON schema、artifact digest 和 build-time validation。Runtime 不接受 HMI 提交的新 manifest。
+当前工程资产与类型：
 
-### 12.2 ScenarioCatalog
+- `runtime-service/src/main/assets/scenarios/scene.comfort.cold.v1.json`；
+- `runtime-service/src/main/assets/scenarios/scene.fatigue.assist.v1.json`；
+- `runtime-service/src/main/assets/scenarios/scene.rest.nap.v1.json`；
+- `schema/scenario-manifest-v1.schema.json` 与 `scenarios-v1.sha256`；
+- `ScenarioManifest` immutable 类型及其 `PolicyTemplate/NodeTemplate/DependencyTemplate/PlanTemplate/
+  FallbackPolicy/UiMetadata` nested typed values。
+
+实际 v1 字段固定为 schema/scenario/version、source/zone、contextPolicy、required/optional Context、
+required/optional capability、最高 risk、planTemplate、fallback 与 UI resource key。Template node 复用
+`PlanContract` 11 类 node allowlist，并固定 timeout/retry/idempotency/required/compensation 与 risk/
+driving/approval/failure policy；它不携带 target value，不是 compiled `ScenarioPlan`。
+
+`ScenarioManifestParser` 使用 Gson 2.11 `Strictness.STRICT` streaming parser，input <=64 KiB、depth <=16、
+token <=4096；拒绝 duplicate/unknown field、null、trailing content、类型错误、unknown enum/path/capability、
+oversize 与 unsupported version。Typed validation 限制 node<=64、edge<=256、depth<=16、parallel<=8，
+并拒绝 duplicate ID/edge、unknown dependency、cycle、无效 compensation、undeclared capability、risk 不一致、
+HIGH 无 approval metadata 和 fallback 引用 required/unknown node。
+
+Manifest 只由 APK build asset 提供，Runtime 不接受 HMI/模型提交的新 manifest。SHA-256 sidecar 与 Git/CI
+提供 build identity，但尚未配置 artifact 独立密码学签名/证书/revoke，必须保持
+`scenario_manifest_artifact_crypto_verified=false` 与 `scenario_catalog_production_trusted=false`。
+
+### 12.2 ScenarioCatalog（P2-W05 已实现 foundation）
 
 职责：load/validate/index manifest；按 device capability/driving state/seat zone 输出 availability。重复 ID、未知 node type、无效 capability 或 cycle 导致整个 manifest disabled，不影响其他场景。
+
+当前 `ScenarioCatalog.load(Map<String, byte[]>)` 只实现 deterministic filename order、strict parse、按
+scenario ID 分组、duplicate ID 的所有副本禁用、invalid asset reason code 隔离、immutable ID index 和
+length-framed SHA-256 catalog digest。目录精确包含 cold/fatigue/rest 三项。fatigue/rest 的 seat recline
+template 固定 `PARKED_ONLY` 和 approval-required metadata；这只是后续 Compiler 的输入约束，不能授权或
+执行动作。
+
+P2-W05 不实现 capability/Context 动态 availability，也不接 production Service；这些分别由 P2-W06
+Resolver 和 P2-W07 Compiler/Validator完成。当前 `scenario_runtime_wired=false`、
+`scenario_graph_execution_enabled=false`、`hardware_accessed=false`。
 
 ### 12.3 ScenarioResolver
 
@@ -1772,6 +1804,9 @@ central-brain-sdk AAR
 - P2-W04 Context snapshot foundation：固定 general/seat policy、同 Twin revision、Runtime state
   freshness、driving/safety/source/trust report、restricted 与 deterministic SHA-256 identity；JVM/API 33
   ARM64 probe 通过，production trust/wiring 保持 false。
+- P2-W05 Scenario manifest foundation：cold/fatigue/rest build-owned v1 asset、strict Gson parser、JSON
+  schema、SHA-256 sidecar、bounded template/DAG/capability/risk/fallback/UI validator 与 invalid isolation；
+  JVM/API 33 ARM64 assets probe 通过，artifact crypto/trust/Runtime/Graph/Effect 保持 false。
 
 ### 32.2 下一阶段未完成
 
@@ -1779,7 +1814,7 @@ central-brain-sdk AAR
 - Scenario/Plan/Effect execution、approval response/undo execution；
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
 - Digital Twin persistence/production wiring 与 Context production trust/wiring（软件 foundation 已完成）；
-- deterministic Scenario/Plan/DAG；
+- deterministic Scenario Resolver、Plan Compiler/DAG Validator；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
 - Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
 - Client2 意图/计划/执行/结果四阶段、Effect 设备详情抽屉与 state reducer；
@@ -1801,14 +1836,15 @@ central-brain-sdk AAR
 `P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和
 `P1-W07 Contract v2 aggregate check`、`P2-W01 Canonical vehicle signal types` 和
 `P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 和
-`P2-W04 ContextSnapshotBuilder` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
-进程内 desired/reported Twin、versioned Context/freshness/trust foundation 已进入工程。Effect Service、
+进程内 desired/reported Twin、versioned Context/freshness/trust foundation、三项 strict build-owned Scenario
+manifest catalog 已进入工程。Effect Service、
 approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
-`P2-W05 Scenario manifest/schema`；manifest 必须 build-owned/versioned/bounded，不得读取真实
-Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
+`P2-W06 DeterministicScenarioResolver`；resolver 只能选择已注册 manifest，不得创建 capability、调用模型、
+读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

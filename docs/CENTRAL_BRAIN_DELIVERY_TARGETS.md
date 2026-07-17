@@ -801,3 +801,37 @@ target_hardware_validated=false
 Effect/Graph execution 或 NPU。SIMULATED complete Context 只用于 debug/test；AAOS/VENDOR enum 不构成
 production trust。Req IDs：`S2-CTX-001`、`S2-SAF-001`、`DEL-001/003..005`；偏差/问题：
 `DEV-033`、`ISSUE-029/030`。
+
+## Android P2-W05 Scenario Manifest
+
+受维护交付新增：
+
+1. `runtime-service/.../scenario/ScenarioManifest.java`：immutable source/zone/context/capability/risk/
+   Plan-template/fallback/UI metadata；
+2. `ScenarioManifestParser.java`：Gson strict streaming、64 KiB/depth/token bound、unknown/duplicate/type/
+   version/path/capability reject；
+3. `ScenarioCatalog.java`：deterministic index、duplicate scenario-ID disable、invalid asset isolation 和
+   catalog SHA-256 digest；
+4. cold/fatigue/rest 三份 build-owned v1 JSON、draft-2020-12 strict schema 和 `scenarios-v1.sha256`；
+5. 7 组 JVM tests、DUMP-protected API 33 ARM64 packaged-assets probe、独立 checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+scenario_manifest_schema_version=1
+scenario_catalog_count=3
+scenario_manifest_android13_arm64_verified=true
+scenario_manifest_artifact_crypto_verified=false
+scenario_catalog_production_trusted=false
+scenario_runtime_wired=false
+scenario_graph_execution_enabled=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付独立 artifact signer/revoke/rollback、Resolver、Compiler、Graph Runtime、Effect dispatch、
+production Service、vehicle/VHAL/NPU adapter 或 Driver/HAL。SHA-256 sidecar 是 build identity，不是签名；
+API 33 ARM64 证据只证明同一严格 parser/catalog 与打包 assets 可运行。Req IDs：`S2-SCN-001`、
+`S2-SAF-001`、`DEL-001/003..005`；偏差/问题：`DEV-034`、`ISSUE-029/031`。

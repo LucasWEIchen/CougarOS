@@ -193,6 +193,11 @@ Safety authority，未接 production Service。P2-W05 Scenario 只能消费该�
 外发策略需产品/隐私 owner 决定。未确认前只实现最小数据合同和 default-deny；不保存原始用户或
 模型文本。
 
+P2-W05 进展：cold/fatigue/rest 三份 build-owned v1 manifest、strict parser/schema、SHA-256 sidecar、
+bounded template validator 和 invalid isolation 已完成。该增量不包含独立 artifact 签名、catalog
+activation/lifecycle、用户偏好/记忆、主动触发或 production Service wiring；因此本问题保持 Open，
+`scenario_catalog_production_trusted=false`。
+
 ## ISSUE-032 Python 原型退役后的引用与回退风险
 
 2026-07-16 已删除 Python runtime、REST contract、Linux Python binding/CLI/daemon、旧 Console、
@@ -293,3 +298,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W02 进展 | Capability catalog 与 API 33 ARM64 software probe 完成；全部 production authorized=false，ISSUE-029/030 仍开放。 |
 | P2-W03 进展 | 进程内 Twin 与 API 33 ARM64 software probe 完成；无 provider/adapter/persistence，ISSUE-030 仍开放。 |
 | P2-W04 进展 | Context/freshness/trust/restricted 与 API 33 ARM64 probe 完成；productionTrusted=false，ISSUE-029/030 仍开放。 |
+| P2-W05 进展 | Scenario manifest/parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto、product/privacy owner、Runtime/Graph 仍开放。 |

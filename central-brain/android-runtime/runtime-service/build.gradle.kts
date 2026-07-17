@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":central-brain-sdk"))
     implementation(project(":native-runtime"))
     implementation(libs.androidx.room.runtime)
+    implementation(libs.gson)
     annotationProcessor(libs.androidx.room.compiler)
     testImplementation(libs.junit)
 }
