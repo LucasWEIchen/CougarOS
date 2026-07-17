@@ -87,8 +87,8 @@ Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL
 `P1-W05 SDK facade v2`、`P1-W06 Room v4 schema`、`P1-W07 Contract v2 aggregate check`、
 `P2-W01..P2-W12 Context/Scenario/Simulation foundation`、`P3-W01 Agent Graph Runtime state machine`、
 `P3-W02 Typed node executors`、`P3-W03 CheckpointSerializer`、`P3-W04 Retry/Timeout policy`、
-`P3-W05 Durable approval interrupt`、`P3-W06 EffectCoordinator` 和 `P3-W07 Effect verification/reconciliation`
-已完成，下一工作包为 `P3-W08 Compensation/Undo`。P1-P7 交付必须进入
+`P3-W05 Durable approval interrupt`、`P3-W06 EffectCoordinator`、`P3-W07 Effect verification/reconciliation`
+和 `P3-W08 Compensation/Undo` 已完成，下一工作包为 `P3-W09 Restart recovery`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -1339,3 +1339,44 @@ Service、后台 scheduler 或 production readback。Reconciler 源码只 query 
 profile 在 query 前失败关闭。Release 包含 main contract 类但不含 debug probe。Req IDs：`S2-EFF-001`、
 `S2-TWN-001`、`NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-048`、
 `ISSUE-022/026/030/033`。
+
+## Android P3-W08 Compensation/Undo
+
+受维护交付新增：
+
+1. Runtime main-source `CompensationPlanner` 与 pure Java process-local `UndoService`；
+2. explicit reversible capability+area policy、VALID typed before snapshot、prepared-before digest、absolute target、
+   source-bound idempotency 和 reverse dependency wave；
+3. 原 VERIFIED terminal observation 保持不可变；Undo 创建新的 session/plan/action/effect governed task，且新
+   Effect 不可递归 advertised reversible；
+4. P1 `UndoHandle` digest/TTL/deadline、fresh exact Context、current Policy/capability、trusted SAFE state 和 authority
+   revalidation，以及最多 64 条 owner+idempotency process-local replay；
+5. 8 组 JVM tests、debug/release compile/lint、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+```text
+compensation_planner_defined=true
+compensation_absolute_before_verified=true
+compensation_reverse_dependency_verified=true
+compensation_irreversible_rejected=true
+undo_ttl_governance_verified=true
+undo_new_governed_task_verified=true
+undo_idempotent_replay_verified=true
+undo_production_fail_closed=true
+compensation_undo_android13_arm64_verified=true
+compensation_undo_runtime_wired=false
+compensation_undo_persistence_wired=false
+undo_binder_service_published=false
+compensation_dispatch_enabled=false
+production_compensation_authority_wired=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 process-local planning/admission contract，不交付 Graph/Room transaction、restart recovery、Binder
+Service、adapter dispatch、completion observation 或 production Governance/Safety/vehicle authority。PRODUCTION
+固定失败关闭；debug before snapshot 不能关闭真实 rollback/readback 缺口。P1 V1 原 VERIFIED 是不可变终态，
+COMPENSATING state 可达性差异由 `DEV-049` 跟踪。Req IDs：`S2-EFF-001`、`S2-UX-003`、`S2-SAF-001`、
+`NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-049`、
+`ISSUE-022/023/026/029/030/033`。

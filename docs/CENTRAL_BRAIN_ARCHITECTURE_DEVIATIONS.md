@@ -670,3 +670,29 @@ STATE_TRANSITION/COMPOSITE 只在 direct verifier contract 可验证，Reconcile
 `effect_verification_graph_wired=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。P3-W09 必须完成 durable timer/Room/restart wiring；P8 必须由
 目标平台 owner 提供可信 target readback/API/permission/Safety evidence，不能用 process-local Twin 或 debug adapter 关闭。
+
+## DEV-049 P3-W08 Compensation/Undo 尚未形成 durable execution，P1 compensation state 不可达
+
+P3-W08 在 Runtime main source 新增 pure Java `CompensationPlanner` 与名为 `UndoService` 的 process-local
+admission object。Planner 已用显式 reversible policy、VALID before snapshot、prepared-before digest、absolute target、
+source-bound idempotency 和 reverse dependency wave 形成新的 compensation plan；Undo admission 已用 P1 handle TTL/
+digest、Context/Policy/capability/Safety 复验和 bounded idempotency record 创建新的 governed task。它不修改原
+VERIFIED observation，也不调用 adapter。
+
+现有 P1 V1 存在需要后续协议演进的矛盾：`EffectContract` 把 VERIFIED 定义为 immutable terminal，
+`validateTransition` 因而禁止 VERIFIED -> COMPENSATING；同时枚举和早期详设状态图又保留 COMPENSATING/
+COMPENSATED。P3-W08 按“Undo 是新操作”的冻结文字合同处理，不通过放松 terminal 规则或修改 AIDL/hash 来隐藏
+矛盾。新的 governed task 未来必须有独立 Compensation operation/state contract；原 Effect 只保留来源证据。
+
+当前 before snapshot、Governance/Safety trust 和 64 条 admission record 都是 caller/process-local；没有 Room
+transaction、process-death replay、Graph node transition、Binder API、production authority、adapter compensate/apply
+或 completion observation。PRODUCTION 固定拒绝，API 33 ARM64 probe 只证明软件合同可运行。
+
+状态：`Accepted Temporary`。`compensation_planner_defined=true`、
+`compensation_absolute_before_verified=true`、`compensation_reverse_dependency_verified=true`、
+`undo_new_governed_task_verified=true`、`compensation_undo_runtime_wired=false`、
+`compensation_undo_persistence_wired=false`、`undo_binder_service_published=false`、
+`compensation_dispatch_enabled=false`、`production_compensation_authority_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。P3-W09 必须把 task/handle/
+before reference/idempotency 接入 durable transaction 和 restart reconcile；后续 Runtime Contract v2+ 必须冻结独立
+compensation state wire 语义；P8 仍需 OEM/Vendor rollback capability、Safety authority 和目标故障证据。

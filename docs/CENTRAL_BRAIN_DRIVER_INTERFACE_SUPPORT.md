@@ -878,3 +878,23 @@ permission、JNI/C ABI、fd/shared memory 或 Driver/HAL 合同。
 `production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。Req IDs：
 `S2-EFF-001`、`S2-TWN-001`、`NV-G-005/006/007`、`KH-003/006`、`DEL-004/005`。
+
+### P3-W08 Compensation/Undo Driver/HAL Boundary
+
+P3-W08 在 Runtime main source 只新增 pure Java planner/admission；debug source 只新增 DUMP-protected API 33
+probe。`BeforeSnapshot` 接收调用方提供的 immutable `SignalValue`、Context digest/version 与 capture time，处理
+typed scalar、枚举、ID、TTL 和 SHA-256，不读取或发现 Android/Vendor service。`UndoService` 名称表示领域职责，
+它不继承 Android `Service`、不发布 Binder、AIDL 或 permission。
+
+Planner 只构造新的 absolute compensation Effect plan；Undo admission 只返回新的 governed task metadata，源码不
+调用 adapter `apply`/`compensate`。PRODUCTION profile 固定 `PRODUCTION_COMPENSATION_UNAVAILABLE`，因此 debug
+SIMULATED before state、caller Governance/Safety boolean 或 API 33 probe 均不能被解释为量产 rollback/readback 证据。
+
+本包不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C
+ABI、PCIe/NPU、fd/shared memory 或 Driver/HAL；没有新增 property ID、area mapping 或 permission。状态：
+`compensation_undo_runtime_wired=false`、`compensation_undo_persistence_wired=false`、
+`undo_binder_service_published=false`、`compensation_dispatch_enabled=false`、
+`production_compensation_authority_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。Req IDs：`S2-EFF-001`、`S2-UX-003`、`S2-SAF-001`、
+`NV-G-005/006/007`、`KH-003/006`、`DEL-004/005`。

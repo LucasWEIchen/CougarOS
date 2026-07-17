@@ -1582,6 +1582,63 @@ if [[ "$EFFECT_VERIFICATION_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+COMPENSATION_UNDO_NONCE="$(date +%s%N)"
+COMPENSATION_UNDO_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.effects.CompensationUndoProbeActivity \
+  --es nonce "$COMPENSATION_UNDO_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$COMPENSATION_UNDO_PROBE_OUTPUT"; then
+  echo "$COMPENSATION_UNDO_PROBE_OUTPUT" >&2
+  echo "Compensation/Undo debug probe did not start successfully" >&2
+  exit 1
+fi
+COMPENSATION_UNDO_PROBE_PASSED=false
+for _ in {1..40}; do
+  COMPENSATION_UNDO_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbCompUndo:I)"
+  if grep -Fq \
+      "nonce=$COMPENSATION_UNDO_NONCE compensation_undo_probe_complete=true" \
+      <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_planner_defined=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_absolute_before_verified=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_reverse_dependency_verified=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_irreversible_rejected=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "undo_ttl_governance_verified=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "undo_new_governed_task_verified=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "undo_idempotent_replay_verified=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "undo_production_fail_closed=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_undo_android13_arm64_verified=true" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_undo_runtime_wired=false" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_undo_persistence_wired=false" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "undo_binder_service_published=false" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "compensation_dispatch_enabled=false" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "production_compensation_authority_wired=false" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$COMPENSATION_UNDO_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$COMPENSATION_UNDO_LOG"; then
+    COMPENSATION_UNDO_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$COMPENSATION_UNDO_PROBE_PASSED" != true ]]; then
+  echo "$COMPENSATION_UNDO_LOG" >&2
+  echo "Compensation/Undo probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2631,6 +2688,20 @@ printf '%s\n' \
   "effect_verification_persistence_wired=false" \
   "effect_verification_production_readback_wired=false" \
   "effect_verification_graph_wired=false" \
+  "compensation_planner_defined=true" \
+  "compensation_absolute_before_verified=true" \
+  "compensation_reverse_dependency_verified=true" \
+  "compensation_irreversible_rejected=true" \
+  "undo_ttl_governance_verified=true" \
+  "undo_new_governed_task_verified=true" \
+  "undo_idempotent_replay_verified=true" \
+  "undo_production_fail_closed=true" \
+  "compensation_undo_android13_arm64_verified=true" \
+  "compensation_undo_runtime_wired=false" \
+  "compensation_undo_persistence_wired=false" \
+  "undo_binder_service_published=false" \
+  "compensation_dispatch_enabled=false" \
+  "production_compensation_authority_wired=false" \
   "effect_dispatch_enabled=false" \
   "network_accessed=false" \
   "model_invoked=false" \

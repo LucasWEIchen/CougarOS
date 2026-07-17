@@ -509,9 +509,23 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W08` Compensation/Undo
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-EFF-001`、`S2-UX-003`。
+- 状态：`DONE`（process-local planning/admission contract，2026-07-17）；2 人日；需求：
+  `S2-EFF-001`、`S2-UX-003`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`。
 - 类：`CompensationPlanner`、`UndoService`。
 - DoD：before snapshot、TTL、new governed task、reverse dependency order；不可逆动作不宣称可撤销。
+- 实现：`CompensationPlanner` 要求 source batch 全量 terminal state、显式 capability+catalog-area reversible
+  allowlist、VERIFIED typed observation、VALID before signal、prepare before digest 和新 compensation intent。target
+  必须等于 before absolute scalar；source descriptor、Context、capability/path/area/range/unit/idempotency 必须一致，
+  新 intent 不得递归声明 reversible。
+- 顺序：复用 P3-W06 dependency plan 并反转 wave；verified dependency 必须同样可逆且 verified。任一 verified
+  irreversible/unapproved/missing-before Effect 使 full undo 失败关闭，不能只撤销一部分后宣称成功。
+- Undo：`UndoService` 为纯 Java process-local admission，不是 Android Service。每个 step 签发 digest-bound P1
+  `UndoHandle`，TTL 受 compensation deadline 限制；request 复验 Context/Policy/capability/Safety/authority，创建新
+  governed task 与 REQUESTED handle，并以 owner+idempotency 做最多 64 条进程内 replay。原 VERIFIED observation
+  保持不可变。
+- 边界：PRODUCTION 固定 `PRODUCTION_COMPENSATION_UNAVAILABLE`；不接 Graph/Room/Binder/adapter dispatch、
+  production authority、Vehicle/VHAL/NPU/Driver-HAL。证据为 8 组 JVM tests、API 33 ARM64 probe、checker、
+  installer/CI。P3-W09 负责 durable transaction/restart/idempotency recovery。
 
 ### `P3-W09` Restart recovery
 

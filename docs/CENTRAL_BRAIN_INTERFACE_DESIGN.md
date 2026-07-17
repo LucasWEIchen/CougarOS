@@ -1539,3 +1539,61 @@ PRODUCTION profile 固定 `PRODUCTION_READBACK_UNAVAILABLE`，不 query debug ad
 `effect_verification_graph_wired=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`。Req IDs：
 `S2-EFF-001`、`S2-TWN-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-048`、
 `ISSUE-022/026/030/033`。
+
+## Android P3-W08 Compensation/Undo
+
+### `CompensationPlanner`
+
+```java
+CompensationPlanner(CapabilityCatalog catalog,
+                    List<ReversibleTarget> reversibleTargets);
+
+Plan plan(EffectBatch sourceBatch,
+          List<SourceState> sourceStates,
+          long nowEpochMs);
+
+static String expectedCompensationDescriptorDigest(EffectIntent sourceIntent);
+static String expectedCompensationIdempotencyKey(String compensationPlanId,
+                                                 String sourceEffectId);
+```
+
+`SourceState` 必须一一覆盖 source batch；非 VERIFIED 只允许 terminal observation 且无 material。VERIFIED state 必须
+包含 `BeforeSnapshot`、P3-W06 prepared-before digest 和 caller 构造的新 `EffectIntent`。`BeforeSnapshot` 只包装
+immutable VALID `SignalValue`、Context digest/version、capture epoch/elapsed 和 production-trust 标志，并生成
+domain-separated digest。`ReversibleTarget` 是显式 capability+catalog-area policy，不能由 source
+`reversible=true` 自动推导。
+
+`Plan` 暴露 source/new session/plan/action binding、deadline、digest、reverse-order `Wave` 和 immutable `Step`。
+每个 step 保留 defensive source intent/VERIFIED observation/new compensation intent、before/descriptor/step digest。
+新 target 必须等于 before absolute scalar，idempotency key 必须绑定 new plan + source Effect；新 intent 固定
+`reversible=false`。原 VERIFIED observation 不发生状态转换。
+
+### `UndoService`
+
+```java
+List<UndoHandle> issueHandles(CompensationPlanner.Plan plan,
+                              List<String> undoIds,
+                              long createdAtEpochMs,
+                              long requestedTtlMs);
+
+Admission requestUndo(String taskId,
+                      String taskIdempotencyKey,
+                      CompensationPlanner.Plan plan,
+                      List<UndoHandle> handles,
+                      GovernanceSnapshot governance,
+                      AdapterRegistry.Profile profile,
+                      long nowEpochMs);
+```
+
+`UndoService` 不是 Android Service。Handle TTL 最多 15 分钟且 cap 到 plan deadline；`handleDigest` 覆盖全部 P1
+字段和 state。`GovernanceSnapshot` 只含 principal/Context/Policy/Safety digest、Context version、bounded capability
+set 与 trusted/fresh/authorized/safe boolean。ADMITTED 返回新 `GovernedTask` 和 REQUESTED handle copies；同
+principal+idempotency+material 返回首次 task，不同 material 冲突。REJECTED 只有 stable reason，无 task。
+
+PRODUCTION 固定 `PRODUCTION_COMPENSATION_UNAVAILABLE`；本接口不 dispatch Effect，不接 Graph/Room/Binder/vehicle
+authority。状态：`compensation_planner_defined=true`、`undo_new_governed_task_verified=true`、
+`compensation_undo_runtime_wired=false`、`compensation_undo_persistence_wired=false`、
+`undo_binder_service_published=false`、`compensation_dispatch_enabled=false`、
+`production_compensation_authority_wired=false`、`hardware_accessed=false`。Req IDs：`S2-EFF-001`、
+`S2-UX-003`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-049`、
+`ISSUE-022/023/026/029/030/033`。
