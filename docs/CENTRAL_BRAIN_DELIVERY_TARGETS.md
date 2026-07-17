@@ -741,3 +741,33 @@ target_hardware_validated=false
 该包不交付 Digital Twin state/store、ContextSnapshot、adapter registry、AAOS/Vendor mapping、Effect 或
 NPU。Range/risk/dependency 是 Stage 2 debug/test 软件合同，不是 OEM 标定/安全认证。Req IDs：
 `S2-TWN-001`、`S2-ADP-001`、`DEL-001/003..005`；偏差/问题：`DEV-031`、`ISSUE-029/030`。
+
+## Android P2-W03 Vehicle Digital Twin Store
+
+受维护交付新增：
+
+1. `runtime-service/.../vehicle/twin/` 四个纯 Java类：thread-safe store、atomic snapshot、typed desired、
+   effective-quality reported record；
+2. `VehicleDigitalTwinStoreTest`：并发 CAS、revision/idempotency、stale/conflict、TTL/freshness、immutable
+   filtered snapshot 和 reconciliation；
+3. `VehicleDigitalTwinStoreProbeActivity`：DUMP-protected debug-only API 33 ARM64 software contract probe；
+4. `tools/check_central_brain_android_vehicle_digital_twin.sh`：源码/测试/文档、生产未接线和禁止硬件/
+   persistence 引用的静态门禁；
+5. 累计 Android installer 与 GitHub CI 已接入上述探针/门禁。
+
+交付标志：
+
+```text
+vehicle_digital_twin_store_defined=true
+vehicle_digital_twin_android13_arm64_verified=true
+vehicle_digital_twin_persistence_wired=false
+vehicle_digital_twin_adapter_wired=false
+vehicle_property_mapping_configured=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 Room persistence、production Service wiring、adapter registry、AAOS/Vendor mapping、真实
+vehicle read/write、Effect execution 或 NPU。API 33 ARM64 证据只证明进程内合同可在目标 Android ABI
+运行。Req IDs：`S2-TWN-001`、`DEL-001/003..005`；偏差/问题：`DEV-032`、`ISSUE-030`。

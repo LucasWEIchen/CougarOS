@@ -582,3 +582,19 @@ activation evidence。Target range、risk 和 dependency 只服务 debug/test Tw
 `hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
 Req IDs：`S2-TWN-001`、`S2-ADP-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W03 Digital Twin Driver/HAL Boundary
+
+P2-W03 只新增纯 Java进程内 state store、JVM test、debug-only Activity、installer marker 和静态 checker。
+它消费 P2-W01 的 typed value，不引用 `VehiclePropertyIds`、CarPropertyManager、vendor Binder/SOA、
+CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL。
+
+`SignalSource.SIMULATED` 只用于 software probe；desired state 不是 command，reported state 不是由真实
+硬件 readback 提供，reconciliation match 也不是 verified Effect evidence。Store 不发现或激活 adapter，
+不创建 property mapping，也不要求修改已刷机 Android 13 系统。
+
+状态：`vehicle_digital_twin_store_defined=true`、
+`vehicle_digital_twin_persistence_wired=false`、`vehicle_digital_twin_adapter_wired=false`、
+`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量
+为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-TWN-001`、`KH-003/006`、`DEL-004/005`。

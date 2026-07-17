@@ -253,12 +253,16 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 边界：全部 production available/authorized 为 false，`vehicle_capability_adapter_registry_wired=false`、
   `vehicle_property_mapping_configured=false`、`hardware_accessed=false`。
 
-### `P2-W03` VehicleDigitalTwinStore
+### `P2-W03` Vehicle Digital Twin store
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-TWN-001`。
+- 状态：`DONE`（2026-07-17）；2.5 人日；需求：`S2-TWN-001`。
 - 类：`VehicleDigitalTwinStore`、`DigitalTwinSnapshot`、`DesiredStateRecord`、`ReportedStateRecord`。
 - DoD：thread-safe、monotonic revision、desired/reported 分离、TTL/quality、snapshot atomicity。
-- 测试：concurrent update、stale rejection、desired/report reconciliation。
+- 测试：24-thread CAS、stale/conflict rejection、idempotent replay、TTL/freshness、filtered immutable
+  snapshot、desired/reported reconciliation；Android 13/API 33 ARM64 debug probe 验证相同合同。
+- 边界：当前仅进程内，不持久化，不接入 production Service/adapter/property mapping，
+  `vehicle_digital_twin_persistence_wired=false`、`vehicle_digital_twin_adapter_wired=false`、
+  `hardware_accessed=false`。
 
 ### `P2-W04` ContextSnapshotBuilder
 

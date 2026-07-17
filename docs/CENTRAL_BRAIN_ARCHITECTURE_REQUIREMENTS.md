@@ -551,3 +551,30 @@ NPU、Driver/HAL 或目标硬件资格。
 `vehicle_production_capability_authorized_count=0`、
 `vehicle_capability_adapter_registry_wired=false`、`vehicle_property_mapping_configured=false`、
 `hardware_accessed=false`。
+
+## 23. P2-W03 Vehicle Digital Twin Store trace
+
+本增量映射 `S2-TWN-001`、`DEL-001/003..005`：
+
+1. `VehicleDigitalTwinStore` 必须以结构化 path+area key 分离 desired/reported，两者不能相互覆盖或
+   由 HMI 本地状态伪造；所有 state-changing write 分配一个全局单调 store revision。
+2. Reported update 必须验证 receive-side monotonic freshness；old source/receive time 与同 timestamp
+   conflicting payload 必须失败关闭，exact replay 幂等且不推进 revision。
+3. Desired 必须使用 boolean/integer/finite decimal/bounded text typed factory，匹配 canonical path 的
+   scalar/unit/area；TTL 必须大于 0 且不超过 15 分钟。CAS/clear 使用该 key 当前 desired revision。
+4. `DigitalTwinSnapshot` 必须在同一 store lock/revision window 中复制 path-filtered desired/reported，
+   collection immutable；capture time 投影 reported effective quality，不修改原始 observation。
+5. Reconciliation 必须区分 no desired、desired expired、pending reported、reported stale/unavailable、
+   matched 与 mismatch；requested state 不得被描述为 delivered/applied/verified evidence。
+6. JVM 必须覆盖并发 CAS、stale/conflict reject、idempotency、TTL/freshness、snapshot immutability/filter
+   与 reconciliation；API 33 ARM64 debug probe 必须在无硬件访问下验证同一合同。
+7. P2-W03 是进程内 foundation，不接 Room、production Runtime/Governance Service、adapter registry、
+   Vehicle/VHAL/vendor property、Effect 或 NPU。P2-W04 只能消费 immutable snapshot 构造 Context。
+8. 本增量持续断言 `vehicle_digital_twin_persistence_wired=false`、
+   `vehicle_digital_twin_adapter_wired=false`、`vehicle_property_mapping_configured=false`、
+   `hardware_accessed=false`；不触发 Driver/HAL、Python/Linux 或虚拟化开发。
+
+状态：`vehicle_digital_twin_store_defined=true`、
+`vehicle_digital_twin_android13_arm64_verified=true`、
+`vehicle_digital_twin_persistence_wired=false`、`vehicle_digital_twin_adapter_wired=false`、
+`hardware_accessed=false`。

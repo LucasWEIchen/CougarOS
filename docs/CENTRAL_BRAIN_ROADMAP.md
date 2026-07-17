@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01..W02 完成，P2-W03 下一步） |
+| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01..W03 完成，P2-W04 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -173,9 +173,14 @@ writable/simulatable/productionAvailable/productionAuthorized、typed target ran
 path 和 required fresh signals。当前 production available/authorized 均为 false，范围是软件仿真合同，
 不是 OEM 标定或车辆授权。
 
-下一实现工作包为 `P2-W03 VehicleDigitalTwinStore`。只实现 thread-safe desired/reported 分离、monotonic
-revision、TTL/quality、atomic snapshot 和 reconciliation；不得注册 production adapter、读取真实
-Vehicle/VHAL、激活 Effect/NPU、新增 Driver/HAL 或恢复 Python gateway。
+`P2-W03 VehicleDigitalTwinStore` 已完成：进程内 store 提供 thread-safe desired/reported 分离、全局
+monotonic revision、TTL/quality、atomic filtered snapshot、stale/conflict rejection 和 reconciliation；
+JVM 与 Android 13/API 33 ARM64 debug probe 通过。当前不持久化、不接 production Service/adapter，
+不读取 Vehicle/VHAL。
+
+下一实现工作包为 `P2-W04 ContextSnapshotBuilder`。只基于 Digital Twin immutable snapshot 构造
+versioned/digested context 与 restricted/freshness report；不得激活 Effect/NPU、真实 Vehicle/VHAL、
+Driver/HAL 或 Python fallback。
 
 ## 7. 近期进展
 
@@ -251,6 +256,9 @@ Vehicle/VHAL、激活 Effect/NPU、新增 Driver/HAL 或恢复 Python gateway。
 - 完成 `P2-W02 vehicle capability catalog`：8 项 HVAC/Seat/Media/Nav capability、typed range、readback/
   safety dependency 和 fail-closed production flags通过 JVM/API 33 ARM64 probe；authorized count 为 0，
   下一工作包为 `P2-W03 VehicleDigitalTwinStore`。
+- 完成 `P2-W03 VehicleDigitalTwinStore`：desired/reported 分离、monotonic revision、TTL/quality、atomic
+  snapshot、stale/conflict rejection 和 reconciliation 通过 JVM/API 33 ARM64 probe；persistence/adapter/
+  property mapping/hardware 保持关闭，下一工作包为 `P2-W04 ContextSnapshotBuilder`。
 
 ## 8. 当前门禁
 

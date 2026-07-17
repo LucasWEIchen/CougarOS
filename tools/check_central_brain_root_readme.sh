@@ -86,7 +86,11 @@ for marker in \
   'vehicle_capability_catalog_android13_arm64_verified=true' \
   'vehicle_production_capability_authorized_count=0' \
   'vehicle_capability_adapter_registry_wired=false' \
-  'implementation_stage=P2-W03' \
+  'vehicle_digital_twin_store_defined=true' \
+  'vehicle_digital_twin_android13_arm64_verified=true' \
+  'vehicle_digital_twin_persistence_wired=false' \
+  'vehicle_digital_twin_adapter_wired=false' \
+  'implementation_stage=P2-W04' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -151,6 +155,7 @@ required_paths=(
   tools/check_central_brain_android_plan_contract.sh
   tools/check_central_brain_android_event_contract.sh
   tools/check_central_brain_android_effect_contract.sh
+  tools/check_central_brain_android_vehicle_digital_twin.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
@@ -228,7 +233,7 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P2" not in remaining or "Context 与 Digital Twin" not in remaining:
+if "Stage 2 P2" not in remaining or "Trusted Context 与场景仿真" not in remaining:
     raise SystemExit("README remaining-work table must identify Stage 2 P2 as the next unfinished scope")
 
 for group in (

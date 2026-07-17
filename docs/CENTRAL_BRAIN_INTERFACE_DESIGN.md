@@ -834,3 +834,29 @@ Status: `vehicle_capability_catalog_defined=true`, `vehicle_capability_count=8`,
 `vehicle_capability_adapter_registry_wired=false`, `vehicle_property_mapping_configured=false`,
 `hardware_accessed=false`. Req IDs: `S2-TWN-001`, `S2-ADP-001`, `DEL-001/003..005`; tracking:
 `DEV-031`, `ISSUE-029/030`.
+
+## Android P2-W03 Vehicle Digital Twin Store
+
+Package: `com.centralbrain.runtime.vehicle.twin`. This is a pure-Java in-process state boundary. It is not an
+AIDL surface, Room repository, vehicle adapter, Effect executor or hardware abstraction.
+
+| Type | Public contract | Invariant/failure |
+| --- | --- | --- |
+| `VehicleDigitalTwinStore` | `getRevision/updateReported/setDesired/compareAndSetDesired/clearDesired/reported/desired/snapshot` | synchronized global revision; stale/conflicting reported update rejects; duplicate replay is idempotent |
+| `DesiredStateRecord` | `ofBoolean/ofInteger/ofDecimal/ofText`, typed getters, requested/expiry/store revision, `matches` | canonical type/unit/area; finite/bounded scalar; `0 < TTL <= 15 min`; template gets revision exactly once |
+| `ReportedStateRecord` | value, accepted store revision, expiry, effective quality, decision usability | accepted value was fresh; snapshot-time VALID may project to STALE without changing source value |
+| `DigitalTwinSnapshot` | revision/capture time, immutable desired/reported lists, lookup and `reconcile` | one lock/revision window; path filtered; active desired excludes expired while audit lookup retains it |
+
+Reconciliation values are `NO_DESIRED`, `DESIRED_EXPIRED`, `PENDING_REPORTED`, `REPORTED_STALE`,
+`REPORTED_UNAVAILABLE`, `MATCHED`, and `MISMATCH`. A match compares exact typed scalar, path, area and unit; it is
+state agreement only, not delivery, application or verification evidence.
+
+All time parameters are receive-side elapsed realtime milliseconds supplied by the caller so unit tests and
+snapshot policy remain deterministic. Source epoch remains observation metadata. `compareAndSetDesired` compares
+the current desired record revision for one path/area; it is not a distributed transaction or hardware CAS.
+
+Status: `vehicle_digital_twin_store_defined=true`,
+`vehicle_digital_twin_android13_arm64_verified=true`,
+`vehicle_digital_twin_persistence_wired=false`, `vehicle_digital_twin_adapter_wired=false`,
+`vehicle_property_mapping_configured=false`, `hardware_accessed=false`. Req IDs: `S2-TWN-001`,
+`DEL-001/003..005`; tracking: `DEV-032`, `ISSUE-030`.
