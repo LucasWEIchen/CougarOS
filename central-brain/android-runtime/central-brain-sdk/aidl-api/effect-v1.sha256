@@ -1,0 +1,4 @@
+e546d084bc60a598c59be27a7fe1830d74811554ee86bb31a5c5dd923d3c6857  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/effect/EffectIntent.aidl
+d42c136cec39102cf35f3e1145fde7ecd6256bbfa643c6975fb5f28b1c08a007  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/effect/EffectObservation.aidl
+6c9543d6f58cda68f35588bccaeab7940b09cecb3273879f6a90aeb93a0032a7  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/effect/ApprovalPrompt.aidl
+c8ebb8a0e68ddb6c74ef151517e21ada6a61519890654ced989e91b8f8089584  central-brain/android-runtime/central-brain-sdk/src/main/aidl/com/centralbrain/sdk/effect/UndoHandle.aidl

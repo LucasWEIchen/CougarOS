@@ -1,6 +1,6 @@
 # 驱动层接口支持矩阵
 
-版本：2.5
+版本：2.6
 
 日期：2026-07-17
 
@@ -479,3 +479,23 @@ interface is added or accessed. Existing `DRV-GAP-*` entries remain unchanged; a
 `driver_development_triggered=false`. A later target API gap may be opened only after a published interface,
 owner, permission and minimum missing capability are evidenced. Req IDs: `S2-SES-001`, `S2-EVT-001`,
 `FW-U-003`, `NV-F-009`, `NV-G-003`, `NV-G-007`, `KH-003`, `KH-006`, `DEL-004`, `DEL-005`.
+
+### P1-W04 Effect/Approval Contract Driver/HAL Boundary
+
+P1-W04 只在 Android SDK AAR 中新增四个 app-layer structured parcelable、纯 Java 状态/绑定 validator、
+checksum/static guards 和 Parcel tests。`EffectIntent` 传递 canonical ID、digest、typed scalar、deadline、
+verification 和 compensation metadata；`EffectObservation` 传递状态、attempt、reported/evidence digest；
+Approval/Undo 只传递有界 plan/action/context/policy/verified-observation 绑定和 TTL。
+
+合同不包含 Binder Service/interface、approval grant、undo executor、Room 写入、FD/SharedMemory、原始
+车辆/模型 payload、vehicle property、CAN/DBC、Vendor NPU handle、DMA/IOMMU、device node 或 ioctl。
+Android 13/API 33 ARM64 instrumentation 只验证 Parcel 和纯合同拒绝路径，报告
+`hardware_accessed=false` 并卸载临时 test APK。
+
+状态：`effect_contract_v1_defined=true`、
+`effect_parcel_physical_android13_arm64_verified=true`、`effect_runtime_service_published=false`、
+`approval_response_service_published=false`、`undo_service_published=false`、
+`driver_development_triggered=false`。本包没有发现新的公开 Android/Vendor SDK 能力缺口，
+`DRV-GAP-001..005` 保持原状态；真实 Effect dispatch/readback、Safety authority 和 adapter 仍由 P8 与
+既有 gap gate 约束。Req IDs：`S2-EFF-001`、`S2-SAF-001`、`NV-F-001`、`NV-G-005..007`、
+`KH-003`、`KH-006`、`DEL-004`、`DEL-005`。

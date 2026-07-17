@@ -1,6 +1,6 @@
 # Central Brain Android 13 开发路线图
 
-版本：1.0
+版本：1.1
 日期：2026-07-17
 状态：Stage 2 P1 in progress
 
@@ -98,6 +98,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | P1-W01 Session contract V1 | 5 DTO、独立 Binder V1、边界校验、Parcel/checksum 门禁完成；服务未发布。 |
 | P1-W02 Plan/Node contract V1 | 4 DTO、11 类 allowlist、DAG/补偿/重试校验、Parcel/checksum 完成；Runtime 未发布。 |
 | P1-W03 Event contract V1 | 5 DTO、23 类 allowlist、独立 Event/callback V1、顺序/父链/脱敏/cursor/replay 校验、Parcel/checksum 完成；服务未发布。 |
+| P1-W04 Effect/Approval contract V1 | 4 DTO、完整 Effect 状态链、approval/undo stale/TTL 校验、Parcel/checksum 完成；Service/grant/undo execution 未发布。 |
 
 ## 5. Python 原型退役
 
@@ -119,7 +120,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | 阶段 | 目标 | 主要交付 | 状态 |
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
-| S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 进行中（W01-W03 完成） |
+| S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 进行中（W01-W04 完成） |
 | S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 未开始 |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
@@ -145,11 +146,16 @@ Session V1 checksum 未改变，Plan Compiler/Graph Runtime 尚未发布。
 replay 校验、JVM/API 33 ARM64 Parcel 测试和 `events-v1.sha256` 已进入工程；Event Service/callback
 publication/Room persistence 均关闭。
 
-下一实现工作包为 `P1-W04 Effect/Approval DTO 扩展`。执行顺序：
+`P1-W04 Effect/Approval DTO 扩展` 已完成：4 个 bounded structured parcelable、typed scalar、完整 Effect
+状态转换、approval plan/action/context/policy 绑定、Undo verified observation/compensation/TTL 绑定、
+JVM/API 33 ARM64 Parcel 测试和 `effect-v1.sha256` 已进入工程；本包未新增 Binder interface，
+Effect Service、approval response/grant、undo execution 和 Room persistence 均关闭。
 
-1. 冻结 EffectIntent/EffectResult/ApprovalRequest/ApprovalResponse/Undo DTO 与失败关闭边界。
-2. 随后实现 SDK facade；Runtime owner/capability 不得由请求体自报。
-3. 每个 DTO 工作包增加 JVM/AIDL/static checks 和 API 33 Parcel instrumentation。
+下一实现工作包为 `P1-W05 SDK facade v2`。执行顺序：
+
+1. 为 Session/Scenario/Event 建立不暴露 Binder primitive 的 Java facade。
+2. 将 Binder principal/capability、Service publication 和 callback lifecycle 放在 Runtime owner 边界。
+3. 验证 fake Binder、callback race、close/reconnect 幂等和 active session 重新订阅。
 4. 更新 requirements/roadmap/deviation/issue/delivery/driver trace。
 5. 不接入车辆/NPU/Driver/HAL，不恢复 Python gateway。
 
@@ -197,7 +203,13 @@ publication/Room persistence 均关闭。
 - Android 13/API 33 ARM64 物理控制器通过 Event Parcel round-trip、ordering/parent/redaction/cursor replay
   验证；临时 test APK 验证后卸载，未访问车辆/NPU。
 - 保持 `event_runtime_service_published=false`、`event_callback_service_published=false`；Service/Room
-  分别属于 P1-W05/P1-W06，下一工作包为 P1-W04。
+  分别属于 P1-W05/P1-W06。
+- 完成 `P1-W04` Effect/Approval contract V1：4 个有界 DTO、typed scalar、Effect transition/retry/
+  terminal validator、approval stale/expiry 和 undo expiry/context reject、独立 hash/checksum 门禁。
+- Android 13/API 33 ARM64 物理控制器通过 Effect DTO Parcel、完整状态链、illegal terminal、stale
+  approval 和 expired undo 验证；临时 test APK 验证后卸载，未访问车辆/NPU。
+- 保持 `effect_runtime_service_published=false`、`approval_response_service_published=false`、
+  `undo_service_published=false`；下一工作包为 `P1-W05 SDK facade v2`。
 
 ## 8. 当前门禁
 
@@ -212,6 +224,7 @@ bash tools/check_central_brain_cockpit_hmi_design.sh
 bash tools/check_central_brain_aios_stage2_design.sh
 bash tools/check_central_brain_android_plan_contract.sh
 bash tools/check_central_brain_android_event_contract.sh
+bash tools/check_central_brain_android_effect_contract.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -238,6 +251,11 @@ event_contract_v1_defined=true
 event_parcel_physical_android13_arm64_verified=true
 event_runtime_service_published=false
 event_callback_service_published=false
+effect_contract_v1_defined=true
+effect_parcel_physical_android13_arm64_verified=true
+effect_runtime_service_published=false
+approval_response_service_published=false
+undo_service_published=false
 production_ready=false
 target_hardware_validated=false
 driver_development_triggered=false

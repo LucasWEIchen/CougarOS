@@ -1,6 +1,6 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.6
+版本：0.7
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -90,6 +90,12 @@ callback death/overflow/resubscribe、Room v4 durable source、Binder payload si
 边界继续由本问题及 P1-W05/P1-W06 跟踪。当前独立 surface 解决了不破坏 Session V1 的版本所有权，
 但没有解决目标 system/privileged service ownership。
 
+P1-W04 Effect/Approval V1 同样只达到 `contract_defined`：四个 DTO、完整状态转换、approval/undo
+digest/version/TTL 绑定、Parcel 和 checksum 已验证，但本包刻意没有 Binder interface，
+`effect_runtime_service_published=false`、`approval_response_service_published=false`、
+`undo_service_published=false`。P1-W05 仍须确定 facade/Service principal、permission/capability、
+Binder lifecycle 和 app-local AIDL ownership，P1-W06 才能评审 Room v4 持久化。
+
 ## ISSUE-022 Durable task/session/checkpoint 与副作用恢复
 
 Room v2、task/checkpoint/approval/effect/outbox/event cursor、restart reconciliation 和
@@ -97,11 +103,20 @@ idempotency contract 已实现。Production effect dispatch 仍保持关闭，�
 material、key owner、trusted clock、retention/export/delete、adapter status reconciliation 和目标
 故障证据全部到位。任何不确定副作用必须失败关闭，不得假定成功。
 
+P1-W04 的 Effect transition 和 UndoHandle 只定义 wire/validation 语义，不连接现有 effect/outbox
+repository，也不执行补偿。Undo 必须在未来创建新的受治理 compensation operation；它不能被实现为
+数据库状态回滚。Crash recovery、material/key、trusted clock、status reconciliation 和 durable binding
+仍为本问题的开放项。
+
 ## ISSUE-023 Android 可信身份、capability 与审批
 
 Binder caller identity、package/current signer、default-deny capability 和 typed governance 已实现。
 当前 Safety/Vehicle State provider 不是硬件可信源，审批也没有 OEM authority。目标映射必须保持：
 `Safety State -> Safety Runtime -> ASIL/QM domain`。用户确认不能覆盖驾驶中驾驶席靠背等硬联锁。
+
+P1-W04 的 `ApprovalPrompt` 仅绑定 plan/action/target/context/policy 并拒绝 stale/expired resume；现有
+Governance V1 仍无 approval response/grant 方法。该合同不构成审批 authority，也不允许 HMI 通过
+request DTO 自报身份、权限或车辆 Safety 状态。
 
 ## ISSUE-024 Model Router、资源准入与 NPU provider 边界
 
@@ -231,3 +246,4 @@ Driver/HAL、target hardware 或 production。状态：`Open`。
 | 2026-07-12 B4 进展 | hybrid delivery 软件包完成。 |
 | 2026-07-15 导航菜单进展 | 当前物理设备 Client2 菜单交互完成。 |
 | P1-W03 进展 | Event/callback V1 合同与物理 API 33 Parcel 证据完成；Service/Room/hardware 均未发布。 |
+| P1-W04 进展 | Effect/Approval V1 合同与物理 API 33 Parcel 证据完成；Service/grant/undo/Room/hardware 均未发布。 |

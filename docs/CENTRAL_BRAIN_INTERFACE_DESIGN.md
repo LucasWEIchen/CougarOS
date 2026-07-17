@@ -1,6 +1,6 @@
 # 车载中央大脑接口设计
 
-版本：3.3
+版本：3.4
 
 日期：2026-07-17
 
@@ -34,7 +34,7 @@ Req ID：`APP-004`、`XSC-001..006`、`FW-U-001..008`、`FW-S-001..006`、
 | Effect | `EffectAdapter` / material source / activation gate | contract, production blocked |
 | Native | `central_brain_native.h` / JNI / Java wrapper | lifecycle ABI integrated |
 | Session/Plan/Event contract | Stage 2 P1-W01..P1-W03 | contract defined; services not published |
-| Effect/Approval contract | Stage 2 P1-W04 | not started |
+| Effect/Approval contract | Stage 2 P1-W04 | contract defined; service/grant/undo not published |
 | Vehicle/NPU adapter | AAOS/Vendor published API/ABI | external blocked |
 
 早期通用 JSON envelope、HTTP endpoint、第一阶段 JSON Binder 和 Linux binding 已退役。下列章节保留
@@ -638,3 +638,31 @@ Status: `event_contract_v1_defined=true`, `event_parcel_physical_android13_arm64
 `event_runtime_service_published=false`, `event_callback_service_published=false`, `hardware_accessed=false`.
 P1-W05 owns Binder publication/lifecycle and P1-W06 owns durable storage; neither is implied by this interface
 definition. Req IDs: `S2-SES-001`, `S2-EVT-001`, `FW-U-003`, `NV-F-009`, `NV-G-003`, `NV-G-007`.
+
+## Stage 2 P1-W04 Effect/Approval Contract V1
+
+| Type | Core fields | Contract responsibility |
+| --- | --- | --- |
+| `EffectIntent` | effect/session/plan/node/action/capability/area IDs, one typed scalar, target/idempotency/plan/context digests, context version, risk, verification, compensation, deadline | immutable requested side-effect identity and execution preconditions; never an authorization grant |
+| `EffectObservation` | observation/effect IDs, state/source/attempt, target/reported/evidence/observation digests, failure/terminal/retry/simulated markers | separates dispatch, delivery, apply, verification, unknown and compensation evidence |
+| `ApprovalPrompt` | approval/session/plan/action/target/context/policy binding, digest, created/expiry | bounded human decision prompt; stale/expired resume fails closed |
+| `UndoHandle` | undo/effect/source observation/verified observation/compensation binding, context version, state, created/expiry | bounded eligibility for a future governed compensation operation; not a rollback command |
+| `EffectContract` | structural, typed-value, transition, approval-resume and undo validation | rejects unknown schema/enums, identity drift, skipped/terminal transitions, stale context and unsafe simulation markers |
+
+`EffectIntent` carries exactly one active boolean/integer/decimal/text scalar and its target digest. The state
+machine distinguishes `DISPATCHED`, `DELIVERED`, `APPLIED` and `VERIFIED`; retry increments the attempt exactly
+once, and every terminal state is immutable. Applied/verified/compensation observations require a reported-value
+digest. `SIMULATED` source and marker must agree.
+
+Approval is valid for at most five minutes and is rebound against the current plan/action/context digest and
+context version before execution can resume. Undo eligibility is valid for at most fifteen minutes, references a
+verified observation and compensation digest, and cannot regress context version. Safety remains authoritative:
+a prompt or handle never overrides a hard interlock and neither contains caller identity or vehicle-state claims.
+
+The four AIDL sources are frozen by `aidl-api/effect-v1.sha256`; concatenated protocol identity is
+`709828114422595f1889dad58e8e60daf4d5e4f98c962a6145f2f8a39b0c178d`. P1-W04 intentionally adds no
+Binder interface and does not modify Governance V1. Status: `effect_contract_v1_defined=true`,
+`effect_parcel_physical_android13_arm64_verified=true`, `effect_runtime_service_published=false`,
+`approval_response_service_published=false`, `undo_service_published=false`, `hardware_accessed=false`.
+P1-W05 owns facade/Service lifecycle; P1-W06 owns durable storage. Req IDs: `S2-EFF-001`, `S2-SAF-001`,
+`S2-UX-002`, `FW-S-005`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`.
