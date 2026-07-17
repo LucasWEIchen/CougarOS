@@ -2,7 +2,7 @@
 
 版本：1.1
 日期：2026-07-17
-状态：Stage 2 P4 in progress
+状态：Stage 2 P5 in progress
 
 ## 1. 基线与范围
 
@@ -99,6 +99,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | P1-W02 Plan/Node contract V1 | 4 DTO、11 类 allowlist、DAG/补偿/重试校验、Parcel/checksum 完成；Runtime 未发布。 |
 | P1-W03 Event contract V1 | 5 DTO、23 类 allowlist、独立 Event/callback V1、顺序/父链/脱敏/cursor/replay 校验、Parcel/checksum 完成；服务未发布。 |
 | P1-W04 Effect/Approval contract V1 | 4 DTO、完整 Effect 状态链、approval/undo stale/TTL 校验、Parcel/checksum 完成；Service/grant/undo execution 未发布。 |
+| P5-W04 ToolExecutor boundary | signed built-in allowlist、digest-only context、schema/deadline/cancel/output/audit 已完成；Runtime/production authority 未发布。 |
 
 ## 5. Python 原型退役
 
@@ -124,7 +125,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 已完成软件 foundation（W01-W09；Runtime/production wiring 仍 false） |
 | S2-P4 | Client2 HMI 与场景/Effect 投影 | P4-W01..W12 应用验收完成；Runtime 自动 Plan/Effect/readback 待接 | 应用层完成 / Runtime 未完成 |
-| S2-P5 | Tool/Skill 与 Memory | Tool manifest/schema、Registry/Resolver/RuleSolver/Executor、Skill trust、Memory lifecycle | W01-W02 已完成，W03-W12 待开发 |
+| S2-P5 | Tool/Skill 与 Memory | Tool manifest/schema、Registry/Resolver/RuleSolver/Executor、Skill trust、Memory lifecycle | W01-W04 已完成，W05-W10 待开发 |
 | S2-P6 | Event/Model 与高级 Memory 集成 | durable broker、proactive trigger、model routing、context budget | 未开始 |
 | S2-P7 | 质量与发布 | fault matrix、性能、隐私、安全、升级 | 未开始 |
 | S2-P8 | 真实车辆适配 | 按 capability 引入已确认的 vendor/public adapter | 外部阻塞 |
@@ -315,8 +316,8 @@ undo/readback 仍未发布。
 P5-W01 Tool manifest/schema 已完成：immutable identity/owner/capability/risk/timeout/idempotency/health、bounded scalar
 input/output、canonical contract digest 与 exact-class validator 已进入 Runtime main source；JVM、debug/release compile
 完成。Android 13 ARM64 probe 已实现，但当前 Windows ADB transport 不可用，实体执行待复测。P5-W02 已完成 pure-Java
-Registry/Resolver，P5-W03 已完成 six-rule deterministic intersection；Executor 和 production Tool 均未发布，下一工作包
-为 P5-W04。
+Registry/Resolver，P5-W03 已完成 six-rule deterministic intersection，P5-W04 已完成 in-process built-in executor boundary；
+Runtime/Graph/production Tool authority 均未发布，下一工作包为 P5-W05。
 
 ## 7. 近期进展
 
@@ -775,7 +776,7 @@ tool_rule_solver_published=false
 tool_rule_solver_runtime_wired=false
 tool_approval_authority_available=false
 tool_execution_enabled=false
-implementation_stage=P5-W04
+implementation_stage=P5-W05
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -818,7 +819,7 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
 
 ### 2026-07-18 P4-W12 progress
 
@@ -832,7 +833,7 @@ Tool manifest/schema。
 
 Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
 
 ### 2026-07-18 P5-W01 progress
 
@@ -848,7 +849,7 @@ contract。下一工作包为 P5-W02 ToolRegistry/Resolver。
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-063`、`ISSUE-036`。
 `tool_registry_published=false`、`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
 
 ### 2026-07-18 P5-W02 progress
 
@@ -866,7 +867,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_registry_published=false`、`tool_resolver_published=false`、`tool_registry_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+`target_hardware_validated=false`、`implementation_stage=P5-W05`。
 
 ### 2026-07-18 P5-W03 progress
 
@@ -884,4 +885,24 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+
+
+### 2026-07-18 P5-W04 progress
+
+新增 `ToolInvocationContext`、`ToolExecutor` 与 `InProcessBuiltInToolExecutor`。执行只接受 P5-W03 selection 与
+`runtime.builtin` exact allowlist，构造期绑定 Tool contract、当前应用 signer digest 和 artifact digest；调用期绑定
+invocation/session/plan/node/audit digest、capability、idempotency、elapsed deadline 和 output byte limit。输入输出复用
+P5-W01 exact schema；approval-required、stale deadline、取消、无效输入输出、超限和 implementation failure 均稳定失败关闭。
+
+五项 JVM test 与 debug/release build 已通过；debug probe 与 installer/CI/独立门禁已接入。审计 ring 最多 128 条且只保留
+digest、枚举、时间和 output bytes。该同步执行器只支持 cooperative checkpoint，不能强制抢占非合作 built-in；当前 signer
+digest 由受信 composition 输入，不是生产 PackageManager/keystore 证据。Runtime/Graph/Binder/Room/Effect/车辆/NPU/Driver-HAL
+均未接，OS virtualization、subprocess、dynamic class loading 均为 false。当前 ADB transport=0，
+`tool_executor_android13_arm64_verified=false`；下一工作包为 P5-W05 Skill package verifier。
+
+Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-066`、`ISSUE-039`。
+`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
+`production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
+`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P5-W05`。

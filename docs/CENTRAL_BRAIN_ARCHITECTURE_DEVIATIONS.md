@@ -89,6 +89,7 @@
 | DEV-063 | P5-W01 Tool manifest/schema 是静态合同，不是注册、健康或执行。 | S2-TOL-001, ISSUE-036 | Accepted Temporary |
 | DEV-064 | P5-W02 pure-Java Registry/Resolver 的 USABLE 不是 Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037 | Accepted Temporary |
 | DEV-065 | P5-W03 rule/model/USABLE 交集只是静态 selection，不是 approval、Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037/038 | Accepted Temporary |
+| DEV-066 | P5-W04 只执行同进程 built-in；signer evidence 由调用方输入且 cancel/deadline 依赖 cooperative checkpoint，不是 production Tool authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/039 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1017,4 +1018,24 @@ Vehicle/NPU Tool 仍需 P8 OEM/Vendor authority。当前：`tool_rule_set_contra
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+
+## DEV-066 P5-W04 built-in execution is not production Tool authority
+
+P5-W04 首次提供可运行的 `InProcessBuiltInToolExecutor`，但执行面严格限制为同 APK/JVM 内、owner 为
+`runtime.builtin` 的显式注册实现。allowlist 精确绑定 family、contract digest、signer digest 与 artifact digest；这关闭了
+测试合同中的任意 family fallback，不代表已验证安装包 signer、Skill package 签名链、吊销或回滚策略。
+
+`currentApplicationSignerDigest` 当前由受信 composition 调用方提供。P5-W04 不读取 PackageManager、keystore 或 vendor
+trust store，也不动态加载 APK/AAR/JAR。deadline/cancel 在调用前后及实现主动调用 `checkpoint()` 时验证；同步同进程 Java
+无法安全强杀一个永久阻塞且不 checkpoint 的实现，因此不能声明 hard preemption 或资源隔离。无 OS virtualization、进程
+sandbox、subprocess 或 class loader。
+
+代码未接 `CentralBrainRuntimeService`、AgentGraph、Binder、Room、approval service、Effect、Vehicle、Model/NPU、network 或
+Driver/HAL。approval-required selection 始终拒绝；debug sample 的执行成功只证明 bounded built-in 合同，不授权 production
+Tool。状态：`Accepted Temporary`。关闭条件是 P5-W05 冻结 signer/version/revoke/rollback verifier，生产 composition 从可信
+平台 signer evidence 派生身份，并通过独立进程/线程预算或可取消 API 解决 hard deadline ownership；随后才能单独评审
+Runtime/Graph publication。当前：`tool_executor_contract_defined=true`、`tool_executor_runtime_wired=false`、
+`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、`production_tool_registered=false`、
+`os_virtualization_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P5-W05`。

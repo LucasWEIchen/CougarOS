@@ -1179,5 +1179,24 @@ regex 和 SHA-256；静态门禁禁止 Binder、Room、network、Android Car/VHA
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
-`implementation_stage=P5-W04`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`implementation_stage=P5-W05`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
 `DEL-004/005`；tracking：`DEV-065`、`ISSUE-038`。
+
+## P5-W04 Tool Executor Driver/HAL Boundary
+
+`ToolInvocationContext` 的 family/capability/digest 只属于 AIOS 软件语义；它们不是 Android Service、VHAL property、vendor
+symbol、device node、ioctl、PCIe function、DMA/IOMMU handle 或 Driver/HAL endpoint。`InProcessBuiltInToolExecutor` 只调用
+同 APK/JVM 已注册的 Java built-in，不探测或打开任何硬件接口。
+
+签名 digest 在本阶段是受信构造输入，不读取 keystore、TEE、PackageManager signing history 或 vendor trust store。deadline/
+cancel 是 Java cooperative checkpoint，不等同于中断 native ioctl、NPU queue 或车辆 service transaction。真实 Vehicle/NPU
+Tool 必须在 P8 获得 OEM/Vendor capability、权限、area、readback、cancellation、fault 和 Safety contract 后，才能判断是否
+触发 `DRV-GAP-001..005`；当前新增 Driver/HAL 开发量为 0。
+
+静态门禁禁止 Android Car/VHAL、Binder、network、Room、reflection/dynamic class loading、subprocess、`/dev`、sysfs、ioctl。
+不开发 Hypervisor 或 OS virtualization。状态：`tool_executor_contract_defined=true`、
+`tool_executor_android13_arm64_verified=false`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
+`production_tool_execution_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`implementation_stage=P5-W05`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`DEL-004/005`；tracking：`DEV-066`、`ISSUE-039`。

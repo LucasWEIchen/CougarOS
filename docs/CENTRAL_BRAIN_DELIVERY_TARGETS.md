@@ -1598,7 +1598,7 @@ HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`AP
 `DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
 `cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
-`hardware_accessed=false`、`implementation_stage=P5-W04`。
+`hardware_accessed=false`、`implementation_stage=P5-W05`。
 
 ## P4-W09 Engineer Simulation Drawer
 
@@ -1622,7 +1622,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W04`。该历史包的下一工作包为 P4-W10 Scenario/manual-control synchronization。
+`implementation_stage=P5-W05`。该历史包的下一工作包为 P4-W10 Scenario/manual-control synchronization。
 
 ## P4-W07 Approval and Recovery UX
 
@@ -1643,7 +1643,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_approval_details_fail_closed=true`、`cockpit_partial_outcome_projection=true`、
 `cockpit_compensation_projection=true`、`cockpit_approval_response_service_published=false`、
 `cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
-`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P5-W04`。
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P5-W05`。
 
 ## P4-W08 Driving Restriction Renderer
 
@@ -1665,7 +1665,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_unknown_driving_restricted=true`、`cockpit_moving_long_text_hidden=true`、
 `cockpit_restricted_parameter_editing_disabled=true`、`cockpit_high_risk_controls_disabled=true`、
 `cockpit_runtime_policy_authority_independent=true`、`vehicle_signal_provider_wired=false`、
-`hardware_accessed=false`、`implementation_stage=P5-W04`。
+`hardware_accessed=false`、`implementation_stage=P5-W05`。
 
 ## 2026-07-18 P4-W10 Scenario/manual-control synchronization delivery
 
@@ -1681,7 +1681,7 @@ NOT PUBLISHED，Effect/readback 保持 NOT DISPATCHED/UNAVAILABLE。未接 Andro
 状态：`cockpit_scenario_control_state_reducer_owned=true`、`cockpit_scenario_catalog_normalized=true`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`scenario_execution_enabled=false`、
-`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P5-W04`。
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P5-W05`。
 
 ## 2026-07-18 P4-W11 Accessibility/display matrix delivery
 
@@ -1701,7 +1701,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、`DEL-
 `cockpit_display_large_text_1_3_verified=true`、`cockpit_display_unsupported_fail_closed=true`、
 `cockpit_display_matrix_android13_arm64_verified=true`、`cockpit_display_effect_authorization_source=false`、
 `scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
 
 ## 2026-07-18 P4-W12 Android device acceptance/fault/recovery delivery
 
@@ -1722,7 +1722,7 @@ Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`
 `p4_undo_service_published=false`、`p4_vehicle_readback_available=false`、
 `client2_production_release_artifact_available=false`、`hmi_d4_demo_control_loop_complete=false`、
 `production_ready=false`、`target_hardware_validated=false`、`hardware_accessed=false`、
-`implementation_stage=P5-W04`。
+`implementation_stage=P5-W05`。
 
 ## Android P5-W01 Tool Manifest/Schema
 
@@ -1749,7 +1749,7 @@ bash tools/install_central_brain_android_runtime.sh --require-api-33
 `tool_registry_published=false`、`tool_resolver_published=false`、`tool_execution_enabled=false`、
 `production_tool_artifact_loaded=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W04`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+`implementation_stage=P5-W05`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-063`、`ISSUE-036`。
 
 ## Android P5-W02 Tool Registry/Resolver
@@ -1781,7 +1781,7 @@ bash tools/install_central_brain_android_runtime.sh --require-api-33
 `tool_registry_android13_arm64_verified=false`、`tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。Req IDs：`S2-TOL-001`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。Req IDs：`S2-TOL-001`、
 `S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-064`、`ISSUE-037`。
 
 ## Android P5-W03 Tool RuleSolver
@@ -1813,5 +1813,33 @@ bash tools/install_central_brain_android_runtime.sh --require-api-33
 `tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、`tool_execution_enabled=false`、
 `production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W04`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+`implementation_stage=P5-W05`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-065`、`ISSUE-038`。
+
+## Android P5-W04 Tool Executor
+
+交付包含 Runtime main-source `ToolInvocationContext`、`ToolExecutor`、`InProcessBuiltInToolExecutor`，五项 JVM test、
+debug-only `ToolExecutorProbeActivity`、debug manifest、installer marker、独立门禁与 CI 聚合。debug/release 编译同一执行
+边界；release manifest 不含 probe。
+
+验收覆盖 exact built-in allowlist/current signer/artifact/contract、context binding、input/output schema、idempotency、approval
+no-grant、elapsed deadline、cooperative cancel、output byte limit、implementation failure 和 128-entry digest-only audit。入口：
+
+```bash
+bash tools/check_central_brain_android_tool_executor.sh
+source env.sh
+bash tools/install_central_brain_android_runtime.sh --require-api-33
+```
+
+本包不交付生产 signer evidence、Skill artifact loader、revoke/rollback、hard preemption、Runtime/Graph/Room/Binder wiring、
+Effect/vehicle/NPU Tool 或 OS virtualization。当前 adb transport=0，故实体 verified 保持 false。任何 probe 证据不得包含原始
+input/output、日志、设备身份、签名材料、用户/模型文本或车辆 payload。
+
+状态：`tool_executor_contract_defined=true`、`tool_invocation_context_defined=true`、
+`built_in_allowlist_enforced=true`、`built_in_signer_artifact_bound=true`、`tool_executor_host_execution_verified=true`、
+`tool_executor_deadline_cancel_verified=true`、`tool_executor_output_limit_verified=true`、
+`tool_executor_audit_bounded_verified=true`、`tool_executor_android13_arm64_verified=false`、
+`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
+`production_tool_registered=false`、`os_virtualization_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。Req IDs：`S2-TOL-001`、
+`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-066`、`ISSUE-039`。

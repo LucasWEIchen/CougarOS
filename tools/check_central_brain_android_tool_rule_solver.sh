@@ -116,11 +116,6 @@ if grep -Eiq 'ToolRuleSet|ToolRuleSolver' \
   echo "P5-W03 Tool RuleSolver was wired into production Runtime/Graph" >&2
   exit 1
 fi
-if find "$ROOT_DIR/$MAIN_ROOT" -type f -name '*.java' -print0 \
-    | xargs -0 grep -Eiq 'interface ToolExecutor|class InProcessBuiltInToolExecutor'; then
-  echo "P5-W03 must not publish a Tool Executor" >&2
-  exit 1
-fi
 if grep -R -Eiq \
     'ObjectInputStream|ObjectOutputStream|Class[.]forName|java[.]lang[.]reflect|Gson|Jackson|Serializable|android[.]car|CarPropertyManager|VehicleHal|VehicleProperty|java[.]net|okhttp|http://|https://|ioctl|sysfs|/dev/|androidx[.]room|android[.]os[.]Binder' \
     "$ROOT_DIR/$RULE_SET" "$ROOT_DIR/$SOLVER" "$ROOT_DIR/$PROBE"; then

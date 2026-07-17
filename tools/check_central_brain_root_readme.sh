@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P5-W04' \
+  'implementation_stage=P5-W05' \
   'tool_manifest_contract_defined=true' \
   'tool_manifest_schema_version=1' \
   'tool_manifest_contract_digest_verified=true' \
@@ -271,7 +271,20 @@ for marker in \
   'tool_registry_published=false' \
   'tool_resolver_published=false' \
   'tool_registry_runtime_wired=false' \
+  'tool_rule_set_contract_defined=true' \
+  'tool_rule_solver_runtime_wired=false' \
+  'tool_executor_contract_defined=true' \
+  'tool_invocation_context_defined=true' \
+  'built_in_allowlist_enforced=true' \
+  'built_in_signer_artifact_bound=true' \
+  'tool_executor_host_execution_verified=true' \
+  'tool_executor_deadline_cancel_verified=true' \
+  'tool_executor_output_limit_verified=true' \
+  'tool_executor_audit_bounded_verified=true' \
+  'tool_executor_android13_arm64_verified=false' \
+  'tool_executor_runtime_wired=false' \
   'tool_execution_enabled=false' \
+  'production_tool_execution_enabled=false' \
   'production_tool_registered=false' \
   'production_tool_artifact_loaded=false' \
   'client2_session_event_primary_api=true' \
@@ -526,8 +539,10 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P5-W04 ToolExecutor boundary" not in remaining or "Tool/Skill runtime" not in remaining:
-    raise SystemExit("README remaining-work table must identify P5-W04 ToolExecutor boundary as the next unfinished scope")
+if "P5-W05 Skill package verifier" not in remaining or "Tool/Skill runtime" not in remaining:
+    raise SystemExit("README remaining-work table must identify P5-W05 Skill package verifier as the next unfinished scope")
+if "P5 Tool Executor boundary" not in developed:
+    raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
 
 for group in (
     "APP-004",

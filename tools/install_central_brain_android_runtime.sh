@@ -2807,6 +2807,74 @@ if [[ "$TOOL_RULE_SOLVER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+TOOL_EXECUTOR_NONCE="$(date +%s%N)"
+TOOL_EXECUTOR_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.tools.ToolExecutorProbeActivity \
+  --es nonce "$TOOL_EXECUTOR_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$TOOL_EXECUTOR_PROBE_OUTPUT"; then
+  echo "$TOOL_EXECUTOR_PROBE_OUTPUT" >&2
+  echo "Tool executor debug probe did not start successfully" >&2
+  exit 1
+fi
+TOOL_EXECUTOR_PROBE_PASSED=false
+for _ in {1..40}; do
+  TOOL_EXECUTOR_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbToolExecutor:I)"
+  if grep -Fq \
+      "nonce=$TOOL_EXECUTOR_NONCE tool_executor_probe_complete=true" \
+      <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_executor_contract_defined=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_invocation_context_defined=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "built_in_allowlist_enforced=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "built_in_signer_artifact_bound=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_executor_success_verified=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_executor_deadline_cancel_verified=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_executor_output_limit_verified=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_executor_audit_bounded_verified=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_executor_android13_arm64_verified=true" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_executor_runtime_wired=false" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_execution_enabled=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "production_tool_execution_enabled=false" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "production_tool_registered=false" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "tool_approval_authority_available=false" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "os_virtualization_enabled=false" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "subprocess_started=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "dynamic_class_loading_enabled=false" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" \
+        <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "production_ready=false" <<<"$TOOL_EXECUTOR_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$TOOL_EXECUTOR_LOG"; then
+    TOOL_EXECUTOR_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$TOOL_EXECUTOR_PROBE_PASSED" != true ]]; then
+  echo "$TOOL_EXECUTOR_LOG" >&2
+  echo "Tool executor probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3374,10 +3442,24 @@ printf '%s\n' \
   "tool_rule_solver_android13_arm64_verified=true" \
   "tool_rule_solver_published=false" \
   "tool_rule_solver_runtime_wired=false" \
+  "tool_executor_contract_defined=true" \
+  "tool_invocation_context_defined=true" \
+  "built_in_allowlist_enforced=true" \
+  "built_in_signer_artifact_bound=true" \
+  "tool_executor_success_verified=true" \
+  "tool_executor_deadline_cancel_verified=true" \
+  "tool_executor_output_limit_verified=true" \
+  "tool_executor_audit_bounded_verified=true" \
+  "tool_executor_android13_arm64_verified=true" \
+  "tool_executor_runtime_wired=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
+  "production_tool_execution_enabled=false" \
   "production_tool_registered=false" \
   "production_tool_artifact_loaded=false" \
+  "os_virtualization_enabled=false" \
+  "subprocess_started=false" \
+  "dynamic_class_loading_enabled=false" \
   "vehicle_readback_accessed=false" \
   "npu_accessed=false" \
   "durable_replay_callback_verified=true" \
