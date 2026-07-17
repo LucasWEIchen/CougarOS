@@ -222,3 +222,31 @@ target_hardware_validated=false
 
 该证据是当前 Client2 debug APK 的应用层恢复验收。SharedPreferences 的 production encryption/backup/user owner 仍由
 `DEV-052/ISSUE-035` 跟踪，四阶段 shell/HVAC/Seat/Runtime 执行闭环未完成。
+
+## 10. 2026-07-17 P4-W03 intent-first four-stage shell evidence
+
+同一 Android 13/API 33 ARM64 USB 设备通过：
+
+1. signed Client2/Runtime signer parity 和 secondary SDK dex 检查；
+2. panel exact bounds `(1264,160)-(1888,1048)`、原 render region full-screen、导航显隐和外部点击隐藏；
+3. Intent/Plan/Execution/Result 四阶段可选择，四项自然场景为唯一 primary input；
+4. cold intent 提交后进入 Plan，typed Session snapshot/event/replay 正常；
+5. HVAC device drawer 打开/关闭，control surface 仍为 placeholder；
+6. Runtime unavailable/retry、Runtime death replay、Client2 restart/resume、hidden state restore 全部通过；
+7. UI 明确显示 Graph/Effect/readback unavailable，未访问车辆/NPU/Driver-HAL。
+
+```text
+cockpit_hmi_four_stage_shell_verified=true
+cockpit_hmi_safe_frame_1920x1080_verified=true
+cockpit_hmi_device_drawer_verified=true
+cockpit_hvac_surface_implemented=false
+cockpit_seat_surface_implemented=false
+scenario_execution_enabled=false
+service_dispatch_triggered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本节只记录脱敏应用层证据。设备序列号、raw UI XML/logcat、用户/模型文本和车辆 payload 位于本地未跟踪日志，
+不进入 GitHub。固定分辨率差异由 `DEV-053` 跟踪；下一硬件增量为 P4-W04 HVAC control surface。

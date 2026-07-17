@@ -23,7 +23,11 @@ python3 -m json.tool "$PROJECT_DIR/client2-central-brain.project.json" >/dev/nul
 for resource_file in \
   'central_brain_panel_background.xml' \
   'central_brain_action_button.xml' \
-  'central_brain_reply_background.xml'; do
+  'central_brain_reply_background.xml' \
+  'central_brain_stage_tab.xml' \
+  'central_brain_status_badge.xml' \
+  'central_brain_section_background.xml' \
+  'central_brain_drawer_background.xml'; do
   test -f "$PROJECT_DIR/patches/res/drawable/$resource_file"
 done
 
@@ -54,34 +58,46 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q "@id/view1" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainColdButton" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainTiredButton" "$WORK_DIR/res/layout/main_layout.xml"
-  for button_id in \
+  for surface_id in \
+    centralBrainHeader \
+    centralBrainSourceText \
+    centralBrainDrivingText \
+    centralBrainConnectionText \
+    centralBrainIntentTab \
+    centralBrainPlanTab \
+    centralBrainExecutionTab \
+    centralBrainResultTab \
+    centralBrainIntentSurface \
+    centralBrainPlanSurface \
+    centralBrainExecutionSurface \
+    centralBrainResultSurface \
     centralBrainHomeButton \
     centralBrainNapButton \
-    centralBrainVehicleStateButton \
-    centralBrainMemoryButton \
-    centralBrainSkillsButton \
-    centralBrainAuditButton \
-    centralBrainDeniedButton \
-    centralBrainPrivacyButton \
-    centralBrainNpuButton \
-    centralBrainOverviewButton; do
-    rg -q "$button_id" "$WORK_DIR/res/layout/main_layout.xml"
+    centralBrainSessionStrip \
+    centralBrainDeviceDrawer \
+    centralBrainHvacDetailButton \
+    centralBrainSeatDetailButton; do
+    rg -q "$surface_id" "$WORK_DIR/res/layout/main_layout.xml"
+  done
+  for stage_tag in \
+    central_brain_stage_intent \
+    central_brain_stage_plan \
+    central_brain_stage_execution \
+    central_brain_stage_result; do
+    rg -Fq "android:tag=\"$stage_tag\"" "$WORK_DIR/res/layout/main_layout.xml"
   done
   for scenario_id in \
     care.cold \
     care.fatigue \
     task.home \
-    skill.nap \
-    state.vehicle \
-    memory.preference \
-    skills.catalog \
-    governance.audit \
-    security.denied \
-    security.privacy \
-    runtime.npu \
-    system.overview; do
+    skill.nap; do
     rg -Fq "android:tag=\"$scenario_id\"" "$WORK_DIR/res/layout/main_layout.xml"
   done
+  if rg -q 'android:tag="(state\.vehicle|memory\.preference|skills\.catalog|governance\.audit|security\.denied|security\.privacy|runtime\.npu|system\.overview)"' \
+      "$WORK_DIR/res/layout/main_layout.xml"; then
+    echo "legacy diagnostic aliases must not remain on the intent-first primary surface" >&2
+    exit 1
+  fi
   rg -q "centralBrainReplyText" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "central_brain_panel_background" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainRenderRegion.*android:layout_width="match_parent".*android:layout_height="match_parent"' "$WORK_DIR/res/layout/main_layout.xml"
@@ -90,12 +106,12 @@ if [[ -d "$WORK_DIR" ]]; then
     exit 1
   fi
   rg -q 'centralBrainPanelOverlay.*android:layout_width="match_parent".*android:layout_height="match_parent".*android:visibility="gone".*android:clickable="true"' "$WORK_DIR/res/layout/main_layout.xml"
-  rg -q 'centralBrainPanel.*android:layout_width="0.0dp".*android:layout_weight="1.0".*android:elevation="8.0dp"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'centralBrainPanel.*android:layout_width="624.0dp".*android:layout_height="888.0dp".*android:layout_gravity="top|right".*android:layout_marginTop="160.0dp".*android:layout_marginRight="32.0dp".*android:elevation="8.0dp"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainNavigationTriggerRail.*android:layout_height="96.0dp".*android:layout_gravity="bottom".*android:weightSum="24.0"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'Space.*android:layout_weight="9.5"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainNavigationTrigger.*android:tag="central_brain_menu_toggle".*android:layout_weight="1.0".*android:background="@android:color/transparent".*android:clickable="true".*android:contentDescription="Central Brain menu"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'Space.*android:layout_weight="13.5"' "$WORK_DIR/res/layout/main_layout.xml"
-  rg -q '#B8F1F3F5' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
+  rg -q '#99EEF2F3' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
   rg -q '#E8FFFFFF' "$WORK_DIR/res/drawable/central_brain_action_button.xml"
   rg -q '#C8FFFFFF' "$WORK_DIR/res/drawable/central_brain_reply_background.xml"
   rg -q "com.centralbrain.permission.BIND_RUNTIME" "$WORK_DIR/AndroidManifest.xml"

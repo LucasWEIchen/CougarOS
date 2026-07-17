@@ -24,6 +24,14 @@ public final class CockpitControlCoordinator implements
         Application.ActivityLifecycleCallbacks {
     private static final String TAG = "CbClient2Hmi";
     private static final String MENU_TAG = "central_brain_menu_toggle";
+    private static final String PANEL_CLOSE_TAG = "central_brain_panel_close";
+    private static final String DRAWER_CLOSE_TAG = "central_brain_drawer_close";
+    private static final String INTENT_STAGE_TAG = "central_brain_stage_intent";
+    private static final String PLAN_STAGE_TAG = "central_brain_stage_plan";
+    private static final String EXECUTION_STAGE_TAG = "central_brain_stage_execution";
+    private static final String RESULT_STAGE_TAG = "central_brain_stage_result";
+    private static final String HVAC_DETAIL_TAG = "central_brain_detail_hvac";
+    private static final String SEAT_DETAIL_TAG = "central_brain_detail_seat";
     private static final String PREFS_NAME = "central_brain_hmi_state_v1";
     private static final int CHECKPOINT_SCHEMA = 1;
     private static final Object ACTIVE_LOCK = new Object();
@@ -38,7 +46,27 @@ public final class CockpitControlCoordinator implements
     private CockpitHmiState state;
     private Client2ScenarioBridge.SessionConnection connection;
     private TextView replyView;
+    private TextView connectionView;
+    private TextView intentPreviewView;
+    private TextView planSummaryView;
+    private TextView planChainView;
+    private TextView executionSummaryView;
+    private TextView executionChainView;
+    private TextView resultSummaryView;
+    private TextView resultEvidenceView;
+    private TextView sessionStripTitleView;
+    private TextView drawerTitleView;
+    private TextView drawerBodyView;
     private View panelOverlay;
+    private View intentSurface;
+    private View planSurface;
+    private View executionSurface;
+    private View resultSurface;
+    private View intentTab;
+    private View planTab;
+    private View executionTab;
+    private View resultTab;
+    private View deviceDrawer;
     private boolean detached;
 
     private CockpitControlCoordinator(Activity activity) {
@@ -85,14 +113,31 @@ public final class CockpitControlCoordinator implements
     }
 
     private void bindViews() {
-        View controls = findView("centralBrainControlGroup");
-        if (controls != null) {
-            bindButtons(controls);
+        View panel = findView("centralBrainPanel");
+        if (panel != null) {
+            bindButtons(panel);
         }
-        View reply = findView("centralBrainReplyText");
-        if (reply instanceof TextView) {
-            replyView = (TextView) reply;
-        }
+        replyView = findTextView("centralBrainReplyText");
+        connectionView = findTextView("centralBrainConnectionText");
+        intentPreviewView = findTextView("centralBrainIntentPreviewText");
+        planSummaryView = findTextView("centralBrainPlanSummaryText");
+        planChainView = findTextView("centralBrainPlanChainText");
+        executionSummaryView = findTextView("centralBrainExecutionSummaryText");
+        executionChainView = findTextView("centralBrainExecutionChainText");
+        resultSummaryView = findTextView("centralBrainResultSummaryText");
+        resultEvidenceView = findTextView("centralBrainResultEvidenceText");
+        sessionStripTitleView = findTextView("centralBrainSessionStripTitle");
+        drawerTitleView = findTextView("centralBrainDrawerTitle");
+        drawerBodyView = findTextView("centralBrainDrawerBodyText");
+        intentSurface = findView("centralBrainIntentSurface");
+        planSurface = findView("centralBrainPlanSurface");
+        executionSurface = findView("centralBrainExecutionSurface");
+        resultSurface = findView("centralBrainResultSurface");
+        intentTab = findView("centralBrainIntentTab");
+        planTab = findView("centralBrainPlanTab");
+        executionTab = findView("centralBrainExecutionTab");
+        resultTab = findView("centralBrainResultTab");
+        deviceDrawer = findView("centralBrainDeviceDrawer");
         panelOverlay = findView("centralBrainPanelOverlay");
         if (panelOverlay != null) {
             panelOverlay.setOnClickListener(this);
@@ -109,6 +154,11 @@ public final class CockpitControlCoordinator implements
                 "id",
                 activity.getPackageName());
         return id == 0 ? null : activity.findViewById(id);
+    }
+
+    private TextView findTextView(String name) {
+        View view = findView(name);
+        return view instanceof TextView ? (TextView) view : null;
     }
 
     private void bindButtons(View view) {
@@ -142,12 +192,54 @@ public final class CockpitControlCoordinator implements
                     state.getPanelVisibility() != CockpitHmiState.PanelVisibility.VISIBLE);
             return;
         }
+        if (PANEL_CLOSE_TAG.equals(tag)) {
+            setPanelVisible(false);
+            return;
+        }
+        if (DRAWER_CLOSE_TAG.equals(tag)) {
+            accept(CockpitHmiReducer.Event.drawerSelected(
+                    CockpitHmiState.DeviceDrawer.CLOSED));
+            return;
+        }
+        if (INTENT_STAGE_TAG.equals(tag)) {
+            selectSurface(CockpitHmiState.SurfaceStage.INTENT);
+            return;
+        }
+        if (PLAN_STAGE_TAG.equals(tag)) {
+            selectSurface(CockpitHmiState.SurfaceStage.PLAN);
+            return;
+        }
+        if (EXECUTION_STAGE_TAG.equals(tag)) {
+            selectSurface(CockpitHmiState.SurfaceStage.EXECUTION);
+            return;
+        }
+        if (RESULT_STAGE_TAG.equals(tag)) {
+            selectSurface(CockpitHmiState.SurfaceStage.RESULT);
+            return;
+        }
+        if (HVAC_DETAIL_TAG.equals(tag)) {
+            accept(CockpitHmiReducer.Event.drawerSelected(
+                    CockpitHmiState.DeviceDrawer.HVAC));
+            return;
+        }
+        if (SEAT_DETAIL_TAG.equals(tag)) {
+            accept(CockpitHmiReducer.Event.drawerSelected(
+                    CockpitHmiState.DeviceDrawer.SEAT));
+            return;
+        }
         if (!(view instanceof TextView)) {
             return;
         }
         String scenarioId = tag == null ? "" : tag.toString();
         CharSequence text = ((TextView) view).getText();
         startScenario(scenarioId, text == null ? "" : text.toString());
+    }
+
+    private void selectSurface(CockpitHmiState.SurfaceStage surfaceStage) {
+        accept(CockpitHmiReducer.Event.surfaceSelected(surfaceStage));
+        Log.i(TAG, markers()
+                + " client2_hmi_surface_selected=true"
+                + " hmi_surface=" + surfaceStage);
     }
 
     private void setPanelVisible(boolean visible) {
@@ -293,6 +385,8 @@ public final class CockpitControlCoordinator implements
                 + " client2_hmi_state_reduced=true"
                 + " hmi_revision=" + next.getRevision()
                 + " hmi_connection=" + next.getConnectionState()
+                + " hmi_surface=" + next.getSurfaceStage()
+                + " hmi_drawer=" + next.getDeviceDrawer()
                 + " hmi_last_event_sequence=" + next.getLastEventSequence());
     }
 
@@ -316,7 +410,136 @@ public final class CockpitControlCoordinator implements
             if (replyView != null) {
                 replyView.setText(current.renderText());
             }
+            renderSurface(current);
         });
+    }
+
+    private void renderSurface(CockpitHmiState current) {
+        CockpitHmiState.SurfaceStage selected = current.getSurfaceStage();
+        setVisible(intentSurface, selected == CockpitHmiState.SurfaceStage.INTENT);
+        setVisible(planSurface, selected == CockpitHmiState.SurfaceStage.PLAN);
+        setVisible(executionSurface, selected == CockpitHmiState.SurfaceStage.EXECUTION);
+        setVisible(resultSurface, selected == CockpitHmiState.SurfaceStage.RESULT);
+        setActivated(intentTab, selected == CockpitHmiState.SurfaceStage.INTENT);
+        setActivated(planTab, selected == CockpitHmiState.SurfaceStage.PLAN);
+        setActivated(executionTab, selected == CockpitHmiState.SurfaceStage.EXECUTION);
+        setActivated(resultTab, selected == CockpitHmiState.SurfaceStage.RESULT);
+
+        setText(connectionView, connectionLabel(current.getConnectionState()));
+        String phrase = phraseForScenario(current.getUiScenarioId());
+        setText(intentPreviewView, phrase.isEmpty() ? "选择一个场景意图" : phrase);
+        if (current.hasSession()) {
+            String canonical = current.getCanonicalScenarioId().isEmpty()
+                    ? "正在确认场景" : current.getCanonicalScenarioId();
+            setText(planSummaryView, "已受理：" + (phrase.isEmpty() ? canonical : phrase));
+            setText(planChainView,
+                    "01  意图：" + canonical
+                            + "\n02  Context：未接入车辆数据"
+                            + "\n03  Plan：未发布"
+                            + "\n04  Policy：仅 Session admission"
+                            + "\n05  Effect：未调度");
+            setText(executionSummaryView,
+                    current.isReplayComplete() ? "Session 已同步，执行尚未启用" : "正在同步 Session");
+            setText(executionChainView,
+                    "Session：ACCEPTED"
+                            + "\nGraph：NOT WIRED"
+                            + "\nEffect：NOT DISPATCHED"
+                            + "\nReadback：UNAVAILABLE");
+            setText(sessionStripTitleView, "软件 Session 已受理");
+        } else {
+            setText(planSummaryView, "等待场景意图");
+            setText(planChainView,
+                    "01  意图：等待"
+                            + "\n02  Context：未接入"
+                            + "\n03  Plan：未发布"
+                            + "\n04  Policy：等待"
+                            + "\n05  Effect：未调度");
+            setText(executionSummaryView, "尚未启动自动执行");
+            setText(executionChainView,
+                    "Session：等待"
+                            + "\nGraph：NOT WIRED"
+                            + "\nEffect：NOT DISPATCHED"
+                            + "\nReadback：UNAVAILABLE");
+            setText(sessionStripTitleView, "等待场景输入");
+        }
+        setText(resultSummaryView, "暂无可验证车辆结果");
+        setText(resultEvidenceView,
+                "Desired：UNAVAILABLE"
+                        + "\nReported：UNAVAILABLE"
+                        + "\nSource：UNAVAILABLE"
+                        + "\nQuality：NO EVIDENCE");
+        renderDrawer(current.getDeviceDrawer());
+    }
+
+    private void renderDrawer(CockpitHmiState.DeviceDrawer drawer) {
+        setVisible(deviceDrawer, drawer != CockpitHmiState.DeviceDrawer.CLOSED);
+        if (drawer == CockpitHmiState.DeviceDrawer.HVAC) {
+            setText(drawerTitleView, "空调 Effect");
+            setText(drawerBodyView,
+                    "Surface：NOT IMPLEMENTED (P4-W04)"
+                            + "\nDesired：UNAVAILABLE"
+                            + "\nReported：UNAVAILABLE"
+                            + "\nSource：UNAVAILABLE");
+        } else if (drawer == CockpitHmiState.DeviceDrawer.SEAT) {
+            setText(drawerTitleView, "座椅 Effect");
+            setText(drawerBodyView,
+                    "Surface：NOT IMPLEMENTED (P4-W05)"
+                            + "\nDesired：UNAVAILABLE"
+                            + "\nReported：UNAVAILABLE"
+                            + "\nSource：UNAVAILABLE");
+        }
+    }
+
+    private static void setVisible(View view, boolean visible) {
+        if (view != null) {
+            view.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private static void setActivated(View view, boolean activated) {
+        if (view != null) {
+            view.setActivated(activated);
+        }
+    }
+
+    private static void setText(TextView view, String value) {
+        if (view != null) {
+            view.setText(value);
+        }
+    }
+
+    private static String connectionLabel(CockpitHmiState.ConnectionState state) {
+        switch (state) {
+            case CONNECTING:
+                return "正在连接";
+            case CONNECTED:
+                return "已连接";
+            case RECONNECTING:
+                return "正在恢复";
+            case FAILED:
+                return "连接失败";
+            case CLOSED:
+                return "已关闭";
+            case DISCONNECTED:
+            default:
+                return "未连接";
+        }
+    }
+
+    private static String phraseForScenario(String scenarioId) {
+        if ("care.fatigue".equals(scenarioId)) {
+            return "我有些疲惫";
+        }
+        if ("care.cold".equals(scenarioId)) {
+            return "车里有点冷";
+        }
+        if ("skill.nap".equals(scenarioId)) {
+            return "我想休息一会";
+        }
+        if ("task.home".equals(scenarioId)) {
+            return "准备回家";
+        }
+        return "";
     }
 
     private CockpitHmiState restoreCheckpoint() {
@@ -406,6 +629,11 @@ public final class CockpitControlCoordinator implements
     private String markers() {
         return "cockpit_hmi_state_reducer_implemented=true"
                 + " cockpit_hmi_lifecycle_owner_java=true"
+                + " cockpit_hmi_four_stage_shell_implemented=true"
+                + " cockpit_hmi_intent_first_primary=true"
+                + " cockpit_hmi_device_drawer_scaffolded=true"
+                + " cockpit_hvac_surface_implemented=false"
+                + " cockpit_seat_surface_implemented=false"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"

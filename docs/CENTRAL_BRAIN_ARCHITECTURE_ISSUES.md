@@ -330,6 +330,12 @@ text-free checkpoint 已完成；旧 Smali controller 已删除。Android 13 ARM
 replay、Client2 process restart、hidden-state restore 和 UI projection。当前仍无“意图/计划/执行/结果”四阶段 shell、
 HVAC/Seat surface 或 Runtime scenario/Graph/Effect 执行，因此本问题保持 Open，下一关闭子项为 P4-W03。
 
+P4-W03 进展：intent-first 四阶段 shell、四项自然场景、source/driving/connection Header、HVAC/Seat 次级详情抽屉、
+1920x1080 safe frame 和 60% 半透明材质已进入 Client2 APK。Android 13 ARM64 已验证阶段切换、抽屉、导航显隐、
+外部点击隐藏以及 Runtime/Client2 recovery。Plan/Execution/Result 明确显示 unavailable/not wired/not dispatched，
+没有伪造车控成功。HVAC/Seat control surface、Runtime scenario/Graph/Effect 和真实 readback 仍未实现，因此本问题
+保持 Open，下一关闭子项为 P4-W04；固定画布/placeholder 差异由 `DEV-053` 跟踪。
+
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。

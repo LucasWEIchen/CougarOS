@@ -21,9 +21,21 @@ public final class CockpitHmiReducer {
                 next.panelVisibility = event.flag
                         ? CockpitHmiState.PanelVisibility.VISIBLE
                         : CockpitHmiState.PanelVisibility.HIDDEN;
+                if (!event.flag) {
+                    next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
+                }
+                return next.buildNext();
+            case SURFACE_SELECTED:
+                next.surfaceStage = event.surfaceStage;
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
+                return next.buildNext();
+            case DRAWER_SELECTED:
+                next.deviceDrawer = event.deviceDrawer;
                 return next.buildNext();
             case SCENARIO_SUBMITTED:
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
+                next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
                 next.uiScenarioId = event.uiScenarioId;
                 next.canonicalScenarioId = "";
                 next.handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -142,6 +154,8 @@ public final class CockpitHmiReducer {
                 next.panelVisibility = checkpoint.panelVisible
                         ? CockpitHmiState.PanelVisibility.VISIBLE
                         : CockpitHmiState.PanelVisibility.HIDDEN;
+                next.surfaceStage = CockpitHmiState.SurfaceStage.INTENT;
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
                 next.uiScenarioId = checkpoint.uiScenarioId;
                 next.canonicalScenarioId = checkpoint.canonicalScenarioId;
                 next.handleSchemaVersion = checkpoint.handleSchemaVersion;
@@ -174,6 +188,8 @@ public final class CockpitHmiReducer {
     public static final class Event {
         private enum Type {
             PANEL_VISIBILITY,
+            SURFACE_SELECTED,
+            DRAWER_SELECTED,
             SCENARIO_SUBMITTED,
             CONNECTION_CHANGED,
             SESSION_OPENED,
@@ -189,6 +205,8 @@ public final class CockpitHmiReducer {
 
         private final Type type;
         private boolean flag;
+        private CockpitHmiState.SurfaceStage surfaceStage;
+        private CockpitHmiState.DeviceDrawer deviceDrawer;
         private String uiScenarioId = "";
         private String canonicalScenarioId = "";
         private String sessionId = "";
@@ -210,6 +228,18 @@ public final class CockpitHmiReducer {
         public static Event panelVisibility(boolean visible) {
             Event event = new Event(Type.PANEL_VISIBILITY);
             event.flag = visible;
+            return event;
+        }
+
+        public static Event surfaceSelected(CockpitHmiState.SurfaceStage surfaceStage) {
+            Event event = new Event(Type.SURFACE_SELECTED);
+            event.surfaceStage = Objects.requireNonNull(surfaceStage, "surfaceStage");
+            return event;
+        }
+
+        public static Event drawerSelected(CockpitHmiState.DeviceDrawer deviceDrawer) {
+            Event event = new Event(Type.DRAWER_SELECTED);
+            event.deviceDrawer = Objects.requireNonNull(deviceDrawer, "deviceDrawer");
             return event;
         }
 

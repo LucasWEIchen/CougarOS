@@ -27,7 +27,7 @@
 Client2 MainActivity
 ├── res/layout/main_layout.xml
 │   ├── full-screen: original TuanjieView containers view1/view2/view3
-│   ├── overlay: translucent right 1/3 Central Brain menu, initially hidden
+│   ├── overlay: 624x888 four-stage Central Brain shell in the 1920x1080 safe frame
 │   └── transparent bottom navigation trigger rail
 ├── AndroidManifest.xml
 │   └── Runtime package query + signature Binder permission, no INTERNET
@@ -39,14 +39,20 @@ Client2 MainActivity
     └── MainActivity.smali setContentView 后仅调用 CockpitControlCoordinator.install
 ```
 
-原始 `TuanjieView` 容器保持 `match_parent` 全屏，不因新增 UI 改变车模 viewport。右侧约 1/3 面板通过根 `FrameLayout` 上的 `centralBrainPanelOverlay` 覆盖车模，使用半透明浅灰背景、12dp 外边距、6dp 圆角、8dp elevation、浅色按钮和浅色回复区。上部固定高度控件区可独立滚动，按“场景任务”“状态与成长”“安全与系统”三组提供 12 个按钮；下部 `centralBrainReplyText` 保持固定结果区域。
+原始 `TuanjieView` 容器保持 `match_parent` 全屏，不因新增 UI 改变车模 viewport。面板通过根 `FrameLayout` 上的
+`centralBrainPanelOverlay` 覆盖车模，固定在 `(1264,160)-(1888,1048)`，使用 alpha=0.60 半透明浅灰背景。
+主 Intent 只提供“我有些疲惫”“车里有点冷”“我想休息一会”“准备回家”四项自然场景；Intent/Plan/Execution/Result
+四阶段和 source/driving/connection Header 显示自动化链。HVAC/Seat 只位于次级详情 drawer；下部
+`centralBrainReplyText` 保留现有 Session projection。
 
 面板启动状态为 `GONE`。Client2 底部导航由 Tuanjie/RenderService 绘制，没有 Android `View` 回调；patch 在底部增加透明、可访问性可识别的 `centralBrainNavigationTrigger`，映射当前导航图标。首次点击显示菜单，第二次点击或点击面板外区域隐藏；面板自身消费点击，内部按钮和滚动不会关闭菜单。
 
-每个按钮通过 `android:tag` 绑定稳定 UI alias。P4-W01 后，`Client2ScenarioBridge.openSession` 通过 12 项 exact
-map 转换为 canonical Session ID，再由 public `SessionClient` 打开 Session。P4-W02 把 typed
+每个 primary scene 通过 `android:tag` 绑定稳定 UI alias。P4-W01 后，`Client2ScenarioBridge.openSession` 通过 12 项 exact
+compatibility map 转换为 canonical Session ID，再由 public `SessionClient` 打开 Session。P4-W02 把 typed
 snapshot/event/replay callback 统一送入 immutable `CockpitHmiState` 和唯一 reducer；Java coordinator 只按
 reducer state 渲染，且负责 Session replacement、Activity lifecycle、reconnect 和 existing Session resume。
+P4-W03 又把 stage/drawer 纳入同一 reducer；场景提交后进入 Plan，Execution/Result 在没有证据时明确显示
+Graph `NOT WIRED`、Effect `NOT DISPATCHED` 和 readback `UNAVAILABLE`。
 旧 Smali controller 已删除，旧 `submit(...)` 只作为未被当前 UI 调用的兼容入口。APK 不申请网络权限，不保留
 HTTP fallback。场景产品定义和实现顺序见 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md` 与
 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`。
@@ -134,6 +140,10 @@ Binder/UI 脚本、Android 13 目标设备证据和受控 GitHub 硬件测试流
 再次打开并完成 `care.cold` typed Binder/UI 回复。P4-W02 恢复矩阵确认 Client2 进程重启后恢复同一 Session，
 隐藏面板状态保持不变，重新打开后 replay projection 继续；Runtime 不可用/死亡/恢复、Session reconnect/replay、
 duplicate suppression、Session replacement 和 Binder race 未回归，checkpoint 未持久化显示文本。
+
+P4-W03 在同一设备继续验证 exact panel bounds、四阶段切换、cold intent 后 Plan projection、HVAC drawer、导航和外部
+点击隐藏。`cockpit_hvac_surface_implemented=false`、`cockpit_seat_surface_implemented=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`；下一工作包为 P4-W04。
 
 该坐标只记录当前受测显示配置，不是跨分辨率稳定接口。量产应改用源码 HMI 导航事件或厂商公开
 回调；在此之前，其他 density、分辨率或主题必须单独执行触点与可访问性回归。

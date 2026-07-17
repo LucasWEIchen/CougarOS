@@ -17,9 +17,15 @@ public final class CockpitHmiState {
         CLOSED
     }
 
+    public enum SurfaceStage { INTENT, PLAN, EXECUTION, RESULT }
+
+    public enum DeviceDrawer { CLOSED, HVAC, SEAT }
+
     private final long revision;
     private final PanelVisibility panelVisibility;
     private final ConnectionState connectionState;
+    private final SurfaceStage surfaceStage;
+    private final DeviceDrawer deviceDrawer;
     private final String uiScenarioId;
     private final String canonicalScenarioId;
     private final int handleSchemaVersion;
@@ -41,6 +47,8 @@ public final class CockpitHmiState {
         revision = builder.revision;
         panelVisibility = builder.panelVisibility;
         connectionState = builder.connectionState;
+        surfaceStage = builder.surfaceStage;
+        deviceDrawer = builder.deviceDrawer;
         uiScenarioId = builder.uiScenarioId;
         canonicalScenarioId = builder.canonicalScenarioId;
         handleSchemaVersion = builder.handleSchemaVersion;
@@ -73,6 +81,14 @@ public final class CockpitHmiState {
 
     public ConnectionState getConnectionState() {
         return connectionState;
+    }
+
+    public SurfaceStage getSurfaceStage() {
+        return surfaceStage;
+    }
+
+    public DeviceDrawer getDeviceDrawer() {
+        return deviceDrawer;
     }
 
     public String getUiScenarioId() {
@@ -220,6 +236,8 @@ public final class CockpitHmiState {
         long revision;
         PanelVisibility panelVisibility = PanelVisibility.HIDDEN;
         ConnectionState connectionState = ConnectionState.DISCONNECTED;
+        SurfaceStage surfaceStage = SurfaceStage.INTENT;
+        DeviceDrawer deviceDrawer = DeviceDrawer.CLOSED;
         String uiScenarioId = "";
         String canonicalScenarioId = "";
         int handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -243,6 +261,8 @@ public final class CockpitHmiState {
             revision = source.revision;
             panelVisibility = source.panelVisibility;
             connectionState = source.connectionState;
+            surfaceStage = source.surfaceStage;
+            deviceDrawer = source.deviceDrawer;
             uiScenarioId = source.uiScenarioId;
             canonicalScenarioId = source.canonicalScenarioId;
             handleSchemaVersion = source.handleSchemaVersion;

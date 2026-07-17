@@ -1224,3 +1224,30 @@ Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006
 `client2_hmi_checkpoint_text_persisted=false`、`legacy_text_callback_authoritative=false`、
 `cockpit_demo_control_loop_implemented=false`、`scenario_execution_enabled=false`、
 `hardware_accessed=false`、`implementation_stage=P4-W03`。
+
+## 44. P4-W03 intent-first four-stage overlay shell trace
+
+Req IDs：`S2-UX-001..003`、`S2-HMI-001..003/006`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 主交互面只允许四项 bounded natural-scene input：`care.fatigue`、`care.cold`、`skill.nap`、
+   `task.home`。诊断、安全、Memory、NPU 等兼容 alias 可保留在 bridge allowlist，但不得回到主按钮台。
+2. overlay 必须包含 Intent、Plan、Execution、Result 四个明确 stage；stage selection、scenario submit 后转 Plan、
+   drawer open/close 和 panel hide 都必须经唯一 `CockpitHmiReducer`，View 不得自建第二状态机。
+3. Header 必须持续显示 connection、source 和 driving state。输入未接 Context 时 source 显示 `UNAVAILABLE`；
+   driving state 未接时显示 `UNKNOWN` 并标记 restricted，不得猜测 PARKED 或 SIMULATED。
+4. Plan/Execution/Result 只能投影已有 Session/Event 证据。Graph 未接显示 `NOT WIRED`，Effect 未接显示
+   `NOT DISPATCHED`，readback 未接显示 `UNAVAILABLE`，不得将 accepted Session 表述为车辆动作完成。
+5. HVAC/Seat 入口必须位于次级 device detail drawer。P4-W03 只允许 placeholder/detail scaffold，不允许 power、
+   temperature、fan、recline 等控件生成 Effect 或直接调用 debug/production adapter。
+6. 1920x1080 当前目标的 panel 必须位于 `(1264,160)-(1888,1048)`，尺寸 `624x888`，主背景 alpha=0.60；
+   原 Client2 render region 保持 full-screen，底部导航显示/隐藏和 panel 外点击隐藏保持有效。
+7. Android 13/API 33 ARM64 必须验证 signed APK、exact bounds、四阶段、drawer、Session projection、Runtime/Client2
+   process recovery；测试证据不得包含 raw device identity、用户/模型文本或车辆 payload。
+8. 本包不得启用 scenario/Graph/Effect dispatch、HVAC/Seat control、车辆/VHAL/NPU/Driver-HAL 或生产资格。
+
+状态：`cockpit_hmi_four_stage_shell_implemented=true`、`cockpit_hmi_intent_first_primary=true`、
+`cockpit_hmi_safe_frame_1920x1080_verified=true`、`cockpit_hmi_material_alpha=0.60`、
+`cockpit_hmi_device_drawer_scaffolded=true`、`cockpit_hvac_surface_implemented=false`、
+`cockpit_seat_surface_implemented=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W04`。

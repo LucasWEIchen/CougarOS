@@ -199,10 +199,12 @@
 - `P4-W02 Cockpit HMI state/reducer/reconnect` 已完成：immutable `CockpitHmiState`、唯一 `CockpitHmiReducer` 与
   Java `CockpitControlCoordinator` 取代旧 Smali state/lifecycle owner；bridge 新增 existing Session resume，Activity/
   process recreate 使用 text-free private checkpoint 恢复 handle/cursor/sequence，隐藏面板状态和 replay 去重均经
-  Android 13 ARM64 实机验证。该 checkpoint 不是量产加密 HMI store，P4-W03 四阶段 renderer 与 Runtime
-  scenario/Graph/Effect wiring 仍未实现。
+  Android 13 ARM64 实机验证。该 checkpoint 不是量产加密 HMI store。
+- `P4-W03 Intent-first four-stage overlay shell` 已完成：Client2 主面板已提供 Intent/Plan/Execution/Result、四项
+  natural scene、source/driving/connection Header、HVAC/Seat 次级 drawer、1920x1080 safe frame 和 alpha=0.60；
+  Android 13 ARM64 验证通过。HVAC/Seat controls 与 Runtime scenario/Graph/Effect wiring 仍未实现，下一步 P4-W04。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-G-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
-- `R7C Android 13 application integration acceptance` 已演进到合同 1.1：API 33 自动矩阵覆盖 Runtime unavailable/re-enable retry、legacy Session stream replacement、Runtime process death 后原 Session reconnect/cursor replay/duplicate suppression、无伪 terminal、Client2 process restart/rebind，以及既有 Binder reconnect/callback death/cancel race 回归。
+- `R7C Android 13 application integration acceptance` 已演进到合同 1.3：API 33 自动矩阵覆盖 Runtime unavailable/re-enable retry、Session stream replacement、Runtime process death 后原 Session reconnect/cursor replay/duplicate suppression、无伪 terminal、Client2 process restart/rebind、四阶段 shell/safe-frame/drawer，以及既有 Binder reconnect/callback death/cancel race 回归。
 - Process death 只由 DUMP-protected debug receiver 注入，release 不包含该组件。验收合同与证据范围固定为 `api33-emulator-application-integration`，不升级为目标设备或量产证据。
 - `r7_application_integration_complete=true`、`api33_end_to_end_acceptance_complete=true`；剩余七项 blocker 为 target system owner、五类 production subsystem 和 target hardware。下一步 R7D 只做 Android 目标硬件移植/交付包与未决项收口，不开发 Linux 前端。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-F-001`、`NV-F-012`、`NV-G-003`、`NV-G-006`、`NV-G-007`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`、`DEL-005`。

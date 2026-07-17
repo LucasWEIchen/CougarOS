@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P4-W03' \
+  'implementation_stage=P4-W04' \
   'client2_session_event_primary_api=true' \
   'client2_session_event_typed_callback=true' \
   'client2_scenario_alias_map_count=12' \
@@ -268,6 +268,12 @@ for marker in \
   'client2_hmi_hidden_state_recreation_verified=true' \
   'client2_hmi_checkpoint_text_persisted=false' \
   'legacy_text_callback_authoritative=false' \
+  'cockpit_hmi_four_stage_shell_implemented=true' \
+  'cockpit_hmi_intent_first_primary=true' \
+  'cockpit_hmi_safe_frame_1920x1080_verified=true' \
+  'cockpit_hmi_device_drawer_scaffolded=true' \
+  'cockpit_hvac_surface_implemented=false' \
+  'cockpit_seat_surface_implemented=false' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -349,6 +355,7 @@ required_paths=(
   tools/check_central_brain_android_approval_interrupt.sh
   tools/check_central_brain_android_effect_coordinator.sh
   tools/check_central_brain_android_graph_restart_recovery.sh
+  tools/check_central_brain_android_client2_intent_shell.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
@@ -426,8 +433,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P4-W03" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P4-W03 as the next unfinished scope")
+if "Stage 2 P4-W04" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P4-W04 as the next unfinished scope")
 
 for group in (
     "APP-004",

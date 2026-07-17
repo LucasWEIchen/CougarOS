@@ -79,15 +79,16 @@ right-side overlay in the existing root `FrameLayout`:
 ```text
 Activity
 ├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
-├── floating overlay: translucent right 1/3 Central Brain demo panel, initially hidden
+├── floating overlay: 624x888 translucent Central Brain panel in the 1920x1080 safe frame
 └── bottom trigger rail: transparent target over the rendered navigation icon
 ```
 
 The overlay does not resize the vehicle scene. One navigation-target click
 shows the panel; a second click or a click outside the panel hides it. The panel
 consumes touches over its own surface so its controls do not dismiss it. The
-scrollable control area groups 12 stable scenario IDs under
-task service, context/growth, and safety/runtime. Each button creates a typed
+primary Intent surface exposes four natural scenes and the stage rail exposes
+Intent, Plan, Execution and Result. HVAC/Seat remain secondary detail drawers.
+Each scene creates a typed
 Session through `CockpitControlCoordinator -> Client2ScenarioBridge.openSession
 -> SessionClient`; snapshot, typed events and authoritative cursor replay are
 reduced into immutable `CockpitHmiState` before rendering. The bridge
@@ -96,8 +97,8 @@ The SDK, AIDL parcelables and a narrow Client2 bridge are compiled into
 `classes2.dex`. The APK requests no network permission and contains no direct
 HTTP fallback.
 
-The XML tags remain stable two-segment UI aliases. A 12-entry exact bridge
-allowlist maps them to qualified Session IDs before Runtime admission; unknown
+The four visible XML scenario tags remain stable two-segment UI aliases. A 12-entry exact bridge
+compatibility allowlist still maps all supported aliases to qualified Session IDs before Runtime admission; unknown
 aliases fail before binding and the frozen Session V1 validation is not relaxed.
 Runtime process death reconnects the active stream, replays the owner-scoped
 snapshot/history and drops already delivered event sequences.
@@ -122,12 +123,11 @@ for its own tasks.
 
 ## Planned Cockpit HVAC/Seat Control Loop
 
-The existing 12-button panel and text response are the Stage 1 baseline, not a
-vehicle-control completion claim. Stage 2 P4 keeps the same bottom-navigation
-entry and translucent overlay, then adds four in-APK surfaces:
+P4-W03 replaced the 12-button primary test console with the intent-first shell.
+It is not a vehicle-control completion claim. The current overlay contains:
 
 ```text
-Care scenarios | HVAC | Seat | Effect execution
+Intent | Plan | Execution | Result | secondary HVAC/Seat detail drawer
 ```
 
 The HVAC surface will expose power, zone, temperature, fan, AUTO, A/C, SYNC,
@@ -154,13 +154,14 @@ cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
 
-P4-W01 and P4-W02 are complete. The primary bridge exposes typed Session handle,
+P4-W01 through P4-W03 are complete. The primary bridge exposes typed Session handle,
 snapshot, event, replay, overflow, close and error callbacks. The Java coordinator
 reduces these callbacks, owns lifecycle and resumes a text-free checkpoint after
 Client2 process restart. Android 13 ARM64 acceptance covers Runtime/Client2 process
-death, duplicate suppression, hidden-state restore and menu reopen. P4-W03 is the
-next work package and will replace the 12-button test console with the four-stage
-intent-first shell:
+death, duplicate suppression, hidden-state restore, menu reopen, exact 1920x1080
+safe-frame rendering, four stage selection and device drawer behavior. P4-W04 is
+the next work package and will implement the HVAC control surface without enabling
+vehicle or production Effect dispatch:
 
 ```text
 client2_session_event_primary_api=true
@@ -170,13 +171,20 @@ client2_session_reconnect_replay_verified=true
 client2_session_duplicate_event_suppressed=true
 cockpit_hmi_state_reducer_implemented=true
 cockpit_hmi_lifecycle_owner_java=true
+cockpit_hmi_four_stage_shell_implemented=true
+cockpit_hmi_intent_first_primary=true
+cockpit_hmi_safe_frame_1920x1080_verified=true
+cockpit_hmi_material_alpha=0.60
+cockpit_hmi_device_drawer_scaffolded=true
+cockpit_hvac_surface_implemented=false
+cockpit_seat_surface_implemented=false
 client2_smali_controller_retired=true
 client2_hmi_checkpoint_resume_verified=true
 client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W03
+implementation_stage=P4-W04
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in

@@ -588,11 +588,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W03` Intent-first four-stage overlay shell
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..003/006`。
+- 状态：`DONE`（2026-07-17）；2 人日；需求：`S2-HMI-001..003/006`。
 - 修改 maintained XML/vector resources 和最小 Smali bootstrap，不手改 build/reverse output。
 - DoD：现有 overlay 顶层提供“意图/计划/执行/结果”；Header 固定 source/driving/connection；
   HVAC/Seat 位于 Effect 详情和手动兜底抽屉；1920x1080 安全框固定为
   `(1264,160)-(1888,1048)`，主玻璃 alpha=0.60；仍由底部导航显示/隐藏，面板外点击关闭。
+- 实现：主 Intent 仅保留 `care.fatigue/care.cold/skill.nap/task.home` 四项自然场景；stage 与 drawer 均由
+  `CockpitHmiReducer` 管理，场景提交后进入 Plan。Plan/Execution/Result 明确显示 Context unavailable、Graph not wired、
+  Effect not dispatched 和 readback unavailable，不伪造车控成功。
+- 证据：host reducer、静态 XML/资源门禁、签名 APK build、Android 13/API 33 ARM64 安装、阶段切换、exact safe frame、
+  HVAC drawer、导航显隐、外部点击隐藏、Runtime/Client2 process recovery 全部通过。
+- 边界：`cockpit_hvac_surface_implemented=false`、`cockpit_seat_surface_implemented=false`、
+  `scenario_execution_enabled=false`、`hardware_accessed=false`；固定画布差异由 `DEV-053` 跟踪。
 
 ### `P4-W04` HVAC control surface
 
