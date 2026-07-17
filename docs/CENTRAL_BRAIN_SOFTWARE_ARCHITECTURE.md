@@ -270,7 +270,7 @@ Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-
 `cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
 `cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
 `cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`.
 
 ## P4-W08 Client2 driving restriction projection
 
@@ -298,7 +298,7 @@ P4-W01 through P4-W08 are complete at the Android application layer. Req IDs: `S
 `cockpit_unknown_driving_restricted=true`, `cockpit_restricted_parameter_editing_disabled=true`,
 `cockpit_high_risk_controls_disabled=true`, `cockpit_runtime_policy_authority_independent=true`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 ## P5-W03 Tool RuleSolver architecture
 
@@ -328,7 +328,7 @@ Flags: `tool_rule_set_contract_defined=true`, `tool_rule_model_intersection_fail
 `tool_rule_solver_android13_arm64_verified=false`, `tool_rule_solver_published=false`,
 `tool_rule_solver_runtime_wired=false`, `tool_execution_enabled=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `model_invoked=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W01 Tool contract architecture
@@ -341,8 +341,10 @@ build-owned Tool definition
   -> ToolSchemaValidator -> immutable validated scalar map OR stable rejection
 
 P5-W02 ToolRegistry/Resolver (pure Java contract developed, not Runtime-published)
-P5-W03 ToolRuleSolver (not implemented)
-P5-W04 ToolExecutor (not implemented)
+P5-W03 ToolRuleSolver (developed, not Runtime-published)
+P5-W04 ToolExecutor boundary (developed, not Runtime-published)
+P5-W05 Skill package verifier (developed, no trusted evidence/load)
+P5-W06 WorkingMemoryStore (developed process-local, not Runtime/model-published)
 ```
 
 The P5-W01 package is a pure contract layer in Runtime main source. It depends only on Java primitives and the existing Plan timeout
@@ -359,7 +361,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_contract_digest_ve
 `tool_resolver_published=false`, `tool_execution_enabled=false`,
 `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`; tracking: `DEV-063`, `ISSUE-036`.
+`implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver architecture
 
@@ -399,7 +401,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P4-W11 Client2 accessibility/display architecture
@@ -426,7 +428,7 @@ P4-W01 through P4-W11 are complete at the Android application layer. Req IDs: `S
 `cockpit_display_matrix_defined=true`, `cockpit_touch_target_min_dp=48`,
 `cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_display_matrix_android13_arm64_verified=true`,
 `cockpit_display_effect_authorization_source=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 ## P4-W12 aggregate Android acceptance architecture
 
@@ -454,7 +456,7 @@ P4-W01 through P4-W12 application acceptance is complete. This does not complete
 `p4_android13_arm64_aggregate_verified=true`, `p4_plan_effect_projection_host_verified=true`,
 `p4_automatic_plan_runtime_published=false`, `p4_production_effect_dispatch_enabled=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 ## P4-W10 Client2 scenario/manual synchronization
 
@@ -483,7 +485,7 @@ P4-W01 through P4-W10 are complete at the Android application layer. Current fla
 `cockpit_scenario_manual_shared_client=true`, `cockpit_scenario_device_session_synchronized=true`,
 `cockpit_scenario_plan_publication_inferred=false`, `cockpit_scenario_effect_dispatch_enabled=false`,
 `cockpit_scenario_readback_available=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 ## P4-W09 Client2 protected engineer simulation projection
 
@@ -511,7 +513,7 @@ P4-W01 through P4-W09 are complete at the Android application layer. Req IDs: `S
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 
 ## P5-W04 Tool Executor architecture
@@ -543,7 +545,7 @@ metadata only; production process isolation and Runtime publication require sepa
 No edge exists from `CentralBrainRuntimeService`, `CentralBrainGovernanceService` or `AgentGraphRuntime` to this executor. No edge exists
 from it to Effect adapters, Digital Twin, ModelProvider, VHAL or NPU. Status remains `tool_executor_runtime_wired=false`,
 `tool_execution_enabled=false`, `production_tool_execution_enabled=false`, `os_virtualization_enabled=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`.
 Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.
 
 ## P5-W05 Skill package verifier architecture
@@ -576,5 +578,46 @@ ModelProvider, VHAL, NPU or Driver/HAL. Status: `skill_artifact_verifier_contrac
 `skill_revocation_downgrade_fail_closed=true`, `trusted_skill_evidence_source_configured=false`,
 `package_signature_cryptographically_verified=false`, `dynamic_skill_loading_enabled=false`,
 `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
+
+## P5-W06 WorkingMemoryStore architecture
+
+```text
+trusted Runtime-policy metadata + opaque bytes
+  -> PutRequest defensive copy
+  -> owner fingerprint / Session / item isolation
+  -> projected item + byte + token + TTL admission
+  -> process-local WorkingMemoryStore
+       -> immutable ItemSnapshot + payload copy
+       -> exact replay / bounded replacement / explicit remove
+       -> elapsed-realtime expiry -> retained-byte zeroization
+       -> Session terminal cleanup -> zeroization + bounded tombstone
+  -X-> Runtime/Graph/Room/Binder/model context/Effect/Vehicle/NPU/Driver-HAL
+```
+
+P5-W06 is a process-local data-plane component below any future Memory service. It stores actual bounded opaque bytes so later Graph or
+model composition has a real working-context primitive, but the class is not instantiated by `CentralBrainRuntimeService` or
+`AgentGraphRuntime`. Existing `BoundedMemoryLifecycle` remains a digest-only governance metadata contract; it is not reused as the
+payload store and its production readiness blocker still refers to durable encrypted Memory.
+
+Resource admission is deterministic and mutation-last. Item size/token/TTL are checked first, then replacement-adjusted Session item,
+byte and token totals. There is no silent eviction, truncation, summarization or model fallback. Exact replay preserves the original
+TTL; replacement zeroes old retained bytes only after the new state has passed every bound.
+
+All public data access is owner/session scoped and copy-based. Expiry, explicit remove and terminal Session cleanup zero retained byte
+arrays, while a bounded terminal tombstone prevents late reactivation for its retention window. Tombstone eviction is explicit in the
+snapshot; after eviction, upstream Session authority must still prevent reuse. P5-W06 does not claim cryptographic memory wiping or
+heap-copy control outside the store.
+
+There is no persistence, Binder, Runtime composition, tokenizer, model publication, Graph execution, Effect, vehicle, NPU or hardware
+edge. Status: `working_memory_store_defined=true`, `working_memory_session_scope_verified=true`,
+`working_memory_ttl_verified=true`, `working_memory_item_limit_verified=true`, `working_memory_byte_limit_verified=true`,
+`working_memory_token_limit_verified=true`, `working_memory_terminal_cleanup_verified=true`,
+`working_memory_payload_zeroized_on_cleanup=true`, `working_memory_android13_arm64_verified=false`,
+`working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
+`working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
+`working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-068`,
+`ISSUE-041`.

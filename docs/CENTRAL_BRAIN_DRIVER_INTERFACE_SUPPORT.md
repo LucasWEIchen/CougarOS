@@ -1179,7 +1179,7 @@ regex 和 SHA-256；静态门禁禁止 Binder、Room、network、Android Car/VHA
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
-`implementation_stage=P5-W06`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`implementation_stage=P5-W07`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
 `DEL-004/005`；tracking：`DEV-065`、`ISSUE-038`。
 
 ## P5-W04 Tool Executor Driver/HAL Boundary
@@ -1198,7 +1198,7 @@ Tool 必须在 P8 获得 OEM/Vendor capability、权限、area、readback、canc
 `tool_executor_android13_arm64_verified=false`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
-`implementation_stage=P5-W06`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`implementation_stage=P5-W07`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
 `DEL-004/005`；tracking：`DEV-066`、`ISSUE-039`。
 
 ## P5-W05 Skill package verifier Driver/HAL Boundary
@@ -1217,5 +1217,26 @@ hardware-backed attestation。未来若 owner 明确要求 TEE/secure element at
 `package_signature_cryptographically_verified=false`、`dynamic_skill_loading_enabled=false`、
 `skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、`vehicle_readback_accessed=false`、
 `model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
-`virtualization_development_triggered=false`、`implementation_stage=P5-W06`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、
+`virtualization_development_triggered=false`、`implementation_stage=P5-W07`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、
 `FW-U-008`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-067`、`ISSUE-040`。
+
+## P5-W06 WorkingMemoryStore Driver/HAL Boundary
+
+`WorkingMemoryStore` 的 owner/session/item/schema ID、opaque bytes、token count、TTL 和 quota 都是 Android application process
+内的软件合同，不是 Android Service、VHAL property、vendor symbol、device node、ioctl、PCIe function、DMA/IOMMU handle、
+NPU buffer/queue 或 Driver/HAL endpoint。
+
+store 只使用 Java collections、byte array、SHA-256、elapsed clock 和 synchronized monitor。它不访问 Binder/Room/file/network/
+Android Car/VHAL/ModelProvider/NPU，也不读取硬件时钟或系统内存。`Arrays.fill` 只覆零 JVM store-retained array，不是 secure
+erase、DMA buffer wipe、TEE memory policy 或硬件证据。token count 由受信调用方提供，不触发 NPU tokenizer 接口开发。
+
+当前新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变，不开发 vendor/AOSP/BSP 或虚拟化。未来 Working Memory 若需要
+Vendor NPU shared buffer、secure memory 或跨进程零拷贝，必须先获得公开/vendor API、owner、安全与生命周期合同；只有确认
+现有能力不足并批准最小缺口后才新增 DRV-GAP。
+
+状态：`working_memory_store_defined=true`、`working_memory_android13_arm64_verified=false`、
+`working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
+`working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、`model_invoked=false`、
+`npu_accessed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`、`implementation_stage=P5-W07`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、
+`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-068`、`ISSUE-041`。

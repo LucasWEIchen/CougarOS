@@ -984,7 +984,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W06`.
+`target_hardware_validated=false`, `implementation_stage=P5-W07`.
 
 ## P5-W02 Tool Registry/Resolver
 
@@ -1010,7 +1010,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Next: P5-W03 ToolRuleSolver.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Next: P5-W03 ToolRuleSolver.
 
 ## P5-W03 Tool RuleSolver
 
@@ -1035,7 +1035,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 ## P5-W04 Tool Executor boundary
 
@@ -1059,7 +1059,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `tool_approval_authority_available=false`, `os_virtualization_enabled=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`.
 Next: P5-W05 Skill package verifier.
 
 ## P5-W05 Skill package verifier
@@ -1083,5 +1083,30 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`.
 Next: P5-W06 WorkingMemoryStore.
+
+## P5-W06 WorkingMemoryStore
+
+`WorkingMemoryStore` is an Android-independent, process-local store for bounded opaque working-context bytes. Every record is keyed by
+the trusted caller owner fingerprint, Session ID and item ID. `PutRequest` defensively copies caller bytes; `ItemSnapshot` returns a
+new copy on every read, so callers cannot mutate retained state or cross owner/Session boundaries.
+
+An injected elapsed-realtime clock enforces TTL without wall-clock inference. Configured per-item and per-Session item, byte and token
+limits fail closed before mutation. Exact puts replay idempotently, changed values replace atomically against projected budgets, and
+remove/expiry/Session terminal cleanup overwrite retained byte arrays before releasing them. Bounded terminal Session tombstones block
+late writes while retained.
+
+The store is not constructed by `CentralBrainRuntimeService` or AgentGraph and has no Binder, Room, filesystem, network, model,
+vehicle or hardware dependency. Token count remains trusted upstream metadata, not output from the production model tokenizer. The
+debug DUMP Activity emits booleans/counts only and is absent from the release manifest. Run
+`bash tools/check_central_brain_android_working_memory_store.sh` for the independent gate.
+
+Status: `working_memory_store_defined=true`, `working_memory_session_scope_verified=true`,
+`working_memory_ttl_verified=true`, `working_memory_item_limit_verified=true`, `working_memory_byte_limit_verified=true`,
+`working_memory_token_limit_verified=true`, `working_memory_terminal_cleanup_verified=true`,
+`working_memory_payload_zeroized_on_cleanup=true`, `working_memory_android13_arm64_verified=false`,
+`working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
+`working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
+`working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W07`. Next: P5-W07 ProfileMemoryStore.

@@ -183,7 +183,7 @@ flowchart TB
 | Model provider | `model/ModelProvider.java`、profiles/readiness | `DEVELOPED` contract | provider shape/readiness |
 | Deterministic model | `DeterministicStubModelProvider`、`TestOnlyModelRouter` | `PROTOTYPE` test only | no production activation |
 | Event runtime | `events/BoundedEventRuntime.java` | `PROTOTYPE` | bounded in-process event behavior |
-| Memory lifecycle | `memory/BoundedMemoryLifecycle.java` | `PROTOTYPE` | capacity/TTL contract, no layered durable memory |
+| Memory runtime foundation | `memory/BoundedMemoryLifecycle.java`、`memory/WorkingMemoryStore.java` | `DEVELOPED/PROTOTYPE` | digest lifecycle + session-scoped bounded opaque payload；无 Runtime wiring/durable layered memory |
 | Built-in Skill | `skills/BoundedBuiltInSkillRuntime.java` | `PROTOTYPE` | bounded signed built-in concept |
 | Governance middleware | `governance/FixedGovernanceMiddlewareChain.java` | `PROTOTYPE` | fixed order and readiness |
 | Safety snapshot | `SafetyVehicleStateSnapshot/Provider` | `CONTRACT_ONLY/PROTOTYPE` | runtime-owned state, no real vehicle source |
@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W06`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W07`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`.
+`implementation_stage=P5-W07`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W07`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +2990,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,7 +3060,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P5-W03 Tool RuleSolver detailed design
@@ -3149,7 +3149,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W04 Tool Executor detailed design
@@ -3224,7 +3224,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `os_virtualization_enabled=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.
 
 ## P5-W05 Skill package verifier detailed design
@@ -3300,5 +3300,104 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`.
 Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
+
+## P5-W06 WorkingMemoryStore detailed design
+
+### Design intent
+
+P5-W06 provides the first real payload-bearing Memory primitive after the earlier digest-only `BoundedMemoryLifecycle`. It is limited
+to one process and one active Session scope so it can be reviewed without pretending that consent, encrypted persistence, profile
+identity, episodic retention or model-context publication already exists. The implementation must remain useful: it stores opaque
+bytes, returns them through defensive copies and enforces both memory-size and token budgets.
+
+### Component responsibilities
+
+| Component | Owns | Must not own |
+| --- | --- | --- |
+| `WorkingMemoryStore` | synchronized Session maps, admission, TTL, remove, terminal cleanup, counters | Session truth, Binder publication, persistence, model invocation |
+| `Limits` | validated upper bounds for Sessions/items/bytes/tokens/read/TTL/tombstones | dynamic policy or hardware resource discovery |
+| `PutRequest` | trusted owner/session/item/schema metadata, defensive payload copy, token count, TTL | caller identity derivation, tokenizer execution, approval |
+| `Item` | private retained payload, request fingerprint, monotonic creation/expiry | external mutable reference or logging |
+| `ItemSnapshot` | immutable metadata and fresh payload copy per getter | retained-array exposure |
+| `TerminalRecord` | bounded late-write rejection after Session terminal | durable Session lifecycle or unbounded replay guarantee |
+| `Snapshot` | bounded counts and cleanup evidence | payload, owner, Session or item identifiers |
+| `WorkingMemoryStoreProbeActivity` | debug API 33 ARM64 boolean/count evidence | release exposure, raw payload logs or production activation |
+
+### Construction and limits
+
+`Limits` is immutable. It accepts at most 128 active Sessions, 256 items per Session, 1 MiB per Session, 262144 tokens per Session,
+64 KiB per item, 16384 tokens per item and 256 terminal Session tombstones. Configured item limits may not exceed Session limits,
+read limit may not exceed item limit, and TTL must be within `1..24h`. These are hard contract ceilings; deployment policy may choose
+smaller values. No method expands the limits after construction.
+
+The clock is an injected `LongSupplier` representing elapsed realtime. Negative values fail as an internal clock error. TTL uses
+saturated addition and expires at `expiresAt <= now`. Because the store is process-local, elapsed timestamps have no restart meaning.
+
+### Put algorithm
+
+1. Validate non-null request and run expiry cleanup at current elapsed time.
+2. Form the private key from validated owner fingerprint and Session ID. A retained terminal tombstone returns `SESSION_TERMINAL`.
+3. Reject TTL, per-item bytes and per-item tokens before looking at capacity.
+4. Locate the existing item. If its domain-separated SHA-256 request fingerprint is exact, return `REPLAYED` without extending TTL.
+5. For a new Session, enforce active-Session capacity. Calculate projected items, bytes and tokens, subtracting the replaced item first.
+6. Reject item, Session-byte or Session-token overflow with stable outcomes and no mutation.
+7. Copy request bytes into a new private `Item`. For replacement, overwrite the old retained array, update counters and atomically
+   replace the map value. For creation, add the item and counters.
+8. Return an `ItemSnapshot`; both snapshot construction and `getPayloadCopy()` copy bytes.
+
+The request fingerprint covers owner, Session, item, schema, token count, TTL and payload bytes with length-prefix framing. It is only
+an idempotency primitive, not a privacy-preserving content identifier, signature, authorization or persisted audit record.
+
+### Read, remove, expiry and terminal algorithms
+
+`readSessionOwned` validates owner/session and page size, runs expiry, and returns at most the configured item count in deterministic
+insertion order. The list is unmodifiable and each item contains no mutable retained reference. There is no cross-owner lookup API.
+
+`removeOwned` runs expiry, rejects a retained terminal Session, removes only an exact item, decrements byte/token counters and overwrites
+the retained payload. Empty active Session containers are removed. Repeated remove returns `NOT_FOUND`; idempotent Session-finality is
+owned by terminal cleanup, not per-item tombstones.
+
+Expiry scans active Sessions under the same monitor. Every expired item is removed from all three budgets and overwritten before its
+reference is released. `terminateSessionOwned` removes the whole Session, overwrites every retained item, clears counters, records only
+cleaned item/byte/token counts and adds a terminal tombstone. Repeated termination returns `REPLAYED`. Tombstones evict oldest-first at
+the configured bound and increment `terminalEvictionCount`; upstream production Session authority must prevent reuse after that bound.
+
+### Concurrency and failure behavior
+
+All stateful public methods are `synchronized`, so admission calculation, map mutation, quota accounting and cleanup are linearizable
+inside one JVM instance. Snapshots are immutable value objects. Constructor/request errors throw bounded `IllegalArgumentException`;
+clock failure throws `IllegalStateException`; normal policy/capacity failure returns enums and never partial state.
+
+Java array overwrite is best-effort lifecycle hygiene, not proof that the VM, caller request, snapshots, GC or system memory contains
+no copies. P5-W06 therefore uses `working_memory_payload_zeroized_on_cleanup=true` only for the store-retained array and records
+`DEV-068`. Production confidential data needs the later encryption/key/storage/privacy review.
+
+### Integration and privacy boundary
+
+Main source has no Android framework, Binder, Room, file, SharedPreferences, network, ModelProvider, AgentGraph, Effect, Vehicle/VHAL,
+NPU, Driver/HAL or logging dependency. `CentralBrainRuntimeService` and `AgentGraphRuntime` do not construct or import the class.
+`working_memory_runtime_wired=false` and `working_memory_model_context_published=false` remain invariant.
+
+Token count comes from `PutRequest.fromRuntimePolicy`; P5-W06 does not bind tokenizer name/version/digest or recompute tokens. The
+production composition owner must close ISSUE-041 before using token counts for a model request. Debug probe payloads are fixed synthetic
+bytes; logs include only booleans, a caller nonce and no payload/owner/session/item/digest.
+
+### Verification matrix
+
+Six JVM tests cover owner/session isolation, input/read copy, immutable list, monotonic TTL, retained-byte wipe, item/byte/token/Session
+limits, exact replay, replacement accounting, remove, terminal cleanup/replay/late-write block/tombstone eviction, malformed limits and
+request fields. Debug and release compile the same main source; release manifest omits the DUMP probe. The static checker also confirms
+Runtime/Graph remain unwired and rejects persistence, Binder, model, network, vehicle and hardware imports.
+
+Status: `working_memory_store_defined=true`, `working_memory_session_scope_verified=true`,
+`working_memory_ttl_verified=true`, `working_memory_item_limit_verified=true`, `working_memory_byte_limit_verified=true`,
+`working_memory_token_limit_verified=true`, `working_memory_terminal_cleanup_verified=true`,
+`working_memory_payload_zeroized_on_cleanup=true`, `working_memory_android13_arm64_verified=false`,
+`working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
+`working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
+`working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-068`,
+`ISSUE-041`.

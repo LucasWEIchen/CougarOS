@@ -2936,6 +2936,70 @@ if [[ "$SKILL_PACKAGE_VERIFIER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+WORKING_MEMORY_NONCE="$(date +%s%N)"
+WORKING_MEMORY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.memory.WorkingMemoryStoreProbeActivity \
+  --es nonce "$WORKING_MEMORY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$WORKING_MEMORY_PROBE_OUTPUT"; then
+  echo "$WORKING_MEMORY_PROBE_OUTPUT" >&2
+  echo "Working Memory store debug probe did not start successfully" >&2
+  exit 1
+fi
+WORKING_MEMORY_PROBE_PASSED=false
+for _ in {1..40}; do
+  WORKING_MEMORY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbWorkingMemory:I)"
+  if grep -Fq \
+      "nonce=$WORKING_MEMORY_NONCE working_memory_store_probe_complete=true" \
+      <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_session_scope_verified=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_ttl_verified=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_item_limit_verified=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_byte_limit_verified=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_token_limit_verified=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_terminal_cleanup_verified=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_payload_zeroized_on_cleanup=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_android13_arm64_verified=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_process_local=true" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_persistence_wired=false" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_runtime_wired=false" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_model_context_published=false" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_tokenizer_verified=false" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "working_memory_content_logged=false" \
+        <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "production_ready=false" <<<"$WORKING_MEMORY_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$WORKING_MEMORY_LOG"; then
+    WORKING_MEMORY_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$WORKING_MEMORY_PROBE_PASSED" != true ]]; then
+  echo "$WORKING_MEMORY_LOG" >&2
+  echo "Working Memory store probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3525,6 +3589,21 @@ printf '%s\n' \
   "dynamic_skill_loading_enabled=false" \
   "skill_execution_enabled=false" \
   "skill_package_verifier_runtime_wired=false" \
+  "working_memory_store_defined=true" \
+  "working_memory_session_scope_verified=true" \
+  "working_memory_ttl_verified=true" \
+  "working_memory_item_limit_verified=true" \
+  "working_memory_byte_limit_verified=true" \
+  "working_memory_token_limit_verified=true" \
+  "working_memory_terminal_cleanup_verified=true" \
+  "working_memory_payload_zeroized_on_cleanup=true" \
+  "working_memory_android13_arm64_verified=true" \
+  "working_memory_process_local=true" \
+  "working_memory_persistence_wired=false" \
+  "working_memory_runtime_wired=false" \
+  "working_memory_model_context_published=false" \
+  "working_memory_tokenizer_verified=false" \
+  "working_memory_content_logged=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \
