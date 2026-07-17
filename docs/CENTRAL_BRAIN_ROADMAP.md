@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；production 无 fallback | 进行中（P2-W01..W05 完成，P2-W06 下一步） |
+| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver；production 无 fallback | 进行中（P2-W01..W06 完成，P2-W07 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -188,9 +188,13 @@ streaming parser、draft-2020-12 schema、SHA-256 sidecar、bounded template val
 asset isolation 已进入工程并通过 JVM 与 Android 13/API 33 ARM64 assets probe。该 checksum 不是 artifact
 密码学签名，catalog 未接 production Service，Resolver/Compiler/Graph/Effect 均未启用。
 
-下一实现工作包为 `P2-W06 DeterministicScenarioResolver`。只实现显式 scenario ID 与 allowlisted bounded
-文本规则到已注册场景的确定性解析、Context/source/zone availability 与 unknown/ambiguous fail-closed；
-不得调用模型、创建 capability、编译/执行 Graph、激活 Effect/vehicle/NPU/Driver-HAL 或 Python fallback。
+`P2-W06 DeterministicScenarioResolver` 已完成：显式 ID 优先、固定中英文 bounded alias、unknown/ambiguous
+fail-closed、source/zone/Context/capability/PARKED_ONLY gate、accept/degrade/reject reason 和 deterministic
+digest 已通过 JVM 与 Android 13/API 33 ARM64 debug probe。Resolver 不调用模型，未接 production Service。
+
+下一实现工作包为 `P2-W07 ScenarioPlanCompiler`。只把已接受的 manifest、同一 Context/capability snapshot
+和 resolver digest 编译为 immutable typed DAG，并拒绝行驶中不安全节点、digest/version 漂移与非法 fallback；
+不得发布/执行 Graph、激活 Effect/vehicle/NPU/Driver-HAL 或恢复 Python fallback。
 
 ## 7. 近期进展
 
@@ -276,6 +280,10 @@ asset isolation 已进入工程并通过 JVM 与 Android 13/API 33 ARM64 assets 
   checksum、bounded template/DAG/capability/risk/fallback/UI 校验与 invalid isolation 通过 JVM/API 33 ARM64
   probe；artifact crypto/trust/runtime/graph/effect/hardware 保持 false，下一工作包为
   `P2-W06 DeterministicScenarioResolver`。
+- 完成 `P2-W06 DeterministicScenarioResolver`：显式 ID 与固定中英文文本规则、Context/source/zone/
+  capability/PARKED_ONLY gate、unknown/ambiguous fail-closed、accept/degrade/reject 和 deterministic digest
+  通过 JVM/API 33 ARM64 probe；model/runtime/compiler/graph/effect/hardware 保持 false，下一工作包为
+  `P2-W07 ScenarioPlanCompiler`。
 
 ## 8. 当前门禁
 
@@ -295,6 +303,7 @@ bash tools/check_central_brain_android_sdk_facade.sh
 bash tools/check_central_brain_android_vehicle_signal_schema.sh
 bash tools/check_central_brain_android_vehicle_capability_catalog.sh
 bash tools/check_central_brain_android_scenario_manifest.sh
+bash tools/check_central_brain_android_scenario_resolver.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -339,6 +348,12 @@ scenario_catalog_count=3
 scenario_manifest_android13_arm64_verified=true
 scenario_manifest_artifact_crypto_verified=false
 scenario_catalog_production_trusted=false
+scenario_resolver_defined=true
+scenario_resolution_schema_version=1
+scenario_resolver_android13_arm64_verified=true
+scenario_resolver_model_invoked=false
+scenario_resolver_runtime_wired=false
+scenario_compiler_wired=false
 scenario_runtime_wired=false
 scenario_graph_execution_enabled=false
 event_v2_cursor_ack_required=true

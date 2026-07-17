@@ -634,3 +634,20 @@ Android 13/API 33 ARM64 probe 只从本 APK `assets/scenarios` 读取三份 buil
 `hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
 Req IDs：`S2-SCN-001`、`S2-SAF-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W06 Scenario Resolver Driver/HAL Boundary
+
+P2-W06 只新增纯 Java in-process request/capability snapshot/resolver/resolution、JVM test、debug-only Activity、
+installer marker 和静态 checker。它只读取 P2-W05 的 build-owned manifest、P2-W04 的 immutable Context 和
+P2-W02 的 capability metadata，不发现或调用 CarProperty/VHAL、vendor Binder/SOA、CAN/DBC、device node、
+ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL。
+
+`SOFTWARE_SIMULATION` 只是显式 debug/test availability profile；它不注册 adapter、不读写 Twin、不生成
+Effect。`PRODUCTION` profile 需要 productionAvailable+productionAuthorized 以及 trusted Context/capability，
+当前全部不满足，因此 fail closed。固定文本 alias 只选择 catalog ID，不调用本地/云/NPU 模型。
+
+状态：`scenario_resolver_defined=true`、`scenario_resolver_model_invoked=false`、
+`scenario_resolver_runtime_wired=false`、`scenario_compiler_wired=false`、
+`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为
+0，`DRV-GAP-001..005` 不变。Req IDs：`S2-SCN-001`、`S2-SAF-001`、`KH-003/006`、`DEL-004/005`。

@@ -925,3 +925,44 @@ Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=3`,
 `scenario_catalog_production_trusted=false`, `scenario_runtime_wired=false`,
 `scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
 Req IDs: `S2-SCN-001`, `S2-SAF-001`, `DEL-001/003..005`; tracking: `DEV-034`, `ISSUE-029/031`.
+
+## Android P2-W06 Deterministic Scenario Resolver
+
+### Public internal Java contract
+
+```java
+ScenarioResolution ScenarioResolver.resolve(
+    ScenarioResolver.Request request,
+    ScenarioCatalog catalog,
+    ContextSnapshot context,
+    ScenarioResolver.CapabilitySnapshot capabilities);
+```
+
+This is an in-process Runtime-domain API, not AIDL and not a published Service. `Request` contains only bounded
+`explicitScenarioId`, `textIntent`, manifest `Source` and `Zone`; it computes a digest and rejects empty requests,
+invalid IDs, text over 256 characters and control characters. Binder caller identity, Safety authority and vehicle
+state are not request fields.
+
+| Type | Contract | Invariant/failure |
+| --- | --- | --- |
+| `Request` | explicit ID, bounded text, source, zone, request digest | explicit ID wins; text does not persist into result; empty/invalid/control input rejected |
+| `CapabilitySnapshot` | schema/revision/profile, immutable ID availability, digest | software-simulation uses writable+simulatable; production uses production available+authorized; runtime unavailable is subtractive; production trust fixed false |
+| `DeterministicScenarioResolver` | exact built-in ID or fixed normalized alias -> registered manifest | unknown/multi-scene ambiguous/catalog miss fail closed; no model, fuzzy matching or capability creation |
+| `ScenarioResolution` | decision, match type/rule, selected ID/manifest, stable reason list, missing context/capability lists, request/context/capability/resolution digests | immutable; accepted/degraded alone carry selected manifest; rejected carries no executable manifest; `isExecutable=false` |
+
+Decision semantics:
+
+1. `REJECTED`: any required source/zone/Context/capability/production-trust/PARKED_ONLY gate fails;
+2. `DEGRADED`: all required gates pass but an optional capability or optional parked-only branch is unavailable;
+3. `ACCEPTED`: required and optional resolver-level availability gates pass. This still does not authorize or execute
+   the scenario; P2-W07 must compile and revalidate the exact digests.
+
+The allowlisted text rules are versioned in source (`intent.cold.v1`, `intent.fatigue.v1`, `intent.rest.v1`) and only
+select the three P2-W05 manifest IDs. The resolver does not interpret free-form targets. Moving fatigue can degrade
+without optional seat recline; moving rest rejects because the rest manifest requires recline.
+
+Status: `scenario_resolver_defined=true`, `scenario_resolution_schema_version=1`,
+`scenario_resolver_android13_arm64_verified=true`, `scenario_resolver_model_invoked=false`,
+`scenario_resolver_runtime_wired=false`, `scenario_compiler_wired=false`,
+`scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
+Req IDs: `S2-SCN-001`, `S2-SAF-001`, `DEL-001/003..005`; tracking: `DEV-035`, `ISSUE-029/031`.

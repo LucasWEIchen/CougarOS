@@ -989,19 +989,67 @@ length-framed SHA-256 catalog digest。目录精确包含 cold/fatigue/rest 三�
 template 固定 `PARKED_ONLY` 和 approval-required metadata；这只是后续 Compiler 的输入约束，不能授权或
 执行动作。
 
-P2-W05 不实现 capability/Context 动态 availability，也不接 production Service；这些分别由 P2-W06
-Resolver 和 P2-W07 Compiler/Validator完成。当前 `scenario_runtime_wired=false`、
+P2-W05 不实现 capability/Context 动态 availability，也不接 production Service；P2-W06 Resolver 已消费
+catalog/Context/capability immutable snapshot，P2-W07 仍负责 Compiler/Validator。当前 `scenario_runtime_wired=false`、
 `scenario_graph_execution_enabled=false`、`hardware_accessed=false`。
 
-### 12.3 ScenarioResolver
+### 12.3 ScenarioResolver（P2-W06 已实现 foundation）
 
 ```java
-ScenarioResolution resolve(ScenarioRequest request,
-                           ScenarioCatalogSnapshot catalog,
-                           ContextSnapshot context);
+ScenarioResolution resolve(ScenarioResolver.Request request,
+                           ScenarioCatalog catalog,
+                           ContextSnapshot context,
+                           ScenarioResolver.CapabilitySnapshot capabilities);
 ```
 
-优先级：显式 scenario ID > deterministic intent rule > policy-approved model candidate。模型候选必须存在于 catalog。
+#### 12.3.1 Request 与匹配优先级
+
+`Request` 是 Runtime 内部 immutable value object，不进入 AIDL。字段为：
+
+| 字段 | 约束 | authority |
+| --- | --- | --- |
+| `explicitScenarioId` | empty 或 canonical <=96 字符 | 只选择 catalog；不能创建 scene |
+| `textIntent` | trim 后 <=256 字符；禁止 control character | 只进入固定 alias matcher；Resolution 不保留原文 |
+| `source` | `HMI_BUTTON/VOICE/TRIGGER/API` | 必须被 manifest 支持 |
+| `zone` | `ROW1_DRIVER/.../CABIN` | 必须同时匹配 manifest 和 Context seat zone |
+| `digest` | length-framed SHA-256 | 绑定以上四项；供 P2-W07 防漂移 |
+
+优先级严格为非空显式 ID > deterministic text rule。P2-W06 不接受 model candidate。文本先执行 NFKC、
+`Locale.ROOT` lowercase、空白折叠和末尾标点移除，再按固定 alias 精确匹配。alias 分属
+`intent.cold.v1`、`intent.fatigue.v1`、`intent.rest.v1`；unknown 返回 `UNKNOWN_INTENT`，受控分隔符中
+命中多个不同场景返回 `AMBIGUOUS_INTENT`。两者均无 selected manifest。
+
+#### 12.3.2 CapabilitySnapshot
+
+`CapabilitySnapshot.capture(catalog, profile, revision, runtimeUnavailable)` 将一个 Runtime-owned availability
+view 冻结为 immutable enum map 和 SHA-256 digest。`SOFTWARE_SIMULATION` 只有 catalog 标记 writable 且
+simulatable、并且未被 Runtime unavailable 集合删除时可用；`PRODUCTION` 必须同时 production available +
+authorized。当前 catalog 全部 production false，snapshot 的 `isProductionTrusted()` 也固定 false，防止
+后续代码把 software metadata 解释为硬件授权。HMI/Session request 不得提交 profile/revision/unavailable。
+
+#### 12.3.3 Gate 与 decision
+
+Resolver 在同一调用中检查：catalog membership、source、manifest zone、Context seat zone、fixed Context
+policy、`context.restricted`、required fresh canonical field、capability availability/area，以及 manifest node
+的 `PARKED_ONLY`。生产 profile 还要求 Context/capability production trust；当前必然 fail closed。
+
+| Decision | 条件 | 下游含义 |
+| --- | --- | --- |
+| `ACCEPTED` | 全部 required/optional resolver gate 可用 | 仅允许 P2-W07 尝试编译；未授权执行 |
+| `DEGRADED` | required 全部通过，至少一个 optional capability/policy branch 不可用 | Compiler 必须剔除对应 optional branch |
+| `REJECTED` | 任一 required/source/zone/Context/trust/policy gate 失败 | 不携带 selected manifest，不得编译 |
+
+moving fatigue 中 seat recline 是 optional，所以 Resolution 降级；moving rest 中 recline 是 required，所以
+Resolution 拒绝。approval-required metadata 不能覆盖该判断。
+
+`ScenarioResolution` 输出 decision、match type/rule、scenario/candidate IDs、stable `ReasonCode`、required
+Context 缺失、required/optional capability 缺失、request/Context/capability digest 和最终 resolution digest。
+最终摘要还绑定 manifest artifact digest。集合全部 immutable/排序去重；同一输入必须生成相同摘要。
+`isExecutable=false`、`isProductionTrusted=false` 为硬边界。
+
+P2-W06 不接 `CentralBrainRuntimeService`/Room，不调用 ModelProvider/Scheduler，不生成 target、不编译 Plan、
+不创建 Graph/Effect，不访问 Vehicle/VHAL/NPU/Driver-HAL。P2-W07 必须复验 Resolution 及其全部 digest，不能
+只按 scenario ID 编译。
 
 ### 12.4 ScenarioPlanCompiler
 
@@ -1836,15 +1884,16 @@ central-brain-sdk AAR
 `P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和
 `P1-W07 Contract v2 aggregate check`、`P2-W01 Canonical vehicle signal types` 和
 `P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 和
-`P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema`、
+`P2-W06 DeterministicScenarioResolver` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
 进程内 desired/reported Twin、versioned Context/freshness/trust foundation、三项 strict build-owned Scenario
-manifest catalog 已进入工程。Effect Service、
+manifest catalog、显式/固定文本 selector、Context/capability/policy gate 和 immutable resolution 已进入工程。Effect Service、
 approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
-`P2-W06 DeterministicScenarioResolver`；resolver 只能选择已注册 manifest，不得创建 capability、调用模型、
-读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
+`P2-W07 ScenarioPlanCompiler`；compiler 只能消费同一 resolution/Context/capability digest，输出 immutable
+typed DAG，不得发布 Graph Runtime、激活 Effect、读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见
