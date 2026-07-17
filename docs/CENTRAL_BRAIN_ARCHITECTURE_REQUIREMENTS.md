@@ -944,3 +944,33 @@ NPU、Driver/HAL 或目标硬件资格。
 `checkpoint_serializer_java_serialization_enabled=false`、
 `agent_graph_runtime_persistence_wired=false`、`agent_graph_executor_dispatch_enabled=false`、
 `effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`。
+
+## 36. P3-W04 Retry/Timeout policy trace
+
+派生需求：`S2-GRF-001`、`NV-G-004`、`DEL-001/003/004/005`。
+
+1. `NodeTimeoutPolicy` 必须从已通过 `PlanContract.validateNode` 的 `timeoutMs/maxAttempts` 冻结配置；attempt
+   number 只允许 1..maxAttempts，effective deadline 取 `min(start + node timeout, plan deadline)`，到点即过期。
+2. 时间输入必须是 caller 提供的 monotonic elapsed time。策略不得读取 wall clock/nano clock，不创建 thread、
+   timer、executor 或 sleep；加法溢出必须饱和，不得使 deadline 回绕后重新获得执行资格。
+3. `BackoffCalculator` 的 base/max/jitter 必须有界；max delay 不超过 `PlanContract.MAX_NODE_TIMEOUT_MS`，jitter
+   不超过 250 permille。attempt 2..3 的 jitter 由 node ID、retry seed digest、attempt 经 domain-separated
+   SHA-256 确定，禁止 runtime random 导致不可重放。
+4. `NodeRetryPolicy` 必须冻结 node type、maxAttempts 和 idempotency-key digest。terminal/cancel 不重试；retryable/
+   timeout 在 attempt budget 耗尽或 backoff 完成时间不早于 plan deadline 时失败关闭。
+5. `effect.execute` 与 `compensate` 必须带 typed idempotency key。`DELIVERY_UNKNOWN`、timeout 或 retryable failure
+   在 retry 前必须有 `CONFIRMED_NOT_APPLIED`；未知结果只返回 `RECONCILE`，已应用只返回
+   `STOP_EFFECT_ALREADY_APPLIED`，不得盲目重放。
+6. Retry decision 只含 action、attempt、delay、eligible elapsed time 与 domain-separated SHA-256；不得返回 raw
+   idempotency key、Effect payload、异常原文、模型或车辆数据。
+7. JVM 和 Android 13/API 33 ARM64 probe 必须覆盖 deterministic jitter、deadline clamp/exact expiry、attempt
+   budget、terminal/cancel、Effect reconcile、deadline/overflow 和 malformed input。
+8. P3-W04 不接 `AgentGraphRuntime`、Room、Binder、production Effect/model/vehicle/NPU/Driver-HAL；不得提升
+   `production_ready` 或 `target_hardware_validated`。
+
+状态：`node_retry_policy_defined=true`、`node_timeout_policy_defined=true`、
+`backoff_deterministic_bounded_verified=true`、`timeout_deadline_clamp_verified=true`、
+`retry_attempt_budget_verified=true`、`effect_idempotency_reconcile_gate_verified=true`、
+`retry_deadline_fail_closed_verified=true`、`retry_timeout_policy_android13_arm64_verified=true`、
+`retry_timeout_policy_runtime_wired=false`、`agent_graph_executor_dispatch_enabled=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`。

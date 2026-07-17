@@ -1369,6 +1369,57 @@ if [[ "$CHECKPOINT_SERIALIZER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+RETRY_TIMEOUT_POLICY_NONCE="$(date +%s%N)"
+RETRY_TIMEOUT_POLICY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.graph.RetryTimeoutPolicyProbeActivity \
+  --es nonce "$RETRY_TIMEOUT_POLICY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$RETRY_TIMEOUT_POLICY_PROBE_OUTPUT"; then
+  echo "$RETRY_TIMEOUT_POLICY_PROBE_OUTPUT" >&2
+  echo "Retry/Timeout policy debug probe did not start successfully" >&2
+  exit 1
+fi
+RETRY_TIMEOUT_POLICY_PROBE_PASSED=false
+for _ in {1..40}; do
+  RETRY_TIMEOUT_POLICY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbRetryPolicy:I)"
+  if grep -Fq \
+      "nonce=$RETRY_TIMEOUT_POLICY_NONCE retry_timeout_policy_probe_complete=true" \
+      <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "node_retry_policy_defined=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "node_timeout_policy_defined=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "backoff_deterministic_bounded_verified=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "timeout_deadline_clamp_verified=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "retry_attempt_budget_verified=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "effect_idempotency_reconcile_gate_verified=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "retry_deadline_fail_closed_verified=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "retry_timeout_policy_android13_arm64_verified=true" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "retry_timeout_policy_runtime_wired=false" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "agent_graph_executor_dispatch_enabled=false" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$RETRY_TIMEOUT_POLICY_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$RETRY_TIMEOUT_POLICY_LOG"; then
+    RETRY_TIMEOUT_POLICY_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$RETRY_TIMEOUT_POLICY_PROBE_PASSED" != true ]]; then
+  echo "$RETRY_TIMEOUT_POLICY_LOG" >&2
+  echo "Retry/Timeout policy probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2374,6 +2425,15 @@ printf '%s\n' \
   "checkpoint_serializer_security_corpus_verified=true" \
   "checkpoint_serializer_android13_arm64_verified=true" \
   "checkpoint_serializer_java_serialization_enabled=false" \
+  "node_retry_policy_defined=true" \
+  "node_timeout_policy_defined=true" \
+  "backoff_deterministic_bounded_verified=true" \
+  "timeout_deadline_clamp_verified=true" \
+  "retry_attempt_budget_verified=true" \
+  "effect_idempotency_reconcile_gate_verified=true" \
+  "retry_deadline_fail_closed_verified=true" \
+  "retry_timeout_policy_android13_arm64_verified=true" \
+  "retry_timeout_policy_runtime_wired=false" \
   "effect_dispatch_enabled=false" \
   "network_accessed=false" \
   "model_invoked=false" \

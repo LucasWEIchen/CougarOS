@@ -1340,3 +1340,53 @@ DEPTH_EXCEEDED、LIMIT_EXCEEDED、DIGEST_MISMATCH、NON_CANONICAL、PAYLOAD_REJE
 `agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
 `hardware_accessed=false`。Req IDs：`S2-GRF-001`、`NV-G-003/006/007`、`DEL-001/003..005`；tracking：
 `DEV-044`、`ISSUE-022/026`。
+
+## Android P3-W04 Retry/Timeout Policy
+
+### Timeout 与 backoff API
+
+```java
+NodeTimeoutPolicy NodeTimeoutPolicy.from(PlanNode node);
+AttemptWindow openAttempt(int attemptNumber,
+                          long startedAtElapsedMs,
+                          long planDeadlineElapsedMs);
+TimeoutSnapshot inspect(AttemptWindow window, long nowElapsedMs);
+
+BackoffCalculator(long baseDelayMs, long maxDelayMs, int jitterPermille);
+long calculateDelayMs(String nodeId, String retrySeedDigest, int nextAttempt);
+```
+
+`NodeTimeoutPolicy` 先复用 `PlanContract.validateNode`，attempt 只允许 1..node.maxAttempts。window deadline 为
+`min(saturatedAdd(start, node.timeoutMs), planDeadline)`；`now >= deadline` 即 EXPIRED。全部时间均为 caller 提供的
+monotonic elapsed time，接口不读 wall clock、不创建 timer/thread。
+
+`BackoffCalculator` 允许 base 1..120000 ms、max base..120000 ms、jitter 0..250 permille，nextAttempt 只允许
+2..3。默认值为 250 ms/8000 ms/200 permille。jitter digest domain 为 `graph.retry.jitter.v1`，输入固定为
+node ID、retry seed SHA-256 与 nextAttempt；同一输入必须得到相同 delay。
+
+### Retry decision API
+
+```java
+NodeRetryPolicy NodeRetryPolicy.from(PlanNode node, BackoffCalculator backoff);
+RetryDecision decide(int completedAttempt,
+                     FailureKind failure,
+                     ReconcileState reconcile,
+                     long nowElapsedMs,
+                     long planDeadlineElapsedMs,
+                     String planDigest);
+```
+
+`FailureKind` 固定为 RETRYABLE_FAILURE/TIMEOUT/TERMINAL_FAILURE/CANCELLED/DELIVERY_UNKNOWN；
+`ReconcileState` 固定为 NOT_REQUIRED/CONFIRMED_NOT_APPLIED/CONFIRMED_APPLIED/UNKNOWN。Decision action 固定为
+RETRY、RECONCILE、STOP_EFFECT_ALREADY_APPLIED、STOP_ATTEMPTS_EXHAUSTED、STOP_DEADLINE_EXCEEDED、
+STOP_TERMINAL、STOP_CANCELLED，并只暴露 completed/next attempt、delay、eligible elapsed time 与 digest。
+
+非 Effect node 只接受 NOT_REQUIRED，且 DELIVERY_UNKNOWN 非法。`effect.execute`/`compensate` 必须具有 P1 typed
+idempotency key；UNKNOWN/未提供 reconcile 只返回 RECONCILE，APPLIED 停止，只有 NOT_APPLIED 才继续评估
+attempt/deadline。RECONCILE 在 attempt/deadline 耗尽后仍可返回，因为它不授权再次 dispatch。
+
+状态：`node_retry_policy_defined=true`、`node_timeout_policy_defined=true`、
+`effect_idempotency_reconcile_gate_verified=true`、`retry_timeout_policy_runtime_wired=false`、
+`agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
+`hardware_accessed=false`。Req IDs：`S2-GRF-001`、`NV-G-004`、`DEL-001/003..005`；tracking：`DEV-045`、
+`ISSUE-022/026`。

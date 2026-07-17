@@ -122,7 +122,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W03 完成；P3-W04 下一步） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W04 完成；P3-W05 下一步） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -232,8 +232,12 @@ JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。Graph/Room/Binde
 canonical JSON、64 KiB/8 层/1024 token gate、SHA-256 和 malformed/unknown/oversize/security corpus 已通过 JVM、
 debug/release compile 与 Android 13/API 33 ARM64 probe。Graph/Room/Binder/recovery/Effect/model/hardware 仍未接。
 
-下一实现工作包为 `P3-W04 Retry/Timeout policy`。只增加 bounded attempts/deadline/backoff/jitter 与 Effect
-idempotency/reconcile gate；不得启用 executor dispatch、Effect adapter、模型、车辆或硬件。
+`P3-W04 Retry/Timeout policy` 已完成：node/plan deadline、attempt 1..3、deterministic bounded jitter、
+Effect idempotency/reconcile-before-retry 已通过 JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。
+策略尚未接 Graph/Effect dispatch。
+
+下一实现工作包为 `P3-W05 Durable approval interrupt`。只实现 approval 与 caller/plan/context/policy digest、
+expiry 和 resume revalidation 的 durable contract；不得启用 Effect adapter、模型、车辆或硬件。
 
 ## 7. 近期进展
 
@@ -351,6 +355,9 @@ idempotency/reconcile gate；不得启用 executor dispatch、Effect adapter、�
 - 完成 `P3-W03 CheckpointSerializer`：registered DTO、canonical primitive JSON、type/version/digest、64 KiB/8 层/
   token gate 和 security corpus 通过 JVM/debug/release/API 33 ARM64 probe；Graph/Room/recovery/Effect/model/hardware
   保持 false，下一工作包为 P3-W04 Retry/Timeout policy。
+- 完成 `P3-W04 Retry/Timeout policy`：monotonic node/plan deadline、bounded attempts、deterministic SHA-256 jitter、
+  Effect idempotency + reconcile-before-retry 通过 JVM/debug/release/API 33 ARM64 probe；Graph/Effect wiring 保持
+  false，下一工作包为 P3-W05 Durable approval interrupt。
 
 ## 8. 当前门禁
 
@@ -463,7 +470,16 @@ checkpoint_serializer_size_depth_limit_verified=true
 checkpoint_serializer_security_corpus_verified=true
 checkpoint_serializer_android13_arm64_verified=true
 checkpoint_serializer_java_serialization_enabled=false
-implementation_stage=P3-W04
+node_retry_policy_defined=true
+node_timeout_policy_defined=true
+backoff_deterministic_bounded_verified=true
+timeout_deadline_clamp_verified=true
+retry_attempt_budget_verified=true
+effect_idempotency_reconcile_gate_verified=true
+retry_deadline_fail_closed_verified=true
+retry_timeout_policy_android13_arm64_verified=true
+retry_timeout_policy_runtime_wired=false
+implementation_stage=P3-W05
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

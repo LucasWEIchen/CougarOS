@@ -86,8 +86,8 @@ Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL
 `P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL`、
 `P1-W05 SDK facade v2`、`P1-W06 Room v4 schema`、`P1-W07 Contract v2 aggregate check`、
 `P2-W01..P2-W12 Context/Scenario/Simulation foundation`、`P3-W01 Agent Graph Runtime state machine`、
-`P3-W02 Typed node executors` 和 `P3-W03 CheckpointSerializer` 已完成，下一工作包为
-`P3-W04 Retry/Timeout policy`。P1-P7 交付必须进入
+`P3-W02 Typed node executors`、`P3-W03 CheckpointSerializer` 和 `P3-W04 Retry/Timeout policy` 已完成，
+下一工作包为 `P3-W05 Durable approval interrupt`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -1192,3 +1192,38 @@ target_hardware_validated=false
 checkpoint migration、Effect/model/vehicle/NPU/Driver-HAL。Release 包含 serializer 合同与严格 parser，但不包含
 debug probe。Req IDs：`S2-GRF-001`、`NV-G-003/006/007`、`DEL-001/003..005`；偏差/问题：
 `DEV-044`、`ISSUE-022/026`。
+
+## Android P3-W04 Retry/Timeout Policy
+
+受维护交付新增：
+
+1. Runtime main-source `NodeRetryPolicy`、`NodeTimeoutPolicy` 与 `BackoffCalculator`；
+2. attempt 1..3、node/plan deadline clamp、inclusive expiry、overflow saturation 与 deterministic SHA-256 jitter；
+3. terminal/cancel no-retry、attempt/deadline fail-closed，以及 Effect idempotency +
+   `CONFIRMED_NOT_APPLIED` reconcile-before-retry；
+4. 8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+node_retry_policy_defined=true
+node_timeout_policy_defined=true
+backoff_deterministic_bounded_verified=true
+timeout_deadline_clamp_verified=true
+retry_attempt_budget_verified=true
+effect_idempotency_reconcile_gate_verified=true
+retry_deadline_fail_closed_verified=true
+retry_timeout_policy_android13_arm64_verified=true
+retry_timeout_policy_runtime_wired=false
+agent_graph_executor_dispatch_enabled=false
+effect_dispatch_enabled=false
+model_invoked=false
+network_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 pure Java policy contract，不交付 scheduler timer、Graph/Room/Binder wiring、durable attempt row、
+production Effect reconcile/adapter、model/vehicle/NPU/Driver-HAL。Release 包含 policy 类但不包含 debug probe。
+Req IDs：`S2-GRF-001`、`NV-G-004`、`DEL-001/003..005`；偏差/问题：`DEV-045`、`ISSUE-022/026`。
