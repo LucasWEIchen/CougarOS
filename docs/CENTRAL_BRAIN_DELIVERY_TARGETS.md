@@ -1598,7 +1598,7 @@ HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`AP
 `DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
 `cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W12`。
+`hardware_accessed=false`、`implementation_stage=P5-W01`。
 
 ## P4-W09 Engineer Simulation Drawer
 
@@ -1622,7 +1622,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W12`。该历史包的下一工作包为 P4-W10 Scenario/manual-control synchronization。
+`implementation_stage=P5-W01`。该历史包的下一工作包为 P4-W10 Scenario/manual-control synchronization。
 
 ## P4-W07 Approval and Recovery UX
 
@@ -1643,7 +1643,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_approval_details_fail_closed=true`、`cockpit_partial_outcome_projection=true`、
 `cockpit_compensation_projection=true`、`cockpit_approval_response_service_published=false`、
 `cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
-`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W12`。
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P5-W01`。
 
 ## P4-W08 Driving Restriction Renderer
 
@@ -1665,7 +1665,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_unknown_driving_restricted=true`、`cockpit_moving_long_text_hidden=true`、
 `cockpit_restricted_parameter_editing_disabled=true`、`cockpit_high_risk_controls_disabled=true`、
 `cockpit_runtime_policy_authority_independent=true`、`vehicle_signal_provider_wired=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W12`。
+`hardware_accessed=false`、`implementation_stage=P5-W01`。
 
 ## 2026-07-18 P4-W10 Scenario/manual-control synchronization delivery
 
@@ -1681,7 +1681,7 @@ NOT PUBLISHED，Effect/readback 保持 NOT DISPATCHED/UNAVAILABLE。未接 Andro
 状态：`cockpit_scenario_control_state_reducer_owned=true`、`cockpit_scenario_catalog_normalized=true`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`scenario_execution_enabled=false`、
-`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W12`。
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P5-W01`。
 
 ## 2026-07-18 P4-W11 Accessibility/display matrix delivery
 
@@ -1701,4 +1701,25 @@ Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、`DEL-
 `cockpit_display_large_text_1_3_verified=true`、`cockpit_display_unsupported_fail_closed=true`、
 `cockpit_display_matrix_android13_arm64_verified=true`、`cockpit_display_effect_authorization_source=false`、
 `scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。
+
+## 2026-07-18 P4-W12 Android device acceptance/fault/recovery delivery
+
+交付 `central_brain_android_p4_hmi_acceptance.json`、单一 Android 13 ARM64 aggregate runner、静态合同门禁和 R7C 2.2
+`R7C-E-015`。Runner 重新执行 Runtime/Client2 recovery、protected engineer fault、scenario/manual synchronization 与
+accessibility/display matrix；每个子套件独立清理并检查 crash buffer，最后重新启动 Activity、读取 UI tree 和导航入口。
+
+物理正向证据包括 navigation/show/hide/outside dismiss、cold/fatigue/rest、manual HVAC/Seat Session admission、
+UNKNOWN/MOVING/PARKED/fault、Runtime/Client2 restart 和三档显示。Plan/Effect/Media/Nav/approval/partial/mismatch/undo
+保持 host projection 或实体 fail-closed；Runtime release 无 simulation surface，但无 production Client2 release artifact。
+
+Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
+`APP-004`、`XSC-001/005/006`、`DEL-001/003/004/005`；偏差：`DEV-062`；问题：`ISSUE-022/026/030/033`。
+状态：`p4_w12_application_acceptance_complete=true`、`p4_android13_arm64_aggregate_verified=true`、
+`p4_ui_tree_verified=true`、`p4_crash_buffer_clean=true`、`runtime_release_simulation_surface_absent=true`、
+`p4_plan_effect_projection_host_verified=true`、`p4_automatic_plan_runtime_published=false`、
+`p4_production_effect_dispatch_enabled=false`、`p4_approval_response_service_published=false`、
+`p4_undo_service_published=false`、`p4_vehicle_readback_available=false`、
+`client2_production_release_artifact_available=false`、`hmi_d4_demo_control_loop_complete=false`、
+`production_ready=false`、`target_hardware_validated=false`、`hardware_accessed=false`、
+`implementation_stage=P5-W01`。

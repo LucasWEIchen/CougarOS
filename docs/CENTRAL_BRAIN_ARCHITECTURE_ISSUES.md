@@ -479,6 +479,7 @@ migration、session token retention/erase policy 和 MDM data clear。目标 own
 | P3-W08 进展 | Explicit reversible policy、VALID before snapshot、absolute target、reverse dependency、TTL/Governance/new task/idempotent admission 已完成软件/API 33 ARM64 证据；原 VERIFIED 不变，Graph/Room/Binder/dispatch/production authority 均未接，DEV-049 与 ISSUE-022/023/026/029/030/033 保持 Open。 |
 | P4-W10 进展 | 单一 scenario catalog/control state 已同步 cold/fatigue/rest、manual HVAC/Seat、Session lifecycle、Plan revision、event sequence 与设备详情；canonical mismatch 失败关闭。Runtime Plan/Graph/Effect/readback 仍未发布，ISSUE-033 保持 Open，下一子项为 P4-W11。 |
 | P4-W11 进展 | 三档横屏 allowlist、1.30 fontScale、48dp、runtime accessibility semantics、最长中文与 unsupported fail-closed 已通过 Android 13 ARM64；这不提供 Runtime Plan/Effect/readback，ISSUE-033 保持 Open，下一子项为 P4-W12。 |
+| P4-W12 进展 | Android 13 ARM64 recovery/fault/scenario/display 聚合、per-suite crash buffer 和最终 UI tree 已通过；自动 Plan/Effect、approval/undo/readback 与 production Client2 release 仍未完成，ISSUE-033 保持 Open。 |
 
 ### ISSUE-033 P4-W10 update
 
@@ -493,3 +494,13 @@ P4-W11 已使 Client2 在 `1280x720@107dpi`、`1920x1080@160dpi`、`2560x1440@21
 浮窗边界、48dp 触控、非空 accessibility 语义和非颜色状态。未列入 profile 会禁用入口，且显示策略不能授权 Effect。
 因此显示/无障碍子项已关闭，但 ISSUE-033 仍不能关闭：P4-W12 负责 Android 设备聚合故障/恢复验收，production
 Plan/Graph/Effect/readback 继续受 `ISSUE-022/026/030` 阻塞。tracking：`DEV-061`。
+
+### ISSUE-033 P4-W12 update
+
+P4-W12 的单一 runner 已在 Android 13 ARM64 重新执行 recovery、protected engineer fault、cold/fatigue/rest、manual
+HVAC/Seat admission 和三档显示矩阵；每个子套件检查 crash buffer，最终 Activity/UI tree 可达。该结果关闭 application
+acceptance 子项，不关闭演示闭环。
+
+Plan/Effect/Media/Nav/approval/partial/mismatch/undo 在当前证据中仍是 host projection 或实体 unavailable/disabled；没有
+production Client2 release artifact，`hmi_d4_demo_control_loop_complete=false`。因此 ISSUE-033 保持 Open，后续 Runtime
+execution wiring 与真实车辆分别由 `ISSUE-022/026/030` 推进。tracking：`DEV-062`。

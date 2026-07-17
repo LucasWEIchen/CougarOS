@@ -78,8 +78,18 @@ mkdir -p "$LOG_DIR"
 DEVICE_XML=/sdcard/client2-scenario-sync.xml
 
 dump_ui() {
-  "${DEVICE[@]}" shell uiautomator dump "$DEVICE_XML" >/dev/null
-  "${DEVICE[@]}" shell cat "$DEVICE_XML" >"$1"
+  local output_file="$1" attempt
+  for attempt in {1..10}; do
+    "${DEVICE[@]}" shell rm -f "$DEVICE_XML" >/dev/null 2>&1 || true
+    if timeout 8s "${DEVICE[@]}" shell uiautomator dump "$DEVICE_XML" >/dev/null 2>&1 \
+        && timeout 8s "${DEVICE[@]}" shell cat "$DEVICE_XML" >"$output_file" 2>/dev/null \
+        && [[ -s "$output_file" ]]; then
+      return 0
+    fi
+    sleep 0.4
+  done
+  echo "Scenario UI hierarchy unavailable after bounded retries" >&2
+  return 1
 }
 
 node_value() {
@@ -113,6 +123,38 @@ print((left + right) // 2, (top + bottom) // 2)
 PY
 }
 
+scroll_resource_to_edge() {
+  local resource="$1" direction="$2" file="$LOG_DIR/scroll-$1.xml" bounds
+  local iteration x1 y1 x2 y2
+  dump_ui "$file"
+  bounds="$(node_value "$resource" bounds "$file")"
+  read -r x1 y1 x2 y2 < <(python3 - "$bounds" "$direction" <<'PY'
+import re
+import sys
+
+match = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", sys.argv[1])
+if not match:
+    raise SystemExit("scroll resource has no bounds")
+left, top, right, bottom = map(int, match.groups())
+if right <= left or bottom <= top:
+    raise SystemExit("scroll resource has empty bounds")
+x = (left + right) // 2
+upper = top + (bottom - top) // 5
+lower = top + 4 * (bottom - top) // 5
+if sys.argv[2] == "top":
+    print(x, upper, x, lower)
+elif sys.argv[2] == "bottom":
+    print(x, lower, x, upper)
+else:
+    raise SystemExit("unsupported scroll direction")
+PY
+  )
+  for iteration in {1..8}; do
+    "${DEVICE[@]}" shell input swipe "$x1" "$y1" "$x2" "$y2" 120
+    sleep 0.1
+  done
+}
+
 wait_text() {
   local resource="$1" expected="$2" file="$LOG_DIR/wait-$1.xml" value
   for _ in {1..40}; do
@@ -131,9 +173,10 @@ open_intent_surface() {
 }
 
 inspect_device_role() {
-  local detail_resource="$1" request_resource="$2" role="$3"
+  local detail_resource="$1" surface_resource="$2" request_resource="$3" role="$4"
   tap_resource centralBrainPlanTab
   tap_resource "$detail_resource"
+  scroll_resource_to_edge "$surface_resource" bottom
   wait_text "$request_resource" "$role"
   wait_text "$request_resource" 'NOT PUBLISHED'
   wait_text "$request_resource" 'Event #1'
@@ -163,27 +206,31 @@ wait_text centralBrainEngineerContextText 'UNBELTED'
 open_intent_surface
 tap_resource centralBrainColdButton
 wait_text centralBrainConnectionText '已连接'
-inspect_device_role centralBrainHvacDetailButton centralBrainHvacRequestText 'CATALOG REQUIRED'
+inspect_device_role centralBrainHvacDetailButton centralBrainHvacSurface centralBrainHvacRequestText 'CATALOG REQUIRED'
 
 open_intent_surface
 tap_resource centralBrainTiredButton
 wait_text centralBrainConnectionText '已连接'
-inspect_device_role centralBrainSeatDetailButton centralBrainSeatRequestText 'CATALOG OPTIONAL'
+inspect_device_role centralBrainSeatDetailButton centralBrainSeatSurface centralBrainSeatRequestText 'CATALOG OPTIONAL'
 
 open_intent_surface
 tap_resource centralBrainNapButton
 wait_text centralBrainConnectionText '已连接'
-inspect_device_role centralBrainSeatDetailButton centralBrainSeatRequestText 'CATALOG REQUIRED'
+inspect_device_role centralBrainSeatDetailButton centralBrainSeatSurface centralBrainSeatRequestText 'CATALOG REQUIRED'
 
 tap_resource centralBrainDrawerCloseButton
 tap_resource centralBrainHvacDetailButton
+scroll_resource_to_edge centralBrainHvacSurface top
 tap_resource centralBrainHvacTemperatureUpButton
+scroll_resource_to_edge centralBrainHvacSurface bottom
 wait_text centralBrainHvacRequestText 'MANUAL TARGET'
 wait_text centralBrainHvacRequestText 'SESSION_ACCEPTED'
 
 tap_resource centralBrainDrawerCloseButton
 tap_resource centralBrainSeatDetailButton
+scroll_resource_to_edge centralBrainSeatSurface top
 tap_resource centralBrainSeatHeatUpButton
+scroll_resource_to_edge centralBrainSeatSurface bottom
 wait_text centralBrainSeatRequestText 'MANUAL TARGET'
 wait_text centralBrainSeatRequestText 'SESSION_ACCEPTED'
 

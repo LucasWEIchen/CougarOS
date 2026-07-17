@@ -308,7 +308,8 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
 occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
 SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
-P4-W11 已完成 Accessibility/display matrix，下一工作包为 P4-W12 Android device acceptance/fault/recovery。
+P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。下一工作包为
+P5-W01 Tool manifest/schema；`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/undo/readback 仍未发布。
 
 ## 7. 近期进展
 
@@ -741,8 +742,21 @@ cockpit_display_large_text_1_3_verified=true
 cockpit_display_unsupported_fail_closed=true
 cockpit_display_matrix_android13_arm64_verified=true
 cockpit_display_effect_authorization_source=false
+p4_w12_application_acceptance_complete=true
+p4_android13_arm64_aggregate_verified=true
+p4_ui_tree_verified=true
+p4_crash_buffer_clean=true
+runtime_release_simulation_surface_absent=true
+p4_plan_effect_projection_host_verified=true
+p4_automatic_plan_runtime_published=false
+p4_production_effect_dispatch_enabled=false
+p4_approval_response_service_published=false
+p4_undo_service_published=false
+p4_vehicle_readback_available=false
+client2_production_release_artifact_available=false
+hmi_d4_demo_control_loop_complete=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W12
+implementation_stage=P5-W01
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -785,4 +799,18 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。
+
+### 2026-07-18 P4-W12 progress
+
+新增 P4 分层验收合同与单一 Android 13 ARM64 runner，重新执行 recovery、protected engineer fault、natural/manual
+scenario sync 和 display/accessibility 四个子套件。每个子套件清空并检查 crash buffer；最终重新启动 Client2、获取
+UI tree 并确认导航 trigger。子测试 UIAutomator dump 使用有界重试，恢复脚本可显式处理 signer-conflicting Client2。
+
+P4-W12 只关闭 application acceptance。Plan/Effect/Media/Nav/approval/partial/mismatch/undo 仍是 host projection 或实体
+fail-closed；无 production Client2 release artifact，`hmi_d4_demo_control_loop_complete=false`。下一工作包为 P5-W01
+Tool manifest/schema。
+
+Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
+`APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。

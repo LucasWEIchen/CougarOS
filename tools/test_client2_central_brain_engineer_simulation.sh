@@ -98,8 +98,18 @@ mkdir -p "$LOG_DIR"
 DEVICE_XML=/sdcard/client2-engineer-simulation.xml
 
 dump_ui() {
-  "${DEVICE[@]}" shell uiautomator dump "$DEVICE_XML" >/dev/null
-  "${DEVICE[@]}" shell cat "$DEVICE_XML" >"$1"
+  local output_file="$1" attempt
+  for attempt in {1..10}; do
+    "${DEVICE[@]}" shell rm -f "$DEVICE_XML" >/dev/null 2>&1 || true
+    if timeout 8s "${DEVICE[@]}" shell uiautomator dump "$DEVICE_XML" >/dev/null 2>&1 \
+        && timeout 8s "${DEVICE[@]}" shell cat "$DEVICE_XML" >"$output_file" 2>/dev/null \
+        && [[ -s "$output_file" ]]; then
+      return 0
+    fi
+    sleep 0.4
+  done
+  echo "Engineer UI hierarchy unavailable after bounded retries" >&2
+  return 1
 }
 
 node_value() {

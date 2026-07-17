@@ -85,6 +85,7 @@
 | DEV-059 | P4-W09 工程抽屉只在 Client2 本地投影 debug Controller 已确认状态；它不是 production Context、Safety 或 Effect authority。 | S2-HMI-004, S2-ADP-001, S2-OBS-001, ISSUE-023/029/030/033 | Accepted Temporary |
 | DEV-060 | P4-W10 Client2 catalog device role 是 HMI 同步投影，不是 Runtime 发布的 Plan、Effect target 或车辆回读。 | S2-HMI-001..006, S2-SCN-001, ISSUE-022/026/030/033 | Accepted Temporary |
 | DEV-061 | P4-W11 只认证三个固定横屏 profile 和 0.85..1.30 fontScale，不是 OEM 多屏/无障碍量产认证。 | S2-UX-003, S2-HMI-001/002, ISSUE-019/033 | Accepted Temporary |
+| DEV-062 | P4-W12 关闭 application aggregate acceptance，但自动 Plan/Effect、approval/undo/readback 和 HMI-D4 仍未完成。 | S2-UX-001..003, S2-HMI-001..006, ISSUE-022/026/030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -931,3 +932,21 @@ Coordinator 在运行时为全部 Button 补齐 content description、focus/impo
 `cockpit_display_matrix_defined=true`、`cockpit_accessibility_semantics_runtime_owned=true`、
 `cockpit_display_matrix_android13_arm64_verified=true`、`cockpit_display_effect_authorization_source=false`、
 `production_ready=false`、`target_hardware_validated=false`。
+
+## DEV-062 P4-W12 application acceptance is not HMI-D4 execution closure
+
+P4-W12 把 recovery、protected engineer fault、scenario/manual synchronization 和 accessibility/display 四个 Android 13
+ARM64 子套件收敛到一个可恢复入口。每个子套件独立清空并检查 crash buffer，结束后重新启动 Client2 并获取 UI tree。
+这证明应用集成、失败关闭和进程恢复可重复，不证明尚未发布的 Runtime 自动执行。
+
+当前 natural/manual Session 仍只到 admission；`activePlanRevision=0`、Effect dispatch/readback 未发布。Media/Nav、approval、
+partial、mismatch、undo/compensation 只有 host typed projection 和实体 unavailable/disabled 呈现。Runtime release 已证明无
+debug simulation Service/adapter，但项目没有可宣称量产的 Client2 release artifact。因此 P4-W12 可以关闭 application
+acceptance 工作包，但不得设置 `hmi_d4_demo_control_loop_complete=true`。
+
+状态：`Accepted Temporary`。关闭条件是发布并持久化 Runtime Plan/Graph/Effect/approval/undo/readback 服务，使用 debug
+simulated adapter 完成可重复演示闭环，再独立交付无工程抽屉的 production Client2 release artifact；真实车辆与 OEM 资格
+仍由 P8/P9 关闭。当前：`p4_w12_application_acceptance_complete=true`、
+`p4_plan_effect_projection_host_verified=true`、`p4_automatic_plan_runtime_published=false`、
+`p4_production_effect_dispatch_enabled=false`、`client2_production_release_artifact_available=false`、
+`hmi_d4_demo_control_loop_complete=false`、`production_ready=false`、`target_hardware_validated=false`。

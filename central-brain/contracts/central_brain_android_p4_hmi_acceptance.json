@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "acceptance_id": "android-p4-hmi-device-acceptance",
+  "status": "verified",
+  "evidence_scope": "android13-arm64-application-hmi",
+  "required_android_api": 33,
+  "req_ids": [
+    "S2-UX-001",
+    "S2-UX-002",
+    "S2-UX-003",
+    "S2-HMI-001",
+    "S2-HMI-002",
+    "S2-HMI-003",
+    "S2-HMI-004",
+    "S2-HMI-005",
+    "S2-HMI-006",
+    "S2-SCN-001",
+    "S2-SAF-001",
+    "S2-EFF-001",
+    "APP-004",
+    "XSC-001",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "test_command": "bash tools/test_client2_central_brain_p4_acceptance.sh --require-api-33 --replace-conflicting-client2",
+  "suites": [
+    {
+      "id": "P4-A-001",
+      "name": "navigation_session_and_process_recovery",
+      "evidence_mode": "physical-positive",
+      "command": "bash tools/test_client2_central_brain_recovery.sh --require-api-33 --replace-conflicting-client2"
+    },
+    {
+      "id": "P4-A-002",
+      "name": "protected_context_and_fault_matrix",
+      "evidence_mode": "physical-debug-only",
+      "command": "bash tools/test_client2_central_brain_engineer_simulation.sh --require-api-33 --replace-conflicting-client2"
+    },
+    {
+      "id": "P4-A-003",
+      "name": "natural_and_manual_scenario_synchronization",
+      "evidence_mode": "physical-positive",
+      "command": "bash tools/test_client2_central_brain_scenario_sync.sh --require-api-33 --replace-conflicting-client2"
+    },
+    {
+      "id": "P4-A-004",
+      "name": "accessibility_and_display_matrix",
+      "evidence_mode": "physical-positive",
+      "command": "bash tools/test_client2_central_brain_accessibility_display.sh --require-api-33 --replace-conflicting-client2"
+    },
+    {
+      "id": "P4-A-005",
+      "name": "plan_effect_media_navigation_approval_partial_mismatch_undo",
+      "evidence_mode": "host-projection-and-physical-fail-closed",
+      "command": "bash tools/check_central_brain_android_client2_hmi_reducer.sh"
+    },
+    {
+      "id": "P4-A-006",
+      "name": "runtime_release_simulation_surface_absence",
+      "evidence_mode": "release-static-and-apk",
+      "command": "bash tools/check_central_brain_android_client2_engineer_simulation.sh"
+    }
+  ],
+  "claim_state": {
+    "p4_w12_application_acceptance_complete": true,
+    "p4_android13_arm64_aggregate_verified": true,
+    "p4_navigation_show_hide_verified": true,
+    "p4_natural_scenario_sync_verified": true,
+    "p4_manual_hvac_seat_admission_verified": true,
+    "p4_moving_unknown_fail_closed_verified": true,
+    "p4_runtime_client_process_recovery_verified": true,
+    "p4_ui_tree_verified": true,
+    "p4_crash_buffer_clean": true,
+    "runtime_release_simulation_surface_absent": true,
+    "p4_plan_effect_projection_host_verified": true,
+    "p4_automatic_plan_runtime_published": false,
+    "p4_production_effect_dispatch_enabled": false,
+    "p4_approval_response_service_published": false,
+    "p4_undo_service_published": false,
+    "p4_vehicle_readback_available": false,
+    "client2_production_release_artifact_available": false,
+    "hmi_d4_demo_control_loop_complete": false,
+    "target_hardware_validated": false,
+    "production_ready": false
+  },
+  "non_claims": [
+    "Runtime automatic Plan Graph or Effect execution",
+    "physical approval partial mismatch retry undo or compensation command service",
+    "vehicle HVAC Seat Media or Navigation dispatch and readback",
+    "production Client2 release artifact qualification",
+    "OEM multi-display TalkBack distraction or production HMI certification",
+    "NPU Driver HAL VHAL vendor service or target hardware validation"
+  ]
+}

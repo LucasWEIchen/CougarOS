@@ -706,11 +706,16 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W12` Android device acceptance/fault/recovery
 
-- 状态：`NOT_STARTED`；2.5-4 人日；需求：P4 全部。
+- 状态：`COMPLETE`（2026-07-18，application acceptance only）；2.5-4 人日；需求：P4 全部。
 - DoD：Android 13 ARM64 真机完成 navigation/show/hide、自然场景输入、自动计划链、manual HVAC/Seat、cold/fatigue/rest、
   Media/Nav Effect projection、moving/unknown rejection、approval、partial、mismatch、undo、Runtime
   restart、UI tree/crash buffer；
   release build 无 simulation drawer/adapter。
+- 交付：新增 P4 分层验收合同、可恢复聚合脚本、per-suite crash buffer、最终 UI tree 和 R7C-E-015。Android 13
+  ARM64 实体覆盖 navigation/show/hide、cold/fatigue/rest、manual HVAC/Seat admission、UNKNOWN/MOVING、fault matrix、
+  Runtime/Client2 restart 与三档显示；Plan/Effect/Media/Nav/approval/partial/mismatch/undo 只保留 host projection 和实体
+  fail-closed，不能声明真实执行。Runtime release simulation surface absent；无 production Client2 release artifact。
+  `hmi_d4_demo_control_loop_complete=false`，边界由 `DEV-062` 跟踪。
 
 ## 9. P5 Tool/Skill 与 Memory
 

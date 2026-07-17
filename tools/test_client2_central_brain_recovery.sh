@@ -9,6 +9,7 @@ SERIAL="${ANDROID_SERIAL:-}"
 BUILD=true
 REQUIRE_API_33=false
 RUNTIME_DISABLED=false
+REPLACE_CONFLICTING_CLIENT2=false
 
 usage() {
   cat <<'EOF'
@@ -18,6 +19,8 @@ Options:
   --serial SERIAL    Select an adb device explicitly.
   --skip-build       Reuse existing debug and androidTest artifacts.
   --require-api-33   Fail unless the selected device is exactly Android API 33.
+  --replace-conflicting-client2
+                     Remove a signer-conflicting Client2 package.
   -h, --help         Show this help.
 EOF
 }
@@ -35,6 +38,10 @@ while (($# > 0)); do
       ;;
     --require-api-33)
       REQUIRE_API_33=true
+      shift
+      ;;
+    --replace-conflicting-client2)
+      REPLACE_CONFLICTING_CLIENT2=true
       shift
       ;;
     -h|--help)
@@ -115,8 +122,18 @@ wait_for_log() {
 
 dump_ui() {
   local output_file="$1"
-  "${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null
-  "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$output_file"
+  local attempt
+  for attempt in {1..10}; do
+    "${ADB_DEVICE[@]}" shell rm -f "$DEVICE_UI_XML" >/dev/null 2>&1 || true
+    if timeout 8s "${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null 2>&1 \
+        && timeout 8s "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$output_file" 2>/dev/null \
+        && [[ -s "$output_file" ]]; then
+      return 0
+    fi
+    sleep 0.4
+  done
+  echo "Recovery UI hierarchy unavailable after bounded retries" >&2
+  return 1
 }
 
 button_center() {
@@ -236,6 +253,9 @@ done
 HAPPY_PATH_ARGS=(--skip-build --serial "$SERIAL")
 if [[ "$REQUIRE_API_33" == true ]]; then
   HAPPY_PATH_ARGS+=(--require-api-33)
+fi
+if [[ "$REPLACE_CONFLICTING_CLIENT2" == true ]]; then
+  HAPPY_PATH_ARGS+=(--replace-conflicting-client2)
 fi
 bash "$ROOT_DIR/tools/test_client2_central_brain_binder.sh" \
   "${HAPPY_PATH_ARGS[@]}" >"$LOG_DIR/client2-happy-path.txt" 2>&1
@@ -501,7 +521,7 @@ assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
 
 ln -sfn "$LOG_DIR" "$ROOT_DIR/logs/test/client2-central-brain-recovery/latest"
 printf '%s\n' \
-  "device_serial=$SERIAL" \
+  "device_alias=local-android13-arm64" \
   "android_api=$SDK" \
   "device_abi=$ABI" \
   "runtime_absent_failure_visible=true" \
@@ -561,6 +581,9 @@ printf '%s\n' \
   "cockpit_restricted_parameter_editing_disabled_verified=true" \
   "cockpit_high_risk_controls_disabled_verified=true" \
   "cockpit_runtime_policy_authority_independent=true" \
+  "client2_navigation_toggle_show_verified=true" \
+  "client2_navigation_toggle_hide_verified=true" \
+  "client2_outside_tap_dismiss_verified=true" \
   "client2_navigation_menu_reopen_verified=true" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \

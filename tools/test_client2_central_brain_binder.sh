@@ -192,8 +192,18 @@ fi
 DEVICE_UI_XML=/sdcard/client2-central-brain-binder.xml
 dump_ui() {
   local output_file="$1"
-  "${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null
-  "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$output_file"
+  local attempt
+  for attempt in {1..10}; do
+    "${ADB_DEVICE[@]}" shell rm -f "$DEVICE_UI_XML" >/dev/null 2>&1 || true
+    if timeout 8s "${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null 2>&1 \
+        && timeout 8s "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$output_file" 2>/dev/null \
+        && [[ -s "$output_file" ]]; then
+      return 0
+    fi
+    sleep 0.4
+  done
+  echo "Binder UI hierarchy unavailable after bounded retries" >&2
+  return 1
 }
 
 node_center() {
@@ -584,8 +594,7 @@ tap_resource centralBrainResultTab "$LOG_DIR/ui-before-result-tab.xml"
 wait_for_resource_state \
   centralBrainResultSummaryText visible "$LOG_DIR/ui-result-tab.xml"
 
-"${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null
-"${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$LOG_DIR/ui-after.xml"
+dump_ui "$LOG_DIR/ui-after.xml"
 if ! grep -Fq 'text="Scenario accepted; execution is not enabled"' \
     "$LOG_DIR/ui-after.xml"; then
   cat "$LOG_DIR/ui-after.xml" >&2
@@ -595,7 +604,7 @@ fi
 
 ln -sfn "$LOG_DIR" "$ROOT_DIR/logs/test/client2-central-brain-binder/latest"
 printf '%s\n' \
-  "device_serial=$SERIAL" \
+  "device_alias=local-android13-arm64" \
   "android_api=$SDK" \
   "device_abi=$ABI" \
   "client2_signature_permission_granted=true" \

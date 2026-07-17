@@ -543,3 +543,48 @@ target_hardware_validated=false
 该证据关闭 P4-W11 的 application-layer display/accessibility DoD，但不构成 OEM 多屏/竖屏、任意 density/font scale、
 TalkBack 人工认证、驾驶分心或量产 HMI 资格。限制由 `DEV-061` 跟踪；下一实体工作包为 P4-W12 Android device
 acceptance/fault/recovery aggregate。
+
+## 19. 2026-07-18 P4-W12 aggregate Android application acceptance evidence
+
+同一 Android 13/API 33 ARM64 USB 设备从单一 aggregate runner 完成 P4 应用层全量重放：
+
+1. recovery fresh 执行 navigation show/hide、outside dismiss、Session replacement、Runtime/Client2 process death、
+   replay/dedup、checkpoint resume 与 hidden-state recreation；每项从本轮子报告读取精确 marker；
+2. engineer debug-only suite 重放 UNKNOWN/MOVING/PARKED、occupancy/belt、HVAC/Seat fault 和 reset fail-closed；
+3. scenario suite 重放 cold/fatigue/rest 和 manual HVAC/Seat admission。P4-W11 的 48dp 控件使 request evidence 位于
+   ScrollView 下方，测试已改为按实际 ScrollView bounds 有界滚动后验证，不再假定节点首屏可见；
+4. display/accessibility suite 重放三个严格 profile、1.30 fontScale、48dp、content/state semantics 和 unsupported profile；
+   size/density/font/rotation 在退出时恢复；
+5. 所有 UIAutomator dump/cat 使用 8 秒单次超时和有限重试，避免设备工具偶发阻塞形成无限等待；
+6. 每个子套件前后检查 Client2/Runtime crash buffer，最终重新启动 Client2、获取非空 UI tree 并确认导航 trigger；
+7. release source/APK 门禁确认 Runtime 无 debug simulation Service/adapter。项目仍没有可宣称 production 的独立
+   Client2 release artifact；
+8. 子报告仅使用固定非秘密 `device_alias`，不记录 raw serial；UI tree、crash buffer 和原始日志留在本地忽略目录。
+
+```text
+p4_w12_application_acceptance_complete=true
+p4_android13_arm64_aggregate_verified=true
+p4_navigation_show_hide_verified=true
+p4_natural_scenario_sync_verified=true
+p4_manual_hvac_seat_admission_verified=true
+p4_moving_unknown_fail_closed_verified=true
+p4_runtime_client_process_recovery_verified=true
+p4_ui_tree_verified=true
+p4_crash_buffer_clean=true
+runtime_release_simulation_surface_absent=true
+p4_plan_effect_projection_host_verified=true
+p4_automatic_plan_runtime_published=false
+p4_production_effect_dispatch_enabled=false
+p4_approval_response_service_published=false
+p4_undo_service_published=false
+p4_vehicle_readback_available=false
+client2_production_release_artifact_available=false
+hmi_d4_demo_control_loop_complete=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据关闭 P4-W12 application aggregate acceptance，不关闭 HMI-D4。Plan/Effect/Media/Nav/approval/partial/mismatch/undo
+只有 host typed projection 或实体 fail-closed 呈现；当前 Runtime 未发布自动 Plan/Effect、approval response、undo 或车辆
+readback。限制由 `DEV-062` 与 `ISSUE-022/026/030/033` 跟踪；下一软件工作包为 P5-W01 Tool manifest/schema。
