@@ -1464,3 +1464,39 @@ target_hardware_validated=false
 HVAC/Seat surface、Runtime scenario/Graph/Effect wiring 或真实车辆/NPU。两段 alias 差异与 legacy static owner 由
 `DEV-051` 跟踪；`ISSUE-033` 保持 Open。Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001/005/006`、
 `NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+## Android P4-W02 Cockpit HMI state/reducer/reconnect
+
+受维护交付新增或更新：
+
+1. immutable `CockpitHmiState` 与 defensive SessionHandle projection；
+2. deterministic `CockpitHmiReducer` 和 typed event factories；
+3. maintained Java `CockpitControlCoordinator` View/Session/Activity lifecycle owner；
+4. `Client2ScenarioBridge.resumeSession(existingHandle, opaqueCursor)`；
+5. text-free private checkpoint、host-JVM checker、R7C 1.2 和 Android 13 ARM64 recreate evidence；
+6. 删除旧 `CentralBrainPanelController*.smali`，MainActivity 仅保留 coordinator bootstrap。
+
+交付标志：
+
+```text
+cockpit_hmi_state_immutable=true
+cockpit_hmi_state_reducer_implemented=true
+cockpit_hmi_lifecycle_owner_java=true
+client2_smali_controller_retired=true
+client2_hmi_session_replacement_verified=true
+client2_hmi_checkpoint_resume_verified=true
+client2_hmi_hidden_state_recreation_verified=true
+client2_hmi_checkpoint_text_persisted=false
+legacy_text_callback_authoritative=false
+cockpit_demo_control_loop_implemented=false
+scenario_execution_enabled=false
+service_dispatch_triggered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 immutable HMI state/lifecycle/reconnect，不交付 P4-W03 四阶段 shell、HVAC/Seat control surface、
+Runtime scenario/Graph/Effect wiring 或真实车辆/NPU。固定 alias 由 `DEV-051` 跟踪；app-private checkpoint 与量产
+storage owner 差异由 `DEV-052/ISSUE-035` 跟踪；`ISSUE-033` 保持 Open。Req IDs：`S2-UX-001..003`、
+`S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006`、`NV-G-003/006/007`、`DEL-001/003/004/005`。

@@ -196,6 +196,11 @@
 - `R7B Client2 SDK/Binder migration` 已完成，P4-W01 已在其上把桥接层迁移为 public `SessionClient`：隔离 APK patch 工程把 SDK/AIDL 与窄桥接层编译为 `classes2.dex`，12 个 UI alias 显式映射 canonical Session ID；旧 `RequestTask` HTTP Smali、INTERNET 和 cleartext 均已移除。
 - Client2 debug APK 与 Runtime 使用同一调试 signer，通过 signature permission 后仍受 package/current-signer default-deny capability policy；除旧 task capability 兼容项外已具备 owner-scoped session/event read/open/subscribe/cancel。API 33 已验证 Session open、snapshot/event/replay、UI projection、可信 capability 和 no-HTTP/no-hardware 边界。
 - `client2_binder_migration_complete=true` 并移除对应 blocker；`r7_application_integration_complete=false`、API 33 总验收、system owner、五类 production subsystem 与 target hardware blocker 保持不变。下一步 R7C 做完整应用故障/恢复与总验收。
+- `P4-W02 Cockpit HMI state/reducer/reconnect` 已完成：immutable `CockpitHmiState`、唯一 `CockpitHmiReducer` 与
+  Java `CockpitControlCoordinator` 取代旧 Smali state/lifecycle owner；bridge 新增 existing Session resume，Activity/
+  process recreate 使用 text-free private checkpoint 恢复 handle/cursor/sequence，隐藏面板状态和 replay 去重均经
+  Android 13 ARM64 实机验证。该 checkpoint 不是量产加密 HMI store，P4-W03 四阶段 renderer 与 Runtime
+  scenario/Graph/Effect wiring 仍未实现。
 - Req IDs：`APP-004`、`XSC-001`、`XSC-005`、`XSC-006`、`NV-G-006`、`NV-P-002`、`DEL-001`、`DEL-003`、`DEL-004`。
 - `R7C Android 13 application integration acceptance` 已演进到合同 1.1：API 33 自动矩阵覆盖 Runtime unavailable/re-enable retry、legacy Session stream replacement、Runtime process death 后原 Session reconnect/cursor replay/duplicate suppression、无伪 terminal、Client2 process restart/rebind，以及既有 Binder reconnect/callback death/cancel race 回归。
 - Process death 只由 DUMP-protected debug receiver 注入，release 不包含该组件。验收合同与证据范围固定为 `api33-emulator-application-integration`，不升级为目标设备或量产证据。

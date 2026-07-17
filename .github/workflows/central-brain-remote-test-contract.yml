@@ -76,4 +76,5 @@ jobs:
           bash tools/check_central_brain_android_effect_verification.sh
           bash tools/check_central_brain_android_compensation_undo.sh
           bash tools/check_central_brain_android_graph_restart_recovery.sh
+          bash tools/check_central_brain_android_client2_hmi_reducer.sh
           bash tools/check_central_brain_root_readme.sh

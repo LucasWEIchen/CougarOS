@@ -568,10 +568,23 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W02` Cockpit HMI state/reducer/reconnect
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001..003`、`S2-HMI-003/005/006`。
+- 状态：`DONE`（2026-07-17）；2.5 人日；需求：`S2-UX-001..003`、`S2-HMI-003/005/006`。
 - 新增 maintained Java source：`CockpitHmiState.java`、`CockpitHmiReducer.java`、
   `CockpitControlCoordinator.java`。
 - DoD：UI state 只由 immutable event reduce；snapshot+cursor 重连；隐藏/recreate 不丢 state。
+- 实现：`CockpitHmiState` 只保存 defensive primitive projection；`CockpitHmiReducer` 是唯一 state transition
+  authority，按 session/sequence 丢弃 duplicate 并对 gap 失败关闭；`CockpitControlCoordinator` 直接实现 typed
+  `ScenarioCallback`、持有 `SessionConnection`、绑定 View 和 Activity lifecycle。旧 400+ 行 Smali controller 已删除，
+  MainActivity 只保留一行 Java coordinator 启动 hook。
+- 恢复：bridge 新增 `resumeSession(handle,cursor)`；process-local state 保留完整 render projection，私有
+  `SharedPreferences` checkpoint 只保存 panel、alias、handle、cursor、last sequence，不保存 utterance、summary、
+  assistant/model text。Activity destroy 关闭旧 connection；重建或进程重启后按 handle/cursor replay，reducer 再次去重。
+- 证据：host-JVM reducer contract、D8/APK build、Android 13/API 33 ARM64 happy path、Runtime process-death replay、
+  HMI Session replacement、Client2 force-stop/relaunch resume、hidden-state restore 和 UI projection 全部通过。
+- 边界：P4-W03 四阶段 shell、HVAC/Seat surface、Runtime scenario/Graph/Effect、真实车辆/NPU 均未接。
+  `cockpit_hmi_state_reducer_implemented=true`、`cockpit_hmi_lifecycle_owner_java=true`、
+  `legacy_text_callback_authoritative=false`、`cockpit_demo_control_loop_implemented=false`、
+  `scenario_execution_enabled=false`、`hardware_accessed=false`。
 
 ### `P4-W03` Intent-first four-stage overlay shell
 

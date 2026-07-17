@@ -74,7 +74,8 @@
 | DEV-048 | P3-W07 verifier/reconciler 是 caller-driven process-local 合同，尚未接 scheduler/Room/Graph 或 production readback。 | S2-EFF-001, S2-TWN-001, ISSUE-022/026/030/033 | Accepted Temporary |
 | DEV-049 | P3-W08 Compensation/Undo 只形成 process-local 新 governed task，原 Effect terminal 不回退。 | S2-EFF-001, S2-UX-003, ISSUE-022/023/029/030 | Accepted Temporary |
 | DEV-050 | P3-W09 Restart recovery repository 未注入 Runtime/Binder/Graph execution。 | S2-GRF-001, S2-EFF-001, ISSUE-022/026/030/033 | Accepted Temporary |
-| DEV-051 | P4-W01 使用固定 UI alias map 和 legacy static lifecycle owner，待 P4-W02 接管。 | S2-UX-001, S2-HMI-005, ISSUE-019/033 | Accepted Temporary |
+| DEV-051 | fixed UI alias 仍是闭源 Client2 兼容边界；legacy static owner 已由 P4-W02 Java coordinator 解除。 | S2-UX-001, S2-HMI-005, ISSUE-019/033 | Accepted Temporary |
+| DEV-052 | P4-W02 process-recreation checkpoint 使用 app-private SharedPreferences，不是量产加密 HMI state store。 | S2-UX-001..003, NV-G-003, ISSUE-019/034 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -726,7 +727,7 @@ production Effect adapter。P3-W09 的 debug Activity 直接驱动 repository/re
 `target_hardware_validated=false`。后续集成必须先提供可信 Evidence 和单 owner transaction/scheduler，再接 Runtime；
 在此之前不得把 P3 foundation 状态提升为 production recovery。
 
-## DEV-051 P4-W01 Client2 UI alias 与 legacy 生命周期仍是兼容边界
+## DEV-051 Client2 UI alias 仍是兼容边界，legacy static owner 已解除
 
 Client2 既有 XML/Smali 用两段式 UI alias（如 `care.cold`），冻结的 Session V1 合同和 P2 scenario manifest
 要求至少三段 qualified ID。真机首次迁移因此在 admission 前被 `SessionContract` 正确拒绝。修复没有放宽合同或
@@ -734,15 +735,32 @@ Client2 既有 XML/Smali 用两段式 UI alias（如 `care.cold`），冻结的 
 项映射到 `scene.comfort.cold.v1`、`scene.fatigue.assist.v1`、`scene.rest.nap.v1`，其余 canonical ID 只表示会话命名，
 在 Runtime scenario catalog/Graph 未接入前不代表可执行场景。
 
-旧 Smali 仍调用 `submit(...):boolean` 并实现三个文本 callback。该入口现在只包装 primary `openSession`，在每次
-authoritative replay 后投影 snapshot summary，新的兼容请求会关闭并替换上一个兼容订阅。`closeLegacySession()`
-已提供，但当前 Smali 尚无 Activity destroy hook；P4-W02 必须由 maintained Java coordinator 持有
-`SessionConnection` 并在 lifecycle/recreate 时关闭或恢复，不能长期依赖静态兼容 owner。
+P4-W02 已删除旧 `CentralBrainPanelController*.smali`。MainActivity 只保留一行 hook 调用 maintained Java
+`CockpitControlCoordinator`；Coordinator 直接实现 typed callback、持有 `SessionConnection` 并在 Activity destroy
+关闭，在重建时用 handle/cursor resume。`submit(...):boolean` 和三个 legacy default callback 仍留在 bridge 作为
+Stage 1 binary compatibility API，但当前 Client2 不调用，且 `legacy_text_callback_authoritative=false`。
 
-状态：`Accepted Temporary`。`client2_session_event_primary_api=true`、
+状态：alias 部分仍为 `Accepted Temporary`；static lifecycle owner 子项为 `Resolved`。
+`client2_session_event_primary_api=true`、
 `client2_scenario_alias_map_count=12`、`client2_legacy_submit_compatibility=true`、
 `client2_session_reconnect_replay_verified=true`、`client2_session_duplicate_event_suppressed=true`、
-`cockpit_hmi_state_reducer_implemented=false`、`scenario_execution_enabled=false`、
+`cockpit_hmi_state_reducer_implemented=true`、`cockpit_hmi_lifecycle_owner_java=true`、
+`client2_smali_controller_retired=true`、`legacy_text_callback_authoritative=false`、`scenario_execution_enabled=false`、
 `cockpit_demo_control_loop_implemented=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`。关闭 owner 为 P4-W02/P4-W10；canonical catalog/执行
-由 Runtime integration work package 关闭，不得由 HMI alias 映射冒充。
+`production_ready=false`、`target_hardware_validated=false`。alias 的关闭 owner 为可维护 HMI 源码或 OEM stable
+navigation/scenario ID contract；canonical catalog/执行由 Runtime integration work package 关闭，不得由 HMI alias 映射冒充。
+
+## DEV-052 P4-W02 checkpoint 是 app-private 恢复层，不是量产加密 HMI store
+
+为在闭源 Client2 的 Activity/process recreate 后恢复已有 owner Session，P4-W02 使用 schema-versioned private
+SharedPreferences 保存 panel visibility、UI/canonical alias、SessionHandle metadata、last sequence 和 opaque cursor。
+该 checkpoint 不保存 utterance、snapshot summary、assistant/model text、event/vehicle payload、设备身份或日志；terminal、
+expired、malformed state 不恢复。
+
+该实现满足 debug APK 的确定性恢复，但不等同于量产 encrypted storage、multi-user/seat isolation、backup/restore policy、
+keystore lifecycle 或 OEM HMI state owner。量产接入必须由 target owner 决定是否禁用 backup、采用 encrypted store、
+处理用户切换和 OTA schema migration；在此之前不得把 checkpoint 计入 Memory 模块或 production security evidence。
+
+状态：`Accepted Temporary`。`client2_hmi_checkpoint_resume_verified=true`、
+`client2_hmi_checkpoint_text_persisted=false`、`memory_runtime_production_wired=false`、
+`production_ready=false`、`target_hardware_validated=false`。关闭 owner 为 P4-W10/P8 target integration。

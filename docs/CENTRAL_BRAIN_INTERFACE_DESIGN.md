@@ -1746,3 +1746,81 @@ ScenarioCallback.onBridgeFailure(String) -> void
 `client2_smali_descriptor_unchanged=true`、`client2_session_android13_arm64_verified=true`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`。Req IDs：`S2-UX-001`、`S2-HMI-005`、
 `XSC-001/005/006`、`NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-033/034`。
+
+## Android P4-W02 Cockpit HMI State/Reducer/Lifecycle Interface
+
+### Immutable state API
+
+```java
+CockpitHmiState CockpitHmiReducer.reduce(
+    CockpitHmiState current,
+    CockpitHmiReducer.Event event);
+
+CockpitHmiState.Checkpoint CockpitHmiState.checkpoint();
+SessionHandle CockpitHmiState.toSessionHandle(); // defensive copy
+String CockpitHmiState.renderText();              // projection only
+```
+
+`reduce` 是唯一 mutation authority。返回同一对象表示 callback 被 same-session sequence dedup 丢弃；调用方不得自行增加
+revision。`renderText` 不得反向参与 reducer decision。Checkpoint 不包含 display content。
+
+### Coordinator bootstrap
+
+```text
+MainActivity.onCreate after setContentView
+  invoke-static {p0},
+    Lcom/centralbrain/client2/CockpitControlCoordinator;->install(Landroid/app/Activity;)V
+```
+
+Smali 不持有 View、Session、callback 或 request-in-flight state。`install` 注册 Activity lifecycle、绑定 menu/overlay/button，
+从 process-local state 或 private checkpoint 构造初始 immutable projection，然后按 state 决定是否 resume。
+
+### Existing Session resume
+
+```java
+public static Client2ScenarioBridge.SessionConnection resumeSession(
+    Activity activity,
+    String uiScenarioAlias,
+    SessionHandle handle,
+    String opaqueResumeCursor,
+    ScenarioCallback callback);
+```
+
+前置条件：activity/callback 非空、alias 命中 exact map、handle 通过 `SessionContract.validateHandle`、cursor 非 null、
+长度不超过 256 且无 control character。初次 Binder connected 后调用
+`ScenarioClient.observeSession(copiedHandle, cursor, listener)`，不得调用 `openSession` 创建第二个 Session。
+成功路径 callback 顺序为 `connectionChanged(true,false) -> sessionOpened(existing) -> snapshot -> replay events ->
+replayComplete`。transport death 后仍由 SDK reconnect existing subscription。
+
+### Checkpoint schema v1
+
+| Key | Type | 限制 |
+| --- | --- | --- |
+| `panel_visible` | boolean | 保留 hide/show |
+| `ui_scenario` | String | <=96，UI alias |
+| `canonical_scenario` | String | <=96，resume binding |
+| `handle_schema/session_id` | int/String | frozen Session V1/canonical UUID |
+| `accepted_at/expires_at` | long | handle validity |
+| `last_sequence` | long | >=0，HMI projection dedup |
+| `resume_cursor` | String | opaque <=256 |
+
+禁止 key/value：utterance、snapshot summary、assistant/model display text、event payload、vehicle value、device identity、
+signer、log。过期/非法 checkpoint 原子清空，不能回退为新 Session。
+
+### Lifecycle and render contract
+
+| Trigger | SessionConnection | HMI state | View |
+| --- | --- | --- | --- |
+| panel hide | 保持 | visibility=HIDDEN，其余不变 | overlay GONE |
+| panel show | 保持 | visibility=VISIBLE | 从 state 重绘 |
+| new scenario | close previous；open new | clear old identity -> CONNECTING | render connecting |
+| Runtime death | SDK reconnect | RECONNECTING -> CONNECTED | 保留 last projection |
+| Activity destroy | close | DETACHED/DISCONNECTED，checkpoint | 不再访问旧 View |
+| Activity/process recreate | resume existing | RESTORED -> RECONNECTING -> CONNECTED | snapshot/replay 后重绘 |
+| terminal snapshot | close by bridge | terminal/CLOSED | 显示 authoritative summary |
+
+状态：`cockpit_hmi_state_reducer_implemented=true`、`cockpit_hmi_lifecycle_owner_java=true`、
+`client2_smali_controller_retired=true`、`client2_hmi_checkpoint_text_persisted=false`、
+`legacy_text_callback_authoritative=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`。
+Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-019/033/034`。

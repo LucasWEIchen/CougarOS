@@ -200,9 +200,12 @@ adb -s <serial> shell am start -W \
 右侧半透明浮层提供 12 个场景：`care.cold`（我冷了）、`care.fatigue`（我累了）、
 `task.home`、`skill.nap`、`state.vehicle`、`memory.preference`、`skills.catalog`、
 `governance.audit`、`security.denied`、`security.privacy`、`runtime.npu`、
-`system.overview`。点击按钮后，面板通过 typed Session/Event Binder 打开 owner-scoped Session，并在下方文本区显示
-snapshot/event/replay 的兼容投影；当前 APK 无 INTERNET/HTTP fallback。P4-W01 只完成 bridge，Runtime 尚未执行
-scenario/Graph/Effect。
+`system.overview`。点击按钮后，Java `CockpitControlCoordinator` 通过 typed Session/Event Binder 打开
+owner-scoped Session，所有 snapshot/event/replay 先进入 immutable `CockpitHmiState` 与唯一 reducer，再由 render
+projection 更新文本区。Activity recreate 或 Client2 进程重启时，面板用 app-private、schema-versioned、text-free
+checkpoint 恢复原 Session/cursor/sequence；它不会持久化用户输入、模型输出或显示文本。当前 APK 无
+INTERNET/HTTP fallback。P4-W02 只完成 HMI state/lifecycle/reconnect，Runtime 尚未执行 scenario/Graph/Effect，
+P4-W03 四阶段意图界面和 HVAC/Seat 演示闭环仍未交付。
 
 Runtime 当前返回受控软件结果。`runtime.npu` 不会调用真实 NPU，任何界面文字都不能作为
 硬件激活证据。

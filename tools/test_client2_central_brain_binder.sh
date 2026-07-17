@@ -177,6 +177,7 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_DIR="$ROOT_DIR/logs/test/client2-central-brain-binder/$STAMP"
 mkdir -p "$LOG_DIR"
 "${ADB_DEVICE[@]}" shell settings put secure immersive_mode_confirmations confirmed
+"${ADB_DEVICE[@]}" shell pm clear com.tuanjie.urasclient2 >/dev/null
 "${ADB_DEVICE[@]}" shell am force-stop com.tuanjie.urasclient2
 "${ADB_DEVICE[@]}" logcat -c
 "${ADB_DEVICE[@]}" shell am start -W \
@@ -284,7 +285,7 @@ fi
 BINDER_LOG=""
 for _ in {1..40}; do
   BINDER_LOG="$("${ADB_DEVICE[@]}" logcat -d \
-    CbClient2Session:I CentralBrainRuntime:I '*:S')"
+    CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I '*:S')"
   if grep -Fq 'client2_session_replay_complete=true' <<<"$BINDER_LOG"; then
     break
   fi
@@ -300,11 +301,15 @@ for marker in \
   'event_type=ScenarioRequested' \
   'event_sequence=1' \
   'client2_session_replay_complete=true' \
-  'client2_legacy_callback_projected=true' \
+  'client2_hmi_replay_projected=true' \
+  'cockpit_hmi_state_reducer_implemented=true' \
+  'cockpit_hmi_lifecycle_owner_java=true' \
+  'client2_hmi_checkpoint_text_persisted=false' \
   'ui_scenario_id=care.cold' \
   'scenario_id=scene.comfort.cold.v1' \
   'session_event_transport_used=true' \
-  'legacy_callback_compatibility=true' \
+  'legacy_callback_compatibility=false' \
+  'legacy_text_callback_authoritative=false' \
   'http_transport_used=false' \
   'service_dispatch_triggered=false' \
   'hardware_accessed=false'; do
@@ -320,7 +325,7 @@ done
 if ! grep -Fq 'text="Scenario accepted; execution is not enabled"' \
     "$LOG_DIR/ui-after.xml"; then
   cat "$LOG_DIR/ui-after.xml" >&2
-  echo "Client2 UI did not render the Session snapshot compatibility projection" >&2
+  echo "Client2 UI did not render the immutable HMI Session projection" >&2
   exit 1
 fi
 
@@ -338,7 +343,11 @@ printf '%s\n' \
   "client2_session_event_received=true" \
   "client2_session_event_sequence_verified=true" \
   "client2_session_replay_complete=true" \
-  "client2_legacy_callback_projected=true" \
+  "client2_hmi_replay_projected=true" \
+  "cockpit_hmi_state_reducer_implemented=true" \
+  "cockpit_hmi_lifecycle_owner_java=true" \
+  "client2_hmi_checkpoint_text_persisted=false" \
+  "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \
   "client2_panel_initially_hidden=true" \
   "client2_navigation_toggle_show_verified=true" \

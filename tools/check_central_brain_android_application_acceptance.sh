@@ -58,7 +58,7 @@ fi
 for marker in \
   "runtime_absent_failure_visible=true" \
   "runtime_reenable_retry_completed=true" \
-  "client2_legacy_stream_replacement_verified=true" \
+  "client2_hmi_session_replacement_verified=true" \
   "runtime_process_death_injected=true" \
   "client2_session_reconnect_replay_verified=true" \
   "client2_session_duplicate_event_suppressed=true" \
@@ -68,6 +68,10 @@ for marker in \
   "runtime_service_restart_retry_completed=true" \
   "runtime_restart_reconciliation_fail_closed=true" \
   "client2_process_restart_rebind_completed=true" \
+  "client2_hmi_checkpoint_resume_verified=true" \
+  "client2_hmi_hidden_state_recreation_verified=true" \
+  "client2_hmi_checkpoint_text_persisted=false" \
+  "legacy_text_callback_authoritative=false" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \
   "ui_cancel_timeout_not_exposed=true" \
@@ -89,8 +93,8 @@ import pathlib
 import sys
 
 payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("schema_version") != "1.1.0":
-    raise SystemExit("R7C acceptance schema must remain 1.1.0")
+if payload.get("schema_version") != "1.2.0":
+    raise SystemExit("R7C acceptance schema must remain 1.2.0")
 if payload.get("status") != "verified":
     raise SystemExit("R7C acceptance contract must be verified")
 if payload.get("evidence_scope") != "api33-android-application-integration":
@@ -110,6 +114,7 @@ claims = payload.get("claim_state", {})
 expected_true = {
     "core_software_baseline_ready",
     "client2_binder_migration_complete",
+    "cockpit_hmi_state_reducer_implemented",
     "api33_end_to_end_acceptance_complete",
     "r7_application_integration_complete",
 }

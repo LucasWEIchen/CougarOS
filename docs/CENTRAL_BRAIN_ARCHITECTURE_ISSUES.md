@@ -54,12 +54,17 @@
 | ISSUE-032 | Python 原型退役后禁止把已删除 gateway/test oracle 当成 Android fallback。 | DEV-026 | Closed |
 | ISSUE-033 | Client2 尚无意图编排四阶段、HVAC/Seat Effect 详情和可观察控制闭环。 | S2-HMI-001..006, DEV-024/025 | Open |
 | ISSUE-034 | Event V1 terminal cursor 不能前移 ACK；当前靠 sequence 去重但不适合高吞吐 broker。 | S2-EVT-001, P6-W01/W02 | Open / Design Decided |
+| ISSUE-035 | Client2 process-recreation checkpoint 的 production storage/backup/user owner 未确定。 | S2-UX-001..003, DEV-052 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
 Client2 已通过 typed Session/Event Binder、signature permission、current-signer capability、snapshot/event/replay、
 UI projection 和恢复矩阵验证。2026-07-17 证据证明当前 1920x1080 Android 13 ARM64 目标上的菜单交互、Runtime
 process-death reconnect/duplicate suppression 和 Client2 restart 可用。
+
+P4-W02 已删除旧 Smali state owner，maintained Java coordinator 直接持有 typed SessionConnection；物理设备已验证
+hide 后 Client2 process restart、existing Session resume/replay、hidden state restore 和菜单重开。该结果降低 patch
+维护风险，但不解决闭源 MainActivity hook、导航几何、production signer 或 Car UX 限制。
 
 未关闭项：闭源 APK 长期维护、底部导航几何、production signer/allowlist、OTA/MDM、Car UX
 Restrictions、无障碍和支持显示矩阵。量产优先使用 OEM 可维护 HMI 源码或公开扩展点。
@@ -320,6 +325,11 @@ Android 13 ARM64 已验证 snapshot、顺序事件、cursor replay、Runtime pro
 和 Client2 restart；旧 `submit` 只作 Smali 二进制兼容。当前仍没有 immutable HMI reducer、四阶段 renderer、
 HVAC/Seat surface 或 Runtime 场景执行，因此本问题保持 Open，下一关闭子项为 P4-W02。
 
+P4-W02 进展：immutable `CockpitHmiState`、唯一 reducer、maintained Java coordinator、existing Session resume 和
+text-free checkpoint 已完成；旧 Smali controller 已删除。Android 13 ARM64 已验证 Session replacement、Runtime death
+replay、Client2 process restart、hidden-state restore 和 UI projection。当前仍无“意图/计划/执行/结果”四阶段 shell、
+HVAC/Seat surface 或 Runtime scenario/Graph/Effect 执行，因此本问题保持 Open，下一关闭子项为 P4-W03。
+
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。
@@ -341,6 +351,18 @@ monotonic、owner/session-scoped、有界留存并拒绝 stale/future cursor；�
 高吞吐 fault tests 由 `P6-W01/P6-W02` 实现。该问题不再阻塞 durable Session Runtime，但仍阻塞
 production Event broker。`event_v2_interface_published=false`、
 `session_runtime_process_death_rehydration=true`、`production_ready=false`。
+
+P4-W02 的 HMI reducer 将 `lastEventSequence` 随 text-free checkpoint 保存，在 V1 cursor 不能前移时对重放事件做第二层
+projection 去重。它不生成 cursor/ACK，也不能关闭本问题；高吞吐 broker 仍必须实施 Event V2。
+
+## ISSUE-035 Client2 HMI checkpoint 的 production storage owner 未确定
+
+P4-W02 为 debug Client2 process recreation 使用 app-private SharedPreferences，保存 panel、alias、SessionHandle metadata、
+last sequence 和 opaque cursor，不保存 user/model/display text。该范围已通过 Android 13 ARM64 force-stop/relaunch 验证。
+
+待确认：production APK 是否允许 backup、是否必须 Keystore-backed encryption、multi-user/seat 隔离 owner、OTA schema
+migration、session token retention/erase policy 和 MDM data clear。目标 owner 未提供前，该 checkpoint 不能计入 Memory
+模块、production security 或 target validation。状态：`Open`；实施跟踪 `DEV-052`、P4-W10/P8。
 
 ## Android 实现证据索引
 

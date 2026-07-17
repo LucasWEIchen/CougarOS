@@ -88,9 +88,10 @@ shows the panel; a second click or a click outside the panel hides it. The panel
 consumes touches over its own surface so its controls do not dismiss it. The
 scrollable control area groups 12 stable scenario IDs under
 task service, context/growth, and safety/runtime. Each button creates a typed
-Session through `Client2ScenarioBridge.openSession`/`SessionClient`; snapshot,
-typed events and authoritative cursor replay update the response projection. The
-existing smali `submit(...)` descriptor remains only as a compatibility wrapper.
+Session through `CockpitControlCoordinator -> Client2ScenarioBridge.openSession
+-> SessionClient`; snapshot, typed events and authoritative cursor replay are
+reduced into immutable `CockpitHmiState` before rendering. The bridge
+`submit(...)` descriptor remains only as an unused compatibility wrapper.
 The SDK, AIDL parcelables and a narrow Client2 bridge are compiled into
 `classes2.dex`. The APK requests no network permission and contains no direct
 HTTP fallback.
@@ -100,6 +101,13 @@ allowlist maps them to qualified Session IDs before Runtime admission; unknown
 aliases fail before binding and the frozen Session V1 validation is not relaxed.
 Runtime process death reconnects the active stream, replays the owner-scoped
 snapshot/history and drops already delivered event sequences.
+
+The previous Smali panel controller has been removed. MainActivity contains only
+a one-line bootstrap to the maintained Java coordinator in `classes2.dex`.
+The coordinator owns View binding, Session replacement and Activity lifecycle.
+On recreation it resumes the existing Session by handle/cursor. Its private
+checkpoint saves only panel state, aliases, handle metadata, cursor and last
+sequence; it never persists user/model/display text.
 
 The bottom navigation is drawn by the Tuanjie render surface and has no Android
 `View` callback. The patch therefore uses a transparent, accessibility-visible
@@ -128,9 +136,9 @@ ventilation, massage, recline and upright/comfort/rest presets with driving-stat
 restrictions. The execution surface will show desired versus reported values,
 plan/effect progress, approval, partial failure, retry, undo and recovery.
 
-Maintained Java code in `classes2.dex` will own immutable HMI state, reducer,
-rendering and SDK coordination. Smali remains a narrow lifecycle/show-hide
-bootstrap. Manual controls and AI scenarios both submit through the future
+Maintained Java code in `classes2.dex` now owns immutable HMI state, reducer,
+rendering and SDK coordination. Smali is only the one-line install bootstrap.
+Manual controls and AI scenarios both submit through the future
 Scenario/Session SDK, Governance and durable Effect path; neither the View nor
 the bridge may call a simulated or target vehicle adapter directly.
 
@@ -146,11 +154,13 @@ cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
 
-P4-W01 is complete. The primary bridge now exposes typed Session handle,
-snapshot, event, replay, overflow, close and error callbacks; Android 13 ARM64
-acceptance covers Runtime/Client2 process death and duplicate suppression. The
-current smali controller still renders only the compatibility text projection.
-P4-W02 must add the immutable HMI state/reducer and Activity lifecycle owner:
+P4-W01 and P4-W02 are complete. The primary bridge exposes typed Session handle,
+snapshot, event, replay, overflow, close and error callbacks. The Java coordinator
+reduces these callbacks, owns lifecycle and resumes a text-free checkpoint after
+Client2 process restart. Android 13 ARM64 acceptance covers Runtime/Client2 process
+death, duplicate suppression, hidden-state restore and menu reopen. P4-W03 is the
+next work package and will replace the 12-button test console with the four-stage
+intent-first shell:
 
 ```text
 client2_session_event_primary_api=true
@@ -158,8 +168,15 @@ client2_session_event_typed_callback=true
 client2_scenario_alias_map_count=12
 client2_session_reconnect_replay_verified=true
 client2_session_duplicate_event_suppressed=true
-cockpit_hmi_state_reducer_implemented=false
-implementation_stage=P4-W02
+cockpit_hmi_state_reducer_implemented=true
+cockpit_hmi_lifecycle_owner_java=true
+client2_smali_controller_retired=true
+client2_hmi_checkpoint_resume_verified=true
+client2_hmi_hidden_state_recreation_verified=true
+client2_hmi_checkpoint_text_persisted=false
+legacy_text_callback_authoritative=false
+cockpit_demo_control_loop_implemented=false
+implementation_stage=P4-W03
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in

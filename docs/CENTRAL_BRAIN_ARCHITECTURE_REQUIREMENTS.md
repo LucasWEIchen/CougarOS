@@ -1195,3 +1195,32 @@ Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001`、`XSC-005/006`、`NV-G-003/006
 `client2_session_snapshot_verified=true`、`client2_session_event_sequence_verified=true`、
 `client2_session_reconnect_replay_verified=true`、`client2_session_duplicate_event_suppressed=true`、
 `client2_session_android13_arm64_verified=true`、`implementation_stage=P4-W02`。
+
+## 43. P4-W02 Client2 immutable HMI state/lifecycle trace
+
+Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 panel 的 View 不得直接从 callback 字符串改变业务状态。所有 panel visibility、connection、handle、snapshot、
+   event、replay、overflow、close、error、detach 和 restore 必须先转换为 immutable reducer event，再生成新 HMI state。
+2. reducer 必须以 session identity 和递增 event sequence 为边界：duplicate 返回原 state；gap 进入
+   `CB_HMI_EVENT_GAP` fail-closed；cross-session callback 不得覆盖当前 UI。
+3. maintained Java `CockpitControlCoordinator` 必须直接实现 typed `ScenarioCallback` 并持有 caller-owned
+   `SessionConnection`。旧 `onBridgeStatus/onBridgeReply/onBridgeFailure` 不得作为 renderer authority。
+4. MainActivity 仅允许一行 Smali bootstrap 调用 Java coordinator；旧 Smali controller、static request-in-flight owner 和
+   UiUpdate runnable 必须删除。View bind、menu toggle、outside dismiss、scenario replacement 和 lifecycle 均由 Java 所有。
+5. hide 只改变 panel visibility，不得清空 Session/snapshot/event state。Activity destroy 必须 close connection 并保留
+   immutable state；recreate 必须通过 existing handle + opaque cursor 重新 observe，而不是创建假 terminal 或新执行结果。
+6. process-recreation checkpoint 必须是 app-private、bounded、schema-versioned，只允许 panel、UI/canonical alias、
+   SessionHandle metadata、last sequence 和 opaque cursor；禁止持久化 utterance、snapshot summary、assistant/model text、
+   vehicle payload、设备身份、signing material 或 raw log。
+7. Android 13/API 33 ARM64 必须验证 reducer projection、HMI-owned Session replacement、Runtime death replay/duplicate
+   suppression、Client2 force-stop/relaunch resume、hidden state restore、menu reopen 和 text-free checkpoint。
+8. 本包不得实现四阶段 shell、HVAC/Seat control、scenario compiler/Graph/Effect dispatch 或硬件访问。
+
+状态：`cockpit_hmi_state_immutable=true`、`cockpit_hmi_state_reducer_implemented=true`、
+`cockpit_hmi_lifecycle_owner_java=true`、`client2_smali_controller_retired=true`、
+`client2_hmi_checkpoint_resume_verified=true`、`client2_hmi_hidden_state_recreation_verified=true`、
+`client2_hmi_checkpoint_text_persisted=false`、`legacy_text_callback_authoritative=false`、
+`cockpit_demo_control_loop_implemented=false`、`scenario_execution_enabled=false`、
+`hardware_accessed=false`、`implementation_stage=P4-W03`。

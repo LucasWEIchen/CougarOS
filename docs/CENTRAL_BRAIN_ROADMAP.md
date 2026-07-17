@@ -2,7 +2,7 @@
 
 版本：1.1
 日期：2026-07-17
-状态：Stage 2 P3 in progress
+状态：Stage 2 P4 in progress
 
 ## 1. 基线与范围
 
@@ -269,8 +269,13 @@ process death、幂等 reopen 和 exactly-once digest audit。三阶段 Android 
 冻结 Session V1 校验不放宽。Android 13/API 33 ARM64 已验证 open/snapshot/sequence-1 event/replay、兼容订阅替换、
 Runtime process-death 自动重连、重复事件抑制和 Client2 process restart。场景执行、Graph/Effect dispatch 与硬件仍未接。
 
-下一实现工作包为 `P4-W02 Cockpit HMI state/reducer/reconnect`，把 typed stream reduce 为 immutable HMI state，
-补 Activity lifecycle ownership 和隐藏/recreate state 恢复；不得把 legacy 文本投影作为权威状态。
+`P4-W02 Cockpit HMI state/reducer/reconnect` 已完成：旧 Smali controller 已删除，maintained Java coordinator 是唯一
+View/Session lifecycle owner；typed callback 只通过 immutable reducer 更新 HMI。app-private checkpoint 仅保存 handle、
+cursor、sequence、alias 和 panel 状态，不保存 user/model text。Android 13 ARM64 已验证 hide 后 Client2 process restart、
+existing Session resume/replay、hidden state restore 和菜单重开。
+
+下一实现工作包为 `P4-W03 Intent-first four-stage overlay shell`，把现有 12 按钮测试台改为“意图/计划/执行/结果”
+可观察 shell；不得提前实现 HVAC/Seat dispatch 或把 CREATED Session 表述为执行完成。
 
 ## 7. 近期进展
 
@@ -415,6 +420,10 @@ Runtime process-death 自动重连、重复事件抑制和 Client2 process resta
   `submit` 描述符仅作兼容；12 项 UI alias 显式映射 canonical Session ID。APK build/static gate、Android 13 ARM64
   happy path 与 Runtime/Client2 process-death recovery matrix 通过；场景执行和中控 reducer 仍为 false，下一工作包为
   P4-W02 Cockpit HMI state/reducer/reconnect。
+- 完成 `P4-W02 Cockpit HMI state/reducer/reconnect`：新增 immutable HMI state、唯一 reducer、Java lifecycle
+  coordinator 和 existing Session resume API；删除旧 Smali controller。host-JVM、APK build、Android 13 ARM64
+  Runtime death 及 Client2 process restart/hidden-state restore 通过；四阶段 shell/HVAC/Seat/执行闭环仍为 false，
+  下一工作包为 P4-W03。
 
 ## 8. 当前门禁
 
@@ -606,12 +615,18 @@ client2_session_snapshot_verified=true
 client2_session_event_sequence_verified=true
 client2_session_reconnect_replay_verified=true
 client2_session_duplicate_event_suppressed=true
-client2_legacy_stream_replacement_verified=true
 client2_session_android13_arm64_verified=true
-client2_smali_descriptor_unchanged=true
-cockpit_hmi_state_reducer_implemented=false
+cockpit_hmi_state_reducer_implemented=true
+cockpit_hmi_state_immutable=true
+cockpit_hmi_lifecycle_owner_java=true
+client2_legacy_smali_controller_retired=true
+client2_hmi_session_replacement_verified=true
+client2_hmi_checkpoint_resume_verified=true
+client2_hmi_hidden_state_recreation_verified=true
+client2_hmi_checkpoint_text_persisted=false
+legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W02
+implementation_stage=P4-W03
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

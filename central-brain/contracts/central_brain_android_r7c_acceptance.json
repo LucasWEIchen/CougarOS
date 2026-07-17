@@ -1,12 +1,16 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "acceptance_id": "android-r7c-api33-application-integration",
   "status": "verified",
   "evidence_scope": "api33-android-application-integration",
   "required_android_api": 33,
   "req_ids": [
     "S2-UX-001",
+    "S2-UX-002",
+    "S2-UX-003",
+    "S2-HMI-003",
     "S2-HMI-005",
+    "S2-HMI-006",
     "APP-004",
     "XSC-001",
     "XSC-005",
@@ -34,9 +38,9 @@
     },
     {
       "id": "R7C-E-002",
-      "scenario": "client2_legacy_stream_replacement",
+      "scenario": "client2_hmi_session_replacement",
       "required_markers": [
-        "client2_legacy_stream_replacement_verified=true"
+        "client2_hmi_session_replacement_verified=true"
       ]
     },
     {
@@ -57,7 +61,11 @@
       "id": "R7C-E-004",
       "scenario": "client2_process_restart",
       "required_markers": [
-        "client2_process_restart_rebind_completed=true"
+        "client2_process_restart_rebind_completed=true",
+        "client2_hmi_checkpoint_resume_verified=true",
+        "client2_hmi_hidden_state_recreation_verified=true",
+        "client2_hmi_checkpoint_text_persisted=false",
+        "legacy_text_callback_authoritative=false"
       ]
     },
     {
@@ -72,6 +80,7 @@
   "claim_state": {
     "core_software_baseline_ready": true,
     "client2_binder_migration_complete": true,
+    "cockpit_hmi_state_reducer_implemented": true,
     "api33_end_to_end_acceptance_complete": true,
     "r7_application_integration_complete": true,
     "production_activation_allowed": false,
@@ -93,6 +102,7 @@
     "production Effect Model Event Memory or Skill Governance activation",
     "real model or NPU execution",
     "Driver HAL vendor system or virtualization development",
-    "Client2 UI cancellation or timeout controls"
+    "Client2 UI cancellation or timeout controls",
+    "Client2 four-stage intent plan execution result shell or HVAC Seat control loop"
   ]
 }
