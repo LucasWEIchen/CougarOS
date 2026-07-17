@@ -205,9 +205,9 @@ Driver/HAL、target hardware 或 production。状态：`Open`。
 ## ISSUE-034 Session/Event V1 cursor 与进程死亡恢复缺口
 
 P1-W05 已发布 owner-scoped Session/Event app-layer Binder，并在 Android 13 ARM64 验证 Service
-rebind 后 active session 重新订阅；但 registry 只是 Runtime 进程内 singleton，进程死亡后 session、
-event 和 callback 关联全部丢失。关闭条件是 P1-W06 Room v4 repository、v3->v4 migration、事务恢复和
-process-death rehydration 测试通过。
+rebind 后 active session 重新订阅。P1-W06 已完成 Room v4 repository、v3->v4 migration、crash
+transaction rollback 和 Runtime process-death rehydration；相同 sessionId/event history 可恢复，
+callback 由 SDK replay 后重新注册。该问题的进程死亡子项已关闭。
 
 冻结的 Event V1 还存在 cursor 语义缺口：`hasMore=false` 的 terminal page 不提供可前移的 resume cursor。
 当前 facade 只能保留该 terminal request cursor，并用递增 sequence 去除 register/reconnect replay 的
@@ -215,8 +215,8 @@ process-death rehydration 测试通过。
 必须决定新增 V2 resume cursor/ack contract，或给 terminal page 独立 latest cursor；不得修改已冻结
 Event V1 hash。
 
-状态：`Open`。该问题不阻塞 P1-W05 app-layer 演示，但阻塞 durable Session Runtime 与 production
-Event broker。`session_runtime_process_death_rehydration=false`、`production_ready=false` 保持不变。
+状态：`Open`。该问题不再阻塞 durable Session Runtime，但仍阻塞 production Event broker 和高吞吐
+resume/ACK。`session_runtime_process_death_rehydration=true`、`production_ready=false`。
 
 ## Android 实现证据索引
 
@@ -264,3 +264,4 @@ Event broker。`session_runtime_process_death_rehydration=false`、`production_r
 | P1-W03 进展 | Event/callback V1 合同与物理 API 33 Parcel 证据完成；Service/Room/hardware 均未发布。 |
 | P1-W04 进展 | Effect/Approval V1 合同与物理 API 33 Parcel 证据完成；Service/grant/undo/Room/hardware 均未发布。 |
 | P1-W05 进展 | SDK facade 与 Session/Event Service 真实 Binder rebind/resubscribe 完成；process-death/Room/scenario/hardware 仍未发布。 |
+| P1-W06 进展 | Room v4、Session/Event process-death rehydration 已完成；ISSUE-034 仅剩 Event V1 terminal cursor/ACK 演进。 |

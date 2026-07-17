@@ -21,7 +21,7 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 | 物理应用层证据 | `physical_controller_application_evidence_available=true` | Runtime/Demo/Client2 的安装、Binder、UI、恢复已验证 |
 | GitHub 基线 | `maintained_project_files_synced=true` | 正式源码/文档已跟踪；首页架构与进度由门禁维护 |
 | Python 原型 | `python_prototype_runtime_maintained=false` | 源码、合同、样例、部署和对应门禁已移除 |
-| AIOS Stage 2 | `design_baseline_complete=true`；`session_contract_v1_defined=true`；`plan_contract_v1_defined=true`；`event_contract_v1_defined=true`；`effect_contract_v1_defined=true`；`sdk_facade_v2_available=true`；`session_runtime_service_published=true`；`event_runtime_service_published=true`；`event_callback_service_published=true`；`active_session_reconnect_resubscribe_verified=true`；`session_runtime_persistence_wired=false`；`session_runtime_process_death_rehydration=false`；`plan_runtime_published=false`；`scenario_execution_enabled=false`；`effect_runtime_service_published=false`；`approval_response_service_published=false`；`undo_service_published=false`；`implementation_stage=P1-W06` | P1-W01..P1-W05 合同、facade、app-layer Session/Event Service 和真机重连验证完成；下一步为 Room v4 |
+| AIOS Stage 2 | `design_baseline_complete=true`；`session_contract_v1_defined=true`；`plan_contract_v1_defined=true`；`event_contract_v1_defined=true`；`effect_contract_v1_defined=true`；`sdk_facade_v2_available=true`；`session_runtime_service_published=true`；`event_runtime_service_published=true`；`event_callback_service_published=true`；`active_session_reconnect_resubscribe_verified=true`；`room_schema_version=4`；`session_runtime_persistence_wired=true`；`session_runtime_process_death_rehydration=true`；`plan_runtime_published=false`；`scenario_execution_enabled=false`；`effect_runtime_service_published=false`；`approval_response_service_published=false`；`undo_service_published=false`；`implementation_stage=P1-W07` | P1-W01..P1-W06 合同、facade、Room v4 与真机进程死亡恢复完成；下一步为 Contract v2 聚合检查 |
 | 中控 AIOS UI/UX 设计稿 | `cockpit_hmi_design_mockups_ready=true`；`aios_intent_orchestration_ux_ready=true`；`cockpit_hmi_1920x1080_safe_frame_verified=true`；`cockpit_hmi_translucent_material_ready=true` | 四阶段原型、自动化链、画布内安全框、60% 半透明浅灰玻璃和四张 1920x1080 稿件已形成；仅 HMI-D0 设计基线 |
 | 中控 AIOS 闭环 | `cockpit_demo_control_loop_implemented=false` | Client2 四阶段、Effect 详情和闭环合同已规划；P4 预计 24-32 人日 |
 | 测试版本 | `android13-hwtest-v0.5.0-rc.2` | 远程硬件测试合同的当前 RC；不是量产版本 |
@@ -171,7 +171,7 @@ flowchart TB
   EffectContract -. "facade / service / persistence pending" .-> Services
   Services --> Identity --> Durable
   Services --> SessionRegistry
-  SessionRegistry -. "Room v4 / process death pending" .-> Durable
+  SessionRegistry -->|"Room v4 owner repository"| Durable
   Durable --> Domains
   Domains --> Model
   Domains --> Effect
@@ -201,7 +201,8 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 | Stage 2 Plan/Node 合同 | 4 个有界 DTO、11 类节点 allowlist、DAG/补偿/重试校验、hash/checksum | JVM + Android Parcel；Compiler/Graph Runtime 未发布 | `DEVELOPED` |
 | Stage 2 Event 合同 | 5 个有界 DTO、独立 Event/Callback V1、顺序/父链/脱敏/cursor 校验、hash/checksum | JVM + Android Parcel；P1-W05 已发布 app-layer callback | `DEVELOPED` |
 | Stage 2 Effect/Approval 合同 | 4 个有界 DTO、typed target、Effect 状态机、stale approval、undo TTL、hash/checksum | JVM + Android Parcel；Effect/Approval/Undo Service 未发布 | `DEVELOPED` |
-| Stage 2 SDK facade v2 | `ScenarioClient`、双 action transport、owner capability、transient registry、replay/resubscribe | JVM + Android 13 ARM64 真实 Binder；无 Room/process-death/scenario execution | `DEVELOPED` |
+| Stage 2 SDK facade v2 | `ScenarioClient`、双 action transport、owner capability、replay/resubscribe | JVM + Android 13 ARM64 真实 Binder；P1-W06 已接 durable registry | `DEVELOPED` |
+| Stage 2 Room v4 | Session/Plan/Node/Event/Observation/Compensation entity、v3->v4 migration、owner repository | migration fixture、事务回滚、索引计划、Android 13 Runtime 进程死亡恢复 | `DEVELOPED` |
 | Runtime 与 Governance | Binder identity、capability/policy、Job Supervisor、诊断 | JVM、Binder、dumpsys | `DEVELOPED` |
 | Durable workflow | Room task/checkpoint/approval/effect/outbox/audit/recovery | repository 和进程恢复 | `DEVELOPED` |
 | Model/Event/Memory/Skill 软件合同 | scheduler、ModelProvider、bounded runtime、middleware/readiness | deterministic debug/test；无真实 NPU | `DEVELOPED` |
@@ -215,7 +216,7 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 
 | 模块 | 最小剩余工作 | 阻塞或下一步 | 状态 |
 | --- | --- | --- | --- |
-| Session Runtime v2 剩余层 | Room v4、durable owner repository、process-death rehydration | `P1-W01..P1-W05` 已完成；下一工作包 `P1-W06` | `NOT_STARTED` |
+| Runtime Contract v2 聚合 | 冻结能力矩阵、错误映射、payload/latency/兼容回归 | `P1-W01..P1-W06` 已完成；下一工作包 `P1-W07` | `NOT_STARTED` |
 | Context 与 Digital Twin | versioned snapshot、freshness、debug/test twin | Stage 2 P2 | `NOT_STARTED` |
 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | Stage 2 P3 | `NOT_STARTED` |
 | 场景与仿真 Effect 编排 | “我冷了/我累了”、approval、simulated readback、undo | Stage 2 P2/P3；不依赖真实车身信号 | `NOT_STARTED` |
@@ -263,13 +264,13 @@ Client2 / Demo HMI
   -> AndroidScenarioTransport
   -> CentralBrainRuntimeService explicit Session/Event actions
   -> Binder identity + session/event capability
-  -> TransientSessionRegistry (owner scoped, process local)
+  -> DurableSessionRegistry (owner scoped, Room v4)
   -> snapshot -> cursor replay -> sequence dedup -> callback
-  -> Service rebind/resubscribe verified
+  -> Service rebind + Runtime process-death rehydration verified
 ```
 
-这条链已在 Android 13 ARM64 上通过真实 Binder 验证，但 registry 尚未进入 Room v4，Runtime 进程
-死亡后不会恢复，且没有 Scenario/Plan/Effect 执行。
+这条链已在 Android 13 ARM64 上通过真实 Binder、Room v4 迁移和 Runtime 进程死亡恢复验证；callback
+注册仍是进程内对象，重启后由 SDK cursor replay 重建。Scenario/Plan/Effect 执行仍未启用。
 
 ### Client2 AIOS 意图编排与中控控制闭环
 
@@ -394,6 +395,7 @@ bash tools/test_client2_central_brain_recovery.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-17 | [P1-W06 Room v4](docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md) | 新增六类实体、v3->v4 非破坏迁移、owner-scoped durable Session/Event repository、事务回滚/索引门禁和 Android 13 Runtime 进程死亡恢复 | `session_runtime_persistence_wired=true`；Scenario/Effect/vehicle/NPU/hardware activation 仍为 false |
 | 2026-07-17 | [P1-W05 SDK facade v2](docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md) | 新增无 Binder primitive facade、双 action Session/Event transport、owner capability、transient registry、回放去重与 Service rebind/resubscribe；JVM 和 Android 13 ARM64 真实 Binder 验证通过 | `sdk_facade_v2_available=true`；Room/process-death/scenario/Effect/hardware activation 仍为 false |
 | 2026-07-17 | [P1-W04 Effect/Approval contract V1](docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md) | 新增 4 个 bounded Effect/Approval/Undo DTO、typed target、状态转移、stale approval/undo 校验、checksum 门禁和 API 33 ARM64 Parcel 验证 | `effect_parcel_physical_android13_arm64_verified=true`；Effect/approval-response/undo Service、Room 和 hardware activation 仍为 false |
 | 2026-07-17 | [P1-W03 Event contract V1](docs/CENTRAL_BRAIN_ANDROID_AIDL_CONTRACT.md) | 新增 5 个 bounded Event DTO、独立 Event/Callback V1、顺序/父链/脱敏/cursor/immutability 校验、checksum 门禁和 API 33 ARM64 Parcel 验证 | `event_parcel_physical_android13_arm64_verified=true`；Event/Callback Service、Room 和 hardware activation 仍为 false |

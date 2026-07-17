@@ -33,7 +33,7 @@ for path in "$DATABASE" "$ENTITY" "$DAO" "$PROBE" "$SCHEMA" "$INSTALLER"; do
   require_file "$path"
 done
 
-require_text "$DATABASE" "VERSION = 3"
+require_text "$DATABASE" "VERSION = 4"
 require_text "$DATABASE" "MIGRATION_2_3"
 require_text "$DATABASE" "CREATE TABLE event_cursor_v3"
 require_text "$DATABASE" "'legacy:' || cursor_id"
@@ -53,7 +53,7 @@ require_text "$PROBE" "event_cursor_schema_v3_verified="
 require_text "$PROBE" "event_cursor_schema_ready="
 require_text "$PROBE" "event_cursor_repository_wired=false"
 require_text "$INSTALLER" "room_migration_2_3_verified=true"
-require_text "$INSTALLER" "room_schema_version=3"
+require_text "$INSTALLER" "room_schema_version=4"
 require_text "$INSTALLER" "legacy_event_cursor_preserved=true"
 require_text "$INSTALLER" "event_cursor_schema_v3_verified=true"
 require_text "$INSTALLER" "event_cursor_schema_ready=true"

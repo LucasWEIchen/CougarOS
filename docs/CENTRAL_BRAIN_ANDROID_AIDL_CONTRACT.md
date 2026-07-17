@@ -281,12 +281,27 @@ capabilities before deriving owner fingerprint. Request DTOs cannot claim owner 
 `ScenarioClient` contains no Binder primitive; package-private transport owns Stub/Proxy, death recipients,
 protocol negotiation and callback bridge.
 
-The Runtime registry is process-local and bounded. Reconnect recovery is snapshot -> cursor replay -> sequence
-deduplication -> callback registration. Service rebind is supported; process death is not. Android 13/API 33 ARM64
-real Binder instrumentation verifies this lifecycle with `hardware_accessed=false`. Current status is
+P1-W05 initially used a process-local bounded registry. Reconnect recovery is snapshot -> cursor replay -> sequence
+deduplication -> callback registration. Android 13/API 33 ARM64 real Binder instrumentation verified Service
+rebind with `hardware_accessed=false`; P1-W06 later replaced the production registry with Room v4. Current status is
 `session_runtime_service_published=true`, `event_runtime_service_published=true`,
-`event_callback_service_published=true`, `session_runtime_persistence_wired=false`,
-`session_runtime_process_death_rehydration=false`, `scenario_execution_enabled=false`.
+`event_callback_service_published=true`, `session_runtime_persistence_wired=true`,
+`session_runtime_process_death_rehydration=true`, `scenario_execution_enabled=false`.
+
+## Stage 2 P1-W06 Room v4 And Frozen AIDL
+
+P1-W06 changes no AIDL source, transaction number, interface version or hash. All task/diagnostic/Governance/
+Session/Plan/Event/Effect checksum manifests are revalidated. Room entity/repository evolution is an internal
+Runtime implementation detail behind the already frozen Session/Event V1 Binder.
+
+`SessionRegistry` is the internal persistence boundary. `DurableSessionRegistry` now serves the production
+Binder and stores owner-scoped Session snapshots plus immutable Event rows in Room v4. Binder callbacks are not
+persisted; after process death, the unchanged SDK protocol reads the same V1 snapshot/events and registers a new
+callback. This preserves old client wire compatibility while adding `session_runtime_process_death_rehydration=true`.
+
+The v4 schema also defines Plan/Node/EffectObservation/Compensation tables, but no corresponding Binder Service or
+new method is inferred. Existing Governance V1 still cannot grant approval, and `ApprovalPrompt`/`UndoHandle`
+remain data-only contracts. P1-W06 is therefore not Plan/Effect execution or authority expansion.
 
 ## References
 

@@ -676,7 +676,8 @@ P1-W05 now owns Session/Event facade/Service lifecycle; P1-W06 owns durable stor
 | `ScenarioTransport` | Session/Event protocol and data calls | package-private test seam; may use AIDL/RemoteException internally |
 | `AndroidScenarioTransport` | explicit dual-action bind/death/callback bridge | same Runtime component, generation-scoped Binder lifecycle |
 | `TransientSessionEndpoint` | Session/Event AIDL Stub | capability before request; owner from Binder identity |
-| `TransientSessionRegistry` | open/find/list/cancel/events | process-local bounded state; no raw utterance retention |
+| `SessionRegistry` | open/find/list/cancel/events | injectable owner-scoped persistence boundary |
+| `DurableSessionRegistry` | same interface over Room v4 | transaction, idempotency, capacity and process-death recovery owner |
 
 Public facade errors are `NOT_CONNECTED`, `PROTOCOL_MISMATCH`, `TRANSPORT`, `SUBSCRIPTION`, `CLOSED`.
 Contract violations remain domain-specific argument errors. Session/Event AIDL V1 version/hash are unchanged;
@@ -693,7 +694,40 @@ sequence deduplication preserves delivery correctness, while `ISSUE-034` tracks 
 
 Status: `sdk_facade_v2_available=true`, `session_runtime_service_published=true`,
 `event_runtime_service_published=true`, `event_callback_service_published=true`,
-`active_session_reconnect_resubscribe_verified=true`. The registry is not Room-backed:
-`session_runtime_persistence_wired=false`, `session_runtime_process_death_rehydration=false`,
+`active_session_reconnect_resubscribe_verified=true`. P1-W06 后 registry 为 Room-backed：
+`session_runtime_persistence_wired=true`, `session_runtime_process_death_rehydration=true`,
 `scenario_execution_enabled=false`, `hardware_accessed=false`. Approval response, grant and undo execution remain
 undefined and are intentionally absent from this facade.
+
+## Stage 2 P1-W06 Room v4 Interfaces
+
+| Interface/data surface | Core operations/keys | Constraint |
+| --- | --- | --- |
+| `CentralBrainDatabase` v4 | `MIGRATION_3_4`; 13 tables | WAL; no destructive migration |
+| `SessionEntity` | sessionId; owner+clientRequestId unique | request digest only; revisioned snapshot |
+| `PlanEntity` / `PlanNodeEntity` | session+revision; plan+node; idempotency | schema foundation; no executor |
+| `RuntimeEventEntity` | eventId; session+sequence unique | immutable metadata; canonical payload <= 8192 UTF-8 bytes |
+| `EffectObservationEntity` | effect+sequence; observationId unique | digest/reference evidence only |
+| `CompensationEntity` | compensationId; idempotency unique | not a grant or database rollback |
+| `RuntimeStateDao` | owner session lookup/page, event replay, terminal eviction | no cross-owner query surface |
+| `SessionRegistry` | open/find/list/cancel/events | Binder endpoint persistence abstraction |
+| `DurableSessionRegistry` | Room transaction implementation | callback dispatch occurs after commit |
+
+`MIGRATION_3_4` maps legacy `runtime_session.session_key` to `sessions.client_request_id`, maps known textual
+state to Session V1 integers and uses a fixed legacy digest marker because old rows never retained request content.
+Completed/cancelled rows remain terminal; all other legacy states fail closed to `FAILED`. Owner-scoped Session V1
+queries exclude the legacy digest marker because historical IDs and requests cannot satisfy the new UUID/canonical
+request contract. An unfiltered DAO read exists only for migration verification/internal audit. The migration then
+drops only the replaced legacy table. Existing task/effect/outbox/approval/audit/event-cursor tables and rows remain
+unchanged.
+
+`openOwned` computes the request digest in the call frame, checks owner+request idempotency, evicts only the oldest
+terminal Session at capacity, and atomically inserts Session + `ScenarioRequested`. `cancelOwned` returns false for
+missing/terminal rows and atomically advances revision/sequence plus appends `SessionStateChanged`. `eventsOwned`
+first proves Session ownership, then reads an ordered bounded page. Callback Binder registrations are not database
+rows; SDK reconnect rebuilds them from durable snapshot and Event replay.
+
+Status: `room_schema_version=4`, `room_migration_3_4_verified=true`,
+`session_runtime_persistence_wired=true`, `session_runtime_process_death_rehydration=true`,
+`scenario_execution_enabled=false`, `hardware_accessed=false`. Req IDs: `S2-SES-001`, `S2-GRF-001`,
+`S2-EFF-001`, `S2-EVT-001`, `XSC-005/006`, `NV-G-003/004/006/007`, `NV-P-002`.

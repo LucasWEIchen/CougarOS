@@ -202,11 +202,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P1-W06` Room v4 schema
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`。
+- 状态：`DONE`（schema + Session/Event durable wiring，2026-07-17）；2.5 人日；需求：
+  `S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-EVT-001`。
 - 新增 entity：`SessionEntity`、`PlanEntity`、`PlanNodeEntity`、`RuntimeEventEntity`、`EffectObservationEntity`、`CompensationEntity`。
 - 约束：FK、unique idempotency key、terminal state immutability、payload size limit。
 - DoD：v3->v4 migration 不丢现有 durable task/effect；schema JSON committed。
 - 测试：migration fixture、crash transaction、query index plan。
+- Runtime：`DurableSessionRegistry` 已替换生产 Session/Event 端点的 transient Map；session + initial event
+  和 cancel + terminal event 均在 Room transaction 内提交，callback 只在 commit 后通知。
+- 设备证据：Android 13/API 33 ARM64 完成 v1->v4 fixture、已有 v3 生产库升级、Runtime 进程杀死后的
+  session identity/event replay 恢复和 terminal cancel 幂等；测试 APK 验证后卸载，未访问硬件。
+- 边界：Plan/Node/EffectObservation/Compensation 本包只建 schema，不发布 Compiler/Graph/Effect/
+  approval-response/undo；Event V1 terminal cursor 缺口继续由 `ISSUE-034`/P1-W07 跟踪。
 
 ### `P1-W07` Contract v2 aggregate check
 

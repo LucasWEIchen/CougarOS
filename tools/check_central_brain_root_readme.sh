@@ -69,8 +69,9 @@ for marker in \
   'sdk_facade_v2_available=true' \
   'session_runtime_service_published=true' \
   'active_session_reconnect_resubscribe_verified=true' \
-  'session_runtime_persistence_wired=false' \
-  'session_runtime_process_death_rehydration=false' \
+  'room_schema_version=4' \
+  'session_runtime_persistence_wired=true' \
+  'session_runtime_process_death_rehydration=true' \
   'plan_contract_v1_defined=true' \
   'plan_parcel_physical_android13_arm64_verified=true' \
   'plan_runtime_published=false' \
@@ -206,8 +207,8 @@ remaining_rows = sum(
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
-if "`P1-W01..P1-W05`" not in remaining or "`P1-W06`" not in remaining:
-    raise SystemExit("README remaining-work table must preserve P1-W01..P1-W05 status and name P1-W06")
+if "`P1-W01..P1-W06`" not in remaining or "`P1-W07`" not in remaining:
+    raise SystemExit("README remaining-work table must preserve P1-W01..P1-W06 status and name P1-W07")
 
 for group in (
     "APP-004",

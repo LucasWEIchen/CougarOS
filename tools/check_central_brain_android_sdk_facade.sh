@@ -56,7 +56,7 @@ require_text "$SDK/CentralBrainSdk.java" 'ACTION_SESSION_EVENTS'
 for marker in \
   'active_session_reconnect_resubscribe_verified=true' \
   'callback_replay_deduplicated=true' \
-  'session_runtime_process_death_rehydration=false'; do
+  'session_runtime_process_death_rehydration=true'; do
   require_text \
     "central-brain/android-runtime/central-brain-sdk/src/androidTest/java/com/centralbrain/sdk/session/SessionParcelInstrumentation.java" \
     "$marker"
@@ -67,9 +67,9 @@ require_text "$RUNTIME/CentralBrainRuntimeService.java" \
 require_text "$RUNTIME/CentralBrainRuntimeService.java" \
   'CentralBrainSdk.ACTION_SESSION_EVENTS.equals(action)'
 require_text "$RUNTIME/CentralBrainRuntimeService.java" \
-  'session_runtime_persistence_wired=false'
+  'session_runtime_persistence_wired=true'
 require_text "$RUNTIME/session/TransientSessionEndpoint.java" \
-  'Survives Service rebinds, but is intentionally lost when the Runtime process dies.'
+  'SessionRegistry registry'
 require_text "$RUNTIME/session/TransientSessionEndpoint.java" \
   'MAX_CALLBACKS_PER_SESSION = 4'
 require_text "$RUNTIME/session/TransientSessionEndpoint.java" \
@@ -119,10 +119,10 @@ for doc in \
   require_text "$doc" 'P1-W05'
 done
 require_text README.md 'sdk_facade_v2_available=true'
-require_text README.md 'implementation_stage=P1-W06'
-require_text docs/CENTRAL_BRAIN_ROADMAP.md '下一实现工作包为 `P1-W06 Room v4 schema`'
+require_text README.md 'implementation_stage=P1-W07'
+require_text docs/CENTRAL_BRAIN_ROADMAP.md '下一实现工作包为 `P1-W07 Contract v2 aggregate check`'
 require_text docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md \
-  'session_runtime_process_death_rehydration=false'
+  'session_runtime_process_death_rehydration=true'
 require_text docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md \
   'terminal page 不提供可前移的 resume cursor'
 require_text docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md \
@@ -136,7 +136,7 @@ printf '%s\n' \
   'session_runtime_service_published=true' \
   'event_runtime_service_published=true' \
   'event_callback_service_published=true' \
-  'session_runtime_persistence_wired=false' \
-  'session_runtime_process_death_rehydration=false' \
+  'session_runtime_persistence_wired=true' \
+  'session_runtime_process_death_rehydration=true' \
   'scenario_execution_enabled=false' \
   'hardware_accessed=false'

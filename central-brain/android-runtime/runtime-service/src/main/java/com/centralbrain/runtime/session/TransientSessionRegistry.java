@@ -23,24 +23,13 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 /** Process-local, owner-scoped Stage 2 session registry. It never retains raw utterances. */
-public final class TransientSessionRegistry {
-    public static final int DEFAULT_MAX_SESSIONS = 64;
-    public static final int DEFAULT_MAX_EVENTS_PER_SESSION = 8;
-
+public final class TransientSessionRegistry implements SessionRegistry {
     private final int maxSessions;
     private final int maxEventsPerSession;
     private final LongSupplier epochMs;
     private final Supplier<String> uuidSupplier;
     private final Map<String, Record> sessions = new LinkedHashMap<>();
     private final Map<String, Record> requests = new LinkedHashMap<>();
-
-    public static TransientSessionRegistry createDefault() {
-        return new TransientSessionRegistry(
-                DEFAULT_MAX_SESSIONS,
-                DEFAULT_MAX_EVENTS_PER_SESSION,
-                System::currentTimeMillis,
-                () -> UUID.randomUUID().toString());
-    }
 
     public static TransientSessionRegistry createForContractTest(
             int maxSessions,
@@ -68,6 +57,7 @@ public final class TransientSessionRegistry {
         this.uuidSupplier = Objects.requireNonNull(uuidSupplier, "uuidSupplier");
     }
 
+    @Override
     public synchronized SessionHandle openOwned(String owner, SessionRequest request) {
         requireOwner(owner);
         long now = now();
@@ -114,6 +104,7 @@ public final class TransientSessionRegistry {
         return copy(handle);
     }
 
+    @Override
     public synchronized SessionSnapshot findOwned(String owner, SessionHandle handle) {
         requireOwner(owner);
         SessionContract.validateHandle(handle);
@@ -121,6 +112,7 @@ public final class TransientSessionRegistry {
         return record == null ? null : copy(record.snapshot);
     }
 
+    @Override
     public synchronized SessionPage listOwned(String owner, SessionQuery query) {
         requireOwner(owner);
         SessionContract.validateQuery(query);
@@ -148,6 +140,7 @@ public final class TransientSessionRegistry {
         return page;
     }
 
+    @Override
     public synchronized CancelResult cancelOwned(
             String owner,
             SessionHandle handle,
@@ -182,6 +175,7 @@ public final class TransientSessionRegistry {
         return new CancelResult(true, copy(event));
     }
 
+    @Override
     public synchronized EventPage eventsOwned(
             String owner,
             String sessionId,
@@ -225,6 +219,7 @@ public final class TransientSessionRegistry {
         return page;
     }
 
+    @Override
     public synchronized int size() {
         return sessions.size();
     }
@@ -393,24 +388,6 @@ public final class TransientSessionRegistry {
         copy.eventDigest = original.eventDigest;
         copy.payloadKind = original.payloadKind;
         return copy;
-    }
-
-    public static final class CancelResult {
-        private final boolean changed;
-        private final RuntimeEvent event;
-
-        private CancelResult(boolean changed, RuntimeEvent event) {
-            this.changed = changed;
-            this.event = event;
-        }
-
-        public boolean isChanged() {
-            return changed;
-        }
-
-        public RuntimeEvent getEvent() {
-            return event;
-        }
     }
 
     private static final class Record {

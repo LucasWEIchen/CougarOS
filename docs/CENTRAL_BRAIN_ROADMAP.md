@@ -155,11 +155,14 @@ Effect Service、approval response/grant、undo execution 和 Room persistence �
 V1；同一 Runtime Service 通过显式 action 发布两个 Binder，owner/capability、transient registry、
 cursor replay、callback 去重和 Service rebind 恢复均已进入工程并通过 Android 13 ARM64 真机验证。
 
-下一实现工作包为 `P1-W06 Room v4 schema`。执行顺序：
+`P1-W06 Room v4 schema` 已完成：六类 Stage 2 entity、v3->v4 非破坏迁移、owner-scoped durable
+Session/Event repository、事务回滚/索引计划门禁和 Android 13 Runtime 进程死亡恢复已进入工程。
 
-1. 为 Session/Plan/Node/RuntimeEvent/EffectObservation/Compensation 定义 Room v4 entity、FK 和 index。
-2. 提供 v3->v4 migration fixture，保持现有 durable task/effect/outbox/audit 数据不丢失。
-3. 将 P1-W05 transient Session/Event owner 数据接入 durable repository 与进程死亡 rehydration。
+下一实现工作包为 `P1-W07 Contract v2 aggregate check`。执行顺序：
+
+1. 聚合 P1-W01..P1-W06 DTO/AIDL/facade/Room capability matrix 和稳定错误映射。
+2. 固定 Binder payload、分页、callback、latency 与旧客户端兼容门禁，不修改已冻结 V1 hash。
+3. 明确 Event V1 terminal cursor 限制和 V2 演进方案，不在 V1 中偷改 wire contract。
 4. 保持 Effect/approval response/undo execution、车辆/NPU/Driver-HAL 关闭，不恢复 Python gateway。
 
 ## 7. 近期进展
@@ -219,8 +222,15 @@ cursor replay、callback 去重和 Service rebind 恢复均已进入工程并通
   Android 13/API 33 ARM64 真实 Binder 验证 active session rebind/resubscribe 与重复 replay 去重。
 - 当前 `sdk_facade_v2_available=true`、`session_runtime_service_published=true`、
   `event_runtime_service_published=true`、`event_callback_service_published=true`；但
-  `session_runtime_persistence_wired=false`、`session_runtime_process_death_rehydration=false`、
   `scenario_execution_enabled=false`，下一工作包为 `P1-W06 Room v4 schema`。
+- 完成 `P1-W06 Room v4 schema`：新增 Session/Plan/Node/Event/Observation/Compensation 六类 entity，
+  `runtime_session` legacy row 迁移、13-table schema JSON、FK/unique index 和 8 KiB canonical payload 边界。
+- P1-W05 Session/Event production endpoint 已切换到 `DurableSessionRegistry`；Android 13/API 33 ARM64
+  通过 migration fixture、crash transaction rollback、owner query index、Runtime process-death rehydration、
+  event replay 和 terminal cancel 幂等验证。
+- 当前 `room_schema_version=4`、`session_runtime_persistence_wired=true`、
+  `session_runtime_process_death_rehydration=true`；Plan/Effect/Scenario execution 仍关闭，下一工作包为
+  `P1-W07 Contract v2 aggregate check`。
 
 ## 8. 当前门禁
 
@@ -258,9 +268,10 @@ session_parcel_physical_android13_arm64_verified=true
 sdk_facade_v2_available=true
 session_runtime_service_published=true
 active_session_reconnect_resubscribe_verified=true
-session_runtime_transient_registry=true
-session_runtime_persistence_wired=false
-session_runtime_process_death_rehydration=false
+session_runtime_transient_registry=false
+room_schema_version=4
+session_runtime_persistence_wired=true
+session_runtime_process_death_rehydration=true
 plan_contract_v1_defined=true
 plan_parcel_physical_android13_arm64_verified=true
 plan_runtime_published=false

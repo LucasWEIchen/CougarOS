@@ -167,14 +167,14 @@ flowchart TB
 | Java SDK facade | `CentralBrainClient`、`CentralBrainGovernanceClient`、`ScenarioClient`、`SessionClient` | `DEVELOPED` | Binder connect/death/reconnect、Session/Event replay/resubscribe、typed DTO |
 | Stage 2 facade transport | `ScenarioTransport`、`AndroidScenarioTransport` | `DEVELOPED/PROTOTYPE` | 同一 Runtime component 的 Session/Event 双 action Binder；不对 HMI 暴露 |
 | Runtime Service | `CentralBrainRuntimeService.java` | `DEVELOPED/PROTOTYPE` | trusted task admission、Session/Event publication、callback、lifecycle |
-| Transient Session Runtime | `runtime/session/TransientSessionRegistry`、`TransientSessionEndpoint` | `DEVELOPED/PROTOTYPE` | owner 隔离、幂等、cursor、Service rebind；无 Room/process-death/scenario execution |
+| Durable Session Runtime | `runtime/session/SessionRegistry`、`DurableSessionRegistry`、`TransientSessionEndpoint` | `DEVELOPED/PROTOTYPE` | owner 隔离、幂等、Room v4、process-death replay；无 scenario execution |
 | Governance Service | `CentralBrainGovernanceService.java` | `DEVELOPED/PROTOTYPE` | caller capability、action policy、approval contract |
 | Diagnostic Service | `CentralBrainDiagnosticService.java` | `DEVELOPED` | read-only snapshots |
 | Caller identity | `identity/*` | `DEVELOPED` | PackageManager signer/caller fingerprint |
 | Capability policy | `policy/*`、`central_brain_capability_policy.xml` | `DEVELOPED` | signature permission + action capability |
 | Job supervision | `supervisor/JobSupervisor.java` | `DEVELOPED` | bounded admission/cancel/deadline |
 | Inference scheduling | `scheduler/InferenceResourceScheduler.java` | `DEVELOPED/PROTOTYPE` | bounded priority resource queue |
-| Room v3 | `persistence/*`、`schemas/.../3.json` | `DEVELOPED` schema foundation | task/session/checkpoint/approval/outbox/effect/event cursor |
+| Room v4 | `persistence/*`、`schemas/.../4.json` | `DEVELOPED` durable Session/Event + schema foundation | task/session/plan/node/checkpoint/approval/outbox/effect/event/observation/compensation/cursor |
 | Durable repositories | `DurableTaskRepository`、`DurableApprovalRepository`、`DurableEffectRepository`、`DurableEventCursorRepository` | `DEVELOPED/PROTOTYPE` | transaction and restart probes |
 | Effect contract | `effects/EffectAdapter*.java` | `DEVELOPED` contract | adapter shape and delivery gate |
 | Effect activation | `EffectDeliveryActivationGate`、`EmptyEffectMaterialSource` | `DEVELOPED` | production fail closed |
@@ -526,8 +526,8 @@ owner fingerprint、request digest、handle、snapshot 和 typed RuntimeEvent；
 digest 返回原 handle，不同 digest 报幂等冲突。容量满时只可逐出最旧 terminal record；全部 active
 时失败关闭。list/event cursor 是 bounded opaque token，non-owner 返回不可用或空 owner view。
 
-该 registry 可跨 Service instance rebind，因为它属于 Runtime 进程；进程死亡即丢失。P1-W06 必须把
-Session/Plan/Event/Effect/Compensation 接入 Room v4 才能设置 process-death rehydration。
+该 registry 是 P1-W05 的原始实现，可跨 Service instance rebind，但进程死亡即丢失。P1-W06 已让
+production endpoint 注入 `DurableSessionRegistry`；transient 实现只保留为 deterministic JVM fixture。
 Endpoint 同时限制每 session 最多 4 个 callback、全进程最多 128 个 callback；达到上限返回 false，
 facade 转为 `SUBSCRIPTION`，不得无限注册或静默逐出仍活跃的 observer。
 
@@ -539,8 +539,9 @@ sdk_facade_v2_available=true
 session_runtime_service_published=true
 event_runtime_service_published=true
 event_callback_service_published=true
-session_runtime_persistence_wired=false
-session_runtime_process_death_rehydration=false
+room_schema_version=4
+session_runtime_persistence_wired=true
+session_runtime_process_death_rehydration=true
 scenario_execution_enabled=false
 approval_response_service_published=false
 undo_service_published=false
@@ -774,7 +775,8 @@ stateDiagram-v2
 - `AssistantSummaryCreated`、`SessionStateChanged`。
 
 事件 immutable；修正通过新事件表达，不能 update 旧事件。P1-W03 已冻结上述 23 类事件的 wire
-合同和结构校验，但 `EventTreeStore`、durable sequence source、Room v4、Service publication 仍未实现。
+合同和结构校验；P1-W05/P1-W06 已实现 app-layer Service 与 Session 范围的 Room v4 durable sequence/
+replay。通用 `EventTreeStore`、production broker、retention/ACK 和主动触发仍未实现。
 
 ### 10.4 SessionCallbackHub
 
@@ -1364,7 +1366,7 @@ compensate: set absolute before value after fresh policy
 
 | 表 | 主键/索引 | 关键字段 | 保留规则 |
 | --- | --- | --- | --- |
-| `sessions` | sessionId；principal+updatedAt | state、scenario、activePlan、summary、revision | 按产品 retention |
+| `sessions` | sessionId；owner+clientRequestId unique；owner+updatedAt | requestDigest、state、scenario、activePlan、summary、revision、deadline | 最大 64；容量满只逐出最旧 terminal |
 | `plans` | planId；sessionId+revision unique | manifest/digests/status | 与 session |
 | `plan_nodes` | planId+nodeId | type、state、attempt、deadline、checkpoint ref | 与 plan |
 | `runtime_events` | eventId；sessionId+sequence unique | type/source/parent/payload/digest | 分层 retention |
@@ -1378,6 +1380,27 @@ compensate: set absolute before value after fresh policy
 
 保留现有 task/checkpoint/approval/outbox/pending_effect/event_cursor 表，并通过 migration 映射；不做 destructive migration。
 
+P1-W06 实际 Room schema version 为 4，共 13 张表。`MIGRATION_3_4` 将旧
+`runtime_session.session_key` 映射到 `sessions.client_request_id`，把已知 textual state 映射到 Session
+V1 integer，并使用固定 legacy digest marker；旧表从未保存 request content，因此不能也不需要在迁移中
+重建原始 utterance。`COMPLETED/CANCELLED` 保持 terminal，其余 legacy state 失败关闭为 `FAILED`；所有
+owner-scoped Session V1 DAO 查询排除 legacy digest marker，避免不符合 UUID/canonical request 合同的旧行
+进入新 Binder 接口。无 owner 的 DAO 查询仅供 migration probe/internal audit。迁移后仅删除已被
+`sessions` 替代的 `runtime_session`，其余 v3 表原样保留。
+
+六类新增 entity 与关系：
+
+- `SessionEntity`：owner+request unique；保存 request digest，不保存 utterance；
+- `PlanEntity`：FK session，session+revision unique；当前只是 Compiler/Graph 的 schema foundation；
+- `PlanNodeEntity`：复合主键 plan+node，FK plan，plan+idempotency unique；
+- `RuntimeEventEntity`：FK session，session+sequence unique，event immutable；
+- `EffectObservationEntity`：复合主键 effect+sequence，FK session，observationId unique；
+- `CompensationEntity`：FK session，idempotency unique；不是 approval grant 或 DB rollback。
+
+`SessionRegistry` 是 Binder endpoint 的 persistence boundary。production Service 注入
+`DurableSessionRegistry`；`TransientSessionRegistry` 只保留为 deterministic JVM contract test fixture。
+Endpoint class 名 `TransientSessionEndpoint` 因 P1-W05 审查引用暂保留，但它不再决定数据持久性。
+
 ### 23.2 事务边界
 
 - session + initial plan + initial event 原子提交；
@@ -1387,9 +1410,35 @@ compensate: set absolute before value after fresh policy
 - adapter observation + effect state + runtime event 原子提交；
 - callback 只在 commit 后发送。
 
+P1-W06 已实现前两类当前可达事务：session + initial Event、cancel state + terminal Event。Plan/Node/
+EffectObservation/Compensation transaction 要等 P2/P3 对应 authority 和执行器发布后接入，不能由 HMI
+或 debug test 直接伪造为已执行。
+
 ### 23.3 数据限制
 
 DB 不保存 native pointer、Binder object、arbitrary serialized class、生产签名材料、ADB serial/fingerprint、原始模型 token stream、连续高频车辆 payload。大 artifact 只保存受控 URI + digest + owner metadata。
+
+`RuntimeEventEntity.payload_canonical` 只预留给未来 typed canonical codec，上限为 8192 UTF-8 bytes；
+当前 P1-W06 repository 只编码 `PAYLOAD_NONE`，遇到尚未发布 codec 的 typed payload 失败关闭，不能用
+Java serialization 或 Parcel blob 绕过。
+
+### 23.4 进程死亡恢复
+
+1. Runtime 进程启动时打开 Room v4；Binder callback/death recipient 不进入 DB。
+2. SDK 重新 bind Session/Event actions 并精确协商 V1 version/hash。
+3. SDK 读取 durable `SessionSnapshot`，以 cursor replay `runtime_events`，按 sequence 去重。
+4. replay 完成后重新注册 callback；注册失败返回 `SUBSCRIPTION`，不取消 durable Session。
+5. Android 13 验收必须使用 debug-only DUMP receiver 真正杀死 Runtime process，再证明 sessionId、event
+   history 和 terminal cancel 幂等；Service unbind/rebind 不足以作为该证据。
+
+### 23.5 migration 与门禁
+
+- 独立 probe 从 v1 fixture 依次走 1->2->3->4，验证 task/approval/event cursor/legacy session 数据；
+- `PRAGMA foreign_key_check` 必须为空；owner+request 查询计划必须命中
+  `index_sessions_owner_request`；
+- 模拟在 Session 和首 Event 插入后 crash、未 `setTransactionSuccessful()`，两行必须全部回滚；
+- `schemas/.../4.json` 必须提交，历史 `2.json`、`3.json` 保留；
+- 不允许 `fallbackToDestructiveMigration`。
 
 ## 24. 错误码
 
@@ -1625,7 +1674,7 @@ central-brain-sdk AAR
 - Android C/Java/AIDL Runtime 工程基础；
 - typed task/governance/diagnostics Binder；
 - identity/capability/policy/approval 骨架；
-- Room v3 durable task/effect/outbox/checkpoint/event cursor；
+- Room v4 durable task/effect/outbox/checkpoint/event cursor 与 Session/Plan/Node/Event/Observation/Compensation schema；
 - model/event/memory/skill bounded Android software foundation；
 - production Effect adapter fail-closed contract；
 - Native C ABI/JNI lifecycle；
@@ -1635,14 +1684,15 @@ central-brain-sdk AAR
 - Client2 HVAC/Seat 中控闭环的需求、意图驱动四阶段、模块、状态、验收和高保真 UI/UX 设计基线（HMI-D0）。
 - P1-W01 Session、P1-W02 Plan/Node 与 P1-W03 Event/callback typed contract、checksum/JVM/API 33 ARM64 Parcel 证据。
 - P1-W04 Effect/Approval/Undo typed contract、状态机、stale/TTL 校验、checksum/JVM/API 33 ARM64 Parcel 证据。
-- P1-W05 SDK facade、Session/Event app-layer Service、capability、transient registry、rebind/resubscribe 和
-  Android 13 ARM64 真实 Binder 证据。
+- P1-W05 SDK facade、Session/Event app-layer Service、capability 和 rebind/resubscribe；
+- P1-W06 Room v4、durable Session/Event repository、migration/transaction/index gate 和 Android 13 ARM64
+  Runtime process-death recovery 证据。
 
 ### 32.2 下一阶段未完成
 
-- Room v4 Session/Plan/Event/Effect/Compensation persistence 与 Runtime process-death rehydration；
+- P1-W07 Contract v2 aggregate、Event V2 cursor/ACK 兼容评审；
 - Scenario/Plan/Effect execution、approval response/undo execution；
-- Room v4 session/plan/event/observation/memory schema；
+- working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
 - Vehicle Digital Twin 和 trusted Context；
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
@@ -1663,13 +1713,12 @@ central-brain-sdk AAR
 ## 33. 开发人员起始点
 
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
-`P1-W04 Effect/Approval DTO 扩展` 和 `P1-W05 SDK facade v2` 已完成：18 个有界 DTO、独立 Session 与
+`P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2` 和 `P1-W06 Room v4 schema` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
-owner/capability、transient registry、JVM/Android 13 ARM64 Parcel 与真实 Binder 测试和独立 checksum
-门禁已进入工程。Room v4/process-death rehydration、Effect Service、approval response/undo execution、
-Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为 `P1-W06 Room v4 schema`；不得
-直接在 Client2 中硬编码仿真动画。
-直接在 Client2 中硬编码仿真动画。
+owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
+测试和独立 checksum 门禁已进入工程。Effect Service、approval response/undo execution、Plan Compiler
+和 Graph Runtime 均未发布。下一实现工作包固定为 `P1-W07 Contract v2 aggregate check`；不得直接在
+Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

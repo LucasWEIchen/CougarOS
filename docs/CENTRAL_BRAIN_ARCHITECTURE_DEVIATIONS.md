@@ -205,6 +205,38 @@ Session/Event；approval response 与 undo execution 继续保持 false，不得
 状态：`Accepted Temporary`。P1-W06 负责 Room v4/process-death rehydration，P1-W07/V2 aggregate review
 负责 cursor 演进；目标 system placement/VINTF 仍由 `ISSUE-021/027` 跟踪。
 
+## DEV-028 P1-W06 仅持久化 Session/Event live path，其他 v4 entity 暂为 schema foundation
+
+架构基线要求 Room v4 同时覆盖 Session、Plan、Node、RuntimeEvent、EffectObservation 和
+Compensation。P1-W06 已交付全部六类 entity、FK/index、schema JSON 和 v3->v4 migration；但当前唯一
+已发布执行面仍是 P1-W05 Session/Event Binder，因此 production wiring 只接入 `sessions` 与
+`runtime_events`。Plan/Node/EffectObservation/Compensation 表不得在缺少 Compiler/Graph/Effect authority
+时被测试代码伪造为已执行状态。
+
+`TransientSessionEndpoint` 类名因冻结的 P1-W05 审查引用暂时保留，但其 production registry 已通过
+constructor injection 切换为 `DurableSessionRegistry`；仅 callback registration/death recipient 仍是
+进程内对象。SDK 在 Runtime 进程死亡后以 snapshot -> cursor replay -> sequence deduplicate -> callback
+register 重建订阅，不持久化 Binder callback。
+
+v3 `runtime_session` 行仍迁移留存，但历史 ID/request 不满足 Session V1 UUID/canonical request 合同；
+因此以固定 legacy digest 标记，非 terminal 状态失败关闭为 `FAILED`，并从 owner-scoped Session V1 查询
+隔离。该兼容边界由 migration probe 验证，不将旧数据伪装成可恢复的新 Session。
+
+当前固定声明：
+
+```text
+session_runtime_transient_registry=false
+room_schema_version=4
+session_runtime_persistence_wired=true
+session_runtime_process_death_rehydration=true
+plan_runtime_published=false
+effect_runtime_service_published=false
+scenario_execution_enabled=false
+```
+
+状态：`Accepted Temporary`。P2/P3 分别负责 Plan/Effect/Graph runtime wiring；P1-W07 负责 aggregate
+contract/cursor 演进评审。该偏差不触发 Driver/HAL、厂商系统、Python/Linux 或虚拟化开发。
+
 ## Android 实现证据索引
 
 下列短语是历史软件增量的稳定追踪键，指向仍保留的 Android 源码和检查器；它们不表示硬件或
@@ -247,6 +279,7 @@ Session/Event；approval response 与 undo execution 继续保持 false，不得
 | P1-W03 进展 | Event/callback V1 合同完成；Service/Room/hardware 均未发布。 |
 | P1-W04 进展 | Effect/Approval V1 合同完成；Service/grant/undo/Room/hardware 均未发布。 |
 | P1-W05 进展 | SDK facade、Session/Event app-layer Service、rebind/resubscribe 完成；Room/process-death/scenario/hardware 均未发布。 |
+| P1-W06 进展 | Room v4、Session/Event durable repository 和 Runtime process-death rehydration 完成；Plan/Effect/scenario/hardware 均未发布。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
