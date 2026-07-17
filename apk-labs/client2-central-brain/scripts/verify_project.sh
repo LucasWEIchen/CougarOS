@@ -43,6 +43,8 @@ for java_file in \
   CockpitRecoveryState.java \
   PanelPresentationMode.java \
   DrivingUxPolicy.java \
+  CockpitEngineerState.java \
+  DebugSimulationControllerClient.java \
   CockpitHmiReducer.java \
   CockpitControlCoordinator.java; do
   test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/$java_file"
@@ -136,7 +138,28 @@ if [[ -d "$WORK_DIR" ]]; then
     centralBrainSeatEvidenceText \
     centralBrainSeatRequestText \
     centralBrainHvacDetailButton \
-    centralBrainSeatDetailButton; do
+    centralBrainSeatDetailButton \
+    centralBrainEngineerDetailButton \
+    centralBrainEngineerSurface \
+    centralBrainEngineerStatusText \
+    centralBrainEngineerDrivingUnknownButton \
+    centralBrainEngineerDrivingParkedButton \
+    centralBrainEngineerDrivingMovingButton \
+    centralBrainEngineerOccupancyEmptyButton \
+    centralBrainEngineerOccupancyOccupiedButton \
+    centralBrainEngineerBeltBeltedButton \
+    centralBrainEngineerBeltUnbeltedButton \
+    centralBrainEngineerAdapterHvacButton \
+    centralBrainEngineerAdapterSeatButton \
+    centralBrainEngineerFaultNoneButton \
+    centralBrainEngineerFaultDelayButton \
+    centralBrainEngineerFaultTimeoutButton \
+    centralBrainEngineerFaultFailureButton \
+    centralBrainEngineerFaultTerminalButton \
+    centralBrainEngineerFaultMismatchButton \
+    centralBrainEngineerContextText \
+    centralBrainEngineerFaultText \
+    centralBrainEngineerResetButton; do
     rg -q "$surface_id" "$WORK_DIR/res/layout/main_layout.xml"
   done
   for stage_tag in \
@@ -175,6 +198,7 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q '#E8FFFFFF' "$WORK_DIR/res/drawable/central_brain_action_button.xml"
   rg -q '#C8FFFFFF' "$WORK_DIR/res/drawable/central_brain_reply_background.xml"
   rg -q "com.centralbrain.permission.BIND_RUNTIME" "$WORK_DIR/AndroidManifest.xml"
+  rg -q "com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" "$WORK_DIR/AndroidManifest.xml"
   rg -q 'package android:name="com.centralbrain.runtime"' "$WORK_DIR/AndroidManifest.xml"
   if rg -q "android.permission.INTERNET|android:usesCleartextTraffic" \
       "$WORK_DIR/AndroidManifest.xml"; then
@@ -195,6 +219,7 @@ if [[ -f "$SIGNED_APK" ]]; then
   apksigner verify --verbose --print-certs "$SIGNED_APK" >/dev/null
   aapt dump badging "$SIGNED_APK" | rg -q "package: name='com.tuanjie.urasclient2'"
   aapt dump permissions "$SIGNED_APK" | rg -q "com.centralbrain.permission.BIND_RUNTIME"
+  aapt dump permissions "$SIGNED_APK" | rg -q "com.centralbrain.permission.CONTROL_DEBUG_SIMULATION"
   if aapt dump permissions "$SIGNED_APK" | rg -q "android.permission.INTERNET"; then
     echo "signed Client2 Binder APK unexpectedly requests INTERNET" >&2
     exit 1

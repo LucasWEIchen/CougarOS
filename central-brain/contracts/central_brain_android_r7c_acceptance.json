@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.8.0",
+  "schema_version": "1.9.0",
   "acceptance_id": "android-r7c-api33-application-integration",
   "status": "verified",
   "evidence_scope": "api33-android-application-integration",
@@ -31,7 +31,7 @@
     "DEL-004",
     "DEL-005"
   ],
-  "test_command": "bash tools/test_client2_central_brain_recovery.sh --require-api-33",
+  "test_command": "bash tools/test_client2_central_brain_recovery.sh --require-api-33 && bash tools/test_client2_central_brain_engineer_simulation.sh --require-api-33",
   "evidence": [
     {
       "id": "R7C-E-001",
@@ -158,6 +158,23 @@
         "cockpit_high_risk_controls_disabled_verified=true",
         "cockpit_runtime_policy_authority_independent=true"
       ]
+    },
+    {
+      "id": "R7C-E-012",
+      "scenario": "client2_engineer_simulation_drawer",
+      "required_markers": [
+        "cockpit_engineer_simulation_drawer_verified=true",
+        "cockpit_engineer_signature_permission_granted=true",
+        "cockpit_engineer_capability_allowed=true",
+        "cockpit_engineer_driving_state_matrix_verified=true",
+        "cockpit_engineer_occupancy_belt_verified=true",
+        "cockpit_engineer_fault_matrix_verified=true",
+        "cockpit_engineer_context_revision_monotonic_verified=true",
+        "cockpit_engineer_reset_fail_closed_verified=true",
+        "cockpit_engineer_runtime_release_service_absent=true",
+        "cockpit_engineer_effect_authorization_source=false",
+        "cockpit_engineer_production_available=false"
+      ]
     }
   ],
   "claim_state": {
@@ -170,7 +187,11 @@
     "cockpit_execution_timeline_implemented": true,
     "cockpit_recovery_state_reducer_owned": true,
     "cockpit_driving_ux_policy_implemented": true,
+    "cockpit_engineer_simulation_drawer_implemented": true,
+    "cockpit_engineer_runtime_release_service_absent": true,
     "cockpit_recovery_commands_enabled": false,
+    "cockpit_engineer_effect_authorization_source": false,
+    "cockpit_engineer_production_available": false,
     "api33_end_to_end_acceptance_complete": true,
     "r7_application_integration_complete": true,
     "production_activation_allowed": false,
@@ -197,6 +218,6 @@
     "typed Session HVAC or Seat parameter field HMI_CONTROL source or approval response",
     "ApprovalPrompt EffectObservation retryable or UndoHandle delivery to Client2",
     "HVAC or Seat Adapter dispatch vehicle Context or readback",
-    "current physical PARKED full-mode manual-control retest before the protected engineer Context drawer is available"
+    "production trusted vehicle Context Safety authority or actual vehicle effect from the protected debug engineer projection"
   ]
 }

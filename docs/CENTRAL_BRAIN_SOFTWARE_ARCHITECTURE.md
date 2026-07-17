@@ -270,7 +270,7 @@ Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-
 `cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
 `cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
 `cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W09`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W10`.
 
 ## P4-W08 Client2 driving restriction projection
 
@@ -298,4 +298,32 @@ P4-W01 through P4-W08 are complete at the Android application layer. Req IDs: `S
 `cockpit_unknown_driving_restricted=true`, `cockpit_restricted_parameter_editing_disabled=true`,
 `cockpit_high_risk_controls_disabled=true`, `cockpit_runtime_policy_authority_independent=true`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W09`.
+`implementation_stage=P4-W10`.
+
+## P4-W09 Client2 protected engineer simulation projection
+
+```text
+Engineer drawer (hidden until connected)
+  -> DebugSimulationControllerClient
+  -> signature permission + caller capability + AIDL version/hash
+  -> Runtime DebugSimulationController (debug variant only)
+  -> acknowledged status + strictly increasing revision
+  -> CockpitEngineerState -> CockpitHmiReducer -> DrivingUxPolicy
+```
+
+The engineer path is an application test boundary. `CockpitEngineerState` is immutable and Android-independent; the Binder client
+is the only transport adapter, and the reducer is the only state writer. The drawer accepts only fixed driving, occupancy, belt,
+adapter and fault enums. It does not accept arbitrary property paths or vehicle payload. Unknown/reset/disconnect projects an
+unavailable Context; acknowledged PARKED/MOVING projects source=SIMULATED solely for presentation testing.
+
+Runtime debug admission is layered: signature permission, Binder caller identity, `debug.simulation.control` capability and frozen
+interface version/hash. The Runtime release source/manifest/policy contains no controller exposure. Neither the engineer state nor
+the resulting `PanelPresentationMode` can authorize Effect, Policy, Safety or vehicle action. Production Context provider, OEM
+vehicle mapping and dispatch-time safety revalidation remain P8 responsibilities.
+
+P4-W01 through P4-W09 are complete at the Android application layer. Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`,
+`APP-004`, `XSC-001/005/006`. Current flags: `cockpit_engineer_simulation_drawer_implemented=true`,
+`cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
+`cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
+`vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P4-W10`.

@@ -369,6 +369,13 @@ P4-W08 进展：Client2 driving restriction renderer 已新增 reducer-owned `Pa
 所以本轮只复测默认受限路径，不伪造 PARKED，也不重跑 manual Session admission。ISSUE-033 保持 Open，下一关闭子项为
 P4-W09 Engineer simulation drawer；实体 PARKED 复测和 production Context 差异由 `DEV-058` 跟踪。
 
+P4-W09 进展：Client2 engineer simulation drawer 已新增 hidden-until-connected 工程入口、immutable
+`CockpitEngineerState` 和 debug AIDL client。Android 13/API 33 ARM64 已验证 signature permission、debug capability、
+version/hash、PARKED/MOVING/UNKNOWN、occupancy/belt、HVAC/Seat fault matrix、revision 单调与 reset 失败关闭；
+Runtime release 中 Controller Service 不存在。该入口只投影 SIMULATED application-local Context，不能授予 Effect 或替代
+production Safety/vehicle provider。因此 ISSUE-033 保持 Open，下一关闭子项为 P4-W10 Scenario/manual-control
+synchronization；production authority 偏差由 `DEV-058/059` 跟踪。
+
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。

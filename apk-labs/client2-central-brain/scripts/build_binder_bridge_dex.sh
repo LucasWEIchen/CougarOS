@@ -6,6 +6,8 @@ PROJECT_DIR="$ROOT_DIR/apk-labs/client2-central-brain"
 WORK_DIR="${CLIENT2_CB_WORK_DIR:-$ROOT_DIR/builds/client2-central-brain/workdir}"
 BUILD_DIR="$ROOT_DIR/builds/client2-central-brain/bridge"
 SDK_AAR="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar"
+SIM_AIDL_ROOT="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/aidl"
+SIM_AIDL="$SIM_AIDL_ROOT/com/centralbrain/runtime/simulation/IDebugSimulationController.aidl"
 
 if [[ -f "$ROOT_DIR/env.sh" ]]; then
   # shellcheck source=/dev/null
@@ -28,9 +30,18 @@ if [[ ! -d "$WORK_DIR" ]]; then
   echo "Missing Client2 generated workdir: $WORK_DIR" >&2
   exit 1
 fi
+: "${AIDL:=$(command -v aidl || true)}"
+if [[ -z "$AIDL" || ! -x "$AIDL" ]]; then
+  echo "Android aidl compiler is unavailable" >&2
+  exit 1
+fi
+if [[ ! -f "$SIM_AIDL" ]]; then
+  echo "Missing debug simulation AIDL: $SIM_AIDL" >&2
+  exit 1
+fi
 
 rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR/aar" "$BUILD_DIR/classes" "$BUILD_DIR/dex"
+mkdir -p "$BUILD_DIR/aar" "$BUILD_DIR/classes" "$BUILD_DIR/dex" "$BUILD_DIR/generated"
 (
   cd "$BUILD_DIR/aar"
   jar xf "$SDK_AAR" classes.jar
@@ -42,8 +53,14 @@ if [[ ! -f "$SDK_CLASSES" ]]; then
 fi
 
 mapfile -t SOURCES < <(find "$PROJECT_DIR/bridge/src" -type f -name '*.java' -print | sort)
-if [[ "${#SOURCES[@]}" -ne 13 ]]; then
-  echo "Expected exactly thirteen Client2 HMI/Session Java sources" >&2
+if [[ "${#SOURCES[@]}" -ne 15 ]]; then
+  echo "Expected exactly fifteen Client2 HMI/Session/debug-control Java sources" >&2
+  exit 1
+fi
+"$AIDL" --lang=java -I"$SIM_AIDL_ROOT" -o "$BUILD_DIR/generated" "$SIM_AIDL"
+mapfile -t GENERATED_SOURCES < <(find "$BUILD_DIR/generated" -type f -name '*.java' -print | sort)
+if [[ "${#GENERATED_SOURCES[@]}" -ne 1 ]]; then
+  echo "Expected exactly one generated debug simulation Binder source" >&2
   exit 1
 fi
 
@@ -53,7 +70,8 @@ javac \
   -encoding UTF-8 \
   -classpath "$ANDROID_JAR:$SDK_CLASSES" \
   -d "$BUILD_DIR/classes" \
-  "${SOURCES[@]}"
+  "${SOURCES[@]}" \
+  "${GENERATED_SOURCES[@]}"
 jar cf "$BUILD_DIR/client2-binder-bridge.jar" -C "$BUILD_DIR/classes" .
 
 d8 \

@@ -676,9 +676,13 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W09` Engineer simulation drawer
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`。
+- 状态：`COMPLETE`；2 人日；需求：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`。
 - DoD：debug-only；signature/capability protected；可设置 PARKED/MOVING/UNKNOWN、occupancy、belt、
   delay/timeout/failure/mismatch；每次更新 Context revision；release absent。
+- 交付：Client2 增加默认隐藏的工程入口、immutable `CockpitEngineerState`、唯一 reducer 事件和
+  `DebugSimulationControllerClient`；构建直接从 Runtime debug AIDL 生成 stub。入口只在 signature permission、当前签名
+  capability 和协议握手通过后显示；Android 13 ARM64 已验证三态驾驶、占用/安全带、HVAC/Seat fault、revision、reset。
+  Runtime release 无 Controller Service；SIMULATED 投影不授予 Runtime Effect、Safety 或 production vehicle 权限。
 
 ### `P4-W10` Scenario/manual-control synchronization
 

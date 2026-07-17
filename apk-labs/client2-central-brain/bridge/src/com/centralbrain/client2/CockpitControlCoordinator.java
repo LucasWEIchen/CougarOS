@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 public final class CockpitControlCoordinator implements
         View.OnClickListener,
         ScenarioCallback,
+        DebugSimulationControllerClient.Callback,
         Application.ActivityLifecycleCallbacks {
     private static final String TAG = "CbClient2Hmi";
     private static final String MENU_TAG = "central_brain_menu_toggle";
@@ -34,9 +35,11 @@ public final class CockpitControlCoordinator implements
     private static final String RESULT_STAGE_TAG = "central_brain_stage_result";
     private static final String HVAC_DETAIL_TAG = "central_brain_detail_hvac";
     private static final String SEAT_DETAIL_TAG = "central_brain_detail_seat";
+    private static final String ENGINEER_DETAIL_TAG = "central_brain_detail_engineer";
     private static final String HVAC_TAG_PREFIX = "central_brain_hvac_";
     private static final String SEAT_TAG_PREFIX = "central_brain_seat_";
     private static final String RECOVERY_TAG_PREFIX = "central_brain_recovery_";
+    private static final String ENGINEER_TAG_PREFIX = "central_brain_engineer_";
     private static final long HVAC_DEBOUNCE_MS = 300L;
     private static final long SEAT_DEBOUNCE_MS = 300L;
     private static final String PREFS_NAME = "central_brain_hmi_state_v1";
@@ -52,6 +55,7 @@ public final class CockpitControlCoordinator implements
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Runnable submitHvacRunnable = this::submitPendingHvac;
     private final Runnable submitSeatRunnable = this::submitPendingSeat;
+    private final DebugSimulationControllerClient debugSimulationClient;
 
     private CockpitHmiState state;
     private Client2ScenarioBridge.SessionConnection connection;
@@ -96,6 +100,9 @@ public final class CockpitControlCoordinator implements
     private TextView seatSafetyView;
     private TextView seatEvidenceView;
     private TextView seatRequestView;
+    private TextView engineerStatusView;
+    private TextView engineerContextView;
+    private TextView engineerFaultView;
     private View panelOverlay;
     private View intentSurface;
     private View planSurface;
@@ -108,6 +115,8 @@ public final class CockpitControlCoordinator implements
     private View deviceDrawer;
     private View hvacSurface;
     private View seatSurface;
+    private View engineerSurface;
+    private Button engineerDetailButton;
     private Button approveButton;
     private Button rejectButton;
     private Button retryButton;
@@ -120,6 +129,7 @@ public final class CockpitControlCoordinator implements
         this.activity = activity;
         this.application = activity.getApplication();
         this.preferences = activity.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE);
+        this.debugSimulationClient = new DebugSimulationControllerClient(activity, this);
         synchronized (ACTIVE_LOCK) {
             state = retainedState.getRevision() > 0
                     ? retainedState
@@ -157,6 +167,7 @@ public final class CockpitControlCoordinator implements
         if (resume) {
             resumeSession();
         }
+        debugSimulationClient.connect();
     }
 
     private void bindViews() {
@@ -205,6 +216,9 @@ public final class CockpitControlCoordinator implements
         seatSafetyView = findTextView("centralBrainSeatSafetyText");
         seatEvidenceView = findTextView("centralBrainSeatEvidenceText");
         seatRequestView = findTextView("centralBrainSeatRequestText");
+        engineerStatusView = findTextView("centralBrainEngineerStatusText");
+        engineerContextView = findTextView("centralBrainEngineerContextText");
+        engineerFaultView = findTextView("centralBrainEngineerFaultText");
         intentSurface = findView("centralBrainIntentSurface");
         planSurface = findView("centralBrainPlanSurface");
         executionSurface = findView("centralBrainExecutionSurface");
@@ -216,6 +230,8 @@ public final class CockpitControlCoordinator implements
         deviceDrawer = findView("centralBrainDeviceDrawer");
         hvacSurface = findView("centralBrainHvacSurface");
         seatSurface = findView("centralBrainSeatSurface");
+        engineerSurface = findView("centralBrainEngineerSurface");
+        engineerDetailButton = findButton("centralBrainEngineerDetailButton");
         approveButton = findButton("centralBrainApproveButton");
         rejectButton = findButton("centralBrainRejectButton");
         retryButton = findButton("centralBrainRetryButton");
@@ -323,6 +339,13 @@ public final class CockpitControlCoordinator implements
                     CockpitHmiState.DeviceDrawer.SEAT));
             return;
         }
+        if (ENGINEER_DETAIL_TAG.equals(tag)) {
+            if (state.getEngineerState().isAvailable()) {
+                accept(CockpitHmiReducer.Event.drawerSelected(
+                        CockpitHmiState.DeviceDrawer.ENGINEER));
+            }
+            return;
+        }
         if ((tagValue.startsWith(HVAC_TAG_PREFIX)
                 || tagValue.startsWith(SEAT_TAG_PREFIX))
                 && !state.getPresentationMode().isParameterEditingEnabled()) {
@@ -343,6 +366,10 @@ public final class CockpitControlCoordinator implements
             Log.w(TAG, markers()
                     + " client2_hmi_recovery_command_available=false"
                     + " recovery_command=" + tagValue);
+            return;
+        }
+        if (tagValue.startsWith(ENGINEER_TAG_PREFIX)) {
+            handleEngineerControl(tagValue);
             return;
         }
         if (!(view instanceof TextView)) {
@@ -559,6 +586,121 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_seat_manual_session_submitted=true"
                 + " seat_desired_revision=" + revision
                 + " seat_parameter_logged=false");
+    }
+
+    private void handleEngineerControl(String tag) {
+        CockpitEngineerState engineer = state.getEngineerState();
+        if (!engineer.isAvailable()) {
+            return;
+        }
+        switch (tag) {
+            case "central_brain_engineer_driving_unknown":
+                debugSimulationClient.setDrivingState(
+                        CockpitSeatState.DrivingState.UNKNOWN_RESTRICTED);
+                break;
+            case "central_brain_engineer_driving_parked":
+                debugSimulationClient.setDrivingState(CockpitSeatState.DrivingState.PARKED);
+                break;
+            case "central_brain_engineer_driving_moving":
+                debugSimulationClient.setDrivingState(CockpitSeatState.DrivingState.MOVING);
+                break;
+            case "central_brain_engineer_occupancy_empty":
+                debugSimulationClient.setOccupancy(CockpitSeatState.OccupancyState.EMPTY);
+                break;
+            case "central_brain_engineer_occupancy_occupied":
+                debugSimulationClient.setOccupancy(CockpitSeatState.OccupancyState.OCCUPIED);
+                break;
+            case "central_brain_engineer_belt_belted":
+                debugSimulationClient.setBelt(CockpitSeatState.BeltState.BELTED);
+                break;
+            case "central_brain_engineer_belt_unbelted":
+                debugSimulationClient.setBelt(CockpitSeatState.BeltState.UNBELTED);
+                break;
+            case "central_brain_engineer_adapter_hvac":
+                accept(CockpitHmiReducer.Event.engineerAdapterSelected(
+                        CockpitEngineerState.AdapterTarget.HVAC));
+                break;
+            case "central_brain_engineer_adapter_seat":
+                accept(CockpitHmiReducer.Event.engineerAdapterSelected(
+                        CockpitEngineerState.AdapterTarget.SEAT));
+                break;
+            case "central_brain_engineer_fault_none":
+                debugSimulationClient.setAdapterFault(
+                        engineer.getAdapterTarget(), CockpitEngineerState.FaultMode.NONE);
+                break;
+            case "central_brain_engineer_fault_delay":
+                debugSimulationClient.setAdapterFault(
+                        engineer.getAdapterTarget(), CockpitEngineerState.FaultMode.DELAY);
+                break;
+            case "central_brain_engineer_fault_timeout":
+                debugSimulationClient.setAdapterFault(
+                        engineer.getAdapterTarget(), CockpitEngineerState.FaultMode.TIMEOUT);
+                break;
+            case "central_brain_engineer_fault_failure":
+                debugSimulationClient.setAdapterFault(
+                        engineer.getAdapterTarget(),
+                        CockpitEngineerState.FaultMode.RETRYABLE_FAILURE);
+                break;
+            case "central_brain_engineer_fault_terminal":
+                debugSimulationClient.setAdapterFault(
+                        engineer.getAdapterTarget(),
+                        CockpitEngineerState.FaultMode.TERMINAL_FAILURE);
+                break;
+            case "central_brain_engineer_fault_mismatch":
+                debugSimulationClient.setAdapterFault(
+                        engineer.getAdapterTarget(),
+                        CockpitEngineerState.FaultMode.READBACK_MISMATCH);
+                break;
+            case "central_brain_engineer_reset":
+                debugSimulationClient.reset();
+                break;
+            default:
+                return;
+        }
+        Log.i(TAG, markers()
+                + " cockpit_engineer_command_submitted=true"
+                + " command_payload_logged=false"
+                + " effect_authorization_source=false");
+    }
+
+    @Override
+    public void onConnecting() {
+        accept(CockpitHmiReducer.Event.engineerConnecting());
+    }
+
+    @Override
+    public void onConnected(long revision, CockpitSeatState.DrivingState drivingState) {
+        accept(CockpitHmiReducer.Event.engineerConnected(revision, drivingState));
+    }
+
+    @Override
+    public void onDrivingApplied(CockpitSeatState.DrivingState value, long revision) {
+        accept(CockpitHmiReducer.Event.engineerDrivingApplied(value, revision));
+    }
+
+    @Override
+    public void onOccupancyApplied(CockpitSeatState.OccupancyState value, long revision) {
+        accept(CockpitHmiReducer.Event.engineerOccupancyApplied(value, revision));
+    }
+
+    @Override
+    public void onBeltApplied(CockpitSeatState.BeltState value, long revision) {
+        accept(CockpitHmiReducer.Event.engineerBeltApplied(value, revision));
+    }
+
+    @Override
+    public void onFaultApplied(CockpitEngineerState.FaultMode value, long revision) {
+        accept(CockpitHmiReducer.Event.engineerFaultApplied(value, revision));
+    }
+
+    @Override
+    public void onResetApplied(long revision) {
+        accept(CockpitHmiReducer.Event.engineerResetApplied(revision));
+    }
+
+    @Override
+    public void onFailure(String code) {
+        accept(CockpitHmiReducer.Event.engineerFailure(code));
     }
 
     private void resumeSession() {
@@ -784,6 +926,7 @@ public final class CockpitControlCoordinator implements
         }
         setText(resultEvidenceView, resultEvidence);
         renderDrawer(current.getDeviceDrawer(), presentationMode);
+        setVisible(engineerDetailButton, current.getEngineerState().isAvailable());
     }
 
     private void renderPresentation(
@@ -951,6 +1094,7 @@ public final class CockpitControlCoordinator implements
         setVisible(deviceDrawer, drawer != CockpitHmiState.DeviceDrawer.CLOSED);
         setVisible(hvacSurface, drawer == CockpitHmiState.DeviceDrawer.HVAC);
         setVisible(seatSurface, drawer == CockpitHmiState.DeviceDrawer.SEAT);
+        setVisible(engineerSurface, drawer == CockpitHmiState.DeviceDrawer.ENGINEER);
         if (drawer == CockpitHmiState.DeviceDrawer.HVAC) {
             setText(drawerTitleView, "空调 Effect");
             CockpitHvacState hvac = state.getHvacState();
@@ -1007,6 +1151,23 @@ public final class CockpitControlCoordinator implements
             setText(seatRequestView,
                     "Governed request：" + requestLabel(seat.getRequestState())
                             + "\n300 ms 合并 · 位置动作失败关闭");
+        } else if (drawer == CockpitHmiState.DeviceDrawer.ENGINEER) {
+            setText(drawerTitleView, "工程仿真");
+            CockpitEngineerState engineer = state.getEngineerState();
+            setText(engineerStatusView,
+                    "Controller：" + engineer.getConnectionState()
+                            + "\nRevision：" + engineer.getControllerRevision()
+                            + " · Production：DISABLED");
+            setText(engineerContextView,
+                    "Driving：" + engineer.getDrivingState()
+                            + "\nOccupancy：" + engineer.getOccupancyState()
+                            + " · Belt：" + engineer.getBeltState()
+                            + "\nSource：SIMULATED · Effect authority：FALSE");
+            setText(engineerFaultView,
+                    "Adapter：" + engineer.getAdapterTarget()
+                            + "\nFault：" + engineer.getFaultMode()
+                            + " · Status：" + engineer.getStatusCode());
+            renderEngineerSelection(engineer);
         }
         boolean parameterEditingEnabled = presentationMode.isParameterEditingEnabled();
         setButtonsEnabled(hvacSurface, parameterEditingEnabled);
@@ -1019,6 +1180,29 @@ public final class CockpitControlCoordinator implements
         for (View control : seatPositionControls) {
             setEnabled(control, safePositionPreview);
         }
+        setButtonsEnabled(engineerSurface, state.getEngineerState().isAvailable());
+    }
+
+    private void renderEngineerSelection(CockpitEngineerState engineer) {
+        setActivated(findView("centralBrainEngineerDrivingUnknownButton"),
+                engineer.getDrivingState()
+                        == CockpitSeatState.DrivingState.UNKNOWN_RESTRICTED);
+        setActivated(findView("centralBrainEngineerDrivingParkedButton"),
+                engineer.getDrivingState() == CockpitSeatState.DrivingState.PARKED);
+        setActivated(findView("centralBrainEngineerDrivingMovingButton"),
+                engineer.getDrivingState() == CockpitSeatState.DrivingState.MOVING);
+        setActivated(findView("centralBrainEngineerOccupancyEmptyButton"),
+                engineer.getOccupancyState() == CockpitSeatState.OccupancyState.EMPTY);
+        setActivated(findView("centralBrainEngineerOccupancyOccupiedButton"),
+                engineer.getOccupancyState() == CockpitSeatState.OccupancyState.OCCUPIED);
+        setActivated(findView("centralBrainEngineerBeltBeltedButton"),
+                engineer.getBeltState() == CockpitSeatState.BeltState.BELTED);
+        setActivated(findView("centralBrainEngineerBeltUnbeltedButton"),
+                engineer.getBeltState() == CockpitSeatState.BeltState.UNBELTED);
+        setActivated(findView("centralBrainEngineerAdapterHvacButton"),
+                engineer.getAdapterTarget() == CockpitEngineerState.AdapterTarget.HVAC);
+        setActivated(findView("centralBrainEngineerAdapterSeatButton"),
+                engineer.getAdapterTarget() == CockpitEngineerState.AdapterTarget.SEAT);
     }
 
     private static void setButtonsEnabled(View root, boolean enabled) {
@@ -1194,8 +1378,11 @@ public final class CockpitControlCoordinator implements
             if (detached) {
                 return;
             }
-            detachedState = CockpitHmiReducer.reduce(
+            CockpitHmiState debugDetached = CockpitHmiReducer.reduce(
                     state,
+                    CockpitHmiReducer.Event.engineerFailure("CB_SIM_DETACHED"));
+            detachedState = CockpitHmiReducer.reduce(
+                    debugDetached,
                     CockpitHmiReducer.Event.detached());
             state = detachedState;
             detached = true;
@@ -1214,6 +1401,7 @@ public final class CockpitControlCoordinator implements
         if (previous != null) {
             previous.close();
         }
+        debugSimulationClient.close();
         application.unregisterActivityLifecycleCallbacks(this);
         Log.i(TAG, markers()
                 + " client2_hmi_lifecycle_detached=true"
@@ -1252,6 +1440,12 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_driving_ux_policy_implemented=true"
                 + " cockpit_unknown_driving_restricted=true"
                 + " cockpit_runtime_policy_authority_independent=true"
+                + " cockpit_engineer_simulation_drawer_debug_only=true"
+                + " cockpit_engineer_signature_permission_required=true"
+                + " cockpit_engineer_capability_required=true"
+                + " cockpit_engineer_context_revisioned=true"
+                + " cockpit_engineer_effect_authorization_source=false"
+                + " cockpit_engineer_production_available=false"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"

@@ -679,6 +679,45 @@ Host test 覆盖 null/unavailable/unknown/moving/parked、长文本/参数/high-
 manual Session/Effect/hardware dispatch。Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、
 `XSC-001/005/006`；tracking：`DEV-058`、`ISSUE-023/029/030/033`。
 
+#### 9.7.2 P4-W09 engineer simulation drawer implementation
+
+P4-W09 在现有 reducer-owned HMI 上增加 `CockpitEngineerState` 和 `DebugSimulationControllerClient`。前者是纯 Java immutable
+domain state，包含 `ConnectionState`、driving、occupancy、belt、selected adapter、fault profile、bounded status 和
+Controller revision；后者是唯一 Android/Binder adapter。`CockpitHmiState` 嵌入 engineer state，所有变化必须通过
+`CockpitHmiReducer` 的 CONNECTED/DRIVING/OCCUPANCY/BELT/FAULT/RESET/FAILED events。
+
+`DebugSimulationControllerClient` 只 bind Runtime debug manifest 中的显式 component。连接顺序为：Android signature
+permission -> Binder caller identity -> `debug.simulation.control` capability -> generated AIDL `INTERFACE_VERSION/HASH` ->
+initial revision。Binder 调用在单线程 executor 执行，callback 通过 main Handler 回到 Coordinator。任一 admission/transport/
+protocol 失败都会清空 controller reference、隐藏入口或显示 FAILED，不重试写命令、不切换 presentation。
+
+命令集合完全固定：driving `UNKNOWN/PARKED/MOVING`；canonical signal
+`Vehicle.Cabin.Seat.IsOccupied`/`Vehicle.Cabin.Seat.IsBelted` + `row1.driver`；adapter
+`debug.simulated.hvac.v1`/`debug.simulated.seat.v1`；fault `NONE/DELAY/TIMEOUT/RETRYABLE_FAILURE/TERMINAL_FAILURE/
+READBACK_MISMATCH`；reset。不得从 UI 文本构造 path/adapter/fault。每次命令保存 expected state 和当前 revision；只有成功
+且返回 revision 严格增加时 reducer 才提交新 state，stale/out-of-order/duplicate 响应失败关闭。
+
+`CockpitEngineerState.toSafetyContext()` 仅在 CONNECTED、revision>0 且 driving=PARKED/MOVING 时生成
+source=SIMULATED、quality=OBSERVED 的 Client2-local Context；UNKNOWN/reset/disconnect 返回 unavailable。该 Context 只调用
+`DrivingUxPolicy` 决定完整或受限呈现，不写 shared ContextSnapshot/Room，不进入 Graph、Policy、EffectCoordinator 或
+Adapter。`isProductionAvailable()` 和 `isEffectAuthorizationSource()` 永远为 false。
+
+资源层在 Plan 页提供默认 `gone` 的工程入口，抽屉使用既有 1920x1080 safe frame 内 ScrollView。Coordinator 只负责把
+button tag 映射为 typed event、render reducer state 和生命周期 connect/close。Activity/process restore 不恢复 debug
+PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted。
+
+测试分四层：JVM reducer 覆盖 immutable transition/revision/reset；静态 gate 检查 XML、AIDL 单一来源、debug/release
+隔离、permission/capability 和禁止硬件/网络 API；APK 构建验证 generated AIDL 与 secondary dex；Android 13/API 33 ARM64
+验证完整 UI/故障矩阵及 release Service absent。所有证据只输出 bounded marker，不提交设备身份或 raw payload。
+
+状态：`cockpit_engineer_simulation_drawer_implemented=true`、
+`cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
+`cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
+`cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P4-W10`。
+Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
+`DEV-059`、`ISSUE-023/029/030/033`。
+
 ### 9.8 Client2 AIOS 四阶段信息架构
 
 `BrainOverlay` 保留原有右侧半透明悬浮形态，在同一 APK 内增加稳定的 segmented navigation：

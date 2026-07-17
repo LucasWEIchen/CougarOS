@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -13,7 +13,7 @@
       "type": "apktool-resource-xml",
       "target": "res/layout/main_layout.xml",
       "source": "apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml",
-      "summary": "Keeps the original Client2 render region full-screen and overlays a bounded 1920x1080 intent-first shell with four surfaces, four natural scenes, reducer-owned HVAC/Seat controls, a seven-phase observable execution timeline, fail-closed approval/recovery presentation, and a driving-aware concise mode.",
+      "summary": "Keeps the original Client2 render region full-screen and overlays a bounded 1920x1080 intent-first shell with four surfaces, four natural scenes, reducer-owned HVAC/Seat controls, a seven-phase observable execution timeline, fail-closed approval/recovery presentation, a driving-aware concise mode, and a protected debug engineer drawer.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -24,7 +24,10 @@
         "S2-HMI-001",
         "S2-HMI-002",
         "S2-HMI-003",
+        "S2-HMI-004",
         "S2-HMI-006",
+        "S2-ADP-001",
+        "S2-OBS-001",
         "DEL-001",
         "DEL-003",
         "DEL-004"
@@ -34,7 +37,7 @@
       "id": "client2-manifest-central-brain-binder-client",
       "type": "apktool-manifest-patch",
       "target": "AndroidManifest.xml",
-      "summary": "Requests the Runtime signature permission and declares explicit Runtime package visibility without INTERNET or cleartext access.",
+      "summary": "Requests Runtime and debug-simulation signature permissions and declares explicit Runtime package visibility without INTERNET or cleartext access; the debug controller service remains absent from Runtime release.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -61,7 +64,7 @@
       "type": "embedded-secondary-dex",
       "target": "classes2.dex",
       "source": "apk-labs/client2-central-brain/bridge/src",
-      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, immutable HMI/HVAC/Seat/execution/recovery/presentation state and targets, DrivingUxPolicy, four-surface reducer, bounded typed-event projection, approval/partial/compensation projection with disabled unpublished commands, 300 ms HVAC/Seat debounce, governed manual Sessions, existing-Session resume, a 14-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
+      "summary": "Embeds SessionClient, generated Session/Event and debug-simulation AIDL, immutable HMI/HVAC/Seat/execution/recovery/presentation/engineer state, DrivingUxPolicy, the sole reducer, bounded typed-event projection, approval/partial/compensation projection with disabled unpublished commands, protected debug Context/fault controls, 300 ms HVAC/Seat debounce, governed manual Sessions, existing-Session resume, a 14-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -91,6 +94,7 @@
     "DEV-055: the frozen Session V1 SEAT1 utterance compatibility carrier is not a versioned typed parameter or approval transport",
     "DEV-056: the HMI timeline supports typed execution projection while the current Runtime publishes Session events only",
     "DEV-057: recovery UX cannot receive ApprovalPrompt, EffectObservation.retryable or UndoHandle through the current Client2 Session/Event surface",
-    "DEV-058: the physical Client2 has no production trusted global Context provider, so P4-W08 validates the default restricted mode only"
+    "DEV-058: the physical Client2 has no production trusted global Context provider; P4-W09 closes only the protected debug testability subcondition",
+    "DEV-059: the engineer drawer projects acknowledged debug-controller state locally and is absent from Runtime release; it is not production Context, Safety or Effect authority"
   ]
 }

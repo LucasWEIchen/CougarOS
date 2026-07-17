@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P4-W09`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P4-W10`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,7 +2109,7 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W09`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W10`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
 
@@ -2146,12 +2146,68 @@ RESTORED returns MOVING_RESTRICTED. `CockpitControlCoordinator.renderPresentatio
 long-detail visibility and control enabled state. HVAC/Seat click handling repeats the mode check before changing desired state or
 opening a Session. The renderer never writes Context and cannot call Adapter/Effect.
 
-Current physical Client2 has no trusted Context provider, so its default interface result is MOVING_RESTRICTED. P4-W09 must bind a
-signature/capability-protected engineer simulation surface to the existing debug Context Controller before physical PARKED mode can
-be retested. Production Context/Safety remains outside HMI authority.
+Current physical Client2 has no trusted Context provider, so its default interface result is MOVING_RESTRICTED. P4-W09 now binds a
+signature/capability-protected engineer simulation surface to the existing debug Context Controller and physically retests PARKED,
+MOVING and UNKNOWN presentation. Production Context/Safety remains outside HMI authority.
 
 Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
 `cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
-`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W09`.
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W10`.
 Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
+`ISSUE-023/029/030/033`.
+
+## Client2 P4-W09 Engineer Simulation Interfaces
+
+### Binder boundary
+
+`DebugSimulationControllerClient` binds only the explicit Runtime debug component and resolves generated
+`IDebugSimulationController.Stub.asInterface(IBinder)`. Before exposing the engineer entry it verifies `INTERFACE_VERSION` and
+`INTERFACE_HASH`. Android manifest admission requires `com.centralbrain.permission.CONTROL_DEBUG_SIMULATION`; Runtime then derives
+the Binder caller identity and requires `debug.simulation.control`. The main/release Runtime manifest and capability policy contain
+neither the Service nor the capability.
+
+Calls execute on one private Binder executor and results return through the main `Handler`. The client exposes typed callbacks only:
+
+```java
+interface Callback {
+    void onConnected(long controllerRevision, String status);
+    void onCommandApplied(Command command, long controllerRevision, String status);
+    void onUnavailable(String errorCode);
+}
+```
+
+The maintained implementation uses equivalent concrete methods and bounded enum values. It never returns raw audit records,
+vehicle payload, Binder identity, model text or arbitrary strings to HMI state.
+
+### Command contract
+
+| HMI action | Debug controller call | Exact domain value |
+| --- | --- | --- |
+| driving tri-state | set driving state | `UNKNOWN/PARKED/MOVING` |
+| occupancy | write canonical signal | `Vehicle.Cabin.Seat.IsOccupied`, `row1.driver`, boolean |
+| belt | write canonical signal | `Vehicle.Cabin.Seat.IsBelted`, `row1.driver`, boolean |
+| adapter selection | select fixed adapter | `debug.simulated.hvac.v1` or `debug.simulated.seat.v1` |
+| fault selection | set fixed fault profile | `NONE/DELAY/TIMEOUT/RETRYABLE_FAILURE/TERMINAL_FAILURE/READBACK_MISMATCH` |
+| reset | reset debug controller | no production state mutation |
+
+Every call snapshots the current HMI command revision. `CockpitHmiReducer.finishEngineer` accepts a response only when it represents
+the expected command and the returned Controller revision is strictly greater than the state revision. Stale, duplicate,
+out-of-order, failed or disconnected responses leave authoritative fields unchanged and set bounded failure status.
+
+### State projection and ownership
+
+`CockpitEngineerState` owns connection, driving, occupancy, belt, adapter, fault, status and revision. It is immutable and Android-
+independent. `CockpitHmiState` embeds it; `CockpitHmiReducer` is the only writer; `CockpitControlCoordinator` maps Views to events and
+renders state. On restore or reset, Context becomes unavailable and `PanelPresentationMode` becomes MOVING_RESTRICTED.
+
+`toSafetyContext()` returns source=SIMULATED and quality=OBSERVED only when connected, revision>0 and driving is PARKED or MOVING.
+UNKNOWN produces unavailable Context. Neither `CockpitEngineerState` nor `PanelPresentationMode` is an Effect authorization source.
+The projection does not call shared Context, Graph, EffectCoordinator or vehicle adapters.
+
+Status: `cockpit_engineer_simulation_drawer_implemented=true`,
+`cockpit_engineer_signature_permission_required=true`, `cockpit_engineer_capability_required=true`,
+`cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
+`cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P4-W10`.
+Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-059`,
 `ISSUE-023/029/030/033`.

@@ -102,6 +102,69 @@ public final class CockpitHmiReducer {
                 next.replayComplete = false;
                 next.terminal = false;
                 return next.buildNext();
+            case ENGINEER_CONNECTING:
+                return finishEngineer(
+                        current,
+                        next,
+                        CockpitEngineerState.connecting(),
+                        false);
+            case ENGINEER_CONNECTED:
+                return finishEngineer(
+                        current,
+                        next,
+                        current.getEngineerState().connected(
+                                event.engineerRevision,
+                                event.engineerDrivingState),
+                        false);
+            case ENGINEER_DRIVING_APPLIED:
+                return finishEngineer(
+                        current,
+                        next,
+                        current.getEngineerState().drivingApplied(
+                                event.engineerDrivingState,
+                                event.engineerRevision),
+                        true);
+            case ENGINEER_OCCUPANCY_APPLIED:
+                return finishEngineer(
+                        current,
+                        next,
+                        current.getEngineerState().occupancyApplied(
+                                event.engineerOccupancyState,
+                                event.engineerRevision),
+                        true);
+            case ENGINEER_BELT_APPLIED:
+                return finishEngineer(
+                        current,
+                        next,
+                        current.getEngineerState().beltApplied(
+                                event.engineerBeltState,
+                                event.engineerRevision),
+                        true);
+            case ENGINEER_ADAPTER_SELECTED:
+                next.engineerState = current.getEngineerState().adapterSelected(
+                        event.engineerAdapterTarget);
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.ENGINEER;
+                return next.buildNext();
+            case ENGINEER_FAULT_APPLIED:
+                return finishEngineer(
+                        current,
+                        next,
+                        current.getEngineerState().faultApplied(
+                                event.engineerFaultMode,
+                                event.engineerRevision),
+                        true);
+            case ENGINEER_RESET_APPLIED:
+                return finishEngineer(
+                        current,
+                        next,
+                        current.getEngineerState().resetApplied(event.engineerRevision),
+                        true);
+            case ENGINEER_FAILURE:
+                return finishEngineer(
+                        current,
+                        next,
+                        current.getEngineerState().failed(event.errorCode),
+                        false);
             case SCENARIO_SUBMITTED:
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested(event.uiScenarioId);
@@ -258,6 +321,7 @@ public final class CockpitHmiReducer {
                 next.surfaceStage = CockpitHmiState.SurfaceStage.INTENT;
                 next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
                 next.presentationMode = PanelPresentationMode.MOVING_RESTRICTED;
+                next.engineerState = CockpitEngineerState.unavailable();
                 next.uiScenarioId = checkpoint.uiScenarioId;
                 next.canonicalScenarioId = checkpoint.canonicalScenarioId;
                 next.handleSchemaVersion = checkpoint.handleSchemaVersion;
@@ -296,6 +360,23 @@ public final class CockpitHmiReducer {
         return handle != null && handle.sessionId.equals(sessionId);
     }
 
+    private static CockpitHmiState finishEngineer(
+            CockpitHmiState current,
+            CockpitHmiState.Builder next,
+            CockpitEngineerState engineer,
+            boolean keepDrawerOpen) {
+        CockpitSeatState.SafetyContext safetyContext = engineer.toSafetyContext();
+        next.engineerState = engineer;
+        next.seatState = current.getSeatState().safetyContextChanged(safetyContext);
+        next.presentationMode = DrivingUxPolicy.modeFor(safetyContext);
+        if (keepDrawerOpen && engineer.isAvailable()) {
+            next.deviceDrawer = CockpitHmiState.DeviceDrawer.ENGINEER;
+        } else if (!engineer.isAvailable()) {
+            next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
+        }
+        return next.buildNext();
+    }
+
     public static final class Event {
         private enum Type {
             PANEL_VISIBILITY,
@@ -306,6 +387,15 @@ public final class CockpitHmiReducer {
             SEAT_SAFETY_CONTEXT_CHANGED,
             SEAT_DESIRED_CHANGED,
             SEAT_MANUAL_SUBMITTED,
+            ENGINEER_CONNECTING,
+            ENGINEER_CONNECTED,
+            ENGINEER_DRIVING_APPLIED,
+            ENGINEER_OCCUPANCY_APPLIED,
+            ENGINEER_BELT_APPLIED,
+            ENGINEER_ADAPTER_SELECTED,
+            ENGINEER_FAULT_APPLIED,
+            ENGINEER_RESET_APPLIED,
+            ENGINEER_FAILURE,
             SCENARIO_SUBMITTED,
             CONNECTION_CHANGED,
             SESSION_OPENED,
@@ -328,6 +418,12 @@ public final class CockpitHmiReducer {
         private CockpitSeatState.SafetyContext seatSafetyContext;
         private SeatControlIntent seatIntent;
         private long seatRevision;
+        private CockpitSeatState.DrivingState engineerDrivingState;
+        private CockpitSeatState.OccupancyState engineerOccupancyState;
+        private CockpitSeatState.BeltState engineerBeltState;
+        private CockpitEngineerState.AdapterTarget engineerAdapterTarget;
+        private CockpitEngineerState.FaultMode engineerFaultMode;
+        private long engineerRevision;
         private String uiScenarioId = "";
         private String canonicalScenarioId = "";
         private String sessionId = "";
@@ -393,6 +489,73 @@ public final class CockpitHmiReducer {
         public static Event seatManualSubmitted(long desiredRevision) {
             Event event = new Event(Type.SEAT_MANUAL_SUBMITTED);
             event.seatRevision = desiredRevision;
+            return event;
+        }
+
+        public static Event engineerConnecting() {
+            return new Event(Type.ENGINEER_CONNECTING);
+        }
+
+        public static Event engineerConnected(
+                long revision,
+                CockpitSeatState.DrivingState drivingState) {
+            Event event = new Event(Type.ENGINEER_CONNECTED);
+            event.engineerRevision = revision;
+            event.engineerDrivingState = Objects.requireNonNull(drivingState, "drivingState");
+            return event;
+        }
+
+        public static Event engineerDrivingApplied(
+                CockpitSeatState.DrivingState value,
+                long revision) {
+            Event event = new Event(Type.ENGINEER_DRIVING_APPLIED);
+            event.engineerDrivingState = Objects.requireNonNull(value, "value");
+            event.engineerRevision = revision;
+            return event;
+        }
+
+        public static Event engineerOccupancyApplied(
+                CockpitSeatState.OccupancyState value,
+                long revision) {
+            Event event = new Event(Type.ENGINEER_OCCUPANCY_APPLIED);
+            event.engineerOccupancyState = Objects.requireNonNull(value, "value");
+            event.engineerRevision = revision;
+            return event;
+        }
+
+        public static Event engineerBeltApplied(
+                CockpitSeatState.BeltState value,
+                long revision) {
+            Event event = new Event(Type.ENGINEER_BELT_APPLIED);
+            event.engineerBeltState = Objects.requireNonNull(value, "value");
+            event.engineerRevision = revision;
+            return event;
+        }
+
+        public static Event engineerAdapterSelected(CockpitEngineerState.AdapterTarget value) {
+            Event event = new Event(Type.ENGINEER_ADAPTER_SELECTED);
+            event.engineerAdapterTarget = Objects.requireNonNull(value, "value");
+            return event;
+        }
+
+        public static Event engineerFaultApplied(
+                CockpitEngineerState.FaultMode value,
+                long revision) {
+            Event event = new Event(Type.ENGINEER_FAULT_APPLIED);
+            event.engineerFaultMode = Objects.requireNonNull(value, "value");
+            event.engineerRevision = revision;
+            return event;
+        }
+
+        public static Event engineerResetApplied(long revision) {
+            Event event = new Event(Type.ENGINEER_RESET_APPLIED);
+            event.engineerRevision = revision;
+            return event;
+        }
+
+        public static Event engineerFailure(String code) {
+            Event event = new Event(Type.ENGINEER_FAILURE);
+            event.errorCode = bounded(code, 64);
             return event;
         }
 
