@@ -123,9 +123,9 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 已完成软件 foundation（W01-W09；Runtime/production wiring 仍 false） |
-| S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
-| S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
-| S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
+| S2-P4 | Client2 HMI 与场景/Effect 投影 | P4-W01..W12 应用验收完成；Runtime 自动 Plan/Effect/readback 待接 | 应用层完成 / Runtime 未完成 |
+| S2-P5 | Tool/Skill 与 Memory | Tool manifest/schema、Registry/Resolver/RuleSolver/Executor、Skill trust、Memory lifecycle | W01 已完成，W02-W12 待开发 |
+| S2-P6 | Event/Model 与高级 Memory 集成 | durable broker、proactive trigger、model routing、context budget | 未开始 |
 | S2-P7 | 质量与发布 | fault matrix、性能、隐私、安全、升级 | 未开始 |
 | S2-P8 | 真实车辆适配 | 按 capability 引入已确认的 vendor/public adapter | 外部阻塞 |
 
@@ -310,6 +310,11 @@ occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩�
 SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
 P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。下一工作包为
 P5-W01 Tool manifest/schema；`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/undo/readback 仍未发布。
+
+P5-W01 已完成 Tool manifest/schema：immutable identity/owner/capability/risk/timeout/idempotency/health、bounded scalar
+input/output、canonical contract digest 与 exact-class validator 已进入 Runtime main source；JVM、debug/release compile
+完成。Android 13 ARM64 probe 已实现，但当前 Windows 只有 COM7、没有 ADB interface，实体执行待复测。Registry/Resolver/
+Executor 和 production Tool 均未发布，下一工作包为 P5-W02。
 
 ## 7. 近期进展
 
@@ -756,7 +761,7 @@ p4_vehicle_readback_available=false
 client2_production_release_artifact_available=false
 hmi_d4_demo_control_loop_complete=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P5-W01
+implementation_stage=P5-W02
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -799,7 +804,7 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
 
 ### 2026-07-18 P4-W12 progress
 
@@ -813,4 +818,20 @@ Tool manifest/schema。
 
 Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+
+### 2026-07-18 P5-W01 progress
+
+`ToolManifest` 已冻结 versioned Tool identity、owner、input/output schema、capability、risk、timeout、idempotency 和 mandatory
+health freshness contract。`ToolSchemaValidator` 只接受 32-field/16 KiB bounded scalar object，以 exact Java class 拒绝
+missing/unknown/null/type/range/oversize，并返回 defensive immutable map；canonical digest 对字段顺序稳定。
+
+JVM 与 debug/release compile 已覆盖合同 digest、正向 input/output、unknown、type/range 和 health fail-closed。API 33
+ARM64 debug probe 已接入统一 installer，但本轮 Windows 只枚举 COM7、没有 Android ADB interface，因此未执行，
+`tool_manifest_android13_arm64_verified=false`。probe 不进入 release manifest；Runtime/Graph/Room/Binder 未引用 Tool
+contract。下一工作包为 P5-W02 ToolRegistry/Resolver。
+
+Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-063`、`ISSUE-036`。
+`tool_registry_published=false`、`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
+`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。

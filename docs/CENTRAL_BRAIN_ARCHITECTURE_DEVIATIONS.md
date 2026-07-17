@@ -950,3 +950,24 @@ simulated adapter 完成可重复演示闭环，再独立交付无工程抽屉�
 `p4_plan_effect_projection_host_verified=true`、`p4_automatic_plan_runtime_published=false`、
 `p4_production_effect_dispatch_enabled=false`、`client2_production_release_artifact_available=false`、
 `hmi_d4_demo_control_loop_complete=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+## DEV-063 P5-W01 Tool contract is not Tool execution
+
+P5-W01 在 Runtime main source 中增加了 typed `ToolManifest` 和 `ToolSchemaValidator`。它冻结 ID/version/owner、
+input/output bounded scalar schema、capability、risk、timeout、idempotency 与 fail-closed health metadata，并提供 canonical
+contract digest。debug probe 已实现；在 Android 13 ARM64 执行时只验证相同纯 Java 合同。本轮因 Windows 没有 ADB
+interface 未执行，`tool_manifest_android13_arm64_verified=false`。
+
+该结果不等价于 Tool 已 registered、resolved、healthy、usable 或 executed。Manifest 中只有 health check identity/freshness
+要求，没有动态 health value；也没有 artifact/signature、Registry、RuleSolver、Executor、deadline cancellation、audit、
+Effect dispatch 或 readback。尤其不能把 `capabilityId` 当作 Vendor property/API，不能把 schema validation 当作 Safety 授权。
+
+同时修正了此前首页/路线图把 P5-W01 写成“Runtime scenario orchestration”的计划漂移：冻结 backlog 的 P5 是 Tool/Skill/
+Memory，P5-W01 是 Tool manifest/schema，下一包是 P5-W02 Registry/Resolver。HMI 自动 Plan/Effect 闭环仍由 P3/P4 Runtime
+wiring 与 P8 vehicle adapter 交叉关闭，不能借 P5 Tool 合同隐式完成。
+
+状态：`Accepted Temporary`。关闭条件是 P5-W02..W04 完成 deterministic registry/resolver、rule intersection 和
+signed built-in executor 边界，并单独接入 Runtime/Graph；真实车辆/NPU Tool 还需 P8 OEM/Vendor authority。当前：
+`tool_manifest_contract_defined=true`、`tool_registry_published=false`、`tool_execution_enabled=false`、
+`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。

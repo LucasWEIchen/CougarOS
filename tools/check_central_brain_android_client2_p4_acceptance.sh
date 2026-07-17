@@ -155,7 +155,7 @@ for marker in \
   'p4_w12_application_acceptance_complete=true' \
   'p4_automatic_plan_runtime_published=false' \
   'hmi_d4_demo_control_loop_complete=false' \
-  'implementation_stage=P5-W01'; do
+  'implementation_stage=P5-W02'; do
   require_text "$ROOT_README" "$marker"
   require_text "$CLIENT_README" "$marker"
 done
