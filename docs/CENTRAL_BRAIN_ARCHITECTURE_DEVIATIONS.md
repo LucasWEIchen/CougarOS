@@ -67,6 +67,7 @@
 | DEV-041 | P2-W12 debug controller 不是 production Context 或车辆控制 authority。 | S2-CTX-001, S2-ADP-001, ISSUE-030/033 | Accepted Temporary |
 | DEV-042 | P3-W01 Graph Runtime 是 process-local control-only state machine，不是 durable/executable production Graph。 | S2-GRF-001, ISSUE-022/026 | Accepted Temporary |
 | DEV-043 | P3-W02 typed executor 只有 main contract 与 debug deterministic implementation，不是 Graph/Effect/model production execution。 | S2-GRF-001, S2-SAF-001, S2-EFF-001, ISSUE-022..024/026 | Accepted Temporary |
+| DEV-044 | P3-W03 serializer 是 process-local canonical contract，尚未接 Graph/Room/restart recovery。 | S2-GRF-001, NV-G-006/007, ISSUE-022/026 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -569,3 +570,21 @@ deterministic fail-closed 行为可运行，不能声明车辆、模型或副作
 `effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。P3-W03..W09 依次补 checkpoint、retry、approval、
 Effect/verification、compensation、Room/recovery；P8 另行关闭真实 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。
+
+## DEV-044 P3-W03 checkpoint serializer 尚未形成 durable Graph recovery
+
+P3-W03 的 `CheckpointValue`、registered codec、canonical JSON 和 digest envelope 位于 Runtime main source，
+因为未来 production recovery 必须使用同一稳定合同。当前 `AgentGraphRuntime`、Room v4、Session/Binder Service
+均未引用 serializer；没有 checkpoint row transaction、migration、process-death rehydrate 或 mismatch -> STUCK
+状态映射。API 33 ARM64 probe 只在 Activity 进程内做 encode/decode 与拒绝测试。
+
+serializer 只允许显式注册的 exact class 经 `PayloadCodec` 转换为 bounded primitive tree；它拒绝 Java
+serialization、class-name reflection、arbitrary Binder/Parcel blob 和未知 type/version。该安全合同不能代替
+durable owner、encryption/key、retention、migration 或 rollback evidence，也不能使 P3-W01 Graph 可执行。
+
+状态：`Accepted Temporary`。`checkpoint_serializer_defined=true`、
+`checkpoint_serializer_java_serialization_enabled=false`、
+`agent_graph_runtime_persistence_wired=false`、`agent_graph_executor_dispatch_enabled=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。P3-W09 必须接 Room transaction/restart recovery 并把
+digest/type/version mismatch 映射 STUCK；P8 另行关闭 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。

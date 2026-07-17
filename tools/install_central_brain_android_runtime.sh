@@ -1318,6 +1318,57 @@ if [[ "$TYPED_NODE_EXECUTOR_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+CHECKPOINT_SERIALIZER_NONCE="$(date +%s%N)"
+CHECKPOINT_SERIALIZER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.graph.CheckpointSerializerProbeActivity \
+  --es nonce "$CHECKPOINT_SERIALIZER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$CHECKPOINT_SERIALIZER_PROBE_OUTPUT"; then
+  echo "$CHECKPOINT_SERIALIZER_PROBE_OUTPUT" >&2
+  echo "Checkpoint Serializer debug probe did not start successfully" >&2
+  exit 1
+fi
+CHECKPOINT_SERIALIZER_PROBE_PASSED=false
+for _ in {1..40}; do
+  CHECKPOINT_SERIALIZER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbCheckpoint:I)"
+  if grep -Fq \
+      "nonce=$CHECKPOINT_SERIALIZER_NONCE checkpoint_serializer_probe_complete=true" \
+      <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_defined=true" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_registered_dto_verified=true" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_canonical_digest_verified=true" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_malformed_unknown_rejected=true" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_size_depth_limit_verified=true" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_security_corpus_verified=true" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_android13_arm64_verified=true" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "checkpoint_serializer_java_serialization_enabled=false" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "agent_graph_runtime_persistence_wired=false" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "agent_graph_executor_dispatch_enabled=false" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$CHECKPOINT_SERIALIZER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$CHECKPOINT_SERIALIZER_LOG"; then
+    CHECKPOINT_SERIALIZER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$CHECKPOINT_SERIALIZER_PROBE_PASSED" != true ]]; then
+  echo "$CHECKPOINT_SERIALIZER_LOG" >&2
+  echo "Checkpoint Serializer probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2315,6 +2366,14 @@ printf '%s\n' \
   "typed_node_executor_android13_arm64_verified=true" \
   "typed_node_executor_graph_dispatch_enabled=false" \
   "typed_node_executor_production_wired=false" \
+  "checkpoint_serializer_defined=true" \
+  "checkpoint_serializer_registered_dto_verified=true" \
+  "checkpoint_serializer_canonical_digest_verified=true" \
+  "checkpoint_serializer_malformed_unknown_rejected=true" \
+  "checkpoint_serializer_size_depth_limit_verified=true" \
+  "checkpoint_serializer_security_corpus_verified=true" \
+  "checkpoint_serializer_android13_arm64_verified=true" \
+  "checkpoint_serializer_java_serialization_enabled=false" \
   "effect_dispatch_enabled=false" \
   "network_accessed=false" \
   "model_invoked=false" \

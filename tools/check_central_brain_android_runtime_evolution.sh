@@ -207,6 +207,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_simulated_media_navigation_ada
 bash "$ROOT_DIR/tools/check_central_brain_android_debug_simulation_controller.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_agent_graph_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_typed_node_executors.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_checkpoint_serializer.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_schema.sh"

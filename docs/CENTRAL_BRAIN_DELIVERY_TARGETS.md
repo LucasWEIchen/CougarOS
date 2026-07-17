@@ -85,8 +85,9 @@ bash tools/check_central_brain_root_readme.sh
 Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、
 `P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL`、
 `P1-W05 SDK facade v2`、`P1-W06 Room v4 schema`、`P1-W07 Contract v2 aggregate check`、
-`P2-W01..P2-W12 Context/Scenario/Simulation foundation`、`P3-W01 Agent Graph Runtime state machine` 和
-`P3-W02 Typed node executors` 已完成，下一工作包为 `P3-W03 CheckpointSerializer`。P1-P7 交付必须进入
+`P2-W01..P2-W12 Context/Scenario/Simulation foundation`、`P3-W01 Agent Graph Runtime state machine`、
+`P3-W02 Typed node executors` 和 `P3-W03 CheckpointSerializer` 已完成，下一工作包为
+`P3-W04 Retry/Timeout policy`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -1154,3 +1155,40 @@ target_hardware_validated=false
 Context/Safety/approval、Effect adapter/model provider 或车辆/NPU/Driver-HAL。Release 仅含合同类，不含
 `DeterministicNodeExecutors` 或 probe。Req IDs：`S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`、
 `DEL-001/003..005`；偏差/问题：`DEV-043`、`ISSUE-022/023/024/026`。
+
+## Android P3-W03 CheckpointSerializer
+
+受维护交付新增：
+
+1. Runtime main-source immutable `CheckpointValue`、registered `CheckpointSerializer`、
+   `CheckpointEnvelope` 与 strict `JsonPrimitiveCheckpointSerializer`；
+2. exact type/version/class/codec allowlist、canonical map/number、domain-separated SHA-256 和 immutable envelope；
+3. 64 KiB、8 层、1024 token、64 item、bounded number/string/key gate，以及 duplicate/unknown/null/trailing/
+   malformed/digest/non-canonical/security corpus；
+4. 8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+checkpoint_serializer_defined=true
+checkpoint_serializer_registered_dto_verified=true
+checkpoint_serializer_canonical_digest_verified=true
+checkpoint_serializer_malformed_unknown_rejected=true
+checkpoint_serializer_size_depth_limit_verified=true
+checkpoint_serializer_security_corpus_verified=true
+checkpoint_serializer_android13_arm64_verified=true
+checkpoint_serializer_java_serialization_enabled=false
+agent_graph_runtime_persistence_wired=false
+agent_graph_executor_dispatch_enabled=false
+effect_dispatch_enabled=false
+model_invoked=false
+network_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 process-local serializer contract，不交付 Graph/Room/Session/Binder wiring、STUCK recovery mapping、
+checkpoint migration、Effect/model/vehicle/NPU/Driver-HAL。Release 包含 serializer 合同与严格 parser，但不包含
+debug probe。Req IDs：`S2-GRF-001`、`NV-G-003/006/007`、`DEL-001/003..005`；偏差/问题：
+`DEV-044`、`ISSUE-022/026`。

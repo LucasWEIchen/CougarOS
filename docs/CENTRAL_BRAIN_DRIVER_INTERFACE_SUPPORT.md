@@ -789,3 +789,21 @@ Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN、device node、ioctl/s
 `effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`S2-EFF-001`、`KH-003/006`、`DEL-004/005`。
+
+### P3-W03 CheckpointSerializer Driver/HAL Boundary
+
+P3-W03 在 Runtime main source 只新增纯 Java immutable primitive tree、registered DTO codec、strict streaming
+JSON parser 和 SHA-256 envelope；debug source 只新增 DUMP-protected probe。它处理 ID、enum、bounded number/
+string/container 和 digest，不接受 Binder/Parcel object、fd/shared memory、file/device path、native pointer、
+vehicle property、CAN/DBC material、Vendor NPU handle 或任意硬件 buffer。
+
+Serializer 未接 `AgentGraphRuntime`、Room/SQLite、Session/Binder Service 或 restart recovery，也不调用 P2
+simulation、Effect、Model、JNI/C ABI 和 Native Runtime。本包不发现或调用 Android Car/CarProperty、VHAL、
+vendor Binder/SOA、device node、ioctl/sysfs、PCIe/NPU 或 Driver/HAL。
+
+状态：`checkpoint_serializer_defined=true`、
+`checkpoint_serializer_java_serialization_enabled=false`、
+`agent_graph_runtime_persistence_wired=false`、`agent_graph_executor_dispatch_enabled=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`NV-G-003/006/007`、`KH-003/006`、`DEL-004/005`。

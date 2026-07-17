@@ -202,7 +202,7 @@ flowchart TB
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01/P2-W04 完成；production trust/wiring 未接） | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02/P2-W03 完成；persistence/adapter 未接） | `S2-TWN-001` |
 | Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05..W07 完成；Runtime publication/execution 未接） | `S2-SCN-001` |
-| Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `FOUNDATION`（P3-W01 状态机完成；executor/checkpoint/Room 未接） | `S2-GRF-001` |
+| Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `FOUNDATION`（P3-W01..W03 状态/typed schema/checkpoint codec 完成；dispatch/Room 未接） | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
 | Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `NOT_STARTED` | `S2-EFF-001` |
 | Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `FOUNDATION`（P2-W08..W12 完成；production/runtime wiring 未接） | `S2-ADP-001` |
@@ -1181,6 +1181,21 @@ verification/compensation placeholder。P3-W02 不提供 reconcile/cancel/checkp
 
 Envelope：`schemaVersion/type/nodeId/planDigest/contextDigest/payload/digest/createdAt`。恢复时任一 digest/type/version 不匹配，session 进入 STUCK 并等待人工清理或兼容 migration。
 
+P3-W03 implemented checkpoint contract：
+
+- `Registration<T>` 在 serializer 构造时冻结 exact type/version/class 与显式 `PayloadCodec<T>`；不根据 JSON
+  字段或类名发现类型；
+- `CheckpointValue` 是 immutable primitive tree，限制 number/string/key/container；map 在工厂中按 key 排序；
+- `JsonPrimitiveCheckpointSerializer` 用 Gson strict `JsonReader` 流式读取，不使用 Gson object mapper；总长
+  64 KiB、payload 8 层、1024 token，每 list/map 最大 64 项；
+- canonical envelope 使用固定字段顺序与归一化 decimal，digest 使用
+  `central-brain.checkpoint.v1` domain-separated SHA-256；反序列化要求 byte-for-byte canonical；
+- duplicate/unknown/null/trailing/malformed/type/version/class/size/depth/token/digest/non-canonical 和 Java
+  serialization/class metadata corpus 全部失败关闭。
+
+P3-W03 只提供 process-local codec。`AgentGraphRuntime`、Room、Session/Binder 和 restart recovery 未接；因此
+当前 mismatch 抛稳定 `CheckpointException`，P3-W09 才把它映射到 durable Session/Graph STUCK 和 migration。
+
 ### 13.5 Retry/Timeout
 
 - retryable error 必须显式枚举；
@@ -2078,8 +2093,10 @@ synthetic POI/route、debug-only signature/capability-protected state/signal/fau
 Effect Service、approval response/undo execution 和 Plan Runtime publication 均未发布。`P3-W01
 AgentGraphRuntime state machine` 已完成 process-local graph 状态；`P3-W02 Typed node executors` 已完成 11 类
 exact schema、7 类 debug deterministic executor、authority/trust gate 与 Effect/Compensation/unsupported
-fail-closed。Graph 仍不调用 executor，main/release 无 deterministic implementation，Binder/Room/checkpoint/
-production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为 `P3-W03 CheckpointSerializer`。
+fail-closed；`P3-W03 CheckpointSerializer` 已完成 registered DTO、bounded primitive canonical JSON、digest 和
+security corpus。Graph 仍不调用 executor 或 serializer，main/release 无 deterministic executor，Binder/Room/
+recovery/production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为
+`P3-W04 Retry/Timeout policy`。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

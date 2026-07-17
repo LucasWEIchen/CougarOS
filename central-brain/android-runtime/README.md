@@ -789,4 +789,26 @@ Eight JVM test groups, debug/release compilation and the Android 13/API 33 ARM64
 `typed_node_executor_unsupported_fail_closed_verified=true`. Release contains no deterministic executor or probe;
 `typed_node_executor_graph_dispatch_enabled=false`, `typed_node_executor_production_wired=false`,
 `effect_dispatch_enabled=false`, `model_invoked=false`, `network_accessed=false` and `hardware_accessed=false` remain
-enforced. P3-W03 CheckpointSerializer is the next work package.
+enforced. P3-W03 CheckpointSerializer is documented below.
+
+## P3-W03 CheckpointSerializer
+
+`runtime-service/src/main/java/com/centralbrain/runtime/graph` now defines immutable `CheckpointValue`, registered
+`CheckpointSerializer`, digest-bound `CheckpointEnvelope` and strict `JsonPrimitiveCheckpointSerializer`. A
+registration freezes an exact type, schema version, payload class and explicit codec. Codecs can exchange only bounded
+strings, booleans, integers/decimals, enum names and immutable list/map trees; no class name is read from data.
+
+The canonical JSON envelope fixes field order, sorts payload map keys, normalizes numbers and binds all fields except
+the digest through domain-separated SHA-256. Strict streaming decode rejects unknown type/version/class, duplicate or
+unknown fields, null/trailing/malformed JSON, digest changes and non-canonical bytes. Limits are 64 KiB, eight payload
+levels, 1,024 value tokens and 64 items per container. Java serialization, reflection, Binder/Parcel blobs, network and
+hardware material are absent from the main implementation.
+
+Eight JVM test groups, debug/release compilation and the Android 13/API 33 ARM64 probe establish
+`checkpoint_serializer_defined=true`, `checkpoint_serializer_registered_dto_verified=true`,
+`checkpoint_serializer_canonical_digest_verified=true`, `checkpoint_serializer_size_depth_limit_verified=true`,
+`checkpoint_serializer_security_corpus_verified=true` and
+`checkpoint_serializer_android13_arm64_verified=true`. The debug probe is absent from release;
+`checkpoint_serializer_java_serialization_enabled=false`, `agent_graph_runtime_persistence_wired=false`,
+`agent_graph_executor_dispatch_enabled=false`, `effect_dispatch_enabled=false`, `model_invoked=false` and
+`hardware_accessed=false` remain enforced. P3-W04 Retry/Timeout policy is the next work package.

@@ -122,7 +122,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01/W02 完成；P3-W03 下一步） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W03 完成；P3-W04 下一步） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -228,8 +228,12 @@ control-only registry 不调用 executor，Runtime/Room/Binder/Effect/model/vehi
 7 类 debug deterministic executor、authority/trust gate、Effect/Compensation/unsupported fail-closed 已通过
 JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。Graph/Room/Binder/Effect/model/hardware 仍未接。
 
-下一实现工作包为 `P3-W03 CheckpointSerializer`。只增加 allowlisted primitive/DTO checkpoint envelope、
-size/depth/version/digest gate 与 security corpus；不得使用 Java serialization/class reflection 或启用 Graph dispatch。
+`P3-W03 CheckpointSerializer` 已完成：allowlisted type/version、exact registered DTO、immutable primitive tree、
+canonical JSON、64 KiB/8 层/1024 token gate、SHA-256 和 malformed/unknown/oversize/security corpus 已通过 JVM、
+debug/release compile 与 Android 13/API 33 ARM64 probe。Graph/Room/Binder/recovery/Effect/model/hardware 仍未接。
+
+下一实现工作包为 `P3-W04 Retry/Timeout policy`。只增加 bounded attempts/deadline/backoff/jitter 与 Effect
+idempotency/reconcile gate；不得启用 executor dispatch、Effect adapter、模型、车辆或硬件。
 
 ## 7. 近期进展
 
@@ -344,6 +348,9 @@ size/depth/version/digest gate 与 security corpus；不得使用 Java serializa
 - 完成 `P3-W02 Typed node executors`：11 类 exact schema、7 类 debug deterministic executor、exact-class、
   authority/trust gate、Effect/Compensation/unsupported fail-closed 通过 JVM/debug/release/API 33 ARM64 probe；
   Graph dispatch/Room/Binder/Effect/model/hardware 保持 false，下一工作包为 P3-W03 CheckpointSerializer。
+- 完成 `P3-W03 CheckpointSerializer`：registered DTO、canonical primitive JSON、type/version/digest、64 KiB/8 层/
+  token gate 和 security corpus 通过 JVM/debug/release/API 33 ARM64 probe；Graph/Room/recovery/Effect/model/hardware
+  保持 false，下一工作包为 P3-W04 Retry/Timeout policy。
 
 ## 8. 当前门禁
 
@@ -449,7 +456,14 @@ typed_node_executor_unsupported_fail_closed_verified=true
 typed_node_executor_android13_arm64_verified=true
 typed_node_executor_graph_dispatch_enabled=false
 typed_node_executor_production_wired=false
-implementation_stage=P3-W03
+checkpoint_serializer_defined=true
+checkpoint_serializer_registered_dto_verified=true
+checkpoint_serializer_canonical_digest_verified=true
+checkpoint_serializer_size_depth_limit_verified=true
+checkpoint_serializer_security_corpus_verified=true
+checkpoint_serializer_android13_arm64_verified=true
+checkpoint_serializer_java_serialization_enabled=false
+implementation_stage=P3-W04
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
