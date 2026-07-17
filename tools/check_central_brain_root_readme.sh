@@ -241,7 +241,19 @@ for marker in \
   'compensation_undo_persistence_wired=false' \
   'undo_binder_service_published=false' \
   'compensation_dispatch_enabled=false' \
-  'implementation_stage=P3-W09' \
+  'graph_restart_reconciler_defined=true' \
+  'graph_restart_room_v4_repository_verified=true' \
+  'graph_restart_process_death_verified=true' \
+  'graph_restart_idempotent_reopen_verified=true' \
+  'graph_restart_audit_exactly_once_verified=true' \
+  'graph_restart_historical_digest_replay_verified=true' \
+  'graph_restart_side_effect_count=0' \
+  'graph_restart_runtime_wired=false' \
+  'graph_restart_binder_published=false' \
+  'graph_restart_executor_dispatch_enabled=false' \
+  'graph_restart_effect_dispatch_enabled=false' \
+  'graph_restart_production_wired=false' \
+  'implementation_stage=P4-W01' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -322,6 +334,7 @@ required_paths=(
   tools/check_central_brain_android_retry_timeout_policy.sh
   tools/check_central_brain_android_approval_interrupt.sh
   tools/check_central_brain_android_effect_coordinator.sh
+  tools/check_central_brain_android_graph_restart_recovery.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
@@ -399,8 +412,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P3-W09" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P3-W09 as the next unfinished scope")
+if "Stage 2 P4-W01" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P4-W01 as the next unfinished scope")
 
 for group in (
     "APP-004",

@@ -1380,3 +1380,47 @@ Service、adapter dispatch、completion observation 或 production Governance/Sa
 COMPENSATING state 可达性差异由 `DEV-049` 跟踪。Req IDs：`S2-EFF-001`、`S2-UX-003`、`S2-SAF-001`、
 `NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-049`、
 `ISSUE-022/023/026/029/030/033`。
+
+## Android P3-W09 Restart recovery
+
+受维护交付新增：
+
+1. Runtime main-source `GraphRestartReconciler` 和 `DurableGraphRecoveryRepository`；
+2. Room v4 DAO 的 bounded Plan/Node/Effect/Compensation recovery query/update；
+3. 8 组 JVM test、DUMP-protected 三阶段 process-death probe、独立 checker、累计 installer 和 CI；
+4. Android 13/API 33 ARM64 上 seed -> force-stop -> recover -> force-stop -> replay 的物理软件证据。
+
+交付标志：
+
+```text
+graph_restart_reconciler_defined=true
+graph_restart_room_v4_repository_verified=true
+graph_restart_waiting_recovered=true
+graph_restart_executing_reconciled=true
+graph_restart_unknown_effect_reconciled=true
+graph_restart_approval_undo_revalidation_verified=true
+graph_restart_checkpoint_mismatch_stuck=true
+graph_restart_continue_after_revalidate_verified=true
+graph_restart_process_death_verified=true
+graph_restart_idempotent_reopen_verified=true
+graph_restart_audit_exactly_once_verified=true
+graph_restart_historical_digest_replay_verified=true
+graph_restart_side_effect_count=0
+graph_restart_android13_arm64_verified=true
+graph_restart_repository_implementation_available=true
+graph_restart_runtime_wired=false
+graph_restart_binder_published=false
+graph_restart_executor_dispatch_enabled=false
+graph_restart_effect_dispatch_enabled=false
+graph_restart_production_wired=false
+agent_graph_runtime_persistence_wired=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 reducer/repository foundation，不交付 Runtime startup wiring、Binder API、executor/scheduler、adapter apply、
+production Evidence authority、Vehicle/VHAL/NPU/Driver-HAL。Release 包含 main contract/repository，不包含 debug probe；
+Room schema 仍为 v4。Req IDs：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-SAF-001`、
+`NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-050`、`ISSUE-022/023/026/030/033`。

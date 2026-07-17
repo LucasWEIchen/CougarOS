@@ -696,3 +696,29 @@ transaction、process-death replay、Graph node transition、Binder API、produc
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。P3-W09 必须把 task/handle/
 before reference/idempotency 接入 durable transaction 和 restart reconcile；后续 Runtime Contract v2+ 必须冻结独立
 compensation state wire 语义；P8 仍需 OEM/Vendor rollback capability、Safety authority 和目标故障证据。
+
+## DEV-050 P3-W09 Restart recovery repository 尚未接 Runtime/Binder，P3 durable 名称不能解释为 production activation
+
+P3-W09 已在 Runtime main source 增加 pure Java `GraphRestartReconciler` 和 Room v4
+`DurableGraphRecoveryRepository`。Reducer 已覆盖 WAITING/EXECUTING/UNKNOWN、checkpoint missing/mismatch/untrusted、
+Effect delivery reconcile、approval/undo revalidation、deadline 和 Governance-revalidated continuation；Repository 已实现
+bounded Plan/Node/Effect/Compensation projection、transactional Plan/Node state apply 和 digest-only exactly-once audit。
+Android 13 ARM64 probe 通过两次 `force-stop` 验证 Room reopen、result digest replay 和 side-effect count 0。
+
+与完整设计的偏差是：`CentralBrainRuntimeService` 启动路径和 `AgentGraphRuntime` 没有构造或调用这两个对象；没有
+trusted checkpoint/effect/Governance evidence provider、Binder API、background scheduler、executor continuation 或
+production Effect adapter。P3-W09 的 debug Activity 直接驱动 repository/reducer，仅证明合同与数据库边界可运行，
+不能证明应用提交的真实 Graph 在进程死亡后自动恢复。早期 R4C1 对 legacy `runtime_task` 的 fail-closed cleanup 也不能
+替代 Stage 2 Graph hydration。
+
+状态：`Accepted Temporary`。`graph_restart_reconciler_defined=true`、
+`graph_restart_room_v4_repository_verified=true`、`graph_restart_process_death_verified=true`、
+`graph_restart_idempotent_reopen_verified=true`、`graph_restart_audit_exactly_once_verified=true`、
+`graph_restart_historical_digest_replay_verified=true`、
+`graph_restart_side_effect_count=0`、`graph_restart_repository_implementation_available=true`、
+`graph_restart_runtime_wired=false`、`graph_restart_binder_published=false`、
+`graph_restart_executor_dispatch_enabled=false`、`graph_restart_effect_dispatch_enabled=false`、
+`graph_restart_production_wired=false`、`agent_graph_runtime_persistence_wired=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。后续集成必须先提供可信 Evidence 和单 owner transaction/scheduler，再接 Runtime；
+在此之前不得把 P3 foundation 状态提升为 production recovery。

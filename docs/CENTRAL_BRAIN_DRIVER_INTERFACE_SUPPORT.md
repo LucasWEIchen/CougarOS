@@ -898,3 +898,21 @@ ABI、PCIe/NPU、fd/shared memory 或 Driver/HAL；没有新增 property ID、ar
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。Req IDs：`S2-EFF-001`、`S2-UX-003`、`S2-SAF-001`、
 `NV-G-005/006/007`、`KH-003/006`、`DEL-004/005`。
+
+### P3-W09 Restart recovery Driver/HAL Boundary
+
+P3-W09 的 main source 只新增纯 Java reducer 和 Room v4 repository。Reducer 处理 canonical ID、显式 Graph/Node state、
+checkpoint/effect status enum、caller-supplied epoch 和 SHA-256；Repository 处理已存在的 SQLite entity 与 digest-only
+audit。Debug source 只新增 DUMP-protected process-death Activity。
+
+本包不发现或调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、
+JNI/C ABI、PCIe/NPU、fd/shared memory 或 Driver/HAL。它不新增 OEM property ID、area mapping、permission、DMA/IOMMU
+合同，也不读取车辆或 NPU buffer。UNKNOWN Effect 只生成 reconcile directive，绝不 dispatch。
+
+状态：`graph_restart_repository_implementation_available=true`、`graph_restart_runtime_wired=false`、
+`graph_restart_binder_published=false`、`graph_restart_executor_dispatch_enabled=false`、
+`graph_restart_effect_dispatch_enabled=false`、`production_effect_dispatch_enabled=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
+新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。真实 Effect readback/retry/rollback 仍需 P8 由目标平台 owner
+提供 API、permission、Safety authority 和证据。Req IDs：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、
+`NV-G-005/006/007`、`KH-003/006`、`DEL-004/005`。

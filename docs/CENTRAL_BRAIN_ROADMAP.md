@@ -122,7 +122,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W08 完成；P3-W09 下一步） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 已完成软件 foundation（W01-W09；Runtime/production wiring 仍 false） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -256,8 +256,15 @@ digest/TTL handle、Context/Policy/Governance/Safety 复验、新 governed task 
 debug/release compile 和 Android 13/API 33 ARM64 probe。原 VERIFIED observation 保持不可变；Graph/Room/Binder/outbox/
 production authority/adapter/vehicle readback 均未接，production 失败关闭。
 
-下一实现工作包为 `P3-W09 Restart recovery`。必须把 checkpoint、Effect prepare/outbox、approval/undo admission 与 Graph
-run 置于可恢复事务边界，覆盖进程死亡、重放、schema mismatch 和不确定 delivery；不得把 process-local replay 当 durable。
+`P3-W09 Restart recovery` 已完成：新增 fail-closed `GraphRestartReconciler` 与 Room v4
+`DurableGraphRecoveryRepository`，覆盖 WAITING/EXECUTING/UNKNOWN、checkpoint mismatch、Effect/approval/undo 重验、
+process death、幂等 reopen 和 exactly-once digest audit。三阶段 Android 13/API 33 ARM64 probe 在两次 `force-stop`
+后确认 side-effect count 为 0。当前 `graph_restart_runtime_wired=false`、
+`agent_graph_runtime_persistence_wired=false`、`production_effect_dispatch_enabled=false`，不得把 repository/probe
+表述为 production Graph recovery activation；该边界登记为 `DEV-050`。
+
+下一实现工作包为 `P4-W01 Bridge session/event API migration`，把 Client2 bridge 从单 reply callback 迁移到已经发布的
+Session/Event API，并保留旧接口兼容层。本工作包不得绕过 Runtime 或直接调用 debug adapter。
 
 ## 7. 近期进展
 
@@ -394,6 +401,10 @@ run 置于可恢复事务边界，覆盖进程死亡、重放、schema mismatch 
   TTL/digest handle、Context/Policy/Governance/Safety 复验、新 governed task 与 idempotent replay 通过 JVM、
   debug/release compile 和 Android 13/API 33 ARM64 probe；原 VERIFIED Effect 不变，Graph/Room/Binder/outbox/production
   authority/adapter/hardware 保持 false，下一工作包为 P3-W09 Restart recovery。
+- 完成 `P3-W09 Restart recovery`：WAITING/EXECUTING/UNKNOWN fail-closed reducer、Room v4 bounded repository、
+  checkpoint mismatch STUCK、Effect/approval/undo reconcile directive、process-death/reopen 与 exactly-once audit 通过 JVM、
+  debug/release 和 Android 13/API 33 ARM64 三阶段 probe；Runtime/Binder/executor/effect dispatch/hardware 保持 false，
+  下一工作包为 P4-W01 Bridge session/event API migration。
 
 ## 8. 当前门禁
 
@@ -555,7 +566,29 @@ compensation_undo_runtime_wired=false
 compensation_undo_persistence_wired=false
 undo_binder_service_published=false
 compensation_dispatch_enabled=false
-implementation_stage=P3-W09
+graph_restart_reconciler_defined=true
+graph_restart_room_v4_repository_verified=true
+graph_restart_waiting_recovered=true
+graph_restart_executing_reconciled=true
+graph_restart_unknown_effect_reconciled=true
+graph_restart_approval_undo_revalidation_verified=true
+graph_restart_checkpoint_mismatch_stuck=true
+graph_restart_continue_after_revalidate_verified=true
+graph_restart_process_death_verified=true
+graph_restart_idempotent_reopen_verified=true
+graph_restart_audit_exactly_once_verified=true
+graph_restart_historical_digest_replay_verified=true
+graph_restart_side_effect_count=0
+graph_restart_android13_arm64_verified=true
+graph_restart_repository_implementation_available=true
+graph_restart_runtime_wired=false
+graph_restart_binder_published=false
+graph_restart_executor_dispatch_enabled=false
+graph_restart_effect_dispatch_enabled=false
+graph_restart_production_wired=false
+agent_graph_runtime_persistence_wired=false
+production_effect_dispatch_enabled=false
+implementation_stage=P4-W01
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

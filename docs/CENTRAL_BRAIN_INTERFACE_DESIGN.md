@@ -1597,3 +1597,53 @@ authority。状态：`compensation_planner_defined=true`、`undo_new_governed_ta
 `production_compensation_authority_wired=false`、`hardware_accessed=false`。Req IDs：`S2-EFF-001`、
 `S2-UX-003`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-049`、
 `ISSUE-022/023/026/029/030/033`。
+
+## Android P3-W09 Restart recovery
+
+### `GraphRestartReconciler`
+
+```java
+Result reconcile(PersistentRun run,
+                 Evidence evidence,
+                 long nowEpochMs);
+```
+
+`PersistentRun` 是 Room recovery projection，不是 AIDL DTO。它固定包含 canonical plan/session UUID、revision、
+Graph state、plan/context/manifest SHA-256、created/updated/deadline epoch、1..64 `PersistentNode`、最多 64 个
+latest `PersistentEffect` 和最多 64 个 `PersistentCompensation`。构造时必须完成 defensive copy、唯一性、状态码、
+时间、digest、node type、idempotency 和 Effect/Compensation source binding 校验。
+
+`Evidence` 只含一个 Governance-revalidated boolean、checkpoint ref -> `CheckpointStatus` 和 Effect ID ->
+`EffectDeliveryStatus` 的有界 map。它不接收 JSON、Bundle、Parcelable、raw checkpoint bytes、approval token、车辆
+payload 或 adapter object。未知 map key 不被自动信任。
+
+`Result` 含 target Graph state、每个 Node 的 source identity + target state、有序 typed `Directive`、result digest 和
+`continuationAllowed`。Directive subject 只能是既有 Node/Effect/Compensation ID。Result digest 使用 domain-separated
+canonical field list；它有意不依赖瞬时 source state，因此 EXECUTING 首次恢复与已落盘 WAITING 的同 material reopen
+产生相同 digest。`isExecutorDispatchEnabled()` 与 `isProductionAuthorized()` 固定返回 false。
+
+### `DurableGraphRecoveryRepository`
+
+```java
+DurableGraphRecoveryRepository(CentralBrainDatabase database);
+
+void persistInitial(GraphRestartReconciler.PersistentRun run);
+GraphRestartReconciler.PersistentRun loadRequired(String planId);
+ApplyReport applyRecovery(GraphRestartReconciler.Result result,
+                          long nowEpochMs);
+```
+
+调用顺序固定为：Session 已存在 -> `persistInitial` -> 进程重启后 `loadRequired` -> caller 构造可信 `Evidence` ->
+`reconcile` -> `applyRecovery`。`persistInitial` 在一个 transaction 写 Plan/Node/initial Effect observation/
+Compensation；`loadRequired` 用 DAO count + bounded query 检查查询完整性，并只选择每个 Effect 的 latest sequence。
+
+`applyRecovery` 重新加载 durable run，比较 plan/session/digest 和完整 Node identity，随后只更新变化的 Plan/Node state。
+它不更改 Effect observation 或 Compensation row。审计事件类型固定为 `GRAPH_RESTART_RECONCILED`，detail 只存 result
+digest；event ID 由 plan+result digest 确定性派生。命中任意历史同 ID 时必须复验 type/subject/owner/outcome/digest，
+相同 digest 重放返回 `auditReplayed=true`，不新增行。`ApplyReport` 暴露 changed row count、audit inserted/replayed 和
+result digest，`isExecutorDispatchEnabled()` 固定 false。
+
+线程、时钟和 transaction 调度由 caller 所有。当前 Service/Binder 未发布本接口，应用不得直接创建 repository；
+debug probe 仅以 DUMP permission 验证 Room/process-death contract。Req IDs：`S2-SES-001`、`S2-GRF-001`、
+`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-050`、
+`ISSUE-022/023/026/030/033`。
