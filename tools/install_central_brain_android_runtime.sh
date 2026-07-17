@@ -1473,6 +1473,60 @@ if [[ "$APPROVAL_INTERRUPT_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+EFFECT_COORDINATOR_NONCE="$(date +%s%N)"
+EFFECT_COORDINATOR_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.effects.EffectCoordinatorProbeActivity \
+  --es nonce "$EFFECT_COORDINATOR_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$EFFECT_COORDINATOR_PROBE_OUTPUT"; then
+  echo "$EFFECT_COORDINATOR_PROBE_OUTPUT" >&2
+  echo "EffectCoordinator debug probe did not start successfully" >&2
+  exit 1
+fi
+EFFECT_COORDINATOR_PROBE_PASSED=false
+for _ in {1..40}; do
+  EFFECT_COORDINATOR_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbEffectCoordinator:I)"
+  if grep -Fq \
+      "nonce=$EFFECT_COORDINATOR_NONCE effect_coordinator_probe_complete=true" \
+      <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_batch_defined=true" <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_dependency_plan_verified=true" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_resource_conflict_serialized=true" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_adapter_registry_profile_isolation_verified=true" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_prepare_all_required_verified=true" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_optional_degradation_verified=true" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_independent_observation_verified=true" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_coordinator_android13_arm64_verified=true" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_coordinator_graph_wired=false" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_coordinator_persistence_wired=false" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "production_effect_adapter_registered=false" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "production_effect_dispatch_enabled=false" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "effect_verification_reconciliation_wired=false" \
+        <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$EFFECT_COORDINATOR_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$EFFECT_COORDINATOR_LOG"; then
+    EFFECT_COORDINATOR_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$EFFECT_COORDINATOR_PROBE_PASSED" != true ]]; then
+  echo "$EFFECT_COORDINATOR_LOG" >&2
+  echo "EffectCoordinator probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2497,6 +2551,19 @@ printf '%s\n' \
   "approval_interrupt_android13_arm64_verified=true" \
   "approval_interrupt_persistence_wired=false" \
   "approval_grant_service_published=false" \
+  "effect_batch_defined=true" \
+  "effect_dependency_plan_verified=true" \
+  "effect_resource_conflict_serialized=true" \
+  "effect_adapter_registry_profile_isolation_verified=true" \
+  "effect_prepare_all_required_verified=true" \
+  "effect_optional_degradation_verified=true" \
+  "effect_independent_observation_verified=true" \
+  "effect_coordinator_android13_arm64_verified=true" \
+  "effect_coordinator_graph_wired=false" \
+  "effect_coordinator_persistence_wired=false" \
+  "production_effect_adapter_registered=false" \
+  "production_effect_dispatch_enabled=false" \
+  "effect_verification_reconciliation_wired=false" \
   "effect_dispatch_enabled=false" \
   "network_accessed=false" \
   "model_invoked=false" \

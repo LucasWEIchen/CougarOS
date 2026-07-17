@@ -841,3 +841,21 @@ PCIe/NPU 或 Driver/HAL。Safety State 是 caller 提供的 trusted digest contr
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。Req IDs：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、
 `KH-003/006`、`DEL-004/005`。
+
+### P3-W06 EffectCoordinator Driver/HAL Boundary
+
+P3-W06 在 Runtime main source 只新增 pure Java batch/dependency/registry/coordinator 合同；debug source 只新增
+DUMP-protected API 33 probe。它接收 P1 typed Effect metadata、caller-supplied epoch、transient canonical bytes 和
+SHA-256，不发现设备、不查询 Android system service，也不定义 OEM property ID/area/permission。
+
+`AdapterRegistry` 的 production profile 是空接口门禁，不是 Driver/HAL 实现。当前没有 production registration，
+不存在 simulation fallback；probe 中的 nested fake adapter 只在 debug source。Coordinator 未接 P2 simulation、
+Graph/Room/Binder、JNI/C ABI 或 Native Runtime，不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、
+CAN/DBC、device node、ioctl/sysfs、PCIe/NPU。before-state 只是 fake preparation 提供的 digest，不是车辆 readback。
+
+状态：`effect_coordinator_graph_wired=false`、`effect_coordinator_persistence_wired=false`、
+`production_effect_adapter_registered=false`、`production_effect_dispatch_enabled=false`、
+`effect_verification_reconciliation_wired=false`、`model_invoked=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。Req IDs：`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、
+`KH-003/006`、`DEL-004/005`。

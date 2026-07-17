@@ -2174,3 +2174,51 @@ unique key 关闭并发 terminal race，并把 checkpoint mismatch 映射 STUCK�
 验证包括 8 组 JVM tests、debug/release build/lint、release probe isolation、独立 checker、累计 installer 和
 Android 13 ARM64 probe。Req IDs：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、
 `DEL-001/003..005`；tracking：`DEV-046`、`ISSUE-022/026/029`。
+
+## P3-W06 implemented EffectCoordinator contract
+
+### 模块意图
+
+`EffectBatch` 把 Scenario/Graph 后续生成的一组 P1 typed `EffectIntent` 收敛为 immutable 执行单元。它不信任
+AIDL mutable DTO：构造和 getter 都 deep-copy，并将 session/plan/action/plan digest、effect/idempotency identity、
+resource、dependency 与 required flag 纳入 `effect.batch.v1` digest。16 项/每项 16 依赖的上限用于约束座舱任务
+资源和证据规模，不是车辆 ECU 能力上限。
+
+`EffectDependencyPlanner` 用稳定输入顺序生成 wave。只有全部 dependency 已排入更早 wave 的项才可进入候选；
+同 resource 的候选只保留第一个，其余推迟。没有候选但仍有 pending 时判定环。Plan 是控制数据，不调度线程；
+当前 Coordinator 顺序执行 wave，未来 executor 可在同 wave 内并发，但必须保持 resource 唯一约束。
+
+`AdapterRegistry` 是显式静态注册表，不扫描 Service、不动态加载类、不猜 OEM property。Key 为 capability+area+
+profile。DEBUG registration 必须 simulation-only；PRODUCTION 必须 activated、non-simulation、productionAuthorized。
+Descriptor 在 registration 构造时通过既有 `EffectAdapterContract` 验证并冻结，resolve 不重新相信 mutable adapter
+metadata。仓库当前只在 test/debug probe 构造 registration，production 注册数为 0。
+
+`EffectCoordinator` 分为 prepare 与 dispatch。Prepare 对批次每项都执行，以证明 required prepare-all；每项产物
+绑定 action/destination、payload/envelope digest、before-state/evidence digest。任何 required prepare failure 都进入
+`abortBeforeDispatch`，apply 调用数必须为 0。只有 optional failure 时继续，并按 dependency wave 调用既有幂等
+adapter。父项未 DELIVERED 时子项输出 DEPENDENCY_BLOCKED 而不 apply。
+
+### 状态与错误语义
+
+Adapter APPLIED 只说明 destination 已接收，因此输出 `STATE_DELIVERED`，不能直接宣称 APPLIED/VERIFIED。
+UNKNOWN、RETRYABLE_FAILURE、TERMINAL_FAILURE 保持独立；本包不在异常后重试。每项 observation 使用 batch、effect、
+outcome、state、failure/evidence 的 deterministic ID seed，带 P1 完整绑定并经 `EffectContract.validateObservation`。
+Batch aggregate 优先 required terminal failure，其次 unknown/retryable，再判 optional partial。
+
+输入错误前缀为 `CB_EFFECT_BATCH`、`CB_EFFECT_DEPENDENCY`、`CB_ADAPTER_REGISTRY`、
+`CB_ERR_ADAPTER_UNAVAILABLE`、`CB_EFFECT_COORDINATOR`；adapter response 继续使用 `EffectAdapterContract` 的
+fail-closed token/descriptor 校验。Prepare adapter 异常只投影稳定 `PREPARE_EXCEPTION`，不泄漏异常文本。
+
+### 并发、持久化与安全边界
+
+四个 main 类不持有 clock/thread/executor、Context、Binder、Room、fd、vehicle/NPU handle。Caller 提供 epoch；
+对象除注册时持有 adapter 引用外均不可变。Payload/envelope 只存在于 transient `PreparedMaterial` 和单次
+`Invocation`，result 只保留 digest；当前 before-state 没有 durable row。P3-W07 必须实现 query/readback、
+delivered/applied/verified 和 unknown reconcile，P3-W09 才能把 prepare/outbox/restart 合并到 transaction。
+
+验证包括 9 组 JVM tests、debug/release build/lint、release probe isolation、独立 checker、累计 installer 和
+Android 13 ARM64 probe。状态：`effect_coordinator_graph_wired=false`、
+`effect_coordinator_persistence_wired=false`、`production_effect_adapter_registered=false`、
+`production_effect_dispatch_enabled=false`、`effect_verification_reconciliation_wired=false`、
+`hardware_accessed=false`。Req IDs：`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、
+`DEL-001/003..005`；tracking：`DEV-047`、`ISSUE-022/026/030/033`。

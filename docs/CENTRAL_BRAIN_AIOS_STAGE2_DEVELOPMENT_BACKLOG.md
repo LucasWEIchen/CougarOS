@@ -472,9 +472,21 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W06` EffectCoordinator
 
-- 状态：`NOT_STARTED`；3 人日；需求：`S2-EFF-001`。
+- 状态：`DONE`（process-local two-phase contract，2026-07-17）；3 人日；需求：`S2-EFF-001`、
+  `S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`。
 - 类：`EffectCoordinator`、`EffectBatch`、`EffectDependencyPlanner`、`AdapterRegistry`。
 - DoD：prepare-all before dispatch required effects；并发无冲突；每项独立 observation。
+- 实现：`EffectBatch` 最多 16 项，冻结 P1 typed `EffectIntent`，绑定同一 session/plan/action/plan digest、
+  唯一 effect/idempotency key、dependency/resource 和 batch digest。`EffectDependencyPlanner` 拒绝环，并把同资源
+  Effect 分配到不同 wave；Coordinator 先对全部项 prepare，任一 required prepare 失败则零 dispatch，optional 失败
+  可降级，再按 dependency wave 逐项调用既有幂等 `EffectAdapter`。
+- Registry：按 capability+area+profile 精确查找；DEBUG 只接受 simulation registration，PRODUCTION 只接受显式
+  authorized non-simulation registration，不做 debug/production fallback。当前仓库没有 production registration。
+- 结果：每项返回 defensive typed `EffectObservation`；APPLIED adapter result 只映射到 DELIVERED，UNKNOWN 不重试，
+  applied/verified/readback/reconciliation 保留给 P3-W07。对象不保存 payload/envelope，只暴露 before-state/evidence digest。
+- 边界：不接 `AgentGraphRuntime`、Room/outbox、Binder/Service、P2 simulation adapter、production vehicle/NPU/
+  Driver-HAL；`effect_coordinator_graph_wired=false`、`effect_coordinator_persistence_wired=false`、
+  `production_effect_dispatch_enabled=false`。证据为 9 组 JVM tests、API 33 ARM64 probe、checker、installer/CI。
 
 ### `P3-W07` Effect verification/reconciliation
 

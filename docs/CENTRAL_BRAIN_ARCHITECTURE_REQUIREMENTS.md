@@ -1009,3 +1009,37 @@ NPU、Driver/HAL 或目标硬件资格。
 `approval_interrupt_persistence_wired=false`、`approval_grant_service_published=false`、
 `agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
 `network_accessed=false`、`hardware_accessed=false`。
+
+## 38. P3-W06 EffectCoordinator trace
+
+派生需求：`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003/004/005`。
+
+1. `EffectBatch` 必须包含 1..16 个 P1 typed `EffectIntent`，创建时 deep-copy 并重新校验；全部 Effect 必须绑定
+   同一 session/plan/action/plan digest，effect ID 和 idempotency key 必须唯一。resource/dependency 有界并进入
+   domain-separated batch digest；required Effect 不得依赖 optional Effect。
+2. `EffectDependencyPlanner` 必须拒绝环和 batch 外依赖。依赖项只能出现在更早 wave；同一 resource key 的两个
+   Effect 不得出现在同一 wave。计划必须确定、不可变并有独立 digest，合同本身不创建 thread/executor。
+3. `AdapterRegistry` 必须按 capability+target area+profile 精确解析。DEBUG 只允许 simulation-only registration；
+   PRODUCTION 只允许 activated、non-simulation、explicitly authorized registration。缺项必须返回
+   `CB_ERR_ADAPTER_UNAVAILABLE`，禁止从 production fallback 到 debug adapter。
+4. Coordinator 必须在任何 apply 前调用批次内全部 preparation adapter。任一 required preparation 失败必须
+   整批 zero-dispatch；optional preparation 失败可形成 PARTIAL。Prepared material 必须绑定 action、adapter
+   destination、payload/envelope digest、before-state digest 和 evidence digest，并 defensive-copy transient bytes。
+5. Dispatch 必须遵循 dependency wave；dependency 未 DELIVERED 时不得调用子 Effect adapter。既有
+   `EffectAdapterContract` 的 token-dedup、original-result、linearizable-status 门禁必须继续生效；本包不自动 retry。
+6. 每个 batch item 必须形成一个独立 `EffectObservation`。Adapter APPLIED 只映射为 DELIVERED；UNKNOWN、retryable、
+   terminal 和 prepare rejection 保持不同状态。Result 只暴露 ID、resource、required、outcome、before-state digest
+   和 defensive observation，不返回 payload/envelope/raw vehicle/model/user data。
+7. JVM 与 Android 13/API 33 ARM64 probe 必须覆盖 immutable batch/digest、dependency/cycle、resource serialization、
+   required zero-dispatch、optional degrade、profile isolation、mixed outcome、unknown dependency block 与 defensive copy。
+8. P3-W06 不接 `AgentGraphRuntime`、Room/outbox、Binder/Service、P2 debug adapter、production vehicle/NPU/Driver-HAL。
+   Verification/reconciliation 保留 P3-W07，durable outbox/restart 保留 P3-W09；不得提升 production/target hardware。
+
+状态：`effect_batch_defined=true`、`effect_dependency_plan_verified=true`、
+`effect_resource_conflict_serialized=true`、`effect_adapter_registry_profile_isolation_verified=true`、
+`effect_prepare_all_required_verified=true`、`effect_optional_degradation_verified=true`、
+`effect_independent_observation_verified=true`、`effect_coordinator_android13_arm64_verified=true`、
+`effect_coordinator_graph_wired=false`、`effect_coordinator_persistence_wired=false`、
+`production_effect_adapter_registered=false`、`production_effect_dispatch_enabled=false`、
+`effect_verification_reconciliation_wired=false`、`model_invoked=false`、`network_accessed=false`、
+`hardware_accessed=false`。

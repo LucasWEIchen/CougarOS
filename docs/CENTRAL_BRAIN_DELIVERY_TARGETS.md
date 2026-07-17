@@ -1264,3 +1264,41 @@ target_hardware_validated=false
 Binder/grant UI/Service、production Effect/model/vehicle/NPU/Driver-HAL。Release 包含合同类但不包含 debug probe。
 Req IDs：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；
 偏差/问题：`DEV-046`、`ISSUE-022/026/029`。
+
+## Android P3-W06 EffectCoordinator
+
+受维护交付新增：
+
+1. Runtime main-source `EffectBatch`、`EffectDependencyPlanner`、`AdapterRegistry`、`EffectCoordinator`；
+2. 最多 16 项的 immutable typed batch、dependency DAG、resource wave 与 domain-separated digest；
+3. capability+area+profile 精确 registry、debug/production 无 fallback、required prepare failure zero-dispatch；
+4. optional degrade、dependency-delivery gate、每项 defensive typed observation 和 before-state digest；
+5. 9 组 JVM tests、debug/release compile/lint、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+effect_batch_defined=true
+effect_dependency_plan_verified=true
+effect_resource_conflict_serialized=true
+effect_adapter_registry_profile_isolation_verified=true
+effect_prepare_all_required_verified=true
+effect_optional_degradation_verified=true
+effect_independent_observation_verified=true
+effect_coordinator_android13_arm64_verified=true
+effect_coordinator_graph_wired=false
+effect_coordinator_persistence_wired=false
+production_effect_adapter_registered=false
+production_effect_dispatch_enabled=false
+effect_verification_reconciliation_wired=false
+model_invoked=false
+network_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 process-local two-phase Effect contract，不交付 Graph dispatch、Room/outbox/restart、Binder Service、
+production adapter、vehicle readback、verification/reconciliation、model/NPU/Driver-HAL。Release 包含合同类但不含
+debug probe；APPLIED adapter result 只到 DELIVERED。Req IDs：`S2-EFF-001`、`S2-SAF-001`、
+`NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-047`、`ISSUE-022/026/030/033`。

@@ -1430,3 +1430,61 @@ context fresh、policy authorized、capability allowed、Safety trusted 和 `SAF
 `agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
 Req IDs：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；
 tracking：`DEV-046`、`ISSUE-022/026/029`。
+
+## Android P3-W06 EffectCoordinator
+
+### `EffectBatch`
+
+```java
+EffectBatch create(String batchId, List<EffectBatch.Entry> entries, long nowEpochMs);
+EffectBatch.Entry(EffectIntent intent, String resourceKey, List<String> dependencyEffectIds);
+```
+
+Batch 限制为 1..16 项，每项最多 16 个 dependency。Constructor deep-copy AIDL mutable `EffectIntent`，调用
+`EffectContract.validateIntent`，并强制同 session/plan/action/plan digest、唯一 effect/idempotency key、batch 内依赖、
+required 不依赖 optional。`getEntries()` 不可修改，`getIntent()` 每次返回 copy；`batchDigest` 绑定 entry/dependency
+计数、顺序、resource 和 Effect 治理字段。
+
+### `EffectDependencyPlanner`
+
+```java
+EffectDependencyPlanner.Plan plan(EffectBatch batch);
+```
+
+返回 deterministic immutable waves；dependency 必须在更早 wave，同 resource 不进入同 wave。环返回
+`CB_EFFECT_DEPENDENCY`。Plan 暴露 batch/digest、waves、effect->wave index 和 `planDigest`，不创建线程或执行 Effect。
+
+### `AdapterRegistry`
+
+```java
+Resolution resolve(String capabilityId, String targetArea, Profile profile);
+PrepareResult PreparationAdapter.prepare(EffectIntent intent, long nowEpochMs);
+```
+
+`Profile` 只有 `DEBUG_SIMULATION`/`PRODUCTION`。Registration 绑定 registration/capability/area/profile、activated、
+simulation、productionAuthorized、preparation adapter 和既有幂等 `EffectAdapter`；构造时冻结通过
+`EffectAdapterContract.requireSafe` 的 descriptor。Resolve 只做 exact match，无 production->debug fallback；缺失或
+未授权返回 `CB_ERR_ADAPTER_UNAVAILABLE`。
+
+`PrepareResult` 为 READY(material) 或 REJECTED(uppercase failure code)。`PreparedMaterial` 绑定 action、destination、
+canonical payload/envelope defensive bytes 及其 digest、before-state digest、preparation evidence digest；Coordinator
+输出不暴露 bytes。
+
+### `EffectCoordinator`
+
+```java
+ExecutionResult execute(EffectBatch batch, AdapterRegistry.Profile profile, long nowEpochMs);
+```
+
+固定两阶段：先按 plan 遍历并 prepare 全部 item，再判断 required failure；有 required failure 时不调用任何
+`EffectAdapter.apply`。否则按 wave 下发，dependency 只有 DELIVERED 才允许子项。Adapter APPLIED/UNKNOWN/
+RETRYABLE_FAILURE/TERMINAL_FAILURE 分别映射到 typed DELIVERED/UNKNOWN/FAILED_RETRYABLE/FAILED_TERMINAL；没有
+readback 或 retry。Batch status 为 ALL_DISPATCHED/PARTIAL/FAILED/UNKNOWN/PREPARE_REJECTED。
+
+每个 `ItemResult` 暴露 effect ID、resource、required、outcome、before-state digest 和 defensive
+`EffectObservation`；`ExecutionResult` 暴露 batch/dependency-plan/result digest 与不可修改 item list。状态：
+`effect_coordinator_graph_wired=false`、`effect_coordinator_persistence_wired=false`、
+`production_effect_adapter_registered=false`、`production_effect_dispatch_enabled=false`、
+`effect_verification_reconciliation_wired=false`、`hardware_accessed=false`。Req IDs：`S2-EFF-001`、
+`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-047`、
+`ISSUE-022/026/030/033`。

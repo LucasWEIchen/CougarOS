@@ -858,3 +858,26 @@ Eight JVM test groups and the Android 13/API 33 ARM64 probe establish
 `agent_graph_executor_dispatch_enabled=false`, `effect_dispatch_enabled=false`, `model_invoked=false` and
 `hardware_accessed=false` remain enforced. Room/restart durability belongs to P3-W09; P3-W06 EffectCoordinator is
 the next work package.
+
+## P3-W06 EffectCoordinator
+
+`EffectBatch` freezes up to 16 existing typed Effect intents under one session/plan/action/plan digest, unique Effect
+and idempotency identities, bounded resources/dependencies and a structural SHA-256. `EffectDependencyPlanner`
+rejects cycles and generates deterministic waves in which dependencies are earlier and one resource appears at most
+once. It owns no execution thread.
+
+`AdapterRegistry` resolves an exact capability/area/profile route. DEBUG accepts only isolated simulation entries;
+PRODUCTION accepts only activated, explicitly authorized non-simulation entries. No profile fallback exists and the
+repository registers no production adapter. `EffectCoordinator` prepares every item before dispatch; any required
+prepare failure causes zero adapter applies, while an optional failure can degrade the batch. Dispatch follows the
+dependency waves and emits one defensive typed observation per item. Adapter APPLIED maps only to DELIVERED;
+verification, readback, unknown reconciliation and retry remain P3-W07 work.
+
+Nine JVM test groups and the Android 13/API 33 ARM64 probe establish `effect_batch_defined=true`,
+`effect_dependency_plan_verified=true`, `effect_resource_conflict_serialized=true`,
+`effect_adapter_registry_profile_isolation_verified=true`, `effect_prepare_all_required_verified=true`,
+`effect_optional_degradation_verified=true`, `effect_independent_observation_verified=true` and
+`effect_coordinator_android13_arm64_verified=true`. `effect_coordinator_graph_wired=false`,
+`effect_coordinator_persistence_wired=false`, `production_effect_adapter_registered=false`,
+`production_effect_dispatch_enabled=false`, `effect_verification_reconciliation_wired=false` and
+`hardware_accessed=false` remain enforced. P3-W07 Verification + reconciliation is the next work package.

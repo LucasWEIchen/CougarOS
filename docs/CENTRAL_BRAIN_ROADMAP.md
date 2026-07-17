@@ -241,8 +241,13 @@ context/policy/Safety digest、expiry 与 trusted authority decision；resume �
 Safety State。当前 `approval_interrupt_persistence_wired=false`、`approval_grant_service_published=false`，未接
 Graph/Room/Binder/Effect/model/hardware。
 
-下一实现工作包为 `P3-W06 EffectCoordinator`。实现 prepare-all、依赖/冲突规划和独立 observation 合同；在
-production adapter/readback 未具备前保持 Effect dispatch fail-closed，不得猜测 OEM/Vendor property。
+`P3-W06 EffectCoordinator` 已完成：最多 16 项的 immutable Effect batch、同 action digest 绑定、依赖拓扑、
+资源冲突 wave、capability+area+profile 精确 registry、prepare-all/required-failure zero-dispatch、optional degrade 与
+每项 typed observation 已通过 JVM、debug/release compile 和 Android 13/API 33 ARM64 probe。APPLIED 只到 DELIVERED；
+Graph/Room/outbox/Binder/production adapter/readback/hardware 仍未接。
+
+下一实现工作包为 `P3-W07 Verification + reconciliation`。实现 delivered/applied/verified 分层、unknown reconcile
+和 verified 去重；在 production readback 未具备前保持车辆 Effect fail-closed，不得猜测 OEM/Vendor property。
 
 ## 7. 近期进展
 
@@ -367,6 +372,10 @@ production adapter/readback 未具备前保持 Effect dispatch fail-closed，不
   owner/plan/context/policy/capability/Safety resume revalidation 与 API 33 ARM64 probe；同时修正 checkpoint envelope
   current epoch 超过 primitive integer bound 的缺陷。Room/Graph/Binder/grant Service/Effect/hardware 保持 false，
   下一工作包为 P3-W06 EffectCoordinator。
+- 完成 `P3-W06 EffectCoordinator`：immutable typed Effect batch、dependency/resource wave、exact profile registry、
+  prepare-all/required zero-dispatch、optional degrade 与独立 typed observation 通过 JVM/debug/release/API 33 ARM64
+  probe；Graph/Room/outbox/Binder/production adapter/readback/hardware 保持 false，下一工作包为 P3-W07
+  Verification + reconciliation。
 
 ## 8. 当前门禁
 
@@ -389,6 +398,7 @@ bash tools/check_central_brain_android_scenario_manifest.sh
 bash tools/check_central_brain_android_scenario_resolver.sh
 bash tools/check_central_brain_android_debug_simulation_controller.sh
 bash tools/check_central_brain_android_agent_graph_runtime.sh
+bash tools/check_central_brain_android_effect_coordinator.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -488,7 +498,20 @@ effect_idempotency_reconcile_gate_verified=true
 retry_deadline_fail_closed_verified=true
 retry_timeout_policy_android13_arm64_verified=true
 retry_timeout_policy_runtime_wired=false
-implementation_stage=P3-W06
+effect_batch_defined=true
+effect_dependency_plan_verified=true
+effect_resource_conflict_serialized=true
+effect_adapter_registry_profile_isolation_verified=true
+effect_prepare_all_required_verified=true
+effect_optional_degradation_verified=true
+effect_independent_observation_verified=true
+effect_coordinator_android13_arm64_verified=true
+effect_coordinator_graph_wired=false
+effect_coordinator_persistence_wired=false
+production_effect_adapter_registered=false
+production_effect_dispatch_enabled=false
+effect_verification_reconciliation_wired=false
+implementation_stage=P3-W07
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

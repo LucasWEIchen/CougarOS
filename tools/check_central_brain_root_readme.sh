@@ -203,7 +203,20 @@ for marker in \
   'approval_interrupt_android13_arm64_verified=true' \
   'approval_interrupt_persistence_wired=false' \
   'approval_grant_service_published=false' \
-  'implementation_stage=P3-W06' \
+  'effect_batch_defined=true' \
+  'effect_dependency_plan_verified=true' \
+  'effect_resource_conflict_serialized=true' \
+  'effect_adapter_registry_profile_isolation_verified=true' \
+  'effect_prepare_all_required_verified=true' \
+  'effect_optional_degradation_verified=true' \
+  'effect_independent_observation_verified=true' \
+  'effect_coordinator_android13_arm64_verified=true' \
+  'effect_coordinator_graph_wired=false' \
+  'effect_coordinator_persistence_wired=false' \
+  'production_effect_adapter_registered=false' \
+  'production_effect_dispatch_enabled=false' \
+  'effect_verification_reconciliation_wired=false' \
+  'implementation_stage=P3-W07' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -283,6 +296,7 @@ required_paths=(
   tools/check_central_brain_android_checkpoint_serializer.sh
   tools/check_central_brain_android_retry_timeout_policy.sh
   tools/check_central_brain_android_approval_interrupt.sh
+  tools/check_central_brain_android_effect_coordinator.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
@@ -360,8 +374,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P2" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P2 as the next unfinished scope")
+if "Stage 2 P3-W07..W09" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P3-W07 as the next unfinished scope")
 
 for group in (
     "APP-004",
