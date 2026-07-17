@@ -184,20 +184,24 @@ bash tools/check_central_brain_virtualization_docs.sh
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Event DTO/AIDL` 与
 `P1-W04 Effect/Approval DTO/AIDL` contract layer、`P1-W05 SDK facade v2`、`P1-W06 Room v4` 和
 `P1-W07 Runtime Contract v2 aggregate`、`P2-W01 Canonical vehicle signal types` 与
-`P2-W02 Vehicle capability catalog` 与 `P2-W03 VehicleDigitalTwinStore` 已完成。SDK 通过
+`P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 与
+`P2-W04 ContextSnapshotBuilder` 已完成。SDK 通过
 `ScenarioClient` 隔离 Binder primitive；同一 Runtime Service 以双 action 发布 Session/Event V1，
 Room v4 owner repository 支持 Service rebind 和 Runtime process-death rehydration。P1-W06 Room v4
 schema 与 P1 aggregate gate 已完成；`vehicle/schema` 提供 12 项固定 path、typed scalar、unit/area、
 source/quality/freshness，`vehicle/capability` 提供 8 项 range/risk/dependency/activation metadata；
 `vehicle/twin` 提供进程内 desired/reported store、monotonic revision、TTL/quality、atomic snapshot 与
-reconciliation。三者都没有 provider/property mapping，Twin 也没有持久化或 production Service wiring。
-下一开发工作包是 `P2-W04 ContextSnapshotBuilder`。
+reconciliation；`context` 在同一 Twin revision 上提供固定 policy、driving/safety 派生、freshness/trust
+report、restricted 和 digest。四者都没有 provider/property mapping，Twin/Context 也没有 production
+Service wiring。下一开发工作包是 `P2-W05 Scenario manifest/schema`。
 
 当前 `session_runtime_service_published=true`、`event_runtime_service_published=true`、
 `event_callback_service_published=true`、`room_schema_version=4`、
 `session_runtime_process_death_rehydration=true`、`runtime_contract_v2_verified=true`、
 `vehicle_signal_schema_defined=true`、`vehicle_capability_catalog_defined=true`、
 `vehicle_digital_twin_store_defined=true`、`vehicle_digital_twin_persistence_wired=false`、
+`context_snapshot_defined=true`、`context_snapshot_production_trusted=false`、
+`context_snapshot_production_wired=false`、
 `vehicle_production_capability_authorized_count=0`、`vehicle_signal_provider_wired=false`，但 Event V2、
 Scenario/Plan/Effect 执行、
 approval response、undo execution 仍为 false。Service 数量保持三项，生产 capability policy 不包含

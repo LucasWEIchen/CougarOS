@@ -181,6 +181,12 @@ P2-W03 进展：进程内 Twin 已完成 desired/reported 分离、monotonic rev
 P2-W04 构建的 Context 必须保留 source/quality/restricted 语义，不能把 software probe 当作 trusted vehicle
 evidence。
 
+P2-W04 进展：Context foundation 已完成 fixed field policy、同 Twin revision、Runtime-state freshness、
+driving/safety/source/trust report、restricted 和 digest，并通过 JVM/API 33 ARM64 probe。该结果不关闭本
+问题：snapshot 固定 `productionTrusted=false`，没有 vehicle provider/property/permission/readback 或
+Safety authority，未接 production Service。P2-W05 Scenario 只能消费该明确 untrusted/debug Context，
+不得自行提升 trust。
+
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
 场景版本、冲突规则、用户偏好、保留期、删除/导出、跨账号边界、主动触发频率、免打扰和模型文本
@@ -286,3 +292,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W01 进展 | Canonical signal schema 与 API 33 ARM64 software probe 完成；ISSUE-030 的 property/service/permission/area/readback owner 仍开放。 |
 | P2-W02 进展 | Capability catalog 与 API 33 ARM64 software probe 完成；全部 production authorized=false，ISSUE-029/030 仍开放。 |
 | P2-W03 进展 | 进程内 Twin 与 API 33 ARM64 software probe 完成；无 provider/adapter/persistence，ISSUE-030 仍开放。 |
+| P2-W04 进展 | Context/freshness/trust/restricted 与 API 33 ARM64 probe 完成；productionTrusted=false，ISSUE-029/030 仍开放。 |

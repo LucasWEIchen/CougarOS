@@ -327,6 +327,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W01 进展 | 12 项 canonical vehicle signal schema、typed scalar、unit/area/source/quality/freshness 与 API 33 ARM64 probe 完成；真实 provider/property mapping 未接入。 |
 | P2-W02 进展 | 8 项 capability/range/risk/readback/dependency 与 API 33 ARM64 probe 完成；production authorized count 为 0。 |
 | P2-W03 进展 | 进程内 desired/reported Twin、monotonic revision、TTL/quality、atomic snapshot/reconciliation 与 API 33 ARM64 probe 完成；持久化/production wiring 未接入。 |
+| P2-W04 进展 | versioned Context/freshness/trust/restricted foundation 与 API 33 ARM64 probe 完成；productionTrusted/Service/provider 仍关闭。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -346,3 +347,22 @@ TTL/quality、atomic snapshot 与 reconciliation；没有接入 Room、Service s
 状态：`Accepted Temporary`。`vehicle_digital_twin_persistence_wired=false`、
 `vehicle_digital_twin_adapter_wired=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。
+
+## DEV-033 P2-W04 Context 是非 production-trusted 的进程内 foundation
+
+架构中的 Context 应由可信 Vehicle/Safety/User/Environment source 生成并供 Plan/Policy 使用。目标黑盒
+Android 13 当前没有已确认的 vehicle provider/property mapping、Safety authority 或 profile-memory owner，
+因此 P2-W04 只实现从 atomic Twin + Runtime state 生成 immutable snapshot、freshness/trust report、
+restricted 和 digest 的软件 foundation。
+
+SIMULATED 完整 Context 可在 debug/test 中为 `restricted=false`，表示 required field/safety/motion 数据
+内部一致；这不等于 production trusted 或硬件验证。即使 test 输入 source=AAOS/VENDOR 且 Runtime state
+标记 platform trusted，P2-W04 仍强制 `productionTrusted=false`，防止 provenance enum 越权成为 activation
+evidence。完整 MOVING Context 也不自动 restricted，行驶中动作限制仍由 action-specific Safety Policy
+执行。
+
+状态：`Accepted Temporary`。`context_snapshot_production_trusted=false`、
+`context_snapshot_production_wired=false`、`vehicle_signal_provider_wired=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。P8 必须用独立 provider/property/permission/readback evidence
+关闭 trust；本偏差不能由 debug probe 关闭。
