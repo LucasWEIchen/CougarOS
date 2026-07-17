@@ -80,6 +80,8 @@ for marker in \
   '### `P4-W12` Android device acceptance/fault/recovery' \
   '### `P5-W01` Tool manifest/schema' \
   '### `P5-W02` ToolRegistry/Resolver' \
+  '### `P5-W06` WorkingMemoryStore' \
+  '### `P5-W07` ProfileMemoryStore' \
   '### `P8-W03` AaosCarPropertyEffectAdapter' \
   '## 16. 阶段性完成定义'; do
   require_text "$BACKLOG" "$marker"
@@ -182,6 +184,10 @@ require_text "$ROADMAP" '### 2026-07-18 P4-W11 progress'
 require_text "$ROADMAP" '### 2026-07-18 P4-W12 progress'
 require_text "$ROADMAP" '### 2026-07-18 P5-W01 progress'
 require_text "$ROADMAP" '### 2026-07-18 P5-W02 progress'
+require_text "$ROADMAP" '### 2026-07-18 P5-W03 progress'
+require_text "$ROADMAP" '### 2026-07-18 P5-W04 progress'
+require_text "$ROADMAP" '### 2026-07-18 P5-W05 progress'
+require_text "$ROADMAP" '### 2026-07-18 P5-W06 progress'
 require_text "$BACKLOG" '状态：`DONE`（2026-07-17）；3 人日；需求：`S2-HMI-001/003/004/005`、`S2-ADP-001`。'
 require_text "$BACKLOG" '状态：`DONE`（2026-07-17）；2 人日；需求：`S2-UX-001`、`S2-HMI-005`、`XSC-001`'
 require_text "$BACKLOG" '### `P4-W02` Cockpit HMI state/reducer/reconnect'
@@ -191,6 +197,7 @@ require_text "$BACKLOG" '状态：`COMPLETE`（2026-07-18）；1.5-2.5 人日；
 require_text "$BACKLOG" '状态：`COMPLETE`（2026-07-18，application acceptance only）；2.5-4 人日；需求：P4 全部。'
 require_text "$BACKLOG" '状态：`DEVELOPED`；2 人日；需求：`S2-TOL-001`。'
 require_text "$BACKLOG" '状态：`DEVELOPED`（2026-07-18）；2 人日；需求：`S2-TOL-001`。'
+require_text "$BACKLOG" '状态：`DEVELOPED`（2026-07-18）；2 人日；需求：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`。'
 require_text "$DEVIATIONS" '## DEV-024 Stage 2 车辆多设备动作先使用 Digital Twin 仿真'
 require_text "$DEVIATIONS" '## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI'
 require_text "$DEVIATIONS" '## DEV-032 P2-W03 Digital Twin 是进程内非持久化 foundation'
@@ -203,6 +210,8 @@ require_text "$DEVIATIONS" '## DEV-038 P2-W09 HVAC target 与 Twin 不是 OEM �
 require_text "$DEVIATIONS" '## DEV-039 P2-W10 Seat safety 是 debug Runtime-owned gate，不是 OEM Safety authority'
 require_text "$DEVIATIONS" '## DEV-040 P2-W11 synthetic Media/Navigation 不是平台播放器或真实导航'
 require_text "$DEVIATIONS" '## DEV-041 P2-W12 debug controller 不是 production Context 或车辆控制 authority'
+require_text "$DEVIATIONS" '## DEV-068 P5-W06 process-local Working Memory is not production Memory'
+require_text "$ISSUES" '## ISSUE-041 Working Memory session owner, tokenizer and storage publication'
 require_text "$DEVIATIONS" '## DEV-042 P3-W01 Graph Runtime 非 durable 且不执行 executor'
 require_text "$DEVIATIONS" '## DEV-043 P3-W02 typed executor 非 production execution'
 require_text "$DEVIATIONS" '## DEV-044 P3-W03 checkpoint serializer 尚未形成 durable Graph recovery'
@@ -272,7 +281,10 @@ require_text "$README" 'client2_hmi_checkpoint_text_persisted=false'
 require_text "$README" 'cockpit_hmi_four_stage_shell_implemented=true'
 require_text "$README" 'cockpit_hmi_safe_frame_1920x1080_verified=true'
 require_text "$README" 'cockpit_hmi_device_drawer_scaffolded=true'
-require_text "$README" 'implementation_stage=P5-W06'
+require_text "$README" 'implementation_stage=P5-W07'
+require_text "$README" 'working_memory_store_defined=true'
+require_text "$README" 'working_memory_terminal_cleanup_verified=true'
+require_text "$README" 'working_memory_runtime_wired=false'
 require_text "$README" 'cockpit_hvac_surface_implemented=true'
 require_text "$README" 'cockpit_seat_surface_implemented=true'
 require_text "$README" 'cockpit_execution_timeline_implemented=true'

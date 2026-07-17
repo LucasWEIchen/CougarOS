@@ -309,8 +309,9 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
 occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
 SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
-P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。P5-W01..W05 已完成 Tool
-合同、Registry/Resolver、rule intersection、built-in executor boundary 与 Skill package static verifier foundation；
+P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。P5-W01..W06 已完成 Tool
+合同、Registry/Resolver、rule intersection、built-in executor boundary、Skill package static verifier 与 process-local Working
+Memory foundation；
 `hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/
 undo/readback 仍未发布。
 
@@ -318,8 +319,8 @@ P5-W01 Tool manifest/schema 已完成：immutable identity/owner/capability/risk
 input/output、canonical contract digest 与 exact-class validator 已进入 Runtime main source；JVM、debug/release compile
 完成。Android 13 ARM64 probe 已实现，但当前 Windows ADB transport 不可用，实体执行待复测。P5-W02 已完成 pure-Java
 Registry/Resolver，P5-W03 已完成 six-rule deterministic intersection，P5-W04 已完成 in-process built-in executor boundary，
-P5-W05 已完成 static Skill package verifier；Runtime/Graph/production Tool authority 均未发布，下一工作包为 P5-W06
-WorkingMemoryStore。
+P5-W05 已完成 static Skill package verifier，P5-W06 已完成 process-local `WorkingMemoryStore`；Runtime/Graph/model publication
+与 production Memory authority 均未发布，下一工作包为 P5-W07 ProfileMemoryStore。
 
 ## 7. 近期进展
 
@@ -778,7 +779,18 @@ tool_rule_solver_published=false
 tool_rule_solver_runtime_wired=false
 tool_approval_authority_available=false
 tool_execution_enabled=false
-implementation_stage=P5-W06
+working_memory_store_defined=true
+working_memory_session_scope_verified=true
+working_memory_ttl_verified=true
+working_memory_item_limit_verified=true
+working_memory_byte_limit_verified=true
+working_memory_token_limit_verified=true
+working_memory_terminal_cleanup_verified=true
+working_memory_payload_zeroized_on_cleanup=true
+working_memory_android13_arm64_verified=false
+working_memory_runtime_wired=false
+working_memory_model_context_published=false
+implementation_stage=P5-W07
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -821,7 +833,7 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 
 ### 2026-07-18 P4-W12 progress
 
@@ -835,7 +847,7 @@ Tool manifest/schema。
 
 Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 
 ### 2026-07-18 P5-W01 progress
 
@@ -851,7 +863,7 @@ contract。下一工作包为 P5-W02 ToolRegistry/Resolver。
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-063`、`ISSUE-036`。
 `tool_registry_published=false`、`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 
 ### 2026-07-18 P5-W02 progress
 
@@ -869,7 +881,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_registry_published=false`、`tool_resolver_published=false`、`tool_registry_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 
 ### 2026-07-18 P5-W03 progress
 
@@ -887,7 +899,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 
 
 ### 2026-07-18 P5-W04 progress
@@ -907,7 +919,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
 `production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W06`。
+`implementation_stage=P5-W07`。
 
 ### 2026-07-18 P5-W05 progress
 
@@ -924,4 +936,23 @@ Effect/车辆/NPU/Driver-HAL。当前 ADB transport 不可用，`skill_package_v
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-008`、`DEL-001/004/005`；tracking：`DEV-067`、
 `ISSUE-040`。`trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+
+### 2026-07-18 P5-W06 progress
+
+新增 Android-independent `WorkingMemoryStore`，以 owner fingerprint + Session + item 做隔离，真实保存 bounded opaque bytes。
+store 同时执行 active Session、per-item/per-Session item/byte/token、read、TTL 与 terminal tombstone bounds；put 在 mutation 前计算
+replacement projected budget，exact replay 不刷新 TTL，read/输入均防御性 copy。
+
+expiry、replacement、remove 与 Session terminal cleanup 都覆零 store-retained byte array；terminal result 只返回 cleaned item/byte/
+token count，bounded tombstone 在保留期内阻止 late write。六项 JVM test、debug/release compile、debug-only DUMP probe、installer、
+独立 checker 与 CI/runtime evolution 已接入。当前 ADB transport 不可用，
+`working_memory_android13_arm64_verified=false`。
+
+P5-W06 不接 Runtime/Graph/Binder/Room/model context、Effect、车辆、NPU 或 Driver/HAL；token count 仍是调用方提供的受信预算
+元数据，不是 production tokenizer evidence。下一工作包为 P5-W07 ProfileMemoryStore。Req IDs：`S2-MEM-001`、
+`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`；tracking：
+`DEV-068`、`ISSUE-041`。`working_memory_store_defined=true`、`working_memory_process_local=true`、
+`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
+`working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。

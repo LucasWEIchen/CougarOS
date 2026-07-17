@@ -91,6 +91,7 @@
 | DEV-065 | P5-W03 rule/model/USABLE 交集只是静态 selection，不是 approval、Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037/038 | Accepted Temporary |
 | DEV-066 | P5-W04 只执行同进程 built-in；signer evidence 由调用方输入且 cancel/deadline 依赖 cooperative checkpoint，不是 production Tool authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/039 | Accepted Temporary |
 | DEV-067 | P5-W05 只验证调用方提供的 digest evidence；不获取平台 signer、不验证签名链、不加载或执行 Skill package。 | S2-TOL-001, S2-SAF-001, FW-U-008, ISSUE-036/040 | Accepted Temporary |
+| DEV-068 | P5-W06 Working Memory 保存 process-local opaque bytes 并做 best-effort array wipe；尚无 Runtime session hook、durable encryption、tokenizer binding 或 model publication。 | S2-MEM-001, S2-SAF-001, ISSUE-025/031/041 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1019,7 +1020,7 @@ Vehicle/NPU Tool 仍需 P8 OEM/Vendor authority。当前：`tool_rule_set_contra
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 
 ## DEV-066 P5-W04 built-in execution is not production Tool authority
 
@@ -1039,7 +1040,7 @@ Tool。状态：`Accepted Temporary`。关闭条件是 P5-W05 冻结 signer/vers
 Runtime/Graph publication。当前：`tool_executor_contract_defined=true`、`tool_executor_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_execution_enabled=false`、`production_tool_registered=false`、
 `os_virtualization_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 
 ## DEV-067 P5-W05 static package verification is not production artifact trust
 
@@ -1057,4 +1058,24 @@ Model/NPU、network 或 Driver/HAL；无 file/parser/class loader/subprocess。�
 composition 和 P9 fault/security evidence。当前：`skill_artifact_verifier_contract_defined=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+
+## DEV-068 P5-W06 process-local Working Memory is not production Memory
+
+P5-W06 新增真实 payload-bearing `WorkingMemoryStore`，以 owner/session/item 隔离 opaque bytes，执行 monotonic TTL、item/byte/
+token budgets、copy-on-input/read、replace/remove 和 terminal cleanup。相比 R6B1 digest-only lifecycle，它能够承载后续工作上下文，
+但当前只存在于单 JVM process，未由 Runtime 或 Graph 构造。
+
+store 对自己保留的 byte array 在 expiry/remove/replacement/terminal cleanup 时执行 `Arrays.fill`。这不保证调用方 request、
+返回 snapshot、VM copy、GC page、swap 或 crash dump 被密码学擦除，也不构成 encrypted-at-rest。token count 由调用方提供，未
+绑定 model/tokenizer name、version 或 digest。terminal tombstone 有界，逐出后必须依赖未来 production Session authority
+防止 ID 复用。
+
+代码未接 Binder、Room/file、Memory Service、AgentGraph、ModelProvider、Effect、Vehicle、NPU、network 或 Driver/HAL。
+状态：`Accepted Temporary`。关闭条件是 ISSUE-041 确定 production Session terminal publisher、tokenizer/budget authority、
+payload schema/privacy classification、persistence/encryption/retention 和 Runtime/model composition，并完成 P5-W07..W10 与 P9
+privacy/security evidence。当前：`working_memory_store_defined=true`、`working_memory_android13_arm64_verified=false`、
+`working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
+`working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
+`working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P5-W07`。

@@ -60,6 +60,7 @@
 | ISSUE-038 | Production Tool rule catalog、condition publisher、Plan binding 与 approval authority 未确定。 | S2-TOL-001, S2-SAF-001, P5-W04/W05/P8 | Open |
 | ISSUE-039 | Production built-in signer evidence、artifact revoke/rollback 与非合作实现的 deadline/cancel owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W05/P9 | Open |
 | ISSUE-040 | Trusted signer evidence、Skill policy 原子发布、签名链、lifecycle 与动态装载 owner 未确定。 | S2-TOL-001, S2-SAF-001, FW-U-008, P8/P9 | Open |
+| ISSUE-041 | Working Memory 的 production Session terminal source、tokenizer/budget authority、payload privacy 与 durable storage owner 未确定。 | S2-MEM-001, S2-SAF-001, P5-W07..W10/P9 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -487,6 +488,10 @@ migration、session token retention/erase policy 和 MDM data clear。目标 own
 | P4-W12 进展 | Android 13 ARM64 recovery/fault/scenario/display 聚合、per-suite crash buffer 和最终 UI tree 已通过；自动 Plan/Effect、approval/undo/readback 与 production Client2 release 仍未完成，ISSUE-033 保持 Open。 |
 | P5-W01 进展 | Tool manifest/schema、canonical digest 与 exact validator 已完成；实体 probe 因 ADB transport 不可用待复测，ISSUE-036 保持 Open。 |
 | P5-W02 进展 | Registry/Resolver/dynamic health pure-Java 合同已完成；production composition/publisher/execution 未发布，ISSUE-036/037 保持 Open。 |
+| P5-W03 进展 | Tool rule/model/USABLE deterministic intersection 已完成；production rule/condition/approval owner 未发布，ISSUE-038 保持 Open。 |
+| P5-W04 进展 | in-process built-in executor boundary 已完成；production signer evidence、hard cancel 与 Runtime publication 未关闭，ISSUE-039 保持 Open。 |
+| P5-W05 进展 | static Skill package verifier 已完成；trusted evidence、签名链、atomic policy/dynamic load 未关闭，ISSUE-040 保持 Open。 |
+| P5-W06 进展 | process-local WorkingMemoryStore 已完成；Session terminal publisher、tokenizer、durable storage/privacy owner 未关闭，ISSUE-041 保持 Open。 |
 
 ### ISSUE-033 P4-W10 update
 
@@ -574,7 +579,7 @@ Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。V
 状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W06`。tracking：`DEV-065`。
+`target_hardware_validated=false`、`implementation_stage=P5-W07`。tracking：`DEV-065`。
 
 ## ISSUE-039 Production built-in signer and cooperative cancellation ownership
 
@@ -596,7 +601,7 @@ composition。Vehicle/NPU Tool 还需 P8 vendor cancellable API 与 readback 合
 `built_in_signer_artifact_bound=true`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`production_tool_registered=false`、`os_virtualization_enabled=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W06`。tracking：`DEV-066`。
+`implementation_stage=P5-W07`。tracking：`DEV-066`。
 
 P5-W05 进展：只读 verifier 已冻结 ACTIVE/RETIRED/REVOKED、artifact epoch、Runtime compatibility、防降级与 capability
 allowlist，关闭 pure-Java static policy 子项。它不解决 signer evidence acquisition、签名链、atomic publish 或 hard cancel，
@@ -617,5 +622,22 @@ Signer、version、capability、minimum epoch 与 rollback policy 还需要一�
 `skill_version_policy_contract_defined=true`、`skill_revocation_downgrade_fail_closed=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
 tracking：`DEV-067`。
+
+## ISSUE-041 Working Memory session owner, tokenizer and storage publication
+
+P5-W06 的 `WorkingMemoryStore` 接受 `fromRuntimePolicy` 请求，但尚无 production composition 指定谁从 durable Session state
+发布 terminal signal、谁派生 owner fingerprint、谁选择 payload schema/privacy class，以及进程死亡后工作上下文应丢弃还是恢复。
+当前 bounded terminal tombstone 只能在单进程内阻止 late write，不能替代跨进程 Session authority。
+
+token count 也是受信输入。量产需要冻结 tokenizer/model family、version/digest、计数错误策略、byte/token 双预算和 P5-W09
+ContextBudgetManager 的截断/摘要顺序；在此之前不得把 caller token count 当成真实模型预算证据。若 Working Memory 未来持久化，
+还必须确定 Room/schema owner、Keystore key lifecycle、加密、backup、multi-user/seat isolation、retention、delete/export、crash
+recovery 和日志/诊断脱敏。P5-W07 Profile 与 P5-W08 Episodic Memory 不能复用 Session working policy 绕过 consent。
+
+状态：`Open`。当前 `working_memory_store_defined=true`、`working_memory_android13_arm64_verified=false`、
+`working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
+`working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
+`working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P5-W07`。tracking：`DEV-068`。
