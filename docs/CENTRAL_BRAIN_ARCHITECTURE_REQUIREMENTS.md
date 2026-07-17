@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W09`。
+`implementation_stage=P4-W10`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W09`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W10`。
 
 ## 49. P4-W08 driving restriction renderer trace
 
@@ -1403,4 +1403,33 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W09`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W10`。
+
+## 50. P4-W09 engineer simulation drawer trace
+
+Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/005/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 工程师入口必须默认 `gone`，只有显式绑定 Runtime debug component、完成
+   `IDebugSimulationController` version/hash 校验并收到成功回调后才显示；release Runtime 不得声明该 Service。
+2. 外层必须由 `com.centralbrain.permission.CONTROL_DEBUG_SIMULATION` signature permission 保护，内层必须由
+   Runtime caller identity 与 `debug.simulation.control` capability 再次授权；production policy 不得授予该 capability。
+3. `CockpitEngineerState` 必须为 Android-independent immutable state，记录连接态、驾驶三态、占用/安全带、固定
+   HVAC/Seat adapter、六类 fault、Controller status 与严格单调 revision；View 不能直接持有 Binder 返回值。
+4. 每个写命令只有在 Controller 明确成功并返回比当前更大的 revision 后才能通过唯一 reducer 更新 HMI。超时、断链、
+   协议不匹配、非单调 revision 或失败码必须失败关闭，不得乐观切换 PARKED 或故障状态。
+5. driving=UNKNOWN 或 reset 必须投影 unavailable/restricted；只有 connected、PARKED/MOVING、revision>0 的确认状态才能
+   生成 source=SIMULATED、quality=OBSERVED 的测试 Context。该投影不得标记为 production trusted。
+6. PARKED/MOVING/UNKNOWN 只用于验证 P4-W08 呈现矩阵；工程抽屉、SIMULATED Context 和 presentation mode 的
+   `isEffectAuthorizationSource()` 必须始终为 false，不能绕过 Runtime Policy/Safety 或调用 Effect/Adapter。
+7. 占用与安全带只允许 canonical paths `Vehicle.Cabin.Seat.IsOccupied`、`Vehicle.Cabin.Seat.IsBelted` 和
+   `row1.driver`；adapter ID 只允许 `debug.simulated.hvac.v1`、`debug.simulated.seat.v1`，禁止自由文本/反射发现。
+8. Android 13/API 33 ARM64 验收必须覆盖签名权限、capability、协议握手、驾驶三态、占用/安全带、fault matrix、
+   revision 单调、reset 失败关闭、1920x1080 边界及 release Service absent；硬件/车辆/Effect dispatch 必须为 false。
+
+状态：`cockpit_engineer_simulation_drawer_implemented=true`、
+`cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
+`cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
+`cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
+`vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P4-W10`。

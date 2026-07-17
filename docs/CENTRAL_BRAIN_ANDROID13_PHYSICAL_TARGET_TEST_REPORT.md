@@ -426,6 +426,44 @@ production_ready=false
 target_hardware_validated=false
 ```
 
-截图、raw UI tree、原始日志和设备身份只留在本地未跟踪 evidence，不进入 Git。PARKED_FULL 的当前实体复测不是本包证据；
-P4-W09 必须通过 signature/capability protected engineer drawer 接入 debug Context Controller 后覆盖 PARKED/MOVING/UNKNOWN，
-且 production Context/Safety authority 仍由 P8 关闭。偏差由 `DEV-058` 跟踪。
+截图、raw UI tree、原始日志和设备身份只留在本地未跟踪 evidence，不进入 Git。该 P4-W08 记录只覆盖默认受限路径；
+P4-W09 已通过 signature/capability protected engineer drawer 补充 PARKED/MOVING/UNKNOWN 呈现矩阵，证据见下一节。
+production Context/Safety authority 仍由 P8 关闭，偏差由 `DEV-058/059` 跟踪。
+
+## 16. 2026-07-18 P4-W09 engineer simulation drawer evidence
+
+同一 Android 13/API 33 ARM64 USB 设备完成 debug Runtime 与 maintained Client2 signed APK 验收：
+
+1. 工程入口在 Binder 连接前为 `gone`；同签名 permission、`debug.simulation.control` capability 和 AIDL V1/hash
+   校验后显示并报告 CONNECTED；
+2. PARKED、MOVING、UNKNOWN 逐项命令均收到严格递增 Controller revision。PARKED 恢复完整呈现，MOVING/UNKNOWN
+   恢复受限呈现；reset 回到 unavailable/restricted；
+3. driver occupancy 与 belt 的 boolean 切换只使用 canonical path/area，并在 UI 显示 Controller 确认值；
+4. HVAC/Seat 固定 adapter 下的 NONE、DELAY、TIMEOUT、RETRYABLE_FAILURE、TERMINAL_FAILURE、READBACK_MISMATCH
+   fault matrix 均可达，失败不会被渲染为车辆已执行；
+5. 1920x1080 截图复核确认工程抽屉位于 `(1264,160)-(1888,1048)` 半透明浮窗内，无越界、分屏或控件重叠；
+6. Runtime release APK 中 debug Controller Service 不存在，production policy 无 debug capability；
+7. 测试期间未访问 Vehicle/VHAL、Android Car、NPU、Driver/HAL，未触发 Scenario Graph、Effect 或 Adapter dispatch。
+
+```text
+cockpit_engineer_simulation_drawer_verified=true
+cockpit_engineer_signature_permission_granted=true
+cockpit_engineer_capability_allowed=true
+cockpit_engineer_driving_state_matrix_verified=true
+cockpit_engineer_occupancy_belt_verified=true
+cockpit_engineer_fault_matrix_verified=true
+cockpit_engineer_context_revision_monotonic_verified=true
+cockpit_engineer_reset_fail_closed_verified=true
+cockpit_engineer_runtime_release_service_absent=true
+cockpit_engineer_effect_authorization_source=false
+cockpit_engineer_production_available=false
+vehicle_signal_provider_wired=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+设备身份、raw UI tree、logcat 和截图只保留在本地未跟踪 evidence，不进入 Git。该证据关闭 `DEV-058` 的“受保护 debug
+PARKED/MOVING/UNKNOWN 可测试性”子条件，但不关闭 production trusted Context 缺口；本地 projection 边界由 `DEV-059`
+跟踪。下一实体工作包为 P4-W10 Scenario/manual-control synchronization。

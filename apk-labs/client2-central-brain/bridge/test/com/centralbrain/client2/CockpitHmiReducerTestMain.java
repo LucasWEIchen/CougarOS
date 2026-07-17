@@ -30,6 +30,7 @@ public final class CockpitHmiReducerTestMain {
         check(state.getPresentationMode() == PanelPresentationMode.MOVING_RESTRICTED,
                 "missing driving evidence must default to restricted presentation");
         verifyDrivingUxPolicy();
+        verifyEngineerSimulationReduction();
         verifyHvacReduction();
         verifySeatReduction();
         verifyExecutionTimeline();
@@ -260,6 +261,107 @@ public final class CockpitHmiReducerTestMain {
         check(state.getHvacState().getRequestState()
                         == CockpitHvacState.RequestState.DEBOUNCING,
                 "an old Session snapshot must not cancel a pending HVAC debounce");
+    }
+
+    private static void verifyEngineerSimulationReduction() {
+        CockpitHmiState state = CockpitHmiState.initial();
+        check(!state.getEngineerState().isAvailable()
+                        && !state.getEngineerState().isProductionAvailable()
+                        && !state.getEngineerState().isEffectAuthorizationSource(),
+                "engineer simulation must start unavailable and non-authoritative");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerConnecting());
+        check(state.getEngineerState().getConnectionState()
+                        == CockpitEngineerState.ConnectionState.CONNECTING,
+                "debug controller connection must be reducer-owned");
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerConnected(
+                        0,
+                        CockpitSeatState.DrivingState.UNKNOWN_RESTRICTED));
+        check(state.getEngineerState().isAvailable()
+                        && state.getPresentationMode()
+                        == PanelPresentationMode.MOVING_RESTRICTED,
+                "connected unknown Context must remain restricted");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerDrivingApplied(
+                        CockpitSeatState.DrivingState.PARKED,
+                        1));
+        check(state.getPresentationMode() == PanelPresentationMode.PARKED_FULL,
+                "acknowledged debug PARKED Context must enable the full preview");
+        check(state.getSeatState().getSafetyContext().getSource()
+                        == CockpitSeatState.EvidenceSource.SIMULATED
+                        && state.getSeatState().getSafetyContext().getRevision() == 1,
+                "debug Context must be visibly simulated and revisioned");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerOccupancyApplied(
+                        CockpitSeatState.OccupancyState.OCCUPIED,
+                        2));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerBeltApplied(
+                        CockpitSeatState.BeltState.UNBELTED,
+                        3));
+        check(state.getSeatState().getSafetyContext().getOccupancyState()
+                        == CockpitSeatState.OccupancyState.OCCUPIED
+                        && state.getSeatState().getSafetyContext().getBeltState()
+                        == CockpitSeatState.BeltState.UNBELTED
+                        && state.getSeatState().getSafetyContext().getRevision() == 3,
+                "occupancy and belt acknowledgements must update the same Context revision");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerAdapterSelected(
+                        CockpitEngineerState.AdapterTarget.SEAT));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerFaultApplied(
+                        CockpitEngineerState.FaultMode.DELAY,
+                        4));
+        check(state.getEngineerState().getAdapterTarget()
+                        == CockpitEngineerState.AdapterTarget.SEAT
+                        && state.getEngineerState().getFaultMode()
+                        == CockpitEngineerState.FaultMode.DELAY
+                        && state.getSeatState().getSafetyContext().getRevision() == 4,
+                "fault acknowledgement must retain target and advance controller Context revision");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerDrivingApplied(
+                        CockpitSeatState.DrivingState.MOVING,
+                        5));
+        check(state.getPresentationMode() == PanelPresentationMode.MOVING_RESTRICTED,
+                "debug MOVING Context must immediately restore restricted presentation");
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerResetApplied(6));
+        check(state.getEngineerState().getDrivingState()
+                        == CockpitSeatState.DrivingState.UNKNOWN_RESTRICTED
+                        && state.getSeatState().getSafetyContext().getSource()
+                        == CockpitSeatState.EvidenceSource.UNAVAILABLE,
+                "reset must clear simulated Context and fail closed");
+        CockpitHmiState resetState = state;
+        expectRejected(() -> CockpitHmiReducer.reduce(
+                resetState,
+                CockpitHmiReducer.Event.engineerFaultApplied(
+                        CockpitEngineerState.FaultMode.TIMEOUT,
+                        6)));
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.engineerFailure("CB_SIM_BINDING_DIED"));
+        check(!state.getEngineerState().isAvailable()
+                        && state.getEngineerState().getControllerRevision() == 0
+                        && state.getDeviceDrawer() == CockpitHmiState.DeviceDrawer.CLOSED
+                        && state.getPresentationMode()
+                        == PanelPresentationMode.MOVING_RESTRICTED,
+                "controller loss must hide engineering controls and fail closed");
     }
 
     private static void verifySeatReduction() {

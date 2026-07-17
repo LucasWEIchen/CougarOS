@@ -193,16 +193,17 @@ cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
 
-P4-W01 through P4-W07 are complete. The primary bridge exposes typed Session handle,
+P4-W01 through P4-W09 are complete. The primary bridge exposes typed Session handle,
 snapshot, event, replay, overflow, close and error callbacks. The Java coordinator
 reduces these callbacks, owns lifecycle and resumes a text-free checkpoint after
 Client2 process restart. Android 13 ARM64 acceptance covers Runtime/Client2 process
 death, duplicate suppression, hidden-state restore, menu reopen, exact 1920x1080
 safe-frame rendering, four stage selection, HVAC and Seat controls, debounce,
 governed manual Session admission, unknown-context Seat position blocking and the
-seven-phase observable execution timeline and fail-closed approval/recovery UX. P4-W08
-is the next work package and will add the driving restriction renderer without enabling
-vehicle or production Effect dispatch:
+seven-phase observable execution timeline, fail-closed approval/recovery UX, driving
+restriction renderer and protected engineer simulation drawer. P4-W10 is next and will
+synchronize scenario/manual-control projections without enabling vehicle or production
+Effect dispatch:
 
 ```text
 client2_session_event_primary_api=true
@@ -250,13 +251,22 @@ cockpit_approval_response_service_published=false
 cockpit_retry_service_published=false
 cockpit_undo_service_published=false
 cockpit_recovery_commands_enabled=false
+cockpit_driving_ux_policy_implemented=true
+cockpit_unknown_driving_restricted=true
+cockpit_engineer_simulation_drawer_implemented=true
+cockpit_engineer_signature_permission_required=true
+cockpit_engineer_capability_required=true
+cockpit_engineer_context_revisioned=true
+cockpit_engineer_runtime_release_service_absent=true
+cockpit_engineer_effect_authorization_source=false
+cockpit_engineer_production_available=false
 client2_smali_controller_retired=true
 client2_hmi_checkpoint_resume_verified=true
 client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W09
+implementation_stage=P4-W10
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -278,5 +288,27 @@ The implementation plan, class/file map and acceptance matrix are maintained in
   typed contract and governed approval path. `DEV-057` separately tracks
   ApprovalPrompt/retry/UndoHandle publication to Client2.
 - `DEV-058` tracks that the current Client2 transport has no production-trusted
-  global driving Context. Physical UNKNOWN evidence therefore remains restricted;
-  P4-W09 may supply protected debug Context, while P8 must supply target authority.
+  global driving Context. P4-W09 closes only the protected debug testability
+  subcondition; P8 must still supply target authority.
+- `DEV-059` tracks that P4-W09 locally projects only acknowledged debug-controller
+  values/revisions. Runtime release contains no controller Service, and the projection
+  is never an Effect, Safety or production vehicle authorization source.
+
+## P4-W09 protected engineer simulation drawer
+
+The Plan surface exposes a third detail entry only after
+`DebugSimulationControllerClient` binds the explicit Runtime debug component and
+verifies `IDebugSimulationController` V1/hash. Client2 requests the debug signature
+permission, while Runtime debug policy grants `debug.simulation.control` only to the
+current-signer Client2 principal. The production policy does not grant it.
+
+The drawer can set `PARKED/MOVING/UNKNOWN`, driver occupancy/belt, select the
+simulated HVAC or Seat adapter, inject none/delay/timeout/retryable/terminal/mismatch
+faults and reset the controller. Every accepted remote mutation returns a strictly
+increasing revision before the sole reducer changes the HMI projection. Binder loss,
+protocol mismatch, reset and process recreation return the UI to fail-closed UNKNOWN.
+
+The signed debug APK passed the Android 13/API 33 ARM64 matrix and 1920x1080 visual
+inspection. No raw device identity, UI tree, logs, signal values or screenshots are
+tracked. Runtime release omits the controller Service; no production Client2 release
+artifact with this drawer is delivered.

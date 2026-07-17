@@ -304,6 +304,12 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 `isEffectAuthorizationSource=false`，不能替代 Runtime Safety/Policy。当前实体设备没有可信 Context provider，故本轮
 只验证受限模式；PARKED 完整模式实体复测由 `P4-W09 Engineer simulation drawer` 提供受保护输入后执行。
 
+`P4-W09 Engineer simulation drawer` 已完成：Client2 通过 signature permission、caller capability 和 AIDL version/hash
+连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
+occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
+SIMULATED projection 不是 production Context/Safety/Effect authority；下一工作包为 P4-W10 Scenario/manual-control
+synchronization。
+
 ## 7. 近期进展
 
 ### 2026-07-15
@@ -473,6 +479,10 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 - 完成 `P4-W08 Driving restriction renderer`：新增 immutable presentation mode 和纯 Java driving policy；UNKNOWN/MOVING/
   unavailable/untrusted Context 隐藏长详情、禁用参数编辑及高风险休息场景，只有可信 PARKED 恢复完整呈现。UI mode
   不授予 Effect 权限；当前实体默认受限，PARKED 实体路径由 P4-W09 的受保护工程师抽屉复测。
+- 完成 `P4-W09 Engineer simulation drawer`：新增 debug-only Binder client、immutable engineer state、hidden-until-connected
+  工程抽屉和 revisioned reducer projection；signature/capability/protocol、三态 Context、occupancy/belt、fault matrix、
+  reset 与 release Service absent 已通过 Android 13/API 33 ARM64。该入口不接 production Context/Effect/Vehicle；下一
+  工作包为 P4-W10 Scenario/manual-control synchronization。
 
 ## 8. 当前门禁
 
@@ -716,7 +726,7 @@ cockpit_runtime_policy_authority_independent=true
 cockpit_hvac_manual_session_admission_retested=false
 cockpit_seat_manual_session_admission_retested=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W09
+implementation_stage=P4-W10
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

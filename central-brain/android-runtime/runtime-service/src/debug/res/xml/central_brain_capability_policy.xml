@@ -34,6 +34,7 @@
         <capability name="runtime.event.protocol.read" />
         <capability name="runtime.event.read.own" />
         <capability name="runtime.event.subscribe.own" />
+        <capability name="debug.simulation.control" />
     </principal>
     <principal packageName="com.centralbrain.sdk.test" signer="runtime-current">
         <capability name="runtime.session.protocol.read" />

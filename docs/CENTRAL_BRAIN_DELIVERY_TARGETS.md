@@ -1598,7 +1598,31 @@ HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`AP
 `DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
 `cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W09`。
+`hardware_accessed=false`、`implementation_stage=P4-W10`。
+
+## P4-W09 Engineer Simulation Drawer
+
+交付 `CockpitEngineerState`、`DebugSimulationControllerClient`、唯一 reducer 的 engineer events、hidden-until-connected
+入口、可滚动工程抽屉、AIDL 单一来源编译、host/static gate 和 Android 13/API 33 ARM64 实体验收。
+
+Client2 只连接 Runtime debug variant 的显式 `DebugSimulationController` component。连接需要同签名
+`CONTROL_DEBUG_SIMULATION` permission、Runtime `debug.simulation.control` capability 以及冻结 AIDL version/hash；任一条件
+失败时入口保持隐藏或状态 FAILED。控制命令覆盖 PARKED/MOVING/UNKNOWN、driver occupancy/belt、固定 HVAC/Seat adapter、
+NONE/DELAY/TIMEOUT/RETRYABLE_FAILURE/TERMINAL_FAILURE/READBACK_MISMATCH 与 reset。只有成功 ack 且 revision 严格递增才
+更新 HMI；不保存 raw payload、设备身份、用户/模型文本或车辆数据。
+
+实体证据覆盖 1920x1080 半透明浮窗内的三态、占用/安全带、fault matrix、revision/reset 和 release Service absent。
+SIMULATED Context 只驱动 Client2 presentation 验收；`cockpit_engineer_effect_authorization_source=false`，不调用
+Scenario Graph、Effect、Adapter、Vehicle/VHAL、NPU 或 Driver/HAL。生产 Runtime release 不含 debug Service，production policy
+不授予 debug capability。
+
+Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`、
+`DEL-001/003/004/005`。状态：`cockpit_engineer_simulation_drawer_implemented=true`、
+`cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
+`cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
+`cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
+`vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P4-W10`。下一工作包为 P4-W10 Scenario/manual-control synchronization。
 
 ## P4-W07 Approval and Recovery UX
 
@@ -1619,7 +1643,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_approval_details_fail_closed=true`、`cockpit_partial_outcome_projection=true`、
 `cockpit_compensation_projection=true`、`cockpit_approval_response_service_published=false`、
 `cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
-`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W09`。
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W10`。
 
 ## P4-W08 Driving Restriction Renderer
 
@@ -1641,4 +1665,4 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_unknown_driving_restricted=true`、`cockpit_moving_long_text_hidden=true`、
 `cockpit_restricted_parameter_editing_disabled=true`、`cockpit_high_risk_controls_disabled=true`、
 `cockpit_runtime_policy_authority_independent=true`、`vehicle_signal_provider_wired=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W09`。
+`hardware_accessed=false`、`implementation_stage=P4-W10`。

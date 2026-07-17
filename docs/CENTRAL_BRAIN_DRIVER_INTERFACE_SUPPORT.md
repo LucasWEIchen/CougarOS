@@ -1051,3 +1051,22 @@ Context provider，P4-W08 不添加伪 property、假 provider 或本地 PARKED 
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变；真实 driving/Safety authority 仍由 P8 与 `ISSUE-023/029/030` 关闭。Req IDs：
 `S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`。
+
+### P4-W09 Engineer simulation drawer Driver/HAL Boundary
+
+本包只增加 Client2 application XML、纯 Java immutable state/reducer、debug Binder client、AIDL 生成步骤和测试。Binder
+目标是项目自有 Runtime debug Service，不是 Android Car、Vehicle/VHAL 或 vendor service。occupancy/belt canonical path、
+adapter ID 和 fault profile 是 P2 debug contract，不映射 OEM property ID、CAN signal、area/permission 或真实设备状态。
+
+本包不发现、不打开也不调用 CarPropertyManager、VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU、fd/shared memory 或任何 Driver/HAL。Controller 写入隔离 debug store；Client2 只接收成功状态码和单调 revision。
+PARKED/MOVING/UNKNOWN 与 SIMULATED source 只验证 HMI 呈现，不能授权 Adapter/Effect。release Runtime 无该 Service，生产
+capability policy 无 debug grant。
+
+状态：`cockpit_engineer_simulation_drawer_implemented=true`、
+`cockpit_engineer_runtime_release_service_absent=true`、`cockpit_engineer_effect_authorization_source=false`、
+`cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变；真实 vehicle Context/Safety/Effect/readback 仍由 P8 与 `ISSUE-023/029/030` 关闭。
+Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`DEL-004/005`。

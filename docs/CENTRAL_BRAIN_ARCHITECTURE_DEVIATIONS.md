@@ -82,6 +82,7 @@
 | DEV-056 | P4-W06 HMI 已能投影完整 typed timeline 合同，但当前 Runtime 只发布 Session 事件，未发布 Plan/Action/Effect/Observation。 | S2-UX-001, S2-HMI-003/006, S2-EVT-001, ISSUE-022/026/033 | Accepted Temporary |
 | DEV-057 | P4-W07 recovery UX 只能消费 Session/Event V1，无法接收 ApprovalPrompt、EffectObservation.retryable 或 UndoHandle。 | S2-UX-003, S2-HMI-003, S2-SAF-001, S2-EFF-001, ISSUE-022/026/029/033 | Accepted Temporary |
 | DEV-058 | P4-W08 driving presentation 尚无 production trusted global Context；实体默认只能验证 UNKNOWN 受限模式。 | S2-UX-002, S2-HMI-002, S2-SAF-001, ISSUE-023/029/030/033 | Accepted Temporary |
+| DEV-059 | P4-W09 工程抽屉只在 Client2 本地投影 debug Controller 已确认状态；它不是 production Context、Safety 或 Effect authority。 | S2-HMI-004, S2-ADP-001, S2-OBS-001, ISSUE-023/029/030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -875,3 +876,23 @@ Safety authority 和真实车辆信号仍由 P8 与 `ISSUE-023/029/030` 关闭�
 
 状态：`Accepted Temporary`。`vehicle_signal_provider_wired=false`、`production_ready=false`、
 `target_hardware_validated=false`、`driver_development_triggered=false`。
+
+## DEV-059 P4-W09 debug Context projection is not production authority
+
+P4-W09 将 Client2 通过显式 debug Binder 连接到 P2-W12 `DebugSimulationController`。Controller 继续由 signature permission、
+caller identity、debug capability 和 AIDL version/hash 保护；Client2 只在命令成功且 revision 严格递增后，把已确认的
+PARKED/MOVING/UNKNOWN、occupancy、belt、adapter fault 投影进 immutable `CockpitEngineerState`。这使实体 Android 13
+可以验证 P4-W08 的完整/受限呈现矩阵和 fault UI，但不改变 Runtime 的生产数据流。
+
+当前 projection 是 Client2 application-local SIMULATED Context，不写入 shared ContextSnapshot、Room、Graph、Policy、
+EffectCoordinator 或 vehicle provider。Runtime release variant 不含 Controller Service；production capability policy 不授予
+`debug.simulation.control`。因此 PARKED_FULL 仍只代表 UI 可编辑，不能授权 Seat/HVAC Effect，也不能作为车辆状态证据。
+
+关闭条件：P8 接入经 OEM 确认的 production vehicle signal provider、freshness/trust/revision、Safety owner 和 dispatch 前重验；
+Client2 改为只消费该权威 Context 的版本化只读接口，并完成真实 property/service/permission/area/readback 的目标验收。关闭
+`DEV-059` 不得仅删除 debug 抽屉或把 SIMULATED source 重命名为 TARGET。
+
+状态：`Accepted Temporary`。`cockpit_engineer_simulation_drawer_implemented=true`、
+`cockpit_engineer_runtime_release_service_absent=true`、`cockpit_engineer_effect_authorization_source=false`、
+`cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`production_ready=false`、
+`target_hardware_validated=false`。

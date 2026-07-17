@@ -61,6 +61,7 @@ def patch_layout(work_dir: Path, patch_xml: Path) -> None:
         "@+id/centralBrainNapButton",
         "@+id/centralBrainHvacDetailButton",
         "@+id/centralBrainSeatDetailButton",
+        "@+id/centralBrainEngineerDetailButton",
         "@+id/centralBrainDeviceDrawer",
         "@+id/centralBrainHvacSurface",
         "@+id/centralBrainHvacDesiredText",
@@ -97,6 +98,26 @@ def patch_layout(work_dir: Path, patch_xml: Path) -> None:
         "@+id/centralBrainSeatSafetyText",
         "@+id/centralBrainSeatEvidenceText",
         "@+id/centralBrainSeatRequestText",
+        "@+id/centralBrainEngineerSurface",
+        "@+id/centralBrainEngineerStatusText",
+        "@+id/centralBrainEngineerDrivingUnknownButton",
+        "@+id/centralBrainEngineerDrivingParkedButton",
+        "@+id/centralBrainEngineerDrivingMovingButton",
+        "@+id/centralBrainEngineerOccupancyEmptyButton",
+        "@+id/centralBrainEngineerOccupancyOccupiedButton",
+        "@+id/centralBrainEngineerBeltBeltedButton",
+        "@+id/centralBrainEngineerBeltUnbeltedButton",
+        "@+id/centralBrainEngineerAdapterHvacButton",
+        "@+id/centralBrainEngineerAdapterSeatButton",
+        "@+id/centralBrainEngineerFaultNoneButton",
+        "@+id/centralBrainEngineerFaultDelayButton",
+        "@+id/centralBrainEngineerFaultTimeoutButton",
+        "@+id/centralBrainEngineerFaultFailureButton",
+        "@+id/centralBrainEngineerFaultTerminalButton",
+        "@+id/centralBrainEngineerFaultMismatchButton",
+        "@+id/centralBrainEngineerContextText",
+        "@+id/centralBrainEngineerFaultText",
+        "@+id/centralBrainEngineerResetButton",
         "@+id/centralBrainReplyText",
         "@drawable/central_brain_panel_background",
         "@drawable/central_brain_action_button",
@@ -161,6 +182,12 @@ def patch_manifest(work_dir: Path) -> None:
             raise SystemExit("manifest missing QUERY_ALL_PACKAGES permission anchor")
         text = text.replace(anchor, anchor + "\n    " + bind_permission, 1)
 
+    simulation_permission = (
+        '<uses-permission android:name="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION"/>'
+    )
+    if simulation_permission not in text:
+        text = text.replace(bind_permission, bind_permission + "\n    " + simulation_permission, 1)
+
     runtime_query = '<package android:name="com.centralbrain.runtime"/>'
     if runtime_query not in text:
         app_anchor = "    <application "
@@ -181,6 +208,8 @@ def patch_manifest(work_dir: Path) -> None:
     }
     if "com.centralbrain.permission.BIND_RUNTIME" not in permissions:
         raise SystemExit("manifest missing Central Brain Runtime signature permission")
+    if "com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" not in permissions:
+        raise SystemExit("manifest missing debug simulation signature permission")
     if "android.permission.INTERNET" in permissions:
         raise SystemExit("Client2 Binder demo must not request INTERNET")
     runtime_packages = {

@@ -101,7 +101,7 @@ PY
 
 for marker in \
   'public enum SurfaceStage { INTENT, PLAN, EXECUTION, RESULT }' \
-  'public enum DeviceDrawer { CLOSED, HVAC, SEAT }'; do
+  'public enum DeviceDrawer { CLOSED, HVAC, SEAT, ENGINEER }'; do
   grep -Fq -- "$marker" "$STATE"
 done
 for marker in \

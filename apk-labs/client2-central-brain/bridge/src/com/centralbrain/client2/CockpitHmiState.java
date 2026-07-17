@@ -19,7 +19,7 @@ public final class CockpitHmiState {
 
     public enum SurfaceStage { INTENT, PLAN, EXECUTION, RESULT }
 
-    public enum DeviceDrawer { CLOSED, HVAC, SEAT }
+    public enum DeviceDrawer { CLOSED, HVAC, SEAT, ENGINEER }
 
     private final long revision;
     private final PanelVisibility panelVisibility;
@@ -31,6 +31,7 @@ public final class CockpitHmiState {
     private final CockpitSeatState seatState;
     private final CockpitExecutionTimeline executionTimeline;
     private final CockpitRecoveryState recoveryState;
+    private final CockpitEngineerState engineerState;
     private final String uiScenarioId;
     private final String canonicalScenarioId;
     private final int handleSchemaVersion;
@@ -59,6 +60,7 @@ public final class CockpitHmiState {
         seatState = builder.seatState;
         executionTimeline = builder.executionTimeline;
         recoveryState = builder.recoveryState;
+        engineerState = builder.engineerState;
         uiScenarioId = builder.uiScenarioId;
         canonicalScenarioId = builder.canonicalScenarioId;
         handleSchemaVersion = builder.handleSchemaVersion;
@@ -119,6 +121,10 @@ public final class CockpitHmiState {
 
     public CockpitRecoveryState getRecoveryState() {
         return recoveryState;
+    }
+
+    public CockpitEngineerState getEngineerState() {
+        return engineerState;
     }
 
     public String getUiScenarioId() {
@@ -273,6 +279,7 @@ public final class CockpitHmiState {
         CockpitSeatState seatState = CockpitSeatState.initial();
         CockpitExecutionTimeline executionTimeline = CockpitExecutionTimeline.initial();
         CockpitRecoveryState recoveryState = CockpitRecoveryState.initial();
+        CockpitEngineerState engineerState = CockpitEngineerState.unavailable();
         String uiScenarioId = "";
         String canonicalScenarioId = "";
         int handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -303,6 +310,7 @@ public final class CockpitHmiState {
             seatState = source.seatState;
             executionTimeline = source.executionTimeline;
             recoveryState = source.recoveryState;
+            engineerState = source.engineerState;
             uiScenarioId = source.uiScenarioId;
             canonicalScenarioId = source.canonicalScenarioId;
             handleSchemaVersion = source.handleSchemaVersion;
@@ -341,6 +349,9 @@ public final class CockpitHmiState {
             }
             if (recoveryState == null) {
                 throw new IllegalStateException("recovery state missing");
+            }
+            if (engineerState == null) {
+                throw new IllegalStateException("engineer state missing");
             }
             uiScenarioId = bounded(uiScenarioId, 96);
             canonicalScenarioId = bounded(canonicalScenarioId, 96);
