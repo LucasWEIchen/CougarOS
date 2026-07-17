@@ -323,3 +323,36 @@ UI 截图人工复核确认 Seat drawer 完全位于 `(1264,160)-(1888,1048)`，
 Safety Context 和 reported evidence 文本均在画布内。临时截图位于本地 `/tmp` 且不进入 Git；设备身份、raw UI tree、
 logcat 和参数 payload 仍只保留在本地未跟踪 evidence。V1 typed parameter/approval 缺口由 `DEV-055` 跟踪；下一硬件
 增量为 P4-W06 Plan/effect execution timeline。
+
+## 13. 2026-07-18 P4-W06 observable execution timeline evidence
+
+同一 Android 13/API 33 ARM64 USB 设备通过：
+
+1. signed Runtime/Client2 安装、signature permission、secondary SDK dex、Session/Event transport 和 recovery 回归；
+2. Execution surface 在 1920x1080 safe frame 内显示 Intent/Context/Plan/Policy/Graph/Effect/Readback 七阶段；
+3. accepted Session 显示 Intent/Policy SESSION ACCEPTED，回放的 `ScenarioRequested` 不降级 admission；
+4. 当前 snapshot `activePlanRevision=0`，因此 Plan NOT PUBLISHED；无 action/effect event 时 Graph NOT WIRED、Effect
+   NOT DISPATCHED、Readback UNAVAILABLE；
+5. Media STOP、Navigation CANCEL 独立显示 UNAVAILABLE，最新 `ScenarioRequested` 以脱敏 sequence/type/status/target/
+   source/result 显示；
+6. HVAC/Seat debounce、互斥、未知 Context position block、desired/reported separation 继续通过；
+7. service/Effect/Adapter/hardware dispatch、Driver/HAL 和 virtualization 均未触发。
+
+```text
+cockpit_execution_timeline_verified=true
+cockpit_execution_plan_not_published_verified=true
+cockpit_execution_graph_not_wired_verified=true
+cockpit_execution_effect_not_dispatched_verified=true
+cockpit_execution_readback_unavailable_verified=true
+cockpit_execution_media_navigation_projection_verified=true
+cockpit_execution_typed_event_trace_verified=true
+scenario_execution_enabled=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+人工截图复核确认七阶段、Media/Nav 和 trace 均位于 `(1264,160)-(1888,1048)` 半透明浮窗内，原车模背景可见，无越界
+或不连贯遮挡。截图仅保存在本地 `/tmp`，不进入 Git；设备身份、raw UI tree/logcat 保留在本地未跟踪 evidence。
+Runtime execution event publication 偏差由 `DEV-056` 跟踪；下一硬件增量为 P4-W07 Approval/partial/retry/undo UX。

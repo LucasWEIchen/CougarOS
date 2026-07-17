@@ -256,6 +256,13 @@ for marker in \
   'cockpit_seat_heat_vent_mutex_verified=true' \
   'cockpit_seat_unknown_restricted_fail_closed=true' \
   'cockpit_seat_manual_session_admission_verified=true' \
+  'cockpit_execution_timeline_verified=true' \
+  'cockpit_execution_plan_not_published_verified=true' \
+  'cockpit_execution_graph_not_wired_verified=true' \
+  'cockpit_execution_effect_not_dispatched_verified=true' \
+  'cockpit_execution_readback_unavailable_verified=true' \
+  'cockpit_execution_media_navigation_projection_verified=true' \
+  'cockpit_execution_typed_event_trace_verified=true' \
   'client2_hmi_replay_projected=true' \
   'legacy_text_callback_authoritative=false' \
   'client2_ui_session_projection_verified=true' \
@@ -523,6 +530,13 @@ printf '%s\n' \
   "cockpit_seat_reported_readback_available=false" \
   "cockpit_seat_verified_before_readback=false" \
   "seat_manual_typed_parameter_field=false" \
+  "cockpit_execution_timeline_verified=true" \
+  "cockpit_execution_plan_not_published_verified=true" \
+  "cockpit_execution_graph_not_wired_verified=true" \
+  "cockpit_execution_effect_not_dispatched_verified=true" \
+  "cockpit_execution_readback_unavailable_verified=true" \
+  "cockpit_execution_media_navigation_projection_verified=true" \
+  "cockpit_execution_typed_event_trace_verified=true" \
   "client2_navigation_menu_reopen_verified=true" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \

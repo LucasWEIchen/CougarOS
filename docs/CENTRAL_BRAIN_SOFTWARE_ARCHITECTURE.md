@@ -218,3 +218,29 @@ approval response、undo execution 仍为 false。Service 数量保持三项，�
 test principal；`hardware_accessed=false`。
 真实 AAOS/Vendor/NPU adapter 继续受
 `S2-ADP-002` 和 Driver/HAL gap gate 阻塞。
+
+## P4-W06 Client2 observable execution projection
+
+Client2 application layer now projects the AIOS control chain as:
+
+```text
+SessionSnapshot / validated RuntimeEvent
+  -> CockpitHmiReducer.Event defensive copy
+  -> CockpitExecutionTimeline immutable transition
+  -> CockpitHmiState revision
+  -> CockpitControlCoordinator
+  -> seven stable Android TextView rows + bounded typed trace
+```
+
+The projection is intentionally downstream-only: it cannot submit an Effect, grant approval, retry, compensate or write vehicle
+state. `CockpitExecutionTimeline` understands typed contract states so future Runtime events do not require View-owned logic, while
+the current Runtime truth remains visible as Plan NOT PUBLISHED, Graph NOT WIRED, Effect NOT DISPATCHED and Readback UNAVAILABLE.
+FRESH typed observation is required before APPLIED/VERIFIED. The eight-item trace stores no raw ID, digest, user/model text or
+vehicle payload.
+
+P4-W01 through P4-W06 are complete at the Android application layer. The next package is P4-W07 Approval/partial/retry/undo UX;
+its controls must stay disabled until corresponding Runtime services and typed evidence are published. Req IDs: `S2-UX-001`,
+`S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`. Current flags:
+`cockpit_execution_timeline_implemented=true`, `cockpit_execution_typed_event_projection=true`,
+`cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
+`cockpit_execution_readback_available=false`, `production_ready=false`, `target_hardware_validated=false`.

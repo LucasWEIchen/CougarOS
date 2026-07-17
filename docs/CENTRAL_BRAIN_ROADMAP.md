@@ -291,8 +291,13 @@ upright/comfort/rest preset、immutable desired/request/safety/evidence state、
 rest preset 不改变 desired、不创建 Session。host policy 证明 PARKED+OCCUPIED+UNBELTED 的 rest 只进入
 WAITING_APPROVAL，仍不 dispatch。冻结 Session V1 的 bounded `SEAT1`/approval 缺口由 `DEV-055` 跟踪。
 
-下一实现工作包为 `P4-W06 Plan/effect execution timeline`。必须将现有 Session、Graph/Effect unavailable 和后续 typed
-node/effect 状态映射到可扫描 timeline；不得把 Session admission 或 desired state 表示为车辆执行成功。
+`P4-W06 Plan/effect execution timeline` 已完成：Client2 以 reducer-owned immutable projection 持续显示 Intent、Context、
+Plan、Policy、Graph、Effect、Readback 七阶段，并保留最多八条脱敏 typed-event 轨迹。Android 13/API 33 ARM64 已验证
+当前 Runtime 只到 Session admission；Plan/Graph/Effect/readback 分别保持 NOT PUBLISHED/NOT WIRED/NOT DISPATCHED/
+UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
+
+下一实现工作包为 `P4-W07 Approval/partial/retry/undo UX`。必须只根据 typed approval/effect/compensation evidence
+显示可操作命令；当前未发布的 approval response、retry 和 undo service 必须保持不可用。
 
 ## 7. 近期进展
 
@@ -453,6 +458,10 @@ node/effect 状态映射到可扫描 timeline；不得把 Session admission 或 
   recline/preset 控件、300 ms debounce 和 `manual.seat -> scene.manual.seat.adjust.v1` governed Session。heat/vent 互斥，
   UNKNOWN_RESTRICTED 驾驶席靠背不改变 desired、不创建 Session；reported/Effect/Adapter/硬件保持 unavailable/not-dispatched。
   下一工作包为 P4-W06 Plan/effect execution timeline。
+- 完成 `P4-W06 Plan/effect execution timeline`：新增 immutable 七阶段 projection、八条 bounded typed-event trace、
+  Media STOP/Navigation CANCEL 状态和 1920x1080 可滚动执行页。host、APK、static gate 与 Android 13/API 33 ARM64
+  实体验证通过；当前 Runtime 无 Plan/Effect publication，页面保持 NOT PUBLISHED/NOT WIRED/NOT DISPATCHED/
+  UNAVAILABLE。下一工作包为 P4-W07 Approval/partial/retry/undo UX。
 
 ## 8. 当前门禁
 
@@ -672,8 +681,15 @@ cockpit_seat_heat_vent_mutex_verified=true
 cockpit_seat_unknown_restricted_fail_closed=true
 cockpit_seat_reported_readback_available=false
 seat_manual_typed_parameter_field=false
+cockpit_execution_timeline_implemented=true
+cockpit_execution_timeline_reducer_owned=true
+cockpit_execution_typed_event_projection=true
+cockpit_execution_trace_capacity=8
+cockpit_execution_plan_published=false
+cockpit_execution_effect_dispatch_enabled=false
+cockpit_execution_readback_available=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W06
+implementation_stage=P4-W07
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

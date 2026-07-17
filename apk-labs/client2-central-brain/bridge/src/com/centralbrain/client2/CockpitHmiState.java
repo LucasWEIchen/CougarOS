@@ -28,6 +28,7 @@ public final class CockpitHmiState {
     private final DeviceDrawer deviceDrawer;
     private final CockpitHvacState hvacState;
     private final CockpitSeatState seatState;
+    private final CockpitExecutionTimeline executionTimeline;
     private final String uiScenarioId;
     private final String canonicalScenarioId;
     private final int handleSchemaVersion;
@@ -53,6 +54,7 @@ public final class CockpitHmiState {
         deviceDrawer = builder.deviceDrawer;
         hvacState = builder.hvacState;
         seatState = builder.seatState;
+        executionTimeline = builder.executionTimeline;
         uiScenarioId = builder.uiScenarioId;
         canonicalScenarioId = builder.canonicalScenarioId;
         handleSchemaVersion = builder.handleSchemaVersion;
@@ -101,6 +103,10 @@ public final class CockpitHmiState {
 
     public CockpitSeatState getSeatState() {
         return seatState;
+    }
+
+    public CockpitExecutionTimeline getExecutionTimeline() {
+        return executionTimeline;
     }
 
     public String getUiScenarioId() {
@@ -252,6 +258,7 @@ public final class CockpitHmiState {
         DeviceDrawer deviceDrawer = DeviceDrawer.CLOSED;
         CockpitHvacState hvacState = CockpitHvacState.initial();
         CockpitSeatState seatState = CockpitSeatState.initial();
+        CockpitExecutionTimeline executionTimeline = CockpitExecutionTimeline.initial();
         String uiScenarioId = "";
         String canonicalScenarioId = "";
         int handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -279,6 +286,7 @@ public final class CockpitHmiState {
             deviceDrawer = source.deviceDrawer;
             hvacState = source.hvacState;
             seatState = source.seatState;
+            executionTimeline = source.executionTimeline;
             uiScenarioId = source.uiScenarioId;
             canonicalScenarioId = source.canonicalScenarioId;
             handleSchemaVersion = source.handleSchemaVersion;
@@ -308,6 +316,9 @@ public final class CockpitHmiState {
             }
             if (seatState == null) {
                 throw new IllegalStateException("seat state missing");
+            }
+            if (executionTimeline == null) {
+                throw new IllegalStateException("execution timeline missing");
             }
             uiScenarioId = bounded(uiScenarioId, 96);
             canonicalScenarioId = bounded(canonicalScenarioId, 96);

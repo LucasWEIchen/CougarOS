@@ -80,4 +80,5 @@ jobs:
           bash tools/check_central_brain_android_client2_intent_shell.sh
           bash tools/check_central_brain_android_client2_hvac_surface.sh
           bash tools/check_central_brain_android_client2_seat_surface.sh
+          bash tools/check_central_brain_android_client2_execution_timeline.sh
           bash tools/check_central_brain_root_readme.sh

@@ -358,6 +358,12 @@ for marker in \
   'cockpit_seat_governed_manual_session=true' \
   'cockpit_seat_unknown_restricted_fail_closed=true' \
   'cockpit_seat_reported_readback_available=false' \
+  'cockpit_execution_timeline_implemented=true' \
+  'cockpit_execution_timeline_reducer_owned=true' \
+  'cockpit_execution_typed_event_projection=true' \
+  'cockpit_execution_plan_published=false' \
+  'cockpit_execution_effect_dispatch_enabled=false' \
+  'cockpit_execution_readback_available=false' \
   'client2_hmi_checkpoint_text_persisted=false' \
   'ui_scenario_id=care.cold' \
   'scenario_id=scene.comfort.cold.v1' \
@@ -578,6 +584,38 @@ wait_for_resource_state \
 tap_resource centralBrainExecutionTab "$LOG_DIR/ui-before-execution-tab.xml"
 wait_for_resource_state \
   centralBrainExecutionSummaryText visible "$LOG_DIR/ui-execution-tab.xml"
+for marker in \
+  'centralBrainTimelineIntentText' \
+  '01 Intent：SESSION ACCEPTED' \
+  '02 Context：UNAVAILABLE' \
+  '03 Plan：NOT PUBLISHED' \
+  '04 Policy：SESSION ACCEPTED'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-execution-tab.xml"; then
+    cat "$LOG_DIR/ui-execution-tab.xml" >&2
+    echo "Client2 execution timeline missing upper marker: $marker" >&2
+    exit 1
+  fi
+done
+for _ in {1..4}; do
+  "${ADB_DEVICE[@]}" shell input swipe 1700 900 1700 400 250
+  sleep 0.1
+  dump_ui "$LOG_DIR/ui-execution-scrolled.xml"
+  if grep -Fq '07 Readback：UNAVAILABLE' "$LOG_DIR/ui-execution-scrolled.xml"; then
+    break
+  fi
+done
+for marker in \
+  '05 Graph：NOT WIRED' \
+  '06 Effect：NOT DISPATCHED' \
+  '07 Readback：UNAVAILABLE' \
+  'Media STOP：UNAVAILABLE · Navigation CANCEL：UNAVAILABLE' \
+  'ScenarioRequested · REQUESTED'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-execution-scrolled.xml"; then
+    cat "$LOG_DIR/ui-execution-scrolled.xml" >&2
+    echo "Client2 execution timeline missing lower marker: $marker" >&2
+    exit 1
+  fi
+done
 tap_resource centralBrainResultTab "$LOG_DIR/ui-before-result-tab.xml"
 wait_for_resource_state \
   centralBrainResultSummaryText visible "$LOG_DIR/ui-result-tab.xml"
@@ -628,6 +666,13 @@ printf '%s\n' \
   "cockpit_seat_reported_readback_available=false" \
   "cockpit_seat_verified_before_readback=false" \
   "seat_manual_typed_parameter_field=false" \
+  "cockpit_execution_timeline_verified=true" \
+  "cockpit_execution_plan_not_published_verified=true" \
+  "cockpit_execution_graph_not_wired_verified=true" \
+  "cockpit_execution_effect_not_dispatched_verified=true" \
+  "cockpit_execution_readback_unavailable_verified=true" \
+  "cockpit_execution_media_navigation_projection_verified=true" \
+  "cockpit_execution_typed_event_trace_verified=true" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \

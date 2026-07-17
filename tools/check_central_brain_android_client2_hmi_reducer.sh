@@ -11,6 +11,7 @@ HVAC_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHvacState.java"
 HVAC_INTENT="$PROJECT/bridge/src/com/centralbrain/client2/HvacControlIntent.java"
 SEAT_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitSeatState.java"
 SEAT_INTENT="$PROJECT/bridge/src/com/centralbrain/client2/SeatControlIntent.java"
+EXECUTION_TIMELINE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitExecutionTimeline.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 TEST_MAIN="$PROJECT/bridge/test/com/centralbrain/client2/CockpitHmiReducerTestMain.java"
 SDK_AAR="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar"
@@ -26,6 +27,7 @@ ANDROID_JAR="$ANDROID_HOME/platforms/android-36/android.jar"
 
 for path in \
   "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT" "$SEAT_STATE" "$SEAT_INTENT" \
+  "$EXECUTION_TIMELINE" \
   "$COORDINATOR" "$TEST_MAIN" "$ANDROID_JAR"; do
   test -f "$path"
 done
@@ -36,7 +38,8 @@ if [[ ! -f "$SDK_AAR" ]]; then
 fi
 
 if grep -Eq '^import android\.' \
-    "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT" "$SEAT_STATE" "$SEAT_INTENT"; then
+    "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT" "$SEAT_STATE" "$SEAT_INTENT" \
+    "$EXECUTION_TIMELINE"; then
   echo "Cockpit HMI state/reducer must remain Android-view independent" >&2
   exit 1
 fi
@@ -65,7 +68,7 @@ javac \
   -classpath "$ANDROID_JAR:$SDK_CLASSES" \
   -d "$BUILD_DIR/classes" \
   "$HVAC_INTENT" "$HVAC_STATE" "$SEAT_INTENT" "$SEAT_STATE" \
-  "$STATE" "$REDUCER" "$TEST_MAIN"
+  "$EXECUTION_TIMELINE" "$STATE" "$REDUCER" "$TEST_MAIN"
 
 java \
   -classpath "$ANDROID_JAR:$SDK_CLASSES:$BUILD_DIR/classes" \

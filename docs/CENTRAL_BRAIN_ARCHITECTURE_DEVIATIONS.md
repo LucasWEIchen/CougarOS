@@ -79,6 +79,7 @@
 | DEV-053 | P4-W03 固定 1920x1080 safe frame、UNKNOWN/UNAVAILABLE 投影和 placeholder drawer 不是量产多屏 HMI 或车辆回读。 | S2-HMI-001..003/006, ISSUE-019/033 | Accepted Temporary |
 | DEV-054 | P4-W04 冻结 Session V1 以 canonical HVAC1 utterance/HMI_BUTTON 承载手动参数，不是 typed parameter/HMI_CONTROL transport。 | S2-HMI-001/005, XSC-001/006, ISSUE-033 | Accepted Temporary |
 | DEV-055 | P4-W05 冻结 Session V1 以 canonical SEAT1 utterance/HMI_BUTTON 承载手动参数，且无 approval response，不是 typed safety transport。 | S2-HMI-002/003/005, S2-SAF-001, XSC-001/006, ISSUE-029/033 | Accepted Temporary |
+| DEV-056 | P4-W06 HMI 已能投影完整 typed timeline 合同，但当前 Runtime 只发布 Session 事件，未发布 Plan/Action/Effect/Observation。 | S2-UX-001, S2-HMI-003/006, S2-EVT-001, ISSUE-022/026/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -818,3 +819,21 @@ approval response contract，完成 SDK/Runtime 双端 negotiation、replay/audi
 `cockpit_seat_governed_manual_session=true`、`cockpit_seat_unknown_restricted_fail_closed=true`、
 `scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`。
+
+## DEV-056 P4-W06 timeline projection 完整但 Runtime execution event 未发布
+
+P4-W06 的 `CockpitExecutionTimeline` 已实现 Plan/Action/Approval/Effect/Observation/Compensation allowlisted typed-event
+projection，并严格根据 observation outcome/quality 区分 APPLIED、VERIFIED、MISMATCH、NO_EVIDENCE 和 UNAVAILABLE。
+但当前 `DurableSessionRegistry` 只发布 Session lifecycle/`ScenarioRequested`，`activePlanRevision=0`，没有把 P2/P3
+process-local Scenario/Graph/Effect foundation 接入 Session Event runtime。
+
+因此实体 Client2 只能真实显示 Session admission、Plan NOT PUBLISHED、Graph NOT WIRED、Effect NOT DISPATCHED、Readback
+UNAVAILABLE。host test 使用合同内 typed event 验证未来投影，不是实体 Runtime execution evidence；Media/Nav 默认
+UNAVAILABLE。禁止通过 assistant text、desired state、固定 summary 或 debug Adapter 把页面推进至 APPLIED/VERIFIED。
+
+状态：`Accepted Temporary`。关闭条件是 Runtime 以 version/hash 兼容方式发布持久化、连续 sequence、owner-scoped typed
+Plan/Action/Effect/Observation event，接入 Graph/Effect coordinator/readback，并在 Android 13 process-death/replay 下证明
+幂等和证据一致；生产 Adapter/车辆 readback 仍由 `ISSUE-030` 独立关闭。当前：
+`cockpit_execution_timeline_implemented=true`、`cockpit_execution_typed_event_projection=true`、
+`cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
+`cockpit_execution_readback_available=false`、`production_ready=false`。

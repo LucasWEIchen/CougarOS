@@ -39,6 +39,7 @@ for java_file in \
   HvacControlIntent.java \
   CockpitSeatState.java \
   SeatControlIntent.java \
+  CockpitExecutionTimeline.java \
   CockpitHmiReducer.java \
   CockpitControlCoordinator.java; do
   test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/$java_file"
@@ -74,6 +75,15 @@ if [[ -d "$WORK_DIR" ]]; then
     centralBrainIntentSurface \
     centralBrainPlanSurface \
     centralBrainExecutionSurface \
+    centralBrainTimelineIntentText \
+    centralBrainTimelineContextText \
+    centralBrainTimelinePlanText \
+    centralBrainTimelinePolicyText \
+    centralBrainTimelineGraphText \
+    centralBrainTimelineEffectText \
+    centralBrainTimelineReadbackText \
+    centralBrainExecutionActionsText \
+    centralBrainExecutionChainText \
     centralBrainResultSurface \
     centralBrainHomeButton \
     centralBrainNapButton \
