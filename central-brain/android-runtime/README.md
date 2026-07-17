@@ -655,3 +655,21 @@ The existing hand-built Android Console and Client2 reverse-demo APK remain sepa
 Build success alone proves `contract_defined` only. R1 and complete R2 strict validation passed on the `central_brain_api33_x86_64` Android 13 AVD with system image revision 17, fingerprint `google/sdk_gphone64_x86_64/emu64x:13/TE1A.240213.009/12342917:userdebug/dev-keys`, and a `1920x1080` display. Binder/instrumentation plus API 33 evidence promotes only the typed Protocol Binding to `android_integrated`; it does not imply target-hardware validation or production qualification.
 
 The local build currently warns that its Android SDK command-line tools understand SDK XML up to version 3 while the installed SDK contains version 4 metadata. The build succeeds, but production CI must align command-line tools and SDK metadata before qualification.
+
+## P2-W08 Simulated Effect Adapter Base
+
+`runtime-service/src/debug/java/com/centralbrain/runtime/simulation/` provides a debug/test-only base that implements
+the existing typed `EffectAdapter` contract. `SimulationClock` advances monotonic time explicitly;
+`FaultInjectionProfile` immutably selects no fault, delay, timeout, retryable failure, terminal failure or readback
+mismatch; `SimulatedEffectAdapter` bounds process-memory records to 128 and preserves token idempotency.
+
+Delivery status and simulated readback are separate. A mismatch can have delivery `APPLIED` while its observation is
+`MISMATCH`; every simulation observation is source `SIMULATED` and is never production trusted. The base is absent
+from main/release source, unregistered by production services, and does not parse domain targets, persist state,
+publish plans, execute graphs, dispatch production effects or access Vehicle/VHAL/NPU/Driver-HAL.
+
+The JVM suite, debug/release source compilation and Android 13/API 33 ARM64 probe establish
+`simulated_effect_adapter_base_defined=true` and `simulated_effect_adapter_android13_arm64_verified=true`, while
+`simulated_effect_adapter_production_registered=false`, `simulated_effect_adapter_runtime_wired=false`,
+`effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. P2-W09 adds the first typed HVAC
+subclass without changing these production boundaries.

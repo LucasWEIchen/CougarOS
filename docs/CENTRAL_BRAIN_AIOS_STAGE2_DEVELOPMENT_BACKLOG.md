@@ -322,9 +322,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W08` SimulatedVehicleAdapter base
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-ADP-001`、`S2-EFF-001`。
+- 状态：`DONE`（2026-07-17）；1.5 人日；需求：`S2-ADP-001`、`S2-EFF-001`。
 - 类：`SimulatedEffectAdapter`、`SimulationClock`、`FaultInjectionProfile`。
 - DoD：debug/test build only；production source set 不注册；支持 delay/timeout/failure/readback mismatch。
+- 实现：三类均只存在于 `src/debug`；adapter 复用 typed `EffectAdapter` token contract，固定
+  `simulation=true`、`productionAuthorized=false`、`SignalSource.SIMULATED`，最多 128 条 process-memory
+  record；手动 monotonic clock 不 sleep；每个 invocation 冻结 fault profile，区分 delivery 与 readback。
+- 故障：NONE、DELAY、TIMEOUT、RETRYABLE_FAILURE、TERMINAL_FAILURE、READBACK_MISMATCH；duplicate token
+  返回原始 apply result，token 绑定不同 invocation 时失败关闭。
+- 证据：7 组 JVM tests、debug/release Java compile、DUMP-protected Android 13 ARM64 probe、独立 checker、
+  累计 installer 和 CI。
+- 边界：HVAC/Seat/Media/Nav typed target/state 属于 P2-W09..W11；不注册 production Service/adapter，
+  `simulated_effect_adapter_runtime_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
 
 ### `P2-W09` Simulated HVAC adapter
 

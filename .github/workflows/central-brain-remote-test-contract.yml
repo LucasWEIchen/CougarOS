@@ -62,4 +62,5 @@ jobs:
           bash tools/check_central_brain_android_scenario_manifest.sh
           bash tools/check_central_brain_android_scenario_resolver.sh
           bash tools/check_central_brain_android_scenario_plan_compiler.sh
+          bash tools/check_central_brain_android_simulated_effect_adapter.sh
           bash tools/check_central_brain_root_readme.sh

@@ -59,6 +59,8 @@
 | DEV-033 | P2-W04 Context 固定 non-production-trusted 且未接 Service/provider。 | S2-CTX-001, S2-SAF-001, ISSUE-029/030 | Accepted Temporary |
 | DEV-034 | P2-W05 Scenario asset 只有 Git/CI SHA-256 build identity，没有独立 artifact 密码学签名或 Runtime wiring。 | S2-SCN-001, ISSUE-031 | Accepted Temporary |
 | DEV-035 | P2-W06 Resolver 只提供固定规则和 process-local availability；production trust/Service/compiler 均未接。 | S2-SCN-001, S2-SAF-001, ISSUE-029/031 | Accepted Temporary |
+| DEV-036 | P2-W07 Compiler 只生成 digest-only、未发布、不可执行的 Plan foundation。 | S2-SCN-001, S2-GRF-001, ISSUE-029/031 | Accepted Temporary |
+| DEV-037 | P2-W08 仿真基类只存在于 debug source，并补充非生产 SimulationDescriptor；无 domain target、Runtime 注册或真实 readback。 | S2-ADP-001, S2-EFF-001, ISSUE-030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -335,6 +337,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W05 进展 | cold/fatigue/rest build-owned manifest、strict parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto/production trust/Runtime/Graph 仍关闭。 |
 | P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；model/compiler/production Service/Graph 仍关闭，ISSUE-029/031 仍开放。 |
 | P2-W07 进展 | Digest-bound immutable typed Plan compiler 与 API 33 ARM64 probe 完成；target/Runtime publication/Graph/Effect 仍关闭，ISSUE-029/031 仍开放。 |
+| P2-W08 进展 | Debug-only simulated Effect base、manual clock、fault matrix 与 API 33 ARM64 probe 完成；domain target/Runtime registration/真实 readback 仍关闭，ISSUE-030/033 仍开放。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -431,3 +434,21 @@ Safety grant 或执行证明。
 `scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。关闭本偏差需要 P3/P4 的
 durable Graph/Effect material/dispatch 及 production owner/evidence；不得将 debug compiler probe 提升为执行证据。
+
+## DEV-037 P2-W08 仿真基类不是 production adapter 或真实车辆回读
+
+完整 AIOS adapter 应由 profile-aware registry 激活，绑定 domain typed target、capability/area/range、安全策略、
+desired/reported Twin、durable Effect material 和真实目标 readback。P2-W08 为先冻结故障与幂等语义，只在
+`src/debug` 提供通用 `SimulatedEffectAdapter`、manual `SimulationClock` 与 immutable
+`FaultInjectionProfile`；它不解析任何 HVAC/Seat/Media/Nav target，也不接 Runtime Service。
+
+现有 P1 `EffectAdapter.Descriptor` 没有 simulation provenance 字段，因此 debug 基类补充独立
+`SimulationDescriptor`。该 descriptor 只用于工程观测，固定 `simulation=true`、
+`productionAuthorized=false`、source `SIMULATED`，不能进入 production registry 或提升 Effect trust。
+process-memory record 只用于 debug fault test，不提供进程恢复、审计持久性或硬件证据。
+
+状态：`Accepted Temporary`。 `simulated_effect_adapter_debug_only=true`、
+`simulated_effect_adapter_release_source_absent=true`、`simulated_effect_adapter_production_registered=false`、
+`simulated_effect_adapter_runtime_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。P2-W09..P2-W11 必须分别
+实现 typed domain target；P3/P8 必须另行完成 durable Runtime/production adapter 与真实 readback evidence。
