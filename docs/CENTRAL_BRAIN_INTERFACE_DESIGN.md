@@ -760,3 +760,42 @@ Status: `runtime_contract_v2_defined=true`, `runtime_contract_v2_verified=true`,
 `runtime_contract_v2_physical_android13_arm64_verified=true`,
 `frozen_v1_hashes_unchanged=true`, `event_v2_cursor_ack_required=true`,
 `event_v2_interface_published=false`, `scenario_execution_enabled=false`, `hardware_accessed=false`.
+
+## Android P2-W01 Canonical Vehicle Signal Schema
+
+Package: `com.centralbrain.runtime.vehicle.schema`. This is an in-process Java value contract. It is not AIDL,
+not a vehicle provider, and not an OEM property mapping.
+
+| Type | Public contract | Failure behavior |
+| --- | --- | --- |
+| `VehicleSignalPath` | `fromCanonicalPath(String)`、`getScalarType/unit/areas/maximumAgeMs`、`validateUnitAndArea` | unknown path、wrong unit/area -> `IllegalArgumentException` |
+| `SignalValue` | `ofBoolean/ofInteger/ofDecimal/ofText/withoutValue`、typed getter、`validateFreshness(nowElapsedMs)` | type/quality/value mismatch、non-finite decimal、control/oversize text、non-positive revision -> reject |
+| `SignalTimestamp` | source epoch + received elapsed realtime、`ageMs/isFresh` | non-positive source、negative/future receive、negative max age -> reject |
+| `SignalQuality` | `VALID/STALE/UNAVAILABLE/ERROR/CONFLICT`、`hasScalarValue/isUsableForDecision` | only `VALID` is decision-usable; no-value qualities reject scalar |
+| `SignalSource` | `SIMULATED/AAOS/VENDOR/DERIVED` provenance helpers | never grants provider availability or production authority |
+
+The initial allowlist is exactly:
+
+| Canonical path | Scalar | Unit | Areas | Max age |
+| --- | --- | --- | --- | --- |
+| `Vehicle.Speed` | decimal | `km/h` | `global` | 500 ms |
+| `Vehicle.Powertrain.Transmission.CurrentGear` | text | empty | `global` | 1000 ms |
+| `Vehicle.Chassis.ParkingBrake.IsEngaged` | boolean | empty | `global` | 1000 ms |
+| `Vehicle.Cabin.HVAC.IsAirConditioningActive` | boolean | empty | `cabin` | 2000 ms |
+| `Vehicle.Cabin.HVAC.AmbientAirTemperature` | decimal | `celsius` | `cabin` | 5000 ms |
+| `Vehicle.Cabin.HVAC.Station.TargetTemperature` | decimal | `celsius` | four seat zones | 2000 ms |
+| `Vehicle.Cabin.HVAC.Station.FanSpeed` | integer | `level` | cabin/front zones | 2000 ms |
+| `Vehicle.Cabin.Seat.IsOccupied` | boolean | empty | four seat zones | 1000 ms |
+| `Vehicle.Cabin.Seat.IsBelted` | boolean | empty | four seat zones | 1000 ms |
+| `Vehicle.Cabin.Seat.Heating` | integer | `level` | four seat zones | 2000 ms |
+| `Vehicle.Cabin.Seat.Ventilation` | integer | `level` | four seat zones | 2000 ms |
+| `Vehicle.Cabin.Seat.Position.Recline` | decimal | `degree` | four seat zones | 1000 ms |
+
+`VALID` must be fresh at validation time; `STALE` must be older than the path maximum. `UNAVAILABLE/ERROR/
+CONFLICT` carry metadata but no scalar. Freshness is based only on `receivedElapsedRealtimeMs`; source epoch remains
+for trace correlation and must not drive safety timeout decisions.
+
+Status: `vehicle_signal_schema_defined=true`, `vehicle_signal_path_allowlist_count=12`,
+`vehicle_signal_schema_android13_arm64_verified=true`, `vehicle_signal_provider_wired=false`,
+`vehicle_property_mapping_configured=false`, `hardware_accessed=false`. Req IDs: `S2-CTX-001`, `S2-TWN-001`,
+`DEL-001/003..005`; tracking: `DEV-030`, `ISSUE-030`.

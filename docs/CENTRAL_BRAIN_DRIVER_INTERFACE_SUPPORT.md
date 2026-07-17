@@ -551,3 +551,18 @@ Event V2 cursor/ACK 仅完成独立 wire 演进决策，未发布 AIDL/Service/c
 状态：`runtime_contract_v2_verified=true`、`event_v2_interface_published=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+
+### P2-W01 Vehicle Signal Driver/HAL Boundary
+
+P2-W01 只新增纯 Java canonical schema、JVM test、debug-only Activity 和静态 checker。12 项 path 是
+Runtime 内部 VSS-style 语义，不包含 `VehiclePropertyIds`、CarPropertyManager、vendor Binder/SOA、
+CAN/DBC、device node、ioctl/sysfs 或 Driver/HAL ABI。探针只构造 `SIMULATED` value。
+
+`SignalSource.AAOS/VENDOR` 是 provenance enum，不触发发现、连接、权限、readback 或授权。生产
+Runtime/Governance Service 均不得引用 schema provider；真实映射继续由 `ISSUE-030`/P8 等待目标平台
+SDK、service owner、权限与 area contract。
+
+状态：`vehicle_signal_schema_defined=true`、`vehicle_signal_provider_wired=false`、
+`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量
+为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-CTX-001`、`S2-TWN-001`、`KH-003/006`、`DEL-004/005`。

@@ -231,11 +231,15 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W01` Canonical vehicle signal types
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-CTX-001`、`S2-TWN-001`。
+- 状态：`DONE`（2026-07-17）；1.5 人日；需求：`S2-CTX-001`、`S2-TWN-001`。
 - 新增包：`runtime-service/.../vehicle/schema/`。
 - 类：`VehicleSignalPath`、`SignalValue`、`SignalQuality`、`SignalSource`、`SignalTimestamp`。
-- DoD：path allowlist、typed scalar、unit、area、freshness；禁止 arbitrary object。
-- 测试：VSS path/area/unit validation、stale/invalid quality。
+- DoD：12 项 VSS-style path allowlist、boolean/integer/decimal/text typed scalar、精确 unit/area、
+  source/quality、receive-side monotonic freshness；禁止 arbitrary object/JSON/Parcelable。
+- 测试：JVM path/area/unit/type/stale/quality/future-time/invalid payload；Android 13/API 33 ARM64
+  DUMP-protected debug probe 验证相同合同。
+- 边界：`vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、
+  `hardware_accessed=false`；AAOS/Vendor 仅是 provenance enum，不是激活证据。
 
 ### `P2-W02` Vehicle capability catalog
 

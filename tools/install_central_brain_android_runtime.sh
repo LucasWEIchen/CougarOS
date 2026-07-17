@@ -838,6 +838,49 @@ if [[ "$SCHEDULER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+VEHICLE_SIGNAL_NONCE="$(date +%s%N)"
+VEHICLE_SIGNAL_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.vehicle.schema.VehicleSignalSchemaProbeActivity \
+  --es nonce "$VEHICLE_SIGNAL_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$VEHICLE_SIGNAL_PROBE_OUTPUT"; then
+  echo "$VEHICLE_SIGNAL_PROBE_OUTPUT" >&2
+  echo "vehicle signal schema debug probe did not start successfully" >&2
+  exit 1
+fi
+VEHICLE_SIGNAL_PROBE_PASSED=false
+for _ in {1..40}; do
+  VEHICLE_SIGNAL_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbVehicleSignal:I)"
+  if grep -Fq \
+      "nonce=$VEHICLE_SIGNAL_NONCE vehicle_signal_schema_probe_complete=true" \
+      <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_signal_schema_verified=true" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_signal_path_allowlist_verified=true" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_signal_typed_scalar_verified=true" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_signal_unit_area_verified=true" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_signal_freshness_quality_verified=true" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_signal_schema_android13_arm64_verified=true" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "vehicle_property_mapping_configured=false" \
+        <<<"$VEHICLE_SIGNAL_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$VEHICLE_SIGNAL_LOG"; then
+    VEHICLE_SIGNAL_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$VEHICLE_SIGNAL_PROBE_PASSED" != true ]]; then
+  echo "$VEHICLE_SIGNAL_LOG" >&2
+  echo "vehicle signal schema probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1495,6 +1538,11 @@ printf '%s\n' \
   "native_vendor_npu_provider_available=false" \
   "native_runtime_dispatch_enabled=false" \
   "native_hardware_accessed=false" \
+  "vehicle_signal_schema_defined=true" \
+  "vehicle_signal_path_allowlist_count=12" \
+  "vehicle_signal_schema_android13_arm64_verified=true" \
+  "vehicle_signal_provider_wired=false" \
+  "vehicle_property_mapping_configured=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

@@ -500,3 +500,27 @@ NPU、Driver/HAL 或目标硬件资格。
 `runtime_contract_v2_physical_android13_arm64_verified=true`、
 `frozen_v1_hashes_unchanged=true`、`event_v2_cursor_ack_required=true`、
 `event_v2_interface_published=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`。
+
+## 21. P2-W01 canonical vehicle signal trace
+
+本增量映射 `S2-CTX-001`、`S2-TWN-001`、`DEL-001/003..005`：
+
+1. `VehicleSignalPath` 必须是固定 allowlist，不接受任意 path。首版精确包含 speed、gear、parking
+   brake、HVAC active/cabin temperature/target/fan、seat occupied/belted/heating/ventilation/recline 12 项。
+2. 每个 path 固定 scalar type、unit、允许 area 和 maximum age。`SignalValue` 只允许 boolean、integer、
+   finite decimal、最长 64 字符无控制符 text；禁止 arbitrary `Object`、JSON、Bundle/Parcel payload。
+3. 时间戳同时携带 source wall time 和 receive-side elapsed realtime；freshness 只使用 monotonic receive
+   time，拒绝 future receive time、`VALID` stale value 和 `STALE` fresh value。
+4. `VALID/STALE` 必须携带 typed scalar；`UNAVAILABLE/ERROR/CONFLICT` 不得携带 scalar。只有 `VALID`
+   可直接参与后续决策，具体安全必需字段由 P2-W04 policy 继续收敛。
+5. source 为 `SIMULATED/AAOS/VENDOR/DERIVED` provenance。AAOS/VENDOR enum 不证明 provider 已配置、
+   property 已映射、权限可用或 production authorized。
+6. P2-W01 不做 capability range、desired/reported twin、Context snapshot 或 production adapter；这些分别
+   由 P2-W02..P2-W04/P8 实现。
+7. static/JVM/API 33 ARM64 debug probe 必须验证 allowlist、type、unit/area、freshness/quality，并持续断言
+   `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`。
+8. 本增量不访问 Vehicle/VHAL/vendor service、NPU、Driver/HAL，不恢复 Python/Linux/虚拟化路径。
+
+状态：`vehicle_signal_schema_defined=true`、`vehicle_signal_path_allowlist_count=12`、
+`vehicle_signal_schema_android13_arm64_verified=true`、`vehicle_signal_provider_wired=false`、
+`vehicle_property_mapping_configured=false`、`hardware_accessed=false`。

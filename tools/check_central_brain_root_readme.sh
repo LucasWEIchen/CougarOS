@@ -76,6 +76,12 @@ for marker in \
   'runtime_contract_v2_verified=true' \
   'runtime_contract_v2_physical_android13_arm64_verified=true' \
   'frozen_v1_hashes_unchanged=true' \
+  'vehicle_signal_schema_defined=true' \
+  'vehicle_signal_path_allowlist_count=12' \
+  'vehicle_signal_schema_android13_arm64_verified=true' \
+  'vehicle_signal_provider_wired=false' \
+  'vehicle_property_mapping_configured=false' \
+  'implementation_stage=P2-W02' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -211,7 +217,7 @@ remaining = readme.split("### 未开发或外部阻塞", 1)[1].split(
 )[0]
 remaining_rows = sum(
     remaining.count(status)
-    for status in ("`NOT_STARTED`", "`EXTERNAL_BLOCKED`", "`OUT_OF_SCOPE`")
+    for status in ("`IN_PROGRESS`", "`NOT_STARTED`", "`EXTERNAL_BLOCKED`", "`OUT_OF_SCOPE`")
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")

@@ -162,7 +162,6 @@ for doc in \
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md; do
   require_text "$doc" "P1-W06"
 done
-require_text README.md "implementation_stage=P2-W01"
 require_text docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md \
   '### `P1-W06` Room v4 schema'
 require_text docs/CENTRAL_BRAIN_ROADMAP.md \
