@@ -35,6 +35,8 @@ for java_file in \
   Client2ScenarioBridge.java \
   ScenarioCallback.java \
   CockpitHmiState.java \
+  CockpitHvacState.java \
+  HvacControlIntent.java \
   CockpitHmiReducer.java \
   CockpitControlCoordinator.java; do
   test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/$java_file"
@@ -75,6 +77,23 @@ if [[ -d "$WORK_DIR" ]]; then
     centralBrainNapButton \
     centralBrainSessionStrip \
     centralBrainDeviceDrawer \
+    centralBrainHvacSurface \
+    centralBrainHvacDesiredText \
+    centralBrainHvacPowerButton \
+    centralBrainHvacTemperatureDownButton \
+    centralBrainHvacTemperatureUpButton \
+    centralBrainHvacFanDownButton \
+    centralBrainHvacFanUpButton \
+    centralBrainHvacAutoButton \
+    centralBrainHvacAcButton \
+    centralBrainHvacSyncButton \
+    centralBrainHvacAirflowButton \
+    centralBrainHvacWarmPresetButton \
+    centralBrainHvacCoolPresetButton \
+    centralBrainHvacClearPresetButton \
+    centralBrainHvacEvidenceText \
+    centralBrainHvacRequestText \
+    centralBrainSeatPlaceholder \
     centralBrainHvacDetailButton \
     centralBrainSeatDetailButton; do
     rg -q "$surface_id" "$WORK_DIR/res/layout/main_layout.xml"

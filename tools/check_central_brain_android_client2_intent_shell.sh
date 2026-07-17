@@ -114,7 +114,7 @@ for marker in \
   'cockpit_hmi_four_stage_shell_implemented=true' \
   'cockpit_hmi_intent_first_primary=true' \
   'cockpit_hmi_device_drawer_scaffolded=true' \
-  'cockpit_hvac_surface_implemented=false' \
+  'cockpit_hvac_surface_implemented=true' \
   'cockpit_seat_surface_implemented=false' \
   'Graph：NOT WIRED' \
   'Effect：NOT DISPATCHED' \
@@ -133,7 +133,7 @@ for marker in \
   'cockpit_hmi_four_stage_shell_verified=true' \
   'cockpit_hmi_safe_frame_1920x1080_verified=true' \
   'cockpit_hmi_device_drawer_verified=true' \
-  'cockpit_hvac_surface_implemented=false' \
+  'cockpit_hvac_surface_implemented=true' \
   'cockpit_seat_surface_implemented=false' \
   'scenario_execution_enabled=false' \
   'hardware_accessed=false'; do
@@ -148,7 +148,7 @@ printf '%s\n' \
   'cockpit_hmi_safe_frame_1920x1080_verified=true' \
   'cockpit_hmi_material_alpha=0.60' \
   'cockpit_hmi_device_drawer_scaffolded=true' \
-  'cockpit_hvac_surface_implemented=false' \
+  'cockpit_hvac_surface_implemented=true' \
   'cockpit_seat_surface_implemented=false' \
   'scenario_execution_enabled=false' \
   'hardware_accessed=false'

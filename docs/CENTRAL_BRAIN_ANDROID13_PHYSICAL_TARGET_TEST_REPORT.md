@@ -250,3 +250,40 @@ target_hardware_validated=false
 
 本节只记录脱敏应用层证据。设备序列号、raw UI XML/logcat、用户/模型文本和车辆 payload 位于本地未跟踪日志，
 不进入 GitHub。固定分辨率差异由 `DEV-053` 跟踪；下一硬件增量为 P4-W04 HVAC control surface。
+
+## 11. 2026-07-17 P4-W04 HVAC control surface evidence
+
+同一 Android 13/API 33 ARM64 USB 设备通过：
+
+1. signed Runtime/Client2 安装、signature permission、secondary SDK dex 和 1920x1080 safe frame；
+2. HVAC drawer power、zone、temperature/fan stepper、AUTO、A/C、SYNC、airflow、WARM/COOL/CLEAR controls 可见；
+3. 三次快速升温输入由 300 ms debounce 合并为一个 `manual.hvac` Session，desired 从 22.5 C 到 24.0 C；
+4. bridge canonical 映射为 `scene.manual.hvac.adjust.v1`，只记录参数存在性，不记录 HVAC target payload；
+5. Session admission 投影为 REQUESTED，reported/source/quality 保持 UNAVAILABLE/NO_EVIDENCE，VERIFIED 为 false；
+6. 累计 Runtime unavailable/retry、Runtime death replay、Client2 restart/resume、hidden state restore 继续通过；
+7. service/Effect/Adapter/hardware dispatch 均未触发，Seat 仍为 P4-W05 placeholder。
+8. 重复测试发现并修复 Session 替换竞态：新 bind 先建立，再 cancel/close 旧 Session；最终完整 recovery matrix 通过，
+   active durable Session 不再因显式场景切换累积。验收每轮清理 Runtime test data，历史测试记录不影响容量结论。
+
+```text
+cockpit_hvac_surface_implemented=true
+cockpit_hvac_controls_verified=true
+cockpit_hvac_debounce_verified=true
+cockpit_hvac_manual_session_admission_verified=true
+cockpit_hvac_desired_reported_separation_verified=true
+cockpit_hvac_reported_readback_available=false
+cockpit_hvac_verified_before_readback=false
+hvac_manual_typed_parameter_field=false
+client2_hmi_replacement_bind_first_verified=true
+client2_hmi_replaced_session_cancel_verified=true
+cockpit_seat_surface_implemented=false
+scenario_execution_enabled=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+UI 截图人工复核确认 HVAC drawer 完全位于 `(1264,160)-(1888,1048)`，原车模背景可见，controls 在 drawer 内滚动，
+无越界或不连贯遮挡；临时截图已删除。设备身份、raw UI tree/logcat 和目标参数只保留在本地未跟踪 evidence。
+V1 typed parameter 缺口由 `DEV-054` 跟踪；下一硬件增量为 P4-W05 Seat control surface。

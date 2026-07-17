@@ -253,10 +253,10 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P4-W04' \
+  'implementation_stage=P4-W05' \
   'client2_session_event_primary_api=true' \
   'client2_session_event_typed_callback=true' \
-  'client2_scenario_alias_map_count=12' \
+  'client2_scenario_alias_map_count=13' \
   'client2_session_reconnect_replay_verified=true' \
   'client2_session_duplicate_event_suppressed=true' \
   'cockpit_hmi_state_reducer_implemented=true' \
@@ -272,7 +272,14 @@ for marker in \
   'cockpit_hmi_intent_first_primary=true' \
   'cockpit_hmi_safe_frame_1920x1080_verified=true' \
   'cockpit_hmi_device_drawer_scaffolded=true' \
-  'cockpit_hvac_surface_implemented=false' \
+  'cockpit_hvac_surface_implemented=true' \
+  'cockpit_hvac_reducer_owned=true' \
+  'cockpit_hvac_debounce_ms=300' \
+  'cockpit_hvac_governed_manual_session=true' \
+  'cockpit_hvac_desired_reported_separation_verified=true' \
+  'cockpit_hvac_reported_readback_available=false' \
+  'cockpit_hvac_verified_before_readback=false' \
+  'hvac_manual_typed_parameter_field=false' \
   'cockpit_seat_surface_implemented=false' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
@@ -433,8 +440,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P4-W04" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P4-W04 as the next unfinished scope")
+if "Stage 2 P4-W05" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P4-W05 as the next unfinished scope")
 
 for group in (
     "APP-004",

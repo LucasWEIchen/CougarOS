@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +34,8 @@ public final class CockpitControlCoordinator implements
     private static final String RESULT_STAGE_TAG = "central_brain_stage_result";
     private static final String HVAC_DETAIL_TAG = "central_brain_detail_hvac";
     private static final String SEAT_DETAIL_TAG = "central_brain_detail_seat";
+    private static final String HVAC_TAG_PREFIX = "central_brain_hvac_";
+    private static final long HVAC_DEBOUNCE_MS = 300L;
     private static final String PREFS_NAME = "central_brain_hmi_state_v1";
     private static final int CHECKPOINT_SCHEMA = 1;
     private static final Object ACTIVE_LOCK = new Object();
@@ -42,6 +46,8 @@ public final class CockpitControlCoordinator implements
     private final Activity activity;
     private final Application application;
     private final SharedPreferences preferences;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final Runnable submitHvacRunnable = this::submitPendingHvac;
 
     private CockpitHmiState state;
     private Client2ScenarioBridge.SessionConnection connection;
@@ -56,7 +62,12 @@ public final class CockpitControlCoordinator implements
     private TextView resultEvidenceView;
     private TextView sessionStripTitleView;
     private TextView drawerTitleView;
-    private TextView drawerBodyView;
+    private TextView hvacDesiredView;
+    private TextView hvacTemperatureView;
+    private TextView hvacFanView;
+    private TextView hvacModesView;
+    private TextView hvacEvidenceView;
+    private TextView hvacRequestView;
     private View panelOverlay;
     private View intentSurface;
     private View planSurface;
@@ -67,6 +78,8 @@ public final class CockpitControlCoordinator implements
     private View executionTab;
     private View resultTab;
     private View deviceDrawer;
+    private View hvacSurface;
+    private View seatPlaceholder;
     private boolean detached;
 
     private CockpitControlCoordinator(Activity activity) {
@@ -128,7 +141,12 @@ public final class CockpitControlCoordinator implements
         resultEvidenceView = findTextView("centralBrainResultEvidenceText");
         sessionStripTitleView = findTextView("centralBrainSessionStripTitle");
         drawerTitleView = findTextView("centralBrainDrawerTitle");
-        drawerBodyView = findTextView("centralBrainDrawerBodyText");
+        hvacDesiredView = findTextView("centralBrainHvacDesiredText");
+        hvacTemperatureView = findTextView("centralBrainHvacTemperatureText");
+        hvacFanView = findTextView("centralBrainHvacFanText");
+        hvacModesView = findTextView("centralBrainHvacModesText");
+        hvacEvidenceView = findTextView("centralBrainHvacEvidenceText");
+        hvacRequestView = findTextView("centralBrainHvacRequestText");
         intentSurface = findView("centralBrainIntentSurface");
         planSurface = findView("centralBrainPlanSurface");
         executionSurface = findView("centralBrainExecutionSurface");
@@ -138,6 +156,8 @@ public final class CockpitControlCoordinator implements
         executionTab = findView("centralBrainExecutionTab");
         resultTab = findView("centralBrainResultTab");
         deviceDrawer = findView("centralBrainDeviceDrawer");
+        hvacSurface = findView("centralBrainHvacSurface");
+        seatPlaceholder = findView("centralBrainSeatPlaceholder");
         panelOverlay = findView("centralBrainPanelOverlay");
         if (panelOverlay != null) {
             panelOverlay.setOnClickListener(this);
@@ -227,6 +247,10 @@ public final class CockpitControlCoordinator implements
                     CockpitHmiState.DeviceDrawer.SEAT));
             return;
         }
+        if (tag != null && tag.toString().startsWith(HVAC_TAG_PREFIX)) {
+            handleHvacControl(tag.toString());
+            return;
+        }
         if (!(view instanceof TextView)) {
             return;
         }
@@ -254,11 +278,95 @@ public final class CockpitControlCoordinator implements
         if (scenarioId == null || scenarioId.isEmpty()) {
             return;
         }
-        closeCurrentConnection(true);
         accept(CockpitHmiReducer.Event.scenarioSubmitted(scenarioId));
         Client2ScenarioBridge.SessionConnection opened =
                 Client2ScenarioBridge.openSession(activity, scenarioId, userText, this);
-        attachConnection(opened);
+        replaceConnection(opened);
+    }
+
+    private void handleHvacControl(String tag) {
+        HvacControlIntent current = state.getHvacState().getDesired();
+        HvacControlIntent changed;
+        switch (tag) {
+            case "central_brain_hvac_power":
+                changed = current.withPower(!current.isPowerOn());
+                break;
+            case "central_brain_hvac_zone_driver":
+                changed = current.withZone(HvacControlIntent.Zone.DRIVER);
+                break;
+            case "central_brain_hvac_zone_passenger":
+                changed = current.withZone(HvacControlIntent.Zone.FRONT_PASSENGER);
+                break;
+            case "central_brain_hvac_zone_cabin":
+                changed = current.withZone(HvacControlIntent.Zone.CABIN);
+                break;
+            case "central_brain_hvac_temp_down":
+                changed = current.stepTemperature(-1);
+                break;
+            case "central_brain_hvac_temp_up":
+                changed = current.stepTemperature(1);
+                break;
+            case "central_brain_hvac_fan_down":
+                changed = current.stepFan(-1);
+                break;
+            case "central_brain_hvac_fan_up":
+                changed = current.stepFan(1);
+                break;
+            case "central_brain_hvac_auto":
+                changed = current.withAutoMode(!current.isAutoMode());
+                break;
+            case "central_brain_hvac_ac":
+                changed = current.withAcEnabled(!current.isAcEnabled());
+                break;
+            case "central_brain_hvac_sync":
+                changed = current.withSyncEnabled(!current.isSyncEnabled());
+                break;
+            case "central_brain_hvac_airflow":
+                changed = current.nextAirflow();
+                break;
+            case "central_brain_hvac_preset_warm":
+                changed = current.applyPreset(HvacControlIntent.Preset.WARM);
+                break;
+            case "central_brain_hvac_preset_cool":
+                changed = current.applyPreset(HvacControlIntent.Preset.COOL);
+                break;
+            case "central_brain_hvac_preset_clear":
+                changed = current.applyPreset(HvacControlIntent.Preset.CLEAR);
+                break;
+            default:
+                return;
+        }
+        long beforeRevision = state.getHvacState().getDesiredRevision();
+        accept(CockpitHmiReducer.Event.hvacDesiredChanged(changed));
+        if (state.getHvacState().getDesiredRevision() != beforeRevision) {
+            mainHandler.removeCallbacks(submitHvacRunnable);
+            mainHandler.postDelayed(submitHvacRunnable, HVAC_DEBOUNCE_MS);
+            Log.i(TAG, markers()
+                    + " cockpit_hvac_desired_changed=true"
+                    + " hvac_desired_revision=" + state.getHvacState().getDesiredRevision()
+                    + " hvac_debounce_scheduled=true");
+        }
+    }
+
+    private void submitPendingHvac() {
+        if (detached) {
+            return;
+        }
+        CockpitHvacState hvac = state.getHvacState();
+        if (hvac.getRequestState() != CockpitHvacState.RequestState.DEBOUNCING
+                || hvac.getDesiredRevision() <= 0) {
+            return;
+        }
+        HvacControlIntent intent = hvac.getDesired();
+        long revision = hvac.getDesiredRevision();
+        accept(CockpitHmiReducer.Event.hvacManualSubmitted(revision));
+        Client2ScenarioBridge.SessionConnection opened =
+                Client2ScenarioBridge.openHvacSession(activity, intent, this);
+        replaceConnection(opened);
+        Log.i(TAG, markers()
+                + " cockpit_hvac_manual_session_submitted=true"
+                + " hvac_desired_revision=" + revision
+                + " hvac_parameter_logged=false");
     }
 
     private void resumeSession() {
@@ -290,18 +398,25 @@ public final class CockpitControlCoordinator implements
         connection = candidate;
     }
 
-    private void closeCurrentConnection(boolean replacing) {
+    private void replaceConnection(Client2ScenarioBridge.SessionConnection candidate) {
         Client2ScenarioBridge.SessionConnection previous;
         synchronized (this) {
-            previous = connection;
-            connection = null;
-        }
-        if (previous != null) {
-            previous.close();
-            if (replacing) {
-                Log.i(TAG, markers()
-                        + " client2_hmi_session_replaced=true");
+            if (detached) {
+                if (candidate != null) {
+                    candidate.close();
+                }
+                return;
             }
+            previous = connection;
+            connection = candidate;
+        }
+        if (previous != null && previous != candidate) {
+            boolean cancelled = previous.cancel();
+            previous.close();
+            Log.i(TAG, markers()
+                    + " client2_hmi_session_replaced=true"
+                    + " client2_hmi_replacement_bind_first=true"
+                    + " client2_hmi_replaced_session_cancelled=" + cancelled);
         }
     }
 
@@ -463,30 +578,75 @@ public final class CockpitControlCoordinator implements
             setText(sessionStripTitleView, "等待场景输入");
         }
         setText(resultSummaryView, "暂无可验证车辆结果");
+        CockpitHvacState hvac = current.getHvacState();
         setText(resultEvidenceView,
-                "Desired：UNAVAILABLE"
-                        + "\nReported：UNAVAILABLE"
-                        + "\nSource：UNAVAILABLE"
-                        + "\nQuality：NO EVIDENCE");
+                hvac.getDesiredRevision() > 0
+                        ? "Desired：" + hvac.getDesired().desiredSummary()
+                                + "\nReported：UNAVAILABLE"
+                                + "\nSource：UNAVAILABLE"
+                                + "\nQuality：NO EVIDENCE"
+                                + "\nRevision：" + hvac.getDesiredRevision()
+                                + "\nEffect：" + hvac.getEffectState()
+                        : "Desired：UNAVAILABLE"
+                                + "\nReported：UNAVAILABLE"
+                                + "\nSource：UNAVAILABLE"
+                                + "\nQuality：NO EVIDENCE");
         renderDrawer(current.getDeviceDrawer());
     }
 
     private void renderDrawer(CockpitHmiState.DeviceDrawer drawer) {
         setVisible(deviceDrawer, drawer != CockpitHmiState.DeviceDrawer.CLOSED);
+        setVisible(hvacSurface, drawer == CockpitHmiState.DeviceDrawer.HVAC);
+        setVisible(seatPlaceholder, drawer == CockpitHmiState.DeviceDrawer.SEAT);
         if (drawer == CockpitHmiState.DeviceDrawer.HVAC) {
             setText(drawerTitleView, "空调 Effect");
-            setText(drawerBodyView,
-                    "Surface：NOT IMPLEMENTED (P4-W04)"
-                            + "\nDesired：UNAVAILABLE"
-                            + "\nReported：UNAVAILABLE"
-                            + "\nSource：UNAVAILABLE");
+            CockpitHvacState hvac = state.getHvacState();
+            HvacControlIntent desired = hvac.getDesired();
+            setText(hvacDesiredView,
+                    "Desired · rev " + hvac.getDesiredRevision()
+                            + "\n" + desired.desiredSummary());
+            setText(hvacTemperatureView, desired.temperatureLabel());
+            setText(hvacFanView, "FAN " + desired.getFanLevel());
+            setText(hvacModesView,
+                    "POWER " + onOff(desired.isPowerOn())
+                            + "   AUTO " + onOff(desired.isAutoMode())
+                            + "   A/C " + onOff(desired.isAcEnabled())
+                            + "\nSYNC " + onOff(desired.isSyncEnabled())
+                            + "   ZONE " + desired.getZone()
+                            + "\nAIRFLOW " + desired.getAirflow()
+                            + "   PRESET " + desired.getPreset());
+            setText(hvacEvidenceView,
+                    "Reported：UNAVAILABLE"
+                            + "\nSource：" + hvac.getSource()
+                            + "\nQuality：" + hvac.getQuality()
+                            + "\nEffect：" + hvac.getEffectState());
+            setText(hvacRequestView,
+                    "Governed request：" + requestLabel(hvac.getRequestState())
+                            + "\n300 ms 合并 · 不直接调用 Adapter");
         } else if (drawer == CockpitHmiState.DeviceDrawer.SEAT) {
             setText(drawerTitleView, "座椅 Effect");
-            setText(drawerBodyView,
-                    "Surface：NOT IMPLEMENTED (P4-W05)"
-                            + "\nDesired：UNAVAILABLE"
-                            + "\nReported：UNAVAILABLE"
-                            + "\nSource：UNAVAILABLE");
+        }
+    }
+
+    private static String onOff(boolean value) {
+        return value ? "ON" : "OFF";
+    }
+
+    private static String requestLabel(CockpitHvacState.RequestState state) {
+        switch (state) {
+            case DEBOUNCING:
+                return "等待合并";
+            case SUBMITTING:
+                return "正在受理";
+            case ACCEPTED:
+                return "SESSION ACCEPTED";
+            case FAILED:
+                return "FAILED";
+            case DIRTY:
+                return "待提交";
+            case IDLE:
+            default:
+                return "IDLE";
         }
     }
 
@@ -538,6 +698,9 @@ public final class CockpitControlCoordinator implements
         }
         if ("task.home".equals(scenarioId)) {
             return "准备回家";
+        }
+        if ("manual.hvac".equals(scenarioId)) {
+            return "手动空调调整";
         }
         return "";
     }
@@ -606,6 +769,7 @@ public final class CockpitControlCoordinator implements
                     CockpitHmiReducer.Event.detached());
             state = detachedState;
             detached = true;
+            mainHandler.removeCallbacks(submitHvacRunnable);
             previous = connection;
             connection = null;
         }
@@ -632,11 +796,16 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_hmi_four_stage_shell_implemented=true"
                 + " cockpit_hmi_intent_first_primary=true"
                 + " cockpit_hmi_device_drawer_scaffolded=true"
-                + " cockpit_hvac_surface_implemented=false"
+                + " cockpit_hvac_surface_implemented=true"
+                + " cockpit_hvac_reducer_owned=true"
+                + " cockpit_hvac_debounce_ms=300"
+                + " cockpit_hvac_governed_manual_session=true"
+                + " cockpit_hvac_reported_readback_available=false"
                 + " cockpit_seat_surface_implemented=false"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"
+                + " production_effect_dispatch_enabled=false"
                 + " hardware_accessed=false";
     }
 

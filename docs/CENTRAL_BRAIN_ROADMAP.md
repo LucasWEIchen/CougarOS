@@ -278,8 +278,15 @@ existing Session resume/replay、hidden state restore 和菜单重开。
 “意图/计划/执行/结果”可观察 shell；Header 固定显示 source/driving/connection，HVAC/Seat 只作为次级详情抽屉。
 1920x1080 实体 Android 13 ARM64 已验证 `(1264,160)-(1888,1048)` 安全框、60% 浅灰材质、阶段切换、抽屉和恢复。
 
-下一实现工作包为 `P4-W04 HVAC control surface`。必须先实现 desired/reported/source/quality、控件 reducer 和
-governed request 映射；不得提前 dispatch adapter 或把 Session admission 表述为车控完成。
+`P4-W04 HVAC control surface` 已完成：power/zone/temperature/fan/AUTO/A-C/SYNC/airflow/preset、immutable
+desired/request/evidence state、300 ms debounce 和 `scene.manual.hvac.adjust.v1` governed Session 已进入 Client2。
+实体 Android 13/API 33 ARM64 验证三次快速温度输入只产生一个 Session；desired 到 24.0 C，但 reported/source/
+quality 继续显示 unavailable/no evidence，未 dispatch Adapter/Effect。冻结 Session V1 的 bounded `HVAC1` 兼容承载
+由 `DEV-054` 跟踪。重复验收还修复了显式 Session replacement 的 Service 重建竞态：先发起 replacement bind，
+再 cancel/close 旧 Session，防止短暂无绑定窗口和 active-session 容量泄漏。
+
+下一实现工作包为 `P4-W05 Seat control surface`。必须实现 zone/heating/ventilation/massage/recline/preset、
+UNKNOWN_RESTRICTED 驾驶席 fail-closed 和 governed manual request；不得伪造 occupant/readback 或 dispatch 硬件。
 
 ## 7. 近期进展
 
@@ -432,6 +439,10 @@ governed request 映射；不得提前 dispatch adapter 或把 Session admission
   source/driving/connection Header、HVAC/Seat 次级抽屉和 1920x1080/alpha 0.60 资源；host、APK build、
   Android 13 ARM64 happy/recovery 均通过。HVAC/Seat control、scenario/Graph/Effect dispatch 和真实 readback 仍为 false，
   下一工作包为 P4-W04。
+- 完成 `P4-W04 HVAC control surface`：新增 immutable HVAC target/state、完整空调控件、300 ms debounce、
+  `manual.hvac -> scene.manual.hvac.adjust.v1` governed Session 和 desired/reported/source/quality/effect 分层；host、APK、
+  static gate 与 Android 13 ARM64 实体测试通过。Session admission 仅为 REQUESTED，readback/Effect/Adapter/硬件保持
+  unavailable/not-dispatched；下一工作包为 P4-W05 Seat control surface。
 
 ## 8. 当前门禁
 
@@ -618,7 +629,7 @@ production_effect_dispatch_enabled=false
 client2_session_event_primary_api=true
 client2_session_event_typed_callback=true
 client2_legacy_submit_compatibility=true
-client2_scenario_alias_map_count=12
+client2_scenario_alias_map_count=13
 client2_session_snapshot_verified=true
 client2_session_event_sequence_verified=true
 client2_session_reconnect_replay_verified=true
@@ -637,10 +648,20 @@ cockpit_hmi_four_stage_shell_implemented=true
 cockpit_hmi_intent_first_primary=true
 cockpit_hmi_safe_frame_1920x1080_verified=true
 cockpit_hmi_device_drawer_scaffolded=true
-cockpit_hvac_surface_implemented=false
+cockpit_hvac_surface_implemented=true
+cockpit_hvac_reducer_owned=true
+cockpit_hvac_debounce_ms=300
+cockpit_hvac_governed_manual_session=true
+cockpit_hvac_reported_readback_available=false
+hvac_manual_typed_parameter_field=false
+cockpit_hvac_reducer_owned=true
+cockpit_hvac_debounce_ms=300
+cockpit_hvac_governed_manual_session=true
+cockpit_hvac_reported_readback_available=false
+hvac_manual_typed_parameter_field=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W04
+implementation_stage=P4-W05
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

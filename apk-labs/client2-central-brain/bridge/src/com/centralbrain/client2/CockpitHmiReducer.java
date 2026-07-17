@@ -32,6 +32,36 @@ public final class CockpitHmiReducer {
             case DRAWER_SELECTED:
                 next.deviceDrawer = event.deviceDrawer;
                 return next.buildNext();
+            case HVAC_DESIRED_CHANGED:
+                CockpitHvacState changed = current.getHvacState().desiredChanged(event.hvacIntent);
+                if (changed == current.getHvacState()) {
+                    return current;
+                }
+                next.hvacState = changed;
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.HVAC;
+                return next.buildNext();
+            case HVAC_MANUAL_SUBMITTED:
+                next.hvacState = current.getHvacState().submitted(event.hvacRevision);
+                next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
+                next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.HVAC;
+                next.uiScenarioId = "manual.hvac";
+                next.canonicalScenarioId = "";
+                next.handleSchemaVersion = SessionContract.SCHEMA_VERSION;
+                next.sessionId = "";
+                next.acceptedAtEpochMs = 0;
+                next.expiresAtEpochMs = 0;
+                next.sessionState = 0;
+                next.lastEventSequence = 0;
+                next.resumeCursor = "";
+                next.snapshotSummary = "";
+                next.assistantDisplayText = "";
+                next.lastEventType = "";
+                next.errorCode = "";
+                next.errorMessage = "";
+                next.replayComplete = false;
+                next.terminal = false;
+                return next.buildNext();
             case SCENARIO_SUBMITTED:
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
                 next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
@@ -70,6 +100,9 @@ public final class CockpitHmiReducer {
                 next.expiresAtEpochMs = event.handle.expiresAtEpochMs;
                 next.canonicalScenarioId = event.canonicalScenarioId;
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTED;
+                if ("manual.hvac".equals(current.getUiScenarioId())) {
+                    next.hvacState = current.getHvacState().requestAccepted();
+                }
                 next.errorCode = "";
                 next.errorMessage = "";
                 return next.buildNext();
@@ -84,6 +117,9 @@ public final class CockpitHmiReducer {
                 next.connectionState = event.terminal
                         ? CockpitHmiState.ConnectionState.CLOSED
                         : CockpitHmiState.ConnectionState.CONNECTED;
+                if ("manual.hvac".equals(current.getUiScenarioId())) {
+                    next.hvacState = current.getHvacState().requestAccepted();
+                }
                 next.errorCode = "";
                 next.errorMessage = "";
                 return next.buildNext();
@@ -143,6 +179,9 @@ public final class CockpitHmiReducer {
                 next.errorCode = event.errorCode;
                 next.errorMessage = event.text;
                 next.replayComplete = false;
+                if ("manual.hvac".equals(current.getUiScenarioId())) {
+                    next.hvacState = current.getHvacState().requestFailed();
+                }
                 return next.buildNext();
             case DETACHED:
                 next.connectionState = current.hasSession() && !current.isTerminal()
@@ -190,6 +229,8 @@ public final class CockpitHmiReducer {
             PANEL_VISIBILITY,
             SURFACE_SELECTED,
             DRAWER_SELECTED,
+            HVAC_DESIRED_CHANGED,
+            HVAC_MANUAL_SUBMITTED,
             SCENARIO_SUBMITTED,
             CONNECTION_CHANGED,
             SESSION_OPENED,
@@ -207,6 +248,8 @@ public final class CockpitHmiReducer {
         private boolean flag;
         private CockpitHmiState.SurfaceStage surfaceStage;
         private CockpitHmiState.DeviceDrawer deviceDrawer;
+        private HvacControlIntent hvacIntent;
+        private long hvacRevision;
         private String uiScenarioId = "";
         private String canonicalScenarioId = "";
         private String sessionId = "";
@@ -240,6 +283,18 @@ public final class CockpitHmiReducer {
         public static Event drawerSelected(CockpitHmiState.DeviceDrawer deviceDrawer) {
             Event event = new Event(Type.DRAWER_SELECTED);
             event.deviceDrawer = Objects.requireNonNull(deviceDrawer, "deviceDrawer");
+            return event;
+        }
+
+        public static Event hvacDesiredChanged(HvacControlIntent intent) {
+            Event event = new Event(Type.HVAC_DESIRED_CHANGED);
+            event.hvacIntent = Objects.requireNonNull(intent, "intent");
+            return event;
+        }
+
+        public static Event hvacManualSubmitted(long desiredRevision) {
+            Event event = new Event(Type.HVAC_MANUAL_SUBMITTED);
+            event.hvacRevision = desiredRevision;
             return event;
         }
 

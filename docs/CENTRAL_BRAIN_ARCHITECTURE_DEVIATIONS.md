@@ -77,6 +77,7 @@
 | DEV-051 | fixed UI alias 仍是闭源 Client2 兼容边界；legacy static owner 已由 P4-W02 Java coordinator 解除。 | S2-UX-001, S2-HMI-005, ISSUE-019/033 | Accepted Temporary |
 | DEV-052 | P4-W02 process-recreation checkpoint 使用 app-private SharedPreferences，不是量产加密 HMI state store。 | S2-UX-001..003, NV-G-003, ISSUE-019/034 | Accepted Temporary |
 | DEV-053 | P4-W03 固定 1920x1080 safe frame、UNKNOWN/UNAVAILABLE 投影和 placeholder drawer 不是量产多屏 HMI 或车辆回读。 | S2-HMI-001..003/006, ISSUE-019/033 | Accepted Temporary |
+| DEV-054 | P4-W04 冻结 Session V1 以 canonical HVAC1 utterance/HMI_BUTTON 承载手动参数，不是 typed parameter/HMI_CONTROL transport。 | S2-HMI-001/005, XSC-001/006, ISSUE-033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -769,13 +770,31 @@ keystore lifecycle 或 OEM HMI state owner。量产接入必须由 target owner 
 ## DEV-053 P4-W03 固定 1920x1080 安全框和 unavailable 投影不是量产多屏 HMI
 
 P4-W03 按当前 Client2 实体目标固定 panel 为 `(1264,160)-(1888,1048)`，主材质 alpha=0.60。Header 在 Context、
-driving signal 和 vehicle adapter 未接时分别显示 `UNAVAILABLE`、`UNKNOWN · 受限`；HVAC/Seat drawer 只显示
-P4-W04/P4-W05 placeholder。该范围解决当前 1920x1080 演示 UI 边界和 AIOS 四阶段可观察性，但没有 density/rotation/
+driving signal 和 vehicle adapter 未接时分别显示 `UNAVAILABLE`、`UNKNOWN · 受限`；HVAC drawer 已由 P4-W04
+实现控制面，Seat drawer 仍显示 P4-W05 placeholder。该范围解决当前 1920x1080 演示 UI 边界和 AIOS 四阶段可观察性，
+但没有 density/rotation/
 multi-display layout policy、OEM distraction rule、真实 source/quality/readback 或设备控制。
 
 状态：`Accepted Temporary`。`cockpit_hmi_four_stage_shell_implemented=true`、
 `cockpit_hmi_safe_frame_1920x1080_verified=true`、`cockpit_hmi_material_alpha=0.60`、
-`cockpit_hmi_device_drawer_scaffolded=true`、`cockpit_hvac_surface_implemented=false`、
+`cockpit_hmi_device_drawer_scaffolded=true`、`cockpit_hvac_surface_implemented=true`、
 `cockpit_seat_surface_implemented=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。P4-W04/W05 关闭设备 surface placeholder；P4-W08/W09
 关闭 driving/multi-resolution；P8 目标 owner 关闭真实 source/readback。任何一项关闭前均不得把当前固定画布解释为量产 HMI。
+
+## DEV-054 P4-W04 Session V1 HVAC 参数兼容层不是 versioned typed parameter transport
+
+架构需求要求手动 HVAC 以 bounded parameter 和 `source=HMI_CONTROL` 进入统一 Governance/Effect 链。当前冻结
+`SessionRequest` V1 只有 `utterance` 和 `SOURCE_HMI_BUTTON`，没有 typed parameter bundle 或 HMI_CONTROL 常量；修改
+现有 AIDL/hash 会破坏已经发布的 Client2/Runtime V1 compatibility。
+
+P4-W04 因此在 `Client2ScenarioBridge.openHvacSession` 内将 immutable `HvacControlIntent` 编码为 exact canonical
+`HVAC1` grammar，固定映射 `manual.hvac -> scene.manual.hvac.adjust.v1`，并使用 V1 `SOURCE_HMI_BUTTON`。View 和
+Coordinator 不接触 wire string；parser 拒绝未知/重复/非 canonical/越界字段；日志不记录参数。该 Session 当前只完成
+admission，reported/source/quality 继续 unavailable/no evidence，Adapter/Effect/hardware dispatch 为 false。
+
+状态：`Accepted Temporary`。关闭条件是发布 versioned Session parameter contract 和独立 `HMI_CONTROL` source，完成
+SDK/Runtime 双端 version/hash negotiation、migration、replay/audit/隐私测试，并将 Client2 bridge 切换到 typed field；不得
+回改冻结 V1。当前：`hvac_manual_bounded_parameter_wire=true`、`hvac_manual_typed_parameter_field=false`、
+`cockpit_hvac_governed_manual_session=true`、`scenario_execution_enabled=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`。

@@ -1872,7 +1872,71 @@ are not inferred from this contract and are tracked by `DEV-053`.
 | Missing Context/vehicle source | `UNAVAILABLE` | restricted/fail closed | `UNAVAILABLE` |
 
 Status: `cockpit_hmi_four_stage_shell_implemented=true`, `cockpit_hmi_device_drawer_scaffolded=true`,
-`cockpit_hvac_surface_implemented=false`, `cockpit_seat_surface_implemented=false`, `scenario_execution_enabled=false`,
-`service_dispatch_triggered=false`, `hardware_accessed=false`, `implementation_stage=P4-W04`.
+`cockpit_hvac_surface_implemented=true`, `cockpit_seat_surface_implemented=false`, `scenario_execution_enabled=false`,
+`service_dispatch_triggered=false`, `hardware_accessed=false`, `implementation_stage=P4-W05`.
 Req IDs: `S2-UX-001..003`, `S2-HMI-001..003/006`, `APP-004`, `XSC-001/005/006`,
 `NV-G-003/006/007`, `DEL-001/003/004/005`; tracking: `DEV-051..053`, `ISSUE-019/033/035`.
+
+## Client2 P4-W04 HVAC Control Surface Interfaces
+
+### Immutable target
+
+`HvacControlIntent` is the only manual HVAC target accepted by the bridge:
+
+```java
+HvacControlIntent.defaults();
+intent.withZone(Zone.DRIVER);
+intent.stepTemperature(+1); // 16.0..30.0 C, 0.5 C
+intent.stepFan(+1);         // 0..7
+intent.withAutoMode(booleanValue);
+intent.withAcEnabled(booleanValue);
+intent.withSyncEnabled(booleanValue);
+intent.nextAirflow();
+intent.applyPreset(Preset.WARM);
+String canonical = intent.toWireValue();
+HvacControlIntent parsed = HvacControlIntent.parseWireValue(canonical);
+```
+
+The compatibility grammar is exact and ordered:
+
+```text
+HVAC1|zone=<DRIVER|FRONT_PASSENGER|CABIN>|power=<0|1>|
+temp_deci_c=<160..300 step 5>|fan=<0..7>|auto=<0|1>|ac=<0|1>|
+sync=<0|1>|airflow=<AUTO|FACE|FEET|DEFROST>|preset=<CUSTOM|WARM|COOL|CLEAR>
+```
+
+Unknown, missing, duplicate, reordered, non-canonical or out-of-range fields throw before Binder connection. The grammar is
+an app bridge compatibility carrier, not a public Session V1 extension; `DEV-054` requires replacement by a versioned typed field.
+
+### HMI state and reducer events
+
+`CockpitHvacState` exposes immutable getters for desired, desired/submitted revision, request state, optional reported target,
+source, quality and Effect state. The only state transitions are:
+
+```java
+CockpitHmiReducer.Event.hvacDesiredChanged(HvacControlIntent intent);
+CockpitHmiReducer.Event.hvacManualSubmitted(long desiredRevision);
+```
+
+Desired changes enter `DEBOUNCING`; a matching revision enters `SUBMITTING`; Session open/snapshot enters `ACCEPTED` and
+Effect `REQUESTED`. Failure enters `FAILED`. No event in P4-W04 can create reported evidence, DISPATCHED, APPLIED or VERIFIED.
+
+### Bridge and debounce
+
+```java
+Client2ScenarioBridge.SessionConnection openHvacSession(
+    Activity activity,
+    HvacControlIntent intent,
+    ScenarioCallback callback);
+```
+
+The bridge maps to `manual.hvac -> scene.manual.hvac.adjust.v1`, derives the Session seat zone, uses V1
+`SOURCE_HMI_BUTTON`, and never logs the wire value. `CockpitControlCoordinator` cancels the prior main-thread callback and
+posts one immutable snapshot after 300 ms. Activity detach removes the pending callback; process recovery observes the accepted
+Session but does not replay an unsubmitted desired change.
+
+Status: `cockpit_hvac_surface_implemented=true`, `cockpit_hvac_reducer_owned=true`,
+`cockpit_hvac_governed_manual_session=true`, `cockpit_hvac_reported_readback_available=false`,
+`hvac_manual_typed_parameter_field=false`, `production_effect_dispatch_enabled=false`, `hardware_accessed=false`.
+Req IDs: `S2-HMI-001/003/004/005`, `S2-ADP-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-054`,
+`ISSUE-030/033`.

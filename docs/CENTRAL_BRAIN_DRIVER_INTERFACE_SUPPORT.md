@@ -968,3 +968,20 @@ model buffer 或 readback contract。`UNAVAILABLE`/`NOT DISPATCHED` 是缺口投
 新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。P4-W04/P4-W05 仍只能通过受治理 typed target；真实
 HVAC/Seat adapter 由 P8/`ISSUE-030` 关闭。Req IDs：`S2-UX-001..003`、`S2-HMI-001..003/006`、
 `XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。
+
+### P4-W04 HVAC control surface Driver/HAL Boundary
+
+本包只新增 Client2 application XML、纯 Java `HvacControlIntent/CockpitHvacState`、HMI reducer/coordinator、现有
+Session/Event SDK bridge 的 bounded manual request、host/static/ADB tests 和文档。温度、风量、zone、mode 和 preset
+只是应用层 desired contract，不是 OEM property ID、area mapping、标定或生产授权。
+
+本包不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU、fd/shared memory、Safety Runtime 或 Driver/HAL；不注册 debug/production HVAC Adapter，不生成 reported/readback，
+不触发 Effect dispatch。Session V1 `HVAC1` 兼容承载由 `DEV-054` 跟踪，不是 Driver 协议。
+
+状态：`cockpit_hvac_surface_implemented=true`、`cockpit_hvac_governed_manual_session=true`、
+`cockpit_hvac_reported_readback_available=false`、`hvac_manual_typed_parameter_field=false`、
+`scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变；真实 HVAC adapter/readback 仍由 P8/`ISSUE-030` 关闭。Req IDs：
+`S2-HMI-001/003/004/005`、`S2-ADP-001`、`XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。

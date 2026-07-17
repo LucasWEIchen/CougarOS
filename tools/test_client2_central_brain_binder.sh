@@ -177,6 +177,7 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_DIR="$ROOT_DIR/logs/test/client2-central-brain-binder/$STAMP"
 mkdir -p "$LOG_DIR"
 "${ADB_DEVICE[@]}" shell settings put secure immersive_mode_confirmations confirmed
+"${ADB_DEVICE[@]}" shell pm clear com.centralbrain.runtime >/dev/null
 "${ADB_DEVICE[@]}" shell pm clear com.tuanjie.urasclient2 >/dev/null
 "${ADB_DEVICE[@]}" shell am force-stop com.tuanjie.urasclient2
 "${ADB_DEVICE[@]}" logcat -c
@@ -346,7 +347,11 @@ for marker in \
   'cockpit_hmi_four_stage_shell_implemented=true' \
   'cockpit_hmi_intent_first_primary=true' \
   'cockpit_hmi_device_drawer_scaffolded=true' \
-  'cockpit_hvac_surface_implemented=false' \
+  'cockpit_hvac_surface_implemented=true' \
+  'cockpit_hvac_reducer_owned=true' \
+  'cockpit_hvac_debounce_ms=300' \
+  'cockpit_hvac_governed_manual_session=true' \
+  'cockpit_hvac_reported_readback_available=false' \
   'cockpit_seat_surface_implemented=false' \
   'client2_hmi_checkpoint_text_persisted=false' \
   'ui_scenario_id=care.cold' \
@@ -368,10 +373,80 @@ wait_for_resource_state \
   centralBrainPlanSummaryText visible "$LOG_DIR/ui-plan-after-session.xml"
 tap_resource centralBrainHvacDetailButton "$LOG_DIR/ui-before-hvac-drawer.xml"
 wait_for_resource_state \
-  centralBrainDrawerBodyText visible "$LOG_DIR/ui-hvac-drawer.xml"
+  centralBrainHvacDesiredText visible "$LOG_DIR/ui-hvac-drawer.xml"
+
+HVAC_UP_CENTER="$(node_center centralBrainHvacTemperatureUpButton \
+  "$LOG_DIR/ui-hvac-drawer.xml" || true)"
+read -r HVAC_UP_X HVAC_UP_Y <<<"$HVAC_UP_CENTER"
+if [[ -z "${HVAC_UP_Y:-}" ]]; then
+  cat "$LOG_DIR/ui-hvac-drawer.xml" >&2
+  echo "HVAC temperature stepper is not visible" >&2
+  exit 1
+fi
+"${ADB_DEVICE[@]}" logcat -c
+for _ in {1..3}; do
+  "${ADB_DEVICE[@]}" shell input tap "$HVAC_UP_X" "$HVAC_UP_Y"
+  sleep 0.03
+done
+
+HVAC_LOG=""
+for _ in {1..60}; do
+  HVAC_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+    CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I '*:S')"
+  if grep -Fq 'ui_scenario_id=manual.hvac' <<<"$HVAC_LOG" \
+      && grep -Fq 'client2_session_replay_complete=true' <<<"$HVAC_LOG"; then
+    break
+  fi
+  sleep 0.1
+done
+printf '%s\n' "$HVAC_LOG" >"$LOG_DIR/hvac-log.txt"
+for marker in \
+  'cockpit_hvac_desired_changed=true' \
+  'hvac_debounce_scheduled=true' \
+  'cockpit_hvac_manual_session_submitted=true' \
+  'hvac_parameter_logged=false' \
+  'ui_scenario_id=manual.hvac' \
+  'scenario_id=scene.manual.hvac.adjust.v1' \
+  'hvac_manual_intent_governed_session=true' \
+  'hvac_manual_bounded_parameter_wire=true' \
+  'hvac_manual_typed_parameter_field=false' \
+  'service_dispatch_triggered=false' \
+  'hardware_accessed=false'; do
+  if ! grep -Fq "$marker" <<<"$HVAC_LOG"; then
+    echo "$HVAC_LOG" >&2
+    echo "Client2 HVAC log missing marker: $marker" >&2
+    exit 1
+  fi
+done
+if [[ "$(grep -Fc 'cockpit_hvac_manual_session_submitted=true' \
+    <<<"$HVAC_LOG")" -ne 1 ]]; then
+  echo "$HVAC_LOG" >&2
+  echo "three HVAC inputs were not coalesced into exactly one governed Session" >&2
+  exit 1
+fi
+if [[ "$(grep -F 'ui_scenario_id=manual.hvac' <<<"$HVAC_LOG" \
+    | grep -Fc 'client2_session_opened=true')" -ne 1 ]]; then
+  echo "$HVAC_LOG" >&2
+  echo "coalesced HVAC request did not complete governed Session admission" >&2
+  exit 1
+fi
+dump_ui "$LOG_DIR/ui-hvac-after-debounce.xml"
+for marker in \
+  'text="24.0 C"' \
+  'Reported：UNAVAILABLE' \
+  'Source：UNAVAILABLE' \
+  'Quality：NO_EVIDENCE' \
+  'Effect：REQUESTED' \
+  'SESSION ACCEPTED'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-hvac-after-debounce.xml"; then
+    cat "$LOG_DIR/ui-hvac-after-debounce.xml" >&2
+    echo "Client2 HVAC UI missing desired/readback marker: $marker" >&2
+    exit 1
+  fi
+done
 tap_resource centralBrainDrawerCloseButton "$LOG_DIR/ui-before-drawer-close.xml"
 wait_for_resource_state \
-  centralBrainDrawerBodyText hidden "$LOG_DIR/ui-drawer-closed.xml"
+  centralBrainHvacDesiredText hidden "$LOG_DIR/ui-drawer-closed.xml"
 tap_resource centralBrainExecutionTab "$LOG_DIR/ui-before-execution-tab.xml"
 wait_for_resource_state \
   centralBrainExecutionSummaryText visible "$LOG_DIR/ui-execution-tab.xml"
@@ -408,7 +483,14 @@ printf '%s\n' \
   "cockpit_hmi_four_stage_shell_verified=true" \
   "cockpit_hmi_safe_frame_1920x1080_verified=true" \
   "cockpit_hmi_device_drawer_verified=true" \
-  "cockpit_hvac_surface_implemented=false" \
+  "cockpit_hvac_surface_implemented=true" \
+  "cockpit_hvac_controls_verified=true" \
+  "cockpit_hvac_debounce_verified=true" \
+  "cockpit_hvac_manual_session_admission_verified=true" \
+  "cockpit_hvac_desired_reported_separation_verified=true" \
+  "cockpit_hvac_reported_readback_available=false" \
+  "cockpit_hvac_verified_before_readback=false" \
+  "hvac_manual_typed_parameter_field=false" \
   "cockpit_seat_surface_implemented=false" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
