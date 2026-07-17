@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W03`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W04`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W03`.
+`implementation_stage=P5-W04`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W03`.
+`implementation_stage=P5-W04`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W03`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W04`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +2990,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W03`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,5 +3060,94 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W03`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
+
+## P5-W03 Tool RuleSolver detailed design
+
+### Design intent
+
+P5-W03 converts a static workflow rule graph and untrusted model-selected Tool family IDs into a bounded eligible selection set. It is
+deliberately narrower than a planner, policy engine or executor. The invariant is monotonic reduction: no dynamic input can introduce a
+family absent from the build/test-owned RuleSet, and no RuleSet candidate can survive without a P5-W02 RESOLVED/USABLE manifest.
+
+### Class responsibilities
+
+| Class | Responsibility | Forbidden responsibility |
+| --- | --- | --- |
+| `ToolRuleSet` | validate, sort and freeze catalog plus six rule types; calculate static digest | model parsing, condition collection, health, approval or execution |
+| `ChildRule` | bind one canonical parent family to one canonical child | runtime graph mutation |
+| `ConditionalRule` | bind one family to one canonical boolean condition expectation | evaluating raw vehicle/model/user payload |
+| `ConditionSnapshot` | bounded immutable condition ID -> TRUE/FALSE/UNKNOWN map | claiming source trust or filling missing values |
+| `Request` | current family, model-selected set, completed set and condition snapshot | Tool version/capability/health resolution |
+| `ToolRuleSolver` | ordered allowset reduction and stable failure selection | fallback, approval grant, dispatch or persistence |
+| `Selection` | immutable selected Manifest plus approval-required annotation | approval response or execution permission |
+| `ToolRuleSolverProbeActivity` | debug API 33 ARM64 bounded contract evidence | release exposure or production catalog |
+
+### RuleSet construction
+
+1. Reject null input lists. Reject catalog list length above 128, child list above 256 and conditional list above 256 before collection.
+2. Validate every family with the P5-W02 canonical family rule. Collect catalog in a TreeSet and reject duplicates. Catalog and init must
+   be non-empty.
+3. Validate init, terminal, required-before-exit and requires-approval as duplicate-free catalog subsets.
+4. Validate each child endpoint is in catalog; reject self-edge and duplicate `(parent, child)`. Store parents and children in sorted,
+   unmodifiable maps/sets.
+5. Validate each condition ID against `condition.<segments>`, require target family in catalog and reject duplicate
+   `(family, conditionId)` even when expected booleans conflict. Sort by family then condition.
+6. Reject terminal families with outgoing child edges. Reject overlap between terminal and required-before-exit because it creates an
+   unsatisfiable exit prerequisite in this contract.
+7. Compute SHA-256 over a domain separator plus length-framed, type-prefixed, sorted catalog and rules. Dynamic values never enter this
+   digest. Expose only defensive immutable lists and `Set<RuleType>`.
+
+### Condition semantics
+
+ConditionSnapshot contains no timestamps, trust or provenance in P5-W03. Missing ID is returned as UNKNOWN. A conditional family is
+retained only when every attached condition is known and exactly matches its expected boolean. UNKNOWN never equals FALSE. Future
+production code must construct this snapshot from a trusted Context/Policy owner and version-bind it to the Plan; it must not feed raw
+model text, HMI labels or synthetic vehicle defaults.
+
+### Solver algorithm
+
+1. Reject null Request/resolution list and more than 128 resolutions. Request constructors reject oversize, duplicate and non-canonical
+   family lists. A null current family selects init mode.
+2. If a non-null current family is absent from the RuleSet, return CURRENT_TOOL_NOT_IN_RULE_SET. If it is terminal, return
+   TERMINAL_REACHED. No successor fallback is permitted.
+3. Copy either the sorted init set or the current family's sorted child set. Empty produces NO_RULE_CANDIDATE.
+4. Remove any candidate whose full conditional set is not satisfied. If the whole set becomes empty, return CONDITION_UNSATISFIED.
+5. Compute `completed.containsAll(requiredBeforeExit)`. Remove terminal candidates while false. If empty, return
+   REQUIRED_BEFORE_EXIT_INCOMPLETE.
+6. Intersect with model-selected families. The model may select unknown or disallowed families, but cannot add them. Empty returns
+   MODEL_INTERSECTION_EMPTY; do not ask the model again inside this class and do not select an alternative.
+7. Build a family map only from P5-W02 RESOLVED + USABLE resolutions. Ignore unresolved/unusable entries; reject duplicate usable family
+   because their version/contract identity would be ambiguous. Do not rerun Registry/Resolver logic.
+8. Intersect with the usable family map. Empty returns NO_USABLE_TOOL. For each remaining sorted family, return its immutable Manifest and
+   the static approval-required bit.
+9. Successful Result requires FailureCode.NONE and a non-empty immutable Selection list. Failure always has an empty list. Result and
+   Selection execution flags are permanently false; approval-granted is permanently false.
+
+### Failure behavior and ownership
+
+Constructor violations are programmer/configuration errors and throw bounded `IllegalArgumentException` or `RuleException`; solver
+decision failures return stable enum codes without payload. Instances are immutable and thread-safe after construction; callers own
+atomic publication and snapshot version binding. No class logs rule material, model choices, conditions or Manifest payload.
+
+P5-W03 intentionally has no production rule owner, trusted condition publisher or approval authority. These are tracked by ISSUE-038.
+P5-W04 may consume Selection only after separate signed built-in, deadline/cancel/output/audit admission; it cannot reinterpret a
+requires-approval bit as approval evidence. Runtime/Graph integration is a later explicit composition increment.
+
+### Test matrix
+
+Host tests cover six rule types, input-order-independent digest, immutable views, bounds, malformed terminal graph, init and child
+selection, TRUE/missing condition behavior, disallowed model selection, terminal prerequisite/stop, mixed usable/unusable candidates,
+approval annotation, no grant and no execution. debug/release compilation verifies Android-independent main source. The debug probe
+repeats the positive and negative paths and emits only booleans plus rule type count=6; release manifest omits the Activity.
+
+Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_rule_set_digest_verified=true`,
+`tool_rule_init_child_conditional_verified=true`, `tool_rule_model_intersection_fail_closed=true`,
+`tool_rule_terminal_requirements_verified=true`, `tool_rule_approval_annotation_fail_closed=true`,
+`tool_rule_solver_android13_arm64_verified=false`, `tool_rule_solver_published=false`,
+`tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
+`production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
+`npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+tracking: `DEV-065`, `ISSUE-038`.

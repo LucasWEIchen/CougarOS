@@ -725,7 +725,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 类：`ToolManifest`、`ToolSchemaValidator`；字段包含 ID/version/input/output/capability/risk/timeout/idempotency/health。
 - DoD：immutable manifest、canonical SHA-256 contract digest、32-field/16 KiB bounded scalar object schema、exact-class
   input/output validation、unknown/missing/null/type/range/aggregate-size reject、fail-closed health freshness contract；JVM 与
-  debug/release compile 已验证，Android 13 ARM64 probe 已实现但当前 ADB interface 不可用、待复测。Registry/Resolver/
+  debug/release compile 已验证，Android 13 ARM64 probe 已实现但当前 adb transport=0、待复测。Registry/Resolver/
   Executor、动态 health、Effect/vehicle/NPU/Driver-HAL 未接。
 - 交付：`com.centralbrain.runtime.tools.ToolManifest`、`ToolSchemaValidator`、debug-only
   `ToolManifestProbeActivity` 和独立静态门禁；P5-W02 已消费该合同但未改变 digest/schema 语义；tracking
@@ -738,16 +738,21 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   digest 幂等合并，同 family/version 不同 digest 以稳定 `CONTRACT_CONFLICT` 拒绝。
 - DoD：registered/resolved/usable 分离；inclusive range 选择最高兼容版本；capability 和 optional pinned digest 精确复验；
   dynamic HEALTHY/UNHEALTHY/UNKNOWN + elapsed-time freshness 失败关闭；selected highest unhealthy 时不回退旧版本；
-  `isExecutionEnabled=false`。JVM 和 debug/release compile 已验证；Android 13 ARM64 probe 已实现但 ADB interface 仍不可用。
+  `isExecutionEnabled=false`。JVM 和 debug/release compile 已验证；Android 13 ARM64 probe 已实现但 adb transport=0。
 - 边界：只消费 P5-W01 immutable manifest/digest/schema，不重新解释 input/output；不接 Runtime/Graph/Binder/Room，不注册
   production Tool，不发布 Registry/Resolver Service，不触发 Effect/vehicle/model/NPU/network/hardware。下一工作包
-  `P5-W03 ToolRuleSolver`；`implementation_stage=P5-W03`，tracking `DEV-064`、`ISSUE-037`。
+  `P5-W03 ToolRuleSolver`；`implementation_stage=P5-W04`，tracking `DEV-064`、`ISSUE-037`。
 
 ### `P5-W03` ToolRuleSolver
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-TOL-001`、`S2-SAF-001`。
-- 规则：init/child/conditional/terminal/required-before-exit/requires-approval。
-- DoD：模型选择结果与规则允许集合取交集，空集 fail closed。
+- 状态：`DEVELOPED`（2026-07-18）；2.5 人日；需求：`S2-TOL-001`、`S2-SAF-001`。
+- 类：`ToolRuleSet`、`ToolRuleSolver`；规则包含 init/child/conditional/terminal/required-before-exit/
+  requires-approval，family/condition/rule 数量有界，canonical digest 对输入顺序稳定。
+- DoD：依次生成规则允许集合并与模型选择、P5-W02 USABLE 集合取交集；condition missing/UNKNOWN、terminal 前置
+  未完成、空模型交集和无 USABLE Tool 均稳定 fail closed。requires-approval 只标记，不产生 approval grant；所有 execution
+  flag 固定 false。JVM 与 debug/release compile 已验证；Android 13 ARM64 probe 已接入但当前 ADB transport 不可用。
+- 边界：不调用模型，不接 Runtime/Graph/Binder/Room/Executor，不注册 production Tool，不触发 Effect/vehicle/NPU/network/
+  Driver-HAL。下一工作包 `P5-W04 ToolExecutor boundary`；`implementation_stage=P5-W04`，tracking `DEV-065`、`ISSUE-038`。
 
 ### `P5-W04` ToolExecutor boundary
 

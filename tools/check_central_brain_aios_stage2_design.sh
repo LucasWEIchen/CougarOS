@@ -272,7 +272,7 @@ require_text "$README" 'client2_hmi_checkpoint_text_persisted=false'
 require_text "$README" 'cockpit_hmi_four_stage_shell_implemented=true'
 require_text "$README" 'cockpit_hmi_safe_frame_1920x1080_verified=true'
 require_text "$README" 'cockpit_hmi_device_drawer_scaffolded=true'
-require_text "$README" 'implementation_stage=P5-W03'
+require_text "$README" 'implementation_stage=P5-W04'
 require_text "$README" 'cockpit_hvac_surface_implemented=true'
 require_text "$README" 'cockpit_seat_surface_implemented=true'
 require_text "$README" 'cockpit_execution_timeline_implemented=true'
@@ -302,6 +302,11 @@ require_text "$README" 'tool_registry_contract_defined=true'
 require_text "$README" 'tool_resolver_contract_defined=true'
 require_text "$README" 'tool_registry_android13_arm64_verified=false'
 require_text "$README" 'tool_registry_published=false'
+require_text "$README" 'tool_rule_set_contract_defined=true'
+require_text "$README" 'tool_rule_type_count=6'
+require_text "$README" 'tool_rule_model_intersection_fail_closed=true'
+require_text "$README" 'tool_rule_solver_android13_arm64_verified=false'
+require_text "$README" 'tool_rule_solver_published=false'
 require_text "$README" 'tool_execution_enabled=false'
 require_text "$README" 'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md'
 require_text "$README" 'CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md'
@@ -350,5 +355,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_client2_accessibility_display.
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_p4_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_manifest.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_registry.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_tool_rule_solver.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

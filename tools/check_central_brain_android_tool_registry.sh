@@ -124,8 +124,8 @@ if grep -Eiq 'ToolRegistry|ToolHealthSnapshot|ToolResolver' \
   exit 1
 fi
 if find "$ROOT_DIR/$MAIN_ROOT" -type f -name '*.java' -print0 \
-    | xargs -0 grep -Eiq 'interface ToolExecutor|class ToolRuleSolver'; then
-  echo "P5-W02 must not publish RuleSolver or ToolExecutor" >&2
+    | xargs -0 grep -Eiq 'interface ToolExecutor|class ToolExecutor|class InProcessBuiltInToolExecutor'; then
+  echo "P5-W02/P5-W03 must not publish a ToolExecutor" >&2
   exit 1
 fi
 if grep -R -Eiq \
