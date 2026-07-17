@@ -1000,3 +1000,41 @@ target_hardware_validated=false
 Plan/Graph/Effect Runtime、Client2 Seat 页面或真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 证据只证明
 debug software safety race 与 readback 合同可运行。Req IDs：`S2-ADP-001`、`S2-SAF-001`、
 `DEL-001/003..005`；偏差/问题：`DEV-039`、`ISSUE-029/030/033`。
+
+## Android P2-W11 Simulated Media/Navigation Adapters
+
+受维护交付新增：
+
+1. debug-only `SimulatedMediaEffectAdapter` 与 `SimulatedNavigationEffectAdapter`；
+2. version 1 PLAY/PAUSE/STOP 和 NFKC POI typed targets；
+3. immutable simulated player state 与 digest-only deterministic synthetic POI/route observation；
+4. replaceable backend safety descriptor、delay/timeout/failure/mismatch/idempotency；
+5. 8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+simulated_media_adapter_defined=true
+simulated_navigation_adapter_defined=true
+simulated_media_nav_typed_target_verified=true
+simulated_media_state_verified=true
+simulated_navigation_synthetic_observation_verified=true
+simulated_navigation_query_digest_only=true
+simulated_media_nav_replaceable_backend_verified=true
+simulated_media_nav_android13_arm64_verified=true
+simulated_media_nav_debug_only=true
+simulated_media_nav_release_source_absent=true
+simulated_media_nav_production_registered=false
+simulated_media_nav_runtime_wired=false
+external_activity_started=false
+location_uploaded=false
+network_accessed=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 Android/vendor media 或 navigation engine、真实 POI/route/location、外部 Activity、network、
+production adapter、shared Runtime/Room/Graph/Effect 或真实 Vehicle/VHAL/NPU/Driver-HAL。Req IDs：
+`S2-ADP-001`、`DEL-001/003..005`；偏差/问题：`DEV-040`、`ISSUE-030/031/033`。

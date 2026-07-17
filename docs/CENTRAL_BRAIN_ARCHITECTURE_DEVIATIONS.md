@@ -341,6 +341,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W08 进展 | Debug-only simulated Effect base、manual clock、fault matrix 与 API 33 ARM64 probe 完成；domain target/Runtime registration/真实 readback 仍关闭，ISSUE-030/033 仍开放。 |
 | P2-W09 进展 | Debug-only HVAC typed target、isolated desired/reported Twin 与 API 33 ARM64 probe 完成；production property/Runtime/HMI 仍关闭，ISSUE-030/033 仍开放。 |
 | P2-W10 进展 | Debug-only Seat typed target、dispatch-time Safety/occupancy/belt/approval revalidation、progress 与 API 33 ARM64 probe 完成；OEM Safety/production property/Runtime/HMI 仍关闭，ISSUE-029/030/033 仍开放。 |
+| P2-W11 进展 | Debug-only Media state、digest-only synthetic POI/route、replaceable backend 与 API 33 ARM64 probe 完成；真实 media/navigation/location/Runtime/HMI 仍关闭，ISSUE-030/031/033 仍开放。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -491,3 +492,21 @@ authorization 固定 false。adapter-owned Twin 和 progress projection 不连�
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。关闭本偏差需要 OEM Safety/approval owner、P3 durable Runtime
 和 P8 target property/permission/occupancy/belt/readback evidence；debug probe 不能提升其状态。
+
+## DEV-040 P2-W11 synthetic Media/Navigation 不是平台播放器或真实导航
+
+P2-W11 的 Media adapter 只保存 PLAY/PAUSE/STOP immutable simulated state；Navigation adapter 只将 canonical
+POI query 转为 SHA-256，并用 deterministic backend 生成 synthetic ID、label key、distance 和 duration。该输出
+用于验证 Effect observation/fault/UX 合同，不是 Android MediaSession、vendor player、真实地图检索、定位、
+route planning 或外部导航应用集成。
+
+replaceable backend 仍是 debug simulation contract：constructor 强制 production unauthorized、无 external
+Activity、无 network，Navigation 还强制无 location upload。该检查不等于 production sandbox 或隐私审批；
+base 仍在 process memory 保留 bounded canonical material，reset/进程死亡会清除。
+
+状态：`Accepted Temporary`。`simulated_media_nav_debug_only=true`、
+`simulated_media_nav_release_source_absent=true`、`simulated_media_nav_production_registered=false`、
+`simulated_media_nav_runtime_wired=false`、`external_activity_started=false`、`location_uploaded=false`、
+`network_accessed=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。关闭本偏差需要 P3/P4
+durable Effect/HMI 和 P8 target media/navigation owner/API/permission/readback/privacy evidence。

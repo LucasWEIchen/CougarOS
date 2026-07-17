@@ -210,8 +210,12 @@ desired/reported Twin、recline admission+dispatch 双重 fresh Safety/occupancy
 和有界 progress observation 已通过 JVM、release-source compile 与 Android 13/API 33 ARM64 probe；production
 不含/不注册，未接 Effect Runtime 或真实座椅接口。
 
-下一实现工作包为 `P2-W11 Simulated Media/Nav adapters`。只在 debug source set 基于 P2-W08 实现可替换的
-typed Media/Nav state/observation，不得启动未知第三方 Activity、注册 production adapter、访问真实
+`P2-W11 Simulated Media/Nav adapters` 已完成：debug-only typed playback state、digest-only synthetic POI/route
+observation、可替换 simulation backend、delay/fault/mismatch/idempotency 和 external Activity/network/location
+失败关闭已通过 JVM、release-source compile 与 Android 13/API 33 ARM64 probe；production 不含/不注册。
+
+下一实现工作包为 `P2-W12 Debug Context Controller`。只在 debug build 增加 signature/capability-protected
+context/fault/clock/reset 控制面，不得 exported 到 production、注册 production adapter、访问真实
 Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
 
 ## 7. 近期进展
@@ -314,6 +318,9 @@ Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
 - 完成 `P2-W10 Simulated Seat adapter`：typed heat/vent/recline、admission+dispatch fresh Safety/occupancy/
   belt/approval gate、race 永久拒绝、progress 与 isolated desired/reported Twin 通过 JVM/release compile/API 33
   ARM64 probe；production registration/Runtime/Effect/hardware 保持 false，下一工作包为 P2-W11 Media/Nav。
+- 完成 `P2-W11 Simulated Media/Nav adapters`：typed player state、digest-only synthetic POI/route、replaceable
+  backend、delay/fault/mismatch/idempotency 与 no Activity/network/location 通过 JVM/release compile/API 33 ARM64
+  probe；production registration/Runtime/Effect/hardware 保持 false，下一工作包为 P2-W12 Debug Controller。
 
 ## 8. 当前门禁
 

@@ -1406,7 +1406,31 @@ Service、Client2 Seat 页面或真实 Vehicle/VHAL/NPU/Driver-HAL。Req IDs：`
 
 ### 16.4 SimulatedMedia/Navigation
 
-Media 只更新 simulated player state；Navigation 返回 synthetic POI/route observation。不得启动未知外部 package 或上传位置。
+P2-W11 已实现为两个 Runtime `src/debug` adapter。Media 只更新 simulated player state；Navigation 只返回
+synthetic POI/route observation，不启动未知外部 package、不上传位置、不联网。
+
+`MediaTarget` 是 version 1 fixed-binary cabin PLAY/PAUSE/STOP enum，严格绑定 `media.player` destination 与
+`media.playback` action。`MediaStateBackend.apply(command, revision, elapsed, mismatch)` 是可替换 debug 接口；
+constructor 要求 simulation-only、production unauthorized、no Activity、no network。结果必须是 immutable
+source SIMULATED/non-production state，revision 与 adapter 一致。
+
+`NavigationTarget` 在 factory 边界执行 NFKC+trim，decoder 只接受已 canonical、control-free、1..128 chars
+的 exact payload，并绑定 `navigation.poi`。admission 只额外保存 query SHA-256；
+`SyntheticNavigationBackend.resolve` 只接收 digest/revision/time/mismatch，不接收 raw query 或坐标。结果固定
+为 synthetic POI/route ID、label key、100..100000 m、60..14400 s、source SIMULATED，并声明不上传位置、
+不启动 Activity、不具备 production trust。
+
+NONE/DELAY 成功只调用 backend 一次；delay 到期前不发布 state/observation。timeout/retry/terminal 不伪造
+结果；mismatch 明确标记且 base observation 为 MISMATCH；duplicate token 不增加 revision。reset 清除当前
+state、query digest、observation 和 backend 状态。
+
+状态：`simulated_media_adapter_defined=true`、`simulated_navigation_adapter_defined=true`、
+`simulated_navigation_query_digest_only=true`、`simulated_media_nav_replaceable_backend_verified=true`、
+`simulated_media_nav_android13_arm64_verified=true`、`simulated_media_nav_production_registered=false`、
+`simulated_media_nav_runtime_wired=false`、`external_activity_started=false`、`location_uploaded=false`、
+`network_accessed=false`。无 Android/vendor media/navigation、真实 location/route、shared Runtime/Room/
+Plan/Graph/Effect Service 或 Vehicle/VHAL/NPU/Driver-HAL。Req IDs：`S2-ADP-001`、`DEL-001/003..005`；
+偏差/问题：`DEV-040`、`ISSUE-030/031/033`。
 
 ### 16.5 DebugSimulationController
 
@@ -1951,6 +1975,9 @@ central-brain-sdk AAR
 - P2-W10 Simulated Seat adapter：versioned heat/vent/recline target、admission+dispatch fresh Safety/occupancy/
   belt/approval gate、永久 race reject、bounded progress 和 isolated Twin；JVM/release compile/API 33 ARM64
   probe 通过，production Safety authority/registration/Runtime/hardware 保持关闭。
+- P2-W11 Simulated Media/Navigation adapters：versioned playback/POI target、immutable media state、digest-only
+  synthetic POI/route、replaceable backend 与 no Activity/network/location gate；JVM/release compile/API 33 ARM64
+  probe 通过，production registration/Runtime/platform integration 保持关闭。
 
 ### 32.2 下一阶段未完成
 
@@ -1959,7 +1986,7 @@ central-brain-sdk AAR
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
 - Digital Twin persistence/production wiring 与 Context production trust/wiring（软件 foundation 已完成）；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
-- Android debug/test-only Nav/Media domain Effect adapter（P2-W08 base、P2-W09 HVAC、P2-W10 Seat 已完成）；
+- Android debug/test Context/fault/clock controller（P2-W08 base、P2-W09 HVAC、P2-W10 Seat、P2-W11 Media/Nav 已完成）；
 - Client2 意图/计划/执行/结果四阶段、Effect 设备详情抽屉与 state reducer；
 - Client2 manual/AI 共用 Session/Effect 链路、desired/reported、approval、partial、retry、undo、recovery；
 - Tool/Skill registry/rules/executor/artifact verifier；
@@ -1981,19 +2008,20 @@ central-brain-sdk AAR
 `P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 和
 `P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema`、
 `P2-W06 DeterministicScenarioResolver`、`P2-W07 ScenarioPlanCompiler` 和
-`P2-W08 SimulatedVehicleAdapter base`、`P2-W09 Simulated HVAC adapter` 和
-`P2-W10 Simulated Seat adapter` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W08 SimulatedVehicleAdapter base`、`P2-W09 Simulated HVAC adapter`、
+`P2-W10 Simulated Seat adapter` 和 `P2-W11 Simulated Media/Nav adapters` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
 进程内 desired/reported Twin、versioned Context/freshness/trust foundation、三项 strict build-owned Scenario
 manifest catalog、显式/固定文本 selector、Context/capability/policy gate、immutable resolution 和
 digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual clock/fault matrix、HVAC/Seat
-typed absolute target、isolated desired/reported Twin、Seat dispatch-time Safety race reject 与 progress 已进入工程。
+typed absolute target、isolated desired/reported Twin、Seat Safety race reject/progress、Media state 和 digest-only
+synthetic POI/route 已进入工程。
 Effect Service、approval response/undo execution、Plan Runtime publication 和 Graph Runtime 均未发布。
-下一实现工作包固定为 `P2-W11 Simulated Media/Nav adapters`；只在 debug/test source set 基于 P2-W08 增加
-typed state/observation，不得启动未知第三方 Activity、注册 production adapter、激活 compiled Plan、读取
-真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码结果。
+下一实现工作包固定为 `P2-W12 Debug Context Controller`；只在 debug build 增加 signature/capability-protected
+state/fault/clock/reset 控制面，不得 exported 到 production、注册 production adapter、激活 compiled Plan、
+读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中绕过 Runtime。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

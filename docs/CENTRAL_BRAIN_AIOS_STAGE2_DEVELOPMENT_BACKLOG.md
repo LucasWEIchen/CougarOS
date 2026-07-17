@@ -364,9 +364,15 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W11` Simulated Media/Nav adapters
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-ADP-001`。
+- 状态：`DONE`（2026-07-17）；2 人日；需求：`S2-ADP-001`。
 - 类：`SimulatedMediaEffectAdapter`、`SimulatedNavigationEffectAdapter`。
 - DoD：只模拟 state/observation，不启动未知第三方 Activity；接口可替换。
+- 实现：两个 adapter 均只在 `src/debug`。Media 使用 version 1 typed `PLAY/PAUSE/STOP` target 和可替换
+  simulation-only backend，只维护 immutable player state。Navigation 将 NFKC canonical POI 文本缩减为
+  SHA-256，再由可替换 deterministic backend 返回 synthetic POI/route ID、距离、时长和 label key；observation
+  不保留原始 query，不上传位置、不联网、不启动 Activity。
+- 证据：8 组 JVM tests、debug/release compile、DUMP-protected Android 13 ARM64 probe、独立 checker、累计
+  installer 与 CI；delay/timeout/failure/mismatch/idempotency 与 unsafe backend rejection 均覆盖。
 
 ### `P2-W12` Debug Context Controller
 

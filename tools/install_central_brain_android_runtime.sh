@@ -1344,6 +1344,52 @@ if [[ "$SIMULATED_SEAT_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SIMULATED_MEDIA_NAV_NONCE="$(date +%s%N)"
+SIMULATED_MEDIA_NAV_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.simulation.SimulatedMediaNavigationAdapterProbeActivity \
+  --es nonce "$SIMULATED_MEDIA_NAV_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SIMULATED_MEDIA_NAV_PROBE_OUTPUT"; then
+  echo "$SIMULATED_MEDIA_NAV_PROBE_OUTPUT" >&2
+  echo "Simulated Media/Navigation adapter probe did not start successfully" >&2
+  exit 1
+fi
+SIMULATED_MEDIA_NAV_PROBE_PASSED=false
+for _ in {1..40}; do
+  SIMULATED_MEDIA_NAV_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbSimMediaNav:I)"
+  if grep -Fq "nonce=$SIMULATED_MEDIA_NAV_NONCE simulated_media_nav_probe_complete=true" \
+      <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_adapter_defined=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_navigation_adapter_defined=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_typed_target_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_state_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_navigation_synthetic_observation_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_navigation_query_digest_only=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_delay_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_fault_readback_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_idempotency_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_replaceable_backend_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_android13_arm64_verified=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_debug_only=true" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_production_registered=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "simulated_media_nav_runtime_wired=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "external_activity_started=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "location_uploaded=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "scenario_plan_runtime_published=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "scenario_graph_execution_enabled=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$SIMULATED_MEDIA_NAV_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SIMULATED_MEDIA_NAV_LOG"; then
+    SIMULATED_MEDIA_NAV_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SIMULATED_MEDIA_NAV_PROBE_PASSED" != true ]]; then
+  echo "$SIMULATED_MEDIA_NAV_LOG" >&2
+  echo "Simulated Media/Navigation adapter probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -2050,6 +2096,15 @@ printf '%s\n' \
   "simulated_seat_debug_only=true" \
   "simulated_seat_production_registered=false" \
   "simulated_seat_runtime_wired=false" \
+  "simulated_media_adapter_defined=true" \
+  "simulated_navigation_adapter_defined=true" \
+  "simulated_media_nav_android13_arm64_verified=true" \
+  "simulated_media_nav_debug_only=true" \
+  "simulated_media_nav_production_registered=false" \
+  "simulated_media_nav_runtime_wired=false" \
+  "external_activity_started=false" \
+  "location_uploaded=false" \
+  "network_accessed=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

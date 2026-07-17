@@ -1127,3 +1127,36 @@ registration, Room/shared Twin, Plan/Graph/Effect wiring, Vehicle/VHAL/NPU or Dr
 `simulated_seat_runtime_wired=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
 Req IDs: `S2-ADP-001`, `S2-SAF-001`, `DEL-001/003..005`; tracking: `DEV-039`,
 `ISSUE-029/030/033`.
+
+## Android P2-W11 Simulated Media/Navigation Adapters
+
+### Debug-only replaceable backend contracts
+
+```java
+MediaTarget MediaTarget.playback(PlaybackCommand command); // PLAY/PAUSE/STOP
+Optional<MediaStateObservation> SimulatedMediaEffectAdapter.getCurrentState();
+
+NavigationTarget NavigationTarget.poi(String canonicalQuery);
+String NavigationTarget.getQueryDigest();
+Optional<String> SimulatedNavigationEffectAdapter.getAdmittedQueryDigest(String token);
+Optional<NavigationObservation> SimulatedNavigationEffectAdapter.getObservation(String token);
+```
+
+Both targets use exact-length version 1 fixed-binary payloads and bind destination/action/capability/cabin area.
+Media validates the P2-W02 PLAY/PAUSE/STOP allowlist. Navigation canonicalizes only at its factory boundary with
+NFKC+trim; decoder input must already be canonical, control-free and <=128 Java characters.
+
+`MediaStateBackend.apply` receives only enum/revision/elapsed time/mismatch and returns immutable source-SIMULATED
+state. `SyntheticNavigationBackend.resolve` receives query SHA-256 rather than raw query and returns only stable
+synthetic IDs, label key, bounded distance/duration, revision and mismatch. Both interfaces expose explicit
+simulation/production/activity/network flags; Navigation adds location-upload. The adapter constructor rejects any
+unsafe flag, and validates every backend result before publication.
+
+No Android MediaPlayer/MediaSession, Intent/startActivity, location API, network, Room/shared Twin, Plan/Graph/
+Effect Service, Vehicle/VHAL/NPU or Driver/HAL is referenced. Status: `simulated_media_adapter_defined=true`,
+`simulated_navigation_adapter_defined=true`, `simulated_navigation_query_digest_only=true`,
+`simulated_media_nav_replaceable_backend_verified=true`, `simulated_media_nav_android13_arm64_verified=true`,
+`simulated_media_nav_production_registered=false`, `simulated_media_nav_runtime_wired=false`,
+`external_activity_started=false`, `location_uploaded=false`, `network_accessed=false`,
+`effect_dispatch_enabled=false`, `hardware_accessed=false`. Req IDs: `S2-ADP-001`, `DEL-001/003..005`;
+tracking: `DEV-040`, `ISSUE-030/031/033`.

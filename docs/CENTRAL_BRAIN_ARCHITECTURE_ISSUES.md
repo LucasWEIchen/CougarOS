@@ -208,6 +208,9 @@ P2-W09 进展：HVAC power/temperature/fan typed target、software area/range/st
 P2-W10 进展：Seat heat/vent/recline typed target、isolated Twin 和模拟 Safety/occupancy/belt/approval race
 已完成；没有 OEM Seat/Occupant property、权限、area/readback 或 Safety owner，本问题保持 Open。
 
+P2-W11 进展：Media player state 和 Navigation POI/route observation 已在 debug adapter 中以 simulation-only
+形式完成；没有目标 Android/vendor media/navigation API、权限、package owner 或真实 readback，本问题保持 Open。
+
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
 场景版本、冲突规则、用户偏好、保留期、删除/导出、跨账号边界、主动触发频率、免打扰和模型文本
@@ -227,6 +230,9 @@ Service wiring，因此本问题保持 Open，`scenario_resolver_runtime_wired=f
 P2-W07 进展：Resolution/Context/Capability/manifest-bound Compiler、optional-only fallback 和 immutable
 Plan digest 已完成。Manifest 仍没有产品 target/preference，compiler 未接 Session/Room/Runtime，不发布或
 执行 Graph；因此本问题保持 Open，`scenario_plan_compiler_runtime_wired=false`。
+
+P2-W11 进展：Navigation backend 只接收 query digest，observation 不复制 raw query、坐标或真实 route，且
+网络/位置上传默认拒绝。该 debug 隐私最小化不定义 POI 产品策略、地图 provider、同意或保留 owner，本问题保持 Open。
 
 ## ISSUE-032 Python 原型退役后的引用与回退风险
 
@@ -258,6 +264,10 @@ debug/test Digital Twin，真实 adapter 仍由 `ISSUE-030` 跟踪。
 P2-W10 进展：Runtime debug source 已提供 Seat typed target、desired/reported、progress 和安全 race 拒绝，
 为后续 HMI-D2/D3 提供可复用软件合同；它尚未接 Session/Graph/Effect Service 或 Client2 renderer，因此
 当前 APK 仍不能展示完整 Seat UI/UX 闭环，本问题保持 Open。
+
+P2-W11 进展：Runtime debug source 已提供 media state 和 digest-only synthetic POI/route observation，可供
+HMI-D3 展示 optional Effect；仍未接 Session/Graph/Effect Service、Client2 renderer 或真实 player/navigation，
+因此不能构成 APK 演示闭环，本问题保持 Open。
 
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
@@ -338,3 +348,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W08 进展 | Debug-only simulated Effect base 与 API 33 ARM64 probe 完成；HVAC/Seat target、Runtime wiring 和真实车辆 readback 仍开放。 |
 | P2-W09 进展 | Debug-only HVAC typed target/isolated Twin 与 API 33 ARM64 probe 完成；production property/Runtime/Client2 HVAC 闭环仍开放。 |
 | P2-W10 进展 | Debug-only Seat typed target、安全二次校验/progress/isolated Twin 与 API 33 ARM64 probe 完成；OEM Safety/production property/Runtime/Client2 Seat 闭环仍开放。 |
+| P2-W11 进展 | Debug-only Media state/digest-only synthetic Navigation observation 与 API 33 ARM64 probe 完成；真实 platform adapter/Runtime/Client2 optional Effect 闭环仍开放。 |
