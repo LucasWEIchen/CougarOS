@@ -61,6 +61,7 @@
 | DEV-035 | P2-W06 Resolver 只提供固定规则和 process-local availability；production trust/Service/compiler 均未接。 | S2-SCN-001, S2-SAF-001, ISSUE-029/031 | Accepted Temporary |
 | DEV-036 | P2-W07 Compiler 只生成 digest-only、未发布、不可执行的 Plan foundation。 | S2-SCN-001, S2-GRF-001, ISSUE-029/031 | Accepted Temporary |
 | DEV-037 | P2-W08 仿真基类只存在于 debug source，并补充非生产 SimulationDescriptor；无 domain target、Runtime 注册或真实 readback。 | S2-ADP-001, S2-EFF-001, ISSUE-030/033 | Accepted Temporary |
+| DEV-038 | P2-W09 HVAC fixed-binary target/range/Twin 是 debug internal contract，不是 OEM property/标定或 production adapter。 | S2-ADP-001, S2-EFF-001, ISSUE-030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -338,6 +339,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；model/compiler/production Service/Graph 仍关闭，ISSUE-029/031 仍开放。 |
 | P2-W07 进展 | Digest-bound immutable typed Plan compiler 与 API 33 ARM64 probe 完成；target/Runtime publication/Graph/Effect 仍关闭，ISSUE-029/031 仍开放。 |
 | P2-W08 进展 | Debug-only simulated Effect base、manual clock、fault matrix 与 API 33 ARM64 probe 完成；domain target/Runtime registration/真实 readback 仍关闭，ISSUE-030/033 仍开放。 |
+| P2-W09 进展 | Debug-only HVAC typed target、isolated desired/reported Twin 与 API 33 ARM64 probe 完成；production property/Runtime/HMI 仍关闭，ISSUE-030/033 仍开放。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -452,3 +454,21 @@ process-memory record 只用于 debug fault test，不提供进程恢复、审�
 `simulated_effect_adapter_runtime_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。P2-W09..P2-W11 必须分别
 实现 typed domain target；P3/P8 必须另行完成 durable Runtime/production adapter 与真实 readback evidence。
+
+## DEV-038 P2-W09 HVAC target 与 Twin 不是 OEM 车控合同
+
+P2-W09 用 fixed-binary version 1 payload 冻结 power、target-temperature 和 fan 的 typed absolute target，
+并复用 P2-W02 的 software range/area 与 P2-W03 的 in-process Twin。该结构用于 debug/test 可复验性，不是
+AAOS CarProperty、vendor SOA、CAN/DBC、标定数据或 production authorization；未来 production adapter
+可以采用不同 transport，但必须在 Effect boundary 显式映射同一 canonical semantics。
+
+adapter-owned Twin 与 shared Runtime/Room 不连接，进程死亡或 reset 会丢失。SIMULATED reported 只证明故障
+矩阵与 UX 可观测性，不是实体 HVAC readback。production source set 不包含 adapter，缺真实接口时继续
+fail closed，不允许把 debug payload 发给未知 vendor service。
+
+状态：`Accepted Temporary`。 `simulated_hvac_debug_only=true`、
+`simulated_hvac_release_source_absent=true`、`simulated_hvac_production_registered=false`、
+`simulated_hvac_runtime_wired=false`、`vehicle_property_mapping_configured=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。关闭本偏差需要 P3 shared Runtime contract 和 P8 目标平台
+property/permission/area/readback/owner evidence。

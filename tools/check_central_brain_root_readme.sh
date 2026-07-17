@@ -118,7 +118,15 @@ for marker in \
   'simulated_effect_adapter_release_source_absent=true' \
   'simulated_effect_adapter_production_registered=false' \
   'simulated_effect_adapter_runtime_wired=false' \
-  'implementation_stage=P2-W09' \
+  'simulated_hvac_adapter_defined=true' \
+  'simulated_hvac_typed_target_verified=true' \
+  'simulated_hvac_desired_reported_verified=true' \
+  'simulated_hvac_android13_arm64_verified=true' \
+  'simulated_hvac_debug_only=true' \
+  'simulated_hvac_release_source_absent=true' \
+  'simulated_hvac_production_registered=false' \
+  'simulated_hvac_runtime_wired=false' \
+  'implementation_stage=P2-W10' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -189,6 +197,7 @@ required_paths=(
   tools/check_central_brain_android_scenario_resolver.sh
   tools/check_central_brain_android_scenario_plan_compiler.sh
   tools/check_central_brain_android_simulated_effect_adapter.sh
+  tools/check_central_brain_android_simulated_hvac_adapter.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh

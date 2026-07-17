@@ -337,10 +337,16 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W09` Simulated HVAC adapter
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-ADP-001`。
+- 状态：`DONE`（2026-07-17）；1.5 人日；需求：`S2-ADP-001`、`S2-EFF-001`。
 - 类：`SimulatedHvacEffectAdapter`。
 - DoD：range/zone/availability、desired/report delay、idempotency、absolute target。
 - 测试：success/timeout/out-of-range/retry/readback。
+- 实现：debug-only fixed-binary `HvacTarget` 支持 power、target-temperature、fan absolute target；严格绑定
+  capability ID/action、area、16..30/0.5 celsius 和 0..7/1 fan range。admission 写 desired，manual clock
+  完成后写 source SIMULATED reported；timeout/retry/terminal 不伪造 reported，mismatch 写可观察的不一致值。
+- 状态：`simulated_hvac_adapter_defined=true`、`simulated_hvac_android13_arm64_verified=true`、
+  `simulated_hvac_debug_only=true`、`simulated_hvac_production_registered=false`、
+  `simulated_hvac_runtime_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
 
 ### `P2-W10` Simulated Seat adapter
 

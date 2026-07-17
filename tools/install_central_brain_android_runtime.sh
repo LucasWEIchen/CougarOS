@@ -1258,6 +1258,49 @@ if [[ "$SIMULATED_ADAPTER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SIMULATED_HVAC_NONCE="$(date +%s%N)"
+SIMULATED_HVAC_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.simulation.SimulatedHvacEffectAdapterProbeActivity \
+  --es nonce "$SIMULATED_HVAC_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SIMULATED_HVAC_PROBE_OUTPUT"; then
+  echo "$SIMULATED_HVAC_PROBE_OUTPUT" >&2
+  echo "Simulated HVAC adapter probe did not start successfully" >&2
+  exit 1
+fi
+SIMULATED_HVAC_PROBE_PASSED=false
+for _ in {1..40}; do
+  SIMULATED_HVAC_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbSimHvac:I)"
+  if grep -Fq "nonce=$SIMULATED_HVAC_NONCE simulated_hvac_probe_complete=true" \
+      <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_adapter_defined=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_typed_target_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_range_zone_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_desired_reported_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_delay_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_timeout_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_failure_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_readback_mismatch_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_idempotency_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_android13_arm64_verified=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_debug_only=true" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_production_registered=false" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "simulated_hvac_runtime_wired=false" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "scenario_plan_runtime_published=false" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "scenario_graph_execution_enabled=false" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" <<<"$SIMULATED_HVAC_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SIMULATED_HVAC_LOG"; then
+    SIMULATED_HVAC_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SIMULATED_HVAC_PROBE_PASSED" != true ]]; then
+  echo "$SIMULATED_HVAC_LOG" >&2
+  echo "Simulated HVAC adapter probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1954,6 +1997,11 @@ printf '%s\n' \
   "simulated_effect_adapter_debug_only=true" \
   "simulated_effect_adapter_production_registered=false" \
   "simulated_effect_adapter_runtime_wired=false" \
+  "simulated_hvac_adapter_defined=true" \
+  "simulated_hvac_android13_arm64_verified=true" \
+  "simulated_hvac_debug_only=true" \
+  "simulated_hvac_production_registered=false" \
+  "simulated_hvac_runtime_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

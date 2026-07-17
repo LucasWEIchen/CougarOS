@@ -195,6 +195,7 @@ public class SimulatedEffectAdapter implements EffectAdapter {
         ApplyResult result = new ApplyResult(token, applyState(profile), evidence);
         Record record = new Record(
                 invocation, invocationDigest, profile, result, readyAt);
+        onSimulationAdmitted(invocation, profile);
         records.put(token, record);
         completeIfReady(record);
         return result;
@@ -252,6 +253,11 @@ public class SimulatedEffectAdapter implements EffectAdapter {
         // Subclasses add capability/area/range checks before the record is admitted.
     }
 
+    protected void onSimulationAdmitted(
+            Invocation invocation, FaultInjectionProfile profile) {
+        // Subclasses may update only simulated desired state here.
+    }
+
     protected void onSimulationApplied(
             Invocation invocation, FaultInjectionProfile profile) {
         // Subclasses update only simulated desired/reported state here.
@@ -259,6 +265,10 @@ public class SimulatedEffectAdapter implements EffectAdapter {
 
     protected void onSimulationReset() {
         // Subclasses clear their own simulated state here.
+    }
+
+    protected final long nowSimulationElapsedRealtimeMs() {
+        return clock.nowElapsedRealtimeMs();
     }
 
     private void completeIfReady(Record record) {

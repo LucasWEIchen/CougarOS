@@ -720,3 +720,32 @@ NPU、Driver/HAL 或目标硬件资格。
 `simulated_effect_adapter_android13_arm64_verified=true`、
 `simulated_effect_adapter_production_registered=false`、`simulated_effect_adapter_runtime_wired=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 29. P2-W09 Simulated HVAC adapter trace
+
+本增量映射 `S2-ADP-001`、`S2-EFF-001`、`DEL-001/003..005`：
+
+1. `SimulatedHvacEffectAdapter` 必须只存在于 Runtime `src/debug`，继承 P2-W08 base；main/release source
+   和 production Runtime/Governance Service 不得包含、引用或注册。
+2. destination 固定 `vehicle.hvac`。canonical payload 是 version 1 fixed binary typed absolute target，
+   必须精确绑定 action/capability/area/scalar，不接受自由文本 target、相对增减、未知字段或尾随字节。
+3. 支持且仅支持 HVAC power、target temperature、fan level。area/range/step 必须复用 P2-W02 catalog：
+   power cabin boolean；temperature 四座区 16..30 celsius/0.5；fan cabin/前排区 0..7 level/1。
+4. capability 必须 writable+simulatable 且 `canUseProduction=false`；enum provenance、debug signer 或合法
+   range 不能提升 production availability/authorization。
+5. invocation admission 必须先完成 payload/action/area/range validation，再向 adapter-owned P2-W03 Twin 写
+   absolute desired，TTL 固定 180000 ms。失败 validation 不得创建 Effect record 或 Twin side effect。
+6. NONE/DELAY 到期只写一次 source SIMULATED、quality VALID 的 reported。Delay 到期前 desired 可见、
+   reported absent；duplicate apply/status 不得增加 Twin revision。
+7. TIMEOUT、RETRYABLE_FAILURE、TERMINAL_FAILURE 不得伪造 reported；READBACK_MISMATCH 的 delivery 可为
+   APPLIED，但 Twin 必须 reconcile MISMATCH，base observation 也必须 MISMATCH。
+8. reset 必须清除本 adapter 的 process-memory record 与隔离 Twin。不得写 shared production Twin、Room、
+   audit raw payload、Plan/Graph/Effect Service，或访问 Vehicle/VHAL/NPU/Driver-HAL。
+9. JVM、debug/release compile 和 Android 13/API 33 ARM64 probe 必须覆盖 success、canonical round-trip、
+   out-of-range/zone/action/trailing reject、delay、timeout、retry/terminal、mismatch 和 idempotency。
+
+状态：`simulated_hvac_adapter_defined=true`、`simulated_hvac_typed_target_verified=true`、
+`simulated_hvac_desired_reported_verified=true`、`simulated_hvac_android13_arm64_verified=true`、
+`simulated_hvac_debug_only=true`、`simulated_hvac_release_source_absent=true`、
+`simulated_hvac_production_registered=false`、`simulated_hvac_runtime_wired=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`。

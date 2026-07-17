@@ -673,3 +673,21 @@ The JVM suite, debug/release source compilation and Android 13/API 33 ARM64 prob
 `simulated_effect_adapter_production_registered=false`, `simulated_effect_adapter_runtime_wired=false`,
 `effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. P2-W09 adds the first typed HVAC
 subclass without changing these production boundaries.
+
+## P2-W09 Simulated HVAC Adapter
+
+`SimulatedHvacEffectAdapter` remains in Runtime `src/debug` and extends the P2-W08 base. Its version 1 canonical
+binary `HvacTarget` represents absolute power, target-temperature and fan-level commands; action, capability,
+area, scalar, range and step are validated against the P2-W02 catalog before any state is admitted.
+
+The adapter owns an isolated P2-W03 Digital Twin. Admission publishes desired state with a bounded TTL; immediate or
+manual-clock delayed completion publishes source-SIMULATED reported state exactly once. Timeout, retryable failure and
+terminal failure do not fabricate reported state. Readback mismatch writes a different valid value so both the base
+observation and Twin reconciliation show mismatch. Duplicate apply does not advance the Twin revision.
+
+JVM tests, debug/release compilation and the API 33 ARM64 probe establish
+`simulated_hvac_adapter_defined=true`, `simulated_hvac_typed_target_verified=true`,
+`simulated_hvac_desired_reported_verified=true` and `simulated_hvac_android13_arm64_verified=true`.
+`simulated_hvac_production_registered=false`, `simulated_hvac_runtime_wired=false`,
+`effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. P2-W10 adds the debug-only Seat
+domain adapter and fresh safety-state gate.

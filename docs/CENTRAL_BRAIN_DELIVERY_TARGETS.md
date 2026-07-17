@@ -934,3 +934,35 @@ target_hardware_validated=false
 Runtime、真实 Vehicle/VHAL/NPU 或 Driver/HAL。probe 只证明同一 debug software contract 能在 Android 13
 ARM64 上执行，不能作为真实车辆回读、production activation 或目标硬件资格证据。Req IDs：
 `S2-ADP-001`、`S2-EFF-001`、`DEL-001/003..005`；偏差/问题：`DEV-037`、`ISSUE-030/033`。
+
+## Android P2-W09 Simulated HVAC Adapter
+
+受维护交付新增：
+
+1. debug-only `SimulatedHvacEffectAdapter` 和 versioned fixed-binary `HvacTarget`；
+2. HVAC power/target-temperature/fan absolute target、action/capability/area/range/step validation；
+3. adapter-owned P2-W03 desired/reported Twin、180 秒 desired TTL、source SIMULATED readback；
+4. delay/timeout/retryable/terminal/mismatch/idempotency fault matrix；
+5. 7 组 JVM tests、debug/release compile、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+simulated_hvac_adapter_defined=true
+simulated_hvac_typed_target_verified=true
+simulated_hvac_desired_reported_verified=true
+simulated_hvac_android13_arm64_verified=true
+simulated_hvac_debug_only=true
+simulated_hvac_release_source_absent=true
+simulated_hvac_production_registered=false
+simulated_hvac_runtime_wired=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 production HVAC adapter/property mapping、shared Twin/Room、Plan/Graph/Effect Runtime、Client2
+HVAC 页面或真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 证据只证明 debug software target/fault/readback
+合同可运行。Req IDs：`S2-ADP-001`、`S2-EFF-001`、`DEL-001/003..005`；偏差/问题：
+`DEV-038`、`ISSUE-030/033`。
