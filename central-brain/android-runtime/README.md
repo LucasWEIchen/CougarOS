@@ -984,7 +984,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W05`.
+`target_hardware_validated=false`, `implementation_stage=P5-W06`.
 
 ## P5-W02 Tool Registry/Resolver
 
@@ -1010,7 +1010,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Next: P5-W03 ToolRuleSolver.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Next: P5-W03 ToolRuleSolver.
 
 ## P5-W03 Tool RuleSolver
 
@@ -1035,7 +1035,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W05`.
+`implementation_stage=P5-W06`.
 
 ## P5-W04 Tool Executor boundary
 
@@ -1059,5 +1059,29 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `tool_approval_authority_available=false`, `os_virtualization_enabled=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
 Next: P5-W05 Skill package verifier.
+
+## P5-W05 Skill package verifier
+
+`SkillSignerPolicy` freezes at most 32 signer digests with ACTIVE, RETIRED or REVOKED state plus activation/revocation artifact
+epochs. `SkillVersionPolicy` freezes at most 128 Skill ranges, current Runtime semantic version, minimum artifact epoch and explicit
+rollback policy. Both policies are immutable, order-independent and expose canonical SHA-256 policy digests.
+
+`SkillArtifactVerifier` compares a canonical manifest digest, measured artifact digest and observed signer digest, then applies signer,
+runtime/version/epoch/downgrade and per-Skill capability allowlist checks in that order. Accepted results contain digest metadata only;
+all rejected results contain a stable failure code and no verified package. The verifier never reads or parses APK/JAR/dex/certificate
+content and never installs, loads or executes code.
+
+The supplied measurement and signer digests are contract inputs, not PackageManager/keystore/TEE attestation. Package signature-chain
+verification, trusted evidence acquisition, atomic policy publication and Runtime composition remain blocked by `ISSUE-040`. Run
+`bash tools/check_central_brain_android_skill_package_verifier.sh` for the independent gate.
+
+Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_contract_defined=true`,
+`skill_version_policy_contract_defined=true`, `skill_artifact_hash_verified=true`, `skill_manifest_digest_verified=true`,
+`skill_signer_policy_verified=true`, `skill_runtime_version_verified=true`, `skill_capability_policy_verified=true`,
+`skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
+`trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
+`dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
+Next: P5-W06 WorkingMemoryStore.

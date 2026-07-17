@@ -741,7 +741,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   `isExecutionEnabled=false`。JVM 和 debug/release compile 已验证；Android 13 ARM64 probe 已实现但 adb transport=0。
 - 边界：只消费 P5-W01 immutable manifest/digest/schema，不重新解释 input/output；不接 Runtime/Graph/Binder/Room，不注册
   production Tool，不发布 Registry/Resolver Service，不触发 Effect/vehicle/model/NPU/network/hardware。下一工作包
-  `P5-W03 ToolRuleSolver`；`implementation_stage=P5-W05`，tracking `DEV-064`、`ISSUE-037`。
+  `P5-W03 ToolRuleSolver`；`implementation_stage=P5-W06`，tracking `DEV-064`、`ISSUE-037`。
 
 ### `P5-W03` ToolRuleSolver
 
@@ -752,7 +752,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   未完成、空模型交集和无 USABLE Tool 均稳定 fail closed。requires-approval 只标记，不产生 approval grant；所有 execution
   flag 固定 false。JVM 与 debug/release compile 已验证；Android 13 ARM64 probe 已接入但当前 ADB transport 不可用。
 - 边界：不调用模型，不接 Runtime/Graph/Binder/Room/Executor，不注册 production Tool，不触发 Effect/vehicle/NPU/network/
-  Driver-HAL。下一工作包 `P5-W04 ToolExecutor boundary`；`implementation_stage=P5-W05`，tracking `DEV-065`、`ISSUE-038`。
+  Driver-HAL。下一工作包 `P5-W04 ToolExecutor boundary`；`implementation_stage=P5-W06`，tracking `DEV-065`、`ISSUE-038`。
 
 ### `P5-W04` ToolExecutor boundary
 
@@ -764,13 +764,20 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 边界：不动态装载 package，不启动 subprocess，不实现 OS 虚拟化；approval-required selection 必须拒绝；不接
   Runtime/Graph/Binder/Room/Effect/Vehicle/Model/NPU/Driver-HAL。当前 signer digest 是受信构造输入，不是 production
   PackageManager 证据；非合作 built-in 不能被同步 cooperative executor 强制抢占。下一工作包 `P5-W05 Skill package
-  verifier`；`implementation_stage=P5-W05`，tracking `DEV-066`、`ISSUE-039`。
+  verifier`；`implementation_stage=P5-W06`，tracking `DEV-066`、`ISSUE-039`。
 
 ### `P5-W05` Skill package verifier
 
-- 状态：`NOT_STARTED`；3 人日；需求：`S2-TOL-001`、`FW-U-008`。
+- 状态：`DEVELOPED`（2026-07-18）；3 人日；需求：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、
+  `FW-U-008`。
 - 类：`SkillArtifactVerifier`、`SkillSignerPolicy`、`SkillVersionPolicy`。
-- DoD：hash/signer/manifest/runtime version/capability static check；量产动态 load 保持 false 直到 owner 批准。
+- DoD：immutable signer active/retired/revoked policy、semantic version/runtime compatibility、artifact epoch、防降级、canonical
+  manifest digest、measured artifact/signer digest 和 per-Skill capability allowlist 已通过 JVM 与 debug/release compile；拒绝结果
+  不返回 verified package，全部 load/execution flag 固定 false。API 33 ARM64 debug probe 已接入 installer，实体证据待 ADB
+  transport 恢复。
+- 边界：只消费受信上游提供的 digest evidence，不读取 APK/JAR/dex/certificate/PackageManager/keystore/TEE，不验证签名链，
+  不动态加载、不接 Runtime/Graph/Binder/Room/ToolExecutor/Effect/Vehicle/NPU/Driver-HAL。下一工作包
+  `P5-W06 WorkingMemoryStore`；`implementation_stage=P5-W06`，tracking `DEV-067`、`ISSUE-040`。
 
 ### `P5-W06` WorkingMemoryStore
 

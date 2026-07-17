@@ -309,15 +309,17 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
 occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
 SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
-P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。P5-W01/W02/W03 已完成 Tool
-合同、Registry/Resolver 与 rule intersection foundation；`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/
+P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。P5-W01..W05 已完成 Tool
+合同、Registry/Resolver、rule intersection、built-in executor boundary 与 Skill package static verifier foundation；
+`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/
 undo/readback 仍未发布。
 
 P5-W01 Tool manifest/schema 已完成：immutable identity/owner/capability/risk/timeout/idempotency/health、bounded scalar
 input/output、canonical contract digest 与 exact-class validator 已进入 Runtime main source；JVM、debug/release compile
 完成。Android 13 ARM64 probe 已实现，但当前 Windows ADB transport 不可用，实体执行待复测。P5-W02 已完成 pure-Java
-Registry/Resolver，P5-W03 已完成 six-rule deterministic intersection，P5-W04 已完成 in-process built-in executor boundary；
-Runtime/Graph/production Tool authority 均未发布，下一工作包为 P5-W05。
+Registry/Resolver，P5-W03 已完成 six-rule deterministic intersection，P5-W04 已完成 in-process built-in executor boundary，
+P5-W05 已完成 static Skill package verifier；Runtime/Graph/production Tool authority 均未发布，下一工作包为 P5-W06
+WorkingMemoryStore。
 
 ## 7. 近期进展
 
@@ -776,7 +778,7 @@ tool_rule_solver_published=false
 tool_rule_solver_runtime_wired=false
 tool_approval_authority_available=false
 tool_execution_enabled=false
-implementation_stage=P5-W05
+implementation_stage=P5-W06
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -819,7 +821,7 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
 
 ### 2026-07-18 P4-W12 progress
 
@@ -833,7 +835,7 @@ Tool manifest/schema。
 
 Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
 
 ### 2026-07-18 P5-W01 progress
 
@@ -849,7 +851,7 @@ contract。下一工作包为 P5-W02 ToolRegistry/Resolver。
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-063`、`ISSUE-036`。
 `tool_registry_published=false`、`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
 
 ### 2026-07-18 P5-W02 progress
 
@@ -867,7 +869,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_registry_published=false`、`tool_resolver_published=false`、`tool_registry_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+`target_hardware_validated=false`、`implementation_stage=P5-W06`。
 
 ### 2026-07-18 P5-W03 progress
 
@@ -885,7 +887,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
 
 
 ### 2026-07-18 P5-W04 progress
@@ -905,4 +907,21 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
 `production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W05`。
+`implementation_stage=P5-W06`。
+
+### 2026-07-18 P5-W05 progress
+
+新增 immutable `SkillSignerPolicy`、`SkillVersionPolicy` 与 `SkillArtifactVerifier`。Signer policy 最多 32 项并区分 ACTIVE/
+RETIRED/REVOKED 与 activation/revocation artifact epoch；Version policy 最多 128 个 Skill，绑定 Runtime compatibility、
+minimum artifact epoch 与 anti-downgrade。Verifier 固定检查 canonical manifest、measured artifact/observed signer digest、
+signer/version/runtime/epoch 和 exact capability allowlist；失败无 verified package，通过结果仍固定 load/execution=false。
+
+五项 JVM test 与 debug/release build 已通过；debug probe、installer、独立 checker 与 CI/runtime evolution 已接入。它不读取
+APK/JAR/dex/certificate、PackageManager/keystore/TEE，不验证签名链，不接 Runtime/Graph/Binder/Room/P5-W04 executor/
+Effect/车辆/NPU/Driver-HAL。当前 ADB transport 不可用，`skill_package_verifier_android13_arm64_verified=false`；下一工作包
+为 P5-W06 WorkingMemoryStore。
+
+Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-008`、`DEL-001/004/005`；tracking：`DEV-067`、
+`ISSUE-040`。`trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
+`dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。

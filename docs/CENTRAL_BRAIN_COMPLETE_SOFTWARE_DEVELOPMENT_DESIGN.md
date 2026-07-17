@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W05`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W06`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W05`.
+`implementation_stage=P5-W06`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W05`.
+`implementation_stage=P5-W06`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W05`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W06`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +2990,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,7 +3060,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P5-W03 Tool RuleSolver detailed design
@@ -3149,7 +3149,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W04 Tool Executor detailed design
@@ -3224,5 +3224,81 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `os_virtualization_enabled=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.
+
+## P5-W05 Skill package verifier detailed design
+
+### Design intent
+
+P5-W05 defines the minimum static package trust decision that can be reviewed before a production package source, signer evidence
+provider, loader or sandbox exists. It answers whether supplied digest evidence satisfies a bounded immutable policy. It does not
+answer whether the supplied evidence is authentic, whether an artifact can be installed, or whether its code may run.
+
+### Component responsibilities
+
+| Component | Owns | Must not own |
+| --- | --- | --- |
+| `SkillSignerPolicy` | signer digest allowlist, activation epoch, retired/revoked state, policy digest | certificate acquisition, chain validation, keystore/TEE |
+| `SkillVersionPolicy` | Skill/version range, Runtime compatibility, minimum artifact epoch, anti-downgrade | install state, lifecycle persistence, rollback authorization service |
+| `SkillPackageManifest` | canonical static package metadata and manifest digest | artifact bytes, code, certificate, mutable health |
+| `VerificationEvidence` | observed/measured digest inputs and highest accepted version | raw package/signing material, user/model/vehicle data, authorization |
+| `SkillArtifactVerifier` | fixed-order policy evaluation and stable result | loader, executor, Registry publisher, Binder, filesystem, hardware |
+| `SkillArtifactVerifierProbeActivity` | debug API 33 ARM64 software evidence | production trust or target qualification |
+
+### Signer policy algorithm
+
+1. Require schema V1 and 1..32 entries. Each signer is a lowercase SHA-256 digest; duplicate digests fail construction.
+2. Require positive activation epoch. ACTIVE/RETIRED have no revocation epoch. REVOKED requires revocation greater than activation.
+3. Require at least one ACTIVE signer so a configuration that can only reject is detected at construction.
+4. Sort by signer digest and hash schema plus every field for deterministic policy digest.
+5. Evaluation rejects unknown and pre-activation signers, then rejects REVOKED and RETIRED. A revoked signer never becomes eligible
+   merely because the candidate artifact predates the revocation epoch; exception policy needs an explicit future owner.
+
+### Version policy algorithm
+
+1. Parse canonical semantic versions with exactly three non-negative decimal components and bounded integer values.
+2. Require schema V1, 1..128 unique canonical Skill IDs, inclusive min<=max and positive minimum artifact epoch.
+3. Sort entries and hash schema/current Runtime/all fields for deterministic policy digest.
+4. Evaluation checks unknown Skill, candidate min/max, minimum artifact epoch, current Runtime against manifest min/max, then optional
+   highest-accepted version. A lower candidate fails when rollback is false.
+5. No fallback policy or alternate version is searched. Registry selection remains P5-W02 responsibility.
+
+### Manifest and verification algorithm
+
+1. Construct schema-V1 manifest with canonical Skill/version, artifact/signer digests, valid Runtime range and 1..32 unique canonical
+   capabilities. Sort capabilities and hash all fields into the manifest digest.
+2. Construct evidence with a declared manifest digest, independently measured artifact digest, observed signer digest, positive artifact
+   epoch and optional highest accepted version. Construction rejects malformed values before evaluation.
+3. Compare computed and declared manifest digest. Reject mismatch before consulting policy.
+4. Compare declared and measured artifact digest, then manifest and observed signer digest. These checks prevent policy evaluation from
+   accepting evidence for a different static package description.
+5. Apply signer policy, then version/runtime/epoch/downgrade policy.
+6. Resolve exact per-Skill capability allowlist. Missing policy and capability expansion are distinct failures.
+7. On success, return digest-only `VerifiedPackage`; on failure, return only enum outcome/code. Both expose load/execution=false.
+
+### Security, privacy and integration
+
+No method accepts bytes, streams, paths, package names, certificates or class names. Main source statically excludes file access,
+PackageInstaller, reflection/class loading, Java serialization, archives, subprocess, network, Binder, Room, Android Car/VHAL,
+device nodes, ioctl and sysfs. Debug logs contain booleans and a caller nonce only. No raw evidence is persisted.
+
+The existing `SkillGovernanceReadinessSnapshot` blocker remains valid: a static verifier implementation is present, but cryptographic
+package signature verification and its trusted evidence source are not configured. Runtime composition must not clear that blocker
+until ISSUE-040 is closed with platform evidence and atomic policy publication.
+
+### Verification matrix
+
+Five JVM tests cover signer/version/verifier policy immutability and digest order, successful static verification, manifest/artifact/
+signer mismatch, retired/revoked state, version min/max, artifact epoch, Runtime min/max, downgrade, capability denial and malformed
+bounds. Debug/release compile the same main source; release omits the DUMP-protected probe. Static gates also confirm Runtime,
+Governance and AgentGraph do not reference these classes.
+
+Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_contract_defined=true`,
+`skill_version_policy_contract_defined=true`, `skill_artifact_hash_verified=true`, `skill_manifest_digest_verified=true`,
+`skill_signer_policy_verified=true`, `skill_runtime_version_verified=true`, `skill_capability_policy_verified=true`,
+`skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
+`trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
+`dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W06`.
+Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
