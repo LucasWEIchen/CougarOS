@@ -124,7 +124,7 @@ require_text "README.md" "session_parcel_physical_android13_arm64_verified=true"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" \
   "session_contract_v1_defined=true"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" \
-  "session_runtime_service_published=false"
+  "session_runtime_service_published=true"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" \
   "session_parcel_physical_android13_arm64_verified=true"
 require_text "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md" \

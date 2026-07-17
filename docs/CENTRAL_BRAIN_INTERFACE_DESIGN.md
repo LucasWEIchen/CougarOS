@@ -664,5 +664,36 @@ The four AIDL sources are frozen by `aidl-api/effect-v1.sha256`; concatenated pr
 Binder interface and does not modify Governance V1. Status: `effect_contract_v1_defined=true`,
 `effect_parcel_physical_android13_arm64_verified=true`, `effect_runtime_service_published=false`,
 `approval_response_service_published=false`, `undo_service_published=false`, `hardware_accessed=false`.
-P1-W05 owns facade/Service lifecycle; P1-W06 owns durable storage. Req IDs: `S2-EFF-001`, `S2-SAF-001`,
+P1-W05 now owns Session/Event facade/Service lifecycle; P1-W06 owns durable storage. Req IDs: `S2-EFF-001`, `S2-SAF-001`,
 `S2-UX-002`, `FW-S-005`, `NV-F-001`, `NV-G-005`, `NV-G-006`, `NV-G-007`.
+
+## Stage 2 P1-W05 SDK Facade v2
+
+| Surface | Calls/callbacks | Ownership and error boundary |
+| --- | --- | --- |
+| `ScenarioClient` | connect/reconnect/open/get/list/cancel/observe/stop/close | HMI public API; typed DTO and stable `Failure.code` only |
+| `RuntimeEventListener` | snapshot/event/replay complete/overflow/closed/error | serial caller executor; no Binder thread UI work |
+| `ScenarioTransport` | Session/Event protocol and data calls | package-private test seam; may use AIDL/RemoteException internally |
+| `AndroidScenarioTransport` | explicit dual-action bind/death/callback bridge | same Runtime component, generation-scoped Binder lifecycle |
+| `TransientSessionEndpoint` | Session/Event AIDL Stub | capability before request; owner from Binder identity |
+| `TransientSessionRegistry` | open/find/list/cancel/events | process-local bounded state; no raw utterance retention |
+
+Public facade errors are `NOT_CONNECTED`, `PROTOCOL_MISMATCH`, `TRANSPORT`, `SUBSCRIPTION`, `CLOSED`.
+Contract violations remain domain-specific argument errors. Session/Event AIDL V1 version/hash are unchanged;
+P1-W05 only publishes them through actions:
+
+```text
+com.centralbrain.runtime.action.SESSION_RUNTIME
+com.centralbrain.runtime.action.SESSION_EVENTS
+```
+
+Recovery is snapshot -> authoritative cursor replay -> monotonic sequence deduplication -> callback register.
+Because Event V1 terminal pages do not return a forward resume cursor, reconnect may replay already-seen events;
+sequence deduplication preserves delivery correctness, while `ISSUE-034` tracks a future V2 cursor/ack contract.
+
+Status: `sdk_facade_v2_available=true`, `session_runtime_service_published=true`,
+`event_runtime_service_published=true`, `event_callback_service_published=true`,
+`active_session_reconnect_resubscribe_verified=true`. The registry is not Room-backed:
+`session_runtime_persistence_wired=false`, `session_runtime_process_death_rehydration=false`,
+`scenario_execution_enabled=false`, `hardware_accessed=false`. Approval response, grant and undo execution remain
+undefined and are intentionally absent from this facade.

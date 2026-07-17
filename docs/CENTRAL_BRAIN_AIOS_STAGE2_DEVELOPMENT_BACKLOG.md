@@ -185,11 +185,20 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P1-W05` SDK facade v2
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-UX-001..003`、`XSC-001`。
-- 修改：`CentralBrainClient.java`、`CentralBrainSdk.java`。
-- 新增：`SessionClient.java`、`ScenarioClient.java`、`RuntimeEventListener.java`。
-- DoD：UI 不需要操作 Binder primitive；death/reconnect 后可重新订阅 active session。
-- 测试：fake Binder、callback race、close/reconnect idempotency。
+- 状态：`DONE`；2026-07-17 完成；需求：`S2-SES-001`、`S2-UX-001..003`、`S2-EVT-001`、
+  `APP-004`、`XSC-001/006`、`NV-G-003/004`。
+- SDK：`ScenarioClient`、`SessionClient`、`RuntimeEventListener` 不暴露 `IBinder`/`RemoteException`；
+  内部 `AndroidScenarioTransport` 用同一显式 Runtime component 的 Session/Event action 建立双 Binder。
+- Runtime：同一 `CentralBrainRuntimeService` 发布 Session/Event V1，不新增 Manifest Service；七项
+  default-deny capability 从 Binder UID/package/current signer 派生 owner。进程级 transient registry
+  有界、幂等、按 owner 隔离，不保留原始 utterance。
+- 生命周期：authoritative cursor replay 后注册 notification callback；重复 replay 按 sequence 去重；
+  Service rebind 后重新读取 snapshot 并订阅 active session。进程死亡恢复仍为
+  `session_runtime_process_death_rehydration=false`，由 P1-W06 持久化关闭。
+- 测试：fake transport、callback race、协议拒绝、close/reconnect 幂等、registry owner/capacity/
+  cursor；Android 13/API 33 ARM64 真实 Binder 验证通过，`hardware_accessed=false`。
+- 边界：`scenario_execution_enabled=false`，不发布 Effect/approval response/undo executor，不接车辆、
+  NPU 或 Driver/HAL。Event V1 terminal page cursor 限制登记于 `ISSUE-034`。
 
 ### `P1-W06` Room v4 schema
 

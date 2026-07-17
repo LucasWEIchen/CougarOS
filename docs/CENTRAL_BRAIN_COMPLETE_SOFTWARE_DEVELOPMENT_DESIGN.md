@@ -164,8 +164,10 @@ flowchart TB
 | Runtime AIDL v1 | `central-brain-sdk/.../production/ICentralBrainRuntime.aidl` | `DEVELOPED` | submit/cancel/status、version/hash |
 | Governance AIDL v1 | `.../governance/ICentralBrainGovernance.aidl` | `DEVELOPED` | evaluate/request/status/cancel，故意没有 grant API |
 | Diagnostic AIDL | `.../diagnostics/ICentralBrainDiagnostics.aidl` | `DEVELOPED` | 分页只读 diagnostics |
-| Java SDK facade | `CentralBrainClient.java`、`CentralBrainGovernanceClient.java` | `DEVELOPED` | Binder connect/death/reconnect、typed DTO |
-| Runtime Service | `CentralBrainRuntimeService.java` | `DEVELOPED/PROTOTYPE` | trusted task admission、callback、lifecycle |
+| Java SDK facade | `CentralBrainClient`、`CentralBrainGovernanceClient`、`ScenarioClient`、`SessionClient` | `DEVELOPED` | Binder connect/death/reconnect、Session/Event replay/resubscribe、typed DTO |
+| Stage 2 facade transport | `ScenarioTransport`、`AndroidScenarioTransport` | `DEVELOPED/PROTOTYPE` | 同一 Runtime component 的 Session/Event 双 action Binder；不对 HMI 暴露 |
+| Runtime Service | `CentralBrainRuntimeService.java` | `DEVELOPED/PROTOTYPE` | trusted task admission、Session/Event publication、callback、lifecycle |
+| Transient Session Runtime | `runtime/session/TransientSessionRegistry`、`TransientSessionEndpoint` | `DEVELOPED/PROTOTYPE` | owner 隔离、幂等、cursor、Service rebind；无 Room/process-death/scenario execution |
 | Governance Service | `CentralBrainGovernanceService.java` | `DEVELOPED/PROTOTYPE` | caller capability、action policy、approval contract |
 | Diagnostic Service | `CentralBrainDiagnosticService.java` | `DEVELOPED` | read-only snapshots |
 | Caller identity | `identity/*` | `DEVELOPED` | PackageManager signer/caller fingerprint |
@@ -417,22 +419,134 @@ governed compensation session，重新读取 Safety/Context/capability，绝不�
 
 ### 8.8 Java SDK facade
 
-计划类：
+P1-W05 实际交付三个 public 类型：
 
 ```java
 public interface ScenarioClient extends AutoCloseable {
-    SessionHandle openSession(SessionRequest request, SessionListener listener);
-    SessionSnapshot get(SessionHandle handle);
-    SessionPage list(SessionQuery query);
-    EventPage events(SessionHandle handle, long afterSequence, int limit);
-    boolean approve(ApprovalResponse response);
-    boolean reject(ApprovalResponse response);
-    UndoHandle undo(SessionHandle handle, UndoRequest request);
-    void reconnect();
+    boolean connect();
+    boolean reconnect();
+    boolean isConnected();
+    SessionHandle openSession(SessionRequest request, RuntimeEventListener listener);
+    SessionSnapshot getSession(SessionHandle handle);
+    SessionPage listSessions(SessionQuery query);
+    boolean cancelSession(SessionHandle handle, int reasonCode);
+    void observeSession(SessionHandle handle, String resumeCursor,
+                        RuntimeEventListener listener);
+    void stopObserving(SessionHandle handle);
+    void close();
+}
+
+public interface RuntimeEventListener {
+    default void onSnapshot(SessionSnapshot snapshot) {}
+    default void onEvent(RuntimeEvent event) {}
+    default void onReplayComplete(long lastSequence) {}
+    default void onOverflow(String resumeCursor) {}
+    default void onClosed(int reasonCode, String resumeCursor) {}
+    default void onError(String code, String message) {}
 }
 ```
 
-SDK 必须：
+`ScenarioClient.Failure` 是 public 稳定异常，只允许 `NOT_CONNECTED`、`PROTOCOL_MISMATCH`、
+`TRANSPORT`、`SUBSCRIPTION`、`CLOSED` code。public API 禁止出现 `IBinder`、AIDL Stub/Proxy、
+`RemoteException`；合同字段错误继续使用对应 `CB_SESSION_CONTRACT`/`CB_EVENT_CONTRACT`
+`IllegalArgumentException`，便于开发阶段立即发现调用错误。
+
+文件与职责：
+
+| 文件 | 可见性 | 职责 |
+| --- | --- | --- |
+| `ScenarioClient.java` | public interface | HMI/应用命令面和稳定错误合同 |
+| `SessionClient.java` | public final | version/hash 协商、validation、subscription 状态、sequence 去重、listener 串行化 |
+| `RuntimeEventListener.java` | public interface | snapshot/replay/event/overflow/closed/error 投影 |
+| `ScenarioTransport.java` | package-private | fake transport 与 Android transport 的可测试边界 |
+| `AndroidScenarioTransport.java` | package-private final | explicit component bind、双 Binder generation、death recipient、AIDL callback bridge |
+| `CentralBrainClient.createScenarioClient()` | public factory | 复用 application context 和 callback executor，返回独立拥有/关闭的 facade |
+
+#### 8.8.1 连接与协议协商
+
+`AndroidScenarioTransport` 对同一
+`com.centralbrain.runtime.CentralBrainRuntimeService` 建立两个 filter-distinct binding：
+
+```text
+com.centralbrain.runtime.action.SESSION_RUNTIME -> ICentralBrainSessionRuntime V1
+com.centralbrain.runtime.action.SESSION_EVENTS  -> ICentralBrainSessionEvents V1
+```
+
+两个 Binder 均存活后才发 `onConnected`。`SessionClient` 必须精确比较两个
+`INTERFACE_VERSION` 和 `INTERFACE_HASH`；任一不匹配或 capability 拒绝都不得进入 connected。每次 bind
+generation 使用新的 `ServiceConnection` 和 `DeathRecipient`，旧 generation 的晚到 callback 必须忽略。
+任一 Binder 死亡使这一代整体失效并清除 transport callback bridge；active subscription metadata
+保留在 facade，等待显式 reconnect。
+
+#### 8.8.2 subscription 状态与恢复算法
+
+每个 `sessionId` 最多一个 active `Subscription`，保存 handle、listener、resume cursor、
+`lastSequence`、active/recovering flag 和不对外暴露的 callback sink。恢复顺序固定：
+public resume cursor 在 Binder 前限制为 256 字符且禁止控制字符。
+
+1. `getSession(handle)`，不存在则 `onError(SUBSCRIPTION)`；
+2. 从保存 cursor 调用 `getEvents(..., MAX_PAGE_SIZE)`，每页都执行 `EventContract.validatePage`；
+3. 仅交付 `sequence > lastSequence`，拒绝 cross-session 或非连续 sequence；
+4. terminal page 后以该页 request cursor 注册 callback；
+5. callback 的重复 replay 继续按 sequence 丢弃，再发送 `onReplayComplete(lastSequence)`。
+
+Event V1 terminal page 禁止返回 `nextCursor`，因此当前实现无法在 terminal page 后前移 opaque cursor，
+会在 reconnect/register 时重复读取一段历史并依赖 sequence 去重。该限制记录为 `ISSUE-034`；P1-W07
+只能新增 V2/ack cursor，不能修改冻结的 V1 hash。
+
+#### 8.8.3 线程、竞态和关闭
+
+调用方注入的 `Executor` 被 `SerialExecutor` 包装，connection/listener 回调按单一顺序执行，不在 Binder
+thread 更新 UI。`observeSession` 替换旧 subscription，`stopObserving`/`close` 先使 subscription inactive；
+已排队的旧 sink callback 在执行时再次做 identity/current 检查并丢弃。`close()` 可重复调用；close 后
+connect/reconnect 固定抛 `CLOSED`。SDK 不自动重发 open request，避免 Binder 结果未知时创建重复场景。
+
+#### 8.8.4 Runtime publication 与 owner
+
+Runtime 不新增 Service component。`CentralBrainRuntimeService.onBind(Intent)` 对两个 action 返回
+`TransientSessionEndpoint` 的 Session/Event Stub；无 action 时继续返回旧 `ICentralBrainRuntime`。
+每个 Stub 方法在读取 request 前先按 operation 要求 capability：
+
+```text
+runtime.session.protocol.read  runtime.session.open
+runtime.session.read.own       runtime.session.cancel.own
+runtime.event.protocol.read    runtime.event.read.own
+runtime.event.subscribe.own
+```
+
+通过 Binder UID -> package/current signer default-deny policy 后，使用
+`DurablePrincipalFingerprint.from(caller)` 生成 owner。owner 不读取 request body。生产 XML 只授权
+Demo/Client2；instrumentation principal 只存在于 debug XML overlay，并要求 Runtime current signer。
+
+#### 8.8.5 transient registry
+
+`TransientSessionRegistry` 进程级 singleton 上限为 64 session、每 session 8 个当前合同事件。它只保存
+owner fingerprint、request digest、handle、snapshot 和 typed RuntimeEvent；原始 utterance 仅在 open
+调用栈中参与 domain-separated SHA-256，不能成为字段、summary、event 或 log。owner+requestId 同
+digest 返回原 handle，不同 digest 报幂等冲突。容量满时只可逐出最旧 terminal record；全部 active
+时失败关闭。list/event cursor 是 bounded opaque token，non-owner 返回不可用或空 owner view。
+
+该 registry 可跨 Service instance rebind，因为它属于 Runtime 进程；进程死亡即丢失。P1-W06 必须把
+Session/Plan/Event/Effect/Compensation 接入 Room v4 才能设置 process-death rehydration。
+Endpoint 同时限制每 session 最多 4 个 callback、全进程最多 128 个 callback；达到上限返回 false，
+facade 转为 `SUBSCRIPTION`，不得无限注册或静默逐出仍活跃的 observer。
+
+P1-W05 不定义 `ApprovalResponse`、`UndoRequest`、approve/reject/undo facade：这些类型和 authority 尚未
+冻结，现有 `ApprovalPrompt` 不是 grant，`UndoHandle` 不是执行命令。当前固定边界：
+
+```text
+sdk_facade_v2_available=true
+session_runtime_service_published=true
+event_runtime_service_published=true
+event_callback_service_published=true
+session_runtime_persistence_wired=false
+session_runtime_process_death_rehydration=false
+scenario_execution_enabled=false
+approval_response_service_published=false
+undo_service_published=false
+```
+
+SDK 必须继续满足：
 
 - 在 Binder death 后通知 `disconnected`，有界重连；
 - 重连后先读 snapshot/page，再 attach callback；
@@ -1521,10 +1635,13 @@ central-brain-sdk AAR
 - Client2 HVAC/Seat 中控闭环的需求、意图驱动四阶段、模块、状态、验收和高保真 UI/UX 设计基线（HMI-D0）。
 - P1-W01 Session、P1-W02 Plan/Node 与 P1-W03 Event/callback typed contract、checksum/JVM/API 33 ARM64 Parcel 证据。
 - P1-W04 Effect/Approval/Undo typed contract、状态机、stale/TTL 校验、checksum/JVM/API 33 ARM64 Parcel 证据。
+- P1-W05 SDK facade、Session/Event app-layer Service、capability、transient registry、rebind/resubscribe 和
+  Android 13 ARM64 真实 Binder 证据。
 
 ### 32.2 下一阶段未完成
 
-- Session/Event/Effect Service、approval response/undo execution 与 SDK facade；
+- Room v4 Session/Plan/Event/Effect/Compensation persistence 与 Runtime process-death rehydration；
+- Scenario/Plan/Effect execution、approval response/undo execution；
 - Room v4 session/plan/event/observation/memory schema；
 - Vehicle Digital Twin 和 trusted Context；
 - deterministic Scenario/Plan/DAG；
@@ -1546,10 +1663,12 @@ central-brain-sdk AAR
 ## 33. 开发人员起始点
 
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
-`P1-W04 Effect/Approval DTO 扩展` 已完成 contract layer：18 个有界 DTO、独立 Session 与
-Event/Callback Binder V1、四组校验器、JVM/Android 13 ARM64 Parcel 测试和独立 checksum 门禁已进入
-工程。Session/Event/Effect Service、approval response/undo execution、Plan Compiler 和 Graph Runtime
-均未发布。下一实现工作包固定为 `P1-W05 SDK facade v2`；不得越过 contract 层
+`P1-W04 Effect/Approval DTO 扩展` 和 `P1-W05 SDK facade v2` 已完成：18 个有界 DTO、独立 Session 与
+Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
+owner/capability、transient registry、JVM/Android 13 ARM64 Parcel 与真实 Binder 测试和独立 checksum
+门禁已进入工程。Room v4/process-death rehydration、Effect Service、approval response/undo execution、
+Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为 `P1-W06 Room v4 schema`；不得
+直接在 Client2 中硬编码仿真动画。
 直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见

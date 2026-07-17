@@ -153,6 +153,13 @@ expected = {
     "runtime.task.submit",
     "runtime.task.status.own",
     "runtime.task.cancel.own",
+    "runtime.session.protocol.read",
+    "runtime.session.open",
+    "runtime.session.read.own",
+    "runtime.session.cancel.own",
+    "runtime.event.protocol.read",
+    "runtime.event.read.own",
+    "runtime.event.subscribe.own",
 }
 if actual != expected:
     raise SystemExit(f"Client2 capability set is not least privilege: {actual}")

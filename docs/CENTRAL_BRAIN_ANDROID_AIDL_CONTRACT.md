@@ -229,7 +229,7 @@ cursor/replay mutation and size/enum rejection. Cumulative instrumentation passe
 rejection paths on the Android 13/API 33 ARM64 physical controller on 2026-07-17; the temporary test APK was then
 removed. The evidence reports `event_contract_v1_defined=true`,
 `event_parcel_physical_android13_arm64_verified=true`, `event_runtime_service_published=false`,
-`event_callback_service_published=false` and `hardware_accessed=false`. P1-W05 owns publication and callback
+`event_callback_service_published=false` and `hardware_accessed=false`. P1-W05 now owns publication and callback
 lifecycle; P1-W06 owns Room v4 persistence. This increment is not Event runtime, vehicle/NPU access, Driver/HAL
 development or production qualification.
 
@@ -268,6 +268,25 @@ Status: `effect_contract_v1_defined=true`,
 P1-W05 owns facade and Binder lifecycle, P1-W06 owns Room v4. Existing Governance V1 intentionally remains
 without a grant method; P1-W04 is not Effect execution, vehicle/NPU access, Driver/HAL development or production
 qualification.
+
+## Stage 2 P1-W05 Session/Event Service Publication
+
+P1-W05 does not change any frozen AIDL file or hash. It publishes `ICentralBrainSessionRuntime` and
+`ICentralBrainSessionEvents` from the existing `CentralBrainRuntimeService` using two explicit Intent actions,
+so the Manifest keeps exactly three signature-protected app Services. Legacy no-action binding remains the
+production task Binder.
+
+Every Session/Event transaction resolves Binder UID/package/current signer and enforces one of seven operation
+capabilities before deriving owner fingerprint. Request DTOs cannot claim owner or authority. The public
+`ScenarioClient` contains no Binder primitive; package-private transport owns Stub/Proxy, death recipients,
+protocol negotiation and callback bridge.
+
+The Runtime registry is process-local and bounded. Reconnect recovery is snapshot -> cursor replay -> sequence
+deduplication -> callback registration. Service rebind is supported; process death is not. Android 13/API 33 ARM64
+real Binder instrumentation verifies this lifecycle with `hardware_accessed=false`. Current status is
+`session_runtime_service_published=true`, `event_runtime_service_published=true`,
+`event_callback_service_published=true`, `session_runtime_persistence_wired=false`,
+`session_runtime_process_death_rehydration=false`, `scenario_execution_enabled=false`.
 
 ## References
 

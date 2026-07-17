@@ -25,6 +25,7 @@ GOVERNANCE_SERVICE="central-brain/android-runtime/runtime-service/src/main/java/
 POLICY="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/policy/CallerCapabilityPolicy.java"
 LOADER="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/policy/AndroidCapabilityPolicyLoader.java"
 POLICY_XML="central-brain/android-runtime/runtime-service/src/main/res/xml/central_brain_capability_policy.xml"
+DEBUG_POLICY_XML="central-brain/android-runtime/runtime-service/src/debug/res/xml/central_brain_capability_policy.xml"
 POLICY_TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/policy/CallerCapabilityPolicyTest.java"
 PROBE_GRADLE="central-brain/android-runtime/policy-probe/build.gradle.kts"
 PROBE_MANIFEST="central-brain/android-runtime/policy-probe/src/main/AndroidManifest.xml"
@@ -32,10 +33,28 @@ PROBE_ACTIVITY="central-brain/android-runtime/policy-probe/src/main/java/com/cen
 DEVICE_TEST="tools/test_central_brain_android_capability_policy.sh"
 
 for path in \
-  "$SERVICE" "$GOVERNANCE_SERVICE" "$POLICY" "$LOADER" "$POLICY_XML" "$POLICY_TEST" \
+  "$SERVICE" "$GOVERNANCE_SERVICE" "$POLICY" "$LOADER" "$POLICY_XML" "$DEBUG_POLICY_XML" "$POLICY_TEST" \
   "$PROBE_GRADLE" "$PROBE_MANIFEST" "$PROBE_ACTIVITY" "$DEVICE_TEST"; do
   require_file "$path"
 done
+
+for capability in \
+  runtime.session.protocol.read \
+  runtime.session.open \
+  runtime.session.read.own \
+  runtime.session.cancel.own \
+  runtime.event.protocol.read \
+  runtime.event.read.own \
+  runtime.event.subscribe.own; do
+  require_text "$POLICY" "$capability"
+  require_text "$POLICY_XML" "$capability"
+  require_text "$DEBUG_POLICY_XML" "$capability"
+done
+require_text "$DEBUG_POLICY_XML" 'packageName="com.centralbrain.sdk.test"'
+if grep -Fq 'com.centralbrain.sdk.test' "$ROOT_DIR/$POLICY_XML"; then
+  echo "instrumentation principal must not enter the production capability policy" >&2
+  exit 1
+fi
 
 for capability in \
   runtime.protocol.read \
@@ -107,6 +126,13 @@ expected = {
         "runtime.task.submit",
         "runtime.task.status.own",
         "runtime.task.cancel.own",
+        "runtime.session.protocol.read",
+        "runtime.session.open",
+        "runtime.session.read.own",
+        "runtime.session.cancel.own",
+        "runtime.event.protocol.read",
+        "runtime.event.read.own",
+        "runtime.event.subscribe.own",
         "governance.protocol.read",
         "governance.action.evaluate",
         "governance.approval.request",
@@ -118,6 +144,13 @@ expected = {
         "runtime.task.submit",
         "runtime.task.status.own",
         "runtime.task.cancel.own",
+        "runtime.session.protocol.read",
+        "runtime.session.open",
+        "runtime.session.read.own",
+        "runtime.session.cancel.own",
+        "runtime.event.protocol.read",
+        "runtime.event.read.own",
+        "runtime.event.subscribe.own",
     },
 }
 actual_by_package = {}

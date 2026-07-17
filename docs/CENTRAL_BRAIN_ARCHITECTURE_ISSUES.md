@@ -202,6 +202,22 @@ debug/test Digital Twin，真实 adapter 仍由 `ISSUE-030` 跟踪。
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。
 
+## ISSUE-034 Session/Event V1 cursor 与进程死亡恢复缺口
+
+P1-W05 已发布 owner-scoped Session/Event app-layer Binder，并在 Android 13 ARM64 验证 Service
+rebind 后 active session 重新订阅；但 registry 只是 Runtime 进程内 singleton，进程死亡后 session、
+event 和 callback 关联全部丢失。关闭条件是 P1-W06 Room v4 repository、v3->v4 migration、事务恢复和
+process-death rehydration 测试通过。
+
+冻结的 Event V1 还存在 cursor 语义缺口：`hasMore=false` 的 terminal page 不提供可前移的 resume cursor。
+当前 facade 只能保留该 terminal request cursor，并用递增 sequence 去除 register/reconnect replay 的
+重复事件；结果正确但可能重复读取已见历史，不能扩展为高吞吐 durable broker。P1-W07 aggregate review
+必须决定新增 V2 resume cursor/ack contract，或给 terminal page 独立 latest cursor；不得修改已冻结
+Event V1 hash。
+
+状态：`Open`。该问题不阻塞 P1-W05 app-layer 演示，但阻塞 durable Session Runtime 与 production
+Event broker。`session_runtime_process_death_rehydration=false`、`production_ready=false` 保持不变。
+
 ## Android 实现证据索引
 
 这些追踪键由保留的源码和独立检查器验证，只说明软件增量存在：
@@ -247,3 +263,4 @@ Driver/HAL、target hardware 或 production。状态：`Open`。
 | 2026-07-15 导航菜单进展 | 当前物理设备 Client2 菜单交互完成。 |
 | P1-W03 进展 | Event/callback V1 合同与物理 API 33 Parcel 证据完成；Service/Room/hardware 均未发布。 |
 | P1-W04 进展 | Effect/Approval V1 合同与物理 API 33 Parcel 证据完成；Service/grant/undo/Room/hardware 均未发布。 |
+| P1-W05 进展 | SDK facade 与 Session/Event Service 真实 Binder rebind/resubscribe 完成；process-death/Room/scenario/hardware 仍未发布。 |

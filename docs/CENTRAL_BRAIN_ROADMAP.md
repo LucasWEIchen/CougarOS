@@ -151,13 +151,16 @@ publication/Room persistence 均关闭。
 JVM/API 33 ARM64 Parcel 测试和 `effect-v1.sha256` 已进入工程；本包未新增 Binder interface，
 Effect Service、approval response/grant、undo execution 和 Room persistence 均关闭。
 
-下一实现工作包为 `P1-W05 SDK facade v2`。执行顺序：
+`P1-W05 SDK facade v2` 已完成：UI 可通过无 Binder primitive 的 `ScenarioClient` 使用 Session/Event
+V1；同一 Runtime Service 通过显式 action 发布两个 Binder，owner/capability、transient registry、
+cursor replay、callback 去重和 Service rebind 恢复均已进入工程并通过 Android 13 ARM64 真机验证。
 
-1. 为 Session/Scenario/Event 建立不暴露 Binder primitive 的 Java facade。
-2. 将 Binder principal/capability、Service publication 和 callback lifecycle 放在 Runtime owner 边界。
-3. 验证 fake Binder、callback race、close/reconnect 幂等和 active session 重新订阅。
-4. 更新 requirements/roadmap/deviation/issue/delivery/driver trace。
-5. 不接入车辆/NPU/Driver/HAL，不恢复 Python gateway。
+下一实现工作包为 `P1-W06 Room v4 schema`。执行顺序：
+
+1. 为 Session/Plan/Node/RuntimeEvent/EffectObservation/Compensation 定义 Room v4 entity、FK 和 index。
+2. 提供 v3->v4 migration fixture，保持现有 durable task/effect/outbox/audit 数据不丢失。
+3. 将 P1-W05 transient Session/Event owner 数据接入 durable repository 与进程死亡 rehydration。
+4. 保持 Effect/approval response/undo execution、车辆/NPU/Driver-HAL 关闭，不恢复 Python gateway。
 
 ## 7. 近期进展
 
@@ -210,6 +213,14 @@ Effect Service、approval response/grant、undo execution 和 Room persistence �
   approval 和 expired undo 验证；临时 test APK 验证后卸载，未访问车辆/NPU。
 - 保持 `effect_runtime_service_published=false`、`approval_response_service_published=false`、
   `undo_service_published=false`；下一工作包为 `P1-W05 SDK facade v2`。
+- 完成 `P1-W05 SDK facade v2`：新增无 Binder primitive 的 Scenario/Session facade、内部双 action
+  transport、Runtime Session/Event Binder publication、owner-scoped transient registry 和七项 capability。
+- JVM 覆盖 fake transport、callback race、protocol failure、close/reconnect 幂等、owner/capacity/cursor；
+  Android 13/API 33 ARM64 真实 Binder 验证 active session rebind/resubscribe 与重复 replay 去重。
+- 当前 `sdk_facade_v2_available=true`、`session_runtime_service_published=true`、
+  `event_runtime_service_published=true`、`event_callback_service_published=true`；但
+  `session_runtime_persistence_wired=false`、`session_runtime_process_death_rehydration=false`、
+  `scenario_execution_enabled=false`，下一工作包为 `P1-W06 Room v4 schema`。
 
 ## 8. 当前门禁
 
@@ -225,6 +236,7 @@ bash tools/check_central_brain_aios_stage2_design.sh
 bash tools/check_central_brain_android_plan_contract.sh
 bash tools/check_central_brain_android_event_contract.sh
 bash tools/check_central_brain_android_effect_contract.sh
+bash tools/check_central_brain_android_sdk_facade.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -243,19 +255,25 @@ cockpit_hmi_1920x1080_safe_frame_verified=true
 cockpit_hmi_translucent_material_ready=true
 session_contract_v1_defined=true
 session_parcel_physical_android13_arm64_verified=true
-session_runtime_service_published=false
+sdk_facade_v2_available=true
+session_runtime_service_published=true
+active_session_reconnect_resubscribe_verified=true
+session_runtime_transient_registry=true
+session_runtime_persistence_wired=false
+session_runtime_process_death_rehydration=false
 plan_contract_v1_defined=true
 plan_parcel_physical_android13_arm64_verified=true
 plan_runtime_published=false
 event_contract_v1_defined=true
 event_parcel_physical_android13_arm64_verified=true
-event_runtime_service_published=false
-event_callback_service_published=false
+event_runtime_service_published=true
+event_callback_service_published=true
 effect_contract_v1_defined=true
 effect_parcel_physical_android13_arm64_verified=true
 effect_runtime_service_published=false
 approval_response_service_published=false
 undo_service_published=false
+scenario_execution_enabled=false
 production_ready=false
 target_hardware_validated=false
 driver_development_triggered=false

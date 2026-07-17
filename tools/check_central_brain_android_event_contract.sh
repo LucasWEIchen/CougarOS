@@ -157,8 +157,8 @@ for doc in \
 done
 require_text "README.md" "event_contract_v1_defined=true"
 require_text "README.md" "event_parcel_physical_android13_arm64_verified=true"
-require_text "README.md" "event_runtime_service_published=false"
-require_text "README.md" "event_callback_service_published=false"
+require_text "README.md" "event_runtime_service_published=true"
+require_text "README.md" "event_callback_service_published=true"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" \
   "event_contract_v1_defined=true"
 require_text "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md" \

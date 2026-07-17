@@ -52,4 +52,5 @@ jobs:
           bash tools/check_central_brain_github_remote_testing.sh
           bash tools/check_central_brain_python_prototype_retirement.sh
           bash tools/check_central_brain_aios_stage2_design.sh
+          bash tools/check_central_brain_android_sdk_facade.sh
           bash tools/check_central_brain_root_readme.sh

@@ -1233,7 +1233,7 @@ if ! grep -Fq "maturity=android_integrated evolution_stage=R4_DURABLE_WORKFLOW" 
   echo "Runtime did not report the R4 durable workflow stage" >&2
   exit 1
 fi
-if ! grep -Fq "capability_default=deny capability_rule_count=3" <<<"$RUNTIME_LOG"; then
+if ! grep -Fq "capability_default=deny capability_rule_count=4" <<<"$RUNTIME_LOG"; then
   echo "Runtime did not load the strict R3B capability policy" >&2
   exit 1
 fi
