@@ -59,6 +59,7 @@
 | ISSUE-037 | Tool health publisher、production Registry composition 和 snapshot trust owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W03..W05/P8 | Open |
 | ISSUE-038 | Production Tool rule catalog、condition publisher、Plan binding 与 approval authority 未确定。 | S2-TOL-001, S2-SAF-001, P5-W04/W05/P8 | Open |
 | ISSUE-039 | Production built-in signer evidence、artifact revoke/rollback 与非合作实现的 deadline/cancel owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W05/P9 | Open |
+| ISSUE-040 | Trusted signer evidence、Skill policy 原子发布、签名链、lifecycle 与动态装载 owner 未确定。 | S2-TOL-001, S2-SAF-001, FW-U-008, P8/P9 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -573,7 +574,7 @@ Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。V
 状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W05`。tracking：`DEV-065`。
+`target_hardware_validated=false`、`implementation_stage=P5-W06`。tracking：`DEV-065`。
 
 ## ISSUE-039 Production built-in signer and cooperative cancellation ownership
 
@@ -595,4 +596,26 @@ composition。Vehicle/NPU Tool 还需 P8 vendor cancellable API 与 readback 合
 `built_in_signer_artifact_bound=true`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`production_tool_registered=false`、`os_virtualization_enabled=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W05`。tracking：`DEV-066`。
+`implementation_stage=P5-W06`。tracking：`DEV-066`。
+
+P5-W05 进展：只读 verifier 已冻结 ACTIVE/RETIRED/REVOKED、artifact epoch、Runtime compatibility、防降级与 capability
+allowlist，关闭 pure-Java static policy 子项。它不解决 signer evidence acquisition、签名链、atomic publish 或 hard cancel，
+所以 ISSUE-039 保持 Open；可信包发布责任收敛到 ISSUE-040。
+
+## ISSUE-040 Trusted signer evidence and atomic Skill policy publication ownership
+
+P5-W05 的 `VerificationEvidence` 只接受 digest，不拥有 digest 的采集链。量产必须指定 signer evidence 来自 PackageManager
+signing history、OEM trust store、TEE/keystore attestation 还是受签发布清单，并证明证书链、轮换、撤销、proof-of-possession、
+安装来源和 artifact bytes 的测量一致性。不能把调用方提供的 64 字符串直接当成量产可信 signer。
+
+Signer、version、capability、minimum epoch 与 rollback policy 还需要一个受治理 owner 和原子 publication 合同：policy epoch、
+签名、持久化、进程死亡恢复、旧快照失效、Registry/RuleSet/Verifier 一致性、历史 Plan replay、审计和 rollback authorization。
+动态 APK/AAR/JAR/dex loading 若未来获批，还必须确定 sandbox/process identity、资源限额、native code policy、class namespace、
+卸载/升级和故障隔离；P5-W05 明确未实现这些能力。
+
+状态：`Open`。当前 `skill_artifact_verifier_contract_defined=true`、`skill_signer_policy_contract_defined=true`、
+`skill_version_policy_contract_defined=true`、`skill_revocation_downgrade_fail_closed=true`、
+`trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
+`dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+tracking：`DEV-067`。

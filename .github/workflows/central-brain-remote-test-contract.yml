@@ -91,4 +91,5 @@ jobs:
           bash tools/check_central_brain_android_tool_registry.sh
           bash tools/check_central_brain_android_tool_rule_solver.sh
           bash tools/check_central_brain_android_tool_executor.sh
+          bash tools/check_central_brain_android_skill_package_verifier.sh
           bash tools/check_central_brain_root_readme.sh

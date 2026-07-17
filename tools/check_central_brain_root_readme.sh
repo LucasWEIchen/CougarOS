@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P5-W05' \
+  'implementation_stage=P5-W06' \
   'tool_manifest_contract_defined=true' \
   'tool_manifest_schema_version=1' \
   'tool_manifest_contract_digest_verified=true' \
@@ -283,6 +283,20 @@ for marker in \
   'tool_executor_audit_bounded_verified=true' \
   'tool_executor_android13_arm64_verified=false' \
   'tool_executor_runtime_wired=false' \
+  'skill_artifact_verifier_contract_defined=true' \
+  'skill_signer_policy_contract_defined=true' \
+  'skill_version_policy_contract_defined=true' \
+  'skill_artifact_hash_verified=true' \
+  'skill_manifest_digest_verified=true' \
+  'skill_signer_policy_verified=true' \
+  'skill_runtime_version_verified=true' \
+  'skill_capability_policy_verified=true' \
+  'skill_revocation_downgrade_fail_closed=true' \
+  'skill_package_verifier_android13_arm64_verified=false' \
+  'trusted_skill_evidence_source_configured=false' \
+  'package_signature_cryptographically_verified=false' \
+  'dynamic_skill_loading_enabled=false' \
+  'skill_package_verifier_runtime_wired=false' \
   'tool_execution_enabled=false' \
   'production_tool_execution_enabled=false' \
   'production_tool_registered=false' \
@@ -539,10 +553,12 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P5-W05 Skill package verifier" not in remaining or "Tool/Skill runtime" not in remaining:
-    raise SystemExit("README remaining-work table must identify P5-W05 Skill package verifier as the next unfinished scope")
+if "P5-W06 WorkingMemoryStore" not in remaining or "Tool/Skill runtime" not in remaining:
+    raise SystemExit("README remaining-work table must identify P5-W06 WorkingMemoryStore as the next unfinished scope")
 if "P5 Tool Executor boundary" not in developed:
     raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
+if "P5 Skill package verifier" not in developed:
+    raise SystemExit("README developed table must include the completed P5 Skill package verifier")
 
 for group in (
     "APP-004",

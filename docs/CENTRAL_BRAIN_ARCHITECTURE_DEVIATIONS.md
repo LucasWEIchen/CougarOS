@@ -90,6 +90,7 @@
 | DEV-064 | P5-W02 pure-Java Registry/Resolver 的 USABLE 不是 Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037 | Accepted Temporary |
 | DEV-065 | P5-W03 rule/model/USABLE 交集只是静态 selection，不是 approval、Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037/038 | Accepted Temporary |
 | DEV-066 | P5-W04 只执行同进程 built-in；signer evidence 由调用方输入且 cancel/deadline 依赖 cooperative checkpoint，不是 production Tool authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/039 | Accepted Temporary |
+| DEV-067 | P5-W05 只验证调用方提供的 digest evidence；不获取平台 signer、不验证签名链、不加载或执行 Skill package。 | S2-TOL-001, S2-SAF-001, FW-U-008, ISSUE-036/040 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1018,7 +1019,7 @@ Vehicle/NPU Tool 仍需 P8 OEM/Vendor authority。当前：`tool_rule_set_contra
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。
 
 ## DEV-066 P5-W04 built-in execution is not production Tool authority
 
@@ -1038,4 +1039,22 @@ Tool。状态：`Accepted Temporary`。关闭条件是 P5-W05 冻结 signer/vers
 Runtime/Graph publication。当前：`tool_executor_contract_defined=true`、`tool_executor_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_execution_enabled=false`、`production_tool_registered=false`、
 `os_virtualization_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W05`。
+`target_hardware_validated=false`、`implementation_stage=P5-W06`。
+
+## DEV-067 P5-W05 static package verification is not production artifact trust
+
+P5-W05 新增 `SkillSignerPolicy`、`SkillVersionPolicy` 与 `SkillArtifactVerifier`，能够对 canonical manifest、measured artifact
+digest、observed signer digest、artifact epoch、Runtime compatibility、防降级和 capability allowlist 做确定性失败关闭。通过结果
+只含摘要与 immutable capability，不允许 load 或 execution。
+
+但 measured/observed digest 仍由调用方输入。当前代码不读取 PackageManager signing history、APK/JAR/dex/certificate、
+keystore、TEE 或 vendor trust store，也不验证证书链、proof-of-possession、安装来源或硬件 attestation。ACTIVE/RETIRED/
+REVOKED 和 artifact epoch 是静态 policy 语义，不是可信 policy publisher、原子 epoch 或持久 lifecycle store。
+
+代码未接 `CentralBrainRuntimeService`、Governance Service、AgentGraph、Binder、Room、P5-W04 executor、Effect、Vehicle、
+Model/NPU、network 或 Driver/HAL；无 file/parser/class loader/subprocess。状态：`Accepted Temporary`。关闭条件是 ISSUE-040
+确定可信 evidence acquisition、policy signer/owner、atomic publish/restart/revoke/rollback 与审计，再通过独立 Runtime
+composition 和 P9 fault/security evidence。当前：`skill_artifact_verifier_contract_defined=true`、
+`trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
+`dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W06`。

@@ -2875,6 +2875,67 @@ if [[ "$TOOL_EXECUTOR_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SKILL_PACKAGE_VERIFIER_NONCE="$(date +%s%N)"
+SKILL_PACKAGE_VERIFIER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.skills.SkillArtifactVerifierProbeActivity \
+  --es nonce "$SKILL_PACKAGE_VERIFIER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SKILL_PACKAGE_VERIFIER_PROBE_OUTPUT"; then
+  echo "$SKILL_PACKAGE_VERIFIER_PROBE_OUTPUT" >&2
+  echo "Skill package verifier debug probe did not start successfully" >&2
+  exit 1
+fi
+SKILL_PACKAGE_VERIFIER_PROBE_PASSED=false
+for _ in {1..40}; do
+  SKILL_PACKAGE_VERIFIER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbSkillVerifier:I)"
+  if grep -Fq \
+      "nonce=$SKILL_PACKAGE_VERIFIER_NONCE skill_package_verifier_probe_complete=true" \
+      <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_artifact_hash_verified=true" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_manifest_digest_verified=true" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_signer_policy_verified=true" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_runtime_version_verified=true" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_capability_policy_verified=true" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_revocation_downgrade_fail_closed=true" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_package_verifier_android13_arm64_verified=true" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "trusted_skill_evidence_source_configured=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "package_signature_cryptographically_verified=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "dynamic_skill_loading_enabled=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_execution_enabled=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "skill_package_verifier_runtime_wired=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "production_ready=false" <<<"$SKILL_PACKAGE_VERIFIER_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$SKILL_PACKAGE_VERIFIER_LOG"; then
+    SKILL_PACKAGE_VERIFIER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SKILL_PACKAGE_VERIFIER_PROBE_PASSED" != true ]]; then
+  echo "$SKILL_PACKAGE_VERIFIER_LOG" >&2
+  echo "Skill package verifier probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3452,6 +3513,18 @@ printf '%s\n' \
   "tool_executor_audit_bounded_verified=true" \
   "tool_executor_android13_arm64_verified=true" \
   "tool_executor_runtime_wired=false" \
+  "skill_artifact_hash_verified=true" \
+  "skill_manifest_digest_verified=true" \
+  "skill_signer_policy_verified=true" \
+  "skill_runtime_version_verified=true" \
+  "skill_capability_policy_verified=true" \
+  "skill_revocation_downgrade_fail_closed=true" \
+  "skill_package_verifier_android13_arm64_verified=true" \
+  "trusted_skill_evidence_source_configured=false" \
+  "package_signature_cryptographically_verified=false" \
+  "dynamic_skill_loading_enabled=false" \
+  "skill_execution_enabled=false" \
+  "skill_package_verifier_runtime_wired=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \
