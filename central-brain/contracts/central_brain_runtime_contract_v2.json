@@ -1,0 +1,144 @@
+{
+  "schema_version": "2.0.0",
+  "contract_id": "central-brain.runtime.aggregate.v2",
+  "status": "contract_defined",
+  "req_ids": [
+    "APP-004",
+    "S2-SES-001",
+    "S2-GRF-001",
+    "S2-EFF-001",
+    "S2-EVT-001",
+    "XSC-001",
+    "XSC-005",
+    "XSC-006",
+    "NV-G-003",
+    "NV-G-004",
+    "NV-G-006",
+    "NV-G-007",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "wire_contracts": {
+    "session": {
+      "version": 1,
+      "interface": "com.centralbrain.sdk.session.ICentralBrainSessionRuntime",
+      "interface_hash": "f4b3ac677b3294e7cb20382652d37ef995432a2e5ca335d131295d6a43d4024c",
+      "checksum_manifest": "central-brain/android-runtime/central-brain-sdk/aidl-api/session-v1.sha256",
+      "published": true
+    },
+    "plan": {
+      "version": 1,
+      "interface": null,
+      "interface_hash": null,
+      "checksum_manifest": "central-brain/android-runtime/central-brain-sdk/aidl-api/plan-v1.sha256",
+      "published": false
+    },
+    "event": {
+      "version": 1,
+      "interface": "com.centralbrain.sdk.event.ICentralBrainSessionEvents",
+      "interface_hash": "bb3618ca5f5818ce70b3a889a928b54ad83c70f0e439db5b62c67eb3234957d5",
+      "checksum_manifest": "central-brain/android-runtime/central-brain-sdk/aidl-api/events-v1.sha256",
+      "published": true
+    },
+    "effect": {
+      "version": 1,
+      "interface": null,
+      "interface_hash": null,
+      "checksum_manifest": "central-brain/android-runtime/central-brain-sdk/aidl-api/effect-v1.sha256",
+      "published": false
+    }
+  },
+  "capabilities": {
+    "published": [
+      "runtime.session.protocol.read",
+      "runtime.session.open",
+      "runtime.session.read.own",
+      "runtime.session.cancel.own",
+      "runtime.event.protocol.read",
+      "runtime.event.read.own",
+      "runtime.event.subscribe.own"
+    ],
+    "owner_source": "binder_uid_package_current_signer",
+    "caller_identity_in_payload_allowed": false,
+    "plan_runtime_published": false,
+    "effect_runtime_published": false,
+    "approval_response_published": false,
+    "undo_runtime_published": false
+  },
+  "error_contract": {
+    "sdk_failure_codes": [
+      "NOT_CONNECTED",
+      "PROTOCOL_MISMATCH",
+      "TRANSPORT",
+      "SUBSCRIPTION",
+      "CLOSED"
+    ],
+    "contract_violation_java_type": "IllegalArgumentException",
+    "contract_violation_prefixes": [
+      "CB_SESSION_CONTRACT:",
+      "CB_PLAN_CONTRACT:",
+      "CB_EVENT_CONTRACT:",
+      "CB_EFFECT_CONTRACT:"
+    ],
+    "authorization_failure_java_type": "SecurityException",
+    "unknown_remote_failure_sdk_code": "TRANSPORT",
+    "raw_remote_exception_public": false
+  },
+  "bounds": {
+    "session_page_items": 50,
+    "event_page_items": 100,
+    "cursor_chars": 256,
+    "replay_page_limit": 64,
+    "callbacks_per_session": 4,
+    "callbacks_total": 128,
+    "durable_sessions": 64,
+    "durable_events_per_session": 8,
+    "durable_event_payload_utf8_bytes": 8192,
+    "binder_protocol_latency_target_ms": 10,
+    "binder_open_latency_target_ms": 50,
+    "binder_read_cancel_latency_target_ms": 30,
+    "binder_callback_registration_latency_target_ms": 50
+  },
+  "persistence": {
+    "room_schema_version": 4,
+    "room_table_count": 13,
+    "session_event_repository": "DurableSessionRegistry",
+    "session_event_transactions_atomic": true,
+    "process_death_rehydration": true,
+    "binder_callback_persisted": false,
+    "raw_utterance_persisted": false
+  },
+  "event_cursor_evolution": {
+    "v1_terminal_page_resume_cursor": false,
+    "v1_duplicate_suppression": "event_sequence",
+    "decision": "separate_event_v2_cursor_ack_contract_required",
+    "v2_interface_published": false,
+    "v2_required_semantics": [
+      "terminal_page_resume_cursor",
+      "explicit_monotonic_ack",
+      "owner_scoped_cursor",
+      "session_bound_cursor",
+      "bounded_ack_retention",
+      "stale_and_future_cursor_rejection"
+    ],
+    "production_event_broker_ready": false
+  },
+  "compatibility": {
+    "frozen_v1_hashes_unchanged": true,
+    "aggregate_v2_changes_v1_transaction_order": false,
+    "client_binder_primitives_public": false,
+    "network_or_python_gateway_fallback_allowed": false,
+    "unknown_schema_fail_closed": true
+  },
+  "claim_state": {
+    "aggregate_contract_v2_defined": true,
+    "aggregate_contract_v2_verified": true,
+    "aggregate_contract_v2_physical_android13_arm64_verified": true,
+    "scenario_execution_enabled": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

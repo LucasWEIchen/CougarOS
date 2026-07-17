@@ -84,8 +84,8 @@ bash tools/check_central_brain_root_readme.sh
 
 Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、
 `P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL`、
-`P1-W05 SDK facade v2` 和 `P1-W06 Room v4 schema` 已完成，下一工作包为
-`P1-W07 Contract v2 aggregate check`。P1-P7 交付必须进入
+`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和 `P1-W07 Contract v2 aggregate check` 已完成，
+下一工作包为 `P2-W01 Canonical vehicle signal types`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -646,3 +646,35 @@ hardware_accessed=false
 Driver-HAL、目标硬件资格或量产。Event V1 terminal cursor/ACK 仍由 `ISSUE-034` 和 P1-W07 跟踪。
 Req IDs：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-EVT-001`、`XSC-005/006`、
 `NV-G-003/004/006/007`、`NV-P-002`、`DEL-001/003..005`。
+
+## Stage 2 P1-W07 Runtime Contract v2 Aggregate Delivery
+
+受维护交付新增：
+
+1. `central-brain/contracts/central_brain_runtime_contract_v2.json`：P1 aggregate capability/error/bounds/
+   persistence/compatibility source of truth；
+2. SDK `RuntimeContractV2` 与 JVM regression：聚合版本、V1 wire version、page/cursor 和稳定 facade error；
+3. `tools/check_central_brain_runtime_contract_v2.sh`：一次验证全部 P1 checksum/checker、Room v4、
+   capability、SDK tests、forbidden fallback 和 Event cursor evolution boundary。
+
+累计 SDK instrumentation 在 Android 13/API 33 ARM64 上验证相同 aggregate constants 与未发布边界，
+输出 `runtime_contract_v2_physical_android13_arm64_verified=true`；该测试不调用车辆/NPU/Driver/HAL。
+
+交付标志：
+
+```text
+runtime_contract_v2_defined=true
+runtime_contract_v2_verified=true
+runtime_contract_v2_physical_android13_arm64_verified=true
+frozen_v1_hashes_unchanged=true
+event_v2_cursor_ack_required=true
+event_v2_interface_published=false
+forbidden_network_python_fallback=false
+scenario_execution_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不新增 APK/Service/签名权限，不发布 Event V2、Plan/Effect execution 或车辆/NPU adapter，也不代表
+Binder latency 已在目标量产硬件上定标。Event V2 实现与高吞吐证据保留到 `P6-W01/P6-W02`。

@@ -237,6 +237,20 @@ scenario_execution_enabled=false
 状态：`Accepted Temporary`。P2/P3 分别负责 Plan/Effect/Graph runtime wiring；P1-W07 负责 aggregate
 contract/cursor 演进评审。该偏差不触发 Driver/HAL、厂商系统、Python/Linux 或虚拟化开发。
 
+## DEV-029 Aggregate Contract v2 不等于 wire V2，Event cursor/ACK 延后独立发布
+
+P1-W07 将 P1-W01..P1-W06 聚合为 schema `2.0.0` 的机器可读 capability/compatibility contract，但
+Session/Plan/Event/Effect 的 wire/DTO 仍全部冻结在 V1。这样可在不破坏 Client2/SDK 兼容性的前提下，
+统一校验 hash、capability、error、bounds、Room v4 和 forbidden fallback。
+
+Event V1 terminal page 无 forward cursor 的限制不能在冻结接口中修补。聚合评审已决定未来独立发布
+Event V2 terminal resume cursor + monotonic owner/session-scoped ACK；P1-W07 只冻结必需语义，不新增 AIDL、
+capability 或 broker。当前 sequence dedup 只保证低容量重连正确性，不得描述为高吞吐 ACK broker。
+
+状态：`Accepted Temporary`。实现所有权进入 `P6-W01/P6-W02`，届时必须分配新 interface version/hash、
+Room ACK retention、SDK negotiation 和 process-death tests。当前 `event_v2_interface_published=false`、
+`production_ready=false`、`target_hardware_validated=false`。
+
 ## Android 实现证据索引
 
 下列短语是历史软件增量的稳定追踪键，指向仍保留的 Android 源码和检查器；它们不表示硬件或
