@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P4-W10`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P4-W11`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,7 +2109,7 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W10`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W11`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
 
@@ -2152,9 +2152,48 @@ MOVING and UNKNOWN presentation. Production Context/Safety remains outside HMI a
 
 Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
 `cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
-`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W10`.
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W11`.
 Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
 `ISSUE-023/029/030/033`.
+
+## Client2 P4-W10 Scenario Control Interfaces
+
+### Catalog contract
+
+```java
+public static boolean isSupported(String uiScenarioId);
+public static String canonicalScenarioId(String uiScenarioId);
+```
+
+The catalog contains exactly 14 fixed aliases. cold/fatigue/rest assign only `CATALOG_REQUIRED`/`CATALOG_OPTIONAL` HVAC/Seat roles;
+manual HVAC/Seat assign one `MANUAL_TARGET`. Unknown IDs are rejected before Session setup. The returned canonical ID is the exact
+value written into `SessionRequest.scenarioId`; no substring, UI text or model output is parsed.
+
+### Immutable state contract
+
+```java
+CockpitScenarioControlState scenarioRequested(String uiScenarioId);
+CockpitScenarioControlState sessionOpened(String canonicalScenarioId);
+CockpitScenarioControlState snapshot(String canonicalScenarioId, int sessionState, int planRevision);
+CockpitScenarioControlState runtimeEvent(long sequence);
+CockpitScenarioControlState failed();
+```
+
+Only `CockpitHmiReducer` calls these transitions. `sessionOpened` and `snapshot` require an exact canonical match; mismatch clears both
+device roles and produces `CB_HMI_SCENARIO_MISMATCH`. `runtimeEvent` accepts only a sequence already validated by the outer reducer's
+same-session/monotonic/gap checks. State exposes origin, roles, catalog status, lifecycle, active Plan revision and last sequence, but
+stores no raw Session/Event ID, user/model text, digest or vehicle payload.
+
+### Bridge and rendering contract
+
+`Client2ScenarioBridge.Submission` stores `ScenarioClient`, while `SessionClient` remains the concrete SDK implementation created at
+the composition boundary. Natural and manual entry points therefore use the same connect/open/observe/cancel/close interface. Views
+emit reducer events only and cannot access SessionClient, Adapter, vehicle or NPU interfaces.
+
+Plan and drawer renderers read the same `CockpitScenarioControlState`. Positive Plan publication requires
+`SessionSnapshot.activePlanRevision>0`; otherwise UI says NOT PUBLISHED. Device role is labeled as catalog/manual participation and
+must not change desired/reported state. Effect/readback accessors remain false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`, `APP-004`,
+`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P4-W11`.
 
 ## Client2 P4-W09 Engineer Simulation Interfaces
 
@@ -2208,6 +2247,6 @@ Status: `cockpit_engineer_simulation_drawer_implemented=true`,
 `cockpit_engineer_signature_permission_required=true`, `cockpit_engineer_capability_required=true`,
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
-`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P4-W10`.
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P4-W11`.
 Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-059`,
 `ISSUE-023/029/030/033`.

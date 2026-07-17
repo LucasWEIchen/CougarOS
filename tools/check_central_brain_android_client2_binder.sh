@@ -7,6 +7,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="apk-labs/client2-central-brain"
 BRIDGE="$PROJECT/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
+SCENARIO_CONTROL="$PROJECT/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java"
 CALLBACK="$PROJECT/bridge/src/com/centralbrain/client2/ScenarioCallback.java"
 HMI_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiState.java"
 HMI_REDUCER="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiReducer.java"
@@ -40,7 +41,7 @@ require_text() {
 }
 
 for path in \
-  "$BRIDGE" "$CALLBACK" "$HMI_STATE" "$HMI_REDUCER" "$EXECUTION_TIMELINE" "$COORDINATOR" \
+  "$BRIDGE" "$SCENARIO_CONTROL" "$CALLBACK" "$HMI_STATE" "$HMI_REDUCER" "$EXECUTION_TIMELINE" "$COORDINATOR" \
   "$LAYOUT" "$PATCHER" "$DEX_BUILD" \
   "$APK_BUILD" "$PROJECT_VERIFY" "$DEVICE_TEST" "$RECOVERY_TEST" \
   "$POLICY" "$SNAPSHOT" \
@@ -60,18 +61,19 @@ python3 -m json.tool "$ROOT_DIR/$PROJECT/client2-central-brain.project.json" >/d
 for scenario in \
   care.cold care.fatigue task.home skill.nap state.vehicle memory.preference \
   skills.catalog governance.audit security.denied security.privacy runtime.npu \
-  system.overview manual.hvac; do
-  require_text "$BRIDGE" "\"$scenario\""
+  system.overview manual.hvac manual.seat; do
+  require_text "$SCENARIO_CONTROL" "\"$scenario\""
 done
 for canonical_scenario in \
   scene.comfort.cold.v1 scene.fatigue.assist.v1 scene.navigation.home.v1 \
   scene.rest.nap.v1 scene.diagnostics.vehicle.v1 scene.memory.preference.v1 \
   scene.skills.catalog.v1 scene.governance.audit.v1 scene.security.denied.v1 \
-  scene.security.privacy.v1 scene.runtime.npu.v1 scene.system.overview.v1; do
-  require_text "$BRIDGE" "\"$canonical_scenario\""
+  scene.security.privacy.v1 scene.runtime.npu.v1 scene.system.overview.v1 \
+  scene.manual.hvac.adjust.v1 scene.manual.seat.adjust.v1; do
+  require_text "$SCENARIO_CONTROL" "\"$canonical_scenario\""
 done
-require_text "$BRIDGE" 'scene.manual.hvac.adjust.v1'
-require_text "$BRIDGE" "private static Map<String, String> scenarioAliases()"
+require_text "$BRIDGE" 'CockpitScenarioControlState.canonicalScenarioId(scenarioId)'
+require_text "$BRIDGE" 'private ScenarioClient client;'
 require_text "$BRIDGE" "request.scenarioId = scenarioId"
 require_text "$BRIDGE" "SessionConnection openSession("
 require_text "$BRIDGE" "SessionConnection resumeSession("
@@ -313,6 +315,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_client2_execution_timeline.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_recovery_ux.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_driving_restriction.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_engineer_simulation.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_scenario_sync.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android Client2 Binder migration check passed"

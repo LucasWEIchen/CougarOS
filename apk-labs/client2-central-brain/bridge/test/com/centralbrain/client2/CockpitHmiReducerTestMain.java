@@ -29,6 +29,7 @@ public final class CockpitHmiReducerTestMain {
                 "intent must be the initial surface");
         check(state.getPresentationMode() == PanelPresentationMode.MOVING_RESTRICTED,
                 "missing driving evidence must default to restricted presentation");
+        verifyScenarioControlSynchronization();
         verifyDrivingUxPolicy();
         verifyEngineerSimulationReduction();
         verifyHvacReduction();
@@ -137,6 +138,11 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_hmi_recreation_resume_state_verified=true");
         System.out.println("cockpit_hmi_four_stage_reducer_verified=true");
         System.out.println("cockpit_hmi_device_drawer_reducer_verified=true");
+        System.out.println("cockpit_scenario_control_state_reducer_owned=true");
+        System.out.println("cockpit_scenario_catalog_normalized=true");
+        System.out.println("cockpit_scenario_manual_shared_client=true");
+        System.out.println("cockpit_scenario_device_session_synchronized=true");
+        System.out.println("cockpit_scenario_plan_publication_inferred=false");
         System.out.println("cockpit_hvac_intent_roundtrip_verified=true");
         System.out.println("cockpit_hvac_desired_reducer_verified=true");
         System.out.println("cockpit_hvac_reported_readback_available=false");
@@ -167,6 +173,101 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_runtime_policy_authority_independent=true");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
+    }
+
+    private static void verifyScenarioControlSynchronization() {
+        CockpitHmiState state = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.scenarioSubmitted("care.cold"));
+        CockpitScenarioControlState control = state.getScenarioControlState();
+        check(control.getOrigin() == CockpitScenarioControlState.Origin.NATURAL
+                        && control.getHvacRole()
+                        == CockpitScenarioControlState.DeviceRole.CATALOG_REQUIRED
+                        && control.getSeatRole()
+                        == CockpitScenarioControlState.DeviceRole.CATALOG_OPTIONAL,
+                "cold intent must normalize to bounded catalog device roles");
+        check(control.getLifecycle() == CockpitScenarioControlState.Lifecycle.REQUESTED,
+                "scenario submission must synchronize the control projection");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.sessionOpened(handle(), "scene.comfort.cold.v1"));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.snapshot(snapshot(
+                        ICentralBrainSessionRuntime.SESSION_STATE_EXECUTING,
+                        "scene.comfort.cold.v1",
+                        0,
+                        "Runtime has not published a Plan")));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.runtimeEvent(scenarioRequested()));
+        control = state.getScenarioControlState();
+        check(control.isCatalogMatched()
+                        && control.getLifecycle()
+                        == CockpitScenarioControlState.Lifecycle.EXECUTING
+                        && control.getLastEventSequence() == state.getLastEventSequence(),
+                "the same Session event must synchronize shell and device detail state");
+        check(!control.isPlanPublished()
+                        && !control.isEffectDispatchEnabled()
+                        && !control.isReadbackAvailable(),
+                "catalog participation must not synthesize Plan, Effect or readback");
+        check(state.getHvacState().getDesiredRevision() == 0
+                        && state.getSeatState().getDesiredRevision() == 0,
+                "natural intent must not invent typed device targets");
+
+        CockpitHmiState fatigue = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.scenarioSubmitted("care.fatigue"));
+        check(fatigue.getScenarioControlState().getHvacRole()
+                        == CockpitScenarioControlState.DeviceRole.CATALOG_REQUIRED
+                        && fatigue.getScenarioControlState().getSeatRole()
+                        == CockpitScenarioControlState.DeviceRole.CATALOG_OPTIONAL,
+                "fatigue intent must expose bounded HVAC and seat catalog participation");
+        CockpitHmiState rest = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.scenarioSubmitted("skill.nap"));
+        check(rest.getScenarioControlState().getHvacRole()
+                        == CockpitScenarioControlState.DeviceRole.CATALOG_REQUIRED
+                        && rest.getScenarioControlState().getSeatRole()
+                        == CockpitScenarioControlState.DeviceRole.CATALOG_REQUIRED,
+                "rest intent must expose both required device roles without dispatch");
+
+        HvacControlIntent changed = HvacControlIntent.defaults().stepTemperature(1);
+        CockpitHmiState manual = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.hvacDesiredChanged(changed));
+        manual = CockpitHmiReducer.reduce(
+                manual,
+                CockpitHmiReducer.Event.hvacManualSubmitted(1));
+        check(manual.getScenarioControlState().getOrigin()
+                        == CockpitScenarioControlState.Origin.MANUAL_HVAC
+                        && manual.getScenarioControlState().getHvacRole()
+                        == CockpitScenarioControlState.DeviceRole.MANUAL_TARGET,
+                "manual HVAC must enter the same scenario control state");
+        manual = CockpitHmiReducer.reduce(
+                manual,
+                CockpitHmiReducer.Event.sessionOpened(handle(), "scene.manual.hvac.adjust.v1"));
+        check(manual.getScenarioControlState().getLifecycle()
+                        == CockpitScenarioControlState.Lifecycle.SESSION_ACCEPTED
+                        && manual.getHvacState().getRequestState()
+                        == CockpitHvacState.RequestState.ACCEPTED,
+                "one Session admission must synchronize manual and scenario projections");
+
+        CockpitHmiState mismatch = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.scenarioSubmitted("care.cold"));
+        mismatch = CockpitHmiReducer.reduce(
+                mismatch,
+                CockpitHmiReducer.Event.sessionOpened(handle(), "scene.fatigue.assist.v1"));
+        check(mismatch.getConnectionState() == CockpitHmiState.ConnectionState.FAILED
+                        && "CB_HMI_SCENARIO_MISMATCH".equals(mismatch.getErrorCode())
+                        && mismatch.getScenarioControlState().getHvacRole()
+                        == CockpitScenarioControlState.DeviceRole.NOT_INVOLVED,
+                "canonical mismatch must remove device claims and fail closed");
+        expectRejected(() -> CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.scenarioSubmitted("unsupported.scene")));
     }
 
     private static void verifyDrivingUxPolicy() {
@@ -257,6 +358,8 @@ public final class CockpitHmiReducerTestMain {
                 state,
                 CockpitHmiReducer.Event.snapshot(snapshot(
                         ICentralBrainSessionRuntime.SESSION_STATE_EXECUTING,
+                        "scene.manual.hvac.adjust.v1",
+                        0,
                         "Older Session remains accepted")));
         check(state.getHvacState().getRequestState()
                         == CockpitHvacState.RequestState.DEBOUNCING,
@@ -438,6 +541,8 @@ public final class CockpitHmiReducerTestMain {
                 state,
                 CockpitHmiReducer.Event.snapshot(snapshot(
                         ICentralBrainSessionRuntime.SESSION_STATE_EXECUTING,
+                        "scene.manual.seat.adjust.v1",
+                        0,
                         "Older Session remains accepted")));
         check(state.getSeatState().getRequestState()
                         == CockpitSeatState.RequestState.DEBOUNCING,
@@ -569,11 +674,13 @@ public final class CockpitHmiReducerTestMain {
         state = CockpitHmiReducer.reduce(
                 state,
                 CockpitHmiReducer.Event.sessionOpened(
-                        handle(), "scene.care.fatigue.v1"));
+                        handle(), "scene.fatigue.assist.v1"));
         state = CockpitHmiReducer.reduce(
                 state,
                 CockpitHmiReducer.Event.snapshot(snapshot(
                         ICentralBrainSessionRuntime.SESSION_STATE_WAITING_FOR_CONFIRMATION,
+                        "scene.fatigue.assist.v1",
+                        0,
                         "Waiting for confirmation")));
 
         CockpitRecoveryState recovery = state.getRecoveryState();
@@ -716,11 +823,20 @@ public final class CockpitHmiReducerTestMain {
     }
 
     private static SessionSnapshot snapshot(int state, String summary) {
+        return snapshot(state, "scene.comfort.cold.v1", 0, summary);
+    }
+
+    private static SessionSnapshot snapshot(
+            int state,
+            String scenarioId,
+            int activePlanRevision,
+            String summary) {
         SessionSnapshot snapshot = new SessionSnapshot();
         snapshot.sessionId = SESSION_ID;
         snapshot.requestId = REQUEST_ID;
-        snapshot.scenarioId = "scene.comfort.cold.v1";
+        snapshot.scenarioId = scenarioId;
         snapshot.state = state;
+        snapshot.activePlanRevision = activePlanRevision;
         snapshot.createdAtEpochMs = NOW - 1_000;
         snapshot.updatedAtEpochMs = NOW;
         snapshot.deadlineEpochMs = NOW + 60_000;

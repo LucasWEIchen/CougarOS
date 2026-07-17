@@ -12,11 +12,12 @@ HMI_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiState.java"
 REDUCER="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiReducer.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 BRIDGE="$PROJECT/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
+SCENARIO_CONTROL="$PROJECT/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java"
 DEVICE_TEST="$ROOT_DIR/tools/test_client2_central_brain_binder.sh"
 
 for path in \
   "$LAYOUT" "$INTENT" "$HVAC_STATE" "$HMI_STATE" "$REDUCER" \
-  "$COORDINATOR" "$BRIDGE" "$DEVICE_TEST"; do
+  "$COORDINATOR" "$BRIDGE" "$SCENARIO_CONTROL" "$DEVICE_TEST"; do
   test -f "$path"
 done
 
@@ -135,12 +136,14 @@ done
 for marker in \
   'SessionConnection openHvacSession(' \
   'intent.toWireValue()' \
-  'aliases.put("manual.hvac", "scene.manual.hvac.adjust.v1")' \
   'hvac_manual_intent_governed_session=' \
   'hvac_manual_bounded_parameter_wire=' \
   'hvac_manual_typed_parameter_field=false'; do
   grep -Fq -- "$marker" "$BRIDGE"
 done
+grep -Fq -- \
+  'add(definitions, "manual.hvac", "scene.manual.hvac.adjust.v1", Origin.MANUAL_HVAC,' \
+  "$SCENARIO_CONTROL"
 
 if grep -Eq '^import android\.' "$INTENT" "$HVAC_STATE"; then
   echo "HVAC target/state must remain Android-view independent" >&2

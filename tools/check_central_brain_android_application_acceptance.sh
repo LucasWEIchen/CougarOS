@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: S2-UX-001, S2-HMI-005, APP-004, XSC-001/005/006,
+# Req IDs: S2-UX-001, S2-HMI-001..006, S2-SCN-001, APP-004, XSC-001/005/006,
 # NV-F-001/012, NV-G-003/006/007, NV-P-002, DEL-001/003/004/005.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -11,6 +11,7 @@ DEBUG_MANIFEST="central-brain/android-runtime/runtime-service/src/debug/AndroidM
 MAIN_MANIFEST="central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml"
 DEVICE_TEST="tools/test_client2_central_brain_recovery.sh"
 ENGINEER_TEST="tools/test_client2_central_brain_engineer_simulation.sh"
+SCENARIO_TEST="tools/test_client2_central_brain_scenario_sync.sh"
 SNAPSHOT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/acceptance/RuntimeAcceptanceSnapshot.java"
 SNAPSHOT_TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/acceptance/RuntimeAcceptanceSnapshotTest.java"
 PROBE="central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/DiagnosticProbeActivity.java"
@@ -35,13 +36,15 @@ require_text() {
 
 for path in \
   "$CONTRACT" "$FAULT_RECEIVER" "$DEBUG_MANIFEST" "$MAIN_MANIFEST" \
-  "$DEVICE_TEST" "$ENGINEER_TEST" "$SNAPSHOT" "$SNAPSHOT_TEST" "$PROBE" "$INSTALLER" \
+  "$DEVICE_TEST" "$ENGINEER_TEST" "$SCENARIO_TEST" \
+  "$SNAPSHOT" "$SNAPSHOT_TEST" "$PROBE" "$INSTALLER" \
   docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md; do
   require_file "$path"
 done
 
 bash -n "$ROOT_DIR/$DEVICE_TEST"
 bash -n "$ROOT_DIR/$ENGINEER_TEST"
+bash -n "$ROOT_DIR/$SCENARIO_TEST"
 python3 -m json.tool "$ROOT_DIR/$CONTRACT" >/dev/null
 
 require_text "$FAULT_RECEIVER" "BuildConfig.DEBUG"
@@ -142,14 +145,31 @@ for marker in \
 done
 require_text "$ENGINEER_TEST" "--require-api-33"
 
+for marker in \
+  "cockpit_scenario_natural_cold_sync_verified=true" \
+  "cockpit_scenario_natural_fatigue_sync_verified=true" \
+  "cockpit_scenario_natural_rest_sync_verified=true" \
+  "cockpit_scenario_manual_hvac_sync_verified=true" \
+  "cockpit_scenario_manual_seat_sync_verified=true" \
+  "cockpit_scenario_device_session_synchronized=true" \
+  "cockpit_scenario_plan_publication_inferred=false" \
+  "cockpit_scenario_effect_dispatch_enabled=false" \
+  "cockpit_scenario_readback_available=false" \
+  "cockpit_scenario_debug_context_effect_authority=false" \
+  "scenario_execution_enabled=false" \
+  "hardware_accessed=false"; do
+  require_text "$SCENARIO_TEST" "$marker"
+done
+require_text "$SCENARIO_TEST" "--require-api-33"
+
 python3 - "$ROOT_DIR/$CONTRACT" <<'PY'
 import json
 import pathlib
 import sys
 
 payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("schema_version") != "1.9.0":
-    raise SystemExit("R7C acceptance schema must remain 1.9.0")
+if payload.get("schema_version") != "2.0.0":
+    raise SystemExit("R7C acceptance schema must remain 2.0.0")
 if payload.get("status") != "verified":
     raise SystemExit("R7C acceptance contract must be verified")
 if payload.get("evidence_scope") != "api33-android-application-integration":
@@ -170,6 +190,7 @@ if [entry.get("id") for entry in evidence] != [
     "R7C-E-010",
     "R7C-E-011",
     "R7C-E-012",
+    "R7C-E-013",
 ]:
     raise SystemExit("R7C evidence IDs/order changed")
 claims = payload.get("claim_state", {})
@@ -185,6 +206,9 @@ expected_true = {
     "cockpit_driving_ux_policy_implemented",
     "cockpit_engineer_simulation_drawer_implemented",
     "cockpit_engineer_runtime_release_service_absent",
+    "cockpit_scenario_control_state_reducer_owned",
+    "cockpit_scenario_catalog_normalized",
+    "cockpit_scenario_device_session_synchronized",
     "api33_end_to_end_acceptance_complete",
     "r7_application_integration_complete",
 }
@@ -195,6 +219,9 @@ expected_false = {
     "cockpit_recovery_commands_enabled",
     "cockpit_engineer_effect_authorization_source",
     "cockpit_engineer_production_available",
+    "cockpit_scenario_plan_publication_inferred",
+    "cockpit_scenario_effect_dispatch_enabled",
+    "cockpit_scenario_readback_available",
 }
 if {key for key, value in claims.items() if value is True} != expected_true:
     raise SystemExit("R7C positive claims changed")

@@ -32,6 +32,7 @@ public final class CockpitHmiState {
     private final CockpitExecutionTimeline executionTimeline;
     private final CockpitRecoveryState recoveryState;
     private final CockpitEngineerState engineerState;
+    private final CockpitScenarioControlState scenarioControlState;
     private final String uiScenarioId;
     private final String canonicalScenarioId;
     private final int handleSchemaVersion;
@@ -61,6 +62,7 @@ public final class CockpitHmiState {
         executionTimeline = builder.executionTimeline;
         recoveryState = builder.recoveryState;
         engineerState = builder.engineerState;
+        scenarioControlState = builder.scenarioControlState;
         uiScenarioId = builder.uiScenarioId;
         canonicalScenarioId = builder.canonicalScenarioId;
         handleSchemaVersion = builder.handleSchemaVersion;
@@ -125,6 +127,10 @@ public final class CockpitHmiState {
 
     public CockpitEngineerState getEngineerState() {
         return engineerState;
+    }
+
+    public CockpitScenarioControlState getScenarioControlState() {
+        return scenarioControlState;
     }
 
     public String getUiScenarioId() {
@@ -280,6 +286,7 @@ public final class CockpitHmiState {
         CockpitExecutionTimeline executionTimeline = CockpitExecutionTimeline.initial();
         CockpitRecoveryState recoveryState = CockpitRecoveryState.initial();
         CockpitEngineerState engineerState = CockpitEngineerState.unavailable();
+        CockpitScenarioControlState scenarioControlState = CockpitScenarioControlState.initial();
         String uiScenarioId = "";
         String canonicalScenarioId = "";
         int handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -311,6 +318,7 @@ public final class CockpitHmiState {
             executionTimeline = source.executionTimeline;
             recoveryState = source.recoveryState;
             engineerState = source.engineerState;
+            scenarioControlState = source.scenarioControlState;
             uiScenarioId = source.uiScenarioId;
             canonicalScenarioId = source.canonicalScenarioId;
             handleSchemaVersion = source.handleSchemaVersion;
@@ -352,6 +360,9 @@ public final class CockpitHmiState {
             }
             if (engineerState == null) {
                 throw new IllegalStateException("engineer state missing");
+            }
+            if (scenarioControlState == null) {
+                throw new IllegalStateException("scenario control state missing");
             }
             uiScenarioId = bounded(uiScenarioId, 96);
             canonicalScenarioId = bounded(canonicalScenarioId, 96);

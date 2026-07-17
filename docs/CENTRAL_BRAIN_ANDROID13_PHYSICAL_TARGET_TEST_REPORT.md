@@ -467,3 +467,41 @@ target_hardware_validated=false
 设备身份、raw UI tree、logcat 和截图只保留在本地未跟踪 evidence，不进入 Git。该证据关闭 `DEV-058` 的“受保护 debug
 PARKED/MOVING/UNKNOWN 可测试性”子条件，但不关闭 production trusted Context 缺口；本地 projection 边界由 `DEV-059`
 跟踪。下一实体工作包为 P4-W10 Scenario/manual-control synchronization。
+
+## 17. 2026-07-18 P4-W10 scenario/manual control synchronization evidence
+
+同一 Android 13/API 33 ARM64 USB 设备完成 Runtime/Client2 signed APK 与 UIAutomator 验收：
+
+1. 受保护 debug Controller 仅将测试 Context 切换为 PARKED、OCCUPIED、UNBELTED；每次切换均等待 Runtime 确认，
+   该 Context 不提供 Effect authority；
+2. `care.cold`、`care.fatigue`、`skill.nap` 分别规范化为 canonical scenario，设备详情显示 HVAC
+   `CATALOG REQUIRED`、Seat `CATALOG OPTIONAL`、Seat `CATALOG REQUIRED`；
+3. 三个自然场景的 HVAC/Seat 详情使用同一 Session lifecycle、Plan revision 和 Event sequence；Runtime 当前没有发布 Plan，
+   因此详情明确显示 `NOT PUBLISHED`，没有从 catalog role 推断 Plan；
+4. HVAC 温度增加与 Seat heat 增加均通过既有 `ScenarioClient` 创建 manual governed Session，设备角色显示
+   `MANUAL TARGET`，生命周期显示 `SESSION_ACCEPTED`；
+5. alias/canonical mismatch host 回归失败关闭为 `CB_HMI_SCENARIO_MISMATCH`，实体正向路径没有绕过 Session/Event；
+6. 未调用 Scenario Graph、Effect、Adapter、Vehicle/VHAL、NPU 或 Driver/HAL，reported/readback 继续不可用；
+7. 原始设备身份、UI tree 和 logcat 只保留在本地未跟踪 evidence，不进入 GitHub。
+
+```text
+cockpit_scenario_natural_cold_sync_verified=true
+cockpit_scenario_natural_fatigue_sync_verified=true
+cockpit_scenario_natural_rest_sync_verified=true
+cockpit_scenario_manual_hvac_sync_verified=true
+cockpit_scenario_manual_seat_sync_verified=true
+cockpit_scenario_device_session_synchronized=true
+cockpit_scenario_plan_publication_inferred=false
+cockpit_scenario_effect_dispatch_enabled=false
+cockpit_scenario_readback_available=false
+cockpit_scenario_debug_context_effect_authority=false
+scenario_execution_enabled=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据验证 `S2-SCN-001` 的 Client2 HMI 状态同步边界，不代表 Runtime Scene Resolver/Plan Compiler/Graph/Effect
+已接入。catalog role 与 Runtime authority 的偏差由 `DEV-060` 跟踪；下一实体工作包为 P4-W11
+Accessibility/display matrix。

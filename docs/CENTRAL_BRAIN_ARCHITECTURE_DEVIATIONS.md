@@ -83,6 +83,7 @@
 | DEV-057 | P4-W07 recovery UX 只能消费 Session/Event V1，无法接收 ApprovalPrompt、EffectObservation.retryable 或 UndoHandle。 | S2-UX-003, S2-HMI-003, S2-SAF-001, S2-EFF-001, ISSUE-022/026/029/033 | Accepted Temporary |
 | DEV-058 | P4-W08 driving presentation 尚无 production trusted global Context；实体默认只能验证 UNKNOWN 受限模式。 | S2-UX-002, S2-HMI-002, S2-SAF-001, ISSUE-023/029/030/033 | Accepted Temporary |
 | DEV-059 | P4-W09 工程抽屉只在 Client2 本地投影 debug Controller 已确认状态；它不是 production Context、Safety 或 Effect authority。 | S2-HMI-004, S2-ADP-001, S2-OBS-001, ISSUE-023/029/030/033 | Accepted Temporary |
+| DEV-060 | P4-W10 Client2 catalog device role 是 HMI 同步投影，不是 Runtime 发布的 Plan、Effect target 或车辆回读。 | S2-HMI-001..006, S2-SCN-001, ISSUE-022/026/030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -896,3 +897,19 @@ Client2 改为只消费该权威 Context 的版本化只读接口，并完成真
 `cockpit_engineer_runtime_release_service_absent=true`、`cockpit_engineer_effect_authorization_source=false`、
 `cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`production_ready=false`、
 `target_hardware_validated=false`。
+
+## DEV-060 P4-W10 catalog participation is not Runtime Plan publication
+
+P4-W10 把 Client2 原有 14 个 alias/canonical ID 收敛到 `CockpitScenarioControlState`，并根据已冻结的 cold/fatigue/rest
+manifest 给 HVAC/Seat 标注 `CATALOG_REQUIRED` 或 `CATALOG_OPTIONAL`。manual HVAC/Seat 标注 `MANUAL_TARGET`，但仍只通过
+冻结 Session V1 的兼容参数载体进入 `ScenarioClient`。同一 reducer 记录 Session lifecycle、active Plan revision 与 event
+sequence，解决四阶段和设备抽屉各自解释状态的问题。
+
+该 role 只表示“catalog 预期涉及此设备”，不包含 Runtime 编译后的 PlanNode、typed target、Policy/Safety 结论、Effect
+delivery 或 readback。当前 Runtime Snapshot 的 `activePlanRevision=0`，所以 UI 必须显示 Plan NOT PUBLISHED、Effect NOT
+DISPATCHED、readback UNAVAILABLE。debug PARKED Context 只解锁测试呈现，不改变此边界。
+
+状态：`Accepted Temporary`。关闭条件是 Runtime 将 P2 scenario resolver/compiler 接入 durable Session，发布 owner-scoped、
+revisioned、可回放的 typed Plan/Action/Effect/Observation，并由生产 Adapter 与可信 readback 形成证据；Client2 随后删除
+静态 device role，改为只消费 Runtime Plan。当前：`cockpit_scenario_plan_publication_inferred=false`、
+`scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`target_hardware_validated=false`。

@@ -17,9 +17,6 @@ import com.centralbrain.sdk.session.SessionHandle;
 import com.centralbrain.sdk.session.SessionRequest;
 import com.centralbrain.sdk.session.SessionSnapshot;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,8 +26,6 @@ public final class Client2ScenarioBridge {
     private static final String TAG = "CbClient2Session";
     private static final long DEADLINE_MS = 10_000L;
     private static final Object LEGACY_LOCK = new Object();
-    private static final Map<String, String> SCENARIOS = scenarioAliases();
-
     private static Submission legacySubmission;
 
     private Client2ScenarioBridge() {}
@@ -194,7 +189,8 @@ public final class Client2ScenarioBridge {
             boolean legacyCompatibility,
             SessionHandle resumeHandle,
             String resumeCursor) {
-        if (activity == null || callback == null || !SCENARIOS.containsKey(scenarioId)) {
+        if (activity == null || callback == null
+                || !CockpitScenarioControlState.isSupported(scenarioId)) {
             reportRejected(callback, legacyCompatibility, "unsupported scenario");
             return null;
         }
@@ -206,7 +202,7 @@ public final class Client2ScenarioBridge {
                 activity.getApplicationContext(),
                 activity.getMainExecutor(),
                 scenarioId,
-                SCENARIOS.get(scenarioId),
+                CockpitScenarioControlState.canonicalScenarioId(scenarioId),
                 boundedText,
                 seatZone,
                 callback,
@@ -246,7 +242,7 @@ public final class Client2ScenarioBridge {
         private final AtomicBoolean closed = new AtomicBoolean();
         private final AtomicBoolean legacyInitialProjection = new AtomicBoolean();
 
-        private SessionClient client;
+        private ScenarioClient client;
         private SessionHandle handle;
         private SessionSnapshot latestSnapshot;
 
@@ -344,7 +340,7 @@ public final class Client2ScenarioBridge {
             Log.w(TAG, baseMarkers()
                     + " client2_session_disconnected=true");
             try {
-                SessionClient current = client;
+                ScenarioClient current = client;
                 if (current == null || !current.reconnect()) {
                     finishFailure(
                             ScenarioClient.ERROR_TRANSPORT,
@@ -455,7 +451,7 @@ public final class Client2ScenarioBridge {
 
         @Override
         public boolean isConnected() {
-            SessionClient current = client;
+            ScenarioClient current = client;
             return !closed.get() && current != null && current.isConnected();
         }
 
@@ -466,7 +462,7 @@ public final class Client2ScenarioBridge {
 
         @Override
         public boolean cancel() {
-            SessionClient current = client;
+            ScenarioClient current = client;
             SessionHandle currentHandle = handle;
             if (closed.get() || current == null || currentHandle == null) {
                 return false;
@@ -488,7 +484,7 @@ public final class Client2ScenarioBridge {
             if (!closed.compareAndSet(false, true)) {
                 return;
             }
-            SessionClient current = client;
+            ScenarioClient current = client;
             client = null;
             if (current != null) {
                 current.close();
@@ -528,7 +524,7 @@ public final class Client2ScenarioBridge {
                     + " client2_session_bridge_failed=true"
                     + " error_code=" + safeToken(boundedCode)
                     + " reason=" + boundedReason);
-            SessionClient current = client;
+            ScenarioClient current = client;
             client = null;
             if (current != null) {
                 current.close();
@@ -684,25 +680,6 @@ public final class Client2ScenarioBridge {
         copy.redacted = original.redacted;
         copy.redactionReason = original.redactionReason;
         return copy;
-    }
-
-    private static Map<String, String> scenarioAliases() {
-        Map<String, String> aliases = new LinkedHashMap<>();
-        aliases.put("care.cold", "scene.comfort.cold.v1");
-        aliases.put("care.fatigue", "scene.fatigue.assist.v1");
-        aliases.put("task.home", "scene.navigation.home.v1");
-        aliases.put("skill.nap", "scene.rest.nap.v1");
-        aliases.put("state.vehicle", "scene.diagnostics.vehicle.v1");
-        aliases.put("memory.preference", "scene.memory.preference.v1");
-        aliases.put("skills.catalog", "scene.skills.catalog.v1");
-        aliases.put("governance.audit", "scene.governance.audit.v1");
-        aliases.put("security.denied", "scene.security.denied.v1");
-        aliases.put("security.privacy", "scene.security.privacy.v1");
-        aliases.put("runtime.npu", "scene.runtime.npu.v1");
-        aliases.put("system.overview", "scene.system.overview.v1");
-        aliases.put("manual.hvac", "scene.manual.hvac.adjust.v1");
-        aliases.put("manual.seat", "scene.manual.seat.adjust.v1");
-        return Collections.unmodifiableMap(aliases);
     }
 
     private static int seatZone(HvacControlIntent.Zone zone) {
