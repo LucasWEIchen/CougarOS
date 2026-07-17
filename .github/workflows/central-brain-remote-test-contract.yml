@@ -70,4 +70,5 @@ jobs:
           bash tools/check_central_brain_android_agent_graph_runtime.sh
           bash tools/check_central_brain_android_typed_node_executors.sh
           bash tools/check_central_brain_android_checkpoint_serializer.sh
+          bash tools/check_central_brain_android_retry_timeout_policy.sh
           bash tools/check_central_brain_root_readme.sh

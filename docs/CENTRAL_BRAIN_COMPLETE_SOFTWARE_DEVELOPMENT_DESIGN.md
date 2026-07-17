@@ -202,7 +202,7 @@ flowchart TB
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01/P2-W04 完成；production trust/wiring 未接） | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02/P2-W03 完成；persistence/adapter 未接） | `S2-TWN-001` |
 | Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05..W07 完成；Runtime publication/execution 未接） | `S2-SCN-001` |
-| Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `FOUNDATION`（P3-W01..W03 状态/typed schema/checkpoint codec 完成；dispatch/Room 未接） | `S2-GRF-001` |
+| Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer、Retry/Timeout policy | `FOUNDATION`（P3-W01..W04 状态/typed schema/checkpoint/retry 完成；dispatch/Room 未接） | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
 | Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `NOT_STARTED` | `S2-EFF-001` |
 | Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `FOUNDATION`（P2-W08..W12 完成；production/runtime wiring 未接） | `S2-ADP-001` |
@@ -1198,12 +1198,21 @@ P3-W03 只提供 process-local codec。`AgentGraphRuntime`、Room、Session/Bind
 
 ### 13.5 Retry/Timeout
 
-- retryable error 必须显式枚举；
-- Effect retry 必须有相同 idempotencyKey；
-- 默认 maxAttempts=1，只有 manifest/policy allowlist 可提高；
-- 总 deadline 优先于 node deadline；
-- timeout 后若 adapter outcome unknown，先 reconcile，禁止立即盲重试；
-- backoff 上限固定，Runtime 重启后继续计算绝对 nextAttemptAt。
+P3-W04 implemented retry/timeout contract：
+
+- `NodeTimeoutPolicy.from(PlanNode)` 复用 P1 `PlanContract`；attempt window 使用 monotonic elapsed time，effective
+  deadline 固定为 node timeout 与 plan deadline 的较早者，到点即过期，溢出采用 saturated add；
+- `BackoffCalculator` 只允许 attempt 2..3，base/max/jitter 均有界。jitter 不使用随机源，而由 node ID、
+  retry seed digest 和 attempt 经 `graph.retry.jitter.v1` SHA-256 确定，保证 replay 一致；
+- `NodeRetryPolicy` 的输入 failure 固定为 RETRYABLE/TIMEOUT/TERMINAL/CANCELLED/DELIVERY_UNKNOWN，输出固定为
+  RETRY/RECONCILE/STOP_*；decision 只暴露 attempt、delay、eligible time 和 digest；
+- terminal/cancel 不重试；attempt budget 耗尽、plan deadline 到期或 backoff 完成时间不早于 deadline 均停止；
+- `effect.execute`/`compensate` 必须带 P1 typed idempotency key，且只有 reconcile 为
+  `CONFIRMED_NOT_APPLIED` 才可进入 RETRY。UNKNOWN 强制 RECONCILE，APPLIED 强制停止；
+- 三个类均不持有 clock/thread/executor，不调用 Graph、Effect adapter、Room、Binder、模型或硬件。
+
+当前 `retry_timeout_policy_runtime_wired=false`。P3-W06 才把 policy 接入 durable EffectCoordinator，P3-W09
+才把 attempt/nextAttemptAt 纳入 restart recovery；在此前 API 33 probe 只证明策略合同，不证明副作用重试闭环。
 
 ## 14. Governance 与 Safety
 
@@ -2094,9 +2103,10 @@ Effect Service、approval response/undo execution 和 Plan Runtime publication �
 AgentGraphRuntime state machine` 已完成 process-local graph 状态；`P3-W02 Typed node executors` 已完成 11 类
 exact schema、7 类 debug deterministic executor、authority/trust gate 与 Effect/Compensation/unsupported
 fail-closed；`P3-W03 CheckpointSerializer` 已完成 registered DTO、bounded primitive canonical JSON、digest 和
-security corpus。Graph 仍不调用 executor 或 serializer，main/release 无 deterministic executor，Binder/Room/
-recovery/production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为
-`P3-W04 Retry/Timeout policy`。
+security corpus；`P3-W04 Retry/Timeout policy` 已完成 monotonic deadline、bounded attempt/backoff/jitter 和
+Effect reconcile-before-retry。Graph 仍不调用 executor/serializer/policy，main/release 无 deterministic executor，
+Binder/Room/recovery/production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为
+`P3-W05 Durable approval interrupt`。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

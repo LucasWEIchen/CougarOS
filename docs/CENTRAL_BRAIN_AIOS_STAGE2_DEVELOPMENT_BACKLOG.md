@@ -440,9 +440,20 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W04` Retry/Timeout policy
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-GRF-001`、`NV-G-004`。
+- 状态：`DONE`（process-local policy contract，2026-07-17）；1.5 人日；需求：`S2-GRF-001`、
+  `NV-G-004`、`DEL-001/003..005`。
 - 类：`NodeRetryPolicy`、`NodeTimeoutPolicy`、`BackoffCalculator`。
 - DoD：bounded attempts/deadline/jitter；Effect retry 需要 idempotency key。
+- 实现：`NodeTimeoutPolicy` 只接收 caller 提供的 monotonic elapsed time，把 attempt timeout 截断到 plan
+  deadline；`BackoffCalculator` 使用 domain-separated SHA-256 生成确定性 jitter，delay 不超过既有
+  `PlanContract.MAX_NODE_TIMEOUT_MS`。`NodeRetryPolicy` 只允许 attempt 2..3；terminal/cancel 不重试，backoff
+  完成时间必须严格早于 plan deadline。
+- Effect 门禁：`effect.execute`/`compensate` 除 typed idempotency key 外，还必须取得
+  `CONFIRMED_NOT_APPLIED` reconcile 结果才能重试；unknown delivery 返回 `RECONCILE`，已应用返回
+  `STOP_EFFECT_ALREADY_APPLIED`，禁止盲重放。
+- 边界：三个类均为 pure Java policy，不持有 clock/thread/executor，不接 `AgentGraphRuntime`、Room、Binder、
+  production Effect/model/vehicle/NPU/Driver-HAL；`retry_timeout_policy_runtime_wired=false`。
+- 证据：8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、独立 checker、累计 installer/CI。
 
 ### `P3-W05` Durable approval interrupt
 

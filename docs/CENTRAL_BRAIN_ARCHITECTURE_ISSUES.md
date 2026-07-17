@@ -380,3 +380,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P3-W01 进展 | Process-local Graph/Node state、FIFO/bounded sessions、deadline/partial/event projection 与 API 33 ARM64 probe 完成；executor/Room/Binder/Effect/model/hardware 均未接。 |
 | P3-W02 进展 | Typed node schema/debug executor 与 API 33 ARM64 probe 完成；Graph dispatch、production executor、Effect/model/hardware 均未接。 |
 | P3-W03 进展 | Registered DTO/canonical checkpoint serializer 与 API 33 ARM64 probe 完成；Graph/Room/restart recovery、Effect/model/hardware 均未接。 |
+| P3-W04 进展 | Monotonic timeout、bounded attempt/backoff/jitter 与 Effect reconcile-before-retry API 33 ARM64 probe 完成；Graph/Room/production Effect/model/hardware 均未接，ISSUE-022/026 保持 Open。 |

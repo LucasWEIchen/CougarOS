@@ -811,4 +811,26 @@ Eight JVM test groups, debug/release compilation and the Android 13/API 33 ARM64
 `checkpoint_serializer_android13_arm64_verified=true`. The debug probe is absent from release;
 `checkpoint_serializer_java_serialization_enabled=false`, `agent_graph_runtime_persistence_wired=false`,
 `agent_graph_executor_dispatch_enabled=false`, `effect_dispatch_enabled=false`, `model_invoked=false` and
-`hardware_accessed=false` remain enforced. P3-W04 Retry/Timeout policy is the next work package.
+`hardware_accessed=false` remain enforced.
+
+## P3-W04 Retry/Timeout policy
+
+`NodeTimeoutPolicy` derives a monotonic attempt window from the typed Plan node timeout and clamps it to the plan
+deadline. Expiry is inclusive at the effective deadline, the caller supplies elapsed time, and the policy owns no
+wall clock, thread, executor or timer. `BackoffCalculator` applies bounded exponential delay with deterministic
+SHA-256-derived jitter; the configured delay cannot exceed the existing 120-second node timeout bound.
+
+`NodeRetryPolicy` freezes node type, attempt budget and a digest of the idempotency key. Retryable non-Effect failures
+can schedule only attempts 2..3 and only when backoff completes strictly before the plan deadline. Terminal failures
+and cancellation never retry. `effect.execute` and `compensate` require the existing typed idempotency key and cannot
+retry until reconcile reports `CONFIRMED_NOT_APPLIED`; unknown delivery returns `RECONCILE`, while confirmed applied
+returns `STOP_EFFECT_ALREADY_APPLIED`.
+
+Eight JVM test groups, debug/release compilation and the Android 13/API 33 ARM64 probe establish
+`node_retry_policy_defined=true`, `node_timeout_policy_defined=true`,
+`backoff_deterministic_bounded_verified=true`, `timeout_deadline_clamp_verified=true`,
+`retry_attempt_budget_verified=true`, `effect_idempotency_reconcile_gate_verified=true`,
+`retry_deadline_fail_closed_verified=true` and `retry_timeout_policy_android13_arm64_verified=true`.
+`retry_timeout_policy_runtime_wired=false`, `agent_graph_executor_dispatch_enabled=false`,
+`effect_dispatch_enabled=false`, `model_invoked=false` and `hardware_accessed=false` remain enforced. P3-W05 Durable
+approval interrupt is the next work package.

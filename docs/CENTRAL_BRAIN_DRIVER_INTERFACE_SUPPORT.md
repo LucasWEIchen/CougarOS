@@ -807,3 +807,19 @@ vendor Binder/SOA、device node、ioctl/sysfs、PCIe/NPU 或 Driver/HAL。
 `effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`NV-G-003/006/007`、`KH-003/006`、`DEL-004/005`。
+
+### P3-W04 Retry/Timeout Driver/HAL Boundary
+
+P3-W04 在 Runtime main source 只新增纯 Java `NodeRetryPolicy`、`NodeTimeoutPolicy` 和
+`BackoffCalculator`；debug source 只新增 DUMP-protected probe。它只处理 typed Plan metadata、monotonic elapsed
+time、attempt/reconcile enum 与 digest，不读取 wall clock/thread timer，也不持有 adapter/provider object。
+
+Policy 未接 `AgentGraphRuntime`、Room/Binder、P2 simulation、production Effect/Model、JNI/C ABI 或 Native
+Runtime。本包不发现或调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、
+ioctl/sysfs、PCIe/NPU 或 Driver/HAL。API 33 ARM64 probe 只证明软件策略可执行，不是实时性或车辆副作用证据。
+
+状态：`node_retry_policy_defined=true`、`node_timeout_policy_defined=true`、
+`retry_timeout_policy_runtime_wired=false`、`agent_graph_executor_dispatch_enabled=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`NV-G-004`、`KH-003/006`、`DEL-004/005`。

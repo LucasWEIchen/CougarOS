@@ -68,6 +68,7 @@
 | DEV-042 | P3-W01 Graph Runtime 是 process-local control-only state machine，不是 durable/executable production Graph。 | S2-GRF-001, ISSUE-022/026 | Accepted Temporary |
 | DEV-043 | P3-W02 typed executor 只有 main contract 与 debug deterministic implementation，不是 Graph/Effect/model production execution。 | S2-GRF-001, S2-SAF-001, S2-EFF-001, ISSUE-022..024/026 | Accepted Temporary |
 | DEV-044 | P3-W03 serializer 是 process-local canonical contract，尚未接 Graph/Room/restart recovery。 | S2-GRF-001, NV-G-006/007, ISSUE-022/026 | Accepted Temporary |
+| DEV-045 | P3-W04 retry/timeout policy 尚未接 Graph scheduler 或 production Effect reconcile。 | S2-GRF-001, NV-G-004, ISSUE-022/026 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -588,3 +589,19 @@ durable owner、encryption/key、retention、migration 或 rollback evidence，�
 `effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。P3-W09 必须接 Room transaction/restart recovery 并把
 digest/type/version mismatch 映射 STUCK；P8 另行关闭 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。
+
+## DEV-045 P3-W04 retry/timeout policy 尚未接 Graph 或 production Effect
+
+P3-W04 的 `NodeRetryPolicy`、`NodeTimeoutPolicy` 与 `BackoffCalculator` 位于 Runtime main source，作为后续
+Durable Graph 的稳定 QoS 合同。当前 `AgentGraphRuntime`、Room、Binder 与 Runtime Service 均未引用这些类；
+没有 scheduler wake-up、durable attempt row、Effect adapter dispatch 或真实 reconcile 调用。
+
+确定性 SHA-256 jitter 只用于可重放软件策略，不是实时调度精度证据。Effect 门禁要求 idempotency key 与
+`CONFIRMED_NOT_APPLIED`，但该 reconcile state 当前只由 JVM/debug probe 输入，不来自 production adapter/readback；
+因此不能声明重复副作用已经在目标车辆上被消除。
+
+状态：`Accepted Temporary`。`node_retry_policy_defined=true`、`node_timeout_policy_defined=true`、
+`effect_idempotency_reconcile_gate_verified=true`、`retry_timeout_policy_runtime_wired=false`、
+`agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。P3-W06/P3-W09 必须分别接 durable Effect reconcile 与
+Graph restart/attempt recovery；P8 另行关闭 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。
