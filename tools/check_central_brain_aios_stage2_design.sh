@@ -169,7 +169,8 @@ require_text "$ROADMAP" '`P3-W09 Restart recovery` 已完成'
 require_text "$ROADMAP" '`P4-W01 Bridge session/event API migration` 已完成'
 require_text "$ROADMAP" '`P4-W02 Cockpit HMI state/reducer/reconnect` 已完成'
 require_text "$ROADMAP" '`P4-W03 Intent-first four-stage overlay shell` 已完成'
-require_text "$ROADMAP" '下一实现工作包为 `P4-W04 HVAC control surface`'
+require_text "$ROADMAP" '下一实现工作包为 `P4-W05 Seat control surface`'
+require_text "$BACKLOG" '状态：`DONE`（2026-07-17）；3 人日；需求：`S2-HMI-001/003/004/005`、`S2-ADP-001`。'
 require_text "$BACKLOG" '状态：`DONE`（2026-07-17）；2 人日；需求：`S2-UX-001`、`S2-HMI-005`、`XSC-001`'
 require_text "$BACKLOG" '### `P4-W02` Cockpit HMI state/reducer/reconnect'
 require_text "$BACKLOG" '### `P4-W03` Intent-first four-stage overlay shell'
@@ -197,6 +198,7 @@ require_text "$DEVIATIONS" '## DEV-050 P3-W09 Restart recovery repository 尚未
 require_text "$DEVIATIONS" '## DEV-051 Client2 UI alias 仍是兼容边界，legacy static owner 已解除'
 require_text "$DEVIATIONS" '## DEV-052 P4-W02 checkpoint 是 app-private 恢复层，不是量产加密 HMI store'
 require_text "$DEVIATIONS" '## DEV-053 P4-W03 固定 1920x1080 安全框和 unavailable 投影不是量产多屏 HMI'
+require_text "$DEVIATIONS" '## DEV-054 P4-W04 Session V1 HVAC 参数兼容层不是 versioned typed parameter transport'
 require_text "$ISSUES" '## ISSUE-029 “我累了”场景的驾驶席座椅安全策略与批准 authority'
 require_text "$ISSUES" '## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定'
 require_text "$ISSUES" '## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定'
@@ -204,6 +206,7 @@ require_text "$ISSUES" '## ISSUE-033 Client2 HVAC/Seat 中控演示闭环缺口'
 require_text "$ISSUES" 'P4-W01 进展：Client2 已不再通过单次 `TaskResult` 驱动文本区'
 require_text "$ISSUES" 'P4-W02 进展：immutable `CockpitHmiState`'
 require_text "$ISSUES" 'P4-W03 进展：intent-first 四阶段 shell'
+require_text "$ISSUES" 'P4-W04 进展：HVAC control surface'
 require_text "$DELIVERY" '## 2026-07-17 AIOS Stage 2 交付范围'
 require_text "$DELIVERY" '## 2026-07-16 Client2 中控 HVAC/Seat 交付规划'
 require_text "$DRIVER" '## 2026-07-15 AIOS Stage 2 Driver/HAL 边界'
@@ -221,7 +224,8 @@ require_text "$README" 'client2_hmi_checkpoint_text_persisted=false'
 require_text "$README" 'cockpit_hmi_four_stage_shell_implemented=true'
 require_text "$README" 'cockpit_hmi_safe_frame_1920x1080_verified=true'
 require_text "$README" 'cockpit_hmi_device_drawer_scaffolded=true'
-require_text "$README" 'implementation_stage=P4-W04'
+require_text "$README" 'implementation_stage=P4-W05'
+require_text "$README" 'cockpit_hvac_surface_implemented=true'
 require_text "$README" 'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md'
 require_text "$README" 'CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md'
 
@@ -258,5 +262,6 @@ PY
 bash "$ROOT_DIR/tools/check_central_brain_cockpit_hmi_design.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_hvac_surface.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

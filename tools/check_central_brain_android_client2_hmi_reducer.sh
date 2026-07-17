@@ -7,6 +7,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$ROOT_DIR/apk-labs/client2-central-brain"
 STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiState.java"
 REDUCER="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiReducer.java"
+HVAC_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHvacState.java"
+HVAC_INTENT="$PROJECT/bridge/src/com/centralbrain/client2/HvacControlIntent.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 TEST_MAIN="$PROJECT/bridge/test/com/centralbrain/client2/CockpitHmiReducerTestMain.java"
 SDK_AAR="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar"
@@ -20,7 +22,7 @@ fi
 : "${ANDROID_HOME:?ANDROID_HOME or ANDROID_SDK_ROOT must point to the Android SDK}"
 ANDROID_JAR="$ANDROID_HOME/platforms/android-36/android.jar"
 
-for path in "$STATE" "$REDUCER" "$COORDINATOR" "$TEST_MAIN" "$ANDROID_JAR"; do
+for path in "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT" "$COORDINATOR" "$TEST_MAIN" "$ANDROID_JAR"; do
   test -f "$path"
 done
 if [[ ! -f "$SDK_AAR" ]]; then
@@ -29,7 +31,7 @@ if [[ ! -f "$SDK_AAR" ]]; then
     :central-brain-sdk:assembleDebug >/dev/null
 fi
 
-if grep -Eq '^import android\.' "$STATE" "$REDUCER"; then
+if grep -Eq '^import android\.' "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT"; then
   echo "Cockpit HMI state/reducer must remain Android-view independent" >&2
   exit 1
 fi
@@ -57,7 +59,7 @@ javac \
   -encoding UTF-8 \
   -classpath "$ANDROID_JAR:$SDK_CLASSES" \
   -d "$BUILD_DIR/classes" \
-  "$STATE" "$REDUCER" "$TEST_MAIN"
+  "$HVAC_INTENT" "$HVAC_STATE" "$STATE" "$REDUCER" "$TEST_MAIN"
 
 java \
   -classpath "$ANDROID_JAR:$SDK_CLASSES:$BUILD_DIR/classes" \

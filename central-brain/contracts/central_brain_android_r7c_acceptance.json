@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3.0",
+  "schema_version": "1.4.0",
   "acceptance_id": "android-r7c-api33-application-integration",
   "status": "verified",
   "evidence_scope": "api33-android-application-integration",
@@ -9,8 +9,11 @@
     "S2-UX-002",
     "S2-UX-003",
     "S2-HMI-003",
+    "S2-HMI-001",
+    "S2-HMI-004",
     "S2-HMI-005",
     "S2-HMI-006",
+    "S2-ADP-001",
     "APP-004",
     "XSC-001",
     "XSC-005",
@@ -40,7 +43,9 @@
       "id": "R7C-E-002",
       "scenario": "client2_hmi_session_replacement",
       "required_markers": [
-        "client2_hmi_session_replacement_verified=true"
+        "client2_hmi_session_replacement_verified=true",
+        "client2_hmi_replacement_bind_first_verified=true",
+        "client2_hmi_replaced_session_cancel_verified=true"
       ]
     },
     {
@@ -83,8 +88,20 @@
         "cockpit_hmi_four_stage_shell_verified=true",
         "cockpit_hmi_safe_frame_1920x1080_verified=true",
         "cockpit_hmi_device_drawer_verified=true",
-        "cockpit_hvac_surface_implemented=false",
         "cockpit_seat_surface_implemented=false"
+      ]
+    },
+    {
+      "id": "R7C-E-007",
+      "scenario": "client2_hvac_control_surface",
+      "required_markers": [
+        "cockpit_hvac_controls_verified=true",
+        "cockpit_hvac_debounce_verified=true",
+        "cockpit_hvac_manual_session_admission_verified=true",
+        "cockpit_hvac_desired_reported_separation_verified=true",
+        "cockpit_hvac_reported_readback_available=false",
+        "cockpit_hvac_verified_before_readback=false",
+        "hvac_manual_typed_parameter_field=false"
       ]
     }
   ],
@@ -93,6 +110,7 @@
     "client2_binder_migration_complete": true,
     "cockpit_hmi_state_reducer_implemented": true,
     "cockpit_hmi_four_stage_shell_implemented": true,
+    "cockpit_hvac_surface_implemented": true,
     "api33_end_to_end_acceptance_complete": true,
     "r7_application_integration_complete": true,
     "production_activation_allowed": false,
@@ -115,6 +133,8 @@
     "real model or NPU execution",
     "Driver HAL vendor system or virtualization development",
     "Client2 UI cancellation or timeout controls",
-    "Client2 HVAC Seat control surfaces or scenario Graph Effect execution loop"
+    "Client2 Seat control surface or scenario Graph Effect execution loop",
+    "typed Session HVAC parameter field or HMI_CONTROL source",
+    "HVAC Adapter dispatch or vehicle readback"
   ]
 }

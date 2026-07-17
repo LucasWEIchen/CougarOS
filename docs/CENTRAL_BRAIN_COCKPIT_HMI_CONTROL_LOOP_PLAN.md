@@ -510,3 +510,14 @@ P4 依赖 P1 typed contracts、P2 Digital Twin/simulated adapter 和 P3 durable 
 
 HMI-D4 才表示“演示级中控闭环完成”。HMI-D5、production signer、OEM UX/Safety 审批和整车
 验证是独立退出条件，不能从 HMI-D4 推断。
+
+## 17. 当前实现进度（2026-07-17）
+
+P4-W01..P4-W04 已完成：Session/Event bridge、immutable HMI lifecycle、四阶段 shell 和 HVAC control surface 已进入
+Client2。HVAC 完整控件、300 ms debounce、`scene.manual.hvac.adjust.v1` governed Session admission、desired revision 与
+reported/source/quality/effect 分层已通过 host/APK/static/Android 13 ARM64 验证。无 readback 时保持
+`UNAVAILABLE/NO_EVIDENCE`，Session acceptance 只显示 REQUESTED。
+
+HMI-D2 尚未完成，因为 Seat control、Runtime Scenario/Graph/Effect wiring、Digital Twin observation、partial/retry/undo/
+approval 均未连接。下一工作包为 P4-W05 Seat control surface。Session V1 参数兼容边界由 `DEV-054` 跟踪；不得将
+`cockpit_hvac_surface_implemented=true` 解释为车辆空调已执行。

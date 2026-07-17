@@ -249,6 +249,9 @@ for marker in \
   'cockpit_hmi_four_stage_shell_verified=true' \
   'cockpit_hmi_safe_frame_1920x1080_verified=true' \
   'cockpit_hmi_device_drawer_verified=true' \
+  'cockpit_hvac_controls_verified=true' \
+  'cockpit_hvac_debounce_verified=true' \
+  'cockpit_hvac_manual_session_admission_verified=true' \
   'client2_hmi_replay_projected=true' \
   'legacy_text_callback_authoritative=false' \
   'client2_ui_session_projection_verified=true' \
@@ -321,13 +324,17 @@ if [[ "$STREAM_REPLACED" != true ]]; then
 fi
 if [[ "$(grep -Fc 'client2_session_opened=true' \
     "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
-    || [[ "$(grep -Fc 'client2_session_event_received=true' \
+    || [[ "$(grep -Fc 'event_type=ScenarioRequested' \
       "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
     || [[ "$(grep -Fc 'client2_session_replay_complete=true' \
       "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
     || [[ "$(grep -Fc 'client2_hmi_replay_projected=true' \
       "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
     || ! grep -Fq 'client2_hmi_session_replaced=true' \
+      "$LOG_DIR/stream-replacement-log.txt" \
+    || ! grep -Fq 'client2_hmi_replacement_bind_first=true' \
+      "$LOG_DIR/stream-replacement-log.txt" \
+    || ! grep -Fq 'client2_hmi_replaced_session_cancelled=true' \
       "$LOG_DIR/stream-replacement-log.txt"; then
   cat "$LOG_DIR/stream-replacement-log.txt" >&2
   echo "Client2 HMI replacement lost or duplicated Session evidence" >&2
@@ -477,6 +484,8 @@ printf '%s\n' \
   "runtime_absent_failure_visible=true" \
   "runtime_reenable_retry_completed=true" \
   "client2_hmi_session_replacement_verified=true" \
+  "client2_hmi_replacement_bind_first_verified=true" \
+  "client2_hmi_replaced_session_cancel_verified=true" \
   "runtime_process_death_injected=true" \
   "client2_session_reconnect_replay_verified=true" \
   "client2_session_duplicate_event_suppressed=true" \
@@ -493,7 +502,14 @@ printf '%s\n' \
   "cockpit_hmi_four_stage_shell_verified=true" \
   "cockpit_hmi_safe_frame_1920x1080_verified=true" \
   "cockpit_hmi_device_drawer_verified=true" \
-  "cockpit_hvac_surface_implemented=false" \
+  "cockpit_hvac_surface_implemented=true" \
+  "cockpit_hvac_controls_verified=true" \
+  "cockpit_hvac_debounce_verified=true" \
+  "cockpit_hvac_manual_session_admission_verified=true" \
+  "cockpit_hvac_desired_reported_separation_verified=true" \
+  "cockpit_hvac_reported_readback_available=false" \
+  "cockpit_hvac_verified_before_readback=false" \
+  "hvac_manual_typed_parameter_field=false" \
   "cockpit_seat_surface_implemented=false" \
   "client2_navigation_menu_reopen_verified=true" \
   "binder_lifecycle_regression_verified=true" \

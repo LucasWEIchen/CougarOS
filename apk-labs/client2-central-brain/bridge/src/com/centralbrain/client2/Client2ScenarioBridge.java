@@ -56,7 +56,35 @@ public final class Client2ScenarioBridge {
             String scenarioId,
             String userText,
             ScenarioCallback callback) {
-        return openSessionInternal(activity, scenarioId, userText, callback, false, null, "");
+        return openSessionInternal(
+                activity,
+                scenarioId,
+                userText,
+                ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER,
+                callback,
+                false,
+                null,
+                "");
+    }
+
+    /** Opens a governed manual HVAC Session without exposing the compatibility wire grammar to Views. */
+    public static SessionConnection openHvacSession(
+            Activity activity,
+            HvacControlIntent intent,
+            ScenarioCallback callback) {
+        if (intent == null) {
+            reportRejected(callback, false, "missing HVAC intent");
+            return null;
+        }
+        return openSessionInternal(
+                activity,
+                "manual.hvac",
+                intent.toWireValue(),
+                seatZone(intent.getZone()),
+                callback,
+                false,
+                null,
+                "");
     }
 
     /** Restores observation of an existing owner-scoped Session after HMI recreation. */
@@ -81,6 +109,7 @@ public final class Client2ScenarioBridge {
                 activity,
                 scenarioId,
                 "",
+                ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER,
                 callback,
                 false,
                 handle,
@@ -101,6 +130,7 @@ public final class Client2ScenarioBridge {
                 activity,
                 scenarioId,
                 userText,
+                ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER,
                 callback,
                 true,
                 null,
@@ -139,6 +169,7 @@ public final class Client2ScenarioBridge {
             Activity activity,
             String scenarioId,
             String userText,
+            int seatZone,
             ScenarioCallback callback,
             boolean legacyCompatibility,
             SessionHandle resumeHandle,
@@ -157,6 +188,7 @@ public final class Client2ScenarioBridge {
                 scenarioId,
                 SCENARIOS.get(scenarioId),
                 boundedText,
+                seatZone,
                 callback,
                 legacyCompatibility,
                 resumeHandle,
@@ -186,6 +218,7 @@ public final class Client2ScenarioBridge {
         private final String uiScenarioId;
         private final String scenarioId;
         private final String userText;
+        private final int seatZone;
         private final ScenarioCallback callback;
         private final boolean legacyCompatibility;
         private final boolean resumeExisting;
@@ -203,6 +236,7 @@ public final class Client2ScenarioBridge {
                 String uiScenarioId,
                 String scenarioId,
                 String userText,
+                int seatZone,
                 ScenarioCallback callback,
                 boolean legacyCompatibility,
                 SessionHandle resumeHandle,
@@ -212,6 +246,7 @@ public final class Client2ScenarioBridge {
             this.uiScenarioId = uiScenarioId;
             this.scenarioId = scenarioId;
             this.userText = userText;
+            this.seatZone = seatZone;
             this.callback = callback;
             this.legacyCompatibility = legacyCompatibility;
             this.resumeExisting = resumeHandle != null;
@@ -452,7 +487,7 @@ public final class Client2ScenarioBridge {
             request.scenarioId = scenarioId;
             request.utterance = userText;
             request.source = ICentralBrainSessionRuntime.SOURCE_HMI_BUTTON;
-            request.seatZone = ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER;
+            request.seatZone = seatZone;
             request.locale = "zh-CN";
             request.deadlineEpochMs = now + DEADLINE_MS;
             request.clientContextVersion = 0;
@@ -502,6 +537,11 @@ public final class Client2ScenarioBridge {
                     + " scenario_id=" + scenarioId
                     + " session_event_transport_used=true"
                     + " legacy_callback_compatibility=" + legacyCompatibility
+                    + " hvac_manual_intent_governed_session="
+                    + "manual.hvac".equals(uiScenarioId)
+                    + " hvac_manual_bounded_parameter_wire="
+                    + "manual.hvac".equals(uiScenarioId)
+                    + " hvac_manual_typed_parameter_field=false"
                     + " http_transport_used=false"
                     + " service_dispatch_triggered=false"
                     + " hardware_accessed=false";
@@ -635,7 +675,20 @@ public final class Client2ScenarioBridge {
         aliases.put("security.privacy", "scene.security.privacy.v1");
         aliases.put("runtime.npu", "scene.runtime.npu.v1");
         aliases.put("system.overview", "scene.system.overview.v1");
+        aliases.put("manual.hvac", "scene.manual.hvac.adjust.v1");
         return Collections.unmodifiableMap(aliases);
+    }
+
+    private static int seatZone(HvacControlIntent.Zone zone) {
+        switch (zone) {
+            case FRONT_PASSENGER:
+                return ICentralBrainSessionRuntime.SEAT_ZONE_FRONT_PASSENGER;
+            case CABIN:
+                return ICentralBrainSessionRuntime.SEAT_ZONE_CABIN;
+            case DRIVER:
+            default:
+                return ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER;
+        }
     }
 
     private static String failureCode(RuntimeException exception) {

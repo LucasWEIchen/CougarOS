@@ -26,6 +26,7 @@ public final class CockpitHmiState {
     private final ConnectionState connectionState;
     private final SurfaceStage surfaceStage;
     private final DeviceDrawer deviceDrawer;
+    private final CockpitHvacState hvacState;
     private final String uiScenarioId;
     private final String canonicalScenarioId;
     private final int handleSchemaVersion;
@@ -49,6 +50,7 @@ public final class CockpitHmiState {
         connectionState = builder.connectionState;
         surfaceStage = builder.surfaceStage;
         deviceDrawer = builder.deviceDrawer;
+        hvacState = builder.hvacState;
         uiScenarioId = builder.uiScenarioId;
         canonicalScenarioId = builder.canonicalScenarioId;
         handleSchemaVersion = builder.handleSchemaVersion;
@@ -89,6 +91,10 @@ public final class CockpitHmiState {
 
     public DeviceDrawer getDeviceDrawer() {
         return deviceDrawer;
+    }
+
+    public CockpitHvacState getHvacState() {
+        return hvacState;
     }
 
     public String getUiScenarioId() {
@@ -238,6 +244,7 @@ public final class CockpitHmiState {
         ConnectionState connectionState = ConnectionState.DISCONNECTED;
         SurfaceStage surfaceStage = SurfaceStage.INTENT;
         DeviceDrawer deviceDrawer = DeviceDrawer.CLOSED;
+        CockpitHvacState hvacState = CockpitHvacState.initial();
         String uiScenarioId = "";
         String canonicalScenarioId = "";
         int handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -263,6 +270,7 @@ public final class CockpitHmiState {
             connectionState = source.connectionState;
             surfaceStage = source.surfaceStage;
             deviceDrawer = source.deviceDrawer;
+            hvacState = source.hvacState;
             uiScenarioId = source.uiScenarioId;
             canonicalScenarioId = source.canonicalScenarioId;
             handleSchemaVersion = source.handleSchemaVersion;
@@ -287,6 +295,9 @@ public final class CockpitHmiState {
         }
 
         CockpitHmiState build() {
+            if (hvacState == null) {
+                throw new IllegalStateException("HVAC state missing");
+            }
             uiScenarioId = bounded(uiScenarioId, 96);
             canonicalScenarioId = bounded(canonicalScenarioId, 96);
             sessionId = bounded(sessionId, SessionContract.MAX_SESSION_ID_CHARS);

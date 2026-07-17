@@ -603,10 +603,22 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W04` HVAC control surface
 
-- 状态：`NOT_STARTED`；3 人日；需求：`S2-HMI-001/003/004/005`、`S2-ADP-001`。
+- 状态：`DONE`（2026-07-17）；3 人日；需求：`S2-HMI-001/003/004/005`、`S2-ADP-001`。
 - 控件：power、zone、temperature stepper、fan、AUTO、A/C、SYNC、airflow、comfort presets。
 - DoD：desired/reported/source/quality 分离；300 ms debounce；手动操作创建 governed scenario；
   readback 前不显示 verified。
+- 实现：`HvacControlIntent` 提供 16.0-30.0 C/0.5 C、fan 0-7、zone/mode/preset 的 immutable bounded
+  target 和 exact `HVAC1` round-trip grammar；`CockpitHvacState` 将 desired revision、request、reported、source、
+  quality 和 Effect state 分离。唯一 HMI reducer 处理 desired change/manual submit，Coordinator 以主线程 300 ms
+  debounce 合并连续输入并通过 `Client2ScenarioBridge.openHvacSession` 创建
+  `scene.manual.hvac.adjust.v1` Session。Session admission 最多投影 `REQUESTED`，没有 observation 时 reported/source/
+  quality 保持 `UNAVAILABLE/NO_EVIDENCE`，绝不进入 VERIFIED。
+- 兼容边界：冻结 Session V1 无 typed parameter/source=HMI_CONTROL 字段，bridge 暂将 canonical `HVAC1` 值封装在
+  `utterance` 并使用 `SOURCE_HMI_BUTTON`；UI 不接触字符串语法。该偏差由 `DEV-054` 跟踪，后续 versioned contract
+  替换时不得放宽 V1 hash/schema。
+- 证据：host reducer/wire validation、signed APK/static gates、Android 13/API 33 ARM64 三次温度输入合并为一个
+  governed Session、24.0 C desired、REQUESTED admission 和 reported unavailable 投影；Adapter/Effect/hardware dispatch
+  均为 0。
 
 ### `P4-W05` Seat control surface
 

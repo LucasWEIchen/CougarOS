@@ -312,7 +312,9 @@ Production adapter registry must return adapter unavailable rather than silently
 aios_intent_orchestration_ux_ready=true
 cockpit_hmi_1920x1080_safe_frame_verified=true
 cockpit_hmi_translucent_material_ready=true
-cockpit_hvac_surface_implemented=false
+cockpit_hvac_surface_implemented=true
+cockpit_hvac_governed_manual_session=true
+cockpit_hvac_reported_readback_available=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
@@ -1251,3 +1253,35 @@ Req IDs：`S2-UX-001..003`、`S2-HMI-001..003/006`、`APP-004`、`XSC-001/005/00
 `cockpit_hmi_device_drawer_scaffolded=true`、`cockpit_hvac_surface_implemented=false`、
 `cockpit_seat_surface_implemented=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W04`。
+
+## 45. P4-W04 HVAC control surface trace
+
+Req IDs：`S2-HMI-001/003/004/005`、`S2-ADP-001`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+1. HVAC detail drawer 必须提供 power、DRIVER/FRONT_PASSENGER/CABIN zone、16.0-30.0 C/0.5 C temperature、
+   fan 0-7、AUTO、A/C、SYNC、AUTO/FACE/FEET/DEFROST airflow 和 WARM/COOL/CLEAR preset；控件不得成为顶层导航。
+2. `HvacControlIntent` 必须是 immutable、范围受限、可 canonical round-trip 的 target。未知/重复字段、非 canonical
+   integer/enum、越界温度/风量必须在 bind 前失败，不得由 View 拼装任意字符串或车辆属性。
+3. `CockpitHvacState` 必须独立保存 desired、desired revision、submitted revision、request state、reported、source、
+   quality 和 effect state。desired 变化不得更新 reported；无 trusted observation 时 source=`UNAVAILABLE`、
+   quality=`NO_EVIDENCE`、effect 不得进入 `VERIFIED`。
+4. 所有 HVAC desired change 必须经唯一 `CockpitHmiReducer`。Coordinator 必须取消旧 pending callback，并以主线程
+   300 ms debounce 将连续输入合并为最后一个 immutable target；Activity detach 不得继续提交 pending request。
+5. 手动 HVAC 必须通过 `Client2ScenarioBridge.openHvacSession` 和 `SessionClient` 创建
+   `scene.manual.hvac.adjust.v1`；View/Coordinator 不得调用 debug/production Adapter、CarProperty、VHAL 或硬件接口。
+6. 冻结 Session V1 没有 typed parameter 和 `HMI_CONTROL` source。P4-W04 只允许 bridge 将 exact `HVAC1` canonical
+   grammar 放入 `utterance` 并使用 `SOURCE_HMI_BUTTON`；日志不得记录参数。V1 AIDL/hash/schema 不得修改，偏差由
+   `DEV-054` 跟踪并由后续 versioned Session contract 关闭。
+7. Session open/snapshot 只证明 governed admission，HMI 最多显示 `REQUESTED`；不得显示 DISPATCHED/APPLIED/VERIFIED，
+   不得把 Runtime 固定 summary 当作车辆回读。release/production 缺 Adapter 时继续失败关闭。
+8. Android 13/API 33 ARM64 验收必须证明完整控件可见、三次快速 step 合并为一个 manual Session、desired 24.0 C、
+   canonical scenario、reported unavailable、no verified、no service/hardware dispatch。证据不得包含 raw device identity、
+   HVAC 参数 payload、车辆数据或用户/模型文本。
+
+状态：`cockpit_hvac_surface_implemented=true`、`cockpit_hvac_reducer_owned=true`、
+`cockpit_hvac_debounce_ms=300`、`cockpit_hvac_governed_manual_session=true`、
+`cockpit_hvac_desired_reported_separation_verified=true`、`cockpit_hvac_reported_readback_available=false`、
+`cockpit_hvac_verified_before_readback=false`、`hvac_manual_typed_parameter_field=false`、
+`scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W05`。

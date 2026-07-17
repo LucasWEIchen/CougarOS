@@ -22,6 +22,7 @@ public final class CockpitHmiReducerTestMain {
                 "initial panel must be hidden");
         check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.INTENT,
                 "intent must be the initial surface");
+        verifyHvacReduction();
 
         state = CockpitHmiReducer.reduce(
                 state,
@@ -120,8 +121,97 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_hmi_recreation_resume_state_verified=true");
         System.out.println("cockpit_hmi_four_stage_reducer_verified=true");
         System.out.println("cockpit_hmi_device_drawer_reducer_verified=true");
+        System.out.println("cockpit_hvac_intent_roundtrip_verified=true");
+        System.out.println("cockpit_hvac_desired_reducer_verified=true");
+        System.out.println("cockpit_hvac_reported_readback_available=false");
+        System.out.println("cockpit_hvac_verified_before_readback=false");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
+    }
+
+    private static void verifyHvacReduction() {
+        HvacControlIntent initialIntent = HvacControlIntent.defaults();
+        String wire = initialIntent.toWireValue();
+        check(initialIntent.equals(HvacControlIntent.parseWireValue(wire)),
+                "HVAC wire value must round trip exactly");
+        check(initialIntent.stepTemperature(-100).getTemperatureDeciC()
+                        == HvacControlIntent.MIN_TEMP_DECI_C,
+                "HVAC temperature step must clamp to the lower bound");
+        check(initialIntent.stepFan(100).getFanLevel() == HvacControlIntent.MAX_FAN_LEVEL,
+                "HVAC fan step must clamp to the upper bound");
+        expectRejected(() -> HvacControlIntent.parseWireValue(
+                wire.replace("temp_deci_c=225", "temp_deci_c=226")));
+
+        CockpitHmiState state = CockpitHmiState.initial();
+        HvacControlIntent changed = initialIntent.stepTemperature(1).stepFan(1);
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.hvacDesiredChanged(changed));
+        check(state.getHvacState().getDesiredRevision() == 1,
+                "HVAC desired revision must increment once");
+        check(state.getHvacState().getRequestState()
+                        == CockpitHvacState.RequestState.DEBOUNCING,
+                "HVAC desired change must enter debounce state");
+        check(state.getDeviceDrawer() == CockpitHmiState.DeviceDrawer.HVAC,
+                "HVAC desired change must keep the HVAC drawer visible");
+
+        CockpitHmiState duplicate = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.hvacDesiredChanged(changed));
+        check(duplicate == state, "equal HVAC desired state must not create a revision");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.hvacManualSubmitted(1));
+        check("manual.hvac".equals(state.getUiScenarioId()),
+                "manual HVAC must use the governed scenario alias");
+        check(state.getHvacState().getRequestState()
+                        == CockpitHvacState.RequestState.SUBMITTING,
+                "manual HVAC request must be submitting");
+        check(state.getDeviceDrawer() == CockpitHmiState.DeviceDrawer.HVAC,
+                "manual HVAC submission must not close the drawer");
+        check(!state.getHvacState().hasReportedEvidence(),
+                "manual request must not synthesize HVAC readback");
+        check(state.getHvacState().getEffectState()
+                        == CockpitHvacState.EffectState.NOT_DISPATCHED,
+                "manual request must not claim Effect dispatch");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.sessionOpened(
+                        handle(), "scene.manual.hvac.adjust.v1"));
+        check(state.getHvacState().getRequestState()
+                        == CockpitHvacState.RequestState.ACCEPTED,
+                "Session admission must be distinct from vehicle execution");
+        check(state.getHvacState().getEffectState()
+                        == CockpitHvacState.EffectState.REQUESTED,
+                "accepted manual Session may only project REQUESTED");
+        check(!state.getHvacState().hasReportedEvidence(),
+                "Session admission must not create reported HVAC state");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.hvacDesiredChanged(changed.stepTemperature(1)));
+        check(state.getHvacState().getRequestState()
+                        == CockpitHvacState.RequestState.DEBOUNCING,
+                "a new HVAC edit must supersede accepted request state");
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.snapshot(snapshot(
+                        ICentralBrainSessionRuntime.SESSION_STATE_EXECUTING,
+                        "Older Session remains accepted")));
+        check(state.getHvacState().getRequestState()
+                        == CockpitHvacState.RequestState.DEBOUNCING,
+                "an old Session snapshot must not cancel a pending HVAC debounce");
+    }
+
+    private static void expectRejected(Runnable action) {
+        try {
+            action.run();
+            throw new AssertionError("invalid HVAC value must be rejected");
+        } catch (IllegalArgumentException expected) {
+            // Expected fail-closed validation.
+        }
     }
 
     private static SessionHandle handle() {

@@ -336,6 +336,13 @@ P4-W03 进展：intent-first 四阶段 shell、四项自然场景、source/drivi
 没有伪造车控成功。HVAC/Seat control surface、Runtime scenario/Graph/Effect 和真实 readback 仍未实现，因此本问题
 保持 Open，下一关闭子项为 P4-W04；固定画布/placeholder 差异由 `DEV-053` 跟踪。
 
+P4-W04 进展：HVAC control surface 已实现 power/zone/temperature/fan/AUTO/A-C/SYNC/airflow/preset、immutable
+desired/request/evidence state、300 ms debounce 和 `scene.manual.hvac.adjust.v1` governed Session。Android 13/API 33
+ARM64 证明三次快速温度输入只产生一个 Session，desired 更新为 24.0 C；Session admission 只显示 REQUESTED，reported/
+source/quality 仍为 unavailable/no evidence，Effect/Adapter/hardware dispatch 为 0。Seat、Runtime scenario compiler/Graph/
+Effect/readback、approval/undo 仍未闭环，因此 ISSUE-033 保持 Open，下一关闭子项为 P4-W05；V1 参数承载偏差由
+`DEV-054` 跟踪。
+
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。

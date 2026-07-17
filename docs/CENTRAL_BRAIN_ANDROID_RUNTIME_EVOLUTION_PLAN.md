@@ -253,3 +253,10 @@
 - 每轮通过相关 static/unit/smoke/device 验证后提交 Git。
 - 每轮提交后直接选择下一未完成阶段，不等待用户再次确认。
 - 遇到 vendor SDK、系统签名、SELinux、硬件 ABI 或真实 NPU 阻塞时保持 empty adapter，并记录 owner 和解除条件；不得伪造完成状态。
+
+## P4-W04 Client2 HVAC application increment
+
+Client2 application 已新增 immutable HVAC target/state、完整 controls、300 ms debounce 和 manual governed Session。
+该增量复用已发布 Session/Event SDK，不修改 Runtime AIDL/hash/Room，不连接 Scenario compiler/Graph/Effect/Adapter，
+不访问车辆/NPU/Driver-HAL。冻结 Session V1 暂以 canonical HVAC1 utterance/HMI_BUTTON 承载，`DEV-054` 跟踪后续
+versioned typed parameter contract。下一阶段为 P4-W05 Seat control surface。

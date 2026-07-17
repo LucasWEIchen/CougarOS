@@ -40,9 +40,9 @@
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。Android 13
 物理设备应用层验收通过不等于车辆/NPU/整车硬件验收。
 
-中控闭环状态保持：`cockpit_hvac_surface_implemented=false`、
+中控闭环状态保持：`cockpit_hvac_surface_implemented=true`、
 `cockpit_seat_surface_implemented=false`、`cockpit_demo_control_loop_implemented=false`。
-Client2 当前的基础悬浮面板不能作为 HVAC/Seat 闭环完成证据。
+Client2 当前的 HVAC surface 只证明 governed Session admission；没有 Effect/readback，不能作为车辆 HVAC/Seat 闭环完成证据。
 
 ## 3. 架构原则
 
@@ -2667,9 +2667,41 @@ Session projection, outside dismiss, Runtime death and Client2 process restart. 
 
 Status: `cockpit_hmi_four_stage_shell_implemented=true`, `cockpit_hmi_intent_first_primary=true`,
 `cockpit_hmi_safe_frame_1920x1080_verified=true`, `cockpit_hmi_material_alpha=0.60`,
-`cockpit_hmi_device_drawer_scaffolded=true`, `cockpit_hvac_surface_implemented=false`,
+`cockpit_hmi_device_drawer_scaffolded=true`, `cockpit_hvac_surface_implemented=true`,
 `cockpit_seat_surface_implemented=false`, `cockpit_demo_control_loop_implemented=false`,
 `scenario_execution_enabled=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W04`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W05`.
 Req IDs: `S2-UX-001..003`, `S2-HMI-001..003/006`, `APP-004`, `XSC-001/005/006`,
 `NV-G-003/006/007`, `DEL-001/003/004/005`; tracking: `DEV-051..053`, `ISSUE-019/033/035`.
+
+### 9.13 P4-W04 HVAC maintained implementation
+
+P4-W04 adds two Android-independent domain classes under the maintained Client2 secondary dex. `HvacControlIntent` owns all
+power/zone/temperature/fan/mode/airflow/preset validation and immutable mutation. `CockpitHvacState` owns desired revision,
+submitted revision, request state, optional reported target, evidence source/quality and Effect state. `CockpitHmiState` embeds
+the HVAC projection; `CockpitHmiReducer` remains the sole transition authority.
+
+The drawer XML contains stable IDs/tags for power, three zones, temperature/fan steppers, AUTO/A-C/SYNC, airflow and three
+presets. `CockpitControlCoordinator.handleHvacControl` maps tags to immutable mutations, reduces them, cancels the previous
+callback and schedules `submitPendingHvac` at 300 ms. Submission snapshots desired+revision, closes the prior Session stream,
+reduces `HVAC_MANUAL_SUBMITTED`, and calls `Client2ScenarioBridge.openHvacSession`.
+
+Session replacement is bind-first: the candidate `SessionClient.connect()` is started before the previous connection is cancelled
+and closed. This keeps Runtime Service bound across replacement and makes the old durable Session terminal instead of leaking one
+active capacity slot. Acceptance clears Runtime test data at the start of each independent matrix so old local evidence cannot
+change the result; production data is never cleared by the HMI.
+
+The bridge maps the target to `scene.manual.hvac.adjust.v1`. Because frozen Session V1 lacks typed parameters and
+`HMI_CONTROL`, exact `HVAC1` is carried in `utterance` under `SOURCE_HMI_BUTTON`; the UI never parses that carrier and logs never
+contain it. Session admission updates request to ACCEPTED/Effect REQUESTED only. P4-W04 intentionally has no code path to a
+simulated/production Adapter, Digital Twin, Vehicle/VHAL, NPU or Driver/HAL, and no local transition to reported/VERIFIED.
+
+Host tests cover canonical round trip, bounds, duplicate desired suppression, revision validation and no-readback admission.
+Static checks parse every XML control/tag and reject direct hardware/adapter imports. Android 13/API 33 ARM64 acceptance covers
+three rapid temperature steps -> one manual Session, desired 24.0 C, canonical scenario and unavailable reported evidence.
+
+Status: `cockpit_hvac_surface_implemented=true`, `cockpit_hvac_debounce_ms=300`,
+`cockpit_hvac_desired_reported_separation_verified=true`, `cockpit_hvac_verified_before_readback=false`,
+`scenario_execution_enabled=false`, `production_effect_dispatch_enabled=false`, `hardware_accessed=false`,
+`implementation_stage=P4-W05`. Req IDs: `S2-HMI-001/003/004/005`, `S2-ADP-001`, `APP-004`, `XSC-001/005/006`;
+tracking: `DEV-054`, `ISSUE-030/033`.

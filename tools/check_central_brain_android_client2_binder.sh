@@ -59,7 +59,7 @@ python3 -m json.tool "$ROOT_DIR/$PROJECT/client2-central-brain.project.json" >/d
 for scenario in \
   care.cold care.fatigue task.home skill.nap state.vehicle memory.preference \
   skills.catalog governance.audit security.denied security.privacy runtime.npu \
-  system.overview; do
+  system.overview manual.hvac; do
   require_text "$BRIDGE" "\"$scenario\""
 done
 for canonical_scenario in \
@@ -69,6 +69,7 @@ for canonical_scenario in \
   scene.security.privacy.v1 scene.runtime.npu.v1 scene.system.overview.v1; do
   require_text "$BRIDGE" "\"$canonical_scenario\""
 done
+require_text "$BRIDGE" 'scene.manual.hvac.adjust.v1'
 require_text "$BRIDGE" "private static Map<String, String> scenarioAliases()"
 require_text "$BRIDGE" "request.scenarioId = scenarioId"
 require_text "$BRIDGE" "SessionConnection openSession("
@@ -115,6 +116,8 @@ require_text "$COORDINATOR" "Client2ScenarioBridge.openSession"
 require_text "$COORDINATOR" "Client2ScenarioBridge.resumeSession"
 require_text "$COORDINATOR" "CockpitHmiReducer.reduce"
 require_text "$COORDINATOR" "client2_hmi_session_replaced=true"
+require_text "$COORDINATOR" "client2_hmi_replacement_bind_first=true"
+require_text "$COORDINATOR" "client2_hmi_replaced_session_cancelled="
 require_text "$COORDINATOR" "client2_hmi_state_retained=true"
 require_text "$COORDINATOR" "client2_hmi_checkpoint_text_persisted=false"
 require_text "$COORDINATOR" "legacy_text_callback_authoritative=false"
@@ -174,7 +177,10 @@ for marker in \
   "cockpit_hmi_four_stage_shell_verified=true" \
   "cockpit_hmi_safe_frame_1920x1080_verified=true" \
   "cockpit_hmi_device_drawer_verified=true" \
-  "cockpit_hvac_surface_implemented=false" \
+  "cockpit_hvac_surface_implemented=true" \
+  "cockpit_hvac_controls_verified=true" \
+  "cockpit_hvac_debounce_verified=true" \
+  "cockpit_hvac_manual_session_admission_verified=true" \
   "cockpit_seat_surface_implemented=false" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
@@ -195,6 +201,8 @@ require_text "$RECOVERY_TEST" "client2_navigation_menu_reopen_verified=true"
 require_text "$RECOVERY_TEST" "client2_session_reconnect_replay_verified=true"
 require_text "$RECOVERY_TEST" "client2_session_duplicate_event_suppressed=true"
 require_text "$RECOVERY_TEST" "client2_hmi_session_replacement_verified=true"
+require_text "$RECOVERY_TEST" "client2_hmi_replacement_bind_first_verified=true"
+require_text "$RECOVERY_TEST" "client2_hmi_replaced_session_cancel_verified=true"
 require_text "$RECOVERY_TEST" "client2_hmi_checkpoint_resume_verified=true"
 require_text "$RECOVERY_TEST" "client2_hmi_hidden_state_recreation_verified=true"
 require_text "$RECOVERY_TEST" "cockpit_hmi_four_stage_shell_verified=true"
@@ -279,6 +287,7 @@ done
 
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_hvac_surface.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android Client2 Binder migration check passed"

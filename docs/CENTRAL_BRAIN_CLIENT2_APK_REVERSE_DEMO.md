@@ -142,8 +142,13 @@ Binder/UI 脚本、Android 13 目标设备证据和受控 GitHub 硬件测试流
 duplicate suppression、Session replacement 和 Binder race 未回归，checkpoint 未持久化显示文本。
 
 P4-W03 在同一设备继续验证 exact panel bounds、四阶段切换、cold intent 后 Plan projection、HVAC drawer、导航和外部
-点击隐藏。`cockpit_hvac_surface_implemented=false`、`cockpit_seat_surface_implemented=false`、
-`scenario_execution_enabled=false`、`hardware_accessed=false`；下一工作包为 P4-W04。
+点击隐藏；当时 HVAC/Seat surface 均为 placeholder。
+
+P4-W04 随后在同一设备验证完整 HVAC controls、immutable desired/reported/source/quality/effect projection、三次快速
+升温的 300 ms 单 Session 合并、`manual.hvac -> scene.manual.hvac.adjust.v1` admission 和 desired 24.0 C。reported
+保持 unavailable、VERIFIED 为 false，未调用 Adapter/Effect/hardware。当前
+`cockpit_hvac_surface_implemented=true`、`cockpit_seat_surface_implemented=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`；下一工作包为 P4-W05。
 
 该坐标只记录当前受测显示配置，不是跨分辨率稳定接口。量产应改用源码 HMI 导航事件或厂商公开
 回调；在此之前，其他 density、分辨率或主题必须单独执行触点与可访问性回归。

@@ -36,8 +36,8 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 ## 2026-07-16 Client2 中控 HVAC/Seat 交付规划
 
 `S2-HMI-001..006` 将自然场景意图和 HVAC/Seat Effect 明确为 `com.tuanjie.urasclient2` APK 内的
-中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前已完成 HMI-D0 需求、
-UX、模块、工作包、验收和高保真视觉基线；现有 hybrid bundle 中的 Client2 APK 不包含这些四阶段界面。
+中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前 HMI-D0/D1、P4-W01..P4-W04
+已完成，Client2 已包含四阶段界面和 HVAC control surface；Seat 与 Runtime Effect/readback 闭环仍未实现。
 
 P4 计划用 24-32 人日交付意图/计划/执行/结果四阶段、可观察自动化链和 HVAC/Seat Effect 详情，
 以及 manual/AI 共用 Session、Governance、Effect、readback、partial、retry、undo 和 restart recovery
@@ -50,7 +50,9 @@ aios_intent_orchestration_ux_ready=true
 cockpit_hmi_design_mockups_ready=true
 cockpit_hmi_1920x1080_safe_frame_verified=true
 cockpit_hmi_translucent_material_ready=true
-cockpit_hvac_surface_implemented=false
+cockpit_hvac_surface_implemented=true
+cockpit_hvac_governed_manual_session=true
+cockpit_hvac_reported_readback_available=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
@@ -1464,6 +1466,24 @@ target_hardware_validated=false
 HVAC/Seat surface、Runtime scenario/Graph/Effect wiring 或真实车辆/NPU。两段 alias 差异与 legacy static owner 由
 `DEV-051` 跟踪；`ISSUE-033` 保持 Open。Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001/005/006`、
 `NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+## P4-W04 HVAC Control Surface
+
+交付 `HvacControlIntent`、`CockpitHvacState`、唯一 reducer 的 HVAC event、Coordinator 300 ms debounce、
+`Client2ScenarioBridge.openHvacSession` 和 Client2 drawer 内 power/zone/temperature/fan/AUTO/A-C/SYNC/airflow/preset。
+温度范围固定为 debug HMI contract 16.0-30.0 C/0.5 C，fan 为 0-7；所有输入只生成 immutable desired revision。
+
+手动请求固定使用 `manual.hvac -> scene.manual.hvac.adjust.v1` 并进入现有 SDK/Session Binder。冻结 V1 没有 typed
+parameter/source=HMI_CONTROL，因此 bridge 内部使用 exact canonical `HVAC1` utterance 与 `SOURCE_HMI_BUTTON`，由
+`DEV-054` 跟踪；UI 不拼装或显示 wire payload，日志不记录目标参数。
+
+Android 13/API 33 ARM64 交付证据覆盖完整 control surface、三次快速温度输入的 300 ms 单 Session 合并、24.0 C
+desired、canonical scenario、REQUESTED admission、reported/source/quality unavailable/no evidence 和 no verified。
+本包不交付 Runtime scenario/Graph/Effect wiring、simulated/production Adapter 注册、车辆 readback、Seat、VHAL/NPU/
+Driver-HAL。Req IDs：`S2-HMI-001/003/004/005`、`S2-ADP-001`、`APP-004`、`XSC-001/005/006`、
+`DEL-001/003/004/005`。状态：`cockpit_hvac_surface_implemented=true`、
+`cockpit_hvac_reported_readback_available=false`、`production_effect_dispatch_enabled=false`、
+`hardware_accessed=false`、`implementation_stage=P4-W05`。
 
 ## Android P4-W02 Cockpit HMI state/reducer/reconnect
 
