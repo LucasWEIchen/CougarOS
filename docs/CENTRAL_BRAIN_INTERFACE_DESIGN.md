@@ -1243,3 +1243,48 @@ terminal=-1。每个 run 最多保留 256 条事件；事件没有 raw input/out
 `agent_graph_runtime_production_wired=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
 `hardware_accessed=false`。Req IDs：`S2-GRF-001`、`NV-G-004/006/007`、`DEL-001/003..005`；
 tracking：`DEV-042`、`ISSUE-022/026`。
+
+## Android P3-W02 Typed Node Executors
+
+### Main-source contract
+
+```java
+interface TypedNodeExecutor<I extends NodeExecutionInput, O extends NodeExecutionOutput> {
+    String nodeType();
+    Class<I> inputType();
+    Class<O> outputType();
+    NodeExecutionResult<O> execute(I input);
+}
+
+void NodeExecutorRegistry.validateInput(String nodeType, NodeExecutionInput input);
+void NodeExecutorRegistry.validateResult(String nodeType, NodeExecutionResult<?> result);
+void NodeExecutorRegistry.validateExecutor(TypedNodeExecutor<?, ?> executor);
+```
+
+`NodeExecutionInput.Identity` 固定绑定 execution/plan/session UUID、node ID、Plan/input digest、attempt 和
+deadline。派生 input 为 `ContextInput`、`PolicyInput`、`ApprovalInput`、`EffectInput`、
+`VerificationInput`、`SummaryInput`、`CompensationInput`、`DigestOnlyInput`。它们没有 byte[]、Object、Map、
+Bundle、JSON 或反射类名字段。
+
+输出为对应 exact class；`NodeExecutionResult.Status` 只有 SUCCEEDED/WAITING/FAILED/REJECTED，reason 只使用
+固定 enum，result digest 绑定 node type、status、reason、schema ID、output digest 与 trust flag。Summary 只返回
+message key/count/digest，不返回大模型自由文本。
+
+### Schema 与 debug harness
+
+11 类 schema 必须与 `PlanContract.allowedNodeTypes()` 完全相等。Context/Policy/Approval/Effect/Verification/
+Summary/Compensation 在 `src/debug` 有确定性实现；Model/Tool/Memory Query/Memory Write 只有
+`DigestOnlyInput/Output` schema，无 executor。debug harness 使用显式 switch 和 exact cast；registry 仅校验，
+不持有或调用 executor。
+
+Effect executor 固定返回 WAITING + EFFECT_DISPATCH_DISABLED + NOT_DISPATCHED；Compensation 固定返回
+REJECTED + COMPENSATION_DISABLED。Context/Verification 即使输入携带 trust evidence，debug output 也固定
+`productionTrusted=false`。Policy/Approval 必须有显式可信 authority 才能返回 allowed/approved。
+
+错误前缀：contract/schema 为 `CB_NODE_CONTRACT:`，registry 为 `CB_GRAPH_REGISTRY:`，debug harness 为
+`CB_NODE_EXECUTOR:`。状态：`typed_node_executor_contract_defined=true`、
+`typed_node_executor_schema_count=11`、`typed_node_executor_debug_count=7`、
+`typed_node_executor_graph_dispatch_enabled=false`、`typed_node_executor_production_wired=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`。Req IDs：
+`S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`、`DEL-001/003..005`；tracking：`DEV-043`、
+`ISSUE-022/023/024/026`。

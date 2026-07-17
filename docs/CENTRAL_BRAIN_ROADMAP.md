@@ -122,7 +122,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01 完成；P3-W02 下一步） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01/W02 完成；P3-W03 下一步） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -224,8 +224,12 @@ release 无 exported controller，production Context/vehicle/Graph/Effect 仍未
 最多 256 条 retained digest event 已通过 JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。
 control-only registry 不调用 executor，Runtime/Room/Binder/Effect/model/vehicle/hardware 仍未接。
 
-下一实现工作包为 `P3-W02 Typed node executors`。只增加固定 input/output schema、allowlisted executor 与
-无副作用/受治理结果合同；不得借此启用 Effect dispatch、production adapter、模型或硬件访问。
+`P3-W02 Typed node executors` 已完成：11 类 Plan node exact input/output schema、只验证不调度的 registry、
+7 类 debug deterministic executor、authority/trust gate、Effect/Compensation/unsupported fail-closed 已通过
+JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。Graph/Room/Binder/Effect/model/hardware 仍未接。
+
+下一实现工作包为 `P3-W03 CheckpointSerializer`。只增加 allowlisted primitive/DTO checkpoint envelope、
+size/depth/version/digest gate 与 security corpus；不得使用 Java serialization/class reflection 或启用 Graph dispatch。
 
 ## 7. 近期进展
 
@@ -337,6 +341,9 @@ control-only registry 不调用 executor，Runtime/Room/Binder/Effect/model/vehi
   单 session FIFO、跨 session 有界 slot、manual deadline、partial/failure 与 bounded digest event 通过 JVM/
   debug/release/API 33 ARM64 probe；executor dispatch/Room/Binder/Effect/model/hardware 保持 false，下一工作包
   为 P3-W02 Typed node executors。
+- 完成 `P3-W02 Typed node executors`：11 类 exact schema、7 类 debug deterministic executor、exact-class、
+  authority/trust gate、Effect/Compensation/unsupported fail-closed 通过 JVM/debug/release/API 33 ARM64 probe；
+  Graph dispatch/Room/Binder/Effect/model/hardware 保持 false，下一工作包为 P3-W03 CheckpointSerializer。
 
 ## 8. 当前门禁
 
@@ -433,7 +440,16 @@ agent_graph_executor_dispatch_enabled=false
 agent_graph_runtime_persistence_wired=false
 agent_graph_runtime_binder_published=false
 agent_graph_runtime_production_wired=false
-implementation_stage=P3-W02
+typed_node_executor_contract_defined=true
+typed_node_executor_schema_count=11
+typed_node_executor_debug_count=7
+typed_node_executor_exact_class_verified=true
+typed_node_executor_effect_fail_closed_verified=true
+typed_node_executor_unsupported_fail_closed_verified=true
+typed_node_executor_android13_arm64_verified=true
+typed_node_executor_graph_dispatch_enabled=false
+typed_node_executor_production_wired=false
+implementation_stage=P3-W03
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

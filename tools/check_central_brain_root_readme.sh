@@ -168,7 +168,16 @@ for marker in \
   'agent_graph_runtime_persistence_wired=false' \
   'agent_graph_runtime_binder_published=false' \
   'agent_graph_runtime_production_wired=false' \
-  'implementation_stage=P3-W02' \
+  'typed_node_executor_contract_defined=true' \
+  'typed_node_executor_schema_count=11' \
+  'typed_node_executor_debug_count=7' \
+  'typed_node_executor_exact_class_verified=true' \
+  'typed_node_executor_effect_fail_closed_verified=true' \
+  'typed_node_executor_unsupported_fail_closed_verified=true' \
+  'typed_node_executor_android13_arm64_verified=true' \
+  'typed_node_executor_graph_dispatch_enabled=false' \
+  'typed_node_executor_production_wired=false' \
+  'implementation_stage=P3-W03' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -244,6 +253,7 @@ required_paths=(
   tools/check_central_brain_android_simulated_media_navigation_adapters.sh
   tools/check_central_brain_android_debug_simulation_controller.sh
   tools/check_central_brain_android_agent_graph_runtime.sh
+  tools/check_central_brain_android_typed_node_executors.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh

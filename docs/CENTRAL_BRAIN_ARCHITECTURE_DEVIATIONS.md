@@ -66,6 +66,7 @@
 | DEV-040 | P2-W11 Media/Nav 只提供 simulation state 与 synthetic digest observation。 | S2-ADP-001, ISSUE-030/031/033 | Accepted Temporary |
 | DEV-041 | P2-W12 debug controller 不是 production Context 或车辆控制 authority。 | S2-CTX-001, S2-ADP-001, ISSUE-030/033 | Accepted Temporary |
 | DEV-042 | P3-W01 Graph Runtime 是 process-local control-only state machine，不是 durable/executable production Graph。 | S2-GRF-001, ISSUE-022/026 | Accepted Temporary |
+| DEV-043 | P3-W02 typed executor 只有 main contract 与 debug deterministic implementation，不是 Graph/Effect/model production execution。 | S2-GRF-001, S2-SAF-001, S2-EFF-001, ISSUE-022..024/026 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -549,3 +550,22 @@ required compensation path 当前进入 STUCK，而不是伪造 rollback。
 `effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。P3-W02 提供 typed executor，P3-W03 提供 bounded
 checkpoint，P3-W09 才关闭 restart durability；P8 另行关闭车辆/NPU/Driver-HAL，不能复用本偏差完成标志。
+
+## DEV-043 P3-W02 typed executor 非 production execution
+
+P3-W02 的 immutable input/output/result、11 类 exact-class schema 与 registry validation 位于 Runtime main
+source，作为后续 Durable Graph 的类型合同。七类 deterministic executor 和显式 harness 仅位于 `src/debug`；
+Release 不含实现或 probe。registry 不保存/调用 executor，`AgentGraphRuntime` 与 Runtime/Governance Service
+也没有引用该执行链。
+
+Context/Verification debug output 不提升 production trust；Policy/Approval 的 trusted flag 仅为测试输入，
+不是 OEM authority。Effect 固定 WAITING/NOT_DISPATCHED，Compensation 固定 REJECTED/NOT_DISPATCHED；
+Model/Tool/Memory 只有 digest-only schema，无 executor/fallback。因此 API 33 ARM64 证据只证明 schema 与
+deterministic fail-closed 行为可运行，不能声明车辆、模型或副作用已执行。
+
+状态：`Accepted Temporary`。`typed_node_executor_contract_defined=true`、
+`typed_node_executor_schema_count=11`、`typed_node_executor_debug_count=7`、
+`typed_node_executor_graph_dispatch_enabled=false`、`typed_node_executor_production_wired=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。P3-W03..W09 依次补 checkpoint、retry、approval、
+Effect/verification、compensation、Room/recovery；P8 另行关闭真实 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。

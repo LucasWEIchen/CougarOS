@@ -1261,6 +1261,63 @@ if [[ "$AGENT_GRAPH_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+TYPED_NODE_EXECUTOR_NONCE="$(date +%s%N)"
+TYPED_NODE_EXECUTOR_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.graph.TypedNodeExecutorsProbeActivity \
+  --es nonce "$TYPED_NODE_EXECUTOR_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$TYPED_NODE_EXECUTOR_PROBE_OUTPUT"; then
+  echo "$TYPED_NODE_EXECUTOR_PROBE_OUTPUT" >&2
+  echo "Typed Node Executor debug probe did not start successfully" >&2
+  exit 1
+fi
+TYPED_NODE_EXECUTOR_PROBE_PASSED=false
+for _ in {1..40}; do
+  TYPED_NODE_EXECUTOR_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbTypedNodeExec:I)"
+  if grep -Fq \
+      "nonce=$TYPED_NODE_EXECUTOR_NONCE typed_node_executor_probe_complete=true" \
+      <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_contract_defined=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_schema_count=11" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_debug_count=7" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_exact_class_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_context_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_policy_approval_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_effect_fail_closed_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_verification_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_summary_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_unsupported_fail_closed_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_android13_arm64_verified=true" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_graph_dispatch_enabled=false" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "typed_node_executor_production_wired=false" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$TYPED_NODE_EXECUTOR_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$TYPED_NODE_EXECUTOR_LOG"; then
+    TYPED_NODE_EXECUTOR_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$TYPED_NODE_EXECUTOR_PROBE_PASSED" != true ]]; then
+  echo "$TYPED_NODE_EXECUTOR_LOG" >&2
+  echo "Typed Node Executor probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2245,6 +2302,21 @@ printf '%s\n' \
   "agent_graph_runtime_persistence_wired=false" \
   "agent_graph_runtime_binder_published=false" \
   "agent_graph_runtime_production_wired=false" \
+  "typed_node_executor_contract_defined=true" \
+  "typed_node_executor_schema_count=11" \
+  "typed_node_executor_debug_count=7" \
+  "typed_node_executor_exact_class_verified=true" \
+  "typed_node_executor_context_verified=true" \
+  "typed_node_executor_policy_approval_verified=true" \
+  "typed_node_executor_effect_fail_closed_verified=true" \
+  "typed_node_executor_verification_verified=true" \
+  "typed_node_executor_summary_verified=true" \
+  "typed_node_executor_unsupported_fail_closed_verified=true" \
+  "typed_node_executor_android13_arm64_verified=true" \
+  "typed_node_executor_graph_dispatch_enabled=false" \
+  "typed_node_executor_production_wired=false" \
+  "effect_dispatch_enabled=false" \
+  "network_accessed=false" \
   "model_invoked=false" \
   "room_schema_version=4" \
   "room_table_count=13" \

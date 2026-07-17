@@ -16,27 +16,47 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Immutable P3-W01 node-type registry. It validates admission only and never invokes a node.
- * Typed executors are introduced by P3-W02.
- */
+/** Immutable node-type/schema registry. It validates contracts and never invokes an executor. */
 public final class NodeExecutorRegistry {
     public static final class Registration {
         private final String nodeType;
+        private final NodeExecutionSchemas.Schema schema;
         private final boolean dispatchEnabled;
         private final boolean productionAuthorized;
 
         private Registration(
                 String nodeType,
+                NodeExecutionSchemas.Schema schema,
                 boolean dispatchEnabled,
                 boolean productionAuthorized) {
             this.nodeType = nodeType;
+            this.schema = schema;
             this.dispatchEnabled = dispatchEnabled;
             this.productionAuthorized = productionAuthorized;
         }
 
         public String getNodeType() {
             return nodeType;
+        }
+
+        public String getInputSchemaId() {
+            return schema.getInputSchemaId();
+        }
+
+        public String getOutputSchemaId() {
+            return schema.getOutputSchemaId();
+        }
+
+        public Class<? extends NodeExecutionInput> getInputType() {
+            return schema.getInputType();
+        }
+
+        public Class<? extends NodeExecutionOutput> getOutputType() {
+            return schema.getOutputType();
+        }
+
+        public boolean isDebugExecutorAvailable() {
+            return schema.isDebugExecutorAvailable();
         }
 
         public boolean isDispatchEnabled() {
@@ -71,7 +91,13 @@ public final class NodeExecutorRegistry {
             if (nodeType == null || !allowed.contains(nodeType)) {
                 throw violation("node type is not in the Plan contract");
             }
-            registrations.put(nodeType, new Registration(nodeType, false, false));
+            registrations.put(
+                    nodeType,
+                    new Registration(
+                            nodeType,
+                            NodeExecutionSchemas.schemaFor(nodeType),
+                            false,
+                            false));
         }
         if (registrations.isEmpty()) {
             throw violation("at least one node type is required");
@@ -87,13 +113,51 @@ public final class NodeExecutorRegistry {
                 throw violation("no registration for node type " + node.nodeType);
             }
             if (registration.dispatchEnabled || registration.productionAuthorized) {
-                throw violation("P3-W01 registry must remain control-only");
+                throw violation("registry must remain control-only");
             }
         }
     }
 
     public boolean contains(String nodeType) {
         return registrations.containsKey(nodeType);
+    }
+
+    public Registration registrationFor(String nodeType) {
+        Registration registration = registrations.get(nodeType);
+        if (registration == null) {
+            throw violation("no registration for node type " + nodeType);
+        }
+        return registration;
+    }
+
+    public void validateInput(String nodeType, NodeExecutionInput input) {
+        registrationFor(nodeType);
+        NodeExecutionSchemas.validateInput(nodeType, input);
+    }
+
+    public void validateResult(String nodeType, NodeExecutionResult<?> result) {
+        registrationFor(nodeType);
+        NodeExecutionSchemas.validateResult(nodeType, result);
+    }
+
+    public void validateExecutor(TypedNodeExecutor<?, ?> executor) {
+        Objects.requireNonNull(executor, "executor");
+        Registration registration = registrationFor(executor.nodeType());
+        if (executor.inputType() != registration.getInputType()
+                || executor.outputType() != registration.getOutputType()) {
+            throw violation("executor exact input/output type does not match registration");
+        }
+        if (!registration.isDebugExecutorAvailable()) {
+            throw violation("executor implementation is unavailable for this work package");
+        }
+        if (executor.isProductionAuthorized()
+                || executor.mayDispatchEffect()
+                || executor.mayInvokeModel()
+                || executor.mayAccessNetwork()
+                || executor.mayAccessHardware()
+                || executor.mayPersistRawData()) {
+            throw violation("executor requests a forbidden P3-W02 capability");
+        }
     }
 
     public int size() {
@@ -121,6 +185,9 @@ public final class NodeExecutorRegistry {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             for (Registration registration : registrations) {
                 update(digest, registration.nodeType);
+                update(digest, registration.getInputSchemaId());
+                update(digest, registration.getOutputSchemaId());
+                update(digest, Boolean.toString(registration.isDebugExecutorAvailable()));
                 update(digest, Boolean.toString(registration.dispatchEnabled));
                 update(digest, Boolean.toString(registration.productionAuthorized));
             }

@@ -768,4 +768,25 @@ does not hold or invoke a typed executor;
 `agent_graph_executor_dispatch_enabled=false`, `agent_graph_runtime_persistence_wired=false`,
 `agent_graph_runtime_binder_published=false`, `agent_graph_runtime_production_wired=false`,
 `effect_dispatch_enabled=false`, `model_invoked=false` and `hardware_accessed=false` remain enforced. P3-W02 typed
-node executors is the next work package.
+node executors is documented below.
+
+## P3-W02 Typed node executors
+
+`runtime-service/src/main/java/com/centralbrain/runtime/graph` now defines immutable typed input/output/result
+contracts, an exact-class schema for every one of the 11 Plan node types and `TypedNodeExecutor<I,O>`. The
+`NodeExecutorRegistry` validates schema classes and rejects executors that request production authorization, Effect or
+model dispatch, network, hardware, or raw-data persistence. It does not retain or invoke executor instances.
+
+Seven deterministic executors exist only under `src/debug`: Context, Policy, Approval, Effect, Verification, Summary
+and Compensation. Context/Verification never upgrade production trust. Policy/Approval require explicit trusted test
+authority evidence. Effect always returns WAITING/NOT_DISPATCHED and Compensation returns
+REJECTED/NOT_DISPATCHED. Model/Tool/Memory have digest-only schemas and no executor or fallback.
+
+Eight JVM test groups, debug/release compilation and the Android 13/API 33 ARM64 probe establish
+`typed_node_executor_contract_defined=true`, `typed_node_executor_schema_count=11`,
+`typed_node_executor_debug_count=7`, `typed_node_executor_exact_class_verified=true`,
+`typed_node_executor_effect_fail_closed_verified=true` and
+`typed_node_executor_unsupported_fail_closed_verified=true`. Release contains no deterministic executor or probe;
+`typed_node_executor_graph_dispatch_enabled=false`, `typed_node_executor_production_wired=false`,
+`effect_dispatch_enabled=false`, `model_invoked=false`, `network_accessed=false` and `hardware_accessed=false` remain
+enforced. P3-W03 CheckpointSerializer is the next work package.
