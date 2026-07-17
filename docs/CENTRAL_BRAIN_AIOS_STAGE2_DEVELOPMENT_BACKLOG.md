@@ -243,10 +243,15 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W02` Vehicle capability catalog
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-TWN-001`、`S2-ADP-001`。
+- 状态：`DONE`（2026-07-17）；1.5 人日；需求：`S2-TWN-001`、`S2-ADP-001`。
 - 类：`VehicleCapability`、`CapabilityCatalog`、`CapabilityAvailability`。
 - 初始 capability：HVAC temperature/power/fan、seat heating/ventilation/recline、media playback、navigation POI。
-- DoD：每项声明 readable/writable/simulatable/productionAuthorized 和 target ranges。
+- DoD：8 项 immutable metadata 均声明 readable/writable/simulatable/productionAvailable/
+  productionAuthorized、typed target ranges、areas、risk、reported signal 和 required fresh signals。
+- 测试：catalog ordering/immutability、range/step/text、readback/safety dependency、duplicate/mismatch；
+  Android 13/API 33 ARM64 debug probe 验证相同合同。
+- 边界：全部 production available/authorized 为 false，`vehicle_capability_adapter_registry_wired=false`、
+  `vehicle_property_mapping_configured=false`、`hardware_accessed=false`。
 
 ### `P2-W03` VehicleDigitalTwinStore
 

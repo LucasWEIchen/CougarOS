@@ -566,3 +566,19 @@ SDK、service owner、权限与 area contract。
 `vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量
 为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-CTX-001`、`S2-TWN-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W02 Capability Catalog Driver/HAL Boundary
+
+P2-W02 只新增纯 Java capability metadata、range validator、JVM test、debug-only Activity 和静态 checker。
+它复用 canonical `VehicleSignalPath`，但不引用 `VehiclePropertyIds`、CarPropertyManager、vendor Binder/
+SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI 或 Driver/HAL。
+
+`productionAvailable=false` 与 `productionAuthorized=false` 明确阻止 catalog 被当作 hardware discovery 或
+activation evidence。Target range、risk 和 dependency 只服务 debug/test Twin 与后续 Plan validation，
+不能替代 OEM 标定、Safety authority 或硬联锁。
+
+状态：`vehicle_capability_catalog_defined=true`、`vehicle_production_capability_authorized_count=0`、
+`vehicle_capability_adapter_registry_wired=false`、`vehicle_property_mapping_configured=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+Req IDs：`S2-TWN-001`、`S2-ADP-001`、`KH-003/006`、`DEL-004/005`。

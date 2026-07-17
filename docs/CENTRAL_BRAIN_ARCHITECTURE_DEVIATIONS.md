@@ -54,6 +54,7 @@
 | DEV-025 | Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI。 | S2-UX-001..003, DEL-001/004 | Accepted Temporary |
 | DEV-026 | Python 原型与 Linux Python 交付已退役；当前用户批准只维护 Android 13 Java/AIDL/C 工程。 | XSC-001..006, DEL-001..005 | Accepted Scope |
 | DEV-030 | P2-W01 canonical path 是内部语义合同，不是 OEM/VHAL property mapping。 | S2-CTX-001, S2-TWN-001, ISSUE-030 | Accepted Temporary |
+| DEV-031 | P2-W02 target ranges/risk 是 Stage 2 软件合同，不是 OEM 标定或生产授权。 | S2-TWN-001, S2-ADP-001, ISSUE-029/030 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -266,6 +267,20 @@ SIMULATED 值验证合同。
 真实映射只能在 P8 依据目标 SDK/权限/owner 证据实现。当前 `vehicle_signal_provider_wired=false`、
 `vehicle_property_mapping_configured=false`、`hardware_accessed=false`。
 
+## DEV-031 P2-W02 range/risk 不是 OEM 标定或生产授权
+
+P2-W02 为 debug/test Digital Twin 和后续 Plan validation 固定 8 项 capability 的 target range、area、risk、
+reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角度和文本范围是可重复的软件合同，
+不是车型标定、功能安全限值、VHAL property config 或用户授权。
+
+全部 capability 的 `productionAvailable`/`productionAuthorized` 都是 false。Seat recline 的 HIGH risk 与
+5 项 fresh dependency 只建立 fail-closed 输入要求，不能替代 OEM Safety authority 或硬联锁。真实 adapter
+接入时必须提供版本化 capability evidence，不得静默修改现有 contract 或把 SIMULATED 标记提升为生产。
+
+状态：`Accepted Temporary`，对应 `ISSUE-029/030`。当前
+`vehicle_production_capability_authorized_count=0`、`vehicle_capability_adapter_registry_wired=false`、
+`vehicle_property_mapping_configured=false`、`hardware_accessed=false`。
+
 ## Android 实现证据索引
 
 下列短语是历史软件增量的稳定追踪键，指向仍保留的 Android 源码和检查器；它们不表示硬件或
@@ -310,6 +325,7 @@ SIMULATED 值验证合同。
 | P1-W05 进展 | SDK facade、Session/Event app-layer Service、rebind/resubscribe 完成；Room/process-death/scenario/hardware 均未发布。 |
 | P1-W06 进展 | Room v4、Session/Event durable repository 和 Runtime process-death rehydration 完成；Plan/Effect/scenario/hardware 均未发布。 |
 | P2-W01 进展 | 12 项 canonical vehicle signal schema、typed scalar、unit/area/source/quality/freshness 与 API 33 ARM64 probe 完成；真实 provider/property mapping 未接入。 |
+| P2-W02 进展 | 8 项 capability/range/risk/readback/dependency 与 API 33 ARM64 probe 完成；production authorized count 为 0。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。

@@ -81,7 +81,12 @@ for marker in \
   'vehicle_signal_schema_android13_arm64_verified=true' \
   'vehicle_signal_provider_wired=false' \
   'vehicle_property_mapping_configured=false' \
-  'implementation_stage=P2-W02' \
+  'vehicle_capability_catalog_defined=true' \
+  'vehicle_capability_count=8' \
+  'vehicle_capability_catalog_android13_arm64_verified=true' \
+  'vehicle_production_capability_authorized_count=0' \
+  'vehicle_capability_adapter_registry_wired=false' \
+  'implementation_stage=P2-W03' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \

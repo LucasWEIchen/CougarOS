@@ -881,6 +881,50 @@ if [[ "$VEHICLE_SIGNAL_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+VEHICLE_CATALOG_NONCE="$(date +%s%N)"
+VEHICLE_CATALOG_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.vehicle.capability.VehicleCapabilityCatalogProbeActivity \
+  --es nonce "$VEHICLE_CATALOG_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$VEHICLE_CATALOG_PROBE_OUTPUT"; then
+  echo "$VEHICLE_CATALOG_PROBE_OUTPUT" >&2
+  echo "vehicle capability catalog debug probe did not start successfully" >&2
+  exit 1
+fi
+VEHICLE_CATALOG_PROBE_PASSED=false
+for _ in {1..40}; do
+  VEHICLE_CATALOG_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbVehicleCatalog:I)"
+  if grep -Fq \
+      "nonce=$VEHICLE_CATALOG_NONCE vehicle_capability_catalog_probe_complete=true" \
+      <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_capability_catalog_verified=true" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_capability_count=8" <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_capability_target_ranges_verified=true" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_production_authorization_fail_closed_verified=true" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_signal_dependency_mapping_verified=true" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_capability_catalog_android13_arm64_verified=true" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_production_capability_authorized_count=0" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_capability_adapter_registry_wired=false" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "vehicle_property_mapping_configured=false" \
+        <<<"$VEHICLE_CATALOG_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$VEHICLE_CATALOG_LOG"; then
+    VEHICLE_CATALOG_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$VEHICLE_CATALOG_PROBE_PASSED" != true ]]; then
+  echo "$VEHICLE_CATALOG_LOG" >&2
+  echo "vehicle capability catalog probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1543,6 +1587,11 @@ printf '%s\n' \
   "vehicle_signal_schema_android13_arm64_verified=true" \
   "vehicle_signal_provider_wired=false" \
   "vehicle_property_mapping_configured=false" \
+  "vehicle_capability_catalog_defined=true" \
+  "vehicle_capability_count=8" \
+  "vehicle_capability_catalog_android13_arm64_verified=true" \
+  "vehicle_production_capability_authorized_count=0" \
+  "vehicle_capability_adapter_registry_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

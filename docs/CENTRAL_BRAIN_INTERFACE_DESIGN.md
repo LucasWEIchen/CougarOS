@@ -799,3 +799,38 @@ Status: `vehicle_signal_schema_defined=true`, `vehicle_signal_path_allowlist_cou
 `vehicle_signal_schema_android13_arm64_verified=true`, `vehicle_signal_provider_wired=false`,
 `vehicle_property_mapping_configured=false`, `hardware_accessed=false`. Req IDs: `S2-CTX-001`, `S2-TWN-001`,
 `DEL-001/003..005`; tracking: `DEV-030`, `ISSUE-030`.
+
+## Android P2-W02 Vehicle Capability Catalog
+
+Package: `com.centralbrain.runtime.vehicle.capability`. This is immutable in-process metadata. It does not discover,
+bind or call an adapter.
+
+| Type | Public contract | Invariant |
+| --- | --- | --- |
+| `CapabilityCatalog` | `stage2Defaults/all/require/size/productionAuthorizedCount` | exactly 8 ordered IDs; immutable; duplicate/null rejected |
+| `VehicleCapability` | id/version/areas/availability/unit/range/risk/reported path/required signals | reported path type+unit+areas must match target |
+| `TargetRange` | boolean/integer/decimal/text factory and type-specific validator | finite, bounded, step-aligned, bounded text, optional text allowlist |
+| `CapabilityAvailability` | readable/writable/simulatable/productionAvailable/productionAuthorized | authorized requires available+writable; default production false |
+
+| Capability | Target contract | Areas | Readback/dependency | Risk |
+| --- | --- | --- | --- | --- |
+| `vehicle.hvac.target_temperature` | decimal 16..30 `celsius`, step 0.5 | four seat zones | target-temperature path | LOW |
+| `vehicle.hvac.power` | boolean | cabin | HVAC-active path | LOW |
+| `vehicle.hvac.fan_level` | integer 0..7 `level` | cabin/front zones | fan-level path | LOW |
+| `vehicle.seat.heating` | integer 0..3 `level` | four seat zones | heating + fresh occupancy | MEDIUM |
+| `vehicle.seat.ventilation` | integer 0..3 `level` | four seat zones | ventilation + fresh occupancy | MEDIUM |
+| `vehicle.seat.recline` | decimal 0..60 `degree`, step 1 | four seat zones | recline + speed/gear/brake/occupancy/belt | HIGH |
+| `media.playback` | text enum PLAY/PAUSE/STOP | cabin | no fabricated vehicle readback | LOW |
+| `navigation.poi` | text, max 128 chars | cabin | no fabricated vehicle readback | MEDIUM |
+
+`readable/writable/simulatable` describe supported semantics and future debug adapters. They do not imply that an
+adapter exists. `productionAvailable/productionAuthorized` are false for all Stage 2 defaults, and the catalog's
+authorized count must be zero. Real target evidence must produce a separately reviewed activation mapping; it may
+not mutate this catalog silently.
+
+Status: `vehicle_capability_catalog_defined=true`, `vehicle_capability_count=8`,
+`vehicle_capability_catalog_android13_arm64_verified=true`,
+`vehicle_production_capability_authorized_count=0`,
+`vehicle_capability_adapter_registry_wired=false`, `vehicle_property_mapping_configured=false`,
+`hardware_accessed=false`. Req IDs: `S2-TWN-001`, `S2-ADP-001`, `DEL-001/003..005`; tracking:
+`DEV-031`, `ISSUE-029/030`.

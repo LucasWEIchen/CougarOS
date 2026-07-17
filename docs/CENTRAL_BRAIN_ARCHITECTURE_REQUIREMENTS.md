@@ -524,3 +524,30 @@ NPU、Driver/HAL 或目标硬件资格。
 状态：`vehicle_signal_schema_defined=true`、`vehicle_signal_path_allowlist_count=12`、
 `vehicle_signal_schema_android13_arm64_verified=true`、`vehicle_signal_provider_wired=false`、
 `vehicle_property_mapping_configured=false`、`hardware_accessed=false`。
+
+## 22. P2-W02 vehicle capability catalog trace
+
+本增量映射 `S2-TWN-001`、`S2-ADP-001`、`DEL-001/003..005`：
+
+1. catalog 必须精确包含 HVAC target temperature/power/fan、seat heating/ventilation/recline、media
+   playback、navigation POI 8 项稳定 ID；拒绝 duplicate/null capability，保持确定顺序和 immutable view。
+2. 每项显式声明 readable、writable、simulatable、productionAvailable、productionAuthorized；当前 catalog
+   后两项全部为 false，authorized 要求 available+writable，禁止 silent simulation fallback。
+3. target contract 固定 scalar type、unit、areas 和 range：temperature 16..30 celsius/0.5，fan 0..7，
+   seat heat/vent 0..3，recline 0..60 degree，HVAC power boolean，media PLAY/PAUSE/STOP，POI 最长 128 字符。
+4. 数值必须 finite、范围内并对齐 step；text 必须非空、bounded、无 control character，存在 allowlist 时
+   必须精确匹配。禁止 arbitrary `Object`、JSON、Bundle/Parcel target。
+5. Vehicle domain capability 必须绑定 type/unit/area 一致的 reported `VehicleSignalPath`；Media/Nav 不伪造
+   vehicle readback path。Seat recline 为 HIGH risk，并要求 speed/gear/parking brake/occupancy/belt fresh。
+6. 这些 range/risk/dependency 是 Stage 2 软件与 debug/test 仿真合同，不是 OEM 标定、安全认证、VHAL
+   property、权限或 production authorization；真实值只能在 P8 依据目标证据变更并版本化。
+7. static/JVM/API 33 ARM64 debug probe 必须验证 catalog count、ranges、dependencies 和 production fail
+   closed，并持续断言 adapter registry/property mapping/hardware 未接线。
+8. 本增量不创建 Digital Twin store、Context snapshot、adapter、Effect 或 NPU，不访问 Vehicle/VHAL/
+   vendor service/Driver-HAL，不恢复 Python/Linux/虚拟化。
+
+状态：`vehicle_capability_catalog_defined=true`、`vehicle_capability_count=8`、
+`vehicle_capability_catalog_android13_arm64_verified=true`、
+`vehicle_production_capability_authorized_count=0`、
+`vehicle_capability_adapter_registry_wired=false`、`vehicle_property_mapping_configured=false`、
+`hardware_accessed=false`。

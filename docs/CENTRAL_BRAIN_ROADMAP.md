@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01 完成，P2-W02 下一步） |
+| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01..W02 完成，P2-W03 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -168,8 +168,13 @@ typed scalar、精确 unit/area、source/quality 和 receive-side monotonic fres
 ARM64 debug probe 通过。该 schema 不读取 Vehicle/VHAL，AAOS/VENDOR 只表示来源类型，不构成 provider
 activation 或 property mapping。
 
-下一实现工作包为 `P2-W02 Vehicle capability catalog`。只定义 capability 的 readable/writable/
-simulatable/productionAuthorized、target range 和依赖信号；不得注册 production adapter、读取真实
+`P2-W02 vehicle capability catalog` 已完成：8 项 HVAC/Seat/Media/Nav capability 固定 readable/
+writable/simulatable/productionAvailable/productionAuthorized、typed target range、area、risk、readback
+path 和 required fresh signals。当前 production available/authorized 均为 false，范围是软件仿真合同，
+不是 OEM 标定或车辆授权。
+
+下一实现工作包为 `P2-W03 VehicleDigitalTwinStore`。只实现 thread-safe desired/reported 分离、monotonic
+revision、TTL/quality、atomic snapshot 和 reconciliation；不得注册 production adapter、读取真实
 Vehicle/VHAL、激活 Effect/NPU、新增 Driver/HAL 或恢复 Python gateway。
 
 ## 7. 近期进展
@@ -243,6 +248,9 @@ Vehicle/VHAL、激活 Effect/NPU、新增 Driver/HAL 或恢复 Python gateway。
 - 完成 `P2-W01 canonical vehicle signal types`：12 项 canonical path、typed scalar、unit/area、source/
   quality/freshness 校验和 Android 13 ARM64 debug probe 通过；provider/property mapping/hardware 仍关闭，
   下一工作包为 `P2-W02 Vehicle capability catalog`。
+- 完成 `P2-W02 vehicle capability catalog`：8 项 HVAC/Seat/Media/Nav capability、typed range、readback/
+  safety dependency 和 fail-closed production flags通过 JVM/API 33 ARM64 probe；authorized count 为 0，
+  下一工作包为 `P2-W03 VehicleDigitalTwinStore`。
 
 ## 8. 当前门禁
 
@@ -260,6 +268,7 @@ bash tools/check_central_brain_android_event_contract.sh
 bash tools/check_central_brain_android_effect_contract.sh
 bash tools/check_central_brain_android_sdk_facade.sh
 bash tools/check_central_brain_android_vehicle_signal_schema.sh
+bash tools/check_central_brain_android_vehicle_capability_catalog.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -294,6 +303,11 @@ vehicle_signal_path_allowlist_count=12
 vehicle_signal_schema_android13_arm64_verified=true
 vehicle_signal_provider_wired=false
 vehicle_property_mapping_configured=false
+vehicle_capability_catalog_defined=true
+vehicle_capability_count=8
+vehicle_capability_catalog_android13_arm64_verified=true
+vehicle_production_capability_authorized_count=0
+vehicle_capability_adapter_registry_wired=false
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
