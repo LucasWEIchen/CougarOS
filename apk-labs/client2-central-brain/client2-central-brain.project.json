@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -13,7 +13,7 @@
       "type": "apktool-resource-xml",
       "target": "res/layout/main_layout.xml",
       "source": "apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml",
-      "summary": "Keeps the original Client2 render region full-screen and overlays a bounded 1920x1080 intent-first shell with four stages, four natural scenes, a reducer-owned HVAC control surface and a secondary Seat placeholder.",
+      "summary": "Keeps the original Client2 render region full-screen and overlays a bounded 1920x1080 intent-first shell with four stages, four natural scenes and reducer-owned HVAC and Seat control surfaces.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -61,7 +61,7 @@
       "type": "embedded-secondary-dex",
       "target": "classes2.dex",
       "source": "apk-labs/client2-central-brain/bridge/src",
-      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, immutable HMI/HVAC state and target, four-stage reducer, 300 ms HVAC debounce, governed manual Session, existing-Session resume, a 13-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
+      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, immutable HMI/HVAC/Seat state and targets, four-stage reducer, 300 ms HVAC/Seat debounce, governed manual Sessions, existing-Session resume, a 14-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -87,6 +87,7 @@
     "DEV-051: two-segment UI aliases remain a compatibility boundary; the legacy static lifecycle owner is retired",
     "DEV-052: the app-private text-free recreation checkpoint is not a production encrypted HMI state store",
     "DEV-053: the fixed 1920x1080 safe frame and unavailable projections are not a production multi-display HMI or vehicle readback",
-    "DEV-054: the frozen Session V1 HVAC1 utterance compatibility carrier is not a versioned typed parameter transport"
+    "DEV-054: the frozen Session V1 HVAC1 utterance compatibility carrier is not a versioned typed parameter transport",
+    "DEV-055: the frozen Session V1 SEAT1 utterance compatibility carrier is not a versioned typed parameter or approval transport"
   ]
 }

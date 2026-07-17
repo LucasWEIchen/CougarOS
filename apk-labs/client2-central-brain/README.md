@@ -88,7 +88,8 @@ shows the panel; a second click or a click outside the panel hides it. The panel
 consumes touches over its own surface so its controls do not dismiss it. The
 primary Intent surface exposes four natural scenes and the stage rail exposes
 Intent, Plan, Execution and Result. HVAC/Seat remain secondary detail drawers;
-HVAC now contains the P4-W04 governed manual control surface and Seat remains a placeholder.
+HVAC contains the P4-W04 governed manual control surface and Seat contains the
+P4-W05 safety-gated governed manual control surface.
 Each scene creates a typed
 Session through `CockpitControlCoordinator -> Client2ScenarioBridge.openSession
 -> SessionClient`; snapshot, typed events and authoritative cursor replay are
@@ -98,7 +99,7 @@ The SDK, AIDL parcelables and a narrow Client2 bridge are compiled into
 `classes2.dex`. The APK requests no network permission and contains no direct
 HTTP fallback.
 
-The four visible XML scenario tags remain stable two-segment UI aliases. A 13-entry exact bridge
+The four visible XML scenario tags remain stable two-segment UI aliases. A 14-entry exact bridge
 compatibility allowlist still maps all supported aliases to qualified Session IDs before Runtime admission; unknown
 aliases fail before binding and the frozen Session V1 validation is not relaxed.
 Runtime process death reconnects the active stream, replays the owner-scoped
@@ -136,9 +137,14 @@ airflow and comfort presets. Immutable `HvacControlIntent` and `CockpitHvacState
 separate desired revision, request state, reported value, source, quality and
 Effect state. The Coordinator coalesces continuous changes for 300 ms and opens
 one `scene.manual.hvac.adjust.v1` governed Session; Session admission is shown as
-`REQUESTED`, never as vehicle execution or readback. The Seat surface will expose zone, heating,
-ventilation, massage, recline and upright/comfort/rest presets with driving-state
-restrictions. The execution surface will show desired versus reported values,
+`REQUESTED`, never as vehicle execution or readback. The Seat surface exposes
+four zones, mutually exclusive heating/ventilation levels, massage, recline and
+upright/comfort/rest presets. Immutable `SeatControlIntent` and
+`CockpitSeatState` keep desired state, safety evidence, request state and device
+readback separate. Low-risk comfort changes debounce for 300 ms into
+`scene.manual.seat.adjust.v1`; position changes fail closed while trusted Context
+is unavailable or the driver is moving, and parked rest remains approval-required.
+The execution surface will show desired versus reported values,
 plan/effect progress, approval, partial failure, retry, undo and recovery.
 
 Maintained Java code in `classes2.dex` now owns immutable HMI state, reducer,
@@ -159,24 +165,31 @@ cockpit_hvac_debounce_ms=300
 cockpit_hvac_governed_manual_session=true
 cockpit_hvac_reported_readback_available=false
 hvac_manual_typed_parameter_field=false
-cockpit_seat_surface_implemented=false
+cockpit_seat_surface_implemented=true
+cockpit_seat_reducer_owned=true
+cockpit_seat_debounce_ms=300
+cockpit_seat_governed_manual_session=true
+cockpit_seat_unknown_restricted_fail_closed=true
+cockpit_seat_reported_readback_available=false
+seat_manual_typed_parameter_field=false
 cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
 
-P4-W01 through P4-W04 are complete. The primary bridge exposes typed Session handle,
+P4-W01 through P4-W05 are complete. The primary bridge exposes typed Session handle,
 snapshot, event, replay, overflow, close and error callbacks. The Java coordinator
 reduces these callbacks, owns lifecycle and resumes a text-free checkpoint after
 Client2 process restart. Android 13 ARM64 acceptance covers Runtime/Client2 process
 death, duplicate suppression, hidden-state restore, menu reopen, exact 1920x1080
-safe-frame rendering, four stage selection, HVAC controls, debounce and governed
-manual Session admission. P4-W05 is the next work package and will implement the
-Seat control surface without enabling vehicle or production Effect dispatch:
+safe-frame rendering, four stage selection, HVAC and Seat controls, debounce,
+governed manual Session admission and unknown-context Seat position blocking.
+P4-W06 is the next work package and will implement the plan/effect execution
+timeline without enabling vehicle or production Effect dispatch:
 
 ```text
 client2_session_event_primary_api=true
 client2_session_event_typed_callback=true
-client2_scenario_alias_map_count=13
+client2_scenario_alias_map_count=14
 client2_session_reconnect_replay_verified=true
 client2_session_duplicate_event_suppressed=true
 cockpit_hmi_state_reducer_implemented=true
@@ -194,14 +207,23 @@ cockpit_hvac_desired_reported_separation_verified=true
 cockpit_hvac_reported_readback_available=false
 cockpit_hvac_verified_before_readback=false
 hvac_manual_typed_parameter_field=false
-cockpit_seat_surface_implemented=false
+cockpit_seat_surface_implemented=true
+cockpit_seat_reducer_owned=true
+cockpit_seat_debounce_ms=300
+cockpit_seat_governed_manual_session=true
+cockpit_seat_heat_vent_mutex_verified=true
+cockpit_seat_unknown_restricted_fail_closed=true
+cockpit_seat_desired_reported_separation_verified=true
+cockpit_seat_reported_readback_available=false
+cockpit_seat_verified_before_readback=false
+seat_manual_typed_parameter_field=false
 client2_smali_controller_retired=true
 client2_hmi_checkpoint_resume_verified=true
 client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W05
+implementation_stage=P4-W06
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -216,7 +238,8 @@ The implementation plan, class/file map and acceptance matrix are maintained in
 - Rebuilt APKs use the Runtime-compatible local debug key. This invalidates any
   trust tied to the original Client2 signer; target-device RenderService or
   vendor allowlist compatibility remains an explicit integration risk.
-- Frozen Session V1 has no typed parameter field or `HMI_CONTROL` source. P4-W04
-  carries a strict canonical `HVAC1` value inside `utterance` with
-  `SOURCE_HMI_BUTTON`; the bridge hides that grammar from Views and logs no target
-  payload. `DEV-054` tracks replacement by a versioned typed contract.
+- Frozen Session V1 has no typed parameter field, `HMI_CONTROL` source or approval
+  response. P4-W04/P4-W05 carry strict canonical `HVAC1`/`SEAT1` values inside
+  `utterance` with `SOURCE_HMI_BUTTON`; the bridge hides both grammars from Views
+  and logs no target payload. `DEV-054`/`DEV-055` track replacement by a versioned
+  typed contract and governed approval path.

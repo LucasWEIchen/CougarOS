@@ -287,3 +287,39 @@ target_hardware_validated=false
 UI 截图人工复核确认 HVAC drawer 完全位于 `(1264,160)-(1888,1048)`，原车模背景可见，controls 在 drawer 内滚动，
 无越界或不连贯遮挡；临时截图已删除。设备身份、raw UI tree/logcat 和目标参数只保留在本地未跟踪 evidence。
 V1 typed parameter 缺口由 `DEV-054` 跟踪；下一硬件增量为 P4-W05 Seat control surface。
+
+## 12. 2026-07-17 P4-W05 Seat control surface evidence
+
+同一 Android 13/API 33 ARM64 USB 设备通过：
+
+1. signed Runtime/Client2 安装、signature permission、secondary SDK dex 和 1920x1080 safe frame；
+2. Seat drawer 四座区、heat/vent 0-3、massage、recline 0-60 degree、UPRIGHT/COMFORT/REST controls 可见；
+3. heat 后立即 vent 由 300 ms debounce 合并为一个 `manual.seat` Session，最终 desired 为 heat 0/vent 1，互斥成立；
+4. bridge canonical 映射为 `scene.manual.seat.adjust.v1`，只记录参数存在性，不记录 Seat target payload；
+5. `UNKNOWN_RESTRICTED` 下主驾 recline 请求保持 desired 0 degree、decision 为 `DENIED_UNKNOWN_CONTEXT`，没有新 Session；
+6. Session admission 只投影 REQUESTED，reported/source/quality 保持 UNAVAILABLE/NO_EVIDENCE，VERIFIED 为 false；
+7. Runtime unavailable/retry、Runtime death replay、Client2 restart/resume、duplicate suppression、hidden state restore 和
+   Session replacement recovery matrix 继续通过；
+8. service/Effect/Adapter/hardware dispatch 均未触发。
+
+```text
+cockpit_seat_surface_implemented=true
+cockpit_seat_controls_verified=true
+cockpit_seat_heat_vent_mutex_verified=true
+cockpit_seat_unknown_restricted_fail_closed=true
+cockpit_seat_manual_session_admission_verified=true
+cockpit_seat_desired_reported_separation_verified=true
+cockpit_seat_reported_readback_available=false
+cockpit_seat_verified_before_readback=false
+seat_manual_typed_parameter_field=false
+scenario_execution_enabled=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+UI 截图人工复核确认 Seat drawer 完全位于 `(1264,160)-(1888,1048)`，半透明材质保留原车模可见，所有 controls、
+Safety Context 和 reported evidence 文本均在画布内。临时截图位于本地 `/tmp` 且不进入 Git；设备身份、raw UI tree、
+logcat 和参数 payload 仍只保留在本地未跟踪 evidence。V1 typed parameter/approval 缺口由 `DEV-055` 跟踪；下一硬件
+增量为 P4-W06 Plan/effect execution timeline。

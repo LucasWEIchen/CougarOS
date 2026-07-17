@@ -62,6 +62,39 @@ public final class CockpitHmiReducer {
                 next.replayComplete = false;
                 next.terminal = false;
                 return next.buildNext();
+            case SEAT_SAFETY_CONTEXT_CHANGED:
+                next.seatState = current.getSeatState().safetyContextChanged(event.seatSafetyContext);
+                return next.buildNext();
+            case SEAT_DESIRED_CHANGED:
+                CockpitSeatState seatChanged = current.getSeatState().desiredChanged(event.seatIntent);
+                if (seatChanged == current.getSeatState()) {
+                    return current;
+                }
+                next.seatState = seatChanged;
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.SEAT;
+                return next.buildNext();
+            case SEAT_MANUAL_SUBMITTED:
+                next.seatState = current.getSeatState().submitted(event.seatRevision);
+                next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
+                next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
+                next.deviceDrawer = CockpitHmiState.DeviceDrawer.SEAT;
+                next.uiScenarioId = "manual.seat";
+                next.canonicalScenarioId = "";
+                next.handleSchemaVersion = SessionContract.SCHEMA_VERSION;
+                next.sessionId = "";
+                next.acceptedAtEpochMs = 0;
+                next.expiresAtEpochMs = 0;
+                next.sessionState = 0;
+                next.lastEventSequence = 0;
+                next.resumeCursor = "";
+                next.snapshotSummary = "";
+                next.assistantDisplayText = "";
+                next.lastEventType = "";
+                next.errorCode = "";
+                next.errorMessage = "";
+                next.replayComplete = false;
+                next.terminal = false;
+                return next.buildNext();
             case SCENARIO_SUBMITTED:
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
                 next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
@@ -102,6 +135,8 @@ public final class CockpitHmiReducer {
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTED;
                 if ("manual.hvac".equals(current.getUiScenarioId())) {
                     next.hvacState = current.getHvacState().requestAccepted();
+                } else if ("manual.seat".equals(current.getUiScenarioId())) {
+                    next.seatState = current.getSeatState().requestAccepted();
                 }
                 next.errorCode = "";
                 next.errorMessage = "";
@@ -119,6 +154,8 @@ public final class CockpitHmiReducer {
                         : CockpitHmiState.ConnectionState.CONNECTED;
                 if ("manual.hvac".equals(current.getUiScenarioId())) {
                     next.hvacState = current.getHvacState().requestAccepted();
+                } else if ("manual.seat".equals(current.getUiScenarioId())) {
+                    next.seatState = current.getSeatState().requestAccepted();
                 }
                 next.errorCode = "";
                 next.errorMessage = "";
@@ -181,6 +218,8 @@ public final class CockpitHmiReducer {
                 next.replayComplete = false;
                 if ("manual.hvac".equals(current.getUiScenarioId())) {
                     next.hvacState = current.getHvacState().requestFailed();
+                } else if ("manual.seat".equals(current.getUiScenarioId())) {
+                    next.seatState = current.getSeatState().requestFailed();
                 }
                 return next.buildNext();
             case DETACHED:
@@ -231,6 +270,9 @@ public final class CockpitHmiReducer {
             DRAWER_SELECTED,
             HVAC_DESIRED_CHANGED,
             HVAC_MANUAL_SUBMITTED,
+            SEAT_SAFETY_CONTEXT_CHANGED,
+            SEAT_DESIRED_CHANGED,
+            SEAT_MANUAL_SUBMITTED,
             SCENARIO_SUBMITTED,
             CONNECTION_CHANGED,
             SESSION_OPENED,
@@ -250,6 +292,9 @@ public final class CockpitHmiReducer {
         private CockpitHmiState.DeviceDrawer deviceDrawer;
         private HvacControlIntent hvacIntent;
         private long hvacRevision;
+        private CockpitSeatState.SafetyContext seatSafetyContext;
+        private SeatControlIntent seatIntent;
+        private long seatRevision;
         private String uiScenarioId = "";
         private String canonicalScenarioId = "";
         private String sessionId = "";
@@ -295,6 +340,24 @@ public final class CockpitHmiReducer {
         public static Event hvacManualSubmitted(long desiredRevision) {
             Event event = new Event(Type.HVAC_MANUAL_SUBMITTED);
             event.hvacRevision = desiredRevision;
+            return event;
+        }
+
+        public static Event seatSafetyContextChanged(CockpitSeatState.SafetyContext context) {
+            Event event = new Event(Type.SEAT_SAFETY_CONTEXT_CHANGED);
+            event.seatSafetyContext = Objects.requireNonNull(context, "context");
+            return event;
+        }
+
+        public static Event seatDesiredChanged(SeatControlIntent intent) {
+            Event event = new Event(Type.SEAT_DESIRED_CHANGED);
+            event.seatIntent = Objects.requireNonNull(intent, "intent");
+            return event;
+        }
+
+        public static Event seatManualSubmitted(long desiredRevision) {
+            Event event = new Event(Type.SEAT_MANUAL_SUBMITTED);
+            event.seatRevision = desiredRevision;
             return event;
         }
 

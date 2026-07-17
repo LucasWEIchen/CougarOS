@@ -87,6 +87,26 @@ public final class Client2ScenarioBridge {
                 "");
     }
 
+    /** Opens a governed manual seat Session without exposing the compatibility wire grammar to Views. */
+    public static SessionConnection openSeatSession(
+            Activity activity,
+            SeatControlIntent intent,
+            ScenarioCallback callback) {
+        if (intent == null) {
+            reportRejected(callback, false, "missing seat intent");
+            return null;
+        }
+        return openSessionInternal(
+                activity,
+                "manual.seat",
+                intent.toWireValue(),
+                seatZone(intent.getZone()),
+                callback,
+                false,
+                null,
+                "");
+    }
+
     /** Restores observation of an existing owner-scoped Session after HMI recreation. */
     public static SessionConnection resumeSession(
             Activity activity,
@@ -542,6 +562,11 @@ public final class Client2ScenarioBridge {
                     + " hvac_manual_bounded_parameter_wire="
                     + "manual.hvac".equals(uiScenarioId)
                     + " hvac_manual_typed_parameter_field=false"
+                    + " seat_manual_intent_governed_session="
+                    + "manual.seat".equals(uiScenarioId)
+                    + " seat_manual_bounded_parameter_wire="
+                    + "manual.seat".equals(uiScenarioId)
+                    + " seat_manual_typed_parameter_field=false"
                     + " http_transport_used=false"
                     + " service_dispatch_triggered=false"
                     + " hardware_accessed=false";
@@ -676,6 +701,7 @@ public final class Client2ScenarioBridge {
         aliases.put("runtime.npu", "scene.runtime.npu.v1");
         aliases.put("system.overview", "scene.system.overview.v1");
         aliases.put("manual.hvac", "scene.manual.hvac.adjust.v1");
+        aliases.put("manual.seat", "scene.manual.seat.adjust.v1");
         return Collections.unmodifiableMap(aliases);
     }
 
@@ -685,6 +711,20 @@ public final class Client2ScenarioBridge {
                 return ICentralBrainSessionRuntime.SEAT_ZONE_FRONT_PASSENGER;
             case CABIN:
                 return ICentralBrainSessionRuntime.SEAT_ZONE_CABIN;
+            case DRIVER:
+            default:
+                return ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER;
+        }
+    }
+
+    private static int seatZone(SeatControlIntent.Zone zone) {
+        switch (zone) {
+            case FRONT_PASSENGER:
+                return ICentralBrainSessionRuntime.SEAT_ZONE_FRONT_PASSENGER;
+            case REAR_LEFT:
+                return ICentralBrainSessionRuntime.SEAT_ZONE_REAR_LEFT;
+            case REAR_RIGHT:
+                return ICentralBrainSessionRuntime.SEAT_ZONE_REAR_RIGHT;
             case DRIVER:
             default:
                 return ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER;

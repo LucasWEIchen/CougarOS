@@ -1,8 +1,8 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.6
+版本：2.7
 
-日期：2026-07-16
+日期：2026-07-17
 
 状态：Stage 2 implementation baseline
 
@@ -41,8 +41,9 @@
 物理设备应用层验收通过不等于车辆/NPU/整车硬件验收。
 
 中控闭环状态保持：`cockpit_hvac_surface_implemented=true`、
-`cockpit_seat_surface_implemented=false`、`cockpit_demo_control_loop_implemented=false`。
-Client2 当前的 HVAC surface 只证明 governed Session admission；没有 Effect/readback，不能作为车辆 HVAC/Seat 闭环完成证据。
+`cockpit_seat_surface_implemented=true`、`cockpit_demo_control_loop_implemented=false`。
+Client2 当前的 HVAC/Seat surface 只证明 governed Session admission 与 Seat safety fail-closed；没有 Effect/readback，
+不能作为车辆 HVAC/Seat 闭环完成证据。
 
 ## 3. 架构原则
 
@@ -2705,3 +2706,31 @@ Status: `cockpit_hvac_surface_implemented=true`, `cockpit_hvac_debounce_ms=300`,
 `scenario_execution_enabled=false`, `production_effect_dispatch_enabled=false`, `hardware_accessed=false`,
 `implementation_stage=P4-W05`. Req IDs: `S2-HMI-001/003/004/005`, `S2-ADP-001`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-054`, `ISSUE-030/033`.
+
+### 9.14 P4-W05 Seat maintained implementation
+
+P4-W05 adds Android-independent `SeatControlIntent` and `CockpitSeatState` under the maintained Client2 secondary dex.
+`SeatControlIntent` owns four zones, heat/vent mutual exclusion, massage, 0-60 degree recline, preset validation and exact SEAT1
+round trip. `CockpitSeatState` owns desired/submitted revision, request/evidence/Effect state, typed driving/occupancy/belt Context and
+Safety decision. `CockpitHmiState` embeds the projection; `CockpitHmiReducer` remains the sole transition authority.
+
+The scrollable drawer exposes stable IDs/tags for four zones, heat/vent steppers, massage, recline and upright/comfort/rest presets.
+Coordinator maps tags to immutable mutations. Low-risk changes cancel the prior callback and schedule `submitPendingSeat` at 300 ms.
+UNKNOWN_RESTRICTED/MOVING driver position changes do not change desired and cancel pending submission. PARKED+OCCUPIED+UNBELTED
+REST enters WAITING_APPROVAL; P4-W05 contains no approval grant path.
+
+The bridge maps admissible low-risk targets to `scene.manual.seat.adjust.v1`. Frozen Session V1 lacks typed parameters,
+HMI_CONTROL and approval response, so exact SEAT1 is carried in utterance under SOURCE_HMI_BUTTON. The UI never parses or logs the
+carrier. Session admission reaches ACCEPTED/REQUESTED only. No code path registers simulated/production Seat Adapter, reads Vehicle/
+VHAL Context, invokes NPU/Driver-HAL, creates reported evidence or marks VERIFIED.
+
+Host tests cover strict wire parsing, range clamps, heat/vent mutual exclusion, unknown/moving denial, parked rest approval wait,
+revision/submission and stale snapshot behavior. Static checks parse every XML ID/tag and reject direct hardware/adapter imports.
+Android 13/API 33 ARM64 acceptance covers heat->vent coalescing to one Session, heat=0/vent=1, canonical scenario,
+UNKNOWN_RESTRICTED driver recline 0/no Session and unavailable readback.
+
+Status: `cockpit_seat_surface_implemented=true`, `cockpit_seat_debounce_ms=300`,
+`cockpit_seat_desired_reported_separation_verified=true`, `cockpit_seat_unknown_restricted_fail_closed=true`,
+`cockpit_seat_verified_before_readback=false`, `scenario_execution_enabled=false`, `production_effect_dispatch_enabled=false`,
+`hardware_accessed=false`, `implementation_stage=P4-W06`. Req IDs: `S2-HMI-002..005`, `S2-SAF-001`, `S2-ADP-001`,
+`APP-004`, `XSC-001/005/006`; tracking: `DEV-055`, `ISSUE-029/030/033`.

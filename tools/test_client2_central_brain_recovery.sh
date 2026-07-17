@@ -252,6 +252,10 @@ for marker in \
   'cockpit_hvac_controls_verified=true' \
   'cockpit_hvac_debounce_verified=true' \
   'cockpit_hvac_manual_session_admission_verified=true' \
+  'cockpit_seat_controls_verified=true' \
+  'cockpit_seat_heat_vent_mutex_verified=true' \
+  'cockpit_seat_unknown_restricted_fail_closed=true' \
+  'cockpit_seat_manual_session_admission_verified=true' \
   'client2_hmi_replay_projected=true' \
   'legacy_text_callback_authoritative=false' \
   'client2_ui_session_projection_verified=true' \
@@ -510,7 +514,15 @@ printf '%s\n' \
   "cockpit_hvac_reported_readback_available=false" \
   "cockpit_hvac_verified_before_readback=false" \
   "hvac_manual_typed_parameter_field=false" \
-  "cockpit_seat_surface_implemented=false" \
+  "cockpit_seat_surface_implemented=true" \
+  "cockpit_seat_controls_verified=true" \
+  "cockpit_seat_heat_vent_mutex_verified=true" \
+  "cockpit_seat_unknown_restricted_fail_closed=true" \
+  "cockpit_seat_manual_session_admission_verified=true" \
+  "cockpit_seat_desired_reported_separation_verified=true" \
+  "cockpit_seat_reported_readback_available=false" \
+  "cockpit_seat_verified_before_readback=false" \
+  "seat_manual_typed_parameter_field=false" \
   "client2_navigation_menu_reopen_verified=true" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \
