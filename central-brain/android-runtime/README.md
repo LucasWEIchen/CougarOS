@@ -8,7 +8,7 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 
 | Module | Artifact | Current responsibility |
 | --- | --- | --- |
-| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session/Plan/Event AIDL types, callback bridge and protocol identity |
+| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session/Plan/Event/Effect AIDL types, callback bridge and protocol identity |
 | `runtime-service` | APK without launcher | Signature-protected task/diagnostic/Governance Binders, bounded supervisors and deterministic hardware-free runtime |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
 | `policy-probe` | Test-only APK | Same-signer, unconfigured-package default-deny device probe; excluded from standard delivery build |
@@ -78,6 +78,27 @@ test APK was removed. Status is `event_contract_v1_defined=true`,
 `event_parcel_physical_android13_arm64_verified=true`, `event_runtime_service_published=false`,
 `event_callback_service_published=false` and `hardware_accessed=false`. This is wire/validation evidence only;
 EventTreeStore, Room v4, callback queues and Runtime publication remain later work.
+
+## Stage 2 P1-W04 Effect/Approval Contract
+
+`central-brain-sdk` now contains `EffectIntent`, `EffectObservation`, `ApprovalPrompt` and `UndoHandle` under
+`com.centralbrain.sdk.effect`. No Binder interface is added in P1-W04. `EffectIntent` carries one bounded typed
+scalar, immutable operation IDs/digests, idempotency, Context version, risk, verification, reversibility and a
+bounded deadline without JSON/Bundle/FD material.
+
+`EffectContract` distinguishes `DISPATCHED`, `DELIVERED`, `APPLIED` and `VERIFIED`, validates the complete
+fail-closed transition/retry table, requires reported evidence before applied/verified, and enforces explicit
+simulation source markers. `ApprovalPrompt` binds plan/action/target/Context/policy and expires within five
+minutes; resume rejects stale bindings. `UndoHandle` has bounded TTL and only authorizes a future request to enter
+Governance again; it does not roll back state or bypass current Safety/Context checks.
+
+The four AIDL files have identity `709828114422595f1889dad58e8e60daf4d5e4f98c962a6145f2f8a39b0c178d`,
+are frozen by `aidl-api/effect-v1.sha256` and checked by
+`tools/check_central_brain_android_effect_contract.sh`. JVM and cumulative Android 13/API 33 ARM64 Parcel tests
+pass. Status is `effect_contract_v1_defined=true`,
+`effect_parcel_physical_android13_arm64_verified=true`, `effect_runtime_service_published=false`,
+`approval_response_service_published=false`, `undo_service_published=false` and `hardware_accessed=false`.
+P1-W05 owns SDK facade/lifecycle; P1-W06 owns Room v4. Existing Governance V1 still has no grant method.
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 

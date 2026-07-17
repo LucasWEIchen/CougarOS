@@ -1,6 +1,6 @@
 # 中央大脑架构偏差登记表
 
-版本：0.6
+版本：0.7
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -90,6 +90,13 @@ redaction/immutability validator 与 `events-v1.sha256`；此前全部 V1 checks
 避免改动已冻结 Session transaction order；callback 仅通知，cursor replay 才是权威恢复路径。API 33
 ARM64 Parcel 证据不能继承为 Event broker、target stable-AIDL、车辆/NPU 或 production 证据。
 
+同日 P1-W04 新增四个 Effect/Approval app-layer structured parcelable、完整 Effect transition validator、
+approval/undo digest/version/TTL 绑定和 `effect-v1.sha256`；此前全部 V1 checksum 均未改变。该合同没有
+新增 Binder interface，`effect_runtime_service_published=false`、
+`approval_response_service_published=false`、`undo_service_published=false`。Android 13 ARM64 Parcel
+证据只证明 DTO wire 和纯校验逻辑，不能继承为 Effect Service、approval authority、undo executor、
+车辆 adapter、target stable-AIDL 或 production 证据。
+
 偏差仍存在：黑盒厂商系统不能用 Soong `aidl_interface` 注册 VINTF stable AIDL，当前接口是
 Gradle 应用层 Binder 合同。目标 system/privileged placement、SELinux 和稳定性 owner 未确定。
 状态：`Accepted Temporary`，对应 `ISSUE-021`。
@@ -103,6 +110,10 @@ repository、governance middleware 和 activation gate；不再读取请求体�
 偏差仍存在：Safety/Vehicle State、审批 authority、加密材料、production model provider、真实
 effect adapter 和 audit exporter 均缺目标 owner/evidence。Production 无适配器时必须返回
 `CB_ERR_ADAPTER_UNAVAILABLE`，不得静默回退到 test double。状态：`Accepted Temporary`。
+
+P1-W04 只冻结 approval prompt 与 undo eligibility 的数据绑定，不提供 approval response/grant 或
+compensation execution，也不把现有 process-local/durable approval repository 提升为 OEM authority。
+这些生产 authority 与 adapter 缺口继续由本偏差和 `ISSUE-022/023/030` 跟踪。
 
 ## DEV-020 黑盒实际工程引入 Native C 运行时
 
@@ -206,6 +217,7 @@ Python 工作包和 contract parity，不得复活旧样例。
 | R7C 进展 | Client2/Runtime recovery matrix 完成。 |
 | R7D 进展 | Android application handoff 完成。 |
 | P1-W03 进展 | Event/callback V1 合同完成；Service/Room/hardware 均未发布。 |
+| P1-W04 进展 | Effect/Approval V1 合同完成；Service/grant/undo/Room/hardware 均未发布。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。

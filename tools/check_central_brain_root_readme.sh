@@ -74,6 +74,11 @@ for marker in \
   'event_parcel_physical_android13_arm64_verified=true' \
   'event_runtime_service_published=false' \
   'event_callback_service_published=false' \
+  'effect_contract_v1_defined=true' \
+  'effect_parcel_physical_android13_arm64_verified=true' \
+  'effect_runtime_service_published=false' \
+  'approval_response_service_published=false' \
+  'undo_service_published=false' \
   'ICentralBrainSessionRuntime V1（合同已冻结）' \
   'cockpit_demo_control_loop_implemented=false' \
   'S2-HMI-001..006' \
@@ -122,6 +127,7 @@ required_paths=(
   tools/check_central_brain_android_session_contract.sh
   tools/check_central_brain_android_plan_contract.sh
   tools/check_central_brain_android_event_contract.sh
+  tools/check_central_brain_android_effect_contract.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_repository_completeness.sh
@@ -196,8 +202,8 @@ remaining_rows = sum(
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
-if "`P1-W01..P1-W03`" not in remaining or "`P1-W04`" not in remaining:
-    raise SystemExit("README remaining-work table must preserve P1-W01..P1-W03 status and name P1-W04")
+if "`P1-W01..P1-W04`" not in remaining or "`P1-W05`" not in remaining:
+    raise SystemExit("README remaining-work table must preserve P1-W01..P1-W04 status and name P1-W05")
 
 for group in (
     "APP-004",

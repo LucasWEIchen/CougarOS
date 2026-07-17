@@ -74,6 +74,7 @@ for marker in \
   '### `P1-W01` Session DTO/AIDL' \
   '### `P1-W02` Plan/Node DTO/AIDL' \
   '### `P1-W03` Typed Event DTO/AIDL' \
+  '### `P1-W04` Effect/Approval DTO 扩展' \
   '### `P2-W10` Simulated Seat adapter' \
   '### `P3-W09` Restart recovery' \
   '### `P4-W12` Android device acceptance/fault/recovery' \
@@ -98,7 +99,8 @@ for marker in \
   '## 34. Client2 中控闭环实施顺序' \
   '`P1-W01 Session DTO/AIDL`' \
   '`P1-W02 Plan/Node DTO/AIDL`' \
-  '`P1-W03 Typed Event DTO/AIDL`'; do
+  '`P1-W03 Typed Event DTO/AIDL`' \
+  '`P1-W04 Effect/Approval DTO 扩展`'; do
   require_text "$DESIGN" "$marker"
 done
 
@@ -139,7 +141,8 @@ require_text "$ROADMAP" '| S2-P1 | Runtime Contract v2'
 require_text "$ROADMAP" '`P1-W01 Session DTO/AIDL` 已完成'
 require_text "$ROADMAP" '`P1-W02 Plan/Node DTO/AIDL` 已完成'
 require_text "$ROADMAP" '`P1-W03 Typed Event DTO/AIDL` 已完成'
-require_text "$ROADMAP" '下一实现工作包为 `P1-W04 Effect/Approval DTO 扩展`'
+require_text "$ROADMAP" '`P1-W04 Effect/Approval DTO 扩展` 已完成'
+require_text "$ROADMAP" '下一实现工作包为 `P1-W05 SDK facade v2`'
 require_text "$DEVIATIONS" '## DEV-024 Stage 2 车辆多设备动作先使用 Digital Twin 仿真'
 require_text "$DEVIATIONS" '## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI'
 require_text "$ISSUES" '## ISSUE-029 “我累了”场景的驾驶席座椅安全策略与批准 authority'

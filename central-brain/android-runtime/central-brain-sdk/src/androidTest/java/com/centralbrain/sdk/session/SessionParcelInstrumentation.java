@@ -7,6 +7,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.centralbrain.sdk.effect.ApprovalPrompt;
+import com.centralbrain.sdk.effect.EffectContract;
+import com.centralbrain.sdk.effect.EffectIntent;
+import com.centralbrain.sdk.effect.UndoHandle;
 import com.centralbrain.sdk.event.ActionEvent;
 import com.centralbrain.sdk.event.EventContract;
 import com.centralbrain.sdk.event.EventPage;
@@ -42,6 +46,9 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             verifyPlanRejections();
             verifyEventRoundTrips();
             verifyEventRejections();
+            verifyEffectRoundTrips();
+            verifyEffectStateTransitions();
+            verifyEffectRejections();
             result.putString(
                     "stream",
                     "\nsession_contract_version=1"
@@ -62,6 +69,15 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                             + "\nevent_cursor_replay_verified=true"
                             + "\nevent_runtime_service_published=false"
                             + "\nevent_callback_service_published=false"
+                            + "\neffect_contract_version=1"
+                            + "\neffect_parcel_round_trip_verified=true"
+                            + "\neffect_state_transitions_verified=true"
+                            + "\neffect_illegal_terminal_transition_rejected=true"
+                            + "\nstale_approval_rejected=true"
+                            + "\nexpired_undo_rejected=true"
+                            + "\neffect_runtime_service_published=false"
+                            + "\napproval_response_service_published=false"
+                            + "\nundo_service_published=false"
                             + "\nhardware_accessed=false\n");
             finish(Activity.RESULT_OK, result);
         } catch (Throwable failure) {
@@ -432,6 +448,253 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         return "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     }
 
+    private static void verifyEffectRoundTrips() {
+        EffectIntent intent = validEffectIntent();
+        EffectIntent intentCopy = roundTrip(intent, EffectIntent.CREATOR);
+        assertEquals(intent.effectId, intentCopy.effectId, "effect intent ID");
+        assertEquals(intent.contextVersion, intentCopy.contextVersion, "effect Context version");
+        EffectContract.validateIntent(intentCopy, NOW);
+
+        com.centralbrain.sdk.effect.EffectObservation observation = effectObservation(
+                EffectContract.STATE_VERIFIED,
+                1,
+                7);
+        com.centralbrain.sdk.effect.EffectObservation observationCopy = roundTrip(
+                observation,
+                com.centralbrain.sdk.effect.EffectObservation.CREATOR);
+        assertEquals(observation.state, observationCopy.state, "effect observation state");
+        EffectContract.validateObservation(observationCopy);
+
+        ApprovalPrompt prompt = validApprovalPrompt();
+        ApprovalPrompt promptCopy = roundTrip(prompt, ApprovalPrompt.CREATOR);
+        assertEquals(prompt.approvalId, promptCopy.approvalId, "approval ID");
+        EffectContract.validateApprovalPrompt(promptCopy);
+        EffectContract.validateApprovalResume(
+                promptCopy,
+                effectDigest('a'),
+                effectDigest('b'),
+                effectDigest('d'),
+                7,
+                NOW);
+
+        UndoHandle handle = validUndoHandle();
+        UndoHandle handleCopy = roundTrip(handle, UndoHandle.CREATOR);
+        assertEquals(handle.undoId, handleCopy.undoId, "undo ID");
+        EffectContract.validateUndoHandle(handleCopy);
+        EffectContract.validateUndoRequest(
+                handleCopy,
+                effectDigest('a'),
+                effectDigest('7'),
+                8,
+                NOW);
+    }
+
+    private static void verifyEffectStateTransitions() {
+        com.centralbrain.sdk.effect.EffectObservation proposed = effectObservation(
+                EffectContract.STATE_PROPOSED,
+                0,
+                1);
+        com.centralbrain.sdk.effect.EffectObservation authorized = effectObservation(
+                EffectContract.STATE_AUTHORIZED,
+                0,
+                2);
+        com.centralbrain.sdk.effect.EffectObservation prepared = effectObservation(
+                EffectContract.STATE_PREPARED,
+                1,
+                3);
+        com.centralbrain.sdk.effect.EffectObservation dispatched = effectObservation(
+                EffectContract.STATE_DISPATCHED,
+                1,
+                4);
+        com.centralbrain.sdk.effect.EffectObservation delivered = effectObservation(
+                EffectContract.STATE_DELIVERED,
+                1,
+                5);
+        com.centralbrain.sdk.effect.EffectObservation applied = effectObservation(
+                EffectContract.STATE_APPLIED,
+                1,
+                6);
+        com.centralbrain.sdk.effect.EffectObservation verified = effectObservation(
+                EffectContract.STATE_VERIFIED,
+                1,
+                7);
+        EffectContract.validateTransition(proposed, authorized);
+        EffectContract.validateTransition(authorized, prepared);
+        EffectContract.validateTransition(prepared, dispatched);
+        EffectContract.validateTransition(dispatched, delivered);
+        EffectContract.validateTransition(delivered, applied);
+        EffectContract.validateTransition(applied, verified);
+    }
+
+    private static void verifyEffectRejections() {
+        com.centralbrain.sdk.effect.EffectObservation dispatched = effectObservation(
+                EffectContract.STATE_DISPATCHED,
+                1,
+                1);
+        com.centralbrain.sdk.effect.EffectObservation verified = effectObservation(
+                EffectContract.STATE_VERIFIED,
+                1,
+                2);
+        expectEffectViolation(() -> EffectContract.validateTransition(dispatched, verified));
+
+        com.centralbrain.sdk.effect.EffectObservation terminal = effectObservation(
+                EffectContract.STATE_VERIFIED,
+                1,
+                3);
+        com.centralbrain.sdk.effect.EffectObservation later = effectObservation(
+                EffectContract.STATE_COMPENSATING,
+                1,
+                4);
+        expectEffectViolation(() -> EffectContract.validateTransition(terminal, later));
+
+        ApprovalPrompt stale = validApprovalPrompt();
+        expectEffectViolation(() -> EffectContract.validateApprovalResume(
+                stale,
+                effectDigest('a'),
+                effectDigest('b'),
+                effectDigest('d'),
+                8,
+                NOW));
+
+        UndoHandle expired = validUndoHandle();
+        expectEffectViolation(() -> EffectContract.validateUndoRequest(
+                expired,
+                effectDigest('a'),
+                effectDigest('7'),
+                8,
+                expired.expiresAtEpochMs));
+
+        com.centralbrain.sdk.effect.EffectObservation simulated = effectObservation(
+                EffectContract.STATE_DISPATCHED,
+                1,
+                9);
+        simulated.source = EffectContract.SOURCE_SIMULATION;
+        simulated.sourceId = "simulated.vehicle.twin";
+        expectEffectViolation(() -> EffectContract.validateObservation(simulated));
+    }
+
+    private static EffectIntent validEffectIntent() {
+        EffectIntent intent = new EffectIntent();
+        intent.effectId = "08fc7600-d9b7-4c50-8b46-eabe4a8055ad";
+        intent.sessionId = SESSION_ID;
+        intent.planId = "c9c1ec9f-4d04-4c49-9156-d8e1be2e60a0";
+        intent.nodeId = "apply-hvac";
+        intent.actionId = "b246f4de-bec4-4b22-9019-1b94dbaf08de";
+        intent.capabilityId = "vehicle.hvac.temperature";
+        intent.targetArea = "vehicle.cabin.row1.driver";
+        intent.valueKind = EffectContract.VALUE_DECIMAL;
+        intent.decimalValue = 21.5;
+        intent.unit = "celsius";
+        intent.targetValueDigest = effectDigest('c');
+        intent.idempotencyKey = "device-plan:apply-hvac";
+        intent.planDigest = effectDigest('a');
+        intent.contextDigest = effectDigest('d');
+        intent.contextVersion = 7;
+        intent.riskClass = EffectContract.RISK_LOW;
+        intent.required = true;
+        intent.verificationPolicy = EffectContract.VERIFY_REPORTED_TOLERANCE;
+        intent.verificationTolerance = 0.5;
+        intent.reversible = true;
+        intent.compensationDigest = effectDigest('e');
+        intent.createdAtEpochMs = NOW - 1_000;
+        intent.deadlineEpochMs = NOW + 60_000;
+        return intent;
+    }
+
+    private static ApprovalPrompt validApprovalPrompt() {
+        ApprovalPrompt prompt = new ApprovalPrompt();
+        prompt.approvalId = "7bd72ec6-8a04-41d5-a8c4-fe450d80877f";
+        prompt.sessionId = SESSION_ID;
+        prompt.planId = "c9c1ec9f-4d04-4c49-9156-d8e1be2e60a0";
+        prompt.nodeId = "recline-driver-seat";
+        prompt.actionId = "b246f4de-bec4-4b22-9019-1b94dbaf08de";
+        prompt.effectId = "08fc7600-d9b7-4c50-8b46-eabe4a8055ad";
+        prompt.planDigest = effectDigest('a');
+        prompt.actionDigest = effectDigest('b');
+        prompt.targetValueDigest = effectDigest('c');
+        prompt.contextDigest = effectDigest('d');
+        prompt.contextVersion = 7;
+        prompt.policyId = "policy.cabin.default";
+        prompt.policyVersion = 3;
+        prompt.riskClass = EffectContract.RISK_HIGH;
+        prompt.reasonCode = "CB_APPROVAL_REQUIRED";
+        prompt.promptCode = "approval.driver_seat_recline";
+        prompt.approvalDigest = effectDigest('f');
+        prompt.createdAtEpochMs = NOW - 1_000;
+        prompt.expiresAtEpochMs = NOW + 60_000;
+        return prompt;
+    }
+
+    private static UndoHandle validUndoHandle() {
+        UndoHandle handle = new UndoHandle();
+        handle.undoId = "de5875c9-468a-4c67-9d0f-0d30a82b9268";
+        handle.sessionId = SESSION_ID;
+        handle.effectId = "08fc7600-d9b7-4c50-8b46-eabe4a8055ad";
+        handle.sourceObservationId = "00000000-0000-4000-8000-000000000007";
+        handle.capabilityId = "vehicle.hvac.temperature";
+        handle.planDigest = effectDigest('a');
+        handle.verifiedObservationDigest = effectDigest('7');
+        handle.compensationDigest = effectDigest('e');
+        handle.handleDigest = effectDigest('9');
+        handle.issuedContextVersion = 7;
+        handle.state = EffectContract.UNDO_AVAILABLE;
+        handle.createdAtEpochMs = NOW - 1_000;
+        handle.expiresAtEpochMs = NOW + 5 * 60_000;
+        return handle;
+    }
+
+    private static com.centralbrain.sdk.effect.EffectObservation effectObservation(
+            int state,
+            int attempt,
+            int serial) {
+        com.centralbrain.sdk.effect.EffectObservation observation =
+                new com.centralbrain.sdk.effect.EffectObservation();
+        observation.observationId = String.format(
+                "00000000-0000-4000-8000-%012d",
+                serial);
+        observation.effectId = "08fc7600-d9b7-4c50-8b46-eabe4a8055ad";
+        observation.sessionId = SESSION_ID;
+        observation.actionId = "b246f4de-bec4-4b22-9019-1b94dbaf08de";
+        observation.planDigest = effectDigest('a');
+        observation.contextVersion = 7;
+        observation.state = state;
+        observation.source = EffectContract.SOURCE_RUNTIME;
+        observation.sourceId = "runtime.effect.coordinator";
+        observation.attempt = attempt;
+        observation.targetValueDigest = effectDigest('c');
+        if (state == EffectContract.STATE_APPLIED
+                || state == EffectContract.STATE_VERIFIED
+                || state == EffectContract.STATE_COMPENSATING
+                || state == EffectContract.STATE_COMPENSATED) {
+            observation.reportedValueDigest = effectDigest('7');
+        }
+        observation.evidenceDigest = effectDigest('6');
+        observation.observationDigest = effectDigest(Character.forDigit(serial % 16, 16));
+        if (state == EffectContract.STATE_REJECTED) {
+            observation.failureCode = "CB_EFFECT_REJECTED";
+        } else if (state == EffectContract.STATE_UNKNOWN) {
+            observation.failureCode = "CB_EFFECT_OUTCOME_UNKNOWN";
+        } else if (state == EffectContract.STATE_FAILED_RETRYABLE) {
+            observation.failureCode = "CB_EFFECT_RETRY";
+        } else if (state == EffectContract.STATE_FAILED_TERMINAL) {
+            observation.failureCode = "CB_EFFECT_FAILED";
+        } else if (state == EffectContract.STATE_CANCELLED) {
+            observation.failureCode = "CB_EFFECT_CANCELLED";
+        }
+        observation.occurredAtEpochMs = NOW + serial;
+        observation.terminal = state == EffectContract.STATE_REJECTED
+                || state == EffectContract.STATE_VERIFIED
+                || state == EffectContract.STATE_FAILED_TERMINAL
+                || state == EffectContract.STATE_COMPENSATED
+                || state == EffectContract.STATE_CANCELLED;
+        observation.retryable = state == EffectContract.STATE_FAILED_RETRYABLE;
+        return observation;
+    }
+
+    private static String effectDigest(char value) {
+        return String.valueOf(value).repeat(64);
+    }
+
     private static <T extends Parcelable> T roundTrip(T value, Parcelable.Creator<T> creator) {
         Parcel parcel = Parcel.obtain();
         try {
@@ -471,6 +734,17 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             throw new AssertionError("expected an Event contract violation");
         } catch (IllegalArgumentException expected) {
             if (!expected.getMessage().startsWith("CB_EVENT_CONTRACT:")) {
+                throw expected;
+            }
+        }
+    }
+
+    private static void expectEffectViolation(Runnable operation) {
+        try {
+            operation.run();
+            throw new AssertionError("expected an Effect contract violation");
+        } catch (IllegalArgumentException expected) {
+            if (!expected.getMessage().startsWith("CB_EFFECT_CONTRACT:")) {
                 throw expected;
             }
         }

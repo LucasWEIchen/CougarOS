@@ -169,10 +169,19 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P1-W04` Effect/Approval DTO 扩展
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-EFF-001`、`S2-SAF-001`、`S2-UX-003`。
+- 状态：`DONE`（contract layer，2026-07-17）；1.5 人日；需求：`S2-EFF-001`、`S2-SAF-001`、`S2-UX-003`。
 - 文件：`EffectIntent.aidl`、`EffectObservation.aidl`、`ApprovalPrompt.aidl`、`UndoHandle.aidl`。
-- DoD：状态区分 dispatched/delivered/applied/verified；approval 绑定 plan digest 和 Context version。
-- 测试：stale approval reject、terminal transition table。
+- DoD：`EffectIntent` 使用单一 typed scalar、digest/idempotency/deadline/verification/compensation；
+  `EffectObservation` 区分 dispatched/delivered/applied/verified 并保持 simulation/source/terminal 明确；
+  approval 绑定 plan/action/target/Context/policy，Undo 只表示有 TTL 的补偿资格。
+- 测试：typed-value inactive field、verification、完整 transition/retry table、terminal skip、stale/expired
+  approval、expired/regressed undo、simulation marker；独立 `effect-v1.sha256` 与 checker 冻结。
+- 边界：本包不新增 Binder interface，不提供 approval response/grant 或 undo execution，不修改 Room，
+  `effect_runtime_service_published=false`、`approval_response_service_published=false`、
+  `undo_service_published=false`；现有 Governance V1 无 grant 方法。
+- 设备证据：Android 13/API 33 ARM64 物理控制器完成四个 DTO Parcel round-trip、完整 Effect 状态链、
+  illegal terminal/stale approval/expired undo reject；临时 test APK 已卸载，
+  `effect_parcel_physical_android13_arm64_verified=true`、`hardware_accessed=false`。
 
 ### `P1-W05` SDK facade v2
 

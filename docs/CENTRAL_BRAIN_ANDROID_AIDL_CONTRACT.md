@@ -1,14 +1,14 @@
 # Central Brain Android AIDL Contract
 
-Version: 1.3
+Version: 1.4
 Date: 2026-07-17
-Stage: R2 complete / Stage 2 P1-W01..P1-W03 contracts `contract_defined`
+Stage: R2 complete / Stage 2 P1-W01..P1-W04 contracts `contract_defined`
 
 ## Scope
 
 This document defines the Android 13 user-space Protocol Binding between the Central Brain SDK AAR and Runtime Service APK. The architecture diagram remains the requirement baseline. This contract implements only the Binder boundary owned by `AI SDK -> Protocol Binding -> Runtime & Governance/AIOS Kernel`; it does not add a new architecture layer.
 
-Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `FW-U-003`, `NV-F-001`, `NV-F-008`, `NV-F-009`, `NV-G-003`, `NV-G-004`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `S2-SES-001`, `S2-SCN-001`, `S2-GRF-001`, `S2-EVT-001`.
+Req IDs: `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `FW-U-003`, `FW-U-004`, `FW-U-007`, `NV-F-001`, `NV-F-003`, `NV-F-008`, `NV-F-009`, `NV-G-003`, `NV-G-004`, `NV-G-005`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`, `DEL-003`, `DEL-004`, `S2-SES-001`, `S2-SCN-001`, `S2-GRF-001`, `S2-EVT-001`, `S2-EFF-001`, `S2-SAF-001`, `S2-UX-003`.
 
 R2A delivered Gradle application structured AIDL in `central-brain-sdk`; R2B publishes and consumes that frozen V1 contract from separate application APKs. It is not VINTF stable AIDL: the project cannot add a Soong `aidl_interface`, freeze platform API under `aidl_api`, or modify vendor/system build files because the target Android SDK and system image are prebuilt. This accepted temporary limitation is tracked under `DEV-018` and `ISSUE-021`.
 
@@ -21,6 +21,7 @@ R2A delivered Gradle application structured AIDL in `central-brain-sdk`; R2B pub
 | Diagnostic | `com.centralbrain.sdk.diagnostics.ICentralBrainDiagnostics` | Bounded, read-only, cursor-paged diagnostics | Task submit/cancel, state mutation, hardware activation |
 | Session V1 | `com.centralbrain.sdk.session.ICentralBrainSessionRuntime` | Stage 2 open/get/list/cancel contract | Runtime publication, callback/event stream, vehicle/NPU dispatch |
 | Session Event V1 | `com.centralbrain.sdk.event.ICentralBrainSessionEvents` | Bounded cursor replay and callback registration contract | Service publication, caller authority, raw payload, vehicle/NPU dispatch |
+| Effect DTO V1 | `com.centralbrain.sdk.effect` structured parcelables; no interface | Typed target/lifecycle, approval binding and undo eligibility | Effect Service, approval grant/response, undo execution, Room and hardware |
 
 R2B publishes production and diagnostic interfaces from separate Android Service components with separate signature-level permissions. The Demo and production SDK path request only `com.centralbrain.permission.BIND_RUNTIME`; diagnostic access is independently protected by `com.centralbrain.permission.ACCESS_DIAGNOSTICS`.
 
@@ -231,6 +232,42 @@ removed. The evidence reports `event_contract_v1_defined=true`,
 `event_callback_service_published=false` and `hardware_accessed=false`. P1-W05 owns publication and callback
 lifecycle; P1-W06 owns Room v4 persistence. This increment is not Event runtime, vehicle/NPU access, Driver/HAL
 development or production qualification.
+
+## Stage 2 P1-W04 Effect/Approval AIDL V1
+
+P1-W04 freezes four structured parcelables without adding or changing a Binder interface:
+
+| Type | Required contract fields | Fail-closed boundary |
+| --- | --- | --- |
+| `EffectIntent` | effect/session/plan/node/action/capability/area IDs, one typed scalar, target/idempotency/plan/Context digests, Context version, risk, verification, reversibility and deadline | inactive scalar fields empty/default; no raw payload or authority |
+| `EffectObservation` | observation/effect/session/action binding, state/source/attempt, target/reported/evidence digests, failure/terminal/retry/simulation markers | dispatched/delivered/applied/verified remain distinct |
+| `ApprovalPrompt` | approval/session/plan/node/action/effect IDs, plan/action/target/Context/policy bindings, risk/reason/prompt/digest and TTL | presentation/binding only; no response or grant authority |
+| `UndoHandle` | undo/session/effect/source-observation/capability binding, verified/compensation/handle digests, Context version, state and TTL | eligibility only; undo is a new governed compensation operation |
+
+`EffectContract` validates one active BOOLEAN/INTEGER/DECIMAL/TEXT scalar, a 15-minute Effect deadline, five
+verification policies, compensation binding and risk enum parity with Plan V1. Its transition table enforces
+`PROPOSED -> AUTHORIZED -> PREPARED -> DISPATCHED -> DELIVERED -> APPLIED -> VERIFIED`, bounded exact retry,
+UNKNOWN reconciliation and terminal immutability. Applied/verified states require reported-value evidence;
+simulation source and marker must agree.
+
+Approval TTL is at most five minutes and resume requires exact authoritative plan/action/Context digest plus
+Context version. Any mismatch yields `stale approval binding rejected`. Undo TTL is at most 15 minutes; request
+requires AVAILABLE state, original plan/verified-observation binding and non-regressed Context version. Runtime
+must still re-read current capability, Safety, Context and adapter activation before either operation.
+
+The four-file AIDL identity is
+`709828114422595f1889dad58e8e60daf4d5e4f98c962a6145f2f8a39b0c178d`; files are frozen in
+`central-brain-sdk/aidl-api/effect-v1.sha256` and checked by
+`tools/check_central_brain_android_effect_contract.sh`, which rechecks all earlier manifests. JVM tests and
+cumulative instrumentation passed on the Android 13/API 33 ARM64 physical controller, then removed the temporary
+test package.
+
+Status: `effect_contract_v1_defined=true`,
+`effect_parcel_physical_android13_arm64_verified=true`, `effect_runtime_service_published=false`,
+`approval_response_service_published=false`, `undo_service_published=false`, `hardware_accessed=false`.
+P1-W05 owns facade and Binder lifecycle, P1-W06 owns Room v4. Existing Governance V1 intentionally remains
+without a grant method; P1-W04 is not Effect execution, vehicle/NPU access, Driver/HAL development or production
+qualification.
 
 ## References
 

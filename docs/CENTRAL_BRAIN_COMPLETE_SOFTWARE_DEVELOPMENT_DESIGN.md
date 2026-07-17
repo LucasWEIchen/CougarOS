@@ -1,6 +1,6 @@
 # Central Brain AIOS 完整软件开发设计说明
 
-版本：2.5
+版本：2.6
 
 日期：2026-07-16
 
@@ -195,6 +195,7 @@ flowchart TB
 | Session contract | 5 个 Session DTO、`ICentralBrainSessionRuntime` V1、`SessionContract` | `CONTRACT_ONLY`（P1-W01） | `S2-SES-001` |
 | Plan/Node contract | 4 个 Plan DTO、`PlanContract`、DAG/补偿/重试边界 | `CONTRACT_ONLY`（P1-W02） | `S2-SCN-001`、`S2-GRF-001` |
 | Event contract | 5 个 Event DTO、`ICentralBrainSessionEvents`/callback V1、`EventContract` | `CONTRACT_ONLY`（P1-W03） | `S2-SES-001`、`S2-EVT-001` |
+| Effect/Approval contract | 4 个 Effect/Approval/Undo DTO、`EffectContract`、状态/过期/绑定边界 | `CONTRACT_ONLY`（P1-W04） | `S2-EFF-001`、`S2-SAF-001`、`S2-UX-003` |
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `NOT_STARTED` | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `NOT_STARTED` | `S2-TWN-001` |
@@ -390,7 +391,31 @@ P1-W03 不发布 Service、不写 Room、不执行 Effect。未来 Service 必�
 owner/capability；query/callback 参数不得携带 caller、signer、permission、speed、gear 或 belt 断言。
 `event_runtime_service_published=false`、`event_callback_service_published=false`。
 
-### 8.7 Java SDK facade
+### 8.7 Effect/Approval contract V1
+
+实现路径：`central-brain-sdk/src/main/aidl/com/centralbrain/sdk/effect/`。P1-W04 冻结
+`EffectIntent`、`EffectObservation`、`ApprovalPrompt` 和 `UndoHandle`，四文件合并 hash 为
+`709828114422595f1889dad58e8e60daf4d5e4f98c962a6145f2f8a39b0c178d`，逐文件 checksum 位于
+`aidl-api/effect-v1.sha256`。本工作包没有 Binder interface。
+
+`EffectIntent` 以 `valueKind` 激活 boolean/integer/decimal/text 中且仅一个 bounded scalar；其余字段
+必须保持默认，target digest 绑定 canonical value。Intent 同时绑定 session/plan/node/action/capability、
+idempotency、plan/Context digest + Context version、risk、verification、compensation 与 15 分钟 deadline。
+
+`EffectObservation` 的状态不可合并：`DISPATCHED` 只表示已提交，`DELIVERED` 表示 adapter 已接收，
+`APPLIED` 必须有 reported digest，`VERIFIED` 才可作为原 Effect 终态。UNKNOWN 只能 reconcile 到
+APPLIED/VERIFIED/FAILED_TERMINAL；FAILED_RETRYABLE 只能以相同 binding、递增一次 attempt 回到 PREPARED。
+任何 terminal observation 都不可继续变更。Simulation source 与 `simulated=true` 必须成对出现。
+
+`ApprovalPrompt` 只供 HMI 展示 reason/prompt code 和 expiry；它把 approval 精确绑定到
+plan/action/target/Context/policy。Resume 使用 Runtime 当前权威摘要逐项比较，过期或 stale 时拒绝，
+不能把 prompt 当 grant。`UndoHandle` 只在 verified reversible Effect 后出现，有独立 TTL；undo 生成新的
+governed compensation session，重新读取 Safety/Context/capability，绝不是数据库回滚。
+
+状态固定：`effect_runtime_service_published=false`、`approval_response_service_published=false`、
+`undo_service_published=false`。P1-W05 才组合 SDK facade；P1-W06 才持久化这些对象。
+
+### 8.8 Java SDK facade
 
 计划类：
 
@@ -919,6 +944,10 @@ final class EffectIntent {
     long deadlineEpochMs;
 }
 ```
+
+P1-W04 已将上述概念压缩为四个 Android structured parcelable 和 `EffectContract`。当前 typed scalar
+直接内嵌于 `EffectIntent`，没有 JSON、Bundle 或额外 `TypedValue` Parcelable；Adapter/coordinator 尚未
+消费该 DTO，真实 effect delivery 仍由 production fail-closed gate 阻塞。
 
 ### 15.2 Effect 状态机
 
@@ -1491,10 +1520,11 @@ central-brain-sdk AAR
 - Client2 底部导航触发的悬浮面板。
 - Client2 HVAC/Seat 中控闭环的需求、意图驱动四阶段、模块、状态、验收和高保真 UI/UX 设计基线（HMI-D0）。
 - P1-W01 Session、P1-W02 Plan/Node 与 P1-W03 Event/callback typed contract、checksum/JVM/API 33 ARM64 Parcel 证据。
+- P1-W04 Effect/Approval/Undo typed contract、状态机、stale/TTL 校验、checksum/JVM/API 33 ARM64 Parcel 证据。
 
 ### 32.2 下一阶段未完成
 
-- typed Effect/Approval contract、Session/Event Service 与 SDK facade；
+- Session/Event/Effect Service、approval response/undo execution 与 SDK facade；
 - Room v4 session/plan/event/observation/memory schema；
 - Vehicle Digital Twin 和 trusted Context；
 - deterministic Scenario/Plan/DAG；
@@ -1515,10 +1545,11 @@ central-brain-sdk AAR
 
 ## 33. 开发人员起始点
 
-`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL` 和 `P1-W03 Typed Event DTO/AIDL` 已完成
-contract layer：14 个有界 DTO、独立 Session 与 Event/Callback Binder V1、三组校验器、JVM/Android
-13 ARM64 Parcel 测试和独立 checksum 门禁已进入工程。Session/Event Service、Plan Compiler 和 Graph
-Runtime 均未发布。下一实现工作包固定为 `P1-W04 Effect/Approval DTO 扩展`；不得越过 contract 层
+`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
+`P1-W04 Effect/Approval DTO 扩展` 已完成 contract layer：18 个有界 DTO、独立 Session 与
+Event/Callback Binder V1、四组校验器、JVM/Android 13 ARM64 Parcel 测试和独立 checksum 门禁已进入
+工程。Session/Event/Effect Service、approval response/undo execution、Plan Compiler 和 Graph Runtime
+均未发布。下一实现工作包固定为 `P1-W05 SDK facade v2`；不得越过 contract 层
 直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见

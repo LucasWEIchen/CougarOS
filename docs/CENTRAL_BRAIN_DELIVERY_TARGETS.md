@@ -1,6 +1,6 @@
 # Android 13 座舱域交付目标
 
-版本：3.7
+版本：3.8
 
 日期：2026-07-17
 
@@ -16,7 +16,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 
 | 交付项 | 状态 | 说明 |
 | --- | --- | --- |
-| Java SDK AAR | 已形成 | typed Runtime/Governance/Diagnostics AIDL client；Session、Plan/Node 与 Event/callback contract |
+| Java SDK AAR | 已形成 | typed Runtime/Governance/Diagnostics AIDL client；Session、Plan/Node、Event/callback 与 Effect/Approval contract |
 | Native Runtime AAR | 已形成 | C ABI V1/JNI，arm64-v8a/x86_64 |
 | Runtime Service APK | 已形成 | signature Binder、Room、Governance、readiness |
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
@@ -82,9 +82,9 @@ bash tools/check_central_brain_root_readme.sh
 
 ## 2026-07-17 AIOS Stage 2 交付范围
 
-Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL` 和
-`P1-W03 Typed Event DTO/AIDL` contract layer 已完成，下一工作包为 `P1-W04 Effect/Approval DTO
-扩展`。P1-P7 交付必须进入
+Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、
+`P1-W03 Typed Event DTO/AIDL` 和 `P1-W04 Effect/Approval DTO/AIDL` contract layer 已完成，
+下一工作包为 `P1-W05 SDK facade v2`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -112,6 +112,18 @@ P1-W03 当前交付为 SDK AAR 中的 5 个 Event parcelable、独立 Event/call
 Java ordering/parent/redaction/cursor/replay validator、JVM/Android Parcel tests、`events-v1.sha256` 和
 独立 checker。`event_contract_v1_defined=true`，但 `event_runtime_service_published=false`、
 `event_callback_service_published=false`：当前 bundle 不包含 Event Service、Room v4 或 durable broker。
+
+P1-W04 当前交付为 SDK AAR 中的 `EffectIntent`、`EffectObservation`、`ApprovalPrompt`、`UndoHandle`，
+以及完整 Effect 状态转换、typed scalar、simulation/source、approval stale/expiry 和 undo
+expiry/context validator、JVM/Android Parcel tests、`effect-v1.sha256` 和独立 checker。合同只传递有界
+metadata、canonical ID 和 digest；不传递 raw 车辆/模型 payload、身份或 Safety authority。
+
+Android 13/API 33 ARM64 物理控制器通过四个 DTO Parcel round-trip、合法状态链、illegal terminal、
+stale approval 和 expired undo reject，随后卸载临时 test APK。状态：
+`effect_contract_v1_defined=true`、`effect_parcel_physical_android13_arm64_verified=true`、
+`effect_runtime_service_published=false`、`approval_response_service_published=false`、
+`undo_service_published=false`、`hardware_accessed=false`。该证据不发布审批 grant、undo executor、
+车辆 adapter 或 durable Effect Runtime，也不提升 `target_hardware_validated=false`。
 
 Android debug/test 中的 Digital Twin 或 deterministic provider 必须明确 `TEST_ONLY` 或
 `SIMULATED`，且 production registry 不得包含它们。

@@ -1,6 +1,6 @@
 # 中央大脑架构需求基线
 
-版本：0.8
+版本：0.9
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
@@ -180,8 +180,8 @@
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
 | S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract 已完成；catalog/compiler 待开发 |
 | S2-GRF-001 | durable Agent Graph | P1-W02 node/DAG contract 已完成；durable runtime 待开发 |
-| S2-SAF-001 | hard safety interlock | A user confirmation cannot override this hard interlock |
-| S2-EFF-001 | typed Effect lifecycle | prepare/apply/verify/compensate |
+| S2-SAF-001 | hard safety interlock | P1-W04 Approval/Undo 绑定合同已完成；A user confirmation cannot override this hard interlock；可信 Safety authority 待接入 |
+| S2-EFF-001 | typed Effect lifecycle | P1-W04 intent/observation/approval/undo 合同与状态转换已完成；Service/adapter/持久化待开发 |
 | S2-ADP-001 | adapter registry | source/profile/capability/evidence |
 | S2-TOL-001 | retry/timeout/partial failure | deterministic terminal result |
 | S2-MEM-001 | memory lifecycle | purpose/retention/delete/export |
@@ -245,6 +245,7 @@ Production adapter registry must return adapter unavailable rather than silently
 - P1-W01 Session contract V1 trace
 - P1-W02 Plan/Node contract V1 trace
 - P1-W03 Event contract V1 trace
+- P1-W04 Effect/Approval contract V1 trace
 
 这些追踪键只证明对应 Android 软件增量通过其门禁，不代表真实车辆/NPU、Driver/HAL 或量产状态。
 
@@ -379,3 +380,29 @@ P1-W02 是 `contract_defined`，不是 Scenario Catalog/Compiler、完整语义 
 `event_parcel_physical_android13_arm64_verified=true`、`event_runtime_service_published=false`、
 `event_callback_service_published=false`。P1-W03 是 `contract_defined`，不是 durable Event broker、主动触发、
 Room persistence、车辆控制、NPU、Driver/HAL 或目标硬件资格。
+
+## 17. P1-W04 Effect/Approval contract V1 trace
+
+本增量映射 `S2-EFF-001`、`S2-SAF-001`、`S2-UX-002`、`FW-S-005`、`NV-F-001`、
+`NV-G-005..007`：
+
+1. SDK 新增 `EffectIntent`、`EffectObservation`、`ApprovalPrompt`、`UndoHandle` 四个 versioned
+   structured parcelable；既有 task/diagnostic/governance/session/plan/event V1 文件和 checksum 不变。
+2. `EffectIntent` 只允许一个有界 typed scalar，绑定 session/plan/node/action/capability/area、target、
+   idempotency、plan/context digest、context version、risk、verification、deadline 和 compensation metadata；
+   不接受 caller、permission、车辆 Safety 状态或原始车辆/模型 payload。
+3. `EffectContract` 区分 proposed/authorized/prepared/dispatched/delivered/applied/verified/unknown/
+   retry/compensation/terminal 状态，拒绝越级、终态后变更、非连续重试、模拟来源伪装和 identity 漂移。
+4. Approval 必须绑定 plan/action/context/policy 且最多存活 5 分钟；恢复时过期或任一 digest/version
+   变化均失败关闭。Undo 只绑定已验证 Effect/Observation 和 compensation digest，最多存活 15 分钟，
+   表示未来受治理的补偿操作，不是数据库回滚或绕过 Safety 的授权。
+5. JVM 测试覆盖正反合同；Android 13/API 33 ARM64 物理控制器 instrumentation 验证四个 DTO Parcel
+   round-trip、合法/非法转换、stale approval 和 expired undo，随后卸载临时 test APK，
+   `hardware_accessed=false`。
+6. `effect-v1.sha256`、四文件合并 identity 和独立 checker 冻结合同，并复验全部既有 V1 checksum。
+
+当前状态：`effect_contract_v1_defined=true`、
+`effect_parcel_physical_android13_arm64_verified=true`、`effect_runtime_service_published=false`、
+`approval_response_service_published=false`、`undo_service_published=false`。P1-W04 是
+`contract_defined`，不是 Effect Runtime、审批 authority、undo executor、durable persistence、车辆控制、
+NPU、Driver/HAL 或目标硬件资格。
