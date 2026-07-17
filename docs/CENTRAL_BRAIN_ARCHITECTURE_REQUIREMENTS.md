@@ -631,3 +631,32 @@ NPU、Driver/HAL 或目标硬件资格。
 `scenario_manifest_android13_arm64_verified=true`、`scenario_manifest_artifact_crypto_verified=false`、
 `scenario_catalog_production_trusted=false`、`scenario_runtime_wired=false`、
 `scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 26. P2-W06 Deterministic ScenarioResolver trace
+
+本增量映射 `S2-SCN-001`、`S2-SAF-001`、`DEL-001/003..005`：
+
+1. Resolver 必须只选择 `ScenarioCatalog` 中已注册 manifest。非空显式 scenario ID 的优先级高于文本，
+   HMI 按钮无需模型；catalog 不存在该 ID 时失败关闭，不能动态创建 scene/capability。
+2. 文本输入限制为 <=256 字符且拒绝 control character；只允许 NFKC/Locale.ROOT 规范化后的固定中英文
+   alias。unknown 必须拒绝；由受控分隔符形成的多个不同 scene 候选必须返回 ambiguous 并拒绝。
+3. Resolution 必须校验 manifest 支持的 source/zone、Context seat zone、固定 Context policy、required fresh
+   canonical Context path、runtime-owned capability snapshot 和 capability area。任一 required 缺失即拒绝，
+   optional 缺失只能在 manifest fallback 允许时降级。
+4. `PARKED_ONLY` capability node 在 MOVING/UNKNOWN 下不得成为可用 branch：required node 使场景拒绝，
+   optional node 使场景降级。approval metadata 不能覆盖该 hard gate。
+5. Capability snapshot 必须区分 `SOFTWARE_SIMULATION` 与 `PRODUCTION`。当前 capability/Context 均没有
+   production trust；production profile 必须拒绝，不能隐式回退 simulation。
+6. `ScenarioResolution` 只允许 immutable `ACCEPTED/DEGRADED/REJECTED`、稳定 reason code、候选 ID 和
+   unavailable required/optional 列表；SHA-256 identity 必须绑定 request、Context、capability、manifest
+   digest 与所有 decision metadata，且不得保留原始文本以外的新 payload 副本。
+7. Resolution 必须固定 `isExecutable=false`、`isProductionTrusted=false`。P2-W06 不编译 Plan、不创建
+   Graph/Effect、不调用 ModelProvider，不接 production Service/Room/adapter，不访问 Vehicle/VHAL/NPU/
+   Driver/HAL。
+8. JVM 与 Android 13/API 33 ARM64 probe 必须覆盖 explicit/cold/fatigue/rest、unknown/ambiguous、required
+   reject/optional degrade、moving fatigue degrade/moving rest reject、production fail-closed 与 digest replay。
+
+状态：`scenario_resolver_defined=true`、`scenario_resolution_schema_version=1`、
+`scenario_resolver_android13_arm64_verified=true`、`scenario_resolver_model_invoked=false`、
+`scenario_resolver_runtime_wired=false`、`scenario_compiler_wired=false`、
+`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。

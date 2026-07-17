@@ -293,10 +293,17 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W06` DeterministicScenarioResolver
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-SCN-001`。
+- 状态：`DONE`（2026-07-17）；2 人日；需求：`S2-SCN-001`、`S2-SAF-001`。
 - 类：`ScenarioResolver`、`DeterministicScenarioResolver`、`ScenarioResolution`。
 - DoD：按钮 ID 直接解析，不依赖模型；文本意图只选择已注册场景，不创建 capability。
 - 测试：cold/fatigue/rest branches、unknown intent。
+- 实现：显式 ID 优先；<=256 字符 NFKC/Locale.ROOT 固定中英文 alias；unknown/多段 ambiguous
+  fail-closed；source/zone/fixed Context policy/required fresh field/capability availability/PARKED_ONLY gate；
+  immutable `ACCEPTED/DEGRADED/REJECTED`、稳定 reason code 和 request/Context/capability/manifest-bound digest。
+- 证据：7 组 JVM tests、DUMP-protected Android 13 ARM64 probe、独立 checker、累计 installer 和 CI。
+- 边界：`scenario_resolver_model_invoked=false`、`scenario_resolver_runtime_wired=false`、
+  `scenario_compiler_wired=false`、`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
+  `hardware_accessed=false`；software simulation profile 不构成 production trust。
 
 ### `P2-W07` ScenarioPlanCompiler
 

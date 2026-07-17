@@ -263,6 +263,28 @@ Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=3`,
 `scenario_manifest_artifact_crypto_verified=false`, `scenario_catalog_production_trusted=false`,
 `scenario_runtime_wired=false`, `scenario_graph_execution_enabled=false`, `hardware_accessed=false`.
 
+## Stage 2 P2-W06 Deterministic Scenario Resolver
+
+`runtime-service` now contains `ScenarioResolver`, `DeterministicScenarioResolver` and `ScenarioResolution`.
+An admitted internal request selects only a manifest already present in `ScenarioCatalog`: explicit scenario ID has
+priority, otherwise a <=256-character normalized text value is matched against a fixed Chinese/English alias table.
+Unknown and multi-segment ambiguous intents fail closed; no model or dynamic capability creation is involved.
+
+Resolution binds request, Context and capability snapshot digests. It validates source, zone, fixed Context policy,
+required fresh Context paths, runtime-owned capability availability and parked-only node policy. Missing required
+inputs reject; unavailable optional inputs degrade. A moving fatigue request therefore omits the optional recline
+branch, while moving rest rejects because recline is required. Production profile rejects the current non-trusted
+Context/capability foundation.
+
+The result is immutable `ACCEPTED`, `DEGRADED` or `REJECTED` metadata with stable reason codes. It is explicitly
+non-executable. The resolver is not wired to the production Service and does not compile a plan, call a model,
+dispatch an Effect or access a vehicle/NPU/Driver-HAL interface.
+
+Status: `scenario_resolver_defined=true`, `scenario_resolution_schema_version=1`,
+`scenario_resolver_model_invoked=false`, `scenario_resolver_runtime_wired=false`,
+`scenario_compiler_wired=false`, `scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false` and
+`hardware_accessed=false`.
+
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
 The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`.

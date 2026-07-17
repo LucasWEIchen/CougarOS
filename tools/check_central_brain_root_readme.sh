@@ -99,9 +99,15 @@ for marker in \
   'scenario_manifest_android13_arm64_verified=true' \
   'scenario_manifest_artifact_crypto_verified=false' \
   'scenario_catalog_production_trusted=false' \
+  'scenario_resolver_defined=true' \
+  'scenario_resolution_schema_version=1' \
+  'scenario_resolver_android13_arm64_verified=true' \
+  'scenario_resolver_model_invoked=false' \
+  'scenario_resolver_runtime_wired=false' \
+  'scenario_compiler_wired=false' \
   'scenario_runtime_wired=false' \
   'scenario_graph_execution_enabled=false' \
-  'implementation_stage=P2-W06' \
+  'implementation_stage=P2-W07' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -169,6 +175,7 @@ required_paths=(
   tools/check_central_brain_android_vehicle_digital_twin.sh
   tools/check_central_brain_android_context_snapshot.sh
   tools/check_central_brain_android_scenario_manifest.sh
+  tools/check_central_brain_android_scenario_resolver.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh

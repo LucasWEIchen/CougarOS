@@ -58,6 +58,7 @@
 | DEV-032 | P2-W03 Digital Twin 是进程内非持久化 foundation。 | S2-TWN-001, ISSUE-030 | Accepted Temporary |
 | DEV-033 | P2-W04 Context 固定 non-production-trusted 且未接 Service/provider。 | S2-CTX-001, S2-SAF-001, ISSUE-029/030 | Accepted Temporary |
 | DEV-034 | P2-W05 Scenario asset 只有 Git/CI SHA-256 build identity，没有独立 artifact 密码学签名或 Runtime wiring。 | S2-SCN-001, ISSUE-031 | Accepted Temporary |
+| DEV-035 | P2-W06 Resolver 只提供固定规则和 process-local availability；production trust/Service/compiler 均未接。 | S2-SCN-001, S2-SAF-001, ISSUE-029/031 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -332,6 +333,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W03 进展 | 进程内 desired/reported Twin、monotonic revision、TTL/quality、atomic snapshot/reconciliation 与 API 33 ARM64 probe 完成；持久化/production wiring 未接入。 |
 | P2-W04 进展 | versioned Context/freshness/trust/restricted foundation 与 API 33 ARM64 probe 完成；productionTrusted/Service/provider 仍关闭。 |
 | P2-W05 进展 | cold/fatigue/rest build-owned manifest、strict parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto/production trust/Runtime/Graph 仍关闭。 |
+| P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；model/compiler/production Service/Graph 仍关闭，ISSUE-029/031 仍开放。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -388,3 +390,25 @@ signature verification，也没有 lifecycle store 或 revoke/rollback owner。�
 `scenario_graph_execution_enabled=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。未来独立签名机制必须
 单独版本化并通过 target/release evidence，不能把本 SHA-256 sidecar 重新解释为签名。
+
+## DEV-035 P2-W06 Resolver 是固定规则、process-local availability foundation
+
+完整 AIOS Resolver 最终需要 product-owned intent taxonomy、locale/version lifecycle、生产 capability
+discovery、可信 Context/Safety source、可审计 rollout/revoke 和与 Session Service 的 durable wiring。P2-W06
+只实现显式场景 ID 和固定中英文 alias 到三项 build-owned manifest 的确定性选择；它不调用模型，不接受
+HMI 动态规则，也不创建 capability。
+
+`CapabilitySnapshot` 当前只冻结 Stage 2 catalog metadata 与 Runtime 提供的 unavailable 集合。software
+simulation profile 可用于 debug/test resolver contract；production profile 要求 production available+
+authorized，但 P2-W02 全部为 false，同时 Context/Capability snapshot 的 production trust 固定 false，
+因此 production resolution 必须失败关闭。该 snapshot 不是 adapter discovery、车辆授权或硬件证据。
+
+`ScenarioResolution` 明确 `isExecutable=false`。Resolver 未接 production Service/Room，P2-W07 Compiler 和
+后续 Graph/Effect 不得仅凭 scenario ID 绕过 request/Context/capability/resolution digest 或 hard policy。
+
+状态：`Accepted Temporary`。`scenario_resolver_defined=true`、
+`scenario_resolver_model_invoked=false`、`scenario_resolver_runtime_wired=false`、
+`scenario_compiler_wired=false`、`scenario_graph_execution_enabled=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。关闭本偏差需要独立 production owner、可信 provider 与目标
+evidence，不能用 debug alias/probe 提升状态。

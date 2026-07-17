@@ -1087,6 +1087,65 @@ if [[ "$SCENARIO_MANIFEST_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SCENARIO_RESOLVER_NONCE="$(date +%s%N)"
+SCENARIO_RESOLVER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.scenario.ScenarioResolverProbeActivity \
+  --es nonce "$SCENARIO_RESOLVER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SCENARIO_RESOLVER_PROBE_OUTPUT"; then
+  echo "$SCENARIO_RESOLVER_PROBE_OUTPUT" >&2
+  echo "Scenario resolver debug probe did not start successfully" >&2
+  exit 1
+fi
+SCENARIO_RESOLVER_PROBE_PASSED=false
+for _ in {1..40}; do
+  SCENARIO_RESOLVER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbScenarioResolver:I)"
+  if grep -Fq \
+      "nonce=$SCENARIO_RESOLVER_NONCE scenario_resolver_probe_complete=true" \
+      <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_defined=true" <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_explicit_verified=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_cold_verified=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_fatigue_verified=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_rest_verified=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_unknown_intent_rejected=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_ambiguous_intent_rejected=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_capability_policy_verified=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_production_fail_closed=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolution_digest_verified=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_android13_arm64_verified=true" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_model_invoked=false" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_resolver_runtime_wired=false" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_compiler_wired=false" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "scenario_graph_execution_enabled=false" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$SCENARIO_RESOLVER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SCENARIO_RESOLVER_LOG"; then
+    SCENARIO_RESOLVER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SCENARIO_RESOLVER_PROBE_PASSED" != true ]]; then
+  echo "$SCENARIO_RESOLVER_LOG" >&2
+  echo "Scenario resolver probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1769,6 +1828,11 @@ printf '%s\n' \
   "scenario_catalog_production_trusted=false" \
   "scenario_runtime_wired=false" \
   "scenario_graph_execution_enabled=false" \
+  "scenario_resolver_defined=true" \
+  "scenario_resolver_android13_arm64_verified=true" \
+  "scenario_resolver_model_invoked=false" \
+  "scenario_resolver_runtime_wired=false" \
+  "scenario_compiler_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

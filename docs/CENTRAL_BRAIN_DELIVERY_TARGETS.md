@@ -835,3 +835,37 @@ target_hardware_validated=false
 production Service、vehicle/VHAL/NPU adapter 或 Driver/HAL。SHA-256 sidecar 是 build identity，不是签名；
 API 33 ARM64 证据只证明同一严格 parser/catalog 与打包 assets 可运行。Req IDs：`S2-SCN-001`、
 `S2-SAF-001`、`DEL-001/003..005`；偏差/问题：`DEV-034`、`ISSUE-029/031`。
+
+## Android P2-W06 Deterministic Scenario Resolver
+
+受维护交付新增：
+
+1. `ScenarioResolver`：bounded internal Request、software/production capability profile 和 immutable
+   capability availability snapshot；
+2. `DeterministicScenarioResolver`：explicit ID priority、固定中英文 alias、unknown/ambiguous fail-closed、
+   source/zone/Context/capability/PARKED_ONLY gate；
+3. `ScenarioResolution`：immutable accept/degrade/reject、stable reason、candidate/unavailable lists 和
+   request/Context/capability/manifest-bound SHA-256 identity；
+4. 7 组 JVM tests、DUMP-protected Android 13 ARM64 debug probe、独立 checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+scenario_resolver_defined=true
+scenario_resolution_schema_version=1
+scenario_resolver_android13_arm64_verified=true
+scenario_resolver_model_invoked=false
+scenario_resolver_runtime_wired=false
+scenario_compiler_wired=false
+scenario_graph_execution_enabled=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 product intent taxonomy/rollout owner、模型候选、Plan Compiler、Graph Runtime、Effect dispatch、
+Room/production Service、vehicle/VHAL/NPU adapter 或 Driver/HAL。software simulation availability 只用于
+debug/test；production profile 在当前 non-trusted Context/capability foundation 上必须拒绝。API 33 ARM64
+证据只证明同一 resolver contract 可运行。Req IDs：`S2-SCN-001`、`S2-SAF-001`、
+`DEL-001/003..005`；偏差/问题：`DEV-035`、`ISSUE-029/031`。

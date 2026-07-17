@@ -198,6 +198,11 @@ bounded template validator 和 invalid isolation 已完成。该增量不包含�
 activation/lifecycle、用户偏好/记忆、主动触发或 production Service wiring；因此本问题保持 Open，
 `scenario_catalog_production_trusted=false`。
 
+P2-W06 进展：显式 ID 与固定中英文 alias 的 deterministic resolver、Context/source/zone/capability/
+PARKED_ONLY gate、unknown/ambiguous fail-closed 和 immutable resolution digest 已完成。固定 alias 不是
+完整产品 taxonomy；没有 locale rollout/revoke owner、模型候选策略、生产 capability/trust 或 Session
+Service wiring，因此本问题保持 Open，`scenario_resolver_runtime_wired=false`。
+
 ## ISSUE-032 Python 原型退役后的引用与回退风险
 
 2026-07-16 已删除 Python runtime、REST contract、Linux Python binding/CLI/daemon、旧 Console、
@@ -299,3 +304,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W03 进展 | 进程内 Twin 与 API 33 ARM64 software probe 完成；无 provider/adapter/persistence，ISSUE-030 仍开放。 |
 | P2-W04 进展 | Context/freshness/trust/restricted 与 API 33 ARM64 probe 完成；productionTrusted=false，ISSUE-029/030 仍开放。 |
 | P2-W05 进展 | Scenario manifest/parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto、product/privacy owner、Runtime/Graph 仍开放。 |
+| P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；product taxonomy/production trust/Service/compiler/Graph 仍开放。 |
