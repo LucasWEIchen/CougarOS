@@ -1007,3 +1007,43 @@ Status: `scenario_plan_compiler_defined=true`, `scenario_plan_schema_version=1`,
 `scenario_plan_runtime_published=false`, `scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false`,
 `hardware_accessed=false`. Req IDs: `S2-SCN-001`, `S2-GRF-001`, `S2-SAF-001`, `DEL-001/003..005`;
 tracking: `DEV-036`, `ISSUE-029/031`.
+
+## Android P2-W08 Simulated Effect Adapter Base
+
+### Debug-only internal Java contract
+
+```java
+long SimulationClock.nowElapsedRealtimeMs();
+long SimulationClock.advanceBy(long durationMs);
+
+void SimulatedEffectAdapter.setFaultInjectionProfile(FaultInjectionProfile profile);
+EffectAdapter.ApplyResult SimulatedEffectAdapter.apply(EffectAdapter.Invocation invocation);
+EffectAdapter.StatusResult SimulatedEffectAdapter.queryStatus(String idempotencyToken);
+SimulatedEffectAdapter.SimulationObservation
+    SimulatedEffectAdapter.querySimulationObservation(String idempotencyToken);
+```
+
+All three implementation types live in `runtime-service/src/debug` and are absent from main/release source. The base
+adapter implements the existing P1 `EffectAdapter` contract; its supplementary `SimulationDescriptor` cannot be
+used as an activation descriptor and always reports `simulation=true`, `productionAuthorized=false` and source
+`SIMULATED`.
+
+| Type | Contract | Invariant/failure |
+| --- | --- | --- |
+| `SimulationClock` | explicit monotonic elapsed time | no wall clock or sleep; advance is 1 ms..24 h and overflow fails closed |
+| `FaultInjectionProfile` | immutable, SHA-256-bound selection for one admitted invocation | NONE, DELAY, TIMEOUT, RETRYABLE_FAILURE, TERMINAL_FAILURE, READBACK_MISMATCH; timing is 1..60000 ms |
+| `SimulatedEffectAdapter` | token-deduplicated base with linearizable delivery status | maximum 128 process-memory records; same token/different invocation rejects; admitted profile is frozen |
+| `SimulationObservation` | separate simulated readback projection | source is SIMULATED and production trust is always false; delivery success does not imply readback match |
+
+`DELAY` completes only after explicit clock advancement and invokes the subclass apply callback once. `TIMEOUT`
+keeps delivery unknown and produces timed-out readback. Retryable and terminal failures stay distinct.
+`READBACK_MISMATCH` deliberately returns delivery applied while readback is mismatch. Subclasses may validate typed
+targets and update simulated state only through `validateSimulationInvocation`, `onSimulationApplied` and
+`onSimulationReset`; P2-W09..P2-W11 own those domain implementations.
+
+The base has no AIDL/Service registration, Room persistence, Plan publication, Graph scheduling, Digital Twin
+wiring, Vehicle/VHAL/NPU or Driver/HAL access. Status: `simulated_effect_adapter_base_defined=true`,
+`simulated_effect_adapter_android13_arm64_verified=true`, `simulated_effect_adapter_debug_only=true`,
+`simulated_effect_adapter_production_registered=false`, `simulated_effect_adapter_runtime_wired=false`,
+`effect_dispatch_enabled=false`, `hardware_accessed=false`. Req IDs: `S2-ADP-001`, `S2-EFF-001`,
+`DEL-001/003..005`; tracking: `DEV-037`, `ISSUE-030/033`.

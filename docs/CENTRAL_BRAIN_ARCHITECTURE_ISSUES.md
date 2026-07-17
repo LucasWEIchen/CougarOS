@@ -163,6 +163,9 @@ required rest recline 已在 Resolver 阶段拒绝；`PlanGraphValidator` 还要
 这些是 fail-closed 软件结构证据，不定义驻车最大角度、批准 authority 或真实 Safety source，因此本问题
 保持 Open，`scenario_graph_execution_enabled=false`。
 
+P2-W08 进展：debug-only base 已冻结幂等、delay/timeout/failure/readback mismatch 语义，但没有 HVAC/Seat
+typed target、Safety provider 或 Runtime 注册，不能关闭本 issue。
+
 ## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定
 
 当前没有可发布的 HVAC/Seat/Media/Navigation property/service 目录、写权限、area mapping、
@@ -191,6 +194,9 @@ driving/safety/source/trust report、restricted 和 digest，并通过 JVM/API 3
 问题：snapshot 固定 `productionTrusted=false`，没有 vehicle provider/property/permission/readback 或
 Safety authority，未接 production Service。P2-W05 Scenario 只能消费该明确 untrusted/debug Context，
 不得自行提升 trust。
+
+P2-W08 进展：simulation source、production trust false 和 delivery/readback 分离已固定；这不是 OEM
+property/permission/area/readback contract，真实 adapter 仍必须返回 unavailable。
 
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
@@ -315,3 +321,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W05 进展 | Scenario manifest/parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto、product/privacy owner、Runtime/Graph 仍开放。 |
 | P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；product taxonomy/production trust/Service/compiler/Graph 仍开放。 |
 | P2-W07 进展 | Digest-bound typed Plan compiler 与 API 33 ARM64 probe 完成；target material/production publication/Graph/Effect 仍开放。 |
+| P2-W08 进展 | Debug-only simulated Effect base 与 API 33 ARM64 probe 完成；HVAC/Seat target、Runtime wiring 和真实车辆 readback 仍开放。 |

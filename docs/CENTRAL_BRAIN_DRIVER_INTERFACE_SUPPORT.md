@@ -669,3 +669,20 @@ SIMULATED Context/capability 并验证 typed DAG 与拒绝路径。
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
 Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-SAF-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W08 Simulated Effect Adapter Driver/HAL Boundary
+
+P2-W08 只在 Runtime `src/debug` 新增纯 Java `SimulatedEffectAdapter`、`SimulationClock`、
+`FaultInjectionProfile`、JVM tests、debug-only Activity、installer marker 和静态 checker。main/release source
+无同名实现，production Runtime/Governance Service 不引用、不发现、不注册这些类。
+
+adapter 只处理 typed `EffectAdapter.Invocation` 元数据与 defensive-copy material，在进程内保存最多 128 条
+debug record；不读取 CarProperty/VHAL/vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU 或 Driver/HAL。Fault delay/timeout 使用手动单调时钟；simulation readback 固定 source `SIMULATED`
+且 `productionTrusted=false`，不能替代 OEM readback 或 Safety authority。
+
+状态：`simulated_effect_adapter_base_defined=true`、`simulated_effect_adapter_debug_only=true`、
+`simulated_effect_adapter_production_registered=false`、`simulated_effect_adapter_runtime_wired=false`、
+`vehicle_signal_provider_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为
+0，`DRV-GAP-001..005` 不变。Req IDs：`S2-ADP-001`、`S2-EFF-001`、`KH-003/006`、`DEL-004/005`。

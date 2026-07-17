@@ -112,7 +112,13 @@ for marker in \
   'scenario_plan_runtime_published=false' \
   'scenario_runtime_wired=false' \
   'scenario_graph_execution_enabled=false' \
-  'implementation_stage=P2-W08' \
+  'simulated_effect_adapter_base_defined=true' \
+  'simulated_effect_adapter_android13_arm64_verified=true' \
+  'simulated_effect_adapter_debug_only=true' \
+  'simulated_effect_adapter_release_source_absent=true' \
+  'simulated_effect_adapter_production_registered=false' \
+  'simulated_effect_adapter_runtime_wired=false' \
+  'implementation_stage=P2-W09' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -182,6 +188,7 @@ required_paths=(
   tools/check_central_brain_android_scenario_manifest.sh
   tools/check_central_brain_android_scenario_resolver.sh
   tools/check_central_brain_android_scenario_plan_compiler.sh
+  tools/check_central_brain_android_simulated_effect_adapter.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh

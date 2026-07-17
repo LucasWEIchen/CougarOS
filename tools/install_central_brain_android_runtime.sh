@@ -1199,6 +1199,65 @@ if [[ "$SCENARIO_COMPILER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
+SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
+  --es nonce "$SIMULATED_ADAPTER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SIMULATED_ADAPTER_PROBE_OUTPUT"; then
+  echo "$SIMULATED_ADAPTER_PROBE_OUTPUT" >&2
+  echo "Simulated Effect adapter base probe did not start successfully" >&2
+  exit 1
+fi
+SIMULATED_ADAPTER_PROBE_PASSED=false
+for _ in {1..40}; do
+  SIMULATED_ADAPTER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbSimEffectBase:I)"
+  if grep -Fq \
+      "nonce=$SIMULATED_ADAPTER_NONCE simulated_effect_adapter_probe_complete=true" \
+      <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulated_effect_adapter_base_defined=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulation_descriptor_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulation_clock_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulation_delay_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulation_timeout_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulation_failure_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulation_readback_mismatch_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulation_idempotency_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulated_effect_adapter_android13_arm64_verified=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulated_effect_adapter_debug_only=true" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulated_effect_adapter_production_registered=false" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "simulated_effect_adapter_runtime_wired=false" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "scenario_plan_runtime_published=false" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "scenario_graph_execution_enabled=false" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$SIMULATED_ADAPTER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SIMULATED_ADAPTER_LOG"; then
+    SIMULATED_ADAPTER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SIMULATED_ADAPTER_PROBE_PASSED" != true ]]; then
+  echo "$SIMULATED_ADAPTER_LOG" >&2
+  echo "Simulated Effect adapter base probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1890,6 +1949,11 @@ printf '%s\n' \
   "scenario_plan_compiler_android13_arm64_verified=true" \
   "scenario_plan_compiler_runtime_wired=false" \
   "scenario_plan_runtime_published=false" \
+  "simulated_effect_adapter_base_defined=true" \
+  "simulated_effect_adapter_android13_arm64_verified=true" \
+  "simulated_effect_adapter_debug_only=true" \
+  "simulated_effect_adapter_production_registered=false" \
+  "simulated_effect_adapter_runtime_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

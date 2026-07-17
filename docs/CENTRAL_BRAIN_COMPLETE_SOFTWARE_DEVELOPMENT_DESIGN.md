@@ -1328,6 +1328,28 @@ Seat recline 和 HVAC 量产路径至少需要 readback。超过 verification de
 
 只能注册在 debug/test profile；descriptor 必须含 `simulation=true`、`productionAuthorized=false`。所有 observation 标注 source `SIMULATED`，HMI 工程模式显示“仿真”。
 
+P2-W08 已在 Runtime `src/debug` 建立该公共仿真基类，main/release source 和 production Service 均不包含或
+注册它。该层复用 P1 typed `EffectAdapter` destination/token/material-digest defensive-copy contract，
+保存最多 128 条 process-memory invocation record；同 token/同 invocation 返回首次 apply result，同 token/
+不同 invocation fail closed。
+
+`SimulationClock` 是手动 monotonic clock，测试通过 `advanceBy` 驱动完成，不使用 wall clock 或
+`Thread.sleep`。`FaultInjectionProfile` 是 immutable SHA-256-bound profile：NONE、DELAY、TIMEOUT、
+RETRYABLE_FAILURE、TERMINAL_FAILURE、READBACK_MISMATCH，timing fault 限制 1..60000 ms。profile 在
+invocation 首次 admission 时冻结，之后修改 next profile 不改变已有 record。
+
+delivery 与 readback 是两个状态面：delay 到期前为 UNKNOWN/PENDING，到期后 callback 只执行一次；
+timeout 保持 delivery UNKNOWN 且 readback TIMED_OUT；readback mismatch 保持 delivery APPLIED 但 observation
+为 MISMATCH；所有 observation 固定 source SIMULATED、productionTrusted=false。子类只可通过
+`validateSimulationInvocation`、`onSimulationApplied`、`onSimulationReset` 增加 domain 逻辑。
+
+本工作包不包含 typed HVAC/Seat/Media/Nav target、Twin update、Room、Plan/Graph/Effect Service wiring 或
+Vehicle/VHAL/NPU/Driver-HAL。JVM、release source compile 与 Android 13/API 33 ARM64 probe 已通过；状态为
+`simulated_effect_adapter_base_defined=true`、`simulated_effect_adapter_android13_arm64_verified=true`、
+`simulated_effect_adapter_production_registered=false`、`simulated_effect_adapter_runtime_wired=false`。
+Req IDs：`S2-ADP-001`、`S2-EFF-001`、`DEL-001/003..005`；偏差/问题：`DEV-037`、
+`ISSUE-030/033`。
+
 ### 16.2 SimulatedHvacEffectAdapter
 
 支持：power、target temperature、fan level。检查 area/range/step，更新 desired，按 simulation clock 延迟更新 reported。故障：UNAVAILABLE/TIMEOUT/REPORTED_MISMATCH/TERMINAL_FAILURE。
@@ -1870,6 +1892,13 @@ central-brain-sdk AAR
 - P2-W05 Scenario manifest foundation：cold/fatigue/rest build-owned v1 asset、strict Gson parser、JSON
   schema、SHA-256 sidecar、bounded template/DAG/capability/risk/fallback/UI validator 与 invalid isolation；
   JVM/API 33 ARM64 assets probe 通过，artifact crypto/trust/Runtime/Graph/Effect 保持 false。
+- P2-W06 deterministic Resolver：固定 ID/有界文本规则、Context/capability/policy gate、accept/degrade/reject
+  与 digest；JVM/API 33 ARM64 probe 通过，model/production Service/Graph 保持关闭。
+- P2-W07 Scenario Plan Compiler：digest-bound immutable typed DAG、optional-only fallback、required verify、
+  HIGH approval 与 moving-seat semantic gate；JVM/API 33 ARM64 probe 通过，Plan publication/Effect 保持关闭。
+- P2-W08 Simulated Effect Adapter base：debug-only typed adapter、manual clock、immutable fault matrix、有界
+  token 幂等与 delivery/readback 分离；JVM/release compile/API 33 ARM64 probe 通过，production registration/
+  Runtime/hardware 保持关闭。
 
 ### 32.2 下一阶段未完成
 
@@ -1877,9 +1906,8 @@ central-brain-sdk AAR
 - Scenario/Plan/Effect execution、approval response/undo execution；
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
 - Digital Twin persistence/production wiring 与 Context production trust/wiring（软件 foundation 已完成）；
-- deterministic Scenario Resolver、Plan Compiler/DAG Validator；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
-- Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
+- Android debug/test-only HVAC/Seat/Nav/Media domain Effect adapter（P2-W08 base 已完成）；
 - Client2 意图/计划/执行/结果四阶段、Effect 设备详情抽屉与 state reducer；
 - Client2 manual/AI 共用 Session/Effect 链路、desired/reported、approval、partial、retry、undo、recovery；
 - Tool/Skill registry/rules/executor/artifact verifier；
@@ -1900,16 +1928,18 @@ central-brain-sdk AAR
 `P1-W07 Contract v2 aggregate check`、`P2-W01 Canonical vehicle signal types` 和
 `P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 和
 `P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema`、
-`P2-W06 DeterministicScenarioResolver` 和 `P2-W07 ScenarioPlanCompiler` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W06 DeterministicScenarioResolver`、`P2-W07 ScenarioPlanCompiler` 和
+`P2-W08 SimulatedVehicleAdapter base` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
 进程内 desired/reported Twin、versioned Context/freshness/trust foundation、三项 strict build-owned Scenario
 manifest catalog、显式/固定文本 selector、Context/capability/policy gate、immutable resolution 和
-digest-bound typed Plan compiler 已进入工程。Effect Service、approval response/undo execution、Plan Runtime
-publication 和 Graph Runtime 均未发布。下一实现工作包固定为 `P2-W08 SimulatedVehicleAdapter base`；只在
-debug/test source set 建立 simulated Effect adapter/fault clock，不得注册 production adapter、激活 compiled
-Plan、读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码动画。
+digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual clock/fault matrix 已进入工程。
+Effect Service、approval response/undo execution、Plan Runtime publication 和 Graph Runtime 均未发布。
+下一实现工作包固定为 `P2-W09 Simulated HVAC adapter`；只在 debug/test source set 基于 P2-W08 增加 HVAC
+power/target-temperature/fan typed absolute target、area/range/step、desired/reported delay 与 readback，
+不得注册 production adapter、激活 compiled Plan、读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

@@ -691,3 +691,32 @@ NPU、Driver/HAL 或目标硬件资格。
 `scenario_plan_compiler_android13_arm64_verified=true`、`scenario_plan_compiler_runtime_wired=false`、
 `scenario_plan_runtime_published=false`、`scenario_graph_execution_enabled=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 28. P2-W08 Simulated Effect Adapter base trace
+
+本增量映射 `S2-ADP-001`、`S2-EFF-001`、`DEL-001/003..005`：
+
+1. `SimulatedEffectAdapter`、`SimulationClock`、`FaultInjectionProfile` 必须只存在于 Runtime `src/debug`
+   source set；main/release 不得包含同名类，production Runtime/Governance Service 不得引用或注册。
+2. Simulation descriptor 必须固定 `simulation=true`、`productionAuthorized=false` 和 observation source
+   `SIMULATED`；不得通过 adapter ID、Effect descriptor 或 debug signer 提升 production trust。
+3. Base adapter 必须复用现有 typed `EffectAdapter` destination/token/digest defensive-copy contract，使用
+   `TOKEN_DEDUPLICATED` 和 linearizable current status；同 token/同 invocation 返回原始 apply result，同 token/
+   不同 invocation 必须拒绝。
+4. Process-memory record 上限固定 128。P2-W08 不持久化 canonical payload/envelope，不把原始 Effect/user/
+   vehicle payload 写入 audit、log 或 probe；reset 只清除 debug simulated state。
+5. `SimulationClock` 必须是显式 monotonic manual clock，不得 `sleep` 或依赖 wall clock；单次 advance 受限，
+   overflow 失败关闭。`FaultInjectionProfile` 必须 immutable/digested，timing fault 限制为 1..60000 ms。
+6. Fault mode 至少包括 NONE、DELAY、TIMEOUT、RETRYABLE_FAILURE、TERMINAL_FAILURE 和
+   READBACK_MISMATCH。Delay 在时钟到点前 delivery/readback 均 pending，之后只执行一次 apply callback；
+   timeout 保持 delivery UNKNOWN，readback 到期为 TIMED_OUT。
+7. Delivery 与 readback 必须分离：READBACK_MISMATCH 的 delivery 可以是 APPLIED，但 simulation observation
+   必须为 MISMATCH、source SIMULATED、productionTrusted=false；不能把投递成功伪装为 verified Effect。
+8. 本包不解析 HVAC/Seat/Media/Nav target、不更新 Digital Twin、不接 compiled Plan/Graph/Room/Effect Service，
+   不访问 Vehicle/VHAL/NPU/Driver-HAL。JVM、debug/release compile 和 API 33 ARM64 probe 必须验证边界。
+
+状态：`simulated_effect_adapter_base_defined=true`、`simulated_effect_adapter_debug_only=true`、
+`simulated_effect_adapter_release_source_absent=true`、
+`simulated_effect_adapter_android13_arm64_verified=true`、
+`simulated_effect_adapter_production_registered=false`、`simulated_effect_adapter_runtime_wired=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`。

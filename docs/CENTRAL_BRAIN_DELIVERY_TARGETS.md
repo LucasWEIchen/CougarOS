@@ -902,3 +902,35 @@ simulated/production adapter、vehicle/VHAL/NPU 或 Driver/HAL。API 33 ARM64 �
 拒绝逻辑在目标 Android Java/Parcelable 环境可运行，不表示 Plan 已发布或车辆动作已执行。Req IDs：
 `S2-SCN-001`、`S2-GRF-001`、`S2-SAF-001`、`DEL-001/003..005`；偏差/问题：
 `DEV-036`、`ISSUE-029/031`。
+
+## Android P2-W08 Simulated Effect Adapter Base
+
+受维护交付新增：
+
+1. debug-only `SimulationClock`：显式单调时间推进，不依赖 wall clock 或 `sleep`；
+2. debug-only `FaultInjectionProfile`：immutable digest-bound fault selection，覆盖 delay、timeout、retryable/
+   terminal failure 和 readback mismatch；
+3. debug-only `SimulatedEffectAdapter`：复用 typed `EffectAdapter`，有界 128 条 process-memory record、token
+   幂等、linearizable status 和 delivery/readback 分离；
+4. 7 组 JVM tests、debug/release source compile、DUMP-protected Android 13 ARM64 probe、独立 checker、累计
+   installer 与 CI gate。
+
+交付标志：
+
+```text
+simulated_effect_adapter_base_defined=true
+simulated_effect_adapter_android13_arm64_verified=true
+simulated_effect_adapter_debug_only=true
+simulated_effect_adapter_release_source_absent=true
+simulated_effect_adapter_production_registered=false
+simulated_effect_adapter_runtime_wired=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 HVAC/Seat/Media/Nav typed target、domain adapter、Twin wiring、Room persistence、Plan/Graph/Effect
+Runtime、真实 Vehicle/VHAL/NPU 或 Driver/HAL。probe 只证明同一 debug software contract 能在 Android 13
+ARM64 上执行，不能作为真实车辆回读、production activation 或目标硬件资格证据。Req IDs：
+`S2-ADP-001`、`S2-EFF-001`、`DEL-001/003..005`；偏差/问题：`DEV-037`、`ISSUE-030/033`。
