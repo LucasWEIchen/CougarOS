@@ -755,3 +755,21 @@ ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL；不推断 COM/USB/ADB 设备
 `vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
 Req IDs：`S2-CTX-001`、`S2-ADP-001`、`KH-003/006`、`DEL-004/005`。
+
+### P3-W01 Agent Graph Runtime Driver/HAL Boundary
+
+P3-W01 只在 Android Runtime main source 新增纯 Java graph/node state reducer、control-only node-type registry、
+JVM tests、DUMP-protected debug probe、installer marker 和 checker。它只消费 P1 typed Plan metadata/digest，
+不读取 node input material，不创建线程池，不调用 executor、P2 simulated adapter/controller、Effect、Model、
+Tool 或 Memory。
+
+本包不发现或调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、
+ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL。manual clock 只验证 plan deadline 与 monotonic event timestamp；
+Android 13 ARM64 probe 只运行 process-local state machine，不构成 vehicle/NPU/driver evidence。
+
+状态：`agent_graph_runtime_defined=true`、`agent_graph_executor_dispatch_enabled=false`、
+`agent_graph_runtime_persistence_wired=false`、`agent_graph_runtime_binder_published=false`、
+`agent_graph_runtime_production_wired=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
+新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`KH-003/006`、
+`DEL-004/005`。

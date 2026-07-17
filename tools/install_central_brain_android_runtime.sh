@@ -1210,6 +1210,57 @@ if [[ "$SCENARIO_COMPILER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+AGENT_GRAPH_NONCE="$(date +%s%N)"
+AGENT_GRAPH_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.graph.AgentGraphRuntimeProbeActivity \
+  --es nonce "$AGENT_GRAPH_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$AGENT_GRAPH_PROBE_OUTPUT"; then
+  echo "$AGENT_GRAPH_PROBE_OUTPUT" >&2
+  echo "Agent Graph Runtime debug probe did not start successfully" >&2
+  exit 1
+fi
+AGENT_GRAPH_PROBE_PASSED=false
+for _ in {1..40}; do
+  AGENT_GRAPH_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbAgentGraph:I)"
+  if grep -Fq \
+      "nonce=$AGENT_GRAPH_NONCE agent_graph_runtime_probe_complete=true" \
+      <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_runtime_defined=true" <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_state_transition_verified=true" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_same_session_fifo_verified=true" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_cross_session_bounded_verified=true" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_partial_terminal_verified=true" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_deadline_verified=true" <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_compensation_fail_closed_verified=true" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_event_projection_bounded=true" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_android13_arm64_verified=true" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_executor_dispatch_enabled=false" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "agent_graph_runtime_production_wired=false" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$AGENT_GRAPH_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$AGENT_GRAPH_LOG"; then
+    AGENT_GRAPH_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$AGENT_GRAPH_PROBE_PASSED" != true ]]; then
+  echo "$AGENT_GRAPH_LOG" >&2
+  echo "Agent Graph Runtime probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2181,6 +2232,20 @@ printf '%s\n' \
   "debug_simulation_controller_debug_only=true" \
   "debug_simulation_controller_production_exported=false" \
   "debug_simulation_controller_runtime_wired=false" \
+  "agent_graph_runtime_defined=true" \
+  "agent_graph_state_machine_verified=true" \
+  "agent_graph_same_session_fifo_verified=true" \
+  "agent_graph_cross_session_bounded_verified=true" \
+  "agent_graph_partial_terminal_verified=true" \
+  "agent_graph_deadline_verified=true" \
+  "agent_graph_compensation_fail_closed_verified=true" \
+  "agent_graph_event_projection_bounded=true" \
+  "agent_graph_android13_arm64_verified=true" \
+  "agent_graph_executor_dispatch_enabled=false" \
+  "agent_graph_runtime_persistence_wired=false" \
+  "agent_graph_runtime_binder_published=false" \
+  "agent_graph_runtime_production_wired=false" \
+  "model_invoked=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

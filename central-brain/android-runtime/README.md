@@ -745,4 +745,27 @@ JVM tests, debug/release compilation, shell signature rejection and the Android 
 `debug_simulation_controller_defined=true`, `debug_simulation_controller_capability_enforced=true` and
 `debug_simulation_controller_android13_arm64_verified=true`. Release has no AIDL source, permission, Service or probe;
 `debug_simulation_controller_production_exported=false`, `debug_simulation_controller_runtime_wired=false`,
-`vehicle_signal_provider_wired=false` and `hardware_accessed=false` remain enforced. P3-W01 is the next work package.
+`vehicle_signal_provider_wired=false` and `hardware_accessed=false` remain enforced.
+
+## P3-W01 Agent Graph Runtime state machine
+
+`runtime-service/src/main/java/com/centralbrain/runtime/graph` now contains the process-local `AgentGraphRuntime`,
+stable Graph/Node state enums and a control-only `NodeExecutorRegistry`. Admission revalidates and deep-copies the
+P1/P2 typed Plan. One session has one active run and FIFO queued runs; different sessions use at most eight active
+slots. The synchronized reducer exposes READY nodes in dependency order and handles claim, suspend, resume,
+success/failure/skip, cancellation and manual-clock plan deadlines.
+
+PARTIAL is a terminal optional-degradation result. Required failure closes the run as FAILED; impossible required
+dependencies or unavailable compensation close it as STUCK. At most 64 runs and 256 events per run are retained.
+Events expose only IDs, enum states, reason codes, elapsed time and a chained SHA-256; Plan/node input and executor
+output are not projected.
+
+Seven JVM test groups, debug/release compilation and the Android 13/API 33 ARM64 probe establish
+`agent_graph_runtime_defined=true`, `agent_graph_state_machine_verified=true`,
+`agent_graph_same_session_fifo_verified=true`, `agent_graph_event_projection_bounded=true`,
+`agent_graph_compensation_fail_closed_verified=true` and `agent_graph_android13_arm64_verified=true`. The registry
+does not hold or invoke a typed executor;
+`agent_graph_executor_dispatch_enabled=false`, `agent_graph_runtime_persistence_wired=false`,
+`agent_graph_runtime_binder_published=false`, `agent_graph_runtime_production_wired=false`,
+`effect_dispatch_enabled=false`, `model_invoked=false` and `hardware_accessed=false` remain enforced. P3-W02 typed
+node executors is the next work package.

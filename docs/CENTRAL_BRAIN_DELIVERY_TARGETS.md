@@ -85,8 +85,8 @@ bash tools/check_central_brain_root_readme.sh
 Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、
 `P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL`、
 `P1-W05 SDK facade v2`、`P1-W06 Room v4 schema`、`P1-W07 Contract v2 aggregate check`、
-`P2-W01 Canonical vehicle signal types` 和 `P2-W02 Vehicle capability catalog` 已完成，
-下一工作包为 `P2-W03 VehicleDigitalTwinStore`。P1-P7 交付必须进入
+`P2-W01..P2-W12 Context/Scenario/Simulation foundation` 和 `P3-W01 Agent Graph Runtime state machine`
+已完成，下一工作包为 `P3-W02 Typed node executors`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -1073,3 +1073,44 @@ target_hardware_validated=false
 Client2 engineer drawer、真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 只证明 debug control-plane Binder 与
 授权可运行。Req IDs：`S2-CTX-001`、`S2-ADP-001`、`DEL-001/003..005`；偏差/问题：`DEV-041`、
 `ISSUE-030/033`。
+
+## Android P3-W01 Agent Graph Runtime
+
+受维护交付新增：
+
+1. Runtime main-source `AgentGraphRuntime`、`GraphRunState`、`NodeRunState` 与 control-only
+   `NodeExecutorRegistry`；
+2. P1/P2 typed Plan validation/deep copy、合法 graph/node transition、同 session FIFO、最多 8 个跨 session
+   active run 和最多 64 个 process record；
+3. manual-clock plan deadline、optional PARTIAL、required fail-closed、waiting/resume 和 terminal capacity eviction；
+4. 每 run 最多 256 条 retained digest-only event，累计 count 与链式摘要覆盖已淘汰 entry；
+5. 7 组 JVM tests、debug/release compile、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+agent_graph_runtime_defined=true
+agent_graph_state_machine_verified=true
+agent_graph_same_session_fifo_verified=true
+agent_graph_cross_session_bounded_verified=true
+agent_graph_partial_terminal_verified=true
+agent_graph_deadline_verified=true
+agent_graph_compensation_fail_closed_verified=true
+agent_graph_event_projection_bounded=true
+agent_graph_android13_arm64_verified=true
+agent_graph_executor_dispatch_enabled=false
+agent_graph_runtime_persistence_wired=false
+agent_graph_runtime_binder_published=false
+agent_graph_runtime_production_wired=false
+effect_dispatch_enabled=false
+model_invoked=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包是 process-local state-machine foundation，不是 Durable Agent Graph 完成交付：它不调用 typed executor，
+不写 Room/checkpoint，不发布 Binder/Session/Plan Service，不执行 Effect/Model/Tool/Memory，也不调用 P2 debug
+adapter/controller 或真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 只证明相同状态合同在目标 Android 运行。
+Req IDs：`S2-GRF-001`、`NV-G-004/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-042`、
+`ISSUE-022/026`。
