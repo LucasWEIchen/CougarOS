@@ -271,7 +271,7 @@ client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W12
+implementation_stage=P5-W01
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -346,3 +346,25 @@ Run `tools/check_central_brain_android_client2_accessibility_display.sh` for hos
 `tools/test_client2_central_brain_accessibility_display.sh --require-api-33` for the physical matrix. The device script restores
 size/density/font/rotation and emits no raw device identity or UI evidence. Req IDs: `S2-UX-003`, `S2-HMI-001/002`;
 tracking: `DEV-061`, `ISSUE-019/033`.
+
+## P4-W12 aggregate Android acceptance
+
+`central-brain/contracts/central_brain_android_p4_hmi_acceptance.json` freezes the ordered P4 application acceptance matrix and its
+evidence layers. Run `tools/check_central_brain_android_client2_p4_acceptance.sh` for host/static validation. On the approved Android
+13 ARM64 device, run:
+
+```bash
+tools/test_client2_central_brain_p4_acceptance.sh \
+  --require-api-33 \
+  --replace-conflicting-client2
+```
+
+The runner executes recovery, debug engineer-state rejection, scenario/manual synchronization and accessibility/display suites,
+requires fresh child markers, checks crash buffers between suites, and finishes with a nonempty UI tree containing the navigation
+trigger. It records no raw serial, UI tree, screenshot, log, user/model text or vehicle payload.
+
+This closes P4 application acceptance only. Automatic Plan publication, production Effect dispatch, approval response, undo, vehicle
+readback and an independent production Client2 release remain unavailable. `p4_w12_application_acceptance_complete=true`,
+`p4_automatic_plan_runtime_published=false`, `hmi_d4_demo_control_loop_complete=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W01`. Req IDs: `S2-UX-001..003`,
+`S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`, `S2-EFF-001`; tracking: `DEV-062`, `ISSUE-033`.

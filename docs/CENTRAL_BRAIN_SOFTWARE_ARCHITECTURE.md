@@ -270,7 +270,7 @@ Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-
 `cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
 `cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
 `cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W12`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W01`.
 
 ## P4-W08 Client2 driving restriction projection
 
@@ -298,7 +298,7 @@ P4-W01 through P4-W08 are complete at the Android application layer. Req IDs: `S
 `cockpit_unknown_driving_restricted=true`, `cockpit_restricted_parameter_editing_disabled=true`,
 `cockpit_high_risk_controls_disabled=true`, `cockpit_runtime_policy_authority_independent=true`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W12`.
+`implementation_stage=P5-W01`.
 
 ## P4-W11 Client2 accessibility/display architecture
 
@@ -324,7 +324,35 @@ P4-W01 through P4-W11 are complete at the Android application layer. Req IDs: `S
 `cockpit_display_matrix_defined=true`, `cockpit_touch_target_min_dp=48`,
 `cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_display_matrix_android13_arm64_verified=true`,
 `cockpit_display_effect_authorization_source=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W12`.
+`implementation_stage=P5-W01`.
+
+## P4-W12 aggregate Android acceptance architecture
+
+```text
+P4 aggregate runner
+  -> recovery suite -> crash-buffer assertion
+  -> protected engineer fault suite -> crash-buffer assertion
+  -> scenario/manual synchronization suite -> crash-buffer assertion
+  -> accessibility/display suite -> crash-buffer assertion + display restore
+  -> fresh Client2 launch -> final UI tree -> crash-buffer assertion
+```
+
+The aggregate runner is orchestration only. It selects one API 33 ARM64 device without publishing its identity, re-executes each
+maintained physical suite and validates fresh markers. Local logs/UI trees/crash buffers remain under ignored evidence paths. A child
+failure stops the aggregate; child EXIT traps restore temporarily disabled Runtime and display/font/rotation state.
+
+Evidence modes remain separate in `central_brain_android_p4_hmi_acceptance.json`. Navigation/session/recovery, protected debug
+Context/fault, natural/manual synchronization and display/accessibility are physical evidence. Plan/Effect/Media/Nav/approval/partial/
+mismatch/undo are host projection plus physical fail-closed evidence only. Runtime release simulation absence is static/APK evidence;
+there is no production Client2 release artifact.
+
+P4-W01 through P4-W12 application acceptance is complete. This does not complete HMI-D4. Req IDs: `S2-UX-001..003`,
+`S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking:
+`DEV-062`, `ISSUE-022/026/030/033`. Current flags: `p4_w12_application_acceptance_complete=true`,
+`p4_android13_arm64_aggregate_verified=true`, `p4_plan_effect_projection_host_verified=true`,
+`p4_automatic_plan_runtime_published=false`, `p4_production_effect_dispatch_enabled=false`,
+`hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P5-W01`.
 
 ## P4-W10 Client2 scenario/manual synchronization
 
@@ -353,7 +381,7 @@ P4-W01 through P4-W10 are complete at the Android application layer. Current fla
 `cockpit_scenario_manual_shared_client=true`, `cockpit_scenario_device_session_synchronized=true`,
 `cockpit_scenario_plan_publication_inferred=false`, `cockpit_scenario_effect_dispatch_enabled=false`,
 `cockpit_scenario_readback_available=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W12`.
+`implementation_stage=P5-W01`.
 
 ## P4-W09 Client2 protected engineer simulation projection
 
@@ -381,4 +409,4 @@ P4-W01 through P4-W09 are complete at the Android application layer. Req IDs: `S
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W12`.
+`implementation_stage=P5-W01`.

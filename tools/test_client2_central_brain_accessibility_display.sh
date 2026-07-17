@@ -121,8 +121,8 @@ dump_ui() {
   local attempt
   for attempt in {1..10}; do
     "${DEVICE[@]}" shell rm -f "$DEVICE_UI_XML" >/dev/null 2>&1 || true
-    if "${DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null 2>&1 \
-        && "${DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$output_file" 2>/dev/null \
+    if timeout 8s "${DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null 2>&1 \
+        && timeout 8s "${DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$output_file" 2>/dev/null \
         && [[ -s "$output_file" ]]; then
       return 0
     fi

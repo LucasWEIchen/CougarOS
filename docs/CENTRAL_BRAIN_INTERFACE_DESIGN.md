@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P4-W12`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P5-W01`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,7 +2109,7 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W12`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P5-W01`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
 
@@ -2152,7 +2152,7 @@ MOVING and UNKNOWN presentation. Production Context/Safety remains outside HMI a
 
 Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
 `cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
-`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W12`.
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P5-W01`.
 Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
 `ISSUE-023/029/030/033`.
 
@@ -2193,7 +2193,7 @@ emit reducer events only and cannot access SessionClient, Adapter, vehicle or NP
 Plan and drawer renderers read the same `CockpitScenarioControlState`. Positive Plan publication requires
 `SessionSnapshot.activePlanRevision>0`; otherwise UI says NOT PUBLISHED. Device role is labeled as catalog/manual participation and
 must not change desired/reported state. Effect/readback accessors remain false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`, `APP-004`,
-`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P4-W12`.
+`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P5-W01`.
 
 ## Client2 P4-W09 Engineer Simulation Interfaces
 
@@ -2247,7 +2247,7 @@ Status: `cockpit_engineer_simulation_drawer_implemented=true`,
 `cockpit_engineer_signature_permission_required=true`, `cockpit_engineer_capability_required=true`,
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
-`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P4-W12`.
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P5-W01`.
 Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-059`,
 `ISSUE-023/029/030/033`.
 
@@ -2304,5 +2304,56 @@ Status: `cockpit_display_matrix_defined=true`, `cockpit_display_profile_count=3`
 `cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_accessibility_state_not_color_only=true`,
 `cockpit_display_large_text_1_3_verified=true`, `cockpit_display_unsupported_fail_closed=true`,
 `cockpit_display_matrix_android13_arm64_verified=true`, `cockpit_display_effect_authorization_source=false`,
-`hardware_accessed=false`, `implementation_stage=P4-W12`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
+`hardware_accessed=false`, `implementation_stage=P5-W01`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
 `XSC-001/005/006`; tracking: `DEV-061`, `ISSUE-019/033`.
+
+## P4-W12 aggregate Android acceptance interface
+
+### Contract and command surface
+
+`central-brain/contracts/central_brain_android_p4_hmi_acceptance.json` is the machine-readable P4 application acceptance contract.
+It declares the exact ordered suites, evidence mode of every suite, admitted positive claims and mandatory negative claims. Its command
+surface is:
+
+```bash
+tools/test_client2_central_brain_p4_acceptance.sh \
+  --require-api-33 \
+  --replace-conflicting-client2
+```
+
+The optional `--serial` value is forwarded to child suites but is never printed. `--skip-build` may be used only when the caller has
+already built the same source revision. `--replace-conflicting-client2` authorizes removal of an incompatible package signer before
+install; it does not authorize system package or vendor software changes.
+
+### Ordered child-suite interface
+
+| Order | Suite | Evidence mode | Owned result |
+| --- | --- | --- | --- |
+| 1 | recovery | `physical-positive` | navigation, outside dismiss, process death, replay/dedup |
+| 2 | engineer simulation | `physical-debug-only` | UNKNOWN/MOVING/PARKED and bounded fault rejection |
+| 3 | scenario synchronization | `physical-positive` | cold/fatigue/rest and manual HVAC/Seat admission |
+| 4 | display/accessibility | `physical-positive` | three display profiles, 1.30 font, semantics and restoration |
+| 5 | future timeline/recovery projection | `host-projection-and-physical-fail-closed` | Plan/Effect/approval/partial/mismatch/undo rendering only |
+| 6 | release absence | `release-static-and-apk` | no Runtime simulation Service/adapter in release source/artifact |
+
+Before and after every physical child suite, the aggregate runner clears or checks only the Client2/Runtime crash buffer. It requires
+fresh named markers from each child report, then restarts the Activity and obtains a bounded-retry nonempty UIAutomator tree containing
+the navigation trigger. Every UIAutomator dump/cat call has an 8-second timeout in addition to bounded retry count. ScrollView evidence
+uses bounded top/bottom swipes so 48dp controls do not make HVAC/Seat request state unreachable. Reports contain booleans and bounded
+codes only; they exclude raw device identity, UI tree, screenshots, logs,
+user/model text and vehicle payload.
+
+### Result semantics
+
+`p4_w12_application_acceptance_complete=true` means the maintained Android application suites passed together on API 33 ARM64. It
+does not mean the Runtime publishes automatic Plan/Effect, a production adapter dispatched a command, vehicle readback matched, an
+approval/undo service exists, or target hardware is production validated. Those interfaces remain explicit false claims in both the
+P4 contract and R7C contract. No P4 acceptance state is an Effect authorization source.
+
+Status: `p4_w12_application_acceptance_complete=true`, `p4_automatic_plan_runtime_published=false`,
+`p4_production_effect_dispatch_enabled=false`, `p4_approval_response_service_published=false`,
+`p4_undo_service_published=false`, `p4_vehicle_readback_available=false`,
+`client2_production_release_artifact_available=false`, `hmi_d4_demo_control_loop_complete=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W01`. Req IDs:
+`S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-001/005/006`;
+tracking: `DEV-062`, `ISSUE-033`.

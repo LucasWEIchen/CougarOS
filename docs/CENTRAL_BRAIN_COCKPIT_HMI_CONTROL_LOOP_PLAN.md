@@ -470,11 +470,12 @@ P4 依赖 P1 typed contracts、P2 Digital Twin/simulated adapter 和 P3 durable 
 完成后并行开发 P4-W02/W03 静态壳，但 P4-W04..W10 的完成证据必须来自 Runtime 闭环，不能用
 本地 fake controller 代替。
 
-当前实施状态：P4-W01..P4-W11 已完成应用层交付。P4-W08 对 UNKNOWN/MOVING/untrusted Context 使用
+当前实施状态：P4-W01..P4-W12 已完成应用层交付与聚合验收。P4-W08 对 UNKNOWN/MOVING/untrusted Context 使用
 MOVING_RESTRICTED，隐藏长文本并禁用参数编辑和高风险场景；呈现 mode 不授权 Effect。P4-W09 已交付
 signature/capability protected engineer simulation drawer 和实体 PARKED/MOVING/UNKNOWN 呈现复测，不改变 production
-Context/Safety authority。P4-W11 已完成三档横屏、1.30 fontScale、48dp 与 accessibility semantics；下一工作包为
-P4-W12 Android device acceptance/fault/recovery。
+Context/Safety authority。P4-W11 已完成三档横屏、1.30 fontScale、48dp 与 accessibility semantics；P4-W12 已完成
+Android 13 ARM64 recovery/fault/scenario/display 聚合、crash buffer 和 UI tree。由于自动 Plan/Effect、approval/undo/
+readback 未发布，`hmi_d4_demo_control_loop_complete=false`；下一工作包为 P5-W01 Tool manifest/schema。
 
 ## 15. 验收矩阵
 
@@ -517,14 +518,12 @@ P4-W12 Android device acceptance/fault/recovery。
 HMI-D4 才表示“演示级中控闭环完成”。HMI-D5、production signer、OEM UX/Safety 审批和整车
 验证是独立退出条件，不能从 HMI-D4 推断。
 
-## 17. 当前实现进度（2026-07-17）
+## 17. 当前实现进度（2026-07-18）
 
-P4-W01..P4-W05 已完成：Session/Event bridge、immutable HMI lifecycle、四阶段 shell、HVAC 和 Seat control surface 已进入
-Client2。Seat 新增四座区、heat/vent 互斥、massage、recline、upright/comfort/rest presets、300 ms debounce、
-`scene.manual.seat.adjust.v1` governed Session admission，以及 desired/safety/request/reported/source/quality/effect 分层。
-未知可信 Context 或行驶中主驾位置调整保持 `BLOCKED` 且 dispatch count 为 0；无 readback 时保持
-`UNAVAILABLE/NO_EVIDENCE`，Session acceptance 只显示 REQUESTED。
+P4-W01..P4-W12 的 Android application surface 与聚合验收已完成：Session/Event bridge、immutable reducer、四阶段 shell、
+HVAC/Seat、execution/recovery/restriction、protected engineer drawer、scenario/manual synchronization、display/accessibility
+和 Android 13 ARM64 recovery/fault/UI-tree suite 均有可重复证据。
 
-HMI-D2 尚未完成，因为 Runtime Scenario/Graph/Effect wiring、Digital Twin observation、partial/retry/undo/approval 均未
-连接。下一工作包为 P4-W06 Plan/effect execution timeline。Session V1 HVAC/Seat 参数兼容边界由 `DEV-054/055` 跟踪；
-不得将 `cockpit_hvac_surface_implemented=true` 或 `cockpit_seat_surface_implemented=true` 解释为车辆硬件已执行。
+HMI-D2/HMI-D3/HMI-D4 仍未完成，因为 Runtime Scenario/Graph/Effect wiring、Digital Twin observation、approval response、
+partial/retry/undo command 和车辆 readback 未发布。P4-W12 的 host projection 与实体 disabled/unavailable 不能替代执行闭环；
+该边界由 `DEV-054..062` 与 `ISSUE-022/026/030/033` 跟踪。下一工作包为 P5-W01 Tool manifest/schema。

@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P4-W12`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W01`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P4-W12`.
+`implementation_stage=P5-W01`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,4 +2886,52 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W12`.
+`implementation_stage=P5-W01`.
+
+## P4-W12 implementation detail: aggregate device acceptance
+
+### Smallest modules
+
+| Module | Responsibility | Forbidden responsibility |
+| --- | --- | --- |
+| `central_brain_android_p4_hmi_acceptance.json` | ordered suite/evidence/claim contract | runtime feature enablement |
+| `test_client2_central_brain_p4_acceptance.sh` | API 33 ARM64 orchestration, fresh evidence, crash and final UI checks | retaining raw device evidence |
+| `check_central_brain_android_client2_p4_acceptance.sh` | schema, marker, documentation and release-absence gate | physical-device substitution |
+| recovery child suite | process, navigation, snapshot/replay evidence | Plan/Effect publication |
+| engineer child suite | debug-only Context/fault injection and fail-closed rendering | production vehicle state authority |
+| scenario child suite | natural/manual Session admission and reducer synchronization | synthetic device execution |
+| display child suite | exact profile/accessibility matrix and restoration | OEM display certification |
+| R7C E015 | aggregate application acceptance record | HMI-D4 or target-hardware closure |
+
+### Orchestration algorithm
+
+1. Resolve one ADB target without printing its identifier; require Android API 33 and `arm64-v8a`.
+2. Build/install the maintained Runtime and patched Client2 unless `--skip-build` was explicitly selected.
+3. For every child suite, clear Client2/Runtime crash buffers, execute the suite with API enforcement, verify its newly written report
+   and exact positive/negative markers, then reject any process crash before advancing. UIAutomator commands use an 8-second per-call
+   timeout plus bounded retries; scenario evidence scrolls each HVAC/Seat ScrollView to the required edge before reading or operating it.
+4. Require release-source absence of simulated vehicle/adapter components. A debug engineer Service is allowed only in the debug source
+   set and remains incapable of dispatching Effect or hardware calls.
+5. Force-stop and restart Client2 after all child suites. Dump UIAutomator with bounded retries, require a nonempty tree and navigation
+   trigger, then perform the final crash-buffer check.
+6. Emit only the contract's bounded aggregate booleans. Cleanup traps in the child suites restore any temporarily changed Runtime,
+   display size, density, font scale and rotation.
+
+### Evidence interpretation
+
+The physical-positive suites prove application navigation, reducer behavior, Session admission, safety rejection, process recovery and
+display/accessibility behavior. Host projection tests prove only that typed future events render deterministically. They do not prove
+that the current Runtime publishes those events. Release static/APK checks prove absence of debug simulation surfaces, not production
+vehicle integration. Consequently all Plan/Effect dispatch, approval response, undo, vehicle readback and production Client2 release
+claims remain false until independently implemented and evidenced.
+
+Failure is fail-closed: any missing marker, stale report, wrong ABI/API, crash, empty UI tree, absent navigation trigger, un-restored
+device setting, release simulation surface or claim mismatch fails the aggregate suite. No fallback may infer execution from desired
+state, assistant text, debug context or UI activation.
+
+Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggregate_verified=true`,
+`p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
+`p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
+`hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P5-W01`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.

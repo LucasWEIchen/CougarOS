@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P4-W12' \
+  'implementation_stage=P5-W01' \
   'client2_session_event_primary_api=true' \
   'client2_session_event_typed_callback=true' \
   'client2_scenario_alias_map_count=14' \
@@ -327,6 +327,24 @@ for marker in \
   'cockpit_display_unsupported_fail_closed=true' \
   'cockpit_display_matrix_android13_arm64_verified=true' \
   'cockpit_display_effect_authorization_source=false' \
+  'p4_w12_application_acceptance_complete=true' \
+  'p4_android13_arm64_aggregate_verified=true' \
+  'p4_navigation_show_hide_verified=true' \
+  'p4_natural_scenario_sync_verified=true' \
+  'p4_manual_hvac_seat_admission_verified=true' \
+  'p4_moving_unknown_fail_closed_verified=true' \
+  'p4_runtime_client_process_recovery_verified=true' \
+  'p4_ui_tree_verified=true' \
+  'p4_crash_buffer_clean=true' \
+  'runtime_release_simulation_surface_absent=true' \
+  'p4_plan_effect_projection_host_verified=true' \
+  'p4_automatic_plan_runtime_published=false' \
+  'p4_production_effect_dispatch_enabled=false' \
+  'p4_approval_response_service_published=false' \
+  'p4_undo_service_published=false' \
+  'p4_vehicle_readback_available=false' \
+  'client2_production_release_artifact_available=false' \
+  'hmi_d4_demo_control_loop_complete=false' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -488,8 +506,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P4-W12" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P4-W12 as the next unfinished scope")
+if "Stage 2 P5-W01" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P5-W01 as the next unfinished scope")
 
 for group in (
     "APP-004",

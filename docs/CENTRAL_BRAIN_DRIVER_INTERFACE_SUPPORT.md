@@ -1101,3 +1101,19 @@ display driver 变更或系统属性写入。新增 Driver/HAL 开发量为 0，
 `cockpit_display_effect_authorization_source=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`XSC-001/005/006`、
 `KH-003/006/007`、`DEL-004/005`；tracking：`DEV-061`、`ISSUE-019/033`。
+
+### P4-W12 Aggregate acceptance Driver/HAL boundary
+
+本包只编排已有 Android application/static/ADB 测试，读取 API level、ABI、package state、UI tree 和 Android crash buffer。
+这些数据仅用于本地临时验收，不进入仓库；runner 不读取车辆信号、设备节点、NPU 状态或 vendor payload。
+
+本包不调用 Android Car、CarPropertyManager、Vehicle/VHAL、Vendor Binder/SOA、CAN/DBC、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU、fd/shared memory 或 Driver/HAL。protected engineer fault 仍写入隔离 debug store；Runtime release absence 是
+source/APK 验证，不是硬件探测。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+
+状态：`p4_w12_application_acceptance_complete=true`、`p4_android13_arm64_aggregate_verified=true`、
+`p4_crash_buffer_clean=true`、`p4_automatic_plan_runtime_published=false`、
+`p4_production_effect_dispatch_enabled=false`、`p4_vehicle_readback_available=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。Req IDs：`S2-UX-001..003`、
+`S2-HMI-001..006`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-062`、
+`ISSUE-022/026/030/033`。

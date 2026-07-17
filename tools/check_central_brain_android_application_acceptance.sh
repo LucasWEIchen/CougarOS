@@ -13,6 +13,7 @@ DEVICE_TEST="tools/test_client2_central_brain_recovery.sh"
 ENGINEER_TEST="tools/test_client2_central_brain_engineer_simulation.sh"
 SCENARIO_TEST="tools/test_client2_central_brain_scenario_sync.sh"
 ACCESSIBILITY_TEST="tools/test_client2_central_brain_accessibility_display.sh"
+P4_TEST="tools/test_client2_central_brain_p4_acceptance.sh"
 SNAPSHOT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/acceptance/RuntimeAcceptanceSnapshot.java"
 SNAPSHOT_TEST="central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/acceptance/RuntimeAcceptanceSnapshotTest.java"
 PROBE="central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/DiagnosticProbeActivity.java"
@@ -37,7 +38,7 @@ require_text() {
 
 for path in \
   "$CONTRACT" "$FAULT_RECEIVER" "$DEBUG_MANIFEST" "$MAIN_MANIFEST" \
-  "$DEVICE_TEST" "$ENGINEER_TEST" "$SCENARIO_TEST" "$ACCESSIBILITY_TEST" \
+  "$DEVICE_TEST" "$ENGINEER_TEST" "$SCENARIO_TEST" "$ACCESSIBILITY_TEST" "$P4_TEST" \
   "$SNAPSHOT" "$SNAPSHOT_TEST" "$PROBE" "$INSTALLER" \
   docs/CENTRAL_BRAIN_ANDROID_R7C_APPLICATION_ACCEPTANCE.md; do
   require_file "$path"
@@ -47,6 +48,7 @@ bash -n "$ROOT_DIR/$DEVICE_TEST"
 bash -n "$ROOT_DIR/$ENGINEER_TEST"
 bash -n "$ROOT_DIR/$SCENARIO_TEST"
 bash -n "$ROOT_DIR/$ACCESSIBILITY_TEST"
+bash -n "$ROOT_DIR/$P4_TEST"
 python3 -m json.tool "$ROOT_DIR/$CONTRACT" >/dev/null
 
 require_text "$FAULT_RECEIVER" "BuildConfig.DEBUG"
@@ -182,14 +184,38 @@ for marker in \
 done
 require_text "$ACCESSIBILITY_TEST" "--require-api-33"
 
+for marker in \
+  "p4_w12_application_acceptance_complete=true" \
+  "p4_android13_arm64_aggregate_verified=true" \
+  "p4_navigation_show_hide_verified=true" \
+  "p4_natural_scenario_sync_verified=true" \
+  "p4_manual_hvac_seat_admission_verified=true" \
+  "p4_moving_unknown_fail_closed_verified=true" \
+  "p4_runtime_client_process_recovery_verified=true" \
+  "p4_ui_tree_verified=true" \
+  "p4_crash_buffer_clean=true" \
+  "runtime_release_simulation_surface_absent=true" \
+  "p4_plan_effect_projection_host_verified=true" \
+  "p4_automatic_plan_runtime_published=false" \
+  "p4_production_effect_dispatch_enabled=false" \
+  "p4_approval_response_service_published=false" \
+  "p4_undo_service_published=false" \
+  "p4_vehicle_readback_available=false" \
+  "client2_production_release_artifact_available=false" \
+  "hmi_d4_demo_control_loop_complete=false"; do
+  require_text "$P4_TEST" "$marker"
+done
+require_text "$P4_TEST" "--require-api-33"
+require_text "$P4_TEST" "logcat -b crash -c"
+
 python3 - "$ROOT_DIR/$CONTRACT" <<'PY'
 import json
 import pathlib
 import sys
 
 payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("schema_version") != "2.1.0":
-    raise SystemExit("R7C acceptance schema must remain 2.1.0")
+if payload.get("schema_version") != "2.2.0":
+    raise SystemExit("R7C acceptance schema must remain 2.2.0")
 if payload.get("status") != "verified":
     raise SystemExit("R7C acceptance contract must be verified")
 if payload.get("evidence_scope") != "api33-android-application-integration":
@@ -212,6 +238,7 @@ if [entry.get("id") for entry in evidence] != [
     "R7C-E-012",
     "R7C-E-013",
     "R7C-E-014",
+    "R7C-E-015",
 ]:
     raise SystemExit("R7C evidence IDs/order changed")
 claims = payload.get("claim_state", {})
@@ -233,6 +260,17 @@ expected_true = {
     "cockpit_display_matrix_defined",
     "cockpit_accessibility_semantics_runtime_owned",
     "cockpit_display_matrix_android13_arm64_verified",
+    "p4_w12_application_acceptance_complete",
+    "p4_android13_arm64_aggregate_verified",
+    "p4_navigation_show_hide_verified",
+    "p4_natural_scenario_sync_verified",
+    "p4_manual_hvac_seat_admission_verified",
+    "p4_moving_unknown_fail_closed_verified",
+    "p4_runtime_client_process_recovery_verified",
+    "p4_ui_tree_verified",
+    "p4_crash_buffer_clean",
+    "runtime_release_simulation_surface_absent",
+    "p4_plan_effect_projection_host_verified",
     "api33_end_to_end_acceptance_complete",
     "r7_application_integration_complete",
 }
@@ -247,6 +285,13 @@ expected_false = {
     "cockpit_scenario_effect_dispatch_enabled",
     "cockpit_scenario_readback_available",
     "cockpit_display_effect_authorization_source",
+    "p4_automatic_plan_runtime_published",
+    "p4_production_effect_dispatch_enabled",
+    "p4_approval_response_service_published",
+    "p4_undo_service_published",
+    "p4_vehicle_readback_available",
+    "client2_production_release_artifact_available",
+    "hmi_d4_demo_control_loop_complete",
 }
 if {key for key, value in claims.items() if value is True} != expected_true:
     raise SystemExit("R7C positive claims changed")
@@ -300,6 +345,7 @@ if [[ -f "$RELEASE_APK" && -x "$AAPT" ]] \
 fi
 
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_p4_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android R7C application acceptance check passed"

@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W12`。
+`implementation_stage=P5-W01`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。
 
 ## 49. P4-W08 driving restriction renderer trace
 
@@ -1403,7 +1403,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。
 
 ## 50. P4-W09 engineer simulation drawer trace
 
@@ -1432,7 +1432,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W12`。
+`implementation_stage=P5-W01`。
 
 ## 51. P4-W10 scenario/manual-control synchronization trace
 
@@ -1461,7 +1461,7 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`cockpit_scenario_effect_dispatch_enabled=false`、
 `cockpit_scenario_readback_available=false`、`scenario_execution_enabled=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P4-W12`。
+`target_hardware_validated=false`、`implementation_stage=P5-W01`。
 
 ## 52. P4-W11 accessibility/display matrix trace
 
@@ -1489,4 +1489,37 @@ Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、
 `cockpit_accessibility_state_not_color_only=true`、`cockpit_display_large_text_1_3_verified=true`、
 `cockpit_display_unsupported_fail_closed=true`、`cockpit_display_matrix_android13_arm64_verified=true`、
 `cockpit_display_effect_authorization_source=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W01`。
+
+## 53. P4-W12 Android device acceptance/fault/recovery trace
+
+Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
+`APP-004`、`XSC-001/005/006`、`NV-G-003/005/006/007`、`DEL-001/003/004/005`。
+
+1. P4 必须提供单一 aggregate runner，按 recovery、engineer fault、scenario/manual sync、display/accessibility 顺序调用
+   已维护子套件；每个子套件的 marker 必须重新产生，禁止只读取历史报告。
+2. Runner 必须要求 Android API 33 ARM64，设备选择不得输出 raw serial。每个子套件前清空 crash buffer，完成后检查
+   Client2/Runtime 无 crash；最终必须重新启动 Activity、获取非空 UI tree 并找到导航 trigger。
+3. recovery 必须覆盖 navigation show/hide/outside dismiss、Session replacement、Runtime/Client2 process death、snapshot/
+   replay/dedup 和 hidden-state recreation；失败必须恢复临时 disabled Runtime。
+4. physical-positive 必须覆盖 cold/fatigue/rest、manual HVAC/Seat Session admission、protected UNKNOWN/MOVING/PARKED/fault、
+   1280x720/1920x1080/2560x1440 和 1.30 fontScale；display/font/rotation 必须恢复。
+5. Plan/Effect/Media/Nav/approval/partial/mismatch/undo 必须按证据层分开：host typed projection 可以为 true，实体 Runtime
+   publication/dispatch/readback/command service 必须保持 false；不得把 unavailable/disabled UI 解释为执行成功。
+6. Runtime release 必须没有 debug simulation Service/adapter。若没有独立 production Client2 release artifact，必须公开
+   `client2_production_release_artifact_available=false`，不得用 patched debug APK 冒充 release 资格。
+7. Aggregate 通过只允许 `p4_w12_application_acceptance_complete=true`；`hmi_d4_demo_control_loop_complete`、
+   `production_ready` 和 `target_hardware_validated` 必须保持 false。
+8. 本包不得新增 Android Car/VHAL/Vendor/NPU/Driver-HAL/虚拟化调用，不得提交 UI tree、crash buffer、原始日志、设备身份、
+   用户/模型文本或车辆 payload。
+
+状态：`p4_w12_application_acceptance_complete=true`、`p4_android13_arm64_aggregate_verified=true`、
+`p4_navigation_show_hide_verified=true`、`p4_natural_scenario_sync_verified=true`、
+`p4_manual_hvac_seat_admission_verified=true`、`p4_moving_unknown_fail_closed_verified=true`、
+`p4_runtime_client_process_recovery_verified=true`、`p4_ui_tree_verified=true`、`p4_crash_buffer_clean=true`、
+`runtime_release_simulation_surface_absent=true`、`p4_plan_effect_projection_host_verified=true`、
+`p4_automatic_plan_runtime_published=false`、`p4_production_effect_dispatch_enabled=false`、
+`p4_approval_response_service_published=false`、`p4_undo_service_published=false`、
+`p4_vehicle_readback_available=false`、`client2_production_release_artifact_available=false`、
+`hmi_d4_demo_control_loop_complete=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P5-W01`。
