@@ -8,7 +8,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="apk-labs/client2-central-brain"
 BRIDGE="$PROJECT/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
 CALLBACK="$PROJECT/bridge/src/com/centralbrain/client2/ScenarioCallback.java"
-CONTROLLER="$PROJECT/patches/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
+HMI_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiState.java"
+HMI_REDUCER="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiReducer.java"
+COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 LAYOUT="$PROJECT/patches/main_layout.central_brain_panel.xml"
 PATCHER="$PROJECT/scripts/apply_static_panel_patch.py"
 DEX_BUILD="$PROJECT/scripts/build_binder_bridge_dex.sh"
@@ -37,7 +39,8 @@ require_text() {
 }
 
 for path in \
-  "$BRIDGE" "$CALLBACK" "$CONTROLLER" "$LAYOUT" "$PATCHER" "$DEX_BUILD" \
+  "$BRIDGE" "$CALLBACK" "$HMI_STATE" "$HMI_REDUCER" "$COORDINATOR" \
+  "$LAYOUT" "$PATCHER" "$DEX_BUILD" \
   "$APK_BUILD" "$PROJECT_VERIFY" "$DEVICE_TEST" "$RECOVERY_TEST" \
   "$POLICY" "$SNAPSHOT" \
   "$PROJECT/client2-central-brain.project.json" "$PROJECT/README.md"; do
@@ -69,8 +72,11 @@ done
 require_text "$BRIDGE" "private static Map<String, String> scenarioAliases()"
 require_text "$BRIDGE" "request.scenarioId = scenarioId"
 require_text "$BRIDGE" "SessionConnection openSession("
+require_text "$BRIDGE" "SessionConnection resumeSession("
 require_text "$BRIDGE" "new SessionClient"
 require_text "$BRIDGE" "connectedClient.openSession(request(), this)"
+require_text "$BRIDGE" "connectedClient.observeSession("
+require_text "$BRIDGE" "client2_session_resumed=true"
 require_text "$BRIDGE" "client2_session_snapshot_received=true"
 require_text "$BRIDGE" "client2_session_event_received=true"
 require_text "$BRIDGE" "client2_session_replay_complete=true"
@@ -97,28 +103,33 @@ require_text "$BRIDGE" "session_event_transport_used=true"
 require_text "$BRIDGE" "http_transport_used=false"
 require_text "$BRIDGE" "service_dispatch_triggered=false"
 require_text "$BRIDGE" "hardware_accessed=false"
-require_text "$CONTROLLER" ".implements Lcom/centralbrain/client2/ScenarioCallback;"
-require_text "$CONTROLLER" "Client2ScenarioBridge;->submit"
-require_text "$CONTROLLER" "onBridgeStatus"
-require_text "$CONTROLLER" "onBridgeReply"
-require_text "$CONTROLLER" "onBridgeFailure"
-require_text "$CONTROLLER" "requestInFlight"
-require_text "$CONTROLLER" "central_brain_menu_toggle"
-require_text "$CONTROLLER" "togglePanel"
-require_text "$CONTROLLER" "hidePanel"
-require_text "$CONTROLLER" "setVisibility"
+require_text "$HMI_STATE" "public final class CockpitHmiState"
+require_text "$HMI_STATE" "public Checkpoint checkpoint()"
+require_text "$HMI_STATE" "It intentionally excludes all display text"
+require_text "$HMI_REDUCER" "public static CockpitHmiState reduce("
+require_text "$HMI_REDUCER" "event.sequence <= current.getLastEventSequence()"
+require_text "$HMI_REDUCER" "CB_HMI_EVENT_GAP"
+require_text "$COORDINATOR" "implements"
+require_text "$COORDINATOR" "Application.ActivityLifecycleCallbacks"
+require_text "$COORDINATOR" "Client2ScenarioBridge.openSession"
+require_text "$COORDINATOR" "Client2ScenarioBridge.resumeSession"
+require_text "$COORDINATOR" "CockpitHmiReducer.reduce"
+require_text "$COORDINATOR" "client2_hmi_session_replaced=true"
+require_text "$COORDINATOR" "client2_hmi_state_retained=true"
+require_text "$COORDINATOR" "client2_hmi_checkpoint_text_persisted=false"
+require_text "$COORDINATOR" "legacy_text_callback_authoritative=false"
 require_text "$LAYOUT" "centralBrainNavigationTrigger"
 require_text "$LAYOUT" 'android:visibility="gone"'
 require_text "$LAYOUT" 'android:background="@android:color/transparent"'
 
-if find "$ROOT_DIR/$PROJECT/patches/smali" -name '*RequestTask.smali' -print -quit \
+if find "$ROOT_DIR/$PROJECT/patches/smali" -type f -name '*.smali' -print -quit 2>/dev/null \
     | grep -q .; then
-  echo "legacy Client2 HTTP RequestTask smali remains tracked" >&2
+  echo "legacy Client2 Smali controller remains tracked after Java lifecycle migration" >&2
   exit 1
 fi
 if grep -R -Eiq \
     'http://10\.0\.2\.2|HttpURLConnection|java\.net|okhttp' \
-    "$ROOT_DIR/$PROJECT/bridge" "$ROOT_DIR/$PROJECT/patches/smali"; then
+    "$ROOT_DIR/$PROJECT/bridge"; then
   echo "Client2 Binder sources contain a legacy network transport" >&2
   exit 1
 fi
@@ -130,7 +141,7 @@ if grep -Eiq \
 fi
 if grep -R -Eiq \
     'System\.loadLibrary|android\.car|CarPropertyManager|ioctl|sysfs|/dev/|SocketCAN|SharedMemory' \
-    "$ROOT_DIR/$PROJECT/bridge" "$ROOT_DIR/$PROJECT/patches/smali"; then
+    "$ROOT_DIR/$PROJECT/bridge"; then
   echo "Client2 Binder migration unexpectedly references hardware/native APIs" >&2
   exit 1
 fi
@@ -139,6 +150,7 @@ require_text "$PATCHER" "com.centralbrain.permission.BIND_RUNTIME"
 require_text "$PATCHER" "com.centralbrain.runtime"
 require_text "$PATCHER" "must not request INTERNET"
 require_text "$PATCHER" "must not opt into cleartext traffic"
+require_text "$PATCHER" "CockpitControlCoordinator;->install"
 require_text "$DEX_BUILD" 'central-brain-sdk-debug.aar'
 require_text "$DEX_BUILD" 'd8'
 require_text "$DEX_BUILD" 'classes2.dex'
@@ -156,7 +168,11 @@ for marker in \
   "client2_session_event_received=true" \
   "client2_session_event_sequence_verified=true" \
   "client2_session_replay_complete=true" \
-  "client2_legacy_callback_projected=true" \
+  "client2_hmi_replay_projected=true" \
+  "cockpit_hmi_state_reducer_implemented=true" \
+  "cockpit_hmi_lifecycle_owner_java=true" \
+  "client2_hmi_checkpoint_text_persisted=false" \
+  "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \
   "client2_panel_initially_hidden=true" \
   "client2_navigation_toggle_show_verified=true" \
@@ -173,7 +189,9 @@ done
 require_text "$RECOVERY_TEST" "client2_navigation_menu_reopen_verified=true"
 require_text "$RECOVERY_TEST" "client2_session_reconnect_replay_verified=true"
 require_text "$RECOVERY_TEST" "client2_session_duplicate_event_suppressed=true"
-require_text "$RECOVERY_TEST" "client2_legacy_stream_replacement_verified=true"
+require_text "$RECOVERY_TEST" "client2_hmi_session_replacement_verified=true"
+require_text "$RECOVERY_TEST" "client2_hmi_checkpoint_resume_verified=true"
+require_text "$RECOVERY_TEST" "client2_hmi_hidden_state_recreation_verified=true"
 require_text "$DEVICE_TEST" "--require-api-33"
 require_text "$DEVICE_TEST" "--replace-conflicting-client2"
 require_text "$DEVICE_TEST" "SIGNER_MIGRATION_REQUIRED"
@@ -235,14 +253,14 @@ for doc_pattern in \
 done
 
 for doc_pattern in \
-  "README.md|12 场景、文本回复、typed Binder" \
+  "README.md|12 场景、typed Session/Event、immutable state/reducer" \
   "README.md|cockpit_demo_control_loop_implemented=false" \
   "apk-labs/client2-central-brain/README.md|bottom navigation" \
   "docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md|2026-07-15 导航菜单真机验收" \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|Client2 navigation-triggered menu trace" \
   "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|client2_navigation_menu_acceptance_passed=true" \
   "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|Client2 Navigation Menu Driver/HAL Result" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|DEV-051 P4-W01 Client2 UI alias" \
+  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|DEV-051 Client2 UI alias 仍是兼容边界" \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|P4-W01 进展：Client2 已不再通过单次" \
   "docs/CENTRAL_BRAIN_ROADMAP.md|### 2026-07-15" \
   "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md|client2_navigation_menu_acceptance_passed=true"; do

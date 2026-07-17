@@ -1,7 +1,7 @@
 # Client2 APK Reverse Demo Path
 
-版本：0.3
-日期：2026-07-15
+版本：0.4
+日期：2026-07-17
 
 ## 目标
 
@@ -32,22 +32,28 @@ Client2 MainActivity
 ├── AndroidManifest.xml
 │   └── Runtime package query + signature Binder permission, no INTERNET
 ├── classes2.dex
-│   └── public SDK/AIDL + Client2ScenarioBridge
+│   ├── public SDK/AIDL + Client2ScenarioBridge
+│   ├── immutable CockpitHmiState + sole CockpitHmiReducer
+│   └── maintained Java CockpitControlCoordinator
 └── smali/com/tuanjie/urasclient2
-    ├── MainActivity.smali setContentView 后安装 CentralBrainPanelController
-    ├── CentralBrainPanelController.smali
-    └── CentralBrainPanelController$UiUpdate.smali
+    └── MainActivity.smali setContentView 后仅调用 CockpitControlCoordinator.install
 ```
 
 原始 `TuanjieView` 容器保持 `match_parent` 全屏，不因新增 UI 改变车模 viewport。右侧约 1/3 面板通过根 `FrameLayout` 上的 `centralBrainPanelOverlay` 覆盖车模，使用半透明浅灰背景、12dp 外边距、6dp 圆角、8dp elevation、浅色按钮和浅色回复区。上部固定高度控件区可独立滚动，按“场景任务”“状态与成长”“安全与系统”三组提供 12 个按钮；下部 `centralBrainReplyText` 保持固定结果区域。
 
 面板启动状态为 `GONE`。Client2 底部导航由 Tuanjie/RenderService 绘制，没有 Android `View` 回调；patch 在底部增加透明、可访问性可识别的 `centralBrainNavigationTrigger`，映射当前导航图标。首次点击显示菜单，第二次点击或点击面板外区域隐藏；面板自身消费点击，内部按钮和滚动不会关闭菜单。
 
-每个按钮通过 `android:tag` 绑定稳定 UI alias。P4-W01 后，`Client2ScenarioBridge.openSession` 通过 12 项
-exact map 转换为 canonical Session ID，再由 public `SessionClient` 打开 Session；typed snapshot/event/replay
-callback 更新 projection。旧 Smali `submit(...)` descriptor 只作兼容入口，`requestInFlight` 只覆盖首次 replay
-完成前的重复点击；完成后的新请求会替换旧兼容 stream。APK 不申请网络权限，不保留 HTTP fallback。场景产品定义和
-实现顺序见 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md` 与 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`。
+每个按钮通过 `android:tag` 绑定稳定 UI alias。P4-W01 后，`Client2ScenarioBridge.openSession` 通过 12 项 exact
+map 转换为 canonical Session ID，再由 public `SessionClient` 打开 Session。P4-W02 把 typed
+snapshot/event/replay callback 统一送入 immutable `CockpitHmiState` 和唯一 reducer；Java coordinator 只按
+reducer state 渲染，且负责 Session replacement、Activity lifecycle、reconnect 和 existing Session resume。
+旧 Smali controller 已删除，旧 `submit(...)` 只作为未被当前 UI 调用的兼容入口。APK 不申请网络权限，不保留
+HTTP fallback。场景产品定义和实现顺序见 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md` 与
+`CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`。
+
+Process-local retain state 用于同进程 Activity recreate；app-private SharedPreferences checkpoint 只保存 schema、
+panel visibility、UI/canonical alias、SessionHandle metadata、last sequence 和 resume cursor。用户输入、模型文本、
+summary、reply projection 和车辆 payload 均不持久化。该恢复层是 debug APK 兼容实现，不是量产加密 HMI state store。
 
 该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、secondary dex、typed Binder、rebuild、zipalign、debug sign 和静态/真机验证链路成立。
 
@@ -125,9 +131,9 @@ Binder/UI 脚本、Android 13 目标设备证据和受控 GitHub 硬件测试流
 在 1920x1080、160 dpi、Android 13/API 33 ARM64 物理控制器上重新构建、安装并验收。UIAutomator
 识别到透明导航目标 `[760,984][840,1080]`，与当前底部导航图标对齐。自动化依次验证启动时
 `centralBrainColdButton` 不可见、首次导航点击显示、第二次点击隐藏、再次显示后点击面板外隐藏、
-再次打开并完成 `care.cold` typed Binder/UI 回复。P4-W01 恢复矩阵确认 Client2 进程重启后菜单可以
-重新打开，且 Runtime 不可用/死亡/恢复、Session reconnect/replay、duplicate suppression、兼容 stream replacement
-和 Binder race 未回归。
+再次打开并完成 `care.cold` typed Binder/UI 回复。P4-W02 恢复矩阵确认 Client2 进程重启后恢复同一 Session，
+隐藏面板状态保持不变，重新打开后 replay projection 继续；Runtime 不可用/死亡/恢复、Session reconnect/replay、
+duplicate suppression、Session replacement 和 Binder race 未回归，checkpoint 未持久化显示文本。
 
 该坐标只记录当前受测显示配置，不是跨分辨率稳定接口。量产应改用源码 HMI 导航事件或厂商公开
 回调；在此之前，其他 density、分辨率或主题必须单独执行触点与可访问性回归。

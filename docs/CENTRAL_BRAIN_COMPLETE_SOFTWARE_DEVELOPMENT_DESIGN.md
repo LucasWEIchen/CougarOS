@@ -212,12 +212,12 @@ flowchart TB
 | Event | DurableEventBroker、Subscription、Backpressure、TriggerEngine | `NOT_STARTED` | `S2-EVT-001` |
 | Model | ProviderRegistry、PolicyAwareRouter、LocalProvider、Evaluator | `NOT_STARTED` | `S2-MDL-001` |
 | Observability | TraceContext、MetricRecorder、ScenarioEvaluator | `NOT_STARTED` | `S2-OBS-001` |
-| Product HMI state | state reducer、plan timeline、session/effect renderer | `NOT_STARTED` | `S2-UX-001` |
+| Product HMI state | immutable state/reducer、plan timeline、session/effect renderer | `FOUNDATION`（P4-W02 state/reducer/lifecycle 完成；四阶段 timeline/effect renderer 未接） | `S2-UX-001` |
 | Product HMI driving mode | moving/parked/unknown presentation policy | `NOT_STARTED` | `S2-UX-002` |
 | Product HMI control | approval/cancel/retry/partial/undo controls | `NOT_STARTED` | `S2-UX-003` |
 | Cockpit HVAC surface | power/zone/temp/fan/mode/preset controls | `NOT_STARTED` | `S2-HMI-001` |
 | Cockpit Seat surface | heat/vent/massage/recline/preset/restriction | `NOT_STARTED` | `S2-HMI-002` |
-| Cockpit control loop | reducer、desired/reported、timeline、recovery | `NOT_STARTED` | `S2-HMI-003` |
+| Cockpit control loop | reducer、desired/reported、timeline、recovery | `FOUNDATION`（P4-W02 reducer 与 Session recovery 完成；desired/reported/timeline 未接） | `S2-HMI-003` |
 | Cockpit simulation presentation | SIMULATED/UNAVAILABLE source and engineer fault profile | `NOT_STARTED` | `S2-HMI-004` |
 | Cockpit unified command path | manual and AI scenario share governed Effect flow | `NOT_STARTED` | `S2-HMI-005` |
 | Cockpit intent orchestration UX | natural intent、Context/Plan/Policy/Effect/readback chain、device detail drawer | `NOT_STARTED` | `S2-HMI-006` |
@@ -2519,3 +2519,105 @@ Client2 process restart 和菜单重开。R7C acceptance schema 升为 1.1.0。
 `cockpit_demo_control_loop_implemented=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、
 `implementation_stage=P4-W02`。Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001/005/006`、
 `NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-033/034`。
+
+## P4-W02 implemented Cockpit HMI state/reducer/reconnect
+
+### 设计意图
+
+P4-W02 将 Client2 View 从 Session callback 中解耦。HMI 不再由 Smali static flag 或三条 legacy 文本 callback 驱动，
+而是把 transport notification 转换为 typed reducer event，并仅渲染 immutable `CockpitHmiState`。目标是让 panel hide、
+Activity recreate、Runtime reconnect 和 Client2 process recreate 使用同一条恢复语义，不产生第二套临时状态机。
+
+### 模块与所有权
+
+| 模块 | 输入 | 输出/所有权 | 线程与持久化 |
+| --- | --- | --- | --- |
+| `CockpitHmiState` | reducer builder | immutable render projection、defensive SessionHandle | 无 Android View；不写存储 |
+| `CockpitHmiReducer` | current state + immutable Event | next state 或 duplicate 时返回同一实例 | pure/synchronous；无时钟、线程、I/O |
+| `CockpitControlCoordinator` | View click、typed Session callback、Activity lifecycle | 唯一 View renderer 和 `SessionConnection` owner | Activity main executor；app-private checkpoint |
+| `Client2ScenarioBridge.resumeSession` | Activity、UI alias、existing handle、opaque cursor | caller-owned resumed SessionConnection | `SessionClient.observeSession` + SDK replay |
+| MainActivity Smali hook | `Activity` | 调用 `CockpitControlCoordinator.install` | 无业务 state；无 callback 实现 |
+
+旧 `CentralBrainPanelController.smali` 和 `$UiUpdate.smali` 已删除。`Client2ScenarioBridge.submit` 仍保留 deprecated
+descriptor 作为 Stage 1 binary compatibility surface，但当前 Client2 不调用它；`legacy_text_callback_authoritative=false`。
+
+### CockpitHmiState
+
+State 字段只包含：revision、panel visibility、connection state、UI/canonical scenario ID、SessionHandle primitive、
+Session state、last reduced event sequence、opaque resume cursor、当前进程内 snapshot summary/assistant display text、last event
+type、bounded error 和 replay/terminal flag。所有字段 final；`toSessionHandle()` 每次构造新对象，不返回内部 mutable AIDL。
+
+`renderText()` 是无副作用 projection，优先级固定为 bounded error -> assistant message -> snapshot summary -> connection
+placeholder。它不得解析 message 内容来改变 connection/session/effect state。
+
+`Checkpoint` 仅包含 panel visibility、alias、handle schema/session/timestamps、last sequence 和 cursor。`checkpoint()` 在
+terminal state 清空 handle，避免下一进程恢复已结束会话。Checkpoint 明确不包含 utterance、summary、assistant/model
+text、event payload 或车辆数据。
+
+### Reducer event 与转换表
+
+| Event | 关键校验 | State 结果 |
+| --- | --- | --- |
+| `PANEL_VISIBILITY` | boolean | 只改 visible/hidden，保留 Session projection |
+| `SCENARIO_SUBMITTED` | bounded UI alias | 清旧 identity，进入 CONNECTING |
+| `CONNECTION_CHANGED` | typed bool | CONNECTED 或 RECONNECTING；不清 snapshot |
+| `SESSION_OPENED` | `SessionContract.validateHandle` | 保存 copied handle/canonical ID |
+| `SNAPSHOT` | validated + same session | 更新 authoritative session state/summary/terminal |
+| `RUNTIME_EVENT` | validated + same session + monotonic sequence | duplicate 返回 current；gap fail closed；assistant 只更新 display |
+| `REPLAY_COMPLETE` | same session、sequence 不回退 | `replayComplete=true` |
+| `OVERFLOW` | same session、bounded opaque cursor | 保存 cursor，进入 RECONNECTING |
+| `STREAM_CLOSED/FAILURE` | optional matching handle | bounded CLOSED/FAILED projection |
+| `DETACHED` | 无 | 保留 handle/cursor/event，connection -> DISCONNECTED |
+| `RESTORED` | bounded checkpoint | 恢复最小 state，存在 handle 时进入 RECONNECTING |
+
+Reducer 不调 adapter、Graph、model、Vehicle 或 NPU。Event sequence duplicate 不增加 revision；non-contiguous event 产生
+`CB_HMI_EVENT_GAP`，禁止 UI 猜测缺失状态。
+
+### Coordinator 生命周期
+
+```text
+MainActivity.setContentView
+  -> CockpitControlCoordinator.install(activity)
+  -> restore in-process state, else bounded private checkpoint
+  -> bind overlay/navigation/scenario buttons
+  -> render immutable state
+  -> if handle nonterminal/unexpired: resumeSession(handle, cursor)
+
+scenario click
+  -> close previous SessionConnection
+  -> reduce SCENARIO_SUBMITTED
+  -> openSession
+  -> typed callbacks -> reduce -> checkpoint -> render
+
+Activity destroyed
+  -> reduce DETACHED
+  -> checkpoint
+  -> close SessionConnection
+  -> unregister ActivityLifecycleCallbacks
+```
+
+Panel hide 不关闭 Session。新 scenario click 明确关闭前一 coordinator-owned stream 并记录 replacement，不使用全局
+`requestInFlight`。Runtime Binder death 由同一 `SessionClient` reconnect；Activity/process recreate 则由
+`resumeSession` 对已有 handle 调 `observeSession`。Event V1 terminal cursor 限制仍由 `ISSUE-034` 跟踪，reducer 的
+last sequence 提供第二层 projection 去重，不伪造 V2 ACK。
+
+### Checkpoint 安全边界
+
+SharedPreferences 文件为 Client2 app-private、schema v1。每次 reduce 保存 bounded checkpoint；未知 schema、非法 handle、
+缺 alias、过期 handle 或 malformed cursor 会清空 checkpoint并回到 initial state。代码和静态门禁禁止任何
+`summary/display/text/utterance/message` key。Checkpoint 不构成 Memory 模块，也不上传或输出 session UUID。
+
+### 验证与未完成项
+
+host-JVM test 覆盖 immutable state、duplicate identity、gap fail-closed、hidden/detach preservation、text-free checkpoint、
+restore 和 terminal no-resume。Android 13/API 33 ARM64 覆盖 typed happy path、HMI Session replacement、Runtime death
+reconnect/replay、Client2 force-stop/relaunch existing Session、hidden restore、menu reopen 和 UI summary。
+
+状态：`cockpit_hmi_state_immutable=true`、`cockpit_hmi_state_reducer_implemented=true`、
+`cockpit_hmi_lifecycle_owner_java=true`、`client2_smali_controller_retired=true`、
+`client2_hmi_checkpoint_resume_verified=true`、`client2_hmi_hidden_state_recreation_verified=true`、
+`client2_hmi_checkpoint_text_persisted=false`、`legacy_text_callback_authoritative=false`、
+`cockpit_demo_control_loop_implemented=false`、`scenario_execution_enabled=false`、
+`service_dispatch_triggered=false`、`hardware_accessed=false`、`implementation_stage=P4-W03`。
+Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-019/033/034`。

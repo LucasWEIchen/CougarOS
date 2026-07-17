@@ -99,7 +99,8 @@ wait_for_log() {
   local log=""
   for _ in {1..80}; do
     log="$("${ADB_DEVICE[@]}" logcat -d \
-      CbClient2Session:I CentralBrainRuntime:I CentralBrainFaultProbe:W '*:S')"
+      CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I \
+      CentralBrainFaultProbe:W '*:S')"
     if grep -Fq "$marker" <<<"$log"; then
       printf '%s\n' "$log" >"$output_file"
       return 0
@@ -223,6 +224,9 @@ for marker in \
   'client2_session_snapshot_received=true' \
   'client2_session_event_received=true' \
   'client2_session_replay_complete=true' \
+  'cockpit_hmi_state_reducer_implemented=true' \
+  'client2_hmi_replay_projected=true' \
+  'legacy_text_callback_authoritative=false' \
   'client2_ui_session_projection_verified=true' \
   'client2_panel_initially_hidden=true' \
   'client2_navigation_toggle_show_verified=true' \
@@ -239,11 +243,12 @@ for marker in \
 done
 
 "${ADB_DEVICE[@]}" shell settings put secure immersive_mode_confirmations confirmed
+"${ADB_DEVICE[@]}" shell pm clear com.tuanjie.urasclient2 >/dev/null
 launch_client2 "$LOG_DIR/client2-launch.txt"
 open_navigation_menu \
   "$LOG_DIR/ui-initial-hidden.xml" "$LOG_DIR/ui-initial.xml"
 
-# Runtime unavailable must be visible and must release the initial compatibility projection gate.
+# Runtime unavailable must be visible and leave the reducer ready for a new typed Session.
 "${ADB_DEVICE[@]}" shell pm disable-user --user 0 com.centralbrain.runtime \
   >"$LOG_DIR/runtime-disable.txt"
 RUNTIME_DISABLED=true
@@ -253,7 +258,7 @@ wait_for_log \
   'reason=Session/Event bind rejected' \
   "$LOG_DIR/runtime-absent-log.txt"
 assert_ui_reply \
-  'text="Binder failed: Session/Event bind rejected"' \
+  'Session/Event bind rejected' \
   "$LOG_DIR/ui-runtime-absent.xml"
 
 "${ADB_DEVICE[@]}" shell pm enable com.centralbrain.runtime \
@@ -266,8 +271,8 @@ wait_for_log 'client2_session_replay_complete=true' \
 assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
   "$LOG_DIR/ui-runtime-reenabled.xml"
 
-# A second accepted request replaces the previous compatibility subscription. Each Session still
-# receives exactly one sequence-1 event and one initial replay projection.
+# A second accepted request replaces the coordinator-owned Session. Each Session still receives
+# exactly one sequence-1 event and one reducer replay projection.
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
 wait_for_log 'client2_session_replay_complete=true' \
@@ -276,7 +281,7 @@ tap_cold
 STREAM_REPLACED=false
 for _ in {1..80}; do
   REPLACEMENT_LOG="$("${ADB_DEVICE[@]}" logcat -d \
-    CbClient2Session:I CentralBrainRuntime:I '*:S')"
+    CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I '*:S')"
   if [[ "$(grep -Fc 'client2_session_replay_complete=true' \
       <<<"$REPLACEMENT_LOG")" -ge 2 ]]; then
     printf '%s\n' "$REPLACEMENT_LOG" >"$LOG_DIR/stream-replacement-log.txt"
@@ -287,7 +292,7 @@ for _ in {1..80}; do
 done
 if [[ "$STREAM_REPLACED" != true ]]; then
   printf '%s\n' "$REPLACEMENT_LOG" >"$LOG_DIR/stream-replacement-log.txt"
-  echo "Client2 did not replace the prior compatibility Session" >&2
+  echo "Client2 did not replace the prior coordinator-owned Session" >&2
   exit 1
 fi
 if [[ "$(grep -Fc 'client2_session_opened=true' \
@@ -296,12 +301,12 @@ if [[ "$(grep -Fc 'client2_session_opened=true' \
       "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
     || [[ "$(grep -Fc 'client2_session_replay_complete=true' \
       "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
-    || [[ "$(grep -Fc 'client2_legacy_callback_projected=true' \
+    || [[ "$(grep -Fc 'client2_hmi_replay_projected=true' \
       "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
-    || ! grep -Fq 'client2_legacy_session_replaced=true' \
+    || ! grep -Fq 'client2_hmi_session_replaced=true' \
       "$LOG_DIR/stream-replacement-log.txt"; then
   cat "$LOG_DIR/stream-replacement-log.txt" >&2
-  echo "Client2 compatibility replacement lost or duplicated Session evidence" >&2
+  echo "Client2 HMI replacement lost or duplicated Session evidence" >&2
   exit 1
 fi
 assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
@@ -333,7 +338,8 @@ wait_for_log 'client2_session_reconnected=true' \
 REPLAY_RECOVERED=false
 for _ in {1..80}; do
   RECOVERY_LOG="$("${ADB_DEVICE[@]}" logcat -d \
-    CbClient2Session:I CentralBrainRuntime:I CentralBrainFaultProbe:W '*:S')"
+    CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I \
+    CentralBrainFaultProbe:W '*:S')"
   if [[ "$(grep -Fc 'client2_session_replay_complete=true' \
       <<<"$RECOVERY_LOG")" -ge 2 ]]; then
     printf '%s\n' "$RECOVERY_LOG" >"$LOG_DIR/runtime-death-replay-log.txt"
@@ -364,10 +370,10 @@ if [[ "$(grep -Fc 'client2_session_opened=true' \
   echo "Session reconnect replay duplicated an event or lost replay completion" >&2
   exit 1
 fi
-if ! grep -Fq 'client2_legacy_callback_reprojected=true' \
-    "$LOG_DIR/runtime-death-replay-log.txt"; then
+if [[ "$(grep -Fc 'client2_hmi_replay_projected=true' \
+      "$LOG_DIR/runtime-death-replay-log.txt")" -lt 2 ]]; then
   cat "$LOG_DIR/runtime-death-replay-log.txt" >&2
-  echo "Session reconnect did not refresh the legacy compatibility projection" >&2
+  echo "Session reconnect did not refresh the reducer projection" >&2
   exit 1
 fi
 for marker in \
@@ -384,7 +390,7 @@ done
 assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
   "$LOG_DIR/ui-runtime-death.xml"
 
-# A new click replaces the legacy compatibility stream and opens one new Session.
+# A new click replaces the coordinator-owned stream and opens one new Session.
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
 wait_for_log 'client2_session_replay_complete=true' \
@@ -398,8 +404,17 @@ done
 assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
   "$LOG_DIR/ui-runtime-death-retry.xml"
 
-# Force-stop/relaunch the Client2 process and verify a fresh Binder/UI path.
+# Hide, force-stop and relaunch Client2. The private text-free checkpoint must restore the
+# owner Session while preserving hidden state; opening the menu then reveals replayed state.
+"${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
+dump_ui "$LOG_DIR/ui-before-client-restart-hidden.xml"
+if button_center centralBrainColdButton \
+    "$LOG_DIR/ui-before-client-restart-hidden.xml" >/dev/null; then
+  echo "Client2 panel did not hide before process restart" >&2
+  exit 1
+fi
 CLIENT_PID_BEFORE="$("${ADB_DEVICE[@]}" shell pidof com.tuanjie.urasclient2 | tr -d '\r')"
+"${ADB_DEVICE[@]}" logcat -c
 launch_client2 "$LOG_DIR/client2-relaunch.txt"
 CLIENT_PID_AFTER="$("${ADB_DEVICE[@]}" shell pidof com.tuanjie.urasclient2 | tr -d '\r')"
 if [[ -z "$CLIENT_PID_BEFORE" || -z "$CLIENT_PID_AFTER" \
@@ -407,22 +422,26 @@ if [[ -z "$CLIENT_PID_BEFORE" || -z "$CLIENT_PID_AFTER" \
   echo "Client2 process restart evidence is incomplete" >&2
   exit 1
 fi
-open_navigation_menu \
-  "$LOG_DIR/ui-after-client-restart-hidden.xml" \
-  "$LOG_DIR/ui-after-client-restart.xml"
-"${ADB_DEVICE[@]}" logcat -c
-tap_cold
-wait_for_log 'client2_session_replay_complete=true' \
+wait_for_log 'client2_hmi_replay_projected=true' \
   "$LOG_DIR/client2-restart-log.txt"
 for marker in \
-  'r7_application_integration_complete=true' \
-  'client2_binder_migration_complete=true' \
-  'api33_end_to_end_acceptance_complete=true' \
-  'runtime_acceptance_blockers=TARGET_SYSTEM_INTEGRATION_OWNER_UNRESOLVED' \
-  'production_activation_allowed=false' \
-  'target_hardware_validated=false'; do
+  'client2_hmi_session_resume_requested=true' \
+  'client2_session_resumed=true' \
+  'client2_hmi_replay_projected=true' \
+  'client2_hmi_checkpoint_text_persisted=false' \
+  'legacy_text_callback_authoritative=false' \
+  'hardware_accessed=false'; do
   grep -Fq "$marker" "$LOG_DIR/client2-restart-log.txt"
 done
+dump_ui "$LOG_DIR/ui-after-client-restart-hidden.xml"
+if button_center centralBrainColdButton \
+    "$LOG_DIR/ui-after-client-restart-hidden.xml" >/dev/null; then
+  echo "Client2 hidden panel state was not restored after process restart" >&2
+  exit 1
+fi
+read -r TRIGGER_X TRIGGER_Y <<<"$(button_center centralBrainNavigationTrigger \
+  "$LOG_DIR/ui-after-client-restart-hidden.xml")"
+"${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
 assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
   "$LOG_DIR/ui-client-restart-reply.xml"
 
@@ -433,7 +452,7 @@ printf '%s\n' \
   "device_abi=$ABI" \
   "runtime_absent_failure_visible=true" \
   "runtime_reenable_retry_completed=true" \
-  "client2_legacy_stream_replacement_verified=true" \
+  "client2_hmi_session_replacement_verified=true" \
   "runtime_process_death_injected=true" \
   "client2_session_reconnect_replay_verified=true" \
   "client2_session_duplicate_event_suppressed=true" \
@@ -443,6 +462,10 @@ printf '%s\n' \
   "runtime_service_restart_retry_completed=true" \
   "runtime_restart_reconciliation_fail_closed=true" \
   "client2_process_restart_rebind_completed=true" \
+  "client2_hmi_checkpoint_resume_verified=true" \
+  "client2_hmi_hidden_state_recreation_verified=true" \
+  "client2_hmi_checkpoint_text_persisted=false" \
+  "legacy_text_callback_authoritative=false" \
   "client2_navigation_menu_reopen_verified=true" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \

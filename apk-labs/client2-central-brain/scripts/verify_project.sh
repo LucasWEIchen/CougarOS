@@ -27,14 +27,19 @@ for resource_file in \
   test -f "$PROJECT_DIR/patches/res/drawable/$resource_file"
 done
 
-for smali_file in \
-  'CentralBrainPanelController.smali' \
-  'CentralBrainPanelController$UiUpdate.smali'; do
-  test -f "$PROJECT_DIR/patches/smali/com/tuanjie/urasclient2/$smali_file"
+for java_file in \
+  Client2ScenarioBridge.java \
+  ScenarioCallback.java \
+  CockpitHmiState.java \
+  CockpitHmiReducer.java \
+  CockpitControlCoordinator.java; do
+  test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/$java_file"
 done
-test ! -f "$PROJECT_DIR/patches/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$RequestTask.smali"
-test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
-test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/ScenarioCallback.java"
+if find "$PROJECT_DIR/patches/smali" -type f -name '*.smali' -print -quit 2>/dev/null \
+    | grep -q .; then
+  echo "maintained Client2 Smali controller must be absent" >&2
+  exit 1
+fi
 
 for tool in apktool apksigner zipalign aapt adb jar javac d8; do
   command -v "$tool" >/dev/null
@@ -100,24 +105,9 @@ if [[ -d "$WORK_DIR" ]]; then
     echo "Client2 Binder demo must not request network or cleartext access" >&2
     exit 1
   fi
-  rg -q "CentralBrainPanelController;->install" "$WORK_DIR/smali/com/tuanjie/urasclient2/MainActivity.smali"
-  CONTROLLER="$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
-  rg -q "ScenarioCallback" "$CONTROLLER"
-  rg -q "Client2ScenarioBridge;->submit" "$CONTROLLER"
-  rg -q "onBridgeStatus" "$CONTROLLER"
-  rg -q "onBridgeReply" "$CONTROLLER"
-  rg -q "onBridgeFailure" "$CONTROLLER"
-  rg -q "requestInFlight" "$CONTROLLER"
-  rg -q "panelOverlay" "$CONTROLLER"
-  rg -q "centralBrainNavigationTrigger" "$CONTROLLER"
-  rg -q "central_brain_menu_toggle" "$CONTROLLER"
-  rg -q "hidePanel" "$CONTROLLER"
-  rg -q "togglePanel" "$CONTROLLER"
-  rg -q "setVisibility" "$CONTROLLER"
-  rg -q "bindButtons" "$CONTROLLER"
-  rg -q "setBackgroundTintList" "$CONTROLLER"
-  rg -q "completeRequest" "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$UiUpdate.smali"
-  test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$RequestTask.smali"
+  rg -q "CockpitControlCoordinator;->install" "$WORK_DIR/smali/com/tuanjie/urasclient2/MainActivity.smali"
+  test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
+  test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$UiUpdate.smali"
   test -f "$WORK_DIR/unknown/classes2.dex"
   if rg -a -q "http://10.0.2.2:8787|HttpURLConnection" "$WORK_DIR"; then
     echo "legacy Client2 HTTP transport remains in generated workdir" >&2

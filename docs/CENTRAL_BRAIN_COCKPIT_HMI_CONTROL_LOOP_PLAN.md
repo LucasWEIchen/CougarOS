@@ -396,9 +396,9 @@ Renderer 只能消费 immutable `CockpitHmiState`。View listener 只发出 `Coc
 | --- | --- |
 | `patches/main_layout.central_brain_panel.xml` | 意图/计划/执行/结果四阶段容器、稳定 layout slot、content description |
 | `patches/res/drawable/` | power/fan/HVAC/seat/heat/vent/undo 等 vector/state drawable |
-| `bridge/src/com/centralbrain/client2/hmi/Client2CockpitHmiController.java` | 生命周期和 intent 协调 |
-| `bridge/src/com/centralbrain/client2/hmi/CockpitHmiState.java` | immutable 根状态 |
-| `bridge/src/com/centralbrain/client2/hmi/CockpitHmiReducer.java` | event -> state |
+| `bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java` | 已实现 View、Session、Activity lifecycle 与 process recreation 协调；P4-W03 扩展四阶段 intent shell |
+| `bridge/src/com/centralbrain/client2/CockpitHmiState.java` | 已实现 immutable 根状态和 text-free checkpoint projection |
+| `bridge/src/com/centralbrain/client2/CockpitHmiReducer.java` | 已实现唯一 typed event -> state authority |
 | `bridge/src/com/centralbrain/client2/hmi/CockpitHmiRenderer.java` | state -> Android Views |
 | `bridge/src/com/centralbrain/client2/hmi/IntentComposerBinder.java` | voice/text -> bounded intent request |
 | `bridge/src/com/centralbrain/client2/hmi/ContextDigestBinder.java` | source/freshness/trust projection |
@@ -408,8 +408,8 @@ Renderer 只能消费 immutable `CockpitHmiState`。View listener 只发出 `Coc
 | `bridge/src/com/centralbrain/client2/hmi/ExecutionSurfaceBinder.java` | timeline/approval/undo |
 | `bridge/src/com/centralbrain/client2/hmi/ResultSurfaceBinder.java` | verified evidence/feedback/undo |
 | `bridge/src/com/centralbrain/client2/hmi/DeviceDetailDrawer.java` | Effect 详情和受治理手动兜底 |
-| `bridge/src/com/centralbrain/client2/hmi/CockpitControlCoordinator.java` | SDK session/event/snapshot |
-| `patches/smali/.../CentralBrainPanelController.smali` | 最小 bootstrap/show/hide，逐步移除业务逻辑 |
+| `bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java` | 已实现 SDK session/event/snapshot 与 existing Session resume |
+| `MainActivity.smali` generated hook | 只调用 `CockpitControlCoordinator.install(Activity)`；旧 Smali controller 已删除 |
 
 Java 代码通过 `Resources.getIdentifier` 或生成的稳定 ID 映射绑定 patched resource，禁止依赖逆向
 输出中的瞬时整数 ID。所有资源和 Java 源码进入正式 patch 工程；`reverse/` 仍是受控输入。

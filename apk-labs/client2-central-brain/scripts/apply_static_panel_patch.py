@@ -147,8 +147,17 @@ def patch_main_activity_hook(work_dir: Path) -> None:
     text = main_activity.read_text(encoding="utf-8")
     hook = (
         "    invoke-static {p0}, "
+        "Lcom/centralbrain/client2/CockpitControlCoordinator;->install(Landroid/app/Activity;)V"
+    )
+    legacy_hook = (
+        "    invoke-static {p0}, "
         "Lcom/tuanjie/urasclient2/CentralBrainPanelController;->install(Landroid/app/Activity;)V"
     )
+    if legacy_hook in text:
+        text = text.replace(legacy_hook, hook, 1)
+        main_activity.write_text(text, encoding="utf-8")
+        print(f"replaced legacy MainActivity hook: {main_activity}")
+        return
     if hook in text:
         print(f"MainActivity hook already present: {main_activity}")
         return
@@ -171,25 +180,6 @@ def patch_main_activity_hook(work_dir: Path) -> None:
     print(f"patched {main_activity}")
 
 
-def copy_smali_patches(work_dir: Path, project_dir: Path) -> None:
-    smali_src = project_dir / "patches" / "smali"
-    smali_dst = work_dir / "smali"
-    if not smali_src.is_dir():
-        raise SystemExit(f"missing smali patch directory: {smali_src}")
-    if not smali_dst.is_dir():
-        raise SystemExit(f"missing smali output directory: {smali_dst}")
-
-    copied = 0
-    for src in smali_src.rglob("*.smali"):
-        dst = smali_dst / src.relative_to(smali_src)
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
-        copied += 1
-    if copied != 2:
-        raise SystemExit(f"expected exactly 2 smali patch files, copied {copied}")
-    print(f"copied {copied} smali patch files into {smali_dst}")
-
-
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--work-dir", required=True)
@@ -206,7 +196,6 @@ def main() -> int:
     copy_resource_patches(work_dir, project_dir)
     patch_manifest(work_dir)
     patch_main_activity_hook(work_dir)
-    copy_smali_patches(work_dir, project_dir)
     return 0
 
 

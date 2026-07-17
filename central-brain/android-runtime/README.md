@@ -961,5 +961,7 @@ Historical A-B-A result-digest replay is also verified exactly once per determin
 `graph_restart_executor_dispatch_enabled=false`, `graph_restart_effect_dispatch_enabled=false`,
 `graph_restart_production_wired=false`, `agent_graph_runtime_persistence_wired=false`,
 `production_effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. Runtime/Binder activation
-is tracked by DEV-050. P4-W01 has since migrated Client2 to the published Session/Event facade without
-activating this recovery path; P4-W02 Cockpit HMI state/reducer/reconnect is the next work package.
+is tracked by DEV-050. P4-W01 migrated Client2 to the published Session/Event facade without activating this
+recovery path. P4-W02 then replaced the legacy Smali lifecycle owner with an immutable HMI state/reducer and a
+maintained Java coordinator that resumes the same owner Session from a text-free checkpoint. P4-W03 four-stage
+intent/plan/execution/result rendering is the next work package.

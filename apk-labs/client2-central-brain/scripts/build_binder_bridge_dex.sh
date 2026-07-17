@@ -42,8 +42,8 @@ if [[ ! -f "$SDK_CLASSES" ]]; then
 fi
 
 mapfile -t SOURCES < <(find "$PROJECT_DIR/bridge/src" -type f -name '*.java' -print | sort)
-if [[ "${#SOURCES[@]}" -ne 2 ]]; then
-  echo "Expected exactly two Client2 Binder bridge Java sources" >&2
+if [[ "${#SOURCES[@]}" -ne 5 ]]; then
+  echo "Expected exactly five Client2 HMI/Session Java sources" >&2
   exit 1
 fi
 

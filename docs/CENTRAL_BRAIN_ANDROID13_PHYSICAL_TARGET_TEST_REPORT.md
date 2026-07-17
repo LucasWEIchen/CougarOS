@@ -192,4 +192,33 @@ target_hardware_validated=false
 ```
 
 该证据证明 Android 应用层 Session/Event bridge 与恢复行为，不证明 scenario/Graph/Effect 执行、HVAC/Seat 控制、
-真实车辆信号、NPU、Driver/HAL 或量产资格。P4-W02 immutable HMI reducer/lifecycle owner 尚未交付。
+真实车辆信号、NPU、Driver/HAL 或量产资格。
+
+## 9. 2026-07-17 P4-W02 immutable HMI/recreate evidence
+
+同一 Android 13/API 33 ARM64 USB 设备通过：
+
+1. maintained Java coordinator 直接消费 typed snapshot/event/replay，legacy text callback 非权威；
+2. 连续场景请求由 coordinator close/replace，每个新 Session 只有一条 sequence-1 event；
+3. Runtime process death 后原 connection reconnect/replay，HMI state 不产生 terminal；
+4. panel hide 后 force-stop Client2，重启从 private text-free checkpoint resume existing Session；
+5. process restart 后 panel 仍隐藏，点底部导航后显示 replayed snapshot summary；
+6. checkpoint 不保存 user/model/display text，未访问车辆/NPU/Driver-HAL。
+
+```text
+cockpit_hmi_state_reducer_implemented=true
+cockpit_hmi_lifecycle_owner_java=true
+client2_hmi_session_replacement_verified=true
+client2_hmi_checkpoint_resume_verified=true
+client2_hmi_hidden_state_recreation_verified=true
+client2_hmi_checkpoint_text_persisted=false
+legacy_text_callback_authoritative=false
+scenario_execution_enabled=false
+service_dispatch_triggered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据是当前 Client2 debug APK 的应用层恢复验收。SharedPreferences 的 production encryption/backup/user owner 仍由
+`DEV-052/ISSUE-035` 跟踪，四阶段 shell/HVAC/Seat/Runtime 执行闭环未完成。

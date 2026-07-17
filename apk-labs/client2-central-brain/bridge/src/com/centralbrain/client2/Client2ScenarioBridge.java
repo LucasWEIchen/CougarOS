@@ -56,7 +56,35 @@ public final class Client2ScenarioBridge {
             String scenarioId,
             String userText,
             ScenarioCallback callback) {
-        return openSessionInternal(activity, scenarioId, userText, callback, false);
+        return openSessionInternal(activity, scenarioId, userText, callback, false, null, "");
+    }
+
+    /** Restores observation of an existing owner-scoped Session after HMI recreation. */
+    public static SessionConnection resumeSession(
+            Activity activity,
+            String scenarioId,
+            SessionHandle handle,
+            String resumeCursor,
+            ScenarioCallback callback) {
+        if (handle == null) {
+            reportRejected(callback, false, "missing session handle");
+            return null;
+        }
+        try {
+            SessionContract.validateHandle(handle);
+            validateCursor(resumeCursor);
+        } catch (RuntimeException failure) {
+            reportRejected(callback, false, "invalid session resume state");
+            return null;
+        }
+        return openSessionInternal(
+                activity,
+                scenarioId,
+                "",
+                callback,
+                false,
+                handle,
+                resumeCursor);
     }
 
     /**
@@ -74,7 +102,9 @@ public final class Client2ScenarioBridge {
                 scenarioId,
                 userText,
                 callback,
-                true);
+                true,
+                null,
+                "");
         if (replacement == null) {
             return false;
         }
@@ -110,7 +140,9 @@ public final class Client2ScenarioBridge {
             String scenarioId,
             String userText,
             ScenarioCallback callback,
-            boolean legacyCompatibility) {
+            boolean legacyCompatibility,
+            SessionHandle resumeHandle,
+            String resumeCursor) {
         if (activity == null || callback == null || !SCENARIOS.containsKey(scenarioId)) {
             reportRejected(callback, legacyCompatibility, "unsupported scenario");
             return null;
@@ -126,7 +158,9 @@ public final class Client2ScenarioBridge {
                 SCENARIOS.get(scenarioId),
                 boundedText,
                 callback,
-                legacyCompatibility);
+                legacyCompatibility,
+                resumeHandle,
+                resumeCursor);
         return submission.start() ? submission : null;
     }
 
@@ -154,6 +188,8 @@ public final class Client2ScenarioBridge {
         private final String userText;
         private final ScenarioCallback callback;
         private final boolean legacyCompatibility;
+        private final boolean resumeExisting;
+        private final String initialResumeCursor;
         private final AtomicBoolean closed = new AtomicBoolean();
         private final AtomicBoolean legacyInitialProjection = new AtomicBoolean();
 
@@ -168,7 +204,9 @@ public final class Client2ScenarioBridge {
                 String scenarioId,
                 String userText,
                 ScenarioCallback callback,
-                boolean legacyCompatibility) {
+                boolean legacyCompatibility,
+                SessionHandle resumeHandle,
+                String resumeCursor) {
             this.appContext = appContext;
             this.callbackExecutor = callbackExecutor;
             this.uiScenarioId = uiScenarioId;
@@ -176,6 +214,9 @@ public final class Client2ScenarioBridge {
             this.userText = userText;
             this.callback = callback;
             this.legacyCompatibility = legacyCompatibility;
+            this.resumeExisting = resumeHandle != null;
+            this.initialResumeCursor = resumeCursor == null ? "" : resumeCursor;
+            this.handle = copy(resumeHandle);
         }
 
         boolean start() {
@@ -210,6 +251,20 @@ public final class Client2ScenarioBridge {
                 return;
             }
             try {
+                if (resumeExisting) {
+                    connectedClient.observeSession(
+                            copy(handle),
+                            initialResumeCursor,
+                            this);
+                    callback.onSessionOpened(copy(handle), scenarioId);
+                    legacyStatus("Session resumed: " + uiScenarioId);
+                    Log.i(TAG, baseMarkers()
+                            + " client2_session_transport_connected=true"
+                            + " client2_session_resumed=true"
+                            + " session_id_present=" + hasText(handle.sessionId)
+                            + " resume_cursor_present=" + hasText(initialResumeCursor));
+                    return;
+                }
                 handle = connectedClient.openSession(request(), this);
                 callback.onSessionOpened(copy(handle), scenarioId);
                 legacyStatus("Session opened: " + uiScenarioId);
@@ -463,6 +518,17 @@ public final class Client2ScenarioBridge {
         copy.acceptedAtEpochMs = original.acceptedAtEpochMs;
         copy.expiresAtEpochMs = original.expiresAtEpochMs;
         return copy;
+    }
+
+    private static void validateCursor(String cursor) {
+        if (cursor == null || cursor.length() > EventContract.MAX_CURSOR_CHARS) {
+            throw new IllegalArgumentException("invalid resume cursor");
+        }
+        for (int index = 0; index < cursor.length(); index++) {
+            if (Character.isISOControl(cursor.charAt(index))) {
+                throw new IllegalArgumentException("invalid resume cursor");
+            }
+        }
     }
 
     private static SessionSnapshot copy(SessionSnapshot original) {

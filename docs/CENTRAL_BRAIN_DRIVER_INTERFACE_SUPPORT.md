@@ -933,3 +933,20 @@ model buffer contract。Runtime 当前只持久化 Session/Event admission，不
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。P4-W02 只处理 HMI state/lifecycle；真实 HVAC/Seat adapter 仍由 P8 和 `ISSUE-030` 关闭。
 Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。
+
+### P4-W02 Cockpit HMI state/reducer/reconnect Driver/HAL Boundary
+
+本包只修改 Client2 application secondary-dex、MainActivity 单行 bootstrap、app-private checkpoint、host/device test 和
+文档。Reducer 处理 bounded primitive、SessionHandle metadata、event sequence 和 opaque cursor；Coordinator 使用普通
+Android View、ActivityLifecycleCallbacks、SharedPreferences 和已发布 Session/Event SDK。
+
+本包不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU、fd/shared memory、Safety Runtime 或 Driver/HAL；不新增 property ID、area mapping、车辆 permission、
+DMA/IOMMU 或 model buffer contract。Private checkpoint 不是硬件存储接口，也不触发新 Driver work。
+
+状态：`cockpit_hmi_state_reducer_implemented=true`、`cockpit_hmi_lifecycle_owner_java=true`、
+`client2_hmi_checkpoint_text_persisted=false`、`scenario_execution_enabled=false`、`service_dispatch_triggered=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
+新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。P4-W03 仍是应用 UI；真实 HVAC/Seat adapter 由 P8/
+`ISSUE-030` 关闭。Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`XSC-001/005/006`、
+`KH-003/006`、`DEL-004/005`。
