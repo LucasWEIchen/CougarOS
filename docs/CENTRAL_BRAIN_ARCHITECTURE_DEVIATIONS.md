@@ -62,6 +62,10 @@
 | DEV-036 | P2-W07 Compiler 只生成 digest-only、未发布、不可执行的 Plan foundation。 | S2-SCN-001, S2-GRF-001, ISSUE-029/031 | Accepted Temporary |
 | DEV-037 | P2-W08 仿真基类只存在于 debug source，并补充非生产 SimulationDescriptor；无 domain target、Runtime 注册或真实 readback。 | S2-ADP-001, S2-EFF-001, ISSUE-030/033 | Accepted Temporary |
 | DEV-038 | P2-W09 HVAC fixed-binary target/range/Twin 是 debug internal contract，不是 OEM property/标定或 production adapter。 | S2-ADP-001, S2-EFF-001, ISSUE-030/033 | Accepted Temporary |
+| DEV-039 | P2-W10 Seat safety 是 debug Runtime-owned gate，不是 OEM Safety authority。 | S2-ADP-001, S2-SAF-001, ISSUE-029/030/033 | Accepted Temporary |
+| DEV-040 | P2-W11 Media/Nav 只提供 simulation state 与 synthetic digest observation。 | S2-ADP-001, ISSUE-030/031/033 | Accepted Temporary |
+| DEV-041 | P2-W12 debug controller 不是 production Context 或车辆控制 authority。 | S2-CTX-001, S2-ADP-001, ISSUE-030/033 | Accepted Temporary |
+| DEV-042 | P3-W01 Graph Runtime 是 process-local control-only state machine，不是 durable/executable production Graph。 | S2-GRF-001, ISSUE-022/026 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -527,3 +531,21 @@ adapter fault、manual clock 和 reset。即使该 Service 经过 signature perm
 `vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。关闭本偏差需要 P3/P4 将受治理的软件链显式接入 debug controller，P8
 另以 OEM/Vendor provider、permission、Safety/readback 和目标证据替换仿真输入；两者不得共用完成标志。
+
+## DEV-042 P3-W01 Graph Runtime 非 durable 且不执行 executor
+
+P3-W01 Graph Runtime 已位于 Runtime main source，因为 graph 状态合同最终属于 production AIOS Kernel；但
+当前没有从 `CentralBrainRuntimeService`、Session/Plan Binder 或 Room 引用它。`NodeExecutorRegistry` 只保存
+PlanContract node type 的 control-only registration，claim/complete 由 test harness 显式推进，不能解释为
+Context/Policy/Effect/Model/Tool/Memory executor 已运行。
+
+run/node/event 只保留进程内内存；进程死亡会丢失。deadline 使用可注入 clock，event 是 digest-only bounded
+projection，不是 durable audit/checkpoint。`COMPENSATING` 只在状态表预留，P3-W08 前没有 compensation；
+required compensation path 当前进入 STUCK，而不是伪造 rollback。
+
+状态：`Accepted Temporary`。`agent_graph_runtime_defined=true`、
+`agent_graph_executor_dispatch_enabled=false`、`agent_graph_runtime_persistence_wired=false`、
+`agent_graph_runtime_binder_published=false`、`agent_graph_runtime_production_wired=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。P3-W02 提供 typed executor，P3-W03 提供 bounded
+checkpoint，P3-W09 才关闭 restart durability；P8 另行关闭车辆/NPU/Driver-HAL，不能复用本偏差完成标志。

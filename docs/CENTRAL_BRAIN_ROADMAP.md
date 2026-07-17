@@ -122,7 +122,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01 下一步） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01 完成；P3-W02 下一步） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -219,8 +219,13 @@ UID/package/current-signer capability 双层授权，typed driving/canonical sig
 reset、128 条 digest-only audit 已通过 JVM、debug/release compile 与 Android 13/API 33 ARM64 Binder probe；
 release 无 exported controller，production Context/vehicle/Graph/Effect 仍未接。
 
-下一实现工作包为 `P3-W01 AgentGraphRuntime state machine`。只实现合法 graph/run/node transition、单 session
-FIFO 和跨 session 有界调度，不在该包 dispatch Effect、访问真实 Vehicle/VHAL/NPU/Driver-HAL 或恢复 fallback。
+`P3-W01 AgentGraphRuntime state machine` 已完成：typed Plan admission/deep copy、合法 graph/node transition、
+单 session FIFO、最多 8 个跨 session active run、manual-clock deadline、optional partial、required failure、
+最多 256 条 retained digest event 已通过 JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。
+control-only registry 不调用 executor，Runtime/Room/Binder/Effect/model/vehicle/hardware 仍未接。
+
+下一实现工作包为 `P3-W02 Typed node executors`。只增加固定 input/output schema、allowlisted executor 与
+无副作用/受治理结果合同；不得借此启用 Effect dispatch、production adapter、模型或硬件访问。
 
 ## 7. 近期进展
 
@@ -328,6 +333,10 @@ FIFO 和跨 session 有界调度，不在该包 dispatch Effect、访问真实 V
 - 完成 `P2-W12 Debug Context Controller`：debug-only AIDL、signature+capability、typed state/signal/fault/clock/
   reset、bounded digest-only audit 通过 JVM/debug/release/API 33 ARM64 Binder probe；production exported/Runtime/
   vehicle provider/hardware 保持 false，下一工作包为 P3-W01 AgentGraphRuntime。
+- 完成 `P3-W01 AgentGraphRuntime state machine`：process-local typed Plan deep copy、合法 graph/node state、
+  单 session FIFO、跨 session 有界 slot、manual deadline、partial/failure 与 bounded digest event 通过 JVM/
+  debug/release/API 33 ARM64 probe；executor dispatch/Room/Binder/Effect/model/hardware 保持 false，下一工作包
+  为 P3-W02 Typed node executors。
 
 ## 8. 当前门禁
 
@@ -349,6 +358,7 @@ bash tools/check_central_brain_android_vehicle_capability_catalog.sh
 bash tools/check_central_brain_android_scenario_manifest.sh
 bash tools/check_central_brain_android_scenario_resolver.sh
 bash tools/check_central_brain_android_debug_simulation_controller.sh
+bash tools/check_central_brain_android_agent_graph_runtime.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -410,6 +420,20 @@ debug_simulation_controller_debug_only=true
 debug_simulation_controller_release_source_absent=true
 debug_simulation_controller_production_exported=false
 debug_simulation_controller_runtime_wired=false
+agent_graph_runtime_defined=true
+agent_graph_state_machine_verified=true
+agent_graph_same_session_fifo_verified=true
+agent_graph_cross_session_bounded_verified=true
+agent_graph_partial_terminal_verified=true
+agent_graph_deadline_verified=true
+agent_graph_compensation_fail_closed_verified=true
+agent_graph_event_projection_bounded=true
+agent_graph_android13_arm64_verified=true
+agent_graph_executor_dispatch_enabled=false
+agent_graph_runtime_persistence_wired=false
+agent_graph_runtime_binder_published=false
+agent_graph_runtime_production_wired=false
+implementation_stage=P3-W02
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

@@ -1197,3 +1197,49 @@ TIMEOUT/RETRYABLE_FAILURE/TERMINAL_FAILURE/READBACK_MISMATCH，只有 timing fau
 Service。状态：`debug_simulation_controller_runtime_wired=false`、`vehicle_signal_provider_wired=false`、
 `hardware_accessed=false`。Req IDs：`S2-CTX-001`、`S2-ADP-001`、`DEL-001/003..005`；tracking：
 `DEV-041`、`ISSUE-030/033`。
+
+## Android P3-W01 Agent Graph Runtime
+
+### Process-local API
+
+```java
+GraphRunSnapshot start(ScenarioPlan plan);
+void pump();
+NodeRunSnapshot claimNextReadyNode(String runId);
+GraphRunSnapshot suspendClaimedNode(String runId);
+GraphRunSnapshot resumeNode(String runId, String nodeId);
+GraphRunSnapshot completeClaimedNode(String runId, NodeExecutionOutcome outcome);
+GraphRunSnapshot completeWaitingNode(
+    String runId, String nodeId, NodeExecutionOutcome outcome);
+GraphRunSnapshot cancel(String runId);
+GraphRunSnapshot get(String runId);
+List<GraphRunSnapshot> list();
+```
+
+该 API 不是 AIDL，也没有 `CentralBrainRuntimeService` publication。输入必须先通过 P1-W02
+`PlanContract` 与 P2-W07 `PlanGraphValidator`；Runtime 深拷贝 DTO，runId 固定为 planId，不接收任意
+executor object、Bundle、Parcel blob 或 node input material。`NodeExecutionOutcome` 只有 SUCCEEDED/FAILED/
+SKIPPED；required node 不能 SKIPPED。
+
+Graph 状态为 CREATED/PLANNING/WAITING/EXECUTING/PARTIAL/COMPENSATING/COMPLETED/FAILED/CANCELLED/STUCK；
+PARTIAL/COMPLETED/FAILED/CANCELLED/STUCK 是终态。Node 状态为 PENDING/READY/EXECUTING/WAITING/SUCCEEDED/
+FAILED/SKIPPED/CANCELLED/COMPENSATING/COMPENSATED/STUCK。状态非法时抛稳定前缀
+`CB_GRAPH_RUNTIME:`，容量不足抛 `CB_GRAPH_RUNTIME_CAPACITY:`，registry 准入错误使用
+`CB_GRAPH_REGISTRY:`。
+
+### Snapshot 与事件所有权
+
+`GraphRunSnapshot` 只返回 run/session/scenario ID、plan digest、Graph 状态、revision、queue position、
+deadline、node immutable projection、retained event 和 event chain digest。active queuePosition=0，queued>0，
+terminal=-1。每个 run 最多保留 256 条事件；事件没有 raw input/output/error text。
+
+`NodeExecutorRegistry.controlOnlyContractRegistry()` 只冻结 P1 allowlist 并固定
+`dispatchEnabled=false`、`productionAuthorized=false`。P3-W02 可以在该类型上增加 typed executor 合同，
+但在该工作包完成前，claim/complete 只能由测试 harness 推进，不能解释为 Effect、model、tool 或 memory 已执行。
+
+状态：`agent_graph_runtime_defined=true`、`agent_graph_state_machine_verified=true`、
+`agent_graph_android13_arm64_verified=true`、`agent_graph_executor_dispatch_enabled=false`、
+`agent_graph_runtime_persistence_wired=false`、`agent_graph_runtime_binder_published=false`、
+`agent_graph_runtime_production_wired=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
+`hardware_accessed=false`。Req IDs：`S2-GRF-001`、`NV-G-004/006/007`、`DEL-001/003..005`；
+tracking：`DEV-042`、`ISSUE-022/026`。

@@ -393,10 +393,17 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W01` AgentGraphRuntime state machine
 
-- 状态：`NOT_STARTED`；3 人日；需求：`S2-GRF-001`。
+- 状态：`DONE`（process-local state-machine foundation，2026-07-17）；3 人日；需求：`S2-GRF-001`、
+  `NV-G-004/006/007`、`DEL-001/003..005`。
 - 类：`AgentGraphRuntime`、`GraphRunState`、`NodeRunState`、`NodeExecutorRegistry`。
 - 状态：CREATED/PLANNING/WAITING/EXECUTING/PARTIAL/COMPENSATING/COMPLETED/FAILED/CANCELLED/STUCK。
 - DoD：只有合法 transition；单 session FIFO；不同 session 可按 supervisor 并发。
+- 实现：Runtime main source 提供同步、最多 64 run/8 active session/256 retained event 的确定性状态机；
+  admission 深拷贝并复验 P1/P2 typed Plan，node 按依赖变 READY，claim/suspend/resume/terminal outcome 只推进
+  状态，不调用 executor。`PARTIAL` 是 optional skip/failure 后的终态；required failure/deadline 失败关闭。
+- 边界：`NodeExecutorRegistry` 在本包只有 control-only node-type registration；typed executor 属于 P3-W02。
+  Graph 不接 Binder/Room/Session Service，不执行 Effect/model/tool/memory，不调用 P2 adapter 或车辆/NPU。
+- 证据：7 组 JVM tests、debug/release compile、Android 13 ARM64 debug probe、独立 checker、累计 installer/CI。
 
 ### `P3-W02` Typed node executors
 

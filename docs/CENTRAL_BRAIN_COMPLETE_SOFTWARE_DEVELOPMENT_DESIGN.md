@@ -202,7 +202,7 @@ flowchart TB
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01/P2-W04 完成；production trust/wiring 未接） | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02/P2-W03 完成；persistence/adapter 未接） | `S2-TWN-001` |
 | Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05..W07 完成；Runtime publication/execution 未接） | `S2-SCN-001` |
-| Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `NOT_STARTED` | `S2-GRF-001` |
+| Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `FOUNDATION`（P3-W01 状态机完成；executor/checkpoint/Room 未接） | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
 | Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `NOT_STARTED` | `S2-EFF-001` |
 | Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `FOUNDATION`（P2-W08..W12 完成；production/runtime wiring 未接） | `S2-ADP-001` |
@@ -1096,14 +1096,37 @@ optional approval 前驱一并裁剪。required Effect 必须可达相同 capabi
 ### 13.1 AgentGraphRuntime
 
 ```java
-interface AgentGraphRuntime {
-    GraphRunHandle start(ScenarioPlan plan, RuntimePrincipal principal);
-    GraphRunSnapshot get(GraphRunHandle handle);
-    boolean resume(GraphRunHandle handle, ResumeInput input);
-    boolean cancel(GraphRunHandle handle, CancelReason reason);
-    ReconcileResult reconcile(GraphRunHandle handle);
+final class AgentGraphRuntime {
+    GraphRunSnapshot start(ScenarioPlan plan);
+    void pump();
+    NodeRunSnapshot claimNextReadyNode(String runId);
+    GraphRunSnapshot suspendClaimedNode(String runId);
+    GraphRunSnapshot resumeNode(String runId, String nodeId);
+    GraphRunSnapshot completeClaimedNode(String runId, NodeExecutionOutcome outcome);
+    GraphRunSnapshot completeWaitingNode(
+        String runId, String nodeId, NodeExecutionOutcome outcome);
+    GraphRunSnapshot cancel(String runId);
+    GraphRunSnapshot get(String runId);
+    List<GraphRunSnapshot> list();
 }
 ```
+
+P3-W01 的实际实现是 Runtime main source 中的同步 process-local reducer，不是 Binder Service。构造参数固定
+run record、active session 与 retained event 上限以及可注入 epoch/elapsed clock；硬上限分别是 64、8、256。
+`start` 先执行 `PlanGraphValidator.validateTransport`、control-only registry 检查和 DTO deep copy，planId 即
+runId。相同 session 只有一个 active run，后续 CREATED run 按 admission FIFO；不同 session 最多 8 个 active。
+
+`pump` 只处理 deadline、PLANNING->WAITING 和 root READY，不启动线程或 executor。`claimNextReadyNode` 只将
+READY node 标为 EXECUTING；调用方必须显式提交 SUCCEEDED/FAILED/SKIPPED，或 suspend/resume WAITING。
+required failure 进入 FAILED；optional `SKIP_OPTIONAL` 继续满足 ON_TERMINAL dependency 并最终进入终态
+PARTIAL；required dependency 不可满足进入 STUCK。COMPENSATING 状态只冻结在合法 transition 表中，P3-W08
+之前不执行补偿。
+
+`GraphRunSnapshot` 和 `NodeRunSnapshot` 是 immutable projection，不返回 Plan/input。每条 `GraphEvent` 只含
+sequence、elapsed、nodeId、Graph/Node enum、ReasonCode 和前一事件绑定的 SHA-256；projection 超过上限丢弃
+最老 entry，但累计 count 和链式摘要保留。状态机固定 `executorDispatchEnabled=false`、
+`productionAuthorized=false`，未接 Room/Session/Binder/Effect/model/P2 adapter/hardware。P3-W03/P3-W09 分别
+负责 checkpoint/重启 durability；当前类名中的 Runtime 不等于 durable 或 production wiring。
 
 ### 13.2 NodeExecutor
 
@@ -2045,10 +2068,12 @@ manifest catalog、显式/固定文本 selector、Context/capability/policy gate
 digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual clock/fault matrix、HVAC/Seat
 typed absolute target、isolated desired/reported Twin、Seat Safety race reject/progress、Media state 和 digest-only
 synthetic POI/route、debug-only signature/capability-protected state/signal/fault/clock/reset AIDL 控制面已进入工程。
-Effect Service、approval response/undo execution、Plan Runtime publication 和 Graph Runtime 均未发布。
-下一实现工作包固定为 `P3-W01 AgentGraphRuntime state machine`；只实现 typed graph/run/node 状态、合法
-transition、单 session FIFO 与跨 session 有界调度，不得在该包 dispatch Effect、恢复 production adapter、
-读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中绕过 Runtime。
+Effect Service、approval response/undo execution 和 Plan Runtime publication 均未发布。`P3-W01
+AgentGraphRuntime state machine` 已完成 process-local typed graph/run/node 状态、合法 transition、单 session
+FIFO、跨 session 有界 slot、deadline 和 bounded digest event；它没有 Binder/Room publication，也不调用 executor。
+下一实现工作包固定为 `P3-W02 Typed node executors`；只实现 allowlisted typed input/output/result 合同，
+不得在该包 dispatch Effect、恢复 production adapter、调用模型、读取真实 Vehicle/VHAL/NPU 或直接在
+Client2 中绕过 Runtime。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

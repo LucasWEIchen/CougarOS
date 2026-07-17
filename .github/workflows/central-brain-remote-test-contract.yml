@@ -67,4 +67,5 @@ jobs:
           bash tools/check_central_brain_android_simulated_seat_adapter.sh
           bash tools/check_central_brain_android_simulated_media_navigation_adapters.sh
           bash tools/check_central_brain_android_debug_simulation_controller.sh
+          bash tools/check_central_brain_android_agent_graph_runtime.sh
           bash tools/check_central_brain_root_readme.sh

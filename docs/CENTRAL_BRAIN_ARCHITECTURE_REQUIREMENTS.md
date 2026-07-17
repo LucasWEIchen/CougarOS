@@ -179,7 +179,7 @@
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
 | S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract、P2-W05 catalog、P2-W06 resolver、P2-W07 compiler 已完成；Runtime activation 待开发 |
-| S2-GRF-001 | durable Agent Graph | P1-W02 node/DAG contract 已完成；durable runtime 待开发 |
+| S2-GRF-001 | durable Agent Graph | P1-W02 DAG + P3-W01 process-local state machine 已完成；typed executor/checkpoint/Room/recovery 待开发 |
 | S2-SAF-001 | hard safety interlock | P1-W04 Approval/Undo 绑定合同已完成；A user confirmation cannot override this hard interlock；可信 Safety authority 待接入 |
 | S2-EFF-001 | typed Effect lifecycle | P1-W04 intent/observation/approval/undo 合同与状态转换已完成；Service/adapter/持久化待开发 |
 | S2-ADP-001 | adapter registry | source/profile/capability/evidence |
@@ -845,3 +845,37 @@ NPU、Driver/HAL 或目标硬件资格。
 `debug_simulation_controller_debug_only=true`、`debug_simulation_controller_release_source_absent=true`、
 `debug_simulation_controller_production_exported=false`、`debug_simulation_controller_runtime_wired=false`、
 `vehicle_signal_provider_wired=false`、`hardware_accessed=false`。
+
+## 33. P3-W01 Agent Graph Runtime trace
+
+派生需求：`S2-GRF-001`、`NV-G-004/006/007`、`DEL-001/003/004/005`。
+
+1. `AgentGraphRuntime` 必须先调用 `PlanGraphValidator.validateTransport` 并深拷贝 P1-W02 `ScenarioPlan`；
+   admission 后调用方修改原 DTO 不得改变 run/node/plan digest 投影。runId 固定为 canonical planId。
+2. Graph 状态固定为 CREATED/PLANNING/WAITING/EXECUTING/PARTIAL/COMPENSATING/COMPLETED/FAILED/CANCELLED/
+   STUCK；Node 状态固定为 PENDING/READY/EXECUTING/WAITING/SUCCEEDED/FAILED/SKIPPED/CANCELLED/
+   COMPENSATING/COMPENSATED/STUCK。只有枚举表列出的 transition 合法，终态不可复活。
+3. `PARTIAL` 在 P3-W01 是终态，只能表示 optional node skip/failure 且 required 路径完成；required node
+   failure、required dependency impossible 和 plan deadline 必须分别进入 FAILED 或 STUCK，禁止猜测成功。
+4. 同一 session 同时最多一个 PLANNING/WAITING/EXECUTING/COMPENSATING run，后续 run 保持 CREATED 并按
+   admission FIFO 激活；不同 session active run 数量可配置但最大 8。状态机方法同步串行，不创建内部线程池。
+5. run record 最大 64；单 run event projection 最大 256。event 只含 sequence/elapsed/node ID/枚举状态/
+   reason code/链式 SHA-256，不含 node input、模型文本、车辆 payload、任意错误原文或 executor output。
+6. `NodeExecutorRegistry` 本包只注册 PlanContract allowlisted node type，固定
+   `dispatchEnabled=false`、`productionAuthorized=false`。claim/suspend/resume/complete 仅推进状态，P3-W02
+   之前不得调用 typed executor。
+7. deadline 同时使用注入 epoch/elapsed clock：epoch 决定 plan 过期，elapsed 仅进入事件投影。过期 run
+   进入 FAILED，所有未终结 node 进入 CANCELLED；不得立即 retry 或 dispatch。
+8. JVM、debug/release compile 和 Android 13/API 33 ARM64 probe 必须覆盖合法/非法 transition、immutable
+   Plan、FIFO/并发上限、partial、required failure、waiting/resume、deadline、capacity/event bound。
+9. 本包不接 `CentralBrainRuntimeService`、Binder、Room、P2 debug controller/adapter、Effect/Model/Tool/Memory
+   executor，不访问 Vehicle/VHAL/NPU/Driver-HAL，不恢复 Python/Linux fallback。
+
+状态：`agent_graph_runtime_defined=true`、`agent_graph_state_machine_verified=true`、
+`agent_graph_same_session_fifo_verified=true`、`agent_graph_cross_session_bounded_verified=true`、
+`agent_graph_partial_terminal_verified=true`、`agent_graph_deadline_verified=true`、
+`agent_graph_compensation_fail_closed_verified=true`、
+`agent_graph_event_projection_bounded=true`、`agent_graph_android13_arm64_verified=true`、
+`agent_graph_executor_dispatch_enabled=false`、`agent_graph_runtime_persistence_wired=false`、
+`agent_graph_runtime_binder_published=false`、`agent_graph_runtime_production_wired=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`。

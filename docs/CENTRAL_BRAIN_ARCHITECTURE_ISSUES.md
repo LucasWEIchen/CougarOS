@@ -108,6 +108,10 @@ repository，也不执行补偿。Undo 必须在未来创建新的受治理 comp
 数据库状态回滚。Crash recovery、material/key、trusted clock、status reconciliation 和 durable binding
 仍为本问题的开放项。
 
+P3-W01 进展：新增 process-local Graph/Node state reducer、同 session FIFO、跨 session bounded slot、
+manual deadline 和 digest-only event projection。它不写 Room/checkpoint、不执行 executor/Effect/compensation，
+进程死亡会丢失全部 graph state；因此只关闭状态机结构子项，durability、reconcile 和副作用恢复仍保持 Open。
+
 ## ISSUE-023 Android 可信身份、capability 与审批
 
 Binder caller identity、package/current signer、default-deny capability 和 typed governance 已实现。
@@ -139,6 +143,10 @@ governance middleware。尚缺 production broker、cursor/retention owner、隐�
 R7 acceptance snapshot、Client2 Binder、application handoff 和 hybrid delivery 只证明仓库软件
 一致性与 Android 应用集成。它们不能设置 `production_ready`、`target_hardware_validated`、
 Driver/HAL 或 virtualization 标志。
+
+P3-W01 进展：Android 13 ARM64 probe 只证明同一 process-local Graph 状态合同可运行；
+`agent_graph_runtime_production_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`，不能提升
+production/target maturity，本问题保持 Open。
 
 ## ISSUE-027 黑盒 Android 13 目标能力与部署身份未知
 
@@ -358,3 +366,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W10 进展 | Debug-only Seat typed target、安全二次校验/progress/isolated Twin 与 API 33 ARM64 probe 完成；OEM Safety/production property/Runtime/Client2 Seat 闭环仍开放。 |
 | P2-W11 进展 | Debug-only Media state/digest-only synthetic Navigation observation 与 API 33 ARM64 probe 完成；真实 platform adapter/Runtime/Client2 optional Effect 闭环仍开放。 |
 | P2-W12 进展 | Debug-only signature/capability controller 与 API 33 ARM64 Binder probe 完成；production Context/vehicle provider/Graph/HMI 均未接。 |
+| P3-W01 进展 | Process-local Graph/Node state、FIFO/bounded sessions、deadline/partial/event projection 与 API 33 ARM64 probe 完成；executor/Room/Binder/Effect/model/hardware 均未接。 |
