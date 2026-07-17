@@ -60,7 +60,7 @@ required_ids = {
     "centralBrainHvacModesText",
     "centralBrainHvacEvidenceText",
     "centralBrainHvacRequestText",
-    "centralBrainSeatPlaceholder",
+    "centralBrainSeatSurface",
 }
 for identifier in required_ids:
     node_by_id(identifier)

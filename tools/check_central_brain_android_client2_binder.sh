@@ -181,7 +181,11 @@ for marker in \
   "cockpit_hvac_controls_verified=true" \
   "cockpit_hvac_debounce_verified=true" \
   "cockpit_hvac_manual_session_admission_verified=true" \
-  "cockpit_seat_surface_implemented=false" \
+  "cockpit_seat_surface_implemented=true" \
+  "cockpit_seat_controls_verified=true" \
+  "cockpit_seat_heat_vent_mutex_verified=true" \
+  "cockpit_seat_unknown_restricted_fail_closed=true" \
+  "cockpit_seat_manual_session_admission_verified=true" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \
@@ -288,6 +292,7 @@ done
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hvac_surface.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_seat_surface.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android Client2 Binder migration check passed"

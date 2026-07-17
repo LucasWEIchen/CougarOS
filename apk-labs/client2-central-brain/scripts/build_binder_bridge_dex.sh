@@ -42,8 +42,8 @@ if [[ ! -f "$SDK_CLASSES" ]]; then
 fi
 
 mapfile -t SOURCES < <(find "$PROJECT_DIR/bridge/src" -type f -name '*.java' -print | sort)
-if [[ "${#SOURCES[@]}" -ne 7 ]]; then
-  echo "Expected exactly seven Client2 HMI/Session Java sources" >&2
+if [[ "${#SOURCES[@]}" -ne 9 ]]; then
+  echo "Expected exactly nine Client2 HMI/Session Java sources" >&2
   exit 1
 fi
 

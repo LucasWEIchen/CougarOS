@@ -315,7 +315,10 @@ cockpit_hmi_translucent_material_ready=true
 cockpit_hvac_surface_implemented=true
 cockpit_hvac_governed_manual_session=true
 cockpit_hvac_reported_readback_available=false
-cockpit_seat_surface_implemented=false
+cockpit_seat_surface_implemented=true
+cockpit_seat_governed_manual_session=true
+cockpit_seat_unknown_restricted_fail_closed=true
+cockpit_seat_reported_readback_available=false
 cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
@@ -1285,3 +1288,37 @@ Req IDs：`S2-HMI-001/003/004/005`、`S2-ADP-001`、`APP-004`、`XSC-001/005/006
 `cockpit_hvac_verified_before_readback=false`、`hvac_manual_typed_parameter_field=false`、
 `scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W05`。
+
+## 46. P4-W05 Seat control surface trace
+
+Req IDs：`S2-HMI-002..005`、`S2-SAF-001`、`S2-ADP-001`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+1. Seat detail drawer 必须提供 DRIVER/FRONT_PASSENGER/REAR_LEFT/REAR_RIGHT、heat/vent 0-3、OFF/RELAX/WAKE
+   massage、0-60 degree recline 和 UPRIGHT/COMFORT/REST preset；控件不得成为顶层导航。
+2. `SeatControlIntent` 必须 immutable、范围受限且 canonical round-trip。heat 与 vent 必须互斥；未知、重复、非
+   canonical、越界或 heat/vent 同时非零字段必须在 bind 前失败，View 不得拼装 wire 或车辆属性。
+3. `CockpitSeatState` 必须独立保存 desired/submitted revision、request、reported/source/quality/effect、typed driving/
+   occupancy/belt Context 和 Safety decision。desired 变化不得更新 reported；无 observation 时不得显示 VERIFIED。
+4. Context 未接时 driving 必须为 `UNKNOWN_RESTRICTED`，occupancy/belt/source/quality 必须为 UNKNOWN/UNAVAILABLE/
+   NO_EVIDENCE。驾驶席位置动作不得改变 desired、不得创建 Session。MOVING 驾驶席位置动作同样失败关闭。
+5. PARKED+OCCUPIED+UNBELTED 的 REST 只允许进入 `WAITING_APPROVAL`，不得进入 debounce/Session。该 host policy 不是
+   量产 Safety authority；未来 approval 后 dispatch 前仍必须由 Runtime/Adapter 重新读取并验证 Context revision。
+6. 低风险 heat/vent/massage change 必须经唯一 reducer，Coordinator 以主线程 300 ms debounce 合并，随后只通过
+   `Client2ScenarioBridge.openSeatSession` 创建 `scene.manual.seat.adjust.v1`；不得调用 Adapter/CarProperty/VHAL/硬件。
+7. 冻结 Session V1 无 typed parameter、HMI_CONTROL 或 approval response。P4-W05 只允许 bridge 将 exact `SEAT1`
+   canonical grammar 放入 utterance 并使用 SOURCE_HMI_BUTTON；日志不得记录参数，V1 hash/schema 不得修改；`DEV-055`
+   跟踪该偏差。
+8. Session admission 最多将 Seat Effect 投影为 REQUESTED。不得显示 DISPATCHED/APPLIED/VERIFIED，不得将 desired、
+   fixed summary、UI Safety decision 或 debug host test 当作车辆 readback/approval/执行成功。
+9. Android 13/API 33 ARM64 验收必须证明 controls 可达、heat 后 vent 合并成一个 manual Session、heat=0/vent=1、
+   canonical scenario、reported unavailable，以及 UNKNOWN_RESTRICTED driver recline 保持 0/no Session/no dispatch。
+
+状态：`cockpit_seat_surface_implemented=true`、`cockpit_seat_reducer_owned=true`、
+`cockpit_seat_debounce_ms=300`、`cockpit_seat_governed_manual_session=true`、
+`cockpit_seat_heat_vent_mutex_verified=true`、`cockpit_seat_unknown_restricted_fail_closed=true`、
+`cockpit_seat_parked_rest_approval_required=true`、`cockpit_seat_desired_reported_separation_verified=true`、
+`cockpit_seat_reported_readback_available=false`、`cockpit_seat_verified_before_readback=false`、
+`seat_manual_typed_parameter_field=false`、`scenario_execution_enabled=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-W06`。

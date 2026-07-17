@@ -343,6 +343,13 @@ source/quality 仍为 unavailable/no evidence，Effect/Adapter/hardware dispatch
 Effect/readback、approval/undo 仍未闭环，因此 ISSUE-033 保持 Open，下一关闭子项为 P4-W05；V1 参数承载偏差由
 `DEV-054` 跟踪。
 
+P4-W05 进展：Seat control surface 已实现四座区、heat/vent 0-3 互斥、massage、recline 和 upright/comfort/rest
+preset；immutable state 将 desired/request、Safety Context/decision 和 reported/source/quality/effect 分离。Android 13/API 33
+ARM64 证明 heat 后 vent 合并为一个 governed Session，结果为 heat=0/vent=1；UNKNOWN_RESTRICTED 驾驶席靠背保持 0，
+不创建新 Session、不触发 Effect/硬件。host policy 证明 parked+occupied+unbelted rest 只进入 WAITING_APPROVAL。
+这仍不是 OEM Safety authority，真实 Context/approval/dispatch/readback 未接；ISSUE-033 保持 Open，下一关闭子项为
+P4-W06 timeline，V1 Seat 参数/approval 承载偏差由 `DEV-055` 跟踪。
+
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。

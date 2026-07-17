@@ -7,7 +7,7 @@ Client2 -> public SDK -> typed Binder -> Runtime path. The evidence is bounded
 to API 33 and does not qualify target hardware, production service placement,
 model/NPU execution or any vehicle effect.
 
-Req IDs: `S2-UX-001`, `S2-HMI-001`, `S2-HMI-003..006`, `S2-ADP-001`, `APP-004`, `XSC-001`, `XSC-005`, `XSC-006`, `NV-F-001`,
+Req IDs: `S2-UX-001`, `S2-HMI-001..006`, `S2-ADP-001`, `S2-SAF-001`, `APP-004`, `XSC-001`, `XSC-005`, `XSC-006`, `NV-F-001`,
 `NV-F-012`, `NV-G-003`, `NV-G-006`, `NV-G-007`, `NV-P-002`, `DEL-001`,
 `DEL-003`, `DEL-004`, `DEL-005`.
 
@@ -22,6 +22,7 @@ Req IDs: `S2-UX-001`, `S2-HMI-001`, `S2-HMI-003..006`, `S2-ADP-001`, `APP-004`, 
 | `R7C-E-005` | SDK Binder lifecycle regression | Existing instrumentation verifies service death, explicit reconnect, callback death, terminal uniqueness and cancel/completion race |
 | `R7C-E-006` | Intent-first four-stage shell on 1920x1080 Client2 | Intent/Plan/Execution/Result, exact safe frame and HVAC/Seat detail drawer render while dispatch stays disabled |
 | `R7C-E-007` | HVAC control surface and rapid temperature changes | Full control set renders; three rapid steps coalesce into one governed manual Session; desired becomes 24.0 C while reported stays unavailable and VERIFIED stays false |
+| `R7C-E-008` | Seat control surface, heat/vent mutual exclusion and restricted recline | Heat then ventilation coalesces into one governed manual Session with heat=0/vent=1; UNKNOWN_RESTRICTED driver recline stays at 0, submits no Session and dispatches no Effect |
 
 The Runtime process-death injector is `RuntimeFaultProbeReceiver`. It exists
 only under the debug source set, requires `android.permission.DUMP`, accepts one
@@ -49,6 +50,7 @@ Passing the complete matrix permits these baseline transitions:
 - `cockpit_hmi_state_reducer_implemented=true`
 - `cockpit_hmi_four_stage_shell_implemented=true`
 - `cockpit_hvac_surface_implemented=true`
+- `cockpit_seat_surface_implemented=true`
 - `api33_end_to_end_acceptance_complete=true`
 - `r7_application_integration_complete=true`
 
@@ -56,7 +58,8 @@ The following remain false: production activation, target system integration
 owner resolution and target hardware validation. Effect, Model, Event, Memory
 and Skill/Governance production blockers remain open. Client2 has no cancel or
 timeout control, so R7C does not claim UI coverage for those operations; the
-typed SDK cancellation race remains covered by instrumentation. Contract schema 1.4 adds the maintained HVAC control surface,
-300 ms debounce, governed manual Session admission and desired/reported separation evidence. Application-layer evidence does not mean
-scenario/Graph/Effect execution, HVAC Adapter dispatch, Seat controls, vehicle readback or production storage is active. Frozen Session
-V1 still carries HVAC1 in utterance and has no typed parameter field or HMI_CONTROL source; `DEV-054` tracks that boundary.
+typed SDK cancellation race remains covered by instrumentation. Contract schema 1.5 adds the maintained Seat control surface,
+heat/vent mutual exclusion, UNKNOWN_RESTRICTED driver-position denial, governed manual Session admission and desired/reported separation
+evidence. Application-layer evidence does not mean scenario/Graph/Effect execution, HVAC/Seat Adapter dispatch, trusted vehicle Context,
+approval response, vehicle readback or production storage is active. Frozen Session V1 carries HVAC1/SEAT1 in utterance and has no typed
+parameter field, HMI_CONTROL source or approval transport; `DEV-054/055` track that boundary.

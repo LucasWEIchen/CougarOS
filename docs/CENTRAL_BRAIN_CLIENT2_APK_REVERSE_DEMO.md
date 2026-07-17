@@ -146,9 +146,13 @@ P4-W03 在同一设备继续验证 exact panel bounds、四阶段切换、cold i
 
 P4-W04 随后在同一设备验证完整 HVAC controls、immutable desired/reported/source/quality/effect projection、三次快速
 升温的 300 ms 单 Session 合并、`manual.hvac -> scene.manual.hvac.adjust.v1` admission 和 desired 24.0 C。reported
-保持 unavailable、VERIFIED 为 false，未调用 Adapter/Effect/hardware。当前
-`cockpit_hvac_surface_implemented=true`、`cockpit_seat_surface_implemented=false`、
-`scenario_execution_enabled=false`、`hardware_accessed=false`；下一工作包为 P4-W05。
+保持 unavailable、VERIFIED 为 false，未调用 Adapter/Effect/hardware。
+
+P4-W05 在同一设备验证完整 Seat controls、heat/vent 互斥、300 ms 单 Session 合并、
+`manual.seat -> scene.manual.seat.adjust.v1` admission，以及 `UNKNOWN_RESTRICTED` 下主驾 recline 失败关闭。人工截图
+复核 Seat drawer 在 1920x1080 safe frame 内且半透明车模背景可见。当前 `cockpit_hvac_surface_implemented=true`、
+`cockpit_seat_surface_implemented=true`、`cockpit_seat_unknown_restricted_fail_closed=true`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`；下一工作包为 P4-W06。
 
 该坐标只记录当前受测显示配置，不是跨分辨率稳定接口。量产应改用源码 HMI 导航事件或厂商公开
 回调；在此之前，其他 density、分辨率或主题必须单独执行触点与可访问性回归。

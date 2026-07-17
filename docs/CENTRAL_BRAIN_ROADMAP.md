@@ -285,8 +285,14 @@ quality 继续显示 unavailable/no evidence，未 dispatch Adapter/Effect。冻
 由 `DEV-054` 跟踪。重复验收还修复了显式 Session replacement 的 Service 重建竞态：先发起 replacement bind，
 再 cancel/close 旧 Session，防止短暂无绑定窗口和 active-session 容量泄漏。
 
-下一实现工作包为 `P4-W05 Seat control surface`。必须实现 zone/heating/ventilation/massage/recline/preset、
-UNKNOWN_RESTRICTED 驾驶席 fail-closed 和 governed manual request；不得伪造 occupant/readback 或 dispatch 硬件。
+`P4-W05 Seat control surface` 已完成：四座区、heat/vent 0-3 互斥、massage、0-60 degree recline、
+upright/comfort/rest preset、immutable desired/request/safety/evidence state、300 ms debounce 和
+`scene.manual.seat.adjust.v1` governed Session 已进入 Client2。Context 未接时保持 UNKNOWN_RESTRICTED；驾驶席靠背和
+rest preset 不改变 desired、不创建 Session。host policy 证明 PARKED+OCCUPIED+UNBELTED 的 rest 只进入
+WAITING_APPROVAL，仍不 dispatch。冻结 Session V1 的 bounded `SEAT1`/approval 缺口由 `DEV-055` 跟踪。
+
+下一实现工作包为 `P4-W06 Plan/effect execution timeline`。必须将现有 Session、Graph/Effect unavailable 和后续 typed
+node/effect 状态映射到可扫描 timeline；不得把 Session admission 或 desired state 表示为车辆执行成功。
 
 ## 7. 近期进展
 
@@ -443,6 +449,10 @@ UNKNOWN_RESTRICTED 驾驶席 fail-closed 和 governed manual request；不得伪
   `manual.hvac -> scene.manual.hvac.adjust.v1` governed Session 和 desired/reported/source/quality/effect 分层；host、APK、
   static gate 与 Android 13 ARM64 实体测试通过。Session admission 仅为 REQUESTED，readback/Effect/Adapter/硬件保持
   unavailable/not-dispatched；下一工作包为 P4-W05 Seat control surface。
+- 完成 `P4-W05 Seat control surface`：新增 immutable Seat target/state、安全上下文与 decision、四区 heat/vent/massage/
+  recline/preset 控件、300 ms debounce 和 `manual.seat -> scene.manual.seat.adjust.v1` governed Session。heat/vent 互斥，
+  UNKNOWN_RESTRICTED 驾驶席靠背不改变 desired、不创建 Session；reported/Effect/Adapter/硬件保持 unavailable/not-dispatched。
+  下一工作包为 P4-W06 Plan/effect execution timeline。
 
 ## 8. 当前门禁
 
@@ -629,7 +639,7 @@ production_effect_dispatch_enabled=false
 client2_session_event_primary_api=true
 client2_session_event_typed_callback=true
 client2_legacy_submit_compatibility=true
-client2_scenario_alias_map_count=13
+client2_scenario_alias_map_count=14
 client2_session_snapshot_verified=true
 client2_session_event_sequence_verified=true
 client2_session_reconnect_replay_verified=true
@@ -654,14 +664,16 @@ cockpit_hvac_debounce_ms=300
 cockpit_hvac_governed_manual_session=true
 cockpit_hvac_reported_readback_available=false
 hvac_manual_typed_parameter_field=false
-cockpit_hvac_reducer_owned=true
-cockpit_hvac_debounce_ms=300
-cockpit_hvac_governed_manual_session=true
-cockpit_hvac_reported_readback_available=false
-hvac_manual_typed_parameter_field=false
-cockpit_seat_surface_implemented=false
+cockpit_seat_surface_implemented=true
+cockpit_seat_reducer_owned=true
+cockpit_seat_debounce_ms=300
+cockpit_seat_governed_manual_session=true
+cockpit_seat_heat_vent_mutex_verified=true
+cockpit_seat_unknown_restricted_fail_closed=true
+cockpit_seat_reported_readback_available=false
+seat_manual_typed_parameter_field=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W05
+implementation_stage=P4-W06
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

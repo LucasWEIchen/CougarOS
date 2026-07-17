@@ -23,6 +23,7 @@ public final class CockpitHmiReducerTestMain {
         check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.INTENT,
                 "intent must be the initial surface");
         verifyHvacReduction();
+        verifySeatReduction();
 
         state = CockpitHmiReducer.reduce(
                 state,
@@ -125,6 +126,13 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_hvac_desired_reducer_verified=true");
         System.out.println("cockpit_hvac_reported_readback_available=false");
         System.out.println("cockpit_hvac_verified_before_readback=false");
+        System.out.println("cockpit_seat_intent_roundtrip_verified=true");
+        System.out.println("cockpit_seat_heat_vent_mutex_verified=true");
+        System.out.println("cockpit_seat_unknown_restricted_fail_closed=true");
+        System.out.println("cockpit_seat_parked_rest_approval_required=true");
+        System.out.println("cockpit_seat_desired_reducer_verified=true");
+        System.out.println("cockpit_seat_reported_readback_available=false");
+        System.out.println("cockpit_seat_verified_before_readback=false");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
     }
@@ -205,10 +213,125 @@ public final class CockpitHmiReducerTestMain {
                 "an old Session snapshot must not cancel a pending HVAC debounce");
     }
 
+    private static void verifySeatReduction() {
+        SeatControlIntent initialIntent = SeatControlIntent.defaults();
+        String wire = initialIntent.toWireValue();
+        check(initialIntent.equals(SeatControlIntent.parseWireValue(wire)),
+                "seat wire value must round trip exactly");
+        check(initialIntent.stepHeat(100).getHeatLevel()
+                        == SeatControlIntent.MAX_COMFORT_LEVEL,
+                "seat heat step must clamp to the upper bound");
+        SeatControlIntent ventilated = initialIntent.stepHeat(1).stepVentilation(1);
+        check(ventilated.getHeatLevel() == 0 && ventilated.getVentilationLevel() == 1,
+                "seat ventilation must clear heat");
+        SeatControlIntent heated = ventilated.stepHeat(1);
+        check(heated.getHeatLevel() == 1 && heated.getVentilationLevel() == 0,
+                "seat heat must clear ventilation");
+        expectRejected(() -> SeatControlIntent.parseWireValue(
+                wire.replace("heat=0", "heat=4")));
+
+        CockpitHmiState state = CockpitHmiState.initial();
+        SeatControlIntent reclined = initialIntent.stepRecline(1);
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.seatDesiredChanged(reclined));
+        check(state.getSeatState().getDesiredRevision() == 0
+                        && state.getSeatState().getDesired().getReclineDegrees() == 0,
+                "unknown driving context must not change driver recline desired state");
+        check(state.getSeatState().getRequestState() == CockpitSeatState.RequestState.BLOCKED
+                        && state.getSeatState().getSafetyDecision()
+                        == CockpitSeatState.SafetyDecision.DENIED_UNKNOWN_CONTEXT,
+                "unknown driving context must fail closed");
+
+        SeatControlIntent lowRisk = initialIntent.stepHeat(1);
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.seatDesiredChanged(lowRisk));
+        check(state.getSeatState().getDesiredRevision() == 1
+                        && state.getSeatState().getRequestState()
+                        == CockpitSeatState.RequestState.DEBOUNCING,
+                "low-risk seat comfort change must enter debounce");
+        check(state.getDeviceDrawer() == CockpitHmiState.DeviceDrawer.SEAT,
+                "seat desired change must keep the seat drawer visible");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.seatManualSubmitted(1));
+        check("manual.seat".equals(state.getUiScenarioId()),
+                "manual seat must use the governed scenario alias");
+        check(state.getSeatState().getRequestState()
+                        == CockpitSeatState.RequestState.SUBMITTING,
+                "manual seat request must be submitting");
+        check(!state.getSeatState().hasReportedEvidence()
+                        && state.getSeatState().getEffectState()
+                        == CockpitSeatState.EffectState.NOT_DISPATCHED,
+                "manual seat request must not synthesize dispatch or readback");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.sessionOpened(
+                        handle(), "scene.manual.seat.adjust.v1"));
+        check(state.getSeatState().getRequestState()
+                        == CockpitSeatState.RequestState.ACCEPTED
+                        && state.getSeatState().getEffectState()
+                        == CockpitSeatState.EffectState.REQUESTED,
+                "seat Session admission may only project REQUESTED");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.seatDesiredChanged(lowRisk.stepVentilation(1)));
+        check(state.getSeatState().getRequestState()
+                        == CockpitSeatState.RequestState.DEBOUNCING,
+                "a new seat edit must supersede accepted request state");
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.snapshot(snapshot(
+                        ICentralBrainSessionRuntime.SESSION_STATE_EXECUTING,
+                        "Older Session remains accepted")));
+        check(state.getSeatState().getRequestState()
+                        == CockpitSeatState.RequestState.DEBOUNCING,
+                "an old Session snapshot must not cancel a pending seat debounce");
+
+        CockpitSeatState.SafetyContext parked = CockpitSeatState.SafetyContext.observed(
+                CockpitSeatState.DrivingState.PARKED,
+                CockpitSeatState.OccupancyState.OCCUPIED,
+                CockpitSeatState.BeltState.UNBELTED,
+                CockpitSeatState.EvidenceSource.TARGET,
+                7);
+        CockpitHmiState parkedState = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.seatSafetyContextChanged(parked));
+        parkedState = CockpitHmiReducer.reduce(
+                parkedState,
+                CockpitHmiReducer.Event.seatDesiredChanged(
+                        SeatControlIntent.defaults().applyPreset(SeatControlIntent.Preset.REST)));
+        check(parkedState.getSeatState().getRequestState()
+                        == CockpitSeatState.RequestState.WAITING_APPROVAL
+                        && parkedState.getSeatState().getSafetyDecision()
+                        == CockpitSeatState.SafetyDecision.APPROVAL_REQUIRED,
+                "parked rest preset must wait for approval rather than submit");
+
+        CockpitSeatState.SafetyContext moving = CockpitSeatState.SafetyContext.observed(
+                CockpitSeatState.DrivingState.MOVING,
+                CockpitSeatState.OccupancyState.OCCUPIED,
+                CockpitSeatState.BeltState.UNBELTED,
+                CockpitSeatState.EvidenceSource.TARGET,
+                8);
+        CockpitHmiState movingState = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.seatSafetyContextChanged(moving));
+        movingState = CockpitHmiReducer.reduce(
+                movingState,
+                CockpitHmiReducer.Event.seatDesiredChanged(reclined));
+        check(movingState.getSeatState().getSafetyDecision()
+                        == CockpitSeatState.SafetyDecision.DENIED_MOVING_DRIVER,
+                "moving driver recline must fail closed");
+    }
+
     private static void expectRejected(Runnable action) {
         try {
             action.run();
-            throw new AssertionError("invalid HVAC value must be rejected");
+            throw new AssertionError("invalid control value must be rejected");
         } catch (IllegalArgumentException expected) {
             // Expected fail-closed validation.
         }

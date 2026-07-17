@@ -36,8 +36,8 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 ## 2026-07-16 Client2 中控 HVAC/Seat 交付规划
 
 `S2-HMI-001..006` 将自然场景意图和 HVAC/Seat Effect 明确为 `com.tuanjie.urasclient2` APK 内的
-中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前 HMI-D0/D1、P4-W01..P4-W04
-已完成，Client2 已包含四阶段界面和 HVAC control surface；Seat 与 Runtime Effect/readback 闭环仍未实现。
+中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前 HMI-D0/D1、P4-W01..P4-W05
+已完成，Client2 已包含四阶段界面和 HVAC/Seat control surface；Runtime Effect/readback 闭环仍未实现。
 
 P4 计划用 24-32 人日交付意图/计划/执行/结果四阶段、可观察自动化链和 HVAC/Seat Effect 详情，
 以及 manual/AI 共用 Session、Governance、Effect、readback、partial、retry、undo 和 restart recovery
@@ -53,7 +53,10 @@ cockpit_hmi_translucent_material_ready=true
 cockpit_hvac_surface_implemented=true
 cockpit_hvac_governed_manual_session=true
 cockpit_hvac_reported_readback_available=false
-cockpit_seat_surface_implemented=false
+cockpit_seat_surface_implemented=true
+cockpit_seat_governed_manual_session=true
+cockpit_seat_unknown_restricted_fail_closed=true
+cockpit_seat_reported_readback_available=false
 cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
@@ -1553,3 +1556,25 @@ target_hardware_validated=false
 车辆 readback 或真实车辆/NPU。当前固定画布/placeholder 由 `DEV-053` 跟踪；`ISSUE-033` 保持 Open。Req IDs：
 `S2-UX-001..003`、`S2-HMI-001..003/006`、`APP-004`、`XSC-001/005/006`、
 `NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+## P4-W05 Seat Control Surface
+
+交付 `SeatControlIntent`、`CockpitSeatState`、唯一 reducer 的 Seat/Safety event、Coordinator 300 ms debounce、
+`Client2ScenarioBridge.openSeatSession` 和 Client2 drawer 内四座区、heat/vent 0-3、massage、recline、三项 preset。
+heat 与 vent 在 immutable target 层互斥；所有输入只生成 bounded desired revision。
+
+Safety Context 未接时固定投影 UNKNOWN_RESTRICTED/UNKNOWN/UNKNOWN/UNAVAILABLE/NO_EVIDENCE。驾驶席 position request
+保持 desired 不变并显示 BLOCKED，不创建 Session。host policy 覆盖 MOVING driver 拒绝和 PARKED+OCCUPIED+UNBELTED
+REST -> WAITING_APPROVAL；这不是生产 Safety authority，也没有 approval response 或 dispatch。
+
+低风险手动请求固定使用 `manual.seat -> scene.manual.seat.adjust.v1` 并进入现有 SDK/Session Binder。冻结 V1 没有
+typed parameter、HMI_CONTROL 或 approval response，因此 bridge 内部使用 exact canonical `SEAT1` utterance 与
+SOURCE_HMI_BUTTON，由 `DEV-055` 跟踪；UI/日志不接触 wire payload。
+
+Android 13/API 33 ARM64 交付证据覆盖 heat->vent 的 300 ms 单 Session 合并、heat=0/vent=1、REQUESTED admission、
+UNKNOWN_RESTRICTED driver recline 保持 0/no Session，以及 reported/source/quality unavailable/no evidence/no verified。
+本包不交付 Runtime scenario/Graph/Effect timeline、approval service、simulated/production Adapter 注册、车辆 Context/
+readback、VHAL/NPU/Driver-HAL。Req IDs：`S2-HMI-002..005`、`S2-SAF-001`、`S2-ADP-001`、`APP-004`、
+`XSC-001/005/006`、`DEL-001/003/004/005`。状态：`cockpit_seat_surface_implemented=true`、
+`cockpit_seat_unknown_restricted_fail_closed=true`、`cockpit_seat_reported_readback_available=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W06`。

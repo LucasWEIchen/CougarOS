@@ -622,10 +622,23 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W05` Seat control surface
 
-- 状态：`NOT_STARTED`；3.5 人日；需求：`S2-HMI-002..005`、`S2-SAF-001`。
+- 状态：`DONE`（2026-07-18）；3.5 人日；需求：`S2-HMI-002..005`、`S2-SAF-001`、`S2-ADP-001`。
 - 控件：zone、heat/vent 0-3、massage、recline、upright/comfort/rest presets。
 - DoD：heat/vent 互斥；UNKNOWN_RESTRICTED/MOVING 禁止驾驶席 recline；UI 不是安全 authority；
   parked rest 进入 approval 并在 dispatch 前重查 Context。
+- 实现：`SeatControlIntent` 提供 DRIVER/FRONT_PASSENGER/REAR_LEFT/REAR_RIGHT、heat/vent 0-3、massage、
+  0-60 degree recline 和三项 preset 的 immutable bounded target；任何 heat>0 自动清 vent，vent>0 自动清 heat。
+  `CockpitSeatState` 独立保存 desired/submitted revision、request、reported/source/quality/effect、typed driving/occupancy/
+  belt Context 和 safety decision。唯一 reducer 在 UNKNOWN_RESTRICTED 或 MOVING driver position request 时保持 desired
+  不变并投影 BLOCKED；PARKED+OCCUPIED+UNBELTED rest 进入 WAITING_APPROVAL，不进入 debounce。
+- 手动舒适调整由主线程 300 ms debounce 合并后通过 `Client2ScenarioBridge.openSeatSession` 创建
+  `scene.manual.seat.adjust.v1` Session。Session admission 最多投影 REQUESTED；无 trusted observation 时 reported/source/
+  quality 保持 UNAVAILABLE/NO_EVIDENCE，绝不进入 VERIFIED。UI decision 不是 Runtime/Adapter dispatch authority，后续
+  dispatch 必须重新读取 Context/Safety/approval。
+- 兼容边界：冻结 Session V1 无 typed parameter、HMI_CONTROL 或 approval response，bridge 暂将 canonical `SEAT1`
+  放入 utterance 并使用 SOURCE_HMI_BUTTON。该偏差由 `DEV-055` 跟踪，UI/日志不接触目标 payload。
+- 证据：host wire/reducer/policy、signed APK/static gates和 Android 13/API 33 ARM64 heat->vent 单 Session、heat=0/
+  vent=1、UNKNOWN_RESTRICTED driver recline 保持 0/no Session、reported unavailable/no dispatch 验收。
 
 ### `P4-W06` Plan/effect execution timeline
 

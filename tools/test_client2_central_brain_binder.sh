@@ -352,7 +352,12 @@ for marker in \
   'cockpit_hvac_debounce_ms=300' \
   'cockpit_hvac_governed_manual_session=true' \
   'cockpit_hvac_reported_readback_available=false' \
-  'cockpit_seat_surface_implemented=false' \
+  'cockpit_seat_surface_implemented=true' \
+  'cockpit_seat_reducer_owned=true' \
+  'cockpit_seat_debounce_ms=300' \
+  'cockpit_seat_governed_manual_session=true' \
+  'cockpit_seat_unknown_restricted_fail_closed=true' \
+  'cockpit_seat_reported_readback_available=false' \
   'client2_hmi_checkpoint_text_persisted=false' \
   'ui_scenario_id=care.cold' \
   'scenario_id=scene.comfort.cold.v1' \
@@ -447,6 +452,129 @@ done
 tap_resource centralBrainDrawerCloseButton "$LOG_DIR/ui-before-drawer-close.xml"
 wait_for_resource_state \
   centralBrainHvacDesiredText hidden "$LOG_DIR/ui-drawer-closed.xml"
+tap_resource centralBrainSeatDetailButton "$LOG_DIR/ui-before-seat-drawer.xml"
+wait_for_resource_state \
+  centralBrainSeatDesiredText visible "$LOG_DIR/ui-seat-drawer.xml"
+
+SEAT_HEAT_UP_CENTER="$(node_center centralBrainSeatHeatUpButton \
+  "$LOG_DIR/ui-seat-drawer.xml" || true)"
+SEAT_VENT_UP_CENTER="$(node_center centralBrainSeatVentilationUpButton \
+  "$LOG_DIR/ui-seat-drawer.xml" || true)"
+read -r SEAT_HEAT_UP_X SEAT_HEAT_UP_Y <<<"$SEAT_HEAT_UP_CENTER"
+read -r SEAT_VENT_UP_X SEAT_VENT_UP_Y <<<"$SEAT_VENT_UP_CENTER"
+if [[ -z "${SEAT_HEAT_UP_Y:-}" || -z "${SEAT_VENT_UP_Y:-}" ]]; then
+  cat "$LOG_DIR/ui-seat-drawer.xml" >&2
+  echo "Seat heat/vent controls are not visible" >&2
+  exit 1
+fi
+"${ADB_DEVICE[@]}" logcat -c
+"${ADB_DEVICE[@]}" shell input tap "$SEAT_HEAT_UP_X" "$SEAT_HEAT_UP_Y"
+sleep 0.03
+"${ADB_DEVICE[@]}" shell input tap "$SEAT_VENT_UP_X" "$SEAT_VENT_UP_Y"
+
+SEAT_LOG=""
+for _ in {1..60}; do
+  SEAT_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+    CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I '*:S')"
+  if grep -Fq 'ui_scenario_id=manual.seat' <<<"$SEAT_LOG" \
+      && grep -Fq 'client2_session_replay_complete=true' <<<"$SEAT_LOG"; then
+    break
+  fi
+  sleep 0.1
+done
+printf '%s\n' "$SEAT_LOG" >"$LOG_DIR/seat-log.txt"
+for marker in \
+  'cockpit_seat_desired_changed=true' \
+  'seat_debounce_scheduled=true' \
+  'cockpit_seat_manual_session_submitted=true' \
+  'seat_parameter_logged=false' \
+  'ui_scenario_id=manual.seat' \
+  'scenario_id=scene.manual.seat.adjust.v1' \
+  'seat_manual_intent_governed_session=true' \
+  'seat_manual_bounded_parameter_wire=true' \
+  'seat_manual_typed_parameter_field=false' \
+  'service_dispatch_triggered=false' \
+  'hardware_accessed=false'; do
+  if ! grep -Fq "$marker" <<<"$SEAT_LOG"; then
+    echo "$SEAT_LOG" >&2
+    echo "Client2 Seat log missing marker: $marker" >&2
+    exit 1
+  fi
+done
+if [[ "$(grep -Fc 'cockpit_seat_manual_session_submitted=true' \
+    <<<"$SEAT_LOG")" -ne 1 ]]; then
+  echo "$SEAT_LOG" >&2
+  echo "Seat heat/vent inputs were not coalesced into exactly one governed Session" >&2
+  exit 1
+fi
+if [[ "$(grep -F 'ui_scenario_id=manual.seat' <<<"$SEAT_LOG" \
+    | grep -Fc 'client2_session_opened=true')" -ne 1 ]]; then
+  echo "$SEAT_LOG" >&2
+  echo "coalesced Seat request did not complete governed Session admission" >&2
+  exit 1
+fi
+dump_ui "$LOG_DIR/ui-seat-after-debounce.xml"
+for marker in \
+  'text="HEAT 0"' \
+  'text="VENT 1"'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-seat-after-debounce.xml"; then
+    cat "$LOG_DIR/ui-seat-after-debounce.xml" >&2
+    echo "Client2 Seat UI missing heat/vent mutex marker: $marker" >&2
+    exit 1
+  fi
+done
+
+SEAT_RECLINE_CENTER=""
+for _ in {1..4}; do
+  "${ADB_DEVICE[@]}" shell input swipe 1700 900 1700 420 250
+  sleep 0.1
+  dump_ui "$LOG_DIR/ui-seat-scrolled.xml"
+  SEAT_RECLINE_CENTER="$(node_center centralBrainSeatReclineUpButton \
+    "$LOG_DIR/ui-seat-scrolled.xml" || true)"
+  [[ -n "$SEAT_RECLINE_CENTER" ]] && break
+done
+read -r SEAT_RECLINE_X SEAT_RECLINE_Y <<<"$SEAT_RECLINE_CENTER"
+if [[ -z "${SEAT_RECLINE_Y:-}" ]]; then
+  cat "$LOG_DIR/ui-seat-scrolled.xml" >&2
+  echo "Seat recline control is not reachable in the fixed drawer" >&2
+  exit 1
+fi
+"${ADB_DEVICE[@]}" logcat -c
+"${ADB_DEVICE[@]}" shell input tap "$SEAT_RECLINE_X" "$SEAT_RECLINE_Y"
+sleep 0.5
+SEAT_RESTRICT_LOG="$("${ADB_DEVICE[@]}" logcat -d CbClient2Hmi:I CbClient2Session:I '*:S')"
+printf '%s\n' "$SEAT_RESTRICT_LOG" >"$LOG_DIR/seat-restriction-log.txt"
+for marker in \
+  'cockpit_seat_position_request_blocked=true' \
+  'seat_safety_decision=DENIED_UNKNOWN_CONTEXT' \
+  'seat_dispatch_triggered=false'; do
+  if ! grep -Fq "$marker" <<<"$SEAT_RESTRICT_LOG"; then
+    echo "$SEAT_RESTRICT_LOG" >&2
+    echo "Client2 Seat restriction log missing marker: $marker" >&2
+    exit 1
+  fi
+done
+if grep -Fq 'cockpit_seat_manual_session_submitted=true' <<<"$SEAT_RESTRICT_LOG"; then
+  echo "$SEAT_RESTRICT_LOG" >&2
+  echo "restricted driver recline incorrectly submitted a governed Session" >&2
+  exit 1
+fi
+dump_ui "$LOG_DIR/ui-seat-restricted.xml"
+for marker in \
+  'text="0 deg"' \
+  'Driving：UNKNOWN_RESTRICTED' \
+  'Decision：DENIED_UNKNOWN_CONTEXT' \
+  'Reported：UNAVAILABLE' \
+  'Effect：REQUESTED'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-seat-restricted.xml"; then
+    cat "$LOG_DIR/ui-seat-restricted.xml" >&2
+    echo "Client2 Seat UI missing restriction/readback marker: $marker" >&2
+    exit 1
+  fi
+done
+tap_resource centralBrainDrawerCloseButton "$LOG_DIR/ui-before-seat-drawer-close.xml"
+wait_for_resource_state \
+  centralBrainSeatDesiredText hidden "$LOG_DIR/ui-seat-drawer-closed.xml"
 tap_resource centralBrainExecutionTab "$LOG_DIR/ui-before-execution-tab.xml"
 wait_for_resource_state \
   centralBrainExecutionSummaryText visible "$LOG_DIR/ui-execution-tab.xml"
@@ -491,7 +619,15 @@ printf '%s\n' \
   "cockpit_hvac_reported_readback_available=false" \
   "cockpit_hvac_verified_before_readback=false" \
   "hvac_manual_typed_parameter_field=false" \
-  "cockpit_seat_surface_implemented=false" \
+  "cockpit_seat_surface_implemented=true" \
+  "cockpit_seat_controls_verified=true" \
+  "cockpit_seat_heat_vent_mutex_verified=true" \
+  "cockpit_seat_unknown_restricted_fail_closed=true" \
+  "cockpit_seat_manual_session_admission_verified=true" \
+  "cockpit_seat_desired_reported_separation_verified=true" \
+  "cockpit_seat_reported_readback_available=false" \
+  "cockpit_seat_verified_before_readback=false" \
+  "seat_manual_typed_parameter_field=false" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \

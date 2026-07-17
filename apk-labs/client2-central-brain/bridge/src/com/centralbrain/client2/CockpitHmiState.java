@@ -27,6 +27,7 @@ public final class CockpitHmiState {
     private final SurfaceStage surfaceStage;
     private final DeviceDrawer deviceDrawer;
     private final CockpitHvacState hvacState;
+    private final CockpitSeatState seatState;
     private final String uiScenarioId;
     private final String canonicalScenarioId;
     private final int handleSchemaVersion;
@@ -51,6 +52,7 @@ public final class CockpitHmiState {
         surfaceStage = builder.surfaceStage;
         deviceDrawer = builder.deviceDrawer;
         hvacState = builder.hvacState;
+        seatState = builder.seatState;
         uiScenarioId = builder.uiScenarioId;
         canonicalScenarioId = builder.canonicalScenarioId;
         handleSchemaVersion = builder.handleSchemaVersion;
@@ -95,6 +97,10 @@ public final class CockpitHmiState {
 
     public CockpitHvacState getHvacState() {
         return hvacState;
+    }
+
+    public CockpitSeatState getSeatState() {
+        return seatState;
     }
 
     public String getUiScenarioId() {
@@ -245,6 +251,7 @@ public final class CockpitHmiState {
         SurfaceStage surfaceStage = SurfaceStage.INTENT;
         DeviceDrawer deviceDrawer = DeviceDrawer.CLOSED;
         CockpitHvacState hvacState = CockpitHvacState.initial();
+        CockpitSeatState seatState = CockpitSeatState.initial();
         String uiScenarioId = "";
         String canonicalScenarioId = "";
         int handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -271,6 +278,7 @@ public final class CockpitHmiState {
             surfaceStage = source.surfaceStage;
             deviceDrawer = source.deviceDrawer;
             hvacState = source.hvacState;
+            seatState = source.seatState;
             uiScenarioId = source.uiScenarioId;
             canonicalScenarioId = source.canonicalScenarioId;
             handleSchemaVersion = source.handleSchemaVersion;
@@ -297,6 +305,9 @@ public final class CockpitHmiState {
         CockpitHmiState build() {
             if (hvacState == null) {
                 throw new IllegalStateException("HVAC state missing");
+            }
+            if (seatState == null) {
+                throw new IllegalStateException("seat state missing");
             }
             uiScenarioId = bounded(uiScenarioId, 96);
             canonicalScenarioId = bounded(canonicalScenarioId, 96);

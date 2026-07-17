@@ -260,3 +260,12 @@ Client2 application 已新增 immutable HVAC target/state、完整 controls、30
 该增量复用已发布 Session/Event SDK，不修改 Runtime AIDL/hash/Room，不连接 Scenario compiler/Graph/Effect/Adapter，
 不访问车辆/NPU/Driver-HAL。冻结 Session V1 暂以 canonical HVAC1 utterance/HMI_BUTTON 承载，`DEV-054` 跟踪后续
 versioned typed parameter contract。下一阶段为 P4-W05 Seat control surface。
+
+## P4-W05 Client2 Seat application increment
+
+Client2 application 已新增 immutable Seat target/state、四座区 controls、heat/vent 互斥、massage/recline/presets、
+300 ms debounce、Safety Context projection 和 manual governed Session。未知可信 Context 与行驶中主驾位置调整失败
+关闭；低风险舒适调整只进入现有 Session admission，不修改 Runtime AIDL/hash/Room，不连接 Scenario compiler/
+Graph/Effect/Adapter，不访问车辆/NPU/Driver-HAL。冻结 Session V1 暂以 canonical `SEAT1` utterance 和
+`SOURCE_HMI_BUTTON` 承载，`DEV-055` 跟踪 versioned typed parameter 与 approval response。下一阶段为
+P4-W06 Plan/effect execution timeline。

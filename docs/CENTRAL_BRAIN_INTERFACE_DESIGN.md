@@ -1940,3 +1940,55 @@ Status: `cockpit_hvac_surface_implemented=true`, `cockpit_hvac_reducer_owned=tru
 `hvac_manual_typed_parameter_field=false`, `production_effect_dispatch_enabled=false`, `hardware_accessed=false`.
 Req IDs: `S2-HMI-001/003/004/005`, `S2-ADP-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-054`,
 `ISSUE-030/033`.
+
+## Client2 P4-W05 Seat Control Surface Interfaces
+
+### Immutable target and wire carrier
+
+`SeatControlIntent` is the only manual Seat target accepted by the bridge. It exposes immutable zone, heat/vent 0-3, massage,
+0-60 degree recline and preset mutations. `withHeatLevel(n>0)` clears ventilation; `withVentilationLevel(n>0)` clears heat.
+The strict compatibility grammar is:
+
+```text
+SEAT1|zone=<DRIVER|FRONT_PASSENGER|REAR_LEFT|REAR_RIGHT>|heat=<0..3>|vent=<0..3>|
+massage=<OFF|RELAX|WAKE>|recline_deg=<0..60>|preset=<CUSTOM|UPRIGHT|COMFORT|REST>
+```
+
+Unknown, missing, duplicate, reordered, non-canonical, out-of-range or simultaneous non-zero heat/vent values throw before Binder
+connection. This is an app bridge carrier, not a public Session V1 extension; `DEV-055` requires a versioned typed replacement.
+
+### HMI state, safety and reducer events
+
+`CockpitSeatState` owns desired/submitted revisions, request state, optional reported target, evidence source/quality, Effect state,
+typed `SafetyContext` and `SafetyDecision`. Runtime input is currently `SafetyContext.unavailable()`: driving
+UNKNOWN_RESTRICTED, occupancy/belt UNKNOWN, source UNAVAILABLE and quality NO_EVIDENCE.
+
+```java
+CockpitHmiReducer.Event.seatSafetyContextChanged(SafetyContext context);
+CockpitHmiReducer.Event.seatDesiredChanged(SeatControlIntent intent);
+CockpitHmiReducer.Event.seatManualSubmitted(long desiredRevision);
+```
+
+Low-risk comfort changes enter DEBOUNCING. UNKNOWN_RESTRICTED or MOVING driver position changes remain BLOCKED without a desired
+revision. Trusted PARKED+OCCUPIED+UNBELTED REST enters WAITING_APPROVAL. No P4-W05 event grants approval, creates reported evidence
+or reaches DISPATCHED/APPLIED/VERIFIED; downstream Runtime/Adapter must independently revalidate fresh Context before dispatch.
+
+### Bridge and debounce
+
+```java
+Client2ScenarioBridge.SessionConnection openSeatSession(
+    Activity activity,
+    SeatControlIntent intent,
+    ScenarioCallback callback);
+```
+
+The bridge maps `manual.seat -> scene.manual.seat.adjust.v1`, maps the four Session seat zones, uses SOURCE_HMI_BUTTON and never logs
+the target. Coordinator cancels the prior main-thread callback and posts one immutable snapshot after 300 ms. Session admission updates
+request to ACCEPTED and Effect to REQUESTED only. Frozen V1 has no typed parameter, HMI_CONTROL or approval response.
+
+Status: `cockpit_seat_surface_implemented=true`, `cockpit_seat_reducer_owned=true`, `cockpit_seat_debounce_ms=300`,
+`cockpit_seat_governed_manual_session=true`, `cockpit_seat_heat_vent_mutex_verified=true`,
+`cockpit_seat_unknown_restricted_fail_closed=true`, `cockpit_seat_reported_readback_available=false`,
+`seat_manual_typed_parameter_field=false`, `production_effect_dispatch_enabled=false`, `hardware_accessed=false`,
+`implementation_stage=P4-W06`. Req IDs: `S2-HMI-002..005`, `S2-SAF-001`, `S2-ADP-001`, `APP-004`,
+`XSC-001/005/006`; tracking: `DEV-055`, `ISSUE-029/030/033`.
