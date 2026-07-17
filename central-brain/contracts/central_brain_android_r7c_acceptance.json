@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "acceptance_id": "android-r7c-api33-application-integration",
   "status": "verified",
   "evidence_scope": "api33-android-application-integration",
@@ -32,7 +32,7 @@
     "DEL-004",
     "DEL-005"
   ],
-  "test_command": "bash tools/test_client2_central_brain_recovery.sh --require-api-33 && bash tools/test_client2_central_brain_engineer_simulation.sh --require-api-33 && bash tools/test_client2_central_brain_scenario_sync.sh --require-api-33",
+  "test_command": "bash tools/test_client2_central_brain_recovery.sh --require-api-33 && bash tools/test_client2_central_brain_engineer_simulation.sh --require-api-33 && bash tools/test_client2_central_brain_scenario_sync.sh --require-api-33 && bash tools/test_client2_central_brain_accessibility_display.sh --require-api-33",
   "evidence": [
     {
       "id": "R7C-E-001",
@@ -191,6 +191,23 @@
         "cockpit_scenario_effect_dispatch_enabled=false",
         "cockpit_scenario_readback_available=false"
       ]
+    },
+    {
+      "id": "R7C-E-014",
+      "scenario": "client2_accessibility_display_matrix",
+      "required_markers": [
+        "cockpit_display_matrix_android13_arm64_verified=true",
+        "cockpit_display_compact_1280_720_verified=true",
+        "cockpit_display_standard_1920_1080_verified=true",
+        "cockpit_display_large_2560_1440_verified=true",
+        "cockpit_display_large_text_1_3_verified=true",
+        "cockpit_touch_target_min_dp=48",
+        "cockpit_accessibility_content_description_verified=true",
+        "cockpit_accessibility_state_not_color_only=true",
+        "cockpit_long_chinese_non_overlap_verified=true",
+        "cockpit_display_unsupported_fail_closed=true",
+        "cockpit_display_effect_authorization_source=false"
+      ]
     }
   ],
   "claim_state": {
@@ -208,12 +225,16 @@
     "cockpit_scenario_control_state_reducer_owned": true,
     "cockpit_scenario_catalog_normalized": true,
     "cockpit_scenario_device_session_synchronized": true,
+    "cockpit_display_matrix_defined": true,
+    "cockpit_accessibility_semantics_runtime_owned": true,
+    "cockpit_display_matrix_android13_arm64_verified": true,
     "cockpit_recovery_commands_enabled": false,
     "cockpit_engineer_effect_authorization_source": false,
     "cockpit_engineer_production_available": false,
     "cockpit_scenario_plan_publication_inferred": false,
     "cockpit_scenario_effect_dispatch_enabled": false,
     "cockpit_scenario_readback_available": false,
+    "cockpit_display_effect_authorization_source": false,
     "api33_end_to_end_acceptance_complete": true,
     "r7_application_integration_complete": true,
     "production_activation_allowed": false,
@@ -241,6 +262,7 @@
     "ApprovalPrompt EffectObservation retryable or UndoHandle delivery to Client2",
     "HVAC or Seat Adapter dispatch vehicle Context or readback",
     "production trusted vehicle Context Safety authority or actual vehicle effect from the protected debug engineer projection",
-    "Runtime Plan publication or device dispatch inferred from the Client2 catalog participation projection"
+    "Runtime Plan publication or device dispatch inferred from the Client2 catalog participation projection",
+    "display sizes densities orientations or font scales outside the three-profile Client2 allowlist"
   ]
 }

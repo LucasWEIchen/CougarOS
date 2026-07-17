@@ -1598,7 +1598,7 @@ HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`AP
 `DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
 `cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W11`。
+`hardware_accessed=false`、`implementation_stage=P4-W12`。
 
 ## P4-W09 Engineer Simulation Drawer
 
@@ -1622,7 +1622,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W11`。下一工作包为 P4-W11 Accessibility/display matrix。
+`implementation_stage=P4-W12`。该历史包的下一工作包为 P4-W10 Scenario/manual-control synchronization。
 
 ## P4-W07 Approval and Recovery UX
 
@@ -1643,7 +1643,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_approval_details_fail_closed=true`、`cockpit_partial_outcome_projection=true`、
 `cockpit_compensation_projection=true`、`cockpit_approval_response_service_published=false`、
 `cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
-`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W11`。
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W12`。
 
 ## P4-W08 Driving Restriction Renderer
 
@@ -1665,7 +1665,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_unknown_driving_restricted=true`、`cockpit_moving_long_text_hidden=true`、
 `cockpit_restricted_parameter_editing_disabled=true`、`cockpit_high_risk_controls_disabled=true`、
 `cockpit_runtime_policy_authority_independent=true`、`vehicle_signal_provider_wired=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W11`。
+`hardware_accessed=false`、`implementation_stage=P4-W12`。
 
 ## 2026-07-18 P4-W10 Scenario/manual-control synchronization delivery
 
@@ -1681,4 +1681,24 @@ NOT PUBLISHED，Effect/readback 保持 NOT DISPATCHED/UNAVAILABLE。未接 Andro
 状态：`cockpit_scenario_control_state_reducer_owned=true`、`cockpit_scenario_catalog_normalized=true`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`scenario_execution_enabled=false`、
-`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W11`。
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W12`。
+
+## 2026-07-18 P4-W11 Accessibility/display matrix delivery
+
+交付 `CockpitDisplayPolicy`、Coordinator runtime accessibility contract、XML 48dp 基线、host/static gate、R7C 2.1
+`R7C-E-014` 和 Android 13/API 33 ARM64 UIAutomator 矩阵。当前认证 profile 为横屏 `1280x720@107dpi`、
+`1920x1080@160dpi`、`2560x1440@213dpi`；覆盖 `fontScale=1.30`、最长中文、content description、selected/
+stateDescription、48dp target、无 clickable overlap 和 `1366x768` 失败关闭。
+
+交付范围只证明定义矩阵内的 Client2 application HMI。未列入 profile、portrait、自由 density 或更大字体不在当前
+认证范围并失败关闭；不代表 OEM 多屏、TalkBack、驾驶分心或量产视觉认证。未接 Android Car/VHAL/Vendor service/NPU/
+Driver-HAL，不修改厂家系统软件，也不启用 Plan/Graph/Effect/readback。
+
+Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、`DEL-001/003/004/005`；
+偏差：`DEV-061`；问题：`ISSUE-019/033`。状态：`cockpit_display_matrix_defined=true`、
+`cockpit_display_profile_count=3`、`cockpit_touch_target_min_dp=48`、
+`cockpit_accessibility_semantics_runtime_owned=true`、`cockpit_accessibility_state_not_color_only=true`、
+`cockpit_display_large_text_1_3_verified=true`、`cockpit_display_unsupported_fail_closed=true`、
+`cockpit_display_matrix_android13_arm64_verified=true`、`cockpit_display_effect_authorization_source=false`、
+`scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。

@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +58,7 @@ public final class CockpitControlCoordinator implements
     private final Runnable submitHvacRunnable = this::submitPendingHvac;
     private final Runnable submitSeatRunnable = this::submitPendingSeat;
     private final DebugSimulationControllerClient debugSimulationClient;
+    private final CockpitDisplayPolicy displayPolicy;
 
     private CockpitHmiState state;
     private Client2ScenarioBridge.SessionConnection connection;
@@ -116,6 +119,8 @@ public final class CockpitControlCoordinator implements
     private View hvacSurface;
     private View seatSurface;
     private View engineerSurface;
+    private View panelView;
+    private View navigationTrigger;
     private Button engineerDetailButton;
     private Button approveButton;
     private Button rejectButton;
@@ -130,6 +135,12 @@ public final class CockpitControlCoordinator implements
         this.application = activity.getApplication();
         this.preferences = activity.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE);
         this.debugSimulationClient = new DebugSimulationControllerClient(activity, this);
+        DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+        this.displayPolicy = CockpitDisplayPolicy.resolve(
+                metrics.widthPixels,
+                metrics.heightPixels,
+                metrics.densityDpi,
+                activity.getResources().getConfiguration().fontScale);
         synchronized (ACTIVE_LOCK) {
             state = retainedState.getRevision() > 0
                     ? retainedState
@@ -163,6 +174,10 @@ public final class CockpitControlCoordinator implements
                 + " client2_hmi_coordinator_installed=true"
                 + " client2_hmi_state_restored=" + (state.getRevision() > 0)
                 + " client2_hmi_resume_available=" + resume
+                + " cockpit_display_profile=" + displayPolicy.getProfile()
+                + " cockpit_display_supported=" + displayPolicy.isSupported()
+                + " cockpit_display_rejection=" + safeDisplayToken(
+                        displayPolicy.getRejectionCode())
                 + " client2_hmi_checkpoint_text_persisted=false");
         if (resume) {
             resumeSession();
@@ -171,9 +186,9 @@ public final class CockpitControlCoordinator implements
     }
 
     private void bindViews() {
-        View panel = findView("centralBrainPanel");
-        if (panel != null) {
-            bindButtons(panel);
+        panelView = findView("centralBrainPanel");
+        if (panelView != null) {
+            bindButtons(panelView);
         }
         replyView = findTextView("centralBrainReplyText");
         sourceView = findTextView("centralBrainSourceText");
@@ -248,10 +263,14 @@ public final class CockpitControlCoordinator implements
         if (panelOverlay != null) {
             panelOverlay.setOnClickListener(this);
         }
-        View navigationTrigger = findView("centralBrainNavigationTrigger");
+        navigationTrigger = findView("centralBrainNavigationTrigger");
         if (navigationTrigger != null) {
             navigationTrigger.setOnClickListener(this);
         }
+        applyDisplayBounds();
+        applyAccessibilityContract(panelView);
+        applyAccessibilityContract(navigationTrigger);
+        setEnabled(navigationTrigger, isDisplayReady());
     }
 
     private View findView(String name) {
@@ -395,6 +414,14 @@ public final class CockpitControlCoordinator implements
     }
 
     private void setPanelVisible(boolean visible) {
+        if (visible && !isDisplayReady()) {
+            accept(CockpitHmiReducer.Event.panelVisibility(false));
+            Log.w(TAG, markers()
+                    + " cockpit_display_matrix_rejected=true"
+                    + " cockpit_display_rejection=" + safeDisplayToken(
+                            displayPolicy.getRejectionCode()));
+            return;
+        }
         accept(CockpitHmiReducer.Event.panelVisibility(visible));
         if (!visible) {
             Log.i(TAG, markers()
@@ -853,7 +880,9 @@ public final class CockpitControlCoordinator implements
             }
             if (panelOverlay != null) {
                 panelOverlay.setVisibility(
-                        current.getPanelVisibility() == CockpitHmiState.PanelVisibility.VISIBLE
+                        isDisplayReady()
+                                && current.getPanelVisibility()
+                                == CockpitHmiState.PanelVisibility.VISIBLE
                                 ? View.VISIBLE : View.GONE);
             }
             if (replyView != null) {
@@ -942,6 +971,7 @@ public final class CockpitControlCoordinator implements
         setText(resultEvidenceView, resultEvidence);
         renderDrawer(current.getDeviceDrawer(), presentationMode);
         setVisible(engineerDetailButton, current.getEngineerState().isAvailable());
+        refreshAccessibilityState(panelView);
     }
 
     private void renderPresentation(
@@ -1100,6 +1130,7 @@ public final class CockpitControlCoordinator implements
         if (view != null) {
             view.setEnabled(enabled);
             view.setAlpha(enabled ? 1.0f : 0.55f);
+            updateAccessibilityState(view);
         }
     }
 
@@ -1305,7 +1336,97 @@ public final class CockpitControlCoordinator implements
     private static void setActivated(View view, boolean activated) {
         if (view != null) {
             view.setActivated(activated);
+            view.setSelected(activated);
+            updateAccessibilityState(view);
         }
+    }
+
+    private void applyAccessibilityContract(View view) {
+        if (view == null) {
+            return;
+        }
+        if (view instanceof Button) {
+            Button button = (Button) view;
+            CharSequence label = button.getContentDescription();
+            if (TextUtils.isEmpty(label)) {
+                label = button.getText();
+            }
+            if (!TextUtils.isEmpty(label)) {
+                button.setContentDescription(normalizeAccessibilityLabel(label));
+            }
+            button.setFocusable(true);
+            button.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            button.setMinimumWidth(displayPolicy.getMinimumTouchTargetPixels());
+            button.setMinimumHeight(displayPolicy.getMinimumTouchTargetPixels());
+            button.setMaxLines(2);
+            button.setEllipsize(TextUtils.TruncateAt.END);
+            updateAccessibilityState(button);
+        } else if (view == navigationTrigger) {
+            view.setFocusable(true);
+            view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            view.setMinimumWidth(displayPolicy.getMinimumTouchTargetPixels());
+            view.setMinimumHeight(displayPolicy.getMinimumTouchTargetPixels());
+            updateAccessibilityState(view);
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                applyAccessibilityContract(group.getChildAt(index));
+            }
+        }
+    }
+
+    private void applyDisplayBounds() {
+        if (panelView == null || !isDisplayReady()) {
+            return;
+        }
+        CockpitDisplayPolicy.Bounds bounds = displayPolicy.getPanelBoundsPixels();
+        ViewGroup.LayoutParams parameters = panelView.getLayoutParams();
+        parameters.width = bounds.getWidth();
+        parameters.height = bounds.getHeight();
+        if (parameters instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) parameters;
+            margins.topMargin = bounds.getTop();
+            margins.rightMargin = displayPolicy.getWidthPixels() - bounds.getRight();
+        }
+        panelView.setLayoutParams(parameters);
+    }
+
+    private boolean isDisplayReady() {
+        return displayPolicy.isSupported() && displayPolicy.panelFitsDisplay();
+    }
+
+    private static void refreshAccessibilityState(View view) {
+        if (view == null) {
+            return;
+        }
+        if (view instanceof Button) {
+            updateAccessibilityState(view);
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                refreshAccessibilityState(group.getChildAt(index));
+            }
+        }
+    }
+
+    private static void updateAccessibilityState(View view) {
+        if (view == null) {
+            return;
+        }
+        String stateDescription = view.isSelected()
+                ? (view.isEnabled() ? "已选择，可用" : "已选择，不可用")
+                : (view.isEnabled() ? "可用" : "不可用");
+        view.setStateDescription(stateDescription);
+    }
+
+    private static String normalizeAccessibilityLabel(CharSequence value) {
+        return value.toString().replace('\n', ' ').trim();
+    }
+
+    private static String safeDisplayToken(String value) {
+        return value == null || value.isEmpty() ? "NONE" : value;
     }
 
     private static void setText(TextView view, String value) {
@@ -1485,6 +1606,10 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_scenario_catalog_normalized=true"
                 + " cockpit_scenario_manual_shared_client=true"
                 + " cockpit_scenario_device_session_synchronized=true"
+                + " cockpit_display_matrix_defined=true"
+                + " cockpit_accessibility_semantics_runtime_owned=true"
+                + " cockpit_touch_target_min_dp=48"
+                + " cockpit_display_effect_authorization_source=false"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"

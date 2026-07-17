@@ -270,7 +270,7 @@ Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-
 `cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
 `cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
 `cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W11`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W12`.
 
 ## P4-W08 Client2 driving restriction projection
 
@@ -298,7 +298,33 @@ P4-W01 through P4-W08 are complete at the Android application layer. Req IDs: `S
 `cockpit_unknown_driving_restricted=true`, `cockpit_restricted_parameter_editing_disabled=true`,
 `cockpit_high_risk_controls_disabled=true`, `cockpit_runtime_policy_authority_independent=true`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W11`.
+`implementation_stage=P4-W12`.
+
+## P4-W11 Client2 accessibility/display architecture
+
+```text
+Android DisplayMetrics + Configuration
+  -> CockpitDisplayPolicy (strict allowlist + deterministic panel bounds)
+  -> CockpitControlCoordinator admission
+  -> XML overlay + runtime accessibility semantics
+  -> navigation trigger / panel render OR fail-closed hidden state
+```
+
+`CockpitDisplayPolicy` is immutable and Android-independent after primitive metrics are supplied. It owns the exact three-profile
+allowlist, font-scale range, 48dp-to-pixel conversion and deterministic overlay bounds. The Coordinator is the only Android adapter:
+it constructs the policy, disables the navigation trigger for unsupported configurations and applies content descriptions, focus,
+minimum target size, line bounds, selected state and state description to every Button.
+
+The XML remains the static 48dp baseline so accessibility is not dependent on Coordinator timing. Scroll containers preserve access
+to controls at compact and large-text profiles. The Web design preview may shrink the 1920x1080 canvas but never scale it above 1.
+No state in this path owns Session, Plan, Effect, Vehicle or Safety authority; `isEffectAuthorizationSource=false` is invariant.
+
+P4-W01 through P4-W11 are complete at the Android application layer. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
+`XSC-001/005/006`; tracking: `DEV-061`, `ISSUE-019/033`. Current flags:
+`cockpit_display_matrix_defined=true`, `cockpit_touch_target_min_dp=48`,
+`cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_display_matrix_android13_arm64_verified=true`,
+`cockpit_display_effect_authorization_source=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P4-W12`.
 
 ## P4-W10 Client2 scenario/manual synchronization
 
@@ -327,7 +353,7 @@ P4-W01 through P4-W10 are complete at the Android application layer. Current fla
 `cockpit_scenario_manual_shared_client=true`, `cockpit_scenario_device_session_synchronized=true`,
 `cockpit_scenario_plan_publication_inferred=false`, `cockpit_scenario_effect_dispatch_enabled=false`,
 `cockpit_scenario_readback_available=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W11`.
+`implementation_stage=P4-W12`.
 
 ## P4-W09 Client2 protected engineer simulation projection
 
@@ -355,4 +381,4 @@ P4-W01 through P4-W09 are complete at the Android application layer. Req IDs: `S
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W11`.
+`implementation_stage=P4-W12`.

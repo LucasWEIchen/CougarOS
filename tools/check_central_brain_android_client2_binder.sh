@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: S2-UX-001, S2-HMI-005, APP-004, XSC-001/005/006,
+# Req IDs: S2-UX-001/003, S2-HMI-001/002/005, APP-004, XSC-001/005/006,
 # NV-G-006, NV-P-002, DEL-001/003/004.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="apk-labs/client2-central-brain"
 BRIDGE="$PROJECT/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
 SCENARIO_CONTROL="$PROJECT/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java"
+DISPLAY_POLICY="$PROJECT/bridge/src/com/centralbrain/client2/CockpitDisplayPolicy.java"
 CALLBACK="$PROJECT/bridge/src/com/centralbrain/client2/ScenarioCallback.java"
 HMI_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiState.java"
 HMI_REDUCER="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiReducer.java"
@@ -41,7 +42,7 @@ require_text() {
 }
 
 for path in \
-  "$BRIDGE" "$SCENARIO_CONTROL" "$CALLBACK" "$HMI_STATE" "$HMI_REDUCER" "$EXECUTION_TIMELINE" "$COORDINATOR" \
+  "$BRIDGE" "$SCENARIO_CONTROL" "$DISPLAY_POLICY" "$CALLBACK" "$HMI_STATE" "$HMI_REDUCER" "$EXECUTION_TIMELINE" "$COORDINATOR" \
   "$LAYOUT" "$PATCHER" "$DEX_BUILD" \
   "$APK_BUILD" "$PROJECT_VERIFY" "$DEVICE_TEST" "$RECOVERY_TEST" \
   "$POLICY" "$SNAPSHOT" \
@@ -316,6 +317,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_client2_recovery_ux.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_driving_restriction.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_engineer_simulation.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_scenario_sync.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_accessibility_display.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android Client2 Binder migration check passed"

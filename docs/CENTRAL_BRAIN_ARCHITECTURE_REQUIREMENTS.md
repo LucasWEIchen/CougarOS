@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W11`。
+`implementation_stage=P4-W12`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W11`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。
 
 ## 49. P4-W08 driving restriction renderer trace
 
@@ -1403,7 +1403,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W11`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。
 
 ## 50. P4-W09 engineer simulation drawer trace
 
@@ -1432,7 +1432,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W11`。
+`implementation_stage=P4-W12`。
 
 ## 51. P4-W10 scenario/manual-control synchronization trace
 
@@ -1461,4 +1461,32 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`cockpit_scenario_effect_dispatch_enabled=false`、
 `cockpit_scenario_readback_available=false`、`scenario_execution_enabled=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P4-W11`。
+`target_hardware_validated=false`、`implementation_stage=P4-W12`。
+
+## 52. P4-W11 accessibility/display matrix trace
+
+Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/005/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 显示策略必须由 Android-independent immutable `CockpitDisplayPolicy` 单一持有；当前只允许横屏
+   `1280x720@107dpi`、`1920x1080@160dpi`、`2560x1440@213dpi`，不得按相近尺寸或 density 自动猜测。
+2. `fontScale` 只允许 0.85..1.30。无效 metrics、portrait、未列入 profile 或超出字体范围时，导航入口必须 disabled，
+   浮窗必须保持隐藏并记录 bounded rejection code；不得改变 Session、Effect 或车辆状态。
+3. 所有 Button 的触控目标必须至少 48dp。XML 提供静态尺寸，Coordinator 以当前 density 设置等价最小像素，避免
+   OEM theme 覆盖后缩小可触区域。
+4. 每个交互控件必须有非空 content description、可聚焦及 `importantForAccessibility=yes`。`+`、`-`、关闭等符号控件
+   必须提供显式语义；选中/启用状态必须通过 selected/activated/stateDescription 表达，不能只依赖颜色。
+5. 最长中文必须最多两行并尾部省略，滚动区域必须保持内容可达；在三档 profile 和 1.30 字体下不得出现 clickable
+   控件重叠或浮窗越界。
+6. Web 设计预览只能按 `min(1, viewport/canvas)` 缩小，不能把 1920x1080 画布放大并溢出背景。
+7. `CockpitDisplayPolicy.isEffectAuthorizationSource()` 必须为 false；显示 profile、accessibility state 或 UI selected
+   不能授予 Policy/Safety/Effect/Vehicle 权限。
+8. Android 13/API 33 ARM64 验收必须覆盖三档 profile、1.30 fontScale、最长中文、content description、非颜色状态、
+   48dp target 与至少一个未支持 profile 的失败关闭；不得记录原始设备身份或 UI dump。
+
+状态：`cockpit_display_matrix_defined=true`、`cockpit_display_profile_count=3`、
+`cockpit_touch_target_min_dp=48`、`cockpit_accessibility_semantics_runtime_owned=true`、
+`cockpit_accessibility_state_not_color_only=true`、`cockpit_display_large_text_1_3_verified=true`、
+`cockpit_display_unsupported_fail_closed=true`、`cockpit_display_matrix_android13_arm64_verified=true`、
+`cockpit_display_effect_authorization_source=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。

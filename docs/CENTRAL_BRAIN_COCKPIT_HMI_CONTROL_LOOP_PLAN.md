@@ -470,10 +470,11 @@ P4 依赖 P1 typed contracts、P2 Digital Twin/simulated adapter 和 P3 durable 
 完成后并行开发 P4-W02/W03 静态壳，但 P4-W04..W10 的完成证据必须来自 Runtime 闭环，不能用
 本地 fake controller 代替。
 
-当前实施状态：P4-W01..P4-W10 已完成应用层交付。P4-W08 对 UNKNOWN/MOVING/untrusted Context 使用
+当前实施状态：P4-W01..P4-W11 已完成应用层交付。P4-W08 对 UNKNOWN/MOVING/untrusted Context 使用
 MOVING_RESTRICTED，隐藏长文本并禁用参数编辑和高风险场景；呈现 mode 不授权 Effect。P4-W09 已交付
 signature/capability protected engineer simulation drawer 和实体 PARKED/MOVING/UNKNOWN 呈现复测，不改变 production
-Context/Safety authority。下一工作包为 P4-W11 Accessibility/display matrix。
+Context/Safety authority。P4-W11 已完成三档横屏、1.30 fontScale、48dp 与 accessibility semantics；下一工作包为
+P4-W12 Android device acceptance/fault/recovery。
 
 ## 15. 验收矩阵
 

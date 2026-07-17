@@ -308,7 +308,7 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
 occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
 SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
-下一工作包为 P4-W11 Accessibility/display matrix。
+P4-W11 已完成 Accessibility/display matrix，下一工作包为 P4-W12 Android device acceptance/fault/recovery。
 
 ## 7. 近期进展
 
@@ -732,8 +732,17 @@ cockpit_scenario_device_session_synchronized=true
 cockpit_scenario_plan_publication_inferred=false
 cockpit_scenario_effect_dispatch_enabled=false
 cockpit_scenario_readback_available=false
+cockpit_display_matrix_defined=true
+cockpit_display_profile_count=3
+cockpit_touch_target_min_dp=48
+cockpit_accessibility_semantics_runtime_owned=true
+cockpit_accessibility_state_not_color_only=true
+cockpit_display_large_text_1_3_verified=true
+cockpit_display_unsupported_fail_closed=true
+cockpit_display_matrix_android13_arm64_verified=true
+cockpit_display_effect_authorization_source=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W11
+implementation_stage=P4-W12
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -765,3 +774,15 @@ Session/Event 链，四阶段和设备 drawer 同步渲染；canonical mismatch 
 Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-060`、
 `ISSUE-022/026/030/033`。Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，`production_ready=false`、
 `target_hardware_validated=false`。
+
+### 2026-07-18 P4-W11 progress
+
+`CockpitDisplayPolicy` 已把 Client2 认证面收敛为三档横屏 allowlist，并由 Coordinator 为全部 Button 统一提供 48dp
+最小触控、content description、focus/accessibility importance、两行省略和 selected/stateDescription。XML 静态基线、
+host test、Web preview scale guard、R7C 2.1 `R7C-E-014` 与 Android 13/API 33 ARM64 已覆盖三档 profile、1.30 字体、
+最长中文、非颜色状态、无重叠和 unsupported profile 失败关闭。P4-W11 完成后进入 P4-W12 Android device
+acceptance/fault/recovery 聚合验收。
+
+Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
+`ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W12`。

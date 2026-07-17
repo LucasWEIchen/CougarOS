@@ -46,6 +46,7 @@ for java_file in \
   CockpitEngineerState.java \
   DebugSimulationControllerClient.java \
   CockpitScenarioControlState.java \
+  CockpitDisplayPolicy.java \
   CockpitHmiReducer.java \
   CockpitControlCoordinator.java; do
   test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/$java_file"

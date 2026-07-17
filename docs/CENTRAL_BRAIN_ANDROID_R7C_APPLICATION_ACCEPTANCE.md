@@ -28,6 +28,7 @@ Req IDs: `S2-UX-001`, `S2-HMI-001..006`, `S2-ADP-001`, `S2-SAF-001`, `APP-004`, 
 | `R7C-E-011` | Driving restriction renderer with unavailable trusted Context | UNKNOWN is treated as moving-restricted; long details, parameter editing and high-risk scenario entry are disabled while Runtime policy authority remains independent |
 | `R7C-E-012` | Protected engineer simulation drawer | Signature/capability/version/hash admission succeeds in debug; PARKED/MOVING/UNKNOWN, occupancy/belt, fault matrix, monotonic revision and reset fail-closed pass; release Service and Effect authority remain absent |
 | `R7C-E-013` | Scenario/manual-control synchronization | cold/fatigue/rest and manual HVAC/Seat share ScenarioClient/Session/Event state; catalog roles, lifecycle and event sequence match across shell/device details while Plan/Effect/readback stay unavailable |
+| `R7C-E-014` | Accessibility/display matrix | 1280x720, 1920x1080 and 2560x1440 allowlisted profiles, 1.3 font scale, 48dp targets, runtime content descriptions, non-color selected state and unsupported-display fail-closed pass on Android 13 ARM64 |
 
 The Runtime process-death injector is `RuntimeFaultProbeReceiver`. It exists
 only under the debug source set, requires `android.permission.DUMP`, accepts one
@@ -42,6 +43,7 @@ With one API 33 Android device online:
 bash tools/test_client2_central_brain_recovery.sh --require-api-33
 bash tools/test_client2_central_brain_engineer_simulation.sh --require-api-33
 bash tools/test_client2_central_brain_scenario_sync.sh --require-api-33
+bash tools/test_client2_central_brain_accessibility_display.sh --require-api-33
 ```
 
 Use `--skip-build` only when the Runtime, Client2, Demo and androidTest APKs are
@@ -71,6 +73,9 @@ Passing the complete matrix permits these baseline transitions:
 - `cockpit_scenario_control_state_reducer_owned=true`
 - `cockpit_scenario_catalog_normalized=true`
 - `cockpit_scenario_device_session_synchronized=true`
+- `cockpit_display_matrix_defined=true`
+- `cockpit_accessibility_semantics_runtime_owned=true`
+- `cockpit_display_matrix_android13_arm64_verified=true`
 - `api33_end_to_end_acceptance_complete=true`
 - `r7_application_integration_complete=true`
 
@@ -78,7 +83,9 @@ The following remain false: production activation, target system integration
 owner resolution and target hardware validation. Effect, Model, Event, Memory
 and Skill/Governance production blockers remain open. Client2 has no cancel or
 timeout control, so R7C does not claim UI coverage for those operations; the
-typed SDK cancellation race remains covered by instrumentation. Contract schema 2.0 adds R7C-E-013 for scenario/manual-control
+typed SDK cancellation race remains covered by instrumentation. Contract schema 2.1 adds R7C-E-014 for the strict three-profile
+display allowlist, 48dp targets, runtime accessibility names/state, 1.3 font scale and unsupported-display fail-closed behavior.
+It does not claim portrait, arbitrary display/density support, OEM distraction qualification or Effect authority. Contract schema 2.0 added R7C-E-013 for scenario/manual-control
 synchronization. It verifies exact catalog normalization, the cold/fatigue/rest and manual HVAC/Seat matrix, one Session/Event state
 source and canonical mismatch host failure without inferring Runtime Plan, Effect dispatch or readback. Contract schema 1.9 added
 R7C-E-012 for the protected engineer
@@ -95,4 +102,4 @@ timeline, seven stable phase rows, Media/Navigation projections and an eight-eve
 heat/vent mutual exclusion, UNKNOWN_RESTRICTED driver-position denial, governed manual Session admission and desired/reported separation
 evidence. Application-layer evidence does not mean scenario/Graph/Effect execution, HVAC/Seat Adapter dispatch, trusted vehicle Context,
 approval response, vehicle readback or production storage is active. Frozen Session V1 carries HVAC1/SEAT1 in utterance and has no typed
-parameter field, HMI_CONTROL source or approval transport; `DEV-054/055/057/058/059/060` track that boundary.
+parameter field, HMI_CONTROL source or approval transport; `DEV-054/055/057/058/059/060/061` track that boundary.

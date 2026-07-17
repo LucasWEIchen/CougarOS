@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P4-W11`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P4-W12`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,7 +2109,7 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W11`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W12`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
 
@@ -2152,7 +2152,7 @@ MOVING and UNKNOWN presentation. Production Context/Safety remains outside HMI a
 
 Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
 `cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
-`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W11`.
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W12`.
 Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
 `ISSUE-023/029/030/033`.
 
@@ -2193,7 +2193,7 @@ emit reducer events only and cannot access SessionClient, Adapter, vehicle or NP
 Plan and drawer renderers read the same `CockpitScenarioControlState`. Positive Plan publication requires
 `SessionSnapshot.activePlanRevision>0`; otherwise UI says NOT PUBLISHED. Device role is labeled as catalog/manual participation and
 must not change desired/reported state. Effect/readback accessors remain false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`, `APP-004`,
-`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P4-W11`.
+`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P4-W12`.
 
 ## Client2 P4-W09 Engineer Simulation Interfaces
 
@@ -2247,6 +2247,62 @@ Status: `cockpit_engineer_simulation_drawer_implemented=true`,
 `cockpit_engineer_signature_permission_required=true`, `cockpit_engineer_capability_required=true`,
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
-`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P4-W11`.
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P4-W12`.
 Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-059`,
 `ISSUE-023/029/030/033`.
+
+## Client2 P4-W11 Accessibility and Display Interfaces
+
+### `CockpitDisplayPolicy` construction
+
+```java
+public static CockpitDisplayPolicy resolve(
+        int widthPixels,
+        int heightPixels,
+        int densityDpi,
+        float fontScale);
+
+public boolean isSupported();
+public Profile getProfile();
+public String getRejectionCode();
+public int getMinimumTouchTargetPixels();
+public Bounds getPanelBoundsPixels();
+public boolean isEffectAuthorizationSource();
+```
+
+Inputs are a value snapshot from Android `DisplayMetrics` and `Configuration`; landscape is derived by requiring width greater than
+height and the policy stores no Android object. Exact supported
+tuples are `1280x720@107dpi`, `1920x1080@160dpi`, `2560x1440@213dpi`, all landscape with `0.85 <= fontScale <= 1.30`.
+Resolution never rounds to a neighboring profile. Rejections use bounded constant codes for invalid metrics, orientation, matrix or
+font scale. A rejected policy returns zero bounds and cannot show the overlay.
+
+`Bounds` is deterministic from a 624x888dp design panel, 160dp top offset and 32dp right inset, evaluated only within an admitted
+profile. `getMinimumTouchTargetPixels()` returns the density-equivalent of 48dp. `isEffectAuthorizationSource()` always returns false.
+
+### Coordinator accessibility contract
+
+After inflating the patched XML, `CockpitControlCoordinator` evaluates the policy once for the current Activity configuration.
+Unsupported policy disables the navigation trigger and rejects every show request. For each Button the Coordinator:
+
+1. uses explicit `contentDescription`, otherwise normalized visible text;
+2. sets focusable and `IMPORTANT_FOR_ACCESSIBILITY_YES`;
+3. sets minimum width/height to the policy 48dp pixel value;
+4. limits labels to two lines with end ellipsis;
+5. mirrors activated state to selected state and publishes enabled/selected state through `stateDescription`.
+
+Symbol controls (`+`, `-`, close) require explicit descriptions in XML. Rendered status must remain understandable without color.
+The Coordinator does not synthesize Session, Plan, Effect or vehicle evidence from accessibility state.
+
+### Acceptance interface
+
+`tools/test_client2_central_brain_accessibility_display.sh --require-api-33` temporarily applies each admitted display profile and
+font scale through ADB, clears only Client2 application state, validates bounds/targets/semantics/overlap, tests one unsupported
+profile, and restores all display/font/rotation settings. The script emits booleans only and never records raw serial, UI dump,
+screen capture, user/model text or vehicle payload.
+
+Status: `cockpit_display_matrix_defined=true`, `cockpit_display_profile_count=3`, `cockpit_touch_target_min_dp=48`,
+`cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_accessibility_state_not_color_only=true`,
+`cockpit_display_large_text_1_3_verified=true`, `cockpit_display_unsupported_fail_closed=true`,
+`cockpit_display_matrix_android13_arm64_verified=true`, `cockpit_display_effect_authorization_source=false`,
+`hardware_accessed=false`, `implementation_stage=P4-W12`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
+`XSC-001/005/006`; tracking: `DEV-061`, `ISSUE-019/033`.
