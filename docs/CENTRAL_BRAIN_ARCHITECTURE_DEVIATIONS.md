@@ -53,6 +53,7 @@
 | DEV-024 | Stage 2 在真实车辆 API 不可用时仅允许 Android debug/test Digital Twin，不允许 production fallback。 | S2-TWN-001, S2-ADP-001/002 | Accepted Temporary |
 | DEV-025 | Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI。 | S2-UX-001..003, DEL-001/004 | Accepted Temporary |
 | DEV-026 | Python 原型与 Linux Python 交付已退役；当前用户批准只维护 Android 13 Java/AIDL/C 工程。 | XSC-001..006, DEL-001..005 | Accepted Scope |
+| DEV-030 | P2-W01 canonical path 是内部语义合同，不是 OEM/VHAL property mapping。 | S2-CTX-001, S2-TWN-001, ISSUE-030 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -251,6 +252,20 @@ capability 或 broker。当前 sequence dedup 只保证低容量重连正确性�
 Room ACK retention、SDK negotiation 和 process-death tests。当前 `event_v2_interface_published=false`、
 `production_ready=false`、`target_hardware_validated=false`。
 
+## DEV-030 P2-W01 canonical path 不是 OEM/VHAL property mapping
+
+P2-W01 以 12 项 VSS-style canonical path 建立 Context/Twin 内部语义合同，并固定 typed scalar、unit、area、
+quality/source 和 freshness。该 allowlist 不是 OEM property catalog，也没有绑定 `VehiclePropertyIds`、
+CarPropertyManager、vendor Binder、SOA service、CAN/DBC 或设备节点。
+
+`SignalSource.AAOS/VENDOR` 只是 observation provenance；它不表示服务存在、权限已授予、area 已映射、
+readback 可用或 production authorized。生产 Service 没有注册 signal provider，Android 13 探针只构造
+SIMULATED 值验证合同。
+
+状态：`Accepted Temporary`，对应 `ISSUE-030`。P2-W02/P2-W03 可继续开发 capability/twin 软件合同；
+真实映射只能在 P8 依据目标 SDK/权限/owner 证据实现。当前 `vehicle_signal_provider_wired=false`、
+`vehicle_property_mapping_configured=false`、`hardware_accessed=false`。
+
 ## Android 实现证据索引
 
 下列短语是历史软件增量的稳定追踪键，指向仍保留的 Android 源码和检查器；它们不表示硬件或
@@ -294,6 +309,7 @@ Room ACK retention、SDK negotiation 和 process-death tests。当前 `event_v2_
 | P1-W04 进展 | Effect/Approval V1 合同完成；Service/grant/undo/Room/hardware 均未发布。 |
 | P1-W05 进展 | SDK facade、Session/Event app-layer Service、rebind/resubscribe 完成；Room/process-death/scenario/hardware 均未发布。 |
 | P1-W06 进展 | Room v4、Session/Event durable repository 和 Runtime process-death rehydration 完成；Plan/Effect/scenario/hardware 均未发布。 |
+| P2-W01 进展 | 12 项 canonical vehicle signal schema、typed scalar、unit/area/source/quality/freshness 与 API 33 ARM64 probe 完成；真实 provider/property mapping 未接入。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。

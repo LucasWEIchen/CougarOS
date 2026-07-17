@@ -199,7 +199,7 @@ flowchart TB
 | Event contract | 5 个 Event DTO、`ICentralBrainSessionEvents`/callback V1、`EventContract` | `CONTRACT_ONLY`（P1-W03） | `S2-SES-001`、`S2-EVT-001` |
 | Effect/Approval contract | 4 个 Effect/Approval/Undo DTO、`EffectContract`、状态/过期/绑定边界 | `CONTRACT_ONLY`（P1-W04） | `S2-EFF-001`、`S2-SAF-001`、`S2-UX-003` |
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
-| Context | VehicleSignal schema、ContextSnapshotBuilder | `NOT_STARTED` | `S2-CTX-001` |
+| Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01 schema 完成；snapshot 未开始） | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `NOT_STARTED` | `S2-TWN-001` |
 | Scenario | ScenarioCatalog、Resolver、PlanCompiler、GraphValidator | `NOT_STARTED` | `S2-SCN-001` |
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `NOT_STARTED` | `S2-GRF-001` |
@@ -788,23 +788,29 @@ replay。通用 `EventTreeStore`、production broker、retention/ACK 和主动�
 
 ## 11. Context 与 Vehicle Digital Twin
 
-### 11.1 SignalValue
+### 11.1 SignalValue（P2-W01 已实现）
 
 ```java
-final class SignalValue {
-    VehicleSignalPath path;
-    SignalScalar value;
-    String unit;
-    String area;
-    long sourceTimestampMs;
-    long receivedTimestampMs;
-    SignalQuality quality; // VALID, STALE, UNAVAILABLE, ERROR, CONFLICT
-    SignalSource source;   // SIMULATED, AAOS, VENDOR, DERIVED
-    long revision;
-}
+SignalValue ofBoolean(VehicleSignalPath path, boolean value, String unit,
+                      String area, SignalTimestamp timestamp,
+                      SignalQuality quality, SignalSource source, long revision);
+SignalValue ofInteger(... long value ...);
+SignalValue ofDecimal(... double finiteValue ...);
+SignalValue ofText(... String boundedValue ...);
+SignalValue withoutValue(VehicleSignalPath path, String unit, String area,
+                         SignalTimestamp timestamp, SignalQuality quality,
+                         SignalSource source, long revision);
+void validateFreshness(long nowElapsedRealtimeMs);
 ```
 
-不使用 untyped `Object` 或任意 JSON 作为安全关键值。
+对象 immutable，工厂按 path 固定 scalar type。Text 为 1..64 字符且不含 control character；decimal
+必须 finite；revision 从 1 单调递增。`VALID/STALE` 必须有值，`UNAVAILABLE/ERROR/CONFLICT` 必须无值。
+不使用 untyped `Object`、任意 JSON、Bundle 或 Parcel 作为安全关键值。
+
+`SignalTimestamp` 同时保存 `sourceEpochMs` 和 `receivedElapsedRealtimeMs`；age/freshness 只基于后者，
+拒绝 future receive time。`VehicleSignalPath` 是精确 12 项 allowlist：speed、gear、parking brake、
+HVAC active/ambient/target/fan、seat occupied/belted/heating/ventilation/recline。每项固定 unit、area 和
+maximum age。该 schema 是内部 contract，不是 VHAL/vendor mapping。
 
 ### 11.2 CapabilityCatalog
 
@@ -1689,13 +1695,15 @@ central-brain-sdk AAR
   Runtime process-death recovery 证据。
 - P1-W07 machine-readable Runtime Contract v2 aggregate、SDK constants/JVM regression、capability/error/bounds/
   Room/compatibility/forbidden-fallback gate 与 Android 13 ARM64 aggregate instrumentation；四组 V1 hash 未改变。
+- P2-W01 12 项 canonical vehicle signal、typed scalar、unit/area/source/quality/monotonic freshness、JVM 与
+  Android 13 ARM64 debug probe；production provider/property mapping 保持关闭。
 
 ### 32.2 下一阶段未完成
 
 - Event V2 terminal resume cursor/ACK Binder、Room ACK retention、SDK negotiation 和高吞吐 fault tests；
 - Scenario/Plan/Effect execution、approval response/undo execution；
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
-- Vehicle Digital Twin 和 trusted Context；
+- Vehicle capability catalog、Digital Twin 和 trusted Context（canonical signal schema 已完成）；
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
 - Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
@@ -1716,12 +1724,12 @@ central-brain-sdk AAR
 
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
 `P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和
-`P1-W07 Contract v2 aggregate check` 已完成：18 个有界 DTO、独立 Session 与
+`P1-W07 Contract v2 aggregate check` 和 `P2-W01 Canonical vehicle signal types` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
-测试、独立 checksum 和 aggregate gate 已进入工程。Effect Service、approval response/undo execution、
-Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为 `P2-W01 Canonical vehicle signal types`；
-不得读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
+测试、独立 checksum、aggregate gate 与 canonical vehicle signal schema 已进入工程。Effect Service、
+approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
+`P2-W02 Vehicle capability catalog`；不得读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

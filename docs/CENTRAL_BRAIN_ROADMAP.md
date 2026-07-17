@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 下一阶段（P2-W01） |
+| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01 完成，P2-W02 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -163,9 +163,14 @@ Session/Event repository、事务回滚/索引计划门禁和 Android 13 Runtime
 Room v4 与 forbidden fallback。四组 V1 wire/hash 不变。Event V1 terminal cursor 限制保留，独立 Event
 V2 terminal resume cursor + monotonic ACK 方案已冻结但未发布。
 
-下一实现工作包为 `P2-W01 Canonical vehicle signal types`。只新增 Android Java typed signal schema、
-path/unit/area/source/quality/freshness 校验和 JVM tests；不得读取真实 Vehicle/VHAL、激活 Effect/NPU、
-新增 Driver/HAL 或恢复 Python gateway。
+`P2-W01 canonical vehicle signal types` 已完成：Android Java 提供 12 项 VSS-style canonical path、四类
+typed scalar、精确 unit/area、source/quality 和 receive-side monotonic freshness；JVM 与 Android 13/API 33
+ARM64 debug probe 通过。该 schema 不读取 Vehicle/VHAL，AAOS/VENDOR 只表示来源类型，不构成 provider
+activation 或 property mapping。
+
+下一实现工作包为 `P2-W02 Vehicle capability catalog`。只定义 capability 的 readable/writable/
+simulatable/productionAuthorized、target range 和依赖信号；不得注册 production adapter、读取真实
+Vehicle/VHAL、激活 Effect/NPU、新增 Driver/HAL 或恢复 Python gateway。
 
 ## 7. 近期进展
 
@@ -233,6 +238,11 @@ path/unit/area/source/quality/freshness 校验和 JVM tests；不得读取真实
 - 当前 `room_schema_version=4`、`session_runtime_persistence_wired=true`、
   `session_runtime_process_death_rehydration=true`；Plan/Effect/Scenario execution 仍关闭，下一工作包为
   `P1-W07 Contract v2 aggregate check`。
+- 完成 `P1-W07 Contract v2 aggregate check`：聚合 P1 frozen wire/capability/error/bounds/Room v4，
+  Android 13 ARM64 aggregate instrumentation 通过；Event V2 cursor/ACK 仅冻结设计，未发布。
+- 完成 `P2-W01 canonical vehicle signal types`：12 项 canonical path、typed scalar、unit/area、source/
+  quality/freshness 校验和 Android 13 ARM64 debug probe 通过；provider/property mapping/hardware 仍关闭，
+  下一工作包为 `P2-W02 Vehicle capability catalog`。
 
 ## 8. 当前门禁
 
@@ -249,6 +259,7 @@ bash tools/check_central_brain_android_plan_contract.sh
 bash tools/check_central_brain_android_event_contract.sh
 bash tools/check_central_brain_android_effect_contract.sh
 bash tools/check_central_brain_android_sdk_facade.sh
+bash tools/check_central_brain_android_vehicle_signal_schema.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -278,6 +289,11 @@ runtime_contract_v2_defined=true
 runtime_contract_v2_verified=true
 runtime_contract_v2_physical_android13_arm64_verified=true
 frozen_v1_hashes_unchanged=true
+vehicle_signal_schema_defined=true
+vehicle_signal_path_allowlist_count=12
+vehicle_signal_schema_android13_arm64_verified=true
+vehicle_signal_provider_wired=false
+vehicle_property_mapping_configured=false
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

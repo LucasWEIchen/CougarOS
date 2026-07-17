@@ -174,6 +174,7 @@ adapter 必须保留 identity、schema、policy、deadline、trace 和 readonly 
 bash tools/check_central_brain_python_prototype_retirement.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 bash tools/check_central_brain_runtime_contract_v2.sh
+bash tools/check_central_brain_android_vehicle_signal_schema.sh
 bash tools/check_central_brain_android_sdk_facade.sh
 bash tools/check_central_brain_npu_interface.sh
 bash tools/check_central_brain_virtualization_docs.sh
@@ -181,14 +182,17 @@ bash tools/check_central_brain_virtualization_docs.sh
 
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Event DTO/AIDL` 与
 `P1-W04 Effect/Approval DTO/AIDL` contract layer、`P1-W05 SDK facade v2`、`P1-W06 Room v4` 和
-`P1-W07 Runtime Contract v2 aggregate` 已完成。SDK 通过
+`P1-W07 Runtime Contract v2 aggregate` 与 `P2-W01 Canonical vehicle signal types` 已完成。SDK 通过
 `ScenarioClient` 隔离 Binder primitive；同一 Runtime Service 以双 action 发布 Session/Event V1，
 Room v4 owner repository 支持 Service rebind 和 Runtime process-death rehydration。P1-W06 Room v4
-schema 与 P1 aggregate gate 已完成，下一开发工作包是 `P2-W01 Canonical vehicle signal types`。
+schema 与 P1 aggregate gate 已完成；`vehicle/schema` 提供 12 项固定 path、typed scalar、unit/area、
+source/quality/freshness，但没有 provider/property mapping。下一开发工作包是
+`P2-W02 Vehicle capability catalog`。
 
 当前 `session_runtime_service_published=true`、`event_runtime_service_published=true`、
 `event_callback_service_published=true`、`room_schema_version=4`、
-`session_runtime_process_death_rehydration=true`、`runtime_contract_v2_verified=true`，但 Event V2、
+`session_runtime_process_death_rehydration=true`、`runtime_contract_v2_verified=true`、
+`vehicle_signal_schema_defined=true`、`vehicle_signal_provider_wired=false`，但 Event V2、
 Scenario/Plan/Effect 执行、
 approval response、undo execution 仍为 false。Service 数量保持三项，生产 capability policy 不包含
 test principal；`hardware_accessed=false`。

@@ -55,4 +55,5 @@ jobs:
           bash tools/check_central_brain_android_sdk_facade.sh
           bash tools/check_central_brain_android_room_v4.sh
           bash tools/check_central_brain_runtime_contract_v2.sh
+          bash tools/check_central_brain_android_vehicle_signal_schema.sh
           bash tools/check_central_brain_root_readme.sh

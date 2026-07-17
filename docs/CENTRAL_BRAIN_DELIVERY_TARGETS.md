@@ -678,3 +678,34 @@ target_hardware_validated=false
 
 该包不新增 APK/Service/签名权限，不发布 Event V2、Plan/Effect execution 或车辆/NPU adapter，也不代表
 Binder latency 已在目标量产硬件上定标。Event V2 实现与高吞吐证据保留到 `P6-W01/P6-W02`。
+
+## Android P2-W01 Canonical Vehicle Signal Schema
+
+受维护交付新增：
+
+1. `runtime-service/.../vehicle/schema/VehicleSignalPath.java`：12 项 VSS-style path allowlist，固定
+   scalar type、unit、area 和 maximum age；
+2. `SignalValue/SignalQuality/SignalSource/SignalTimestamp`：显式 typed scalar、no-value quality、
+   provenance 和 receive-side monotonic freshness；
+3. `SignalValueTest`：path/unit/area/type、stale/invalid quality、future timestamp、invalid payload；
+4. `VehicleSignalSchemaProbeActivity`：DUMP-protected debug-only API 33 ARM64 contract probe；
+5. `tools/check_central_brain_android_vehicle_signal_schema.sh`：源码、测试、文档、生产未接线和禁用硬件
+   引用的单一静态门禁。
+
+交付标志：
+
+```text
+vehicle_signal_schema_defined=true
+vehicle_signal_path_allowlist_count=12
+vehicle_signal_schema_android13_arm64_verified=true
+vehicle_signal_provider_wired=false
+vehicle_property_mapping_configured=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 CapabilityCatalog、Digital Twin、ContextSnapshot、AAOS/Vendor provider、VHAL/property
+mapping、车辆 read/write、Effect 或 NPU。API 33 ARM64 证据只证明同一 Java 合同可在目标 Android ABI
+运行，不证明车辆硬件能力。Req IDs：`S2-CTX-001`、`S2-TWN-001`、`DEL-001/003..005`；偏差/问题：
+`DEV-030`、`ISSUE-030`。

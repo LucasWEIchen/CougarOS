@@ -165,6 +165,11 @@ readback、幂等 token、故障码和 rollback contract。Production adapter �
 不得猜测 VHAL property、vendor Binder、device node 或 ioctl。只有确认公开/vendor SDK 不满足
 明确缺口后，才登记最小 Driver/HAL 工作量。
 
+P2-W01 进展：已定义 12 项内部 canonical signal path、typed scalar、unit/area、source/quality 和
+monotonic freshness，并通过 JVM/API 33 ARM64 debug probe。该结果不关闭本问题：canonical path 尚未
+映射目标 property/service，`SignalSource.AAOS/VENDOR` 不是 availability/authorization 证据，生产
+signal provider 仍未接线。P2-W02 capability catalog 必须继续将 `productionAuthorized=false` 作为默认值。
+
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
 场景版本、冲突规则、用户偏好、保留期、删除/导出、跨账号边界、主动触发频率、免打扰和模型文本
@@ -267,3 +272,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P1-W04 进展 | Effect/Approval V1 合同与物理 API 33 Parcel 证据完成；Service/grant/undo/Room/hardware 均未发布。 |
 | P1-W05 进展 | SDK facade 与 Session/Event Service 真实 Binder rebind/resubscribe 完成；process-death/Room/scenario/hardware 仍未发布。 |
 | P1-W06 进展 | Room v4、Session/Event process-death rehydration 已完成；ISSUE-034 仅剩 Event V1 terminal cursor/ACK 演进。 |
+| P2-W01 进展 | Canonical signal schema 与 API 33 ARM64 software probe 完成；ISSUE-030 的 property/service/permission/area/readback owner 仍开放。 |

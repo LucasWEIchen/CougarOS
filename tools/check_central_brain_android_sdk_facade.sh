@@ -119,7 +119,6 @@ for doc in \
   require_text "$doc" 'P1-W05'
 done
 require_text README.md 'sdk_facade_v2_available=true'
-require_text README.md 'implementation_stage=P2-W01'
 require_text docs/CENTRAL_BRAIN_ROADMAP.md '`P1-W07 Contract v2 aggregate check` 已完成'
 require_text docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md \
   'session_runtime_process_death_rehydration=true'
