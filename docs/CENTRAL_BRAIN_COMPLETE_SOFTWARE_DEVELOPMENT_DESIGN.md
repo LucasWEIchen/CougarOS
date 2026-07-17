@@ -200,7 +200,7 @@ flowchart TB
 | Effect/Approval contract | 4 个 Effect/Approval/Undo DTO、`EffectContract`、状态/过期/绑定边界 | `CONTRACT_ONLY`（P1-W04） | `S2-EFF-001`、`S2-SAF-001`、`S2-UX-003` |
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01 schema 完成；snapshot 未开始） | `S2-CTX-001` |
-| Twin | CapabilityCatalog、VehicleDigitalTwinStore | `NOT_STARTED` | `S2-TWN-001` |
+| Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02 catalog 完成；store 未开始） | `S2-TWN-001` |
 | Scenario | ScenarioCatalog、Resolver、PlanCompiler、GraphValidator | `NOT_STARTED` | `S2-SCN-001` |
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `NOT_STARTED` | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
@@ -812,18 +812,29 @@ void validateFreshness(long nowElapsedRealtimeMs);
 HVAC active/ambient/target/fan、seat occupied/belted/heating/ventilation/recline。每项固定 unit、area 和
 maximum age。该 schema 是内部 contract，不是 VHAL/vendor mapping。
 
-### 11.2 CapabilityCatalog
+### 11.2 CapabilityCatalog（P2-W02 已实现）
 
-每个 capability 记录：
-
-```text
-capabilityId, version, areas, readable, writable,
-simulatedAvailable, productionAvailable, productionAuthorized,
-valueType, unit, min, max, step,
-riskClass, requiresFreshSignals[], adapterId, adapterVersion
+```java
+CapabilityCatalog catalog = CapabilityCatalog.stage2Defaults();
+List<VehicleCapability> capabilities = catalog.all();
+VehicleCapability capability = catalog.require(CapabilityId id);
+int authorized = catalog.productionAuthorizedCount();
 ```
 
-`productionAvailable=true` 不等于 `productionAuthorized=true`。只有 activation evidence 通过后才能授权。
+每个 `VehicleCapability` immutable 记录 id/version/areas、`CapabilityAvailability`、unit、typed
+`TargetRange`、risk、optional reported signal 和 required fresh signals。Availability 将 readable/
+writable/simulatable 与 productionAvailable/productionAuthorized 分离；authorized 必须同时满足 available
+和 writable。当前 8 项默认值的 production available/authorized 全部 false。
+
+Target range 使用 type-specific validator：boolean；integer/decimal min/max/step；bounded text 和 optional
+allowlist。Vehicle readback path 必须与 target scalar/unit/area 一致。Catalog 精确包含：HVAC temperature
+16..30/0.5、power boolean、fan 0..7；seat heat/vent 0..3、recline 0..60 degree；media
+PLAY/PAUSE/STOP；navigation POI 128 字符。Seat recline 为 HIGH risk，要求 speed/gear/parking brake/
+occupancy/belt fresh。
+
+Range/risk/dependency 是 debug/test 软件合同，不是 OEM 标定或 Safety authority。P2-W02 不含 adapterId/
+adapterVersion，因为 adapter registry 尚未实现；P8 activation evidence 必须另建版本化 mapping，不能
+静默改变 catalog 或把 `simulatable=true` 当作 production authorization。
 
 ### 11.3 VehicleDigitalTwinStore
 
@@ -1697,13 +1708,15 @@ central-brain-sdk AAR
   Room/compatibility/forbidden-fallback gate 与 Android 13 ARM64 aggregate instrumentation；四组 V1 hash 未改变。
 - P2-W01 12 项 canonical vehicle signal、typed scalar、unit/area/source/quality/monotonic freshness、JVM 与
   Android 13 ARM64 debug probe；production provider/property mapping 保持关闭。
+- P2-W02 8 项 Vehicle capability、typed target range、readback/safety dependency、fail-closed activation、
+  JVM 与 Android 13 ARM64 debug probe；production authorized count 为 0。
 
 ### 32.2 下一阶段未完成
 
 - Event V2 terminal resume cursor/ACK Binder、Room ACK retention、SDK negotiation 和高吞吐 fault tests；
 - Scenario/Plan/Effect execution、approval response/undo execution；
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
-- Vehicle capability catalog、Digital Twin 和 trusted Context（canonical signal schema 已完成）；
+- Vehicle Digital Twin 和 trusted Context（canonical signal schema 与 capability catalog 已完成）；
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
 - Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
@@ -1724,12 +1737,14 @@ central-brain-sdk AAR
 
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
 `P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和
-`P1-W07 Contract v2 aggregate check` 和 `P2-W01 Canonical vehicle signal types` 已完成：18 个有界 DTO、独立 Session 与
+`P1-W07 Contract v2 aggregate check`、`P2-W01 Canonical vehicle signal types` 和
+`P2-W02 Vehicle capability catalog` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
-测试、独立 checksum、aggregate gate 与 canonical vehicle signal schema 已进入工程。Effect Service、
-approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
-`P2-W02 Vehicle capability catalog`；不得读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
+测试、独立 checksum、aggregate gate、canonical signal schema 与 fail-closed capability catalog 已进入
+工程。Effect Service、approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。
+下一实现工作包固定为 `P2-W03 VehicleDigitalTwinStore`；不得读取真实 Vehicle/VHAL 或直接在 Client2
+中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

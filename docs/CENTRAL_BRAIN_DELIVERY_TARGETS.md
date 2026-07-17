@@ -84,8 +84,9 @@ bash tools/check_central_brain_root_readme.sh
 
 Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、
 `P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL`、
-`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和 `P1-W07 Contract v2 aggregate check` 已完成，
-下一工作包为 `P2-W01 Canonical vehicle signal types`。P1-P7 交付必须进入
+`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema`、`P1-W07 Contract v2 aggregate check`、
+`P2-W01 Canonical vehicle signal types` 和 `P2-W02 Vehicle capability catalog` 已完成，
+下一工作包为 `P2-W03 VehicleDigitalTwinStore`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -709,3 +710,34 @@ target_hardware_validated=false
 mapping、车辆 read/write、Effect 或 NPU。API 33 ARM64 证据只证明同一 Java 合同可在目标 Android ABI
 运行，不证明车辆硬件能力。Req IDs：`S2-CTX-001`、`S2-TWN-001`、`DEL-001/003..005`；偏差/问题：
 `DEV-030`、`ISSUE-030`。
+
+## Android P2-W02 Vehicle Capability Catalog
+
+受维护交付新增：
+
+1. `VehicleCapability`：8 个稳定 capability ID、version、areas、typed `TargetRange`、risk、optional
+   reported signal 和 required fresh signals；
+2. `CapabilityAvailability`：readable/writable/simulatable 与独立 productionAvailable/
+   productionAuthorized，授权要求 available+writable；
+3. `CapabilityCatalog`：确定顺序、immutable view、duplicate rejection、production authorized count；
+4. `CapabilityCatalogTest`：range/step/text、immutability、readback/dependency、fail-closed activation；
+5. `VehicleCapabilityCatalogProbeActivity` 和独立 checker：API 33 ARM64 软件合同与无硬件引用验证。
+
+交付标志：
+
+```text
+vehicle_capability_catalog_defined=true
+vehicle_capability_count=8
+vehicle_capability_catalog_android13_arm64_verified=true
+vehicle_capability_target_ranges_verified=true
+vehicle_production_capability_authorized_count=0
+vehicle_capability_adapter_registry_wired=false
+vehicle_property_mapping_configured=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 Digital Twin state/store、ContextSnapshot、adapter registry、AAOS/Vendor mapping、Effect 或
+NPU。Range/risk/dependency 是 Stage 2 debug/test 软件合同，不是 OEM 标定/安全认证。Req IDs：
+`S2-TWN-001`、`S2-ADP-001`、`DEL-001/003..005`；偏差/问题：`DEV-031`、`ISSUE-029/030`。

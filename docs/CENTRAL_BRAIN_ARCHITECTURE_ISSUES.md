@@ -170,6 +170,11 @@ monotonic freshness，并通过 JVM/API 33 ARM64 debug probe。该结果不关�
 映射目标 property/service，`SignalSource.AAOS/VENDOR` 不是 availability/authorization 证据，生产
 signal provider 仍未接线。P2-W02 capability catalog 必须继续将 `productionAuthorized=false` 作为默认值。
 
+P2-W02 进展：8 项 capability catalog 已固定 semantic readable/writable/simulatable、typed range、area、
+risk、readback path 和 fresh-signal dependency，并通过 JVM/API 33 ARM64 probe。全部 production
+available/authorized 仍为 false；这些范围不是 OEM 标定，未解决 property/service/permission/area/readback
+owner。P2-W03 可以据此构建 debug/test Twin，但不得关闭本问题或激活 production adapter。
+
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
 场景版本、冲突规则、用户偏好、保留期、删除/导出、跨账号边界、主动触发频率、免打扰和模型文本
@@ -273,3 +278,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P1-W05 进展 | SDK facade 与 Session/Event Service 真实 Binder rebind/resubscribe 完成；process-death/Room/scenario/hardware 仍未发布。 |
 | P1-W06 进展 | Room v4、Session/Event process-death rehydration 已完成；ISSUE-034 仅剩 Event V1 terminal cursor/ACK 演进。 |
 | P2-W01 进展 | Canonical signal schema 与 API 33 ARM64 software probe 完成；ISSUE-030 的 property/service/permission/area/readback owner 仍开放。 |
+| P2-W02 进展 | Capability catalog 与 API 33 ARM64 software probe 完成；全部 production authorized=false，ISSUE-029/030 仍开放。 |

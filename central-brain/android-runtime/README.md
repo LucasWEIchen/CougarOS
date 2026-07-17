@@ -188,6 +188,25 @@ Status: `vehicle_signal_schema_defined=true`, `vehicle_signal_path_allowlist_cou
 `vehicle_property_mapping_configured=false`, `hardware_accessed=false`. P2-W02 owns capability ranges and
 authorization; P2-W03/P2-W04 own Digital Twin and Context snapshots.
 
+## Stage 2 P2-W02 Vehicle Capability Catalog
+
+`runtime-service/.../vehicle/capability` defines eight immutable HVAC, seat, media and navigation capabilities.
+Each item fixes semantic readable/writable/simulatable flags, explicit production availability/authorization,
+typed target range, areas, risk class, optional canonical readback path and required fresh signals. Numeric targets
+must be finite, bounded and step-aligned; text targets are bounded and optionally allowlisted.
+
+The Stage 2 defaults are software/debug contracts: production availability and authorization are false for every
+item. Seat recline is HIGH risk and requires fresh speed, gear, parking brake, occupancy and belt signals. Media
+and navigation do not fabricate vehicle-signal readback paths. Run
+`bash tools/check_central_brain_android_vehicle_capability_catalog.sh`; the cumulative installer runs the matching
+DUMP-protected API 33 ARM64 debug probe.
+
+Status: `vehicle_capability_catalog_defined=true`, `vehicle_capability_count=8`,
+`vehicle_capability_catalog_android13_arm64_verified=true`,
+`vehicle_production_capability_authorized_count=0`,
+`vehicle_capability_adapter_registry_wired=false`, `vehicle_property_mapping_configured=false`,
+`hardware_accessed=false`. P2-W03 owns the Digital Twin store; P8 owns evidence-backed target mapping.
+
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
 The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`.
