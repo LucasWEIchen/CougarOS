@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -57,7 +57,7 @@
       "type": "apktool-smali-addition",
       "target": "smali/com/tuanjie/urasclient2/CentralBrainPanelController*.smali",
       "source": "apk-labs/client2-central-brain/patches/smali/com/tuanjie/urasclient2",
-      "summary": "Recursively binds 12 tagged scenario buttons with one in-flight task per Activity, submits typed AgentTaskRequest values through the SDK Binder bridge, and displays asynchronous TaskResult replies.",
+      "summary": "Recursively binds 12 tagged scenario buttons, retains the legacy submit descriptor as a compatibility entry, and displays the Session snapshot/event text projection.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -73,7 +73,7 @@
       "type": "embedded-secondary-dex",
       "target": "classes2.dex",
       "source": "apk-labs/client2-central-brain/bridge/src",
-      "summary": "Embeds CentralBrainClient, generated AIDL parcelables, a 12-scenario allowlist and callback bridge; the output is signed with the Runtime debug signer so the signature Binder permission is enforceable.",
+      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, a 12-alias canonical ID map, typed callbacks and the legacy compatibility wrapper; the output is signed with the Runtime debug signer so the signature Binder permission is enforceable.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -95,6 +95,7 @@
     "RenderService Unity asset modification"
   ],
   "tracked_deviations": [
-    "DEV-017: APK reverse demo path remains a test integration path rather than a vendor source-tree build"
+    "DEV-017: APK reverse demo path remains a test integration path rather than a vendor source-tree build",
+    "DEV-051: two-segment UI aliases and the legacy static lifecycle owner remain compatibility boundaries until P4-W02"
   ]
 }

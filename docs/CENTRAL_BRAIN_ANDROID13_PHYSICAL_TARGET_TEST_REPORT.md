@@ -64,9 +64,9 @@ WSL bash/test scripts
 | Signer mismatch 负向门禁 | PASS | 异签名 APK 在首次安装命令前被拒绝 |
 | Crash/ANR buffer | PASS | 测试结束后没有 Central Brain crash 或 ANR |
 | Client2 signer migration | PASS | 经用户明确授权，卸载普通 `/data/app` 原包后安装 Runtime 同签 debug Client2 |
-| Client2 Binder/UI | PASS | 真实按钮、可信调用身份、异步完成回调和 UI 回复通过 |
+| Client2 Binder/UI | PASS | 真实按钮、可信 capability、Session snapshot/event/replay 和 UI projection 通过 |
 | Client2 导航菜单 | PASS | 启动隐藏、导航首次显示/二次隐藏、面板外关闭、再次打开均通过 |
-| Client2/Runtime recovery | PASS | Runtime 缺失/死亡/重启、single-flight、Client2 重启和 Binder race 回归通过 |
+| Client2/Runtime recovery | PASS | Runtime 缺失/死亡/重启、Session reconnect/replay/去重、stream replacement、Client2 重启和 Binder race 通过 |
 
 首次 dry-run 对 signer mismatch 的失败关闭是预期安全结果。用户随后明确批准清除原 Client2
 及其应用数据；迁移按 `uninstall com.tuanjie.urasclient2`、安装 Runtime 同签 debug APK、重新执行
@@ -155,3 +155,41 @@ virtualization_development_triggered=false
 2. 执行后台/休眠唤醒、长稳、存储升级和 MDM 策略测试。
 3. 获取公开 Vendor NPU/VHAL SDK 或 service contract 后，再评审 `DRV-GAP-001` 和 adapter 工作量。
 4. 每一类硬件能力单独提供目标 smoke、故障、性能和回滚证据；不得由本次应用层 PASS 推断。
+
+## 8. 2026-07-17 P4-W01 Session/Event bridge evidence
+
+在同一 Android 13/API 33 ARM64 USB 设备上，重建并安装同签名 Runtime/Client2 后完成：
+
+1. `care.cold` UI alias 映射为 `scene.comfort.cold.v1`；冻结 Session V1 admission 通过；
+2. Client2 收到 CREATED snapshot、唯一 sequence 1 `ScenarioRequested` 和 replay complete；
+3. legacy Smali 文本区显示 snapshot summary，旧 descriptor 保持可调用；
+4. 新兼容请求关闭并替换旧 stream，每个 Session 各有一条 sequence 1 event；
+5. Runtime debug process-death 后原 Session 自动重连，Room snapshot/cursor replay 完成，已送达 event 未重复；
+6. reconnect replay 重新投影兼容摘要，不产生伪 FAILED/COMPLETED；
+7. Client2 process restart 后 Binder 重绑、底部导航菜单重开和新 Session 正常；
+8. Runtime disabled 显示受控 transport failure，reenable 后可重试。
+
+证据标志：
+
+```text
+client2_session_event_primary_api=true
+client2_session_snapshot_verified=true
+client2_session_event_sequence_verified=true
+client2_session_replay_complete=true
+client2_legacy_stream_replacement_verified=true
+client2_session_reconnect_replay_verified=true
+client2_session_duplicate_event_suppressed=true
+runtime_service_death_terminal_emitted=false
+runtime_service_death_recovered_without_terminal=true
+client2_process_restart_rebind_completed=true
+client2_navigation_menu_reopen_verified=true
+session_event_transport_used=true
+http_transport_used=false
+service_dispatch_triggered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据证明 Android 应用层 Session/Event bridge 与恢复行为，不证明 scenario/Graph/Effect 执行、HVAC/Seat 控制、
+真实车辆信号、NPU、Driver/HAL 或量产资格。P4-W02 immutable HMI reducer/lifecycle owner 尚未交付。

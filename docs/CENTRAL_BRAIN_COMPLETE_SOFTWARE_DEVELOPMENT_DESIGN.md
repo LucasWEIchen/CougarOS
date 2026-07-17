@@ -187,7 +187,7 @@ flowchart TB
 | Governance middleware | `governance/FixedGovernanceMiddlewareChain.java` | `PROTOTYPE` | fixed order and readiness |
 | Safety snapshot | `SafetyVehicleStateSnapshot/Provider` | `CONTRACT_ONLY/PROTOTYPE` | runtime-owned state, no real vehicle source |
 | Native C ABI | `native-runtime/src/main/cpp/*` | `DEVELOPED` lifecycle | arm64/x86_64 ABI, no vendor/hardware linkage |
-| Client2 bridge | `bridge/src/com/centralbrain/client2/*` | `DEVELOPED` simple | Binder request/reply/recovery |
+| Client2 bridge | `bridge/src/com/centralbrain/client2/*` | `DEVELOPED` Session/Event | typed open/snapshot/event/replay/reconnect；legacy text compatibility only |
 | Client2 panel | maintained XML/smali patch inputs | `DEVELOPED` simple | navigation toggle、outside dismiss、transparent overlay |
 
 ### 6.2 Stage 2 新增模块
@@ -2401,3 +2401,121 @@ ARM64 两次进程死亡 probe。状态：`graph_restart_reconciler_defined=true
 `production_effect_dispatch_enabled=false`、`hardware_accessed=false`。Req IDs：`S2-SES-001`、`S2-GRF-001`、
 `S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-050`、
 `ISSUE-022/023/026/030/033`。
+
+## P4-W01 implemented Client2 Session/Event bridge
+
+### 设计意图
+
+P4-W01 把 Client2 从 Stage 1 的“一次请求、一次 `TaskResult`、一个文本框”迁移到 Stage 2 的长生命周期
+Session/Event projection。HMI 不再接触 Binder primitive，也不从 reply 字符串推断执行状态。`SessionClient` 是
+唯一 transport owner；`Client2ScenarioBridge` 只负责 UI alias admission、request 构造、typed callback 转发和旧 Smali
+兼容。
+
+### 文件与职责
+
+| 文件/类型 | 职责 | 禁止职责 |
+| --- | --- | --- |
+| `Client2ScenarioBridge` | allowlist、request、连接/重连、callback forwarding、兼容投影 | 不解析模型文本，不调 Graph/Effect/adapter |
+| `SessionConnection` | caller-owned `isConnected/getSessionHandle/cancel/close` | 不暴露 Binder/AIDL service object |
+| `ScenarioCallback` | typed handle/snapshot/event/replay/overflow/close/error | 不保存权威历史，不直接渲染 mutable 全局状态 |
+| `SessionClient` | 双 Binder 协商、snapshot、cursor replay、sequence continuity、resubscribe | 不包含 Client2 View/alias 逻辑 |
+| legacy `submit/onBridge*` | 保持现有 Smali descriptor 和文本摘要 | 不作为新 HMI API，不声明场景已执行 |
+
+### 主 API
+
+```java
+SessionConnection openSession(
+    Activity activity,
+    String uiScenarioAlias,
+    String boundedUserText,
+    ScenarioCallback callback);
+
+interface SessionConnection extends AutoCloseable {
+    boolean isConnected();
+    SessionHandle getSessionHandle();
+    boolean cancel();
+    void close();
+}
+```
+
+返回 `null` 表示 alias、参数或初次 bind 被拒绝；详细原因通过 `onSessionError` 返回 stable SDK code。成功返回后 caller
+必须拥有 `close()` 时机。P4-W02 的 `CockpitControlCoordinator` 必须在 Activity stop/destroy/recreate 时接管该 owner；
+不得继续依赖 legacy static owner。
+
+### Callback 合同
+
+```text
+onSessionConnectionChanged(connected, reconnected)
+onSessionOpened(handle, canonicalScenarioId)
+onSessionSnapshot(snapshot)
+onSessionEvent(event)
+onSessionReplayComplete(handle, lastSequence)
+onSessionOverflow(handle, resumeCursor)
+onSessionClosed(handle, reasonCode, resumeCursor)
+onSessionError(handleOrNull, stableCode, boundedMessage)
+```
+
+callback 顺序的最小 happy path 为 `connected -> opened -> snapshot -> event[1..N] -> replayComplete`。Binder death
+后为 `disconnected -> connected(reconnected=true) -> snapshot -> replay missing events -> replayComplete`。snapshot 和
+cursor replay 是权威输入；notification callback 只触发补齐。`SessionClient` 按 session 内递增 sequence 丢弃已送达
+事件，并拒绝 cross-session/non-contiguous event。
+
+### UI alias 与 canonical ID
+
+Client2 XML tag 保持稳定，但进入 `SessionRequest` 前必须做 exact map：
+
+| UI alias | canonical Session ID |
+| --- | --- |
+| `care.cold` | `scene.comfort.cold.v1` |
+| `care.fatigue` | `scene.fatigue.assist.v1` |
+| `task.home` | `scene.navigation.home.v1` |
+| `skill.nap` | `scene.rest.nap.v1` |
+| `state.vehicle` | `scene.diagnostics.vehicle.v1` |
+| `memory.preference` | `scene.memory.preference.v1` |
+| `skills.catalog` | `scene.skills.catalog.v1` |
+| `governance.audit` | `scene.governance.audit.v1` |
+| `security.denied` | `scene.security.denied.v1` |
+| `security.privacy` | `scene.security.privacy.v1` |
+| `runtime.npu` | `scene.runtime.npu.v1` |
+| `system.overview` | `scene.system.overview.v1` |
+
+映射成功只表示 Session ID 合法。当前 P2 catalog 只有 cold/fatigue/nap 三个 manifest，且 Runtime 尚未把 catalog、
+compiler、Graph、Effect 接到 Session；其他 canonical ID 不能解释为 skill/车辆能力已经实现。未知 alias 在 bind 前拒绝。
+
+### Request 构造与数据边界
+
+`requestId` 使用 canonical lowercase UUID；`scenarioId` 使用映射值；`utterance` trim 后最多 1024 字符；source 固定
+`SOURCE_HMI_BUTTON`；seat zone 固定 `SEAT_ZONE_DRIVER`；locale 为 `zh-CN`；deadline 为 wall clock + 10 秒；
+`clientContextVersion=0`。Runtime 的 `SessionContract` 再次校验全部字段。日志只记录 alias/canonical ID、session ID
+是否存在、state、event type/sequence/payload kind 和布尔边界，不记录 utterance、display text、session UUID、设备身份
+或车辆 payload。
+
+### Legacy 兼容层
+
+旧 `submit(Activity,String,String,ScenarioCallback):boolean` 直接调用 primary open path。每次新兼容请求替换并关闭
+上一个兼容 stream；首次和重连 replay 都把最新 snapshot summary 投影到 `onBridgeReply`，assistant message event
+可覆盖该摘要，progress/state 只投影到 `onBridgeStatus`。三个旧方法是 Java default method，现有 Smali 实现仍覆盖它们，
+因此 descriptor 不变。新 Java HMI 不得实现或调用旧方法作为业务接口。
+
+### 并发、失败与恢复
+
+- bridge 每个 `Submission` 用 atomic closed gate 保证 close/failure 幂等；
+- transport disconnect 不产生伪 FAILED/COMPLETED，而是请求 `SessionClient.reconnect()`；
+- protocol mismatch、bind/open/cancel/subscription failure 进入 stable error callback 并关闭 stream；
+- overflow 先通知 HMI，再由 SDK 以 resume cursor 重放；
+- terminal snapshot 可投影摘要并关闭；当前 admission-only Runtime 固定 CREATED，不伪造 terminal；
+- legacy stream replacement 是串行 ownership 变更，不是同 Session 的第二次 dispatch。
+
+### 验证与剩余边界
+
+SDK/D8/APK build、签名/capability/static gate 和 Android 13/API 33 ARM64 验证了 happy path、Runtime disabled、
+reenable、legacy replacement、Runtime process death、reconnect/replay、duplicate suppression、compatibility re-projection、
+Client2 process restart 和菜单重开。R7C acceptance schema 升为 1.1.0。
+
+状态：`client2_session_event_primary_api=true`、`client2_session_event_typed_callback=true`、
+`client2_scenario_alias_map_count=12`、`client2_session_reconnect_replay_verified=true`、
+`client2_session_duplicate_event_suppressed=true`、`client2_session_android13_arm64_verified=true`、
+`cockpit_hmi_state_reducer_implemented=false`、`scenario_execution_enabled=false`、
+`cockpit_demo_control_loop_implemented=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、
+`implementation_stage=P4-W02`。Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-033/034`。

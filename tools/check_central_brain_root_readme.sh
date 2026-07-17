@@ -253,7 +253,14 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P4-W01' \
+  'implementation_stage=P4-W02' \
+  'client2_session_event_primary_api=true' \
+  'client2_session_event_typed_callback=true' \
+  'client2_scenario_alias_map_count=12' \
+  'client2_session_reconnect_replay_verified=true' \
+  'client2_session_duplicate_event_suppressed=true' \
+  'client2_legacy_stream_replacement_verified=true' \
+  'cockpit_hmi_state_reducer_implemented=false' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -412,8 +419,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P4-W01" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P4-W01 as the next unfinished scope")
+if "Stage 2 P4-W02" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P4-W02 as the next unfinished scope")
 
 for group in (
     "APP-004",

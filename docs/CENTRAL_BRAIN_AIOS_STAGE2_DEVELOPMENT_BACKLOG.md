@@ -552,9 +552,19 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W01` Bridge session/event API migration
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-UX-001`、`S2-HMI-005`、`XSC-001`。
+- 状态：`DONE`（2026-07-17）；2 人日；需求：`S2-UX-001`、`S2-HMI-005`、`XSC-001`。
 - 修改：`Client2ScenarioBridge.java`、`ScenarioCallback.java`。
 - DoD：从单 reply callback 迁移为 session/event stream；旧 API 只保留兼容层。
+- 实现：主 API 为 `openSession(...) -> SessionConnection`；callback 暴露 typed handle/snapshot/event/replay/
+  overflow/close/error，`SessionClient` 负责双 Binder 协商、断线重连、cursor replay 和 sequence 去重。旧 Smali
+  `submit(Activity,String,String,ScenarioCallback):boolean` 与 `onBridgeStatus/onBridgeReply/onBridgeFailure` 描述符未变，
+  但只投影 snapshot summary/assistant message，不再提交 `AgentTaskRequest`。
+- ID 边界：12 个既有 UI alias 通过显式 allowlist 映射到 canonical Session ID；不修改冻结 Session V1 pattern/hash。
+- 证据：SDK/D8/APK 构建、签名/最小 capability 静态门禁、Android 13/API 33 ARM64 open/snapshot/event/replay、
+  Runtime process-death reconnect/replay/duplicate suppression、兼容流 replacement、Client2 restart/menu reopen。
+- 边界：`scenario_execution_enabled=false`、`cockpit_hmi_state_reducer_implemented=false`、
+  `cockpit_demo_control_loop_implemented=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`；
+  Activity lifecycle owner 和 immutable renderer 由 P4-W02 接管，偏差登记为 `DEV-051`。
 
 ### `P4-W02` Cockpit HMI state/reducer/reconnect
 

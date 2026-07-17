@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: APP-004, XSC-001/005/006, NV-G-006, NV-P-002, DEL-001/003/004.
+# Req IDs: S2-UX-001, S2-HMI-005, APP-004, XSC-001/005/006,
+# NV-G-006, NV-P-002, DEL-001/003/004.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="apk-labs/client2-central-brain"
@@ -58,10 +59,41 @@ for scenario in \
   system.overview; do
   require_text "$BRIDGE" "\"$scenario\""
 done
-require_text "$BRIDGE" "new CentralBrainClient"
-require_text "$BRIDGE" "getProtocolVersion()"
-require_text "$BRIDGE" "getProtocolHash()"
-require_text "$BRIDGE" "submitAgentTask(request, this)"
+for canonical_scenario in \
+  scene.comfort.cold.v1 scene.fatigue.assist.v1 scene.navigation.home.v1 \
+  scene.rest.nap.v1 scene.diagnostics.vehicle.v1 scene.memory.preference.v1 \
+  scene.skills.catalog.v1 scene.governance.audit.v1 scene.security.denied.v1 \
+  scene.security.privacy.v1 scene.runtime.npu.v1 scene.system.overview.v1; do
+  require_text "$BRIDGE" "\"$canonical_scenario\""
+done
+require_text "$BRIDGE" "private static Map<String, String> scenarioAliases()"
+require_text "$BRIDGE" "request.scenarioId = scenarioId"
+require_text "$BRIDGE" "SessionConnection openSession("
+require_text "$BRIDGE" "new SessionClient"
+require_text "$BRIDGE" "connectedClient.openSession(request(), this)"
+require_text "$BRIDGE" "client2_session_snapshot_received=true"
+require_text "$BRIDGE" "client2_session_event_received=true"
+require_text "$BRIDGE" "client2_session_replay_complete=true"
+require_text "$BRIDGE" "client2_legacy_callback_projected=true"
+require_text "$BRIDGE" "client2_legacy_callback_reprojected=true"
+require_text "$BRIDGE" "client2_legacy_session_replaced=true"
+require_text "$BRIDGE" "SessionContract.isTerminalState"
+require_text "$BRIDGE" "current.reconnect()"
+require_text "$BRIDGE" "Session event overflow; replaying"
+require_text "$BRIDGE" "SessionSnapshot accepted = copy(snapshot)"
+require_text "$BRIDGE" "RuntimeEvent accepted = copy(event)"
+require_text "$BRIDGE" "@Deprecated"
+require_text "$CALLBACK" "onSessionOpened(SessionHandle handle, String scenarioId)"
+require_text "$CALLBACK" "onSessionSnapshot(SessionSnapshot snapshot)"
+require_text "$CALLBACK" "onSessionEvent(RuntimeEvent event)"
+require_text "$CALLBACK" "onSessionReplayComplete(SessionHandle handle, long lastSequence)"
+require_text "$CALLBACK" "onSessionOverflow(SessionHandle handle, String resumeCursor)"
+require_text "$CALLBACK" "onSessionClosed("
+require_text "$CALLBACK" "onSessionError(SessionHandle handle, String code, String message)"
+require_text "$CALLBACK" "default void onBridgeStatus"
+require_text "$CALLBACK" "default void onBridgeReply"
+require_text "$CALLBACK" "default void onBridgeFailure"
+require_text "$BRIDGE" "session_event_transport_used=true"
 require_text "$BRIDGE" "http_transport_used=false"
 require_text "$BRIDGE" "service_dispatch_triggered=false"
 require_text "$BRIDGE" "hardware_accessed=false"
@@ -90,6 +122,12 @@ if grep -R -Eiq \
   echo "Client2 Binder sources contain a legacy network transport" >&2
   exit 1
 fi
+if grep -Eiq \
+    'CentralBrainClient|AgentTaskRequest|submitAgentTask|Task(Result|Update|Failure)' \
+    "$ROOT_DIR/$BRIDGE"; then
+  echo "Client2 Session/Event bridge regressed to the deprecated Task API" >&2
+  exit 1
+fi
 if grep -R -Eiq \
     'System\.loadLibrary|android\.car|CarPropertyManager|ioctl|sysfs|/dev/|SocketCAN|SharedMemory' \
     "$ROOT_DIR/$PROJECT/bridge" "$ROOT_DIR/$PROJECT/patches/smali"; then
@@ -112,20 +150,30 @@ require_text "$PROJECT_VERIFY" 'must not request network or cleartext access'
 for marker in \
   "client2_signature_permission_granted=true" \
   "runtime_client2_signer_parity=true" \
-  "client2_binder_task_completed=true" \
-  "client2_ui_reply_verified=true" \
+  "client2_session_transport_connected=true" \
+  "client2_session_opened=true" \
+  "client2_session_snapshot_received=true" \
+  "client2_session_event_received=true" \
+  "client2_session_event_sequence_verified=true" \
+  "client2_session_replay_complete=true" \
+  "client2_legacy_callback_projected=true" \
+  "client2_ui_session_projection_verified=true" \
   "client2_panel_initially_hidden=true" \
   "client2_navigation_toggle_show_verified=true" \
   "client2_navigation_toggle_hide_verified=true" \
   "client2_outside_tap_dismiss_verified=true" \
   "client2_identity_resolved=true" \
   "client2_capability_policy_allowed=true" \
+  "session_event_transport_used=true" \
   "http_transport_used=false" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false"; do
   require_text "$DEVICE_TEST" "$marker"
 done
 require_text "$RECOVERY_TEST" "client2_navigation_menu_reopen_verified=true"
+require_text "$RECOVERY_TEST" "client2_session_reconnect_replay_verified=true"
+require_text "$RECOVERY_TEST" "client2_session_duplicate_event_suppressed=true"
+require_text "$RECOVERY_TEST" "client2_legacy_stream_replacement_verified=true"
 require_text "$DEVICE_TEST" "--require-api-33"
 require_text "$DEVICE_TEST" "--replace-conflicting-client2"
 require_text "$DEVICE_TEST" "SIGNER_MIGRATION_REQUIRED"
@@ -194,8 +242,8 @@ for doc_pattern in \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md|Client2 navigation-triggered menu trace" \
   "docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md|client2_navigation_menu_acceptance_passed=true" \
   "docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md|Client2 Navigation Menu Driver/HAL Result" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|2026-07-15 导航菜单进展" \
-  "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|2026-07-15 导航菜单进展" \
+  "docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md|DEV-051 P4-W01 Client2 UI alias" \
+  "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md|P4-W01 进展：Client2 已不再通过单次" \
   "docs/CENTRAL_BRAIN_ROADMAP.md|### 2026-07-15" \
   "docs/CENTRAL_BRAIN_ANDROID13_PHYSICAL_TARGET_TEST_REPORT.md|client2_navigation_menu_acceptance_passed=true"; do
   path="${doc_pattern%%|*}"

@@ -284,8 +284,8 @@ fi
 BINDER_LOG=""
 for _ in {1..40}; do
   BINDER_LOG="$("${ADB_DEVICE[@]}" logcat -d \
-    CbClient2Binder:I CentralBrainRuntime:I '*:S')"
-  if grep -Fq 'client2_binder_task_completed=true' <<<"$BINDER_LOG"; then
+    CbClient2Session:I CentralBrainRuntime:I '*:S')"
+  if grep -Fq 'client2_session_replay_complete=true' <<<"$BINDER_LOG"; then
     break
   fi
   sleep 0.25
@@ -293,14 +293,21 @@ done
 printf '%s\n' "$BINDER_LOG" >"$LOG_DIR/binder-log.txt"
 
 for marker in \
-  'client2_binder_connected=true' \
-  'client2_binder_task_submitted=true' \
-  'client2_binder_task_completed=true' \
-  'scenario_id=care.cold' \
+  'client2_session_transport_connected=true' \
+  'client2_session_opened=true' \
+  'client2_session_snapshot_received=true' \
+  'client2_session_event_received=true' \
+  'event_type=ScenarioRequested' \
+  'event_sequence=1' \
+  'client2_session_replay_complete=true' \
+  'client2_legacy_callback_projected=true' \
+  'ui_scenario_id=care.cold' \
+  'scenario_id=scene.comfort.cold.v1' \
+  'session_event_transport_used=true' \
+  'legacy_callback_compatibility=true' \
   'http_transport_used=false' \
   'service_dispatch_triggered=false' \
-  'hardware_accessed=false' \
-  'packages=[com.tuanjie.urasclient2] resolved=true'; do
+  'hardware_accessed=false'; do
   if ! grep -Fq "$marker" <<<"$BINDER_LOG"; then
     echo "$BINDER_LOG" >&2
     echo "Client2 Binder log missing marker: $marker" >&2
@@ -310,10 +317,10 @@ done
 
 "${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null
 "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$LOG_DIR/ui-after.xml"
-if ! grep -Fq 'text="Deterministic Binder reply: care.cold:' \
+if ! grep -Fq 'text="Scenario accepted; execution is not enabled"' \
     "$LOG_DIR/ui-after.xml"; then
   cat "$LOG_DIR/ui-after.xml" >&2
-  echo "Client2 UI did not render the Binder TaskResult reply" >&2
+  echo "Client2 UI did not render the Session snapshot compatibility projection" >&2
   exit 1
 fi
 
@@ -325,10 +332,14 @@ printf '%s\n' \
   "client2_signature_permission_granted=true" \
   "runtime_client2_signer_parity=true" \
   "client2_secondary_sdk_dex_present=true" \
-  "client2_binder_connected=true" \
-  "client2_binder_task_submitted=true" \
-  "client2_binder_task_completed=true" \
-  "client2_ui_reply_verified=true" \
+  "client2_session_transport_connected=true" \
+  "client2_session_opened=true" \
+  "client2_session_snapshot_received=true" \
+  "client2_session_event_received=true" \
+  "client2_session_event_sequence_verified=true" \
+  "client2_session_replay_complete=true" \
+  "client2_legacy_callback_projected=true" \
+  "client2_ui_session_projection_verified=true" \
   "client2_panel_initially_hidden=true" \
   "client2_navigation_toggle_show_verified=true" \
   "client2_navigation_toggle_hide_verified=true" \
@@ -337,6 +348,7 @@ printf '%s\n' \
   "client2_capability_policy_allowed=true" \
   "client2_signer_migration_performed=$SIGNER_MIGRATION_PERFORMED" \
   "automatic_uninstall_enabled=false" \
+  "session_event_transport_used=true" \
   "http_transport_used=false" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false" \

@@ -88,10 +88,18 @@ shows the panel; a second click or a click outside the panel hides it. The panel
 consumes touches over its own surface so its controls do not dismiss it. The
 scrollable control area groups 12 stable scenario IDs under
 task service, context/growth, and safety/runtime. Each button creates a typed
-`AgentTaskRequest` through `CentralBrainClient`; asynchronous Binder callbacks
-update the response area. The SDK, AIDL parcelables and a narrow Client2 bridge
-are compiled into `classes2.dex`. The APK requests no network permission and
-contains no direct HTTP fallback.
+Session through `Client2ScenarioBridge.openSession`/`SessionClient`; snapshot,
+typed events and authoritative cursor replay update the response projection. The
+existing smali `submit(...)` descriptor remains only as a compatibility wrapper.
+The SDK, AIDL parcelables and a narrow Client2 bridge are compiled into
+`classes2.dex`. The APK requests no network permission and contains no direct
+HTTP fallback.
+
+The XML tags remain stable two-segment UI aliases. A 12-entry exact bridge
+allowlist maps them to qualified Session IDs before Runtime admission; unknown
+aliases fail before binding and the frozen Session V1 validation is not relaxed.
+Runtime process death reconnects the active stream, replays the owner-scoped
+snapshot/history and drops already delivered event sequences.
 
 The bottom navigation is drawn by the Tuanjie render surface and has no Android
 `View` callback. The patch therefore uses a transparent, accessibility-visible
@@ -136,6 +144,22 @@ cockpit_hvac_surface_implemented=false
 cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
+```
+
+P4-W01 is complete. The primary bridge now exposes typed Session handle,
+snapshot, event, replay, overflow, close and error callbacks; Android 13 ARM64
+acceptance covers Runtime/Client2 process death and duplicate suppression. The
+current smali controller still renders only the compatibility text projection.
+P4-W02 must add the immutable HMI state/reducer and Activity lifecycle owner:
+
+```text
+client2_session_event_primary_api=true
+client2_session_event_typed_callback=true
+client2_scenario_alias_map_count=12
+client2_session_reconnect_replay_verified=true
+client2_session_duplicate_event_suppressed=true
+cockpit_hmi_state_reducer_implemented=false
+implementation_stage=P4-W02
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in

@@ -456,16 +456,17 @@ The snapshot distinguishes compile-time signer evidence from cryptographic artif
 
 The rollup consumes immutable child snapshots, SDK maturity/stage constants and Room schema version only. `core_software_baseline_ready` is a software composition statement; Client2 migration and API 33 E2E remain explicit R7 blockers, while system owner, production subsystems and target hardware are independent blockers that application-layer tests cannot close.
 
-## Android R7B Client2 SDK/Binder Migration
+## Android R7B Client2 SDK/Binder Migration (P4-W01 evolved)
 
 | Surface | Input/output | Constraint |
 | --- | --- | --- |
-| `Client2ScenarioBridge.submit` | Activity, allowlisted scenario ID, bounded UI text, callback | creates one typed `AgentTaskRequest`; no HTTP/model/hardware API |
-| `CentralBrainClient` | explicit Runtime component, protocol version/hash, async task callback | signature permission plus Runtime capability policy remain authoritative |
-| `ScenarioCallback` | status, terminal reply or terminal failure | main-executor UI update; one in-flight panel task |
+| `Client2ScenarioBridge.openSession` | Activity, allowlisted UI alias, bounded text, typed callback | opens one owner-scoped Session/Event stream; no HTTP/model/hardware API |
+| legacy `Client2ScenarioBridge.submit` | unchanged Smali descriptor | compatibility wrapper only; replaces previous compatibility stream |
+| `SessionClient` | explicit Runtime Session/Event components, version/hash, snapshot/cursor replay | signature permission plus Runtime capability policy remain authoritative |
+| `ScenarioCallback` | handle, snapshot, event, replay, overflow, close, error | old status/reply/failure remain default compatibility projection |
 | Client2 manifest | Runtime package query and `BIND_RUNTIME` permission | no INTERNET or cleartext opt-in |
-| Runtime capability principal | package + complete current signer set | exactly protocol read and owned task submit/status/cancel |
-| API 33 acceptance script | signed Runtime/Client2 APKs and visible cold-scenario button | verifies Binder identity/callback/UI; reports no dispatch/hardware |
+| Runtime capability principal | package + complete current signer set | protocol + owned task compatibility + session/event read/open/subscribe/cancel |
+| API 33 acceptance script | signed Runtime/Client2 APKs and visible cold-scenario button | verifies Session snapshot/event/replay/reconnect/UI; reports no dispatch/hardware |
 
 The SDK AAR and the two bridge Java sources are compiled by D8 into an embedded `classes2.dex`; the existing Client2 Activity is hooked only after `setContentView`. The debug signer is intentionally shared with Runtime so Android can grant the signature permission, while the inner package/current-signer policy still applies least privilege. This is an APK-level test integration, not a claim that the original Client2 signer or RenderService trust contract is preserved.
 
@@ -474,8 +475,8 @@ The SDK AAR and the two bridge Java sources are compiled by D8 into an embedded 
 | Test surface | Trigger | Expected contract |
 | --- | --- | --- |
 | Runtime availability | disable/enable Runtime package from adb shell | visible bind failure, in-flight release, same-Activity retry success |
-| Client2 single-flight | two immediate taps | one `AgentTaskRequest`, one trusted admission, one terminal callback |
-| Runtime death | DUMP-protected debug broadcast after submit | one `ERROR_SERVICE_DIED`, no completion, next-click rebind and fail-closed reconciliation |
+| Client2 compatibility replacement | two sequential accepted Session requests | previous stream closes; each Session has one sequence-1 event and one initial replay |
+| Runtime death | DUMP-protected debug broadcast after initial replay | original Session reconnects and replays without duplicate event or fake terminal |
 | Client2 restart | force-stop/relaunch Activity process | fresh panel hook, SDK bind, callback and UI reply |
 | SDK lifecycle regression | existing androidTest instrumentation | service death/reconnect, callback death, terminal uniqueness, cancel/completion race |
 
@@ -1647,3 +1648,101 @@ result digest，`isExecutorDispatchEnabled()` 固定 false。
 debug probe 仅以 DUMP permission 验证 Room/process-death contract。Req IDs：`S2-SES-001`、`S2-GRF-001`、
 `S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-050`、
 `ISSUE-022/023/026/030/033`。
+
+## Android P4-W01 Client2 Session/Event Bridge Interface
+
+### Primary entry
+
+```java
+public static Client2ScenarioBridge.SessionConnection openSession(
+        Activity activity,
+        String uiScenarioAlias,
+        String userText,
+        ScenarioCallback callback);
+```
+
+前置条件：`activity != null`、`callback != null`、alias 命中 12 项 exact map。`userText == null` 转空串，trim 后
+截断到 `SessionContract.MAX_UTTERANCE_CHARS`。返回非空表示初始 transport bind 已受理，不表示 Session terminal、
+scenario executable 或 Effect dispatched。
+
+### SessionConnection
+
+| 方法 | 返回/语义 | 失败行为 |
+| --- | --- | --- |
+| `isConnected()` | Session/Event 双 Binder 当前均 ready | closed/null client 返回 false |
+| `getSessionHandle()` | defensive copy；open 前可为 null | 不暴露内部 mutable handle |
+| `cancel()` | `CANCEL_REASON_USER` owner-scoped cancel | stable error callback，随后关闭 |
+| `close()` | 幂等 unregister/unbind/owner release | 不发 terminal，不触发 adapter |
+
+### ScenarioCallback
+
+| Callback | 输入 | HMI 用法 |
+| --- | --- | --- |
+| `onSessionConnectionChanged` | connected/reconnected | 更新 connection projection，不清空已知 state |
+| `onSessionOpened` | copied handle + canonical scenario ID | 建立 session identity；不得显示 raw UUID 到普通 UI |
+| `onSessionSnapshot` | validated snapshot | reducer 的 authoritative base state |
+| `onSessionEvent` | validated typed RuntimeEvent | 按 `(sessionId, sequence, eventId)` reduce |
+| `onSessionReplayComplete` | copied handle + last sequence | 标记 catch-up 完成后再开放依赖完整历史的操作 |
+| `onSessionOverflow` | handle + opaque cursor | 显示 recovering；不得解析 cursor |
+| `onSessionClosed` | reason + cursor | 停止等待，保留最后 projection 供诊断 |
+| `onSessionError` | optional handle + SDK code + bounded message | fail closed；不根据 message 字符串分支 |
+
+`onBridgeStatus/onBridgeReply/onBridgeFailure` 均为 `@Deprecated` default method，只供现有 Smali。new HMI callback
+可以只覆盖 typed methods。
+
+### Request mapping
+
+```text
+UI alias -> exact alias map -> canonical SessionRequest.scenarioId
+UI label -> bounded utterance
+source=SOURCE_HMI_BUTTON
+seatZone=SEAT_ZONE_DRIVER
+locale=zh-CN
+deadlineEpochMs=now+10000
+clientContextVersion=0
+```
+
+alias 映射表以 `Client2ScenarioBridge.scenarioAliases()` 为单一实现源，文档表见完整软件详设。已有 manifest 的
+canonical ID 是 `scene.comfort.cold.v1`、`scene.fatigue.assist.v1`、`scene.rest.nap.v1`；其他 ID 当前只可创建
+admission-only Session。`SessionContract` 与 frozen AIDL/hash 不变。
+
+### Lifecycle and event sequence
+
+```text
+openSession
+  -> SessionClient.connect
+  -> onConnected(false)
+  -> SessionClient.openSession(request, listener)
+  -> onSessionOpened
+  -> onSessionSnapshot
+  -> onSessionEvent(sequence ascending)
+  -> onSessionReplayComplete
+
+Binder death
+  -> onSessionConnectionChanged(false, false)
+  -> reconnect
+  -> onSessionConnectionChanged(true, true)
+  -> snapshot + cursor replay + duplicate drop
+  -> replay complete
+```
+
+`onDisconnected` 不能映射为 Session FAILED。只有 stable protocol/transport/subscription error 或 authoritative terminal
+snapshot 决定结束。Event V1 terminal cursor 重读限制继续由 `ISSUE-034` 跟踪；bridge 不自行构造 cursor/ACK。
+
+### Compatibility descriptor
+
+```text
+Client2ScenarioBridge.submit(
+  Activity, String, String, ScenarioCallback) -> boolean
+ScenarioCallback.onBridgeStatus(String) -> void
+ScenarioCallback.onBridgeReply(String) -> void
+ScenarioCallback.onBridgeFailure(String) -> void
+```
+
+这些 descriptor 在 P4-W01 不变。每个兼容 submit 替换前一兼容 stream；authoritative replay 后投影 snapshot summary。
+`closeLegacySession()` 是过渡释放 API，P4-W02 必须以 maintained Java lifecycle owner 替代静态 owner。
+
+状态：`client2_session_event_primary_api=true`、`client2_legacy_submit_compatibility=true`、
+`client2_smali_descriptor_unchanged=true`、`client2_session_android13_arm64_verified=true`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`。Req IDs：`S2-UX-001`、`S2-HMI-005`、
+`XSC-001/005/006`、`NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-033/034`。
