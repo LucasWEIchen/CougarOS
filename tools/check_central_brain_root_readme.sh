@@ -66,20 +66,24 @@ for marker in \
   'cockpit_hmi_translucent_material_ready=true' \
   'session_contract_v1_defined=true' \
   'session_parcel_physical_android13_arm64_verified=true' \
-  'session_runtime_service_published=false' \
+  'sdk_facade_v2_available=true' \
+  'session_runtime_service_published=true' \
+  'active_session_reconnect_resubscribe_verified=true' \
+  'session_runtime_persistence_wired=false' \
+  'session_runtime_process_death_rehydration=false' \
   'plan_contract_v1_defined=true' \
   'plan_parcel_physical_android13_arm64_verified=true' \
   'plan_runtime_published=false' \
   'event_contract_v1_defined=true' \
   'event_parcel_physical_android13_arm64_verified=true' \
-  'event_runtime_service_published=false' \
-  'event_callback_service_published=false' \
+  'event_runtime_service_published=true' \
+  'event_callback_service_published=true' \
   'effect_contract_v1_defined=true' \
   'effect_parcel_physical_android13_arm64_verified=true' \
   'effect_runtime_service_published=false' \
   'approval_response_service_published=false' \
   'undo_service_published=false' \
-  'ICentralBrainSessionRuntime V1（合同已冻结）' \
+  'ICentralBrainSessionRuntime V1（已发布）' \
   'cockpit_demo_control_loop_implemented=false' \
   'S2-HMI-001..006' \
   '意图输入（设计稿已交付）' \
@@ -202,8 +206,8 @@ remaining_rows = sum(
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
-if "`P1-W01..P1-W04`" not in remaining or "`P1-W05`" not in remaining:
-    raise SystemExit("README remaining-work table must preserve P1-W01..P1-W04 status and name P1-W05")
+if "`P1-W01..P1-W05`" not in remaining or "`P1-W06`" not in remaining:
+    raise SystemExit("README remaining-work table must preserve P1-W01..P1-W05 status and name P1-W06")
 
 for group in (
     "APP-004",

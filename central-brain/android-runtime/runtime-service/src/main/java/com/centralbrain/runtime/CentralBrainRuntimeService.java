@@ -32,6 +32,7 @@ import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
 import com.centralbrain.runtime.supervisor.JobSupervisor;
+import com.centralbrain.runtime.session.TransientSessionEndpoint;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -91,6 +92,7 @@ public final class CentralBrainRuntimeService extends Service {
     private CentralBrainDatabase database;
     private DurableTaskRepository taskRepository;
     private Future<DurableTaskRepository.ReconciliationReport> startupReconciliation;
+    private TransientSessionEndpoint transientSessionEndpoint;
 
     private final ICentralBrainRuntime.Stub binder = new ICentralBrainRuntime.Stub() {
         @Override
@@ -217,6 +219,9 @@ public final class CentralBrainRuntimeService extends Service {
                 this,
                 R.xml.central_brain_capability_policy,
                 identityResolver.resolveOwnIdentity());
+        transientSessionEndpoint = new TransientSessionEndpoint(operation ->
+                DurablePrincipalFingerprint.from(resolveAuthorizedCaller(
+                        capabilityForSessionOperation(operation))));
         database = CentralBrainDatabase.open(this);
         taskRepository = DurableTaskRepository.create(database);
         startupReconciliation = executor.submit(() -> {
@@ -441,6 +446,21 @@ public final class CentralBrainRuntimeService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        String action = intent == null ? "" : intent.getAction();
+        if (CentralBrainSdk.ACTION_SESSION_RUNTIME.equals(action)) {
+            Log.i(TAG, "session runtime binder requested"
+                    + " session_runtime_transient_registry=true"
+                    + " session_runtime_persistence_wired=false"
+                    + " hardware_accessed=false");
+            return transientSessionEndpoint.sessionBinder();
+        }
+        if (CentralBrainSdk.ACTION_SESSION_EVENTS.equals(action)) {
+            Log.i(TAG, "session event binder requested"
+                    + " event_callback_service_published=true"
+                    + " event_runtime_production_wired=false"
+                    + " hardware_accessed=false");
+            return transientSessionEndpoint.eventBinder();
+        }
         Log.i(TAG, "production binder requested hardware_accessed=false");
         return binder;
     }
@@ -449,6 +469,14 @@ public final class CentralBrainRuntimeService extends Service {
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
         writer.println("native_runtime_process_wired=true");
         writer.println(nativeRuntimeSnapshot().logFields());
+        writer.println("sdk_facade_v2_available=true");
+        writer.println("session_runtime_service_published=true");
+        writer.println("event_runtime_service_published=true");
+        writer.println("event_callback_service_published=true");
+        writer.println("session_runtime_transient_registry=true");
+        writer.println("session_runtime_persistence_wired=false");
+        writer.println("session_runtime_process_death_rehydration=false");
+        writer.println("scenario_execution_enabled=false");
         writer.println("production_effect_activation_gate_wired=true");
         writer.println("production_effect_delivery_activation_allowed="
                 + effectDeliveryActivation.isActivationAllowed());
@@ -663,6 +691,9 @@ public final class CentralBrainRuntimeService extends Service {
 
     @Override
     public void onDestroy() {
+        if (transientSessionEndpoint != null) {
+            transientSessionEndpoint.close();
+        }
         executor.shutdownNow();
         tasks.values().forEach(this::unlinkCallbackDeath);
         tasks.clear();
@@ -1314,6 +1345,28 @@ public final class CentralBrainRuntimeService extends Service {
             throw new SecurityException("Central Brain capability denied: " + capability.getId());
         }
         return caller;
+    }
+
+    private static Capability capabilityForSessionOperation(
+            TransientSessionEndpoint.Operation operation) {
+        switch (operation) {
+            case SESSION_PROTOCOL_READ:
+                return Capability.SESSION_PROTOCOL_READ;
+            case SESSION_OPEN:
+                return Capability.SESSION_OPEN;
+            case SESSION_READ_OWN:
+                return Capability.SESSION_READ_OWN;
+            case SESSION_CANCEL_OWN:
+                return Capability.SESSION_CANCEL_OWN;
+            case EVENT_PROTOCOL_READ:
+                return Capability.EVENT_PROTOCOL_READ;
+            case EVENT_READ_OWN:
+                return Capability.EVENT_READ_OWN;
+            case EVENT_SUBSCRIBE_OWN:
+                return Capability.EVENT_SUBSCRIBE_OWN;
+            default:
+                throw new SecurityException("unsupported session operation");
+        }
     }
 
     private void removeTaskRecords(Iterable<String> taskIds) {

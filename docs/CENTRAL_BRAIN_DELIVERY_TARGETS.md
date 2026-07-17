@@ -83,8 +83,8 @@ bash tools/check_central_brain_root_readme.sh
 ## 2026-07-17 AIOS Stage 2 交付范围
 
 Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、
-`P1-W03 Typed Event DTO/AIDL` 和 `P1-W04 Effect/Approval DTO/AIDL` contract layer 已完成，
-下一工作包为 `P1-W05 SDK facade v2`。P1-P7 交付必须进入
+`P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL` 和
+`P1-W05 SDK facade v2` 已完成，下一工作包为 `P1-W06 Room v4 schema`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -567,5 +567,45 @@ target_hardware_validated=false
 
 该交付不发布 Event Binder Service，不连接现有 R6 process-only Event runtime，不打开 Room v3 event
 cursor repository，不发送业务 payload，不创建主动触发，也不访问 Vehicle/VHAL/NPU/Driver/HAL。
-P1-W05 才负责 Service/callback 生命周期，P1-W06 才负责 Room v4 持久化。Req IDs：`S2-SES-001`、
+P1-W05 已负责 Service/callback 生命周期，P1-W06 负责 Room v4 持久化。Req IDs：`S2-SES-001`、
 `S2-EVT-001`、`FW-U-003`、`NV-F-009`、`NV-G-003`、`NV-G-007`、`DEL-001/003/004/005`。
+
+## Stage 2 P1-W05 SDK Facade v2 Delivery
+
+P1-W05 在 SDK AAR 中交付 `ScenarioClient`、`SessionClient`、`RuntimeEventListener` 和内部
+`AndroidScenarioTransport`。HMI public API 不暴露 Binder primitive；transport 以一个显式 Runtime
+component、两个 action 分别绑定 Session/Event V1。Runtime APK 复用现有
+`CentralBrainRuntimeService` 发布两个 Binder，不增加第四个 app Service；七项 capability 继续由
+Binder UID/package/current signer default-deny policy 执行。
+
+Runtime registry 是进程级、有界、owner-scoped、request digest 幂等的 transient 实现：不保留原始
+utterance，Service rebind 后可读取 snapshot/cursor replay 并重订阅，Runtime 进程死亡后不恢复。
+生产 policy 不授权 test package；同签名 `com.centralbrain.sdk.test` 只存在于 debug resource overlay。
+
+JVM 测试覆盖 fake transport、protocol mismatch、callback race、replay 去重、close/reconnect 幂等、
+owner isolation、idempotency conflict、capacity 与 cursor。Android 13/API 33 ARM64 物理控制器以真实
+signature permission/Binder 完成 open -> event replay -> explicit reconnect -> active resubscribe ->
+cancel -> second event -> duplicate close。临时 instrumentation APK 验证后卸载。证据状态固定为：
+
+```text
+sdk_facade_v2_available=true
+session_runtime_service_published=true
+event_runtime_service_published=true
+event_callback_service_published=true
+active_session_reconnect_resubscribe_verified=true
+callback_replay_deduplicated=true
+close_reconnect_idempotency_verified=true
+session_runtime_transient_registry=true
+session_runtime_persistence_wired=false
+session_runtime_process_death_rehydration=false
+scenario_execution_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该交付不是 durable Session Runtime、Scenario compiler/graph executor、Effect service、approval response、
+undo execution、Vehicle/VHAL/NPU/Driver-HAL 或 production Event broker。P1-W06 必须完成 Room v4 和
+process-death rehydration；Event V1 terminal cursor 限制由 `ISSUE-034` 继续跟踪。Req IDs：
+`S2-SES-001`、`S2-UX-001..003`、`S2-EVT-001`、`APP-004`、`XSC-001/006`、
+`NV-G-003/004`、`DEL-001/003..005`。

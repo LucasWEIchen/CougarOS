@@ -174,6 +174,12 @@ public final class CentralBrainClient implements AutoCloseable {
         }
     }
 
+    /** Creates an independently owned Stage 2 facade using this client's callback executor. */
+    public ScenarioClient createScenarioClient(
+            ScenarioClient.ConnectionListener scenarioConnectionListener) {
+        return new SessionClient(appContext, callbackExecutor, scenarioConnectionListener);
+    }
+
     public int getProtocolVersion() throws RemoteException {
         return requireRuntime().getProtocolVersion();
     }

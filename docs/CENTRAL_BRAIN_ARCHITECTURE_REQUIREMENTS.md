@@ -406,3 +406,36 @@ Room persistence、车辆控制、NPU、Driver/HAL 或目标硬件资格。
 `approval_response_service_published=false`、`undo_service_published=false`。P1-W04 是
 `contract_defined`，不是 Effect Runtime、审批 authority、undo executor、durable persistence、车辆控制、
 NPU、Driver/HAL 或目标硬件资格。
+
+## 18. P1-W05 SDK facade v2 trace
+
+本增量映射 `S2-SES-001`、`S2-UX-001..003`、`S2-EVT-001`、`APP-004`、`XSC-001/006`、
+`NV-G-003/004`、`DEL-001/003..005`：
+
+1. `ScenarioClient` 是应用/HMI 的唯一 Stage 2 会话入口；其 public API 只暴露 typed DTO、稳定
+   `Failure.code` 和 `RuntimeEventListener`，禁止 `IBinder`、AIDL Stub/Proxy 或 `RemoteException` 泄漏。
+2. `SessionClient` 必须先精确协商 Session/Event V1 version/hash，再允许 open/get/list/cancel/observe；
+   callback 必须经串行 executor 分发，stop/close 后的晚到 callback 必须丢弃。
+3. `AndroidScenarioTransport` 只使用显式 `CentralBrainRuntimeService` component，并以
+   `ACTION_SESSION_RUNTIME`、`ACTION_SESSION_EVENTS` 建立两个独立 Binder；任一 Binder 死亡使本代
+   transport 整体失效，调用方显式 reconnect 后恢复 active subscription。
+4. Runtime Service 不新增 Manifest component。它按 action 返回 Session/Event Binder，所有操作先以
+   Binder UID/package/current signer 通过 default-deny capability，再生成 durable principal fingerprint；
+   request DTO 不能提供 owner/permission/Safety authority。
+5. P1-W05 registry 只在 Runtime 进程内存活，最大 64 session、每 session 最大 8 个当前合同事件；
+   requestId+digest 幂等冲突失败关闭，owner 不可互见，原始 utterance 只参与内存中即时 SHA-256，
+   不进入 record、event、snapshot、log 或持久层。
+6. 恢复顺序固定为 get snapshot -> cursor replay -> sequence deduplicate -> register callback；Service
+   rebind 可恢复，Runtime 进程死亡后数据不恢复。P1-W06 前不得把它描述为 durable session runtime。
+7. 生产 capability XML 只授权 Demo/Client2；`com.centralbrain.sdk.test` 仅存在于 debug resource overlay，
+   且仍要求与 Runtime current signer 相同。release policy 不得包含测试 principal。
+8. Android 13/API 33 ARM64 已通过真实 Binder open/replay/reconnect/resubscribe/cancel/close 测试；未访问
+   Vehicle/VHAL/NPU/Driver/HAL。
+
+当前状态：`sdk_facade_v2_available=true`、`session_runtime_service_published=true`、
+`event_runtime_service_published=true`、`event_callback_service_published=true`、
+`active_session_reconnect_resubscribe_verified=true`；同时保持
+`session_runtime_persistence_wired=false`、`session_runtime_process_death_rehydration=false`、
+`scenario_execution_enabled=false`、`effect_runtime_service_published=false`、
+`approval_response_service_published=false`、`undo_service_published=false`、
+`hardware_accessed=false`。

@@ -8,8 +8,8 @@ Req IDs: `APP-004`, `XSC-001`, `XSC-004`, `XSC-005`, `XSC-006`, `NV-F-001`, `NV-
 
 | Module | Artifact | Current responsibility |
 | --- | --- | --- |
-| `central-brain-sdk` | AAR | Public typed task/Governance clients, structured task/Governance/Session/Plan/Event/Effect AIDL types, callback bridge and protocol identity |
-| `runtime-service` | APK without launcher | Signature-protected task/diagnostic/Governance Binders, bounded supervisors and deterministic hardware-free runtime |
+| `central-brain-sdk` | AAR | Public typed task/Governance/Scenario clients, structured task/Governance/Session/Plan/Event/Effect AIDL types, callback bridge and protocol identity |
+| `runtime-service` | APK without launcher | Three signature-protected Services; task/diagnostic/Governance plus Runtime dual-action Session/Event Binder publication |
 | `demo-hmi` | Launcher APK | Source-built typed Binder integration client for Android hardware testing |
 | `policy-probe` | Test-only APK | Same-signer, unconfigured-package default-deny device probe; excluded from standard delivery build |
 
@@ -98,7 +98,28 @@ are frozen by `aidl-api/effect-v1.sha256` and checked by
 pass. Status is `effect_contract_v1_defined=true`,
 `effect_parcel_physical_android13_arm64_verified=true`, `effect_runtime_service_published=false`,
 `approval_response_service_published=false`, `undo_service_published=false` and `hardware_accessed=false`.
-P1-W05 owns SDK facade/lifecycle; P1-W06 owns Room v4. Existing Governance V1 still has no grant method.
+P1-W05 now owns Session/Event SDK facade/lifecycle; P1-W06 owns Room v4. Existing Governance V1 still has no grant method.
+
+## Stage 2 P1-W05 SDK Facade v2
+
+`ScenarioClient`, `SessionClient` and `RuntimeEventListener` expose Session/Event use without public Binder
+primitives. `AndroidScenarioTransport` binds the same explicit Runtime component with
+`com.centralbrain.runtime.action.SESSION_RUNTIME` and `...SESSION_EVENTS`, negotiates both frozen V1
+version/hash identities, treats either Binder death as a generation failure, and rebuilds callback bridges after
+explicit reconnect.
+
+`CentralBrainRuntimeService` returns the Session/Event Stub by action while retaining the legacy no-action task
+Binder. `TransientSessionEndpoint` applies seven operation capabilities before deriving an owner fingerprint;
+`TransientSessionRegistry` is owner-scoped, bounded and idempotent and does not retain raw utterances. It belongs
+to the Runtime process, so Service instance rebind survives but Runtime process death does not. The production
+policy grants Demo/Client2; the same-signer instrumentation principal exists only in `src/debug` policy overlay.
+
+Fake-transport and registry JVM tests cover mismatch/race/reconnect/close/owner/capacity/cursor. Android 13/API 33
+ARM64 physical instrumentation verifies real Binder open/replay/reconnect/resubscribe/cancel with duplicate replay
+suppression. Status: `sdk_facade_v2_available=true`, `session_runtime_service_published=true`,
+`event_runtime_service_published=true`, `event_callback_service_published=true`,
+`session_runtime_persistence_wired=false`, `session_runtime_process_death_rehydration=false`,
+`scenario_execution_enabled=false`, `hardware_accessed=false`.
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 

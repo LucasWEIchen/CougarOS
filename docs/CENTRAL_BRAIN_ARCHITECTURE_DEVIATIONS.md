@@ -177,6 +177,34 @@ Python 工作包和 contract parity，不得复活旧样例。
 状态：`Accepted Scope`。详细边界见
 `CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md`。
 
+## DEV-027 P1-W05 复用 Runtime Service 与进程内 Session/Event registry
+
+架构需求要求 Session/Event owner、capability、callback lifecycle 位于 Android Runtime；但黑盒系统
+不能新增 system service/VINTF stable-AIDL，现有软件验收又冻结为三个 signature-protected app
+Service。P1-W05 因此不增加 Manifest component，而让 `CentralBrainRuntimeService.onBind()` 按两个显式
+action 返回独立 Session/Event V1 Binder。旧无 action 绑定仍返回 `ICentralBrainRuntime`，避免破坏
+Client2 既有路径。
+
+会话注册表提升为 Runtime 进程级 singleton，使显式 unbind/rebind 的 Service 实例重建不丢 active
+session；它没有 Room 持久化，Runtime 进程死亡后仍会丢失。因此当前固定声明：
+
+```text
+session_runtime_transient_registry=true
+session_runtime_persistence_wired=false
+session_runtime_process_death_rehydration=false
+scenario_execution_enabled=false
+```
+
+Event V1 的 terminal page 禁止 `nextCursor`，facade 暂时重用该页的 request cursor 并按 sequence 去重
+callback replay；该兼容策略由 `ISSUE-034` 跟踪，不能描述为 durable/high-volume broker。
+
+此外，详设 8.8 早期草图中的 `approve(ApprovalResponse)` 和 `undo(UndoRequest)` 超过 P1-W04 已冻结
+合同：当前没有 ApprovalResponse/UndoRequest DTO，也没有 grant/undo Binder。P1-W05 facade 只发布
+Session/Event；approval response 与 undo execution 继续保持 false，不得由 SDK 自行发明 authority。
+
+状态：`Accepted Temporary`。P1-W06 负责 Room v4/process-death rehydration，P1-W07/V2 aggregate review
+负责 cursor 演进；目标 system placement/VINTF 仍由 `ISSUE-021/027` 跟踪。
+
 ## Android 实现证据索引
 
 下列短语是历史软件增量的稳定追踪键，指向仍保留的 Android 源码和检查器；它们不表示硬件或
@@ -218,6 +246,7 @@ Python 工作包和 contract parity，不得复活旧样例。
 | R7D 进展 | Android application handoff 完成。 |
 | P1-W03 进展 | Event/callback V1 合同完成；Service/Room/hardware 均未发布。 |
 | P1-W04 进展 | Effect/Approval V1 合同完成；Service/grant/undo/Room/hardware 均未发布。 |
+| P1-W05 进展 | SDK facade、Session/Event app-layer Service、rebind/resubscribe 完成；Room/process-death/scenario/hardware 均未发布。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。

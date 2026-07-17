@@ -7,6 +7,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.centralbrain.sdk.RuntimeEventListener;
+import com.centralbrain.sdk.ScenarioClient;
+import com.centralbrain.sdk.SessionClient;
 import com.centralbrain.sdk.effect.ApprovalPrompt;
 import com.centralbrain.sdk.effect.EffectContract;
 import com.centralbrain.sdk.effect.EffectIntent;
@@ -23,16 +26,26 @@ import com.centralbrain.sdk.plan.PlanContract;
 import com.centralbrain.sdk.plan.PlanNode;
 import com.centralbrain.sdk.plan.ScenarioPlan;
 
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 /** Cumulative physical/API 33 parcel evidence for Stage 2 P1 contracts. */
 public final class SessionParcelInstrumentation extends Instrumentation {
     private static final String TAG = "CbSessionParcelTest";
     private static final long NOW = 1_750_000_000_000L;
     private static final String REQUEST_ID = "8d595630-2255-4f4d-ac0f-26a20ee96f29";
     private static final String SESSION_ID = "9bffbb6a-5a0b-41b5-a924-bcfb45be4f26";
+    private boolean liveFacade;
 
     @Override
     public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
+        liveFacade = arguments != null && "true".equals(arguments.getString("liveFacade"));
         start();
     }
 
@@ -40,6 +53,11 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     public void onStart() {
         Bundle result = new Bundle();
         try {
+            if (liveFacade) {
+                verifyLiveFacade(result);
+                finish(Activity.RESULT_OK, result);
+                return;
+            }
             verifyRoundTrips();
             verifyOversizeRejection();
             verifyPlanRoundTrips();
@@ -85,6 +103,143 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             result.putString("stream", "\nSession parcel instrumentation failed:\n"
                     + Log.getStackTraceString(failure));
             finish(Activity.RESULT_CANCELED, result);
+        }
+    }
+
+    private void verifyLiveFacade(Bundle result) throws Exception {
+        ExecutorService callbacks = Executors.newSingleThreadExecutor();
+        CountDownLatch connected = new CountDownLatch(1);
+        CountDownLatch reconnected = new CountDownLatch(1);
+        CountDownLatch snapshotDelivered = new CountDownLatch(1);
+        CountDownLatch initialReplay = new CountDownLatch(1);
+        CountDownLatch reconnectReplay = new CountDownLatch(1);
+        CountDownLatch twoEvents = new CountDownLatch(2);
+        AtomicInteger connectionCount = new AtomicInteger();
+        AtomicInteger eventCount = new AtomicInteger();
+        AtomicInteger replayCount = new AtomicInteger();
+        AtomicReference<String> asyncFailure = new AtomicReference<>("");
+        SessionClient client = new SessionClient(
+                getContext(),
+                callbacks,
+                new ScenarioClient.ConnectionListener() {
+                    @Override
+                    public void onConnected(ScenarioClient ignored, boolean wasReconnected) {
+                        connectionCount.incrementAndGet();
+                        if (wasReconnected) {
+                            reconnected.countDown();
+                        } else {
+                            connected.countDown();
+                        }
+                    }
+
+                    @Override
+                    public void onDisconnected() {}
+
+                    @Override
+                    public void onConnectionFailed(String code, String message) {
+                        asyncFailure.compareAndSet("", code + ": " + message);
+                    }
+                });
+        try {
+            if (!client.connect()) {
+                throw new AssertionError("session facade bindService returned false");
+            }
+            await(connected, "initial facade connection");
+
+            long now = System.currentTimeMillis();
+            SessionRequest request = new SessionRequest();
+            request.requestId = UUID.randomUUID().toString();
+            request.scenarioId = "scene.fatigue.assist.v1";
+            request.utterance = "I feel tired";
+            request.source = ICentralBrainSessionRuntime.SOURCE_HMI_BUTTON;
+            request.seatZone = ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER;
+            request.locale = "en-US";
+            request.deadlineEpochMs = now + 60_000;
+            RuntimeEventListener events = new RuntimeEventListener() {
+                @Override
+                public void onSnapshot(SessionSnapshot snapshot) {
+                    SessionContract.validateSnapshot(snapshot);
+                    snapshotDelivered.countDown();
+                }
+
+                @Override
+                public void onEvent(RuntimeEvent event) {
+                    EventContract.validateEvent(event);
+                    eventCount.incrementAndGet();
+                    twoEvents.countDown();
+                }
+
+                @Override
+                public void onReplayComplete(long lastSequence) {
+                    int count = replayCount.incrementAndGet();
+                    if (count == 1) {
+                        initialReplay.countDown();
+                    } else if (count == 2) {
+                        reconnectReplay.countDown();
+                    }
+                }
+
+                @Override
+                public void onError(String code, String message) {
+                    asyncFailure.compareAndSet("", code + ": " + message);
+                }
+            };
+
+            SessionHandle handle = client.openSession(request, events);
+            SessionContract.validateHandle(handle);
+            await(snapshotDelivered, "session snapshot");
+            await(initialReplay, "initial event replay");
+
+            if (!client.reconnect()) {
+                throw new AssertionError("facade reconnect returned false");
+            }
+            await(reconnected, "facade reconnect");
+            await(reconnectReplay, "reconnect event replay");
+            if (!client.cancelSession(
+                    handle,
+                    ICentralBrainSessionRuntime.CANCEL_REASON_USER)) {
+                throw new AssertionError("session cancellation was not accepted");
+            }
+            await(twoEvents, "second runtime event");
+            if (!asyncFailure.get().isEmpty()) {
+                throw new AssertionError(asyncFailure.get());
+            }
+            if (eventCount.get() != 2) {
+                throw new AssertionError("event replay duplicated delivery: " + eventCount.get());
+            }
+            client.close();
+            client.close();
+            try {
+                client.reconnect();
+                throw new AssertionError("closed facade accepted reconnect");
+            } catch (ScenarioClient.Failure expected) {
+                if (!ScenarioClient.ERROR_CLOSED.equals(expected.getCode())) {
+                    throw expected;
+                }
+            }
+            result.putString(
+                    "stream",
+                    "\nsdk_facade_v2_available=true"
+                            + "\nsession_runtime_service_published=true"
+                            + "\nevent_runtime_service_published=true"
+                            + "\nevent_callback_service_published=true"
+                            + "\nsession_runtime_transient_registry=true"
+                            + "\nsession_runtime_persistence_wired=false"
+                            + "\nsession_runtime_process_death_rehydration=false"
+                            + "\nactive_session_reconnect_resubscribe_verified=true"
+                            + "\ncallback_replay_deduplicated=true"
+                            + "\nclose_reconnect_idempotency_verified=true"
+                            + "\nscenario_execution_enabled=false"
+                            + "\nhardware_accessed=false\n");
+        } finally {
+            client.close();
+            callbacks.shutdownNow();
+        }
+    }
+
+    private static void await(CountDownLatch latch, String operation) throws Exception {
+        if (!latch.await(10, TimeUnit.SECONDS)) {
+            throw new AssertionError(operation + " timed out");
         }
     }
 
