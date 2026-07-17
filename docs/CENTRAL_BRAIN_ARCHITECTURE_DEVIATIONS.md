@@ -70,6 +70,7 @@
 | DEV-044 | P3-W03 serializer 是 process-local canonical contract，尚未接 Graph/Room/restart recovery。 | S2-GRF-001, NV-G-006/007, ISSUE-022/026 | Accepted Temporary |
 | DEV-045 | P3-W04 retry/timeout policy 尚未接 Graph scheduler 或 production Effect reconcile。 | S2-GRF-001, NV-G-004, ISSUE-022/026 | Accepted Temporary |
 | DEV-046 | P3-W05 approval interrupt 只有 checkpoint-ready 合同，尚未接 Room/Graph/Binder grant/restart recovery。 | S2-SAF-001, S2-UX-003, S2-GRF-001, ISSUE-022/026/029 | Accepted Temporary |
+| DEV-047 | P3-W06 EffectCoordinator 是进程内两阶段合同，尚未接 durable outbox、Graph、readback/reconcile 或 production adapter。 | S2-EFF-001, S2-SAF-001, ISSUE-022/026/030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -628,3 +629,23 @@ primitive integer 的缺陷；由于 serializer 尚未写入 Graph/Room，不需
 `agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。P3-W09 必须接 Room transaction/restart recovery；
 P3-W06..W08 接 Effect/verification/compensation；P8 另行关闭 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。
+
+## DEV-047 P3-W06 EffectCoordinator 尚未形成 durable production Effect pipeline
+
+P3-W06 在 Runtime main source 新增 immutable `EffectBatch`、deterministic `EffectDependencyPlanner`、exact-profile
+`AdapterRegistry` 与 two-phase `EffectCoordinator`。合同会在任何 dispatch 前 prepare 全部 Effect；required prepare
+失败使整批零下发，optional prepare 失败允许降级。dependency 和 resource wave 防止有序依赖被提前执行，并为未来
+无冲突并发提供确定性计划；每项都形成独立 P1 typed `EffectObservation`。
+
+当前 Coordinator 是 caller 驱动的单进程对象，不接 `AgentGraphRuntime`、Room/outbox transaction、Binder Service、
+P2 debug simulation registry 或 production vehicle adapter。prepared payload/envelope 只在单次调用内短暂存在；
+before-state 仅以 digest 返回，没有 durable snapshot。Adapter APPLIED 只映射到 DELIVERED，不调用 `queryStatus`，
+不宣称 APPLIED/VERIFIED；UNKNOWN/异常不自动 retry，等待 P3-W07 reconcile。
+
+状态：`Accepted Temporary`。`effect_batch_defined=true`、`effect_dependency_plan_verified=true`、
+`effect_prepare_all_required_verified=true`、`effect_independent_observation_verified=true`、
+`effect_coordinator_graph_wired=false`、`effect_coordinator_persistence_wired=false`、
+`production_effect_adapter_registered=false`、`production_effect_dispatch_enabled=false`、
+`effect_verification_reconciliation_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。P3-W07 必须增加 verification/reconciliation，P3-W09 接 durable outbox/restart；
+P8 仍需由目标平台 owner 提供 vehicle API/permission/readback，不能用 debug registration 代替。
