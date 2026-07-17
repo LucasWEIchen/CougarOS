@@ -1043,3 +1043,42 @@ NPU、Driver/HAL 或目标硬件资格。
 `production_effect_adapter_registered=false`、`production_effect_dispatch_enabled=false`、
 `effect_verification_reconciliation_wired=false`、`model_invoked=false`、`network_accessed=false`、
 `hardware_accessed=false`。
+
+## 39. P3-W07 Effect verification/reconciliation trace
+
+派生需求：`S2-EFF-001`、`S2-TWN-001`、`NV-G-005/006/007`、`DEL-001/003/004/005`。
+
+1. `EffectVerifier` 必须只接受 P1 typed `EffectIntent`、前一条合法 `EffectObservation` 与 bounded typed evidence；
+   intent/observation 的 effect/session/action/plan/context/target binding、capability catalog、area、risk、unit、range、
+   profile/source 和 evidence time 不一致必须失败关闭。
+2. `targetValueDigest` 必须由 domain-separated capability/area/policy/tolerance/typed target 生成；COMPOSITE 还必须绑定
+   2..8 个唯一 canonical signal path+area+expected value+tolerance。任意 caller-supplied match boolean、map、JSON、
+   Bundle、raw vehicle/model/user payload 均禁止。
+3. CALLBACK_ONLY 只允许无 catalog readback 的 LOW-risk capability；HVAC 与 Seat 不得使用。REPORTED_EQUALS 必须
+   exact typed match；REPORTED_TOLERANCE 只允许 finite numeric tolerance；STATE_TRANSITION 必须 before != target 且
+   reported == target；COMPOSITE 必须全部 typed field 一致。
+4. DELIVERED/UNKNOWN 到成功结果必须先生成 APPLIED observation，再生成独立 VERIFIED observation；APPLIED 与
+   VERIFIED 都必须含 reported digest。Mismatch 只停在 APPLIED 并继续 reconcile；缺失/不可信 evidence 进入 UNKNOWN。
+   deadline 或 terminal adapter status 进入 FAILED_TERMINAL，不得向 HMI 宣称 completed。
+5. `DigitalTwinEffectReconciler` 只允许调用通过既有 `EffectAdapterContract` 的 linearizable `queryStatus`，源码不得调用
+   `apply`。APPLIED status 只与同一 immutable `DigitalTwinSnapshot` 的 VALID typed report 对账；NOT_APPLIED 仅返回
+   `CONFIRMED_NOT_APPLIED` 给 retry policy，UNKNOWN/不可用返回 bounded next reconcile time。
+6. 已 VERIFIED observation 必须在 adapter resolve/query 前返回 ALREADY_VERIFIED，且永不 redispatch。adapter status 从
+   APPLIED 回退 NOT_APPLIED 必须以 `ADAPTER_STATUS_REGRESSION` 失败关闭。
+7. Reconciler 不拥有 clock、thread、timer、executor 或 persistence；caller 提供 epoch 和 1..64 sequence，退避从
+   250 ms 指数增长并上限 30 s，下一时间不得晚于 Effect deadline。deadline/attempt 耗尽必须 terminal。
+8. Process-local Twin 不是 production authority；PRODUCTION profile 必须在 query 前返回
+   `PRODUCTION_READBACK_UNAVAILABLE`。P3-W07 不接 Coordinator/Graph/Room/outbox/Binder/Service、P2 debug registry、
+   production vehicle/NPU/Driver-HAL，不提升 production/target hardware 状态。
+9. JVM 与 Android 13/API 33 ARM64 probe 必须覆盖五种 policy、DELIVERED/APPLIED/VERIFIED 分层、mismatch、deadline/
+   trust、UNKNOWN timed reconcile、matched Twin、VERIFIED no-query dedup、NOT_APPLIED/status regression 和 production
+   fail-closed；release manifest 不得含 debug probe。
+
+状态：`effect_verifier_defined=true`、`effect_verification_policies_verified=true`、
+`effect_state_separation_verified=true`、`effect_unknown_reconciliation_verified=true`、
+`effect_verified_redispatch_blocked=true`、`effect_production_readback_fail_closed=true`、
+`effect_verification_android13_arm64_verified=true`、
+`effect_verification_reconciliation_runtime_wired=false`、`effect_verification_scheduler_wired=false`、
+`effect_verification_persistence_wired=false`、`effect_verification_production_readback_wired=false`、
+`effect_verification_graph_wired=false`、`production_effect_dispatch_enabled=false`、`model_invoked=false`、
+`network_accessed=false`、`hardware_accessed=false`。

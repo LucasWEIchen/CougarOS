@@ -871,7 +871,7 @@ PRODUCTION accepts only activated, explicitly authorized non-simulation entries.
 repository registers no production adapter. `EffectCoordinator` prepares every item before dispatch; any required
 prepare failure causes zero adapter applies, while an optional failure can degrade the batch. Dispatch follows the
 dependency waves and emits one defensive typed observation per item. Adapter APPLIED maps only to DELIVERED;
-verification, readback, unknown reconciliation and retry remain P3-W07 work.
+verification/readback is handled by the separate P3-W07 contract and is not called from Coordinator.
 
 Nine JVM test groups and the Android 13/API 33 ARM64 probe establish `effect_batch_defined=true`,
 `effect_dependency_plan_verified=true`, `effect_resource_conflict_serialized=true`,
@@ -880,4 +880,29 @@ Nine JVM test groups and the Android 13/API 33 ARM64 probe establish `effect_bat
 `effect_coordinator_android13_arm64_verified=true`. `effect_coordinator_graph_wired=false`,
 `effect_coordinator_persistence_wired=false`, `production_effect_adapter_registered=false`,
 `production_effect_dispatch_enabled=false`, `effect_verification_reconciliation_wired=false` and
-`hardware_accessed=false` remain enforced. P3-W07 Verification + reconciliation is the next work package.
+`hardware_accessed=false` remain enforced. P3-W07 supplies the separate process-local verifier/reconciler below;
+Coordinator/Graph/Room wiring remains pending.
+
+## P3-W07 Effect verification/reconciliation
+
+`EffectVerifier` consumes the existing typed intent/observation plus bounded callback or typed readback evidence.
+It revalidates capability/area/risk/unit/range, target specification digest, source/profile, evidence time and
+deadline. CALLBACK_ONLY is limited to LOW-risk services without readback; REPORTED_EQUALS,
+REPORTED_TOLERANCE, STATE_TRANSITION and COMPOSITE calculate match internally. A successful delivered/unknown
+Effect emits separate APPLIED and VERIFIED observations; mismatch remains APPLIED, unavailable evidence becomes
+UNKNOWN and deadline/trust failures remain fail closed.
+
+`DigitalTwinEffectReconciler` calls only linearizable `queryStatus`; it never calls apply. APPLIED delivery can be
+checked against one immutable fresh Twin snapshot, NOT_APPLIED is returned as a fact for the retry policy, and
+UNKNOWN produces a caller-owned 250 ms..30 s next-reconcile time capped by the Effect deadline. A VERIFIED replay
+returns before adapter resolution/query. The process-local Twin has no production trust, so PRODUCTION fails before
+query and cannot fall back to debug simulation.
+
+Nine JVM test groups and the Android 13/API 33 ARM64 probe establish `effect_verifier_defined=true`,
+`effect_verification_policies_verified=true`, `effect_state_separation_verified=true`,
+`effect_unknown_reconciliation_verified=true`, `effect_verified_redispatch_blocked=true`,
+`effect_production_readback_fail_closed=true` and `effect_verification_android13_arm64_verified=true`.
+`effect_verification_reconciliation_runtime_wired=false`, `effect_verification_scheduler_wired=false`,
+`effect_verification_persistence_wired=false`, `effect_verification_production_readback_wired=false`,
+`effect_verification_graph_wired=false`, `production_effect_dispatch_enabled=false` and `hardware_accessed=false`
+remain enforced. P3-W08 Compensation/Undo is the next work package.

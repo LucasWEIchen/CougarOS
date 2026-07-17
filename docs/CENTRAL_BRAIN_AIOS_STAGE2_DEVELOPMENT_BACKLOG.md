@@ -490,9 +490,22 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W07` Effect verification/reconciliation
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-EFF-001`、`S2-TWN-001`。
+- 状态：`DONE`（process-local verification/reconciliation contract，2026-07-17）；2 人日；需求：
+  `S2-EFF-001`、`S2-TWN-001`、`NV-G-005/006/007`、`DEL-001/003..005`。
 - 类：`EffectVerifier`、`DigitalTwinEffectReconciler`。
 - DoD：delivered/applied/verified 分开；unknown state 定时 reconcile；不重复 dispatch verified effect。
+- 实现：`EffectVerifier` 消费 P1 typed intent/observation 与 bounded typed callback/readback evidence，强制
+  capability/area/risk/unit/range、target digest、source/profile 和 deadline 绑定；支持 CALLBACK_ONLY、
+  REPORTED_EQUALS、REPORTED_TOLERANCE、STATE_TRANSITION、COMPOSITE，并按合法状态链分别生成 APPLIED/VERIFIED。
+- Reconcile：`DigitalTwinEffectReconciler` 只调用 linearizable `queryStatus`，不调用 apply；APPLIED status 可与同一
+  immutable Twin snapshot 的 fresh reported value 对账，UNKNOWN/缺失读回返回 caller-owned next reconcile time，
+  VERIFIED 直接去重且不 query。NOT_APPLIED 只返回确认事实，不自行重试或下发。
+- Production：process-local Twin 不具 production trust，PRODUCTION profile 在 query 前失败关闭；当前无 production
+  readback/adapter。STATE_TRANSITION/COMPOSITE 的 direct verifier 合同已完成，但 Twin reconciler 缺 before/composite
+  snapshot 时保持 UNKNOWN。
+- 边界：不接 `EffectCoordinator`、`AgentGraphRuntime`、Room/outbox、Binder/Service、后台 scheduler 或 production
+  vehicle/NPU/Driver-HAL；证据为 9 组 JVM tests、API 33 ARM64 probe、checker、installer/CI。P3-W09 负责 durable
+  scheduler/restart wiring，P8 负责真实读回。
 
 ### `P3-W08` Compensation/Undo
 
