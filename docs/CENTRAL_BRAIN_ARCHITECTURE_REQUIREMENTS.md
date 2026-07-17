@@ -923,7 +923,8 @@ NPU、Driver/HAL 或目标硬件资格。
 2. `CheckpointValue` 只允许 String、boolean、绝对值不超过 10^12 的 integer/decimal、最多 6 位 decimal scale、
    enum stable name、最多 64 项的 list/map。string 最大 1024 字符，map key 最大 64 字符并拒绝 class/type metadata key。
 3. `CheckpointEnvelope` 固定字段及顺序为 `schemaVersion/type/nodeId/planDigest/contextDigest/payload/digest/createdAt`；
-   node ID、两个 source digest、checkpoint digest 和正 createdAt 必须验证。payload map key 排序、decimal 归一化。
+   node ID、两个 source digest、checkpoint digest 和正 createdAt 必须验证。epoch long 使用 canonical decimal
+   string，以免超过 primitive integer bound；payload map key 排序、decimal 归一化。
 4. `JsonPrimitiveCheckpointSerializer` 必须使用 strict streaming parser；JSON 总长最大 64 KiB，payload 最大 8 层、
    总 value token 最大 1024。duplicate/unknown/missing/null/trailing/malformed/oversize/depth/token 必须有稳定错误码。
 5. digest 必须使用 `central-brain.checkpoint.v1` domain-separated SHA-256，覆盖除 digest 字段外的完整 canonical
@@ -974,3 +975,37 @@ NPU、Driver/HAL 或目标硬件资格。
 `retry_deadline_fail_closed_verified=true`、`retry_timeout_policy_android13_arm64_verified=true`、
 `retry_timeout_policy_runtime_wired=false`、`agent_graph_executor_dispatch_enabled=false`、
 `effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`。
+
+## 37. P3-W05 Durable approval interrupt trace
+
+派生需求：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、
+`DEL-001/003/004/005`。
+
+1. Approval interrupt 必须使用 canonical UUID 标识 approval/session/plan，并绑定 owner fingerprint、node ID、
+   action/plan/context/policy/Safety SHA-256；记录不得包含原始用户输入、车辆值、模型文本、token/memory、
+   Binder/Parcel/native handle 或授权凭据。
+2. 创建 pending interrupt 时，时间由 caller 提供；TTL 必须在 1..300000 ms，expiry 取
+   `min(createdAt + ttl, planDeadline)`，plan 已过期、加法回绕或空窗口必须失败关闭。合同不得自行读 clock、
+   创建 thread/timer/executor 或生成随机 ID。
+3. 状态只允许 PENDING -> APPROVED/REJECTED/CANCELLED/EXPIRED。交互决策必须来自 trusted authority 且发生在
+   `[createdAt, expiry)`；EXPIRED 必须发生在 expiry 或之后。terminal replay、untrusted authority 和非法状态转换
+   必须拒绝。
+4. `graph.approval.interrupt` schema v1 必须经 allowlisted `CheckpointSerializer.Registration` 编解码；payload 与
+   envelope 的 epoch long 必须使用 canonical decimal string，避免当前 epoch 超出 bounded primitive integer。
+   恢复后必须重算 record digest 并比对，未知/错类型/非 canonical 输入失败关闭。
+5. Resume 只接受 trusted APPROVED 且未过 expiry/plan deadline 的记录；必须重新比对 owner/session/plan/node/
+   action/plan digest，要求 context fresh 且 digest 未变、policy 当前授权且 digest 未变、capability 当前允许。
+6. Resume 必须读取 caller 提供的当前 Safety State；authority 不可信、UNSAFE/UNKNOWN 或 Safety digest 改变均
+   不得恢复。结果只暴露 allowed、reason 与 domain-separated SHA-256，不返回 raw context/policy/Safety material。
+7. JVM 与 Android 13/API 33 ARM64 probe 必须覆盖 binding/expiry clamp、canonical checkpoint、trusted decision、
+   owner/plan/action mismatch、context/policy/capability、Safety change/unsafe/untrusted、expiry/replay/malformed input。
+8. P3-W05 不修改 Room v4，不接 `AgentGraphRuntime`、Binder/grant Service、production Effect/model/vehicle/NPU/
+   Driver-HAL。Room transaction/restart recovery 保留给 P3-W09；不得提升 production/target hardware 状态。
+
+状态：`approval_interrupt_record_defined=true`、`approval_interrupt_binding_verified=true`、
+`approval_interrupt_checkpoint_roundtrip_verified=true`、`approval_interrupt_trusted_decision_verified=true`、
+`approval_resume_owner_plan_context_policy_verified=true`、`approval_resume_safety_revalidation_verified=true`、
+`approval_resume_expiry_verified=true`、`approval_interrupt_android13_arm64_verified=true`、
+`approval_interrupt_persistence_wired=false`、`approval_grant_service_published=false`、
+`agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
+`network_accessed=false`、`hardware_accessed=false`。

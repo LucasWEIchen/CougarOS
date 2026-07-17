@@ -834,3 +834,27 @@ Eight JVM test groups, debug/release compilation and the Android 13/API 33 ARM64
 `retry_timeout_policy_runtime_wired=false`, `agent_graph_executor_dispatch_enabled=false`,
 `effect_dispatch_enabled=false`, `model_invoked=false` and `hardware_accessed=false` remain enforced. P3-W05 Durable
 approval interrupt is the next work package.
+
+## P3-W05 Durable approval interrupt
+
+`ApprovalInterruptRecord` is an immutable checkpoint-ready state bound to canonical approval/session/plan IDs,
+owner fingerprint, node, action/plan/context/policy/Safety digests, plan deadline and a maximum five-minute expiry.
+`ApprovalInterruptExecutor` creates pending records and accepts only trusted APPROVED/REJECTED/CANCELLED decisions
+inside the validity window; terminal replay and early expiry fail closed. Its explicit
+`graph.approval.interrupt` codec stores epoch values as canonical decimal strings so current epoch milliseconds do
+not violate the bounded primitive-number contract. P3-W05 also corrected the checkpoint envelope `createdAt` field
+to the same canonical long-string representation.
+
+`ApprovalResumeValidator` resumes only an APPROVED, unexpired, trusted record whose current owner/session/plan/node/
+action/plan digest are identical. It then requires fresh context, current policy authorization and digest, allowed
+capability, trusted SAFE state and an unchanged Safety digest. The result exposes only allowed/reason/result digest.
+
+Eight JVM test groups and the Android 13/API 33 ARM64 probe establish
+`approval_interrupt_record_defined=true`, `approval_interrupt_binding_verified=true`,
+`approval_interrupt_checkpoint_roundtrip_verified=true`, `approval_interrupt_trusted_decision_verified=true`,
+`approval_resume_owner_plan_context_policy_verified=true`, `approval_resume_safety_revalidation_verified=true`,
+`approval_resume_expiry_verified=true` and `approval_interrupt_android13_arm64_verified=true`.
+`approval_interrupt_persistence_wired=false`, `approval_grant_service_published=false`,
+`agent_graph_executor_dispatch_enabled=false`, `effect_dispatch_enabled=false`, `model_invoked=false` and
+`hardware_accessed=false` remain enforced. Room/restart durability belongs to P3-W09; P3-W06 EffectCoordinator is
+the next work package.

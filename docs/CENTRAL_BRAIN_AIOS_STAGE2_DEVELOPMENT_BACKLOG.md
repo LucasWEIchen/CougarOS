@@ -457,9 +457,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W05` Durable approval interrupt
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-SAF-001`、`S2-UX-003`。
+- 状态：`DONE`（checkpoint-ready process-local contract，2026-07-17）；2 人日；需求：`S2-SAF-001`、
+  `S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、`DEL-001/003..005`。
 - 类：`ApprovalInterruptExecutor`、`ApprovalResumeValidator`。
 - DoD：approval 绑定 caller/plan/context/policy digest 和 expiry；resume 时重新检查 Safety State。
+- 实现：immutable `ApprovalInterruptRecord` 绑定 owner/session/plan/node/action/plan/context/policy/Safety digest、
+  plan deadline、最多 5 分钟 expiry、decision 与 trusted authority digest；pending、terminal replay、过期边界均
+  fail-closed。注册 codec 通过 P3-W03 serializer 做 canonical checkpoint roundtrip，当前 epoch 以 decimal string
+  表达，并修正 envelope `createdAt` 的同类边界缺陷。
+- Resume：只接受 trusted APPROVED 且未过期记录；逐项重验 owner/plan/action、context freshness/digest、policy
+  authorization/digest、capability 与 trusted SAFE/unchanged Safety digest；结果只有 allow/reason/digest。
+- 边界：不接 `AgentGraphRuntime`、Room v4、Binder/grant Service、production Effect/model/vehicle/NPU/Driver-HAL；
+  `approval_interrupt_persistence_wired=false`，durable Room/restart wiring 保留给 P3-W09。
 
 ### `P3-W06` EffectCoordinator
 

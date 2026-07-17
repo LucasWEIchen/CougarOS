@@ -193,7 +193,17 @@ for marker in \
   'retry_deadline_fail_closed_verified=true' \
   'retry_timeout_policy_android13_arm64_verified=true' \
   'retry_timeout_policy_runtime_wired=false' \
-  'implementation_stage=P3-W05' \
+  'approval_interrupt_record_defined=true' \
+  'approval_interrupt_binding_verified=true' \
+  'approval_interrupt_checkpoint_roundtrip_verified=true' \
+  'approval_interrupt_trusted_decision_verified=true' \
+  'approval_resume_owner_plan_context_policy_verified=true' \
+  'approval_resume_safety_revalidation_verified=true' \
+  'approval_resume_expiry_verified=true' \
+  'approval_interrupt_android13_arm64_verified=true' \
+  'approval_interrupt_persistence_wired=false' \
+  'approval_grant_service_published=false' \
+  'implementation_stage=P3-W06' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -272,6 +282,7 @@ required_paths=(
   tools/check_central_brain_android_typed_node_executors.sh
   tools/check_central_brain_android_checkpoint_serializer.sh
   tools/check_central_brain_android_retry_timeout_policy.sh
+  tools/check_central_brain_android_approval_interrupt.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh

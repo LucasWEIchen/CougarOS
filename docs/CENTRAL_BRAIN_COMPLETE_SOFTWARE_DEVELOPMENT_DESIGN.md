@@ -2104,9 +2104,10 @@ AgentGraphRuntime state machine` 已完成 process-local graph 状态；`P3-W02 
 exact schema、7 类 debug deterministic executor、authority/trust gate 与 Effect/Compensation/unsupported
 fail-closed；`P3-W03 CheckpointSerializer` 已完成 registered DTO、bounded primitive canonical JSON、digest 和
 security corpus；`P3-W04 Retry/Timeout policy` 已完成 monotonic deadline、bounded attempt/backoff/jitter 和
-Effect reconcile-before-retry。Graph 仍不调用 executor/serializer/policy，main/release 无 deterministic executor，
+Effect reconcile-before-retry；`P3-W05 Durable approval interrupt` 已完成 binding/expiry/checkpoint/resume Safety
+revalidation。Graph 仍不调用 executor/serializer/policy/approval，main/release 无 deterministic executor，
 Binder/Room/recovery/production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为
-`P3-W05 Durable approval interrupt`。
+`P3-W06 EffectCoordinator`。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见
@@ -2129,3 +2130,47 @@ HMI-D4 是“不接真实车身信号情况下的演示级中控闭环”完成�
 两者不得使用同一个完成标志。P4 预计 24-32 人日，并依赖 P1 Session contract、P2 Context/Twin/
 Simulated Effect 和 P3 Durable Graph/Effect。P1 完成后可并行实现静态壳与 reducer，但控件闭环的
 完成证据不能由本地 fake controller 生成。
+
+## P3-W05 implemented approval interrupt contract
+
+### 模块意图
+
+`ApprovalInterruptRecord` 是 Graph 遇到 approval node 时可写入 checkpoint 的 immutable DTO。它把审批结论与
+owner/session/plan/node/action、编译 Plan、Context、Policy 和 Safety State 的 digest 绑定，防止旧审批被另一个
+caller、计划、上下文或策略重放。记录不保存提示词、车辆值、模型回复、用户内容或 authority token。
+
+`ApprovalInterruptExecutor` 是纯状态转换器。`Request` 由上层提供 ID、digest、TTL、plan deadline 和当前 epoch；
+`createPending` 将 expiry 截断到 plan deadline。`recordDecision` 只接受 trusted authority 的 APPROVED、REJECTED、
+CANCELLED，且 decision time 必须在有效窗口内；`expire` 只能在窗口结束后执行。它不读系统时钟、不持久化、
+不发布 UI/Binder，也不 dispatch node/Effect。
+
+`checkpointRegistration()` 注册 `graph.approval.interrupt` schema v1。Codec 使用显式 18 字段 primitive map，epoch
+long 写成 canonical decimal string，decode 后通过 constructor 重做全部校验，并比对 payload `recordDigest`。
+P3-W05 同时把 P3-W03 envelope `createdAt` 改成 canonical string；这是当前 epoch 已超过 `10^12` primitive bound
+后发现的必要修正。Graph/Room 尚未接 serializer，因此没有既有 durable row migration。
+
+`ApprovalResumeValidator` 按固定顺序检查 decision/expiry/authority、owner 与执行绑定、Context freshness/digest、
+Policy authorization/digest、capability、Safety trust/state/digest。UNSAFE 与 UNKNOWN 都返回 `SAFETY_UNSAFE`，
+任一 mismatch 都不恢复。`ResumeResult` 仅含 boolean、reason、digest，供未来 Graph audit/event projection 使用。
+
+### 接口与错误
+
+- `createPending(Request,long) -> ApprovalInterruptRecord`
+- `recordDecision(record,decision,authorityDigest,authorityTrusted,decidedAt) -> record`
+- `expire(record,authorityDigest,authorityTrusted,now) -> record`
+- `checkpointRegistration() -> Registration<ApprovalInterruptRecord>`
+- `ApprovalResumeValidator.validate(record, ResumeContext) -> ResumeResult`
+- 输入合同错误前缀：`CB_APPROVAL_RECORD`、`CB_APPROVAL_INTERRUPT`、`CB_APPROVAL_RESUME`；checkpoint parser 继续使用
+  `CB_CHECKPOINT_*`。
+
+### 并发、持久化与安全边界
+
+对象不可变、无共享可变状态，caller 负责串行化同 approval ID 的写入；未来 P3-W09 必须用 Room transaction/
+unique key 关闭并发 terminal race，并把 checkpoint mismatch 映射 STUCK。当前
+`approval_interrupt_persistence_wired=false`、`approval_grant_service_published=false`、
+`agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`。P3-W05 不修改既有
+`DurableApprovalRepository`/Room v4，不代表已有 Governance approval grant 已接 Graph。
+
+验证包括 8 组 JVM tests、debug/release build/lint、release probe isolation、独立 checker、累计 installer 和
+Android 13 ARM64 probe。Req IDs：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、
+`DEL-001/003..005`；tracking：`DEV-046`、`ISSUE-022/026/029`。

@@ -69,6 +69,7 @@
 | DEV-043 | P3-W02 typed executor 只有 main contract 与 debug deterministic implementation，不是 Graph/Effect/model production execution。 | S2-GRF-001, S2-SAF-001, S2-EFF-001, ISSUE-022..024/026 | Accepted Temporary |
 | DEV-044 | P3-W03 serializer 是 process-local canonical contract，尚未接 Graph/Room/restart recovery。 | S2-GRF-001, NV-G-006/007, ISSUE-022/026 | Accepted Temporary |
 | DEV-045 | P3-W04 retry/timeout policy 尚未接 Graph scheduler 或 production Effect reconcile。 | S2-GRF-001, NV-G-004, ISSUE-022/026 | Accepted Temporary |
+| DEV-046 | P3-W05 approval interrupt 只有 checkpoint-ready 合同，尚未接 Room/Graph/Binder grant/restart recovery。 | S2-SAF-001, S2-UX-003, S2-GRF-001, ISSUE-022/026/029 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -605,3 +606,25 @@ Durable Graph 的稳定 QoS 合同。当前 `AgentGraphRuntime`、Room、Binder 
 `agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。P3-W06/P3-W09 必须分别接 durable Effect reconcile 与
 Graph restart/attempt recovery；P8 另行关闭 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。
+
+## DEV-046 P3-W05 approval interrupt 尚未形成 durable Graph approval
+
+P3-W05 的 `ApprovalInterruptRecord`、`ApprovalInterruptExecutor` 与 `ApprovalResumeValidator` 位于 Runtime main
+source，作为后续 Graph checkpoint/restart 的稳定合同。它已绑定 owner/session/plan/node/action/context/policy/
+Safety digest、expiry 与 trusted authority decision，并在 resume 时重新检查 Context、Policy、Capability 和
+Safety State。API 33 ARM64 probe 只在单进程内证明状态转换、codec 和 fail-closed 校验。
+
+当前 Room schema 保持 v4，既有 `DurableApprovalRepository` 未修改；`AgentGraphRuntime`、Runtime/Governance
+Service、Client2 approval UI 均未引用该合同。没有 unique transaction、process-death restore、terminal race
+settlement 或 production grant authority。`Durable` 在工作包名称中指目标语义和 checkpoint-ready record，不是
+当前持久化完成声明。
+
+P3-W05 同时把 checkpoint envelope `createdAt` 改为 canonical decimal string，修复当前 epoch 超过 bounded
+primitive integer 的缺陷；由于 serializer 尚未写入 Graph/Room，不需要迁移已发布 durable row。后续若形成
+稳定外部 checkpoint artifact，schema/version migration 必须显式管理。
+
+状态：`Accepted Temporary`。`approval_interrupt_record_defined=true`、
+`approval_interrupt_persistence_wired=false`、`approval_grant_service_published=false`、
+`agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。P3-W09 必须接 Room transaction/restart recovery；
+P3-W06..W08 接 Effect/verification/compensation；P8 另行关闭 Vehicle/NPU/Driver-HAL，不能复用本偏差标志。

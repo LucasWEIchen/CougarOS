@@ -41,7 +41,7 @@ public final class CheckpointSerializerTest {
                 resources);
 
         CheckpointEnvelope envelope = serializer.create(
-                TYPE, 1, "set_hvac_power", SHA_A, SHA_B, original, 1_000L);
+                TYPE, 1, "set_hvac_power", SHA_A, SHA_B, original, 1_700_000_000_000L);
         byte[] encoded = serializer.serialize(envelope);
         resources.add("mutated-after-create");
         CheckpointEnvelope restored = serializer.deserialize(encoded);
@@ -51,6 +51,7 @@ public final class CheckpointSerializerTest {
         assertEquals(TYPE, restored.getType());
         assertEquals("set_hvac_power", restored.getNodeId());
         assertEquals(64, restored.getDigest().length());
+        assertEquals(1_700_000_000_000L, restored.getCreatedAtEpochMs());
         assertEquals(original, decoded);
         assertNotSame(original, decoded);
         assertEquals(List.of("hvac", "seat"), decoded.resources);
@@ -124,7 +125,9 @@ public final class CheckpointSerializerTest {
                 ErrorCode.DUPLICATE_FIELD);
         assertError(
                 serializer,
-                json.replace("\"createdAt\":2000", "\"unknownField\":true,\"createdAt\":2000")
+                json.replace(
+                                "\"createdAt\":\"2000\"",
+                                "\"unknownField\":true,\"createdAt\":\"2000\"")
                         .getBytes(StandardCharsets.UTF_8),
                 ErrorCode.UNKNOWN_FIELD);
         assertError(
