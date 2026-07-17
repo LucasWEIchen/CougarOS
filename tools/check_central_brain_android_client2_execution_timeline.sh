@@ -89,7 +89,7 @@ for marker in \
 done
 
 for marker in \
-  'renderExecutionTimeline(current)' \
+  'renderExecutionTimeline(current, presentationMode)' \
   'cockpit_execution_timeline_implemented=true' \
   'cockpit_execution_timeline_reducer_owned=true' \
   'cockpit_execution_typed_event_projection=true' \

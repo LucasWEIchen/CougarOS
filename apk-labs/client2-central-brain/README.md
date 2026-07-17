@@ -112,6 +112,14 @@ surface does not receive `ApprovalPrompt`, `EffectObservation.retryable` or
 `UndoHandle`, approve/reject/retry/undo stay visible and disabled; outside
 dismissal preserves the active Session and recovery projection.
 
+`DrivingUxPolicy` now maps the immutable Seat/Context driving projection to
+`PanelPresentationMode`. Missing, stale, unavailable, unknown, or moving
+evidence always selects `MOVING_RESTRICTED`: long detail/trace Views are hidden,
+the reply strip is one line, HVAC/Seat parameter controls and the high-risk rest
+scenario are disabled. Only trusted observed PARKED evidence selects
+`PARKED_FULL`. This is presentation policy only and never authorizes Runtime,
+Safety, approval, or Effect dispatch.
+
 The previous Smali panel controller has been removed. MainActivity contains only
 a one-line bootstrap to the maintained Java coordinator in `classes2.dex`.
 The coordinator owns View binding, Session replacement and Activity lifecycle.
@@ -248,7 +256,7 @@ client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W08
+implementation_stage=P4-W09
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -269,3 +277,6 @@ The implementation plan, class/file map and acceptance matrix are maintained in
   and logs no target payload. `DEV-054`/`DEV-055` track replacement by a versioned
   typed contract and governed approval path. `DEV-057` separately tracks
   ApprovalPrompt/retry/UndoHandle publication to Client2.
+- `DEV-058` tracks that the current Client2 transport has no production-trusted
+  global driving Context. Physical UNKNOWN evidence therefore remains restricted;
+  P4-W09 may supply protected debug Context, while P8 must supply target authority.

@@ -666,9 +666,13 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W08` Driving restriction renderer
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-UX-002`、`S2-HMI-002`。
+- 状态：`COMPLETED`（2026-07-18）；1.5 人日；需求：`S2-UX-002`、`S2-HMI-002`。
 - 类：`DrivingUxPolicy`、`PanelPresentationMode`。
 - DoD：unknown treated restricted；moving 隐藏长文本并禁用高风险控件；Runtime policy 独立存在。
+- 交付：新增 Android-independent `DrivingUxPolicy` 和 `PanelPresentationMode`，由 `CockpitHmiState`/唯一 reducer
+  持有呈现模式。UNKNOWN/unavailable/MOVING 固定进入 `MOVING_RESTRICTED`，隐藏长详情和 typed trace、回复收敛为一行、
+  禁用 HVAC/Seat 参数编辑及 `skill.nap`；只有 trusted observed PARKED 进入完整呈现。host/static/APK 与 Android 13
+  ARM64 UNKNOWN 受限验收通过；当前无可信 Context 时不复测 PARKED 手动控制，P4-W09 负责受保护 debug Context。
 
 ### `P4-W09` Engineer simulation drawer
 

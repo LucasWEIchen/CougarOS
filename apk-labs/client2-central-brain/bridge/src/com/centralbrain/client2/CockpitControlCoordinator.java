@@ -56,8 +56,13 @@ public final class CockpitControlCoordinator implements
     private CockpitHmiState state;
     private Client2ScenarioBridge.SessionConnection connection;
     private TextView replyView;
+    private TextView sourceView;
+    private TextView drivingView;
+    private TextView restrictionView;
     private TextView connectionView;
     private TextView intentPreviewView;
+    private TextView intentChainView;
+    private TextView contextView;
     private TextView planSummaryView;
     private TextView planChainView;
     private TextView executionSummaryView;
@@ -107,6 +112,8 @@ public final class CockpitControlCoordinator implements
     private Button rejectButton;
     private Button retryButton;
     private Button undoButton;
+    private Button napButton;
+    private View[] seatPositionControls = new View[0];
     private boolean detached;
 
     private CockpitControlCoordinator(Activity activity) {
@@ -158,8 +165,13 @@ public final class CockpitControlCoordinator implements
             bindButtons(panel);
         }
         replyView = findTextView("centralBrainReplyText");
+        sourceView = findTextView("centralBrainSourceText");
+        drivingView = findTextView("centralBrainDrivingText");
+        restrictionView = findTextView("centralBrainRestrictionText");
         connectionView = findTextView("centralBrainConnectionText");
         intentPreviewView = findTextView("centralBrainIntentPreviewText");
+        intentChainView = findTextView("centralBrainIntentChainText");
+        contextView = findTextView("centralBrainContextText");
         planSummaryView = findTextView("centralBrainPlanSummaryText");
         planChainView = findTextView("centralBrainPlanChainText");
         executionSummaryView = findTextView("centralBrainExecutionSummaryText");
@@ -208,6 +220,14 @@ public final class CockpitControlCoordinator implements
         rejectButton = findButton("centralBrainRejectButton");
         retryButton = findButton("centralBrainRetryButton");
         undoButton = findButton("centralBrainUndoButton");
+        napButton = findButton("centralBrainNapButton");
+        seatPositionControls = new View[] {
+                findView("centralBrainSeatReclineDownButton"),
+                findView("centralBrainSeatReclineUpButton"),
+                findView("centralBrainSeatUprightPresetButton"),
+                findView("centralBrainSeatComfortPresetButton"),
+                findView("centralBrainSeatRestPresetButton")
+        };
         panelOverlay = findView("centralBrainPanelOverlay");
         if (panelOverlay != null) {
             panelOverlay.setOnClickListener(this);
@@ -262,6 +282,7 @@ public final class CockpitControlCoordinator implements
             return;
         }
         Object tag = view.getTag();
+        String tagValue = tag == null ? "" : tag.toString();
         if (MENU_TAG.equals(tag)) {
             setPanelVisible(
                     state.getPanelVisibility() != CockpitHmiState.PanelVisibility.VISIBLE);
@@ -302,24 +323,39 @@ public final class CockpitControlCoordinator implements
                     CockpitHmiState.DeviceDrawer.SEAT));
             return;
         }
-        if (tag != null && tag.toString().startsWith(HVAC_TAG_PREFIX)) {
-            handleHvacControl(tag.toString());
+        if ((tagValue.startsWith(HVAC_TAG_PREFIX)
+                || tagValue.startsWith(SEAT_TAG_PREFIX))
+                && !state.getPresentationMode().isParameterEditingEnabled()) {
+            Log.w(TAG, markers()
+                    + " cockpit_driving_restriction_blocked=true"
+                    + " restricted_control=parameter_edit");
             return;
         }
-        if (tag != null && tag.toString().startsWith(SEAT_TAG_PREFIX)) {
-            handleSeatControl(tag.toString());
+        if (tagValue.startsWith(HVAC_TAG_PREFIX)) {
+            handleHvacControl(tagValue);
             return;
         }
-        if (tag != null && tag.toString().startsWith(RECOVERY_TAG_PREFIX)) {
+        if (tagValue.startsWith(SEAT_TAG_PREFIX)) {
+            handleSeatControl(tagValue);
+            return;
+        }
+        if (tagValue.startsWith(RECOVERY_TAG_PREFIX)) {
             Log.w(TAG, markers()
                     + " client2_hmi_recovery_command_available=false"
-                    + " recovery_command=" + tag);
+                    + " recovery_command=" + tagValue);
             return;
         }
         if (!(view instanceof TextView)) {
             return;
         }
-        String scenarioId = tag == null ? "" : tag.toString();
+        String scenarioId = tagValue;
+        if (DrivingUxPolicy.isHighRiskScenario(scenarioId)
+                && !state.getPresentationMode().isHighRiskScenarioEnabled()) {
+            Log.w(TAG, markers()
+                    + " cockpit_driving_restriction_blocked=true"
+                    + " restricted_control=high_risk_scenario");
+            return;
+        }
         CharSequence text = ((TextView) view).getText();
         startScenario(scenarioId, text == null ? "" : text.toString());
     }
@@ -686,6 +722,8 @@ public final class CockpitControlCoordinator implements
     }
 
     private void renderSurface(CockpitHmiState current) {
+        PanelPresentationMode presentationMode = current.getPresentationMode();
+        renderPresentation(current, presentationMode);
         CockpitHmiState.SurfaceStage selected = current.getSurfaceStage();
         setVisible(intentSurface, selected == CockpitHmiState.SurfaceStage.INTENT);
         setVisible(planSurface, selected == CockpitHmiState.SurfaceStage.PLAN);
@@ -720,7 +758,7 @@ public final class CockpitControlCoordinator implements
                             + "\n05  Effect：未调度");
             setText(sessionStripTitleView, "等待场景输入");
         }
-        renderExecutionTimeline(current);
+        renderExecutionTimeline(current, presentationMode);
         setText(resultSummaryView, "暂无可验证车辆结果");
         CockpitHvacState hvac = current.getHvacState();
         CockpitSeatState seat = current.getSeatState();
@@ -745,29 +783,65 @@ public final class CockpitControlCoordinator implements
                     + "\nEffect：" + hvac.getEffectState();
         }
         setText(resultEvidenceView, resultEvidence);
-        renderDrawer(current.getDeviceDrawer());
+        renderDrawer(current.getDeviceDrawer(), presentationMode);
     }
 
-    private void renderExecutionTimeline(CockpitHmiState current) {
+    private void renderPresentation(
+            CockpitHmiState current,
+            PanelPresentationMode presentationMode) {
+        CockpitSeatState.SafetyContext context = current.getSeatState().getSafetyContext();
+        setText(sourceView, context.getSource().name());
+        String drivingLabel;
+        String restrictionLabel;
+        if (presentationMode == PanelPresentationMode.PARKED_FULL) {
+            drivingLabel = "PARKED · 完整";
+            restrictionLabel = "驻车完整模式 · Runtime Policy 与 Safety 仍独立复验";
+        } else if (context.getDrivingState() == CockpitSeatState.DrivingState.MOVING) {
+            drivingLabel = "MOVING · 受限";
+            restrictionLabel = "行驶简要模式 · 长详情与参数编辑已关闭";
+        } else {
+            drivingLabel = "UNKNOWN · 受限";
+            restrictionLabel = "驾驶状态不可确认 · 按行驶态限制，高风险控件关闭";
+        }
+        setText(drivingView, drivingLabel);
+        setText(restrictionView, restrictionLabel);
+
+        boolean showLongText = presentationMode.isLongTextVisible();
+        setVisible(intentChainView, showLongText);
+        setVisible(contextView, showLongText);
+        setVisible(planChainView, showLongText);
+        setVisible(executionChainView, showLongText);
+        setVisible(resultEvidenceView, showLongText);
+        if (replyView != null) {
+            replyView.setSingleLine(!showLongText);
+            replyView.setMaxLines(showLongText ? 2 : 1);
+        }
+        setEnabled(napButton, presentationMode.isHighRiskScenarioEnabled());
+    }
+
+    private void renderExecutionTimeline(
+            CockpitHmiState current,
+            PanelPresentationMode presentationMode) {
         CockpitExecutionTimeline timeline = current.getExecutionTimeline();
         setText(executionSummaryView,
                 current.hasSession()
                         ? "可观察执行时间线 · Session 已受理"
                         : "可观察执行时间线 · 等待意图");
+        boolean concise = !presentationMode.isLongTextVisible();
         renderTimelineStage(timelineIntentView, "01 Intent",
-                timeline.getStage(CockpitExecutionTimeline.Phase.INTENT));
+                timeline.getStage(CockpitExecutionTimeline.Phase.INTENT), concise);
         renderTimelineStage(timelineContextView, "02 Context",
-                timeline.getStage(CockpitExecutionTimeline.Phase.CONTEXT));
+                timeline.getStage(CockpitExecutionTimeline.Phase.CONTEXT), concise);
         renderTimelineStage(timelinePlanView, "03 Plan",
-                timeline.getStage(CockpitExecutionTimeline.Phase.PLAN));
+                timeline.getStage(CockpitExecutionTimeline.Phase.PLAN), concise);
         renderTimelineStage(timelinePolicyView, "04 Policy",
-                timeline.getStage(CockpitExecutionTimeline.Phase.POLICY));
+                timeline.getStage(CockpitExecutionTimeline.Phase.POLICY), concise);
         renderTimelineStage(timelineGraphView, "05 Graph",
-                timeline.getStage(CockpitExecutionTimeline.Phase.GRAPH));
+                timeline.getStage(CockpitExecutionTimeline.Phase.GRAPH), concise);
         renderTimelineStage(timelineEffectView, "06 Effect",
-                timeline.getStage(CockpitExecutionTimeline.Phase.EFFECT));
+                timeline.getStage(CockpitExecutionTimeline.Phase.EFFECT), concise);
         renderTimelineStage(timelineReadbackView, "07 Readback",
-                timeline.getStage(CockpitExecutionTimeline.Phase.READBACK));
+                timeline.getStage(CockpitExecutionTimeline.Phase.READBACK), concise);
 
         String media = "UNAVAILABLE";
         String navigation = "UNAVAILABLE";
@@ -792,22 +866,28 @@ public final class CockpitControlCoordinator implements
         }
         setText(executionActionsView,
                 "Media STOP：" + media + " · Navigation CANCEL：" + navigation);
-        renderRecoveryState(current.getRecoveryState());
+        renderRecoveryState(current.getRecoveryState(), concise);
         setText(executionChainView, trace.toString());
     }
 
-    private void renderRecoveryState(CockpitRecoveryState recovery) {
+    private void renderRecoveryState(CockpitRecoveryState recovery, boolean concise) {
         String expiry = recovery.getApprovalExpiresAtEpochMs() > 0
                 ? Long.toString(recovery.getApprovalExpiresAtEpochMs())
                 : "UNAVAILABLE";
-        setText(approvalStateView,
-                "Approval：" + statusLabel(recovery.getApprovalStatus())
+        setText(approvalStateView, concise
+                ? "Approval：" + statusLabel(recovery.getApprovalStatus())
+                        + " · 行驶呈现不授予权限"
+                : "Approval：" + statusLabel(recovery.getApprovalStatus())
                         + "\nReason：" + recovery.getApprovalReasonCode()
                         + " · Target：" + recovery.getApprovalTarget()
                         + "\nExpiry：" + expiry
                         + " · Response service：NOT PUBLISHED");
-        setText(partialStateView,
-                "Outcome evidence：" + statusLabel(recovery.getAggregateStatus())
+        setText(partialStateView, concise
+                ? "Outcome：" + statusLabel(recovery.getAggregateStatus())
+                        + " · V" + recovery.getVerifiedCount()
+                        + "/F" + recovery.getFailedCount()
+                        + "/I" + recovery.getInconclusiveCount()
+                : "Outcome evidence：" + statusLabel(recovery.getAggregateStatus())
                         + "\nVERIFIED " + recovery.getVerifiedCount()
                         + " · FAILED " + recovery.getFailedCount()
                         + " · INCONCLUSIVE " + recovery.getInconclusiveCount());
@@ -827,9 +907,11 @@ public final class CockpitControlCoordinator implements
     private static void renderTimelineStage(
             TextView view,
             String label,
-            CockpitExecutionTimeline.Stage stage) {
-        setText(view,
-                label + "：" + statusLabel(stage.getStatus())
+            CockpitExecutionTimeline.Stage stage,
+            boolean concise) {
+        setText(view, concise
+                ? label + "：" + statusLabel(stage.getStatus())
+                : label + "：" + statusLabel(stage.getStatus())
                         + "\nTarget：" + stage.getTarget()
                         + " · Source：" + stage.getSource()
                         + "\nResult：" + stage.getResult());
@@ -863,7 +945,9 @@ public final class CockpitControlCoordinator implements
         }
     }
 
-    private void renderDrawer(CockpitHmiState.DeviceDrawer drawer) {
+    private void renderDrawer(
+            CockpitHmiState.DeviceDrawer drawer,
+            PanelPresentationMode presentationMode) {
         setVisible(deviceDrawer, drawer != CockpitHmiState.DeviceDrawer.CLOSED);
         setVisible(hvacSurface, drawer == CockpitHmiState.DeviceDrawer.HVAC);
         setVisible(seatSurface, drawer == CockpitHmiState.DeviceDrawer.SEAT);
@@ -923,6 +1007,31 @@ public final class CockpitControlCoordinator implements
             setText(seatRequestView,
                     "Governed request：" + requestLabel(seat.getRequestState())
                             + "\n300 ms 合并 · 位置动作失败关闭");
+        }
+        boolean parameterEditingEnabled = presentationMode.isParameterEditingEnabled();
+        setButtonsEnabled(hvacSurface, parameterEditingEnabled);
+        setButtonsEnabled(seatSurface, parameterEditingEnabled);
+        CockpitSeatState.SafetyContext safety = state.getSeatState().getSafetyContext();
+        boolean safePositionPreview = parameterEditingEnabled
+                && safety.getDrivingState() == CockpitSeatState.DrivingState.PARKED
+                && safety.getOccupancyState() == CockpitSeatState.OccupancyState.OCCUPIED
+                && safety.getBeltState() == CockpitSeatState.BeltState.UNBELTED;
+        for (View control : seatPositionControls) {
+            setEnabled(control, safePositionPreview);
+        }
+    }
+
+    private static void setButtonsEnabled(View root, boolean enabled) {
+        if (root instanceof Button) {
+            setEnabled(root, enabled);
+            return;
+        }
+        if (!(root instanceof ViewGroup)) {
+            return;
+        }
+        ViewGroup group = (ViewGroup) root;
+        for (int index = 0; index < group.getChildCount(); index++) {
+            setButtonsEnabled(group.getChildAt(index), enabled);
         }
     }
 
@@ -1140,6 +1249,9 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_retry_service_published=false"
                 + " cockpit_undo_service_published=false"
                 + " cockpit_recovery_commands_enabled=false"
+                + " cockpit_driving_ux_policy_implemented=true"
+                + " cockpit_unknown_driving_restricted=true"
+                + " cockpit_runtime_policy_authority_independent=true"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"

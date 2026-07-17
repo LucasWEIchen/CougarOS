@@ -90,7 +90,7 @@ for marker in \
   grep -Fq -- "$marker" "$REDUCER"
 done
 for marker in \
-  'renderRecoveryState(current.getRecoveryState())' \
+  'renderRecoveryState(current.getRecoveryState(), concise)' \
   'Response service：NOT PUBLISHED' \
   'Undo handle：NOT PUBLISHED' \
   'cockpit_recovery_commands_enabled=false'; do

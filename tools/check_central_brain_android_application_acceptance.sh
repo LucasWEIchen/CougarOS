@@ -78,24 +78,21 @@ for marker in \
   "cockpit_hmi_safe_frame_1920x1080_verified=true" \
   "cockpit_hmi_device_drawer_verified=true" \
   "cockpit_hvac_surface_implemented=true" \
-  "cockpit_hvac_controls_verified=true" \
-  "cockpit_hvac_debounce_verified=true" \
-  "cockpit_hvac_manual_session_admission_verified=true" \
+  "cockpit_hvac_controls_restricted_verified=true" \
+  "cockpit_hvac_manual_session_admission_retested=false" \
   "cockpit_hvac_desired_reported_separation_verified=true" \
   "cockpit_hvac_reported_readback_available=false" \
   "cockpit_hvac_verified_before_readback=false" \
   "hvac_manual_typed_parameter_field=false" \
   "cockpit_seat_surface_implemented=true" \
-  "cockpit_seat_controls_verified=true" \
-  "cockpit_seat_heat_vent_mutex_verified=true" \
+  "cockpit_seat_controls_restricted_verified=true" \
   "cockpit_seat_unknown_restricted_fail_closed=true" \
-  "cockpit_seat_manual_session_admission_verified=true" \
+  "cockpit_seat_manual_session_admission_retested=false" \
   "cockpit_seat_desired_reported_separation_verified=true" \
   "cockpit_seat_reported_readback_available=false" \
   "cockpit_seat_verified_before_readback=false" \
   "seat_manual_typed_parameter_field=false" \
   "cockpit_execution_timeline_verified=true" \
-  "cockpit_execution_typed_event_trace_verified=true" \
   "cockpit_recovery_state_reducer_owned=true" \
   "cockpit_approval_details_fail_closed_verified=true" \
   "cockpit_partial_outcome_projection_verified=true" \
@@ -105,6 +102,12 @@ for marker in \
   "cockpit_approval_response_service_published=false" \
   "cockpit_retry_service_published=false" \
   "cockpit_undo_service_published=false" \
+  "cockpit_driving_ux_policy_verified=true" \
+  "cockpit_unknown_driving_restricted_verified=true" \
+  "cockpit_restricted_long_text_hidden_verified=true" \
+  "cockpit_restricted_parameter_editing_disabled_verified=true" \
+  "cockpit_high_risk_controls_disabled_verified=true" \
+  "cockpit_runtime_policy_authority_independent=true" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \
   "ui_cancel_timeout_not_exposed=true" \
@@ -126,8 +129,8 @@ import pathlib
 import sys
 
 payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("schema_version") != "1.7.0":
-    raise SystemExit("R7C acceptance schema must remain 1.7.0")
+if payload.get("schema_version") != "1.8.0":
+    raise SystemExit("R7C acceptance schema must remain 1.8.0")
 if payload.get("status") != "verified":
     raise SystemExit("R7C acceptance contract must be verified")
 if payload.get("evidence_scope") != "api33-android-application-integration":
@@ -146,6 +149,7 @@ if [entry.get("id") for entry in evidence] != [
     "R7C-E-008",
     "R7C-E-009",
     "R7C-E-010",
+    "R7C-E-011",
 ]:
     raise SystemExit("R7C evidence IDs/order changed")
 claims = payload.get("claim_state", {})
@@ -158,6 +162,7 @@ expected_true = {
     "cockpit_seat_surface_implemented",
     "cockpit_execution_timeline_implemented",
     "cockpit_recovery_state_reducer_owned",
+    "cockpit_driving_ux_policy_implemented",
     "api33_end_to_end_acceptance_complete",
     "r7_application_integration_complete",
 }

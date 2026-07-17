@@ -274,10 +274,25 @@ for marker in \
   'centralBrainExecutionTab' \
   'centralBrainResultTab' \
   'text="UNAVAILABLE"' \
-  'text="UNKNOWN · 受限"'; do
+  'text="UNKNOWN · 受限"' \
+  '驾驶状态不可确认 · 按行驶态限制，高风险控件关闭'; do
   if ! grep -Fq "$marker" "$LOG_DIR/ui-menu-shown.xml"; then
     cat "$LOG_DIR/ui-menu-shown.xml" >&2
     echo "Client2 four-stage header missing marker: $marker" >&2
+    exit 1
+  fi
+done
+nap_node="$(grep -o '<node[^>]*centralBrainNapButton[^>]*/>' \
+  "$LOG_DIR/ui-menu-shown.xml" | head -n 1 || true)"
+if [[ -z "$nap_node" || "$nap_node" != *'enabled="false"'* ]]; then
+  cat "$LOG_DIR/ui-menu-shown.xml" >&2
+  echo "UNKNOWN driving mode must disable the high-risk rest scenario" >&2
+  exit 1
+fi
+for hidden_detail in centralBrainIntentChainText centralBrainContextText; do
+  if grep -Fq "$hidden_detail" "$LOG_DIR/ui-menu-shown.xml"; then
+    cat "$LOG_DIR/ui-menu-shown.xml" >&2
+    echo "UNKNOWN driving mode must hide long detail: $hidden_detail" >&2
     exit 1
   fi
 done
@@ -369,6 +384,9 @@ for marker in \
   'cockpit_retry_service_published=false' \
   'cockpit_undo_service_published=false' \
   'cockpit_recovery_commands_enabled=false' \
+  'cockpit_driving_ux_policy_implemented=true' \
+  'cockpit_unknown_driving_restricted=true' \
+  'cockpit_runtime_policy_authority_independent=true' \
   'client2_hmi_checkpoint_text_persisted=false' \
   'ui_scenario_id=care.cold' \
   'scenario_id=scene.comfort.cold.v1' \
@@ -390,73 +408,30 @@ wait_for_resource_state \
 tap_resource centralBrainHvacDetailButton "$LOG_DIR/ui-before-hvac-drawer.xml"
 wait_for_resource_state \
   centralBrainHvacDesiredText visible "$LOG_DIR/ui-hvac-drawer.xml"
-
-HVAC_UP_CENTER="$(node_center centralBrainHvacTemperatureUpButton \
-  "$LOG_DIR/ui-hvac-drawer.xml" || true)"
-read -r HVAC_UP_X HVAC_UP_Y <<<"$HVAC_UP_CENTER"
-if [[ -z "${HVAC_UP_Y:-}" ]]; then
-  cat "$LOG_DIR/ui-hvac-drawer.xml" >&2
-  echo "HVAC temperature stepper is not visible" >&2
-  exit 1
-fi
-"${ADB_DEVICE[@]}" logcat -c
-for _ in {1..3}; do
-  "${ADB_DEVICE[@]}" shell input tap "$HVAC_UP_X" "$HVAC_UP_Y"
-  sleep 0.03
-done
-
-HVAC_LOG=""
-for _ in {1..60}; do
-  HVAC_LOG="$("${ADB_DEVICE[@]}" logcat -d \
-    CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I '*:S')"
-  if grep -Fq 'ui_scenario_id=manual.hvac' <<<"$HVAC_LOG" \
-      && grep -Fq 'client2_session_replay_complete=true' <<<"$HVAC_LOG"; then
-    break
-  fi
-  sleep 0.1
-done
-printf '%s\n' "$HVAC_LOG" >"$LOG_DIR/hvac-log.txt"
-for marker in \
-  'cockpit_hvac_desired_changed=true' \
-  'hvac_debounce_scheduled=true' \
-  'cockpit_hvac_manual_session_submitted=true' \
-  'hvac_parameter_logged=false' \
-  'ui_scenario_id=manual.hvac' \
-  'scenario_id=scene.manual.hvac.adjust.v1' \
-  'hvac_manual_intent_governed_session=true' \
-  'hvac_manual_bounded_parameter_wire=true' \
-  'hvac_manual_typed_parameter_field=false' \
-  'service_dispatch_triggered=false' \
-  'hardware_accessed=false'; do
-  if ! grep -Fq "$marker" <<<"$HVAC_LOG"; then
-    echo "$HVAC_LOG" >&2
-    echo "Client2 HVAC log missing marker: $marker" >&2
+for resource_id in \
+  centralBrainHvacPowerButton \
+  centralBrainHvacTemperatureDownButton \
+  centralBrainHvacTemperatureUpButton \
+  centralBrainHvacFanDownButton \
+  centralBrainHvacFanUpButton \
+  centralBrainHvacAutoButton; do
+  node="$(grep -o "<node[^>]*${resource_id}[^>]*/>" \
+    "$LOG_DIR/ui-hvac-drawer.xml" | head -n 1 || true)"
+  if [[ -z "$node" || "$node" != *'enabled="false"'* ]]; then
+    cat "$LOG_DIR/ui-hvac-drawer.xml" >&2
+    echo "UNKNOWN driving mode must disable HVAC parameter editing: $resource_id" >&2
     exit 1
   fi
 done
-if [[ "$(grep -Fc 'cockpit_hvac_manual_session_submitted=true' \
-    <<<"$HVAC_LOG")" -ne 1 ]]; then
-  echo "$HVAC_LOG" >&2
-  echo "three HVAC inputs were not coalesced into exactly one governed Session" >&2
-  exit 1
-fi
-if [[ "$(grep -F 'ui_scenario_id=manual.hvac' <<<"$HVAC_LOG" \
-    | grep -Fc 'client2_session_opened=true')" -ne 1 ]]; then
-  echo "$HVAC_LOG" >&2
-  echo "coalesced HVAC request did not complete governed Session admission" >&2
-  exit 1
-fi
-dump_ui "$LOG_DIR/ui-hvac-after-debounce.xml"
 for marker in \
-  'text="24.0 C"' \
+  'text="22.5 C"' \
   'Reported：UNAVAILABLE' \
   'Source：UNAVAILABLE' \
   'Quality：NO_EVIDENCE' \
-  'Effect：REQUESTED' \
-  'SESSION ACCEPTED'; do
-  if ! grep -Fq "$marker" "$LOG_DIR/ui-hvac-after-debounce.xml"; then
-    cat "$LOG_DIR/ui-hvac-after-debounce.xml" >&2
-    echo "Client2 HVAC UI missing desired/readback marker: $marker" >&2
+  'Effect：NOT_DISPATCHED'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-hvac-drawer.xml"; then
+    cat "$LOG_DIR/ui-hvac-drawer.xml" >&2
+    echo "restricted HVAC UI missing fail-closed marker: $marker" >&2
     exit 1
   fi
 done
@@ -467,70 +442,19 @@ tap_resource centralBrainSeatDetailButton "$LOG_DIR/ui-before-seat-drawer.xml"
 wait_for_resource_state \
   centralBrainSeatDesiredText visible "$LOG_DIR/ui-seat-drawer.xml"
 
-SEAT_HEAT_UP_CENTER="$(node_center centralBrainSeatHeatUpButton \
-  "$LOG_DIR/ui-seat-drawer.xml" || true)"
-SEAT_VENT_UP_CENTER="$(node_center centralBrainSeatVentilationUpButton \
-  "$LOG_DIR/ui-seat-drawer.xml" || true)"
-read -r SEAT_HEAT_UP_X SEAT_HEAT_UP_Y <<<"$SEAT_HEAT_UP_CENTER"
-read -r SEAT_VENT_UP_X SEAT_VENT_UP_Y <<<"$SEAT_VENT_UP_CENTER"
-if [[ -z "${SEAT_HEAT_UP_Y:-}" || -z "${SEAT_VENT_UP_Y:-}" ]]; then
-  cat "$LOG_DIR/ui-seat-drawer.xml" >&2
-  echo "Seat heat/vent controls are not visible" >&2
-  exit 1
-fi
-"${ADB_DEVICE[@]}" logcat -c
-"${ADB_DEVICE[@]}" shell input tap "$SEAT_HEAT_UP_X" "$SEAT_HEAT_UP_Y"
-sleep 0.03
-"${ADB_DEVICE[@]}" shell input tap "$SEAT_VENT_UP_X" "$SEAT_VENT_UP_Y"
-
-SEAT_LOG=""
-for _ in {1..60}; do
-  SEAT_LOG="$("${ADB_DEVICE[@]}" logcat -d \
-    CbClient2Session:I CbClient2Hmi:I CentralBrainRuntime:I '*:S')"
-  if grep -Fq 'ui_scenario_id=manual.seat' <<<"$SEAT_LOG" \
-      && grep -Fq 'client2_session_replay_complete=true' <<<"$SEAT_LOG"; then
-    break
-  fi
-  sleep 0.1
-done
-printf '%s\n' "$SEAT_LOG" >"$LOG_DIR/seat-log.txt"
-for marker in \
-  'cockpit_seat_desired_changed=true' \
-  'seat_debounce_scheduled=true' \
-  'cockpit_seat_manual_session_submitted=true' \
-  'seat_parameter_logged=false' \
-  'ui_scenario_id=manual.seat' \
-  'scenario_id=scene.manual.seat.adjust.v1' \
-  'seat_manual_intent_governed_session=true' \
-  'seat_manual_bounded_parameter_wire=true' \
-  'seat_manual_typed_parameter_field=false' \
-  'service_dispatch_triggered=false' \
-  'hardware_accessed=false'; do
-  if ! grep -Fq "$marker" <<<"$SEAT_LOG"; then
-    echo "$SEAT_LOG" >&2
-    echo "Client2 Seat log missing marker: $marker" >&2
-    exit 1
-  fi
-done
-if [[ "$(grep -Fc 'cockpit_seat_manual_session_submitted=true' \
-    <<<"$SEAT_LOG")" -ne 1 ]]; then
-  echo "$SEAT_LOG" >&2
-  echo "Seat heat/vent inputs were not coalesced into exactly one governed Session" >&2
-  exit 1
-fi
-if [[ "$(grep -F 'ui_scenario_id=manual.seat' <<<"$SEAT_LOG" \
-    | grep -Fc 'client2_session_opened=true')" -ne 1 ]]; then
-  echo "$SEAT_LOG" >&2
-  echo "coalesced Seat request did not complete governed Session admission" >&2
-  exit 1
-fi
-dump_ui "$LOG_DIR/ui-seat-after-debounce.xml"
-for marker in \
-  'text="HEAT 0"' \
-  'text="VENT 1"'; do
-  if ! grep -Fq "$marker" "$LOG_DIR/ui-seat-after-debounce.xml"; then
-    cat "$LOG_DIR/ui-seat-after-debounce.xml" >&2
-    echo "Client2 Seat UI missing heat/vent mutex marker: $marker" >&2
+for resource_id in \
+  centralBrainSeatZoneDriverButton \
+  centralBrainSeatZonePassengerButton \
+  centralBrainSeatHeatDownButton \
+  centralBrainSeatHeatUpButton \
+  centralBrainSeatVentilationDownButton \
+  centralBrainSeatVentilationUpButton \
+  centralBrainSeatMassageButton; do
+  node="$(grep -o "<node[^>]*${resource_id}[^>]*/>" \
+    "$LOG_DIR/ui-seat-drawer.xml" | head -n 1 || true)"
+  if [[ -z "$node" || "$node" != *'enabled="false"'* ]]; then
+    cat "$LOG_DIR/ui-seat-drawer.xml" >&2
+    echo "UNKNOWN driving mode must disable Seat parameter editing: $resource_id" >&2
     exit 1
   fi
 done
@@ -550,33 +474,20 @@ if [[ -z "${SEAT_RECLINE_Y:-}" ]]; then
   echo "Seat recline control is not reachable in the fixed drawer" >&2
   exit 1
 fi
-"${ADB_DEVICE[@]}" logcat -c
-"${ADB_DEVICE[@]}" shell input tap "$SEAT_RECLINE_X" "$SEAT_RECLINE_Y"
-sleep 0.5
-SEAT_RESTRICT_LOG="$("${ADB_DEVICE[@]}" logcat -d CbClient2Hmi:I CbClient2Session:I '*:S')"
-printf '%s\n' "$SEAT_RESTRICT_LOG" >"$LOG_DIR/seat-restriction-log.txt"
-for marker in \
-  'cockpit_seat_position_request_blocked=true' \
-  'seat_safety_decision=DENIED_UNKNOWN_CONTEXT' \
-  'seat_dispatch_triggered=false'; do
-  if ! grep -Fq "$marker" <<<"$SEAT_RESTRICT_LOG"; then
-    echo "$SEAT_RESTRICT_LOG" >&2
-    echo "Client2 Seat restriction log missing marker: $marker" >&2
-    exit 1
-  fi
-done
-if grep -Fq 'cockpit_seat_manual_session_submitted=true' <<<"$SEAT_RESTRICT_LOG"; then
-  echo "$SEAT_RESTRICT_LOG" >&2
-  echo "restricted driver recline incorrectly submitted a governed Session" >&2
+node="$(grep -o '<node[^>]*centralBrainSeatReclineUpButton[^>]*/>' \
+  "$LOG_DIR/ui-seat-scrolled.xml" | head -n 1 || true)"
+if [[ -z "$node" || "$node" != *'enabled="false"'* ]]; then
+  cat "$LOG_DIR/ui-seat-scrolled.xml" >&2
+  echo "UNKNOWN driving mode must disable driver recline" >&2
   exit 1
 fi
 dump_ui "$LOG_DIR/ui-seat-restricted.xml"
 for marker in \
   'text="0 deg"' \
   'Driving：UNKNOWN_RESTRICTED' \
-  'Decision：DENIED_UNKNOWN_CONTEXT' \
+  'Decision：NOT_EVALUATED' \
   'Reported：UNAVAILABLE' \
-  'Effect：REQUESTED'; do
+  'Effect：NOT_DISPATCHED'; do
   if ! grep -Fq "$marker" "$LOG_DIR/ui-seat-restricted.xml"; then
     cat "$LOG_DIR/ui-seat-restricted.xml" >&2
     echo "Client2 Seat UI missing restriction/readback marker: $marker" >&2
@@ -613,14 +524,18 @@ for marker in \
   '05 Graph：NOT WIRED' \
   '06 Effect：NOT DISPATCHED' \
   '07 Readback：UNAVAILABLE' \
-  'Media STOP：UNAVAILABLE · Navigation CANCEL：UNAVAILABLE' \
-  'ScenarioRequested · REQUESTED'; do
+  'Media STOP：UNAVAILABLE · Navigation CANCEL：UNAVAILABLE'; do
   if ! grep -Fq "$marker" "$LOG_DIR/ui-execution-scrolled.xml"; then
     cat "$LOG_DIR/ui-execution-scrolled.xml" >&2
     echo "Client2 execution timeline missing lower marker: $marker" >&2
     exit 1
   fi
 done
+if grep -Fq 'centralBrainExecutionChainText' "$LOG_DIR/ui-execution-scrolled.xml"; then
+  cat "$LOG_DIR/ui-execution-scrolled.xml" >&2
+  echo "restricted presentation must hide the typed event long trace" >&2
+  exit 1
+fi
 for _ in {1..5}; do
   "${ADB_DEVICE[@]}" shell input swipe 1700 900 1700 360 250
   sleep 0.1
@@ -631,11 +546,8 @@ for _ in {1..5}; do
   fi
 done
 for marker in \
-  'Approval：UNAVAILABLE' \
-  'Reason：UNAVAILABLE · Target：UNAVAILABLE' \
-  'Expiry：UNAVAILABLE · Response service：NOT PUBLISHED' \
-  'Outcome evidence：NO EVIDENCE' \
-  'VERIFIED 0 · FAILED 0 · INCONCLUSIVE 0' \
+  'Approval：UNAVAILABLE · 行驶呈现不授予权限' \
+  'Outcome：NO EVIDENCE · V0/F0/I0' \
   'Compensation：UNAVAILABLE · Undo handle：NOT PUBLISHED'; do
   if ! grep -Fq "$marker" "$LOG_DIR/ui-recovery-scrolled.xml"; then
     cat "$LOG_DIR/ui-recovery-scrolled.xml" >&2
@@ -663,7 +575,7 @@ wait_for_resource_state \
 "${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
 wait_for_resource_state \
   centralBrainApprovalStateText visible "$LOG_DIR/ui-recovery-restored.xml"
-if ! grep -Fq 'Outcome evidence：NO EVIDENCE' "$LOG_DIR/ui-recovery-restored.xml"; then
+if ! grep -Fq 'Outcome：NO EVIDENCE · V0/F0/I0' "$LOG_DIR/ui-recovery-restored.xml"; then
   cat "$LOG_DIR/ui-recovery-restored.xml" >&2
   echo "outside dismiss did not preserve Client2 recovery state" >&2
   exit 1
@@ -702,18 +614,16 @@ printf '%s\n' \
   "cockpit_hmi_safe_frame_1920x1080_verified=true" \
   "cockpit_hmi_device_drawer_verified=true" \
   "cockpit_hvac_surface_implemented=true" \
-  "cockpit_hvac_controls_verified=true" \
-  "cockpit_hvac_debounce_verified=true" \
-  "cockpit_hvac_manual_session_admission_verified=true" \
+  "cockpit_hvac_controls_restricted_verified=true" \
+  "cockpit_hvac_manual_session_admission_retested=false" \
   "cockpit_hvac_desired_reported_separation_verified=true" \
   "cockpit_hvac_reported_readback_available=false" \
   "cockpit_hvac_verified_before_readback=false" \
   "hvac_manual_typed_parameter_field=false" \
   "cockpit_seat_surface_implemented=true" \
-  "cockpit_seat_controls_verified=true" \
-  "cockpit_seat_heat_vent_mutex_verified=true" \
+  "cockpit_seat_controls_restricted_verified=true" \
   "cockpit_seat_unknown_restricted_fail_closed=true" \
-  "cockpit_seat_manual_session_admission_verified=true" \
+  "cockpit_seat_manual_session_admission_retested=false" \
   "cockpit_seat_desired_reported_separation_verified=true" \
   "cockpit_seat_reported_readback_available=false" \
   "cockpit_seat_verified_before_readback=false" \
@@ -734,6 +644,12 @@ printf '%s\n' \
   "cockpit_approval_response_service_published=false" \
   "cockpit_retry_service_published=false" \
   "cockpit_undo_service_published=false" \
+  "cockpit_driving_ux_policy_verified=true" \
+  "cockpit_unknown_driving_restricted_verified=true" \
+  "cockpit_restricted_long_text_hidden_verified=true" \
+  "cockpit_restricted_parameter_editing_disabled_verified=true" \
+  "cockpit_high_risk_controls_disabled_verified=true" \
+  "cockpit_runtime_policy_authority_independent=true" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \

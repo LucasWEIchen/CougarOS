@@ -67,6 +67,7 @@ public final class CockpitHmiReducer {
                 return next.buildNext();
             case SEAT_SAFETY_CONTEXT_CHANGED:
                 next.seatState = current.getSeatState().safetyContextChanged(event.seatSafetyContext);
+                next.presentationMode = DrivingUxPolicy.modeFor(event.seatSafetyContext);
                 return next.buildNext();
             case SEAT_DESIRED_CHANGED:
                 CockpitSeatState seatChanged = current.getSeatState().desiredChanged(event.seatIntent);
@@ -256,6 +257,7 @@ public final class CockpitHmiReducer {
                         : CockpitHmiState.PanelVisibility.HIDDEN;
                 next.surfaceStage = CockpitHmiState.SurfaceStage.INTENT;
                 next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
+                next.presentationMode = PanelPresentationMode.MOVING_RESTRICTED;
                 next.uiScenarioId = checkpoint.uiScenarioId;
                 next.canonicalScenarioId = checkpoint.canonicalScenarioId;
                 next.handleSchemaVersion = checkpoint.handleSchemaVersion;
