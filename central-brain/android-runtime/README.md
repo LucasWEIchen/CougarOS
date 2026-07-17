@@ -984,7 +984,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W04`.
+`target_hardware_validated=false`, `implementation_stage=P5-W05`.
 
 ## P5-W02 Tool Registry/Resolver
 
@@ -1010,7 +1010,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W04`. Next: P5-W03 ToolRuleSolver.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Next: P5-W03 ToolRuleSolver.
 
 ## P5-W03 Tool RuleSolver
 
@@ -1035,4 +1035,29 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`. Next: P5-W04 ToolExecutor boundary.
+`implementation_stage=P5-W05`.
+
+## P5-W04 Tool Executor boundary
+
+`ToolInvocationContext` is an immutable version-1, digest-only binding for invocation, Session, Plan, node and audit correlation. It
+also binds family, contract digest, capability, optional idempotency digest, elapsed-realtime issue/deadline and a caller-selected output
+byte limit no larger than the P5-W01 payload maximum.
+
+`InProcessBuiltInToolExecutor` accepts only `runtime.builtin` registrations whose family, Tool contract, signer and artifact digests
+exactly match an explicit allowlist. P5-W03 approval-required selections are rejected. Inputs and outputs pass the P5-W01 exact schema
+validator; cancellation/deadline checkpoints, output limit and a 128-entry digest-only audit ring are enforced. No implementation error
+text escapes through `ExecutionResult`.
+
+This is a synchronous cooperative boundary, not production Tool authority. The current signer digest is a trusted construction input,
+not PackageManager evidence; a non-cooperative blocking built-in cannot be forcibly preempted. Runtime/Graph/Binder/Room are not wired,
+and no dynamic loading, subprocess, OS virtualization, Effect, vehicle, model, NPU, network or Driver/HAL path is enabled. Run
+`bash tools/check_central_brain_android_tool_executor.sh` for the independent gate.
+
+Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=true`,
+`built_in_allowlist_enforced=true`, `built_in_signer_artifact_bound=true`, `tool_executor_host_execution_verified=true`,
+`tool_executor_deadline_cancel_verified=true`, `tool_executor_output_limit_verified=true`,
+`tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
+`tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
+`production_tool_registered=false`, `tool_approval_authority_available=false`, `os_virtualization_enabled=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`.
+Next: P5-W05 Skill package verifier.

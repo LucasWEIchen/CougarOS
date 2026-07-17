@@ -270,7 +270,7 @@ Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-
 `cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
 `cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
 `cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W04`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`.
 
 ## P4-W08 Client2 driving restriction projection
 
@@ -298,7 +298,7 @@ P4-W01 through P4-W08 are complete at the Android application layer. Req IDs: `S
 `cockpit_unknown_driving_restricted=true`, `cockpit_restricted_parameter_editing_disabled=true`,
 `cockpit_high_risk_controls_disabled=true`, `cockpit_runtime_policy_authority_independent=true`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`.
+`implementation_stage=P5-W05`.
 
 ## P5-W03 Tool RuleSolver architecture
 
@@ -328,7 +328,7 @@ Flags: `tool_rule_set_contract_defined=true`, `tool_rule_model_intersection_fail
 `tool_rule_solver_android13_arm64_verified=false`, `tool_rule_solver_published=false`,
 `tool_rule_solver_runtime_wired=false`, `tool_execution_enabled=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `model_invoked=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W01 Tool contract architecture
@@ -359,7 +359,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_contract_digest_ve
 `tool_resolver_published=false`, `tool_execution_enabled=false`,
 `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`; tracking: `DEV-063`, `ISSUE-036`.
+`implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver architecture
 
@@ -399,7 +399,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P4-W11 Client2 accessibility/display architecture
@@ -426,7 +426,7 @@ P4-W01 through P4-W11 are complete at the Android application layer. Req IDs: `S
 `cockpit_display_matrix_defined=true`, `cockpit_touch_target_min_dp=48`,
 `cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_display_matrix_android13_arm64_verified=true`,
 `cockpit_display_effect_authorization_source=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`.
+`implementation_stage=P5-W05`.
 
 ## P4-W12 aggregate Android acceptance architecture
 
@@ -454,7 +454,7 @@ P4-W01 through P4-W12 application acceptance is complete. This does not complete
 `p4_android13_arm64_aggregate_verified=true`, `p4_plan_effect_projection_host_verified=true`,
 `p4_automatic_plan_runtime_published=false`, `p4_production_effect_dispatch_enabled=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`.
+`implementation_stage=P5-W05`.
 
 ## P4-W10 Client2 scenario/manual synchronization
 
@@ -483,7 +483,7 @@ P4-W01 through P4-W10 are complete at the Android application layer. Current fla
 `cockpit_scenario_manual_shared_client=true`, `cockpit_scenario_device_session_synchronized=true`,
 `cockpit_scenario_plan_publication_inferred=false`, `cockpit_scenario_effect_dispatch_enabled=false`,
 `cockpit_scenario_readback_available=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`.
+`implementation_stage=P5-W05`.
 
 ## P4-W09 Client2 protected engineer simulation projection
 
@@ -511,4 +511,37 @@ P4-W01 through P4-W09 are complete at the Android application layer. Req IDs: `S
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`.
+`implementation_stage=P5-W05`.
+
+
+## P5-W04 Tool Executor architecture
+
+The P5 Tool path now has four explicit software boundaries:
+
+```text
+ToolManifest/Schema -> Registry/Resolver -> RuleSolver Selection
+                                          |
+                                          v
+                      ToolInvocationContext + built-in allowlist
+                                          |
+                                          v
+                            InProcessBuiltInToolExecutor
+                                          |
+                              bounded digest-only audit
+```
+
+P5-W04 is below rule selection but remains outside Runtime and AgentGraph composition. The selection cannot expand the build-owned
+allowlist; context cannot grant approval; current signer, artifact and contract must all match before an implementation is reachable.
+Input/output validation occurs on both sides of the implementation. Time uses one injected monotonic domain so tests and Android can
+prove expiry without wall-clock dependence.
+
+Execution is intentionally synchronous and in-process. This minimizes the first contract surface and avoids inventing an OS
+virtualization layer, but it provides cooperative, not hard, cancellation. Therefore the component is suitable for bounded built-ins
+that obey checkpoints, not untrusted Skill code, arbitrary APKs, native vendor calls or NPU/vehicle drivers. P5-W05 adds verification
+metadata only; production process isolation and Runtime publication require separate owner approval and evidence.
+
+No edge exists from `CentralBrainRuntimeService`, `CentralBrainGovernanceService` or `AgentGraphRuntime` to this executor. No edge exists
+from it to Effect adapters, Digital Twin, ModelProvider, VHAL or NPU. Status remains `tool_executor_runtime_wired=false`,
+`tool_execution_enabled=false`, `production_tool_execution_enabled=false`, `os_virtualization_enabled=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`.
+Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.

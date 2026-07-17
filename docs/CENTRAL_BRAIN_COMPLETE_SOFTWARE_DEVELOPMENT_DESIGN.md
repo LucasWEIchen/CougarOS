@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W04`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W05`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W04`.
+`implementation_stage=P5-W05`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`.
+`implementation_stage=P5-W05`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W05`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +2990,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,7 +3060,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P5-W03 Tool RuleSolver detailed design
@@ -3149,5 +3149,80 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W04`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
+
+## P5-W04 Tool Executor detailed design
+
+### Design intent
+
+P5-W04 defines the smallest executable Tool boundary that can be reviewed without production platform authority. It proves that a
+previously resolved and rule-allowed Tool can be admitted, validated, called and audited under explicit bounds. It does not publish a
+Tool service, load a package, grant approval or dispatch a vehicle/NPU effect.
+
+### Component responsibilities
+
+| Component | Owns | Must not own |
+| --- | --- | --- |
+| `ToolInvocationContext` | immutable digest binding, elapsed deadline, output limit | user/model text, approval, payload or trust decision |
+| `ToolExecutor` | outcome/failure vocabulary, control/cancel and audit result API | Registry, policy, persistence or Binder publication |
+| `InProcessBuiltInToolExecutor` | exact built-in admission, schema/deadline/cancel/output/audit | dynamic loading, subprocess, OS sandbox or hardware |
+| `BuiltInTool` | bounded deterministic implementation behind the registration | signer verification, approval or capability escalation |
+| `ToolExecutorProbeActivity` | debug API 33 ARM64 contract evidence | production registration or target qualification |
+
+### Construction algorithm
+
+1. Reject null lists/clock and more than 64 allowlist or registration entries.
+2. Canonicalize the supplied current signer digest. Every allowlist entry must match it; a mixed-signer allowlist fails construction.
+3. Build a sorted family map and reject duplicate allowlist family IDs. P5-W04 deliberately allows one active built-in version per
+   family because P5-W02 already resolved version and contract.
+4. For each registration, require `manifest.ownerId=runtime.builtin`, an allowlist entry, exact contract digest, signer digest and
+   artifact digest. Reject duplicate registrations. Store only immutable binding metadata and the implementation reference.
+5. Do not inspect PackageManager, files, JARs, APKs or class names. P5-W05 owns artifact verification policy; production composition
+   must later derive the signer input from trusted platform evidence.
+
+### Invocation algorithm
+
+1. Capture elapsed start. Look up exact family and compare registration Manifest contract to Selection.
+2. Compare context family/contract/capability to Selection. Reject approval-required and missing required idempotency token.
+3. Require context deadline window no greater than Manifest timeout. Reject clock regression and classify already-expired admission as
+   `TIMED_OUT/DEADLINE_EXCEEDED`.
+4. Check cancellation, then validate the input using `ToolSchemaValidator`; invalid input never reaches the built-in.
+5. Invoke synchronously with an `ExecutionControl`. Checkpoint immediately before and after invocation; the implementation may add
+   checkpoints around its own bounded work.
+6. Convert cooperative cancel/deadline/clock abort to stable outcomes. Convert any other runtime exception to
+   `FAILED/IMPLEMENTATION_FAILURE` without returning its text.
+7. Validate exact output schema, compute deterministic encoded byte count and reject output above the context limit.
+8. At completion, recheck clock monotonicity and deadline. A success observed at or after deadline becomes timeout and loses output.
+9. Append one audit record and SHA-256 digest. Evict oldest records above 128 and increment eviction count. Return immutable output and
+   audit objects.
+
+### Cancellation and concurrency
+
+`execute` is synchronized, so one executor instance serializes calls and audit ordering. Cancellation is cooperative. A blocking
+built-in that never returns and never calls `checkpoint()` can block the executor; P5-W04 does not create threads or kill code. Such an
+implementation is not production-admissible. Future production design must choose a bounded worker/process or vendor cancellable API
+and prove cleanup, idempotency and audit semantics before enabling Runtime wiring.
+
+### Security and privacy
+
+Audit records contain no input/output values, exception messages, device identifiers, user/model text, vehicle values or signing
+material. They contain only canonical digests, family, contract digest, enum outcome/failure, monotonic timestamps and output size.
+Debug logs emit only bounded booleans and a caller nonce. Reflection, serialization, dynamic class loading, Binder, Room, network,
+Android Car/VHAL, device nodes, ioctl and sysfs are statically prohibited in this increment.
+
+### Verification matrix
+
+Five JVM tests cover context bounds, construction binding, successful validated execution, approval/deadline/pre- and in-call cancel,
+cooperative timeout, unallowlisted Tool, invalid input/output, output overflow, implementation failure and audit eviction. debug and
+release compile the same main source. The DUMP-protected debug probe repeats the contract on API 33 ARM64; release omits it. The
+independent checker also confirms Runtime/Graph remain unwired.
+
+Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=true`,
+`built_in_allowlist_enforced=true`, `built_in_signer_artifact_bound=true`, `tool_executor_host_execution_verified=true`,
+`tool_executor_deadline_cancel_verified=true`, `tool_executor_output_limit_verified=true`,
+`tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
+`tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
+`production_tool_registered=false`, `os_virtualization_enabled=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W05`. Req IDs: `S2-TOL-001`,
+`S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.

@@ -58,6 +58,7 @@
 | ISSUE-036 | Tool production owner、health source、artifact trust 与 execution authority 未确定。 | S2-TOL-001, P5-W02..W05 | Open |
 | ISSUE-037 | Tool health publisher、production Registry composition 和 snapshot trust owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W03..W05/P8 | Open |
 | ISSUE-038 | Production Tool rule catalog、condition publisher、Plan binding 与 approval authority 未确定。 | S2-TOL-001, S2-SAF-001, P5-W04/W05/P8 | Open |
+| ISSUE-039 | Production built-in signer evidence、artifact revoke/rollback 与非合作实现的 deadline/cancel owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W05/P9 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -572,4 +573,26 @@ Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。V
 状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W04`。tracking：`DEV-065`。
+`target_hardware_validated=false`、`implementation_stage=P5-W05`。tracking：`DEV-065`。
+
+## ISSUE-039 Production built-in signer and cooperative cancellation ownership
+
+P5-W04 构造器要求 caller 提供当前应用 signer digest，并与 build-owned allowlist 和 registration 的 contract/artifact digest
+精确一致。该输入足够验证 pure-Java admission 语义，但当前没有 production owner 指定从 PackageManager signing history、
+OEM trust store、系统 signer allowlist 或发布 manifest 中获取证据，也没有 signer rotation、revoke、downgrade/rollback 和
+artifact epoch 的原子更新合同。
+
+执行器是同步 in-process 调用。它在 admission、调用前后和 `ExecutionControl.checkpoint()` 处检查 elapsed deadline/cancel，
+但无法强制终止不合作或阻塞 native/vendor 调用。生产需要 owner 选择受控独立进程、bounded worker、vendor cancellable API
+或其他可证明的隔离策略，并定义超时后的资源回收、进程健康、重复调用、idempotency 和审计归属。不能用 Java
+`Thread.stop`、未受控 subprocess 或动态 class loading 规避该问题。
+
+建议关闭顺序：P5-W05 先实现只读 artifact verifier 和 signer/version policy，保持 dynamic load=false；目标平台 owner 再提供
+可信 signer evidence 与 rotation/revoke/rollback 规则；P9 完成阻塞/崩溃/取消/资源耗尽故障矩阵后，单独评审 Runtime/Graph
+composition。Vehicle/NPU Tool 还需 P8 vendor cancellable API 与 readback 合同。
+
+状态：`Open`。当前 `tool_executor_contract_defined=true`、`built_in_allowlist_enforced=true`、
+`built_in_signer_artifact_bound=true`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
+`production_tool_execution_enabled=false`、`production_tool_registered=false`、`os_virtualization_enabled=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P5-W05`。tracking：`DEV-066`。
