@@ -86,6 +86,8 @@
 | DEV-060 | P4-W10 Client2 catalog device role 是 HMI 同步投影，不是 Runtime 发布的 Plan、Effect target 或车辆回读。 | S2-HMI-001..006, S2-SCN-001, ISSUE-022/026/030/033 | Accepted Temporary |
 | DEV-061 | P4-W11 只认证三个固定横屏 profile 和 0.85..1.30 fontScale，不是 OEM 多屏/无障碍量产认证。 | S2-UX-003, S2-HMI-001/002, ISSUE-019/033 | Accepted Temporary |
 | DEV-062 | P4-W12 关闭 application aggregate acceptance，但自动 Plan/Effect、approval/undo/readback 和 HMI-D4 仍未完成。 | S2-UX-001..003, S2-HMI-001..006, ISSUE-022/026/030/033 | Accepted Temporary |
+| DEV-063 | P5-W01 Tool manifest/schema 是静态合同，不是注册、健康或执行。 | S2-TOL-001, ISSUE-036 | Accepted Temporary |
+| DEV-064 | P5-W02 pure-Java Registry/Resolver 的 USABLE 不是 Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -969,5 +971,27 @@ wiring 与 P8 vehicle adapter 交叉关闭，不能借 P5 Tool 合同隐式完�
 状态：`Accepted Temporary`。关闭条件是 P5-W02..W04 完成 deterministic registry/resolver、rule intersection 和
 signed built-in executor 边界，并单独接入 Runtime/Graph；真实车辆/NPU Tool 还需 P8 OEM/Vendor authority。当前：
 `tool_manifest_contract_defined=true`、`tool_registry_published=false`、`tool_execution_enabled=false`、
+`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。
+
+## DEV-064 P5-W02 Registry usability is not execution authority
+
+P5-W02 已实现 immutable family/version Registry、same-version digest conflict、最高兼容版本 Resolver 和动态 health
+freshness。它将 REGISTERED、RESOLVED 与 USABLE 分开，并在最高版本 unhealthy 时返回 NOT_USABLE 而不降级。该结果关闭
+版本选择和失败关闭的软件合同，不表示 Runtime 已发布 Tool catalog 或健康服务。
+
+当前 Registry 由测试直接构造，不来自 signed artifact、build-owned production catalog 或受治理 Service；HealthSnapshot
+也由调用方一次性提供，没有 production publisher、attestation、process ownership 或持久化。`USABLE` 只表示 Manifest
+与 supplied health evidence 满足 P5-W02 约束，不能跳过 P5-W03 rule intersection、P5-W04 executor admission、Governance、
+Safety、deadline/cancel/audit 或 Adapter readback。
+
+debug probe 中的两个 Manifest 是合同样本，`tool_registry_probe_registration_count=2` 不得解释为 production Tool 已注册。
+代码没有接 `CentralBrainRuntimeService`、AgentGraph、Binder、Room、Effect、Vehicle、Model/NPU、network 或 Driver/HAL，
+`Resolution.isExecutionEnabled()` 固定 false。
+
+状态：`Accepted Temporary`。关闭条件是确定 build/signer/health publisher owner，P5-W03..W05 完成规则、signed built-in
+executor 和 artifact trust，并以独立 Runtime composition root/capability/Safety/evidence 发布；真实车辆/NPU Tool 仍需 P8
+OEM/Vendor authority。当前：`tool_registry_contract_defined=true`、`tool_registry_published=false`、
+`tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。

@@ -1138,3 +1138,26 @@ permission/ABI/readback 后才能映射 Adapter。现阶段新增 Driver/HAL 开
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。Req IDs：`S2-TOL-001`、
 `S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-063`、`ISSUE-036`。
+
+## P5-W02 Tool Registry/Resolver Driver/HAL Boundary
+
+`ToolRegistry` 只索引 P5-W01 family/version/digest；`ToolResolver` 只做 capability/digest/health eligibility。family、capability、
+health check ID 均为 AIOS 语义标识，不得解释为 Android service、VHAL property、Vendor symbol、device node、ioctl、PCIe
+function、DMA/IOMMU handle 或 Driver/HAL endpoint。
+
+`ToolHealthSnapshot` 不收集硬件健康。它只消费调用方已经提供的 bounded observation，并使用 elapsed-realtime freshness
+失败关闭。P5-W02 没有定义谁读取温度、PCIe link、NPU runtime、车辆 ECU 或 VHAL；这些 publisher 和信任 owner 仍由
+`ISSUE-037`/P8 外部合同确认。缺少 publisher 时 Resolver 返回 NOT_USABLE，禁止构造 synthetic HEALTHY fallback。
+
+main source 仅使用 Java collections、regex 和 SHA-256；静态门禁禁止 Binder、Room、network、Android Car/VHAL、reflection、
+serialization、`/dev`、sysfs 和 ioctl。P5-W03 RuleSolver 同样不得触发硬件；P5-W04 Executor 也只能在明确 capability/Safety/
+deadline/cancel/audit 边界后执行 signed built-in software Tool。真实 Vehicle/NPU Tool 必须等待 OEM/Vendor API、权限、
+readback 和故障合同。当前新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+
+状态：`tool_registry_contract_defined=true`、`tool_resolver_contract_defined=true`、
+`tool_health_dynamic_snapshot_defined=true`、`tool_registry_android13_arm64_verified=false`、
+`tool_registry_published=false`、`tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、
+`production_tool_registered=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
+Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；
+tracking：`DEV-064`、`ISSUE-037`。

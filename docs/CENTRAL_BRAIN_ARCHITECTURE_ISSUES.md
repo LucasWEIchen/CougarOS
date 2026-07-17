@@ -56,6 +56,7 @@
 | ISSUE-034 | Event V1 terminal cursor 不能前移 ACK；当前靠 sequence 去重但不适合高吞吐 broker。 | S2-EVT-001, P6-W01/W02 | Open / Design Decided |
 | ISSUE-035 | Client2 process-recreation checkpoint 的 production storage/backup/user owner 未确定。 | S2-UX-001..003, DEV-052 | Open |
 | ISSUE-036 | Tool production owner、health source、artifact trust 与 execution authority 未确定。 | S2-TOL-001, P5-W02..W05 | Open |
+| ISSUE-037 | Tool health publisher、production Registry composition 和 snapshot trust owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W03..W05/P8 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -481,6 +482,8 @@ migration、session token retention/erase policy 和 MDM data clear。目标 own
 | P4-W10 进展 | 单一 scenario catalog/control state 已同步 cold/fatigue/rest、manual HVAC/Seat、Session lifecycle、Plan revision、event sequence 与设备详情；canonical mismatch 失败关闭。Runtime Plan/Graph/Effect/readback 仍未发布，ISSUE-033 保持 Open，下一子项为 P4-W11。 |
 | P4-W11 进展 | 三档横屏 allowlist、1.30 fontScale、48dp、runtime accessibility semantics、最长中文与 unsupported fail-closed 已通过 Android 13 ARM64；这不提供 Runtime Plan/Effect/readback，ISSUE-033 保持 Open，下一子项为 P4-W12。 |
 | P4-W12 进展 | Android 13 ARM64 recovery/fault/scenario/display 聚合、per-suite crash buffer 和最终 UI tree 已通过；自动 Plan/Effect、approval/undo/readback 与 production Client2 release 仍未完成，ISSUE-033 保持 Open。 |
+| P5-W01 进展 | Tool manifest/schema、canonical digest 与 exact validator 已完成；实体 probe 因 ADB transport 不可用待复测，ISSUE-036 保持 Open。 |
+| P5-W02 进展 | Registry/Resolver/dynamic health pure-Java 合同已完成；production composition/publisher/execution 未发布，ISSUE-036/037 保持 Open。 |
 
 ### ISSUE-033 P4-W10 update
 
@@ -520,3 +523,29 @@ P5-W01 已冻结 Tool 静态合同、bounded scalar input/output schema、canoni
 只允许 signed built-in executor；P5-W05 关闭 artifact/signature/version static trust。生产车辆/NPU execution 仍由
 `ISSUE-023/024/026/027/030` 阻塞。当前 `tool_registry_published=false`、`tool_execution_enabled=false`、
 `production_tool_artifact_loaded=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+P5-W02 进展：pure-Java Registry 已完成 family/version 排序、duplicate digest 幂等与 conflict reject；Resolver 已完成
+最高兼容版本、exact capability/digest 和 dynamic health 失败关闭。该进展不发布 production Registry 或 health source，
+不接 Runtime/Graph/Executor。因此 ISSUE-036 的版本选择子项已关闭，其余 artifact/authority/execution 子项保持 Open，
+更具体的 publisher/composition ownership 由 ISSUE-037 跟踪。
+
+## ISSUE-037 Tool health publisher and production registry ownership
+
+P5-W02 的 `ToolHealthSnapshot` 是 immutable input value，不是 health collection service。当前没有 owner 决定哪些进程可以
+发布 Tool health、如何证明进程和 artifact 身份、如何处理 publisher death/restart、如何原子替换 Registry/Health snapshot、
+如何防止旧 snapshot 与新 catalog 组合，以及 health revision/clock domain 是否跨进程可信。
+
+同样没有 production Registry composition root。当前 tests/probe 直接构造两个 build-time Manifest，只验证 deterministic
+合同；production Tool count 为 0。若未来从 APK/AAR/Skill artifact 加载 Manifest，必须先确定 signer allowlist、artifact
+digest、version/revoke/rollback、owner capability、health check implementation 与 audit。不得把 probe count、matching digest
+或 supplied HEALTHY 直接提升为生产注册或执行授权。
+
+建议关闭顺序：P5-W03 只消费 P5-W02 USABLE 集合并与 rule allowset 求交；P5-W04 只实现 signed built-in executor 边界；
+P5-W05 冻结 artifact signer/version policy；之后单独增加 production composition/publisher 工作包，并在 Runtime Binder
+identity/capability、trusted elapsed clock、process death、atomic update 和 rollback 证据通过后才考虑 publication。Vehicle/NPU
+health 还必须等待 P8 OEM/Vendor API 与 readback authority。
+
+状态：`Open`。当前 `tool_registry_contract_defined=true`、`tool_resolver_contract_defined=true`、
+`tool_health_dynamic_snapshot_defined=true`、`tool_registry_published=false`、`tool_resolver_published=false`、
+`tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-064`。

@@ -975,8 +975,8 @@ fail-closed health freshness metadata. Its field-order-independent contract dige
 null, non-exact type, range/digest and aggregate-size violations without serializing or logging values.
 
 `ToolManifestProbeActivity` exists only in debug and repeats positive/negative contract cases on Android 13 ARM64. Release source has
-the value contracts but no probe, Tool registry, resolver or executor. Production Runtime/Graph/Binder/Room does not reference the
-new package. Run `bash tools/check_central_brain_android_tool_manifest.sh` for the independent gate.
+the value contracts but no probe or executor. P5-W02 adds Registry/Resolver value logic below, but production Runtime/Graph/Binder/
+Room still does not reference the package. Run `bash tools/check_central_brain_android_tool_manifest.sh` for the independent gate.
 
 Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_manifest_contract_digest_verified=true`, `tool_schema_exact_scalar_validation_verified=true`,
@@ -984,4 +984,30 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W02`. Next: P5-W02 ToolRegistry/Resolver.
+`target_hardware_validated=false`, `implementation_stage=P5-W03`.
+
+## P5-W02 Tool Registry/Resolver
+
+`ToolRegistry` accepts at most 128 manifests, groups them by the version-independent family ID and stores versions in deterministic
+ascending order. Exact duplicate contracts are idempotently collapsed. The same family/version with a different P5-W01 contract
+digest fails with stable `CONTRACT_CONFLICT`; registry digest and version selection are independent of input order.
+
+`ToolHealthSnapshot` holds bounded dynamic HEALTHY/UNHEALTHY/UNKNOWN observations in an elapsed-realtime clock domain. Missing,
+unknown, unhealthy, stale, future-dated or invalid-clock evidence fails closed. Health never enters the static Manifest digest.
+`ToolResolver` selects the highest registered version in the caller's explicit inclusive range, then checks exact capability and an
+optional pinned contract digest. It exposes separate REGISTERED, RESOLVED and USABLE states. If the selected highest version is
+unhealthy it returns RESOLVED/NOT_USABLE and does not silently fall back to an older healthy version.
+
+USABLE means eligible for P5-W03 rule solving, not authorized or executable. `Resolution.isExecutionEnabled()` is fixed false;
+production Runtime/Graph/Binder/Room has no Registry reference, no production Tool is registered, and no Effect, vehicle, model,
+NPU, network or hardware path is invoked. `ToolRegistryProbeActivity` is debug-only and release omits it. Run
+`bash tools/check_central_brain_android_tool_registry.sh` for the independent gate.
+
+Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=true`,
+`tool_health_dynamic_snapshot_defined=true`, `tool_registry_digest_verified=true`,
+`tool_registry_version_conflict_rejected=true`, `tool_resolver_highest_version_deterministic=true`,
+`tool_resolver_states_separated=true`, `tool_resolver_unhealthy_no_fallback=true`, `tool_health_fail_closed=true`,
+`tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
+`tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
+`effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W03`. Next: P5-W03 ToolRuleSolver.

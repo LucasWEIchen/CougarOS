@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W02`。
+`implementation_stage=P5-W03`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
 
 ## 49. P4-W08 driving restriction renderer trace
 
@@ -1403,7 +1403,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
 
 ## 50. P4-W09 engineer simulation drawer trace
 
@@ -1432,7 +1432,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W02`。
+`implementation_stage=P5-W03`。
 
 ## 51. P4-W10 scenario/manual-control synchronization trace
 
@@ -1461,7 +1461,7 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`cockpit_scenario_effect_dispatch_enabled=false`、
 `cockpit_scenario_readback_available=false`、`scenario_execution_enabled=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`target_hardware_validated=false`、`implementation_stage=P5-W03`。
 
 ## 52. P4-W11 accessibility/display matrix trace
 
@@ -1489,7 +1489,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、
 `cockpit_accessibility_state_not_color_only=true`、`cockpit_display_large_text_1_3_verified=true`、
 `cockpit_display_unsupported_fail_closed=true`、`cockpit_display_matrix_android13_arm64_verified=true`、
 `cockpit_display_effect_authorization_source=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
 
 ## 53. P4-W12 Android device acceptance/fault/recovery trace
 
@@ -1522,7 +1522,7 @@ Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`
 `p4_approval_response_service_published=false`、`p4_undo_service_published=false`、
 `p4_vehicle_readback_available=false`、`client2_production_release_artifact_available=false`、
 `hmi_d4_demo_control_loop_complete=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W02`。
+`implementation_stage=P5-W03`。
 
 ## 54. P5-W01 Tool Manifest/Schema trace
 
@@ -1552,4 +1552,36 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`target_hardware_validated=false`、`implementation_stage=P5-W03`。
+
+## 55. P5-W02 Tool Registry/Resolver trace
+
+Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
+
+1. `ToolRegistry` 必须 immutable、最多保存 128 个 unique family/version。family ID 必须由 P5-W01 canonical Tool ID
+   去除 `.vN` 派生；Registry 不得修改或重新解释 input/output schema。
+2. 相同 family/version 和相同 contract digest 的重复注册必须幂等合并；相同 family/version 但 digest 不同必须以稳定
+   `CONTRACT_CONFLICT` 拒绝，且结果不得依赖输入顺序。Registry digest 必须按 family/version/digest 排序计算。
+3. `ToolResolver.Query` 必须包含 canonical family、positive inclusive version range、exact capability 和 optional lowercase
+   SHA-256 contract digest pin。Resolver 选择范围内最高注册版本，然后复验 capability/digest；不得静默降级到其他版本。
+4. `ToolHealthSnapshot` 必须与 Manifest 分离、最多 128 项，只保存 canonical check ID、HEALTHY/UNHEALTHY/UNKNOWN、
+   elapsed-realtime observation time 和 positive revision。duplicate check、negative time/revision 必须拒绝。
+5. Health eligibility 必须使用所选 Manifest 的 `HealthContract`：missing、unknown、unhealthy、stale、future observation、
+   invalid current clock 全部失败关闭。动态 health 不得改变 Manifest 或 Registry digest。
+6. Resolution 必须分别暴露 REGISTERED/NOT_REGISTERED、RESOLVED/NOT_RESOLVED、USABLE/NOT_USABLE 和稳定 failure code。
+   最高版本 unhealthy 时必须返回 RESOLVED/NOT_USABLE，不得回退到旧的 healthy 版本。
+7. `USABLE` 只表示可以进入 P5-W03 rule solving，不表示可执行。P5-W02 的 `isExecutionEnabled()` 必须固定 false；不得
+   发布 Registry/Resolver Binder Service，不得连接 Runtime/Graph/Room/ToolExecutor 或 production artifact。
+8. Probe 只允许 debug + DUMP；release manifest 不得包含。JVM/debug/release 必须覆盖排序/dedup/conflict、最高版本、
+   三层状态和 health failure；Android 13 ARM64 probe 未执行时必须保持对应 verified=false。
+9. 本包不得触发 Effect、vehicle readback、model/NPU、network、Driver/HAL 或 virtualization。完成只允许提升 pure-Java
+   contract 状态；`production_ready` 与 `target_hardware_validated` 必须保持 false。
+
+状态：`tool_registry_contract_defined=true`、`tool_resolver_contract_defined=true`、
+`tool_health_dynamic_snapshot_defined=true`、`tool_registry_digest_verified=true`、
+`tool_registry_version_conflict_rejected=true`、`tool_resolver_highest_version_deterministic=true`、
+`tool_resolver_states_separated=true`、`tool_resolver_unhealthy_no_fallback=true`、`tool_health_fail_closed=true`、
+`tool_registry_android13_arm64_verified=false`、`tool_registry_published=false`、`tool_resolver_published=false`、
+`tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
+`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。

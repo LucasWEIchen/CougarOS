@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P5-W02`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P5-W03`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,7 +2109,7 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P5-W02`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P5-W03`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
 
@@ -2152,7 +2152,7 @@ MOVING and UNKNOWN presentation. Production Context/Safety remains outside HMI a
 
 Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
 `cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
-`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P5-W02`.
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P5-W03`.
 Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
 `ISSUE-023/029/030/033`.
 
@@ -2193,7 +2193,7 @@ emit reducer events only and cannot access SessionClient, Adapter, vehicle or NP
 Plan and drawer renderers read the same `CockpitScenarioControlState`. Positive Plan publication requires
 `SessionSnapshot.activePlanRevision>0`; otherwise UI says NOT PUBLISHED. Device role is labeled as catalog/manual participation and
 must not change desired/reported state. Effect/readback accessors remain false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`, `APP-004`,
-`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P5-W02`.
+`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P5-W03`.
 
 ## Client2 P4-W09 Engineer Simulation Interfaces
 
@@ -2247,7 +2247,7 @@ Status: `cockpit_engineer_simulation_drawer_implemented=true`,
 `cockpit_engineer_signature_permission_required=true`, `cockpit_engineer_capability_required=true`,
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
-`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P5-W02`.
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P5-W03`.
 Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-059`,
 `ISSUE-023/029/030/033`.
 
@@ -2304,7 +2304,7 @@ Status: `cockpit_display_matrix_defined=true`, `cockpit_display_profile_count=3`
 `cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_accessibility_state_not_color_only=true`,
 `cockpit_display_large_text_1_3_verified=true`, `cockpit_display_unsupported_fail_closed=true`,
 `cockpit_display_matrix_android13_arm64_verified=true`, `cockpit_display_effect_authorization_source=false`,
-`hardware_accessed=false`, `implementation_stage=P5-W02`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
+`hardware_accessed=false`, `implementation_stage=P5-W03`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
 `XSC-001/005/006`; tracking: `DEV-061`, `ISSUE-019/033`.
 
 ## P4-W12 aggregate Android acceptance interface
@@ -2354,7 +2354,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_automatic_plan_runtim
 `p4_production_effect_dispatch_enabled=false`, `p4_approval_response_service_published=false`,
 `p4_undo_service_published=false`, `p4_vehicle_readback_available=false`,
 `client2_production_release_artifact_available=false`, `hmi_d4_demo_control_loop_complete=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W02`. Req IDs:
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W03`. Req IDs:
 `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-062`, `ISSUE-033`.
 
@@ -2390,8 +2390,8 @@ Java classes, string/digest/integer range violations and aggregate encoded-size 
 Exception messages contain only the stable code, never the field value. No serialization, reflection, Binder, storage or dispatch is
 performed.
 
-`HealthContract(checkId, maximumStalenessMs, requiredBeforeUse)` requires `requiredBeforeUse=true`; dynamic HEALTHY/UNHEALTHY/
-STALE state is deliberately absent until P5-W02. `ToolManifestProbeActivity` is debug-only and verifies the contract on API 33 ARM64.
+`HealthContract(checkId, maximumStalenessMs, requiredBeforeUse)` requires `requiredBeforeUse=true`; P5-W02 holds dynamic health in
+a separate immutable snapshot. `ToolManifestProbeActivity` is debug-only and verifies the static contract on API 33 ARM64.
 
 Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_manifest_contract_digest_verified=true`, `tool_schema_exact_scalar_validation_verified=true`,
@@ -2399,5 +2399,58 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W03`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
+
+## Android P5-W02 Tool Registry/Resolver
+
+### Registry API
+
+```java
+ToolRegistry(List<ToolManifest> manifests)
+boolean isRegistered(String familyId)
+boolean isRegistered(String familyId, int version)
+List<ToolManifest> manifestsFor(String familyId)
+String getRegistryDigest()
+```
+
+`familyId` is the exact P5-W01 Tool ID without its `.vN` suffix. Construction is bounded to 128 source registrations and stores
+unique entries in family/version order. An exact repeated digest is an idempotent duplicate. Different digests for the same family
+and version raise `RegistrationException(CONTRACT_CONFLICT)` in either input order. Returned lists are defensive and read-only.
+
+### Dynamic health API
+
+```java
+ToolHealthSnapshot(List<Observation> observations)
+Eligibility eligibility(ToolManifest manifest, long nowElapsedRealtimeMs)
+```
+
+Each `Observation` contains canonical check ID, HEALTHY/UNHEALTHY/UNKNOWN, nonnegative elapsed-realtime timestamp and positive
+revision. The snapshot is immutable and bounded to 128 observations. Eligibility is HEALTHY only when the matching observation is
+HEALTHY, not future-dated and no older than Manifest `maximumStalenessMs`; otherwise it returns MISSING, UNKNOWN, UNHEALTHY, STALE
+or CLOCK_INVALID. It never mutates or contributes to the static contract/registry digest.
+
+### Resolver API
+
+```java
+ToolResolver(ToolRegistry registry)
+Resolution resolve(Query query, ToolHealthSnapshot health, long nowElapsedRealtimeMs)
+```
+
+`Query` carries family ID, inclusive min/max version, exact capability and optional lowercase SHA-256 contract pin. Resolution
+selects the highest registered version in range before capability/digest/health checks. It never searches an older version after the
+selected version is unhealthy. `Resolution` independently exposes `RegistrationState`, `ResolutionState`, `UsabilityState`, stable
+`FailureCode`, and the selected Manifest only when statically resolved.
+
+`USABLE` is an input to P5-W03 only. `Resolution.isExecutionEnabled()` always returns false. No API registers executors, dispatches
+Effects, publishes Binder, persists data or accesses vehicle/model/NPU/network/hardware.
+
+Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=true`,
+`tool_health_dynamic_snapshot_defined=true`, `tool_registry_digest_verified=true`,
+`tool_registry_version_conflict_rejected=true`, `tool_resolver_highest_version_deterministic=true`,
+`tool_resolver_states_separated=true`, `tool_resolver_unhealthy_no_fallback=true`, `tool_health_fail_closed=true`,
+`tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
+`tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
+`effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W03`. Req IDs: `S2-TOL-001`,
+`S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
