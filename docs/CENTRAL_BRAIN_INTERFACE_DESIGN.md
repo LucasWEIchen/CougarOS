@@ -966,3 +966,44 @@ Status: `scenario_resolver_defined=true`, `scenario_resolution_schema_version=1`
 `scenario_resolver_runtime_wired=false`, `scenario_compiler_wired=false`,
 `scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
 Req IDs: `S2-SCN-001`, `S2-SAF-001`, `DEL-001/003..005`; tracking: `DEV-035`, `ISSUE-029/031`.
+
+## Android P2-W07 Scenario Plan Compiler
+
+### Public internal Java contract
+
+```java
+ScenarioPlanCompiler.CompiledPlan ScenarioPlanCompiler.compile(
+    ScenarioPlanCompiler.CompileRequest request,
+    ScenarioResolution resolution,
+    ContextSnapshot context,
+    ScenarioResolver.CapabilitySnapshot capabilities);
+
+void PlanGraphValidator.validate(
+    ScenarioPlanCompiler.CompiledPlan plan,
+    ContextSnapshot context);
+```
+
+This remains an in-process Runtime-domain API, not AIDL Service publication. `CompileRequest` carries canonical
+plan/session UUID, positive revision and a bounded compile/deadline window. It contains no caller authority, target
+scalar, vehicle payload or adapter handle. The compiler rejects `REJECTED` Resolution and rechecks the exact
+resolution, Context, capability, scenario, manifest version/artifact and Context-policy bindings before translating
+the template.
+
+| Type | Contract | Invariant/failure |
+| --- | --- | --- |
+| `CompileRequest` | plan/session ID, revision, compile/deadline | canonical UUID; positive revision; deadline <=15 minutes |
+| `ScenarioPlanCompiler` | accepted/degraded Resolution + same snapshots -> compiled owner | optional-only fallback pruning; required/undeclared/drift fails closed with `CB_SCENARIO_COMPILE` |
+| `CompiledPlan` | immutable owner of typed DAG and binding metadata | every `toScenarioPlan()` is a deep copy; `isExecutable=false`; `isProductionTrusted=false` |
+| `PlanDigest` | canonical node-input and full-plan SHA-256 | binds Resolution, manifest version/artifact, Context, capability, IDs, time window, nodes, policies, edges and excluded branch |
+| `PlanGraphValidator` | P1 PlanContract plus scenario semantics | required Effect -> reachable verify; HIGH Effect <- approval; valid compensation; non-parked graph excludes PARKED_ONLY/driver recline |
+
+The transport remains the frozen P1-W02 `ScenarioPlan`, `PlanNode`, `NodeDependency` and `NodePolicy` contract.
+Compiler output uses digest-only node input because P2-W05 manifests intentionally contain no temperature, fan,
+seat-angle, media or navigation target. P3/P4 must provide governed typed Effect material and must re-evaluate fresh
+Context/Safety before dispatch; a compiled plan alone grants no execution authority.
+
+Status: `scenario_plan_compiler_defined=true`, `scenario_plan_schema_version=1`,
+`scenario_plan_compiler_android13_arm64_verified=true`, `scenario_plan_compiler_runtime_wired=false`,
+`scenario_plan_runtime_published=false`, `scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false`,
+`hardware_accessed=false`. Req IDs: `S2-SCN-001`, `S2-GRF-001`, `S2-SAF-001`, `DEL-001/003..005`;
+tracking: `DEV-036`, `ISSUE-029/031`.

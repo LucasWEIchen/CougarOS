@@ -334,6 +334,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W04 进展 | versioned Context/freshness/trust/restricted foundation 与 API 33 ARM64 probe 完成；productionTrusted/Service/provider 仍关闭。 |
 | P2-W05 进展 | cold/fatigue/rest build-owned manifest、strict parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto/production trust/Runtime/Graph 仍关闭。 |
 | P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；model/compiler/production Service/Graph 仍关闭，ISSUE-029/031 仍开放。 |
+| P2-W07 进展 | Digest-bound immutable typed Plan compiler 与 API 33 ARM64 probe 完成；target/Runtime publication/Graph/Effect 仍关闭，ISSUE-029/031 仍开放。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -412,3 +413,21 @@ authorized，但 P2-W02 全部为 false，同时 Context/Capability snapshot 的
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。关闭本偏差需要独立 production owner、可信 provider 与目标
 evidence，不能用 debug alias/probe 提升状态。
+
+## DEV-036 P2-W07 Compiler 是 digest-only、未发布的 Plan foundation
+
+完整 AIOS 编译链最终需要 Session-owned plan identity、用户偏好/场景 target material、durable Graph
+publication、可信 Safety/Capability source、Effect adapter 与每次 dispatch 前的 Governance 重验。P2-W07
+只把 P2-W06 Resolution 和同一 immutable Context/Capability snapshot 编译为 P1 typed Plan；manifest 没有
+target scalar，因此 compiler 不生成温度、风量、座椅角度、媒体或导航参数。
+
+P1 AIDL DTO 是可变 transport 类型。为满足本阶段 immutable DAG 要求，`CompiledPlan` 在内部持有 deep
+copy，并对每次 `toScenarioPlan()` 返回新的 deep copy；调用者修改 transport 不影响 owner。该设计不等于
+Plan persistence、Graph runtime 或 authorization。Plan/Node digest 只提供输入一致性，不是 artifact signer、
+Safety grant 或执行证明。
+
+状态：`Accepted Temporary`。`scenario_plan_compiler_defined=true`、
+`scenario_plan_compiler_runtime_wired=false`、`scenario_plan_runtime_published=false`、
+`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。关闭本偏差需要 P3/P4 的
+durable Graph/Effect material/dispatch 及 production owner/evidence；不得将 debug compiler probe 提升为执行证据。

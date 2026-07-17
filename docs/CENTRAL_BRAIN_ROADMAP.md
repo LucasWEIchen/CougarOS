@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver；production 无 fallback | 进行中（P2-W01..W06 完成，P2-W07 下一步） |
+| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；production 无 fallback | 进行中（P2-W01..W07 完成，P2-W08 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -192,9 +192,14 @@ asset isolation 已进入工程并通过 JVM 与 Android 13/API 33 ARM64 assets 
 fail-closed、source/zone/Context/capability/PARKED_ONLY gate、accept/degrade/reject reason 和 deterministic
 digest 已通过 JVM 与 Android 13/API 33 ARM64 debug probe。Resolver 不调用模型，未接 production Service。
 
-下一实现工作包为 `P2-W07 ScenarioPlanCompiler`。只把已接受的 manifest、同一 Context/capability snapshot
-和 resolver digest 编译为 immutable typed DAG，并拒绝行驶中不安全节点、digest/version 漂移与非法 fallback；
-不得发布/执行 Graph、激活 Effect/vehicle/NPU/Driver-HAL 或恢复 Python fallback。
+`P2-W07 ScenarioPlanCompiler` 已完成：只消费已接受/降级的 Resolution 与同一 Context/capability snapshot，
+复验 digest/version，编译 immutable typed DAG，精确裁剪 optional fallback，并验证 required verify、HIGH
+approval 前驱和 moving/unknown unsafe branch absent。JVM 与 Android 13/API 33 ARM64 probe 已通过；Plan
+仍不可执行，未接 production Service/Room/Graph/Effect。
+
+下一实现工作包为 `P2-W08 SimulatedVehicleAdapter base`。只在 debug/test source set 建立 typed simulated
+Effect adapter、可控时钟和 fault profile；production source set 不得注册，不得激活现有 compiled Plan，
+不得访问真实 Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
 
 ## 7. 近期进展
 
@@ -284,6 +289,9 @@ digest 已通过 JVM 与 Android 13/API 33 ARM64 debug probe。Resolver 不调�
   capability/PARKED_ONLY gate、unknown/ambiguous fail-closed、accept/degrade/reject 和 deterministic digest
   通过 JVM/API 33 ARM64 probe；model/runtime/compiler/graph/effect/hardware 保持 false，下一工作包为
   `P2-W07 ScenarioPlanCompiler`。
+- 完成 `P2-W07 ScenarioPlanCompiler`：digest-bound immutable typed DAG、optional fallback 裁剪、required
+  verify/HIGH approval/moving seat semantic validation 通过 JVM/API 33 ARM64 probe；Runtime/Graph/Effect/
+  hardware 保持 false，下一工作包为 `P2-W08 SimulatedVehicleAdapter base`。
 
 ## 8. 当前门禁
 

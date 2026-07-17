@@ -105,9 +105,14 @@ for marker in \
   'scenario_resolver_model_invoked=false' \
   'scenario_resolver_runtime_wired=false' \
   'scenario_compiler_wired=false' \
+  'scenario_plan_compiler_defined=true' \
+  'scenario_plan_schema_version=1' \
+  'scenario_plan_compiler_android13_arm64_verified=true' \
+  'scenario_plan_compiler_runtime_wired=false' \
+  'scenario_plan_runtime_published=false' \
   'scenario_runtime_wired=false' \
   'scenario_graph_execution_enabled=false' \
-  'implementation_stage=P2-W07' \
+  'implementation_stage=P2-W08' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -176,6 +181,7 @@ required_paths=(
   tools/check_central_brain_android_context_snapshot.sh
   tools/check_central_brain_android_scenario_manifest.sh
   tools/check_central_brain_android_scenario_resolver.sh
+  tools/check_central_brain_android_scenario_plan_compiler.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
