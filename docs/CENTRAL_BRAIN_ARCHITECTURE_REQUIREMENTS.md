@@ -781,3 +781,36 @@ NPU、Driver/HAL 或目标硬件资格。
 `simulated_seat_debug_only=true`、`simulated_seat_release_source_absent=true`、
 `simulated_seat_production_registered=false`、`simulated_seat_runtime_wired=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 31. P2-W11 Simulated Media/Navigation adapters trace
+
+本增量映射 `S2-ADP-001`、`DEL-001/003..005`：
+
+1. `SimulatedMediaEffectAdapter` 与 `SimulatedNavigationEffectAdapter` 必须只存在于 Runtime `src/debug`，
+   继承 P2-W08 base；main/release 和 production Runtime/Governance Service 不得包含、引用或注册。
+2. Media destination 固定 `media.player`，capability 固定 `media.playback`，area 固定 cabin；version 1 canonical
+   target 只允许 P2-W02 catalog 的 `PLAY/PAUSE/STOP`，不接受自由 action、未知 enum 或尾随字节。
+3. Media completion 只能更新 source SIMULATED、non-production-trusted 的 immutable player state；不得调用
+   Android MediaPlayer/MediaSession、vendor player、外部 package/Activity 或真实音频接口。
+4. Navigation destination/action 固定 `navigation.poi`，area 固定 cabin；POI query 必须 NFKC canonical、
+   control-free、1..128 chars，payload exact-length/canonical round-trip。
+5. Navigation domain state/backend/observation 只能接收或保留 SHA-256 query digest，返回 synthetic POI/route
+   ID、label key、100..100000 m、60..14400 s 观察，不得在 observation/log 中复制 raw query 或真实坐标。
+   P2-W08 通用 debug Effect record 仍保留有界 canonical material，属于 `DEV-040` 明示的 process-memory 边界。
+6. `MediaStateBackend` 与 `SyntheticNavigationBackend` 可替换但必须声明 simulation-only、production
+   unauthorized、无 external Activity、无 network；Navigation 还必须无 location upload。任一 unsafe flag 构造失败。
+7. NONE/DELAY 成功只调用 backend 一次；delay 到期前不发布 applied state/observation。TIMEOUT/retryable/
+   terminal 不伪造结果；READBACK_MISMATCH 明确标记 synthetic mismatch；duplicate token 不增加 revision。
+8. reset 必须清除 process-memory state/digest/observation 并 reset backend；不得接 shared Runtime/Room/
+   Plan/Graph/Effect Service，不得访问 Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
+9. JVM、debug/release compile 和 Android 13/API 33 ARM64 probe 必须覆盖 target round-trip、media state、
+   synthetic deterministic observation、digest-only privacy、delay/fault/mismatch/idempotency 和 backend boundary。
+
+状态：`simulated_media_adapter_defined=true`、`simulated_navigation_adapter_defined=true`、
+`simulated_media_nav_typed_target_verified=true`、`simulated_media_state_verified=true`、
+`simulated_navigation_synthetic_observation_verified=true`、`simulated_navigation_query_digest_only=true`、
+`simulated_media_nav_replaceable_backend_verified=true`、`simulated_media_nav_android13_arm64_verified=true`、
+`simulated_media_nav_debug_only=true`、`simulated_media_nav_release_source_absent=true`、
+`simulated_media_nav_production_registered=false`、`simulated_media_nav_runtime_wired=false`、
+`external_activity_started=false`、`location_uploaded=false`、`network_accessed=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`。

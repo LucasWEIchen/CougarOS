@@ -710,3 +710,21 @@ JVM tests, debug/release compilation and the API 33 ARM64 probe establish
 `simulated_seat_android13_arm64_verified=true`. The providers are simulation-only, production source and Services
 do not contain/register the adapter, and `simulated_seat_runtime_wired=false`, `effect_dispatch_enabled=false` and
 `hardware_accessed=false` remain enforced. P2-W11 adds debug-only typed Media/Navigation state adapters.
+
+## P2-W11 Simulated Media/Navigation Adapters
+
+`SimulatedMediaEffectAdapter` accepts only a versioned cabin `PLAY`, `PAUSE` or `STOP` target and updates an
+immutable source-SIMULATED player state. Its replaceable backend receives only the bounded enum, revision, elapsed
+time and fault marker; it cannot be production-authorized, networked or Activity-starting.
+
+`SimulatedNavigationEffectAdapter` canonicalizes a bounded POI query at the factory boundary, stores only its
+SHA-256 after admission and passes only that digest to a deterministic synthetic backend. The published observation
+contains synthetic POI/route IDs, a label key and bounded distance/duration, never the raw query or a real coordinate.
+Backends declaring production authority, network, location upload or external Activity are rejected before use.
+
+JVM tests, debug/release compilation and the API 33 ARM64 probe establish
+`simulated_media_adapter_defined=true`, `simulated_navigation_adapter_defined=true`,
+`simulated_navigation_query_digest_only=true`, `simulated_media_nav_replaceable_backend_verified=true` and
+`simulated_media_nav_android13_arm64_verified=true`. Production source/Services do not contain/register either
+adapter; `simulated_media_nav_runtime_wired=false`, `external_activity_started=false`, `location_uploaded=false`,
+`network_accessed=false`, `effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced.

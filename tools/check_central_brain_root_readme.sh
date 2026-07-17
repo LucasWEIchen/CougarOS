@@ -136,7 +136,22 @@ for marker in \
   'simulated_seat_release_source_absent=true' \
   'simulated_seat_production_registered=false' \
   'simulated_seat_runtime_wired=false' \
-  'implementation_stage=P2-W11' \
+  'simulated_media_adapter_defined=true' \
+  'simulated_navigation_adapter_defined=true' \
+  'simulated_media_nav_typed_target_verified=true' \
+  'simulated_media_state_verified=true' \
+  'simulated_navigation_synthetic_observation_verified=true' \
+  'simulated_navigation_query_digest_only=true' \
+  'simulated_media_nav_replaceable_backend_verified=true' \
+  'simulated_media_nav_android13_arm64_verified=true' \
+  'simulated_media_nav_debug_only=true' \
+  'simulated_media_nav_release_source_absent=true' \
+  'simulated_media_nav_production_registered=false' \
+  'simulated_media_nav_runtime_wired=false' \
+  'external_activity_started=false' \
+  'location_uploaded=false' \
+  'network_accessed=false' \
+  'implementation_stage=P2-W12' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -209,6 +224,7 @@ required_paths=(
   tools/check_central_brain_android_simulated_effect_adapter.sh
   tools/check_central_brain_android_simulated_hvac_adapter.sh
   tools/check_central_brain_android_simulated_seat_adapter.sh
+  tools/check_central_brain_android_simulated_media_navigation_adapters.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
