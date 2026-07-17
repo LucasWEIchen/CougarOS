@@ -1288,3 +1288,55 @@ REJECTED + COMPENSATION_DISABLED。Context/Verification 即使输入携带 trust
 `effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`。Req IDs：
 `S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`、`DEL-001/003..005`；tracking：`DEV-043`、
 `ISSUE-022/023/024/026`。
+
+## Android P3-W03 CheckpointSerializer
+
+### Registered DTO API
+
+```java
+interface PayloadCodec<T> {
+    CheckpointValue encode(T value);
+    T decode(CheckpointValue value);
+}
+
+Registration<T>(String type, int schemaVersion, Class<T> payloadClass, PayloadCodec<T> codec);
+
+CheckpointEnvelope CheckpointSerializer.create(
+    String type,
+    int schemaVersion,
+    String nodeId,
+    String planDigest,
+    String contextDigest,
+    T payload,
+    long createdAtEpochMs);
+byte[] CheckpointSerializer.serialize(CheckpointEnvelope envelope);
+CheckpointEnvelope CheckpointSerializer.deserialize(byte[] encoded);
+T CheckpointSerializer.decodePayload(CheckpointEnvelope envelope, Class<T> expectedClass);
+```
+
+Registration 在 serializer 构造时冻结，key 为 exact `type + schemaVersion`；payload 使用 `getClass()` exact
+match，不接收 class name。Codec 只能与 immutable `CheckpointValue` 交换。该 tree 支持 string、boolean、bounded
+long/BigDecimal、enum stable name、list 和 key-sorted map，不支持 null、Object、Bundle、Parcel、Binder、fd、
+file path 或 native pointer。
+
+### Envelope 与错误
+
+Canonical JSON 固定字段顺序：
+
+```text
+schemaVersion -> type -> nodeId -> planDigest -> contextDigest -> payload -> digest -> createdAt
+```
+
+`digest=SHA-256("central-brain.checkpoint.v1" + NUL + canonical-envelope-without-digest)`。decode 先通过 strict
+streaming parser 生成 bounded primitive tree，再校验 registration、codec、digest 和完整 byte-for-byte canonical
+form。限制为 64 KiB、payload 8 层、1024 value token、每 container 64 项、string 1024 字符、map key 64 字符。
+
+错误前缀为 `CB_CHECKPOINT_<ErrorCode>:`，固定 code 包含 INVALID_ARGUMENT、TYPE_UNREGISTERED、
+VERSION_UNSUPPORTED、TYPE_MISMATCH、OVERSIZE、MALFORMED_JSON、DUPLICATE_FIELD、UNKNOWN_FIELD、
+DEPTH_EXCEEDED、LIMIT_EXCEEDED、DIGEST_MISMATCH、NON_CANONICAL、PAYLOAD_REJECTED。
+
+状态：`checkpoint_serializer_defined=true`、`checkpoint_serializer_canonical_digest_verified=true`、
+`checkpoint_serializer_java_serialization_enabled=false`、`agent_graph_runtime_persistence_wired=false`、
+`agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
+`hardware_accessed=false`。Req IDs：`S2-GRF-001`、`NV-G-003/006/007`、`DEL-001/003..005`；tracking：
+`DEV-044`、`ISSUE-022/026`。

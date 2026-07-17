@@ -107,6 +107,10 @@ P3-W02 进展：已增加 11 类 exact schema 与 7 类 debug deterministic exec
 Effect 固定 NOT_DISPATCHED，Compensation 固定拒绝，尚无 checkpoint/Room/reconcile/material owner；因此不改变
 本问题 Open 状态，也不构成 durable Effect execution。
 
+P3-W03 进展：已增加 registered DTO、bounded primitive tree、canonical JSON、type/version/digest 与 security
+corpus，并在 API 33 ARM64 运行。serializer 未接 Graph/Room/Session/restart recovery，未定义 encryption/key/
+retention/migration owner，也未把 mismatch 映射 STUCK；因此只关闭 codec 安全合同子项，本问题保持 Open。
+
 P1-W04 的 Effect transition 和 UndoHandle 只定义 wire/validation 语义，不连接现有 effect/outbox
 repository，也不执行补偿。Undo 必须在未来创建新的受治理 compensation operation；它不能被实现为
 数据库状态回滚。Crash recovery、material/key、trusted clock、status reconciliation 和 durable binding
@@ -150,7 +154,8 @@ Driver/HAL 或 virtualization 标志。
 
 P3-W01 进展：Android 13 ARM64 probe 只证明同一 process-local Graph 状态合同可运行；
 P3-W02 进展：Android 13 ARM64 probe 只证明 typed schema、exact-class 与 deterministic fail-closed 行为；
-Graph dispatch、production executor、Effect/model/vehicle/NPU/hardware 仍未接，不提升 production/hardware 状态。
+P3-W03 进展：Android 13 ARM64 probe 只证明 checkpoint codec/digest/limit/security 行为；Graph dispatch、Room
+recovery、production executor、Effect/model/vehicle/NPU/hardware 仍未接，不提升 production/hardware 状态。
 `agent_graph_runtime_production_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`，不能提升
 production/target maturity，本问题保持 Open。
 
@@ -373,3 +378,5 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W11 进展 | Debug-only Media state/digest-only synthetic Navigation observation 与 API 33 ARM64 probe 完成；真实 platform adapter/Runtime/Client2 optional Effect 闭环仍开放。 |
 | P2-W12 进展 | Debug-only signature/capability controller 与 API 33 ARM64 Binder probe 完成；production Context/vehicle provider/Graph/HMI 均未接。 |
 | P3-W01 进展 | Process-local Graph/Node state、FIFO/bounded sessions、deadline/partial/event projection 与 API 33 ARM64 probe 完成；executor/Room/Binder/Effect/model/hardware 均未接。 |
+| P3-W02 进展 | Typed node schema/debug executor 与 API 33 ARM64 probe 完成；Graph dispatch、production executor、Effect/model/hardware 均未接。 |
+| P3-W03 进展 | Registered DTO/canonical checkpoint serializer 与 API 33 ARM64 probe 完成；Graph/Room/restart recovery、Effect/model/hardware 均未接。 |

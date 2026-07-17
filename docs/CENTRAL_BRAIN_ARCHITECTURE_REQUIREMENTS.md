@@ -913,3 +913,34 @@ NPU、Driver/HAL 或目标硬件资格。
 `typed_node_executor_android13_arm64_verified=true`、
 `typed_node_executor_graph_dispatch_enabled=false`、`typed_node_executor_production_wired=false`、
 `effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`。
+
+## 35. P3-W03 CheckpointSerializer trace
+
+派生需求：`S2-GRF-001`、`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+1. `CheckpointSerializer` 只接受构造时冻结的 `type + schemaVersion + exact payload class + PayloadCodec`；
+   未注册 type、未支持 version、错误 payload class 或 codec 返回错误 class 必须失败关闭，不允许运行时类名加载。
+2. `CheckpointValue` 只允许 String、boolean、绝对值不超过 10^12 的 integer/decimal、最多 6 位 decimal scale、
+   enum stable name、最多 64 项的 list/map。string 最大 1024 字符，map key 最大 64 字符并拒绝 class/type metadata key。
+3. `CheckpointEnvelope` 固定字段及顺序为 `schemaVersion/type/nodeId/planDigest/contextDigest/payload/digest/createdAt`；
+   node ID、两个 source digest、checkpoint digest 和正 createdAt 必须验证。payload map key 排序、decimal 归一化。
+4. `JsonPrimitiveCheckpointSerializer` 必须使用 strict streaming parser；JSON 总长最大 64 KiB，payload 最大 8 层、
+   总 value token 最大 1024。duplicate/unknown/missing/null/trailing/malformed/oversize/depth/token 必须有稳定错误码。
+5. digest 必须使用 `central-brain.checkpoint.v1` domain-separated SHA-256，覆盖除 digest 字段外的完整 canonical
+   envelope。decode 必须先验 digest，再要求输入 byte-for-byte canonical；篡改或非 canonical 都不得恢复。
+6. 禁止 `ObjectInputStream`/`ObjectOutputStream`/`Serializable` 恢复、Gson object mapping、`Class.forName`、
+   reflection、Bundle/Parcel/Binder object、file path/native pointer、网络或任意硬件 material。
+7. JVM 和 Android 13/API 33 ARM64 probe 必须覆盖 registered DTO round-trip、determinism、type/version/class、
+   malformed/duplicate/unknown/trailing、oversize/depth/token、digest/non-canonical 和 serialization/reflection corpus。
+8. P3-W03 不接 `AgentGraphRuntime`、Room v4、Binder/Session Service 或 process-death recovery。恢复 mismatch 映射
+   STUCK 属于 P3-W09；本包不 dispatch executor/Effect，不调用模型、Vehicle/VHAL/NPU/Driver-HAL。
+
+状态：`checkpoint_serializer_defined=true`、`checkpoint_serializer_registered_dto_verified=true`、
+`checkpoint_serializer_canonical_digest_verified=true`、
+`checkpoint_serializer_malformed_unknown_rejected=true`、
+`checkpoint_serializer_size_depth_limit_verified=true`、
+`checkpoint_serializer_security_corpus_verified=true`、
+`checkpoint_serializer_android13_arm64_verified=true`、
+`checkpoint_serializer_java_serialization_enabled=false`、
+`agent_graph_runtime_persistence_wired=false`、`agent_graph_executor_dispatch_enabled=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`。

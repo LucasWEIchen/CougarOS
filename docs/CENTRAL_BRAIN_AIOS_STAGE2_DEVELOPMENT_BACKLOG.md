@@ -423,10 +423,20 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W03` CheckpointSerializer
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-GRF-001`。
+- 状态：`DONE`（registered DTO + canonical JSON security contract，2026-07-17）；2 人日；需求：
+  `S2-GRF-001`、`NV-G-003/006/007`、`DEL-001/003..005`。
 - 类：`CheckpointSerializer`、`JsonPrimitiveCheckpointSerializer`、`CheckpointEnvelope`。
 - DoD：allowlist type/version、size/depth limit、digest；拒绝 Java serialization。
 - 测试：malformed/unknown/oversize/security corpus。
+- 实现：main source 新增 immutable `CheckpointValue` primitive tree、exact-class `Registration<T>` 与显式
+  `PayloadCodec<T>`。Envelope 固定 `schemaVersion/type/nodeId/planDigest/contextDigest/payload/digest/createdAt`，
+  payload map key 排序、number 归一化，SHA-256 使用独立 domain；反序列化要求 byte-for-byte canonical JSON。
+- 边界：strict streaming `JsonReader` 只生成 bounded primitive tree，不调用 Gson object mapping、Java
+  serialization、class-name loading/reflection、Binder/Parcel blob、file/native pointer。未知 type/version、重复/
+  未知字段、null、错误 class、摘要篡改、非 canonical、64 KiB、8 层和 1024 token 越界均失败关闭。
+- 未实现：不接 `AgentGraphRuntime`、Room v4、Session/Binder 或 restart recovery；因此 mismatch 只返回稳定错误，
+  P3-W09 才负责把恢复失败映射为 STUCK。Effect/model/vehicle/NPU/hardware 仍不执行。
+- 证据：8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、独立 checker、累计 installer/CI。
 
 ### `P3-W04` Retry/Timeout policy
 
