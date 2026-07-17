@@ -270,7 +270,7 @@ Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-
 `cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
 `cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
 `cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W10`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W11`.
 
 ## P4-W08 Client2 driving restriction projection
 
@@ -298,7 +298,36 @@ P4-W01 through P4-W08 are complete at the Android application layer. Req IDs: `S
 `cockpit_unknown_driving_restricted=true`, `cockpit_restricted_parameter_editing_disabled=true`,
 `cockpit_high_risk_controls_disabled=true`, `cockpit_runtime_policy_authority_independent=true`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W10`.
+`implementation_stage=P4-W11`.
+
+## P4-W10 Client2 scenario/manual synchronization
+
+```text
+natural scene button OR manual HVAC/Seat desired revision
+  -> CockpitControlCoordinator
+  -> Client2ScenarioBridge (ScenarioClient interface)
+  -> SessionHandle / SessionSnapshot / validated RuntimeEvent
+  -> CockpitHmiReducer
+  -> CockpitScenarioControlState
+  -> Intent / Plan / Execution / Result + HVAC/Seat drawer
+```
+
+`CockpitScenarioControlState` is immutable and Android-independent. It is the single owner of the 14 UI-to-canonical mappings,
+origin, catalog device roles, catalog match status, Session lifecycle, active Plan revision and last event sequence. Bridge lookup and
+HMI projection use the same catalog. A canonical mismatch clears device roles and fails the HMI state; duplicate, old-session and gap
+events cannot advance it.
+
+Natural cold/fatigue/rest roles describe only manifest participation. They never create HVAC/Seat desired parameters. Manual controls
+retain their typed HMI desired state but enter the same ScenarioClient Session/Event lifecycle. Plan is published only when Runtime
+supplies a positive `activePlanRevision`; Effect dispatch and readback remain false/unavailable. Req IDs: `S2-HMI-001..006`,
+`S2-SCN-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`.
+
+P4-W01 through P4-W10 are complete at the Android application layer. Current flags:
+`cockpit_scenario_control_state_reducer_owned=true`, `cockpit_scenario_catalog_normalized=true`,
+`cockpit_scenario_manual_shared_client=true`, `cockpit_scenario_device_session_synchronized=true`,
+`cockpit_scenario_plan_publication_inferred=false`, `cockpit_scenario_effect_dispatch_enabled=false`,
+`cockpit_scenario_readback_available=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P4-W11`.
 
 ## P4-W09 Client2 protected engineer simulation projection
 
@@ -326,4 +355,4 @@ P4-W01 through P4-W09 are complete at the Android application layer. Req IDs: `S
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
 `vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P4-W10`.
+`implementation_stage=P4-W11`.

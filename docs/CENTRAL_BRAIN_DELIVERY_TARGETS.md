@@ -1598,7 +1598,7 @@ HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`AP
 `DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
 `cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W10`。
+`hardware_accessed=false`、`implementation_stage=P4-W11`。
 
 ## P4-W09 Engineer Simulation Drawer
 
@@ -1622,7 +1622,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W10`。下一工作包为 P4-W10 Scenario/manual-control synchronization。
+`implementation_stage=P4-W11`。下一工作包为 P4-W11 Accessibility/display matrix。
 
 ## P4-W07 Approval and Recovery UX
 
@@ -1643,7 +1643,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_approval_details_fail_closed=true`、`cockpit_partial_outcome_projection=true`、
 `cockpit_compensation_projection=true`、`cockpit_approval_response_service_published=false`、
 `cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
-`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W10`。
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W11`。
 
 ## P4-W08 Driving Restriction Renderer
 
@@ -1665,4 +1665,20 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_unknown_driving_restricted=true`、`cockpit_moving_long_text_hidden=true`、
 `cockpit_restricted_parameter_editing_disabled=true`、`cockpit_high_risk_controls_disabled=true`、
 `cockpit_runtime_policy_authority_independent=true`、`vehicle_signal_provider_wired=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W10`。
+`hardware_accessed=false`、`implementation_stage=P4-W11`。
+
+## 2026-07-18 P4-W10 Scenario/manual-control synchronization delivery
+
+交付 `CockpitScenarioControlState`、Bridge 共用 canonical catalog、Reducer 生命周期同步、Plan/Result/设备 drawer 投影、
+host/static gate、R7C 2.0 `R7C-E-013` 和 API 33 ARM64 UIAutomator 脚本。cold/fatigue/rest 与 manual HVAC/Seat 均经过
+`ScenarioClient`；同一 Session lifecycle/event sequence 驱动四阶段和设备详情。canonical mismatch 清除设备 role 并失败关闭。
+
+交付范围只证明 application-level HMI synchronization。catalog role 不包含 typed target；`activePlanRevision=0` 时显示
+NOT PUBLISHED，Effect/readback 保持 NOT DISPATCHED/UNAVAILABLE。未接 Android Car/VHAL/Vendor service/NPU/Driver-HAL，
+不修改厂家系统软件。Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
+`DEL-001/003/004/005`；偏差：`DEV-060`；问题：`ISSUE-022/026/030/033`。
+
+状态：`cockpit_scenario_control_state_reducer_owned=true`、`cockpit_scenario_catalog_normalized=true`、
+`cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
+`cockpit_scenario_plan_publication_inferred=false`、`scenario_execution_enabled=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W11`。

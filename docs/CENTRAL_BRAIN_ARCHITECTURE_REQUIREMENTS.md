@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W10`。
+`implementation_stage=P4-W11`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W11`。
 
 ## 49. P4-W08 driving restriction renderer trace
 
@@ -1403,7 +1403,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W11`。
 
 ## 50. P4-W09 engineer simulation drawer trace
 
@@ -1432,4 +1432,33 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W10`。
+`implementation_stage=P4-W11`。
+
+## 51. P4-W10 scenario/manual-control synchronization trace
+
+Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
+`NV-F-001/003/009`、`NV-G-003/005/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 的 14 个 UI alias 与 canonical scenario ID 必须由单一 immutable catalog 提供，Bridge 和 HMI 不得维护两份
+   可漂移映射；未知 alias 必须在打开 Session 前拒绝。
+2. cold、fatigue、rest 只能投影 manifest catalog 中 HVAC/Seat 的 required/optional 参与角色；不得在 Client2 生成温度、
+   风量、靠背角度等 typed desired target，也不得把 catalog role 标记为 Runtime Plan。
+3. manual HVAC/Seat 必须继续使用 `ScenarioClient` 接口、相同 Session admission 和 typed Event stream。View 不得直接调用
+   Adapter、Android Car、VHAL、Vendor service、NPU 或 Driver/HAL。
+4. `CockpitScenarioControlState` 必须为 Android-independent immutable state；唯一 `CockpitHmiReducer` 在 scenario request、
+   Session opened、Snapshot、Runtime Event、failure、stream close 和 restore 时原子更新 origin、device role、catalog match、
+   lifecycle、active Plan revision 与 last event sequence。
+5. 四阶段 shell、结果页和 HVAC/Seat drawer 必须读取同一 state revision。设备详情中的 lifecycle/event sequence 必须与
+   HMI Session state 同源；重复、旧 Session 或 event gap 不能推进设备投影。
+6. admitted canonical ID 与请求 catalog 不一致时必须清除 HVAC/Seat role，标记 MISMATCH/FAILED，并公开
+   `CB_HMI_SCENARIO_MISMATCH`；不得继续显示旧场景的设备参与声明。
+7. 只有 `SessionSnapshot.activePlanRevision>0` 才能显示 Plan PUBLISHED；当前 revision=0 必须显示 NOT PUBLISHED。
+   `isEffectDispatchEnabled()` 与 `isReadbackAvailable()` 在当前实现必须保持 false。
+8. Android 13/API 33 ARM64 验收必须覆盖 cold/fatigue/rest、manual HVAC/Seat、同一 event sequence、canonical mismatch
+   host gate，以及 Plan/Effect/readback/hardware 均未启用。
+
+状态：`cockpit_scenario_control_state_reducer_owned=true`、`cockpit_scenario_catalog_normalized=true`、
+`cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
+`cockpit_scenario_plan_publication_inferred=false`、`cockpit_scenario_effect_dispatch_enabled=false`、
+`cockpit_scenario_readback_available=false`、`scenario_execution_enabled=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-W11`。

@@ -878,6 +878,7 @@ public final class CockpitControlCoordinator implements
 
         setText(connectionView, connectionLabel(current.getConnectionState()));
         String phrase = phraseForScenario(current.getUiScenarioId());
+        CockpitScenarioControlState scenarioControl = current.getScenarioControlState();
         setText(intentPreviewView, phrase.isEmpty() ? "选择一个场景意图" : phrase);
         if (current.hasSession()) {
             String canonical = current.getCanonicalScenarioId().isEmpty()
@@ -886,9 +887,13 @@ public final class CockpitControlCoordinator implements
             setText(planChainView,
                     "01  意图：" + canonical
                             + "\n02  Context：未接入车辆数据"
-                            + "\n03  Plan：未发布"
+                            + "\n03  Plan：" + planLabel(scenarioControl)
                             + "\n04  Policy：仅 Session admission"
-                            + "\n05  Effect：未调度");
+                            + "\n05  Effect：未调度"
+                            + "\n设备目录：HVAC " + deviceRoleLabel(scenarioControl.getHvacRole())
+                            + " · Seat " + deviceRoleLabel(scenarioControl.getSeatRole())
+                            + "\n同步：" + scenarioControl.getLifecycle()
+                            + " · Event #" + scenarioControl.getLastEventSequence());
             setText(sessionStripTitleView, "软件 Session 已受理");
         } else {
             setText(planSummaryView, "等待场景意图");
@@ -908,7 +913,17 @@ public final class CockpitControlCoordinator implements
                 + "\nReported：UNAVAILABLE"
                 + "\nSource：UNAVAILABLE"
                 + "\nQuality：NO EVIDENCE";
-        if ("manual.seat".equals(current.getUiScenarioId())
+        if (scenarioControl.getOrigin() == CockpitScenarioControlState.Origin.NATURAL) {
+            resultEvidence = "Catalog target：HVAC "
+                    + deviceRoleLabel(scenarioControl.getHvacRole())
+                    + " · Seat " + deviceRoleLabel(scenarioControl.getSeatRole())
+                    + "\nDesired parameters：NOT PUBLISHED"
+                    + "\nPlan：" + planLabel(scenarioControl)
+                    + "\nLifecycle：" + scenarioControl.getLifecycle()
+                    + " · Event #" + scenarioControl.getLastEventSequence()
+                    + "\nEffect：NOT DISPATCHED"
+                    + "\nReported：UNAVAILABLE · Quality：NO EVIDENCE";
+        } else if ("manual.seat".equals(current.getUiScenarioId())
                 || (hvac.getDesiredRevision() == 0 && seat.getDesiredRevision() > 0)) {
             resultEvidence = "Desired：" + seat.getDesired().desiredSummary()
                     + "\nReported：UNAVAILABLE"
@@ -1119,6 +1134,11 @@ public final class CockpitControlCoordinator implements
                             + "\nEffect：" + hvac.getEffectState());
             setText(hvacRequestView,
                     "Governed request：" + requestLabel(hvac.getRequestState())
+                            + "\nScenario role："
+                            + deviceRoleLabel(state.getScenarioControlState().getHvacRole())
+                            + " · " + state.getScenarioControlState().getLifecycle()
+                            + "\nPlan：" + planLabel(state.getScenarioControlState())
+                            + " · Event #" + state.getScenarioControlState().getLastEventSequence()
                             + "\n300 ms 合并 · 不直接调用 Adapter");
         } else if (drawer == CockpitHmiState.DeviceDrawer.SEAT) {
             setText(drawerTitleView, "座椅 Effect");
@@ -1150,6 +1170,11 @@ public final class CockpitControlCoordinator implements
                             + "\nEffect：" + seat.getEffectState());
             setText(seatRequestView,
                     "Governed request：" + requestLabel(seat.getRequestState())
+                            + "\nScenario role："
+                            + deviceRoleLabel(state.getScenarioControlState().getSeatRole())
+                            + " · " + state.getScenarioControlState().getLifecycle()
+                            + "\nPlan：" + planLabel(state.getScenarioControlState())
+                            + " · Event #" + state.getScenarioControlState().getLastEventSequence()
                             + "\n300 ms 合并 · 位置动作失败关闭");
         } else if (drawer == CockpitHmiState.DeviceDrawer.ENGINEER) {
             setText(drawerTitleView, "工程仿真");
@@ -1259,6 +1284,16 @@ public final class CockpitControlCoordinator implements
             default:
                 return "IDLE";
         }
+    }
+
+    private static String planLabel(CockpitScenarioControlState state) {
+        return state.isPlanPublished()
+                ? "PUBLISHED rev " + state.getActivePlanRevision()
+                : "NOT PUBLISHED";
+    }
+
+    private static String deviceRoleLabel(CockpitScenarioControlState.DeviceRole role) {
+        return role.name().replace('_', ' ');
     }
 
     private static void setVisible(View view, boolean visible) {
@@ -1446,6 +1481,10 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_engineer_context_revisioned=true"
                 + " cockpit_engineer_effect_authorization_source=false"
                 + " cockpit_engineer_production_available=false"
+                + " cockpit_scenario_control_state_reducer_owned=true"
+                + " cockpit_scenario_catalog_normalized=true"
+                + " cockpit_scenario_manual_shared_client=true"
+                + " cockpit_scenario_device_session_synchronized=true"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"

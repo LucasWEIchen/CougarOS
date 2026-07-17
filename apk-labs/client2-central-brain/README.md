@@ -266,7 +266,7 @@ client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W10
+implementation_stage=P4-W11
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -312,3 +312,15 @@ The signed debug APK passed the Android 13/API 33 ARM64 matrix and 1920x1080 vis
 inspection. No raw device identity, UI tree, logs, signal values or screenshots are
 tracked. Runtime release omits the controller Service; no production Client2 release
 artifact with this drawer is delivered.
+
+## P4-W10 scenario/manual synchronization
+
+`CockpitScenarioControlState` is the single Java source for all 14 UI aliases and canonical scenario IDs. It projects cold, fatigue
+and rest HVAC/Seat catalog roles plus manual HVAC/Seat target roles into the same immutable reducer state as Session lifecycle, Plan
+revision and event sequence. `Client2ScenarioBridge` owns only the `ScenarioClient` interface; `SessionClient` is the composition-time
+implementation for natural and manual requests.
+
+The Plan, Result and device drawer text comes from that one state. A canonical mismatch fails with no device role. Natural scenarios
+do not mutate manual desired parameters. Plan requires a positive Runtime revision; Effect and readback stay disabled/unavailable.
+`tools/test_client2_central_brain_scenario_sync.sh --require-api-33` runs the physical cold/fatigue/rest/manual matrix. No raw device
+identity or evidence is tracked. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-033`.

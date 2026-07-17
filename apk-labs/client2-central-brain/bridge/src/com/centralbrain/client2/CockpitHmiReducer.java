@@ -42,6 +42,8 @@ public final class CockpitHmiReducer {
                 return next.buildNext();
             case HVAC_MANUAL_SUBMITTED:
                 next.hvacState = current.getHvacState().submitted(event.hvacRevision);
+                next.scenarioControlState = current.getScenarioControlState()
+                        .scenarioRequested("manual.hvac");
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested("manual.hvac");
                 next.recoveryState = current.getRecoveryState().scenarioRequested();
@@ -79,6 +81,8 @@ public final class CockpitHmiReducer {
                 return next.buildNext();
             case SEAT_MANUAL_SUBMITTED:
                 next.seatState = current.getSeatState().submitted(event.seatRevision);
+                next.scenarioControlState = current.getScenarioControlState()
+                        .scenarioRequested("manual.seat");
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested("manual.seat");
                 next.recoveryState = current.getRecoveryState().scenarioRequested();
@@ -166,6 +170,8 @@ public final class CockpitHmiReducer {
                         current.getEngineerState().failed(event.errorCode),
                         false);
             case SCENARIO_SUBMITTED:
+                next.scenarioControlState = current.getScenarioControlState()
+                        .scenarioRequested(event.uiScenarioId);
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested(event.uiScenarioId);
                 next.recoveryState = current.getRecoveryState().scenarioRequested();
@@ -200,6 +206,9 @@ public final class CockpitHmiReducer {
                 if (event.handle == null) {
                     return current;
                 }
+                CockpitScenarioControlState openedScenario = current.getScenarioControlState()
+                        .sessionOpened(event.canonicalScenarioId);
+                next.scenarioControlState = openedScenario;
                 next.handleSchemaVersion = event.handle.schemaVersion;
                 next.sessionId = event.handle.sessionId;
                 next.acceptedAtEpochMs = event.handle.acceptedAtEpochMs;
@@ -208,7 +217,12 @@ public final class CockpitHmiReducer {
                 next.executionTimeline = current.getExecutionTimeline()
                         .sessionOpened(event.canonicalScenarioId);
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTED;
-                if ("manual.hvac".equals(current.getUiScenarioId())) {
+                if (!openedScenario.isCatalogMatched()) {
+                    next.connectionState = CockpitHmiState.ConnectionState.FAILED;
+                    next.errorCode = "CB_HMI_SCENARIO_MISMATCH";
+                    next.errorMessage = "canonical scenario does not match requested catalog entry";
+                    return next.buildNext();
+                } else if ("manual.hvac".equals(current.getUiScenarioId())) {
                     next.hvacState = current.getHvacState().requestAccepted();
                 } else if ("manual.seat".equals(current.getUiScenarioId())) {
                     next.seatState = current.getSeatState().requestAccepted();
@@ -219,6 +233,18 @@ public final class CockpitHmiReducer {
             case SNAPSHOT:
                 if (!sameSession(current, event.sessionId)) {
                     return current;
+                }
+                CockpitScenarioControlState snapshotScenario = current.getScenarioControlState()
+                        .snapshot(
+                                event.canonicalScenarioId,
+                                event.sessionState,
+                                event.activePlanRevision);
+                next.scenarioControlState = snapshotScenario;
+                if (!snapshotScenario.isCatalogMatched()) {
+                    next.connectionState = CockpitHmiState.ConnectionState.FAILED;
+                    next.errorCode = "CB_HMI_SCENARIO_MISMATCH";
+                    next.errorMessage = "snapshot scenario does not match admitted Session";
+                    return next.buildNext();
                 }
                 next.canonicalScenarioId = event.canonicalScenarioId;
                 next.sessionState = event.sessionState;
@@ -245,6 +271,7 @@ public final class CockpitHmiReducer {
                 }
                 if (current.getLastEventSequence() > 0
                         && event.sequence != current.getLastEventSequence() + 1) {
+                    next.scenarioControlState = current.getScenarioControlState().failed();
                     next.connectionState = CockpitHmiState.ConnectionState.FAILED;
                     next.errorCode = "CB_HMI_EVENT_GAP";
                     next.errorMessage = "event sequence gap";
@@ -252,6 +279,8 @@ public final class CockpitHmiReducer {
                 }
                 next.lastEventSequence = event.sequence;
                 next.lastEventType = event.eventType;
+                next.scenarioControlState = current.getScenarioControlState()
+                        .runtimeEvent(event.sequence);
                 CockpitExecutionTimeline updatedTimeline = current.getExecutionTimeline()
                         .runtimeEvent(event.timelineEvent);
                 next.executionTimeline = updatedTimeline;
@@ -289,6 +318,7 @@ public final class CockpitHmiReducer {
                     return current;
                 }
                 next.resumeCursor = event.resumeCursor;
+                next.scenarioControlState = current.getScenarioControlState().failed();
                 next.connectionState = CockpitHmiState.ConnectionState.CLOSED;
                 next.terminal = true;
                 next.errorCode = "CB_HMI_STREAM_CLOSED";
@@ -299,6 +329,7 @@ public final class CockpitHmiReducer {
                     return current;
                 }
                 next.connectionState = CockpitHmiState.ConnectionState.FAILED;
+                next.scenarioControlState = current.getScenarioControlState().failed();
                 next.errorCode = event.errorCode;
                 next.errorMessage = event.text;
                 next.replayComplete = false;
@@ -322,6 +353,9 @@ public final class CockpitHmiReducer {
                 next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
                 next.presentationMode = PanelPresentationMode.MOVING_RESTRICTED;
                 next.engineerState = CockpitEngineerState.unavailable();
+                next.scenarioControlState = CockpitScenarioControlState.restored(
+                        checkpoint.uiScenarioId,
+                        checkpoint.canonicalScenarioId);
                 next.uiScenarioId = checkpoint.uiScenarioId;
                 next.canonicalScenarioId = checkpoint.canonicalScenarioId;
                 next.handleSchemaVersion = checkpoint.handleSchemaVersion;

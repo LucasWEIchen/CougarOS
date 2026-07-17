@@ -1070,3 +1070,18 @@ capability policy 无 debug grant。
 `DRV-GAP-001..005` 不变；真实 vehicle Context/Safety/Effect/readback 仍由 P8 与 `ISSUE-023/029/030` 关闭。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`XSC-001/005/006`、`KH-003/006/007`、
 `DEL-004/005`。
+
+### P4-W10 Scenario/manual synchronization Driver/HAL boundary
+
+本包只调整 Client2 Java immutable state/reducer、SDK interface dependency、layout 文本投影、host/static test 与 ADB UI 测试。
+`CockpitScenarioControlState` 只保存固定 alias/canonical、catalog device role、Session lifecycle、Plan revision 和 event sequence；
+不保存 property ID、CAN/DBC、area mapping、车辆 payload、fd、device node 或 vendor handle。
+
+Bridge 通过 `ScenarioClient` 接口打开和观察 Session；Coordinator/Reducer 不 import、不发现也不调用 Adapter、Android Car、
+CarPropertyManager、VHAL、Vendor Binder/SOA、JNI/C ABI、PCIe/NPU 或 Driver/HAL。P4-W10 新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。真实 target、dispatch 与 readback 仍由 P8 和 `ISSUE-030` 关闭。
+
+状态：`cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
+`cockpit_scenario_effect_dispatch_enabled=false`、`cockpit_scenario_readback_available=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。Req IDs：`S2-HMI-001..006`、
+`S2-SCN-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-060`、`ISSUE-030/033`。

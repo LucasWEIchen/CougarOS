@@ -307,8 +307,8 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 `P4-W09 Engineer simulation drawer` 已完成：Client2 通过 signature permission、caller capability 和 AIDL version/hash
 连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
 occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
-SIMULATED projection 不是 production Context/Safety/Effect authority；下一工作包为 P4-W10 Scenario/manual-control
-synchronization。
+SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
+下一工作包为 P4-W11 Accessibility/display matrix。
 
 ## 7. 近期进展
 
@@ -725,8 +725,15 @@ cockpit_high_risk_controls_disabled=true
 cockpit_runtime_policy_authority_independent=true
 cockpit_hvac_manual_session_admission_retested=false
 cockpit_seat_manual_session_admission_retested=false
+cockpit_scenario_control_state_reducer_owned=true
+cockpit_scenario_catalog_normalized=true
+cockpit_scenario_manual_shared_client=true
+cockpit_scenario_device_session_synchronized=true
+cockpit_scenario_plan_publication_inferred=false
+cockpit_scenario_effect_dispatch_enabled=false
+cockpit_scenario_readback_available=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W10
+implementation_stage=P4-W11
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -747,3 +754,14 @@ target_hardware_validated=false
 driver_development_triggered=false
 virtualization_development_triggered=false
 ```
+
+### 2026-07-18 P4-W10 progress
+
+`CockpitScenarioControlState` 已把 14 个 alias/canonical ID、cold/fatigue/rest catalog device role、manual HVAC/Seat target、
+Session lifecycle、active Plan revision 与 event sequence 收敛到唯一 reducer 状态。Bridge 通过 `ScenarioClient` 接口使用同一
+Session/Event 链，四阶段和设备 drawer 同步渲染；canonical mismatch 失败关闭。Host/static/APK/R7C 2.0/API 33 ARM64
+验证完成后进入 P4-W11 Accessibility/display matrix。
+
+Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-060`、
+`ISSUE-022/026/030/033`。Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，`production_ready=false`、
+`target_hardware_validated=false`。

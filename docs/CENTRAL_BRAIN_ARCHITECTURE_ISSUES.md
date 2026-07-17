@@ -477,3 +477,11 @@ migration、session token retention/erase policy 和 MDM data clear。目标 own
 | P3-W06 进展 | Effect batch/dependency/resource wave/exact-profile registry/prepare-all/独立 observation 与 API 33 ARM64 probe 完成；Graph/Room/outbox/readback/reconcile/production adapter/hardware 均未接，ISSUE-022/026/030/033 保持 Open。 |
 | P3-W07 进展 | 五种 typed verification、DELIVERED/APPLIED/VERIFIED 分层、UNKNOWN timed reconcile、Twin readback 与 VERIFIED no-query dedup 已完成软件/API 33 ARM64 证据；scheduler/Room/Graph/production readback/hardware 均未接，ISSUE-022/026/030/033 保持 Open。 |
 | P3-W08 进展 | Explicit reversible policy、VALID before snapshot、absolute target、reverse dependency、TTL/Governance/new task/idempotent admission 已完成软件/API 33 ARM64 证据；原 VERIFIED 不变，Graph/Room/Binder/dispatch/production authority 均未接，DEV-049 与 ISSUE-022/023/026/029/030/033 保持 Open。 |
+| P4-W10 进展 | 单一 scenario catalog/control state 已同步 cold/fatigue/rest、manual HVAC/Seat、Session lifecycle、Plan revision、event sequence 与设备详情；canonical mismatch 失败关闭。Runtime Plan/Graph/Effect/readback 仍未发布，ISSUE-033 保持 Open，下一子项为 P4-W11。 |
+
+### ISSUE-033 P4-W10 update
+
+P4-W10 已使自然场景和手动 HVAC/Seat 共用 `ScenarioClient`、Session admission 与 typed Event sequence；四阶段和设备抽屉
+不再分别解释请求状态。catalog 设备 role 不包含 Runtime PlanNode、typed target、Effect 或 readback，相关页面继续明确显示
+NOT PUBLISHED/NOT DISPATCHED/UNAVAILABLE。因此 ISSUE-033 不能关闭；P4-W11 负责 accessibility/display matrix，P4-W12
+负责聚合设备验收，production 执行仍受 `ISSUE-022/026/030` 阻塞。tracking：`DEV-060`。

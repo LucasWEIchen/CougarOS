@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: S2-UX-001..003, S2-HMI-003/005/006, APP-004, XSC-001/005/006.
+# Req IDs: S2-UX-001..003, S2-HMI-001..006, S2-SCN-001, APP-004, XSC-001/005/006.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$ROOT_DIR/apk-labs/client2-central-brain"
@@ -16,6 +16,7 @@ RECOVERY_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitRecoveryStat
 PRESENTATION_MODE="$PROJECT/bridge/src/com/centralbrain/client2/PanelPresentationMode.java"
 DRIVING_UX_POLICY="$PROJECT/bridge/src/com/centralbrain/client2/DrivingUxPolicy.java"
 ENGINEER_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitEngineerState.java"
+SCENARIO_CONTROL="$PROJECT/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 TEST_MAIN="$PROJECT/bridge/test/com/centralbrain/client2/CockpitHmiReducerTestMain.java"
 SDK_AAR="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar"
@@ -35,6 +36,7 @@ for path in \
   "$RECOVERY_STATE" \
   "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
   "$ENGINEER_STATE" \
+  "$SCENARIO_CONTROL" \
   "$COORDINATOR" "$TEST_MAIN" "$ANDROID_JAR"; do
   test -f "$path"
 done
@@ -47,7 +49,7 @@ fi
 if grep -Eq '^import android\.' \
     "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT" "$SEAT_STATE" "$SEAT_INTENT" \
     "$EXECUTION_TIMELINE" "$RECOVERY_STATE" "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
-    "$ENGINEER_STATE"; then
+    "$ENGINEER_STATE" "$SCENARIO_CONTROL"; then
   echo "Cockpit HMI state/reducer must remain Android-view independent" >&2
   exit 1
 fi
@@ -78,7 +80,7 @@ javac \
   "$HVAC_INTENT" "$HVAC_STATE" "$SEAT_INTENT" "$SEAT_STATE" \
   "$EXECUTION_TIMELINE" "$RECOVERY_STATE" "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
   "$ENGINEER_STATE" \
-  "$STATE" "$REDUCER" "$TEST_MAIN"
+  "$SCENARIO_CONTROL" "$STATE" "$REDUCER" "$TEST_MAIN"
 
 java \
   -classpath "$ANDROID_JAR:$SDK_CLASSES:$BUILD_DIR/classes" \

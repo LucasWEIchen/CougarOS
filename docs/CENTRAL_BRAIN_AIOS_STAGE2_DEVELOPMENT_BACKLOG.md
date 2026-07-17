@@ -686,9 +686,13 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W10` Scenario/manual-control synchronization
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-HMI-001..006`、`S2-SCN-001`。
+- 状态：`COMPLETE`（2026-07-18）；2 人日；需求：`S2-HMI-001..006`、`S2-SCN-001`。
 - DoD：自然场景输入先归一化为 bounded scenario；cold/fatigue/rest 与 manual HVAC/Seat 都通过
   `ScenarioClient`；同一 session event 同步意图、计划、执行、结果和设备详情；HMI 不直调 adapter。
+- 交付：新增 immutable `CockpitScenarioControlState`，集中维护 14 个 UI alias/canonical ID、cold/fatigue/rest
+  的 catalog device role、manual HVAC/Seat target role、Session lifecycle、Plan revision 与 event sequence；唯一 reducer
+  同步四阶段和设备抽屉。canonical mismatch 失败关闭；没有 Runtime Plan/Effect/readback 时持续显示 NOT PUBLISHED/
+  NOT DISPATCHED/UNAVAILABLE。Host、APK、API 33 ARM64 UIAutomator 验收见 `R7C-E-013`。
 
 ### `P4-W11` Accessibility/display matrix
 

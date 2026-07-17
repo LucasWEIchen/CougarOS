@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P4-W10`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P4-W11`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2816,3 +2816,34 @@ Status: `cockpit_seat_surface_implemented=true`, `cockpit_seat_debounce_ms=300`,
 `cockpit_seat_verified_before_readback=false`, `scenario_execution_enabled=false`, `production_effect_dispatch_enabled=false`,
 `hardware_accessed=false`, `implementation_stage=P4-W06`. Req IDs: `S2-HMI-002..005`, `S2-SAF-001`, `S2-ADP-001`,
 `APP-004`, `XSC-001/005/006`; tracking: `DEV-055`, `ISSUE-029/030/033`.
+
+## P4-W10 implementation detail: Scenario/manual synchronization
+
+### Smallest modules
+
+| Module | Responsibility | Forbidden responsibility |
+| --- | --- | --- |
+| `CockpitScenarioControlState` | exact alias/canonical catalog, origin, device role, match, lifecycle, Plan revision, event sequence | target generation, Policy, dispatch, readback |
+| `CockpitHmiReducer` | atomically synchronize shell, device state and Session events | Binder calls, View mutation, text inference |
+| `Client2ScenarioBridge` | create concrete SDK client and expose only `ScenarioClient` lifecycle | Adapter/vehicle/NPU calls |
+| `CockpitControlCoordinator` | convert clicks to reducer events and render current immutable state | own scenario truth or authorize Effect |
+| P4-W10 host/static/device tests | mismatch, dedup, role, lifecycle, no-inference and API 33 UI matrix | production/hardware qualification |
+
+### Transition rules
+
+1. `scenarioSubmitted` or manual debounce completion resets prior Session projection and creates REQUESTED state from an exact alias.
+2. `sessionOpened` copies the validated handle, verifies canonical equality and advances both timeline and device projection to
+   SESSION_ACCEPTED. Mismatch returns FAILED and no device role.
+3. `snapshot` verifies the same Session and canonical ID, then maps only the typed Session state and positive Plan revision.
+4. `runtimeEvent` first passes Session ID, monotonic sequence and gap checks; the same accepted sequence updates timeline, recovery,
+   assistant projection and scenario/device state.
+5. failure/stream close mark synchronization FAILED. Restore reconstructs only alias/canonical participation; no display text,
+   parameters or evidence are persisted.
+
+### Verification
+
+Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no synthetic desired/Plan/Effect/readback and identical HMI/device
+event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
+covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
+target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
+`implementation_stage=P4-W11`.
