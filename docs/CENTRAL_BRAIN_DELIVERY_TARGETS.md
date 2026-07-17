@@ -1597,4 +1597,25 @@ HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`AP
 `DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
 `cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W07`。
+`hardware_accessed=false`、`implementation_stage=P4-W08`。
+
+## P4-W07 Approval and Recovery UX
+
+交付 `CockpitRecoveryState`、HMI state/reducer integration、Execution surface approval/partial/compensation sections、四个
+fail-closed command、host/static gate 和 Android 13/API 33 ARM64 实体验收。
+
+审批区显示 status/reason/target/expiry；部分结果区分别计数 VERIFIED/FAILED/INCONCLUSIVE 并接受
+`SESSION_STATE_PARTIALLY_COMPLETED` aggregate；补偿区投影 COMPENSATING/COMPENSATED/INCONCLUSIVE。所有状态只来自
+validated Session/Event projection，不保存 raw ID、digest、用户/模型文本或车辆 payload。隐藏浮窗不会取消 Session 或
+清空 recovery state。
+
+当前 Client2 Session/Event surface 不交付 `ApprovalPrompt`、`EffectObservation.retryable` 或 `UndoHandle`，因此
+reason/expiry 和无 typed target 时明确为 UNAVAILABLE，approve/reject/retry/undo visible+disabled。该交付不发布命令服务、
+不执行补偿、不触发 Graph/Effect/Adapter/硬件。
+
+Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`、`XSC-001/005/006`、
+`DEL-001/003/004/005`。状态：`cockpit_recovery_state_reducer_owned=true`、
+`cockpit_approval_details_fail_closed=true`、`cockpit_partial_outcome_projection=true`、
+`cockpit_compensation_projection=true`、`cockpit_approval_response_service_published=false`、
+`cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W08`。

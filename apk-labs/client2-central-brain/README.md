@@ -105,6 +105,13 @@ aliases fail before binding and the frozen Session V1 validation is not relaxed.
 Runtime process death reconnects the active stream, replays the owner-scoped
 snapshot/history and drops already delivered event sequences.
 
+The Execution surface also owns a fail-closed approval and recovery section.
+`CockpitRecoveryState` projects approval status, partial terminal evidence and
+compensation from sanitized Session/Event data. Because the current Client2
+surface does not receive `ApprovalPrompt`, `EffectObservation.retryable` or
+`UndoHandle`, approve/reject/retry/undo stay visible and disabled; outside
+dismissal preserves the active Session and recovery projection.
+
 The previous Smali panel controller has been removed. MainActivity contains only
 a one-line bootstrap to the maintained Java coordinator in `classes2.dex`.
 The coordinator owns View binding, Session replacement and Activity lifecycle.
@@ -178,15 +185,16 @@ cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
 
-P4-W01 through P4-W06 are complete. The primary bridge exposes typed Session handle,
+P4-W01 through P4-W07 are complete. The primary bridge exposes typed Session handle,
 snapshot, event, replay, overflow, close and error callbacks. The Java coordinator
 reduces these callbacks, owns lifecycle and resumes a text-free checkpoint after
 Client2 process restart. Android 13 ARM64 acceptance covers Runtime/Client2 process
 death, duplicate suppression, hidden-state restore, menu reopen, exact 1920x1080
 safe-frame rendering, four stage selection, HVAC and Seat controls, debounce,
 governed manual Session admission, unknown-context Seat position blocking and the
-seven-phase observable execution timeline. P4-W07 is the next work package and will
-add approval/partial/retry/undo UX without enabling vehicle or production Effect dispatch:
+seven-phase observable execution timeline and fail-closed approval/recovery UX. P4-W08
+is the next work package and will add the driving restriction renderer without enabling
+vehicle or production Effect dispatch:
 
 ```text
 client2_session_event_primary_api=true
@@ -226,13 +234,21 @@ cockpit_execution_trace_capacity=8
 cockpit_execution_plan_published=false
 cockpit_execution_effect_dispatch_enabled=false
 cockpit_execution_readback_available=false
+cockpit_recovery_state_reducer_owned=true
+cockpit_approval_details_fail_closed=true
+cockpit_partial_outcome_projection=true
+cockpit_compensation_projection=true
+cockpit_approval_response_service_published=false
+cockpit_retry_service_published=false
+cockpit_undo_service_published=false
+cockpit_recovery_commands_enabled=false
 client2_smali_controller_retired=true
 client2_hmi_checkpoint_resume_verified=true
 client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W07
+implementation_stage=P4-W08
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -251,4 +267,5 @@ The implementation plan, class/file map and acceptance matrix are maintained in
   response. P4-W04/P4-W05 carry strict canonical `HVAC1`/`SEAT1` values inside
   `utterance` with `SOURCE_HMI_BUTTON`; the bridge hides both grammars from Views
   and logs no target payload. `DEV-054`/`DEV-055` track replacement by a versioned
-  typed contract and governed approval path.
+  typed contract and governed approval path. `DEV-057` separately tracks
+  ApprovalPrompt/retry/UndoHandle publication to Client2.

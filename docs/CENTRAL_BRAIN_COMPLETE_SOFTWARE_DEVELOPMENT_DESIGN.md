@@ -626,6 +626,27 @@ final class CentralBrainPanelState {
 - `approve` 发送 approvalId + planDigest + displayedRevision；Runtime 重新验证 caller/context。
 - 连点由 request ID 幂等；按钮提交后 disabled，直到 observation 或 timeout。
 
+#### 9.6.1 P4-W07 Client2 recovery projection implementation
+
+当前 APK 在 `bridge/src/com/centralbrain/client2/CockpitRecoveryState.java` 实现 presentation-only 状态：
+
+- `ApprovalStatus`：`UNAVAILABLE/REQUESTED/RESOLVED/EXPIRED`；
+- `AggregateStatus`：`NO_EVIDENCE/IN_PROGRESS/VERIFIED/PARTIALLY_COMPLETED/FAILED/INCONCLUSIVE/COMPLETED`；
+- `CompensationStatus`：`UNAVAILABLE/COMPENSATING/COMPENSATED/INCONCLUSIVE`；
+- `verifiedCount/failedCount/inconclusiveCount` 只统计 reducer 已验证、已脱敏的 typed terminal event；
+- 不保存 approval/effect/observation/undo ID、digest、用户/模型文本、车辆 payload。
+
+调用关系固定为 `RuntimeEvent -> EventContract.validateEvent -> ProjectedEvent -> CockpitExecutionTimeline.TraceItem ->
+CockpitRecoveryState -> CockpitHmiState -> CockpitControlCoordinator`。`CockpitRecoveryState` 不引用 Android View/Binder，
+Coordinator 不根据文本推断结果。
+
+当前 Event V1 的 Approval event 无 payload，Client2 也未获得完整 `EffectObservation` 或 `UndoHandle`。因此 reason/expiry、
+retryable、undo eligibility 缺失时必须显示 UNAVAILABLE，approve/reject/retry/undo 必须 disabled。后续服务发布后，应新增
+versioned reducer event 并绑定 owner/session/plan/context/policy revision、TTL 和幂等 request ID；禁止直接把按钮接到
+Effect adapter。outside dismiss 只改变 `PanelVisibility`，不清除该状态或取消 Session。
+
+Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`、`XSC-001/005/006`。
+
 ### 9.7 DrivingUxPolicy
 
 ```java

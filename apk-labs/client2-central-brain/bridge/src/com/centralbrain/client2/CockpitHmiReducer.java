@@ -44,6 +44,7 @@ public final class CockpitHmiReducer {
                 next.hvacState = current.getHvacState().submitted(event.hvacRevision);
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested("manual.hvac");
+                next.recoveryState = current.getRecoveryState().scenarioRequested();
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
                 next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
                 next.deviceDrawer = CockpitHmiState.DeviceDrawer.HVAC;
@@ -79,6 +80,7 @@ public final class CockpitHmiReducer {
                 next.seatState = current.getSeatState().submitted(event.seatRevision);
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested("manual.seat");
+                next.recoveryState = current.getRecoveryState().scenarioRequested();
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
                 next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
                 next.deviceDrawer = CockpitHmiState.DeviceDrawer.SEAT;
@@ -102,6 +104,7 @@ public final class CockpitHmiReducer {
             case SCENARIO_SUBMITTED:
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested(event.uiScenarioId);
+                next.recoveryState = current.getRecoveryState().scenarioRequested();
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
                 next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
                 next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
@@ -157,6 +160,7 @@ public final class CockpitHmiReducer {
                 next.sessionState = event.sessionState;
                 next.executionTimeline = current.getExecutionTimeline()
                         .snapshot(event.sessionState, event.activePlanRevision);
+                next.recoveryState = current.getRecoveryState().snapshot(event.sessionState);
                 next.snapshotSummary = event.text;
                 next.terminal = event.terminal;
                 next.connectionState = event.terminal
@@ -184,8 +188,14 @@ public final class CockpitHmiReducer {
                 }
                 next.lastEventSequence = event.sequence;
                 next.lastEventType = event.eventType;
-                next.executionTimeline = current.getExecutionTimeline()
+                CockpitExecutionTimeline updatedTimeline = current.getExecutionTimeline()
                         .runtimeEvent(event.timelineEvent);
+                next.executionTimeline = updatedTimeline;
+                if (!updatedTimeline.getTraceItems().isEmpty()) {
+                    next.recoveryState = current.getRecoveryState().runtimeEvent(
+                            updatedTimeline.getTraceItems().get(
+                                    updatedTimeline.getTraceItems().size() - 1));
+                }
                 if (!event.text.isEmpty()) {
                     next.assistantDisplayText = event.text;
                 }
@@ -262,6 +272,7 @@ public final class CockpitHmiReducer {
                     restoredTimeline = restoredTimeline.sessionOpened(checkpoint.canonicalScenarioId);
                 }
                 next.executionTimeline = restoredTimeline;
+                next.recoveryState = CockpitRecoveryState.initial();
                 next.connectionState = checkpoint.hasSession()
                         ? CockpitHmiState.ConnectionState.RECONNECTING
                         : CockpitHmiState.ConnectionState.DISCONNECTED;

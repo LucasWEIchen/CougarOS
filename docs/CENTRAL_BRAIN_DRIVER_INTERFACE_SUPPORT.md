@@ -969,6 +969,22 @@ model buffer 或 readback contract。`UNAVAILABLE`/`NOT DISPATCHED` 是缺口投
 HVAC/Seat adapter 由 P8/`ISSUE-030` 关闭。Req IDs：`S2-UX-001..003`、`S2-HMI-001..003/006`、
 `XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。
 
+### P4-W07 Approval/recovery UX Driver/HAL Boundary
+
+本包只新增 Client2 application XML、纯 Java immutable `CockpitRecoveryState`、HMI reducer/coordinator projection、
+host/static/ADB tests 和文档。它只消费 app-layer `SessionSnapshot/RuntimeEvent`，不读取车辆信号、设备状态或 Driver 返回值。
+
+本包不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU、fd/shared memory、Safety Runtime 或 Driver/HAL；不发布 approval/retry/undo service，不创建 `UndoHandle`，不执行
+compensation，不注册 Adapter，不触发 Effect dispatch。disabled controls 是接口缺口呈现，不是 Driver 能力探测。
+
+状态：`cockpit_recovery_state_reducer_owned=true`、`cockpit_approval_response_service_published=false`、
+`cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变；真实 vehicle effect/
+readback 和 Adapter 仍由 P8/`ISSUE-030` 关闭。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、
+`S2-EFF-001`、`XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。
+
 ### P4-W04 HVAC control surface Driver/HAL Boundary
 
 本包只新增 Client2 application XML、纯 Java `HvacControlIntent/CockpitHvacState`、HMI reducer/coordinator、现有

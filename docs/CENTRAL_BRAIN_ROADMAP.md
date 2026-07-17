@@ -296,8 +296,9 @@ Plan、Policy、Graph、Effect、Readback 七阶段，并保留最多八条脱�
 当前 Runtime 只到 Session admission；Plan/Graph/Effect/readback 分别保持 NOT PUBLISHED/NOT WIRED/NOT DISPATCHED/
 UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 
-下一实现工作包为 `P4-W07 Approval/partial/retry/undo UX`。必须只根据 typed approval/effect/compensation evidence
-显示可操作命令；当前未发布的 approval response、retry 和 undo service 必须保持不可用。
+`P4-W07 Approval/partial/retry/undo UX` 已完成 application-layer 投影。下一实现工作包为
+`P4-W08 Driving restriction renderer`；必须按可信 driving Context 切换呈现，UNKNOWN 继续失败关闭，且呈现策略不能成为
+Effect 授权来源。
 
 ## 7. 近期进展
 
@@ -461,7 +462,11 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 - 完成 `P4-W06 Plan/effect execution timeline`：新增 immutable 七阶段 projection、八条 bounded typed-event trace、
   Media STOP/Navigation CANCEL 状态和 1920x1080 可滚动执行页。host、APK、static gate 与 Android 13/API 33 ARM64
   实体验证通过；当前 Runtime 无 Plan/Effect publication，页面保持 NOT PUBLISHED/NOT WIRED/NOT DISPATCHED/
-  UNAVAILABLE。下一工作包为 P4-W07 Approval/partial/retry/undo UX。
+  UNAVAILABLE。
+- 完成 `P4-W07 Approval/partial/retry/undo UX`：新增 immutable `CockpitRecoveryState`、审批状态/原因/目标/过期时间
+  fail-closed 显示、VERIFIED/FAILED/INCONCLUSIVE 证据统计、Session partial aggregate 和 compensation projection。
+  approve/reject/retry/undo 在对应 Binder/typed detail 未发布时保持 visible+disabled；outside dismiss 保留 Session/recovery state。
+  下一工作包为 P4-W08 Driving restriction renderer。
 
 ## 8. 当前门禁
 
@@ -688,8 +693,16 @@ cockpit_execution_trace_capacity=8
 cockpit_execution_plan_published=false
 cockpit_execution_effect_dispatch_enabled=false
 cockpit_execution_readback_available=false
+cockpit_recovery_state_reducer_owned=true
+cockpit_approval_details_fail_closed=true
+cockpit_partial_outcome_projection=true
+cockpit_compensation_projection=true
+cockpit_approval_response_service_published=false
+cockpit_retry_service_published=false
+cockpit_undo_service_published=false
+cockpit_recovery_commands_enabled=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W07
+implementation_stage=P4-W08
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

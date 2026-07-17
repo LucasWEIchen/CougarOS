@@ -1490,6 +1490,60 @@ readback 或 retry。Batch status 为 ALL_DISPATCHED/PARTIAL/FAILED/UNKNOWN/PREP
 `S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-047`、
 `ISSUE-022/026/030/033`。
 
+## Client2 P4-W07 Approval and Recovery Interfaces
+
+### Immutable recovery projection
+
+```java
+public final class CockpitRecoveryState {
+    enum ApprovalStatus { UNAVAILABLE, REQUESTED, RESOLVED, EXPIRED }
+    enum AggregateStatus {
+        NO_EVIDENCE, IN_PROGRESS, VERIFIED, PARTIALLY_COMPLETED,
+        FAILED, INCONCLUSIVE, COMPLETED
+    }
+    enum CompensationStatus { UNAVAILABLE, COMPENSATING, COMPENSATED, INCONCLUSIVE }
+
+    ApprovalStatus getApprovalStatus();
+    String getApprovalReasonCode();
+    String getApprovalTarget();
+    long getApprovalExpiresAtEpochMs();
+    int getVerifiedCount();
+    int getFailedCount();
+    int getInconclusiveCount();
+    AggregateStatus getAggregateStatus();
+    CompensationStatus getCompensationStatus();
+}
+```
+
+`CockpitHmiReducer` 是唯一 owner。新场景调用 `scenarioRequested()` 清空旧恢复状态；snapshot 只投影 Session aggregate；
+validated typed event 先进入 `CockpitExecutionTimeline.ProjectedEvent/TraceItem` 脱敏，再由 recovery state 消费
+event type/status/target。不得传递 raw AIDL payload、ID 或 digest。
+
+### Approval interface boundary
+
+`SESSION_STATE_WAITING_FOR_CONFIRMATION` 和 `ApprovalRequested` 可将 UI 置为 REQUESTED。Event V1 的 approval event 是
+`PAYLOAD_NONE`，所以 reason/expiry 不存在；target 只能继承同一 timeline 最近的 validated Action capability，否则为
+UNAVAILABLE。未来必须从 `ApprovalPrompt` 传入 reason/expiry/plan/context binding，并通过独立 response service 回传；
+在此之前 `isApproveEnabled()/isRejectEnabled()` 固定 false。
+
+### Partial/retry/undo boundary
+
+`EffectVerified+FRESH` 计为 verified；`EffectFailed` 计为 failed；非 fresh verified 计为 inconclusive。Session
+`PARTIALLY_COMPLETED` 优先显示 aggregate partial。Event V1 不携带 `EffectObservation.retryable`，所以 retry 不得从
+`EffectFailed` 推断。`CompensationObserved` 只更新结果，不创建 `UndoHandle`；undo 仍须独立 handle/TTL/owner/context
+重验，因此 retry/undo 均固定 disabled。
+
+Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText`、
+`centralBrainCompensationStateText`、`centralBrainApproveButton`、`centralBrainRejectButton`、
+`centralBrainRetryButton`、`centralBrainUndoButton`。outside dismiss 只发 `panelVisibility(false)`，不会改变 recovery state。
+
+状态：`cockpit_recovery_state_reducer_owned=true`、`cockpit_approval_details_fail_closed=true`、
+`cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
+`cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
+`cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
+`implementation_stage=P4-W08`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
+
 ## Android P3-W07 Effect verification/reconciliation
 
 ### `EffectVerifier`
@@ -2055,6 +2109,6 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W07`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W08`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.

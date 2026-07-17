@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -13,7 +13,7 @@
       "type": "apktool-resource-xml",
       "target": "res/layout/main_layout.xml",
       "source": "apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml",
-      "summary": "Keeps the original Client2 render region full-screen and overlays a bounded 1920x1080 intent-first shell with four surfaces, four natural scenes, reducer-owned HVAC/Seat controls, and a seven-phase observable execution timeline.",
+      "summary": "Keeps the original Client2 render region full-screen and overlays a bounded 1920x1080 intent-first shell with four surfaces, four natural scenes, reducer-owned HVAC/Seat controls, a seven-phase observable execution timeline, and fail-closed approval/partial/retry/undo presentation.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -61,7 +61,7 @@
       "type": "embedded-secondary-dex",
       "target": "classes2.dex",
       "source": "apk-labs/client2-central-brain/bridge/src",
-      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, immutable HMI/HVAC/Seat/execution-timeline state and targets, four-surface reducer, bounded typed-event projection, 300 ms HVAC/Seat debounce, governed manual Sessions, existing-Session resume, a 14-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
+      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, immutable HMI/HVAC/Seat/execution/recovery state and targets, four-surface reducer, bounded typed-event projection, approval/partial/compensation projection with disabled unpublished commands, 300 ms HVAC/Seat debounce, governed manual Sessions, existing-Session resume, a 14-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -89,6 +89,7 @@
     "DEV-053: the fixed 1920x1080 safe frame and unavailable projections are not a production multi-display HMI or vehicle readback",
     "DEV-054: the frozen Session V1 HVAC1 utterance compatibility carrier is not a versioned typed parameter transport",
     "DEV-055: the frozen Session V1 SEAT1 utterance compatibility carrier is not a versioned typed parameter or approval transport",
-    "DEV-056: the HMI timeline supports typed execution projection while the current Runtime publishes Session events only"
+    "DEV-056: the HMI timeline supports typed execution projection while the current Runtime publishes Session events only",
+    "DEV-057: recovery UX cannot receive ApprovalPrompt, EffectObservation.retryable or UndoHandle through the current Client2 Session/Event surface"
   ]
 }

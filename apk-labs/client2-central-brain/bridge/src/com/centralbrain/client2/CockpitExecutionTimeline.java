@@ -384,7 +384,17 @@ public final class CockpitExecutionTimeline {
         if (!"TYPED_EVENT".equals(event.target) && !event.target.endsWith("_EVIDENCE")) {
             return event.target;
         }
-        if (event.type.startsWith("Effect")) {
+        if (event.type.startsWith("Approval")) {
+            String graphTarget = getStage(Phase.GRAPH).getTarget();
+            if (!"AGENT_GRAPH".equals(graphTarget)) {
+                return graphTarget;
+            }
+            String policyTarget = getStage(Phase.POLICY).getTarget();
+            if (!"GOVERNANCE".equals(policyTarget)
+                    && !"SESSION_ADMISSION".equals(policyTarget)) {
+                return policyTarget;
+            }
+        } else if (event.type.startsWith("Effect")) {
             String effectTarget = getStage(Phase.EFFECT).getTarget();
             if (!"VEHICLE_EFFECT".equals(effectTarget)) {
                 return effectTarget;

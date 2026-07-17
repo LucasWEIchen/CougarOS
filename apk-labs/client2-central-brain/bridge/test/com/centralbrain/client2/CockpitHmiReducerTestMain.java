@@ -30,6 +30,7 @@ public final class CockpitHmiReducerTestMain {
         verifyHvacReduction();
         verifySeatReduction();
         verifyExecutionTimeline();
+        verifyRecoveryUxReduction();
 
         state = CockpitHmiReducer.reduce(
                 state,
@@ -147,6 +148,14 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_execution_fail_closed_projection_verified=true");
         System.out.println("cockpit_execution_typed_event_projection_verified=true");
         System.out.println("cockpit_execution_trace_bounded_verified=true");
+        System.out.println("cockpit_recovery_state_reducer_owned=true");
+        System.out.println("cockpit_approval_details_fail_closed_verified=true");
+        System.out.println("cockpit_partial_outcome_projection_verified=true");
+        System.out.println("cockpit_compensation_projection_verified=true");
+        System.out.println("cockpit_approval_response_service_published=false");
+        System.out.println("cockpit_retry_service_published=false");
+        System.out.println("cockpit_undo_service_published=false");
+        System.out.println("cockpit_recovery_commands_enabled=false");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
     }
@@ -416,6 +425,87 @@ public final class CockpitHmiReducerTestMain {
         check(conflict.getStage(CockpitExecutionTimeline.Phase.READBACK).getStatus()
                         == CockpitExecutionTimeline.Status.MISMATCH,
                 "conflicting verification evidence must not project VERIFIED");
+    }
+
+    private static void verifyRecoveryUxReduction() {
+        CockpitHmiState state = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.panelVisibility(true));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.scenarioSubmitted("care.fatigue"));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.sessionOpened(
+                        handle(), "scene.care.fatigue.v1"));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.snapshot(snapshot(
+                        ICentralBrainSessionRuntime.SESSION_STATE_WAITING_FOR_CONFIRMATION,
+                        "Waiting for confirmation")));
+
+        CockpitRecoveryState recovery = state.getRecoveryState();
+        check(recovery.getApprovalStatus() == CockpitRecoveryState.ApprovalStatus.REQUESTED,
+                "waiting snapshot must expose an approval request");
+        check("UNAVAILABLE".equals(recovery.getApprovalReasonCode())
+                        && "UNAVAILABLE".equals(recovery.getApprovalTarget())
+                        && recovery.getApprovalExpiresAtEpochMs() == 0,
+                "missing ApprovalPrompt details must remain explicitly unavailable");
+        check(!recovery.isApproveEnabled()
+                        && !recovery.isRejectEnabled()
+                        && !recovery.isRetryEnabled()
+                        && !recovery.isUndoEnabled(),
+                "unpublished recovery command services must stay disabled");
+
+        RuntimeEvent[] events = new RuntimeEvent[] {
+                actionEvent(1, "ActionProposed", EventContract.ACTION_PROPOSED, true),
+                typedEvent(2, "ApprovalRequested", EventContract.SOURCE_GOVERNANCE),
+                typedEvent(3, "ApprovalResolved", EventContract.SOURCE_GOVERNANCE),
+                observationEvent(4, "EffectVerified", EventContract.SUBJECT_EFFECT,
+                        EventContract.OUTCOME_VERIFIED, EventContract.QUALITY_FRESH),
+                observationEvent(5, "EffectFailed", EventContract.SUBJECT_EFFECT,
+                        EventContract.OUTCOME_FAILED, EventContract.QUALITY_FRESH),
+                typedEvent(6, "CompensationStarted", EventContract.SOURCE_GOVERNANCE),
+                observationEvent(7, "CompensationObserved",
+                        EventContract.SUBJECT_COMPENSATION,
+                        EventContract.OUTCOME_VERIFIED, EventContract.QUALITY_FRESH)
+        };
+        for (RuntimeEvent event : events) {
+            state = CockpitHmiReducer.reduce(
+                    state,
+                    CockpitHmiReducer.Event.runtimeEvent(event));
+        }
+        recovery = state.getRecoveryState();
+        check(recovery.getApprovalStatus() == CockpitRecoveryState.ApprovalStatus.RESOLVED
+                        && "media.stop".equals(recovery.getApprovalTarget()),
+                "approval state must inherit only the validated capability target");
+        check(recovery.getVerifiedCount() == 1
+                        && recovery.getFailedCount() == 1
+                        && recovery.getInconclusiveCount() == 0,
+                "terminal typed effect evidence must be counted without payload text");
+        check(recovery.getAggregateStatus()
+                        == CockpitRecoveryState.AggregateStatus.PARTIALLY_COMPLETED,
+                "mixed verified/failed evidence must project partial completion");
+        check(recovery.getCompensationStatus()
+                        == CockpitRecoveryState.CompensationStatus.COMPENSATED,
+                "fresh compensation observation must project compensated");
+        check(!recovery.isRetryEnabled() && !recovery.isUndoEnabled(),
+                "effect failure or compensation must not synthesize retry/undo authority");
+
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.snapshot(snapshot(
+                        ICentralBrainSessionRuntime.SESSION_STATE_PARTIALLY_COMPLETED,
+                        "Partial")));
+        check(state.getRecoveryState().getAggregateStatus()
+                        == CockpitRecoveryState.AggregateStatus.PARTIALLY_COMPLETED,
+                "Session partial aggregate must remain visible");
+        CockpitRecoveryState beforeHide = state.getRecoveryState();
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.panelVisibility(false));
+        check(state.getRecoveryState() == beforeHide,
+                "outside dismiss must preserve recovery and approval state");
     }
 
     private static RuntimeEvent typedEvent(long sequence, String type, int source) {

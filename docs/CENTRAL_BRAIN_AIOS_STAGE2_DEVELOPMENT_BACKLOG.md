@@ -657,9 +657,12 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W07` Approval/partial/retry/undo UX
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`。
+- 状态：`COMPLETED`；2.5 人日；需求：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`。
 - DoD：approval reason/target/expiry，partial success/failure，retry failed，governed compensation；
   outside dismiss 不取消 session。
+- 交付：`CockpitRecoveryState` 由 reducer 投影 typed approval/effect/compensation，显示审批字段和逐类终态证据；
+  Event V1 缺少 `ApprovalPrompt`、`EffectObservation.retryable`、`UndoHandle` 时明确显示 UNAVAILABLE，四类命令
+  visible+disabled。host/static/APK/Android 13 ARM64 验证通过；缺口由 `DEV-057` 跟踪。
 
 ### `P4-W08` Driving restriction renderer
 

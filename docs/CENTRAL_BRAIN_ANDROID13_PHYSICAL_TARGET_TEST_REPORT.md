@@ -355,4 +355,40 @@ target_hardware_validated=false
 
 人工截图复核确认七阶段、Media/Nav 和 trace 均位于 `(1264,160)-(1888,1048)` 半透明浮窗内，原车模背景可见，无越界
 或不连贯遮挡。截图仅保存在本地 `/tmp`，不进入 Git；设备身份、raw UI tree/logcat 保留在本地未跟踪 evidence。
-Runtime execution event publication 偏差由 `DEV-056` 跟踪；下一硬件增量为 P4-W07 Approval/partial/retry/undo UX。
+Runtime execution event publication 偏差由 `DEV-056` 跟踪；下一硬件增量为 P4-W08 Driving restriction renderer。
+
+## 14. 2026-07-18 P4-W07 approval/recovery UX evidence
+
+同一 Android 13/API 33 ARM64 USB 设备通过：
+
+1. signed Runtime/Client2 安装、signature permission、secondary SDK dex、Session/Event transport 和完整 recovery 回归；
+2. Execution surface 在 1920x1080 safe frame 内显示 Approval status/reason/target/expiry、Outcome evidence 和 Compensation；
+3. 当前 Runtime 未发布 `ApprovalPrompt`、retry metadata 或 `UndoHandle`，所以 Approval/Reason/Target/Expiry、Outcome、
+   Compensation 分别准确显示 UNAVAILABLE/NO EVIDENCE/UNAVAILABLE；
+4. approve/reject/retry/undo 四个命令 visible 且 `enabled=false`，没有 Binder command、Graph/Effect/Adapter/hardware dispatch；
+5. outside tap 隐藏 overlay，再次从底部导航打开后 Session/recovery projection 保持；隐藏动作不取消 Session；
+6. host future-event coverage 验证 validated capability target 继承、VERIFIED+FAILED -> PARTIALLY_COMPLETED、fresh compensation
+   -> COMPENSATED；这些 host 事件不是实体 Runtime execution evidence；
+7. HVAC/Seat、七阶段 timeline、Runtime unavailable/death、Client2 restart/checkpoint、duplicate suppression 和 Session
+   replacement recovery matrix 继续通过。
+
+```text
+cockpit_recovery_state_reducer_owned=true
+cockpit_approval_details_fail_closed_verified=true
+cockpit_partial_outcome_projection_verified=true
+cockpit_compensation_projection_verified=true
+cockpit_recovery_commands_disabled_verified=true
+cockpit_recovery_outside_dismiss_preserved=true
+cockpit_approval_response_service_published=false
+cockpit_retry_service_published=false
+cockpit_undo_service_published=false
+scenario_execution_enabled=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+UI 树和人工截图复核确认恢复区及四个 disabled controls 位于 `(1264,160)-(1888,1048)` 内部 ScrollView，无越界或背景
+分屏。截图只保留本地临时 evidence，不进入 Git；设备身份、raw UI tree/logcat 不发布。契约承载偏差由 `DEV-057`
+跟踪；下一硬件增量为 P4-W08 Driving restriction renderer。

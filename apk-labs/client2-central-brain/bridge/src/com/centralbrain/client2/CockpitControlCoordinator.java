@@ -36,6 +36,7 @@ public final class CockpitControlCoordinator implements
     private static final String SEAT_DETAIL_TAG = "central_brain_detail_seat";
     private static final String HVAC_TAG_PREFIX = "central_brain_hvac_";
     private static final String SEAT_TAG_PREFIX = "central_brain_seat_";
+    private static final String RECOVERY_TAG_PREFIX = "central_brain_recovery_";
     private static final long HVAC_DEBOUNCE_MS = 300L;
     private static final long SEAT_DEBOUNCE_MS = 300L;
     private static final String PREFS_NAME = "central_brain_hmi_state_v1";
@@ -62,6 +63,9 @@ public final class CockpitControlCoordinator implements
     private TextView executionSummaryView;
     private TextView executionChainView;
     private TextView executionActionsView;
+    private TextView approvalStateView;
+    private TextView partialStateView;
+    private TextView compensationStateView;
     private TextView timelineIntentView;
     private TextView timelineContextView;
     private TextView timelinePlanView;
@@ -99,6 +103,10 @@ public final class CockpitControlCoordinator implements
     private View deviceDrawer;
     private View hvacSurface;
     private View seatSurface;
+    private Button approveButton;
+    private Button rejectButton;
+    private Button retryButton;
+    private Button undoButton;
     private boolean detached;
 
     private CockpitControlCoordinator(Activity activity) {
@@ -157,6 +165,9 @@ public final class CockpitControlCoordinator implements
         executionSummaryView = findTextView("centralBrainExecutionSummaryText");
         executionChainView = findTextView("centralBrainExecutionChainText");
         executionActionsView = findTextView("centralBrainExecutionActionsText");
+        approvalStateView = findTextView("centralBrainApprovalStateText");
+        partialStateView = findTextView("centralBrainPartialStateText");
+        compensationStateView = findTextView("centralBrainCompensationStateText");
         timelineIntentView = findTextView("centralBrainTimelineIntentText");
         timelineContextView = findTextView("centralBrainTimelineContextText");
         timelinePlanView = findTextView("centralBrainTimelinePlanText");
@@ -193,6 +204,10 @@ public final class CockpitControlCoordinator implements
         deviceDrawer = findView("centralBrainDeviceDrawer");
         hvacSurface = findView("centralBrainHvacSurface");
         seatSurface = findView("centralBrainSeatSurface");
+        approveButton = findButton("centralBrainApproveButton");
+        rejectButton = findButton("centralBrainRejectButton");
+        retryButton = findButton("centralBrainRetryButton");
+        undoButton = findButton("centralBrainUndoButton");
         panelOverlay = findView("centralBrainPanelOverlay");
         if (panelOverlay != null) {
             panelOverlay.setOnClickListener(this);
@@ -214,6 +229,11 @@ public final class CockpitControlCoordinator implements
     private TextView findTextView(String name) {
         View view = findView(name);
         return view instanceof TextView ? (TextView) view : null;
+    }
+
+    private Button findButton(String name) {
+        View view = findView(name);
+        return view instanceof Button ? (Button) view : null;
     }
 
     private void bindButtons(View view) {
@@ -288,6 +308,12 @@ public final class CockpitControlCoordinator implements
         }
         if (tag != null && tag.toString().startsWith(SEAT_TAG_PREFIX)) {
             handleSeatControl(tag.toString());
+            return;
+        }
+        if (tag != null && tag.toString().startsWith(RECOVERY_TAG_PREFIX)) {
+            Log.w(TAG, markers()
+                    + " client2_hmi_recovery_command_available=false"
+                    + " recovery_command=" + tag);
             return;
         }
         if (!(view instanceof TextView)) {
@@ -766,7 +792,36 @@ public final class CockpitControlCoordinator implements
         }
         setText(executionActionsView,
                 "Media STOP：" + media + " · Navigation CANCEL：" + navigation);
+        renderRecoveryState(current.getRecoveryState());
         setText(executionChainView, trace.toString());
+    }
+
+    private void renderRecoveryState(CockpitRecoveryState recovery) {
+        String expiry = recovery.getApprovalExpiresAtEpochMs() > 0
+                ? Long.toString(recovery.getApprovalExpiresAtEpochMs())
+                : "UNAVAILABLE";
+        setText(approvalStateView,
+                "Approval：" + statusLabel(recovery.getApprovalStatus())
+                        + "\nReason：" + recovery.getApprovalReasonCode()
+                        + " · Target：" + recovery.getApprovalTarget()
+                        + "\nExpiry：" + expiry
+                        + " · Response service：NOT PUBLISHED");
+        setText(partialStateView,
+                "Outcome evidence：" + statusLabel(recovery.getAggregateStatus())
+                        + "\nVERIFIED " + recovery.getVerifiedCount()
+                        + " · FAILED " + recovery.getFailedCount()
+                        + " · INCONCLUSIVE " + recovery.getInconclusiveCount());
+        setText(compensationStateView,
+                "Compensation：" + statusLabel(recovery.getCompensationStatus())
+                        + " · Undo handle：NOT PUBLISHED");
+        setEnabled(approveButton, recovery.isApproveEnabled());
+        setEnabled(rejectButton, recovery.isRejectEnabled());
+        setEnabled(retryButton, recovery.isRetryEnabled());
+        setEnabled(undoButton, recovery.isUndoEnabled());
+    }
+
+    private static String statusLabel(Enum<?> status) {
+        return status.name().replace('_', ' ');
     }
 
     private static void renderTimelineStage(
@@ -798,6 +853,13 @@ public final class CockpitControlCoordinator implements
                 return "APPROVAL RESOLVED";
             default:
                 return status.name();
+        }
+    }
+
+    private static void setEnabled(View view, boolean enabled) {
+        if (view != null) {
+            view.setEnabled(enabled);
+            view.setAlpha(enabled ? 1.0f : 0.55f);
         }
     }
 
@@ -1073,6 +1135,11 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_execution_plan_published=false"
                 + " cockpit_execution_effect_dispatch_enabled=false"
                 + " cockpit_execution_readback_available=false"
+                + " cockpit_recovery_state_reducer_owned=true"
+                + " cockpit_approval_response_service_published=false"
+                + " cockpit_retry_service_published=false"
+                + " cockpit_undo_service_published=false"
+                + " cockpit_recovery_commands_enabled=false"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"

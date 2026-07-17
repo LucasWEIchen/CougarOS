@@ -80,6 +80,7 @@
 | DEV-054 | P4-W04 冻结 Session V1 以 canonical HVAC1 utterance/HMI_BUTTON 承载手动参数，不是 typed parameter/HMI_CONTROL transport。 | S2-HMI-001/005, XSC-001/006, ISSUE-033 | Accepted Temporary |
 | DEV-055 | P4-W05 冻结 Session V1 以 canonical SEAT1 utterance/HMI_BUTTON 承载手动参数，且无 approval response，不是 typed safety transport。 | S2-HMI-002/003/005, S2-SAF-001, XSC-001/006, ISSUE-029/033 | Accepted Temporary |
 | DEV-056 | P4-W06 HMI 已能投影完整 typed timeline 合同，但当前 Runtime 只发布 Session 事件，未发布 Plan/Action/Effect/Observation。 | S2-UX-001, S2-HMI-003/006, S2-EVT-001, ISSUE-022/026/033 | Accepted Temporary |
+| DEV-057 | P4-W07 recovery UX 只能消费 Session/Event V1，无法接收 ApprovalPrompt、EffectObservation.retryable 或 UndoHandle。 | S2-UX-003, S2-HMI-003, S2-SAF-001, S2-EFF-001, ISSUE-022/026/029/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -837,3 +838,20 @@ Plan/Action/Effect/Observation event，接入 Graph/Effect coordinator/readback�
 `cockpit_execution_timeline_implemented=true`、`cockpit_execution_typed_event_projection=true`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`。
+
+## DEV-057 P4-W07 recovery command details 未发布到 Client2
+
+P4-W07 的 `CockpitRecoveryState` 已从 validated Session/Event 投影 approval status、终态 effect evidence、partial aggregate
+和 compensation status，并将 approve/reject/retry/undo 命令纳入 UI。但是冻结 Event V1 的 Approval 事件为
+`PAYLOAD_NONE`，Effect event 只携带简化 `ObservationEvent`，当前 Client2 surface 也没有 `UndoHandle`/command service。
+
+因此实体 HMI 只能可靠显示审批状态及最近 validated Action capability target；reason/expiry、retryable 和 undo eligibility
+必须显示 UNAVAILABLE。四个命令保持 visible+disabled。host test 中的 future typed events 只验证 projection 逻辑，不能作为
+实体 approval/Effect/undo publication 证据；compensation observation 也不能自行创建 undo authority。
+
+状态：`Accepted Temporary`。关闭条件是发布 versioned Client2-compatible ApprovalPrompt/response、完整
+EffectObservation retry metadata、UndoHandle/compensation admission service，绑定 owner/session/plan/context/policy digest 与 TTL，
+完成 Room/replay/process-death/幂等/Android 13 ARM64 测试，并保持 production vehicle dispatch 独立受控。当前：
+`cockpit_recovery_state_reducer_owned=true`、`cockpit_approval_response_service_published=false`、
+`cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
+`cockpit_recovery_commands_enabled=false`、`production_ready=false`、`target_hardware_validated=false`。
