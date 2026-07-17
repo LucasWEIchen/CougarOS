@@ -1301,6 +1301,49 @@ if [[ "$SIMULATED_HVAC_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SIMULATED_SEAT_NONCE="$(date +%s%N)"
+SIMULATED_SEAT_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.simulation.SimulatedSeatEffectAdapterProbeActivity \
+  --es nonce "$SIMULATED_SEAT_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SIMULATED_SEAT_PROBE_OUTPUT"; then
+  echo "$SIMULATED_SEAT_PROBE_OUTPUT" >&2
+  echo "Simulated Seat adapter probe did not start successfully" >&2
+  exit 1
+fi
+SIMULATED_SEAT_PROBE_PASSED=false
+for _ in {1..40}; do
+  SIMULATED_SEAT_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbSimSeat:I)"
+  if grep -Fq "nonce=$SIMULATED_SEAT_NONCE simulated_seat_probe_complete=true" \
+      <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_adapter_defined=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_typed_target_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_heat_vent_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_recline_safety_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_dispatch_revalidation_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_belt_race_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_progress_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_fault_readback_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_idempotency_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_android13_arm64_verified=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_debug_only=true" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_production_registered=false" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "simulated_seat_runtime_wired=false" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "scenario_plan_runtime_published=false" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "scenario_graph_execution_enabled=false" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" <<<"$SIMULATED_SEAT_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SIMULATED_SEAT_LOG"; then
+    SIMULATED_SEAT_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SIMULATED_SEAT_PROBE_PASSED" != true ]]; then
+  echo "$SIMULATED_SEAT_LOG" >&2
+  echo "Simulated Seat adapter probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -2002,6 +2045,11 @@ printf '%s\n' \
   "simulated_hvac_debug_only=true" \
   "simulated_hvac_production_registered=false" \
   "simulated_hvac_runtime_wired=false" \
+  "simulated_seat_adapter_defined=true" \
+  "simulated_seat_android13_arm64_verified=true" \
+  "simulated_seat_debug_only=true" \
+  "simulated_seat_production_registered=false" \
+  "simulated_seat_runtime_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

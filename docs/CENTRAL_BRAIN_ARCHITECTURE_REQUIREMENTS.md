@@ -749,3 +749,35 @@ NPU、Driver/HAL 或目标硬件资格。
 `simulated_hvac_debug_only=true`、`simulated_hvac_release_source_absent=true`、
 `simulated_hvac_production_registered=false`、`simulated_hvac_runtime_wired=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 30. P2-W10 Simulated Seat adapter trace
+
+本增量映射 `S2-ADP-001`、`S2-SAF-001`、`DEL-001/003..005`：
+
+1. `SimulatedSeatEffectAdapter` 必须只存在于 Runtime `src/debug`，继承 P2-W08 base；main/release source
+   和 production Runtime/Governance Service 不得包含、引用或注册。
+2. destination 固定 `vehicle.seat`。version 1 fixed-binary canonical target 必须精确绑定 action/capability/
+   area/scalar/approval digest，不接受自由文本、相对动作、未知字段、尾随字节或非 canonical 编码。
+3. 支持且仅支持 Seat heating、ventilation、recline。area/range/step 必须复用 P2-W02 catalog：heat/vent
+   driver/passenger 0..3 level/1；recline driver/passenger 0..60 degree/1。
+4. capability 必须 writable+simulatable 且 `canUseProduction=false`。Seat provider 与 approval verifier
+   必须由 debug/test 注入，并固定为 simulation-only、非 production authority。
+5. heating/ventilation admission 必须验证 fresh occupied seat；recline admission 还必须验证 fresh
+   NORMAL+PARKED、driver availability、unbelted 和与 canonical target 绑定的有效 approval digest。
+6. recline 在实际 dispatch 前必须再次读取 Safety、occupancy/belt 和 approval。MOVING、UNKNOWN、非 NORMAL、
+   stale、unoccupied、belted、driver unavailable 或 approval 变化均永久拒绝；不得写 reported。
+7. admission 后写 adapter-owned desired，TTL 180000 ms。NONE/DELAY 完成时只写一次 source SIMULATED、
+   quality VALID 的 reported；duplicate apply/status 不得增加 Twin revision。
+8. delayed recline 必须提供 0..100 的有界 progress observation；完成前不得把部分角度伪造为 authoritative
+   reported。TIMEOUT/retryable/terminal 不写 reported，READBACK_MISMATCH 必须可由 Twin reconciliation 观察。
+9. reset 必须清除 process-memory record、operation 与隔离 Twin；不得接 shared Runtime/Room/Plan/Graph/
+   Effect Service，不得访问 Vehicle/VHAL/NPU/Driver-HAL。
+10. JVM、debug/release compile 和 Android 13/API 33 ARM64 probe 必须覆盖 parked approval、moving/unknown
+    reject、belt/motion/approval race、heat/vent、partial progress、fault/readback 和 idempotency。
+
+状态：`simulated_seat_adapter_defined=true`、`simulated_seat_typed_target_verified=true`、
+`simulated_seat_recline_safety_verified=true`、`simulated_seat_dispatch_revalidation_verified=true`、
+`simulated_seat_progress_verified=true`、`simulated_seat_android13_arm64_verified=true`、
+`simulated_seat_debug_only=true`、`simulated_seat_release_source_absent=true`、
+`simulated_seat_production_registered=false`、`simulated_seat_runtime_wired=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`。

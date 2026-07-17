@@ -97,13 +97,28 @@ public class SimulatedEffectAdapter implements EffectAdapter {
         }
     }
 
+    public static final class SimulationDispatchRejectedException
+            extends RuntimeException {
+        private final String reasonCode;
+
+        private SimulationDispatchRejectedException(String reasonCode) {
+            super("CB_SIM_ADAPTER: dispatch rejected: " + reasonCode);
+            this.reasonCode = reasonCode;
+        }
+
+        public String getReasonCode() {
+            return reasonCode;
+        }
+    }
+
     private static final class Record {
         private final Invocation invocation;
         private final String invocationDigest;
         private final FaultInjectionProfile profile;
-        private final ApplyResult originalResult;
+        private ApplyResult originalResult;
         private final long readyAtElapsedRealtimeMs;
         private boolean appliedCallbackComplete;
+        private boolean dispatchRejected;
 
         private Record(
                 Invocation invocation,
@@ -198,7 +213,11 @@ public class SimulatedEffectAdapter implements EffectAdapter {
         onSimulationAdmitted(invocation, profile);
         records.put(token, record);
         completeIfReady(record);
-        return result;
+        if (record.dispatchRejected && result.getState() == ApplyState.APPLIED) {
+            record.originalResult = new ApplyResult(
+                    token, ApplyState.TERMINAL_FAILURE, evidence);
+        }
+        return record.originalResult;
     }
 
     @Override
@@ -263,8 +282,21 @@ public class SimulatedEffectAdapter implements EffectAdapter {
         // Subclasses update only simulated desired/reported state here.
     }
 
+    protected void validateSimulationDispatch(
+            Invocation invocation, FaultInjectionProfile profile) {
+        // Subclasses recheck mutable dispatch-time safety here.
+    }
+
     protected void onSimulationReset() {
         // Subclasses clear their own simulated state here.
+    }
+
+    protected final void rejectSimulationDispatch(String reasonCode) {
+        if (reasonCode == null || !reasonCode.matches("[A-Z][A-Z0-9_]{2,63}")) {
+            throw new IllegalArgumentException(
+                    "CB_SIM_ADAPTER: dispatch rejection reason is invalid");
+        }
+        throw new SimulationDispatchRejectedException(reasonCode);
     }
 
     protected final long nowSimulationElapsedRealtimeMs() {
@@ -281,12 +313,20 @@ public class SimulatedEffectAdapter implements EffectAdapter {
                 || mode == FaultInjectionProfile.Mode.DELAY
                         && clock.nowElapsedRealtimeMs() >= record.readyAtElapsedRealtimeMs;
         if (shouldApply) {
-            onSimulationApplied(record.invocation, record.profile);
+            try {
+                validateSimulationDispatch(record.invocation, record.profile);
+                onSimulationApplied(record.invocation, record.profile);
+            } catch (SimulationDispatchRejectedException rejected) {
+                record.dispatchRejected = true;
+            }
             record.appliedCallbackComplete = true;
         }
     }
 
     private DeliveryState deliveryState(Record record) {
+        if (record.dispatchRejected) {
+            return DeliveryState.REJECTED;
+        }
         switch (record.profile.getMode()) {
             case NONE:
             case READBACK_MISMATCH:
@@ -306,6 +346,9 @@ public class SimulatedEffectAdapter implements EffectAdapter {
     }
 
     private ReadbackState readbackState(Record record, long now) {
+        if (record.dispatchRejected) {
+            return ReadbackState.TERMINAL_FAILURE;
+        }
         switch (record.profile.getMode()) {
             case NONE:
                 return ReadbackState.MATCHED;

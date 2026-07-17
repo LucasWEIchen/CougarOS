@@ -205,9 +205,14 @@ probe；production 不含/不注册，未接现有 Effect/Plan/Graph Runtime。
 area/range/step、adapter-owned desired/reported Twin、manual delay、timeout/failure/mismatch/idempotency 已通过
 JVM、release-source compile 与 Android 13/API 33 ARM64 probe；production 不含/不注册，未接 Effect Runtime。
 
-下一实现工作包为 `P2-W10 Simulated Seat adapter`。只在 debug source set 基于 P2-W08 实现 heating/
-ventilation/recline typed target，并在每次 recline dispatch 前对 fresh parked/unknown/moving/occupancy/belt
-Safety state 失败关闭；不得注册 production adapter、访问真实 Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
+`P2-W10 Simulated Seat adapter` 已完成：debug-only heating/ventilation/recline typed target、adapter-owned
+desired/reported Twin、recline admission+dispatch 双重 fresh Safety/occupancy/belt/approval gate、永久 race reject
+和有界 progress observation 已通过 JVM、release-source compile 与 Android 13/API 33 ARM64 probe；production
+不含/不注册，未接 Effect Runtime 或真实座椅接口。
+
+下一实现工作包为 `P2-W11 Simulated Media/Nav adapters`。只在 debug source set 基于 P2-W08 实现可替换的
+typed Media/Nav state/observation，不得启动未知第三方 Activity、注册 production adapter、访问真实
+Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
 
 ## 7. 近期进展
 
@@ -306,6 +311,9 @@ Safety state 失败关闭；不得注册 production adapter、访问真实 Vehic
 - 完成 `P2-W09 Simulated HVAC adapter`：typed absolute target、catalog area/range/step、desired/reported
   Twin、manual delay、timeout/retry/terminal/mismatch/idempotency 通过 JVM/release compile/API 33 ARM64 probe；
   production registration/Runtime/Effect/hardware 保持 false，下一工作包为 `P2-W10 Simulated Seat adapter`。
+- 完成 `P2-W10 Simulated Seat adapter`：typed heat/vent/recline、admission+dispatch fresh Safety/occupancy/
+  belt/approval gate、race 永久拒绝、progress 与 isolated desired/reported Twin 通过 JVM/release compile/API 33
+  ARM64 probe；production registration/Runtime/Effect/hardware 保持 false，下一工作包为 P2-W11 Media/Nav。
 
 ## 8. 当前门禁
 

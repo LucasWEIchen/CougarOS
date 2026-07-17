@@ -691,3 +691,22 @@ JVM tests, debug/release compilation and the API 33 ARM64 probe establish
 `simulated_hvac_production_registered=false`, `simulated_hvac_runtime_wired=false`,
 `effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. P2-W10 adds the debug-only Seat
 domain adapter and fresh safety-state gate.
+
+## P2-W10 Simulated Seat Adapter
+
+`SimulatedSeatEffectAdapter` remains in Runtime `src/debug`. Its version 1 canonical `SeatTarget` supports absolute
+heating/ventilation levels and recline angle, validating action, area, scalar, range and step against P2-W02 before
+writing its isolated desired state.
+
+Recline is admitted only with fresh NORMAL+PARKED safety state, an occupied/unbelted seat and a simulation approval
+bound to the current safety/occupant revisions. The adapter repeats those checks immediately before dispatch;
+motion, belt, occupancy or approval races permanently reject delivery without fabricating reported state. Delayed
+recline exposes bounded progress and writes reported only after successful completion. Timeout/failure/mismatch and
+duplicate behavior remain inherited from P2-W08 and are covered by the Seat suite.
+
+JVM tests, debug/release compilation and the API 33 ARM64 probe establish
+`simulated_seat_adapter_defined=true`, `simulated_seat_recline_safety_verified=true`,
+`simulated_seat_dispatch_revalidation_verified=true`, `simulated_seat_progress_verified=true` and
+`simulated_seat_android13_arm64_verified=true`. The providers are simulation-only, production source and Services
+do not contain/register the adapter, and `simulated_seat_runtime_wired=false`, `effect_dispatch_enabled=false` and
+`hardware_accessed=false` remain enforced. P2-W11 adds debug-only typed Media/Navigation state adapters.

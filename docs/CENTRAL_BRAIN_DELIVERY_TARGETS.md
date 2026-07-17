@@ -966,3 +966,37 @@ target_hardware_validated=false
 HVAC 页面或真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 证据只证明 debug software target/fault/readback
 合同可运行。Req IDs：`S2-ADP-001`、`S2-EFF-001`、`DEL-001/003..005`；偏差/问题：
 `DEV-038`、`ISSUE-030/033`。
+
+## Android P2-W10 Simulated Seat Adapter
+
+受维护交付新增：
+
+1. debug-only `SimulatedSeatEffectAdapter` 和 versioned fixed-binary `SeatTarget`；
+2. heating/ventilation/recline absolute target、action/capability/area/range/step validation；
+3. recline admission+dispatch fresh Safety/occupancy/belt/approval revalidation 与永久 race reject；
+4. adapter-owned desired/reported Twin、180 秒 TTL、bounded progress observation 和 fault/readback matrix；
+5. 8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+simulated_seat_adapter_defined=true
+simulated_seat_typed_target_verified=true
+simulated_seat_recline_safety_verified=true
+simulated_seat_dispatch_revalidation_verified=true
+simulated_seat_progress_verified=true
+simulated_seat_android13_arm64_verified=true
+simulated_seat_debug_only=true
+simulated_seat_release_source_absent=true
+simulated_seat_production_registered=false
+simulated_seat_runtime_wired=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 OEM Safety/approval authority、production Seat adapter/property mapping、shared Twin/Room、
+Plan/Graph/Effect Runtime、Client2 Seat 页面或真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 证据只证明
+debug software safety race 与 readback 合同可运行。Req IDs：`S2-ADP-001`、`S2-SAF-001`、
+`DEL-001/003..005`；偏差/问题：`DEV-039`、`ISSUE-029/030/033`。
