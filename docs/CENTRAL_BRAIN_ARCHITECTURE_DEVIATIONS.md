@@ -340,6 +340,7 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P2-W07 进展 | Digest-bound immutable typed Plan compiler 与 API 33 ARM64 probe 完成；target/Runtime publication/Graph/Effect 仍关闭，ISSUE-029/031 仍开放。 |
 | P2-W08 进展 | Debug-only simulated Effect base、manual clock、fault matrix 与 API 33 ARM64 probe 完成；domain target/Runtime registration/真实 readback 仍关闭，ISSUE-030/033 仍开放。 |
 | P2-W09 进展 | Debug-only HVAC typed target、isolated desired/reported Twin 与 API 33 ARM64 probe 完成；production property/Runtime/HMI 仍关闭，ISSUE-030/033 仍开放。 |
+| P2-W10 进展 | Debug-only Seat typed target、dispatch-time Safety/occupancy/belt/approval revalidation、progress 与 API 33 ARM64 probe 完成；OEM Safety/production property/Runtime/HMI 仍关闭，ISSUE-029/030/033 仍开放。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
@@ -472,3 +473,21 @@ fail closed，不允许把 debug payload 发给未知 vendor service。
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。关闭本偏差需要 P3 shared Runtime contract 和 P8 目标平台
 property/permission/area/readback/owner evidence。
+
+## DEV-039 P2-W10 Seat safety 是 debug Runtime-owned gate，不是 OEM Safety authority
+
+P2-W10 用 fixed-binary version 1 payload 冻结 heating、ventilation 和 recline absolute target，并在 recline
+admission 与 dispatch 两次读取注入的 `SafetyVehicleStateProvider`、`SeatOccupantStateProvider` 和
+`SeatApprovalVerifier`。这套 gate 用于验证 motion/belt/occupancy/approval race 的 fail-closed 软件语义，
+不是实体 Occupant ECU、seat controller 硬联锁、OEM Safety policy 或 production approval grant。
+
+Seat provider 与 approval verifier 只存在于 debug/test 注入边界，source 固定 SIMULATED、production
+authorization 固定 false。adapter-owned Twin 和 progress projection 不连接 shared Runtime/Room，且不代表
+实体座椅角度/readback；进程死亡或 reset 会丢失。未知或变化状态会永久拒绝而不是猜测 vendor API。
+
+状态：`Accepted Temporary`。`simulated_seat_debug_only=true`、
+`simulated_seat_release_source_absent=true`、`simulated_seat_production_registered=false`、
+`simulated_seat_runtime_wired=false`、`vehicle_signal_provider_wired=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。关闭本偏差需要 OEM Safety/approval owner、P3 durable Runtime
+和 P8 target property/permission/occupancy/belt/readback evidence；debug probe 不能提升其状态。

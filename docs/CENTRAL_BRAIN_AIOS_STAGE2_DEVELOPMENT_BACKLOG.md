@@ -350,10 +350,17 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W10` Simulated Seat adapter
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-ADP-001`、`S2-SAF-001`。
+- 状态：`DONE`（2026-07-17）；2 人日；需求：`S2-ADP-001`、`S2-SAF-001`。
 - 类：`SimulatedSeatEffectAdapter`。
 - DoD：heat/vent/recline；recline 再次检查 fresh safety state；moving permanently rejects.
 - 测试：parked approval、moving reject、belt change race、partial progress。
+- 实现：debug-only version 1 fixed-binary `SeatTarget` 支持 heating、ventilation 和 recline absolute target；
+  action/capability/area/range/step 复用 P2-W02 catalog。recline 在 admission 和 dispatch 各重验 fresh
+  NORMAL+PARKED、driver availability、occupancy、belt 和 simulation approval digest；状态变化产生永久
+  REJECTED/TERMINAL_FAILURE，不写 reported。manual clock 提供有界 progress observation，完成时才写
+  source SIMULATED reported。
+- 证据：8 组 JVM tests、debug/release compile、DUMP-protected Android 13 ARM64 probe、独立 checker、累计
+  installer 与 CI。production Service/adapter/真实车身接口仍不注册、不访问。
 
 ### `P2-W11` Simulated Media/Nav adapters
 

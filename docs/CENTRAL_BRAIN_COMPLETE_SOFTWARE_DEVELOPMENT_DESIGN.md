@@ -1373,7 +1373,36 @@ SIMULATED reported；timeout/retryable/terminal 不写 reported；mismatch 写 d
 
 ### 16.3 SimulatedSeatEffectAdapter
 
-支持：heating、ventilation、recline。Recline dispatch 前调用 `SafetyVehicleStateProvider` 取 fresh snapshot；moving/unknown/belt buckled 拒绝。仿真角度分段变化并发布 progress observation。
+支持：heating、ventilation、recline。P2-W10 已实现为 Runtime `src/debug` 内部 adapter，不进入
+main/release 或 production Service registry。
+
+`SeatTarget` 使用 version 1 fixed-binary canonical payload：magic、schema、stable capability code、UTF-8
+area、scalar kind、完整 64-bit scalar、approval digest length/value。decoder 要求 exact length 与 canonical
+round-trip。heating/ventilation 的 digest 必须为空；recline 必须携带 lowercase SHA-256 digest。Invocation
+destination 固定 `vehicle.seat`，action 必须与 capability canonical ID 一致。
+
+| 输入 | 范围 | Admission | Dispatch |
+| --- | --- | --- | --- |
+| heating | driver/passenger, 0..3 level | fresh occupied seat | 无额外运动校验 |
+| ventilation | driver/passenger, 0..3 level | fresh occupied seat | 无额外运动校验 |
+| recline | driver/passenger, 0..60 degree | fresh NORMAL+PARKED、driver availability、occupied、unbelted、approval | 重新读取并复验全部 Safety/occupant/belt/approval revision |
+
+`SeatOccupantStateProvider` 与 `SeatApprovalVerifier` 是构造注入的 debug/test 接口。approval verifier 必须
+`isSimulationOnly=true` 且 `isProductionAuthorized=false`，否则构造失败。Safety 与 occupant snapshot 最大
+年龄均为 1000 ms。dispatch race 通过 P2-W08 新增的 dedicated rejection hook 原子映射为 delivery
+`REJECTED`、readback `TERMINAL_FAILURE`，不调用 apply callback、不写 reported。
+
+admission 写 adapter-owned Twin desired，TTL 180 秒。NONE/DELAY 成功只在完成时写 source SIMULATED
+reported。`querySeatProgress` 对 delayed recline 返回 0..99 的中间 projected angle，成功终态为 100；progress
+不是 authoritative readback。timeout/retry/terminal 不写 reported；mismatch 写合法但不同的值并由 Twin
+reconciliation 暴露。duplicate token 不增加 revision，reset 清除 records、operations 和 Twin。
+
+状态：`simulated_seat_adapter_defined=true`、`simulated_seat_recline_safety_verified=true`、
+`simulated_seat_dispatch_revalidation_verified=true`、`simulated_seat_progress_verified=true`、
+`simulated_seat_android13_arm64_verified=true`、`simulated_seat_production_registered=false`、
+`simulated_seat_runtime_wired=false`。无 OEM Safety/approval authority、shared Runtime/Room/Plan/Graph/Effect
+Service、Client2 Seat 页面或真实 Vehicle/VHAL/NPU/Driver-HAL。Req IDs：`S2-ADP-001`、`S2-SAF-001`、
+`DEL-001/003..005`；偏差/问题：`DEV-039`、`ISSUE-029/030/033`。
 
 ### 16.4 SimulatedMedia/Navigation
 
@@ -1919,6 +1948,9 @@ central-brain-sdk AAR
 - P2-W09 Simulated HVAC adapter：versioned typed absolute target、catalog action/area/range/step、isolated
   desired/reported Twin、manual delay 与 timeout/failure/mismatch/idempotency；JVM/release compile/API 33
   ARM64 probe 通过，production registration/Runtime/hardware 保持关闭。
+- P2-W10 Simulated Seat adapter：versioned heat/vent/recline target、admission+dispatch fresh Safety/occupancy/
+  belt/approval gate、永久 race reject、bounded progress 和 isolated Twin；JVM/release compile/API 33 ARM64
+  probe 通过，production Safety authority/registration/Runtime/hardware 保持关闭。
 
 ### 32.2 下一阶段未完成
 
@@ -1927,7 +1959,7 @@ central-brain-sdk AAR
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
 - Digital Twin persistence/production wiring 与 Context production trust/wiring（软件 foundation 已完成）；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
-- Android debug/test-only Seat/Nav/Media domain Effect adapter（P2-W08 base、P2-W09 HVAC 已完成）；
+- Android debug/test-only Nav/Media domain Effect adapter（P2-W08 base、P2-W09 HVAC、P2-W10 Seat 已完成）；
 - Client2 意图/计划/执行/结果四阶段、Effect 设备详情抽屉与 state reducer；
 - Client2 manual/AI 共用 Session/Effect 链路、desired/reported、approval、partial、retry、undo、recovery；
 - Tool/Skill registry/rules/executor/artifact verifier；
@@ -1949,18 +1981,19 @@ central-brain-sdk AAR
 `P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 和
 `P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema`、
 `P2-W06 DeterministicScenarioResolver`、`P2-W07 ScenarioPlanCompiler` 和
-`P2-W08 SimulatedVehicleAdapter base` 和 `P2-W09 Simulated HVAC adapter` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W08 SimulatedVehicleAdapter base`、`P2-W09 Simulated HVAC adapter` 和
+`P2-W10 Simulated Seat adapter` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
 进程内 desired/reported Twin、versioned Context/freshness/trust foundation、三项 strict build-owned Scenario
 manifest catalog、显式/固定文本 selector、Context/capability/policy gate、immutable resolution 和
-digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual clock/fault matrix、HVAC typed
-absolute target 和 isolated desired/reported Twin 已进入工程。
+digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual clock/fault matrix、HVAC/Seat
+typed absolute target、isolated desired/reported Twin、Seat dispatch-time Safety race reject 与 progress 已进入工程。
 Effect Service、approval response/undo execution、Plan Runtime publication 和 Graph Runtime 均未发布。
-下一实现工作包固定为 `P2-W10 Simulated Seat adapter`；只在 debug/test source set 基于 P2-W08 增加
-heating/ventilation/recline typed target、fresh Safety state gate、desired/reported progress 与 readback，
-不得注册 production adapter、激活 compiled Plan、读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码动画。
+下一实现工作包固定为 `P2-W11 Simulated Media/Nav adapters`；只在 debug/test source set 基于 P2-W08 增加
+typed state/observation，不得启动未知第三方 Activity、注册 production adapter、激活 compiled Plan、读取
+真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码结果。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

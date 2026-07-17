@@ -703,3 +703,21 @@ reported 由 manual simulation clock 生成并固定 source SIMULATED、producti
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
 Req IDs：`S2-ADP-001`、`S2-EFF-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W10 Simulated Seat Adapter Driver/HAL Boundary
+
+P2-W10 只在 Runtime `src/debug` 新增纯 Java typed Seat target/adapter、simulation-only occupant/approval
+provider、JVM tests、DUMP-protected probe、installer marker 和 checker。它复用内部 capability、Safety snapshot
+和 Digital Twin software contract，不发现或调用 CarProperty/VHAL/vendor Binder/SOA、CAN/DBC、device node、
+ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL。
+
+heat/vent/recline 的 area/range/step 与 admission+dispatch safety check 是 Stage 2 debug contract，不是 OEM
+seat property、occupant/belt ECU、Safety authority、approval grant 或硬联锁。MOVING/UNKNOWN/stale/belt change
+等路径在软件层 fail closed；source SIMULATED progress/reported 不能替代实体座椅位置回读。
+
+状态：`simulated_seat_adapter_defined=true`、`simulated_seat_debug_only=true`、
+`simulated_seat_production_registered=false`、`simulated_seat_runtime_wired=false`、
+`vehicle_property_mapping_configured=false`、`vehicle_signal_provider_wired=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+Req IDs：`S2-ADP-001`、`S2-SAF-001`、`KH-003/006`、`DEL-004/005`。

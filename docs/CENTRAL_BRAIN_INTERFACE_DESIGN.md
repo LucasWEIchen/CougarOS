@@ -1084,3 +1084,46 @@ Room, Plan/Graph/Effect Service, Vehicle/VHAL/NPU or Driver/HAL. Status: `simula
 `simulated_hvac_runtime_wired=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
 Req IDs: `S2-ADP-001`, `S2-EFF-001`, `DEL-001/003..005`; tracking: `DEV-038`,
 `ISSUE-030/033`.
+
+## Android P2-W10 Simulated Seat Adapter
+
+### Debug-only typed target and safety contract
+
+```java
+SeatTarget SeatTarget.heatingLevel(String area, long level);
+SeatTarget SeatTarget.ventilationLevel(String area, long level);
+SeatTarget SeatTarget.reclineAngle(String area, double angle, String approvalDigest);
+byte[] SeatTarget.toCanonicalPayload();
+SeatTarget SeatTarget.fromCanonicalPayload(byte[] canonicalPayload);
+
+SeatOccupantSnapshot SeatOccupantStateProvider.currentSnapshot(String area);
+boolean SeatApprovalVerifier.isApproved(String approvalDigest, String actionId,
+        String area, long safetyRevision, long occupantRevision);
+SeatProgressObservation SimulatedSeatEffectAdapter.querySeatProgress(String idempotencyToken);
+DigitalTwinSnapshot SimulatedSeatEffectAdapter.getDigitalTwinSnapshot();
+```
+
+The version 1 fixed-binary payload binds stable capability code, UTF-8 area, scalar kind/value and an optional
+lowercase SHA-256 approval digest. Heating/ventilation require an empty approval; recline requires a digest bound by
+the injected simulation verifier. Exact decode length and canonical round-trip reject malformed or trailing input.
+
+| Capability | Area | Absolute target | Additional gate |
+| --- | --- | --- | --- |
+| Seat heating | driver/passenger | 0..3 level, step 1 | fresh occupied seat |
+| Seat ventilation | driver/passenger | 0..3 level, step 1 | fresh occupied seat |
+| Seat recline | driver/passenger | 0..60 degree, step 1 | fresh NORMAL+PARKED, driver available where applicable, occupied, unbelted, approval valid |
+
+Recline executes two validations. Admission establishes desired state; dispatch re-reads the Safety and occupant
+providers and revalidates approval against their revisions. Motion, unknown/stale safety, belt/occupancy changes or
+approval replacement permanently change delivery to `REJECTED` and readback to `TERMINAL_FAILURE`; no reported
+state is written. Delayed operations expose a bounded simulated progress projection but publish reported only on
+successful completion.
+
+Providers and approval are injected debug contracts, not OEM authorities. The adapter has no AIDL/Service
+registration, Room/shared Twin, Plan/Graph/Effect wiring, Vehicle/VHAL/NPU or Driver/HAL access. Status:
+`simulated_seat_adapter_defined=true`, `simulated_seat_recline_safety_verified=true`,
+`simulated_seat_dispatch_revalidation_verified=true`, `simulated_seat_progress_verified=true`,
+`simulated_seat_android13_arm64_verified=true`, `simulated_seat_production_registered=false`,
+`simulated_seat_runtime_wired=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
+Req IDs: `S2-ADP-001`, `S2-SAF-001`, `DEL-001/003..005`; tracking: `DEV-039`,
+`ISSUE-029/030/033`.
