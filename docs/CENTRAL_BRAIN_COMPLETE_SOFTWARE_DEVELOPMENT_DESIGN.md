@@ -204,7 +204,7 @@ flowchart TB
 | Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05..W07 完成；Runtime publication/execution 未接） | `S2-SCN-001` |
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer、Retry/Timeout policy | `FOUNDATION`（P3-W01..W04 状态/typed schema/checkpoint/retry 完成；dispatch/Room 未接） | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
-| Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `NOT_STARTED` | `S2-EFF-001` |
+| Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `FOUNDATION`（P3-W06/P3-W07 coordinator/verification 完成；runtime/durable/production wiring 未接） | `S2-EFF-001` |
 | Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `FOUNDATION`（P2-W08..W12 完成；production/runtime wiring 未接） | `S2-ADP-001` |
 | Tool | ToolManifest/Registry/RuleSolver/Executor | `NOT_STARTED` | `S2-TOL-001` |
 | Skill | SkillArtifactVerifier、SkillSignerPolicy、SkillLifecycle | `NOT_STARTED` | `S2-TOL-001` |
@@ -1372,6 +1372,13 @@ PRODUCTION profile -> activated production adapter only
 
 Seat recline 和 HVAC 量产路径至少需要 readback。超过 verification deadline 进入 UNKNOWN/FAILED，不显示 completed。
 
+P3-W07 已实现这一 verifier contract：`VerificationEvidence` 不接收 match boolean，而是接收 bounded typed
+expected/before/reported field，由 verifier 内部执行 exact/tolerance/transition/composite。CALLBACK_ONLY 会复验 catalog
+是否无 readback 且 LOW risk。每次成功都形成独立 APPLIED 与 VERIFIED observation；mismatch 只到 APPLIED，缺失或
+不可信读回到 UNKNOWN，deadline 到 FAILED_TERMINAL。`DigitalTwinEffectReconciler` 只 query status/read immutable
+snapshot，返回 caller-owned next reconcile time，VERIFIED 时在 query 前去重。当前 production Twin/readback 为空，
+PRODUCTION profile 失败关闭。
+
 ### 15.7 CompensationPlanner
 
 仅为 reversible capability 生成 compensation。使用 before snapshot 的绝对 target，不做相对反向动作。执行 compensation 前重新走完整 Governance。Undo handle 有 TTL；过期或当前 Safety State 不允许时拒绝。
@@ -2107,7 +2114,8 @@ security corpus；`P3-W04 Retry/Timeout policy` 已完成 monotonic deadline、b
 Effect reconcile-before-retry；`P3-W05 Durable approval interrupt` 已完成 binding/expiry/checkpoint/resume Safety
 revalidation。Graph 仍不调用 executor/serializer/policy/approval，main/release 无 deterministic executor，
 Binder/Room/recovery/production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为
-`P3-W06 EffectCoordinator`。
+`P3-W08 Compensation/Undo`。P3-W06 已完成 prepare/dependency coordinator；P3-W07 已完成 process-local
+verification/reconciliation，但两者仍未接 Graph/Room/Binder/production adapter。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见
@@ -2222,3 +2230,42 @@ Android 13 ARM64 probe。状态：`effect_coordinator_graph_wired=false`、
 `production_effect_dispatch_enabled=false`、`effect_verification_reconciliation_wired=false`、
 `hardware_accessed=false`。Req IDs：`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、
 `DEL-001/003..005`；tracking：`DEV-047`、`ISSUE-022/026/030/033`。
+
+## P3-W07 implemented Effect verification/reconciliation
+
+### 模块意图
+
+`EffectVerifier` 把 adapter callback 或车辆 reported state 转换为受 P1 Effect 状态机约束的证据，而不是把“请求已发送”
+显示为“执行完成”。它重新校验 intent/previous binding、CapabilityCatalog 的 area/risk/unit/range、source/profile、
+evidence time、deadline 和 target specification digest。Typed value 只支持 boolean/integer/finite decimal/bounded text；
+COMPOSITE 最多 8 个 canonical signal field。
+
+`DigitalTwinEffectReconciler` 解决 delivery UNKNOWN 与 readback 延迟。它从 P3 registry 精确解析 debug adapter，使用与
+Coordinator 相同的 idempotency token 调用 linearizable `queryStatus`，再读取 caller 提供的一份 immutable
+`DigitalTwinSnapshot`。类中没有 `apply`、timer、thread 或 repository；返回 250 ms..30 s 的下一调用时间供 P3-W09
+durable scheduler 使用。
+
+### 状态和失败语义
+
+- CALLBACK_ONLY 只允许无 readback 的 LOW-risk service；HVAC/Seat fail closed。
+- REPORTED_EQUALS exact；REPORTED_TOLERANCE 只对 numeric；STATE_TRANSITION 要求 before != target 且 report == target；
+  COMPOSITE 要求所有 field 匹配各自 tolerance。
+- DELIVERED/UNKNOWN 成功时固定 APPLIED -> VERIFIED；mismatch 保持 APPLIED，unavailable 保持/进入 UNKNOWN。
+- NOT_APPLIED 只返回确认事实给 retry policy，不在 reconciler 内重试；APPLIED -> NOT_APPLIED 为 terminal regression。
+- VERIFIED replay 在 resolve/query 前返回，确保 query/apply 计数均不增长；PRODUCTION profile 在 query 前失败关闭。
+
+### 并发、持久化和安全边界
+
+两个 main 类只处理 defensive typed DTO、immutable catalog/snapshot 和 SHA-256，不保存 raw vehicle/model/user data。
+调用方负责串行化同一 Effect、clock、scheduler、Room transaction 和 restart recovery。P3-W07 不接
+`EffectCoordinator`、`AgentGraphRuntime`、Room/outbox、Binder Service 或 P2 debug registry；API 33 probe 只构造
+nested fake adapter 与 SIMULATED Twin，不能提升 target hardware 或 production。
+
+验证包括 9 组 JVM tests、debug/release build/lint、release probe isolation、独立 checker、累计 installer 和
+Android 13 ARM64 probe。状态：`effect_verifier_defined=true`、`effect_verification_policies_verified=true`、
+`effect_state_separation_verified=true`、`effect_unknown_reconciliation_verified=true`、
+`effect_verified_redispatch_blocked=true`、`effect_production_readback_fail_closed=true`、
+`effect_verification_reconciliation_runtime_wired=false`、`effect_verification_scheduler_wired=false`、
+`effect_verification_persistence_wired=false`、`effect_verification_production_readback_wired=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`。Req IDs：`S2-EFF-001`、`S2-TWN-001`、
+`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-048`、`ISSUE-022/026/030/033`。

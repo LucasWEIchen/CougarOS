@@ -859,3 +859,22 @@ CAN/DBC、device node、ioctl/sysfs、PCIe/NPU。before-state 只是 fake prepar
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。Req IDs：`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、
 `KH-003/006`、`DEL-004/005`。
+
+### P3-W07 Effect Verification Driver/HAL Boundary
+
+P3-W07 在 Runtime main source 只新增 pure Java typed verifier 与 process-local Twin reconciler；debug source 只新增
+DUMP-protected API 33 probe。Verifier 处理 P1 metadata、bounded typed scalar、SHA-256 与 caller-supplied epoch；
+Reconciler 只调用既有 safe adapter 的 `queryStatus` 并读取传入的 immutable `DigitalTwinSnapshot`，源码禁止调用
+`apply`，也不创建 timer/thread。
+
+当前 Twin 只有 SIMULATED debug/test provenance，不读取 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、
+CAN/DBC、device node、ioctl/sysfs、PCIe/NPU。PRODUCTION profile 在 adapter query 前返回
+`PRODUCTION_READBACK_UNAVAILABLE`，不会将 debug Twin 当量产 readback。没有新增 property ID、area mapping、
+permission、JNI/C ABI、fd/shared memory 或 Driver/HAL 合同。
+
+状态：`effect_verifier_defined=true`、`effect_verification_reconciliation_runtime_wired=false`、
+`effect_verification_scheduler_wired=false`、`effect_verification_persistence_wired=false`、
+`effect_verification_production_readback_wired=false`、`effect_verification_graph_wired=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。Req IDs：
+`S2-EFF-001`、`S2-TWN-001`、`NV-G-005/006/007`、`KH-003/006`、`DEL-004/005`。

@@ -1488,3 +1488,54 @@ readback 或 retry。Batch status 为 ALL_DISPATCHED/PARTIAL/FAILED/UNKNOWN/PREP
 `effect_verification_reconciliation_wired=false`、`hardware_accessed=false`。Req IDs：`S2-EFF-001`、
 `S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-047`、
 `ISSUE-022/026/030/033`。
+
+## Android P3-W07 Effect verification/reconciliation
+
+### `EffectVerifier`
+
+```java
+Result verify(EffectIntent intent,
+              EffectObservation previous,
+              VerificationEvidence evidence,
+              AdapterRegistry.Profile profile,
+              long nowEpochMs);
+
+Result fail(EffectIntent intent,
+            EffectObservation previous,
+            String failureCode,
+            String evidenceDigest,
+            long nowEpochMs);
+
+String expectedTargetDigest(EffectIntent intent,
+                            List<VerificationField> expectedFields);
+```
+
+`VerificationEvidence` 只能是 CALLBACK、READBACK、UNAVAILABLE、TERMINAL；READBACK 包含 1..8 个唯一 canonical
+`VehicleSignalPath`+area field，每项是 immutable expected/before/reported typed scalar、finite tolerance 和 primary 标志。
+禁止 caller-supplied matched boolean、map/JSON/Bundle/raw payload。source/sourceId 必须与前一 observation 和 profile 一致。
+
+CALLBACK_ONLY 只允许 catalog 无 readback 的 LOW risk；reported equals/tolerance/state-transition/composite 均由 verifier
+内部计算。成功从 DELIVERED/UNKNOWN 先返回 APPLIED，再返回 VERIFIED；mismatch 只到 APPLIED；unavailable 到 UNKNOWN；
+deadline/terminal 到 FAILED_TERMINAL。`Result.transitions` 和 latest observation 均 defensive-copy。
+
+### `DigitalTwinEffectReconciler`
+
+```java
+Result reconcile(EffectIntent intent,
+                 EffectObservation previous,
+                 AdapterRegistry.Profile profile,
+                 DigitalTwinSnapshot snapshot,
+                 long nowEpochMs,
+                 int reconcileSequence);
+```
+
+sequence 为 1..64；退避 250 ms 指数增长，上限 30 s，`nextReconcileAtEpochMs <= intent.deadlineEpochMs`。方法只调用
+`queryStatus`：NOT_APPLIED 返回确认事实；APPLIED 与 fresh VALID Twin report 进入 verifier；UNKNOWN/不可用返回下次
+时间；REJECTED/status regression terminal。previous VERIFIED 在 registry resolve/status query 前返回 ALREADY_VERIFIED。
+PRODUCTION profile 固定 `PRODUCTION_READBACK_UNAVAILABLE`，不 query debug adapter。
+
+状态：`effect_verification_reconciliation_runtime_wired=false`、`effect_verification_scheduler_wired=false`、
+`effect_verification_persistence_wired=false`、`effect_verification_production_readback_wired=false`、
+`effect_verification_graph_wired=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`。Req IDs：
+`S2-EFF-001`、`S2-TWN-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-048`、
+`ISSUE-022/026/030/033`。

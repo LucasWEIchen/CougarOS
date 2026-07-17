@@ -71,6 +71,7 @@
 | DEV-045 | P3-W04 retry/timeout policy 尚未接 Graph scheduler 或 production Effect reconcile。 | S2-GRF-001, NV-G-004, ISSUE-022/026 | Accepted Temporary |
 | DEV-046 | P3-W05 approval interrupt 只有 checkpoint-ready 合同，尚未接 Room/Graph/Binder grant/restart recovery。 | S2-SAF-001, S2-UX-003, S2-GRF-001, ISSUE-022/026/029 | Accepted Temporary |
 | DEV-047 | P3-W06 EffectCoordinator 是进程内两阶段合同，尚未接 durable outbox、Graph、readback/reconcile 或 production adapter。 | S2-EFF-001, S2-SAF-001, ISSUE-022/026/030/033 | Accepted Temporary |
+| DEV-048 | P3-W07 verifier/reconciler 是 caller-driven process-local 合同，尚未接 scheduler/Room/Graph 或 production readback。 | S2-EFF-001, S2-TWN-001, ISSUE-022/026/030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -640,12 +641,32 @@ P3-W06 在 Runtime main source 新增 immutable `EffectBatch`、deterministic `E
 当前 Coordinator 是 caller 驱动的单进程对象，不接 `AgentGraphRuntime`、Room/outbox transaction、Binder Service、
 P2 debug simulation registry 或 production vehicle adapter。prepared payload/envelope 只在单次调用内短暂存在；
 before-state 仅以 digest 返回，没有 durable snapshot。Adapter APPLIED 只映射到 DELIVERED，不调用 `queryStatus`，
-不宣称 APPLIED/VERIFIED；UNKNOWN/异常不自动 retry，等待 P3-W07 reconcile。
+不宣称 APPLIED/VERIFIED；P3-W07 已提供独立 verifier/reconciler，但尚未由 Coordinator 调用。
 
 状态：`Accepted Temporary`。`effect_batch_defined=true`、`effect_dependency_plan_verified=true`、
 `effect_prepare_all_required_verified=true`、`effect_independent_observation_verified=true`、
 `effect_coordinator_graph_wired=false`、`effect_coordinator_persistence_wired=false`、
 `production_effect_adapter_registered=false`、`production_effect_dispatch_enabled=false`、
 `effect_verification_reconciliation_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`。P3-W07 必须增加 verification/reconciliation，P3-W09 接 durable outbox/restart；
+`target_hardware_validated=false`。P3-W07 已增加独立 verification/reconciliation，P3-W09 接 durable outbox/restart；
 P8 仍需由目标平台 owner 提供 vehicle API/permission/readback，不能用 debug registration 代替。
+
+## DEV-048 P3-W07 Effect verification/reconciliation 尚未形成 durable production readback loop
+
+P3-W07 在 Runtime main source 新增 pure Java `EffectVerifier` 与 `DigitalTwinEffectReconciler`。Verifier 已实现五种
+typed policy、target/spec digest、DELIVERED/APPLIED/VERIFIED 分层、deadline/trust fail-closed；Reconciler 已实现
+linearizable status query、immutable Twin readback、UNKNOWN next-reconcile time、NOT_APPLIED confirmation 和 VERIFIED
+no-query dedup。源码没有 `apply` 调用，因此本包不会重复下发 Effect。
+
+当前 Reconciler 仍由 caller 单次调用，不持有 timer/thread，不写 Room/outbox，不接 `EffectCoordinator`、
+`AgentGraphRuntime` 或 Binder。Process-local `VehicleDigitalTwinStore` 只有 debug/test SIMULATED evidence，
+`productionTrusted=false`；PRODUCTION profile 在 query 前失败关闭。Twin snapshot 没有 before/composite target set 时，
+STATE_TRANSITION/COMPOSITE 只在 direct verifier contract 可验证，Reconciler 保持 UNKNOWN，不能伪造完成。
+
+状态：`Accepted Temporary`。`effect_verifier_defined=true`、`effect_state_separation_verified=true`、
+`effect_unknown_reconciliation_verified=true`、`effect_verified_redispatch_blocked=true`、
+`effect_verification_reconciliation_runtime_wired=false`、`effect_verification_scheduler_wired=false`、
+`effect_verification_persistence_wired=false`、`effect_verification_production_readback_wired=false`、
+`effect_verification_graph_wired=false`、`production_effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。P3-W09 必须完成 durable timer/Room/restart wiring；P8 必须由
+目标平台 owner 提供可信 target readback/API/permission/Safety evidence，不能用 process-local Twin 或 debug adapter 关闭。

@@ -383,3 +383,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P3-W04 进展 | Monotonic timeout、bounded attempt/backoff/jitter 与 Effect reconcile-before-retry API 33 ARM64 probe 完成；Graph/Room/production Effect/model/hardware 均未接，ISSUE-022/026 保持 Open。 |
 | P3-W05 进展 | Approval binding/expiry/trusted decision/checkpoint/resume Safety revalidation 与 API 33 ARM64 probe 完成；Room/Graph/Binder grant/restart recovery/production Effect/hardware 均未接，ISSUE-022/026/029 保持 Open。 |
 | P3-W06 进展 | Effect batch/dependency/resource wave/exact-profile registry/prepare-all/独立 observation 与 API 33 ARM64 probe 完成；Graph/Room/outbox/readback/reconcile/production adapter/hardware 均未接，ISSUE-022/026/030/033 保持 Open。 |
+| P3-W07 进展 | 五种 typed verification、DELIVERED/APPLIED/VERIFIED 分层、UNKNOWN timed reconcile、Twin readback 与 VERIFIED no-query dedup 已完成软件/API 33 ARM64 证据；scheduler/Room/Graph/production readback/hardware 均未接，ISSUE-022/026/030/033 保持 Open。 |

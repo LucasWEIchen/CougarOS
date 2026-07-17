@@ -86,8 +86,9 @@ Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL
 `P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL`、
 `P1-W05 SDK facade v2`、`P1-W06 Room v4 schema`、`P1-W07 Contract v2 aggregate check`、
 `P2-W01..P2-W12 Context/Scenario/Simulation foundation`、`P3-W01 Agent Graph Runtime state machine`、
-`P3-W02 Typed node executors`、`P3-W03 CheckpointSerializer`、`P3-W04 Retry/Timeout policy` 和
-`P3-W05 Durable approval interrupt` 已完成，下一工作包为 `P3-W06 EffectCoordinator`。P1-P7 交付必须进入
+`P3-W02 Typed node executors`、`P3-W03 CheckpointSerializer`、`P3-W04 Retry/Timeout policy`、
+`P3-W05 Durable approval interrupt`、`P3-W06 EffectCoordinator` 和 `P3-W07 Effect verification/reconciliation`
+已完成，下一工作包为 `P3-W08 Compensation/Undo`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -1302,3 +1303,39 @@ target_hardware_validated=false
 production adapter、vehicle readback、verification/reconciliation、model/NPU/Driver-HAL。Release 包含合同类但不含
 debug probe；APPLIED adapter result 只到 DELIVERED。Req IDs：`S2-EFF-001`、`S2-SAF-001`、
 `NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-047`、`ISSUE-022/026/030/033`。
+
+## Android P3-W07 Effect verification/reconciliation
+
+受维护交付新增：
+
+1. Runtime main-source `EffectVerifier` 与 `DigitalTwinEffectReconciler`；
+2. callback/readback bounded typed evidence、target/composite specification digest 和五种 verification policy；
+3. DELIVERED -> APPLIED -> VERIFIED 独立 observation、mismatch/unknown/deadline/trust fail-closed；
+4. linearizable status query、immutable Twin fresh readback、NOT_APPLIED confirmation、250 ms..30 s caller-owned
+   reconcile schedule 和 VERIFIED no-query dedup；
+5. 9 组 JVM tests、debug/release compile/lint、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+```text
+effect_verifier_defined=true
+effect_verification_policies_verified=true
+effect_state_separation_verified=true
+effect_unknown_reconciliation_verified=true
+effect_verified_redispatch_blocked=true
+effect_production_readback_fail_closed=true
+effect_verification_android13_arm64_verified=true
+effect_verification_reconciliation_runtime_wired=false
+effect_verification_scheduler_wired=false
+effect_verification_persistence_wired=false
+effect_verification_production_readback_wired=false
+effect_verification_graph_wired=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 process-local verification/reconciliation contract，不交付 Coordinator/Graph 调用、Room/outbox、Binder
+Service、后台 scheduler 或 production readback。Reconciler 源码只 query status/read Twin，不调用 apply；PRODUCTION
+profile 在 query 前失败关闭。Release 包含 main contract 类但不含 debug probe。Req IDs：`S2-EFF-001`、
+`S2-TWN-001`、`NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-048`、
+`ISSUE-022/026/030/033`。

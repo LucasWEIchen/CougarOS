@@ -122,7 +122,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W05 完成；P3-W06 下一步） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W07 完成；P3-W08 下一步） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -246,8 +246,13 @@ Graph/Room/Binder/Effect/model/hardware。
 每项 typed observation 已通过 JVM、debug/release compile 和 Android 13/API 33 ARM64 probe。APPLIED 只到 DELIVERED；
 Graph/Room/outbox/Binder/production adapter/readback/hardware 仍未接。
 
-下一实现工作包为 `P3-W07 Verification + reconciliation`。实现 delivered/applied/verified 分层、unknown reconcile
-和 verified 去重；在 production readback 未具备前保持车辆 Effect fail-closed，不得猜测 OEM/Vendor property。
+`P3-W07 Effect verification/reconciliation` 已完成：五种 typed policy、target/composite digest、
+DELIVERED/APPLIED/VERIFIED 分层、UNKNOWN bounded next-reconcile time、immutable Twin readback、NOT_APPLIED confirmation
+和 VERIFIED no-query dedup 已通过 JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。Coordinator/Graph/Room/
+Binder/scheduler/production readback/hardware 仍未接。
+
+下一实现工作包为 `P3-W08 Compensation/Undo`。必须使用 before snapshot 的绝对 target、逆依赖顺序和新的 governed
+task；不可逆 Effect 不得宣称可撤销，当前 production vehicle readback 仍保持 fail-closed。
 
 ## 7. 近期进展
 
@@ -376,6 +381,10 @@ Graph/Room/outbox/Binder/production adapter/readback/hardware 仍未接。
   prepare-all/required zero-dispatch、optional degrade 与独立 typed observation 通过 JVM/debug/release/API 33 ARM64
   probe；Graph/Room/outbox/Binder/production adapter/readback/hardware 保持 false，下一工作包为 P3-W07
   Verification + reconciliation。
+- 完成 `P3-W07 Effect verification/reconciliation`：五种 typed policy、target/composite digest、
+  DELIVERED/APPLIED/VERIFIED 分层、UNKNOWN timed reconcile、Twin readback、status regression fail-closed 与 VERIFIED
+  no-query dedup 通过 JVM/debug/release/API 33 ARM64 probe；Coordinator/Graph/Room/Binder/scheduler/production readback/
+  hardware 保持 false，下一工作包为 P3-W08 Compensation/Undo。
 
 ## 8. 当前门禁
 
@@ -399,6 +408,7 @@ bash tools/check_central_brain_android_scenario_resolver.sh
 bash tools/check_central_brain_android_debug_simulation_controller.sh
 bash tools/check_central_brain_android_agent_graph_runtime.sh
 bash tools/check_central_brain_android_effect_coordinator.sh
+bash tools/check_central_brain_android_effect_verification.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -511,7 +521,19 @@ effect_coordinator_persistence_wired=false
 production_effect_adapter_registered=false
 production_effect_dispatch_enabled=false
 effect_verification_reconciliation_wired=false
-implementation_stage=P3-W07
+effect_verifier_defined=true
+effect_verification_policies_verified=true
+effect_state_separation_verified=true
+effect_unknown_reconciliation_verified=true
+effect_verified_redispatch_blocked=true
+effect_production_readback_fail_closed=true
+effect_verification_android13_arm64_verified=true
+effect_verification_reconciliation_runtime_wired=false
+effect_verification_scheduler_wired=false
+effect_verification_persistence_wired=false
+effect_verification_production_readback_wired=false
+effect_verification_graph_wired=false
+implementation_stage=P3-W08
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

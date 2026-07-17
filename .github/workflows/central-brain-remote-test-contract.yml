@@ -73,4 +73,5 @@ jobs:
           bash tools/check_central_brain_android_retry_timeout_policy.sh
           bash tools/check_central_brain_android_approval_interrupt.sh
           bash tools/check_central_brain_android_effect_coordinator.sh
+          bash tools/check_central_brain_android_effect_verification.sh
           bash tools/check_central_brain_root_readme.sh

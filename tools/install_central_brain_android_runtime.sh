@@ -1527,6 +1527,61 @@ if [[ "$EFFECT_COORDINATOR_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+EFFECT_VERIFICATION_NONCE="$(date +%s%N)"
+EFFECT_VERIFICATION_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.effects.EffectVerificationProbeActivity \
+  --es nonce "$EFFECT_VERIFICATION_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$EFFECT_VERIFICATION_PROBE_OUTPUT"; then
+  echo "$EFFECT_VERIFICATION_PROBE_OUTPUT" >&2
+  echo "Effect verification debug probe did not start successfully" >&2
+  exit 1
+fi
+EFFECT_VERIFICATION_PROBE_PASSED=false
+for _ in {1..40}; do
+  EFFECT_VERIFICATION_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbEffectVerify:I)"
+  if grep -Fq \
+      "nonce=$EFFECT_VERIFICATION_NONCE effect_verification_probe_complete=true" \
+      <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verifier_defined=true" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verification_policies_verified=true" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_state_separation_verified=true" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_unknown_reconciliation_verified=true" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verified_redispatch_blocked=true" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_production_readback_fail_closed=true" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verification_android13_arm64_verified=true" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verification_reconciliation_runtime_wired=false" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verification_scheduler_wired=false" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verification_persistence_wired=false" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verification_production_readback_wired=false" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "effect_verification_graph_wired=false" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "production_effect_dispatch_enabled=false" \
+        <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$EFFECT_VERIFICATION_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$EFFECT_VERIFICATION_LOG"; then
+    EFFECT_VERIFICATION_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$EFFECT_VERIFICATION_PROBE_PASSED" != true ]]; then
+  echo "$EFFECT_VERIFICATION_LOG" >&2
+  echo "Effect verification probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2564,6 +2619,18 @@ printf '%s\n' \
   "production_effect_adapter_registered=false" \
   "production_effect_dispatch_enabled=false" \
   "effect_verification_reconciliation_wired=false" \
+  "effect_verifier_defined=true" \
+  "effect_verification_policies_verified=true" \
+  "effect_state_separation_verified=true" \
+  "effect_unknown_reconciliation_verified=true" \
+  "effect_verified_redispatch_blocked=true" \
+  "effect_production_readback_fail_closed=true" \
+  "effect_verification_android13_arm64_verified=true" \
+  "effect_verification_reconciliation_runtime_wired=false" \
+  "effect_verification_scheduler_wired=false" \
+  "effect_verification_persistence_wired=false" \
+  "effect_verification_production_readback_wired=false" \
+  "effect_verification_graph_wired=false" \
   "effect_dispatch_enabled=false" \
   "network_accessed=false" \
   "model_invoked=false" \

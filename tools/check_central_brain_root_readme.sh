@@ -216,7 +216,19 @@ for marker in \
   'production_effect_adapter_registered=false' \
   'production_effect_dispatch_enabled=false' \
   'effect_verification_reconciliation_wired=false' \
-  'implementation_stage=P3-W07' \
+  'effect_verifier_defined=true' \
+  'effect_verification_policies_verified=true' \
+  'effect_state_separation_verified=true' \
+  'effect_unknown_reconciliation_verified=true' \
+  'effect_verified_redispatch_blocked=true' \
+  'effect_production_readback_fail_closed=true' \
+  'effect_verification_android13_arm64_verified=true' \
+  'effect_verification_reconciliation_runtime_wired=false' \
+  'effect_verification_scheduler_wired=false' \
+  'effect_verification_persistence_wired=false' \
+  'effect_verification_production_readback_wired=false' \
+  'effect_verification_graph_wired=false' \
+  'implementation_stage=P3-W08' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -374,8 +386,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P3-W07..W09" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P3-W07 as the next unfinished scope")
+if "Stage 2 P3-W08..W09" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P3-W08 as the next unfinished scope")
 
 for group in (
     "APP-004",
