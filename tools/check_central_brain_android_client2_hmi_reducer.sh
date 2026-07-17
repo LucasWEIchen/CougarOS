@@ -17,10 +17,11 @@ PRESENTATION_MODE="$PROJECT/bridge/src/com/centralbrain/client2/PanelPresentatio
 DRIVING_UX_POLICY="$PROJECT/bridge/src/com/centralbrain/client2/DrivingUxPolicy.java"
 ENGINEER_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitEngineerState.java"
 SCENARIO_CONTROL="$PROJECT/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java"
+DISPLAY_POLICY="$PROJECT/bridge/src/com/centralbrain/client2/CockpitDisplayPolicy.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 TEST_MAIN="$PROJECT/bridge/test/com/centralbrain/client2/CockpitHmiReducerTestMain.java"
 SDK_AAR="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar"
-BUILD_DIR="$ROOT_DIR/builds/client2-central-brain/hmi-reducer-test"
+BUILD_ROOT="$ROOT_DIR/builds/client2-central-brain/hmi-reducer-test"
 
 if [[ -f "$ROOT_DIR/env.sh" ]]; then
   # shellcheck source=/dev/null
@@ -36,7 +37,7 @@ for path in \
   "$RECOVERY_STATE" \
   "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
   "$ENGINEER_STATE" \
-  "$SCENARIO_CONTROL" \
+  "$SCENARIO_CONTROL" "$DISPLAY_POLICY" \
   "$COORDINATOR" "$TEST_MAIN" "$ANDROID_JAR"; do
   test -f "$path"
 done
@@ -49,7 +50,7 @@ fi
 if grep -Eq '^import android\.' \
     "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT" "$SEAT_STATE" "$SEAT_INTENT" \
     "$EXECUTION_TIMELINE" "$RECOVERY_STATE" "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
-    "$ENGINEER_STATE" "$SCENARIO_CONTROL"; then
+    "$ENGINEER_STATE" "$SCENARIO_CONTROL" "$DISPLAY_POLICY"; then
   echo "Cockpit HMI state/reducer must remain Android-view independent" >&2
   exit 1
 fi
@@ -63,7 +64,12 @@ if grep -Eq 'CentralBrainClient|AgentTaskRequest|submitAgentTask|onBridge(Status
   exit 1
 fi
 
-rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_ROOT"
+BUILD_DIR="$(mktemp -d "$BUILD_ROOT/run.XXXXXX")"
+cleanup() {
+  rm -rf "$BUILD_DIR"
+}
+trap cleanup EXIT
 mkdir -p "$BUILD_DIR/aar" "$BUILD_DIR/classes"
 (
   cd "$BUILD_DIR/aar"
@@ -80,7 +86,7 @@ javac \
   "$HVAC_INTENT" "$HVAC_STATE" "$SEAT_INTENT" "$SEAT_STATE" \
   "$EXECUTION_TIMELINE" "$RECOVERY_STATE" "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
   "$ENGINEER_STATE" \
-  "$SCENARIO_CONTROL" "$STATE" "$REDUCER" "$TEST_MAIN"
+  "$SCENARIO_CONTROL" "$DISPLAY_POLICY" "$STATE" "$REDUCER" "$TEST_MAIN"
 
 java \
   -classpath "$ANDROID_JAR:$SDK_CLASSES:$BUILD_DIR/classes" \

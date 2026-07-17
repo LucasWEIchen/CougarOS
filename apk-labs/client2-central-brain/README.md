@@ -193,7 +193,7 @@ cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
 
-P4-W01 through P4-W09 are complete. The primary bridge exposes typed Session handle,
+P4-W01 through P4-W11 are complete. The primary bridge exposes typed Session handle,
 snapshot, event, replay, overflow, close and error callbacks. The Java coordinator
 reduces these callbacks, owns lifecycle and resumes a text-free checkpoint after
 Client2 process restart. Android 13 ARM64 acceptance covers Runtime/Client2 process
@@ -201,9 +201,9 @@ death, duplicate suppression, hidden-state restore, menu reopen, exact 1920x1080
 safe-frame rendering, four stage selection, HVAC and Seat controls, debounce,
 governed manual Session admission, unknown-context Seat position blocking and the
 seven-phase observable execution timeline, fail-closed approval/recovery UX, driving
-restriction renderer and protected engineer simulation drawer. P4-W10 is next and will
-synchronize scenario/manual-control projections without enabling vehicle or production
-Effect dispatch:
+restriction renderer, protected engineer simulation drawer, scenario/manual synchronization
+and the three-profile accessibility/display matrix. P4-W12 is next and will run aggregate
+Android device acceptance/fault/recovery without enabling vehicle or production Effect dispatch:
 
 ```text
 client2_session_event_primary_api=true
@@ -260,13 +260,18 @@ cockpit_engineer_context_revisioned=true
 cockpit_engineer_runtime_release_service_absent=true
 cockpit_engineer_effect_authorization_source=false
 cockpit_engineer_production_available=false
+cockpit_display_matrix_defined=true
+cockpit_touch_target_min_dp=48
+cockpit_accessibility_semantics_runtime_owned=true
+cockpit_display_matrix_android13_arm64_verified=true
+cockpit_display_effect_authorization_source=false
 client2_smali_controller_retired=true
 client2_hmi_checkpoint_resume_verified=true
 client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W11
+implementation_stage=P4-W12
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -293,6 +298,8 @@ The implementation plan, class/file map and acceptance matrix are maintained in
 - `DEV-059` tracks that P4-W09 locally projects only acknowledged debug-controller
   values/revisions. Runtime release contains no controller Service, and the projection
   is never an Effect, Safety or production vehicle authorization source.
+- `DEV-061` tracks that P4-W11 certifies only three exact landscape profiles and
+  `fontScale<=1.30`; it is not OEM multi-display, TalkBack or production HMI certification.
 
 ## P4-W09 protected engineer simulation drawer
 
@@ -324,3 +331,18 @@ The Plan, Result and device drawer text comes from that one state. A canonical m
 do not mutate manual desired parameters. Plan requires a positive Runtime revision; Effect and readback stay disabled/unavailable.
 `tools/test_client2_central_brain_scenario_sync.sh --require-api-33` runs the physical cold/fatigue/rest/manual matrix. No raw device
 identity or evidence is tracked. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-033`.
+
+## P4-W11 accessibility/display matrix
+
+`CockpitDisplayPolicy` admits only `1280x720@107dpi`, `1920x1080@160dpi` and `2560x1440@213dpi` landscape profiles with
+`0.85 <= fontScale <= 1.30`. It returns deterministic panel bounds and a density-equivalent 48dp touch target. Unsupported metrics,
+portrait, wrong density or oversized text disable the bottom navigation trigger and keep the overlay hidden.
+
+The patched XML provides a static 48dp baseline. `CockpitControlCoordinator` adds nonempty content descriptions, focus and
+accessibility importance, two-line ellipsis, selected state and state descriptions at runtime. State remains understandable without
+color, and the policy is never an Effect authorization source.
+
+Run `tools/check_central_brain_android_client2_accessibility_display.sh` for host/static validation and
+`tools/test_client2_central_brain_accessibility_display.sh --require-api-33` for the physical matrix. The device script restores
+size/density/font/rotation and emits no raw device identity or UI evidence. Req IDs: `S2-UX-003`, `S2-HMI-001/002`;
+tracking: `DEV-061`, `ISSUE-019/033`.

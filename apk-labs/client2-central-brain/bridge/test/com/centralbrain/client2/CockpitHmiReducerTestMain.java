@@ -29,6 +29,7 @@ public final class CockpitHmiReducerTestMain {
                 "intent must be the initial surface");
         check(state.getPresentationMode() == PanelPresentationMode.MOVING_RESTRICTED,
                 "missing driving evidence must default to restricted presentation");
+        verifyDisplayPolicy();
         verifyScenarioControlSynchronization();
         verifyDrivingUxPolicy();
         verifyEngineerSimulationReduction();
@@ -171,8 +172,76 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_moving_long_text_hidden_verified=true");
         System.out.println("cockpit_high_risk_controls_disabled_verified=true");
         System.out.println("cockpit_runtime_policy_authority_independent=true");
+        System.out.println("cockpit_display_matrix_defined=true");
+        System.out.println("cockpit_display_profile_count=3");
+        System.out.println("cockpit_display_large_text_1_3_verified=true");
+        System.out.println("cockpit_display_unsupported_fail_closed=true");
+        System.out.println("cockpit_display_effect_authorization_source=false");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
+    }
+
+    private static void verifyDisplayPolicy() {
+        CockpitDisplayPolicy compact = CockpitDisplayPolicy.resolve(
+                1280, 720, 107, 1.0f);
+        CockpitDisplayPolicy.Bounds compactBounds = compact.getPanelBoundsPixels();
+        check(compact.isSupported()
+                        && compact.getProfile()
+                        == CockpitDisplayPolicy.Profile.COMPACT_1280_720
+                        && compactBounds.getLeft() == 842
+                        && compactBounds.getTop() == 107
+                        && compactBounds.getRight() == 1259
+                        && compactBounds.getBottom() == 701
+                        && compact.getMinimumTouchTargetPixels() == 33,
+                "compact display profile must use the defined density and safe frame");
+
+        CockpitDisplayPolicy standard = CockpitDisplayPolicy.resolve(
+                1920, 1080, 160, 1.0f);
+        CockpitDisplayPolicy.Bounds standardBounds = standard.getPanelBoundsPixels();
+        check(standard.isSupported()
+                        && standard.getProfile()
+                        == CockpitDisplayPolicy.Profile.STANDARD_1920_1080
+                        && standardBounds.getLeft() == 1264
+                        && standardBounds.getTop() == 160
+                        && standardBounds.getRight() == 1888
+                        && standardBounds.getBottom() == 1048,
+                "standard profile must preserve the approved 1920x1080 frame");
+
+        CockpitDisplayPolicy large = CockpitDisplayPolicy.resolve(
+                2560, 1440, 213, 1.0f);
+        CockpitDisplayPolicy.Bounds largeBounds = large.getPanelBoundsPixels();
+        check(large.isSupported()
+                        && large.getProfile()
+                        == CockpitDisplayPolicy.Profile.LARGE_2560_1440
+                        && largeBounds.getLeft() == 1686
+                        && largeBounds.getTop() == 213
+                        && largeBounds.getRight() == 2517
+                        && largeBounds.getBottom() == 1395,
+                "large display profile must use the defined density and safe frame");
+
+        CockpitDisplayPolicy largeText = CockpitDisplayPolicy.resolve(
+                1920, 1080, 160, 1.30f);
+        check(largeText.isSupported() && largeText.isLargeTextProfile(),
+                "1.3 font scale must remain inside the approved matrix");
+        check(!compact.isEffectAuthorizationSource()
+                        && !standard.isEffectAuthorizationSource()
+                        && !large.isEffectAuthorizationSource(),
+                "display policy must never authorize Effect dispatch");
+        check(compact.panelFitsDisplay()
+                        && standard.panelFitsDisplay()
+                        && large.panelFitsDisplay(),
+                "all approved panel bounds must stay inside their display");
+
+        check(!CockpitDisplayPolicy.resolve(720, 1280, 160, 1.0f).isSupported(),
+                "portrait display must fail closed");
+        check(!CockpitDisplayPolicy.resolve(1920, 1080, 240, 1.0f).isSupported(),
+                "unapproved density must fail closed");
+        check(!CockpitDisplayPolicy.resolve(1920, 1080, 161, 1.0f).isSupported(),
+                "nearby density must not be rounded into an approved profile");
+        check(!CockpitDisplayPolicy.resolve(1920, 1080, 160, 1.31f).isSupported(),
+                "font scale above the approved maximum must fail closed");
+        check(!CockpitDisplayPolicy.resolve(1366, 768, 114, 1.0f).isSupported(),
+                "unlisted landscape size must fail closed");
     }
 
     private static void verifyScenarioControlSynchronization() {

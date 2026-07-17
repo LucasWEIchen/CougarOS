@@ -1085,3 +1085,19 @@ CarPropertyManager、VHAL、Vendor Binder/SOA、JNI/C ABI、PCIe/NPU 或 Driver/
 `cockpit_scenario_effect_dispatch_enabled=false`、`cockpit_scenario_readback_available=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。Req IDs：`S2-HMI-001..006`、
 `S2-SCN-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-060`、`ISSUE-030/033`。
+
+### P4-W11 Accessibility/display matrix Driver/HAL boundary
+
+本包只增加 Client2 XML、pure Java `CockpitDisplayPolicy`、Coordinator accessibility 属性和 host/static/ADB UI 测试。
+策略只读取 Android `DisplayMetrics` 与 `Configuration` 中的 width/height/density/fontScale/orientation，不发现车辆或
+硬件能力，也不把屏幕 profile 写入 Runtime、Context、Policy、Safety、Effect 或 Adapter。
+
+本包不调用 Android Car、CarPropertyManager、Vehicle/VHAL、Vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、
+JNI/C ABI、PCIe/NPU、fd/shared memory 或 Driver/HAL。unsupported profile 仅在应用层禁用导航入口；不触发硬件重配、
+display driver 变更或系统属性写入。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+
+状态：`cockpit_display_matrix_defined=true`、`cockpit_touch_target_min_dp=48`、
+`cockpit_accessibility_semantics_runtime_owned=true`、`cockpit_display_matrix_android13_arm64_verified=true`、
+`cockpit_display_effect_authorization_source=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`XSC-001/005/006`、
+`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-061`、`ISSUE-019/033`。

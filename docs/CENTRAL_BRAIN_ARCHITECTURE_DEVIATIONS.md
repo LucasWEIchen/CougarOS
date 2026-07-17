@@ -84,6 +84,7 @@
 | DEV-058 | P4-W08 driving presentation 尚无 production trusted global Context；实体默认只能验证 UNKNOWN 受限模式。 | S2-UX-002, S2-HMI-002, S2-SAF-001, ISSUE-023/029/030/033 | Accepted Temporary |
 | DEV-059 | P4-W09 工程抽屉只在 Client2 本地投影 debug Controller 已确认状态；它不是 production Context、Safety 或 Effect authority。 | S2-HMI-004, S2-ADP-001, S2-OBS-001, ISSUE-023/029/030/033 | Accepted Temporary |
 | DEV-060 | P4-W10 Client2 catalog device role 是 HMI 同步投影，不是 Runtime 发布的 Plan、Effect target 或车辆回读。 | S2-HMI-001..006, S2-SCN-001, ISSUE-022/026/030/033 | Accepted Temporary |
+| DEV-061 | P4-W11 只认证三个固定横屏 profile 和 0.85..1.30 fontScale，不是 OEM 多屏/无障碍量产认证。 | S2-UX-003, S2-HMI-001/002, ISSUE-019/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -913,3 +914,20 @@ DISPATCHED、readback UNAVAILABLE。debug PARKED Context 只解锁测试呈现�
 revisioned、可回放的 typed Plan/Action/Effect/Observation，并由生产 Adapter 与可信 readback 形成证据；Client2 随后删除
 静态 device role，改为只消费 Runtime Plan。当前：`cockpit_scenario_plan_publication_inferred=false`、
 `scenario_execution_enabled=false`、`production_effect_dispatch_enabled=false`、`target_hardware_validated=false`。
+
+## DEV-061 P4-W11 display allowlist is not OEM multi-display qualification
+
+P4-W11 新增 pure Java `CockpitDisplayPolicy`，只允许横屏 `1280x720@107dpi`、`1920x1080@160dpi` 和
+`2560x1440@213dpi`，并把 `fontScale` 限定在 0.85..1.30。未列入的尺寸、density、方向、无效 metrics 或更大字体
+必须禁用 Client2 导航入口并保持浮窗隐藏，不能通过缩放或猜测 OEM 参数继续运行。
+
+Coordinator 在运行时为全部 Button 补齐 content description、focus/importantForAccessibility、至少 48dp 的像素等价值、
+两行省略与 selected/stateDescription；XML 也提供静态 48dp 基线。实体 Android 13 ARM64 已覆盖三档 profile、1.30 字体、
+最长中文、非颜色选中态与不支持 profile 失败关闭。
+
+这只证明当前 APK 在定义矩阵内的应用层可达性与边界，不等价于 OEM 多显示器、旋转、自由 density、任意字体、TalkBack
+完整巡检、驾驶分心法规或量产视觉认证。`CockpitDisplayPolicy.isEffectAuthorizationSource()` 始终为 false，显示 profile
+不得参与车辆动作授权。状态：`Accepted Temporary`。关闭 owner 为 P9/OEM HMI 集成与目标平台无障碍认证；当前
+`cockpit_display_matrix_defined=true`、`cockpit_accessibility_semantics_runtime_owned=true`、
+`cockpit_display_matrix_android13_arm64_verified=true`、`cockpit_display_effect_authorization_source=false`、
+`production_ready=false`、`target_hardware_validated=false`。

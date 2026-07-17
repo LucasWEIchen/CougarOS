@@ -505,3 +505,41 @@ target_hardware_validated=false
 该证据验证 `S2-SCN-001` 的 Client2 HMI 状态同步边界，不代表 Runtime Scene Resolver/Plan Compiler/Graph/Effect
 已接入。catalog role 与 Runtime authority 的偏差由 `DEV-060` 跟踪；下一实体工作包为 P4-W11
 Accessibility/display matrix。
+
+## 18. 2026-07-18 P4-W11 accessibility/display matrix evidence
+
+同一 Android 13/API 33 ARM64 USB 设备完成 signed Runtime/Client2 APK 与 UIAutomator 显示矩阵验收：
+
+1. `1280x720@107dpi`、`1920x1080@160dpi`、`2560x1440@213dpi` 三个严格 allowlisted 横屏 profile
+   均显示面板，按同一 `624dp x 888dp` 安全框缩放且没有超出物理显示边界；
+2. `1920x1080@160dpi` 保持既有 `(1264,160)-(1888,1048)` 安全框；紧凑与大屏 profile 使用确定性
+   density/bounds，不按任意比例猜测布局；
+3. 1920x1080 下 `font_scale=1.3` 时四阶段、场景按钮和最长中文标签保持在面板内，无可点击控件相互重叠；
+4. 所有当前可见 Button 的实体 bounds 均不少于 48dp，运行时 accessibility tree 中 content description 非空；
+5. 当前 Intent tab 暴露 `selected=true`，Plan tab 暴露 `selected=false`；选中/禁用状态不只依赖颜色；
+6. 未列出的 `1366x768@114dpi` 被识别为 `DISPLAY_MATRIX_MISMATCH`，底部 AIOS trigger disabled，不能打开面板；
+7. 测试通过 EXIT trap 恢复原始 size/density/font-scale/rotation；设备身份、UI tree 和日志仅保留本地未跟踪 evidence；
+8. 显示策略不提供 Runtime Policy、Safety 或 Effect authority，未访问 Vehicle/VHAL、NPU、Driver/HAL。
+
+```text
+cockpit_display_matrix_android13_arm64_verified=true
+cockpit_display_compact_1280_720_verified=true
+cockpit_display_standard_1920_1080_verified=true
+cockpit_display_large_2560_1440_verified=true
+cockpit_display_large_text_1_3_verified=true
+cockpit_touch_target_min_dp=48
+cockpit_accessibility_content_description_verified=true
+cockpit_accessibility_state_not_color_only=true
+cockpit_long_chinese_non_overlap_verified=true
+cockpit_display_unsupported_fail_closed=true
+cockpit_display_effect_authorization_source=false
+scenario_execution_enabled=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据关闭 P4-W11 的 application-layer display/accessibility DoD，但不构成 OEM 多屏/竖屏、任意 density/font scale、
+TalkBack 人工认证、驾驶分心或量产 HMI 资格。限制由 `DEV-061` 跟踪；下一实体工作包为 P4-W12 Android device
+acceptance/fault/recovery aggregate。

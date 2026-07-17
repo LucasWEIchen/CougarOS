@@ -696,9 +696,13 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W11` Accessibility/display matrix
 
-- 状态：`NOT_STARTED`；1.5-2.5 人日；需求：`S2-UX-003`、`S2-HMI-001/002`。
+- 状态：`COMPLETE`（2026-07-18）；1.5-2.5 人日；需求：`S2-UX-003`、`S2-HMI-001/002`。
 - DoD：48dp target、content description、状态不只靠颜色、最长中文不重叠；1920x1080 不越界，
   1280x720、2560x1440 只按定义的显示矩阵适配；Web 设计预览 scale 不得大于 1。
+- 交付：新增 Android-independent `CockpitDisplayPolicy`，严格 allowlist `1280x720@107dpi`、
+  `1920x1080@160dpi`、`2560x1440@213dpi` 与 font scale 0.85..1.30；其他 size/density/portrait/font scale
+  失败关闭。Coordinator 为 Button 注入 48dp minimum、normalized content description、selected/enabled state description、
+  两行 ellipsize；XML 触控行提升至 48dp。Host/static/APK/API 33 ARM64 三档+1.3 字体+unsupported 验收见 `R7C-E-014`。
 
 ### `P4-W12` Android device acceptance/fault/recovery
 

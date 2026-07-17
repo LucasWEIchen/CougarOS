@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P4-W11' \
+  'implementation_stage=P4-W12' \
   'client2_session_event_primary_api=true' \
   'client2_session_event_typed_callback=true' \
   'client2_scenario_alias_map_count=14' \
@@ -318,6 +318,15 @@ for marker in \
   'cockpit_scenario_plan_publication_inferred=false' \
   'cockpit_scenario_effect_dispatch_enabled=false' \
   'cockpit_scenario_readback_available=false' \
+  'cockpit_display_matrix_defined=true' \
+  'cockpit_display_profile_count=3' \
+  'cockpit_touch_target_min_dp=48' \
+  'cockpit_accessibility_semantics_runtime_owned=true' \
+  'cockpit_accessibility_state_not_color_only=true' \
+  'cockpit_display_large_text_1_3_verified=true' \
+  'cockpit_display_unsupported_fail_closed=true' \
+  'cockpit_display_matrix_android13_arm64_verified=true' \
+  'cockpit_display_effect_authorization_source=false' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -479,8 +488,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P4-W11" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P4-W11 as the next unfinished scope")
+if "Stage 2 P4-W12" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P4-W12 as the next unfinished scope")
 
 for group in (
     "APP-004",

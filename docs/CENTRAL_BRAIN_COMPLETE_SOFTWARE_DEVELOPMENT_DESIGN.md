@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P4-W11`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P4-W12`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,4 +2846,44 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P4-W11`.
+`implementation_stage=P4-W12`.
+
+## P4-W11 implementation detail: Accessibility/display matrix
+
+### Smallest modules
+
+| Module | Responsibility | Forbidden responsibility |
+| --- | --- | --- |
+| `CockpitDisplayPolicy.Profile` | exact width/height/density allowlist | fuzzy matching or OEM discovery |
+| `CockpitDisplayPolicy.rejectionCode` | bounded fail-closed reason | free-form hardware diagnostics |
+| `CockpitDisplayPolicy.Bounds` | immutable admitted overlay rectangle | View mutation |
+| `CockpitDisplayPolicy` | font/orientation admission, 48dp conversion, panel bounds | Session, Safety, Effect or Vehicle authority |
+| patched XML | static 48dp controls and symbol descriptions | runtime state ownership |
+| `CockpitControlCoordinator` | Android metrics adapter and runtime accessibility semantics | display profile inference or Effect authorization |
+| host/static/ADB tests | profile, font, target, semantics, overlap and restoration evidence | OEM or production certification |
+
+### Admission and render rules
+
+1. At Activity setup, read width/height/densityDpi/fontScale and call `CockpitDisplayPolicy.resolve` exactly once; width must exceed
+   height and no neighboring density is accepted.
+2. If rejected, disable the bottom navigation trigger, keep the overlay `GONE`, log only profile/rejection markers and return before
+   Session or drawer state changes.
+3. If admitted, apply deterministic bounds and the density-equivalent 48dp minimum to every interactive Button. XML dimensions remain
+   at least 48dp so pre-render and theme fallback are also conformant.
+4. Normalize accessibility labels from explicit description or visible text. Symbol-only controls may not use fallback text.
+5. Every reducer-owned activated value is mirrored to selected and stateDescription; disabled and selected states are verbalized so
+   color is supplemental only.
+6. Labels are at most two lines with end ellipsis. Existing ScrollViews, fixed panel bounds and compact profile tests guarantee reachability.
+7. Configuration change/process recreation reevaluates metrics through a new Coordinator. No admitted profile is persisted as authority.
+
+### Verification and failure handling
+
+The host test verifies all three exact bounds, 48dp conversion, 1.30 acceptance, portrait/wrong-density/1.31/unlisted rejection and
+the no-authority invariant. The static gate parses every XML Button and rejects missing label or sub-48dp dimensions. The ADB test
+saves size/density/font/rotation, clears only Client2 state per profile, validates UIAutomator bounds/content descriptions/selection/
+longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7C 2.1 records this as `R7C-E-014`.
+
+This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
+HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
+tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P4-W12`.
