@@ -212,11 +212,13 @@ callback 由 SDK replay 后重新注册。该问题的进程死亡子项已关�
 冻结的 Event V1 还存在 cursor 语义缺口：`hasMore=false` 的 terminal page 不提供可前移的 resume cursor。
 当前 facade 只能保留该 terminal request cursor，并用递增 sequence 去除 register/reconnect replay 的
 重复事件；结果正确但可能重复读取已见历史，不能扩展为高吞吐 durable broker。P1-W07 aggregate review
-必须决定新增 V2 resume cursor/ack contract，或给 terminal page 独立 latest cursor；不得修改已冻结
-Event V1 hash。
+已决定新增独立 Event V2 resume cursor/ACK contract：terminal page 也返回可恢复 cursor，ACK 必须
+monotonic、owner/session-scoped、有界留存并拒绝 stale/future cursor；不得修改已冻结 Event V1 hash。
 
-状态：`Open`。该问题不再阻塞 durable Session Runtime，但仍阻塞 production Event broker 和高吞吐
-resume/ACK。`session_runtime_process_death_rehydration=true`、`production_ready=false`。
+状态：`Open / Design Decided`。P1-W07 决策与 aggregate gate 已完成，V2 Binder/Room ACK/SDK negotiation/
+高吞吐 fault tests 由 `P6-W01/P6-W02` 实现。该问题不再阻塞 durable Session Runtime，但仍阻塞
+production Event broker。`event_v2_interface_published=false`、
+`session_runtime_process_death_rehydration=true`、`production_ready=false`。
 
 ## Android 实现证据索引
 

@@ -56,6 +56,7 @@ for path in \
   tools/check_central_brain_android_event_contract.sh \
   tools/check_central_brain_android_effect_contract.sh \
   tools/check_central_brain_android_room_v4.sh \
+  tools/check_central_brain_runtime_contract_v2.sh \
   tools/check_central_brain_android_binder_runtime.sh \
   tools/check_central_brain_android_binder_lifecycle.sh \
   tools/check_central_brain_android_job_supervisor.sh \
@@ -191,6 +192,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_plan_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_event_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_contract.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_room_v4.sh"
+bash "$ROOT_DIR/tools/check_central_brain_runtime_contract_v2.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_action_governance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_durable_schema.sh"

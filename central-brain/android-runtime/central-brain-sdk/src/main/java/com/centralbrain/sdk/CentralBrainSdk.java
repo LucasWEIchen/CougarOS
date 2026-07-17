@@ -10,7 +10,7 @@ public final class CentralBrainSdk {
     public static final String SDK_VERSION = "0.2.0";
     public static final String EVOLUTION_STAGE = "R4_DURABLE_WORKFLOW";
     public static final String MATURITY = "android_integrated";
-    public static final String STAGE2_IMPLEMENTATION = "P1-W05_SDK_FACADE_V2";
+    public static final String STAGE2_IMPLEMENTATION = "P1-W07_RUNTIME_CONTRACT_V2";
     public static final String ACTION_SESSION_RUNTIME =
             "com.centralbrain.runtime.action.SESSION_RUNTIME";
     public static final String ACTION_SESSION_EVENTS =

@@ -472,3 +472,31 @@ NPU、Driver/HAL 或目标硬件资格。
 当前状态：`room_schema_version=4`、`room_migration_3_4_verified=true`、
 `session_runtime_persistence_wired=true`、`session_runtime_process_death_rehydration=true`、
 `scenario_execution_enabled=false`、`effect_runtime_service_published=false`、`hardware_accessed=false`。
+
+## 20. P1-W07 Runtime Contract v2 aggregate trace
+
+本增量映射 P1 全部 Req，重点为 `APP-004`、`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、
+`S2-EVT-001`、`XSC-001/005/006`、`NV-G-003/004/006/007`、`DEL-001/003..005`：
+
+1. aggregate contract schema version 为 2，但 Session/Plan/Event/Effect wire/DTO 均继续使用冻结 V1；
+   不得修改既有 AIDL transaction、interface version/hash 或 checksum manifest。
+2. 机器可读合同必须同时绑定四组 wire/DTO、七项 owner capability、SDK facade error contract、Room v4/
+   13-table、durable repository 和禁用中的 Plan/Effect/approval-response/undo/scenario capability。
+3. public SDK lifecycle error 固定为 `NOT_CONNECTED/PROTOCOL_MISMATCH/TRANSPORT/SUBSCRIPTION/CLOSED`；
+   DTO contract violation 保持带 domain prefix 的 `IllegalArgumentException`，authorization 保持
+   `SecurityException`，`RemoteException`/Binder primitive 不得泄漏到 public facade。
+4. 固定上限：Session page 50、Event page 100、cursor 256 chars、replay 64 pages、callback 4/session 和
+   128 total、durable session 64、当前 Event 8/session、canonical Event payload 8192 UTF-8 bytes。
+5. Binder target latency 为 protocol 10 ms、open 50 ms、read/cancel 30 ms、callback registration 50 ms；
+   这是应用层合同预算，不是目标硬件性能或量产资格。
+6. Event V1 terminal page 不前移 opaque cursor 的限制必须保留并显式声明。演进决策是独立 Event V2：
+   terminal resume cursor、monotonic ACK、owner/session binding、bounded retention、stale/future reject；
+   P1-W07 不发布 V2 Binder，也不关闭 production Event broker blocker。
+7. aggregate checker 必须一次执行 V1 checksum、各 P1 checker、Room schema、SDK test source、capability、
+   bounds 和 forbidden network/Python fallback 校验；禁止以文档状态替代源码验证。
+8. 本增量不访问 Vehicle/VHAL/NPU/Driver/HAL，不启用 Scenario/Plan/Effect，不恢复 Python/Linux/虚拟化。
+
+状态：`runtime_contract_v2_defined=true`、`runtime_contract_v2_verified=true`、
+`runtime_contract_v2_physical_android13_arm64_verified=true`、
+`frozen_v1_hashes_unchanged=true`、`event_v2_cursor_ack_required=true`、
+`event_v2_interface_published=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`。

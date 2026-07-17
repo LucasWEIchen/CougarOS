@@ -8,6 +8,7 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.centralbrain.sdk.RuntimeEventListener;
+import com.centralbrain.sdk.RuntimeContractV2;
 import com.centralbrain.sdk.ScenarioClient;
 import com.centralbrain.sdk.SessionClient;
 import com.centralbrain.sdk.effect.ApprovalPrompt;
@@ -87,6 +88,7 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             verifyEffectRoundTrips();
             verifyEffectStateTransitions();
             verifyEffectRejections();
+            verifyRuntimeContractV2();
             result.putString(
                     "stream",
                     "\nsession_contract_version=1"
@@ -116,6 +118,11 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                             + "\neffect_runtime_service_published=false"
                             + "\napproval_response_service_published=false"
                             + "\nundo_service_published=false"
+                            + "\nruntime_contract_v2_defined=true"
+                            + "\nruntime_contract_v2_physical_android13_arm64_verified=true"
+                            + "\nfrozen_v1_hashes_unchanged=true"
+                            + "\nevent_v2_cursor_ack_required=true"
+                            + "\nevent_v2_interface_published=false"
                             + "\nhardware_accessed=false\n");
             finish(Activity.RESULT_OK, result);
         } catch (Throwable failure) {
@@ -903,6 +910,21 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         simulated.source = EffectContract.SOURCE_SIMULATION;
         simulated.sourceId = "simulated.vehicle.twin";
         expectEffectViolation(() -> EffectContract.validateObservation(simulated));
+    }
+
+    private static void verifyRuntimeContractV2() {
+        assertEquals(2, RuntimeContractV2.AGGREGATE_VERSION, "aggregate contract version");
+        assertEquals(1, RuntimeContractV2.SESSION_WIRE_VERSION, "Session wire version");
+        assertEquals(1, RuntimeContractV2.EVENT_WIRE_VERSION, "Event wire version");
+        assertEquals(50, RuntimeContractV2.SESSION_PAGE_ITEMS, "Session page bound");
+        assertEquals(100, RuntimeContractV2.EVENT_PAGE_ITEMS, "Event page bound");
+        assertEquals(256, RuntimeContractV2.CURSOR_CHARS, "cursor bound");
+        if (RuntimeContractV2.EVENT_V1_TERMINAL_RESUME_CURSOR
+                || !RuntimeContractV2.EVENT_V2_CURSOR_ACK_REQUIRED
+                || RuntimeContractV2.EVENT_V2_INTERFACE_PUBLISHED
+                || RuntimeContractV2.SCENARIO_EXECUTION_ENABLED) {
+            throw new AssertionError("Runtime Contract v2 publication boundary drift");
+        }
     }
 
     private static EffectIntent validEffectIntent() {

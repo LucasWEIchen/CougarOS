@@ -148,6 +148,28 @@ Current boundaries: `room_schema_version=4`, `session_runtime_persistence_wired=
 `session_runtime_process_death_rehydration=true`, `scenario_execution_enabled=false`,
 `effect_runtime_service_published=false`, `hardware_accessed=false`.
 
+## Stage 2 P1-W07 Runtime Contract v2 aggregate
+
+`central-brain/contracts/central_brain_runtime_contract_v2.json` is the machine-readable aggregate identity for
+the completed P1 capability set. Aggregate version 2 composes the frozen Session/Plan/Event/Effect V1 sources,
+SDK facade and Room v4; it is not a replacement AIDL version and changes no V1 transaction or hash.
+
+`RuntimeContractV2` exposes compatible SDK constants and the five stable facade lifecycle errors. DTO validation
+continues to fail with domain-prefixed `IllegalArgumentException`; authorization remains `SecurityException`, and
+Binder details remain internal to the package-private transport. Bounds are fixed at 50 Session rows, 100 Event
+rows, 256 cursor characters, 64 replay pages, 4 callbacks/session, 128 callbacks total and 8192 UTF-8 bytes for a
+durable canonical Event payload. Binder latency targets are contract limits, not target-hardware performance
+qualification.
+
+The aggregate review records that Event V1 terminal pages cannot advance an opaque resume cursor. A separately
+versioned Event V2 must add a terminal resume cursor and monotonic owner/session-scoped ACK; P1-W07 does not publish
+that interface or a production broker. Run `bash tools/check_central_brain_runtime_contract_v2.sh`.
+
+Status: `runtime_contract_v2_defined=true`, `runtime_contract_v2_verified=true`,
+`runtime_contract_v2_physical_android13_arm64_verified=true`,
+`frozen_v1_hashes_unchanged=true`, `event_v2_cursor_ack_required=true`,
+`event_v2_interface_published=false`, `scenario_execution_enabled=false`, `hardware_accessed=false`.
+
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
 The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`.

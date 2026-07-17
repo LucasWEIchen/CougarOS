@@ -217,9 +217,15 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P1-W07` Contract v2 aggregate check
 
-- 状态：`NOT_STARTED`；1 人日；需求：P1 全部。
-- 新增：`tools/check_central_brain_runtime_contract_v2.sh`。
-- DoD：AIDL API/hash、Room schema、SDK tests 和 forbidden fallback 一次校验。
+- 状态：`DONE`（2026-07-17）；1 人日；需求：P1 全部。
+- 新增：`central_brain_runtime_contract_v2.json`、`RuntimeContractV2`、JVM regression 和
+  `tools/check_central_brain_runtime_contract_v2.sh`。
+- DoD：AIDL API/hash、capability、稳定错误类别、payload/page/callback/latency、Room v4、SDK tests 和
+  forbidden fallback 一次校验；四组 V1 hash 未改变。
+- 设备证据：Android 13/API 33 ARM64 累计 instrumentation 通过 aggregate constants、V1 wire version、
+  bounds 和未发布边界，测试 APK 随后卸载，`hardware_accessed=false`。
+- Event 决策：V1 terminal page 限制保留；未来必须发布独立 Event V2 terminal resume cursor +
+  monotonic owner/session-scoped ACK。P1-W07 不发布该 Binder，也不声称 production broker ready。
 
 ## 6. P2 Context、Digital Twin、Scenario 与仿真 Effect
 

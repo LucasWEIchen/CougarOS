@@ -538,3 +538,16 @@ native pointer、车辆 payload 或签名材料。
 
 Req IDs：`S2-SES-001`、`S2-UX-001..003`、`S2-EVT-001`、`APP-004`、`XSC-001/006`、
 `NV-G-003/004`、`KH-003/006`、`DEL-004/005`。
+
+### P1-W07 Runtime Contract v2 Aggregate Driver/HAL Boundary
+
+P1-W07 只增加 JSON/Java/JVM/static aggregate contract，读取已有 AIDL source/hash、Room schema、SDK test
+source 和 capability XML。它不调用 ADB、JNI/C ABI、CarProperty/VHAL、Vendor Service、NPU/PCIe、DMA/
+IOMMU、device node、ioctl/sysfs、CAN/DBC 或 Safety Runtime。
+
+Event V2 cursor/ACK 仅完成独立 wire 演进决策，未发布 AIDL/Service/capability/Room ACK repository；因此
+不触发 Driver/HAL。Binder latency 值是应用层预算，不是 ECU、总线、NPU 或跨 SoC 性能证据。
+
+状态：`runtime_contract_v2_verified=true`、`event_v2_interface_published=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。

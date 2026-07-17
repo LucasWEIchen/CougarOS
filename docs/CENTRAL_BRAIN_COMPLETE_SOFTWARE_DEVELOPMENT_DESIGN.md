@@ -1687,10 +1687,12 @@ central-brain-sdk AAR
 - P1-W05 SDK facade、Session/Event app-layer Service、capability 和 rebind/resubscribe；
 - P1-W06 Room v4、durable Session/Event repository、migration/transaction/index gate 和 Android 13 ARM64
   Runtime process-death recovery 证据。
+- P1-W07 machine-readable Runtime Contract v2 aggregate、SDK constants/JVM regression、capability/error/bounds/
+  Room/compatibility/forbidden-fallback gate 与 Android 13 ARM64 aggregate instrumentation；四组 V1 hash 未改变。
 
 ### 32.2 下一阶段未完成
 
-- P1-W07 Contract v2 aggregate、Event V2 cursor/ACK 兼容评审；
+- Event V2 terminal resume cursor/ACK Binder、Room ACK retention、SDK negotiation 和高吞吐 fault tests；
 - Scenario/Plan/Effect execution、approval response/undo execution；
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
 - Vehicle Digital Twin 和 trusted Context；
@@ -1713,12 +1715,13 @@ central-brain-sdk AAR
 ## 33. 开发人员起始点
 
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
-`P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2` 和 `P1-W06 Room v4 schema` 已完成：18 个有界 DTO、独立 Session 与
+`P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和
+`P1-W07 Contract v2 aggregate check` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
-测试和独立 checksum 门禁已进入工程。Effect Service、approval response/undo execution、Plan Compiler
-和 Graph Runtime 均未发布。下一实现工作包固定为 `P1-W07 Contract v2 aggregate check`；不得直接在
-Client2 中硬编码仿真动画。
+测试、独立 checksum 和 aggregate gate 已进入工程。Effect Service、approval response/undo execution、
+Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为 `P2-W01 Canonical vehicle signal types`；
+不得读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

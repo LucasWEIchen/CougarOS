@@ -731,3 +731,32 @@ Status: `room_schema_version=4`, `room_migration_3_4_verified=true`,
 `session_runtime_persistence_wired=true`, `session_runtime_process_death_rehydration=true`,
 `scenario_execution_enabled=false`, `hardware_accessed=false`. Req IDs: `S2-SES-001`, `S2-GRF-001`,
 `S2-EFF-001`, `S2-EVT-001`, `XSC-005/006`, `NV-G-003/004/006/007`, `NV-P-002`.
+
+## Stage 2 P1-W07 Runtime Contract v2 Aggregate
+
+| Aggregate surface | Fixed value | Compatibility boundary |
+| --- | --- | --- |
+| `central_brain_runtime_contract_v2.json` | schema `2.0.0` | composition identity; not an AIDL V2 |
+| Session wire | V1 / frozen hash | published; owner-scoped Room-backed |
+| Plan DTO | V1 / frozen manifest | no Binder/compiler/executor |
+| Event wire/callback | V1 / frozen hash | published; terminal cursor limitation retained |
+| Effect DTO | V1 / frozen manifest | no Effect/approval-response/undo Service |
+| SDK error contract | five lifecycle codes + typed Java categories | no public Binder/RemoteException |
+| persistence | Room v4 / 13 tables | callbacks are not persisted |
+| Event evolution | separate V2 cursor + monotonic ACK required | design decision only; not published |
+
+The aggregate contract fixes Session/Event capability ownership to Binder UID/package/current signer and forbids
+identity, permission or Safety authority in payloads. It binds 50/100 item Session/Event pages, 256-character
+cursors, 64 replay pages, 4 callbacks/session, 128 callbacks total, 64 durable sessions, 8 current events/session
+and 8192 UTF-8 canonical payload bytes. Target Binder budgets are 10 ms protocol, 50 ms open, 30 ms read/cancel
+and 50 ms registration; these are testable app-layer budgets, not hardware performance claims.
+
+Event V2 must always provide a resume cursor for the delivered sequence, including a terminal page, and accept a
+monotonic owner/session-bound ACK with bounded retention and stale/future rejection. It must use a new interface
+version/hash and capability review. V1 cannot be silently changed, and sequence deduplication remains its current
+correctness mechanism. `tools/check_central_brain_runtime_contract_v2.sh` enforces the aggregate.
+
+Status: `runtime_contract_v2_defined=true`, `runtime_contract_v2_verified=true`,
+`runtime_contract_v2_physical_android13_arm64_verified=true`,
+`frozen_v1_hashes_unchanged=true`, `event_v2_cursor_ack_required=true`,
+`event_v2_interface_published=false`, `scenario_execution_enabled=false`, `hardware_accessed=false`.

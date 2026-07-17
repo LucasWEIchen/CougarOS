@@ -120,8 +120,8 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | 阶段 | 目标 | 主要交付 | 状态 |
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
-| S2-P1 | Runtime Contract v2 | Session、Context、Plan、Effect、Event typed contract | 进行中（W01-W04 完成） |
-| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 未开始 |
+| S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
+| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 下一阶段（P2-W01） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -158,12 +158,14 @@ cursor replay、callback 去重和 Service rebind 恢复均已进入工程并通
 `P1-W06 Room v4 schema` 已完成：六类 Stage 2 entity、v3->v4 非破坏迁移、owner-scoped durable
 Session/Event repository、事务回滚/索引计划门禁和 Android 13 Runtime 进程死亡恢复已进入工程。
 
-下一实现工作包为 `P1-W07 Contract v2 aggregate check`。执行顺序：
+`P1-W07 Contract v2 aggregate check` 已完成：机器可读 aggregate v2、SDK 常量/JVM regression 和单一
+门禁已聚合 P1-W01..P1-W06 的 AIDL/hash、capability、稳定错误类别、payload/page/callback/latency、
+Room v4 与 forbidden fallback。四组 V1 wire/hash 不变。Event V1 terminal cursor 限制保留，独立 Event
+V2 terminal resume cursor + monotonic ACK 方案已冻结但未发布。
 
-1. 聚合 P1-W01..P1-W06 DTO/AIDL/facade/Room capability matrix 和稳定错误映射。
-2. 固定 Binder payload、分页、callback、latency 与旧客户端兼容门禁，不修改已冻结 V1 hash。
-3. 明确 Event V1 terminal cursor 限制和 V2 演进方案，不在 V1 中偷改 wire contract。
-4. 保持 Effect/approval response/undo execution、车辆/NPU/Driver-HAL 关闭，不恢复 Python gateway。
+下一实现工作包为 `P2-W01 Canonical vehicle signal types`。只新增 Android Java typed signal schema、
+path/unit/area/source/quality/freshness 校验和 JVM tests；不得读取真实 Vehicle/VHAL、激活 Effect/NPU、
+新增 Driver/HAL 或恢复 Python gateway。
 
 ## 7. 近期进展
 
@@ -272,6 +274,12 @@ session_runtime_transient_registry=false
 room_schema_version=4
 session_runtime_persistence_wired=true
 session_runtime_process_death_rehydration=true
+runtime_contract_v2_defined=true
+runtime_contract_v2_verified=true
+runtime_contract_v2_physical_android13_arm64_verified=true
+frozen_v1_hashes_unchanged=true
+event_v2_cursor_ack_required=true
+event_v2_interface_published=false
 plan_contract_v1_defined=true
 plan_parcel_physical_android13_arm64_verified=true
 plan_runtime_published=false

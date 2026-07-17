@@ -72,6 +72,12 @@ for marker in \
   'room_schema_version=4' \
   'session_runtime_persistence_wired=true' \
   'session_runtime_process_death_rehydration=true' \
+  'runtime_contract_v2_defined=true' \
+  'runtime_contract_v2_verified=true' \
+  'runtime_contract_v2_physical_android13_arm64_verified=true' \
+  'frozen_v1_hashes_unchanged=true' \
+  'event_v2_cursor_ack_required=true' \
+  'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
   'plan_parcel_physical_android13_arm64_verified=true' \
   'plan_runtime_published=false' \
@@ -112,6 +118,7 @@ required_paths=(
   central-brain/contracts/central_brain_android_b3_blackbox_acceptance.json
   central-brain/contracts/central_brain_android_r7c_acceptance.json
   central-brain/contracts/central_brain_github_remote_testing.json
+  central-brain/contracts/central_brain_runtime_contract_v2.json
   central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
@@ -133,6 +140,7 @@ required_paths=(
   tools/check_central_brain_android_plan_contract.sh
   tools/check_central_brain_android_event_contract.sh
   tools/check_central_brain_android_effect_contract.sh
+  tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_repository_completeness.sh
@@ -207,8 +215,10 @@ remaining_rows = sum(
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
-if "`P1-W01..P1-W06`" not in remaining or "`P1-W07`" not in remaining:
-    raise SystemExit("README remaining-work table must preserve P1-W01..P1-W06 status and name P1-W07")
+if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
+    raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
+if "Stage 2 P2" not in remaining or "Context 与 Digital Twin" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P2 as the next unfinished scope")
 
 for group in (
     "APP-004",

@@ -303,6 +303,33 @@ The v4 schema also defines Plan/Node/EffectObservation/Compensation tables, but 
 new method is inferred. Existing Governance V1 still cannot grant approval, and `ApprovalPrompt`/`UndoHandle`
 remain data-only contracts. P1-W06 is therefore not Plan/Effect execution or authority expansion.
 
+## Stage 2 P1-W07 Aggregate Contract v2
+
+Aggregate version 2 is a compatibility manifest over the frozen P1 V1 files, not a Stable AIDL interface version.
+`central_brain_runtime_contract_v2.json` pins Session/Event interface versions and hashes, Plan/Effect manifests,
+the seven published capabilities, SDK error categories, Room v4 identity and bounded payload/page/callback/latency
+limits. `RuntimeContractV2` exposes the same compatibility constants to SDK tests; `ScenarioClient` aliases its
+five lifecycle error codes from that class.
+
+The target latency table for the currently published Session/Event app-layer Binder is:
+
+| Method class | Target | Constraint |
+| --- | --- | --- |
+| protocol version/hash | <= 10 ms | constant-time; no I/O |
+| `openSession` | <= 50 ms | validate and commit bounded Session + initial Event only |
+| get/list/cancel/getEvents | <= 30 ms | owner-scoped bounded Room transaction/query |
+| callback register/unregister | <= 50 ms | bounded replay/register; callback remains one-way |
+
+Event V1's terminal `EventPage` still has empty `nextCursor`. The approved evolution is a separate Event V2 wire
+contract with terminal resume cursor and explicit monotonic owner/session-scoped ACK, bounded retention and stale/
+future cursor rejection. No V2 AIDL is published by P1-W07, so `event_v2_interface_published=false` and production
+Event broker readiness remains false. Existing V1 transaction order/hash cannot be altered to implement this.
+
+The cumulative SDK instrumentation verifies aggregate constants, V1 versions, bounds and publication flags on the
+Android 13/API 33 ARM64 physical controller. It reports
+`runtime_contract_v2_physical_android13_arm64_verified=true` and `hardware_accessed=false`; this is application
+serialization evidence, not vehicle/NPU or target performance qualification.
+
 ## References
 
 - Android app AIDL: <https://developer.android.com/develop/background-work/services/aidl>

@@ -8,11 +8,11 @@ import com.centralbrain.sdk.session.SessionSnapshot;
 
 /** Stage 2 scenario/session facade. Public callers never operate Binder primitives. */
 public interface ScenarioClient extends AutoCloseable {
-    String ERROR_NOT_CONNECTED = "NOT_CONNECTED";
-    String ERROR_PROTOCOL_MISMATCH = "PROTOCOL_MISMATCH";
-    String ERROR_TRANSPORT = "TRANSPORT";
-    String ERROR_SUBSCRIPTION = "SUBSCRIPTION";
-    String ERROR_CLOSED = "CLOSED";
+    String ERROR_NOT_CONNECTED = RuntimeContractV2.ERROR_NOT_CONNECTED;
+    String ERROR_PROTOCOL_MISMATCH = RuntimeContractV2.ERROR_PROTOCOL_MISMATCH;
+    String ERROR_TRANSPORT = RuntimeContractV2.ERROR_TRANSPORT;
+    String ERROR_SUBSCRIPTION = RuntimeContractV2.ERROR_SUBSCRIPTION;
+    String ERROR_CLOSED = RuntimeContractV2.ERROR_CLOSED;
 
     interface ConnectionListener {
         void onConnected(ScenarioClient client, boolean reconnected);
