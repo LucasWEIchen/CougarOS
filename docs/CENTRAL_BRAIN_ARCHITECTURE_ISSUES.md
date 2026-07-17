@@ -120,6 +120,12 @@ P3-W01 进展：新增 process-local Graph/Node state reducer、同 session FIFO
 manual deadline 和 digest-only event projection。它不写 Room/checkpoint、不执行 executor/Effect/compensation，
 进程死亡会丢失全部 graph state；因此只关闭状态机结构子项，durability、reconcile 和副作用恢复仍保持 Open。
 
+P3-W08 进展：已增加显式 reversible policy、VALID before snapshot、绝对 target、reverse dependency plan、
+TTL/digest handle、Context/Policy/Safety 复验和新的 governed task admission。原 VERIFIED Effect 保持不可变，
+不会通过数据库回滚或状态倒退伪造 Undo。当前 admission/before material/idempotency 仍是 process-local，
+不接 Graph/Room/Binder/adapter，且 PRODUCTION 固定拒绝；P1 V1 的 COMPENSATING/COMPENSATED 枚举在冻结
+transition 中不可达，已登记 `DEV-049`，需要独立 compensation operation contract。因此本问题保持 Open。
+
 ## ISSUE-023 Android 可信身份、capability 与审批
 
 Binder caller identity、package/current signer、default-deny capability 和 typed governance 已实现。
@@ -384,3 +390,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P3-W05 进展 | Approval binding/expiry/trusted decision/checkpoint/resume Safety revalidation 与 API 33 ARM64 probe 完成；Room/Graph/Binder grant/restart recovery/production Effect/hardware 均未接，ISSUE-022/026/029 保持 Open。 |
 | P3-W06 进展 | Effect batch/dependency/resource wave/exact-profile registry/prepare-all/独立 observation 与 API 33 ARM64 probe 完成；Graph/Room/outbox/readback/reconcile/production adapter/hardware 均未接，ISSUE-022/026/030/033 保持 Open。 |
 | P3-W07 进展 | 五种 typed verification、DELIVERED/APPLIED/VERIFIED 分层、UNKNOWN timed reconcile、Twin readback 与 VERIFIED no-query dedup 已完成软件/API 33 ARM64 证据；scheduler/Room/Graph/production readback/hardware 均未接，ISSUE-022/026/030/033 保持 Open。 |
+| P3-W08 进展 | Explicit reversible policy、VALID before snapshot、absolute target、reverse dependency、TTL/Governance/new task/idempotent admission 已完成软件/API 33 ARM64 证据；原 VERIFIED 不变，Graph/Room/Binder/dispatch/production authority 均未接，DEV-049 与 ISSUE-022/023/026/029/030/033 保持 Open。 |

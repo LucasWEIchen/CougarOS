@@ -906,3 +906,31 @@ Nine JVM test groups and the Android 13/API 33 ARM64 probe establish `effect_ver
 `effect_verification_persistence_wired=false`, `effect_verification_production_readback_wired=false`,
 `effect_verification_graph_wired=false`, `production_effect_dispatch_enabled=false` and `hardware_accessed=false`
 remain enforced. P3-W08 Compensation/Undo is the next work package.
+
+## P3-W08 Compensation/Undo
+
+`CompensationPlanner` accepts a complete terminal source `EffectBatch`, one state for every Effect, an explicit
+capability+catalog-area reversible allowlist, a VALID typed before snapshot and a caller-built new Effect intent.
+Only VERIFIED reversible Effects can enter the plan. The source compensation descriptor, prepared before-state
+digest, capability/path/area/range/unit, source Context and absolute before scalar must all match. The generated
+waves reverse the original dependency waves; compensation intents share a new session/plan/action, use a
+source-bound idempotency key, cannot recursively advertise Undo and never mutate the original VERIFIED terminal
+observation.
+
+`UndoService` is a pure Java process-local admission object, not an Android Service. It issues one digest-bound,
+deadline-capped P1 `UndoHandle` per compensation step. Request admission verifies every handle and its TTL, then
+requires a fresh matching Context, trusted current Governance authority, allowed capabilities, authorized policy
+and trusted SAFE state. Success creates a new immutable governed task plus REQUESTED handle copies; a bounded
+owner+idempotency record returns the same task on replay. PRODUCTION always returns
+`PRODUCTION_COMPENSATION_UNAVAILABLE` because no production authority, durable before material or adapter exists.
+
+Eight JVM test groups and the Android 13/API 33 ARM64 probe establish
+`compensation_planner_defined=true`, `compensation_absolute_before_verified=true`,
+`compensation_reverse_dependency_verified=true`, `compensation_irreversible_rejected=true`,
+`undo_ttl_governance_verified=true`, `undo_new_governed_task_verified=true`,
+`undo_idempotent_replay_verified=true`, `undo_production_fail_closed=true` and
+`compensation_undo_android13_arm64_verified=true`. `compensation_undo_runtime_wired=false`,
+`compensation_undo_persistence_wired=false`, `undo_binder_service_published=false`,
+`compensation_dispatch_enabled=false`, `production_compensation_authority_wired=false`,
+`effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. P3-W09 Restart recovery is the
+next work package.

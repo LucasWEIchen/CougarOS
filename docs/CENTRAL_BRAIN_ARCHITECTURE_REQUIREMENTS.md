@@ -1082,3 +1082,44 @@ NPU、Driver/HAL 或目标硬件资格。
 `effect_verification_persistence_wired=false`、`effect_verification_production_readback_wired=false`、
 `effect_verification_graph_wired=false`、`production_effect_dispatch_enabled=false`、`model_invoked=false`、
 `network_accessed=false`、`hardware_accessed=false`。
+
+## 40. P3-W08 Compensation/Undo trace
+
+派生需求：`S2-EFF-001`、`S2-UX-003`、`S2-SAF-001`、`NV-G-005/006/007`、
+`DEL-001/003/004/005`。
+
+1. `CompensationPlanner` 必须消费一个完整 P3-W06 `EffectBatch` 和每个 Effect 的 terminal state；state
+   缺失/重复、batch 外 Effect、非 terminal source、verified dependency 未 verified 均失败关闭。仅 VERIFIED
+   source 可以生成 step。
+2. `EffectIntent.reversible=true` 不是充分授权。Planner 构造时必须冻结显式 capability+catalog-area reversible
+   allowlist；任一 verified irreversible、未列入 policy 或无 catalog readback 的 Effect 使 full undo 不可用，
+   不得撤销部分动作后宣称整体成功。
+3. 每个 reversible step 必须携带同 capability/path/area/unit/range 的 VALID typed before signal、source Context
+   binding、capture time 和 SHA-256；before digest 必须等于 P3-W06 prepared material 的 before-state digest，source
+   compensation descriptor 必须由 capability/area/type/unit/risk/verification domain-separated 生成。
+4. Compensation target 必须是 before snapshot 的绝对 typed scalar，禁止相对加减或 caller-supplied match boolean。
+   新 Effect 必须使用新的 session/plan/action/effect identity、source-bound idempotency key、当前非回退 Context，
+   并固定 `reversible=false`，防止无限 Undo 链。
+5. Compensation wave 必须反转原 dependency plan；原 B depends-on A 时补偿 B 先于 A。同 wave 仍不得包含同
+   resource。Plan/step 必须 immutable、defensive-copy、digest-bound，不拥有 thread/timer/scheduler。
+6. P1 V1 的原始 VERIFIED observation 是不可变 terminal。Undo 不得把它直接转换为 COMPENSATING；必须创建新的
+   governed compensation task。冻结 V1 中 unreachable compensation transition 的后续协议演进由 `DEV-049` 跟踪。
+7. `UndoService` 在本包是 pure Java process-local admission，不是 Android/Binder Service。它必须为每个 step
+   签发 digest-bound P1 `UndoHandle`，TTL 不超过 15 分钟且不晚于 compensation deadline；tamper、过期、非
+   AVAILABLE、Context version 回退均拒绝。
+8. Request 必须重新检查 trusted authority、fresh exact Context、current policy authorization、capability allowlist
+   和 trusted SAFE state；成功只创建新的 immutable governed task 与 REQUESTED handle copies，不 dispatch Effect。
+   owner+idempotency process record 上限 64，同 material replay 返回首次 task，不同 material 冲突失败关闭。
+9. PRODUCTION profile 固定 `PRODUCTION_COMPENSATION_UNAVAILABLE`，不得使用 debug authority/before snapshot；
+   P3-W08 不接 Graph/Room/Binder/adapter/vehicle/NPU/Driver-HAL。JVM 与 Android 13/API 33 ARM64 probe 必须覆盖
+   absolute before、reverse order、irreversible reject、TTL/digest、Governance/Safety、new task、replay 和
+   production fail-closed；release manifest 不得含 probe。
+
+状态：`compensation_planner_defined=true`、`compensation_absolute_before_verified=true`、
+`compensation_reverse_dependency_verified=true`、`compensation_irreversible_rejected=true`、
+`undo_ttl_governance_verified=true`、`undo_new_governed_task_verified=true`、
+`undo_idempotent_replay_verified=true`、`undo_production_fail_closed=true`、
+`compensation_undo_android13_arm64_verified=true`、`compensation_undo_runtime_wired=false`、
+`compensation_undo_persistence_wired=false`、`undo_binder_service_published=false`、
+`compensation_dispatch_enabled=false`、`production_compensation_authority_wired=false`、
+`effect_dispatch_enabled=false`、`network_accessed=false`、`hardware_accessed=false`。

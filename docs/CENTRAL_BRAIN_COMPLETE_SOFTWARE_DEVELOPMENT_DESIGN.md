@@ -204,7 +204,7 @@ flowchart TB
 | Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05..W07 完成；Runtime publication/execution 未接） | `S2-SCN-001` |
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer、Retry/Timeout policy | `FOUNDATION`（P3-W01..W04 状态/typed schema/checkpoint/retry 完成；dispatch/Room 未接） | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
-| Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `FOUNDATION`（P3-W06/P3-W07 coordinator/verification 完成；runtime/durable/production wiring 未接） | `S2-EFF-001` |
+| Effect | EffectCoordinator、Verifier、CompensationPlanner、UndoService、AdapterRegistry | `FOUNDATION`（P3-W06..W08 coordinator/verification/compensation/undo admission 完成；runtime/durable/production wiring 未接） | `S2-EFF-001`、`S2-SAF-001`、`S2-UX-003` |
 | Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `FOUNDATION`（P2-W08..W12 完成；production/runtime wiring 未接） | `S2-ADP-001` |
 | Tool | ToolManifest/Registry/RuleSolver/Executor | `NOT_STARTED` | `S2-TOL-001` |
 | Skill | SkillArtifactVerifier、SkillSignerPolicy、SkillLifecycle | `NOT_STARTED` | `S2-TOL-001` |
@@ -1119,8 +1119,8 @@ runId。相同 session 只有一个 active run，后续 CREATED run 按 admissio
 `pump` 只处理 deadline、PLANNING->WAITING 和 root READY，不启动线程或 executor。`claimNextReadyNode` 只将
 READY node 标为 EXECUTING；调用方必须显式提交 SUCCEEDED/FAILED/SKIPPED，或 suspend/resume WAITING。
 required failure 进入 FAILED；optional `SKIP_OPTIONAL` 继续满足 ON_TERMINAL dependency 并最终进入终态
-PARTIAL；required dependency 不可满足进入 STUCK。COMPENSATING 状态只冻结在合法 transition 表中，P3-W08
-之前不执行补偿。
+PARTIAL；required dependency 不可满足进入 STUCK。P3-W08 只定义独立的新 compensation governed task，尚未把
+该任务接入 Graph dispatch；原 Graph run 与原 VERIFIED Effect 均不被补偿请求原地改写。
 
 `GraphRunSnapshot` 和 `NodeRunSnapshot` 是 immutable projection，不返回 Plan/input。每条 `GraphEvent` 只含
 sequence、elapsed、nodeId、Graph/Node enum、ReasonCode 和前一事件绑定的 SHA-256；projection 超过上限丢弃
@@ -1309,10 +1309,15 @@ stateDiagram-v2
     PREPARED --> FAILED_RETRYABLE
     DISPATCHED --> FAILED_RETRYABLE
     FAILED_RETRYABLE --> PREPARED: bounded retry
-    VERIFIED --> COMPENSATING
-    COMPENSATING --> COMPENSATED
-    COMPENSATING --> FAILED_TERMINAL
+    VERIFIED --> [*]: immutable source evidence
 ```
+
+P1 `EffectContract` 将 VERIFIED 作为不可变终态；虽然 V1 enum 为兼容后续设计预留了 COMPENSATING 与
+COMPENSATED，V1 transition validator 不允许 VERIFIED 原地进入 COMPENSATING。P3-W08 因此不修改原 observation，
+而是从其 VALID before snapshot 生成新的 compensation `EffectIntent` 和新的 governed task。新 task 必须重新经过
+Context、Capability、Policy、Governance authority 与 Safety 校验，并由未来 P3-W09 durable runtime 负责状态投影。
+该约束记录为 `DEV-049`；后续若需要对外发布独立 compensation operation/state，必须新增版本化合同，不得修改冻结
+的 Effect V1 wire/hash。
 
 ### 15.3 EffectAdapter v2
 
@@ -1381,7 +1386,28 @@ PRODUCTION profile 失败关闭。
 
 ### 15.7 CompensationPlanner
 
-仅为 reversible capability 生成 compensation。使用 before snapshot 的绝对 target，不做相对反向动作。执行 compensation 前重新走完整 Governance。Undo handle 有 TTL；过期或当前 Safety State 不允许时拒绝。
+仅为同时满足 manifest reversible、CapabilityCatalog readback 与显式 compensation allowlist 的 capability 生成
+compensation。使用 VERIFIED source Effect 对应 VALID before snapshot 的绝对 target，不做相对反向动作；任一 required
+source Effect 不可逆、缺失 snapshot、digest 漂移或 catalog 不匹配时，整个 undo 计划失败关闭，不宣称部分撤销成功。
+
+`CompensationPlanner.plan` 输入原 `EffectBatch`、每项 terminal source state 和 caller 提供的 epoch。它复验 source
+observation、compensation descriptor、prepared before digest、Context version/capture window、area/risk/unit/range 和
+readback path，然后为每项生成新的 session/plan/action/effect ID、`reversible=false` 的绝对 target intent 及绑定 source
+Effect 的 idempotency key。执行 wave 是原依赖 wave 的逆序，同资源冲突仍串行；输出 DTO 全部 defensive copy 并带
+step/plan SHA-256。
+
+`UndoService.issueHandles` 为每个 compensation step 生成 digest-bound handle，TTL 不超过 15 分钟且不能超过
+compensation deadline。`requestUndo` 在 DEBUG profile 中重新检查 trusted Governance authority、fresh exact Context、
+Capability allowlist、Policy authorization 与 trusted SAFE Safety State，成功后只创建新的 immutable `GovernedTask`；
+同一 material 可幂等重放，不同 material 复用 key 时拒绝。PRODUCTION profile 在 durable authority/adapter 未接入前固定
+失败关闭。该 service 是 process-local domain admission，不是 Android Service，不调用 adapter、不持有 clock/thread/
+repository，也不发布 Binder。
+
+P3-W08 implemented Compensation/Undo：JVM tests 与 debug probe 覆盖绝对 before target、逆依赖顺序、不可逆拒绝、
+source VERIFIED 不变、handle TTL/digest、Context/Policy/Safety 复验、新 governed task、幂等重放和 production fail-closed。
+当前 `compensation_undo_runtime_wired=false`、`compensation_undo_persistence_wired=false`、
+`undo_binder_service_published=false`、`compensation_dispatch_enabled=false`；P3-W09 才能提供 durable recovery/outbox，
+P8 仍需真实 Vehicle/VHAL/Vendor readback 与 authority 证据。
 
 ## 16. 仿真 Adapter
 
@@ -2112,10 +2138,11 @@ exact schema、7 类 debug deterministic executor、authority/trust gate 与 Eff
 fail-closed；`P3-W03 CheckpointSerializer` 已完成 registered DTO、bounded primitive canonical JSON、digest 和
 security corpus；`P3-W04 Retry/Timeout policy` 已完成 monotonic deadline、bounded attempt/backoff/jitter 和
 Effect reconcile-before-retry；`P3-W05 Durable approval interrupt` 已完成 binding/expiry/checkpoint/resume Safety
-revalidation。Graph 仍不调用 executor/serializer/policy/approval，main/release 无 deterministic executor，
-Binder/Room/recovery/production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为
-`P3-W08 Compensation/Undo`。P3-W06 已完成 prepare/dependency coordinator；P3-W07 已完成 process-local
-verification/reconciliation，但两者仍未接 Graph/Room/Binder/production adapter。
+revalidation；`P3-W06 EffectCoordinator` 已完成 prepare/dependency coordinator；`P3-W07 Effect verification` 已完成
+process-local verification/reconciliation；`P3-W08 Compensation/Undo` 已完成 absolute before target、reverse wave、
+TTL handle 和新 governed task admission。Graph 仍不调用 executor/serializer/policy/approval/effect/compensation，
+main/release 无 deterministic executor，Binder/Room/recovery/production adapter/model/Vehicle/VHAL/NPU 均未接。
+下一实现工作包固定为 `P3-W09 Restart recovery`。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见
@@ -2269,3 +2296,38 @@ Android 13 ARM64 probe。状态：`effect_verifier_defined=true`、`effect_verif
 `effect_verification_persistence_wired=false`、`effect_verification_production_readback_wired=false`、
 `production_effect_dispatch_enabled=false`、`hardware_accessed=false`。Req IDs：`S2-EFF-001`、`S2-TWN-001`、
 `NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-048`、`ISSUE-022/026/030/033`。
+
+## P3-W08 implemented Compensation/Undo
+
+### 模块意图与接口
+
+`CompensationPlanner` 将已经 VERIFIED 的 source Effect 投影为独立 compensation plan。构造器接收 immutable
+`CapabilityCatalog` 和显式 `ReversibleTarget` policy；`plan(EffectBatch, List<SourceState>, long)` 要求 batch 每项恰有
+一个 terminal source state。`SourceState` 绑定 source observation、prepared before digest、typed `BeforeSnapshot` 与
+Context capture window；`Plan` 只暴露 immutable `Wave/Step`、binding digest 和 source/new task ID，不返回 mutable
+adapter material。
+
+`UndoService.issueHandles(...)` 接收 compensation plan、owner、issued/expiry epoch，为每个 step 产生 P1 `UndoHandle`；
+`requestUndo(...)` 接收 handle、step、当前 Context/Policy/Safety/Governance evidence 和 profile，返回
+`UndoAdmission`。成功 admission 只包含新的 `GovernedTask` 与 REQUESTED handle，不产生 dispatch side effect。
+process-local idempotency cache 上限 64；同 request digest 返回首次 task，不同 material 使用同 key 抛稳定错误。
+
+### 顺序、失败语义与状态所有权
+
+- source dependency wave 先拓扑排序再整体逆序；同 wave 的 resource conflict 继续拆分，避免并发补偿同一 actuator；
+- target 必须精确等于 before snapshot scalar，禁止 delta、toggle、inverse command 或根据当前 report 猜回原值；
+- 任一 verified source 不在 allowlist、无 readback、snapshot 非 VALID、digest/context/catalog 不匹配时，整批计划拒绝；
+- Undo request 重新执行 Capability、Policy、Governance authority、Context freshness/binding 与 Safety SAFE 校验；
+- 原 VERIFIED observation 保持不可变，新 compensation Effect 使用新 ID 和 source-bound idempotency key；
+- PRODUCTION 始终返回 `PRODUCTION_COMPENSATION_UNAVAILABLE`，直到 P3-W09/P8 提供 durable authority、outbox 和 adapter；
+- `CompensationPlanner` 与 `UndoService` 都不拥有线程、时钟、Binder、Room、网络、Vehicle/VHAL/NPU/Driver-HAL handle。
+
+验证包括 8 组 JVM tests、debug/release compile、release probe isolation、独立 checker、累计 installer 与 Android 13
+ARM64 probe。状态：`compensation_planner_defined=true`、`compensation_absolute_before_verified=true`、
+`compensation_reverse_dependency_verified=true`、`compensation_irreversible_rejected=true`、
+`undo_ttl_governance_verified=true`、`undo_new_governed_task_verified=true`、
+`undo_idempotent_replay_verified=true`、`undo_production_fail_closed=true`、
+`compensation_undo_runtime_wired=false`、`compensation_undo_persistence_wired=false`、
+`undo_binder_service_published=false`、`compensation_dispatch_enabled=false`、`hardware_accessed=false`。
+Req IDs：`S2-EFF-001`、`S2-SAF-001`、`S2-UX-003`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：
+`DEV-049`、`ISSUE-022/026/030/033`。
