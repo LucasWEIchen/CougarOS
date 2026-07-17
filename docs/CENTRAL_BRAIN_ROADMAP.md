@@ -308,13 +308,15 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
 occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
 SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
-P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。P5-W01/W02 已完成静态 Tool
-合同与 Registry/Resolver foundation；`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/undo/readback 仍未发布。
+P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。P5-W01/W02/W03 已完成 Tool
+合同、Registry/Resolver 与 rule intersection foundation；`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/
+undo/readback 仍未发布。
 
 P5-W01 Tool manifest/schema 已完成：immutable identity/owner/capability/risk/timeout/idempotency/health、bounded scalar
 input/output、canonical contract digest 与 exact-class validator 已进入 Runtime main source；JVM、debug/release compile
-完成。Android 13 ARM64 probe 已实现，但当前 Windows 只有 COM7、没有 ADB interface，实体执行待复测。P5-W02 已完成
-pure-Java Registry/Resolver；Executor 和 production Tool 均未发布，下一工作包为 P5-W03。
+完成。Android 13 ARM64 probe 已实现，但当前 Windows ADB transport 不可用，实体执行待复测。P5-W02 已完成 pure-Java
+Registry/Resolver，P5-W03 已完成 six-rule deterministic intersection；Executor 和 production Tool 均未发布，下一工作包
+为 P5-W04。
 
 ## 7. 近期进展
 
@@ -761,7 +763,19 @@ p4_vehicle_readback_available=false
 client2_production_release_artifact_available=false
 hmi_d4_demo_control_loop_complete=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P5-W03
+tool_rule_set_contract_defined=true
+tool_rule_type_count=6
+tool_rule_set_digest_verified=true
+tool_rule_init_child_conditional_verified=true
+tool_rule_model_intersection_fail_closed=true
+tool_rule_terminal_requirements_verified=true
+tool_rule_approval_annotation_fail_closed=true
+tool_rule_solver_android13_arm64_verified=false
+tool_rule_solver_published=false
+tool_rule_solver_runtime_wired=false
+tool_approval_authority_available=false
+tool_execution_enabled=false
+implementation_stage=P5-W04
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -804,7 +818,7 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
 
 ### 2026-07-18 P4-W12 progress
 
@@ -818,7 +832,7 @@ Tool manifest/schema。
 
 Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
 
 ### 2026-07-18 P5-W01 progress
 
@@ -834,7 +848,7 @@ contract。下一工作包为 P5-W02 ToolRegistry/Resolver。
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-063`、`ISSUE-036`。
 `tool_registry_published=false`、`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
 
 ### 2026-07-18 P5-W02 progress
 
@@ -844,7 +858,7 @@ capability/optional digest，再以 elapsed-realtime health freshness 区分 REG
 时返回 NOT_USABLE，不回退旧版本，execution 固定关闭。
 
 JVM 与 debug/release compile 已覆盖排序/dedup/conflict、版本范围、capability/digest、missing/unknown/unhealthy/stale/
-future-clock 和 no-fallback。Android 13 ARM64 debug probe 已接入 installer，但当前仍无 ADB interface，
+future-clock 和 no-fallback。Android 13 ARM64 debug probe 已接入 installer，但当前 adb transport=0，
 `tool_registry_android13_arm64_verified=false`。Runtime/Graph/Binder/Room 未引用 Registry，production Tool count=0；下一
 工作包为 P5-W03 ToolRuleSolver。
 
@@ -852,4 +866,22 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_registry_published=false`、`tool_resolver_published=false`、`tool_registry_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W03`。
+`target_hardware_validated=false`、`implementation_stage=P5-W04`。
+
+### 2026-07-18 P5-W03 progress
+
+新增 immutable `ToolRuleSet` 与 `ToolRuleSolver`。RuleSet 冻结 init/child/conditional/terminal/required-before-exit/
+requires-approval 六类规则、canonical ID/bounds、structural fail-closed 和 order-independent SHA-256 digest。Solver 按固定顺序
+生成 allowset，并与模型选择和 P5-W02 RESOLVED/USABLE family 求交；condition UNKNOWN、terminal 前置缺失和空交集均稳定
+拒绝。requires-approval 只做标记，approval grant 与 execution 固定 false。
+
+五项 JVM test 与 debug/release compile 已覆盖规则边界、digest、init/child/condition、模型空集、terminal、approval no-grant
+和 unusable exclusion。Android 13 ARM64 debug probe 已接入 installer，但当前 ADB transport 不可用，
+`tool_rule_solver_android13_arm64_verified=false`。Runtime/Graph/Binder/Room/Executor 未引用 RuleSolver，production RuleSet/Tool
+count=0；下一工作包为 P5-W04 ToolExecutor boundary。
+
+Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-065`、`ISSUE-038`。
+`tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
+`tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
+`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。

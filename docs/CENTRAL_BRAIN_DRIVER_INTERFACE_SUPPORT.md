@@ -1161,3 +1161,23 @@ readback 和故障合同。当前新增 Driver/HAL 开发量为 0，`DRV-GAP-001
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；
 tracking：`DEV-064`、`ISSUE-037`。
+
+## P5-W03 Tool RuleSolver Driver/HAL Boundary
+
+`ToolRuleSet` 的 family、condition、child 和 terminal 是 AIOS workflow 标识，不是 Android Service、VHAL property、Vendor
+symbol、device node、ioctl、PCIe function、DMA/IOMMU handle 或 Driver/HAL endpoint。`ConditionSnapshot` 是调用方提供的
+bounded tri-state value；P5-W03 不读取 gear/speed/seat/HVAC/NPU/PCIe 状态，也不实现 condition publisher。
+
+RuleSolver 只做集合缩减：静态 rule allowset 与 model-selected family、P5-W02 USABLE family 求交。它不调用模型、不查询
+硬件 health、不写 desired state、不做 readback，也不把 requires-approval 变成授权。main source 只使用 Java collections、
+regex 和 SHA-256；静态门禁禁止 Binder、Room、network、Android Car/VHAL、reflection、serialization、`/dev`、sysfs、ioctl。
+
+当前新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。P5-W04 只能先实现 signed built-in software Tool executor
+边界；Vehicle/NPU Tool 仍需 P8 确认 OEM/Vendor API、权限、Safety、readback、取消和故障合同后才能触发 Driver/HAL 缺口。
+
+状态：`tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
+`tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
+`tool_execution_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`implementation_stage=P5-W04`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`DEL-004/005`；tracking：`DEV-065`、`ISSUE-038`。

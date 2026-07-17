@@ -984,7 +984,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W03`.
+`target_hardware_validated=false`, `implementation_stage=P5-W04`.
 
 ## P5-W02 Tool Registry/Resolver
 
@@ -1010,4 +1010,29 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W03`. Next: P5-W03 ToolRuleSolver.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W04`. Next: P5-W03 ToolRuleSolver.
+
+## P5-W03 Tool RuleSolver
+
+`ToolRuleSet` freezes a bounded catalog and six workflow rule types: init, child, conditional, terminal,
+required-before-exit and requires-approval. All family and condition identifiers are canonical, duplicate or unknown rules are
+rejected, terminal nodes cannot have children, and a terminal family cannot also be required before exit. Its canonical SHA-256
+digest is stable under input ordering.
+
+`ToolRuleSolver` accepts explicit model-selected family IDs, completed family IDs, a bounded tri-state condition snapshot and P5-W02
+resolutions. It derives the init/child allowset, applies conditions and terminal prerequisites, then intersects with model-selected and
+P5-W02 USABLE sets. Every empty stage returns a stable failure code without fallback. Approval is only annotated:
+`isApprovalGranted()` and every `isExecutionEnabled()` remain false.
+
+The classes are immutable pure Java and are not referenced by Runtime/Graph/Binder/Room. `ToolRuleSolverProbeActivity` is debug-only;
+release omits it. No model, Effect, vehicle, NPU, network, Driver/HAL or Tool executor is invoked. Run
+`bash tools/check_central_brain_android_tool_rule_solver.sh` for the independent gate.
+
+Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_rule_set_digest_verified=true`,
+`tool_rule_init_child_conditional_verified=true`, `tool_rule_model_intersection_fail_closed=true`,
+`tool_rule_terminal_requirements_verified=true`, `tool_rule_approval_annotation_fail_closed=true`,
+`tool_rule_solver_android13_arm64_verified=false`, `tool_rule_solver_published=false`,
+`tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
+`production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
+`npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P5-W04`. Next: P5-W04 ToolExecutor boundary.

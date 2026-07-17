@@ -57,6 +57,7 @@
 | ISSUE-035 | Client2 process-recreation checkpoint 的 production storage/backup/user owner 未确定。 | S2-UX-001..003, DEV-052 | Open |
 | ISSUE-036 | Tool production owner、health source、artifact trust 与 execution authority 未确定。 | S2-TOL-001, P5-W02..W05 | Open |
 | ISSUE-037 | Tool health publisher、production Registry composition 和 snapshot trust owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W03..W05/P8 | Open |
+| ISSUE-038 | Production Tool rule catalog、condition publisher、Plan binding 与 approval authority 未确定。 | S2-TOL-001, S2-SAF-001, P5-W04/W05/P8 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -512,7 +513,7 @@ execution wiring 与真实车辆分别由 `ISSUE-022/026/030` 推进。tracking�
 ## ISSUE-036 Tool production owner, health source and execution authority
 
 P5-W01 已冻结 Tool 静态合同、bounded scalar input/output schema、canonical digest 和 mandatory health freshness metadata，
-并通过 JVM 与 debug/release compile。Android 13 ARM64 probe 已实现，但当前 Windows 只有 COM7、没有 ADB interface，
+并通过 JVM 与 debug/release compile。Android 13 ARM64 probe 已实现，但当前 Windows 可见 COM7/ADB interface、adb transport=0，
 实体执行待复测。现有软件证据解决“Tool 如何描述和拒绝非法 payload”，不解决“谁注册、谁报告健康、谁允许执行、谁拥有副作用”。
 
 待确认/开发项包括：build-owned 或 signed artifact owner、同 ID/version digest 冲突策略、动态 HEALTHY/UNHEALTHY/STALE
@@ -549,3 +550,26 @@ health 还必须等待 P8 OEM/Vendor API 与 readback authority。
 `tool_health_dynamic_snapshot_defined=true`、`tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-064`。
+
+## ISSUE-038 Production Tool rule and condition ownership
+
+P5-W03 的 `ToolRuleSet` 与 `ConditionSnapshot` 是 immutable input value，不是 production rule service 或 trusted Context
+provider。当前没有 owner 决定 rule catalog 随 APK、AAR、Skill artifact 还是受治理配置发布；也没有 signer/revoke/rollback、
+catalog epoch、atomic Registry+RuleSet publication、process restart 或 historical Plan replay 合同。
+
+ConditionSnapshot 当前只有 canonical ID 与 TRUE/FALSE/UNKNOWN，没有 source、freshness、Context digest、Safety revision 或
+publisher identity。量产不能由模型/HMI/用户文本构造 `condition.vehicle.parked=true`，也不能把 UNKNOWN 当 FALSE。必须确定
+Context/Policy owner、Plan/Session binding、clock/revision、process death、stale invalidation 和 digest-only audit。
+
+requires-approval 当前只是静态 annotation，没有 ApprovalPrompt/response Service、caller identity、expiry、Plan/Context/Policy
+digest 或 dispatch-time Safety revalidation。P3-W05 的 approval interrupt 合同可作为后续 binding 基础，但未接 Runtime/Room/
+Graph，不能被 P5-W03 直接消费或假定为 grant。
+
+建议关闭顺序：P5-W04 只实现 signed built-in executor boundary，并继续把 approval-required selection 拒绝为未授权；P5-W05
+冻结 artifact signer/version policy；之后单独发布 build-owned RuleSet/condition composition，以 Runtime identity/capability、
+Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。Vehicle/NPU condition 与 Tool 仍需 P8 OEM/Vendor API。
+
+状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
+`tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
+`tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P5-W04`。tracking：`DEV-065`。

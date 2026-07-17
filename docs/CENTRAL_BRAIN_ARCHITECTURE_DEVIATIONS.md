@@ -88,6 +88,7 @@
 | DEV-062 | P4-W12 关闭 application aggregate acceptance，但自动 Plan/Effect、approval/undo/readback 和 HMI-D4 仍未完成。 | S2-UX-001..003, S2-HMI-001..006, ISSUE-022/026/030/033 | Accepted Temporary |
 | DEV-063 | P5-W01 Tool manifest/schema 是静态合同，不是注册、健康或执行。 | S2-TOL-001, ISSUE-036 | Accepted Temporary |
 | DEV-064 | P5-W02 pure-Java Registry/Resolver 的 USABLE 不是 Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037 | Accepted Temporary |
+| DEV-065 | P5-W03 rule/model/USABLE 交集只是静态 selection，不是 approval、Runtime publication 或 execution authority。 | S2-TOL-001, S2-SAF-001, ISSUE-036/037/038 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -995,3 +996,25 @@ OEM/Vendor authority。当前：`tool_registry_contract_defined=true`、`tool_re
 `tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。
+
+## DEV-065 P5-W03 rule selection is not execution authority
+
+P5-W03 已实现 init/child/conditional/terminal/required-before-exit/requires-approval 六类 immutable rule，并将静态 allowset
+与 model-selected family、P5-W02 RESOLVED/USABLE family 做确定性交集。该结果关闭规则边界与空集失败关闭的软件合同，
+不表示模型可信、条件可信、审批已完成或 Tool 可以执行。
+
+当前 RuleSet 由 test/debug sample 直接构造，不来自 build-owned production catalog、signed Skill artifact 或受治理 Runtime
+composition root。ConditionSnapshot 也由调用方直接提供，没有 source trust、Plan/Context version binding、publisher identity
+或 freshness。requires-approval 只生成 annotation；`isApprovalGranted()` 和全部 execution flag 固定 false。
+
+代码没有接 `CentralBrainRuntimeService`、AgentGraph、Binder、Room、ToolExecutor、Effect、Vehicle、Model/NPU、network 或
+Driver/HAL。debug probe 的四个 sample Tool family 和 rule type count=6 只验证合同，不能解释为 production RuleSet 或 Tool
+已发布。模型选择不能扩展 allowset，也不能触发重试模型、fallback Tool 或 synthetic condition。
+
+状态：`Accepted Temporary`。关闭条件是 ISSUE-038 确认 rule catalog/condition/approval owner，P5-W04/W05 完成 signed
+built-in executor 与 artifact trust，并以独立 Runtime/Graph composition、Plan/Context/Policy binding 和 audit 证据发布；
+Vehicle/NPU Tool 仍需 P8 OEM/Vendor authority。当前：`tool_rule_set_contract_defined=true`、
+`tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
+`tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
+`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W04`。
