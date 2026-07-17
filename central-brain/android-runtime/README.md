@@ -285,6 +285,27 @@ Status: `scenario_resolver_defined=true`, `scenario_resolution_schema_version=1`
 `scenario_compiler_wired=false`, `scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false` and
 `hardware_accessed=false`.
 
+## Stage 2 P2-W07 Scenario Plan Compiler
+
+`runtime-service` now contains `ScenarioPlanCompiler`, `PlanGraphValidator` and `PlanDigest`. The compiler accepts
+only an `ACCEPTED` or `DEGRADED` Resolution together with the exact Context and capability snapshots used by the
+resolver. It recalculates the Resolution digest and rejects Context/capability/manifest version or digest drift,
+required gate failures and fallback branches not explicitly listed by the build-owned manifest.
+
+The output owner is immutable and exposes the frozen P1-W02 `ScenarioPlan` transport only as a deep copy. Plan and
+node-input digests bind Resolution, manifest, Context, capabilities, IDs, deadline, policies, nodes, edges and the
+excluded optional branch. Required Effects need a reachable same-capability verify node; HIGH Effects need an
+approval predecessor. Moving or unknown graphs exclude all `PARKED_ONLY` nodes and driver recline dispatch. Moving
+fatigue therefore compiles without the optional approval/recline/verify branch.
+
+Manifest templates still carry no target scalar, so this compiler cannot invent temperature, fan, seat-angle,
+media or navigation material. It is not wired to `CentralBrainRuntimeService` or Room, and it does not publish or
+execute a Plan, schedule a Graph, dispatch an Effect or access vehicle/NPU/Driver-HAL interfaces.
+
+Status: `scenario_plan_compiler_defined=true`, `scenario_plan_schema_version=1`,
+`scenario_plan_compiler_runtime_wired=false`, `scenario_plan_runtime_published=false`,
+`scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false` and `hardware_accessed=false`.
+
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
 The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`.

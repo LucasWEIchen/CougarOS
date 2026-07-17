@@ -158,6 +158,11 @@ ADB，不存储原始设备或车辆数据。
 最大角度、乘员检测、撤销/恢复和批准 authority 需 OEM Safety owner 确认。用户确认不能覆盖硬
 联锁。对应 `S2-SAF-001`。
 
+P2-W07 进展：Compiler 在 MOVING/UNKNOWN 时移除 optional fatigue seat approval/recline/verify branch，
+required rest recline 已在 Resolver 阶段拒绝；`PlanGraphValidator` 还要求 HIGH Effect 具有 approval 前驱。
+这些是 fail-closed 软件结构证据，不定义驻车最大角度、批准 authority 或真实 Safety source，因此本问题
+保持 Open，`scenario_graph_execution_enabled=false`。
+
 ## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定
 
 当前没有可发布的 HVAC/Seat/Media/Navigation property/service 目录、写权限、area mapping、
@@ -202,6 +207,10 @@ P2-W06 进展：显式 ID 与固定中英文 alias 的 deterministic resolver、
 PARKED_ONLY gate、unknown/ambiguous fail-closed 和 immutable resolution digest 已完成。固定 alias 不是
 完整产品 taxonomy；没有 locale rollout/revoke owner、模型候选策略、生产 capability/trust 或 Session
 Service wiring，因此本问题保持 Open，`scenario_resolver_runtime_wired=false`。
+
+P2-W07 进展：Resolution/Context/Capability/manifest-bound Compiler、optional-only fallback 和 immutable
+Plan digest 已完成。Manifest 仍没有产品 target/preference，compiler 未接 Session/Room/Runtime，不发布或
+执行 Graph；因此本问题保持 Open，`scenario_plan_compiler_runtime_wired=false`。
 
 ## ISSUE-032 Python 原型退役后的引用与回退风险
 
@@ -305,3 +314,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W04 进展 | Context/freshness/trust/restricted 与 API 33 ARM64 probe 完成；productionTrusted=false，ISSUE-029/030 仍开放。 |
 | P2-W05 进展 | Scenario manifest/parser/schema/checksum/isolation 与 API 33 ARM64 probe 完成；artifact crypto、product/privacy owner、Runtime/Graph 仍开放。 |
 | P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；product taxonomy/production trust/Service/compiler/Graph 仍开放。 |
+| P2-W07 进展 | Digest-bound typed Plan compiler 与 API 33 ARM64 probe 完成；target material/production publication/Graph/Effect 仍开放。 |

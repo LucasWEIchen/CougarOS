@@ -178,7 +178,7 @@
 | S2-SES-001 | versioned durable Session | P1-W01/P1-W03 contract、P1-W05 facade/Service、P1-W06 Room v4/process-death recovery 已完成 |
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
-| S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract 已完成；catalog/compiler 待开发 |
+| S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract、P2-W05 catalog、P2-W06 resolver、P2-W07 compiler 已完成；Runtime activation 待开发 |
 | S2-GRF-001 | durable Agent Graph | P1-W02 node/DAG contract 已完成；durable runtime 待开发 |
 | S2-SAF-001 | hard safety interlock | P1-W04 Approval/Undo 绑定合同已完成；A user confirmation cannot override this hard interlock；可信 Safety authority 待接入 |
 | S2-EFF-001 | typed Effect lifecycle | P1-W04 intent/observation/approval/undo 合同与状态转换已完成；Service/adapter/持久化待开发 |
@@ -660,3 +660,34 @@ NPU、Driver/HAL 或目标硬件资格。
 `scenario_resolver_android13_arm64_verified=true`、`scenario_resolver_model_invoked=false`、
 `scenario_resolver_runtime_wired=false`、`scenario_compiler_wired=false`、
 `scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 27. P2-W07 ScenarioPlanCompiler trace
+
+本增量映射 `S2-SCN-001`、`S2-GRF-001`、`S2-SAF-001`、`DEL-001/003..005`：
+
+1. Compiler 只能消费 `ACCEPTED` 或 `DEGRADED` Resolution，并必须同时接收产生该 Resolution 的原始
+   immutable Context 和 Capability snapshot；`REJECTED` 不得携带或编译 manifest。
+2. 编译前必须复算 Resolution digest，并逐项核对 Context digest、Capability digest、scenario ID、manifest
+   schema/version/artifact digest、Context policy、required freshness 和 required capability availability；任一
+   漂移必须以 `CB_SCENARIO_COMPILE` 失败关闭。
+3. 输出必须使用 P1-W02 冻结的 `ScenarioPlan/PlanNode/NodeDependency/NodePolicy` typed DTO。内部 owner
+   必须 immutable，向 AIDL/Runtime 边界只能返回 deep copy；Plan 与每个 node input 的 SHA-256 必须绑定
+   resolution、manifest、Context、Capability 及完整 DAG metadata。
+4. `DEGRADED` 只能剔除 manifest `DEGRADED_OPTIONAL_ONLY` 明确列出的 optional branch；required node、未声明
+   fallback、digest 不一致或无法映射的 unavailable capability 必须拒绝。无效 optional 前驱必须一并裁剪，
+   不能留下无意义 approval root。
+5. `PlanGraphValidator` 除 P1 结构上限外，必须验证 required Effect 可达同 capability verify、HIGH Effect
+   具有 approval predecessor、compensation 引用合法，并确保 MOVING/UNKNOWN graph 不含 `PARKED_ONLY`
+   node 或驾驶席 `vehicle.seat.recline` dispatch。approval metadata 不能覆盖该 gate。
+6. Manifest 没有 target scalar，P2-W07 不得自行生成温度、风量、角度或媒体/导航参数。compiled Plan 固定
+   `isExecutable=false`、`isProductionTrusted=false`；Graph Runtime 在 P3、Effect target/dispatch 在后续受
+   Governance 约束的工作包实现。
+7. JVM 与 Android 13/API 33 ARM64 probe 必须覆盖 cold golden plan、optional fallback、moving fatigue
+   seat branch absent、stable digest、immutable transport copy、cycle reject、required verify 与 HIGH approval。
+8. 本包不接 production Service/Room/Session，不发布 Plan Runtime，不访问 Vehicle/VHAL/NPU/Driver/HAL，
+   不恢复 Python 或 Linux frontend。
+
+状态：`scenario_plan_compiler_defined=true`、`scenario_plan_schema_version=1`、
+`scenario_plan_compiler_android13_arm64_verified=true`、`scenario_plan_compiler_runtime_wired=false`、
+`scenario_plan_runtime_published=false`、`scenario_graph_execution_enabled=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`。

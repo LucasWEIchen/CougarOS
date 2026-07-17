@@ -869,3 +869,36 @@ Room/production Service、vehicle/VHAL/NPU adapter 或 Driver/HAL。software sim
 debug/test；production profile 在当前 non-trusted Context/capability foundation 上必须拒绝。API 33 ARM64
 证据只证明同一 resolver contract 可运行。Req IDs：`S2-SCN-001`、`S2-SAF-001`、
 `DEL-001/003..005`；偏差/问题：`DEV-035`、`ISSUE-029/031`。
+
+## Android P2-W07 Scenario Plan Compiler
+
+受维护交付新增：
+
+1. `ScenarioPlanCompiler`：严格绑定 Resolution/Context/Capability/manifest 的 compile request 和
+   optional-only fallback branch pruning；
+2. `CompiledPlan`：immutable owner、deep-copy P1 typed Plan transport、非执行/非生产信任边界；
+3. `PlanDigest`：node input 与完整 DAG 的 canonical SHA-256；
+4. `PlanGraphValidator`：P1 structure 加 required verify、HIGH approval predecessor、compensation、
+   moving/unknown `PARKED_ONLY`/driver recline absence；
+5. 7 组 JVM tests、DUMP-protected Android 13 ARM64 debug probe、独立 checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+scenario_plan_compiler_defined=true
+scenario_plan_schema_version=1
+scenario_plan_compiler_android13_arm64_verified=true
+scenario_plan_compiler_runtime_wired=false
+scenario_plan_runtime_published=false
+scenario_graph_execution_enabled=false
+effect_dispatch_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 Effect target/material、Graph scheduler/checkpoint/recovery、Session/Room/production Service wiring、
+simulated/production adapter、vehicle/VHAL/NPU 或 Driver/HAL。API 33 ARM64 证据只证明编译、裁剪、摘要与
+拒绝逻辑在目标 Android Java/Parcelable 环境可运行，不表示 Plan 已发布或车辆动作已执行。Req IDs：
+`S2-SCN-001`、`S2-GRF-001`、`S2-SAF-001`、`DEL-001/003..005`；偏差/问题：
+`DEV-036`、`ISSUE-029/031`。

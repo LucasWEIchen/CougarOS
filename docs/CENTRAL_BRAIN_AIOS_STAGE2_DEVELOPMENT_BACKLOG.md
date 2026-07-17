@@ -307,10 +307,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W07` ScenarioPlanCompiler
 
-- 状态：`NOT_STARTED`；3 人日；需求：`S2-SCN-001`、`S2-GRF-001`。
+- 状态：`DONE`（2026-07-17）；3 人日；需求：`S2-SCN-001`、`S2-GRF-001`、`S2-SAF-001`。
 - 类：`ScenarioPlanCompiler`、`PlanGraphValidator`、`PlanDigest`。
 - DoD：Context branch、node dependencies、required/optional、approval、compensation 编译为 immutable DAG。
 - 测试：golden plan、cycle、unsafe moving seat node absent。
+- 实现：只接受 `ACCEPTED/DEGRADED` Resolution；复验 resolution/Context/capability/manifest digest 与
+  version；把 manifest template 编译为 P1 typed Plan DTO，并以 immutable owner + deep-copy transport
+  暴露；optional-only fallback 精确裁剪，required Effect 必须可达 verify，HIGH Effect 必须存在 approval
+  前驱，MOVING/UNKNOWN 不含 `PARKED_ONLY` 或驾驶席 recline dispatch。
+- 证据：7 组 JVM tests、DUMP-protected Android 13 ARM64 probe、独立 checker、累计 installer 和 CI。
+- 边界：不生成 Effect target、不发布/执行 Graph，不接 Session/Room/production Service；
+  `scenario_plan_compiler_runtime_wired=false`、`scenario_plan_runtime_published=false`、
+  `scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
 
 ### `P2-W08` SimulatedVehicleAdapter base
 

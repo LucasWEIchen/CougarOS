@@ -1146,6 +1146,59 @@ if [[ "$SCENARIO_RESOLVER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SCENARIO_COMPILER_NONCE="$(date +%s%N)"
+SCENARIO_COMPILER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.scenario.ScenarioPlanCompilerProbeActivity \
+  --es nonce "$SCENARIO_COMPILER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SCENARIO_COMPILER_PROBE_OUTPUT"; then
+  echo "$SCENARIO_COMPILER_PROBE_OUTPUT" >&2
+  echo "Scenario plan compiler debug probe did not start successfully" >&2
+  exit 1
+fi
+SCENARIO_COMPILER_PROBE_PASSED=false
+for _ in {1..40}; do
+  SCENARIO_COMPILER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbScenarioCompiler:I)"
+  if grep -Fq \
+      "nonce=$SCENARIO_COMPILER_NONCE scenario_plan_compiler_probe_complete=true" \
+      <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_compiler_defined=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_golden_verified=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_degraded_fallback_verified=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_moving_seat_absent=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_cycle_rejected=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_digest_verified=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_immutable_verified=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_compiler_android13_arm64_verified=true" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_compiler_runtime_wired=false" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_plan_runtime_published=false" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "scenario_graph_execution_enabled=false" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$SCENARIO_COMPILER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SCENARIO_COMPILER_LOG"; then
+    SCENARIO_COMPILER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SCENARIO_COMPILER_PROBE_PASSED" != true ]]; then
+  echo "$SCENARIO_COMPILER_LOG" >&2
+  echo "Scenario plan compiler probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1833,6 +1886,10 @@ printf '%s\n' \
   "scenario_resolver_model_invoked=false" \
   "scenario_resolver_runtime_wired=false" \
   "scenario_compiler_wired=false" \
+  "scenario_plan_compiler_defined=true" \
+  "scenario_plan_compiler_android13_arm64_verified=true" \
+  "scenario_plan_compiler_runtime_wired=false" \
+  "scenario_plan_runtime_published=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

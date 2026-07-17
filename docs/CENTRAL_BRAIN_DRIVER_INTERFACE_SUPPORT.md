@@ -651,3 +651,21 @@ Effect。`PRODUCTION` profile 需要 productionAvailable+productionAuthorized �
 `scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为
 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-SCN-001`、`S2-SAF-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W07 Scenario Plan Compiler Driver/HAL Boundary
+
+P2-W07 只新增纯 Java in-process compiler、digest、semantic validator、JVM test、debug-only Activity、
+installer marker 和静态 checker。输入只来自 immutable Resolution/Context/Capability/manifest；输出是
+digest-only P1 Plan DTO deep copy，不包含 property ID、target scalar、adapter handle、FD/SharedMemory、
+CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL ABI。
+
+Compiler 在软件中移除 optional unavailable/`PARKED_ONLY` branch，并拒绝 required branch、digest drift、
+cycle、缺 verify、HIGH Effect 缺 approval 前驱和 non-parked driver recline。该校验不读取真实车辆状态，
+不替代 OEM Safety authority，也不调用 Effect/Graph/Room/Session Service。Android 13 ARM64 probe 只构造
+SIMULATED Context/capability 并验证 typed DAG 与拒绝路径。
+
+状态：`scenario_plan_compiler_defined=true`、`scenario_plan_compiler_runtime_wired=false`、
+`scenario_plan_runtime_published=false`、`scenario_graph_execution_enabled=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-SAF-001`、`KH-003/006`、`DEL-004/005`。

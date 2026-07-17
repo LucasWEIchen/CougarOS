@@ -201,7 +201,7 @@ flowchart TB
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
 | Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01/P2-W04 完成；production trust/wiring 未接） | `S2-CTX-001` |
 | Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02/P2-W03 完成；persistence/adapter 未接） | `S2-TWN-001` |
-| Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05 manifest catalog 完成；Resolver/Compiler/Runtime 未接） | `S2-SCN-001` |
+| Scenario | ScenarioManifest/Parser/Catalog、Resolver、PlanCompiler、GraphValidator | `FOUNDATION`（P2-W05..W07 完成；Runtime publication/execution 未接） | `S2-SCN-001` |
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `NOT_STARTED` | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
 | Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `NOT_STARTED` | `S2-EFF-001` |
@@ -1054,13 +1054,23 @@ P2-W06 不接 `CentralBrainRuntimeService`/Room，不调用 ModelProvider/Schedu
 ### 12.4 ScenarioPlanCompiler
 
 ```java
-ScenarioPlan compile(ScenarioManifest manifest,
-                     ContextSnapshot context,
-                     CapabilityCatalogSnapshot capabilities,
-                     UserPreferenceSnapshot preferences);
+ScenarioPlanCompiler.CompiledPlan compile(
+    ScenarioPlanCompiler.CompileRequest request,
+    ScenarioResolution resolution,
+    ContextSnapshot context,
+    ScenarioResolver.CapabilitySnapshot capabilities);
 ```
 
-输出 immutable DAG。Compiler 做结构和 range 校验，不做最终授权；Graph 执行每个 action 前由 Governance 重验。
+P2-W07 实际实现不允许调用方单独传入 manifest 或 scenario ID：selected manifest 必须来自同一个
+`ScenarioResolution`，并复算 resolution digest，核对 Context/capability digest、manifest schema/version/
+artifact、Context policy、freshness 和 required capability。`REJECTED`、snapshot drift、required blocked 或
+未声明 fallback 均以 `CB_SCENARIO_COMPILE` 失败关闭。
+
+输出由 immutable `CompiledPlan` 持有，`toScenarioPlan()` 每次返回 P1-W02 typed DTO 的 deep copy。node
+input digest 和 plan digest 绑定 Resolution、manifest、Context、Capability、IDs、deadline、node policy、
+edge 和 excluded optional branch。manifest 不含 target scalar，因此本阶段不生成温度/风量/座椅角度；
+`isExecutable=false`、`isProductionTrusted=false`。Compiler 做结构与编译时 policy 校验，不做最终授权；
+Graph 执行每个 action 前仍必须由 Governance 重验 fresh Context/Safety。
 
 ### 12.5 PlanGraphValidator
 
@@ -1075,6 +1085,11 @@ ScenarioPlan compile(ScenarioManifest manifest,
 - compensation 引用合法且无 compensation loop；
 - moving/unknown branch 不含 driver recline dispatch；
 - 最大节点数、深度、并行度、总 deadline 受限。
+
+P2-W07 还要求 `DEGRADED` 只裁剪 manifest `DEGRADED_OPTIONAL_ONLY` 列出的 optional node；失去唯一输出的
+optional approval 前驱一并裁剪。required Effect 必须可达相同 capability 的 verify node；HIGH Effect 必须
+具有 approval predecessor。任何 MOVING/UNKNOWN compiled graph 都不能包含 `PARKED_ONLY` node，驾驶席
+不能包含 `vehicle.seat.recline` dispatch。该校验不发布或运行 Graph。
 
 ## 13. Durable Agent Graph Runtime
 
@@ -1885,15 +1900,16 @@ central-brain-sdk AAR
 `P1-W07 Contract v2 aggregate check`、`P2-W01 Canonical vehicle signal types` 和
 `P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 和
 `P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema`、
-`P2-W06 DeterministicScenarioResolver` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W06 DeterministicScenarioResolver` 和 `P2-W07 ScenarioPlanCompiler` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
 进程内 desired/reported Twin、versioned Context/freshness/trust foundation、三项 strict build-owned Scenario
-manifest catalog、显式/固定文本 selector、Context/capability/policy gate 和 immutable resolution 已进入工程。Effect Service、
-approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
-`P2-W07 ScenarioPlanCompiler`；compiler 只能消费同一 resolution/Context/capability digest，输出 immutable
-typed DAG，不得发布 Graph Runtime、激活 Effect、读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码动画。
+manifest catalog、显式/固定文本 selector、Context/capability/policy gate、immutable resolution 和
+digest-bound typed Plan compiler 已进入工程。Effect Service、approval response/undo execution、Plan Runtime
+publication 和 Graph Runtime 均未发布。下一实现工作包固定为 `P2-W08 SimulatedVehicleAdapter base`；只在
+debug/test source set 建立 simulated Effect adapter/fault clock，不得注册 production adapter、激活 compiled
+Plan、读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中硬编码动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见
