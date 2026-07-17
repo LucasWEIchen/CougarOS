@@ -1123,3 +1123,46 @@ NPU、Driver/HAL 或目标硬件资格。
 `compensation_undo_persistence_wired=false`、`undo_binder_service_published=false`、
 `compensation_dispatch_enabled=false`、`production_compensation_authority_wired=false`、
 `effect_dispatch_enabled=false`、`network_accessed=false`、`hardware_accessed=false`。
+
+## 41. P3-W09 Restart recovery trace
+
+派生需求：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-SAF-001`、
+`NV-G-005/006/007`、`DEL-001/003/004/005`。
+
+1. `GraphRestartReconciler` 必须只消费 immutable `PersistentRun`、`Evidence` 和 caller-supplied epoch；不得自行
+   打开 Room、读取时钟、创建线程、调用 Binder/executor/adapter/model/tool、访问车辆或硬件。
+2. 非终态 Graph 超过 deadline 必须进入 FAILED，所有非终态 Node 进入 STUCK。终态 Graph 必须保持原状态，
+   不生成 continuation 或 side effect。
+3. WAITING/EXECUTING/COMPENSATING Node 必须具有 checkpoint ref，且 evidence 必须为 VALID。缺失、摘要不匹配或
+   未知信任必须使整个非终态 Graph 进入 STUCK；不得丢弃单个错误 Node 后继续其余流程。
+4. Effect、Approval、Compensation、Model、Tool 和 Memory-write Node 恢复后只允许 WAITING，并产生 typed
+   reconcile/revalidation directive。未知 Effect delivery 只允许 `RECONCILE_EFFECT_STATUS`；确认 applied 只进入
+   readback verification；确认 not-applied 也必须先过 retry policy，禁止恢复时直接 redispatch。
+5. 只有 checkpoint VALID、当前 Governance 已重验、无任何 pending directive 的 control Node 可以回 READY。
+   `continuationAllowed=true` 只表示 reducer 允许 caller 继续，不表示 executor 已启用；
+   `executorDispatchEnabled` 和 `productionAuthorized` 固定 false。
+6. `DurableGraphRecoveryRepository` 必须复用 Room v4 的 Plan/PlanNode/EffectObservation/Compensation 表，不得为了本包
+   修改 schema/hash。加载最多 64 Node、64 latest Effect、64 Compensation，并限制 Effect history query 为 1024 行。
+7. `applyRecovery` 必须在单个 Room transaction 内复验 plan/session/digest、完整 Node identity 和覆盖集合，只更新
+   Plan/Node state。Effect observation 与 Compensation evidence 必须不可变；result digest 只写审计，不保存 raw
+   checkpoint、vehicle/user/model material。
+8. 同 result digest 重放必须是幂等的：changed row 为 0、`GRAPH_RESTART_RECONCILED` 审计总数不增长、side-effect
+   count 为 0。不同合法恢复结果允许新增审计，但不得覆盖历史证据。
+9. Android 13/API 33 ARM64 probe 必须执行 seed、`force-stop`、首次恢复、再次 `force-stop`、相同 material 重放，
+   并证明两次进程代次变化、Room reopen、exactly-once audit 和 release manifest 无 debug Activity。
+10. 本包不得注入 `CentralBrainRuntimeService`、`AgentGraphRuntime` 或 Binder；
+    `graph_restart_runtime_wired=false`、`agent_graph_runtime_persistence_wired=false`、
+    `production_effect_dispatch_enabled=false`。该有意边界由 `DEV-050` 跟踪，不得提升 production/hardware 状态。
+
+状态：`graph_restart_reconciler_defined=true`、`graph_restart_room_v4_repository_verified=true`、
+`graph_restart_waiting_recovered=true`、`graph_restart_executing_reconciled=true`、
+`graph_restart_unknown_effect_reconciled=true`、`graph_restart_approval_undo_revalidation_verified=true`、
+`graph_restart_checkpoint_mismatch_stuck=true`、`graph_restart_continue_after_revalidate_verified=true`、
+`graph_restart_process_death_verified=true`、`graph_restart_idempotent_reopen_verified=true`、
+`graph_restart_audit_exactly_once_verified=true`、`graph_restart_side_effect_count=0`、
+`graph_restart_historical_digest_replay_verified=true`、
+`graph_restart_android13_arm64_verified=true`、`graph_restart_repository_implementation_available=true`、
+`graph_restart_runtime_wired=false`、`graph_restart_binder_published=false`、
+`graph_restart_executor_dispatch_enabled=false`、`graph_restart_effect_dispatch_enabled=false`、
+`graph_restart_production_wired=false`、`agent_graph_runtime_persistence_wired=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`。

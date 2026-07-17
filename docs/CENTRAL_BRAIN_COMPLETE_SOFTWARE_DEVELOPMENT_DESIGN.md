@@ -2331,3 +2331,73 @@ ARM64 probe。状态：`compensation_planner_defined=true`、`compensation_absol
 `undo_binder_service_published=false`、`compensation_dispatch_enabled=false`、`hardware_accessed=false`。
 Req IDs：`S2-EFF-001`、`S2-SAF-001`、`S2-UX-003`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：
 `DEV-049`、`ISSUE-022/026/030/033`。
+
+## P3-W09 implemented Restart recovery
+
+### 设计意图
+
+P3-W09 将“进程重新打开数据库后该做什么”从执行器中分离为两个边界：纯 Java reducer
+`GraphRestartReconciler` 负责确定目标状态与待处理 directive；Room v4 repository
+`DurableGraphRecoveryRepository` 负责有界加载、身份复验、原子状态提交和 exactly-once 摘要审计。二者均不拥有
+executor、adapter 或生产 authority，从结构上禁止在恢复入口盲目重复副作用。
+
+这不是早期 R4C1 `runtime_task` fail-closed cleanup 的替代品。R4C1 处理旧任务/回调结算；P3-W09 处理 Stage 2
+`plans/plan_nodes/effect_observations/compensations` projection。两条路径的数据模型、状态码和审计类型不同，不得互相
+冒充覆盖。
+
+### Reducer 模块
+
+`reconcile(PersistentRun, Evidence, nowEpochMs)` 的输入均由 caller 注入。持久化 Graph 已终态时原样返回；deadline
+到期时 Graph FAILED、非终态 Node STUCK。WAITING/EXECUTING/COMPENSATING Node 的 checkpoint 不是 VALID 时，整张图
+STUCK，避免跳过一个不可信 Node 后继续执行其依赖项。
+
+Effect/approval/compensation/model/tool/memory-write 均被视为可能产生外部或治理副作用：恢复结果只能 WAITING，并
+产生 `RECONCILE_*`/`REVALIDATE_*` directive。UNKNOWN Effect 根据 caller 提供的 delivery evidence 区分 status query、
+readback verification 和 retry-policy admission，但 reducer 自身永不 query/apply/retry。Control Node 只有在
+checkpoint VALID 和 Governance revalidated 时回 READY；Result 仍固定 dispatch disabled。
+
+所有嵌套对象在构造时检查 canonical UUID/SHA-256、node ID/type、idempotency、state code、sequence、deadline、
+最大数量和唯一性。Graph/Node state 与 Room integer code 使用显式映射方法，不使用 enum ordinal，避免 enum 重排破坏
+持久化兼容性。
+
+### Repository 模块
+
+Repository 复用 Room v4 预留表，因此没有 schema bump。DAO 新增 Plan/Node、Effect history 和 Compensation 的 bounded
+read/write 方法。加载先 count 再 query：Node 1..64；Effect history <=1024，按 effect ID/sequence 选 latest；
+Compensation <=64。数量、顺序、session/plan foreign identity 或 digest 不一致均抛
+`CB_GRAPH_RECOVERY_REPOSITORY` 稳定前缀异常。
+
+`persistInitial` 要求 Session 已存在且 deadline 一致，并在一个 transaction 写完整 recovery baseline。
+`applyRecovery` 再次加载当前 durable state，要求 Result 完整覆盖所有 Node 且 source identity 未漂移。只对变化的
+Plan/Node row 执行 update；Effect observation 和 Compensation 永远不回写。审计 detail 只有 result digest；repository
+按 plan+result digest 派生确定性 event ID，命中任意历史同 ID 时复验完整审计身份并返回 replay，不新增审计。Result
+digest 排除恢复前瞬时 state，使首次 EXECUTING -> WAITING 与重开后 WAITING -> WAITING 的同 material 具有稳定 replay
+identity。
+
+### 进程死亡测试
+
+Debug Activity 使用独立 Room 文件执行三个阶段。Seed 写 EXECUTING Graph、EXECUTING Effect Node、WAITING approval、
+UNKNOWN Effect 与 UNDO_REQUESTED Compensation；安装器等待 DB close 后 `force-stop` Runtime。首次恢复验证 Node/Graph
+state、typed directive、两行 state change 和首次 audit；再次 `force-stop` 后重放先验证 changed row 0、同一 digest
+audit 总数 1，再执行 A-B-A digest 顺序并验证 A 仍只出现一次、合法 B 只出现一次。Effect/Compensation evidence 未变化，
+side-effect count 为 0。进程令牌是 nonce + PID + 进程启动 elapsed 的 SHA-256，
+同进程稳定、跨强停进程变化，不记录 raw PID。
+
+### 并发、失败和集成边界
+
+Repository 的每次写操作由 Room transaction 串行化；Reducer 无共享可变状态。当前未定义 Service startup hook、
+trusted Evidence provider、scheduler、Binder API 或 `AgentGraphRuntime` hydration；因此
+`graph_restart_runtime_wired=false`、`agent_graph_runtime_persistence_wired=false`。P4/P8 接入时必须保留先 reconcile、
+再 Governance/Safety/approval/undo 重验、最后才允许 executor 的顺序，且不得放松 UNKNOWN Effect 的 no-redispatch
+规则。
+
+验证包括 8 组 JVM tests、debug/release build、release probe isolation、独立 checker、累计 installer 和 Android 13
+ARM64 两次进程死亡 probe。状态：`graph_restart_reconciler_defined=true`、
+`graph_restart_room_v4_repository_verified=true`、`graph_restart_process_death_verified=true`、
+`graph_restart_idempotent_reopen_verified=true`、`graph_restart_audit_exactly_once_verified=true`、
+`graph_restart_historical_digest_replay_verified=true`、
+`graph_restart_side_effect_count=0`、`graph_restart_runtime_wired=false`、
+`graph_restart_binder_published=false`、`graph_restart_executor_dispatch_enabled=false`、
+`production_effect_dispatch_enabled=false`、`hardware_accessed=false`。Req IDs：`S2-SES-001`、`S2-GRF-001`、
+`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；tracking：`DEV-050`、
+`ISSUE-022/023/026/030/033`。

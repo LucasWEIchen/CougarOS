@@ -529,9 +529,24 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W09` Restart recovery
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`。
-- 类：`GraphRestartReconciler`。
+- 状态：`DONE`（durable recovery reducer + Room v4 repository foundation，2026-07-17）；2.5 人日；需求：
+  `S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-SAF-001`、`NV-G-005/006/007`、
+  `DEL-001/003..005`。
+- 类：`GraphRestartReconciler`、`DurableGraphRecoveryRepository`。
 - DoD：恢复 WAITING/EXECUTING/UNKNOWN；先 reconcile 再继续；process death test 无重复副作用。
+- 实现：reducer 从 Room 投影的 immutable Plan/Node/Effect/Compensation 快照生成恢复结果。Effect、approval、
+  compensation、model/tool/memory 节点只能回到 WAITING 并生成 typed reconcile/revalidation directive；只有
+  checkpoint VALID 且 Governance 已重验的 control node 可回 READY。checkpoint missing/mismatch/untrusted、deadline、
+  状态/身份漂移均失败关闭为 STUCK/FAILED。
+- 持久化：复用 Room v4 已冻结 `plans/plan_nodes/effect_observations/compensations`，不升级 schema；repository 对行数、
+  identity、revision、digest 做有界事务校验，只更新 Plan/Node recovery state，Effect observation 与 compensation
+  evidence 保持不可变，并以 result digest exactly-once 写 `GRAPH_RESTART_RECONCILED` 审计。
+- 证据：8 组 JVM tests、debug/release build、三阶段 Android 13 ARM64 probe（seed -> force-stop -> recover ->
+  force-stop -> replay）、exactly-once audit 与 side-effect count 0、独立 checker、累计 installer/CI。
+- 边界：本包没有把 repository/reconciler 注入 `CentralBrainRuntimeService` 或 `AgentGraphRuntime`，没有 Binder、
+  executor、scheduler、adapter apply、vehicle/model/NPU/Driver-HAL。`graph_restart_runtime_wired=false`、
+  `agent_graph_runtime_persistence_wired=false`、`production_effect_dispatch_enabled=false`；该偏差由 `DEV-050` 跟踪，
+  不能把 debug process-death probe 表述为 production recovery activation。
 
 ## 8. P4 Client2 HVAC/Seat 中控演示闭环
 

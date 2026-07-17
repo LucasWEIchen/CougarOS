@@ -934,3 +934,31 @@ Eight JVM test groups and the Android 13/API 33 ARM64 probe establish
 `compensation_dispatch_enabled=false`, `production_compensation_authority_wired=false`,
 `effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. P3-W09 Restart recovery is the
 next work package.
+
+## P3-W09 Restart recovery
+
+`GraphRestartReconciler` is a pure-Java, fail-closed reducer over an immutable persistent Graph projection. It
+recovers WAITING/EXECUTING/UNKNOWN state without invoking executors or adapters. Effect, approval, compensation,
+model, tool and memory-write nodes return to WAITING with typed reconcile/revalidation directives. A control node
+can return READY only after a VALID checkpoint and caller-provided Governance revalidation. Missing, mismatched or
+untrusted checkpoints make the non-terminal Graph STUCK; an expired Graph becomes FAILED.
+
+`DurableGraphRecoveryRepository` reuses the frozen Room v4 Plan/PlanNode/EffectObservation/Compensation tables. It
+loads a bounded projection, validates plan/session/digest and complete node identity, applies only Plan/Node target
+states in one transaction, and writes a digest-only `GRAPH_RESTART_RECONCILED` audit exactly once for the same
+result digest. Effect observations and compensation evidence are immutable. Reopening the already-recovered state
+therefore changes zero rows and creates no second audit or side effect.
+
+The debug-only DUMP probe seeds EXECUTING/WAITING/UNKNOWN material, survives two installer-driven Runtime
+`force-stop` operations, and verifies first recovery plus idempotent replay on Android 13/API 33 ARM64. The process
+generation proof stores only a SHA-256 derived from the nonce, PID and process birth elapsed time.
+
+`graph_restart_reconciler_defined=true`, `graph_restart_room_v4_repository_verified=true`,
+`graph_restart_process_death_verified=true`, `graph_restart_idempotent_reopen_verified=true`,
+`graph_restart_audit_exactly_once_verified=true` and `graph_restart_side_effect_count=0` are verified.
+Historical A-B-A result-digest replay is also verified exactly once per deterministic audit event ID.
+`graph_restart_runtime_wired=false`, `graph_restart_binder_published=false`,
+`graph_restart_executor_dispatch_enabled=false`, `graph_restart_effect_dispatch_enabled=false`,
+`graph_restart_production_wired=false`, `agent_graph_runtime_persistence_wired=false`,
+`production_effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. Runtime/Binder activation
+is tracked by DEV-050; P4-W01 Bridge session/event API migration is the next work package.

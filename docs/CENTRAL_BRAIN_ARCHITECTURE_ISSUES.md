@@ -126,6 +126,17 @@ TTL/digest handle、Context/Policy/Safety 复验和新的 governed task admissio
 不接 Graph/Room/Binder/adapter，且 PRODUCTION 固定拒绝；P1 V1 的 COMPENSATING/COMPENSATED 枚举在冻结
 transition 中不可达，已登记 `DEV-049`，需要独立 compensation operation contract。因此本问题保持 Open。
 
+P3-W09 进展：已增加 WAITING/EXECUTING/UNKNOWN fail-closed reducer、Room v4 bounded recovery repository、
+checkpoint mismatch STUCK、typed Effect/approval/undo reconcile directive、process-death reopen 和 exactly-once digest
+audit。Android 13 ARM64 probe 在两次 `force-stop` 后确认相同 digest replay 不新增状态变化、审计或副作用，并以
+A-B-A 结果顺序确认历史 digest 也按 event ID exactly-once。Effect observation 与
+Compensation evidence 保持不可变。
+
+该增量仍未接 `CentralBrainRuntimeService`、`AgentGraphRuntime`、Binder、trusted Evidence provider、scheduler 或
+production Effect adapter，`graph_restart_runtime_wired=false`、`production_effect_dispatch_enabled=false`；已登记
+`DEV-050`。因此 ISSUE-022 只关闭 recovery reducer/repository 子项，真实 material/key/trusted clock/retention、
+Runtime hydration、adapter status authority 和目标故障证据仍开放。
+
 ## ISSUE-023 Android 可信身份、capability 与审批
 
 Binder caller identity、package/current signer、default-deny capability 和 typed governance 已实现。

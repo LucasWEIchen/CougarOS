@@ -2215,6 +2215,138 @@ for marker in \
   fi
 done
 
+GRAPH_RESTART_NONCE="$(date +%s%N)"
+GRAPH_RESTART_SEED_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.GraphRestartRecoveryProbeActivity \
+  --es nonce "$GRAPH_RESTART_NONCE" \
+  --es phase seed)"
+if ! grep -Fq "Status: ok" <<<"$GRAPH_RESTART_SEED_OUTPUT"; then
+  echo "$GRAPH_RESTART_SEED_OUTPUT" >&2
+  echo "Graph restart recovery seed probe did not start successfully" >&2
+  exit 1
+fi
+GRAPH_RESTART_SEED_PASSED=false
+for _ in {1..40}; do
+  GRAPH_RESTART_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbGraphRestart:I)"
+  if grep -Fq "nonce=$GRAPH_RESTART_NONCE graph_restart_seed_complete=true" \
+      <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_room_v4_seed_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_side_effect_count=0" \
+        <<<"$GRAPH_RESTART_LOG"; then
+    GRAPH_RESTART_SEED_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$GRAPH_RESTART_SEED_PASSED" != true ]]; then
+  echo "$GRAPH_RESTART_LOG" >&2
+  echo "Graph restart recovery seed probe did not pass" >&2
+  exit 1
+fi
+
+"${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.runtime
+GRAPH_RESTART_FIRST_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.GraphRestartRecoveryProbeActivity \
+  --es nonce "$GRAPH_RESTART_NONCE" \
+  --es phase recover-first)"
+if ! grep -Fq "Status: ok" <<<"$GRAPH_RESTART_FIRST_OUTPUT"; then
+  echo "$GRAPH_RESTART_FIRST_OUTPUT" >&2
+  echo "Graph restart first recovery probe did not start successfully" >&2
+  exit 1
+fi
+GRAPH_RESTART_FIRST_PASSED=false
+for _ in {1..40}; do
+  GRAPH_RESTART_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbGraphRestart:I)"
+  if grep -Fq \
+      "nonce=$GRAPH_RESTART_NONCE graph_restart_first_recovery_complete=true" \
+      <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_process_generation_changed=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_side_effect_count=0" \
+        <<<"$GRAPH_RESTART_LOG"; then
+    GRAPH_RESTART_FIRST_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$GRAPH_RESTART_FIRST_PASSED" != true ]]; then
+  echo "$GRAPH_RESTART_LOG" >&2
+  echo "Graph restart first recovery probe did not pass" >&2
+  exit 1
+fi
+
+"${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.runtime
+GRAPH_RESTART_REPLAY_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.persistence.GraphRestartRecoveryProbeActivity \
+  --es nonce "$GRAPH_RESTART_NONCE" \
+  --es phase recover-replay)"
+if ! grep -Fq "Status: ok" <<<"$GRAPH_RESTART_REPLAY_OUTPUT"; then
+  echo "$GRAPH_RESTART_REPLAY_OUTPUT" >&2
+  echo "Graph restart replay recovery probe did not start successfully" >&2
+  exit 1
+fi
+GRAPH_RESTART_REPLAY_PASSED=false
+for _ in {1..40}; do
+  GRAPH_RESTART_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbGraphRestart:I)"
+  if grep -Fq "nonce=$GRAPH_RESTART_NONCE graph_restart_probe_complete=true" \
+      <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_reconciler_defined=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_room_v4_repository_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_waiting_recovered=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_executing_reconciled=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_unknown_effect_reconciled=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_approval_undo_revalidation_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_checkpoint_mismatch_stuck=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_continue_after_revalidate_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_process_death_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_idempotent_reopen_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_audit_exactly_once_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_historical_digest_replay_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_side_effect_count=0" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_android13_arm64_verified=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_repository_implementation_available=true" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_runtime_wired=false" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_binder_published=false" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_executor_dispatch_enabled=false" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_effect_dispatch_enabled=false" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "graph_restart_production_wired=false" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "agent_graph_runtime_persistence_wired=false" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "production_effect_dispatch_enabled=false" \
+        <<<"$GRAPH_RESTART_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$GRAPH_RESTART_LOG"; then
+    GRAPH_RESTART_REPLAY_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$GRAPH_RESTART_REPLAY_PASSED" != true ]]; then
+  echo "$GRAPH_RESTART_LOG" >&2
+  echo "Graph restart replay recovery probe did not pass" >&2
+  exit 1
+fi
+
 DEMO_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.demo/.DemoActivity)"
 if ! grep -Fq "Status: ok" <<<"$DEMO_OUTPUT"; then
   echo "$DEMO_OUTPUT" >&2
@@ -2703,6 +2835,28 @@ printf '%s\n' \
   "compensation_dispatch_enabled=false" \
   "production_compensation_authority_wired=false" \
   "effect_dispatch_enabled=false" \
+  "graph_restart_reconciler_defined=true" \
+  "graph_restart_room_v4_repository_verified=true" \
+  "graph_restart_waiting_recovered=true" \
+  "graph_restart_executing_reconciled=true" \
+  "graph_restart_unknown_effect_reconciled=true" \
+  "graph_restart_approval_undo_revalidation_verified=true" \
+  "graph_restart_checkpoint_mismatch_stuck=true" \
+  "graph_restart_continue_after_revalidate_verified=true" \
+  "graph_restart_process_death_verified=true" \
+  "graph_restart_idempotent_reopen_verified=true" \
+  "graph_restart_audit_exactly_once_verified=true" \
+  "graph_restart_historical_digest_replay_verified=true" \
+  "graph_restart_side_effect_count=0" \
+  "graph_restart_android13_arm64_verified=true" \
+  "graph_restart_repository_implementation_available=true" \
+  "graph_restart_runtime_wired=false" \
+  "graph_restart_binder_published=false" \
+  "graph_restart_executor_dispatch_enabled=false" \
+  "graph_restart_effect_dispatch_enabled=false" \
+  "graph_restart_production_wired=false" \
+  "agent_graph_runtime_persistence_wired=false" \
+  "production_effect_dispatch_enabled=false" \
   "network_accessed=false" \
   "model_invoked=false" \
   "room_schema_version=4" \

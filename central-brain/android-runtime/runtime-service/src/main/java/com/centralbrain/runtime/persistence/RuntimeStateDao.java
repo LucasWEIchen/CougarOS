@@ -56,6 +56,34 @@ public interface RuntimeStateDao {
     int countSessions();
 
     @Nullable
+    @Query("SELECT * FROM plans WHERE plan_id = :planId LIMIT 1")
+    PlanEntity findPlan(String planId);
+
+    @Query("SELECT * FROM plan_nodes WHERE plan_id = :planId ORDER BY node_id")
+    List<PlanNodeEntity> listPlanNodes(String planId);
+
+    @Query("SELECT COUNT(*) FROM plan_nodes WHERE plan_id = :planId")
+    int countPlanNodes(String planId);
+
+    @Query("SELECT * FROM effect_observations WHERE session_id = :sessionId "
+            + "ORDER BY effect_id, sequence LIMIT :limit")
+    List<EffectObservationEntity> listEffectObservationsForRecovery(
+            String sessionId,
+            int limit);
+
+    @Query("SELECT COUNT(*) FROM effect_observations WHERE session_id = :sessionId")
+    int countEffectObservationsForRecovery(String sessionId);
+
+    @Query("SELECT * FROM compensations WHERE session_id = :sessionId "
+            + "ORDER BY compensation_id LIMIT :limit")
+    List<CompensationEntity> listCompensationsForRecovery(
+            String sessionId,
+            int limit);
+
+    @Query("SELECT COUNT(*) FROM compensations WHERE session_id = :sessionId")
+    int countCompensationsForRecovery(String sessionId);
+
+    @Nullable
     @Query("SELECT * FROM sessions WHERE state IN (8, 9, 10) "
             + "ORDER BY updated_at_wall_ms, session_id LIMIT 1")
     SessionEntity findOldestTerminalSession();
@@ -126,6 +154,10 @@ public interface RuntimeStateDao {
     AuditEventEntity findLatestAuditEvent(String subjectId, String eventType);
 
     @Nullable
+    @Query("SELECT * FROM audit_event WHERE event_id = :eventId LIMIT 1")
+    AuditEventEntity findAuditEvent(String eventId);
+
+    @Nullable
     @Query("SELECT * FROM task_checkpoint WHERE task_id = :taskId "
             + "ORDER BY sequence DESC LIMIT 1")
     TaskCheckpointEntity findLatestCheckpoint(String taskId);
@@ -187,6 +219,18 @@ public interface RuntimeStateDao {
     void insertRuntimeEvent(RuntimeEventEntity entity);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
+    void insertPlan(PlanEntity entity);
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    void insertPlanNode(PlanNodeEntity entity);
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    void insertEffectObservation(EffectObservationEntity entity);
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    void insertCompensation(CompensationEntity entity);
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertTask(RuntimeTaskEntity entity);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
@@ -221,6 +265,12 @@ public interface RuntimeStateDao {
 
     @Update
     int updateSession(SessionEntity entity);
+
+    @Update
+    int updatePlan(PlanEntity entity);
+
+    @Update
+    int updatePlanNode(PlanNodeEntity entity);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertEventCursor(EventCursorEntity entity);
