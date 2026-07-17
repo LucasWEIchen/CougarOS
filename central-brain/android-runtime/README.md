@@ -542,15 +542,15 @@ R7A1 is an acceptance contract, not a certificate embedded in the APK. The insta
 
 ## R7B Client2 SDK/Binder Migration
 
-The isolated Client2 reverse-demo project now embeds the public SDK/AIDL contract and a narrow scenario bridge as `classes2.dex`. Its 12 scenario buttons submit typed `AgentTaskRequest` values to the explicit Runtime service and receive asynchronous callbacks; the previous HTTP RequestTask, INTERNET permission and cleartext opt-in are absent.
+The isolated Client2 reverse-demo project embeds the public SDK/AIDL contract and a narrow scenario bridge as `classes2.dex`. Its 12 scenario buttons now map their stable UI aliases to canonical scenario IDs, open typed Session/Event streams through `SessionClient`, and receive snapshot/event/replay callbacks; the previous Task API bridge, HTTP RequestTask, INTERNET permission and cleartext opt-in are absent.
 
-The generated Client2 debug APK uses the same debug signer as Runtime to pass `BIND_RUNTIME`. Runtime then applies its package/current-signer capability policy and grants Client2 only protocol read plus owned task submit/status/cancel. The API 33 acceptance taps the real overlay button, verifies Runtime identity resolution and UI reply, and records no HTTP, service dispatch or hardware access.
+The generated Client2 debug APK uses the same debug signer as Runtime to pass `BIND_RUNTIME`. Runtime then applies its package/current-signer capability policy and grants Client2 only protocol read plus owned Session open/read/cancel. The API 33 acceptance taps the real overlay button, verifies Runtime identity resolution, ordered event projection and replay completion, and records no HTTP, service dispatch or hardware access.
 
 This evidence changes only `client2_binder_migration_complete=true`. Full R7 application integration, target system ownership, production subsystem activation and target hardware validation remain blocked. Original Client2/RenderService signing compatibility must be validated on the target device.
 
 ## R7C Android 13 Application Acceptance
 
-R7C adds a repeatable API 33 recovery matrix over Client2 and Runtime. It verifies visible Runtime-unavailable failure and same-Activity retry, rapid-tap single-flight, process-death `ERROR_SERVICE_DIED` uniqueness and retry, fail-closed restart reconciliation, Client2 process restart/rebind and all existing Binder death/reconnect/cancel-race instrumentation.
+R7C adds a repeatable API 33 recovery matrix over Client2 and Runtime. It verifies visible Runtime-unavailable failure and same-Activity retry, deterministic compatibility-stream replacement, Runtime process-death reconnect with sequence-deduplicated replay, fail-closed restart reconciliation, Client2 process restart/rebind and all existing Binder death/reconnect/cancel-race instrumentation.
 
 The process-death receiver exists only in the Runtime debug source set and requires `android.permission.DUMP`; release packaging excludes it. Passing the matrix sets `r7_application_integration_complete=true` and `api33_end_to_end_acceptance_complete=true`. Seven production/system/hardware blockers remain, so this is not target-device or production qualification.
 
@@ -961,4 +961,5 @@ Historical A-B-A result-digest replay is also verified exactly once per determin
 `graph_restart_executor_dispatch_enabled=false`, `graph_restart_effect_dispatch_enabled=false`,
 `graph_restart_production_wired=false`, `agent_graph_runtime_persistence_wired=false`,
 `production_effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. Runtime/Binder activation
-is tracked by DEV-050; P4-W01 Bridge session/event API migration is the next work package.
+is tracked by DEV-050. P4-W01 has since migrated Client2 to the published Session/Event facade without
+activating this recovery path; P4-W02 Cockpit HMI state/reducer/reconnect is the next work package.

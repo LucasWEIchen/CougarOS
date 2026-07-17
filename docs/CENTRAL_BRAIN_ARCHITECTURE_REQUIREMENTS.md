@@ -1166,3 +1166,32 @@ NPU、Driver/HAL 或目标硬件资格。
 `graph_restart_executor_dispatch_enabled=false`、`graph_restart_effect_dispatch_enabled=false`、
 `graph_restart_production_wired=false`、`agent_graph_runtime_persistence_wired=false`、
 `production_effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 42. P4-W01 Client2 Session/Event bridge trace
+
+Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001`、`XSC-005/006`、`NV-G-003/006/007`、
+`DEL-001/003/004/005`。
+
+1. Client2 bridge 的主调用必须是 `openSession(...)`，返回 caller-owned `SessionConnection`；新 HMI 不得调用
+   legacy `CentralBrainClient.submitAgentTask` 或从一次性 reply 推断会话状态。
+2. `ScenarioCallback` 必须暴露 typed `SessionHandle`、`SessionSnapshot`、`RuntimeEvent`、replay complete、overflow、
+   close 和 stable error code。snapshot/cursor replay 是权威恢复源，callback notification 不能单独作为完整历史。
+3. `SessionConnection` 必须支持 `isConnected/getSessionHandle/cancel/close`；`SessionClient` 继续拥有 Session/Event
+   双 Binder version/hash negotiation、death detection、reconnect、resubscribe、sequence continuity 和 duplicate drop。
+4. 旧 Smali `submit(Activity,String,String,ScenarioCallback):boolean` 与三个 `onBridge*` 描述符必须保留，但只能
+   作为兼容投影。每个新兼容请求必须关闭前一兼容 stream；不得恢复 HTTP/REST 或直接调用 debug adapter。
+5. 两段 UI alias 必须经过 12 项 exact allowlist 转为 qualified canonical Session ID。未知 alias 必须在 bind 前
+   失败；禁止放宽 `SessionContract` pattern、修改冻结 AIDL/hash 或让 UI alias 直接进入 Runtime。
+6. 用户文本最长 1024 字符；request 使用 canonical UUID、HMI_BUTTON、DRIVER、`zh-CN` 和 10 秒 admission deadline。
+   日志不得记录 user/model text、session UUID、车辆 payload 或原始设备身份，只记录 presence、state/type/sequence。
+7. Android 13/API 33 ARM64 验收必须覆盖 open、snapshot、sequence 1 `ScenarioRequested`、replay complete、旧摘要
+   投影、stream replacement、Runtime process-death reconnect/replay、duplicate suppression、Client2 restart/menu reopen。
+8. 本包不得声明场景已执行。`scenario_execution_enabled=false`、`service_dispatch_triggered=false`、
+   `cockpit_hmi_state_reducer_implemented=false`、`cockpit_demo_control_loop_implemented=false`、
+   `hardware_accessed=false`；Activity lifecycle/recreate state 属于 P4-W02，偏差由 `DEV-051` 跟踪。
+
+状态：`client2_session_event_primary_api=true`、`client2_session_event_typed_callback=true`、
+`client2_legacy_submit_compatibility=true`、`client2_scenario_alias_map_count=12`、
+`client2_session_snapshot_verified=true`、`client2_session_event_sequence_verified=true`、
+`client2_session_reconnect_replay_verified=true`、`client2_session_duplicate_event_suppressed=true`、
+`client2_session_android13_arm64_verified=true`、`implementation_stage=P4-W02`。

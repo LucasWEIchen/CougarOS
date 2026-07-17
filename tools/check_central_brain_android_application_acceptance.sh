@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: APP-004, XSC-001/005/006, NV-F-001/012, NV-G-003/006/007,
-# NV-P-002, DEL-001/003/004/005.
+# Req IDs: S2-UX-001, S2-HMI-005, APP-004, XSC-001/005/006,
+# NV-F-001/012, NV-G-003/006/007, NV-P-002, DEL-001/003/004/005.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONTRACT="central-brain/contracts/central_brain_android_r7c_acceptance.json"
@@ -58,10 +58,13 @@ fi
 for marker in \
   "runtime_absent_failure_visible=true" \
   "runtime_reenable_retry_completed=true" \
-  "client2_single_flight_verified=true" \
+  "client2_legacy_stream_replacement_verified=true" \
   "runtime_process_death_injected=true" \
-  "runtime_service_death_failure_visible=true" \
-  "runtime_service_death_terminal_unique=true" \
+  "client2_session_reconnect_replay_verified=true" \
+  "client2_session_duplicate_event_suppressed=true" \
+  "runtime_service_death_failure_visible=false" \
+  "runtime_service_death_terminal_emitted=false" \
+  "runtime_service_death_recovered_without_terminal=true" \
   "runtime_service_restart_retry_completed=true" \
   "runtime_restart_reconciliation_fail_closed=true" \
   "client2_process_restart_rebind_completed=true" \
@@ -86,11 +89,11 @@ import pathlib
 import sys
 
 payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("schema_version") != "1.0.0":
-    raise SystemExit("R7C acceptance schema must remain 1.0.0")
+if payload.get("schema_version") != "1.1.0":
+    raise SystemExit("R7C acceptance schema must remain 1.1.0")
 if payload.get("status") != "verified":
     raise SystemExit("R7C acceptance contract must be verified")
-if payload.get("evidence_scope") != "api33-emulator-application-integration":
+if payload.get("evidence_scope") != "api33-android-application-integration":
     raise SystemExit("R7C evidence scope must remain explicit")
 if payload.get("required_android_api") != 33:
     raise SystemExit("R7C must require Android API 33")

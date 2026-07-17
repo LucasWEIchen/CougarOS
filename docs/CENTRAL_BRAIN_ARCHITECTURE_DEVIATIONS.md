@@ -72,15 +72,18 @@
 | DEV-046 | P3-W05 approval interrupt 只有 checkpoint-ready 合同，尚未接 Room/Graph/Binder grant/restart recovery。 | S2-SAF-001, S2-UX-003, S2-GRF-001, ISSUE-022/026/029 | Accepted Temporary |
 | DEV-047 | P3-W06 EffectCoordinator 是进程内两阶段合同，尚未接 durable outbox、Graph、readback/reconcile 或 production adapter。 | S2-EFF-001, S2-SAF-001, ISSUE-022/026/030/033 | Accepted Temporary |
 | DEV-048 | P3-W07 verifier/reconciler 是 caller-driven process-local 合同，尚未接 scheduler/Room/Graph 或 production readback。 | S2-EFF-001, S2-TWN-001, ISSUE-022/026/030/033 | Accepted Temporary |
+| DEV-049 | P3-W08 Compensation/Undo 只形成 process-local 新 governed task，原 Effect terminal 不回退。 | S2-EFF-001, S2-UX-003, ISSUE-022/023/029/030 | Accepted Temporary |
+| DEV-050 | P3-W09 Restart recovery repository 未注入 Runtime/Binder/Graph execution。 | S2-GRF-001, S2-EFF-001, ISSUE-022/026/030/033 | Accepted Temporary |
+| DEV-051 | P4-W01 使用固定 UI alias map 和 legacy static lifecycle owner，待 P4-W02 接管。 | S2-UX-001, S2-HMI-005, ISSUE-019/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
 原因：目标 HMI 源码不可用，用户批准在隔离工程
 `apk-labs/client2-central-brain/` 中进行资源、smali 和 secondary-dex patch。
 
-现状：Client2 已通过 public SDK/typed Binder 提交任务，APK 不申请网络权限，不保留 HTTP
-fallback。2026-07-15 导航菜单进展已经在 1920x1080 Android 13 ARM64 物理设备验证默认隐藏、
-显示、二次隐藏、面板外关闭、Binder callback 和进程恢复。
+现状：Client2 已通过 public Session/Event SDK/typed Binder 打开 owner-scoped 会话，APK 不申请网络权限，不保留
+HTTP fallback。2026-07-17 已在 1920x1080 Android 13 ARM64 物理设备验证默认隐藏、显示、二次隐藏、面板外关闭、
+snapshot/event/replay、Runtime process-death reconnect/duplicate suppression 和 Client2 进程恢复。
 
 风险：底部导航触点依赖闭源 Tuanjie/RenderService 画面几何；debug 重签名、量产 allowlist、
 OTA/MDM、Car UX Restrictions、无障碍和多分辨率均未完成。
@@ -722,3 +725,24 @@ production Effect adapter。P3-W09 的 debug Activity 直接驱动 repository/re
 `production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。后续集成必须先提供可信 Evidence 和单 owner transaction/scheduler，再接 Runtime；
 在此之前不得把 P3 foundation 状态提升为 production recovery。
+
+## DEV-051 P4-W01 Client2 UI alias 与 legacy 生命周期仍是兼容边界
+
+Client2 既有 XML/Smali 用两段式 UI alias（如 `care.cold`），冻结的 Session V1 合同和 P2 scenario manifest
+要求至少三段 qualified ID。真机首次迁移因此在 admission 前被 `SessionContract` 正确拒绝。修复没有放宽合同或
+修改 AIDL/hash，而是在 Client2 bridge 内建立 12 项固定 alias -> canonical Session ID allowlist；其中已有 catalog
+项映射到 `scene.comfort.cold.v1`、`scene.fatigue.assist.v1`、`scene.rest.nap.v1`，其余 canonical ID 只表示会话命名，
+在 Runtime scenario catalog/Graph 未接入前不代表可执行场景。
+
+旧 Smali 仍调用 `submit(...):boolean` 并实现三个文本 callback。该入口现在只包装 primary `openSession`，在每次
+authoritative replay 后投影 snapshot summary，新的兼容请求会关闭并替换上一个兼容订阅。`closeLegacySession()`
+已提供，但当前 Smali 尚无 Activity destroy hook；P4-W02 必须由 maintained Java coordinator 持有
+`SessionConnection` 并在 lifecycle/recreate 时关闭或恢复，不能长期依赖静态兼容 owner。
+
+状态：`Accepted Temporary`。`client2_session_event_primary_api=true`、
+`client2_scenario_alias_map_count=12`、`client2_legacy_submit_compatibility=true`、
+`client2_session_reconnect_replay_verified=true`、`client2_session_duplicate_event_suppressed=true`、
+`cockpit_hmi_state_reducer_implemented=false`、`scenario_execution_enabled=false`、
+`cockpit_demo_control_loop_implemented=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。关闭 owner 为 P4-W02/P4-W10；canonical catalog/执行
+由 Runtime integration work package 关闭，不得由 HMI alias 映射冒充。

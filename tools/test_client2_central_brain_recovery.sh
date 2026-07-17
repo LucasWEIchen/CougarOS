@@ -99,7 +99,7 @@ wait_for_log() {
   local log=""
   for _ in {1..80}; do
     log="$("${ADB_DEVICE[@]}" logcat -d \
-      CbClient2Binder:I CentralBrainRuntime:I CentralBrainFaultProbe:W '*:S')"
+      CbClient2Session:I CentralBrainRuntime:I CentralBrainFaultProbe:W '*:S')"
     if grep -Fq "$marker" <<<"$log"; then
       printf '%s\n' "$log" >"$output_file"
       return 0
@@ -218,8 +218,12 @@ fi
 bash "$ROOT_DIR/tools/test_client2_central_brain_binder.sh" \
   "${HAPPY_PATH_ARGS[@]}" >"$LOG_DIR/client2-happy-path.txt" 2>&1
 for marker in \
-  'client2_binder_task_completed=true' \
-  'client2_ui_reply_verified=true' \
+  'client2_session_transport_connected=true' \
+  'client2_session_opened=true' \
+  'client2_session_snapshot_received=true' \
+  'client2_session_event_received=true' \
+  'client2_session_replay_complete=true' \
+  'client2_ui_session_projection_verified=true' \
   'client2_panel_initially_hidden=true' \
   'client2_navigation_toggle_show_verified=true' \
   'client2_navigation_toggle_hide_verified=true' \
@@ -239,17 +243,17 @@ launch_client2 "$LOG_DIR/client2-launch.txt"
 open_navigation_menu \
   "$LOG_DIR/ui-initial-hidden.xml" "$LOG_DIR/ui-initial.xml"
 
-# Runtime unavailable must be visible and must release the Client2 single-flight gate.
+# Runtime unavailable must be visible and must release the initial compatibility projection gate.
 "${ADB_DEVICE[@]}" shell pm disable-user --user 0 com.centralbrain.runtime \
   >"$LOG_DIR/runtime-disable.txt"
 RUNTIME_DISABLED=true
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
 wait_for_log \
-  'reason=Runtime Binder unavailable: bindService returned false' \
+  'reason=Session/Event bind rejected' \
   "$LOG_DIR/runtime-absent-log.txt"
 assert_ui_reply \
-  'text="Binder failed: Runtime Binder unavailable: bindService returned false"' \
+  'text="Binder failed: Session/Event bind rejected"' \
   "$LOG_DIR/ui-runtime-absent.xml"
 
 "${ADB_DEVICE[@]}" shell pm enable com.centralbrain.runtime \
@@ -257,58 +261,113 @@ assert_ui_reply \
 RUNTIME_DISABLED=false
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
-wait_for_log 'client2_binder_task_completed=true' \
+wait_for_log 'client2_session_replay_complete=true' \
   "$LOG_DIR/runtime-reenabled-log.txt"
-assert_ui_reply 'text="Deterministic Binder reply: care.cold:' \
+assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
   "$LOG_DIR/ui-runtime-reenabled.xml"
 
-# Two rapid taps must create exactly one submitted task and one terminal callback.
+# A second accepted request replaces the previous compatibility subscription. Each Session still
+# receives exactly one sequence-1 event and one initial replay projection.
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
+wait_for_log 'client2_session_replay_complete=true' \
+  "$LOG_DIR/stream-replacement-first-log.txt"
 tap_cold
-wait_for_log 'client2_binder_task_completed=true' \
-  "$LOG_DIR/single-flight-log.txt"
-if [[ "$(grep -Fc 'client2_binder_task_submitted=true' \
-    "$LOG_DIR/single-flight-log.txt")" -ne 1 ]] \
-    || [[ "$(grep -Fc 'client2_binder_task_completed=true' \
-      "$LOG_DIR/single-flight-log.txt")" -ne 1 ]] \
-    || [[ "$(grep -Fc 'packages=[com.tuanjie.urasclient2] resolved=true' \
-      "$LOG_DIR/single-flight-log.txt")" -ne 1 ]]; then
-  cat "$LOG_DIR/single-flight-log.txt" >&2
-  echo "Client2 single-flight produced duplicate submission or terminal evidence" >&2
+STREAM_REPLACED=false
+for _ in {1..80}; do
+  REPLACEMENT_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+    CbClient2Session:I CentralBrainRuntime:I '*:S')"
+  if [[ "$(grep -Fc 'client2_session_replay_complete=true' \
+      <<<"$REPLACEMENT_LOG")" -ge 2 ]]; then
+    printf '%s\n' "$REPLACEMENT_LOG" >"$LOG_DIR/stream-replacement-log.txt"
+    STREAM_REPLACED=true
+    break
+  fi
+  sleep 0.1
+done
+if [[ "$STREAM_REPLACED" != true ]]; then
+  printf '%s\n' "$REPLACEMENT_LOG" >"$LOG_DIR/stream-replacement-log.txt"
+  echo "Client2 did not replace the prior compatibility Session" >&2
   exit 1
 fi
-assert_ui_reply 'text="Deterministic Binder reply: care.cold:' \
-  "$LOG_DIR/ui-single-flight.xml"
+if [[ "$(grep -Fc 'client2_session_opened=true' \
+    "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
+    || [[ "$(grep -Fc 'client2_session_event_received=true' \
+      "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
+    || [[ "$(grep -Fc 'client2_session_replay_complete=true' \
+      "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
+    || [[ "$(grep -Fc 'client2_legacy_callback_projected=true' \
+      "$LOG_DIR/stream-replacement-log.txt")" -ne 2 ]] \
+    || ! grep -Fq 'client2_legacy_session_replaced=true' \
+      "$LOG_DIR/stream-replacement-log.txt"; then
+  cat "$LOG_DIR/stream-replacement-log.txt" >&2
+  echo "Client2 compatibility replacement lost or duplicated Session evidence" >&2
+  exit 1
+fi
+assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
+  "$LOG_DIR/ui-stream-replacement.xml"
 
-# Kill the debug Runtime process after submission and verify one SERVICE_DIED terminal.
+# Kill Runtime after replay. The active Session must reconnect, replay by cursor and suppress
+# the already delivered sequence rather than converting Binder death into a fake task result.
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
-SUBMITTED=false
+SESSION_OPENED=false
 for _ in {1..100}; do
-  if "${ADB_DEVICE[@]}" logcat -d CbClient2Binder:I '*:S' \
-      | grep -Fq 'client2_binder_task_submitted=true'; then
-    SUBMITTED=true
+  if "${ADB_DEVICE[@]}" logcat -d CbClient2Session:I '*:S' \
+      | grep -Fq 'client2_session_replay_complete=true'; then
+    SESSION_OPENED=true
     break
   fi
   sleep 0.02
 done
-if [[ "$SUBMITTED" != true ]]; then
-  echo "Client2 task was not submitted before Runtime death injection" >&2
+if [[ "$SESSION_OPENED" != true ]]; then
+  echo "Client2 Session was not replay-ready before Runtime death injection" >&2
   exit 1
 fi
 "${ADB_DEVICE[@]}" shell am broadcast \
   -a com.centralbrain.runtime.DEBUG_KILL_PROCESS \
   -n com.centralbrain.runtime/.RuntimeFaultProbeReceiver \
   >"$LOG_DIR/runtime-fault-broadcast.txt"
-wait_for_log 'reason=task error 4: runtime service died' \
+wait_for_log 'client2_session_reconnected=true' \
   "$LOG_DIR/runtime-death-log.txt"
-if [[ "$(grep -Fc 'client2_binder_task_failed=true' \
-    "$LOG_DIR/runtime-death-log.txt")" -ne 1 ]] \
-    || grep -Fq 'client2_binder_task_completed=true' \
+REPLAY_RECOVERED=false
+for _ in {1..80}; do
+  RECOVERY_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+    CbClient2Session:I CentralBrainRuntime:I CentralBrainFaultProbe:W '*:S')"
+  if [[ "$(grep -Fc 'client2_session_replay_complete=true' \
+      <<<"$RECOVERY_LOG")" -ge 2 ]]; then
+    printf '%s\n' "$RECOVERY_LOG" >"$LOG_DIR/runtime-death-replay-log.txt"
+    REPLAY_RECOVERED=true
+    break
+  fi
+  sleep 0.1
+done
+if [[ "$REPLAY_RECOVERED" != true ]]; then
+  printf '%s\n' "$RECOVERY_LOG" >"$LOG_DIR/runtime-death-replay-log.txt"
+  echo "$RECOVERY_LOG" >&2
+  echo "Session reconnect did not complete an authoritative replay" >&2
+  exit 1
+fi
+if grep -Fq 'client2_session_bridge_failed=true' \
       "$LOG_DIR/runtime-death-log.txt"; then
   cat "$LOG_DIR/runtime-death-log.txt" >&2
-  echo "Runtime death did not produce one fail-closed Client2 terminal" >&2
+  echo "Runtime death incorrectly terminated the recoverable Session stream" >&2
+  exit 1
+fi
+if [[ "$(grep -Fc 'client2_session_opened=true' \
+      "$LOG_DIR/runtime-death-replay-log.txt")" -ne 1 ]] \
+    || [[ "$(grep -Fc 'client2_session_event_received=true' \
+      "$LOG_DIR/runtime-death-replay-log.txt")" -ne 1 ]] \
+    || [[ "$(grep -Fc 'client2_session_replay_complete=true' \
+      "$LOG_DIR/runtime-death-replay-log.txt")" -lt 2 ]]; then
+  cat "$LOG_DIR/runtime-death-replay-log.txt" >&2
+  echo "Session reconnect replay duplicated an event or lost replay completion" >&2
+  exit 1
+fi
+if ! grep -Fq 'client2_legacy_callback_reprojected=true' \
+    "$LOG_DIR/runtime-death-replay-log.txt"; then
+  cat "$LOG_DIR/runtime-death-replay-log.txt" >&2
+  echo "Session reconnect did not refresh the legacy compatibility projection" >&2
   exit 1
 fi
 for marker in \
@@ -317,21 +376,26 @@ for marker in \
   'hardware_accessed=false'; do
   grep -Fq "$marker" "$LOG_DIR/runtime-death-log.txt"
 done
-assert_ui_reply 'text="Binder failed: task error 4: runtime service died"' \
-  "$LOG_DIR/ui-runtime-death.xml"
-
-# A new click must restart/rebind Runtime and reconcile the interrupted task fail closed.
-"${ADB_DEVICE[@]}" logcat -c
-tap_cold
-wait_for_log 'client2_binder_task_completed=true' \
-  "$LOG_DIR/runtime-death-retry-log.txt"
 for marker in \
   'restart reconciliation completed' \
-  'task_execution_resume_enabled=false' \
-  'packages=[com.tuanjie.urasclient2] resolved=true'; do
+  'task_execution_resume_enabled=false'; do
+  grep -Fq "$marker" "$LOG_DIR/runtime-death-replay-log.txt"
+done
+assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
+  "$LOG_DIR/ui-runtime-death.xml"
+
+# A new click replaces the legacy compatibility stream and opens one new Session.
+"${ADB_DEVICE[@]}" logcat -c
+tap_cold
+wait_for_log 'client2_session_replay_complete=true' \
+  "$LOG_DIR/runtime-death-retry-log.txt"
+for marker in \
+  'client2_session_opened=true' \
+  'client2_session_snapshot_received=true' \
+  'client2_session_event_received=true'; do
   grep -Fq "$marker" "$LOG_DIR/runtime-death-retry-log.txt"
 done
-assert_ui_reply 'text="Deterministic Binder reply: care.cold:' \
+assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
   "$LOG_DIR/ui-runtime-death-retry.xml"
 
 # Force-stop/relaunch the Client2 process and verify a fresh Binder/UI path.
@@ -348,7 +412,7 @@ open_navigation_menu \
   "$LOG_DIR/ui-after-client-restart.xml"
 "${ADB_DEVICE[@]}" logcat -c
 tap_cold
-wait_for_log 'client2_binder_task_completed=true' \
+wait_for_log 'client2_session_replay_complete=true' \
   "$LOG_DIR/client2-restart-log.txt"
 for marker in \
   'r7_application_integration_complete=true' \
@@ -359,7 +423,7 @@ for marker in \
   'target_hardware_validated=false'; do
   grep -Fq "$marker" "$LOG_DIR/client2-restart-log.txt"
 done
-assert_ui_reply 'text="Deterministic Binder reply: care.cold:' \
+assert_ui_reply 'text="Scenario accepted; execution is not enabled"' \
   "$LOG_DIR/ui-client-restart-reply.xml"
 
 ln -sfn "$LOG_DIR" "$ROOT_DIR/logs/test/client2-central-brain-recovery/latest"
@@ -369,10 +433,13 @@ printf '%s\n' \
   "device_abi=$ABI" \
   "runtime_absent_failure_visible=true" \
   "runtime_reenable_retry_completed=true" \
-  "client2_single_flight_verified=true" \
+  "client2_legacy_stream_replacement_verified=true" \
   "runtime_process_death_injected=true" \
-  "runtime_service_death_failure_visible=true" \
-  "runtime_service_death_terminal_unique=true" \
+  "client2_session_reconnect_replay_verified=true" \
+  "client2_session_duplicate_event_suppressed=true" \
+  "runtime_service_death_failure_visible=false" \
+  "runtime_service_death_terminal_emitted=false" \
+  "runtime_service_death_recovered_without_terminal=true" \
   "runtime_service_restart_retry_completed=true" \
   "runtime_restart_reconciliation_fail_closed=true" \
   "client2_process_restart_rebind_completed=true" \

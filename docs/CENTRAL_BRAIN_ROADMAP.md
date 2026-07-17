@@ -263,8 +263,14 @@ process death、幂等 reopen 和 exactly-once digest audit。三阶段 Android 
 `agent_graph_runtime_persistence_wired=false`、`production_effect_dispatch_enabled=false`，不得把 repository/probe
 表述为 production Graph recovery activation；该边界登记为 `DEV-050`。
 
-下一实现工作包为 `P4-W01 Bridge session/event API migration`，把 Client2 bridge 从单 reply callback 迁移到已经发布的
-Session/Event API，并保留旧接口兼容层。本工作包不得绕过 Runtime 或直接调用 debug adapter。
+`P4-W01 Bridge session/event API migration` 已完成：Client2 主桥接接口迁移为 `openSession(...)` +
+`SessionConnection`，callback 暴露 typed handle/snapshot/event/replay/overflow/close/error；旧 `submit(...)` 与
+三个文本 callback 只保留默认兼容层。12 个既有两段 UI alias 通过固定 allowlist 映射到 canonical Session ID，
+冻结 Session V1 校验不放宽。Android 13/API 33 ARM64 已验证 open/snapshot/sequence-1 event/replay、兼容订阅替换、
+Runtime process-death 自动重连、重复事件抑制和 Client2 process restart。场景执行、Graph/Effect dispatch 与硬件仍未接。
+
+下一实现工作包为 `P4-W02 Cockpit HMI state/reducer/reconnect`，把 typed stream reduce 为 immutable HMI state，
+补 Activity lifecycle ownership 和隐藏/recreate state 恢复；不得把 legacy 文本投影作为权威状态。
 
 ## 7. 近期进展
 
@@ -403,8 +409,12 @@ Session/Event API，并保留旧接口兼容层。本工作包不得绕过 Runti
   authority/adapter/hardware 保持 false，下一工作包为 P3-W09 Restart recovery。
 - 完成 `P3-W09 Restart recovery`：WAITING/EXECUTING/UNKNOWN fail-closed reducer、Room v4 bounded repository、
   checkpoint mismatch STUCK、Effect/approval/undo reconcile directive、process-death/reopen 与 exactly-once audit 通过 JVM、
-  debug/release 和 Android 13/API 33 ARM64 三阶段 probe；Runtime/Binder/executor/effect dispatch/hardware 保持 false，
-  下一工作包为 P4-W01 Bridge session/event API migration。
+  debug/release 和 Android 13/API 33 ARM64 三阶段 probe；Runtime/Binder/executor/effect dispatch/hardware 保持 false；
+  后续 P4-W01 Bridge session/event API migration 已完成。
+- 完成 `P4-W01 Bridge session/event API migration`：Client2 主接口改为 typed Session/Event stream，旧 Smali
+  `submit` 描述符仅作兼容；12 项 UI alias 显式映射 canonical Session ID。APK build/static gate、Android 13 ARM64
+  happy path 与 Runtime/Client2 process-death recovery matrix 通过；场景执行和中控 reducer 仍为 false，下一工作包为
+  P4-W02 Cockpit HMI state/reducer/reconnect。
 
 ## 8. 当前门禁
 
@@ -588,7 +598,20 @@ graph_restart_effect_dispatch_enabled=false
 graph_restart_production_wired=false
 agent_graph_runtime_persistence_wired=false
 production_effect_dispatch_enabled=false
-implementation_stage=P4-W01
+client2_session_event_primary_api=true
+client2_session_event_typed_callback=true
+client2_legacy_submit_compatibility=true
+client2_scenario_alias_map_count=12
+client2_session_snapshot_verified=true
+client2_session_event_sequence_verified=true
+client2_session_reconnect_replay_verified=true
+client2_session_duplicate_event_suppressed=true
+client2_legacy_stream_replacement_verified=true
+client2_session_android13_arm64_verified=true
+client2_smali_descriptor_unchanged=true
+cockpit_hmi_state_reducer_implemented=false
+cockpit_demo_control_loop_implemented=false
+implementation_stage=P4-W02
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

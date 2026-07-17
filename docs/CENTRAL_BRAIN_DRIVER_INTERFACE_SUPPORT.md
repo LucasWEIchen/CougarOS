@@ -916,3 +916,20 @@ JNI/C ABI、PCIe/NPU、fd/shared memory 或 Driver/HAL。它不新增 OEM proper
 新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。真实 Effect readback/retry/rollback 仍需 P8 由目标平台 owner
 提供 API、permission、Safety authority 和证据。Req IDs：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、
 `NV-G-005/006/007`、`KH-003/006`、`DEL-004/005`。
+
+### P4-W01 Client2 Session/Event bridge Driver/HAL Boundary
+
+本包只修改 Client2 secondary-dex Java bridge、callback contract、APK acceptance scripts 和文档。Client2 通过已发布
+Session/Event Binder action 与 Runtime 通信；canonical alias 映射、UUID/deadline 构造、snapshot/event/replay 投影
+均为应用层逻辑。
+
+本包不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C
+ABI、PCIe/NPU、fd/shared memory 或 Driver/HAL；不新增 property ID、area mapping、车辆 permission、DMA/IOMMU 或
+model buffer contract。Runtime 当前只持久化 Session/Event admission，不执行 scenario/Graph/Effect，因此 UI 摘要不能
+解释为车控结果。
+
+状态：`client2_session_event_primary_api=true`、`client2_session_android13_arm64_verified=true`、
+`scenario_execution_enabled=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。P4-W02 只处理 HMI state/lifecycle；真实 HVAC/Seat adapter 仍由 P8 和 `ISSUE-030` 关闭。
+Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。

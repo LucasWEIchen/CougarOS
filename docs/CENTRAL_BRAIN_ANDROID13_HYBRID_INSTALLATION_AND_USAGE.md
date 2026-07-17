@@ -200,8 +200,9 @@ adb -s <serial> shell am start -W \
 右侧半透明浮层提供 12 个场景：`care.cold`（我冷了）、`care.fatigue`（我累了）、
 `task.home`、`skill.nap`、`state.vehicle`、`memory.preference`、`skills.catalog`、
 `governance.audit`、`security.denied`、`security.privacy`、`runtime.npu`、
-`system.overview`。点击按钮后，面板通过 typed Binder 提交任务并在下方文本区显示进度和
-结果；当前 APK 无 INTERNET/HTTP fallback。
+`system.overview`。点击按钮后，面板通过 typed Session/Event Binder 打开 owner-scoped Session，并在下方文本区显示
+snapshot/event/replay 的兼容投影；当前 APK 无 INTERNET/HTTP fallback。P4-W01 只完成 bridge，Runtime 尚未执行
+scenario/Graph/Effect。
 
 Runtime 当前返回受控软件结果。`runtime.npu` 不会调用真实 NPU，任何界面文字都不能作为
 硬件激活证据。

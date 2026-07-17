@@ -417,7 +417,9 @@ API 33 必须验证 Client2/Runtime signer parity、signature permission granted
 
 R7C 交付 API 33 application acceptance JSON contract、详细说明、debug-only/DUMP-protected Runtime process-death receiver、Client2 恢复矩阵脚本、静态门禁和更新后的 aggregate snapshot。标准 SDK AAR + Runtime APK + Demo APK 形状、AIDL/checksum 与 Room v3 不变；release 不得包含 fault receiver 或任何 debug probe。
 
-API 33 必须输出 Runtime absent/retry、single-flight、Runtime death unique failure/retry、restart reconciliation fail-closed、Client2 process restart/rebind、Binder lifecycle/cancel race 和最终 aggregate state evidence。Client2 happy path、identity/capability、UI reply 与 no-HTTP/no-hardware 仍须回归通过。
+API 33 必须输出 Runtime absent/retry、legacy Session stream replacement、Runtime death reconnect/replay/duplicate
+suppression/no-fake-terminal、restart reconciliation fail-closed、Client2 process restart/rebind、Binder lifecycle/cancel race
+和最终 aggregate state evidence。Client2 happy path、identity/capability、UI projection 与 no-HTTP/no-hardware 仍须回归。
 
 该交付允许 `r7_application_integration_complete=true` 和 `api33_end_to_end_acceptance_complete=true`，但证据范围仅为 emulator application integration。Target system owner、五类 production subsystem 和 target hardware 七项 blocker 保持；无 Driver/HAL、厂商系统软件、Linux 前端或虚拟化开发。
 
@@ -1424,3 +1426,41 @@ target_hardware_validated=false
 production Evidence authority、Vehicle/VHAL/NPU/Driver-HAL。Release 包含 main contract/repository，不包含 debug probe；
 Room schema 仍为 v4。Req IDs：`S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-SAF-001`、
 `NV-G-005/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-050`、`ISSUE-022/023/026/030/033`。
+
+## Android P4-W01 Client2 Session/Event bridge
+
+受维护交付新增或更新：
+
+1. `Client2ScenarioBridge.openSession(...)` 与 caller-owned `SessionConnection`；
+2. typed `ScenarioCallback` handle/snapshot/event/replay/overflow/close/error contract；
+3. 二进制兼容的旧 Smali `submit(...)` 和三个默认文本 callback；
+4. 12 项 UI alias -> canonical Session ID allowlist；
+5. R7C acceptance contract 1.1、happy-path/recovery 脚本和 Android 13 ARM64 物理软件证据。
+
+交付标志：
+
+```text
+client2_session_event_primary_api=true
+client2_session_event_typed_callback=true
+client2_legacy_submit_compatibility=true
+client2_scenario_alias_map_count=12
+client2_session_snapshot_verified=true
+client2_session_event_sequence_verified=true
+client2_session_reconnect_replay_verified=true
+client2_session_duplicate_event_suppressed=true
+client2_legacy_stream_replacement_verified=true
+client2_session_android13_arm64_verified=true
+client2_smali_descriptor_unchanged=true
+cockpit_hmi_state_reducer_implemented=false
+cockpit_demo_control_loop_implemented=false
+scenario_execution_enabled=false
+service_dispatch_triggered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 APK 内 Session/Event SDK bridge，不交付 P4-W02 immutable HMI reducer/lifecycle owner、四阶段界面、
+HVAC/Seat surface、Runtime scenario/Graph/Effect wiring 或真实车辆/NPU。两段 alias 差异与 legacy static owner 由
+`DEV-051` 跟踪；`ISSUE-033` 保持 Open。Req IDs：`S2-UX-001`、`S2-HMI-005`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`。

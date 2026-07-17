@@ -1,10 +1,12 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "acceptance_id": "android-r7c-api33-application-integration",
   "status": "verified",
-  "evidence_scope": "api33-emulator-application-integration",
+  "evidence_scope": "api33-android-application-integration",
   "required_android_api": 33,
   "req_ids": [
+    "S2-UX-001",
+    "S2-HMI-005",
     "APP-004",
     "XSC-001",
     "XSC-005",
@@ -32,18 +34,21 @@
     },
     {
       "id": "R7C-E-002",
-      "scenario": "client2_single_flight",
+      "scenario": "client2_legacy_stream_replacement",
       "required_markers": [
-        "client2_single_flight_verified=true"
+        "client2_legacy_stream_replacement_verified=true"
       ]
     },
     {
       "id": "R7C-E-003",
-      "scenario": "runtime_process_death_and_retry",
+      "scenario": "runtime_process_death_session_replay",
       "required_markers": [
         "runtime_process_death_injected=true",
-        "runtime_service_death_failure_visible=true",
-        "runtime_service_death_terminal_unique=true",
+        "client2_session_reconnect_replay_verified=true",
+        "client2_session_duplicate_event_suppressed=true",
+        "runtime_service_death_failure_visible=false",
+        "runtime_service_death_terminal_emitted=false",
+        "runtime_service_death_recovered_without_terminal=true",
         "runtime_service_restart_retry_completed=true",
         "runtime_restart_reconciliation_fail_closed=true"
       ]

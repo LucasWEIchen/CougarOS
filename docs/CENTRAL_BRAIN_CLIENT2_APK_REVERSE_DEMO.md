@@ -43,7 +43,11 @@ Client2 MainActivity
 
 面板启动状态为 `GONE`。Client2 底部导航由 Tuanjie/RenderService 绘制，没有 Android `View` 回调；patch 在底部增加透明、可访问性可识别的 `centralBrainNavigationTrigger`，映射当前导航图标。首次点击显示菜单，第二次点击或点击面板外区域隐藏；面板自身消费点击，内部按钮和滚动不会关闭菜单。
 
-每个按钮通过 `android:tag` 绑定稳定 `scenario_id`。smali 控制器递归绑定控件区内全部 `Button`，由 `Client2ScenarioBridge` 和 public `CentralBrainClient` 创建 typed `AgentTaskRequest`，异步 Binder callback 更新回复区。APK 不申请网络权限，不保留 HTTP fallback。场景产品定义和实现顺序见 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md` 与 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；进程内 `requestInFlight` 继续阻止同一 Activity 内的重复并发请求。
+每个按钮通过 `android:tag` 绑定稳定 UI alias。P4-W01 后，`Client2ScenarioBridge.openSession` 通过 12 项
+exact map 转换为 canonical Session ID，再由 public `SessionClient` 打开 Session；typed snapshot/event/replay
+callback 更新 projection。旧 Smali `submit(...)` descriptor 只作兼容入口，`requestInFlight` 只覆盖首次 replay
+完成前的重复点击；完成后的新请求会替换旧兼容 stream。APK 不申请网络权限，不保留 HTTP fallback。场景产品定义和
+实现顺序见 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md` 与 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`。
 
 该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、secondary dex、typed Binder、rebuild、zipalign、debug sign 和静态/真机验证链路成立。
 
@@ -51,7 +55,7 @@ Client2 MainActivity
 
 | Req ID | 映射 |
 | --- | --- |
-| `APP-004` / `XSC-001` | 导航触发的右侧菜单作为 AI SDK/Agent 可视入口，通过 public SDK 提交任务。 |
+| `APP-004` / `XSC-001` | 导航触发的右侧菜单作为 AI SDK/Agent 可视入口，通过 public Session/Event SDK 打开会话。 |
 | `XSC-002` | 后续真实车辆状态必须来自 Uni Info Bus 语义对象；当前 deterministic reply 不读取车辆数据。 |
 | `XSC-003` | 后续真实动作必须经 SOA 服务入口，不直接 dispatch 车控或 NPU。 |
 | `XSC-005` | Runtime 是唯一调用入口，继续执行可信身份、Capability、Policy 和 Audit 边界。 |
@@ -121,8 +125,9 @@ Binder/UI 脚本、Android 13 目标设备证据和受控 GitHub 硬件测试流
 在 1920x1080、160 dpi、Android 13/API 33 ARM64 物理控制器上重新构建、安装并验收。UIAutomator
 识别到透明导航目标 `[760,984][840,1080]`，与当前底部导航图标对齐。自动化依次验证启动时
 `centralBrainColdButton` 不可见、首次导航点击显示、第二次点击隐藏、再次显示后点击面板外隐藏、
-再次打开并完成 `care.cold` typed Binder/UI 回复。R7C 恢复矩阵确认 Client2 进程重启后菜单可以
-重新打开，且 Runtime 不可用/死亡/恢复、single-flight 和 Binder race 未回归。
+再次打开并完成 `care.cold` typed Binder/UI 回复。P4-W01 恢复矩阵确认 Client2 进程重启后菜单可以
+重新打开，且 Runtime 不可用/死亡/恢复、Session reconnect/replay、duplicate suppression、兼容 stream replacement
+和 Binder race 未回归。
 
 该坐标只记录当前受测显示配置，不是跨分辨率稳定接口。量产应改用源码 HMI 导航事件或厂商公开
 回调；在此之前，其他 density、分辨率或主题必须单独执行触点与可访问性回归。

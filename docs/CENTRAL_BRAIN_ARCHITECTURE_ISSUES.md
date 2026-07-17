@@ -53,11 +53,13 @@
 | ISSUE-031 | 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定。 | S2-MEM-001, S2-EVT-001 | Open |
 | ISSUE-032 | Python 原型退役后禁止把已删除 gateway/test oracle 当成 Android fallback。 | DEV-026 | Closed |
 | ISSUE-033 | Client2 尚无意图编排四阶段、HVAC/Seat Effect 详情和可观察控制闭环。 | S2-HMI-001..006, DEV-024/025 | Open |
+| ISSUE-034 | Event V1 terminal cursor 不能前移 ACK；当前靠 sequence 去重但不适合高吞吐 broker。 | S2-EVT-001, P6-W01/W02 | Open / Design Decided |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
-Client2 已通过 typed Binder、signature permission、current-signer capability、UI callback 和恢复矩阵
-验证。2026-07-15 导航菜单进展证明当前 1920x1080 Android 13 ARM64 目标上的菜单交互可用。
+Client2 已通过 typed Session/Event Binder、signature permission、current-signer capability、snapshot/event/replay、
+UI projection 和恢复矩阵验证。2026-07-17 证据证明当前 1920x1080 Android 13 ARM64 目标上的菜单交互、Runtime
+process-death reconnect/duplicate suppression 和 Client2 restart 可用。
 
 未关闭项：闭源 APK 长期维护、底部导航几何、production signer/allowlist、OTA/MDM、Car UX
 Restrictions、无障碍和支持显示矩阵。量产优先使用 OEM 可维护 HMI 源码或公开扩展点。
@@ -312,6 +314,11 @@ HMI-D3 展示 optional Effect；仍未接 Session/Graph/Effect Service、Client2
 P2-W12 进展：debug controller 已提供工程师可控的 driving/signal/fault/clock/reset Binder，可作为后续
 HMI-D2/D3 的测试输入；当前尚未由 Client2 engineer drawer 调用，也未接 Agent Graph/Effect timeline，
 因此不能构成 APK 演示闭环，本问题保持 Open。
+
+P4-W01 进展：Client2 已不再通过单次 `TaskResult` 驱动文本区。主桥接接口现为 typed Session/Event stream，
+Android 13 ARM64 已验证 snapshot、顺序事件、cursor replay、Runtime process-death reconnect/duplicate suppression
+和 Client2 restart；旧 `submit` 只作 Smali 二进制兼容。当前仍没有 immutable HMI reducer、四阶段 renderer、
+HVAC/Seat surface 或 Runtime 场景执行，因此本问题保持 Open，下一关闭子项为 P4-W02。
 
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
