@@ -181,6 +181,13 @@
             android:permission="android.permission.DUMP"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
+            android:name=".graph.TypedNodeExecutorsProbeActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:permission="android.permission.DUMP"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
             android:name=".simulation.SimulatedEffectAdapterProbeActivity"
             android:excludeFromRecents="true"
             android:exported="true"

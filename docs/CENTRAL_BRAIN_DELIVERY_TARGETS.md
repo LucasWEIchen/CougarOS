@@ -85,8 +85,8 @@ bash tools/check_central_brain_root_readme.sh
 Stage 2 P0 设计基线、`P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、
 `P1-W03 Typed Event DTO/AIDL`、`P1-W04 Effect/Approval DTO/AIDL`、
 `P1-W05 SDK facade v2`、`P1-W06 Room v4 schema`、`P1-W07 Contract v2 aggregate check`、
-`P2-W01..P2-W12 Context/Scenario/Simulation foundation` 和 `P3-W01 Agent Graph Runtime state machine`
-已完成，下一工作包为 `P3-W02 Typed node executors`。P1-P7 交付必须进入
+`P2-W01..P2-W12 Context/Scenario/Simulation foundation`、`P3-W01 Agent Graph Runtime state machine` 和
+`P3-W02 Typed node executors` 已完成，下一工作包为 `P3-W03 CheckpointSerializer`。P1-P7 交付必须进入
 Android Java/AIDL/C 工程及其测试，不得恢复 Python gateway。P8 的 AAOS/Vendor/NPU adapter 只有在
 owner、API/ABI、权限、Safety、smoke、fault 和 rollback 证据齐全后才能激活。
 
@@ -1114,3 +1114,43 @@ target_hardware_validated=false
 adapter/controller 或真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 只证明相同状态合同在目标 Android 运行。
 Req IDs：`S2-GRF-001`、`NV-G-004/006/007`、`DEL-001/003..005`；偏差/问题：`DEV-042`、
 `ISSUE-022/026`。
+
+## Android P3-W02 Typed Node Executors
+
+受维护交付新增：
+
+1. Runtime main-source fixed typed input/output/result、11 类 exact-class schema、`TypedNodeExecutor` 与
+   control-only registry validation；
+2. Runtime debug-source 7 类 deterministic executor 和显式 harness；Model/Tool/Memory 无 executor；
+3. Context/Verification no trust upgrade、Policy/Approval authority gate、Effect/Compensation fail-closed、
+   bounded Summary；
+4. 8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+typed_node_executor_contract_defined=true
+typed_node_executor_schema_count=11
+typed_node_executor_debug_count=7
+typed_node_executor_exact_class_verified=true
+typed_node_executor_context_verified=true
+typed_node_executor_policy_approval_verified=true
+typed_node_executor_effect_fail_closed_verified=true
+typed_node_executor_verification_verified=true
+typed_node_executor_summary_verified=true
+typed_node_executor_unsupported_fail_closed_verified=true
+typed_node_executor_android13_arm64_verified=true
+typed_node_executor_graph_dispatch_enabled=false
+typed_node_executor_production_wired=false
+effect_dispatch_enabled=false
+model_invoked=false
+network_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 schema 与 debug/test executor 行为，不交付 Graph dispatch、checkpoint/Room、Binder、production
+Context/Safety/approval、Effect adapter/model provider 或车辆/NPU/Driver-HAL。Release 仅含合同类，不含
+`DeterministicNodeExecutors` 或 probe。Req IDs：`S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`、
+`DEL-001/003..005`；偏差/问题：`DEV-043`、`ISSUE-022/023/024/026`。

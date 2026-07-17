@@ -1131,32 +1131,39 @@ sequence、elapsed、nodeId、Graph/Node enum、ReasonCode 和前一事件绑定
 ### 13.2 NodeExecutor
 
 ```java
-interface NodeExecutor<I extends NodeInput, O extends NodeOutput> {
+interface TypedNodeExecutor<I extends NodeExecutionInput,
+                            O extends NodeExecutionOutput> {
     String nodeType();
     Class<I> inputType();
-    NodeExecutionResult<O> execute(NodeExecutionContext context, I input);
-    NodeReconcileResult reconcile(NodeExecutionContext context,
-                                  NodeCheckpoint checkpoint);
-    CancelResult cancel(NodeExecutionContext context,
-                        NodeCheckpoint checkpoint);
+    Class<O> outputType();
+    NodeExecutionResult<O> execute(I input);
 }
 ```
 
-首批 executor：
+P3-W02 已实现固定 schema 与 debug/test executor：
 
-| type | 类 | 副作用 | checkpoint durability |
+| type | exact input/output | P3-W02 debug result | production wiring |
 | --- | --- | --- | --- |
-| `context.capture` | `ContextNodeExecutor` | 无 | SYNC |
-| `policy.evaluate` | `PolicyNodeExecutor` | audit | SYNC |
-| `approval.interrupt` | `ApprovalInterruptExecutor` | durable approval | SYNC |
-| `effect.execute` | `EffectNodeExecutor` | 有 | SYNC |
-| `effect.verify` | `EffectVerificationExecutor` | readback | SYNC |
-| `tool.invoke` | `ToolNodeExecutor` | 取决于 tool | manifest 指定，副作用必须 SYNC |
-| `model.invoke` | `ModelNodeExecutor` | 无车辆副作用 | ASYNC/SYNC by purpose |
-| `memory.query` | `MemoryQueryNodeExecutor` | 无 | ASYNC |
-| `memory.write` | `MemoryWriteNodeExecutor` | 数据副作用 | SYNC |
-| `summary.render` | `SummaryNodeExecutor` | event only | ON_EXIT 可接受 |
-| `compensate` | `CompensationNodeExecutor` | 有 | SYNC |
+| `context.capture` | ContextInput/ContextOutput | digest match；trust 不提升 | 无 |
+| `policy.evaluate` | PolicyInput/PolicyOutput | authority gate；allow/deny | 无 |
+| `approval.interrupt` | ApprovalInput/ApprovalOutput | pending/approve/reject/expire；authority gate | 无 |
+| `effect.execute` | EffectInput/EffectOutput | WAITING/NOT_DISPATCHED | 无 |
+| `effect.verify` | VerificationInput/VerificationOutput | unavailable/match/mismatch；trust 不提升 | 无 |
+| `summary.render` | SummaryInput/SummaryOutput | message key/count/digest | 无 |
+| `compensate` | CompensationInput/CompensationOutput | REJECTED/NOT_DISPATCHED | 无 |
+| `tool.invoke` | DigestOnlyInput/DigestOnlyOutput | executor unavailable | 无 |
+| `model.invoke` | DigestOnlyInput/DigestOnlyOutput | executor unavailable | 无 |
+| `memory.query` | DigestOnlyInput/DigestOnlyOutput | executor unavailable | 无 |
+| `memory.write` | DigestOnlyInput/DigestOnlyOutput | executor unavailable | 无 |
+
+`NodeExecutorRegistry` 只保存 node type 与 exact schema descriptor，并验证 executor 的 class 与安全声明；
+不保存 executor object，也不提供 dispatch API。input identity 只允许 UUID/node ID/digest/attempt/deadline，
+派生字段只允许有界 ID、enum、count、boolean 和 digest。禁止任意 JSON、Map、Bundle、Parcel blob、Java
+serialization、class name 或 reflection。Result 只含 Status、ReasonCode、fixed output 和 digest。
+
+P3-W03 才提供 checkpoint serializer；P3-W04 提供 retry/timeout；P3-W05..W08 才逐步替换 approval/effect/
+verification/compensation placeholder。P3-W02 不提供 reconcile/cancel/checkpoint 方法，以免在 durability 合同
+冻结前形成不可恢复的副作用接口。
 
 ### 13.3 调度和并发
 
@@ -2069,11 +2076,10 @@ digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual cl
 typed absolute target、isolated desired/reported Twin、Seat Safety race reject/progress、Media state 和 digest-only
 synthetic POI/route、debug-only signature/capability-protected state/signal/fault/clock/reset AIDL 控制面已进入工程。
 Effect Service、approval response/undo execution 和 Plan Runtime publication 均未发布。`P3-W01
-AgentGraphRuntime state machine` 已完成 process-local typed graph/run/node 状态、合法 transition、单 session
-FIFO、跨 session 有界 slot、deadline 和 bounded digest event；它没有 Binder/Room publication，也不调用 executor。
-下一实现工作包固定为 `P3-W02 Typed node executors`；只实现 allowlisted typed input/output/result 合同，
-不得在该包 dispatch Effect、恢复 production adapter、调用模型、读取真实 Vehicle/VHAL/NPU 或直接在
-Client2 中绕过 Runtime。
+AgentGraphRuntime state machine` 已完成 process-local graph 状态；`P3-W02 Typed node executors` 已完成 11 类
+exact schema、7 类 debug deterministic executor、authority/trust gate 与 Effect/Compensation/unsupported
+fail-closed。Graph 仍不调用 executor，main/release 无 deterministic implementation，Binder/Room/checkpoint/
+production adapter/model/Vehicle/VHAL/NPU 均未接。下一实现工作包固定为 `P3-W03 CheckpointSerializer`。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

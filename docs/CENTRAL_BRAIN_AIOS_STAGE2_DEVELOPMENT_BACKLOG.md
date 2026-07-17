@@ -407,9 +407,19 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P3-W02` Typed node executors
 
-- 状态：`NOT_STARTED`；3 人日；需求：`S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`。
+- 状态：`DONE`（typed contract + debug/test deterministic implementation，2026-07-17）；3 人日；需求：
+  `S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`、`DEL-001/003..005`。
 - executor：Context、Policy、ApprovalInterrupt、Effect、Verification、Summary、Compensation。
 - DoD：registry allowlist；executor 不反序列化任意类；input/output schema 固定。
+- 实现：Runtime main source 提供 immutable `NodeExecutionInput/Output/Result`、11 类 Plan node exact-class
+  schema、`TypedNodeExecutor<I,O>` 安全声明与只验证不调度的 `NodeExecutorRegistry`。所有输入只含有界 ID、
+  enum、count 和 SHA-256，不接收 JSON/Bundle/Parcel blob/Java serialization/reflection。
+- debug/test：`DeterministicNodeExecutors` 只实现 Context/Policy/Approval/Effect/Verification/Summary/
+  Compensation 七类。Context/Verification 不提升 production trust；Policy/Approval 缺可信 authority 失败关闭；
+  Effect 固定 WAITING/NOT_DISPATCHED，Compensation 固定 REJECTED/NOT_DISPATCHED。
+- 未实现：Model/Tool/Memory 只有 digest-only fixed schema，无 executor 或 fallback。Graph/Binder/Room/checkpoint/
+  adapter/model/hardware wiring 均未接，`dispatchEnabled=false`。
+- 证据：8 组 JVM tests、debug/release compile、Android 13 ARM64 probe、独立 checker、累计 installer/CI。
 
 ### `P3-W03` CheckpointSerializer
 

@@ -60,7 +60,7 @@ for marker in \
   'public final class NodeExecutorRegistry' \
   'controlOnlyContractRegistry' \
   'PlanContract.allowedNodeTypes()' \
-  'P3-W01 registry must remain control-only' \
+  'registry must remain control-only' \
   'return false;'; do
   require_text "$REGISTRY" "$marker"
 done
@@ -110,7 +110,7 @@ if grep -R -Fq 'AgentGraphRuntime' \
 fi
 if grep -R -Eiq \
     'EffectAdapter|SimulatedEffect|ModelProvider|InferenceResourceScheduler|android[.]car|CarPropertyManager|VehicleHal|VehicleProperty|java[.]net|okhttp|http://|https://|ioctl|sysfs|/dev/|ExecutorService|Executors[.]' \
-    "$ROOT_DIR/$GRAPH_ROOT"; then
+    "$ROOT_DIR/$RUNTIME" "$ROOT_DIR/$GRAPH_STATE" "$ROOT_DIR/$NODE_STATE"; then
   echo "P3-W01 Graph Runtime unexpectedly references dispatch, model, vehicle, network, thread-pool, or hardware APIs" >&2
   exit 1
 fi

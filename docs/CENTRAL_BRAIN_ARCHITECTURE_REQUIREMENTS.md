@@ -879,3 +879,37 @@ NPU、Driver/HAL 或目标硬件资格。
 `agent_graph_executor_dispatch_enabled=false`、`agent_graph_runtime_persistence_wired=false`、
 `agent_graph_runtime_binder_published=false`、`agent_graph_runtime_production_wired=false`、
 `effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`。
+
+## 34. P3-W02 Typed Node Executor trace
+
+派生需求：`S2-GRF-001`、`S2-SAF-001`、`S2-EFF-001`、`DEL-001/003/004/005`。
+
+1. `NodeExecutionSchemas` 必须对 P1-W02 `PlanContract.allowedNodeTypes()` 的 11 类 node type 提供完整、
+   无重复的 input/output schema；缺项、未知 node type、schema ID 不一致或 exact Java class 不一致必须失败关闭。
+2. `NodeExecutionInput` 只允许固定 immutable 类型：Context、Policy、Approval、Effect、Verification、Summary、
+   Compensation 和用于尚未实现类型的 DigestOnly。公共 identity 只含 canonical UUID、node ID、Plan/input digest、
+   attempt 和 deadline；禁止任意 map、JSON、Bundle、Parcel blob、serialized class 或 raw model/vehicle payload。
+3. `NodeExecutionOutput` 与 `NodeExecutionResult` 只返回固定 enum、message key、bounded count 和 SHA-256。
+   reason 只能使用 `ReasonCode`，不得返回 exception 原文、模型文本、车辆数据或未审查 adapter output。
+4. `TypedNodeExecutor<I,O>` 必须声明 exact input/output class；`NodeExecutorRegistry.validateExecutor` 必须拒绝
+   production authorization、Effect/model dispatch、network、hardware 和 raw persistence 请求。registry 不保存或
+   调用 executor，`dispatchEnabled=false` 保持不变。
+5. debug/test 只实现 Context、Policy、ApprovalInterrupt、Effect、Verification、Summary、Compensation 七类。
+   Context/Verification 输出固定 `productionTrusted=false`；Policy/Approval 缺可信 authority 必须 REJECTED；
+   Effect 必须 WAITING/NOT_DISPATCHED；Compensation 必须 REJECTED/NOT_DISPATCHED。
+6. Model/Tool/Memory Query/Memory Write 只有 digest-only fixed schema，P3-W02 不提供 executor。任何尝试通过
+   deterministic harness 调用这些类型必须以稳定 `CB_NODE_EXECUTOR:` 前缀拒绝，不得回退模型、网络或 Python。
+7. deterministic harness 必须仅位于 `src/debug`，使用显式 switch 和 exact cast；main/release 不得包含该实现或
+   probe。`AgentGraphRuntime`、Runtime/Governance Service、Binder、Room、P2 adapter/controller 均不得引用它。
+8. JVM、debug/release compile 和 Android 13/API 33 ARM64 probe 必须覆盖 11 schema/7 executor、exact-class、
+   Context、Policy/Approval、Effect/Compensation fail-closed、Verification、Summary 和 unsupported fail-closed。
+9. 本包不接真实 Context/Safety/approval authority，不 dispatch Effect，不调用模型、网络、Vehicle/VHAL/NPU/
+   Driver-HAL，不提升 `production_ready` 或 `target_hardware_validated`。
+
+状态：`typed_node_executor_contract_defined=true`、`typed_node_executor_schema_count=11`、
+`typed_node_executor_debug_count=7`、`typed_node_executor_exact_class_verified=true`、
+`typed_node_executor_effect_fail_closed_verified=true`、
+`typed_node_executor_unsupported_fail_closed_verified=true`、
+`typed_node_executor_android13_arm64_verified=true`、
+`typed_node_executor_graph_dispatch_enabled=false`、`typed_node_executor_production_wired=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`network_accessed=false`、`hardware_accessed=false`。

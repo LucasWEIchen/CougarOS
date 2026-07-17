@@ -773,3 +773,19 @@ Android 13 ARM64 probe 只运行 process-local state machine，不构成 vehicle
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
 新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`KH-003/006`、
 `DEL-004/005`。
+
+### P3-W02 Typed Node Executor Driver/HAL Boundary
+
+P3-W02 在 Runtime main source 只新增 immutable Java contract/schema/registry validation，在 `src/debug` 新增
+deterministic executor/harness/JVM probe。input/output 只携带 ID、enum、count 和 digest，不接受 vendor object、
+property ID、CAN/DBC payload、device path 或 NPU buffer。
+
+Effect/Compensation executor 固定 NOT_DISPATCHED；Model/Tool/Memory 无 executor。Graph、Runtime Service、
+P2 simulated adapter/controller、JNI/C ABI 和 Native Runtime 均不引用本包执行器。本包不发现或调用 Android
+Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN、device node、ioctl/sysfs、PCIe/NPU 或 Driver/HAL。
+
+状态：`typed_node_executor_contract_defined=true`、
+`typed_node_executor_graph_dispatch_enabled=false`、`typed_node_executor_production_wired=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`S2-EFF-001`、`KH-003/006`、`DEL-004/005`。
