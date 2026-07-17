@@ -140,7 +140,8 @@ public final class JsonPrimitiveCheckpointSerializer implements CheckpointSerial
             contextDigest = fields.get("contextDigest").asString();
             payload = fields.get("payload");
             suppliedDigest = fields.get("digest").asString();
-            createdAtEpochMs = fields.get("createdAt").asLong();
+            createdAtEpochMs = canonicalPositiveLong(
+                    fields.get("createdAt").asString(), "createdAt");
         } catch (CheckpointException exception) {
             throw exception;
         } catch (IllegalArgumentException exception) {
@@ -381,7 +382,7 @@ public final class JsonPrimitiveCheckpointSerializer implements CheckpointSerial
         field(builder, "planDigest", quote(planDigest));
         field(builder, "contextDigest", quote(contextDigest));
         field(builder, "payload", canonicalValue(payload));
-        field(builder, "createdAt", Long.toString(createdAtEpochMs));
+        field(builder, "createdAt", quote(Long.toString(createdAtEpochMs)));
         builder.append('}');
         return builder.toString().getBytes(StandardCharsets.UTF_8);
     }
@@ -396,7 +397,7 @@ public final class JsonPrimitiveCheckpointSerializer implements CheckpointSerial
         field(builder, "contextDigest", quote(envelope.getContextDigest()));
         field(builder, "payload", canonicalValue(envelope.getPayload()));
         field(builder, "digest", quote(envelope.getDigest()));
-        field(builder, "createdAt", Long.toString(envelope.getCreatedAtEpochMs()));
+        field(builder, "createdAt", quote(Long.toString(envelope.getCreatedAtEpochMs())));
         builder.append('}');
         return builder.toString().getBytes(StandardCharsets.UTF_8);
     }
@@ -512,6 +513,35 @@ public final class JsonPrimitiveCheckpointSerializer implements CheckpointSerial
             throw error(ErrorCode.LIMIT_EXCEEDED, label + " is outside integer bounds", null);
         }
         return (int) value;
+    }
+
+    private static long canonicalPositiveLong(String encoded, String label) {
+        try {
+            if (encoded == null
+                    || encoded.isEmpty()
+                    || (encoded.length() > 1 && encoded.charAt(0) == '0')
+                    || !decimalDigitsOnly(encoded)) {
+                throw error(ErrorCode.TYPE_MISMATCH, label + " is not canonical", null);
+            }
+            long value = Long.parseLong(encoded);
+            if (value <= 0L) {
+                throw error(ErrorCode.LIMIT_EXCEEDED, label + " must be positive", null);
+            }
+            return value;
+        } catch (CheckpointException exception) {
+            throw exception;
+        } catch (NumberFormatException exception) {
+            throw error(ErrorCode.LIMIT_EXCEEDED, label + " is outside long bounds", exception);
+        }
+    }
+
+    private static boolean decimalDigitsOnly(String encoded) {
+        for (int index = 0; index < encoded.length(); index++) {
+            if (encoded.charAt(index) < '0' || encoded.charAt(index) > '9') {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static String digest(byte[] canonicalWithoutDigest) {

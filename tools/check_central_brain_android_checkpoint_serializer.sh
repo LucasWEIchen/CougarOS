@@ -77,9 +77,14 @@ for marker in \
   'checkpoint payload nesting is too deep' \
   'checkpoint token budget exceeded' \
   'payload.getClass() != registration.getPayloadClass()' \
+  'canonicalPositiveLong(' \
+  'field(builder, "createdAt", quote(Long.toString(createdAtEpochMs)))' \
   'DIGEST_DOMAIN = "central-brain.checkpoint.v1"'; do
   require_text "$SERIALIZER" "$marker"
 done
+require_text "$TEST" '1_700_000_000_000L'
+require_text "$PROBE" 'CURRENT_EPOCH_SAMPLE_MS = 1_700_000_000_000L'
+require_text "$PROBE" '"\"createdAt\":\"1700000000000\""'
 
 for test_name in \
   registeredDtoRoundTripsThroughImmutableDigestBoundEnvelope \

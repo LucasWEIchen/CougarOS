@@ -823,3 +823,21 @@ ioctl/sysfs、PCIe/NPU 或 Driver/HAL。API 33 ARM64 probe 只证明软件策略
 `effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。Req IDs：`S2-GRF-001`、`NV-G-004`、`KH-003/006`、`DEL-004/005`。
+
+### P3-W05 Approval Interrupt Driver/HAL Boundary
+
+P3-W05 在 Runtime main source 只新增 pure Java immutable approval record、状态转换器、checkpoint codec 与 resume
+validator；debug source 只新增 DUMP-protected probe。它只处理 canonical ID、enum、boolean、caller-supplied time
+和 SHA-256，不接收 authority token、raw Context/Safety/vehicle payload、Binder object、fd/shared memory、native
+pointer、NPU handle 或硬件 buffer。
+
+合同未接 `AgentGraphRuntime`、Room/Binder、P2 simulation、production Effect/Model、JNI/C ABI 或 Native Runtime。
+本包不发现或调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、
+PCIe/NPU 或 Driver/HAL。Safety State 是 caller 提供的 trusted digest contract，不是 OEM Safety authority 证据。
+
+状态：`approval_interrupt_record_defined=true`、`approval_interrupt_persistence_wired=false`、
+`approval_grant_service_published=false`、`agent_graph_executor_dispatch_enabled=false`、
+`effect_dispatch_enabled=false`、`model_invoked=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变。Req IDs：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、
+`KH-003/006`、`DEL-004/005`。

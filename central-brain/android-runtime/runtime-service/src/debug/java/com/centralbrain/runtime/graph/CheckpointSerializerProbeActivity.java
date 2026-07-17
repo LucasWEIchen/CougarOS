@@ -22,6 +22,7 @@ public final class CheckpointSerializerProbeActivity extends Activity {
     private static final String SHA_A = "a".repeat(64);
     private static final String SHA_B = "b".repeat(64);
     private static final String TYPE = "graph.node.state";
+    private static final long CURRENT_EPOCH_SAMPLE_MS = 1_700_000_000_000L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +38,13 @@ public final class CheckpointSerializerProbeActivity extends Activity {
             ProbeCheckpoint original = new ProbeCheckpoint(
                     SHA_B, Phase.WAITING, 2, new BigDecimal("0.5"), List.of("hvac", "seat"));
             CheckpointEnvelope envelope = serializer.create(
-                    TYPE, 1, "set_hvac_power", SHA_A, SHA_B, original, 1_000L);
+                    TYPE,
+                    1,
+                    "set_hvac_power",
+                    SHA_A,
+                    SHA_B,
+                    original,
+                    CURRENT_EPOCH_SAMPLE_MS);
             byte[] encoded = serializer.serialize(envelope);
             CheckpointEnvelope restored = serializer.deserialize(encoded);
             ProbeCheckpoint decoded = serializer.decodePayload(restored, ProbeCheckpoint.class);
@@ -58,8 +65,9 @@ public final class CheckpointSerializerProbeActivity extends Activity {
                     && rejects(
                             serializer,
                             json.replace(
-                                            "\"createdAt\":1000",
-                                            "\"unknownField\":true,\"createdAt\":1000")
+                                            "\"createdAt\":\"1700000000000\"",
+                                            "\"unknownField\":true,"
+                                                    + "\"createdAt\":\"1700000000000\"")
                                     .getBytes(StandardCharsets.UTF_8),
                             ErrorCode.UNKNOWN_FIELD)
                     && rejects(

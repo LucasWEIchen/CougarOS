@@ -1420,6 +1420,59 @@ if [[ "$RETRY_TIMEOUT_POLICY_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+APPROVAL_INTERRUPT_NONCE="$(date +%s%N)"
+APPROVAL_INTERRUPT_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.graph.ApprovalInterruptProbeActivity \
+  --es nonce "$APPROVAL_INTERRUPT_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$APPROVAL_INTERRUPT_PROBE_OUTPUT"; then
+  echo "$APPROVAL_INTERRUPT_PROBE_OUTPUT" >&2
+  echo "Approval interrupt debug probe did not start successfully" >&2
+  exit 1
+fi
+APPROVAL_INTERRUPT_PROBE_PASSED=false
+for _ in {1..40}; do
+  APPROVAL_INTERRUPT_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbApprovalInterrupt:I)"
+  if grep -Fq \
+      "nonce=$APPROVAL_INTERRUPT_NONCE approval_interrupt_probe_complete=true" \
+      <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_interrupt_record_defined=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_interrupt_binding_verified=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_interrupt_checkpoint_roundtrip_verified=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_interrupt_trusted_decision_verified=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_resume_owner_plan_context_policy_verified=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_resume_safety_revalidation_verified=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_resume_expiry_verified=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_interrupt_android13_arm64_verified=true" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_interrupt_persistence_wired=false" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "approval_grant_service_published=false" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "agent_graph_executor_dispatch_enabled=false" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" \
+        <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$APPROVAL_INTERRUPT_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$APPROVAL_INTERRUPT_LOG"; then
+    APPROVAL_INTERRUPT_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$APPROVAL_INTERRUPT_PROBE_PASSED" != true ]]; then
+  echo "$APPROVAL_INTERRUPT_LOG" >&2
+  echo "Approval interrupt probe did not pass" >&2
+  exit 1
+fi
+
 SIMULATED_ADAPTER_NONCE="$(date +%s%N)"
 SIMULATED_ADAPTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.simulation.SimulatedEffectAdapterProbeActivity \
@@ -2434,6 +2487,16 @@ printf '%s\n' \
   "retry_deadline_fail_closed_verified=true" \
   "retry_timeout_policy_android13_arm64_verified=true" \
   "retry_timeout_policy_runtime_wired=false" \
+  "approval_interrupt_record_defined=true" \
+  "approval_interrupt_binding_verified=true" \
+  "approval_interrupt_checkpoint_roundtrip_verified=true" \
+  "approval_interrupt_trusted_decision_verified=true" \
+  "approval_resume_owner_plan_context_policy_verified=true" \
+  "approval_resume_safety_revalidation_verified=true" \
+  "approval_resume_expiry_verified=true" \
+  "approval_interrupt_android13_arm64_verified=true" \
+  "approval_interrupt_persistence_wired=false" \
+  "approval_grant_service_published=false" \
   "effect_dispatch_enabled=false" \
   "network_accessed=false" \
   "model_invoked=false" \

@@ -122,7 +122,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W04 完成；P3-W05 下一步） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01..W05 完成；P3-W06 下一步） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -236,8 +236,13 @@ debug/release compile 与 Android 13/API 33 ARM64 probe。Graph/Room/Binder/reco
 Effect idempotency/reconcile-before-retry 已通过 JVM、debug/release compile 与 Android 13/API 33 ARM64 probe。
 策略尚未接 Graph/Effect dispatch。
 
-下一实现工作包为 `P3-W05 Durable approval interrupt`。只实现 approval 与 caller/plan/context/policy digest、
-expiry 和 resume revalidation 的 durable contract；不得启用 Effect adapter、模型、车辆或硬件。
+`P3-W05 Durable approval interrupt` 已完成：checkpoint-ready record 绑定 caller/session/plan/node/action/plan/
+context/policy/Safety digest、expiry 与 trusted authority decision；resume 重新检查 context/policy/capability 和
+Safety State。当前 `approval_interrupt_persistence_wired=false`、`approval_grant_service_published=false`，未接
+Graph/Room/Binder/Effect/model/hardware。
+
+下一实现工作包为 `P3-W06 EffectCoordinator`。实现 prepare-all、依赖/冲突规划和独立 observation 合同；在
+production adapter/readback 未具备前保持 Effect dispatch fail-closed，不得猜测 OEM/Vendor property。
 
 ## 7. 近期进展
 
@@ -358,6 +363,10 @@ expiry 和 resume revalidation 的 durable contract；不得启用 Effect adapte
 - 完成 `P3-W04 Retry/Timeout policy`：monotonic node/plan deadline、bounded attempts、deterministic SHA-256 jitter、
   Effect idempotency + reconcile-before-retry 通过 JVM/debug/release/API 33 ARM64 probe；Graph/Effect wiring 保持
   false，下一工作包为 P3-W05 Durable approval interrupt。
+- 完成 `P3-W05 Durable approval interrupt`：approval binding/expiry/trusted decision、registered checkpoint codec、
+  owner/plan/context/policy/capability/Safety resume revalidation 与 API 33 ARM64 probe；同时修正 checkpoint envelope
+  current epoch 超过 primitive integer bound 的缺陷。Room/Graph/Binder/grant Service/Effect/hardware 保持 false，
+  下一工作包为 P3-W06 EffectCoordinator。
 
 ## 8. 当前门禁
 
@@ -479,7 +488,7 @@ effect_idempotency_reconcile_gate_verified=true
 retry_deadline_fail_closed_verified=true
 retry_timeout_policy_android13_arm64_verified=true
 retry_timeout_policy_runtime_wired=false
-implementation_stage=P3-W05
+implementation_stage=P3-W06
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

@@ -1390,3 +1390,43 @@ attempt/deadline。RECONCILE 在 attempt/deadline 耗尽后仍可返回，因为
 `agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`model_invoked=false`、
 `hardware_accessed=false`。Req IDs：`S2-GRF-001`、`NV-G-004`、`DEL-001/003..005`；tracking：`DEV-045`、
 `ISSUE-022/026`。
+
+## Android P3-W05 Durable Approval Interrupt
+
+### `ApprovalInterruptExecutor.Request`
+
+| 字段 | 类型/约束 | 语义 |
+| --- | --- | --- |
+| `approvalId/sessionId/planId` | canonical UUID | 防止跨审批、会话、计划重放 |
+| `ownerFingerprint` | lowercase SHA-256 | trusted caller 的非原始身份绑定 |
+| `nodeId` | Plan node ID | 当前 approval node |
+| `action/plan/context/policy/safetyStateDigest` | lowercase SHA-256 | 执行与恢复时的完整治理绑定 |
+| `ttlMs` | 1..300000 | approval 有效窗口，仍受 plan deadline 截断 |
+| `planDeadlineEpochMs` | positive long | plan 的绝对截止时间，由 caller 提供 |
+
+`createPending(request, nowEpochMs)` 不读取 clock。返回 immutable `ApprovalInterruptRecord`，其 decision 为 PENDING，
+authority material 为空。`recordDecision` 只接受 APPROVED/REJECTED/CANCELLED、trusted authority digest 和窗口内
+decision time；`expire` 只允许窗口到期后调用。任何 terminal replay 返回 `CB_APPROVAL_INTERRUPT` 异常。
+
+### Checkpoint codec
+
+`checkpointRegistration()` 返回 type=`graph.approval.interrupt`、version=1、exact class 的 registration。Codec
+只使用 `CheckpointValue` map/string/bool，18 个字段必须完整且无未知字段。epoch long 使用无前导零的 decimal
+string；record digest 恢复后重新计算。Envelope `createdAt` 也使用 canonical string，以支持当前 epoch。
+
+### `ApprovalResumeValidator`
+
+`ResumeContext` 必须提供当前 owner/session/plan/node/action/plan/context/policy/Safety digest、caller-supplied now、
+context fresh、policy authorized、capability allowed、Safety trusted 和 `SAFE/UNSAFE/UNKNOWN`。返回：
+
+| 字段 | 说明 |
+| --- | --- |
+| `allowed` | 仅 Reason=VALID 时为 true |
+| `reason` | VALID、NOT_APPROVED、EXPIRED、AUTHORITY_UNTRUSTED、OWNER_MISMATCH、BINDING_MISMATCH、CONTEXT_STALE、CONTEXT_CHANGED、POLICY_DENIED、POLICY_CHANGED、CAPABILITY_DENIED、SAFETY_UNTRUSTED、SAFETY_UNSAFE、SAFETY_CHANGED |
+| `resultDigest` | `graph.approval.resume.v1` domain-separated SHA-256 |
+
+接口不持久化、不调用 Graph/Effect、无 Binder/grant Service、无 hardware API。状态：
+`approval_interrupt_persistence_wired=false`、`approval_grant_service_published=false`、
+`agent_graph_executor_dispatch_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
+Req IDs：`S2-SAF-001`、`S2-UX-003`、`S2-GRF-001`、`NV-G-005/006/007`、`DEL-001/003..005`；
+tracking：`DEV-046`、`ISSUE-022/026/029`。
