@@ -728,13 +728,20 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   debug/release compile 已验证，Android 13 ARM64 probe 已实现但当前 ADB interface 不可用、待复测。Registry/Resolver/
   Executor、动态 health、Effect/vehicle/NPU/Driver-HAL 未接。
 - 交付：`com.centralbrain.runtime.tools.ToolManifest`、`ToolSchemaValidator`、debug-only
-  `ToolManifestProbeActivity` 和独立静态门禁；`implementation_stage=P5-W02`，tracking `DEV-063`、`ISSUE-036`。
+  `ToolManifestProbeActivity` 和独立静态门禁；P5-W02 已消费该合同但未改变 digest/schema 语义；tracking
+  `DEV-063`、`ISSUE-036`。
 
 ### `P5-W02` ToolRegistry/Resolver
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-TOL-001`。
-- DoD：registered/resolved/usable 分离；版本冲突 deterministic；unhealthy tool 不可执行。
-- 前置：只消费 P5-W01 immutable manifest/digest/schema；不得在 Registry 内重新解释输入输出或静默选择不健康版本。
+- 状态：`DEVELOPED`（2026-07-18）；2 人日；需求：`S2-TOL-001`。
+- 类：`ToolRegistry`、`ToolHealthSnapshot`、`ToolResolver`；Registry 最多 128 个 unique family/version，exact duplicate
+  digest 幂等合并，同 family/version 不同 digest 以稳定 `CONTRACT_CONFLICT` 拒绝。
+- DoD：registered/resolved/usable 分离；inclusive range 选择最高兼容版本；capability 和 optional pinned digest 精确复验；
+  dynamic HEALTHY/UNHEALTHY/UNKNOWN + elapsed-time freshness 失败关闭；selected highest unhealthy 时不回退旧版本；
+  `isExecutionEnabled=false`。JVM 和 debug/release compile 已验证；Android 13 ARM64 probe 已实现但 ADB interface 仍不可用。
+- 边界：只消费 P5-W01 immutable manifest/digest/schema，不重新解释 input/output；不接 Runtime/Graph/Binder/Room，不注册
+  production Tool，不发布 Registry/Resolver Service，不触发 Effect/vehicle/model/NPU/network/hardware。下一工作包
+  `P5-W03 ToolRuleSolver`；`implementation_stage=P5-W03`，tracking `DEV-064`、`ISSUE-037`。
 
 ### `P5-W03` ToolRuleSolver
 

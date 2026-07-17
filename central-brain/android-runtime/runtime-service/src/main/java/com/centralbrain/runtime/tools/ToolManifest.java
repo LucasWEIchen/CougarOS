@@ -229,6 +229,7 @@ public final class ToolManifest {
 
     private final int schemaVersion;
     private final String toolId;
+    private final String familyId;
     private final int version;
     private final String ownerId;
     private final ObjectSchema inputSchema;
@@ -261,6 +262,7 @@ public final class ToolManifest {
             throw violation("Tool ID suffix and version must match");
         }
         this.version = version;
+        this.familyId = toolId.substring(0, toolId.lastIndexOf(".v"));
         this.ownerId = requireIdentifier(ownerId, 96, QUALIFIED_ID, "ownerId");
         this.inputSchema = Objects.requireNonNull(inputSchema, "inputSchema");
         this.outputSchema = Objects.requireNonNull(outputSchema, "outputSchema");
@@ -289,6 +291,11 @@ public final class ToolManifest {
 
     public int getVersion() {
         return version;
+    }
+
+    /** Returns the version-independent identity used by ToolRegistry resolution. */
+    public String getFamilyId() {
+        return familyId;
     }
 
     public String getOwnerId() {

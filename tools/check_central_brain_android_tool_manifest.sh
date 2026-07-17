@@ -109,8 +109,8 @@ if grep -Eiq 'ToolManifest|ToolSchemaValidator' \
   exit 1
 fi
 if find "$ROOT_DIR/$MAIN_ROOT" -type f -name '*.java' -print0 \
-    | xargs -0 grep -Eiq 'class ToolRegistry|class ToolResolver|interface ToolExecutor'; then
-  echo "P5-W01 must not publish Registry, Resolver, or Executor" >&2
+    | xargs -0 grep -Eiq 'interface ToolExecutor'; then
+  echo "P5-W01/P5-W02 must not publish a Tool Executor" >&2
   exit 1
 fi
 if grep -R -Eiq \

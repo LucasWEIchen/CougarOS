@@ -124,7 +124,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 已完成软件 foundation（W01-W09；Runtime/production wiring 仍 false） |
 | S2-P4 | Client2 HMI 与场景/Effect 投影 | P4-W01..W12 应用验收完成；Runtime 自动 Plan/Effect/readback 待接 | 应用层完成 / Runtime 未完成 |
-| S2-P5 | Tool/Skill 与 Memory | Tool manifest/schema、Registry/Resolver/RuleSolver/Executor、Skill trust、Memory lifecycle | W01 已完成，W02-W12 待开发 |
+| S2-P5 | Tool/Skill 与 Memory | Tool manifest/schema、Registry/Resolver/RuleSolver/Executor、Skill trust、Memory lifecycle | W01-W02 已完成，W03-W12 待开发 |
 | S2-P6 | Event/Model 与高级 Memory 集成 | durable broker、proactive trigger、model routing、context budget | 未开始 |
 | S2-P7 | 质量与发布 | fault matrix、性能、隐私、安全、升级 | 未开始 |
 | S2-P8 | 真实车辆适配 | 按 capability 引入已确认的 vendor/public adapter | 外部阻塞 |
@@ -308,13 +308,13 @@ UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 连接 Runtime debug Controller；工程入口连接前隐藏，命令成功且 revision 严格递增后才投影 PARKED/MOVING/UNKNOWN、
 occupancy/belt 和 HVAC/Seat fault。Android 13/API 33 ARM64 已覆盖完整矩阵、reset 失败关闭和 release Service absent。
 SIMULATED projection 不是 production Context/Safety/Effect authority。P4-W10 已完成 Scenario/manual-control synchronization；
-P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。下一工作包为
-P5-W01 Tool manifest/schema；`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/undo/readback 仍未发布。
+P4-W11 已完成 Accessibility/display matrix；P4-W12 已完成 application aggregate acceptance。P5-W01/W02 已完成静态 Tool
+合同与 Registry/Resolver foundation；`hmi_d4_demo_control_loop_complete=false`，自动 Plan/Effect/approval/undo/readback 仍未发布。
 
-P5-W01 已完成 Tool manifest/schema：immutable identity/owner/capability/risk/timeout/idempotency/health、bounded scalar
+P5-W01 Tool manifest/schema 已完成：immutable identity/owner/capability/risk/timeout/idempotency/health、bounded scalar
 input/output、canonical contract digest 与 exact-class validator 已进入 Runtime main source；JVM、debug/release compile
-完成。Android 13 ARM64 probe 已实现，但当前 Windows 只有 COM7、没有 ADB interface，实体执行待复测。Registry/Resolver/
-Executor 和 production Tool 均未发布，下一工作包为 P5-W02。
+完成。Android 13 ARM64 probe 已实现，但当前 Windows 只有 COM7、没有 ADB interface，实体执行待复测。P5-W02 已完成
+pure-Java Registry/Resolver；Executor 和 production Tool 均未发布，下一工作包为 P5-W03。
 
 ## 7. 近期进展
 
@@ -761,7 +761,7 @@ p4_vehicle_readback_available=false
 client2_production_release_artifact_available=false
 hmi_d4_demo_control_loop_complete=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P5-W02
+implementation_stage=P5-W03
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -804,7 +804,7 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
 
 ### 2026-07-18 P4-W12 progress
 
@@ -818,7 +818,7 @@ Tool manifest/schema。
 
 Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
 
 ### 2026-07-18 P5-W01 progress
 
@@ -834,4 +834,22 @@ contract。下一工作包为 P5-W02 ToolRegistry/Resolver。
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-063`、`ISSUE-036`。
 `tool_registry_published=false`、`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W03`。
+
+### 2026-07-18 P5-W02 progress
+
+新增 immutable `ToolRegistry`、`ToolHealthSnapshot` 与 `ToolResolver`。Registry 最多 128 个 unique family/version，按固定
+顺序计算 digest；相同版本相同 digest 幂等、不同 digest 冲突。Resolver 在显式版本范围内选择最高版本，复验 exact
+capability/optional digest，再以 elapsed-realtime health freshness 区分 REGISTERED/RESOLVED/USABLE。最高版本 unhealthy
+时返回 NOT_USABLE，不回退旧版本，execution 固定关闭。
+
+JVM 与 debug/release compile 已覆盖排序/dedup/conflict、版本范围、capability/digest、missing/unknown/unhealthy/stale/
+future-clock 和 no-fallback。Android 13 ARM64 debug probe 已接入 installer，但当前仍无 ADB interface，
+`tool_registry_android13_arm64_verified=false`。Runtime/Graph/Binder/Room 未引用 Registry，production Tool count=0；下一
+工作包为 P5-W03 ToolRuleSolver。
+
+Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-064`、`ISSUE-037`。
+`tool_registry_published=false`、`tool_resolver_published=false`、`tool_registry_runtime_wired=false`、
+`tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
+`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P5-W03`。

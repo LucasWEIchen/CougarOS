@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W02`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W03`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W02`.
+`implementation_stage=P5-W03`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W02`.
+`implementation_stage=P5-W03`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W02`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W03`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,5 +2990,75 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W03`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
+
+## P5-W02 Tool Registry/Resolver detailed design
+
+### Smallest modules
+
+| Module | Responsibility | Forbidden responsibility |
+| --- | --- | --- |
+| `ToolManifest.getFamilyId` | derive version-independent identity from already validated Tool ID | accepting a second caller identity |
+| `ToolRegistry` | bounded immutable family/version index, duplicate/conflict handling and registry digest | schema reinterpretation, health, rule solving or execution |
+| `ToolHealthSnapshot` | bounded immutable dynamic observation set and freshness evaluation | static contract mutation or health collection |
+| `ToolResolver.Query` | exact family/version/capability/digest constraints | model-generated Tool definition |
+| `ToolResolver.Resolution` | separate registration/resolution/usability and stable failure | dispatch or authorization |
+| `ToolRegistryProbeActivity` | debug API 33 ARM64 pure-Java evidence | release exposure, production registry or health publisher |
+| `check_central_brain_android_tool_registry.sh` | source/docs/isolation drift gate | replacing host or physical execution |
+
+### Registry construction algorithm
+
+1. Reject null source and more than 128 source entries before iteration. Reject null Manifest entries.
+2. Read only `getFamilyId()`, `getVersion()` and `getContractDigest()` from P5-W01. Do not inspect input/output fields or derive a new
+   capability/risk contract.
+3. Insert into a `TreeMap<familyId, TreeMap<version, ToolManifest>>`. If the exact version is absent, retain the immutable Manifest.
+4. If the exact version exists and digest matches, treat the candidate as an idempotent duplicate. If digest differs, throw
+   `RegistrationException(CONTRACT_CONFLICT)` without returning a partial registry.
+5. Defensive-copy every version map and expose unmodifiable navigable maps/lists. `size` counts unique family/version entries.
+6. Compute `registryDigest` from a domain separator followed by length-framed sorted family, version and Manifest digest. Input order,
+   object identity, health and runtime state must not affect it.
+
+### Health evaluation algorithm
+
+1. Construct an `Observation` only from canonical check ID, enum state, nonnegative elapsed-realtime timestamp and positive revision.
+2. Build the snapshot in check-ID order; reject duplicate IDs and more than 128 observations. No latest-wins behavior is allowed.
+3. Resolve the Manifest's exact health check ID. Missing yields MISSING; UNKNOWN and UNHEALTHY remain distinct failures.
+4. Reject a negative current clock or observation later than current time as CLOCK_INVALID. Never clamp or infer a wall-clock offset.
+5. For HEALTHY only, calculate `age = now - observedAt`; age greater than Manifest maximum staleness yields STALE, otherwise HEALTHY.
+6. Never serialize observations, add them to contract/registry digest, persist them or expose a publisher in this work package.
+
+### Resolution algorithm
+
+1. Validate Query family, `1 <= min <= max`, canonical capability and optional 64-lowercase-hex digest.
+2. If no family exists, return NOT_REGISTERED/NOT_RESOLVED/NOT_USABLE + TOOL_NOT_REGISTERED.
+3. Select `floorEntry(maxVersion)` and require it is at least minVersion. If absent, return REGISTERED/NOT_RESOLVED/NOT_USABLE +
+   NO_COMPATIBLE_VERSION. Do not scan based on health.
+4. Compare selected Manifest capability, then optional digest pin. A mismatch is static NOT_RESOLVED and does not expose a Manifest.
+5. Evaluate the selected Manifest against one supplied HealthSnapshot and current elapsed time. HEALTHY yields USABLE; every other
+   eligibility yields RESOLVED/NOT_USABLE with a one-to-one stable failure code.
+6. Never select an older version after health failure. Never set execution enabled. `getManifest()` is available only for static
+   RESOLVED results, including RESOLVED/NOT_USABLE so diagnostics can identify the rejected version without payload data.
+
+### Concurrency and ownership
+
+All three objects are immutable after construction and require no locks. The caller owns acquisition and atomic publication of the
+Manifest list and HealthSnapshot; P5-W02 does not provide a mutable global singleton. A future production composition root must replace
+the complete snapshot atomically and establish signer/artifact/health publisher authority. It must not mutate these value objects.
+
+### Tests and failure matrix
+
+Host tests must cover duplicate collapse, input-order-independent digest, unmodifiable lists, both-order digest conflict, invalid
+range, highest healthy selection, no family, no compatible version, capability mismatch, digest mismatch, missing/unknown/stale/
+future health and highest-unhealthy no-fallback. Debug and release compilation prove Android-independent main source. The debug probe
+repeats the bounded positive/negative matrix and emits only booleans/count=2; release manifest must omit it.
+
+Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=true`,
+`tool_health_dynamic_snapshot_defined=true`, `tool_registry_digest_verified=true`,
+`tool_registry_version_conflict_rejected=true`, `tool_resolver_highest_version_deterministic=true`,
+`tool_resolver_states_separated=true`, `tool_resolver_unhealthy_no_fallback=true`, `tool_health_fail_closed=true`,
+`tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
+`tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
+`effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W03`. Req IDs: `S2-TOL-001`,
+`S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.

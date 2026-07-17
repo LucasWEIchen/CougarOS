@@ -88,4 +88,5 @@ jobs:
           bash tools/check_central_brain_android_client2_accessibility_display.sh
           bash tools/check_central_brain_android_client2_p4_acceptance.sh
           bash tools/check_central_brain_android_tool_manifest.sh
+          bash tools/check_central_brain_android_tool_registry.sh
           bash tools/check_central_brain_root_readme.sh

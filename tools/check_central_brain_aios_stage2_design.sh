@@ -79,6 +79,7 @@ for marker in \
   '### `P3-W09` Restart recovery' \
   '### `P4-W12` Android device acceptance/fault/recovery' \
   '### `P5-W01` Tool manifest/schema' \
+  '### `P5-W02` ToolRegistry/Resolver' \
   '### `P8-W03` AaosCarPropertyEffectAdapter' \
   '## 16. 阶段性完成定义'; do
   require_text "$BACKLOG" "$marker"
@@ -180,6 +181,7 @@ require_text "$ROADMAP" '### 2026-07-18 P4-W10 progress'
 require_text "$ROADMAP" '### 2026-07-18 P4-W11 progress'
 require_text "$ROADMAP" '### 2026-07-18 P4-W12 progress'
 require_text "$ROADMAP" '### 2026-07-18 P5-W01 progress'
+require_text "$ROADMAP" '### 2026-07-18 P5-W02 progress'
 require_text "$BACKLOG" '状态：`DONE`（2026-07-17）；3 人日；需求：`S2-HMI-001/003/004/005`、`S2-ADP-001`。'
 require_text "$BACKLOG" '状态：`DONE`（2026-07-17）；2 人日；需求：`S2-UX-001`、`S2-HMI-005`、`XSC-001`'
 require_text "$BACKLOG" '### `P4-W02` Cockpit HMI state/reducer/reconnect'
@@ -188,6 +190,7 @@ require_text "$BACKLOG" '状态：`COMPLETE`（2026-07-18）；2 人日；需求
 require_text "$BACKLOG" '状态：`COMPLETE`（2026-07-18）；1.5-2.5 人日；需求：`S2-UX-003`、`S2-HMI-001/002`。'
 require_text "$BACKLOG" '状态：`COMPLETE`（2026-07-18，application acceptance only）；2.5-4 人日；需求：P4 全部。'
 require_text "$BACKLOG" '状态：`DEVELOPED`；2 人日；需求：`S2-TOL-001`。'
+require_text "$BACKLOG" '状态：`DEVELOPED`（2026-07-18）；2 人日；需求：`S2-TOL-001`。'
 require_text "$DEVIATIONS" '## DEV-024 Stage 2 车辆多设备动作先使用 Digital Twin 仿真'
 require_text "$DEVIATIONS" '## DEV-025 Client2 patched APK 是演示 HMI，不是量产 AAOS 产品 HMI'
 require_text "$DEVIATIONS" '## DEV-032 P2-W03 Digital Twin 是进程内非持久化 foundation'
@@ -222,11 +225,13 @@ require_text "$DEVIATIONS" '## DEV-060 P4-W10 catalog participation is not Runti
 require_text "$DEVIATIONS" '## DEV-061 P4-W11 display allowlist is not OEM multi-display qualification'
 require_text "$DEVIATIONS" '## DEV-062 P4-W12 application acceptance is not HMI-D4 execution closure'
 require_text "$DEVIATIONS" '## DEV-063 P5-W01 Tool contract is not Tool execution'
+require_text "$DEVIATIONS" '## DEV-064 P5-W02 Registry usability is not execution authority'
 require_text "$ISSUES" '## ISSUE-029 “我累了”场景的驾驶席座椅安全策略与批准 authority'
 require_text "$ISSUES" '## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定'
 require_text "$ISSUES" '## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定'
 require_text "$ISSUES" '## ISSUE-033 Client2 HVAC/Seat 中控演示闭环缺口'
 require_text "$ISSUES" '## ISSUE-036 Tool production owner, health source and execution authority'
+require_text "$ISSUES" '## ISSUE-037 Tool health publisher and production registry ownership'
 require_text "$ISSUES" 'P4-W01 进展：Client2 已不再通过单次 `TaskResult` 驱动文本区'
 require_text "$ISSUES" 'P4-W02 进展：immutable `CockpitHmiState`'
 require_text "$ISSUES" 'P4-W03 进展：intent-first 四阶段 shell'
@@ -246,12 +251,14 @@ require_text "$DELIVERY" '## 2026-07-18 P4-W10 Scenario/manual-control synchroni
 require_text "$DELIVERY" '## 2026-07-18 P4-W11 Accessibility/display matrix delivery'
 require_text "$DELIVERY" '## 2026-07-18 P4-W12 Android device acceptance/fault/recovery delivery'
 require_text "$DELIVERY" '## Android P5-W01 Tool Manifest/Schema'
+require_text "$DELIVERY" '## Android P5-W02 Tool Registry/Resolver'
 require_text "$DRIVER" '## 2026-07-15 AIOS Stage 2 Driver/HAL 边界'
 require_text "$DRIVER" '## 2026-07-16 Client2 中控 HVAC/Seat 规划边界'
 require_text "$DRIVER" '### P4-W10 Scenario/manual synchronization Driver/HAL boundary'
 require_text "$DRIVER" '### P4-W11 Accessibility/display matrix Driver/HAL boundary'
 require_text "$DRIVER" '### P4-W12 Aggregate acceptance Driver/HAL boundary'
 require_text "$DRIVER" '## P5-W01 Tool Manifest/Schema Driver/HAL Boundary'
+require_text "$DRIVER" '## P5-W02 Tool Registry/Resolver Driver/HAL Boundary'
 require_text "$README" 'design_baseline_complete=true'
 require_text "$README" 'cockpit_hmi_design_mockups_ready=true'
 require_text "$README" 'aios_intent_orchestration_ux_ready=true'
@@ -265,7 +272,7 @@ require_text "$README" 'client2_hmi_checkpoint_text_persisted=false'
 require_text "$README" 'cockpit_hmi_four_stage_shell_implemented=true'
 require_text "$README" 'cockpit_hmi_safe_frame_1920x1080_verified=true'
 require_text "$README" 'cockpit_hmi_device_drawer_scaffolded=true'
-require_text "$README" 'implementation_stage=P5-W02'
+require_text "$README" 'implementation_stage=P5-W03'
 require_text "$README" 'cockpit_hvac_surface_implemented=true'
 require_text "$README" 'cockpit_seat_surface_implemented=true'
 require_text "$README" 'cockpit_execution_timeline_implemented=true'
@@ -291,6 +298,9 @@ require_text "$README" 'hmi_d4_demo_control_loop_complete=false'
 require_text "$README" 'tool_manifest_contract_defined=true'
 require_text "$README" 'tool_manifest_contract_digest_verified=true'
 require_text "$README" 'tool_manifest_android13_arm64_verified=false'
+require_text "$README" 'tool_registry_contract_defined=true'
+require_text "$README" 'tool_resolver_contract_defined=true'
+require_text "$README" 'tool_registry_android13_arm64_verified=false'
 require_text "$README" 'tool_registry_published=false'
 require_text "$README" 'tool_execution_enabled=false'
 require_text "$README" 'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md'
@@ -316,8 +326,8 @@ if len(work_packages) != 79:
 if len(work_packages) != len(set(work_packages)):
     raise SystemExit("AIOS Stage 2 backlog contains duplicate work package IDs")
 
-for current, expected in ((deviations, [f"DEV-{n:03d}" for n in range(1, 64)]),
-                          (issues, [f"ISSUE-{n:03d}" for n in range(1, 37)])):
+for current, expected in ((deviations, [f"DEV-{n:03d}" for n in range(1, 65)]),
+                          (issues, [f"ISSUE-{n:03d}" for n in range(1, 38)])):
     present = set(re.findall(r"(?:^## |^\| )(DEV-[0-9]{3}|ISSUE-[0-9]{3})\b", current, re.MULTILINE))
     missing = [item for item in expected if item not in present]
     if missing:
@@ -339,5 +349,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_client2_scenario_sync.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_accessibility_display.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_p4_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_manifest.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_tool_registry.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

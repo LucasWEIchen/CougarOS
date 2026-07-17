@@ -620,3 +620,41 @@ target_hardware_validated=false
 复测条件是目标设备重新暴露 Android ADB interface 并完成 USB debugging authorization。复测时运行统一 installer，
 要求 `tool_manifest_probe_complete=true`、schema/digest/negative markers 全部为 true，同时 Registry/Executor/Effect/vehicle/
 NPU/hardware markers 保持 false。该阻塞由 `ISSUE-036` 跟踪，不回退 P5-W01 已完成的软件合同。
+
+## 21. 2026-07-18 P5-W02 Tool Registry/Resolver probe pending evidence
+
+P5-W02 完成 JVM test、debug/release compile 和 APK build 后再次检查 Windows 11 USB 路径。设备管理器本轮已出现 Android
+ADB Interface，但 Windows platform-tools 在 ADB server restart 前后都没有 transport：
+
+```text
+windows_com7_present=true
+windows_android_adb_interface_present=true
+adb_server_restarted=true
+adb_device_count=0
+adb_unauthorized_count=0
+adb_offline_count=0
+```
+
+因此未安装本轮 APK、未启动 `ToolRegistryProbeActivity`，也未读取 serial/model/fingerprint/log/UI/payload。PnP interface
+存在不等于 ADB session online；可能仍需设备端 USB debugging mode/authorization、USB function 切换或重新插拔。当前证据：
+
+```text
+tool_registry_contract_defined=true
+tool_resolver_contract_defined=true
+tool_health_dynamic_snapshot_defined=true
+tool_registry_host_jvm_verified=true
+tool_registry_debug_release_build_verified=true
+tool_registry_android13_arm64_verified=false
+tool_registry_published=false
+tool_resolver_published=false
+tool_registry_runtime_wired=false
+tool_execution_enabled=false
+production_tool_registered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+复测时必须通过统一 installer 的 `tool_registry_probe_complete=true`、conflict/highest-version/state-separation/no-fallback/
+health markers，并继续要求 publication/execution/hardware 为 false。该 transport 阻塞不回退 P5-W02 pure-Java 软件合同，
+production publisher/composition 风险由 `DEV-064`、`ISSUE-037` 跟踪。

@@ -2686,6 +2686,67 @@ if [[ "$TOOL_MANIFEST_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+TOOL_REGISTRY_NONCE="$(date +%s%N)"
+TOOL_REGISTRY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.tools.ToolRegistryProbeActivity \
+  --es nonce "$TOOL_REGISTRY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$TOOL_REGISTRY_PROBE_OUTPUT"; then
+  echo "$TOOL_REGISTRY_PROBE_OUTPUT" >&2
+  echo "Tool registry debug probe did not start successfully" >&2
+  exit 1
+fi
+TOOL_REGISTRY_PROBE_PASSED=false
+for _ in {1..40}; do
+  TOOL_REGISTRY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbToolRegistry:I)"
+  if grep -Fq \
+      "nonce=$TOOL_REGISTRY_NONCE tool_registry_probe_complete=true" \
+      <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_registry_contract_defined=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_resolver_contract_defined=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_health_dynamic_snapshot_defined=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_registry_probe_registration_count=2" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_registry_digest_verified=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_registry_version_conflict_rejected=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_resolver_highest_version_deterministic=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_resolver_states_separated=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_resolver_unhealthy_no_fallback=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_health_fail_closed=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_registry_android13_arm64_verified=true" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_registry_published=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_resolver_published=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_registry_runtime_wired=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "tool_execution_enabled=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "production_tool_registered=false" \
+        <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "production_ready=false" <<<"$TOOL_REGISTRY_LOG" \
+      && grep -Fq "target_hardware_validated=false" <<<"$TOOL_REGISTRY_LOG"; then
+    TOOL_REGISTRY_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$TOOL_REGISTRY_PROBE_PASSED" != true ]]; then
+  echo "$TOOL_REGISTRY_LOG" >&2
+  echo "Tool registry probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3229,9 +3290,22 @@ printf '%s\n' \
   "tool_schema_type_bounds_verified=true" \
   "tool_manifest_health_fail_closed=true" \
   "tool_manifest_android13_arm64_verified=true" \
+  "tool_registry_contract_defined=true" \
+  "tool_resolver_contract_defined=true" \
+  "tool_health_dynamic_snapshot_defined=true" \
+  "tool_registry_probe_registration_count=2" \
+  "tool_registry_digest_verified=true" \
+  "tool_registry_version_conflict_rejected=true" \
+  "tool_resolver_highest_version_deterministic=true" \
+  "tool_resolver_states_separated=true" \
+  "tool_resolver_unhealthy_no_fallback=true" \
+  "tool_health_fail_closed=true" \
+  "tool_registry_android13_arm64_verified=true" \
   "tool_registry_published=false" \
   "tool_resolver_published=false" \
+  "tool_registry_runtime_wired=false" \
   "tool_execution_enabled=false" \
+  "production_tool_registered=false" \
   "production_tool_artifact_loaded=false" \
   "vehicle_readback_accessed=false" \
   "npu_accessed=false" \

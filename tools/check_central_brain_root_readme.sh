@@ -253,16 +253,26 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P5-W02' \
+  'implementation_stage=P5-W03' \
   'tool_manifest_contract_defined=true' \
   'tool_manifest_schema_version=1' \
   'tool_manifest_contract_digest_verified=true' \
   'tool_schema_exact_scalar_validation_verified=true' \
   'tool_manifest_health_fail_closed=true' \
   'tool_manifest_android13_arm64_verified=false' \
+  'tool_registry_contract_defined=true' \
+  'tool_resolver_contract_defined=true' \
+  'tool_health_dynamic_snapshot_defined=true' \
+  'tool_registry_digest_verified=true' \
+  'tool_registry_version_conflict_rejected=true' \
+  'tool_resolver_states_separated=true' \
+  'tool_resolver_unhealthy_no_fallback=true' \
+  'tool_registry_android13_arm64_verified=false' \
   'tool_registry_published=false' \
   'tool_resolver_published=false' \
+  'tool_registry_runtime_wired=false' \
   'tool_execution_enabled=false' \
+  'production_tool_registered=false' \
   'production_tool_artifact_loaded=false' \
   'client2_session_event_primary_api=true' \
   'client2_session_event_typed_callback=true' \
@@ -516,8 +526,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P5-W02 ToolRegistry/Resolver" not in remaining or "Tool/Skill runtime" not in remaining:
-    raise SystemExit("README remaining-work table must identify P5-W02 ToolRegistry/Resolver as the next unfinished scope")
+if "P5-W03 ToolRuleSolver" not in remaining or "Tool/Skill runtime" not in remaining:
+    raise SystemExit("README remaining-work table must identify P5-W03 ToolRuleSolver as the next unfinished scope")
 
 for group in (
     "APP-004",
