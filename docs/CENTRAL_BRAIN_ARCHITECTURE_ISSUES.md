@@ -175,6 +175,12 @@ risk、readback path 和 fresh-signal dependency，并通过 JVM/API 33 ARM64 pr
 available/authorized 仍为 false；这些范围不是 OEM 标定，未解决 property/service/permission/area/readback
 owner。P2-W03 可以据此构建 debug/test Twin，但不得关闭本问题或激活 production adapter。
 
+P2-W03 进展：进程内 Twin 已完成 desired/reported 分离、monotonic revision、TTL/quality、atomic snapshot
+和 reconciliation，并通过 JVM/API 33 ARM64 software probe。本问题仍开放：reported 只来自 test 构造值，
+没有 provider/property/service/permission/area mapping；Twin 无持久化且未接 production Service/adapter。
+P2-W04 构建的 Context 必须保留 source/quality/restricted 语义，不能把 software probe 当作 trusted vehicle
+evidence。
+
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
 场景版本、冲突规则、用户偏好、保留期、删除/导出、跨账号边界、主动触发频率、免打扰和模型文本
@@ -279,3 +285,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P1-W06 进展 | Room v4、Session/Event process-death rehydration 已完成；ISSUE-034 仅剩 Event V1 terminal cursor/ACK 演进。 |
 | P2-W01 进展 | Canonical signal schema 与 API 33 ARM64 software probe 完成；ISSUE-030 的 property/service/permission/area/readback owner 仍开放。 |
 | P2-W02 进展 | Capability catalog 与 API 33 ARM64 software probe 完成；全部 production authorized=false，ISSUE-029/030 仍开放。 |
+| P2-W03 进展 | 进程内 Twin 与 API 33 ARM64 software probe 完成；无 provider/adapter/persistence，ISSUE-030 仍开放。 |

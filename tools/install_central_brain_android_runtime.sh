@@ -925,6 +925,55 @@ if [[ "$VEHICLE_CATALOG_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+VEHICLE_TWIN_NONCE="$(date +%s%N)"
+VEHICLE_TWIN_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.vehicle.twin.VehicleDigitalTwinStoreProbeActivity \
+  --es nonce "$VEHICLE_TWIN_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$VEHICLE_TWIN_PROBE_OUTPUT"; then
+  echo "$VEHICLE_TWIN_PROBE_OUTPUT" >&2
+  echo "vehicle Digital Twin debug probe did not start successfully" >&2
+  exit 1
+fi
+VEHICLE_TWIN_PROBE_PASSED=false
+for _ in {1..40}; do
+  VEHICLE_TWIN_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbVehicleTwin:I)"
+  if grep -Fq \
+      "nonce=$VEHICLE_TWIN_NONCE vehicle_digital_twin_probe_complete=true" \
+      <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_store_verified=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_desired_reported_separation_verified=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_monotonic_revision_verified=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_ttl_quality_verified=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_atomic_snapshot_verified=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_stale_report_rejected=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_reconciliation_verified=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_android13_arm64_verified=true" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_digital_twin_persistence_wired=false" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_capability_adapter_registry_wired=false" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "vehicle_property_mapping_configured=false" \
+        <<<"$VEHICLE_TWIN_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$VEHICLE_TWIN_LOG"; then
+    VEHICLE_TWIN_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$VEHICLE_TWIN_PROBE_PASSED" != true ]]; then
+  echo "$VEHICLE_TWIN_LOG" >&2
+  echo "vehicle Digital Twin probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1592,6 +1641,10 @@ printf '%s\n' \
   "vehicle_capability_catalog_android13_arm64_verified=true" \
   "vehicle_production_capability_authorized_count=0" \
   "vehicle_capability_adapter_registry_wired=false" \
+  "vehicle_digital_twin_store_defined=true" \
+  "vehicle_digital_twin_android13_arm64_verified=true" \
+  "vehicle_digital_twin_persistence_wired=false" \
+  "vehicle_digital_twin_adapter_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

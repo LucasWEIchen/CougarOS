@@ -326,6 +326,23 @@ reported signal 与 fresh-signal dependency。温度、风量、座椅等级/角
 | P1-W06 进展 | Room v4、Session/Event durable repository 和 Runtime process-death rehydration 完成；Plan/Effect/scenario/hardware 均未发布。 |
 | P2-W01 进展 | 12 项 canonical vehicle signal schema、typed scalar、unit/area/source/quality/freshness 与 API 33 ARM64 probe 完成；真实 provider/property mapping 未接入。 |
 | P2-W02 进展 | 8 项 capability/range/risk/readback/dependency 与 API 33 ARM64 probe 完成；production authorized count 为 0。 |
+| P2-W03 进展 | 进程内 desired/reported Twin、monotonic revision、TTL/quality、atomic snapshot/reconciliation 与 API 33 ARM64 probe 完成；持久化/production wiring 未接入。 |
 
 Safety/跨域边界继续由 `CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md` 管理；本项目不开发
 虚拟化。
+
+## DEV-032 P2-W03 Digital Twin 是进程内非持久化 foundation
+
+完整架构要求 Digital Twin 支撑重启恢复、adapter readback 和 durable Graph reconciliation。P2-W03 为保持
+最小可验证增量，只在 Runtime Java 层实现 synchronized desired/reported store、全局 monotonic revision、
+TTL/quality、atomic snapshot 与 reconciliation；没有接入 Room、Service singleton/DI、Effect Coordinator
+或任何车辆 provider。
+
+因此 Runtime 进程死亡会丢失 Twin，revision 只在单进程生命周期内单调；API 33 ARM64 probe 仅证明软件
+合同可运行，不是车身状态、跨进程恢复或 production adapter 证据。P2-W04 可以消费该 immutable snapshot，
+但不能把它标记为 trusted hardware context。持久化/wiring 必须等相应工作包明确 schema、owner、migration
+和 recovery 后单独验收。
+
+状态：`Accepted Temporary`。`vehicle_digital_twin_persistence_wired=false`、
+`vehicle_digital_twin_adapter_wired=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。

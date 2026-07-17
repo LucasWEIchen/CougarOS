@@ -836,27 +836,51 @@ Range/risk/dependency 是 debug/test 软件合同，不是 OEM 标定或 Safety 
 adapterVersion，因为 adapter registry 尚未实现；P8 activation evidence 必须另建版本化 mapping，不能
 静默改变 catalog 或把 `simulatable=true` 当作 production authorization。
 
-### 11.3 VehicleDigitalTwinStore
+### 11.3 VehicleDigitalTwinStore（P2-W03 已实现）
 
 API：
 
 ```java
-DigitalTwinSnapshot snapshot(Set<VehicleSignalPath> paths);
-Optional<SignalValue> reported(VehicleSignalPath path, String area);
-Optional<DesiredStateRecord> desired(VehicleSignalPath path, String area);
-long updateReported(SignalValue value);
-long setDesired(DesiredStateRecord desired);
-boolean compareAndSetDesired(long expectedRevision, DesiredStateRecord desired);
+long getRevision();
+long updateReported(SignalValue value, long nowElapsedRealtimeMs);
+long setDesired(DesiredStateRecord desired, long nowElapsedRealtimeMs);
+boolean compareAndSetDesired(long expectedStoreRevision,
+                            DesiredStateRecord desired,
+                            long nowElapsedRealtimeMs);
+boolean clearDesired(VehicleSignalPath path, String area, long expectedStoreRevision);
+Optional<ReportedStateRecord> reported(VehicleSignalPath path,
+                                       String area,
+                                       long nowElapsedRealtimeMs);
+Optional<DesiredStateRecord> desired(VehicleSignalPath path,
+                                     String area,
+                                     long nowElapsedRealtimeMs);
+DigitalTwinSnapshot snapshot(Set<VehicleSignalPath> paths,
+                             long nowElapsedRealtimeMs);
 ```
 
-规则：
+实现规则：
 
-- desired 和 reported 分离；
-- adapter callback 只更新 reported；
-- old source timestamp 不覆盖新值；
-- source conflict 标记 `CONFLICT`；
-- safety-critical snapshot 要求同一 revision window；
-- Stage 2 仿真状态在 debug profile 可持久化，production 不自动继承。
+- Store 使用 synchronized 临界区保护 desired/reported 两张 map 和全局 revision；每个改变状态的写入只
+  分配一次新 revision，同一 payload/同一 desired request 重放幂等，不推进 revision。
+- Key 是结构化 `(VehicleSignalPath, area)`，不拼接字符串。desired 和 reported 永远分表；调用者不能用
+  desired 冒充 readback，也不能直接改 snapshot collection。
+- Reported update 必须先通过 `SignalValue.validateFreshness(now)`；source time 或 receive monotonic time
+  回退、同 timestamp 不同 payload 均拒绝，不覆盖新值。P2-W03 不自行把冲突 source 合并为一个值；
+  provider 需要显式提交无 scalar 的 `CONFLICT` observation。
+- `ReportedStateRecord` 保存 accepted revision 和有效期，snapshot capture 时把过期 `VALID` 投影为
+  effective `STALE`，不修改原始 observation。`DesiredStateRecord` 使用 type-specific factory，TTL 最大
+  15 分钟，过期 desired 不在 active query 中返回。
+- `snapshot(paths, now)` 在同一锁内复制同一 revision window，并返回 immutable list/map view。
+  Reconciliation 固定为 `NO_DESIRED/DESIRED_EXPIRED/PENDING_REPORTED/REPORTED_STALE/`
+  `REPORTED_UNAVAILABLE/MATCHED/MISMATCH`。
+- `compareAndSetDesired`/`clearDesired` 以该 key 当前 desired store revision 为 compare token；用于避免
+  HMI/Graph 并发覆盖，不是跨进程事务或车辆硬件 CAS。
+
+当前边界：store 仅为 Runtime 进程内纯 Java 组件，未接入 Room、production Service、adapter registry、
+VHAL/vendor property 或 Effect runtime。debug probe 只使用 `SignalSource.SIMULATED` 的内存值。
+`vehicle_digital_twin_persistence_wired=false`、`vehicle_digital_twin_adapter_wired=false`、
+`hardware_accessed=false`。P2-W04 只能消费 immutable snapshot；P3-W07/P8 分别负责 Effect reconcile 与
+真实 target mapping。
 
 ### 11.4 ContextSnapshotBuilder
 
@@ -1710,13 +1734,15 @@ central-brain-sdk AAR
   Android 13 ARM64 debug probe；production provider/property mapping 保持关闭。
 - P2-W02 8 项 Vehicle capability、typed target range、readback/safety dependency、fail-closed activation、
   JVM 与 Android 13 ARM64 debug probe；production authorized count 为 0。
+- P2-W03 进程内 Vehicle Digital Twin：desired/reported 分离、monotonic revision、TTL/quality、atomic
+  snapshot、并发 CAS、stale/conflict rejection 和 reconciliation；JVM 与 Android 13 ARM64 probe 通过。
 
 ### 32.2 下一阶段未完成
 
 - Event V2 terminal resume cursor/ACK Binder、Room ACK retention、SDK negotiation 和高吞吐 fault tests；
 - Scenario/Plan/Effect execution、approval response/undo execution；
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
-- Vehicle Digital Twin 和 trusted Context（canonical signal schema 与 capability catalog 已完成）；
+- trusted Context、Digital Twin 持久化/production wiring（进程内 store 已完成）；
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
 - Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
@@ -1738,13 +1764,13 @@ central-brain-sdk AAR
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
 `P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和
 `P1-W07 Contract v2 aggregate check`、`P2-W01 Canonical vehicle signal types` 和
-`P2-W02 Vehicle capability catalog` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W02 Vehicle capability catalog` 和 `P2-W03 VehicleDigitalTwinStore` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
-测试、独立 checksum、aggregate gate、canonical signal schema 与 fail-closed capability catalog 已进入
-工程。Effect Service、approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。
-下一实现工作包固定为 `P2-W03 VehicleDigitalTwinStore`；不得读取真实 Vehicle/VHAL 或直接在 Client2
-中硬编码仿真动画。
+测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
+进程内 desired/reported Twin 已进入工程。Effect Service、approval response/undo execution、Plan Compiler
+和 Graph Runtime 均未发布。下一实现工作包固定为 `P2-W04 ContextSnapshotBuilder`；必须基于 atomic
+Twin snapshot 生成 restricted context，不得读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

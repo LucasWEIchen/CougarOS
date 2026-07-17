@@ -57,4 +57,5 @@ jobs:
           bash tools/check_central_brain_runtime_contract_v2.sh
           bash tools/check_central_brain_android_vehicle_signal_schema.sh
           bash tools/check_central_brain_android_vehicle_capability_catalog.sh
+          bash tools/check_central_brain_android_vehicle_digital_twin.sh
           bash tools/check_central_brain_root_readme.sh
