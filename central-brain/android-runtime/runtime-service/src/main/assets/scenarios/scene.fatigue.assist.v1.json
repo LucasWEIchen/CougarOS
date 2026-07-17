@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "scene.fatigue.assist.v1",
+  "version": 1,
+  "supportedSources": ["HMI_BUTTON", "VOICE", "TRIGGER", "API"],
+  "supportedZones": ["ROW1_DRIVER"],
+  "contextPolicyId": "context.seat-recline.v1",
+  "requiredContext": [
+    "Vehicle.Speed",
+    "Vehicle.Powertrain.Transmission.CurrentGear",
+    "Vehicle.Chassis.ParkingBrake.IsEngaged",
+    "Vehicle.Cabin.Seat.IsOccupied",
+    "Vehicle.Cabin.Seat.IsBelted",
+    "Vehicle.Cabin.Seat.Position.Recline"
+  ],
+  "optionalContext": [
+    "Vehicle.Cabin.HVAC.IsAirConditioningActive",
+    "Vehicle.Cabin.HVAC.AmbientAirTemperature"
+  ],
+  "requiredCapabilities": ["vehicle.hvac.power", "vehicle.hvac.fan_level"],
+  "optionalCapabilities": ["vehicle.seat.recline", "media.playback", "navigation.poi"],
+  "riskClass": "HIGH",
+  "planTemplate": {
+    "nodes": [
+      {
+        "nodeId": "capture_context",
+        "nodeType": "context.capture",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.context.capture.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "evaluate_policy",
+        "nodeType": "policy.evaluate",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.fatigue.assist.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "request_seat_approval",
+        "nodeType": "approval.interrupt",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 120000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.seat.recline.approval.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "PARKED_ONLY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "set_hvac_power",
+        "nodeType": "effect.execute",
+        "capabilityId": "vehicle.hvac.power",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 2,
+        "idempotencyKeyTemplate": "scene.fatigue.hvac_power",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.hvac.power.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "set_hvac_fan",
+        "nodeType": "effect.execute",
+        "capabilityId": "vehicle.hvac.fan_level",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 2,
+        "idempotencyKeyTemplate": "scene.fatigue.hvac_fan",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.hvac.fan.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "set_seat_recline",
+        "nodeType": "effect.execute",
+        "capabilityId": "vehicle.seat.recline",
+        "required": false,
+        "timeoutMs": 8000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "scene.fatigue.seat_recline",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.seat.recline.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "PARKED_ONLY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "pause_media",
+        "nodeType": "effect.execute",
+        "capabilityId": "media.playback",
+        "required": false,
+        "timeoutMs": 3000,
+        "maxAttempts": 2,
+        "idempotencyKeyTemplate": "scene.fatigue.media_pause",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.media.playback.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "suggest_rest_area",
+        "nodeType": "effect.execute",
+        "capabilityId": "navigation.poi",
+        "required": false,
+        "timeoutMs": 5000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "scene.fatigue.navigation_poi",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.navigation.poi.v1", "policyVersion": 1, "riskClass": "MEDIUM", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "verify_hvac_power",
+        "nodeType": "effect.verify",
+        "capabilityId": "vehicle.hvac.power",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "scene.fatigue.verify_hvac_power",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.effect.verify.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "verify_hvac_fan",
+        "nodeType": "effect.verify",
+        "capabilityId": "vehicle.hvac.fan_level",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "scene.fatigue.verify_hvac_fan",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.effect.verify.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "verify_seat_recline",
+        "nodeType": "effect.verify",
+        "capabilityId": "vehicle.seat.recline",
+        "required": false,
+        "timeoutMs": 8000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "scene.fatigue.verify_seat_recline",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.effect.verify.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "PARKED_ONLY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "render_summary",
+        "nodeType": "summary.render",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.summary.render.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      }
+    ],
+    "dependencies": [
+      {"prerequisiteNodeId": "capture_context", "dependentNodeId": "evaluate_policy", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "request_seat_approval", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "set_hvac_power", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "set_hvac_fan", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "pause_media", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "suggest_rest_area", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "request_seat_approval", "dependentNodeId": "set_seat_recline", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "set_hvac_power", "dependentNodeId": "verify_hvac_power", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "set_hvac_fan", "dependentNodeId": "verify_hvac_fan", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "set_seat_recline", "dependentNodeId": "verify_seat_recline", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "verify_hvac_power", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "verify_hvac_fan", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "verify_seat_recline", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "pause_media", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "suggest_rest_area", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"}
+    ]
+  },
+  "fallback": {
+    "mode": "DEGRADED_OPTIONAL_ONLY",
+    "messageKey": "scenario.fatigue.partial",
+    "optionalNodeIds": ["request_seat_approval", "set_seat_recline", "verify_seat_recline", "pause_media", "suggest_rest_area"]
+  },
+  "ui": {
+    "displayKey": "scenario.fatigue.title",
+    "descriptionKey": "scenario.fatigue.description",
+    "iconKey": "scenario.icon.fatigue",
+    "sortOrder": 20
+  }
+}

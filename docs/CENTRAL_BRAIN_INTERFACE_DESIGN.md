@@ -895,3 +895,33 @@ Status: `context_snapshot_defined=true`, `context_snapshot_android13_arm64_verif
 `context_snapshot_production_trusted=false`, `context_snapshot_production_wired=false`,
 `vehicle_signal_provider_wired=false`, `hardware_accessed=false`. Req IDs: `S2-CTX-001`, `S2-SAF-001`,
 `DEL-001/003..005`; tracking: `DEV-033`, `ISSUE-029/030`.
+
+## Android P2-W05 Scenario Manifest
+
+Package: `com.centralbrain.runtime.scenario`. These are pure-Java build-owned metadata and validation types. They
+are not AIDL, Resolver, Compiler, executable Graph, Effect dispatcher or production Service.
+
+| Type | Public contract | Invariant/failure |
+| --- | --- | --- |
+| `ScenarioManifest` | schema/scenario/version/digest, source/zone, context/capabilities, risk, Plan template, fallback, UI | immutable; fixed IDs/enums/bounds; node type/capability/policy/DAG/compensation validation |
+| `ScenarioManifestParser` | `parse(sourceName, bytes)` | strict JSON, <=64 KiB/depth16/token4096; duplicate/unknown/null/trailing/type/version reject |
+| `ScenarioCatalog` | `load(Map<String, byte[]>)`, `all/find/require/disabled/getCatalogDigest` | deterministic sort; invalid isolated; duplicate scenario ID disables all copies; immutable index |
+| JSON schema | draft 2020-12, `additionalProperties=false`, schemaVersion const 1 | build-time structural contract; parser remains runtime authority |
+| checksum sidecar | SHA-256 for three manifests and schema | Git/CI/APK asset identity; not independent cryptographic signer evidence |
+
+The built-in v1 IDs are `scene.comfort.cold.v1`, `scene.fatigue.assist.v1` and `scene.rest.nap.v1`. Each declares
+supported request sources/zones, a fixed Context policy, required/optional canonical Context paths and capability
+IDs, highest risk, bounded node/dependency template, fail-closed or optional-only fallback and localization/icon
+keys. The Plan template carries no target scalar and cannot be dispatched. P2-W06/P2-W07 must resolve and compile
+it under fresh Context/capability policy.
+
+Fatigue and rest seat-recline templates are HIGH, `PARKED_ONLY` and approval-required. This metadata cannot grant
+approval or override a hard interlock. Unknown manifest fields, unknown canonical paths/capabilities/node types,
+oversize input, duplicate field/ID, invalid dependency/cycle/compensation and risk mismatch fail closed. One bad
+asset does not remove other unique valid scenarios.
+
+Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=3`,
+`scenario_manifest_android13_arm64_verified=true`, `scenario_manifest_artifact_crypto_verified=false`,
+`scenario_catalog_production_trusted=false`, `scenario_runtime_wired=false`,
+`scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
+Req IDs: `S2-SCN-001`, `S2-SAF-001`, `DEL-001/003..005`; tracking: `DEV-034`, `ISSUE-029/031`.

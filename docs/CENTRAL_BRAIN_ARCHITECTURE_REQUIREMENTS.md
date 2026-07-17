@@ -604,3 +604,30 @@ NPU、Driver/HAL 或目标硬件资格。
 状态：`context_snapshot_defined=true`、`context_snapshot_android13_arm64_verified=true`、
 `context_snapshot_production_trusted=false`、`context_snapshot_production_wired=false`、
 `vehicle_signal_provider_wired=false`、`hardware_accessed=false`。
+
+## 25. P2-W05 Scenario manifest/schema trace
+
+本增量映射 `S2-SCN-001`、`S2-SAF-001`、`DEL-001/003..005`：
+
+1. Manifest 必须是 APK build-owned v1 asset，Runtime/HMI/模型不能提交、替换或动态扩展 manifest；首批
+   精确包含 `scene.comfort.cold.v1`、`scene.fatigue.assist.v1`、`scene.rest.nap.v1` 三项。
+2. 每项必须显式携带 schema/scenario/version、supported source/zone、fixed Context policy、required/
+   optional canonical Context/capability、最高 risk、bounded plan template、fallback 和 UI resource key。
+3. Parser 必须使用 strict structured JSON parser，input <=64 KiB、depth<=16、token<=4096；unknown/
+   duplicate field、null、trailing content、type/version/enum/path/capability 错误和 oversize 必须拒绝。
+4. Template 必须复用 Plan Contract node allowlist，并限制 node<=64、edge<=256、depth<=16、parallel<=8、
+   timeout/retry/idempotency、required/optional、compensation、policy/risk/approval/driving/failure metadata。
+5. duplicate node/edge/scenario ID、unknown dependency/capability、DAG cycle、invalid compensation、risk mismatch、
+   HIGH 无 approval、fallback 引用 required/unknown node 必须失败关闭。duplicate scenario ID 的全部副本禁用，
+   单个 invalid asset 不影响其他 unique valid scene。
+6. Fatigue/rest 的 seat-recline template 必须固定 `PARKED_ONLY` 和 approval-required；该 metadata 不能授予
+   approval，不能覆盖 driving/safety hard interlock，也不能直接生成 Effect target 或 dispatch。
+7. JSON Schema 与 SHA-256 sidecar 必须在 CI 和 packaged APK assets probe 中验证。Sidecar 只证明 build
+   identity，不是独立 artifact 密码学签名、revoke/rollback 或 production trust evidence。
+8. JVM/API 33 ARM64 probe 必须覆盖三项 catalog、schema/digest、unknown/oversize/duplicate/cycle/isolation；
+   P2-W05 不接 Resolver/Compiler/Graph/Effect/production Service，不访问 Vehicle/VHAL/NPU/Driver-HAL。
+
+状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+`scenario_manifest_android13_arm64_verified=true`、`scenario_manifest_artifact_crypto_verified=false`、
+`scenario_catalog_production_trusted=false`、`scenario_runtime_wired=false`、
+`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。

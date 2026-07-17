@@ -185,15 +185,17 @@ bash tools/check_central_brain_virtualization_docs.sh
 `P1-W04 Effect/Approval DTO/AIDL` contract layer、`P1-W05 SDK facade v2`、`P1-W06 Room v4` 和
 `P1-W07 Runtime Contract v2 aggregate`、`P2-W01 Canonical vehicle signal types` 与
 `P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 与
-`P2-W04 ContextSnapshotBuilder` 已完成。SDK 通过
+`P2-W04 ContextSnapshotBuilder` 与 `P2-W05 Scenario manifest/schema` 已完成。SDK 通过
 `ScenarioClient` 隔离 Binder primitive；同一 Runtime Service 以双 action 发布 Session/Event V1，
 Room v4 owner repository 支持 Service rebind 和 Runtime process-death rehydration。P1-W06 Room v4
 schema 与 P1 aggregate gate 已完成；`vehicle/schema` 提供 12 项固定 path、typed scalar、unit/area、
 source/quality/freshness，`vehicle/capability` 提供 8 项 range/risk/dependency/activation metadata；
 `vehicle/twin` 提供进程内 desired/reported store、monotonic revision、TTL/quality、atomic snapshot 与
 reconciliation；`context` 在同一 Twin revision 上提供固定 policy、driving/safety 派生、freshness/trust
-report、restricted 和 digest。四者都没有 provider/property mapping，Twin/Context 也没有 production
-Service wiring。下一开发工作包是 `P2-W05 Scenario manifest/schema`。
+report、restricted 和 digest；`scenario` 通过三份 build-owned v1 asset、strict parser/schema、artifact
+checksum、bounded template validator 与 invalid isolation 提供非执行 catalog。Signal/Capability/Twin/
+Context 都没有 provider/property mapping，Twin/Context/Scenario 也没有 production Service wiring。
+下一开发工作包是 `P2-W06 DeterministicScenarioResolver`。
 
 当前 `session_runtime_service_published=true`、`event_runtime_service_published=true`、
 `event_callback_service_published=true`、`room_schema_version=4`、
@@ -202,8 +204,11 @@ Service wiring。下一开发工作包是 `P2-W05 Scenario manifest/schema`。
 `vehicle_digital_twin_store_defined=true`、`vehicle_digital_twin_persistence_wired=false`、
 `context_snapshot_defined=true`、`context_snapshot_production_trusted=false`、
 `context_snapshot_production_wired=false`、
+`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+`scenario_manifest_artifact_crypto_verified=false`、`scenario_catalog_production_trusted=false`、
+`scenario_runtime_wired=false`、`scenario_graph_execution_enabled=false`、
 `vehicle_production_capability_authorized_count=0`、`vehicle_signal_provider_wired=false`，但 Event V2、
-Scenario/Plan/Effect 执行、
+Scenario Resolver/Compiler、Plan/Effect 执行、
 approval response、undo execution 仍为 false。Service 数量保持三项，生产 capability policy 不包含
 test principal；`hardware_accessed=false`。
 真实 AAOS/Vendor/NPU adapter 继续受

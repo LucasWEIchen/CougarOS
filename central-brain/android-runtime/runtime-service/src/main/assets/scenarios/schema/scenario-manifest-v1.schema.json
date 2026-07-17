@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cougaros.local/schema/scenario-manifest-v1.schema.json",
+  "title": "CougarOS ScenarioManifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "scenarioId", "version", "supportedSources", "supportedZones",
+    "contextPolicyId", "requiredContext", "optionalContext", "requiredCapabilities",
+    "optionalCapabilities", "riskClass", "planTemplate", "fallback", "ui"
+  ],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "scenarioId": {"type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[a-z0-9][a-z0-9_-]*){2,7}$", "maxLength": 96},
+    "version": {"type": "integer", "minimum": 1},
+    "supportedSources": {"type": "array", "minItems": 1, "maxItems": 4, "uniqueItems": true, "items": {"enum": ["HMI_BUTTON", "VOICE", "TRIGGER", "API"]}},
+    "supportedZones": {"type": "array", "minItems": 1, "maxItems": 5, "uniqueItems": true, "items": {"enum": ["ROW1_DRIVER", "ROW1_PASSENGER", "ROW2_LEFT", "ROW2_RIGHT", "CABIN"]}},
+    "contextPolicyId": {"enum": ["context.general.v1", "context.seat-comfort.v1", "context.seat-recline.v1"]},
+    "requiredContext": {"$ref": "#/$defs/contextPaths"},
+    "optionalContext": {"$ref": "#/$defs/contextPaths"},
+    "requiredCapabilities": {"$ref": "#/$defs/capabilities"},
+    "optionalCapabilities": {"$ref": "#/$defs/capabilities"},
+    "riskClass": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+    "planTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodes", "dependencies"],
+      "properties": {
+        "nodes": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/node"}},
+        "dependencies": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/dependency"}}
+      }
+    },
+    "fallback": {"$ref": "#/$defs/fallback"},
+    "ui": {"$ref": "#/$defs/ui"}
+  },
+  "$defs": {
+    "contextPaths": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "maxLength": 128}},
+    "capabilities": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "maxLength": 96}},
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["policyId", "policyVersion", "riskClass", "drivingPolicy", "approvalRequired", "failureMode"],
+      "properties": {
+        "policyId": {"type": "string", "maxLength": 96},
+        "policyVersion": {"type": "integer", "minimum": 1},
+        "riskClass": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+        "drivingPolicy": {"enum": ["ANY", "PARKED_ONLY"]},
+        "approvalRequired": {"type": "boolean"},
+        "failureMode": {"enum": ["FAIL_SCENARIO", "SKIP_OPTIONAL", "COMPENSATE"]}
+      }
+    },
+    "node": {
+      "type": "object", "additionalProperties": false,
+      "required": ["nodeId", "nodeType", "capabilityId", "required", "timeoutMs", "maxAttempts", "idempotencyKeyTemplate", "compensationNodeId", "policy"],
+      "properties": {
+        "nodeId": {"type": "string", "maxLength": 64},
+        "nodeType": {"type": "string", "maxLength": 48},
+        "capabilityId": {"type": "string", "maxLength": 96},
+        "required": {"type": "boolean"},
+        "timeoutMs": {"type": "integer", "minimum": 1, "maximum": 120000},
+        "maxAttempts": {"type": "integer", "minimum": 1, "maximum": 3},
+        "idempotencyKeyTemplate": {"type": "string", "maxLength": 128},
+        "compensationNodeId": {"type": "string", "maxLength": 64},
+        "policy": {"$ref": "#/$defs/policy"}
+      }
+    },
+    "dependency": {
+      "type": "object", "additionalProperties": false,
+      "required": ["prerequisiteNodeId", "dependentNodeId", "condition"],
+      "properties": {
+        "prerequisiteNodeId": {"type": "string", "maxLength": 64},
+        "dependentNodeId": {"type": "string", "maxLength": 64},
+        "condition": {"enum": ["ON_SUCCESS", "ON_TERMINAL"]}
+      }
+    },
+    "fallback": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "messageKey", "optionalNodeIds"],
+      "properties": {
+        "mode": {"enum": ["FAIL_CLOSED", "DEGRADED_OPTIONAL_ONLY"]},
+        "messageKey": {"type": "string", "maxLength": 96},
+        "optionalNodeIds": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "maxLength": 64}}
+      }
+    },
+    "ui": {
+      "type": "object", "additionalProperties": false,
+      "required": ["displayKey", "descriptionKey", "iconKey", "sortOrder"],
+      "properties": {
+        "displayKey": {"type": "string", "maxLength": 96},
+        "descriptionKey": {"type": "string", "maxLength": 96},
+        "iconKey": {"type": "string", "maxLength": 64},
+        "sortOrder": {"type": "integer", "minimum": 0, "maximum": 10000}
+      }
+    }
+  }
+}

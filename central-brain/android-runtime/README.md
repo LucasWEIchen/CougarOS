@@ -243,6 +243,26 @@ Status: `context_snapshot_defined=true`, `context_snapshot_android13_arm64_verif
 `vehicle_signal_provider_wired=false`, `hardware_accessed=false`. SIMULATED is visible and usable only for the
 debug/test workflow; AAOS/VENDOR provenance remains unverified until P8 activation evidence exists.
 
+## Stage 2 P2-W05 Scenario Manifest
+
+`runtime-service/.../scenario` adds immutable `ScenarioManifest`, strict bounded `ScenarioManifestParser` and
+invalid-asset-isolating `ScenarioCatalog`. Gson 2.11 strict streaming parsing rejects duplicate/unknown fields,
+nulls, trailing content, oversized input and unsupported typed values. Manifest validation reuses the frozen Plan
+node allowlist and limits nodes, dependencies, depth, parallelism, retry/timeout, capability references, risk,
+approval metadata, fallback and UI resource keys.
+
+APK assets contain exactly three build-owned v1 templates: `scene.comfort.cold.v1`,
+`scene.fatigue.assist.v1` and `scene.rest.nap.v1`. Fatigue/rest seat-recline nodes are explicitly
+`PARKED_ONLY` and approval-required. A strict draft-2020-12 JSON schema and SHA-256 sidecar are checked in CI and
+again from packaged assets by a DUMP-protected Android 13 ARM64 probe. Invalid or duplicate-ID assets are disabled
+without disabling unrelated valid scenarios.
+
+These are non-executable templates. P2-W05 performs no Resolver/Compiler/Graph/Effect action and does not wire the
+catalog into a production Service. The checksum is build integrity, not artifact cryptographic signature evidence.
+Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=3`,
+`scenario_manifest_artifact_crypto_verified=false`, `scenario_catalog_production_trusted=false`,
+`scenario_runtime_wired=false`, `scenario_graph_execution_enabled=false`, `hardware_accessed=false`.
+
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
 The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`.

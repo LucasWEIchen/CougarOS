@@ -21,7 +21,7 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 | 物理应用层证据 | `physical_controller_application_evidence_available=true` | Runtime/Demo/Client2 的安装、Binder、UI、恢复已验证 |
 | GitHub 基线 | `maintained_project_files_synced=true` | 正式源码/文档已跟踪；首页架构与进度由门禁维护 |
 | Python 原型 | `python_prototype_runtime_maintained=false` | 源码、合同、样例、部署和对应门禁已移除 |
-| AIOS Stage 2 | `design_baseline_complete=true`；`runtime_contract_v2_defined=true`；`runtime_contract_v2_verified=true`；`runtime_contract_v2_physical_android13_arm64_verified=true`；`frozen_v1_hashes_unchanged=true`；`session_contract_v1_defined=true`；`plan_contract_v1_defined=true`；`event_contract_v1_defined=true`；`effect_contract_v1_defined=true`；`sdk_facade_v2_available=true`；`session_runtime_service_published=true`；`event_runtime_service_published=true`；`event_callback_service_published=true`；`active_session_reconnect_resubscribe_verified=true`；`room_schema_version=4`；`session_runtime_persistence_wired=true`；`session_runtime_process_death_rehydration=true`；`vehicle_signal_schema_defined=true`；`vehicle_signal_path_allowlist_count=12`；`vehicle_signal_schema_android13_arm64_verified=true`；`vehicle_signal_provider_wired=false`；`vehicle_property_mapping_configured=false`；`vehicle_capability_catalog_defined=true`；`vehicle_capability_count=8`；`vehicle_capability_catalog_android13_arm64_verified=true`；`vehicle_production_capability_authorized_count=0`；`vehicle_capability_adapter_registry_wired=false`；`vehicle_digital_twin_store_defined=true`；`vehicle_digital_twin_android13_arm64_verified=true`；`vehicle_digital_twin_persistence_wired=false`；`vehicle_digital_twin_adapter_wired=false`；`context_snapshot_defined=true`；`context_snapshot_android13_arm64_verified=true`；`context_snapshot_production_trusted=false`；`context_snapshot_production_wired=false`；`event_v2_cursor_ack_required=true`；`event_v2_interface_published=false`；`plan_runtime_published=false`；`scenario_execution_enabled=false`；`effect_runtime_service_published=false`；`approval_response_service_published=false`；`undo_service_published=false`；`implementation_stage=P2-W05` | P1-W01..P1-W07、P2-W01..P2-W04 已完成；下一步为 versioned Scenario manifest/schema，不代表车辆接口已接入 |
+| AIOS Stage 2 | `design_baseline_complete=true`；`runtime_contract_v2_defined=true`；`runtime_contract_v2_verified=true`；`runtime_contract_v2_physical_android13_arm64_verified=true`；`frozen_v1_hashes_unchanged=true`；`session_contract_v1_defined=true`；`plan_contract_v1_defined=true`；`event_contract_v1_defined=true`；`effect_contract_v1_defined=true`；`sdk_facade_v2_available=true`；`session_runtime_service_published=true`；`event_runtime_service_published=true`；`event_callback_service_published=true`；`active_session_reconnect_resubscribe_verified=true`；`room_schema_version=4`；`session_runtime_persistence_wired=true`；`session_runtime_process_death_rehydration=true`；`vehicle_signal_schema_defined=true`；`vehicle_signal_path_allowlist_count=12`；`vehicle_signal_schema_android13_arm64_verified=true`；`vehicle_signal_provider_wired=false`；`vehicle_property_mapping_configured=false`；`vehicle_capability_catalog_defined=true`；`vehicle_capability_count=8`；`vehicle_capability_catalog_android13_arm64_verified=true`；`vehicle_production_capability_authorized_count=0`；`vehicle_capability_adapter_registry_wired=false`；`vehicle_digital_twin_store_defined=true`；`vehicle_digital_twin_android13_arm64_verified=true`；`vehicle_digital_twin_persistence_wired=false`；`vehicle_digital_twin_adapter_wired=false`；`context_snapshot_defined=true`；`context_snapshot_android13_arm64_verified=true`；`context_snapshot_production_trusted=false`；`context_snapshot_production_wired=false`；`scenario_manifest_schema_version=1`；`scenario_catalog_count=3`；`scenario_manifest_android13_arm64_verified=true`；`scenario_manifest_artifact_crypto_verified=false`；`scenario_catalog_production_trusted=false`；`scenario_runtime_wired=false`；`scenario_graph_execution_enabled=false`；`event_v2_cursor_ack_required=true`；`event_v2_interface_published=false`；`plan_runtime_published=false`；`scenario_execution_enabled=false`；`effect_runtime_service_published=false`；`approval_response_service_published=false`；`undo_service_published=false`；`implementation_stage=P2-W06` | P1-W01..P1-W07、P2-W01..P2-W05 已完成；下一步为 deterministic Scenario resolver，不代表车辆接口或场景执行已接入 |
 | 中控 AIOS UI/UX 设计稿 | `cockpit_hmi_design_mockups_ready=true`；`aios_intent_orchestration_ux_ready=true`；`cockpit_hmi_1920x1080_safe_frame_verified=true`；`cockpit_hmi_translucent_material_ready=true` | 四阶段原型、自动化链、画布内安全框、60% 半透明浅灰玻璃和四张 1920x1080 稿件已形成；仅 HMI-D0 设计基线 |
 | 中控 AIOS 闭环 | `cockpit_demo_control_loop_implemented=false` | Client2 四阶段、Effect 详情和闭环合同已规划；P4 预计 24-32 人日 |
 | 测试版本 | `android13-hwtest-v0.5.0-rc.2` | 远程硬件测试合同的当前 RC；不是量产版本 |
@@ -90,6 +90,7 @@ bash tools/check_central_brain_android_vehicle_signal_schema.sh
 bash tools/check_central_brain_android_vehicle_capability_catalog.sh
 bash tools/check_central_brain_android_vehicle_digital_twin.sh
 bash tools/check_central_brain_android_context_snapshot.sh
+bash tools/check_central_brain_android_scenario_manifest.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -127,6 +128,7 @@ flowchart TB
     Domains["Event / Memory / Skill / Middleware"]
     Twin["Vehicle Digital Twin desired / reported store"]
     Context["Versioned Context + restricted/trust report"]
+    ScenarioCatalog["Versioned Scenario manifest catalog（template only）"]
     Model["Scheduler + ModelProvider + Router gates"]
     Effect["Effect contract + activation/reconcile gates"]
   end
@@ -181,6 +183,7 @@ flowchart TB
   Durable --> Domains
   Domains --> Twin
   Twin --> Context
+  Context -. "resolver / compiler pending" .-> ScenarioCatalog
   Domains --> Model
   Domains --> Effect
   Services --> JavaBridge --> Jni --> CAbi
@@ -216,6 +219,7 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 | Vehicle Capability Catalog | HVAC/Seat/Media/Nav 8 项 immutable capability、target range、readback/safety dependency、activation flags | JVM + Android 13 ARM64 debug probe；production authorized=0、无 adapter | `DEVELOPED` |
 | Vehicle Digital Twin Store | thread-safe desired/reported 分离、全局 monotonic revision、TTL/quality、atomic snapshot、reconciliation | JVM 并发/边界测试 + Android 13 ARM64 debug probe；仅进程内、无 adapter/持久化 | `DEVELOPED` |
 | Trusted Context Snapshot foundation | 固定 general/seat comfort/seat recline field policy、driving/safety 派生、missing/stale/conflict/trust report、SHA-256 digest | JVM + Android 13 ARM64 debug probe；`productionTrusted=false`、未接 Service | `DEVELOPED` |
+| Built-in Scenario Manifest Catalog | cold/fatigue/rest 三份 versioned manifest、strict JSON parser/schema、DAG/capability/risk/fallback/UI metadata、artifact checksum | JVM + Android 13 ARM64 assets probe；未做密码学签名、Resolver/Compiler/Graph 未接 | `DEVELOPED` |
 | Runtime 与 Governance | Binder identity、capability/policy、Job Supervisor、诊断 | JVM、Binder、dumpsys | `DEVELOPED` |
 | Durable workflow | Room task/checkpoint/approval/effect/outbox/audit/recovery | repository 和进程恢复 | `DEVELOPED` |
 | Model/Event/Memory/Skill 软件合同 | scheduler、ModelProvider、bounded runtime、middleware/readiness | deterministic debug/test；无真实 NPU | `DEVELOPED` |
@@ -229,7 +233,7 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 
 | 模块 | 最小剩余工作 | 阻塞或下一步 | 状态 |
 | --- | --- | --- | --- |
-| 场景目录与仿真编排 | Signal/Capability/Twin/Context foundation 已完成；仍需 scenario catalog/resolver/compiler 和 debug Effect adapter | Stage 2 P2-W05..P2-W12 | `IN_PROGRESS` |
+| 场景解析与仿真编排 | Signal/Capability/Twin/Context 和 build-owned Scenario manifest catalog 已完成；仍需 deterministic resolver/compiler 和 debug Effect adapter | Stage 2 P2-W06..P2-W12 | `IN_PROGRESS` |
 | Event V2 cursor/ACK broker | terminal resume cursor、monotonic ACK、retention、backpressure | Stage 2 P6；P1-W07 仅完成独立 wire 演进决策 | `NOT_STARTED` |
 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | Stage 2 P3 | `NOT_STARTED` |
 | 场景与仿真 Effect 编排 | “我冷了/我累了”、approval、simulated readback、undo | Stage 2 P2/P3；不依赖真实车身信号 | `NOT_STARTED` |
@@ -322,7 +326,7 @@ Android deterministic provider 只用于 unit/debug contract test。它不是 Py
 | 路径 | 模块 | 职责 |
 | --- | --- | --- |
 | `central-brain/android-runtime/central-brain-sdk` | SDK/AIDL | 应用公开 Runtime、Governance、Diagnostics、Session、Plan/Node、Event 与 Effect/Approval 合同 |
-| `central-brain/android-runtime/runtime-service` | AIOS Runtime | Binder、身份、治理、Room、Model/Event/Memory/Skill/Effect、`vehicle/schema`、`vehicle/capability`、进程内 `vehicle/twin` 与 `context` snapshot foundation |
+| `central-brain/android-runtime/runtime-service` | AIOS Runtime | Binder、身份、治理、Room、Model/Event/Memory/Skill/Effect、`vehicle/schema`、`vehicle/capability`、进程内 `vehicle/twin`、`context` snapshot 与 build-owned `scenario` manifest catalog |
 | `central-brain/android-runtime/native-runtime` | Native Runtime | C ABI、JNI、provider 生命周期边界 |
 | `central-brain/android-runtime/demo-hmi` | 维护 HMI | SDK/Binder 和治理验收 |
 | `central-brain/android-runtime/policy-probe` | 负向测试 | testOnly caller/capability 检查 |
@@ -408,6 +412,7 @@ bash tools/test_client2_central_brain_recovery.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-17 | [P2-W05 Scenario Manifest Catalog](central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/ScenarioCatalog.java) | 新增 cold/fatigue/rest 三份 versioned asset、strict Gson parser、JSON schema、DAG/capability/risk/fallback/UI 校验、invalid isolation、SHA-256 sidecar 与 API 33 ARM64 probe | `scenario_manifest_artifact_crypto_verified=false`；Resolver/Compiler/Graph/Effect/production Service 均未接 |
 | 2026-07-17 | [P2-W04 Trusted Context Snapshot](central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/context/ContextSnapshotBuilder.java) | 新增固定 field policy、atomic Twin revision 输入、driving/safety 派生、freshness/trust report、restricted fail-closed 与 deterministic digest | `context_snapshot_production_trusted=false`；production Service/provider/硬件访问仍为 false |
 | 2026-07-17 | [P2-W03 Vehicle Digital Twin Store](central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/twin/VehicleDigitalTwinStore.java) | 新增 desired/reported 分离、monotonic revision、TTL/quality、atomic snapshot、reconciliation、并发 JVM 测试和 API 33 ARM64 probe | `vehicle_digital_twin_persistence_wired=false`；production Service/adapter/property mapping/硬件访问仍为 false |
 | 2026-07-17 | [P2-W02 Vehicle Capability Catalog](central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/capability/CapabilityCatalog.java) | 新增 HVAC/Seat/Media/Nav 8 项 capability、typed target range、readback path、安全依赖和五类 availability flag | `vehicle_production_capability_authorized_count=0`；adapter/property mapping/硬件访问仍为 false |

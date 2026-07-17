@@ -616,3 +616,21 @@ authority。P8 只有在提供 API/permission/property/area/readback evidence �
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量
 为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-CTX-001`、`S2-SAF-001`、`KH-003/006`、
 `DEL-004/005`。
+
+### P2-W05 Scenario Manifest Driver/HAL Boundary
+
+P2-W05 只新增 APK assets、Gson-based pure-Java parser/catalog、JVM test、debug-only Activity、installer
+marker 和静态 checker。Manifest 内容是 canonical Context/capability/node/policy metadata，不包含 target
+hardware property、CAN/DBC、FD/SharedMemory、Vendor NPU handle、device node、ioctl/sysfs 或 Driver/HAL ABI。
+
+Android 13/API 33 ARM64 probe 只从本 APK `assets/scenarios` 读取三份 build-owned JSON/schema/checksum，
+验证 parser/catalog 拒绝路径。它不读取 Vehicle/VHAL/vendor Service、不调用 JNI/C ABI/NPU/PCIe、
+不映射 DMA/IOMMU、不接 Safety Runtime，也不 dispatch Effect。Manifest 中 AAOS/vehicle capability 名称是
+内部语义引用，不是 property discovery 或 hardware authorization。
+
+状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+`scenario_manifest_artifact_crypto_verified=false`、`scenario_catalog_production_trusted=false`、
+`scenario_runtime_wired=false`、`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+Req IDs：`S2-SCN-001`、`S2-SAF-001`、`KH-003/006`、`DEL-004/005`。
