@@ -966,3 +966,22 @@ recovery path. P4-W02 then replaced the legacy Smali lifecycle owner with an imm
 maintained Java coordinator that resumes the same owner Session from a text-free checkpoint. P4-W03 added the
 intent/plan/execution/result renderer, four natural-scene inputs, source/driving/connection status, exact 1920x1080
 safe frame and secondary HVAC/Seat drawer. P4-W04 HVAC controls are next; scenario/Graph/Effect/vehicle dispatch remains disabled.
+
+## P5-W01 Tool Manifest/Schema
+
+`runtime-service` main source now contains immutable `ToolManifest` and strict `ToolSchemaValidator` contracts. A manifest binds a
+canonical versioned Tool ID to owner, bounded input/output scalar schemas, capability, risk, timeout, idempotency and mandatory
+fail-closed health freshness metadata. Its field-order-independent contract digest is SHA-256. Validation rejects missing, unknown,
+null, non-exact type, range/digest and aggregate-size violations without serializing or logging values.
+
+`ToolManifestProbeActivity` exists only in debug and repeats positive/negative contract cases on Android 13 ARM64. Release source has
+the value contracts but no probe, Tool registry, resolver or executor. Production Runtime/Graph/Binder/Room does not reference the
+new package. Run `bash tools/check_central_brain_android_tool_manifest.sh` for the independent gate.
+
+Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
+`tool_manifest_contract_digest_verified=true`, `tool_schema_exact_scalar_validation_verified=true`,
+`tool_manifest_health_fail_closed=true`, `tool_manifest_android13_arm64_verified=false`,
+`tool_registry_published=false`, `tool_resolver_published=false`,
+`tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
+`vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W02`. Next: P5-W02 ToolRegistry/Resolver.

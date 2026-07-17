@@ -721,13 +721,20 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P5-W01` Tool manifest/schema
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-TOL-001`。
+- 状态：`DEVELOPED`；2 人日；需求：`S2-TOL-001`。
 - 类：`ToolManifest`、`ToolSchemaValidator`；字段包含 ID/version/input/output/capability/risk/timeout/idempotency/health。
+- DoD：immutable manifest、canonical SHA-256 contract digest、32-field/16 KiB bounded scalar object schema、exact-class
+  input/output validation、unknown/missing/null/type/range/aggregate-size reject、fail-closed health freshness contract；JVM 与
+  debug/release compile 已验证，Android 13 ARM64 probe 已实现但当前 ADB interface 不可用、待复测。Registry/Resolver/
+  Executor、动态 health、Effect/vehicle/NPU/Driver-HAL 未接。
+- 交付：`com.centralbrain.runtime.tools.ToolManifest`、`ToolSchemaValidator`、debug-only
+  `ToolManifestProbeActivity` 和独立静态门禁；`implementation_stage=P5-W02`，tracking `DEV-063`、`ISSUE-036`。
 
 ### `P5-W02` ToolRegistry/Resolver
 
 - 状态：`NOT_STARTED`；2 人日；需求：`S2-TOL-001`。
 - DoD：registered/resolved/usable 分离；版本冲突 deterministic；unhealthy tool 不可执行。
+- 前置：只消费 P5-W01 immutable manifest/digest/schema；不得在 Registry 内重新解释输入输出或静默选择不健康版本。
 
 ### `P5-W03` ToolRuleSolver
 

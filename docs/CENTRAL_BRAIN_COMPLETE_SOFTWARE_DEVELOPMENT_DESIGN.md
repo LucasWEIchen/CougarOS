@@ -207,7 +207,7 @@ flowchart TB
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
 | Effect | EffectCoordinator、Verifier、CompensationPlanner、UndoService、AdapterRegistry | `FOUNDATION`（P3-W06..W08 coordinator/verification/compensation/undo admission 完成；runtime/durable/production wiring 未接） | `S2-EFF-001`、`S2-SAF-001`、`S2-UX-003` |
 | Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `FOUNDATION`（P2-W08..W12 完成；production/runtime wiring 未接） | `S2-ADP-001` |
-| Tool | ToolManifest/Registry/RuleSolver/Executor | `NOT_STARTED` | `S2-TOL-001` |
+| Tool | ToolManifest/Registry/RuleSolver/Executor | `FOUNDATION`（P5-W01 manifest/schema 完成；Registry/Resolver/RuleSolver/Executor 未接） | `S2-TOL-001` |
 | Skill | SkillArtifactVerifier、SkillSignerPolicy、SkillLifecycle | `NOT_STARTED` | `S2-TOL-001` |
 | Memory | Working/Profile/Episodic stores、Consent、Budget | `NOT_STARTED` | `S2-MEM-001` |
 | Event | DurableEventBroker、Subscription、Backpressure、TriggerEngine | `NOT_STARTED` | `S2-EVT-001` |
@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W01`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W02`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W01`.
+`implementation_stage=P5-W02`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W01`.
+`implementation_stage=P5-W02`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,5 +2933,62 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W01`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W02`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
+
+## P5-W01 Tool Manifest/Schema detailed design
+
+### Smallest modules
+
+| Module | Responsibility | Forbidden responsibility |
+| --- | --- | --- |
+| `ToolManifest` | immutable identity, owner, schemas, capability, risk, timeout, idempotency, health and digest | registry or execution |
+| `FieldSchema` | one named bounded scalar field | nested object, list, arbitrary JSON or coercion |
+| `ObjectSchema` | sorted unique field set and aggregate byte bound | payload parsing or persistence |
+| `HealthContract` | check identity, freshness ceiling and fail-closed requirement | dynamic health state |
+| `ToolSchemaValidator` | exact input/output validation and defensive result | serialization, logging, dispatch or audit persistence |
+| `ToolManifestProbeActivity` | debug API 33 ARM64 contract evidence | release exposure or production health |
+| `check_central_brain_android_tool_manifest.sh` | source/docs/boundary drift gate | replacing JVM or physical evidence |
+
+### Construction rules
+
+1. Validate `schemaVersion == 1`; validate `toolId` before storing it, then require `.v<version>` equality.
+2. Validate owner, capability, schema and health IDs with the qualified-ID grammar. No caller-provided display text is part of the
+   manifest.
+3. Build each `ObjectSchema` from 1..32 non-null `FieldSchema` objects. Insert them into a `TreeMap`; reject duplicates; expose a new
+   unmodifiable list sorted by field name. Input and output schema IDs must differ.
+4. STRING carries a 1..16384 UTF-8 byte limit. BOOLEAN accepts only exact `Boolean`. INTEGER accepts only exact `Long` plus inclusive
+   min/max. SHA256_DIGEST accepts exactly 64 lowercase hexadecimal characters.
+5. Require timeout 10..120000 ms and health staleness 1..60000 ms. `requiredBeforeUse=false` is invalid because no caller may bypass
+   health admission.
+6. Compute `contractDigest` once after construction from every static field and canonical schema form. Never include mutable Runtime
+   health, invocation or observation data.
+
+### Validation algorithm
+
+1. Select the manifest input or output `ObjectSchema`; reject a null values map as `MISSING_FIELD`.
+2. Iterate caller entries without retaining the caller map. Resolve each field by exact name; reject unknown/null immediately.
+3. Require the exact Java class and apply scalar-specific bounds. Do not call `Number.longValue()`, parse JSON or normalize text.
+4. Add deterministic encoded-size accounting for field name, scalar value and structural overhead; reject above schema maximum.
+5. After supplied fields validate, scan all schema fields for missing required values.
+6. Return a sorted unmodifiable `TreeMap`. Exceptions expose only `CB_TOOL_SCHEMA:<ErrorCode>` and never input content.
+
+### Verification and lifecycle
+
+JVM tests cover order-independent digest, immutable getters, valid input/output, missing/unknown/null/type rejection, digest/string/
+integer/aggregate bounds, version mismatch and mandatory health. Debug and release Java compilation prove the contract is source-set
+safe. The debug probe repeats positive and negative cases on API 33 ARM64 and emits bounded booleans only. The release manifest must
+not include the probe.
+
+P5-W01 creates no catalog entry and cannot make a Tool registered, resolved, healthy or usable. P5-W02 must hold dynamic state outside
+the manifest and compare identity/version/digest deterministically. P5-W03 must intersect rule-allowed and model-selected Tools.
+P5-W04 alone may introduce an executor with deadline, cancellation, output and audit boundaries.
+
+Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
+`tool_manifest_contract_digest_verified=true`, `tool_schema_exact_scalar_validation_verified=true`,
+`tool_manifest_health_fail_closed=true`, `tool_manifest_android13_arm64_verified=false`,
+`tool_registry_published=false`, `tool_resolver_published=false`,
+`tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
+`vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.

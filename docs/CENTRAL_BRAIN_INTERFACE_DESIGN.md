@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P5-W01`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P5-W02`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,7 +2109,7 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P5-W01`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P5-W02`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
 
@@ -2152,7 +2152,7 @@ MOVING and UNKNOWN presentation. Production Context/Safety remains outside HMI a
 
 Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
 `cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
-`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P5-W01`.
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P5-W02`.
 Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
 `ISSUE-023/029/030/033`.
 
@@ -2193,7 +2193,7 @@ emit reducer events only and cannot access SessionClient, Adapter, vehicle or NP
 Plan and drawer renderers read the same `CockpitScenarioControlState`. Positive Plan publication requires
 `SessionSnapshot.activePlanRevision>0`; otherwise UI says NOT PUBLISHED. Device role is labeled as catalog/manual participation and
 must not change desired/reported state. Effect/readback accessors remain false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`, `APP-004`,
-`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P5-W01`.
+`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P5-W02`.
 
 ## Client2 P4-W09 Engineer Simulation Interfaces
 
@@ -2247,7 +2247,7 @@ Status: `cockpit_engineer_simulation_drawer_implemented=true`,
 `cockpit_engineer_signature_permission_required=true`, `cockpit_engineer_capability_required=true`,
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
-`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P5-W01`.
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P5-W02`.
 Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-059`,
 `ISSUE-023/029/030/033`.
 
@@ -2304,7 +2304,7 @@ Status: `cockpit_display_matrix_defined=true`, `cockpit_display_profile_count=3`
 `cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_accessibility_state_not_color_only=true`,
 `cockpit_display_large_text_1_3_verified=true`, `cockpit_display_unsupported_fail_closed=true`,
 `cockpit_display_matrix_android13_arm64_verified=true`, `cockpit_display_effect_authorization_source=false`,
-`hardware_accessed=false`, `implementation_stage=P5-W01`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
+`hardware_accessed=false`, `implementation_stage=P5-W02`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
 `XSC-001/005/006`; tracking: `DEV-061`, `ISSUE-019/033`.
 
 ## P4-W12 aggregate Android acceptance interface
@@ -2354,6 +2354,50 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_automatic_plan_runtim
 `p4_production_effect_dispatch_enabled=false`, `p4_approval_response_service_published=false`,
 `p4_undo_service_published=false`, `p4_vehicle_readback_available=false`,
 `client2_production_release_artifact_available=false`, `hmi_d4_demo_control_loop_complete=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W01`. Req IDs:
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W02`. Req IDs:
 `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-062`, `ISSUE-033`.
+
+## Android P5-W01 Tool Manifest/Schema
+
+### Static manifest API
+
+`com.centralbrain.runtime.tools.ToolManifest` is an immutable main-source contract. Its constructor accepts exactly:
+
+```text
+schemaVersion, toolId, version, ownerId,
+inputSchema, outputSchema, capabilityId, riskClass,
+timeoutMs, idempotencyMode, healthContract
+```
+
+`toolId` is canonical `tool.<domain>.<action>.vN`, and `N` must equal `version`. Input and output are distinct versioned
+`ObjectSchema` values with at most 32 unique fields and a maximum encoded size no larger than 16 KiB. `FieldSchema` exposes only
+STRING, BOOLEAN, INTEGER and SHA256_DIGEST scalar types. Lists and maps returned by the contract are defensive and read-only.
+
+`getContractDigest()` returns lowercase SHA-256 over a canonical, field-name-sorted representation. It contains no dynamic health,
+input, output, user/model text or vehicle data. P5-W02 may use this digest to reject same-ID/version conflicts; it must not treat a
+matching digest as runtime health or execution authorization.
+
+### Validation API
+
+```java
+Map<String, Object> validateInput(ToolManifest manifest, Map<?, ?> values)
+Map<String, Object> validateOutput(ToolManifest manifest, Map<?, ?> values)
+```
+
+Both methods return a sorted unmodifiable defensive map. They reject missing required fields, additional fields, nulls, non-exact
+Java classes, string/digest/integer range violations and aggregate encoded-size overflow with `ValidationException.ErrorCode`.
+Exception messages contain only the stable code, never the field value. No serialization, reflection, Binder, storage or dispatch is
+performed.
+
+`HealthContract(checkId, maximumStalenessMs, requiredBeforeUse)` requires `requiredBeforeUse=true`; dynamic HEALTHY/UNHEALTHY/
+STALE state is deliberately absent until P5-W02. `ToolManifestProbeActivity` is debug-only and verifies the contract on API 33 ARM64.
+
+Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
+`tool_manifest_contract_digest_verified=true`, `tool_schema_exact_scalar_validation_verified=true`,
+`tool_manifest_health_fail_closed=true`, `tool_manifest_android13_arm64_verified=false`,
+`tool_registry_published=false`, `tool_resolver_published=false`,
+`tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
+`vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.

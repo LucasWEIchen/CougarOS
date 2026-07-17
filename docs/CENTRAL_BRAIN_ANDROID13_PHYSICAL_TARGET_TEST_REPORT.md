@@ -588,3 +588,35 @@ target_hardware_validated=false
 该证据关闭 P4-W12 application aggregate acceptance，不关闭 HMI-D4。Plan/Effect/Media/Nav/approval/partial/mismatch/undo
 只有 host typed projection 或实体 fail-closed 呈现；当前 Runtime 未发布自动 Plan/Effect、approval response、undo 或车辆
 readback。限制由 `DEV-062` 与 `ISSUE-022/026/030/033` 跟踪；下一软件工作包为 P5-W01 Tool manifest/schema。
+
+## 20. 2026-07-18 P5-W01 Tool manifest probe pending evidence
+
+P5-W01 完成 JVM contract test 与 debug/release Java compile 后尝试在同一 Windows 11 USB 路径执行新
+`ToolManifestProbeActivity`。本轮 preflight 不输出设备 serial/model，只统计 transport 状态：
+
+```text
+windows_com7_present=true
+windows_android_adb_interface_present=false
+adb_device_count=0
+adb_unauthorized_count=0
+adb_offline_count=0
+```
+
+COM7 只证明串口设备存在，不能作为 Android Debug Bridge transport。重启 Windows ADB server 后仍无 Android ADB
+interface，因此未安装新 APK、未启动 probe，也未读取任何设备 payload。当前必须保持：
+
+```text
+tool_manifest_contract_defined=true
+tool_manifest_host_jvm_verified=true
+tool_manifest_debug_release_compile_verified=true
+tool_manifest_android13_arm64_verified=false
+tool_registry_published=false
+tool_execution_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+复测条件是目标设备重新暴露 Android ADB interface 并完成 USB debugging authorization。复测时运行统一 installer，
+要求 `tool_manifest_probe_complete=true`、schema/digest/negative markers 全部为 true，同时 Registry/Executor/Effect/vehicle/
+NPU/hardware markers 保持 false。该阻塞由 `ISSUE-036` 跟踪，不回退 P5-W01 已完成的软件合同。

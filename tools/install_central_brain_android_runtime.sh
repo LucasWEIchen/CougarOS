@@ -2633,6 +2633,59 @@ if [[ "$DURABILITY_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+TOOL_MANIFEST_NONCE="$(date +%s%N)"
+TOOL_MANIFEST_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.tools.ToolManifestProbeActivity \
+  --es nonce "$TOOL_MANIFEST_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$TOOL_MANIFEST_PROBE_OUTPUT"; then
+  echo "$TOOL_MANIFEST_PROBE_OUTPUT" >&2
+  echo "Tool manifest debug probe did not start successfully" >&2
+  exit 1
+fi
+TOOL_MANIFEST_PROBE_PASSED=false
+for _ in {1..40}; do
+  TOOL_MANIFEST_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbToolManifest:I)"
+  if grep -Fq \
+      "nonce=$TOOL_MANIFEST_NONCE tool_manifest_probe_complete=true" \
+      <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_manifest_contract_defined=true" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_manifest_schema_version=1" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_manifest_contract_digest_verified=true" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_schema_input_output_verified=true" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_schema_unknown_field_rejected=true" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_schema_type_bounds_verified=true" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_manifest_health_fail_closed=true" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_manifest_android13_arm64_verified=true" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_registry_published=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_resolver_published=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "tool_execution_enabled=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "production_tool_artifact_loaded=false" \
+        <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "production_ready=false" <<<"$TOOL_MANIFEST_LOG" \
+      && grep -Fq "target_hardware_validated=false" <<<"$TOOL_MANIFEST_LOG"; then
+    TOOL_MANIFEST_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$TOOL_MANIFEST_PROBE_PASSED" != true ]]; then
+  echo "$TOOL_MANIFEST_LOG" >&2
+  echo "Tool manifest probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3168,6 +3221,20 @@ printf '%s\n' \
   "raw_governance_output_stored=false" \
   "governance_audit_persistence_wired=false" \
   "governance_network_access_enabled=false" \
+  "tool_manifest_contract_defined=true" \
+  "tool_manifest_schema_version=1" \
+  "tool_manifest_contract_digest_verified=true" \
+  "tool_schema_input_output_verified=true" \
+  "tool_schema_unknown_field_rejected=true" \
+  "tool_schema_type_bounds_verified=true" \
+  "tool_manifest_health_fail_closed=true" \
+  "tool_manifest_android13_arm64_verified=true" \
+  "tool_registry_published=false" \
+  "tool_resolver_published=false" \
+  "tool_execution_enabled=false" \
+  "production_tool_artifact_loaded=false" \
+  "vehicle_readback_accessed=false" \
+  "npu_accessed=false" \
   "durable_replay_callback_verified=true" \
   "durable_concurrent_replay_verified=true" \
   "durable_completed_task_verified=true" \

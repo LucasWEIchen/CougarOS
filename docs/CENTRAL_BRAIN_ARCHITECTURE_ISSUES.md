@@ -55,6 +55,7 @@
 | ISSUE-033 | Client2 尚无意图编排四阶段、HVAC/Seat Effect 详情和可观察控制闭环。 | S2-HMI-001..006, DEV-024/025 | Open |
 | ISSUE-034 | Event V1 terminal cursor 不能前移 ACK；当前靠 sequence 去重但不适合高吞吐 broker。 | S2-EVT-001, P6-W01/W02 | Open / Design Decided |
 | ISSUE-035 | Client2 process-recreation checkpoint 的 production storage/backup/user owner 未确定。 | S2-UX-001..003, DEV-052 | Open |
+| ISSUE-036 | Tool production owner、health source、artifact trust 与 execution authority 未确定。 | S2-TOL-001, P5-W02..W05 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -504,3 +505,18 @@ acceptance 子项，不关闭演示闭环。
 Plan/Effect/Media/Nav/approval/partial/mismatch/undo 在当前证据中仍是 host projection 或实体 unavailable/disabled；没有
 production Client2 release artifact，`hmi_d4_demo_control_loop_complete=false`。因此 ISSUE-033 保持 Open，后续 Runtime
 execution wiring 与真实车辆分别由 `ISSUE-022/026/030` 推进。tracking：`DEV-062`。
+
+## ISSUE-036 Tool production owner, health source and execution authority
+
+P5-W01 已冻结 Tool 静态合同、bounded scalar input/output schema、canonical digest 和 mandatory health freshness metadata，
+并通过 JVM 与 debug/release compile。Android 13 ARM64 probe 已实现，但当前 Windows 只有 COM7、没有 ADB interface，
+实体执行待复测。现有软件证据解决“Tool 如何描述和拒绝非法 payload”，不解决“谁注册、谁报告健康、谁允许执行、谁拥有副作用”。
+
+待确认/开发项包括：build-owned 或 signed artifact owner、同 ID/version digest 冲突策略、动态 HEALTHY/UNHEALTHY/STALE
+来源、capability/Safety/policy owner、模型选择与规则 allowset 交集、deadline/cancel/output/audit、process death、撤销/补偿，
+以及真实车辆/NPU Tool 对应的 OEM/Vendor API、权限和 readback。
+
+状态：`Open`。P5-W02 关闭 registered/resolved/usable 与 deterministic version resolution；P5-W03 关闭规则集合；P5-W04
+只允许 signed built-in executor；P5-W05 关闭 artifact/signature/version static trust。生产车辆/NPU execution 仍由
+`ISSUE-023/024/026/027/030` 阻塞。当前 `tool_registry_published=false`、`tool_execution_enabled=false`、
+`production_tool_artifact_loaded=false`、`production_ready=false`、`target_hardware_validated=false`。

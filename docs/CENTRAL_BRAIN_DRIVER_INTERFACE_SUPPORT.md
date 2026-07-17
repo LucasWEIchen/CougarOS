@@ -1117,3 +1117,24 @@ source/APK 验证，不是硬件探测。新增 Driver/HAL 开发量为 0，`DRV
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。Req IDs：`S2-UX-001..003`、
 `S2-HMI-001..006`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-062`、
 `ISSUE-022/026/030/033`。
+
+## P5-W01 Tool Manifest/Schema Driver/HAL Boundary
+
+`ToolManifest.capabilityId` 是语义授权标签，不是 Android property ID、service name、device node、ioctl、DMA handle 或
+Vendor SDK symbol。`HealthContract.checkId` 也是静态健康合同标识，不探测 PCIe/NPU/VHAL/Driver/HAL，不允许通过命名约定
+猜测底层接口。
+
+P5-W01 的 main source 只使用 Java value object、SHA-256 和现有 Plan timeout 上限；静态门禁禁止 Android Car、VHAL、
+network、Room、reflection、serialization、`/dev`、sysfs 和 ioctl 引用。API 33 ARM64 probe 只执行 schema 正负例，
+`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`。
+
+P5-W02/W03 的 Registry/Resolver/RuleSolver 仍不得触发硬件。P5-W04 即使增加 built-in ToolExecutor，也必须先经过
+capability、Safety、deadline/cancel/audit 边界；真实车辆/NPU Tool 只有在 OEM/Vendor contract 明确 property/service/
+permission/ABI/readback 后才能映射 Adapter。现阶段新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+
+状态：`tool_manifest_contract_defined=true`、`tool_manifest_health_fail_closed=true`、
+`tool_manifest_android13_arm64_verified=false`、`tool_registry_published=false`、
+`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
+`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。Req IDs：`S2-TOL-001`、
+`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-063`、`ISSUE-036`。
