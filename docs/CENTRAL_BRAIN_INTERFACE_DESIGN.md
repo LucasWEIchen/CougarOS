@@ -1992,3 +1992,69 @@ Status: `cockpit_seat_surface_implemented=true`, `cockpit_seat_reducer_owned=tru
 `seat_manual_typed_parameter_field=false`, `production_effect_dispatch_enabled=false`, `hardware_accessed=false`,
 `implementation_stage=P4-W06`. Req IDs: `S2-HMI-002..005`, `S2-SAF-001`, `S2-ADP-001`, `APP-004`,
 `XSC-001/005/006`; tracking: `DEV-055`, `ISSUE-029/030/033`.
+
+## Client2 P4-W06 Observable Execution Timeline Interfaces
+
+### Domain model
+
+`CockpitExecutionTimeline` is a View-independent immutable value owned by `CockpitHmiState`. It contains exactly seven `Stage`
+entries keyed by `Phase.INTENT/CONTEXT/PLAN/POLICY/GRAPH/EFFECT/READBACK`, a bounded list of at most eight `TraceItem` values,
+the latest Session state and last projected event sequence.
+
+```java
+Stage getStage(Phase phase);
+List<TraceItem> getTraceItems();
+int getSessionState();
+long getLastSequence();
+```
+
+Each `Stage` and `TraceItem` exposes only bounded `status`, `target`, `source` and `result` strings. Constructors are private;
+callers cannot mutate collections. Initial state is WAITING/UNAVAILABLE/NOT_PUBLISHED/WAITING/NOT_WIRED/NOT_DISPATCHED/
+UNAVAILABLE. The model has no Android imports and no Binder, file, network or hardware side effects.
+
+### Reducer input and defensive projection
+
+The only mutations are package-private pure transitions invoked by `CockpitHmiReducer`:
+
+```java
+CockpitExecutionTimeline scenarioRequested(String scenarioId);
+CockpitExecutionTimeline sessionOpened(String canonicalScenarioId);
+CockpitExecutionTimeline snapshot(int sessionState, int activePlanRevision);
+CockpitExecutionTimeline runtimeEvent(ProjectedEvent event);
+```
+
+`CockpitHmiReducer.Event.runtimeEvent(RuntimeEvent)` first calls `EventContract.validateEvent`, then creates a defensive
+`ProjectedEvent` while the AIDL parcel is in scope. The projection excludes event/session/action/observation IDs, parent links,
+digests, display text and payload objects. It retains sequence, allowlisted type, normalized source, capability/subject target,
+action state or observation outcome/quality. Duplicate or older sequence values return the existing timeline.
+
+`ScenarioRequested` cannot downgrade an already SESSION_ACCEPTED Intent. A positive `activePlanRevision` is required for PUBLISHED;
+`PlanCompiled` maps COMPILED. Action/Approval events update Policy and mark Graph ACTIVE only from typed evidence. Effect lifecycle
+events update Effect; only observation-bearing Effect/Compensation events may update Readback. Because frozen Event V1 carries no
+payload on `EffectPrepared/EffectDispatched`, these stages inherit the last validated Action capability target inside the same
+timeline; they never infer a target from text or expose the Action ID.
+
+### Evidence status rules
+
+| Typed event/evidence | Projection |
+| --- | --- |
+| `ActionProposed/Authorized/Rejected` | `PROPOSED/AUTHORIZED/REJECTED`; optional rejection is `SKIPPED` |
+| `ApprovalRequested/Resolved/Expired` | `APPROVAL_REQUIRED/APPROVAL_RESOLVED/FAILED` |
+| `EffectPrepared/Dispatched/Failed` | `PREPARED/DISPATCHED/FAILED` |
+| `EffectObserved` + OBSERVED/FRESH | `APPLIED` |
+| `EffectVerified` + VERIFIED/FRESH | `VERIFIED` |
+| observation STALE/CONFLICT/UNAVAILABLE | `NO_EVIDENCE/MISMATCH/UNAVAILABLE` |
+| `CompensationStarted/Observed` | `COMPENSATING`; only OBSERVED or VERIFIED plus FRESH becomes `COMPENSATED` |
+
+### Renderer contract
+
+`CockpitControlCoordinator.renderExecutionTimeline` renders seven stable TextViews and the bounded trace. Each row contains
+phase/status, target/source and result. Media and Navigation derive separate projections only when typed capability targets start
+with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The renderer never interprets assistant text.
+
+Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
+`cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
+`cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W07`.
+Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
+`ISSUE-022/026/030/033`.

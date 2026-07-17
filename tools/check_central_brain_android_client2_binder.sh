@@ -10,6 +10,7 @@ BRIDGE="$PROJECT/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java"
 CALLBACK="$PROJECT/bridge/src/com/centralbrain/client2/ScenarioCallback.java"
 HMI_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiState.java"
 HMI_REDUCER="$PROJECT/bridge/src/com/centralbrain/client2/CockpitHmiReducer.java"
+EXECUTION_TIMELINE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitExecutionTimeline.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 LAYOUT="$PROJECT/patches/main_layout.central_brain_panel.xml"
 PATCHER="$PROJECT/scripts/apply_static_panel_patch.py"
@@ -39,7 +40,7 @@ require_text() {
 }
 
 for path in \
-  "$BRIDGE" "$CALLBACK" "$HMI_STATE" "$HMI_REDUCER" "$COORDINATOR" \
+  "$BRIDGE" "$CALLBACK" "$HMI_STATE" "$HMI_REDUCER" "$EXECUTION_TIMELINE" "$COORDINATOR" \
   "$LAYOUT" "$PATCHER" "$DEX_BUILD" \
   "$APK_BUILD" "$PROJECT_VERIFY" "$DEVICE_TEST" "$RECOVERY_TEST" \
   "$POLICY" "$SNAPSHOT" \
@@ -110,6 +111,11 @@ require_text "$HMI_STATE" "It intentionally excludes all display text"
 require_text "$HMI_REDUCER" "public static CockpitHmiState reduce("
 require_text "$HMI_REDUCER" "event.sequence <= current.getLastEventSequence()"
 require_text "$HMI_REDUCER" "CB_HMI_EVENT_GAP"
+require_text "$EXECUTION_TIMELINE" "public final class CockpitExecutionTimeline"
+require_text "$EXECUTION_TIMELINE" "MAX_TRACE_ITEMS = 8"
+require_text "$EXECUTION_TIMELINE" "EventContract.validateEvent(event)"
+require_text "$EXECUTION_TIMELINE" "Status.NOT_DISPATCHED"
+require_text "$EXECUTION_TIMELINE" "Status.UNAVAILABLE"
 require_text "$COORDINATOR" "implements"
 require_text "$COORDINATOR" "Application.ActivityLifecycleCallbacks"
 require_text "$COORDINATOR" "Client2ScenarioBridge.openSession"
@@ -186,6 +192,10 @@ for marker in \
   "cockpit_seat_heat_vent_mutex_verified=true" \
   "cockpit_seat_unknown_restricted_fail_closed=true" \
   "cockpit_seat_manual_session_admission_verified=true" \
+  "cockpit_execution_timeline_verified=true" \
+  "cockpit_execution_plan_not_published_verified=true" \
+  "cockpit_execution_effect_not_dispatched_verified=true" \
+  "cockpit_execution_readback_unavailable_verified=true" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \
@@ -212,6 +222,8 @@ require_text "$RECOVERY_TEST" "client2_hmi_hidden_state_recreation_verified=true
 require_text "$RECOVERY_TEST" "cockpit_hmi_four_stage_shell_verified=true"
 require_text "$RECOVERY_TEST" "cockpit_hmi_safe_frame_1920x1080_verified=true"
 require_text "$RECOVERY_TEST" "cockpit_hmi_device_drawer_verified=true"
+require_text "$RECOVERY_TEST" "cockpit_execution_timeline_verified=true"
+require_text "$RECOVERY_TEST" "cockpit_execution_readback_unavailable_verified=true"
 require_text "$DEVICE_TEST" "--require-api-33"
 require_text "$DEVICE_TEST" "--replace-conflicting-client2"
 require_text "$DEVICE_TEST" "SIGNER_MIGRATION_REQUIRED"
@@ -293,6 +305,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hvac_surface.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_seat_surface.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_execution_timeline.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android Client2 Binder migration check passed"

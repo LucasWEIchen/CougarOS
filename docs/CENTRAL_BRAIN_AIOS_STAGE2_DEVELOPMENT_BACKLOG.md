@@ -642,11 +642,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P4-W06` Plan/effect execution timeline
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-UX-001`、`S2-HMI-003/006`。
+- 状态：`DONE`（2026-07-18）；2.5 人日；需求：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`。
 - DoD：HVAC/Seat/Media/Navigation 每个 node/effect 显示
   requested/policy/approval/prepared/dispatched/applied/verified/failed/skipped/compensated，附带
   target/source/result；Intent -> Context -> Plan -> Policy -> Effect -> readback 主链始终可见；
   Media/Nav 场景至少提供 stop/cancel projection；全局状态不得掩盖 partial。
+- 实现：`CockpitExecutionTimeline` 提供不可变七阶段状态与最多八条脱敏 typed-event 轨迹；唯一 HMI reducer
+  投影 Session snapshot 和 allowlisted `RuntimeEvent`。当前 Runtime 仅发布 Session admission/`ScenarioRequested`，
+  所以实体设备明确显示 Plan NOT PUBLISHED、Graph NOT WIRED、Effect NOT DISPATCHED、Readback UNAVAILABLE；
+  不允许 desired 或 assistant text 进入 APPLIED/VERIFIED。
+- 证据：host-JVM 覆盖 action/approval/effect/observation/compensation、freshness/conflict 和 trace bound；signed APK、
+  static gates 以及 Android 13/API 33 ARM64 1920x1080 timeline/Media/Nav projection 已通过。生产 Graph/Effect/readback
+  仍未接入，由 `DEV-056`、`ISSUE-033` 跟踪。
 
 ### `P4-W07` Approval/partial/retry/undo UX
 

@@ -1,11 +1,16 @@
 package com.centralbrain.client2;
 
+import com.centralbrain.sdk.event.ActionEvent;
 import com.centralbrain.sdk.event.EventContract;
 import com.centralbrain.sdk.event.MessageEvent;
+import com.centralbrain.sdk.event.ObservationEvent;
 import com.centralbrain.sdk.event.RuntimeEvent;
 import com.centralbrain.sdk.session.ICentralBrainSessionRuntime;
 import com.centralbrain.sdk.session.SessionHandle;
 import com.centralbrain.sdk.session.SessionSnapshot;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 /** Host-JVM contract probe for immutable Client2 HMI reduction. */
 public final class CockpitHmiReducerTestMain {
@@ -24,6 +29,7 @@ public final class CockpitHmiReducerTestMain {
                 "intent must be the initial surface");
         verifyHvacReduction();
         verifySeatReduction();
+        verifyExecutionTimeline();
 
         state = CockpitHmiReducer.reduce(
                 state,
@@ -56,6 +62,10 @@ public final class CockpitHmiReducerTestMain {
         state = CockpitHmiReducer.reduce(
                 state,
                 CockpitHmiReducer.Event.runtimeEvent(first));
+        check(state.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.INTENT).getStatus()
+                        == CockpitExecutionTimeline.Status.SESSION_ACCEPTED,
+                "replayed ScenarioRequested must not downgrade Session admission");
         CockpitHmiState duplicate = CockpitHmiReducer.reduce(
                 state,
                 CockpitHmiReducer.Event.runtimeEvent(first));
@@ -133,6 +143,10 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_seat_desired_reducer_verified=true");
         System.out.println("cockpit_seat_reported_readback_available=false");
         System.out.println("cockpit_seat_verified_before_readback=false");
+        System.out.println("cockpit_execution_timeline_reducer_owned=true");
+        System.out.println("cockpit_execution_fail_closed_projection_verified=true");
+        System.out.println("cockpit_execution_typed_event_projection_verified=true");
+        System.out.println("cockpit_execution_trace_bounded_verified=true");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
     }
@@ -326,6 +340,140 @@ public final class CockpitHmiReducerTestMain {
         check(movingState.getSeatState().getSafetyDecision()
                         == CockpitSeatState.SafetyDecision.DENIED_MOVING_DRIVER,
                 "moving driver recline must fail closed");
+    }
+
+    private static void verifyExecutionTimeline() {
+        CockpitExecutionTimeline timeline = CockpitExecutionTimeline.initial();
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.PLAN).getStatus()
+                        == CockpitExecutionTimeline.Status.NOT_PUBLISHED,
+                "initial plan must not be presented as published");
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.GRAPH).getStatus()
+                        == CockpitExecutionTimeline.Status.NOT_WIRED,
+                "initial graph must remain unwired");
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.EFFECT).getStatus()
+                        == CockpitExecutionTimeline.Status.NOT_DISPATCHED,
+                "initial effect must remain undispatched");
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.READBACK).getStatus()
+                        == CockpitExecutionTimeline.Status.UNAVAILABLE,
+                "initial readback must remain unavailable");
+
+        timeline = timeline.scenarioRequested("care.fatigue")
+                .sessionOpened("scene.care.fatigue.v1")
+                .snapshot(ICentralBrainSessionRuntime.SESSION_STATE_EXECUTING, 0);
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.INTENT).getStatus()
+                        == CockpitExecutionTimeline.Status.SESSION_ACCEPTED,
+                "Session admission must be visible on the intent stage");
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.PLAN).getStatus()
+                        == CockpitExecutionTimeline.Status.NOT_PUBLISHED,
+                "Session admission must not synthesize a plan");
+
+        RuntimeEvent[] events = new RuntimeEvent[] {
+                typedEvent(1, "ContextCaptured", EventContract.SOURCE_RUNTIME),
+                typedEvent(2, "PlanCompiled", EventContract.SOURCE_SCENARIO),
+                actionEvent(3, "ActionProposed", EventContract.ACTION_PROPOSED, true),
+                actionEvent(4, "ActionAuthorized", EventContract.ACTION_AUTHORIZED, true),
+                typedEvent(5, "EffectPrepared", EventContract.SOURCE_GRAPH),
+                typedEvent(6, "EffectDispatched", EventContract.SOURCE_ADAPTER),
+                observationEvent(7, "EffectObserved", EventContract.SUBJECT_EFFECT,
+                        EventContract.OUTCOME_OBSERVED, EventContract.QUALITY_FRESH),
+                observationEvent(8, "EffectVerified", EventContract.SUBJECT_EFFECT,
+                        EventContract.OUTCOME_VERIFIED, EventContract.QUALITY_FRESH),
+                actionEvent(9, "ActionRejected", EventContract.ACTION_REJECTED, false),
+                typedEvent(10, "CompensationStarted", EventContract.SOURCE_GOVERNANCE),
+                observationEvent(11, "CompensationObserved",
+                        EventContract.SUBJECT_COMPENSATION,
+                        EventContract.OUTCOME_VERIFIED, EventContract.QUALITY_FRESH)
+        };
+        for (RuntimeEvent event : events) {
+            timeline = timeline.runtimeEvent(
+                    CockpitExecutionTimeline.ProjectedEvent.from(event));
+        }
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.PLAN).getStatus()
+                        == CockpitExecutionTimeline.Status.COMPILED,
+                "typed plan event must project COMPILED");
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.POLICY).getStatus()
+                        == CockpitExecutionTimeline.Status.SKIPPED,
+                "optional rejection must project SKIPPED");
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.EFFECT).getStatus()
+                        == CockpitExecutionTimeline.Status.COMPENSATED,
+                "fresh compensation observation must project COMPENSATED");
+        check("media.stop".equals(
+                        timeline.getStage(CockpitExecutionTimeline.Phase.EFFECT).getTarget()),
+                "payload-free effect lifecycle must inherit the typed action capability");
+        check(timeline.getStage(CockpitExecutionTimeline.Phase.READBACK).getStatus()
+                        == CockpitExecutionTimeline.Status.COMPENSATED,
+                "compensation readback must be visible");
+        check(timeline.getTraceItems().size() == CockpitExecutionTimeline.MAX_TRACE_ITEMS,
+                "typed trace must remain bounded");
+        check(timeline.getTraceItems().get(0).getSequence() == 4,
+                "bounded trace must retain the newest eight events");
+
+        CockpitExecutionTimeline conflict = CockpitExecutionTimeline.initial()
+                .runtimeEvent(CockpitExecutionTimeline.ProjectedEvent.from(
+                        observationEvent(1, "EffectVerified", EventContract.SUBJECT_EFFECT,
+                                EventContract.OUTCOME_VERIFIED,
+                                EventContract.QUALITY_CONFLICT)));
+        check(conflict.getStage(CockpitExecutionTimeline.Phase.READBACK).getStatus()
+                        == CockpitExecutionTimeline.Status.MISMATCH,
+                "conflicting verification evidence must not project VERIFIED");
+    }
+
+    private static RuntimeEvent typedEvent(long sequence, String type, int source) {
+        RuntimeEvent event = chainedEvent(sequence, type);
+        event.source = source;
+        return event;
+    }
+
+    private static RuntimeEvent actionEvent(
+            long sequence,
+            String type,
+            int state,
+            boolean required) {
+        ActionEvent action = new ActionEvent();
+        action.actionId = uuid("action-" + sequence);
+        action.nodeId = "comfort-node";
+        action.capabilityId = "media.stop";
+        action.state = state;
+        action.actionDigest = DIGEST;
+        action.required = required;
+        RuntimeEvent event = chainedEvent(sequence, type);
+        event.source = EventContract.SOURCE_GOVERNANCE;
+        event.payloadKind = EventContract.PAYLOAD_ACTION;
+        event.action = action;
+        return event;
+    }
+
+    private static RuntimeEvent observationEvent(
+            long sequence,
+            String type,
+            int subjectType,
+            int outcome,
+            int quality) {
+        ObservationEvent observation = new ObservationEvent();
+        observation.observationId = uuid("observation-" + sequence + '-' + type);
+        observation.subjectType = subjectType;
+        observation.subjectId = uuid("subject-" + sequence + '-' + type);
+        observation.outcome = outcome;
+        observation.quality = quality;
+        observation.evidenceDigest = DIGEST;
+        RuntimeEvent event = chainedEvent(sequence, type);
+        event.source = EventContract.SOURCE_ADAPTER;
+        event.payloadKind = EventContract.PAYLOAD_OBSERVATION;
+        event.observation = observation;
+        return event;
+    }
+
+    private static RuntimeEvent chainedEvent(long sequence, String type) {
+        return baseEvent(
+                uuid("timeline-event-" + sequence),
+                sequence,
+                sequence == 1 ? "" : uuid("timeline-event-" + (sequence - 1)),
+                sequence == 1 ? 0 : sequence - 1,
+                type);
+    }
+
+    private static String uuid(String value) {
+        return UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8)).toString();
     }
 
     private static void expectRejected(Runnable action) {

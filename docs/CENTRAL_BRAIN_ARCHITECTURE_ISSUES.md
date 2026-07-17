@@ -350,6 +350,13 @@ ARM64 证明 heat 后 vent 合并为一个 governed Session，结果为 heat=0/v
 这仍不是 OEM Safety authority，真实 Context/approval/dispatch/readback 未接；ISSUE-033 保持 Open，下一关闭子项为
 P4-W06 timeline，V1 Seat 参数/approval 承载偏差由 `DEV-055` 跟踪。
 
+P4-W06 进展：Client2 Execution surface 已实现 Intent/Context/Plan/Policy/Graph/Effect/Readback 七阶段、Media STOP/
+Navigation CANCEL projection 和最多八条脱敏 typed-event trace。host 覆盖 allowlisted Action/Approval/Effect/Observation/
+Compensation 与 freshness/conflict；Android 13/API 33 ARM64 证明当前实体 Runtime 只完成 Session admission，Plan/Graph/
+Effect/Readback 保持 NOT PUBLISHED/NOT WIRED/NOT DISPATCHED/UNAVAILABLE。Runtime execution event publication、approval/
+partial/retry/undo、真实 dispatch/readback 未完成，因此 ISSUE-033 保持 Open，下一关闭子项为 P4-W07；投影与 Runtime
+publication 差异由 `DEV-056` 跟踪。
+
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。

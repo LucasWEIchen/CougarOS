@@ -61,6 +61,14 @@ public final class CockpitControlCoordinator implements
     private TextView planChainView;
     private TextView executionSummaryView;
     private TextView executionChainView;
+    private TextView executionActionsView;
+    private TextView timelineIntentView;
+    private TextView timelineContextView;
+    private TextView timelinePlanView;
+    private TextView timelinePolicyView;
+    private TextView timelineGraphView;
+    private TextView timelineEffectView;
+    private TextView timelineReadbackView;
     private TextView resultSummaryView;
     private TextView resultEvidenceView;
     private TextView sessionStripTitleView;
@@ -148,6 +156,14 @@ public final class CockpitControlCoordinator implements
         planChainView = findTextView("centralBrainPlanChainText");
         executionSummaryView = findTextView("centralBrainExecutionSummaryText");
         executionChainView = findTextView("centralBrainExecutionChainText");
+        executionActionsView = findTextView("centralBrainExecutionActionsText");
+        timelineIntentView = findTextView("centralBrainTimelineIntentText");
+        timelineContextView = findTextView("centralBrainTimelineContextText");
+        timelinePlanView = findTextView("centralBrainTimelinePlanText");
+        timelinePolicyView = findTextView("centralBrainTimelinePolicyText");
+        timelineGraphView = findTextView("centralBrainTimelineGraphText");
+        timelineEffectView = findTextView("centralBrainTimelineEffectText");
+        timelineReadbackView = findTextView("centralBrainTimelineReadbackText");
         resultSummaryView = findTextView("centralBrainResultSummaryText");
         resultEvidenceView = findTextView("centralBrainResultEvidenceText");
         sessionStripTitleView = findTextView("centralBrainSessionStripTitle");
@@ -667,13 +683,6 @@ public final class CockpitControlCoordinator implements
                             + "\n03  Plan：未发布"
                             + "\n04  Policy：仅 Session admission"
                             + "\n05  Effect：未调度");
-            setText(executionSummaryView,
-                    current.isReplayComplete() ? "Session 已同步，执行尚未启用" : "正在同步 Session");
-            setText(executionChainView,
-                    "Session：ACCEPTED"
-                            + "\nGraph：NOT WIRED"
-                            + "\nEffect：NOT DISPATCHED"
-                            + "\nReadback：UNAVAILABLE");
             setText(sessionStripTitleView, "软件 Session 已受理");
         } else {
             setText(planSummaryView, "等待场景意图");
@@ -683,14 +692,9 @@ public final class CockpitControlCoordinator implements
                             + "\n03  Plan：未发布"
                             + "\n04  Policy：等待"
                             + "\n05  Effect：未调度");
-            setText(executionSummaryView, "尚未启动自动执行");
-            setText(executionChainView,
-                    "Session：等待"
-                            + "\nGraph：NOT WIRED"
-                            + "\nEffect：NOT DISPATCHED"
-                            + "\nReadback：UNAVAILABLE");
             setText(sessionStripTitleView, "等待场景输入");
         }
+        renderExecutionTimeline(current);
         setText(resultSummaryView, "暂无可验证车辆结果");
         CockpitHvacState hvac = current.getHvacState();
         CockpitSeatState seat = current.getSeatState();
@@ -716,6 +720,85 @@ public final class CockpitControlCoordinator implements
         }
         setText(resultEvidenceView, resultEvidence);
         renderDrawer(current.getDeviceDrawer());
+    }
+
+    private void renderExecutionTimeline(CockpitHmiState current) {
+        CockpitExecutionTimeline timeline = current.getExecutionTimeline();
+        setText(executionSummaryView,
+                current.hasSession()
+                        ? "可观察执行时间线 · Session 已受理"
+                        : "可观察执行时间线 · 等待意图");
+        renderTimelineStage(timelineIntentView, "01 Intent",
+                timeline.getStage(CockpitExecutionTimeline.Phase.INTENT));
+        renderTimelineStage(timelineContextView, "02 Context",
+                timeline.getStage(CockpitExecutionTimeline.Phase.CONTEXT));
+        renderTimelineStage(timelinePlanView, "03 Plan",
+                timeline.getStage(CockpitExecutionTimeline.Phase.PLAN));
+        renderTimelineStage(timelinePolicyView, "04 Policy",
+                timeline.getStage(CockpitExecutionTimeline.Phase.POLICY));
+        renderTimelineStage(timelineGraphView, "05 Graph",
+                timeline.getStage(CockpitExecutionTimeline.Phase.GRAPH));
+        renderTimelineStage(timelineEffectView, "06 Effect",
+                timeline.getStage(CockpitExecutionTimeline.Phase.EFFECT));
+        renderTimelineStage(timelineReadbackView, "07 Readback",
+                timeline.getStage(CockpitExecutionTimeline.Phase.READBACK));
+
+        String media = "UNAVAILABLE";
+        String navigation = "UNAVAILABLE";
+        StringBuilder trace = new StringBuilder("Typed event trace");
+        for (CockpitExecutionTimeline.TraceItem item : timeline.getTraceItems()) {
+            String status = statusLabel(item.getStatus());
+            String target = item.getTarget();
+            if (target.startsWith("media.")) {
+                media = status;
+            } else if (target.startsWith("navigation.") || target.startsWith("nav.")) {
+                navigation = status;
+            }
+            trace.append("\n#").append(item.getSequence())
+                    .append(' ').append(item.getEventType())
+                    .append(" · ").append(status)
+                    .append("\nTarget：").append(target)
+                    .append(" · Source：").append(item.getSource())
+                    .append(" · Result：").append(item.getResult());
+        }
+        if (timeline.getTraceItems().isEmpty()) {
+            trace.append("\n暂无 Runtime typed event");
+        }
+        setText(executionActionsView,
+                "Media STOP：" + media + " · Navigation CANCEL：" + navigation);
+        setText(executionChainView, trace.toString());
+    }
+
+    private static void renderTimelineStage(
+            TextView view,
+            String label,
+            CockpitExecutionTimeline.Stage stage) {
+        setText(view,
+                label + "：" + statusLabel(stage.getStatus())
+                        + "\nTarget：" + stage.getTarget()
+                        + " · Source：" + stage.getSource()
+                        + "\nResult：" + stage.getResult());
+    }
+
+    private static String statusLabel(CockpitExecutionTimeline.Status status) {
+        switch (status) {
+            case NOT_PUBLISHED:
+                return "NOT PUBLISHED";
+            case NOT_WIRED:
+                return "NOT WIRED";
+            case NOT_DISPATCHED:
+                return "NOT DISPATCHED";
+            case NO_EVIDENCE:
+                return "NO EVIDENCE";
+            case SESSION_ACCEPTED:
+                return "SESSION ACCEPTED";
+            case APPROVAL_REQUIRED:
+                return "APPROVAL REQUIRED";
+            case APPROVAL_RESOLVED:
+                return "APPROVAL RESOLVED";
+            default:
+                return status.name();
+        }
     }
 
     private void renderDrawer(CockpitHmiState.DeviceDrawer drawer) {
@@ -984,6 +1067,12 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_seat_governed_manual_session=true"
                 + " cockpit_seat_unknown_restricted_fail_closed=true"
                 + " cockpit_seat_reported_readback_available=false"
+                + " cockpit_execution_timeline_implemented=true"
+                + " cockpit_execution_timeline_reducer_owned=true"
+                + " cockpit_execution_typed_event_projection=true"
+                + " cockpit_execution_plan_published=false"
+                + " cockpit_execution_effect_dispatch_enabled=false"
+                + " cockpit_execution_readback_available=false"
                 + " legacy_text_callback_authoritative=false"
                 + " scenario_execution_enabled=false"
                 + " service_dispatch_triggered=false"

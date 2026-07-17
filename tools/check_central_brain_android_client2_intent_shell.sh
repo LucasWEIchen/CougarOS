@@ -116,9 +116,7 @@ for marker in \
   'cockpit_hmi_device_drawer_scaffolded=true' \
   'cockpit_hvac_surface_implemented=true' \
   'cockpit_seat_surface_implemented=true' \
-  'Graph：NOT WIRED' \
-  'Effect：NOT DISPATCHED' \
-  'Readback：UNAVAILABLE'; do
+  'cockpit_execution_timeline_implemented=true'; do
   grep -Fq -- "$marker" "$COORDINATOR"
 done
 

@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P4-W06' \
+  'implementation_stage=P4-W07' \
   'client2_session_event_primary_api=true' \
   'client2_session_event_typed_callback=true' \
   'client2_scenario_alias_map_count=14' \
@@ -286,6 +286,13 @@ for marker in \
   'cockpit_seat_governed_manual_session=true' \
   'cockpit_seat_unknown_restricted_fail_closed=true' \
   'cockpit_seat_reported_readback_available=false' \
+  'cockpit_execution_timeline_implemented=true' \
+  'cockpit_execution_timeline_reducer_owned=true' \
+  'cockpit_execution_typed_event_projection=true' \
+  'cockpit_execution_trace_capacity=8' \
+  'cockpit_execution_plan_published=false' \
+  'cockpit_execution_effect_dispatch_enabled=false' \
+  'cockpit_execution_readback_available=false' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -306,7 +313,7 @@ for marker in \
   '意图输入（设计稿已交付）' \
   '计划与 Policy（设计稿已交付）' \
   '中控 AIOS 演示闭环' \
-  'HVAC/Seat/Media/Nav Effect 详情' \
+  '七阶段执行 timeline' \
   'production_ready=false' \
   'target_hardware_validated=false' \
   'driver_development_triggered=false' \
@@ -368,6 +375,7 @@ required_paths=(
   tools/check_central_brain_android_effect_coordinator.sh
   tools/check_central_brain_android_graph_restart_recovery.sh
   tools/check_central_brain_android_client2_intent_shell.sh
+  tools/check_central_brain_android_client2_execution_timeline.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
@@ -445,8 +453,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P4-W06" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P4-W06 as the next unfinished scope")
+if "Stage 2 P4-W07" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P4-W07 as the next unfinished scope")
 
 for group in (
     "APP-004",

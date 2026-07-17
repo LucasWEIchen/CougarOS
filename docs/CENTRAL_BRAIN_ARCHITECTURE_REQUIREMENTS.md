@@ -1322,3 +1322,32 @@ Req IDs：`S2-HMI-002..005`、`S2-SAF-001`、`S2-ADP-001`、`APP-004`、`XSC-001
 `seat_manual_typed_parameter_field=false`、`scenario_execution_enabled=false`、
 `production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-W06`。
+
+## 47. P4-W06 observable execution timeline trace
+
+Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 Execution surface 必须始终显示 Intent、Context、Plan、Policy、Graph、Effect、Readback 七阶段；每阶段必须有
+   status、target、source、result，不能用单一“执行中/完成”掩盖 partial、failure 或 unavailable。
+2. 时间线必须是 immutable、View-independent、由唯一 `CockpitHmiReducer` 持有。View/Coordinator 不得直接改变阶段，
+   不得从用户文本、assistant text、desired control 或固定 summary 推断 APPLIED/VERIFIED。
+3. 进入场景只允许 Intent=REQUESTED；`SessionHandle` admission 只允许 Intent/Policy=SESSION_ACCEPTED。`activePlanRevision=0`
+   必须保持 Plan=NOT_PUBLISHED；无 typed action/effect event 时 Graph=NOT_WIRED、Effect=NOT_DISPATCHED。
+4. 只有通过 `EventContract.validateEvent` 的 allowlisted typed `RuntimeEvent` 可更新时间线。投影不得保留 raw session/event/
+   action/observation ID、digest、用户/模型文本或车辆 payload；最多保留最新八条 sequence/type/status/target/source/result。
+   Event V1 无 payload 的 Effect lifecycle 只能继承同一 timeline 最近一次 validated Action capability，不得从文本推断。
+5. `EffectObserved` 只有 outcome=OBSERVED 且 quality=FRESH 时进入 APPLIED；`EffectVerified` 只有 outcome=VERIFIED 且
+   quality=FRESH 时进入 VERIFIED。STALE/CONFLICT/UNAVAILABLE 必须映射 NO_EVIDENCE/MISMATCH/UNAVAILABLE。
+6. optional `ActionRejected` 显示 SKIPPED；required rejection、approval expiry、Effect failure、compensation 必须分别保留
+   REJECTED/FAILED/COMPENSATING/COMPENSATED 语义。Media STOP 和 Navigation CANCEL 必须有独立 unavailable/typed projection。
+7. 当前 Runtime 未发布 typed Plan/Action/Effect/Observation，实体 APK 必须显示 NOT_PUBLISHED/NOT_WIRED/
+   NOT_DISPATCHED/UNAVAILABLE，不得添加 debug event、Adapter 或硬件桩来伪造通过。
+8. Android 13/API 33 ARM64 验收必须覆盖七阶段可达、1920x1080 safe frame、Session admission 不降级、Media/Nav
+   projection、ScenarioRequested trace，以及 service/effect/hardware dispatch 为 false。
+
+状态：`cockpit_execution_timeline_implemented=true`、`cockpit_execution_timeline_reducer_owned=true`、
+`cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
+`cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
+`cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P4-W07`。

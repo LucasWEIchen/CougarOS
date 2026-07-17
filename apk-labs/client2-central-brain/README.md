@@ -144,8 +144,10 @@ upright/comfort/rest presets. Immutable `SeatControlIntent` and
 readback separate. Low-risk comfort changes debounce for 300 ms into
 `scene.manual.seat.adjust.v1`; position changes fail closed while trusted Context
 is unavailable or the driver is moving, and parked rest remains approval-required.
-The execution surface will show desired versus reported values,
-plan/effect progress, approval, partial failure, retry, undo and recovery.
+The execution surface now uses immutable `CockpitExecutionTimeline` state to show
+Intent, Context, Plan, Policy, Graph, Effect and Readback with target/source/result,
+Media/Navigation projections and the newest eight redacted typed events. Approval,
+partial failure, retry and undo commands remain P4-W07 work and are not synthesized.
 
 Maintained Java code in `classes2.dex` now owns immutable HMI state, reducer,
 rendering and SDK coordination. Smali is only the one-line install bootstrap.
@@ -176,15 +178,15 @@ cockpit_demo_control_loop_implemented=false
 real_vehicle_effect_adapter_available=false
 ```
 
-P4-W01 through P4-W05 are complete. The primary bridge exposes typed Session handle,
+P4-W01 through P4-W06 are complete. The primary bridge exposes typed Session handle,
 snapshot, event, replay, overflow, close and error callbacks. The Java coordinator
 reduces these callbacks, owns lifecycle and resumes a text-free checkpoint after
 Client2 process restart. Android 13 ARM64 acceptance covers Runtime/Client2 process
 death, duplicate suppression, hidden-state restore, menu reopen, exact 1920x1080
 safe-frame rendering, four stage selection, HVAC and Seat controls, debounce,
-governed manual Session admission and unknown-context Seat position blocking.
-P4-W06 is the next work package and will implement the plan/effect execution
-timeline without enabling vehicle or production Effect dispatch:
+governed manual Session admission, unknown-context Seat position blocking and the
+seven-phase observable execution timeline. P4-W07 is the next work package and will
+add approval/partial/retry/undo UX without enabling vehicle or production Effect dispatch:
 
 ```text
 client2_session_event_primary_api=true
@@ -217,13 +219,20 @@ cockpit_seat_desired_reported_separation_verified=true
 cockpit_seat_reported_readback_available=false
 cockpit_seat_verified_before_readback=false
 seat_manual_typed_parameter_field=false
+cockpit_execution_timeline_implemented=true
+cockpit_execution_timeline_reducer_owned=true
+cockpit_execution_typed_event_projection=true
+cockpit_execution_trace_capacity=8
+cockpit_execution_plan_published=false
+cockpit_execution_effect_dispatch_enabled=false
+cockpit_execution_readback_available=false
 client2_smali_controller_retired=true
 client2_hmi_checkpoint_resume_verified=true
 client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W06
+implementation_stage=P4-W07
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in

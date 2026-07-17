@@ -36,8 +36,8 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 ## 2026-07-16 Client2 中控 HVAC/Seat 交付规划
 
 `S2-HMI-001..006` 将自然场景意图和 HVAC/Seat Effect 明确为 `com.tuanjie.urasclient2` APK 内的
-中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前 HMI-D0/D1、P4-W01..P4-W05
-已完成，Client2 已包含四阶段界面和 HVAC/Seat control surface；Runtime Effect/readback 闭环仍未实现。
+中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前 HMI-D0/D1、P4-W01..P4-W06
+已完成，Client2 已包含四阶段界面、HVAC/Seat control surface 和七阶段执行时间线；Runtime Effect/readback 闭环仍未实现。
 
 P4 计划用 24-32 人日交付意图/计划/执行/结果四阶段、可观察自动化链和 HVAC/Seat Effect 详情，
 以及 manual/AI 共用 Session、Governance、Effect、readback、partial、retry、undo 和 restart recovery
@@ -1578,3 +1578,23 @@ readback、VHAL/NPU/Driver-HAL。Req IDs：`S2-HMI-002..005`、`S2-SAF-001`、`S
 `XSC-001/005/006`、`DEL-001/003/004/005`。状态：`cockpit_seat_surface_implemented=true`、
 `cockpit_seat_unknown_restricted_fail_closed=true`、`cockpit_seat_reported_readback_available=false`、
 `production_effect_dispatch_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W06`。
+
+## P4-W06 Observable Execution Timeline
+
+交付 `CockpitExecutionTimeline`、HMI state/reducer 投影、七阶段 Execution surface、Media STOP/Navigation CANCEL projection、
+最多八条脱敏 typed-event trace、host/static gate 和 Android 13/API 33 ARM64 实体验收。
+
+交付接口只消费冻结的 `SessionSnapshot.activePlanRevision` 与通过 `EventContract.validateEvent` 的 `RuntimeEvent`。Action
+payload 只投影 capability/state/required，Observation 只投影 subject/outcome/quality；raw ID、digest、用户/模型文本和车辆
+payload 不进入 timeline state 或测试证据。FRESH observation 是 APPLIED/VERIFIED 的必要条件。
+
+当前实体 Runtime 仅交付 Session admission 和 `ScenarioRequested`，不交付 Plan/Graph/Effect/Readback publication。因此
+实体页面的验收值固定为 Plan NOT PUBLISHED、Graph NOT WIRED、Effect NOT DISPATCHED、Readback UNAVAILABLE；这是准确的
+缺口呈现，不是功能失败，也不构成车辆控制闭环。P4-W07 继续 approval/partial/retry/undo UX。
+
+本包不交付 Runtime Graph wiring、Effect dispatch、approval response、retry/undo service、生产 Adapter、车辆/NPU、Driver/
+HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/005/006`、
+`DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
+`cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
+`cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
+`hardware_accessed=false`、`implementation_stage=P4-W07`。

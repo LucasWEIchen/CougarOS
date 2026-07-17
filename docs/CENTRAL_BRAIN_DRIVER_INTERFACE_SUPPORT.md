@@ -1003,3 +1003,19 @@ PCIe/NPU、fd/shared memory、真实 Safety authority 或 Driver/HAL；不注册
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增
 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变；真实 Seat adapter/Context/readback 仍由 P8/`ISSUE-029/030` 关闭。
 Req IDs：`S2-HMI-002..005`、`S2-SAF-001`、`S2-ADP-001`、`XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。
+
+### P4-W06 Observable execution timeline Driver/HAL Boundary
+
+本包只新增 Client2 application XML、纯 Java immutable `CockpitExecutionTimeline`、HMI reducer/coordinator projection、
+host/static/ADB tests 和文档。它读取 app-layer `SessionSnapshot/RuntimeEvent`，不读取车辆信号或设备状态。
+
+本包不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU、fd/shared memory、Safety Runtime 或 Driver/HAL；不注册 Adapter，不生成 observation，不触发 Effect dispatch。
+Plan NOT PUBLISHED、Graph NOT WIRED、Effect NOT DISPATCHED、Readback UNAVAILABLE 是软件缺口投影，不是硬件结果。
+
+状态：`cockpit_execution_timeline_implemented=true`、`cockpit_execution_typed_event_projection=true`、
+`cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
+`cockpit_execution_readback_available=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变；真实车辆 observation/
+Adapter 仍由 P8/`ISSUE-030` 关闭。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、
+`XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。
