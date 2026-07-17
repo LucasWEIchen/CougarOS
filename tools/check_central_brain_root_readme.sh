@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P4-W07' \
+  'implementation_stage=P4-W08' \
   'client2_session_event_primary_api=true' \
   'client2_session_event_typed_callback=true' \
   'client2_scenario_alias_map_count=14' \
@@ -293,6 +293,11 @@ for marker in \
   'cockpit_execution_plan_published=false' \
   'cockpit_execution_effect_dispatch_enabled=false' \
   'cockpit_execution_readback_available=false' \
+  'cockpit_recovery_state_reducer_owned=true' \
+  'cockpit_approval_details_fail_closed=true' \
+  'cockpit_partial_outcome_projection=true' \
+  'cockpit_compensation_projection=true' \
+  'cockpit_recovery_commands_enabled=false' \
   'event_v2_cursor_ack_required=true' \
   'event_v2_interface_published=false' \
   'plan_contract_v1_defined=true' \
@@ -376,6 +381,7 @@ required_paths=(
   tools/check_central_brain_android_graph_restart_recovery.sh
   tools/check_central_brain_android_client2_intent_shell.sh
   tools/check_central_brain_android_client2_execution_timeline.sh
+  tools/check_central_brain_android_client2_recovery_ux.sh
   tools/check_central_brain_runtime_contract_v2.sh
   tools/check_central_brain_aios_stage2_design.sh
   tools/check_central_brain_cockpit_hmi_design.sh
@@ -453,8 +459,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "Stage 2 P4-W07" not in remaining or "场景解析与仿真编排" not in remaining:
-    raise SystemExit("README remaining-work table must identify Stage 2 P4-W07 as the next unfinished scope")
+if "Stage 2 P4-W08" not in remaining or "场景解析与仿真编排" not in remaining:
+    raise SystemExit("README remaining-work table must identify Stage 2 P4-W08 as the next unfinished scope")
 
 for group in (
     "APP-004",

@@ -94,6 +94,17 @@ for marker in \
   "cockpit_seat_reported_readback_available=false" \
   "cockpit_seat_verified_before_readback=false" \
   "seat_manual_typed_parameter_field=false" \
+  "cockpit_execution_timeline_verified=true" \
+  "cockpit_execution_typed_event_trace_verified=true" \
+  "cockpit_recovery_state_reducer_owned=true" \
+  "cockpit_approval_details_fail_closed_verified=true" \
+  "cockpit_partial_outcome_projection_verified=true" \
+  "cockpit_compensation_projection_verified=true" \
+  "cockpit_recovery_commands_disabled_verified=true" \
+  "cockpit_recovery_outside_dismiss_preserved=true" \
+  "cockpit_approval_response_service_published=false" \
+  "cockpit_retry_service_published=false" \
+  "cockpit_undo_service_published=false" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \
   "ui_cancel_timeout_not_exposed=true" \
@@ -115,8 +126,8 @@ import pathlib
 import sys
 
 payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("schema_version") != "1.5.0":
-    raise SystemExit("R7C acceptance schema must remain 1.5.0")
+if payload.get("schema_version") != "1.7.0":
+    raise SystemExit("R7C acceptance schema must remain 1.7.0")
 if payload.get("status") != "verified":
     raise SystemExit("R7C acceptance contract must be verified")
 if payload.get("evidence_scope") != "api33-android-application-integration":
@@ -133,6 +144,8 @@ if [entry.get("id") for entry in evidence] != [
     "R7C-E-006",
     "R7C-E-007",
     "R7C-E-008",
+    "R7C-E-009",
+    "R7C-E-010",
 ]:
     raise SystemExit("R7C evidence IDs/order changed")
 claims = payload.get("claim_state", {})
@@ -143,6 +156,8 @@ expected_true = {
     "cockpit_hmi_four_stage_shell_implemented",
     "cockpit_hvac_surface_implemented",
     "cockpit_seat_surface_implemented",
+    "cockpit_execution_timeline_implemented",
+    "cockpit_recovery_state_reducer_owned",
     "api33_end_to_end_acceptance_complete",
     "r7_application_integration_complete",
 }
@@ -150,6 +165,7 @@ expected_false = {
     "production_activation_allowed",
     "target_system_integration_owner_resolved",
     "target_hardware_validated",
+    "cockpit_recovery_commands_enabled",
 }
 if {key for key, value in claims.items() if value is True} != expected_true:
     raise SystemExit("R7C positive claims changed")

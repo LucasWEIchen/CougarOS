@@ -357,6 +357,12 @@ Effect/Readback 保持 NOT PUBLISHED/NOT WIRED/NOT DISPATCHED/UNAVAILABLE。Runt
 partial/retry/undo、真实 dispatch/readback 未完成，因此 ISSUE-033 保持 Open，下一关闭子项为 P4-W07；投影与 Runtime
 publication 差异由 `DEV-056` 跟踪。
 
+P4-W07 进展：Client2 recovery UX 已新增 reducer-owned approval status/reason/target/expiry、VERIFIED/FAILED/INCONCLUSIVE
+证据统计、Session partial aggregate 和 compensation projection。Android 13/API 33 ARM64 证明当前 Runtime 缺少
+ApprovalPrompt/retry metadata/UndoHandle 时四类命令可见但禁用，outside dismiss/reopen 保留 Session/recovery state。
+真实 approval response、retry、undo admission、Runtime Graph/Effect publication 和车辆 readback 仍未完成，因此
+ISSUE-033 保持 Open，下一关闭子项为 P4-W08 Driving restriction renderer；命令详情/服务缺口由 `DEV-057` 跟踪。
+
 关闭条件：`CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md` 的 HMI-D4 和 HMI-AI/AC/ST/CL 验收
 全部在 Android 13 ARM64 Client2 APK 通过。该关闭只代表演示软件闭环，不关闭 `ISSUE-030`、
 Driver/HAL、target hardware 或 production。状态：`Open`。

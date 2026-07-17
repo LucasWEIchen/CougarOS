@@ -88,6 +88,7 @@ for path in \
   tools/check_central_brain_android_client2_hvac_surface.sh \
   tools/check_central_brain_android_client2_seat_surface.sh \
   tools/check_central_brain_android_client2_execution_timeline.sh \
+  tools/check_central_brain_android_client2_recovery_ux.sh \
   tools/check_central_brain_android_application_acceptance.sh \
   tools/check_central_brain_android_delivery_handoff.sh \
   tools/check_central_brain_native_runtime.sh \
@@ -189,6 +190,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hvac_surface.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_seat_surface.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_execution_timeline.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_recovery_ux.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_application_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_delivery_handoff.sh"
 bash "$ROOT_DIR/tools/check_central_brain_native_runtime.sh"

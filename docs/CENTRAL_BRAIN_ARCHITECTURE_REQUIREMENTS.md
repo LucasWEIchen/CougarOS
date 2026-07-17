@@ -1350,4 +1350,31 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W07`。
+`implementation_stage=P4-W08`。
+
+## 48. P4-W07 approval/partial/retry/undo UX trace
+
+Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`、
+`XSC-001/005/006`、`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 必须由 immutable `CockpitRecoveryState` 投影 approval、终态 effect evidence、Session aggregate 和
+   compensation；View 只能渲染，不得保存或推断授权状态。
+2. `WAITING_FOR_CONFIRMATION` 或 typed `ApprovalRequested` 必须显示审批请求。reason、target、expiry 只能来自
+   `ApprovalPrompt` 或 validated capability；当前 Event V1 不提供 reason/expiry 时必须显示 UNAVAILABLE。
+3. typed `EffectVerified` 只有 timeline 已判定 VERIFIED 才计入 verified；`EffectFailed` 计入 failed；证据冲突或非 fresh
+   verification 计入 inconclusive。混合 verified/failed/inconclusive 或 Session=PARTIALLY_COMPLETED 必须显示 partial。
+4. `CompensationStarted/Observed` 必须显示 COMPENSATING/COMPENSATED/INCONCLUSIVE；补偿事件不得自行生成 `UndoHandle`。
+5. approval response、retry failed、undo 必须各自依赖已发布服务和 typed token/eligibility。当前 Client2 未收到
+   `ApprovalPrompt`、`EffectObservation.retryable`、`UndoHandle`，approve/reject/retry/undo 必须 visible+disabled。
+6. recovery state 不得保留 approval/effect/observation/undo ID、digest、用户/模型文本或车辆 payload；outside dismiss
+   只隐藏 overlay，不取消 Session，也不得清空 approval/partial/compensation projection。
+7. 当前实体 Runtime 只发布 Session admission/ScenarioRequested，因此实体默认必须显示 Approval/Reason/Target/Expiry
+   UNAVAILABLE、Outcome NO EVIDENCE、Compensation UNAVAILABLE；不得用 host future-event test 冒充实体能力。
+8. Android 13/API 33 ARM64 验收必须覆盖四类 disabled command、恢复状态可达、outside dismiss/reopen 保留状态、
+   1920x1080 safe frame，以及 service/effect/hardware dispatch 为 false。
+
+状态：`cockpit_recovery_state_reducer_owned=true`、`cockpit_approval_details_fail_closed=true`、
+`cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
+`cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
+`cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W08`。

@@ -29,6 +29,7 @@ public final class CockpitHmiState {
     private final CockpitHvacState hvacState;
     private final CockpitSeatState seatState;
     private final CockpitExecutionTimeline executionTimeline;
+    private final CockpitRecoveryState recoveryState;
     private final String uiScenarioId;
     private final String canonicalScenarioId;
     private final int handleSchemaVersion;
@@ -55,6 +56,7 @@ public final class CockpitHmiState {
         hvacState = builder.hvacState;
         seatState = builder.seatState;
         executionTimeline = builder.executionTimeline;
+        recoveryState = builder.recoveryState;
         uiScenarioId = builder.uiScenarioId;
         canonicalScenarioId = builder.canonicalScenarioId;
         handleSchemaVersion = builder.handleSchemaVersion;
@@ -107,6 +109,10 @@ public final class CockpitHmiState {
 
     public CockpitExecutionTimeline getExecutionTimeline() {
         return executionTimeline;
+    }
+
+    public CockpitRecoveryState getRecoveryState() {
+        return recoveryState;
     }
 
     public String getUiScenarioId() {
@@ -259,6 +265,7 @@ public final class CockpitHmiState {
         CockpitHvacState hvacState = CockpitHvacState.initial();
         CockpitSeatState seatState = CockpitSeatState.initial();
         CockpitExecutionTimeline executionTimeline = CockpitExecutionTimeline.initial();
+        CockpitRecoveryState recoveryState = CockpitRecoveryState.initial();
         String uiScenarioId = "";
         String canonicalScenarioId = "";
         int handleSchemaVersion = SessionContract.SCHEMA_VERSION;
@@ -287,6 +294,7 @@ public final class CockpitHmiState {
             hvacState = source.hvacState;
             seatState = source.seatState;
             executionTimeline = source.executionTimeline;
+            recoveryState = source.recoveryState;
             uiScenarioId = source.uiScenarioId;
             canonicalScenarioId = source.canonicalScenarioId;
             handleSchemaVersion = source.handleSchemaVersion;
@@ -319,6 +327,9 @@ public final class CockpitHmiState {
             }
             if (executionTimeline == null) {
                 throw new IllegalStateException("execution timeline missing");
+            }
+            if (recoveryState == null) {
+                throw new IllegalStateException("recovery state missing");
             }
             uiScenarioId = bounded(uiScenarioId, 96);
             canonicalScenarioId = bounded(canonicalScenarioId, 96);

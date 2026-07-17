@@ -238,9 +238,36 @@ the current Runtime truth remains visible as Plan NOT PUBLISHED, Graph NOT WIRED
 FRESH typed observation is required before APPLIED/VERIFIED. The eight-item trace stores no raw ID, digest, user/model text or
 vehicle payload.
 
-P4-W01 through P4-W06 are complete at the Android application layer. The next package is P4-W07 Approval/partial/retry/undo UX;
+P4-W01 through P4-W06 are complete at this historical checkpoint. P4-W07 Approval/partial/retry/undo UX follows;
 its controls must stay disabled until corresponding Runtime services and typed evidence are published. Req IDs: `S2-UX-001`,
 `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`. Current flags:
 `cockpit_execution_timeline_implemented=true`, `cockpit_execution_typed_event_projection=true`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
 `cockpit_execution_readback_available=false`, `production_ready=false`, `target_hardware_validated=false`.
+
+## P4-W07 Client2 approval and recovery projection
+
+```text
+SessionSnapshot / validated RuntimeEvent
+  -> CockpitExecutionTimeline sanitized TraceItem
+  -> CockpitRecoveryState immutable transition
+  -> CockpitHmiState revision
+  -> CockpitControlCoordinator recovery renderer
+  -> approval details + partial evidence + compensation + disabled commands
+```
+
+The recovery model is downstream-only. It maintains bounded counters and enum states but no raw approval/effect/observation/undo
+identity, digest, user/model text or vehicle payload. Snapshot `PARTIALLY_COMPLETED` is authoritative aggregate evidence; typed
+FRESH verification and failure events provide per-category counts. Compensation is projected independently and never mutates the
+original verified Effect.
+
+The current Client2 transport does not deliver `ApprovalPrompt`, `EffectObservation.retryable` or `UndoHandle`. Reason/expiry and
+missing target are therefore rendered UNAVAILABLE, while approve/reject/retry/undo remain visible but disabled. This is a deliberate
+capability boundary, not a placeholder success path. Overlay dismissal changes presentation only and preserves Session/recovery state.
+
+P4-W01 through P4-W07 are complete at the Android application layer. The next package is P4-W08 Driving restriction renderer.
+Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-001/005/006`. Current flags:
+`cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
+`cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
+`cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W08`.

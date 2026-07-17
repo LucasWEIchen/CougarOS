@@ -364,6 +364,11 @@ for marker in \
   'cockpit_execution_plan_published=false' \
   'cockpit_execution_effect_dispatch_enabled=false' \
   'cockpit_execution_readback_available=false' \
+  'cockpit_recovery_state_reducer_owned=true' \
+  'cockpit_approval_response_service_published=false' \
+  'cockpit_retry_service_published=false' \
+  'cockpit_undo_service_published=false' \
+  'cockpit_recovery_commands_enabled=false' \
   'client2_hmi_checkpoint_text_persisted=false' \
   'ui_scenario_id=care.cold' \
   'scenario_id=scene.comfort.cold.v1' \
@@ -616,6 +621,53 @@ for marker in \
     exit 1
   fi
 done
+for _ in {1..5}; do
+  "${ADB_DEVICE[@]}" shell input swipe 1700 900 1700 360 250
+  sleep 0.1
+  dump_ui "$LOG_DIR/ui-recovery-scrolled.xml"
+  if grep -Fq 'centralBrainApprovalStateText' "$LOG_DIR/ui-recovery-scrolled.xml" \
+      && grep -Fq 'centralBrainUndoButton' "$LOG_DIR/ui-recovery-scrolled.xml"; then
+    break
+  fi
+done
+for marker in \
+  'Approval：UNAVAILABLE' \
+  'Reason：UNAVAILABLE · Target：UNAVAILABLE' \
+  'Expiry：UNAVAILABLE · Response service：NOT PUBLISHED' \
+  'Outcome evidence：NO EVIDENCE' \
+  'VERIFIED 0 · FAILED 0 · INCONCLUSIVE 0' \
+  'Compensation：UNAVAILABLE · Undo handle：NOT PUBLISHED'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-recovery-scrolled.xml"; then
+    cat "$LOG_DIR/ui-recovery-scrolled.xml" >&2
+    echo "Client2 recovery UX missing fail-closed marker: $marker" >&2
+    exit 1
+  fi
+done
+for resource_id in \
+  centralBrainApproveButton \
+  centralBrainRejectButton \
+  centralBrainRetryButton \
+  centralBrainUndoButton; do
+  node="$(grep -o "<node[^>]*${resource_id}[^>]*/>" \
+    "$LOG_DIR/ui-recovery-scrolled.xml" | head -n 1 || true)"
+  if [[ -z "$node" || "$node" != *'enabled="false"'* ]]; then
+    cat "$LOG_DIR/ui-recovery-scrolled.xml" >&2
+    echo "Client2 recovery command must remain visible and disabled: $resource_id" >&2
+    exit 1
+  fi
+done
+
+"${ADB_DEVICE[@]}" shell input tap "$OUTSIDE_X" "$OUTSIDE_Y"
+wait_for_resource_state \
+  centralBrainApprovalStateText hidden "$LOG_DIR/ui-recovery-outside-dismissed.xml"
+"${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
+wait_for_resource_state \
+  centralBrainApprovalStateText visible "$LOG_DIR/ui-recovery-restored.xml"
+if ! grep -Fq 'Outcome evidence：NO EVIDENCE' "$LOG_DIR/ui-recovery-restored.xml"; then
+  cat "$LOG_DIR/ui-recovery-restored.xml" >&2
+  echo "outside dismiss did not preserve Client2 recovery state" >&2
+  exit 1
+fi
 tap_resource centralBrainResultTab "$LOG_DIR/ui-before-result-tab.xml"
 wait_for_resource_state \
   centralBrainResultSummaryText visible "$LOG_DIR/ui-result-tab.xml"
@@ -673,6 +725,15 @@ printf '%s\n' \
   "cockpit_execution_readback_unavailable_verified=true" \
   "cockpit_execution_media_navigation_projection_verified=true" \
   "cockpit_execution_typed_event_trace_verified=true" \
+  "cockpit_recovery_state_reducer_owned=true" \
+  "cockpit_approval_details_fail_closed_verified=true" \
+  "cockpit_partial_outcome_projection_verified=true" \
+  "cockpit_compensation_projection_verified=true" \
+  "cockpit_recovery_commands_disabled_verified=true" \
+  "cockpit_recovery_outside_dismiss_preserved=true" \
+  "cockpit_approval_response_service_published=false" \
+  "cockpit_retry_service_published=false" \
+  "cockpit_undo_service_published=false" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \

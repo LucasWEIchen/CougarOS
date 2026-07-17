@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.5.0",
+  "schema_version": "1.7.0",
   "acceptance_id": "android-r7c-api33-application-integration",
   "status": "verified",
   "evidence_scope": "api33-android-application-integration",
@@ -119,6 +119,34 @@
         "cockpit_seat_verified_before_readback=false",
         "seat_manual_typed_parameter_field=false"
       ]
+    },
+    {
+      "id": "R7C-E-009",
+      "scenario": "client2_observable_execution_timeline",
+      "required_markers": [
+        "cockpit_execution_timeline_verified=true",
+        "cockpit_execution_plan_not_published_verified=true",
+        "cockpit_execution_graph_not_wired_verified=true",
+        "cockpit_execution_effect_not_dispatched_verified=true",
+        "cockpit_execution_readback_unavailable_verified=true",
+        "cockpit_execution_media_navigation_projection_verified=true",
+        "cockpit_execution_typed_event_trace_verified=true"
+      ]
+    },
+    {
+      "id": "R7C-E-010",
+      "scenario": "client2_approval_partial_retry_undo_recovery_ux",
+      "required_markers": [
+        "cockpit_recovery_state_reducer_owned=true",
+        "cockpit_approval_details_fail_closed_verified=true",
+        "cockpit_partial_outcome_projection_verified=true",
+        "cockpit_compensation_projection_verified=true",
+        "cockpit_recovery_commands_disabled_verified=true",
+        "cockpit_recovery_outside_dismiss_preserved=true",
+        "cockpit_approval_response_service_published=false",
+        "cockpit_retry_service_published=false",
+        "cockpit_undo_service_published=false"
+      ]
     }
   ],
   "claim_state": {
@@ -128,6 +156,9 @@
     "cockpit_hmi_four_stage_shell_implemented": true,
     "cockpit_hvac_surface_implemented": true,
     "cockpit_seat_surface_implemented": true,
+    "cockpit_execution_timeline_implemented": true,
+    "cockpit_recovery_state_reducer_owned": true,
+    "cockpit_recovery_commands_enabled": false,
     "api33_end_to_end_acceptance_complete": true,
     "r7_application_integration_complete": true,
     "production_activation_allowed": false,
@@ -149,9 +180,10 @@
     "production Effect Model Event Memory or Skill Governance activation",
     "real model or NPU execution",
     "Driver HAL vendor system or virtualization development",
-    "Client2 UI cancellation or timeout controls",
+    "published Client2 approval retry undo cancellation or timeout command services",
     "scenario Graph Effect execution loop",
     "typed Session HVAC or Seat parameter field HMI_CONTROL source or approval response",
+    "ApprovalPrompt EffectObservation retryable or UndoHandle delivery to Client2",
     "HVAC or Seat Adapter dispatch vehicle Context or readback"
   ]
 }
