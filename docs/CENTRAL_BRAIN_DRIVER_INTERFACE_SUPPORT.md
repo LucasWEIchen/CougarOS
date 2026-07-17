@@ -738,3 +738,20 @@ ID、distance/duration 是 debug observation，不是地图匹配、真实导航
 `network_accessed=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
 `DRV-GAP-001..005` 不变。Req IDs：`S2-ADP-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W12 Debug Simulation Controller Driver/HAL Boundary
+
+P2-W12 只在 Runtime `src/debug` 新增 AIDL、Java Service/controller、signature/capability policy grant、JVM
+tests、DUMP-protected probe、installer marker 和 checker。controller 只维护 process-memory simulated
+driving/signal/fault/clock/audit，调用 P2-W09..W11 debug adapters 的 fault setter。
+
+本包不发现或调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、
+ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL；不推断 COM/USB/ADB 设备等于车辆服务可用。release APK 无
+控制 permission/AIDL/Service/capability grant，production Runtime/Governance 不引用该类。
+
+状态：`debug_simulation_controller_debug_only=true`、
+`debug_simulation_controller_release_source_absent=true`、
+`debug_simulation_controller_production_exported=false`、`debug_simulation_controller_runtime_wired=false`、
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+Req IDs：`S2-CTX-001`、`S2-ADP-001`、`KH-003/006`、`DEL-004/005`。

@@ -29,6 +29,7 @@ public final class CallerCapabilityPolicy {
         APPROVAL_REQUEST("governance.approval.request"),
         APPROVAL_STATUS_OWN("governance.approval.status.own"),
         APPROVAL_CANCEL_OWN("governance.approval.cancel.own"),
+        SIMULATION_CONTROL("debug.simulation.control"),
         DIAGNOSTICS_READ("runtime.diagnostics.read");
 
         private final String id;

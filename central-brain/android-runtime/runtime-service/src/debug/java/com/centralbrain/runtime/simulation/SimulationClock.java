@@ -25,4 +25,12 @@ public final class SimulationClock {
         elapsedRealtimeMs += durationMs;
         return elapsedRealtimeMs;
     }
+
+    public synchronized long resetTo(long elapsedRealtimeMs) {
+        if (elapsedRealtimeMs < 0) {
+            throw new IllegalArgumentException("CB_SIM_CLOCK: reset time is invalid");
+        }
+        this.elapsedRealtimeMs = elapsedRealtimeMs;
+        return this.elapsedRealtimeMs;
+    }
 }

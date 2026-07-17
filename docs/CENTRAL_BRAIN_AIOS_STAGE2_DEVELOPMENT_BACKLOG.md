@@ -376,9 +376,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W12` Debug Context Controller
 
-- 状态：`NOT_STARTED`；1.5 人日；需求：`S2-CTX-001`、`S2-ADP-001`。
+- 状态：`DONE`（2026-07-17）；1.5 人日；需求：`S2-CTX-001`、`S2-ADP-001`。
 - 类：`DebugSimulationController`，debug AIDL/service endpoint。
 - DoD：仅 debug signer/capability 可调用；production build 不含 exported controller。
+- 实现：Runtime `src/debug` 提供 `IDebugSimulationController` V1 和独立 Service；debug-only signature
+  permission 是外层边界，Binder UID/package/current-signer 派生的 `debug.simulation.control` capability 是
+  内层 default-deny 边界。控制器只接受 PARKED/MOVING/UNKNOWN、P2-W01 canonical typed signal、四个固定
+  simulated adapter ID、六类 fault 和有界 clock advance；snapshot/audit 只对外返回 revision/count/digest。
+- 安全边界：128 条 audit ring 只保留 command/outcome/target digest，不保留原始 signal text；reset 清理
+  state/signal/fault/adapter record 并保留审计。release variant 无 AIDL source、permission、Service、Activity
+  或 production policy grant；不接 shared Context/Room/Graph/Effect、Vehicle/VHAL/NPU/Driver-HAL。
+- 证据：7 组 JVM tests、debug/release compile、shell signature rejection、同签名 capability allowlisted
+  Android 13 ARM64 真实 Binder probe、独立 checker、累计 installer 与 CI。
 
 ## 7. P3 Durable Agent Graph 与 Effect 闭环
 

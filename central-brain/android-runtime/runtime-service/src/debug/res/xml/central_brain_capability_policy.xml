@@ -2,6 +2,7 @@
 <capability-policy version="1" defaultDecision="deny">
     <principal packageName="com.centralbrain.runtime" signer="runtime-current">
         <capability name="runtime.diagnostics.read" />
+        <capability name="debug.simulation.control" />
     </principal>
     <principal packageName="com.centralbrain.demo" signer="runtime-current">
         <capability name="runtime.protocol.read" />

@@ -135,6 +135,10 @@ UNAUTHORIZED_DIAGNOSTIC_STATUS=$?
 UNAUTHORIZED_GOVERNANCE_OUTPUT="$("${ADB_DEVICE[@]}" shell am startservice \
   -n com.centralbrain.runtime/.CentralBrainGovernanceService 2>&1)"
 UNAUTHORIZED_GOVERNANCE_STATUS=$?
+UNAUTHORIZED_DEBUG_SIMULATION_OUTPUT="$("${ADB_DEVICE[@]}" shell am startservice \
+  -a com.centralbrain.runtime.action.BIND_DEBUG_SIMULATION_CONTROLLER \
+  -n com.centralbrain.runtime/.simulation.DebugSimulationControllerService 2>&1)"
+UNAUTHORIZED_DEBUG_SIMULATION_STATUS=$?
 set -e
 if [[ $UNAUTHORIZED_RUNTIME_STATUS -eq 0 ]] \
     || ! grep -Fq "Requires permission com.centralbrain.permission.BIND_RUNTIME" \
@@ -152,6 +156,13 @@ if [[ $UNAUTHORIZED_GOVERNANCE_STATUS -eq 0 ]] \
     || ! grep -Fq "Requires permission com.centralbrain.permission.BIND_GOVERNANCE" \
       <<<"$UNAUTHORIZED_GOVERNANCE_OUTPUT"; then
   echo "shell caller was not rejected by the Governance signature permission" >&2
+  exit 1
+fi
+if [[ $UNAUTHORIZED_DEBUG_SIMULATION_STATUS -eq 0 ]] \
+    || ! grep -Fq \
+      "Requires permission com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" \
+      <<<"$UNAUTHORIZED_DEBUG_SIMULATION_OUTPUT"; then
+  echo "shell caller was not rejected by the debug simulation signature permission" >&2
   exit 1
 fi
 
@@ -1390,6 +1401,61 @@ if [[ "$SIMULATED_MEDIA_NAV_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+DEBUG_SIMULATION_NONCE="$(date +%s%N)"
+DEBUG_SIMULATION_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.simulation.DebugSimulationControllerProbeActivity \
+  --es nonce "$DEBUG_SIMULATION_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$DEBUG_SIMULATION_PROBE_OUTPUT"; then
+  echo "$DEBUG_SIMULATION_PROBE_OUTPUT" >&2
+  echo "Debug simulation controller probe did not start successfully" >&2
+  exit 1
+fi
+DEBUG_SIMULATION_PROBE_PASSED=false
+for _ in {1..40}; do
+  DEBUG_SIMULATION_LOG="$("${ADB_DEVICE[@]}" logcat -d \
+    -s CbDebugSimProbe:I CbDebugSimService:I '*:S')"
+  if grep -Fq \
+      "nonce=$DEBUG_SIMULATION_NONCE debug_simulation_controller_probe_complete=true" \
+      <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_defined=true" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_aidl_version=1" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_signature_permission_enforced=true" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_capability_enforced=true" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq \
+        "debug_simulation_controller_state_signal_fault_clock_reset_verified=true" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_audit_bounded_verified=true" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_android13_arm64_verified=true" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_debug_only=true" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_production_exported=false" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_controller_runtime_wired=false" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_audit_event=true command=setDrivingState outcome=APPLIED" \
+        <<<"$DEBUG_SIMULATION_LOG" \
+      && grep -Fq "debug_simulation_audit_event=true command=reset outcome=APPLIED" \
+        <<<"$DEBUG_SIMULATION_LOG"; then
+    DEBUG_SIMULATION_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$DEBUG_SIMULATION_PROBE_PASSED" != true ]]; then
+  echo "$DEBUG_SIMULATION_LOG" >&2
+  echo "Debug simulation controller probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -2105,6 +2171,16 @@ printf '%s\n' \
   "external_activity_started=false" \
   "location_uploaded=false" \
   "network_accessed=false" \
+  "debug_simulation_controller_defined=true" \
+  "debug_simulation_controller_aidl_version=1" \
+  "debug_simulation_controller_signature_permission_enforced=true" \
+  "debug_simulation_controller_capability_enforced=true" \
+  "debug_simulation_controller_state_signal_fault_clock_reset_verified=true" \
+  "debug_simulation_controller_audit_bounded_verified=true" \
+  "debug_simulation_controller_android13_arm64_verified=true" \
+  "debug_simulation_controller_debug_only=true" \
+  "debug_simulation_controller_production_exported=false" \
+  "debug_simulation_controller_runtime_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

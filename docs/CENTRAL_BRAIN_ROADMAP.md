@@ -2,7 +2,7 @@
 
 版本：1.1
 日期：2026-07-17
-状态：Stage 2 P2 in progress
+状态：Stage 2 P3 in progress
 
 ## 1. 基线与范围
 
@@ -121,8 +121,8 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated base/HVAC；production 无 fallback | 进行中（P2-W01..W09 完成，P2-W10 下一步） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
+| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 进行中（P3-W01 下一步） |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
 | S2-P6 | Memory/Event/Model 集成 | privacy lifecycle、proactive trigger、model routing | 未开始 |
@@ -214,9 +214,13 @@ desired/reported Twin、recline admission+dispatch 双重 fresh Safety/occupancy
 observation、可替换 simulation backend、delay/fault/mismatch/idempotency 和 external Activity/network/location
 失败关闭已通过 JVM、release-source compile 与 Android 13/API 33 ARM64 probe；production 不含/不注册。
 
-下一实现工作包为 `P2-W12 Debug Context Controller`。只在 debug build 增加 signature/capability-protected
-context/fault/clock/reset 控制面，不得 exported 到 production、注册 production adapter、访问真实
-Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
+`P2-W12 Debug Context Controller` 已完成：debug-only AIDL/Service 通过 signature permission 与 calling
+UID/package/current-signer capability 双层授权，typed driving/canonical signal、四 adapter fault、manual clock、
+reset、128 条 digest-only audit 已通过 JVM、debug/release compile 与 Android 13/API 33 ARM64 Binder probe；
+release 无 exported controller，production Context/vehicle/Graph/Effect 仍未接。
+
+下一实现工作包为 `P3-W01 AgentGraphRuntime state machine`。只实现合法 graph/run/node transition、单 session
+FIFO 和跨 session 有界调度，不在该包 dispatch Effect、访问真实 Vehicle/VHAL/NPU/Driver-HAL 或恢复 fallback。
 
 ## 7. 近期进展
 
@@ -321,6 +325,9 @@ Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
 - 完成 `P2-W11 Simulated Media/Nav adapters`：typed player state、digest-only synthetic POI/route、replaceable
   backend、delay/fault/mismatch/idempotency 与 no Activity/network/location 通过 JVM/release compile/API 33 ARM64
   probe；production registration/Runtime/Effect/hardware 保持 false，下一工作包为 P2-W12 Debug Controller。
+- 完成 `P2-W12 Debug Context Controller`：debug-only AIDL、signature+capability、typed state/signal/fault/clock/
+  reset、bounded digest-only audit 通过 JVM/debug/release/API 33 ARM64 Binder probe；production exported/Runtime/
+  vehicle provider/hardware 保持 false，下一工作包为 P3-W01 AgentGraphRuntime。
 
 ## 8. 当前门禁
 
@@ -341,6 +348,7 @@ bash tools/check_central_brain_android_vehicle_signal_schema.sh
 bash tools/check_central_brain_android_vehicle_capability_catalog.sh
 bash tools/check_central_brain_android_scenario_manifest.sh
 bash tools/check_central_brain_android_scenario_resolver.sh
+bash tools/check_central_brain_android_debug_simulation_controller.sh
 bash tools/check_central_brain_android_runtime_evolution.sh
 ```
 
@@ -393,6 +401,15 @@ scenario_resolver_runtime_wired=false
 scenario_compiler_wired=false
 scenario_runtime_wired=false
 scenario_graph_execution_enabled=false
+debug_simulation_controller_defined=true
+debug_simulation_controller_aidl_version=1
+debug_simulation_controller_signature_permission_enforced=true
+debug_simulation_controller_capability_enforced=true
+debug_simulation_controller_android13_arm64_verified=true
+debug_simulation_controller_debug_only=true
+debug_simulation_controller_release_source_absent=true
+debug_simulation_controller_production_exported=false
+debug_simulation_controller_runtime_wired=false
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
