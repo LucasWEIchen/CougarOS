@@ -686,3 +686,20 @@ PCIe/NPU 或 Driver/HAL。Fault delay/timeout 使用手动单调时钟；simulat
 `vehicle_signal_provider_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为
 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-ADP-001`、`S2-EFF-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W09 Simulated HVAC Adapter Driver/HAL Boundary
+
+P2-W09 只在 Runtime `src/debug` 新增纯 Java typed HVAC target/adapter、JVM tests、DUMP-protected probe、
+installer marker 和 checker。它复用内部 capability 与 Digital Twin software contract，不发现或调用
+CarProperty/VHAL/vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL。
+
+power/temperature/fan 的 area/range/step 是 Stage 2 debug contract，不是 OEM property ID、标定或授权。
+reported 由 manual simulation clock 生成并固定 source SIMULATED、production trust false；timeout/failure
+不生成假回读。production source/Service 不含或注册 adapter，真实 HVAC 缺失仍必须返回 unavailable。
+
+状态：`simulated_hvac_adapter_defined=true`、`simulated_hvac_debug_only=true`、
+`simulated_hvac_production_registered=false`、`simulated_hvac_runtime_wired=false`、
+`vehicle_property_mapping_configured=false`、`vehicle_signal_provider_wired=false`、
+`effect_dispatch_enabled=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。
+Req IDs：`S2-ADP-001`、`S2-EFF-001`、`KH-003/006`、`DEL-004/005`。

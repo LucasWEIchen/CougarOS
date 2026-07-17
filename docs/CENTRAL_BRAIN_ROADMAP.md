@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapter base；production 无 fallback | 进行中（P2-W01..W08 完成，P2-W09 下一步） |
+| S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated base/HVAC；production 无 fallback | 进行中（P2-W01..W09 完成，P2-W10 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -201,9 +201,13 @@ approval 前驱和 moving/unknown unsafe branch absent。JVM 与 Android 13/API 
 有界幂等 record 和 delivery/readback 分离已通过 JVM、release-source compile 与 Android 13/API 33 ARM64
 probe；production 不含/不注册，未接现有 Effect/Plan/Graph Runtime。
 
-下一实现工作包为 `P2-W09 Simulated HVAC adapter`。只在 debug source set 基于 P2-W08 实现 HVAC power/
-target-temperature/fan 的 typed absolute target、area/range/step、desired/reported delay、idempotency 和 readback；
-不得注册 production adapter、访问真实 Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
+`P2-W09 Simulated HVAC adapter` 已完成：debug-only versioned typed absolute target、catalog-bound action/
+area/range/step、adapter-owned desired/reported Twin、manual delay、timeout/failure/mismatch/idempotency 已通过
+JVM、release-source compile 与 Android 13/API 33 ARM64 probe；production 不含/不注册，未接 Effect Runtime。
+
+下一实现工作包为 `P2-W10 Simulated Seat adapter`。只在 debug source set 基于 P2-W08 实现 heating/
+ventilation/recline typed target，并在每次 recline dispatch 前对 fresh parked/unknown/moving/occupancy/belt
+Safety state 失败关闭；不得注册 production adapter、访问真实 Vehicle/VHAL/NPU/Driver-HAL 或恢复 Python fallback。
 
 ## 7. 近期进展
 
@@ -299,6 +303,9 @@ target-temperature/fan 的 typed absolute target、area/range/step、desired/rep
 - 完成 `P2-W08 SimulatedVehicleAdapter base`：debug-only typed adapter、manual clock、bounded fault matrix、
   idempotency 与 delivery/readback 分离通过 JVM/release compile/API 33 ARM64 probe；production registration/
   Runtime/Effect/hardware 保持 false，下一工作包为 `P2-W09 Simulated HVAC adapter`。
+- 完成 `P2-W09 Simulated HVAC adapter`：typed absolute target、catalog area/range/step、desired/reported
+  Twin、manual delay、timeout/retry/terminal/mismatch/idempotency 通过 JVM/release compile/API 33 ARM64 probe；
+  production registration/Runtime/Effect/hardware 保持 false，下一工作包为 `P2-W10 Simulated Seat adapter`。
 
 ## 8. 当前门禁
 

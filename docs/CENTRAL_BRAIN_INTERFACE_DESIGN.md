@@ -1047,3 +1047,40 @@ wiring, Vehicle/VHAL/NPU or Driver/HAL access. Status: `simulated_effect_adapter
 `simulated_effect_adapter_production_registered=false`, `simulated_effect_adapter_runtime_wired=false`,
 `effect_dispatch_enabled=false`, `hardware_accessed=false`. Req IDs: `S2-ADP-001`, `S2-EFF-001`,
 `DEL-001/003..005`; tracking: `DEV-037`, `ISSUE-030/033`.
+
+## Android P2-W09 Simulated HVAC Adapter
+
+### Debug-only typed target contract
+
+```java
+HvacTarget HvacTarget.power(boolean enabled);
+HvacTarget HvacTarget.targetTemperature(String area, double celsius);
+HvacTarget HvacTarget.fanLevel(String area, long level);
+byte[] HvacTarget.toCanonicalPayload();
+HvacTarget HvacTarget.fromCanonicalPayload(byte[] canonicalPayload);
+
+DigitalTwinSnapshot SimulatedHvacEffectAdapter.getDigitalTwinSnapshot();
+```
+
+The payload is a version 1 fixed binary structure: magic, schema version, stable capability code, UTF-8 area length/
+bytes, scalar-kind code and full 64-bit scalar value. Decode requires exact length and re-encoding is canonical.
+`Invocation.actionId` must equal the decoded capability canonical ID and destination must be `vehicle.hvac`.
+
+| Capability | Area | Absolute target | Readback path |
+| --- | --- | --- | --- |
+| HVAC power | cabin | boolean | `HVAC_ACTIVE` |
+| target temperature | four seat zones | 16..30 celsius, step 0.5 | `HVAC_TARGET_TEMPERATURE` |
+| fan level | cabin/row1 zones | 0..7 level, step 1 | `HVAC_FAN_LEVEL` |
+
+Admission validates writable+simulatable/non-production capability metadata and writes desired with a 180-second
+TTL. NONE/DELAY completion writes source SIMULATED reported once. TIMEOUT/retryable/terminal failure leave reported
+absent. READBACK_MISMATCH writes a deterministic valid but different value so both base observation and Twin
+reconciliation expose mismatch. Duplicate token replay cannot advance Twin revision.
+
+The adapter and target type remain debug-source internal APIs: no AIDL, production registry, shared Runtime Twin,
+Room, Plan/Graph/Effect Service, Vehicle/VHAL/NPU or Driver/HAL. Status: `simulated_hvac_adapter_defined=true`,
+`simulated_hvac_typed_target_verified=true`, `simulated_hvac_desired_reported_verified=true`,
+`simulated_hvac_android13_arm64_verified=true`, `simulated_hvac_production_registered=false`,
+`simulated_hvac_runtime_wired=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.
+Req IDs: `S2-ADP-001`, `S2-EFF-001`, `DEL-001/003..005`; tracking: `DEV-038`,
+`ISSUE-030/033`.

@@ -198,6 +198,9 @@ Safety authority，未接 production Service。P2-W05 Scenario 只能消费该�
 P2-W08 进展：simulation source、production trust false 和 delivery/readback 分离已固定；这不是 OEM
 property/permission/area/readback contract，真实 adapter 仍必须返回 unavailable。
 
+P2-W09 进展：HVAC power/temperature/fan typed target、software area/range/step 与 isolated Twin readback
+已完成；没有 OEM property/service/permission/area mapping 或 production owner，本问题保持 Open。
+
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
 场景版本、冲突规则、用户偏好、保留期、删除/导出、跨账号边界、主动触发频率、免打扰和模型文本
@@ -322,3 +325,4 @@ production Event broker。`event_v2_interface_published=false`、
 | P2-W06 进展 | Deterministic Resolver 与 API 33 ARM64 probe 完成；product taxonomy/production trust/Service/compiler/Graph 仍开放。 |
 | P2-W07 进展 | Digest-bound typed Plan compiler 与 API 33 ARM64 probe 完成；target material/production publication/Graph/Effect 仍开放。 |
 | P2-W08 进展 | Debug-only simulated Effect base 与 API 33 ARM64 probe 完成；HVAC/Seat target、Runtime wiring 和真实车辆 readback 仍开放。 |
+| P2-W09 进展 | Debug-only HVAC typed target/isolated Twin 与 API 33 ARM64 probe 完成；production property/Runtime/Client2 HVAC 闭环仍开放。 |
