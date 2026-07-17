@@ -20,7 +20,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 | Native Runtime AAR | 已形成 | C ABI V1/JNI，arm64-v8a/x86_64 |
 | Runtime Service APK | 已形成 | signature Binder、Room、Governance、readiness |
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
-| Client2 Demo APK | 可选 | 当前为底部导航触发四阶段悬浮面板、四项自然场景和 typed Session/Event；尚无 HVAC/Seat 控制页 |
+| Client2 Demo APK | 可选 | 底部导航触发四阶段悬浮面板、四项自然场景、HVAC/Seat、timeline/recovery 和行驶限制呈现；Runtime Effect/readback 未接 |
 | Client2 中控 UI/UX 设计稿 | 已形成 | 四阶段原型、可观察自动化链、1920x1080 安全框、60% 半透明玻璃和四张 PNG；仅设计资产 |
 | Android 13 安装/验收 | 已形成 | dry-run、signer guard、ADB、恢复矩阵 |
 | GitHub 源码/文档基线 | 已形成 | 完整正式工程文件、首页架构/进度、pre-push/Actions 门禁 |
@@ -36,8 +36,9 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 ## 2026-07-16 Client2 中控 HVAC/Seat 交付规划
 
 `S2-HMI-001..006` 将自然场景意图和 HVAC/Seat Effect 明确为 `com.tuanjie.urasclient2` APK 内的
-中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前 HMI-D0/D1、P4-W01..P4-W06
-已完成，Client2 已包含四阶段界面、HVAC/Seat control surface 和七阶段执行时间线；Runtime Effect/readback 闭环仍未实现。
+中控屏交付内容，不是独立 Demo HMI，也不是只显示模型回复的文本功能。当前 HMI-D0/D1、P4-W01..P4-W08
+已完成，Client2 已包含四阶段界面、HVAC/Seat control surface、七阶段执行时间线、recovery UX 和 driving restriction；
+Runtime Effect/readback 闭环仍未实现。
 
 P4 计划用 24-32 人日交付意图/计划/执行/结果四阶段、可观察自动化链和 HVAC/Seat Effect 详情，
 以及 manual/AI 共用 Session、Governance、Effect、readback、partial、retry、undo 和 restart recovery
@@ -1597,7 +1598,7 @@ HAL 或虚拟化。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`AP
 `DEL-001/003/004/005`。状态：`cockpit_execution_timeline_implemented=true`、
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_plan_published=false`、
 `cockpit_execution_effect_dispatch_enabled=false`、`cockpit_execution_readback_available=false`、
-`hardware_accessed=false`、`implementation_stage=P4-W08`。
+`hardware_accessed=false`、`implementation_stage=P4-W09`。
 
 ## P4-W07 Approval and Recovery UX
 
@@ -1618,4 +1619,26 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_approval_details_fail_closed=true`、`cockpit_partial_outcome_projection=true`、
 `cockpit_compensation_projection=true`、`cockpit_approval_response_service_published=false`、
 `cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
-`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W08`。
+`cockpit_recovery_commands_enabled=false`、`hardware_accessed=false`、`implementation_stage=P4-W09`。
+
+## P4-W08 Driving Restriction Renderer
+
+交付 `PanelPresentationMode`、pure Java `DrivingUxPolicy`、HMI state/reducer integration、restriction banner、受限文本与
+control renderer、host/static gate 和 Android 13/API 33 ARM64 默认受限路径验收。
+
+输入只来自 `CockpitSeatState.SafetyContext` 的 typed driving/source/quality/revision。null、UNAVAILABLE、非 OBSERVED、
+revision<=0、UNKNOWN 和 MOVING 全部映射到 MOVING_RESTRICTED；只有可信已观测 PARKED 映射到 PARKED_FULL。受限模式保留
+单行摘要，隐藏 Intent/Context/Plan/Execution/Result 长文本与 trace，禁用 HVAC/Seat 参数编辑和 `skill.nap` 高风险入口。
+click handler 进行二次 policy 检查，避免只依赖 disabled 样式。
+
+该 policy 只控制 HMI 呈现。`PanelPresentationMode.isEffectAuthorizationSource()` 对所有 mode 都返回 false；PARKED_FULL
+不授予 approval、Effect 或车辆控制权限，Runtime Governance/Safety 仍须独立重验。当前实体设备没有可信 Context provider，
+所以本包实体 run 只验证 UNKNOWN 受限模式，HVAC/Seat manual admission 本轮明确不复测；P4-W09 通过受保护工程师抽屉
+提供 typed Context 后再覆盖 PARKED/MOVING/UNKNOWN 实体矩阵。
+
+Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/006`、
+`DEL-001/003/004/005`。状态：`cockpit_driving_ux_policy_implemented=true`、
+`cockpit_unknown_driving_restricted=true`、`cockpit_moving_long_text_hidden=true`、
+`cockpit_restricted_parameter_editing_disabled=true`、`cockpit_high_risk_controls_disabled=true`、
+`cockpit_runtime_policy_authority_independent=true`、`vehicle_signal_provider_wired=false`、
+`hardware_accessed=false`、`implementation_stage=P4-W09`。

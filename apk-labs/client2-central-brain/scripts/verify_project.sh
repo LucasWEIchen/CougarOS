@@ -41,6 +41,8 @@ for java_file in \
   SeatControlIntent.java \
   CockpitExecutionTimeline.java \
   CockpitRecoveryState.java \
+  PanelPresentationMode.java \
+  DrivingUxPolicy.java \
   CockpitHmiReducer.java \
   CockpitControlCoordinator.java; do
   test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/$java_file"
@@ -68,6 +70,7 @@ if [[ -d "$WORK_DIR" ]]; then
     centralBrainHeader \
     centralBrainSourceText \
     centralBrainDrivingText \
+    centralBrainRestrictionText \
     centralBrainConnectionText \
     centralBrainIntentTab \
     centralBrainPlanTab \

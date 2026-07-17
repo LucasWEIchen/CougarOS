@@ -392,3 +392,40 @@ target_hardware_validated=false
 UI 树和人工截图复核确认恢复区及四个 disabled controls 位于 `(1264,160)-(1888,1048)` 内部 ScrollView，无越界或背景
 分屏。截图只保留本地临时 evidence，不进入 Git；设备身份、raw UI tree/logcat 不发布。契约承载偏差由 `DEV-057`
 跟踪；下一硬件增量为 P4-W08 Driving restriction renderer。
+
+## 15. 2026-07-18 P4-W08 driving restriction renderer evidence
+
+同一 Android 13/API 33 ARM64 USB 设备通过 signed APK happy path 和完整 recovery matrix：
+
+1. Client2 默认没有 trusted global driving Context，Header 显示 UNKNOWN/受限，restriction banner 明确按行驶态限制；
+2. Intent/Context/Plan/Execution/Result 长详情和 typed trace 在受限模式隐藏，场景 reply 限制为单行摘要；
+3. HVAC/Seat 抽屉仍可打开并显示 desired/reported 缺口，但全部参数按钮 disabled；本轮不创建 manual HVAC/Seat Session；
+4. `skill.nap` 高风险按钮 disabled；`care.cold` 等非高风险自然场景仍可通过 typed Session/Event 建立受治理 Session；
+5. Runtime 不可用后重试、Runtime process death、Session replay/duplicate suppression、Client2 process restart/checkpoint、
+   outside dismiss/reopen 全部通过，恢复过程没有放宽限制；
+6. 未注入伪 PARKED、未调用 Adapter/Effect/Vehicle/VHAL/NPU/Driver-HAL；Runtime policy authority 保持独立；
+7. 1920x1080 截图复核确认浮窗位于 `(1264,160)-(1888,1048)`，半透明车模背景可见，无越界或控件重叠。
+
+```text
+cockpit_driving_ux_policy_verified=true
+cockpit_unknown_driving_restricted_verified=true
+cockpit_restricted_long_text_hidden_verified=true
+cockpit_restricted_parameter_editing_disabled_verified=true
+cockpit_high_risk_controls_disabled_verified=true
+cockpit_runtime_policy_authority_independent=true
+cockpit_hvac_controls_restricted_verified=true
+cockpit_hvac_manual_session_admission_retested=false
+cockpit_seat_controls_restricted_verified=true
+cockpit_seat_manual_session_admission_retested=false
+scenario_execution_enabled=false
+production_effect_dispatch_enabled=false
+hardware_accessed=false
+driver_development_triggered=false
+virtualization_development_triggered=false
+production_ready=false
+target_hardware_validated=false
+```
+
+截图、raw UI tree、原始日志和设备身份只留在本地未跟踪 evidence，不进入 Git。PARKED_FULL 的当前实体复测不是本包证据；
+P4-W09 必须通过 signature/capability protected engineer drawer 接入 debug Context Controller 后覆盖 PARKED/MOVING/UNKNOWN，
+且 production Context/Safety authority 仍由 P8 关闭。偏差由 `DEV-058` 跟踪。

@@ -81,6 +81,7 @@
 | DEV-055 | P4-W05 冻结 Session V1 以 canonical SEAT1 utterance/HMI_BUTTON 承载手动参数，且无 approval response，不是 typed safety transport。 | S2-HMI-002/003/005, S2-SAF-001, XSC-001/006, ISSUE-029/033 | Accepted Temporary |
 | DEV-056 | P4-W06 HMI 已能投影完整 typed timeline 合同，但当前 Runtime 只发布 Session 事件，未发布 Plan/Action/Effect/Observation。 | S2-UX-001, S2-HMI-003/006, S2-EVT-001, ISSUE-022/026/033 | Accepted Temporary |
 | DEV-057 | P4-W07 recovery UX 只能消费 Session/Event V1，无法接收 ApprovalPrompt、EffectObservation.retryable 或 UndoHandle。 | S2-UX-003, S2-HMI-003, S2-SAF-001, S2-EFF-001, ISSUE-022/026/029/033 | Accepted Temporary |
+| DEV-058 | P4-W08 driving presentation 尚无 production trusted global Context；实体默认只能验证 UNKNOWN 受限模式。 | S2-UX-002, S2-HMI-002, S2-SAF-001, ISSUE-023/029/030/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -855,3 +856,22 @@ EffectObservation retry metadata、UndoHandle/compensation admission service，�
 `cockpit_recovery_state_reducer_owned=true`、`cockpit_approval_response_service_published=false`、
 `cockpit_retry_service_published=false`、`cockpit_undo_service_published=false`、
 `cockpit_recovery_commands_enabled=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+## DEV-058 P4-W08 driving presentation lacks production trusted global Context
+
+P4-W08 已在 Client2 增加 pure Java `DrivingUxPolicy` 与 immutable `PanelPresentationMode`，并把 null、UNKNOWN、MOVING、
+unavailable、非 OBSERVED 或无有效 revision 的 Context 全部映射到受限呈现。受限模式隐藏长文本、禁用 HVAC/Seat 参数编辑
+和高风险休息场景；PARKED_FULL 只在可信已观测 Context 下恢复呈现。两种模式都明确不能作为 Effect 授权来源。
+
+当前实体 Client2 尚未绑定 production trusted global Context provider，也没有可由测试脚本安全切换的受保护工程师入口。
+因此 P4-W08 实体证据只能证明默认 UNKNOWN 受限路径，不能在本轮重新证明 PARKED_FULL 下的 HVAC/Seat manual Session。
+历史 P4-W04/P4-W05 的实体 manual admission 证据仍保留，但当前 run 将
+`cockpit_hvac_manual_session_admission_retested=false` 和
+`cockpit_seat_manual_session_admission_retested=false` 明确公开，禁止为通过验收注入假驻车状态。
+
+关闭条件：P4-W09 通过 signature/capability 保护的工程师仿真抽屉接入现有 debug Context Controller，在实体 Android 13
+上分别验证 UNKNOWN/MOVING/PARKED 呈现、PARKED 参数入口、Context reset 以及 Runtime Policy 独立；production Context/
+Safety authority 和真实车辆信号仍由 P8 与 `ISSUE-023/029/030` 关闭。
+
+状态：`Accepted Temporary`。`vehicle_signal_provider_wired=false`、`production_ready=false`、
+`target_hardware_validated=false`、`driver_development_triggered=false`。

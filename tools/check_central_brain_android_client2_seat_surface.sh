@@ -153,10 +153,9 @@ fi
 
 for marker in \
   'cockpit_seat_surface_implemented=true' \
-  'cockpit_seat_controls_verified=true' \
-  'cockpit_seat_heat_vent_mutex_verified=true' \
+  'cockpit_seat_controls_restricted_verified=true' \
   'cockpit_seat_unknown_restricted_fail_closed=true' \
-  'cockpit_seat_manual_session_admission_verified=true' \
+  'cockpit_seat_manual_session_admission_retested=false' \
   'cockpit_seat_desired_reported_separation_verified=true' \
   'cockpit_seat_reported_readback_available=false' \
   'cockpit_seat_verified_before_readback=false' \

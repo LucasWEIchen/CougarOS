@@ -1035,3 +1035,19 @@ Plan NOT PUBLISHED、Graph NOT WIRED、Effect NOT DISPATCHED、Readback UNAVAILA
 `virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变；真实车辆 observation/
 Adapter 仍由 P8/`ISSUE-030` 关闭。Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、
 `XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。
+
+### P4-W08 Driving restriction renderer Driver/HAL Boundary
+
+本包只新增 Client2 application XML 和纯 Java immutable presentation policy/state/reducer/coordinator 行为。Driving input
+只消费现有 typed `CockpitSeatState.SafetyContext`；不发现或读取 Android Car/CarProperty、Vehicle/VHAL、Vendor service、
+CAN/DBC、Safety Runtime、device node、ioctl/sysfs、JNI/C ABI、PCIe/NPU、fd/shared memory 或任何 Driver/HAL 返回值。
+
+UNKNOWN/MOVING/unavailable/untrusted 输入统一禁用参数编辑和高风险场景，是应用层失败关闭，不是车辆信号探测或硬联锁。
+PARKED_FULL 也只改变呈现，`isEffectAuthorizationSource=false`，不能授权 Adapter 或 Effect。当前实体没有 production
+Context provider，P4-W08 不添加伪 property、假 provider 或本地 PARKED fallback。
+
+状态：`vehicle_signal_provider_wired=false`、`cockpit_driving_ux_policy_implemented=true`、
+`cockpit_runtime_policy_authority_independent=true`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量为 0，
+`DRV-GAP-001..005` 不变；真实 driving/Safety authority 仍由 P8 与 `ISSUE-023/029/030` 关闭。Req IDs：
+`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`。

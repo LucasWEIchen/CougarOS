@@ -265,9 +265,37 @@ The current Client2 transport does not deliver `ApprovalPrompt`, `EffectObservat
 missing target are therefore rendered UNAVAILABLE, while approve/reject/retry/undo remain visible but disabled. This is a deliberate
 capability boundary, not a placeholder success path. Overlay dismissal changes presentation only and preserves Session/recovery state.
 
-P4-W01 through P4-W07 are complete at the Android application layer. The next package is P4-W08 Driving restriction renderer.
+P4-W01 through P4-W07 are complete at this checkpoint; P4-W08 driving restriction projection is specified below.
 Req IDs: `S2-UX-003`, `S2-HMI-003`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-001/005/006`. Current flags:
 `cockpit_recovery_state_reducer_owned=true`, `cockpit_partial_outcome_projection=true`,
 `cockpit_approval_response_service_published=false`, `cockpit_retry_service_published=false`,
 `cockpit_undo_service_published=false`, `cockpit_recovery_commands_enabled=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W08`.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W09`.
+
+## P4-W08 Client2 driving restriction projection
+
+```text
+typed SafetyContext (driving/source/quality/revision)
+  -> DrivingUxPolicy
+  -> PanelPresentationMode
+  -> CockpitHmiReducer / immutable CockpitHmiState
+  -> CockpitControlCoordinator
+  -> restriction banner + concise text + disabled parameter/high-risk controls
+```
+
+Only trusted observed PARKED Context selects PARKED_FULL. MOVING, UNKNOWN, missing, unavailable, stale or revision-less Context
+selects MOVING_RESTRICTED. The restricted renderer hides long Intent/Context/Plan/Execution/Result content, keeps a one-line summary
+and disables HVAC/Seat parameter editing plus high-risk nap entry. Click handlers repeat the state check before reducer mutation or
+Session admission.
+
+This path is presentation-only. Both modes report `isEffectAuthorizationSource=false`; no UI transition can authorize an Effect,
+approval or vehicle action. Runtime Governance/Safety remains independent and must revalidate Context at dispatch. The current
+physical Client2 has no trusted global Context provider, so its only honest default is restricted; P4-W09 adds a protected debug
+simulation surface for physical PARKED/MOVING/UNKNOWN coverage without changing production authority.
+
+P4-W01 through P4-W08 are complete at the Android application layer. Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`,
+`APP-004`, `XSC-001/005/006`. Current flags: `cockpit_driving_ux_policy_implemented=true`,
+`cockpit_unknown_driving_restricted=true`, `cockpit_restricted_parameter_editing_disabled=true`,
+`cockpit_high_risk_controls_disabled=true`, `cockpit_runtime_policy_authority_independent=true`,
+`vehicle_signal_provider_wired=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P4-W09`.

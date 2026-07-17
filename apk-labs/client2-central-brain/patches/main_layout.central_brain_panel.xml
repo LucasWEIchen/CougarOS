@@ -28,6 +28,8 @@
                     <Button android:id="@+id/centralBrainResultTab" android:tag="central_brain_stage_result" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:background="@drawable/central_brain_stage_tab" android:minHeight="0.0dp" android:minWidth="0.0dp" android:text="4  结果\n回读确认" android:textAllCaps="false" android:textColor="#26343D" android:textSize="11.0sp" />
                 </LinearLayout>
 
+                <TextView android:id="@+id/centralBrainRestrictionText" android:layout_width="match_parent" android:layout_height="36.0dp" android:background="@drawable/central_brain_status_badge" android:gravity="center_vertical" android:paddingLeft="12.0dp" android:paddingRight="12.0dp" android:text="驾驶状态不可确认 · 按行驶态限制，高风险控件关闭" android:textColor="#805716" android:textSize="10.0sp" android:textStyle="bold" />
+
                 <FrameLayout android:id="@+id/centralBrainStageViewport" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0">
                     <ScrollView android:id="@+id/centralBrainIntentSurface" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:paddingLeft="18.0dp" android:paddingTop="16.0dp" android:paddingRight="18.0dp" android:paddingBottom="12.0dp">
                         <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">

@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P4-W08`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P4-W09`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,6 +2109,49 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W08`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P4-W09`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
+
+## Client2 P4-W08 Driving Restriction Interfaces
+
+### PanelPresentationMode
+
+```java
+enum PanelPresentationMode {
+    PARKED_FULL,
+    MOVING_RESTRICTED
+}
+```
+
+The enum exposes `isLongTextVisible()`, `isParameterEditingEnabled()` and `isHighRiskScenarioEnabled()`. It also exposes
+`isEffectAuthorizationSource()`, which is always false. The enum is immutable and Android-view independent so it can be unit tested
+without an Activity or Binder.
+
+### DrivingUxPolicy
+
+```java
+static PanelPresentationMode modeFor(CockpitSeatState.SafetyContext context);
+static boolean isHighRiskScenario(String scenarioId);
+```
+
+`modeFor` returns PARKED_FULL only when context is non-null, source is available, quality is OBSERVED, revision is positive and
+driving state is PARKED. Every other input returns MOVING_RESTRICTED. `skill.nap` is the current exact high-risk scenario; aliases,
+unknown IDs and text are never interpreted as authority.
+
+### Reducer and renderer contract
+
+`CockpitHmiReducer.SEAT_SAFETY_CONTEXT_CHANGED` atomically stores the typed SafetyContext and recomputes presentation mode.
+RESTORED returns MOVING_RESTRICTED. `CockpitControlCoordinator.renderPresentation` controls the restriction banner, one-line reply,
+long-detail visibility and control enabled state. HVAC/Seat click handling repeats the mode check before changing desired state or
+opening a Session. The renderer never writes Context and cannot call Adapter/Effect.
+
+Current physical Client2 has no trusted Context provider, so its default interface result is MOVING_RESTRICTED. P4-W09 must bind a
+signature/capability-protected engineer simulation surface to the existing debug Context Controller before physical PARKED mode can
+be retested. Production Context/Safety remains outside HMI authority.
+
+Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
+`cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P4-W09`.
+Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
+`ISSUE-023/029/030/033`.

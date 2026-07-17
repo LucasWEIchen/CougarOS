@@ -27,6 +27,9 @@ public final class CockpitHmiReducerTestMain {
                 "initial panel must be hidden");
         check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.INTENT,
                 "intent must be the initial surface");
+        check(state.getPresentationMode() == PanelPresentationMode.MOVING_RESTRICTED,
+                "missing driving evidence must default to restricted presentation");
+        verifyDrivingUxPolicy();
         verifyHvacReduction();
         verifySeatReduction();
         verifyExecutionTimeline();
@@ -156,8 +159,31 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_retry_service_published=false");
         System.out.println("cockpit_undo_service_published=false");
         System.out.println("cockpit_recovery_commands_enabled=false");
+        System.out.println("cockpit_driving_ux_policy_verified=true");
+        System.out.println("cockpit_unknown_driving_restricted_verified=true");
+        System.out.println("cockpit_moving_long_text_hidden_verified=true");
+        System.out.println("cockpit_high_risk_controls_disabled_verified=true");
+        System.out.println("cockpit_runtime_policy_authority_independent=true");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
+    }
+
+    private static void verifyDrivingUxPolicy() {
+        check(DrivingUxPolicy.modeFor(null) == PanelPresentationMode.MOVING_RESTRICTED,
+                "missing Context must fail closed");
+        check(DrivingUxPolicy.modeFor(CockpitSeatState.SafetyContext.unavailable())
+                        == PanelPresentationMode.MOVING_RESTRICTED,
+                "unknown Context must be treated as moving restricted");
+        check(!PanelPresentationMode.MOVING_RESTRICTED.isLongTextVisible()
+                        && !PanelPresentationMode.MOVING_RESTRICTED.isParameterEditingEnabled()
+                        && !PanelPresentationMode.MOVING_RESTRICTED.isHighRiskScenarioEnabled(),
+                "restricted presentation must hide detail and disable risky editing");
+        check(!PanelPresentationMode.PARKED_FULL.isEffectAuthorizationSource()
+                        && !PanelPresentationMode.MOVING_RESTRICTED.isEffectAuthorizationSource(),
+                "presentation mode must never authorize Effects");
+        check(DrivingUxPolicy.isHighRiskScenario("skill.nap")
+                        && !DrivingUxPolicy.isHighRiskScenario("care.fatigue"),
+                "only the bounded rest scenario is high risk in this HMI catalog");
     }
 
     private static void verifyHvacReduction() {
@@ -324,6 +350,8 @@ public final class CockpitHmiReducerTestMain {
         CockpitHmiState parkedState = CockpitHmiReducer.reduce(
                 CockpitHmiState.initial(),
                 CockpitHmiReducer.Event.seatSafetyContextChanged(parked));
+        check(parkedState.getPresentationMode() == PanelPresentationMode.PARKED_FULL,
+                "trusted parked Context must enable full presentation only");
         parkedState = CockpitHmiReducer.reduce(
                 parkedState,
                 CockpitHmiReducer.Event.seatDesiredChanged(
@@ -343,6 +371,8 @@ public final class CockpitHmiReducerTestMain {
         CockpitHmiState movingState = CockpitHmiReducer.reduce(
                 CockpitHmiState.initial(),
                 CockpitHmiReducer.Event.seatSafetyContextChanged(moving));
+        check(movingState.getPresentationMode() == PanelPresentationMode.MOVING_RESTRICTED,
+                "moving Context must select restricted presentation");
         movingState = CockpitHmiReducer.reduce(
                 movingState,
                 CockpitHmiReducer.Event.seatDesiredChanged(reclined));

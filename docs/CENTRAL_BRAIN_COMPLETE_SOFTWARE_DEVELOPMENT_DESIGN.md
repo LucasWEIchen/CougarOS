@@ -657,6 +657,28 @@ PanelPresentationMode modeFor(DrivingState state,
 
 `UNKNOWN` 和异常按 `MOVING_RESTRICTED`。该类只控制呈现，不授权 Effect。
 
+#### 9.7.1 P4-W08 maintained driving restriction implementation
+
+实际实现将输入收敛为 `CockpitSeatState.SafetyContext`，而不是接受独立、可能互相矛盾的 driving/session/catalog 参数。
+`DrivingUxPolicy.modeFor(context)` 只在 source 可用、quality=OBSERVED、revision>0 且 driving=PARKED 时返回
+`PARKED_FULL`；null、UNKNOWN、MOVING、unavailable、非 OBSERVED 或无有效 revision 均返回
+`MOVING_RESTRICTED`。该类和 `PanelPresentationMode` 不依赖 Android View。
+
+`CockpitHmiState` 保存 immutable mode。`SEAT_SAFETY_CONTEXT_CHANGED` reducer event 在同一 revision 中更新 Seat Context
+和 mode；RESTORED 明确恢复受限默认值。Coordinator 只消费 state：受限模式显示 fail-closed banner、把回复限制为单行、
+隐藏 Intent/Context/Plan/Execution/Result 长详情和 trace，禁用 HVAC/Seat 参数按钮与 `skill.nap`。每个参数/high-risk click
+入口还会重新检查 mode，防止 View enabled state 与 reducer state 短暂不同步。
+
+任何 mode 的 `isEffectAuthorizationSource()` 都返回 false。PARKED_FULL 只恢复 UI 呈现和输入入口，不构造 approval、
+不改变 Runtime policy、不调用 Adapter、不推进 Effect state。Runtime 必须在后续真实 dispatch 前重新读取和验证可信
+Context/Safety revision。当前实体未接可信 provider，故默认受限；P4-W09 通过受保护 debug Controller 入口覆盖实体
+PARKED/MOVING/UNKNOWN 测试，production provider 仍由 P8 交付。
+
+Host test 覆盖 null/unavailable/unknown/moving/parked、长文本/参数/high-risk 三类开关和 no-authorization invariant；静态门禁
+拒绝 Android Car、device node、Vendor/HAL 引用；实体门禁验证 restricted banner、隐藏长文本、disabled controls、无新增
+manual Session/Effect/hardware dispatch。Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、
+`XSC-001/005/006`；tracking：`DEV-058`、`ISSUE-023/029/030/033`。
+
 ### 9.8 Client2 AIOS 四阶段信息架构
 
 `BrainOverlay` 保留原有右侧半透明悬浮形态，在同一 APK 内增加稳定的 segmented navigation：

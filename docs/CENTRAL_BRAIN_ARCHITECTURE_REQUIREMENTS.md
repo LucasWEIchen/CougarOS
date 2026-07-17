@@ -39,7 +39,7 @@
 
 | Req ID | 要求 | 实现规则 | 当前状态 |
 | --- | --- | --- | --- |
-| APP-001 | 座舱 HMI | 只能经 SDK/Binder 访问 Runtime，不直连模型或车控 | Client2 场景面板已集成；HVAC/Seat 页待开发 |
+| APP-001 | 座舱 HMI | 只能经 SDK/Binder 访问 Runtime，不直连模型或车控 | Client2 四阶段、HVAC/Seat、timeline/recovery/restriction 已集成；Runtime 执行闭环待开发 |
 | APP-002 | 座舱服务 | 作为受治理 Business/Foundation/Atomic service 暴露 | 外部阻塞 |
 | APP-003 | Agent App | 通过 Session/Plan/Tool/Action/Effect 执行 | Stage 2 待开发 |
 | APP-004 | AI SDK | 提供稳定 typed client facade、异步任务和故障语义 | Android AAR 已实现 |
@@ -71,7 +71,7 @@
 | --- | --- | --- | --- |
 | FW-S-001 | Business Service | 场景编排必须生成可审计 plan/effect | Stage 2 待开发 |
 | FW-S-002 | Foundation Service | 账号、配置、时间、权限采用可替换 adapter | 外部阻塞 |
-| FW-S-003 | Atomic Service | 最小 HVAC/Seat/Media/Navigation 能力 | debug/demo adapter 待开发；真实服务外部阻塞 |
+| FW-S-003 | Atomic Service | 最小 HVAC/Seat/Media/Navigation 能力 | debug/test adapter foundation 已完成；真实服务外部阻塞 |
 | FW-S-004 | Service Contract | IDL/schema/version/error 必须冻结 | typed AIDL 基础完成 |
 | FW-S-005 | Safety State | 强制 interlock，用户确认不能覆盖硬联锁 | owner 未接入 |
 | FW-S-006 | Extension Service | 必须注册、发现、授权、审计和撤销 | 未实现 |
@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P4-W08`。
+`implementation_stage=P4-W09`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,4 +1377,30 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W08`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W09`。
+
+## 49. P4-W08 driving restriction renderer trace
+
+Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/006`、
+`NV-G-005/006/007`、`DEL-001/003/004/005`。
+
+1. Client2 必须以 View-independent immutable `PanelPresentationMode` 表示 PARKED 完整呈现与 MOVING/UNKNOWN 受限呈现；
+   唯一 `CockpitHmiState`/reducer 持有当前 mode，View 不得自建 driving 状态。
+2. 只有 source 非 UNAVAILABLE、quality=OBSERVED、revision>0 且 driving=PARKED 的 Context 才能选择 PARKED_FULL。
+   null、unavailable、stale/untrusted、MOVING 和 UNKNOWN 必须统一为 MOVING_RESTRICTED。
+3. 受限呈现必须保留单行场景/状态摘要，隐藏 Intent/Context/Plan/Execution/Result 长文本和 bounded trace；不得通过
+   assistant text、desired state 或本地默认值推断车辆已驻车。
+4. 受限呈现必须禁用 HVAC/Seat 参数编辑和 `skill.nap` 等高风险场景；对已显示控件的 click handler 还须进行二次
+   policy 检查，不能仅依赖 disabled 样式。
+5. PARKED_FULL 只恢复 UI 呈现和参数入口，不授予 Effect、approval 或车辆动作权限。两种 mode 的
+   `isEffectAuthorizationSource()` 都必须为 false，Runtime Governance/Safety 继续独立、权威并在 dispatch 前重验。
+6. 实体设备未接可信 driving Context 时必须默认受限；不得为通过测试注入伪 PARKED。host test 覆盖 PARKED/MOVING/
+   unavailable；受保护的实体 Context 切换与 PARKED 完整模式复测属于 P4-W09。
+7. 本包不得接 Android Car/CarProperty、VHAL、Vendor service、NPU、Driver/HAL，不得启用 Graph/Effect dispatch 或
+   伪造 readback。当前 HVAC/Seat 的历史 PARKED/manual 验收继续有效，但 P4-W08 实体 run 只验证受限只读路径。
+
+状态：`cockpit_driving_ux_policy_implemented=true`、`cockpit_unknown_driving_restricted=true`、
+`cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
+`cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
+`cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-W09`。

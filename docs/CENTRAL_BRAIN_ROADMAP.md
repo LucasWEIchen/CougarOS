@@ -296,9 +296,13 @@ Plan、Policy、Graph、Effect、Readback 七阶段，并保留最多八条脱�
 当前 Runtime 只到 Session admission；Plan/Graph/Effect/readback 分别保持 NOT PUBLISHED/NOT WIRED/NOT DISPATCHED/
 UNAVAILABLE，不把 desired 或 assistant text 表示为车辆执行成功。
 
-`P4-W07 Approval/partial/retry/undo UX` 已完成 application-layer 投影。下一实现工作包为
-`P4-W08 Driving restriction renderer`；必须按可信 driving Context 切换呈现，UNKNOWN 继续失败关闭，且呈现策略不能成为
-Effect 授权来源。
+`P4-W07 Approval/partial/retry/undo UX` 已完成 application-layer 投影。
+
+`P4-W08 Driving restriction renderer` 已完成：新增 Android View-independent `DrivingUxPolicy` 与
+`PanelPresentationMode`。只有可信、已观测且 revision 有效的 PARKED Context 进入完整呈现；MOVING、UNKNOWN、缺失或
+不可信 Context 都进入受限模式，隐藏长文本、禁用 HVAC/Seat 参数编辑和高风险休息场景。呈现模式始终返回
+`isEffectAuthorizationSource=false`，不能替代 Runtime Safety/Policy。当前实体设备没有可信 Context provider，故本轮
+只验证受限模式；PARKED 完整模式实体复测由 `P4-W09 Engineer simulation drawer` 提供受保护输入后执行。
 
 ## 7. 近期进展
 
@@ -466,7 +470,9 @@ Effect 授权来源。
 - 完成 `P4-W07 Approval/partial/retry/undo UX`：新增 immutable `CockpitRecoveryState`、审批状态/原因/目标/过期时间
   fail-closed 显示、VERIFIED/FAILED/INCONCLUSIVE 证据统计、Session partial aggregate 和 compensation projection。
   approve/reject/retry/undo 在对应 Binder/typed detail 未发布时保持 visible+disabled；outside dismiss 保留 Session/recovery state。
-  下一工作包为 P4-W08 Driving restriction renderer。
+- 完成 `P4-W08 Driving restriction renderer`：新增 immutable presentation mode 和纯 Java driving policy；UNKNOWN/MOVING/
+  unavailable/untrusted Context 隐藏长详情、禁用参数编辑及高风险休息场景，只有可信 PARKED 恢复完整呈现。UI mode
+  不授予 Effect 权限；当前实体默认受限，PARKED 实体路径由 P4-W09 的受保护工程师抽屉复测。
 
 ## 8. 当前门禁
 
@@ -701,8 +707,16 @@ cockpit_approval_response_service_published=false
 cockpit_retry_service_published=false
 cockpit_undo_service_published=false
 cockpit_recovery_commands_enabled=false
+cockpit_driving_ux_policy_implemented=true
+cockpit_unknown_driving_restricted=true
+cockpit_moving_long_text_hidden=true
+cockpit_restricted_parameter_editing_disabled=true
+cockpit_high_risk_controls_disabled=true
+cockpit_runtime_policy_authority_independent=true
+cockpit_hvac_manual_session_admission_retested=false
+cockpit_seat_manual_session_admission_retested=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W08
+implementation_stage=P4-W09
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

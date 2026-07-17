@@ -26,6 +26,7 @@ public final class CockpitHmiState {
     private final ConnectionState connectionState;
     private final SurfaceStage surfaceStage;
     private final DeviceDrawer deviceDrawer;
+    private final PanelPresentationMode presentationMode;
     private final CockpitHvacState hvacState;
     private final CockpitSeatState seatState;
     private final CockpitExecutionTimeline executionTimeline;
@@ -53,6 +54,7 @@ public final class CockpitHmiState {
         connectionState = builder.connectionState;
         surfaceStage = builder.surfaceStage;
         deviceDrawer = builder.deviceDrawer;
+        presentationMode = builder.presentationMode;
         hvacState = builder.hvacState;
         seatState = builder.seatState;
         executionTimeline = builder.executionTimeline;
@@ -97,6 +99,10 @@ public final class CockpitHmiState {
 
     public DeviceDrawer getDeviceDrawer() {
         return deviceDrawer;
+    }
+
+    public PanelPresentationMode getPresentationMode() {
+        return presentationMode;
     }
 
     public CockpitHvacState getHvacState() {
@@ -262,6 +268,7 @@ public final class CockpitHmiState {
         ConnectionState connectionState = ConnectionState.DISCONNECTED;
         SurfaceStage surfaceStage = SurfaceStage.INTENT;
         DeviceDrawer deviceDrawer = DeviceDrawer.CLOSED;
+        PanelPresentationMode presentationMode = PanelPresentationMode.MOVING_RESTRICTED;
         CockpitHvacState hvacState = CockpitHvacState.initial();
         CockpitSeatState seatState = CockpitSeatState.initial();
         CockpitExecutionTimeline executionTimeline = CockpitExecutionTimeline.initial();
@@ -291,6 +298,7 @@ public final class CockpitHmiState {
             connectionState = source.connectionState;
             surfaceStage = source.surfaceStage;
             deviceDrawer = source.deviceDrawer;
+            presentationMode = source.presentationMode;
             hvacState = source.hvacState;
             seatState = source.seatState;
             executionTimeline = source.executionTimeline;
@@ -319,6 +327,9 @@ public final class CockpitHmiState {
         }
 
         CockpitHmiState build() {
+            if (presentationMode == null) {
+                throw new IllegalStateException("presentation mode missing");
+            }
             if (hvacState == null) {
                 throw new IllegalStateException("HVAC state missing");
             }

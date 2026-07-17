@@ -155,9 +155,8 @@ fi
 
 for marker in \
   'cockpit_hvac_surface_implemented=true' \
-  'cockpit_hvac_controls_verified=true' \
-  'cockpit_hvac_debounce_verified=true' \
-  'cockpit_hvac_manual_session_admission_verified=true' \
+  'cockpit_hvac_controls_restricted_verified=true' \
+  'cockpit_hvac_manual_session_admission_retested=false' \
   'cockpit_hvac_desired_reported_separation_verified=true' \
   'cockpit_hvac_reported_readback_available=false' \
   'cockpit_hvac_verified_before_readback=false' \
