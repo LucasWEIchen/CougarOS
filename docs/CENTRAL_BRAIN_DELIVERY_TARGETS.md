@@ -771,3 +771,33 @@ target_hardware_validated=false
 该包不交付 Room persistence、production Service wiring、adapter registry、AAOS/Vendor mapping、真实
 vehicle read/write、Effect execution 或 NPU。API 33 ARM64 证据只证明进程内合同可在目标 Android ABI
 运行。Req IDs：`S2-TWN-001`、`DEL-001/003..005`；偏差/问题：`DEV-032`、`ISSUE-030`。
+
+## Android P2-W04 Trusted Context Snapshot
+
+受维护交付新增：
+
+1. `ContextFieldPolicy`：general、seat comfort、seat recline 固定 path/area/required policy；
+2. `ContextSnapshotBuilder`：single-Twin-revision input、Runtime state freshness、driving/motion conflict、
+   Safety/restricted/source mode 和 deterministic SHA-256 identity；
+3. `ContextSnapshot`：immutable typed fields 与 missing/stale/conflict/non-production-trusted reports；
+4. `ContextSnapshotBuilderTest`：9 组 complete/fail-closed/digest/trust/seat/motion tests；
+5. DUMP-protected API 33 ARM64 debug probe、独立 checker、累计 installer 和 GitHub CI wiring。
+
+交付标志：
+
+```text
+context_snapshot_defined=true
+context_snapshot_android13_arm64_verified=true
+context_snapshot_production_trusted=false
+context_snapshot_production_wired=false
+vehicle_signal_provider_wired=false
+vehicle_property_mapping_configured=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 AIDL/production Service、Room persistence、vehicle provider/property mapping、Safety authority、
+Effect/Graph execution 或 NPU。SIMULATED complete Context 只用于 debug/test；AAOS/VENDOR enum 不构成
+production trust。Req IDs：`S2-CTX-001`、`S2-SAF-001`、`DEL-001/003..005`；偏差/问题：
+`DEV-033`、`ISSUE-029/030`。

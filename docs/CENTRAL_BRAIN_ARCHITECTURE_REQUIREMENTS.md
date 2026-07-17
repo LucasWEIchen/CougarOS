@@ -578,3 +578,29 @@ NPU、Driver/HAL 或目标硬件资格。
 `vehicle_digital_twin_android13_arm64_verified=true`、
 `vehicle_digital_twin_persistence_wired=false`、`vehicle_digital_twin_adapter_wired=false`、
 `hardware_accessed=false`。
+
+## 24. P2-W04 trusted Context snapshot trace
+
+本增量映射 `S2-CTX-001`、`S2-SAF-001`、`DEL-001/003..005`：
+
+1. Context 必须从一个 atomic `DigitalTwinSnapshot` revision 与 Runtime-owned Safety state 构造；HMI、
+   模型或请求 payload 不得选择任意字段、source trust、Safety/Driving state 或 restricted 结果。
+2. `ContextFieldPolicy` 必须是固定 allowlist。General 至少要求 fresh speed/gear/parking brake；seat recline
+   还要求 selected-seat occupancy/belt/reported angle。未解析 seat area 必须作为 required missing 失败关闭。
+3. Field 必须区分 AVAILABLE/MISSING/STALE/UNAVAILABLE/ERROR/CONFLICT，并分别输出 missing required、
+   stale、conflict 与 non-production-trusted report；不能把 desired state 或缺失值伪装为 reported scalar。
+4. Runtime state 必须不晚于 Twin capture 且 age <= 1000 ms。Safety stale/UNKNOWN/DEGRADED/EMERGENCY、
+   Driving UNKNOWN、motion disagreement 或 required field 不可决策必须设置 `restricted=true`。
+5. Driving 派生采用保守规则：speed > 0.5 km/h 为 MOVING；只有 speed <= 0.5、P/PARK 且 parking brake
+   engaged 可由 signals 证明 PARKED。完整 MOVING Context 不自动 restricted；action-specific Safety Policy
+   仍必须禁止行驶中驾驶席 recline，用户批准不能覆盖硬联锁。
+6. Snapshot 必须 immutable、schema/versioned，SHA-256 digest 必须绑定 policy、Twin/Runtime revision、
+   capture time、seat、memory availability、派生状态和全部 typed field，等价输入结果确定。
+7. SIMULATED 必须可见；AAOS/VENDOR 仍只是 provenance，不能自动成为 production trust。P2-W04 固定
+   `productionTrusted=false`，直到 P8 provider/property/permission/activation evidence 独立验收。
+8. JVM/API 33 ARM64 debug probe 必须覆盖 complete/missing/stale/conflict、motion conflict、seat policy、
+   digest 和 trust；本增量不接 production Service/Room/adapter，不访问 Vehicle/VHAL/NPU/Driver/HAL。
+
+状态：`context_snapshot_defined=true`、`context_snapshot_android13_arm64_verified=true`、
+`context_snapshot_production_trusted=false`、`context_snapshot_production_wired=false`、
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`。

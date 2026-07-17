@@ -199,8 +199,8 @@ flowchart TB
 | Event contract | 5 个 Event DTO、`ICentralBrainSessionEvents`/callback V1、`EventContract` | `CONTRACT_ONLY`（P1-W03） | `S2-SES-001`、`S2-EVT-001` |
 | Effect/Approval contract | 4 个 Effect/Approval/Undo DTO、`EffectContract`、状态/过期/绑定边界 | `CONTRACT_ONLY`（P1-W04） | `S2-EFF-001`、`S2-SAF-001`、`S2-UX-003` |
 | Session runtime | SessionManager、EventTreeStore、SessionCallbackHub | `NOT_STARTED` | `S2-SES-001` |
-| Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01 schema 完成；snapshot 未开始） | `S2-CTX-001` |
-| Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02 catalog 完成；store 未开始） | `S2-TWN-001` |
+| Context | VehicleSignal schema、ContextSnapshotBuilder | `FOUNDATION`（P2-W01/P2-W04 完成；production trust/wiring 未接） | `S2-CTX-001` |
+| Twin | CapabilityCatalog、VehicleDigitalTwinStore | `FOUNDATION`（P2-W02/P2-W03 完成；persistence/adapter 未接） | `S2-TWN-001` |
 | Scenario | ScenarioCatalog、Resolver、PlanCompiler、GraphValidator | `NOT_STARTED` | `S2-SCN-001` |
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `NOT_STARTED` | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
@@ -882,7 +882,17 @@ VHAL/vendor property 或 Effect runtime。debug probe 只使用 `SignalSource.SI
 `hardware_accessed=false`。P2-W04 只能消费 immutable snapshot；P3-W07/P8 分别负责 Effect reconcile 与
 真实 target mapping。
 
-### 11.4 ContextSnapshotBuilder
+### 11.4 ContextSnapshotBuilder（P2-W04 已实现）
+
+API：
+
+```java
+ContextSnapshot build(DigitalTwinSnapshot twin,
+                      SafetyVehicleStateSnapshot runtimeState,
+                      ContextFieldPolicy policy,
+                      ContextSnapshot.SeatZone seatZone,
+                      boolean profileMemoryAvailable);
+```
 
 输出包含：
 
@@ -893,7 +903,30 @@ missingRequiredFields[], staleFields[], conflictFields[],
 restricted, digest
 ```
 
-关键字段 policy：speed/gear/motion 任一 unavailable/stale/conflict，则 `restricted=true`。Seat recline 还要求 occupancy/belt/reported angle fresh。
+`ContextFieldPolicy` 是 Runtime-owned immutable allowlist，不接受 HMI/模型提交任意字段。首版 profile：
+
+- `general`：speed、gear、parking brake required；HVAC active/cabin temperature optional；
+- `seatComfort`：在 general 上要求 selected-seat occupancy，heat/vent 为 optional；
+- `seatRecline`：在 general 上要求 selected-seat occupancy、belt 和 reported recline angle。
+
+Builder 只读取一个已捕获的 `DigitalTwinSnapshot`，因此所有 Context field 绑定同一 Twin revision 和
+capture elapsed realtime。Runtime state 不能晚于 Twin capture，最大 age 为 1000 ms；超时后 Safety 与
+Driving 均进入 UNKNOWN/restricted。每个 field 显式记录 AVAILABLE/MISSING/STALE/UNAVAILABLE/ERROR/
+CONFLICT、effective quality、source 和 `SIMULATED/PLATFORM_UNVERIFIED/DERIVED_UNVERIFIED` trust。
+
+Driving state 由 speed/gear/parking brake 与 Runtime motion 交叉校验：speed > 0.5 km/h 为 MOVING；只有
+speed <= 0.5、P/PARK 且 parking brake engaged 才由 signals 证明 PARKED。两路已知状态不一致时选择
+MOVING 等更保守状态并设置 motionConflict/restricted。完整的 MOVING Context 本身不等于 restricted；
+后续 action-specific Safety Policy 必须禁止行驶中驾驶席 recline。
+
+`restricted=true` 条件为 required field 不可决策、Runtime state stale、Safety 非 NORMAL、Driving UNKNOWN
+或 motion conflict。Missing required、stale、conflict 和 non-production-trusted list 分开，不能把缺失与
+冲突合并。Digest 使用 domain-separated length-framed SHA-256，绑定 policy、Twin/Runtime revision、seat、
+memory bit、派生状态和每个 typed scalar；contextId 从 digest 前缀确定性派生。
+
+P2-W04 不建立 production trust：即使 source enum 是 AAOS/VENDOR、Runtime test object 标记 trusted，
+snapshot 仍 `productionTrusted=false`，因为 property mapping/provider activation 尚无 P8 evidence。当前未
+接 Runtime/Governance Service，不持久化 raw signal/context，不访问 Vehicle/VHAL/NPU/Driver/HAL。
 
 ## 12. Scenario Service
 
@@ -1736,13 +1769,16 @@ central-brain-sdk AAR
   JVM 与 Android 13 ARM64 debug probe；production authorized count 为 0。
 - P2-W03 进程内 Vehicle Digital Twin：desired/reported 分离、monotonic revision、TTL/quality、atomic
   snapshot、并发 CAS、stale/conflict rejection 和 reconciliation；JVM 与 Android 13 ARM64 probe 通过。
+- P2-W04 Context snapshot foundation：固定 general/seat policy、同 Twin revision、Runtime state
+  freshness、driving/safety/source/trust report、restricted 与 deterministic SHA-256 identity；JVM/API 33
+  ARM64 probe 通过，production trust/wiring 保持 false。
 
 ### 32.2 下一阶段未完成
 
 - Event V2 terminal resume cursor/ACK Binder、Room ACK retention、SDK negotiation 和高吞吐 fault tests；
 - Scenario/Plan/Effect execution、approval response/undo execution；
 - working/profile/episodic Memory schema 与 encrypted/consent lifecycle；
-- trusted Context、Digital Twin 持久化/production wiring（进程内 store 已完成）；
+- Digital Twin persistence/production wiring 与 Context production trust/wiring（软件 foundation 已完成）；
 - deterministic Scenario/Plan/DAG；
 - durable Graph Runtime、interrupt/retry/timeout/compensation；
 - Android debug/test-only HVAC/Seat/Nav/Media Effect adapter；
@@ -1764,13 +1800,15 @@ central-brain-sdk AAR
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Typed Event DTO/AIDL` 和
 `P1-W04 Effect/Approval DTO 扩展`、`P1-W05 SDK facade v2`、`P1-W06 Room v4 schema` 和
 `P1-W07 Contract v2 aggregate check`、`P2-W01 Canonical vehicle signal types` 和
-`P2-W02 Vehicle capability catalog` 和 `P2-W03 VehicleDigitalTwinStore` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W02 Vehicle capability catalog`、`P2-W03 VehicleDigitalTwinStore` 和
+`P2-W04 ContextSnapshotBuilder` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
-进程内 desired/reported Twin 已进入工程。Effect Service、approval response/undo execution、Plan Compiler
-和 Graph Runtime 均未发布。下一实现工作包固定为 `P2-W04 ContextSnapshotBuilder`；必须基于 atomic
-Twin snapshot 生成 restricted context，不得读取真实 Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
+进程内 desired/reported Twin、versioned Context/freshness/trust foundation 已进入工程。Effect Service、
+approval response/undo execution、Plan Compiler 和 Graph Runtime 均未发布。下一实现工作包固定为
+`P2-W05 Scenario manifest/schema`；manifest 必须 build-owned/versioned/bounded，不得读取真实
+Vehicle/VHAL 或直接在 Client2 中硬编码仿真动画。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
 `CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md`；Client2 中控闭环见

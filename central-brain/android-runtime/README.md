@@ -225,6 +225,24 @@ Status: `vehicle_digital_twin_store_defined=true`, `vehicle_digital_twin_android
 `vehicle_property_mapping_configured=false`, `hardware_accessed=false`. P2-W04 owns trusted Context snapshots;
 P8 owns evidence-backed production adapter activation.
 
+## Stage 2 P2-W04 Trusted Context Snapshot
+
+`runtime-service/.../context` builds one immutable Context from a single `DigitalTwinSnapshot` revision plus a
+Runtime-owned `SafetyVehicleStateSnapshot`, seat zone and profile-memory availability bit. `ContextFieldPolicy`
+provides fixed general, seat-comfort and seat-recline profiles. The general safety set requires fresh speed, gear
+and parking brake; seat recline additionally requires occupancy, belt and reported angle in the selected seat area.
+
+`ContextSnapshotBuilder` derives parked/moving/unknown conservatively and reports Runtime-motion disagreement.
+It records missing required, stale, conflict and non-production-trusted fields separately. Missing/invalid required
+data, stale Runtime state, unknown/degraded/emergency Safety state or motion conflict sets `restricted=true`.
+A complete moving Context is not automatically restricted; action-specific policy must still deny driver-seat
+recline while moving. The SHA-256 digest binds policy, Twin/Runtime revisions, all typed fields and memory mode.
+
+Status: `context_snapshot_defined=true`, `context_snapshot_android13_arm64_verified=true`,
+`context_snapshot_production_trusted=false`, `context_snapshot_production_wired=false`,
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`. SIMULATED is visible and usable only for the
+debug/test workflow; AAOS/VENDOR provenance remains unverified until P8 activation evidence exists.
+
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
 The R2 deterministic runtime returns a typed handle before work, emits ACCEPTED/RUNNING/COMPLETED, and supports asynchronous idempotent cancellation. R2C adds Binder-instance-scoped death handling, explicit reconnect, terminal callback uniqueness and API 33 service/client death plus cancel-completion race instrumentation. The typed Protocol Binding is `android_integrated`.

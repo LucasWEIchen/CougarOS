@@ -974,6 +974,59 @@ if [[ "$VEHICLE_TWIN_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+CONTEXT_SNAPSHOT_NONCE="$(date +%s%N)"
+CONTEXT_SNAPSHOT_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.context.ContextSnapshotBuilderProbeActivity \
+  --es nonce "$CONTEXT_SNAPSHOT_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$CONTEXT_SNAPSHOT_PROBE_OUTPUT"; then
+  echo "$CONTEXT_SNAPSHOT_PROBE_OUTPUT" >&2
+  echo "Context snapshot debug probe did not start successfully" >&2
+  exit 1
+fi
+CONTEXT_SNAPSHOT_PROBE_PASSED=false
+for _ in {1..40}; do
+  CONTEXT_SNAPSHOT_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbContextSnapshot:I)"
+  if grep -Fq \
+      "nonce=$CONTEXT_SNAPSHOT_NONCE context_snapshot_probe_complete=true" \
+      <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_builder_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_version_digest_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_required_field_policy_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_freshness_report_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_driving_state_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_restricted_fail_closed_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_source_trust_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_android13_arm64_verified=true" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_production_trusted=false" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "context_snapshot_production_wired=false" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "vehicle_capability_adapter_registry_wired=false" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "vehicle_property_mapping_configured=false" \
+        <<<"$CONTEXT_SNAPSHOT_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$CONTEXT_SNAPSHOT_LOG"; then
+    CONTEXT_SNAPSHOT_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$CONTEXT_SNAPSHOT_PROBE_PASSED" != true ]]; then
+  echo "$CONTEXT_SNAPSHOT_LOG" >&2
+  echo "Context snapshot probe did not pass" >&2
+  exit 1
+fi
+
 STUB_PROVIDER_NONCE="$(date +%s%N)"
 STUB_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.model.DeterministicStubProviderProbeActivity \
@@ -1645,6 +1698,10 @@ printf '%s\n' \
   "vehicle_digital_twin_android13_arm64_verified=true" \
   "vehicle_digital_twin_persistence_wired=false" \
   "vehicle_digital_twin_adapter_wired=false" \
+  "context_snapshot_defined=true" \
+  "context_snapshot_android13_arm64_verified=true" \
+  "context_snapshot_production_trusted=false" \
+  "context_snapshot_production_wired=false" \
   "room_schema_version=4" \
   "room_table_count=13" \
   "room_wal_enabled=true" \

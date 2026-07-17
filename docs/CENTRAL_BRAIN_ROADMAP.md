@@ -2,7 +2,7 @@
 
 版本：1.1
 日期：2026-07-17
-状态：Stage 2 P1 in progress
+状态：Stage 2 P2 in progress
 
 ## 1. 基线与范围
 
@@ -121,7 +121,7 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | --- | --- | --- | --- |
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
-| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01..W03 完成，P2-W04 下一步） |
+| S2-P2 | Context 与 Digital Twin | Android debug/test context/twin；production 无 fallback | 进行中（P2-W01..W04 完成，P2-W05 下一步） |
 | S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 未开始 |
 | S2-P4 | 场景与 Effect 编排 | “我冷了”“我累了”“休息模式”等 | 未开始 |
 | S2-P5 | Client2 中控 HMI 闭环 | 意图/计划/执行/结果、可观察编排链、HVAC/Seat Effect 详情、approval/undo | 未开始 |
@@ -178,8 +178,13 @@ monotonic revision、TTL/quality、atomic filtered snapshot、stale/conflict rej
 JVM 与 Android 13/API 33 ARM64 debug probe 通过。当前不持久化、不接 production Service/adapter，
 不读取 Vehicle/VHAL。
 
-下一实现工作包为 `P2-W04 ContextSnapshotBuilder`。只基于 Digital Twin immutable snapshot 构造
-versioned/digested context 与 restricted/freshness report；不得激活 Effect/NPU、真实 Vehicle/VHAL、
+`P2-W04 ContextSnapshotBuilder` 已完成：general/seat comfort/seat recline 固定 policy 基于同一 Twin
+revision 和 Runtime state 构造 versioned/digested Context，显式输出 driving/safety/source mode、missing/
+stale/conflict/trust report 和 restricted；JVM 与 Android 13/API 33 ARM64 debug probe 通过。当前
+`productionTrusted=false` 且未接 production Service/provider。
+
+下一实现工作包为 `P2-W05 Scenario manifest/schema`。只实现 build-owned versioned manifest、JSON schema、
+bounded parser/catalog 与 invalid-manifest isolation；不得启用 Graph/Effect、真实 Vehicle/VHAL/NPU、
 Driver/HAL 或 Python fallback。
 
 ## 7. 近期进展
@@ -259,6 +264,9 @@ Driver/HAL 或 Python fallback。
 - 完成 `P2-W03 VehicleDigitalTwinStore`：desired/reported 分离、monotonic revision、TTL/quality、atomic
   snapshot、stale/conflict rejection 和 reconciliation 通过 JVM/API 33 ARM64 probe；persistence/adapter/
   property mapping/hardware 保持关闭，下一工作包为 `P2-W04 ContextSnapshotBuilder`。
+- 完成 `P2-W04 ContextSnapshotBuilder`：固定 field policy、同 Twin revision、driving/safety 派生、
+  freshness/trust/restricted report 和 deterministic digest 通过 JVM/API 33 ARM64 probe；production trusted/
+  wiring/provider/hardware 保持 false，下一工作包为 `P2-W05 Scenario manifest/schema`。
 
 ## 8. 当前门禁
 

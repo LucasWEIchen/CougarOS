@@ -860,3 +860,38 @@ Status: `vehicle_digital_twin_store_defined=true`,
 `vehicle_digital_twin_persistence_wired=false`, `vehicle_digital_twin_adapter_wired=false`,
 `vehicle_property_mapping_configured=false`, `hardware_accessed=false`. Req IDs: `S2-TWN-001`,
 `DEL-001/003..005`; tracking: `DEV-032`, `ISSUE-030`.
+
+## Android P2-W04 Trusted Context Snapshot
+
+Package: `com.centralbrain.runtime.context`. This is an immutable in-process Context foundation. It is not an
+AIDL DTO, persistent repository, Safety authority, vehicle provider or production Service.
+
+```java
+ContextSnapshot ContextSnapshotBuilder.build(
+    DigitalTwinSnapshot twin,
+    SafetyVehicleStateSnapshot runtimeState,
+    ContextFieldPolicy policy,
+    ContextSnapshot.SeatZone seatZone,
+    boolean profileMemoryAvailable);
+```
+
+| Type | Public contract | Invariant/failure |
+| --- | --- | --- |
+| `ContextFieldPolicy` | `general/seatComfort/seatRecline`, policy ID/version, max Runtime-state age, immutable requirements | fixed path+scope allowlist, no duplicate field; general safety paths always required |
+| `ContextSnapshotBuilder` | one atomic Twin snapshot + Runtime state -> Context | future Runtime state rejects; stale/unknown/conflicting required context fails closed |
+| `ContextSnapshot` | context/schema/policy/Twin/Runtime identity, seat/driving/safety/source, restricted/trust/digest, immutable reports | contextId derives from 64-hex SHA-256; P2-W04 rejects productionTrusted=true |
+| `ContextField` | path/area/required/state/typed value/effective quality/source/trust | MISSING carries no observation; observed state exactly matches effective quality |
+
+Field states are `AVAILABLE/MISSING/STALE/UNAVAILABLE/ERROR/CONFLICT`; source trust is
+`SIMULATED/PLATFORM_UNVERIFIED/DERIVED_UNVERIFIED/UNKNOWN`. Report lists separately expose missing required,
+stale, conflict and all observed non-production-trusted fields. Optional missing cabin fields do not restrict a
+general Context; any required non-AVAILABLE field does.
+
+Driving state is `PARKED/MOVING/UNKNOWN`. Runtime motion and signal-derived motion must agree when both are known;
+disagreement selects the conservative state and sets motionConflict/restricted. Moving is carried as Context,
+not treated as a blanket error; downstream action policy owns moving-specific denial.
+
+Status: `context_snapshot_defined=true`, `context_snapshot_android13_arm64_verified=true`,
+`context_snapshot_production_trusted=false`, `context_snapshot_production_wired=false`,
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`. Req IDs: `S2-CTX-001`, `S2-SAF-001`,
+`DEL-001/003..005`; tracking: `DEV-033`, `ISSUE-029/030`.

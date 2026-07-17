@@ -598,3 +598,21 @@ CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、PCIe/NPU 或 Driver/HAL。
 `vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量
 为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-TWN-001`、`KH-003/006`、`DEL-004/005`。
+
+### P2-W04 Context Snapshot Driver/HAL Boundary
+
+P2-W04 只新增纯 Java in-process policy/builder/value objects、JVM test、debug-only Activity、installer marker
+和静态 checker。它读取已捕获的 `DigitalTwinSnapshot` 与 Runtime-owned Safety state object，不发现或调用
+CarProperty/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、PCIe/NPU 或
+Driver/HAL。
+
+`SourceMode.PLATFORM_UNVERIFIED` 与 `SignalSource.AAOS/VENDOR` 不表示实际 platform connection；Context
+强制 `productionTrusted=false`。Runtime motion/source assurance 仅作为 typed test input，不建立 Safety
+authority。P8 只有在提供 API/permission/property/area/readback evidence 后才能新增独立 activation mapping。
+
+状态：`context_snapshot_defined=true`、`context_snapshot_production_trusted=false`、
+`context_snapshot_production_wired=false`、`vehicle_signal_provider_wired=false`、
+`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。新增 Driver/HAL 开发量
+为 0，`DRV-GAP-001..005` 不变。Req IDs：`S2-CTX-001`、`S2-SAF-001`、`KH-003/006`、
+`DEL-004/005`。

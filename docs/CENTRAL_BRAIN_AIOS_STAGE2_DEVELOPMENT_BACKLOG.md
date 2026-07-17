@@ -266,10 +266,16 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 
 ### `P2-W04` ContextSnapshotBuilder
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-CTX-001`、`S2-SAF-001`。
+- 状态：`DONE`（2026-07-17）；2 人日；需求：`S2-CTX-001`、`S2-SAF-001`。
 - 类：`ContextSnapshotBuilder`、`ContextFieldPolicy`、`ContextSnapshot`。
 - 输入：Digital Twin、Runtime state、seat zone、profile memory availability。
 - DoD：关键 safety field 缺失进入 restricted；snapshot 有 digest/version/freshness report。
+- 实现：general/seat comfort/seat recline 三类固定 policy；同一 Twin revision、Runtime state freshness、
+  driving/safety/source mode、missing/stale/conflict/non-production-trusted report 和 SHA-256 context identity。
+- 测试：complete/missing/stale/conflict、moving/runtime conflict、seat area、digest binding、stale/future Runtime
+  state、AAOS source unverified；Android 13/API 33 ARM64 debug probe 验证相同合同。
+- 边界：`context_snapshot_production_trusted=false`、`context_snapshot_production_wired=false`、
+  `vehicle_signal_provider_wired=false`、`hardware_accessed=false`。
 
 ### `P2-W05` Scenario manifest/schema
 
