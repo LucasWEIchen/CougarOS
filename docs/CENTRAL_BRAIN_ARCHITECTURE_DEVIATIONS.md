@@ -510,3 +510,20 @@ base 仍在 process memory 保留 bounded canonical material，reset/进程死�
 `network_accessed=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。关闭本偏差需要 P3/P4
 durable Effect/HMI 和 P8 target media/navigation owner/API/permission/readback/privacy evidence。
+
+## DEV-041 P2-W12 debug controller 不是 production Context 或车辆控制 authority
+
+P2-W12 进展：工程师已有 debug-only AIDL 控制面，用于设置 simulated driving/canonical signal、四个 debug
+adapter fault、manual clock 和 reset。即使该 Service 经过 signature permission 与 current-signer capability
+双层授权，它的输入仍是测试人员提供的 process-local fixture，不是可信 VHAL/Safety/vehicle signal。
+
+控制器不写 shared Context/Twin/Room，不发布 Plan/Graph/Effect，不注册 production adapter。release source
+没有 AIDL、permission、Service、probe Activity 或 policy grant；debug snapshot/audit digest 也不是车辆 readback
+证据。debug signer 不能提升 production trust，API 33 ARM64 probe 不能提升 target hardware 状态。
+
+状态：`Accepted Temporary`。`debug_simulation_controller_debug_only=true`、
+`debug_simulation_controller_release_source_absent=true`、
+`debug_simulation_controller_production_exported=false`、`debug_simulation_controller_runtime_wired=false`、
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。关闭本偏差需要 P3/P4 将受治理的软件链显式接入 debug controller，P8
+另以 OEM/Vendor provider、permission、Safety/readback 和目标证据替换仿真输入；两者不得共用完成标志。

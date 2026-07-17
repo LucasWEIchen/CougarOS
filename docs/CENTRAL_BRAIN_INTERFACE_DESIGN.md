@@ -1160,3 +1160,40 @@ Effect Service, Vehicle/VHAL/NPU or Driver/HAL is referenced. Status: `simulated
 `external_activity_started=false`, `location_uploaded=false`, `network_accessed=false`,
 `effect_dispatch_enabled=false`, `hardware_accessed=false`. Req IDs: `S2-ADP-001`, `DEL-001/003..005`;
 tracking: `DEV-040`, `ISSUE-030/031/033`.
+
+## Android P2-W12 Debug Simulation Controller
+
+### Debug-only AIDL V1
+
+```java
+int getProtocolVersion();
+String getProtocolHash();
+long setDrivingState(int drivingState);
+long setSignal(String canonicalPath, String area, int scalarType,
+        boolean booleanValue, long integerValue, double decimalValue, String textValue);
+long setAdapterFault(String adapterId, int faultMode, long durationMs);
+long advanceSimulationClock(long durationMs);
+long reset();
+long getRevision();
+int getDrivingState();
+int getSignalCount();
+int getFaultCount();
+long getSimulationElapsedRealtimeMs();
+int getAuditEntryCount();
+String getSnapshotDigest();
+```
+
+接口只编译进 debug Runtime APK。Binder component 必须显式绑定 action
+`com.centralbrain.runtime.action.BIND_DEBUG_SIMULATION_CONTROLLER`；外层要求 debug-only signature permission
+`com.centralbrain.permission.CONTROL_DEBUG_SIMULATION`，方法级再检查 calling UID/package/current signer 对应的
+`debug.simulation.control` capability。shell、不同签名或未配置 principal 均失败关闭。
+
+`setSignal` 的 path/area/type 必须匹配 P2-W01；scalar union 未使用字段必须为 canonical default，text 不写
+audit。adapterId 只允许 P2-W09..W11 的 HVAC/Seat/Media/Navigation stable debug ID；fault 为 NONE/DELAY/
+TIMEOUT/RETRYABLE_FAILURE/TERMINAL_FAILURE/READBACK_MISMATCH，只有 timing fault 携带 1..60000 ms。
+
+返回 revision 仅表示 debug controller process state 变更，不是 Room/Context/Twin/vehicle revision。snapshot
+只返回 SHA-256 和计数；不对外传任意 JSON、原始 signal map、POI query 或车辆数据。release 不含接口或
+Service。状态：`debug_simulation_controller_runtime_wired=false`、`vehicle_signal_provider_wired=false`、
+`hardware_accessed=false`。Req IDs：`S2-CTX-001`、`S2-ADP-001`、`DEL-001/003..005`；tracking：
+`DEV-041`、`ISSUE-030/033`。

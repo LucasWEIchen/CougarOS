@@ -728,3 +728,21 @@ JVM tests, debug/release compilation and the API 33 ARM64 probe establish
 `simulated_media_nav_android13_arm64_verified=true`. Production source/Services do not contain/register either
 adapter; `simulated_media_nav_runtime_wired=false`, `external_activity_started=false`, `location_uploaded=false`,
 `network_accessed=false`, `effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced.
+
+## P2-W12 Debug Simulation Controller
+
+`runtime-service/src/debug` now contains `IDebugSimulationController` V1, a process-local controller and an exported
+debug Service protected by `com.centralbrain.permission.CONTROL_DEBUG_SIMULATION`. The permission exists only in the
+debug manifest and uses `signature` protection. Every Binder method also resolves calling UID/package/current signer
+and requires the debug-only `debug.simulation.control` capability from the default-deny policy.
+
+The typed interface controls only PARKED/MOVING/UNKNOWN, the P2-W01 canonical signal allowlist, fault profiles on the
+four P2-W09..W11 adapters, manual time and reset. It returns only revisions, counts, elapsed time and a deterministic
+snapshot digest. The 128-entry audit ring stores command/outcome/target digest rather than raw signal text; Service
+logs record accepted and rejected commands without payloads.
+
+JVM tests, debug/release compilation, shell signature rejection and the Android 13/API 33 ARM64 Binder probe establish
+`debug_simulation_controller_defined=true`, `debug_simulation_controller_capability_enforced=true` and
+`debug_simulation_controller_android13_arm64_verified=true`. Release has no AIDL source, permission, Service or probe;
+`debug_simulation_controller_production_exported=false`, `debug_simulation_controller_runtime_wired=false`,
+`vehicle_signal_provider_wired=false` and `hardware_accessed=false` remain enforced. P3-W01 is the next work package.

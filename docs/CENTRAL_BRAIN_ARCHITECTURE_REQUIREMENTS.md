@@ -814,3 +814,34 @@ NPU、Driver/HAL 或目标硬件资格。
 `simulated_media_nav_production_registered=false`、`simulated_media_nav_runtime_wired=false`、
 `external_activity_started=false`、`location_uploaded=false`、`network_accessed=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`。
+
+## 32. P2-W12 Debug Simulation Controller trace
+
+派生需求：`S2-CTX-001`、`S2-ADP-001`、`DEL-001/003/004/005`。
+
+1. `IDebugSimulationController` 与实现只能位于 Runtime `src/debug`；release/main 不得含同名 AIDL、Java
+   Service、permission、Activity 或 production policy grant。
+2. exported debug Service 必须由 debug-only `signature` permission 保护；每个 Binder 方法还必须从 trusted
+   calling UID/package/current signer 执行 `debug.simulation.control` default-deny capability 检查。
+3. V1 只接受 PARKED/MOVING/UNKNOWN、P2-W01 canonical path/area/scalar union、四个固定 simulated adapter
+   ID、P2-W08 六类 fault 和 1..24h clock advance；未知、类型漂移、非 canonical unused union 字段失败关闭。
+4. `setAdapterFault` 必须更新 P2-W09..W11 四个实际 debug adapter，不得发现、注册或调用 production
+   adapter；controller 与 adapter 必须固定 simulation-only/production unauthorized。
+5. accepted/rejected command 必须写 debug audit。进程内 audit 最多 128 条，仅保存 command/outcome/target
+   digest/revision/elapsed，不保存原始 signal text；snapshot 对 Binder 只暴露 revision/count/elapsed/digest。
+6. reset 必须清理 driving/signal/fault/adapter process state 并复位 manual clock，但保留 bounded audit；不得
+   写 Room、Session/Event、shared Context/Twin、Graph/Effect Runtime。
+7. Android 13/API 33 ARM64 必须验证 shell signature denial、同签名 capability allowlisted 真实 Binder、
+   state/signal/fault/clock/reset、protocol version/hash；release build 必须证明 production exported=false。
+8. 不得访问 Vehicle/VHAL、Android Car、vendor Binder、network、location、NPU、device node、Driver/HAL 或
+   恢复 Python/Linux fallback。test evidence 不得提升 `target_hardware_validated`/`production_ready`。
+
+状态：`debug_simulation_controller_defined=true`、`debug_simulation_controller_aidl_version=1`、
+`debug_simulation_controller_signature_permission_enforced=true`、
+`debug_simulation_controller_capability_enforced=true`、
+`debug_simulation_controller_state_signal_fault_clock_reset_verified=true`、
+`debug_simulation_controller_audit_bounded_verified=true`、
+`debug_simulation_controller_android13_arm64_verified=true`、
+`debug_simulation_controller_debug_only=true`、`debug_simulation_controller_release_source_absent=true`、
+`debug_simulation_controller_production_exported=false`、`debug_simulation_controller_runtime_wired=false`、
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`。

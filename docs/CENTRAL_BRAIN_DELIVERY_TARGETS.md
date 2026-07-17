@@ -1038,3 +1038,38 @@ target_hardware_validated=false
 该包不交付 Android/vendor media 或 navigation engine、真实 POI/route/location、外部 Activity、network、
 production adapter、shared Runtime/Room/Graph/Effect 或真实 Vehicle/VHAL/NPU/Driver-HAL。Req IDs：
 `S2-ADP-001`、`DEL-001/003..005`；偏差/问题：`DEV-040`、`ISSUE-030/031/033`。
+
+## Android P2-W12 Debug Simulation Controller
+
+受维护交付新增：
+
+1. debug-only `IDebugSimulationController` V1、`DebugSimulationController` 与 protected Service；
+2. debug-only signature permission + calling UID/package/current-signer capability 双层授权；
+3. typed driving/canonical signal、四 adapter fault、manual clock、reset 和 digest-only snapshot；
+4. 128 条 bounded digest-only audit，accepted/rejected Service audit；
+5. 7 组 JVM tests、debug/release compile、Android 13 ARM64 Binder probe、checker、累计 installer 与 CI。
+
+交付标志：
+
+```text
+debug_simulation_controller_defined=true
+debug_simulation_controller_aidl_version=1
+debug_simulation_controller_signature_permission_enforced=true
+debug_simulation_controller_capability_enforced=true
+debug_simulation_controller_state_signal_fault_clock_reset_verified=true
+debug_simulation_controller_audit_bounded_verified=true
+debug_simulation_controller_android13_arm64_verified=true
+debug_simulation_controller_debug_only=true
+debug_simulation_controller_release_source_absent=true
+debug_simulation_controller_production_exported=false
+debug_simulation_controller_runtime_wired=false
+vehicle_signal_provider_wired=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该包不交付 production Context provider、vehicle signal provider、shared Twin/Room、Graph/Effect execution、
+Client2 engineer drawer、真实 Vehicle/VHAL/NPU/Driver-HAL。API 33 ARM64 只证明 debug control-plane Binder 与
+授权可运行。Req IDs：`S2-CTX-001`、`S2-ADP-001`、`DEL-001/003..005`；偏差/问题：`DEV-041`、
+`ISSUE-030/033`。

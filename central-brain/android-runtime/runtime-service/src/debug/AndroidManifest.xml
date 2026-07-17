@@ -1,5 +1,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <permission
+        android:name="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION"
+        android:protectionLevel="signature" />
+    <uses-permission
+        android:name="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" />
+
     <application>
+        <service
+            android:name=".simulation.DebugSimulationControllerService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" />
+        <activity
+            android:name=".simulation.DebugSimulationControllerProbeActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:permission="android.permission.DUMP"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <receiver
             android:name=".RuntimeFaultProbeReceiver"
             android:exported="true"

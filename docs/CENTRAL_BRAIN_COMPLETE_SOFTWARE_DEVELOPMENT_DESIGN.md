@@ -205,7 +205,7 @@ flowchart TB
 | Graph | AgentGraphRuntime、NodeExecutorRegistry、CheckpointSerializer | `NOT_STARTED` | `S2-GRF-001` |
 | Safety | RiskClassifier、DrivingSafetyPolicy、ApprovalResumeValidator | `NOT_STARTED` | `S2-SAF-001` |
 | Effect | EffectCoordinator、Verifier、CompensationPlanner、AdapterRegistry | `NOT_STARTED` | `S2-EFF-001` |
-| Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `NOT_STARTED` | `S2-ADP-001` |
+| Simulation | HVAC/Seat/Media/Nav adapters、DebugSimulationController | `FOUNDATION`（P2-W08..W12 完成；production/runtime wiring 未接） | `S2-ADP-001` |
 | Tool | ToolManifest/Registry/RuleSolver/Executor | `NOT_STARTED` | `S2-TOL-001` |
 | Skill | SkillArtifactVerifier、SkillSignerPolicy、SkillLifecycle | `NOT_STARTED` | `S2-TOL-001` |
 | Memory | Working/Profile/Episodic stores、Consent、Budget | `NOT_STARTED` | `S2-MEM-001` |
@@ -1434,7 +1434,33 @@ Plan/Graph/Effect Service 或 Vehicle/VHAL/NPU/Driver-HAL。Req IDs：`S2-ADP-00
 
 ### 16.5 DebugSimulationController
 
-API 仅 debug build/signature capability：setDrivingState、setSignal、setAdapterFault、advanceSimulationClock、reset。每个命令写 debug audit。Production manifest 不 exported、不注册 service。
+P2-W12 已实现为 Runtime `src/debug` 内部 AIDL/Service；release source set 不生成 AIDL，也不声明 permission、
+Service 或 probe Activity。接口 V1：`setDrivingState`、`setSignal`、`setAdapterFault`、
+`advanceSimulationClock`、`reset`，以及只读 revision/count/elapsed/digest。AIDL 不接收 Bundle、Parcelable、
+JSON、文件描述符、坐标、vendor property 或任意对象。
+
+调用具有双层授权：Manifest `CONTROL_DEBUG_SIMULATION` 为 debug-only signature permission；每个 Binder 方法
+再次从 calling UID 解析 package/current signer，并通过 APK-owned default-deny policy 检查
+`debug.simulation.control`。只有 debug runtime 自身 principal 获得 capability；production policy 不包含该 grant。
+
+控制状态固定为 PARKED/MOVING/UNKNOWN、P2-W01 的 12 项 canonical signal 与 exact area/scalar union、四个
+固定 simulated adapter ID 和 P2-W08 六类 fault。四个 P2-W09..W11 domain adapter 共享手动 clock；fault
+命令直接更新这些 debug adapter，不注册 production registry。signal source 固定 SIMULATED，snapshot 固定
+simulation-only/production-untrusted。
+
+每个 accepted/rejected Service command 写 debug log audit；controller 另保存最多 128 条 command/outcome/
+target SHA-256/revision/elapsed audit，不保存原始 text scalar。reset 清理 driving/signal/fault/adapter record 并
+将 clock 复位，但保留 bounded audit。snapshot 只返回 deterministic SHA-256 和计数，避免通过控制面外泄
+原始 payload。
+
+状态：`debug_simulation_controller_defined=true`、`debug_simulation_controller_aidl_version=1`、
+`debug_simulation_controller_signature_permission_enforced=true`、
+`debug_simulation_controller_capability_enforced=true`、
+`debug_simulation_controller_android13_arm64_verified=true`、
+`debug_simulation_controller_debug_only=true`、`debug_simulation_controller_release_source_absent=true`、
+`debug_simulation_controller_production_exported=false`、`debug_simulation_controller_runtime_wired=false`、
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`。Req IDs：`S2-CTX-001`、`S2-ADP-001`、
+`DEL-001/003..005`；偏差/问题：`DEV-041`、`ISSUE-030/033`。
 
 ## 17. Tool 与 Skill 平台
 
@@ -2009,7 +2035,8 @@ central-brain-sdk AAR
 `P2-W04 ContextSnapshotBuilder`、`P2-W05 Scenario manifest/schema`、
 `P2-W06 DeterministicScenarioResolver`、`P2-W07 ScenarioPlanCompiler` 和
 `P2-W08 SimulatedVehicleAdapter base`、`P2-W09 Simulated HVAC adapter`、
-`P2-W10 Simulated Seat adapter` 和 `P2-W11 Simulated Media/Nav adapters` 已完成：18 个有界 DTO、独立 Session 与
+`P2-W10 Simulated Seat adapter`、`P2-W11 Simulated Media/Nav adapters` 和
+`P2-W12 Debug Context Controller` 已完成：18 个有界 DTO、独立 Session 与
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
@@ -2017,10 +2044,10 @@ owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真�
 manifest catalog、显式/固定文本 selector、Context/capability/policy gate、immutable resolution 和
 digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual clock/fault matrix、HVAC/Seat
 typed absolute target、isolated desired/reported Twin、Seat Safety race reject/progress、Media state 和 digest-only
-synthetic POI/route 已进入工程。
+synthetic POI/route、debug-only signature/capability-protected state/signal/fault/clock/reset AIDL 控制面已进入工程。
 Effect Service、approval response/undo execution、Plan Runtime publication 和 Graph Runtime 均未发布。
-下一实现工作包固定为 `P2-W12 Debug Context Controller`；只在 debug build 增加 signature/capability-protected
-state/fault/clock/reset 控制面，不得 exported 到 production、注册 production adapter、激活 compiled Plan、
+下一实现工作包固定为 `P3-W01 AgentGraphRuntime state machine`；只实现 typed graph/run/node 状态、合法
+transition、单 session FIFO 与跨 session 有界调度，不得在该包 dispatch Effect、恢复 production adapter、
 读取真实 Vehicle/VHAL/NPU 或直接在 Client2 中绕过 Runtime。
 
 全部工作包和人日见 `CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md`；产品行为和文案见
