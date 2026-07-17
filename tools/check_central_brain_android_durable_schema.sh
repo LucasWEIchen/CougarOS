@@ -6,7 +6,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PERSISTENCE_ROOT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence"
 SCHEMA_V2="central-brain/android-runtime/runtime-service/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/2.json"
-SCHEMA="central-brain/android-runtime/runtime-service/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/3.json"
+SCHEMA_V3="central-brain/android-runtime/runtime-service/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/3.json"
+SCHEMA="central-brain/android-runtime/runtime-service/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/4.json"
 DATABASE="$PERSISTENCE_ROOT/CentralBrainDatabase.java"
 DAO="$PERSISTENCE_ROOT/RuntimeStateDao.java"
 PROBE="central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/persistence/MigrationProbeActivity.java"
@@ -30,7 +31,7 @@ require_text() {
 }
 
 for name in \
-  RuntimeSessionEntity.java \
+  SessionEntity.java \
   RuntimeTaskEntity.java \
   TaskCheckpointEntity.java \
   PendingEffectEntity.java \
@@ -43,6 +44,7 @@ for name in \
   require_file "$PERSISTENCE_ROOT/$name"
 done
 require_file "$SCHEMA_V2"
+require_file "$SCHEMA_V3"
 require_file "$SCHEMA"
 require_file "$PROBE"
 
@@ -53,6 +55,7 @@ require_text "central-brain/android-runtime/runtime-service/build.gradle.kts" "r
 require_text "$DATABASE" "version = CentralBrainDatabase.VERSION"
 require_text "$DATABASE" "MIGRATION_1_2"
 require_text "$DATABASE" "MIGRATION_2_3"
+require_text "$DATABASE" "MIGRATION_3_4"
 require_text "$DATABASE" "JournalMode.WRITE_AHEAD_LOGGING"
 require_text "$DATABASE" "index_runtime_task_owner_idempotency"
 require_text "$DATABASE" "index_approval_owner_idempotency"
@@ -61,6 +64,7 @@ require_text "$DATABASE" "index_effect_outbox_effect"
 require_text "$DATABASE" "index_event_cursor_owner_client"
 require_text "$PROBE" "room_migration_1_2_verified="
 require_text "$PROBE" "room_migration_2_3_verified="
+require_text "$PROBE" "room_migration_3_4_verified="
 require_text "$PROBE" "legacy_event_cursor_preserved="
 require_text "$PROBE" "event_cursor_schema_v3_verified="
 require_text "$PROBE" "durable_dispatch_enabled=false"
@@ -88,23 +92,43 @@ if grep -Fq "MigrationProbeActivity" "$ROOT_DIR/$MAIN_MANIFEST"; then
   exit 1
 fi
 
-python3 - "$ROOT_DIR/$SCHEMA_V2" "$ROOT_DIR/$SCHEMA" <<'PY'
+python3 - "$ROOT_DIR/$SCHEMA_V2" "$ROOT_DIR/$SCHEMA_V3" "$ROOT_DIR/$SCHEMA" <<'PY'
 import json
 import pathlib
 import sys
 
 schema_v2 = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-schema = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
+schema_v3 = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
+schema = json.loads(pathlib.Path(sys.argv[3]).read_text(encoding="utf-8"))
 database_v2 = schema_v2.get("database", {})
+database_v3 = schema_v3.get("database", {})
 database = schema.get("database", {})
 if database_v2.get("version") != 2:
     raise SystemExit("historical Room schema version 2 must be retained")
-if database.get("version") != 3:
-    raise SystemExit("current Room schema version must be 3")
+if database_v3.get("version") != 3:
+    raise SystemExit("historical Room schema version 3 must be retained")
+if database.get("version") != 4:
+    raise SystemExit("current Room schema version must be 4")
 entities = {item["tableName"]: item for item in database.get("entities", [])}
 entities_v2 = {item["tableName"]: item for item in database_v2.get("entities", [])}
-expected = {
+entities_v3 = {item["tableName"]: item for item in database_v3.get("entities", [])}
+expected_legacy = {
     "runtime_session",
+    "runtime_task",
+    "task_checkpoint",
+    "pending_effect",
+    "effect_outbox",
+    "approval_request",
+    "audit_event",
+    "event_cursor",
+}
+expected = {
+    "sessions",
+    "plans",
+    "plan_nodes",
+    "runtime_events",
+    "effect_observations",
+    "compensations",
     "runtime_task",
     "task_checkpoint",
     "pending_effect",
@@ -115,8 +139,10 @@ expected = {
 }
 if set(entities) != expected:
     raise SystemExit(f"Room durable table set mismatch: {sorted(entities)}")
-if set(entities_v2) != expected:
+if set(entities_v2) != expected_legacy:
     raise SystemExit(f"historical Room durable table set mismatch: {sorted(entities_v2)}")
+if set(entities_v3) != expected_legacy:
+    raise SystemExit(f"historical Room v3 table set mismatch: {sorted(entities_v3)}")
 
 v2_event_indices = {
     index["name"]
@@ -127,7 +153,12 @@ if "index_event_cursor_owner_topic" not in v2_event_indices:
     raise SystemExit("historical event cursor owner/topic index is missing")
 
 required_unique = {
-    "runtime_session": {"index_runtime_session_owner_key"},
+    "sessions": {"index_sessions_owner_request"},
+    "plans": {"index_plans_session_revision"},
+    "plan_nodes": {"index_plan_nodes_idempotency"},
+    "runtime_events": {"index_runtime_events_session_sequence"},
+    "effect_observations": {"index_effect_observations_observation"},
+    "compensations": {"index_compensations_idempotency"},
     "runtime_task": {"index_runtime_task_owner_idempotency"},
     "task_checkpoint": {"index_task_checkpoint_task_sequence"},
     "pending_effect": {"index_pending_effect_idempotency"},
@@ -155,6 +186,11 @@ if foreign_keys["pending_effect"] != {"runtime_task"}:
     raise SystemExit("pending_effect must be owned by runtime_task")
 if foreign_keys["effect_outbox"] != {"pending_effect"}:
     raise SystemExit("effect_outbox must be owned by pending_effect")
+for table in ("plans", "runtime_events", "effect_observations", "compensations"):
+    if foreign_keys[table] != {"sessions"}:
+        raise SystemExit(f"{table} must be owned by sessions")
+if foreign_keys["plan_nodes"] != {"plans"}:
+    raise SystemExit("plan_nodes must be owned by plans")
 
 event_columns = {
     field["columnName"] for field in entities["event_cursor"].get("fields", [])

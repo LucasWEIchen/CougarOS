@@ -25,7 +25,7 @@ public final class RuntimeAcceptanceSnapshotTest {
         assertTrue(current.isTypedBinderIntegrated());
         assertTrue(current.isTrustedGovernanceIntegrated());
         assertTrue(current.isDurableWorkflowFoundationReady());
-        assertEquals(3, current.getRoomSchemaVersion());
+        assertEquals(4, current.getRoomSchemaVersion());
         assertEquals(3, current.getStandardArtifactCount());
         assertEquals(3, current.getSignatureProtectedServiceCount());
     }
@@ -80,7 +80,7 @@ public final class RuntimeAcceptanceSnapshotTest {
         assertTrue(detail.contains("typed_binder_integrated=true"));
         assertTrue(detail.contains("trusted_governance_integrated=true"));
         assertTrue(detail.contains("durable_workflow_foundation_ready=true"));
-        assertTrue(detail.contains("room_schema_version=3"));
+        assertTrue(detail.contains("room_schema_version=4"));
         assertTrue(detail.contains("standard_artifact_count=3"));
         assertTrue(detail.contains("signature_protected_service_count=3"));
         assertFalse(detail.contains("CLIENT2_BINDER_MIGRATION_PENDING"));

@@ -518,5 +518,23 @@ Binder 可用，不表示 Driver/HAL 或 production Event broker。`session_runt
 response/undo/vehicle adapter 均未发布。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变，
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。
 
+### P1-W06 Room v4 Driver/HAL Boundary
+
+P1-W06 只修改 Android `/data/data/com.centralbrain.runtime/databases/` 下的应用私有 Room schema、Java
+repository 和 app-layer Binder recovery。新增 `sessions/plans/plan_nodes/runtime_events/
+effect_observations/compensations` 六类表；不打开 `/dev`、sysfs、VHAL、CarProperty、厂商 Service、
+PCIe/NPU、共享内存或跨 SOC transport。
+
+Android 13/API 33 ARM64 设备验证中的“进程死亡”只通过 debug-only、DUMP-protected receiver 杀死
+Runtime app process，再由显式 Binder bind 重启；不是 ECU reset、kernel driver reset、NPU reset 或
+跨域 failover。Room 恢复的是 Session/Event metadata 和 digest，不恢复硬件句柄、Binder callback、
+native pointer、车辆 payload 或签名材料。
+
+当前声明：`room_schema_version=4`、`session_runtime_persistence_wired=true`、
+`session_runtime_process_death_rehydration=true`，但 `scenario_execution_enabled=false`、
+`effect_runtime_service_published=false`、`hardware_accessed=false`。因此新增 Driver/HAL 开发量仍为 0，
+`DRV-GAP-001..005` 不变，`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。
+
 Req IDs：`S2-SES-001`、`S2-UX-001..003`、`S2-EVT-001`、`APP-004`、`XSC-001/006`、
 `NV-G-003/004`、`KH-003/006`、`DEL-004/005`。

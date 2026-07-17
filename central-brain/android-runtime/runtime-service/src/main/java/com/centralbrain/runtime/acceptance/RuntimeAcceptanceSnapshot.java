@@ -48,7 +48,7 @@ public final class RuntimeAcceptanceSnapshot {
                 SkillGovernanceReadinessSnapshot.current();
         if (!"android_integrated".equals(CentralBrainSdk.MATURITY)
                 || !"R4_DURABLE_WORKFLOW".equals(CentralBrainSdk.EVOLUTION_STAGE)
-                || CentralBrainDatabase.VERSION != 3
+                || CentralBrainDatabase.VERSION != 4
                 || effects.isActivationAllowed()
                 || model.isProductionInferenceAllowed()
                 || events.isActivationAllowed()

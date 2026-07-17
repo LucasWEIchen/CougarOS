@@ -12,6 +12,62 @@ import java.util.List;
 @Dao
 public interface RuntimeStateDao {
     @Nullable
+    @Query("SELECT * FROM sessions WHERE session_id = :sessionId LIMIT 1")
+    SessionEntity findSession(String sessionId);
+
+    @Nullable
+    @Query("SELECT * FROM sessions WHERE session_id = :sessionId "
+            + "AND owner_fingerprint = :ownerFingerprint "
+            + "AND request_digest != '0000000000000000000000000000000000000000000000000000000000000000' "
+            + "LIMIT 1")
+    SessionEntity findSessionOwned(String sessionId, String ownerFingerprint);
+
+    @Nullable
+    @Query("SELECT * FROM sessions WHERE owner_fingerprint = :ownerFingerprint "
+            + "AND client_request_id = :clientRequestId "
+            + "AND request_digest != '0000000000000000000000000000000000000000000000000000000000000000' "
+            + "LIMIT 1")
+    SessionEntity findSessionByOwnerAndRequest(
+            String ownerFingerprint,
+            String clientRequestId);
+
+    @Query("SELECT * FROM sessions WHERE owner_fingerprint = :ownerFingerprint "
+            + "AND request_digest != '0000000000000000000000000000000000000000000000000000000000000000' "
+            + "AND (:includeTerminal = 1 OR state NOT IN (8, 9, 10)) "
+            + "AND (:stateFilter = -1 OR state = :stateFilter) "
+            + "ORDER BY created_at_wall_ms, session_id LIMIT :limit OFFSET :offset")
+    List<SessionEntity> listSessionsOwned(
+            String ownerFingerprint,
+            int stateFilter,
+            boolean includeTerminal,
+            int limit,
+            int offset);
+
+    @Query("SELECT COUNT(*) FROM sessions WHERE owner_fingerprint = :ownerFingerprint "
+            + "AND request_digest != '0000000000000000000000000000000000000000000000000000000000000000' "
+            + "AND (:includeTerminal = 1 OR state NOT IN (8, 9, 10)) "
+            + "AND (:stateFilter = -1 OR state = :stateFilter)")
+    int countSessionsOwned(
+            String ownerFingerprint,
+            int stateFilter,
+            boolean includeTerminal);
+
+    @Query("SELECT COUNT(*) FROM sessions")
+    int countSessions();
+
+    @Nullable
+    @Query("SELECT * FROM sessions WHERE state IN (8, 9, 10) "
+            + "ORDER BY updated_at_wall_ms, session_id LIMIT 1")
+    SessionEntity findOldestTerminalSession();
+
+    @Query("SELECT * FROM runtime_events WHERE session_id = :sessionId "
+            + "AND sequence > :afterSequence ORDER BY sequence LIMIT :limit")
+    List<RuntimeEventEntity> listRuntimeEvents(
+            String sessionId,
+            long afterSequence,
+            int limit);
+
+    @Nullable
     @Query("SELECT * FROM runtime_task WHERE task_id = :taskId LIMIT 1")
     RuntimeTaskEntity findTask(String taskId);
 
@@ -125,7 +181,10 @@ public interface RuntimeStateDao {
     List<ApprovalRequestEntity> findExpiredPendingApprovals(long nowWallMs);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    void insertSession(RuntimeSessionEntity entity);
+    void insertSession(SessionEntity entity);
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    void insertRuntimeEvent(RuntimeEventEntity entity);
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertTask(RuntimeTaskEntity entity);
@@ -160,11 +219,17 @@ public interface RuntimeStateDao {
     @Update
     int updateEventCursor(EventCursorEntity entity);
 
+    @Update
+    int updateSession(SessionEntity entity);
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertEventCursor(EventCursorEntity entity);
 
     @Query("DELETE FROM event_cursor WHERE cursor_id = :cursorId AND state = 'CANCELLED'")
     int deleteCancelledEventCursor(String cursorId);
+
+    @Query("DELETE FROM sessions WHERE session_id = :sessionId AND state IN (8, 9, 10)")
+    int deleteTerminalSession(String sessionId);
 
     @Query("SELECT COUNT(*) FROM runtime_task")
     int countTasks();

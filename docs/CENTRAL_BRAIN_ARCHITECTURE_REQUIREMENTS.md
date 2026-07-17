@@ -175,7 +175,7 @@
 | S2-HMI-004 | 无真实信号的演示来源 | Android debug/test Digital Twin；持续显示 SIMULATED |
 | S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
-| S2-SES-001 | versioned durable Session | P1-W01 Session + P1-W03 Event/callback contract 已完成；owner/持久化 Runtime 待开发 |
+| S2-SES-001 | versioned durable Session | P1-W01/P1-W03 contract、P1-W05 facade/Service、P1-W06 Room v4/process-death recovery 已完成 |
 | S2-CTX-001 | typed Context snapshot | source/freshness/trust |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
 | S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract 已完成；catalog/compiler 待开发 |
@@ -422,11 +422,11 @@ NPU、Driver/HAL 或目标硬件资格。
 4. Runtime Service 不新增 Manifest component。它按 action 返回 Session/Event Binder，所有操作先以
    Binder UID/package/current signer 通过 default-deny capability，再生成 durable principal fingerprint；
    request DTO 不能提供 owner/permission/Safety authority。
-5. P1-W05 registry 只在 Runtime 进程内存活，最大 64 session、每 session 最大 8 个当前合同事件；
+5. P1-W05 初始 registry 只在 Runtime 进程内存活，最大 64 session、每 session 最大 8 个当前合同事件；
    requestId+digest 幂等冲突失败关闭，owner 不可互见，原始 utterance 只参与内存中即时 SHA-256，
    不进入 record、event、snapshot、log 或持久层。
-6. 恢复顺序固定为 get snapshot -> cursor replay -> sequence deduplicate -> register callback；Service
-   rebind 可恢复，Runtime 进程死亡后数据不恢复。P1-W06 前不得把它描述为 durable session runtime。
+6. 恢复顺序固定为 get snapshot -> cursor replay -> sequence deduplicate -> register callback；P1-W05
+   完成 Service rebind，P1-W06 后 Runtime 进程死亡可由 Room v4 恢复。
 7. 生产 capability XML 只授权 Demo/Client2；`com.centralbrain.sdk.test` 仅存在于 debug resource overlay，
    且仍要求与 Runtime current signer 相同。release policy 不得包含测试 principal。
 8. Android 13/API 33 ARM64 已通过真实 Binder open/replay/reconnect/resubscribe/cancel/close 测试；未访问
@@ -434,8 +434,41 @@ NPU、Driver/HAL 或目标硬件资格。
 
 当前状态：`sdk_facade_v2_available=true`、`session_runtime_service_published=true`、
 `event_runtime_service_published=true`、`event_callback_service_published=true`、
-`active_session_reconnect_resubscribe_verified=true`；同时保持
-`session_runtime_persistence_wired=false`、`session_runtime_process_death_rehydration=false`、
+`active_session_reconnect_resubscribe_verified=true`；P1-W06 后为
+`session_runtime_persistence_wired=true`、`session_runtime_process_death_rehydration=true`、
 `scenario_execution_enabled=false`、`effect_runtime_service_published=false`、
 `approval_response_service_published=false`、`undo_service_published=false`、
 `hardware_accessed=false`。
+
+## 19. P1-W06 Room v4 durable Session/Event trace
+
+本增量映射 `S2-SES-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-EVT-001`、`XSC-005/006`、
+`NV-G-003/004/006/007`、`NV-P-002`、`DEL-001/003..005`：
+
+1. Room current schema 必须为 v4，并提交 schema JSON。新增 `sessions`、`plans`、`plan_nodes`、
+   `runtime_events`、`effect_observations`、`compensations`；保留既有 task/checkpoint/pending-effect/
+   outbox/approval/audit/event-cursor 表。
+2. `MIGRATION_3_4` 必须把旧 `runtime_session` owner/session-key/state/timestamps 映射到新 `sessions`，
+   不能 destructive migration；v1 task/approval、v2/v3 event cursor 和全部既有 durable 数据不得丢失。
+   旧行因 sessionId/request 无法满足 Session V1 UUID/canonical request 合同，必须使用固定 legacy digest
+   marker，非 terminal state 失败关闭为 `FAILED`，并从 owner-scoped Session V1 查询面隔离。
+3. `sessions` 以 owner+clientRequestId unique，Plan 以 session+revision unique，Node/Compensation 具有
+   idempotency unique，Event 以 session+sequence unique；Plan/Event/Observation/Compensation 通过
+   `ON DELETE CASCADE` FK 归属 Session。
+4. `DurableSessionRegistry` 是 Session/Event Binder 的生产 repository。session+initial event 和
+   cancellation+terminal event 必须在单个 Room transaction 中提交；callback 只能在 commit 后通知。
+5. DB 不保存原始 utterance、Binder/native pointer、任意 Java serialization、签名材料或原始模型 token；
+   request 只保存 domain-separated digest，canonical typed event payload 上限 8192 UTF-8 bytes。
+6. owner 必须继续由 Binder UID/package/current signer 派生，查询、分页、event replay、cancel 和淘汰均
+   owner scoped；容量满时只可删除最旧 terminal Session，全部 active 时失败关闭。
+7. migration fixture 必须验证 v1->v4、13-table、WAL、legacy 数据留存、legacy Session V1 隔离、FK、
+   owner query index plan 和模拟 crash transaction rollback；不得只以 schema compile 作为迁移证据。
+8. Android 13/API 33 ARM64 必须 seed Session，杀死 Runtime 进程，再通过 SDK 重绑恢复相同 sessionId、
+   event replay 和 terminal cancel 幂等。callback registration 本身不持久化，进程重启后依赖
+   snapshot/cursor replay 重建。
+9. 本包不发布 Plan Compiler/Graph Runtime、Effect/approval-response/undo Service，不访问 Vehicle、
+   VHAL、NPU、Driver/HAL，不恢复 Python/Linux 或虚拟化路径。
+
+当前状态：`room_schema_version=4`、`room_migration_3_4_verified=true`、
+`session_runtime_persistence_wired=true`、`session_runtime_process_death_rehydration=true`、
+`scenario_execution_enabled=false`、`effect_runtime_service_published=false`、`hardware_accessed=false`。

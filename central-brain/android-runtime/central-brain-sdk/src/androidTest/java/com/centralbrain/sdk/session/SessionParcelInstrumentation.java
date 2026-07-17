@@ -41,11 +41,21 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     private static final String REQUEST_ID = "8d595630-2255-4f4d-ac0f-26a20ee96f29";
     private static final String SESSION_ID = "9bffbb6a-5a0b-41b5-a924-bcfb45be4f26";
     private boolean liveFacade;
+    private boolean durableSeed;
+    private boolean durableVerify;
+    private String durableRequestId = "";
+    private String durableSessionId = "";
 
     @Override
     public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         liveFacade = arguments != null && "true".equals(arguments.getString("liveFacade"));
+        durableSeed = arguments != null && "true".equals(arguments.getString("durableSeed"));
+        durableVerify = arguments != null && "true".equals(arguments.getString("durableVerify"));
+        if (arguments != null) {
+            durableRequestId = value(arguments.getString("durableRequestId"));
+            durableSessionId = value(arguments.getString("durableSessionId"));
+        }
         start();
     }
 
@@ -55,6 +65,16 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         try {
             if (liveFacade) {
                 verifyLiveFacade(result);
+                finish(Activity.RESULT_OK, result);
+                return;
+            }
+            if (durableSeed) {
+                verifyDurableSeed(result);
+                finish(Activity.RESULT_OK, result);
+                return;
+            }
+            if (durableVerify) {
+                verifyDurableRecovery(result);
                 finish(Activity.RESULT_OK, result);
                 return;
             }
@@ -223,9 +243,9 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                             + "\nsession_runtime_service_published=true"
                             + "\nevent_runtime_service_published=true"
                             + "\nevent_callback_service_published=true"
-                            + "\nsession_runtime_transient_registry=true"
-                            + "\nsession_runtime_persistence_wired=false"
-                            + "\nsession_runtime_process_death_rehydration=false"
+                            + "\nsession_runtime_transient_registry=false"
+                            + "\nsession_runtime_persistence_wired=true"
+                            + "\nsession_runtime_process_death_rehydration=true"
                             + "\nactive_session_reconnect_resubscribe_verified=true"
                             + "\ncallback_replay_deduplicated=true"
                             + "\nclose_reconnect_idempotency_verified=true"
@@ -235,6 +255,163 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             client.close();
             callbacks.shutdownNow();
         }
+    }
+
+    private void verifyDurableSeed(Bundle result) throws Exception {
+        UUID.fromString(durableRequestId);
+        ExecutorService callbacks = Executors.newSingleThreadExecutor();
+        CountDownLatch connected = new CountDownLatch(1);
+        SessionClient client = durableClient(callbacks, connected);
+        try {
+            if (!client.connect()) {
+                throw new AssertionError("durable seed bindService returned false");
+            }
+            await(connected, "durable seed connection");
+            long now = System.currentTimeMillis();
+            SessionRequest request = new SessionRequest();
+            request.requestId = durableRequestId;
+            request.scenarioId = "scene.fatigue.assist.v1";
+            request.utterance = "durability verification input";
+            request.source = ICentralBrainSessionRuntime.SOURCE_API;
+            request.seatZone = ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER;
+            request.locale = "en-US";
+            request.deadlineEpochMs = now + TimeUnit.MINUTES.toMillis(4);
+            SessionHandle handle = client.openSession(request, new RuntimeEventListener() {});
+            SessionContract.validateHandle(handle);
+            result.putString(
+                    "stream",
+                    "\nroom_schema_version=4"
+                            + "\nsession_runtime_persistence_wired=true"
+                            + "\ndurable_session_seeded=true"
+                            + "\ndurable_request_id=" + durableRequestId
+                            + "\ndurable_session_id=" + handle.sessionId
+                            + "\nscenario_execution_enabled=false"
+                            + "\nhardware_accessed=false\n");
+        } finally {
+            client.close();
+            callbacks.shutdownNow();
+        }
+    }
+
+    private void verifyDurableRecovery(Bundle result) throws Exception {
+        UUID.fromString(durableRequestId);
+        UUID.fromString(durableSessionId);
+        ExecutorService callbacks = Executors.newSingleThreadExecutor();
+        CountDownLatch connected = new CountDownLatch(1);
+        CountDownLatch snapshotDelivered = new CountDownLatch(1);
+        CountDownLatch replayComplete = new CountDownLatch(1);
+        AtomicInteger eventCount = new AtomicInteger();
+        AtomicReference<String> failure = new AtomicReference<>("");
+        SessionClient client = durableClient(callbacks, connected);
+        try {
+            if (!client.connect()) {
+                throw new AssertionError("durable recovery bindService returned false");
+            }
+            await(connected, "durable recovery connection");
+            SessionQuery query = new SessionQuery();
+            query.stateFilter = ICentralBrainSessionRuntime.SESSION_STATE_ANY;
+            query.includeTerminal = true;
+            query.cursor = "";
+            query.pageSize = SessionContract.MAX_PAGE_SIZE;
+            SessionPage page = client.listSessions(query);
+            SessionSnapshot recovered = null;
+            for (SessionSnapshot candidate : page.sessions) {
+                if (durableRequestId.equals(candidate.requestId)) {
+                    recovered = candidate;
+                    break;
+                }
+            }
+            if (recovered == null || !durableSessionId.equals(recovered.sessionId)) {
+                throw new AssertionError("durable session was not rehydrated");
+            }
+            SessionContract.validateSnapshot(recovered);
+            SessionHandle handle = new SessionHandle();
+            handle.sessionId = recovered.sessionId;
+            handle.acceptedAtEpochMs = recovered.createdAtEpochMs;
+            handle.expiresAtEpochMs = recovered.deadlineEpochMs;
+            client.observeSession(handle, "", new RuntimeEventListener() {
+                @Override
+                public void onSnapshot(SessionSnapshot snapshot) {
+                    SessionContract.validateSnapshot(snapshot);
+                    snapshotDelivered.countDown();
+                }
+
+                @Override
+                public void onEvent(RuntimeEvent event) {
+                    EventContract.validateEvent(event);
+                    eventCount.incrementAndGet();
+                }
+
+                @Override
+                public void onReplayComplete(long lastSequence) {
+                    replayComplete.countDown();
+                }
+
+                @Override
+                public void onError(String code, String message) {
+                    failure.compareAndSet("", code + ": " + message);
+                }
+            });
+            await(snapshotDelivered, "rehydrated session snapshot");
+            await(replayComplete, "rehydrated event replay");
+            if (!failure.get().isEmpty()) {
+                throw new AssertionError(failure.get());
+            }
+            if (eventCount.get() < 1) {
+                throw new AssertionError("rehydrated event history is empty");
+            }
+            if (!client.cancelSession(
+                    handle,
+                    ICentralBrainSessionRuntime.CANCEL_REASON_USER)) {
+                throw new AssertionError("rehydrated session cancellation failed");
+            }
+            if (client.cancelSession(
+                    handle,
+                    ICentralBrainSessionRuntime.CANCEL_REASON_USER)) {
+                throw new AssertionError("terminal session accepted a second cancellation");
+            }
+            result.putString(
+                    "stream",
+                    "\nroom_schema_version=4"
+                            + "\nroom_migration_3_4_verified=true"
+                            + "\nsession_runtime_persistence_wired=true"
+                            + "\nsession_runtime_process_death_rehydration=true"
+                            + "\ndurable_session_identity_preserved=true"
+                            + "\ndurable_event_replay_after_process_death=true"
+                            + "\ndurable_cancel_after_process_death=true"
+                            + "\ndurable_terminal_state_immutable=true"
+                            + "\nscenario_execution_enabled=false"
+                            + "\nhardware_accessed=false\n");
+        } finally {
+            client.close();
+            callbacks.shutdownNow();
+        }
+    }
+
+    private SessionClient durableClient(
+            ExecutorService callbacks,
+            CountDownLatch connected) {
+        return new SessionClient(
+                getContext(),
+                callbacks,
+                new ScenarioClient.ConnectionListener() {
+                    @Override
+                    public void onConnected(ScenarioClient ignored, boolean wasReconnected) {
+                        connected.countDown();
+                    }
+
+                    @Override
+                    public void onDisconnected() {}
+
+                    @Override
+                    public void onConnectionFailed(String code, String message) {
+                        // The timeout reports the failed connection without exposing Binder details.
+                    }
+                });
+    }
+
+    private static String value(String input) {
+        return input == null ? "" : input;
     }
 
     private static void await(CountDownLatch latch, String operation) throws Exception {

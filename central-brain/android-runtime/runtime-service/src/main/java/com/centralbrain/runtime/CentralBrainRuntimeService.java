@@ -33,6 +33,7 @@ import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
 import com.centralbrain.runtime.supervisor.JobSupervisor;
 import com.centralbrain.runtime.session.TransientSessionEndpoint;
+import com.centralbrain.runtime.session.DurableSessionRegistry;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -219,10 +220,11 @@ public final class CentralBrainRuntimeService extends Service {
                 this,
                 R.xml.central_brain_capability_policy,
                 identityResolver.resolveOwnIdentity());
-        transientSessionEndpoint = new TransientSessionEndpoint(operation ->
-                DurablePrincipalFingerprint.from(resolveAuthorizedCaller(
-                        capabilityForSessionOperation(operation))));
         database = CentralBrainDatabase.open(this);
+        transientSessionEndpoint = new TransientSessionEndpoint(
+                operation -> DurablePrincipalFingerprint.from(resolveAuthorizedCaller(
+                        capabilityForSessionOperation(operation))),
+                DurableSessionRegistry.create(database));
         taskRepository = DurableTaskRepository.create(database);
         startupReconciliation = executor.submit(() -> {
             DurableTaskRepository.ReconciliationReport reconciliation =
@@ -449,8 +451,9 @@ public final class CentralBrainRuntimeService extends Service {
         String action = intent == null ? "" : intent.getAction();
         if (CentralBrainSdk.ACTION_SESSION_RUNTIME.equals(action)) {
             Log.i(TAG, "session runtime binder requested"
-                    + " session_runtime_transient_registry=true"
-                    + " session_runtime_persistence_wired=false"
+                    + " session_runtime_transient_registry=false"
+                    + " session_runtime_persistence_wired=true"
+                    + " session_runtime_process_death_rehydration=true"
                     + " hardware_accessed=false");
             return transientSessionEndpoint.sessionBinder();
         }
@@ -473,9 +476,10 @@ public final class CentralBrainRuntimeService extends Service {
         writer.println("session_runtime_service_published=true");
         writer.println("event_runtime_service_published=true");
         writer.println("event_callback_service_published=true");
-        writer.println("session_runtime_transient_registry=true");
-        writer.println("session_runtime_persistence_wired=false");
-        writer.println("session_runtime_process_death_rehydration=false");
+        writer.println("session_runtime_transient_registry=false");
+        writer.println("session_runtime_persistence_wired=true");
+        writer.println("session_runtime_process_death_rehydration=true");
+        writer.println("session_room_schema_version=" + CentralBrainDatabase.VERSION);
         writer.println("scenario_execution_enabled=false");
         writer.println("production_effect_activation_gate_wired=true");
         writer.println("production_effect_delivery_activation_allowed="

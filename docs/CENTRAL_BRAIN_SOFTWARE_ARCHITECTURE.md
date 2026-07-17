@@ -98,8 +98,9 @@ Context、State、Event、Action、Service、Tool 和 Permission 是稳定语义
 承载 task/governance/diagnostics；P1-W01 已新增独立 Session V1 contract，P1-W02 已新增 4 个
 Plan/Node DTO，P1-W03 已新增 5 个 Event DTO、独立 Event/callback V1、23 类 allowlist 及
 顺序/父链/脱敏/cursor/replay validator；P1-W04 已新增 4 个 Effect/Approval DTO、完整 Effect 状态转换、
-approval stale/expiry 和 undo eligibility 校验。Session/Event/Effect Service、Plan Compiler、Room v4、
-approval response/undo executor 和 Graph Runtime 尚未发布；每组合同按独立版本演进，不破坏已有 AIDL hash。
+approval stale/expiry 和 undo eligibility 校验。P1-W05 已发布 app-layer Session/Event Service，P1-W06
+已接 Room v4 durable repository；Effect Service、Plan Compiler、approval response/undo executor 和 Graph
+Runtime 尚未发布。每组合同按独立版本演进，不破坏已有 AIDL hash。
 
 ### Runtime 与 Governance
 
@@ -179,10 +180,12 @@ bash tools/check_central_brain_virtualization_docs.sh
 `P1-W01 Session DTO/AIDL`、`P1-W02 Plan/Node DTO/AIDL`、`P1-W03 Event DTO/AIDL` 与
 `P1-W04 Effect/Approval DTO/AIDL` contract layer 与 `P1-W05 SDK facade v2` 已完成。SDK 通过
 `ScenarioClient` 隔离 Binder primitive；同一 Runtime Service 以双 action 发布 Session/Event V1，
-进程级 transient registry 支持 Service rebind/resubscribe。下一开发工作包是 `P1-W06 Room v4 schema`。
+Room v4 owner repository 支持 Service rebind 和 Runtime process-death rehydration。P1-W06 Room v4
+schema 已完成，下一开发工作包是 `P1-W07 Contract v2 aggregate check`。
 
 当前 `session_runtime_service_published=true`、`event_runtime_service_published=true`、
-`event_callback_service_published=true`，但 Room/process-death rehydration、Scenario/Plan/Effect 执行、
+`event_callback_service_published=true`、`room_schema_version=4`、
+`session_runtime_process_death_rehydration=true`，但 Scenario/Plan/Effect 执行、
 approval response、undo execution 仍为 false。Service 数量保持三项，生产 capability policy 不包含
 test principal；`hardware_accessed=false`。
 真实 AAOS/Vendor/NPU adapter 继续受

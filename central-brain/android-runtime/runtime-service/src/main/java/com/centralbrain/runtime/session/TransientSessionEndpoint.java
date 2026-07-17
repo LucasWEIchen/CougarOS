@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-/** Binder publication for the process-local Stage 2 Session/Event V1 contracts. */
+/** Binder publication for Stage 2 Session/Event V1; callback registrations remain process-local. */
 public final class TransientSessionEndpoint implements AutoCloseable {
     public static final int MAX_CALLBACKS_PER_SESSION = 4;
     public static final int MAX_CALLBACKS_TOTAL = 128;
@@ -42,7 +42,7 @@ public final class TransientSessionEndpoint implements AutoCloseable {
 
     private final Object lock = new Object();
     private final Authorizer authorizer;
-    private final TransientSessionRegistry registry;
+    private final SessionRegistry registry;
     private final Map<String, List<CallbackRecord>> callbacksBySession =
             new LinkedHashMap<>();
     private boolean closed;
@@ -93,7 +93,7 @@ public final class TransientSessionEndpoint implements AutoCloseable {
                     String owner = authorizer.requireOwner(Operation.SESSION_CANCEL_OWN);
                     synchronized (lock) {
                         rejectClosed();
-                        TransientSessionRegistry.CancelResult result =
+                        SessionRegistry.CancelResult result =
                                 registry.cancelOwned(owner, handle, reasonCode);
                         if (result.isChanged()) {
                             dispatchOwned(owner, handle.sessionId, result.getEvent());
@@ -152,13 +152,9 @@ public final class TransientSessionEndpoint implements AutoCloseable {
                 }
             };
 
-    public TransientSessionEndpoint(Authorizer authorizer) {
-        this(authorizer, ProcessRegistryHolder.INSTANCE);
-    }
-
-    TransientSessionEndpoint(
+    public TransientSessionEndpoint(
             Authorizer authorizer,
-            TransientSessionRegistry registry) {
+            SessionRegistry registry) {
         this.authorizer = Objects.requireNonNull(authorizer, "authorizer");
         this.registry = Objects.requireNonNull(registry, "registry");
     }
@@ -340,9 +336,4 @@ public final class TransientSessionEndpoint implements AutoCloseable {
         }
     }
 
-    /** Survives Service rebinds, but is intentionally lost when the Runtime process dies. */
-    private static final class ProcessRegistryHolder {
-        private static final TransientSessionRegistry INSTANCE =
-                TransientSessionRegistry.createDefault();
-    }
 }

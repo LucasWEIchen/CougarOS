@@ -328,7 +328,7 @@ public final class DiagnosticProbeActivity extends Activity {
                     && record.detail.contains("typed_binder_integrated=true")
                     && record.detail.contains("trusted_governance_integrated=true")
                     && record.detail.contains("durable_workflow_foundation_ready=true")
-                    && record.detail.contains("room_schema_version=3")
+                    && record.detail.contains("room_schema_version=4")
                     && record.detail.contains("standard_artifact_count=3")
                     && record.detail.contains("signature_protected_service_count=3")
                     && record.detail.contains("TARGET_HARDWARE_NOT_VALIDATED")

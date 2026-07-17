@@ -37,9 +37,8 @@ non-canonical IDs, oversized strings/pages and invalid deadline/timestamp bounds
 checksums remain unchanged.
 
 JVM tests cover validation and rejection. `SessionParcelInstrumentation` verifies all five DTO round trips on real
-Android. This is a contract-only P1-W01 result: no Android Service publishes the Session Binder yet, no SDK facade
-binds it and no Room/vehicle/NPU path consumes it. `session_runtime_service_published=false` and
-`hardware_accessed=false` remain explicit; P1-W05 owns bind/death/reconnect behavior.
+Android. P1-W01 itself was contract-only; P1-W05 later published the app-layer Binder/facade and P1-W06 wired its
+owner state into Room v4. Vehicle/NPU access remains disabled.
 
 ## Stage 2 P1-W02 Plan/Node Contract
 
@@ -76,8 +75,9 @@ checksums.
 JVM tests and cumulative instrumentation passed on an Android 13/API 33 ARM64 physical controller; the temporary
 test APK was removed. Status is `event_contract_v1_defined=true`,
 `event_parcel_physical_android13_arm64_verified=true`, `event_runtime_service_published=false`,
-`event_callback_service_published=false` and `hardware_accessed=false`. This is wire/validation evidence only;
-EventTreeStore, Room v4, callback queues and Runtime publication remain later work.
+`event_callback_service_published=false` and `hardware_accessed=false` for the P1-W03 increment. P1-W05 later
+published the app-layer Event/callback Binder and P1-W06 made its authoritative replay rows durable; this is still
+not a production Event broker.
 
 ## Stage 2 P1-W04 Effect/Approval Contract
 
@@ -118,8 +118,35 @@ Fake-transport and registry JVM tests cover mismatch/race/reconnect/close/owner/
 ARM64 physical instrumentation verifies real Binder open/replay/reconnect/resubscribe/cancel with duplicate replay
 suppression. Status: `sdk_facade_v2_available=true`, `session_runtime_service_published=true`,
 `event_runtime_service_published=true`, `event_callback_service_published=true`,
-`session_runtime_persistence_wired=false`, `session_runtime_process_death_rehydration=false`,
+`session_runtime_persistence_wired=true`, `session_runtime_process_death_rehydration=true`,
 `scenario_execution_enabled=false`, `hardware_accessed=false`.
+
+## Stage 2 P1-W06 Room v4
+
+Room v4 replaces the unused `runtime_session` skeleton with owner-scoped `sessions` and adds `plans`,
+`plan_nodes`, `runtime_events`, `effect_observations` and `compensations`. Existing durable task/checkpoint/effect/
+outbox/approval/audit/event-cursor rows are preserved. `MIGRATION_3_4` copies legacy session identity, then creates
+foreign keys and unique owner/request, session/revision, node-idempotency and event-sequence indices without using
+destructive migration.
+
+`DurableSessionRegistry` is injected into the existing Session/Event Binder endpoint. Session admission plus the
+initial event and terminal cancellation plus its event are Room transactions; the database stores only the
+request digest, typed metadata and bounded canonical event payload, never the raw utterance or Binder objects.
+Callback registrations remain process-local and are reconstructed by SDK snapshot/cursor replay after process
+death.
+
+The debug migration fixture verifies v1->v2->v3->v4 data preservation, 13-table shape, WAL, foreign keys, owner
+query index selection and rollback of an interrupted session/event transaction. Android 13/API 33 ARM64 evidence
+seeds a session, kills the Runtime process through the DUMP-protected debug receiver, rebinds, recovers the same
+session and event history, then verifies terminal cancellation idempotency. Run:
+
+```bash
+bash tools/test_central_brain_android_session_durability.sh --require-api-33
+```
+
+Current boundaries: `room_schema_version=4`, `session_runtime_persistence_wired=true`,
+`session_runtime_process_death_rehydration=true`, `scenario_execution_enabled=false`,
+`effect_runtime_service_published=false`, `hardware_accessed=false`.
 
 `CentralBrainClient` binds the explicit `com.centralbrain.runtime/.CentralBrainRuntimeService` component. The SDK AAR contributes a narrow package-visibility query for `com.centralbrain.runtime`; it does not use `QUERY_ALL_PACKAGES`. Callbacks are dispatched through the executor supplied by the app, and service death fails active callbacks with `ERROR_SERVICE_DIED`.
 
@@ -305,7 +332,7 @@ An isolated API 33 probe verifies database reopen while RESYNC_REQUIRED, continu
 
 ## R6A3 Event Runtime Readiness
 
-`EventRuntimeReadinessSnapshot` is an immutable production-safe view shared by Runtime startup logging, protected Runtime dumpsys and the bounded Diagnostic Binder page. It reports the bounded Event runtime, Room v3 schema and repository implementation as available while activation, production wiring, durable publisher sequence, callback Binder, broker and middleware remain unavailable.
+`EventRuntimeReadinessSnapshot` is an immutable production-safe view shared by Runtime startup logging, protected Runtime dumpsys and the bounded Diagnostic Binder page. It reports the historical Event cursor schema/repository foundation as available inside current Room v4 while activation, production broker wiring, durable publisher ACK, middleware and vehicle transport remain unavailable. The separate Stage 2 Session/Event callback Binder is app-layer and does not promote this production readiness snapshot.
 
 The snapshot is fail closed with ordered blockers and does not open Room or construct an Event runtime/repository. R6A3 changes no AIDL and adds no dispatch path. It closes the Event software foundation visibility step, not production Event activation; durable publisher ownership and callback/broker integration remain ISSUE-025 work.
 
