@@ -274,8 +274,12 @@ View/Session lifecycle owner；typed callback 只通过 immutable reducer 更新
 cursor、sequence、alias 和 panel 状态，不保存 user/model text。Android 13 ARM64 已验证 hide 后 Client2 process restart、
 existing Session resume/replay、hidden state restore 和菜单重开。
 
-下一实现工作包为 `P4-W03 Intent-first four-stage overlay shell`，把现有 12 按钮测试台改为“意图/计划/执行/结果”
-可观察 shell；不得提前实现 HVAC/Seat dispatch 或把 CREATED Session 表述为执行完成。
+`P4-W03 Intent-first four-stage overlay shell` 已完成：12 按钮主测试台已收敛为四项自然场景输入和
+“意图/计划/执行/结果”可观察 shell；Header 固定显示 source/driving/connection，HVAC/Seat 只作为次级详情抽屉。
+1920x1080 实体 Android 13 ARM64 已验证 `(1264,160)-(1888,1048)` 安全框、60% 浅灰材质、阶段切换、抽屉和恢复。
+
+下一实现工作包为 `P4-W04 HVAC control surface`。必须先实现 desired/reported/source/quality、控件 reducer 和
+governed request 映射；不得提前 dispatch adapter 或把 Session admission 表述为车控完成。
 
 ## 7. 近期进展
 
@@ -424,6 +428,10 @@ existing Session resume/replay、hidden state restore 和菜单重开。
   coordinator 和 existing Session resume API；删除旧 Smali controller。host-JVM、APK build、Android 13 ARM64
   Runtime death 及 Client2 process restart/hidden-state restore 通过；四阶段 shell/HVAC/Seat/执行闭环仍为 false，
   下一工作包为 P4-W03。
+- 完成 `P4-W03 Intent-first four-stage overlay shell`：将主界面收敛为四项自然场景，新增四阶段 renderer、
+  source/driving/connection Header、HVAC/Seat 次级抽屉和 1920x1080/alpha 0.60 资源；host、APK build、
+  Android 13 ARM64 happy/recovery 均通过。HVAC/Seat control、scenario/Graph/Effect dispatch 和真实 readback 仍为 false，
+  下一工作包为 P4-W04。
 
 ## 8. 当前门禁
 
@@ -625,8 +633,14 @@ client2_hmi_checkpoint_resume_verified=true
 client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
+cockpit_hmi_four_stage_shell_implemented=true
+cockpit_hmi_intent_first_primary=true
+cockpit_hmi_safe_frame_1920x1080_verified=true
+cockpit_hmi_device_drawer_scaffolded=true
+cockpit_hvac_surface_implemented=false
+cockpit_seat_surface_implemented=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P4-W03
+implementation_stage=P4-W04
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true

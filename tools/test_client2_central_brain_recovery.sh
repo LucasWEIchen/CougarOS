@@ -142,7 +142,29 @@ launch_client2() {
 }
 
 tap_cold() {
-  "${ADB_DEVICE[@]}" shell input tap "$COLD_X" "$COLD_Y"
+  local intent_center cold_center
+  dump_ui "$LOG_DIR/ui-tap-cold-current.xml"
+  intent_center="$(button_center centralBrainIntentTab \
+    "$LOG_DIR/ui-tap-cold-current.xml" || true)"
+  read -r INTENT_X INTENT_Y <<<"$intent_center"
+  if [[ -z "${INTENT_Y:-}" ]]; then
+    echo "Client2 intent stage is not visible before scenario selection" >&2
+    exit 1
+  fi
+  "${ADB_DEVICE[@]}" shell input tap "$INTENT_X" "$INTENT_Y"
+  for _ in {1..20}; do
+    dump_ui "$LOG_DIR/ui-tap-cold-intent.xml"
+    cold_center="$(button_center centralBrainColdButton \
+      "$LOG_DIR/ui-tap-cold-intent.xml" || true)"
+    if [[ -n "$cold_center" ]]; then
+      read -r COLD_X COLD_Y <<<"$cold_center"
+      "${ADB_DEVICE[@]}" shell input tap "$COLD_X" "$COLD_Y"
+      return 0
+    fi
+    sleep 0.1
+  done
+  echo "Client2 cold intent did not become visible" >&2
+  exit 1
 }
 
 open_navigation_menu() {
@@ -164,10 +186,9 @@ open_navigation_menu() {
   "${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
   for _ in {1..20}; do
     dump_ui "$visible_file"
-    cold_center="$(button_center centralBrainColdButton \
+    cold_center="$(button_center centralBrainIntentTab \
       "$visible_file" || true)"
     if [[ -n "$cold_center" ]]; then
-      read -r COLD_X COLD_Y <<<"$cold_center"
       return 0
     fi
     sleep 0.1
@@ -225,6 +246,9 @@ for marker in \
   'client2_session_event_received=true' \
   'client2_session_replay_complete=true' \
   'cockpit_hmi_state_reducer_implemented=true' \
+  'cockpit_hmi_four_stage_shell_verified=true' \
+  'cockpit_hmi_safe_frame_1920x1080_verified=true' \
+  'cockpit_hmi_device_drawer_verified=true' \
   'client2_hmi_replay_projected=true' \
   'legacy_text_callback_authoritative=false' \
   'client2_ui_session_projection_verified=true' \
@@ -466,6 +490,11 @@ printf '%s\n' \
   "client2_hmi_hidden_state_recreation_verified=true" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
+  "cockpit_hmi_four_stage_shell_verified=true" \
+  "cockpit_hmi_safe_frame_1920x1080_verified=true" \
+  "cockpit_hmi_device_drawer_verified=true" \
+  "cockpit_hvac_surface_implemented=false" \
+  "cockpit_seat_surface_implemented=false" \
   "client2_navigation_menu_reopen_verified=true" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \

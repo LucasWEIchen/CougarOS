@@ -2621,3 +2621,55 @@ reconnect/replay、Client2 force-stop/relaunch existing Session、hidden restore
 `service_dispatch_triggered=false`、`hardware_accessed=false`、`implementation_stage=P4-W03`。
 Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006`、
 `NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-019/033/034`。
+
+## P4-W03 implemented Intent-first four-stage overlay shell
+
+### Design intent
+
+P4-W03 changes the Client2 primary HMI from a diagnostic button console to an AIOS projection. The user selects one bounded
+natural scene; the UI then exposes the intended automation phases without pretending that missing Context, Graph, Effect or
+vehicle readback exists. Device-oriented HVAC/Seat entry points are secondary details, not the primary interaction model.
+
+### Module/file map
+
+| Module/file | Responsibility | Explicit non-responsibility |
+| --- | --- | --- |
+| `patches/main_layout.central_brain_panel.xml` | 1920x1080 safe-frame, four stages, Header, four intents, Session strip, drawer | no business state or adapter call |
+| `patches/res/drawable/central_brain_stage_tab.xml` | activated/default stage visual | no stage ownership |
+| `central_brain_status_badge.xml` / `central_brain_section_background.xml` | bounded status/section material | no source quality inference |
+| `central_brain_drawer_background.xml` | secondary detail drawer material | no HVAC/Seat controls |
+| `CockpitHmiState` | immutable `SurfaceStage` and `DeviceDrawer` | no persistence of display text |
+| `CockpitHmiReducer` | stage/drawer transitions and scenario-to-Plan transition | no Graph/Effect execution |
+| `CockpitControlCoordinator` | stable View bind, event reduction, truthful projection | no direct vehicle/debug adapter access |
+| intent-shell checker and ADB tests | static geometry/state plus physical stage/drawer/recovery evidence | no target-hardware qualification |
+
+### Interaction/state sequence
+
+```text
+bottom navigation -> PANEL_VISIBILITY(true) -> render Intent
+natural scene -> SCENARIO_SUBMITTED -> stage=PLAN -> open typed Session
+Session callbacks -> existing HMI reducer -> update bounded Session strip/Plan text
+stage tap -> SURFACE_SELECTED -> render selected projection
+HVAC/Seat detail -> DRAWER_SELECTED -> render placeholder -> close -> CLOSED
+outside/nav/close -> PANEL_VISIBILITY(false) -> drawer=CLOSED, Session retained
+```
+
+The Plan stage can display normalized intent and Session admission only. Execution always shows Graph `NOT WIRED`, Effect
+`NOT DISPATCHED` and readback `UNAVAILABLE` until later Runtime wiring supplies typed evidence. Result never uses a local View
+value as proof of vehicle state. Header source is `UNAVAILABLE` and driving state is `UNKNOWN · restricted` when no trusted
+Context exists.
+
+### Verification and remaining work
+
+Host tests cover reducer ownership, submit-to-Plan and drawer close on panel hide. Static checks parse XML geometry, exact primary
+scenario set and alpha. The signed Client2 APK passed physical Android 13/API 33 ARM64 stage navigation, exact bounds, drawer,
+Session projection, outside dismiss, Runtime death and Client2 process restart. Raw device identity and payloads remain outside Git.
+
+Status: `cockpit_hmi_four_stage_shell_implemented=true`, `cockpit_hmi_intent_first_primary=true`,
+`cockpit_hmi_safe_frame_1920x1080_verified=true`, `cockpit_hmi_material_alpha=0.60`,
+`cockpit_hmi_device_drawer_scaffolded=true`, `cockpit_hvac_surface_implemented=false`,
+`cockpit_seat_surface_implemented=false`, `cockpit_demo_control_loop_implemented=false`,
+`scenario_execution_enabled=false`, `service_dispatch_triggered=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P4-W04`.
+Req IDs: `S2-UX-001..003`, `S2-HMI-001..003/006`, `APP-004`, `XSC-001/005/006`,
+`NV-G-003/006/007`, `DEL-001/003/004/005`; tracking: `DEV-051..053`, `ISSUE-019/033/035`.

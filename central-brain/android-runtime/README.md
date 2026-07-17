@@ -963,5 +963,6 @@ Historical A-B-A result-digest replay is also verified exactly once per determin
 `production_effect_dispatch_enabled=false` and `hardware_accessed=false` remain enforced. Runtime/Binder activation
 is tracked by DEV-050. P4-W01 migrated Client2 to the published Session/Event facade without activating this
 recovery path. P4-W02 then replaced the legacy Smali lifecycle owner with an immutable HMI state/reducer and a
-maintained Java coordinator that resumes the same owner Session from a text-free checkpoint. P4-W03 four-stage
-intent/plan/execution/result rendering is the next work package.
+maintained Java coordinator that resumes the same owner Session from a text-free checkpoint. P4-W03 added the
+intent/plan/execution/result renderer, four natural-scene inputs, source/driving/connection status, exact 1920x1080
+safe frame and secondary HVAC/Seat drawer. P4-W04 HVAC controls are next; scenario/Graph/Effect/vehicle dispatch remains disabled.

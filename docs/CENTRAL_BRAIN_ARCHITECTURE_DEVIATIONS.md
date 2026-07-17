@@ -76,6 +76,7 @@
 | DEV-050 | P3-W09 Restart recovery repository 未注入 Runtime/Binder/Graph execution。 | S2-GRF-001, S2-EFF-001, ISSUE-022/026/030/033 | Accepted Temporary |
 | DEV-051 | fixed UI alias 仍是闭源 Client2 兼容边界；legacy static owner 已由 P4-W02 Java coordinator 解除。 | S2-UX-001, S2-HMI-005, ISSUE-019/033 | Accepted Temporary |
 | DEV-052 | P4-W02 process-recreation checkpoint 使用 app-private SharedPreferences，不是量产加密 HMI state store。 | S2-UX-001..003, NV-G-003, ISSUE-019/034 | Accepted Temporary |
+| DEV-053 | P4-W03 固定 1920x1080 safe frame、UNKNOWN/UNAVAILABLE 投影和 placeholder drawer 不是量产多屏 HMI 或车辆回读。 | S2-HMI-001..003/006, ISSUE-019/033 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -764,3 +765,17 @@ keystore lifecycle 或 OEM HMI state owner。量产接入必须由 target owner 
 状态：`Accepted Temporary`。`client2_hmi_checkpoint_resume_verified=true`、
 `client2_hmi_checkpoint_text_persisted=false`、`memory_runtime_production_wired=false`、
 `production_ready=false`、`target_hardware_validated=false`。关闭 owner 为 P4-W10/P8 target integration。
+
+## DEV-053 P4-W03 固定 1920x1080 安全框和 unavailable 投影不是量产多屏 HMI
+
+P4-W03 按当前 Client2 实体目标固定 panel 为 `(1264,160)-(1888,1048)`，主材质 alpha=0.60。Header 在 Context、
+driving signal 和 vehicle adapter 未接时分别显示 `UNAVAILABLE`、`UNKNOWN · 受限`；HVAC/Seat drawer 只显示
+P4-W04/P4-W05 placeholder。该范围解决当前 1920x1080 演示 UI 边界和 AIOS 四阶段可观察性，但没有 density/rotation/
+multi-display layout policy、OEM distraction rule、真实 source/quality/readback 或设备控制。
+
+状态：`Accepted Temporary`。`cockpit_hmi_four_stage_shell_implemented=true`、
+`cockpit_hmi_safe_frame_1920x1080_verified=true`、`cockpit_hmi_material_alpha=0.60`、
+`cockpit_hmi_device_drawer_scaffolded=true`、`cockpit_hvac_surface_implemented=false`、
+`cockpit_seat_surface_implemented=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。P4-W04/W05 关闭设备 surface placeholder；P4-W08/W09
+关闭 driving/multi-resolution；P8 目标 owner 关闭真实 source/readback。任何一项关闭前均不得把当前固定画布解释为量产 HMI。

@@ -171,6 +171,11 @@ for marker in \
   "client2_hmi_replay_projected=true" \
   "cockpit_hmi_state_reducer_implemented=true" \
   "cockpit_hmi_lifecycle_owner_java=true" \
+  "cockpit_hmi_four_stage_shell_verified=true" \
+  "cockpit_hmi_safe_frame_1920x1080_verified=true" \
+  "cockpit_hmi_device_drawer_verified=true" \
+  "cockpit_hvac_surface_implemented=false" \
+  "cockpit_seat_surface_implemented=false" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \
@@ -192,6 +197,9 @@ require_text "$RECOVERY_TEST" "client2_session_duplicate_event_suppressed=true"
 require_text "$RECOVERY_TEST" "client2_hmi_session_replacement_verified=true"
 require_text "$RECOVERY_TEST" "client2_hmi_checkpoint_resume_verified=true"
 require_text "$RECOVERY_TEST" "client2_hmi_hidden_state_recreation_verified=true"
+require_text "$RECOVERY_TEST" "cockpit_hmi_four_stage_shell_verified=true"
+require_text "$RECOVERY_TEST" "cockpit_hmi_safe_frame_1920x1080_verified=true"
+require_text "$RECOVERY_TEST" "cockpit_hmi_device_drawer_verified=true"
 require_text "$DEVICE_TEST" "--require-api-33"
 require_text "$DEVICE_TEST" "--replace-conflicting-client2"
 require_text "$DEVICE_TEST" "SIGNER_MIGRATION_REQUIRED"
@@ -253,7 +261,7 @@ for doc_pattern in \
 done
 
 for doc_pattern in \
-  "README.md|12 场景、typed Session/Event、immutable state/reducer" \
+  "README.md|四项自然场景、Intent/Plan/Execution/Result、typed Session/Event、immutable reducer" \
   "README.md|cockpit_demo_control_loop_implemented=false" \
   "apk-labs/client2-central-brain/README.md|bottom navigation" \
   "docs/CENTRAL_BRAIN_CLIENT2_APK_REVERSE_DEMO.md|2026-07-15 导航菜单真机验收" \
@@ -270,6 +278,7 @@ for doc_pattern in \
 done
 
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android Client2 Binder migration check passed"

@@ -1824,3 +1824,55 @@ signer、log。过期/非法 checkpoint 原子清空，不能回退为新 Sessio
 `legacy_text_callback_authoritative=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`。
 Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006`、
 `NV-G-003/006/007`、`DEL-001/003/004/005`；tracking：`DEV-051`、`ISSUE-019/033/034`。
+
+## Android P4-W03 Intent-first Four-stage HMI Interface
+
+### State extensions
+
+```java
+enum SurfaceStage { INTENT, PLAN, EXECUTION, RESULT }
+enum DeviceDrawer { CLOSED, HVAC, SEAT }
+
+CockpitHmiReducer.Event surfaceSelected(SurfaceStage stage);
+CockpitHmiReducer.Event drawerSelected(DeviceDrawer drawer);
+```
+
+`CockpitHmiState` owns both values as immutable fields. Initial/process-restored state uses `INTENT/CLOSED`; Activity recreation
+within the same process keeps the current values. `SCENARIO_SUBMITTED` atomically selects `PLAN` and closes the drawer.
+`PANEL_VISIBILITY(false)` closes the drawer but retains the selected stage and Session projection. No View listener may call
+`setVisibility` for a stage/drawer without first reducing the corresponding event.
+
+### Stable View/resource IDs
+
+| Surface | Stable IDs/tags | Contract |
+| --- | --- | --- |
+| Header | `centralBrainSourceText`, `centralBrainDrivingText`, `centralBrainConnectionText` | Source/driving/connection always visible |
+| Stage rail | `centralBrainIntentTab/PlanTab/ExecutionTab/ResultTab` | tags `central_brain_stage_*`; activated state only from reducer |
+| Intent | `centralBrainIntentSurface` and four scenario buttons | only `care.fatigue/care.cold/skill.nap/task.home` are primary |
+| Plan | `centralBrainPlanSurface`, `centralBrainPlanSummaryText` | Session admission projection; no compiled Plan claim |
+| Execution | `centralBrainExecutionSurface`, `centralBrainExecutionSummaryText` | Graph/Effect/readback unavailable projection |
+| Result | `centralBrainResultSurface`, `centralBrainResultSummaryText` | no vehicle success without evidence |
+| Device drawer | `centralBrainDeviceDrawer`, HVAC/Seat detail/close buttons | placeholder scaffold in P4-W03 |
+| Session strip | `centralBrainSessionStrip`, `centralBrainReplyText` | existing bounded Session/Event projection remains visible |
+
+### Geometry/material contract
+
+For the current 1920x1080 Client2 target, `centralBrainPanel` is `624dp x 888dp`, gravity `top|right`, top margin `160dp`,
+right margin `32dp`; at density 160 this yields `(1264,160)-(1888,1048)`. The root render region stays full-screen and the
+overlay stays initially `GONE`. `central_brain_panel_background` uses `#99EEF2F3`, exactly 60% alpha. Density/rotation variants
+are not inferred from this contract and are tracked by `DEV-053`.
+
+### Projection rules
+
+| Evidence | Plan | Execution | Result |
+| --- | --- | --- | --- |
+| No Session | no request | Graph `NOT WIRED`; Effect `NOT DISPATCHED` | no physical evidence |
+| Connecting/admitted Session | normalized alias + admission state | still no dispatch | accepted request only |
+| Snapshot/Event summary | bounded authoritative summary | does not imply Effect | does not imply vehicle readback |
+| Missing Context/vehicle source | `UNAVAILABLE` | restricted/fail closed | `UNAVAILABLE` |
+
+Status: `cockpit_hmi_four_stage_shell_implemented=true`, `cockpit_hmi_device_drawer_scaffolded=true`,
+`cockpit_hvac_surface_implemented=false`, `cockpit_seat_surface_implemented=false`, `scenario_execution_enabled=false`,
+`service_dispatch_triggered=false`, `hardware_accessed=false`, `implementation_stage=P4-W04`.
+Req IDs: `S2-UX-001..003`, `S2-HMI-001..003/006`, `APP-004`, `XSC-001/005/006`,
+`NV-G-003/006/007`, `DEL-001/003/004/005`; tracking: `DEV-051..053`, `ISSUE-019/033/035`.

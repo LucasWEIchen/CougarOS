@@ -950,3 +950,21 @@ DMA/IOMMU 或 model buffer contract。Private checkpoint 不是硬件存储接�
 新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。P4-W03 仍是应用 UI；真实 HVAC/Seat adapter 由 P8/
 `ISSUE-030` 关闭。Req IDs：`S2-UX-001..003`、`S2-HMI-003/005/006`、`XSC-001/005/006`、
 `KH-003/006`、`DEL-004/005`。
+
+### P4-W03 Intent-first four-stage shell Driver/HAL Boundary
+
+本包只修改 Client2 application XML/vector resources、secondary-dex Java HMI state/reducer/coordinator、host checks、ADB
+acceptance 和文档。四阶段、Header、source/driving unavailable 投影、device drawer、safe frame 和 alpha 均为普通 Android
+View/resource 行为；Session 仍只进入已发布 app-layer SDK/Binder admission。
+
+本包不调用 Android Car/CarProperty、Vehicle/VHAL、vendor Binder/SOA、CAN/DBC、device node、ioctl/sysfs、JNI/C ABI、
+PCIe/NPU、fd/shared memory、Safety Runtime 或 Driver/HAL；不新增 property ID、area mapping、车辆 permission、DMA/IOMMU、
+model buffer 或 readback contract。`UNAVAILABLE`/`NOT DISPATCHED` 是缺口投影，不是模拟硬件结果。
+
+状态：`cockpit_hmi_four_stage_shell_implemented=true`、`cockpit_hmi_safe_frame_1920x1080_verified=true`、
+`cockpit_hmi_device_drawer_scaffolded=true`、`cockpit_hvac_surface_implemented=false`、
+`cockpit_seat_surface_implemented=false`、`scenario_execution_enabled=false`、`service_dispatch_triggered=false`、
+`hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`。
+新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。P4-W04/P4-W05 仍只能通过受治理 typed target；真实
+HVAC/Seat adapter 由 P8/`ISSUE-030` 关闭。Req IDs：`S2-UX-001..003`、`S2-HMI-001..003/006`、
+`XSC-001/005/006`、`KH-003/006`、`DEL-004/005`。

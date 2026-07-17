@@ -18,7 +18,7 @@
 | `central-brain-sdk-debug.aar` | Java/AIDL Binder 客户端 SDK | 否，供座舱 App 编译集成 |
 | `runtime-service-debug.apk` | Runtime、Diagnostic、Governance、Room、Native owner | 是，必须 |
 | `demo-hmi-debug.apk` | 维护型 Binder/Room/Governance 验收 UI | 是，默认 |
-| `client2-central-brain.debug.apk` | 原座舱 UI 上的 12 场景 Binder 浮层 | 可选，需 RenderService/签名许可 |
+| `client2-central-brain.debug.apk` | 原座舱 UI 上的四阶段 Session/Event 浮层和四项自然场景 | 可选，需 RenderService/签名许可 |
 
 当前 APK 是 debug signer 的测试交付，不是量产签名包。真实 NPU/VHAL/车控/安全硬件均
 为空接口，`native_vendor_npu_provider_available=false`、
@@ -205,7 +205,12 @@ owner-scoped Session，所有 snapshot/event/replay 先进入 immutable `Cockpit
 projection 更新文本区。Activity recreate 或 Client2 进程重启时，面板用 app-private、schema-versioned、text-free
 checkpoint 恢复原 Session/cursor/sequence；它不会持久化用户输入、模型输出或显示文本。当前 APK 无
 INTERNET/HTTP fallback。P4-W02 只完成 HMI state/lifecycle/reconnect，Runtime 尚未执行 scenario/Graph/Effect，
-P4-W03 四阶段意图界面和 HVAC/Seat 演示闭环仍未交付。
+P4-W03 四阶段意图界面已交付并通过 API 33 ARM64 验收；HVAC/Seat 控制页和 Runtime 场景执行闭环仍未交付。
+
+当前 Client2 操作路径：点击底部 Central Brain 导航目标打开 overlay，在 Intent 选择四项自然场景之一；随后可在
+Intent/Plan/Execution/Result 查看当前投影，并从 Plan 打开 HVAC/Seat 详情 drawer。Plan/Execution/Result 中的
+`UNAVAILABLE`、`NOT WIRED`、`NOT DISPATCHED` 是真实缺口状态，不是安装失败。再次点击导航、关闭按钮或点击 panel 外区域
+会隐藏 overlay，但不会取消已有 Session。
 
 Runtime 当前返回受控软件结果。`runtime.npu` 不会调用真实 NPU，任何界面文字都不能作为
 硬件激活证据。

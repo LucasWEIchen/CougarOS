@@ -72,6 +72,11 @@ for marker in \
   "client2_hmi_hidden_state_recreation_verified=true" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
+  "cockpit_hmi_four_stage_shell_verified=true" \
+  "cockpit_hmi_safe_frame_1920x1080_verified=true" \
+  "cockpit_hmi_device_drawer_verified=true" \
+  "cockpit_hvac_surface_implemented=false" \
+  "cockpit_seat_surface_implemented=false" \
   "binder_lifecycle_regression_verified=true" \
   "binder_cancel_completion_race_verified=true" \
   "ui_cancel_timeout_not_exposed=true" \
@@ -93,8 +98,8 @@ import pathlib
 import sys
 
 payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-if payload.get("schema_version") != "1.2.0":
-    raise SystemExit("R7C acceptance schema must remain 1.2.0")
+if payload.get("schema_version") != "1.3.0":
+    raise SystemExit("R7C acceptance schema must remain 1.3.0")
 if payload.get("status") != "verified":
     raise SystemExit("R7C acceptance contract must be verified")
 if payload.get("evidence_scope") != "api33-android-application-integration":
@@ -108,6 +113,7 @@ if [entry.get("id") for entry in evidence] != [
     "R7C-E-003",
     "R7C-E-004",
     "R7C-E-005",
+    "R7C-E-006",
 ]:
     raise SystemExit("R7C evidence IDs/order changed")
 claims = payload.get("claim_state", {})
@@ -115,6 +121,7 @@ expected_true = {
     "core_software_baseline_ready",
     "client2_binder_migration_complete",
     "cockpit_hmi_state_reducer_implemented",
+    "cockpit_hmi_four_stage_shell_implemented",
     "api33_end_to_end_acceptance_complete",
     "r7_application_integration_complete",
 }

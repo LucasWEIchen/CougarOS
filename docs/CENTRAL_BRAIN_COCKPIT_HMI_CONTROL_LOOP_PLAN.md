@@ -396,7 +396,7 @@ Renderer 只能消费 immutable `CockpitHmiState`。View listener 只发出 `Coc
 | --- | --- |
 | `patches/main_layout.central_brain_panel.xml` | 意图/计划/执行/结果四阶段容器、稳定 layout slot、content description |
 | `patches/res/drawable/` | power/fan/HVAC/seat/heat/vent/undo 等 vector/state drawable |
-| `bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java` | 已实现 View、Session、Activity lifecycle 与 process recreation 协调；P4-W03 扩展四阶段 intent shell |
+| `bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java` | 已实现 View、Session、Activity lifecycle、process recreation、四阶段 intent shell 和 device drawer；P4-W04 扩展 HVAC controls |
 | `bridge/src/com/centralbrain/client2/CockpitHmiState.java` | 已实现 immutable 根状态和 text-free checkpoint projection |
 | `bridge/src/com/centralbrain/client2/CockpitHmiReducer.java` | 已实现唯一 typed event -> state authority |
 | `bridge/src/com/centralbrain/client2/hmi/CockpitHmiRenderer.java` | state -> Android Views |

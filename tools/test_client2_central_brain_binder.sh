@@ -210,6 +210,20 @@ node_center() {
   printf '%s %s\n' "$(((left + right) / 2))" "$(((top + bottom) / 2))"
 }
 
+tap_resource() {
+  local resource_id="$1"
+  local ui_file="$2"
+  local center x y
+  dump_ui "$ui_file"
+  center="$(node_center "$resource_id" "$ui_file" || true)"
+  read -r x y <<<"$center"
+  if [[ -z "${y:-}" ]]; then
+    echo "Client2 resource is not tappable: $resource_id" >&2
+    return 1
+  fi
+  "${ADB_DEVICE[@]}" shell input tap "$x" "$y"
+}
+
 wait_for_resource_state() {
   local resource_id="$1"
   local expected_state="$2"
@@ -247,6 +261,31 @@ fi
 "${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
 wait_for_resource_state \
   centralBrainColdButton visible "$LOG_DIR/ui-menu-shown.xml"
+if ! grep -q 'centralBrainPanel[^>]\+bounds="\[1264,160\]\[1888,1048\]"' \
+    "$LOG_DIR/ui-menu-shown.xml"; then
+  cat "$LOG_DIR/ui-menu-shown.xml" >&2
+  echo "Client2 AIOS panel is outside the 1920x1080 safe frame" >&2
+  exit 1
+fi
+for marker in \
+  'centralBrainIntentTab' \
+  'centralBrainPlanTab' \
+  'centralBrainExecutionTab' \
+  'centralBrainResultTab' \
+  'text="UNAVAILABLE"' \
+  'text="UNKNOWN · 受限"'; do
+  if ! grep -Fq "$marker" "$LOG_DIR/ui-menu-shown.xml"; then
+    cat "$LOG_DIR/ui-menu-shown.xml" >&2
+    echo "Client2 four-stage header missing marker: $marker" >&2
+    exit 1
+  fi
+done
+tap_resource centralBrainPlanTab "$LOG_DIR/ui-before-plan-tab.xml"
+wait_for_resource_state \
+  centralBrainPlanSummaryText visible "$LOG_DIR/ui-plan-tab.xml"
+tap_resource centralBrainIntentTab "$LOG_DIR/ui-before-intent-tab.xml"
+wait_for_resource_state \
+  centralBrainColdButton visible "$LOG_DIR/ui-intent-tab.xml"
 
 "${ADB_DEVICE[@]}" shell input tap "$TRIGGER_X" "$TRIGGER_Y"
 wait_for_resource_state \
@@ -304,6 +343,11 @@ for marker in \
   'client2_hmi_replay_projected=true' \
   'cockpit_hmi_state_reducer_implemented=true' \
   'cockpit_hmi_lifecycle_owner_java=true' \
+  'cockpit_hmi_four_stage_shell_implemented=true' \
+  'cockpit_hmi_intent_first_primary=true' \
+  'cockpit_hmi_device_drawer_scaffolded=true' \
+  'cockpit_hvac_surface_implemented=false' \
+  'cockpit_seat_surface_implemented=false' \
   'client2_hmi_checkpoint_text_persisted=false' \
   'ui_scenario_id=care.cold' \
   'scenario_id=scene.comfort.cold.v1' \
@@ -319,6 +363,21 @@ for marker in \
     exit 1
   fi
 done
+
+wait_for_resource_state \
+  centralBrainPlanSummaryText visible "$LOG_DIR/ui-plan-after-session.xml"
+tap_resource centralBrainHvacDetailButton "$LOG_DIR/ui-before-hvac-drawer.xml"
+wait_for_resource_state \
+  centralBrainDrawerBodyText visible "$LOG_DIR/ui-hvac-drawer.xml"
+tap_resource centralBrainDrawerCloseButton "$LOG_DIR/ui-before-drawer-close.xml"
+wait_for_resource_state \
+  centralBrainDrawerBodyText hidden "$LOG_DIR/ui-drawer-closed.xml"
+tap_resource centralBrainExecutionTab "$LOG_DIR/ui-before-execution-tab.xml"
+wait_for_resource_state \
+  centralBrainExecutionSummaryText visible "$LOG_DIR/ui-execution-tab.xml"
+tap_resource centralBrainResultTab "$LOG_DIR/ui-before-result-tab.xml"
+wait_for_resource_state \
+  centralBrainResultSummaryText visible "$LOG_DIR/ui-result-tab.xml"
 
 "${ADB_DEVICE[@]}" shell uiautomator dump "$DEVICE_UI_XML" >/dev/null
 "${ADB_DEVICE[@]}" shell cat "$DEVICE_UI_XML" >"$LOG_DIR/ui-after.xml"
@@ -346,6 +405,11 @@ printf '%s\n' \
   "client2_hmi_replay_projected=true" \
   "cockpit_hmi_state_reducer_implemented=true" \
   "cockpit_hmi_lifecycle_owner_java=true" \
+  "cockpit_hmi_four_stage_shell_verified=true" \
+  "cockpit_hmi_safe_frame_1920x1080_verified=true" \
+  "cockpit_hmi_device_drawer_verified=true" \
+  "cockpit_hvac_surface_implemented=false" \
+  "cockpit_seat_surface_implemented=false" \
   "client2_hmi_checkpoint_text_persisted=false" \
   "legacy_text_callback_authoritative=false" \
   "client2_ui_session_projection_verified=true" \
@@ -359,6 +423,7 @@ printf '%s\n' \
   "automatic_uninstall_enabled=false" \
   "session_event_transport_used=true" \
   "http_transport_used=false" \
+  "scenario_execution_enabled=false" \
   "service_dispatch_triggered=false" \
   "hardware_accessed=false" \
   "driver_development_triggered=false" \

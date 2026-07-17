@@ -20,7 +20,7 @@ Python/REST/Linux 仿真运行时已经退役，不再构成开发或交付产�
 | Native Runtime AAR | 已形成 | C ABI V1/JNI，arm64-v8a/x86_64 |
 | Runtime Service APK | 已形成 | signature Binder、Room、Governance、readiness |
 | Demo HMI APK | 已形成 | 维护和应用层验收 |
-| Client2 Demo APK | 可选 | 当前为底部导航触发悬浮面板、12 场景和 typed Binder；尚无 HVAC/Seat 控制页 |
+| Client2 Demo APK | 可选 | 当前为底部导航触发四阶段悬浮面板、四项自然场景和 typed Session/Event；尚无 HVAC/Seat 控制页 |
 | Client2 中控 UI/UX 设计稿 | 已形成 | 四阶段原型、可观察自动化链、1920x1080 安全框、60% 半透明玻璃和四张 PNG；仅设计资产 |
 | Android 13 安装/验收 | 已形成 | dry-run、signer guard、ADB、恢复矩阵 |
 | GitHub 源码/文档基线 | 已形成 | 完整正式工程文件、首页架构/进度、pre-push/Actions 门禁 |
@@ -409,7 +409,7 @@ API 33 必须验证 aggregate diagnostic/log/dumpsys parity、core software read
 
 R7B 交付隔离 Client2 APK patch 工程、两文件 Java bridge、SDK/AIDL `classes2.dex` 构建、Runtime 最小 capability principal、可重复 API 33 验收脚本和更新后的 aggregate acceptance snapshot。原 APK 与 decoded baseline 不进入提交，标准 SDK AAR + Runtime APK + Demo APK 的三项 Gradle artifact shape 不变。
 
-API 33 必须验证 Client2/Runtime signer parity、signature permission granted、secondary SDK dex、12 场景 allowlist 中真实按钮点击、Runtime package identity、typed task completion 和 UI reply，并固定 `http_transport_used=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`。Client2 APK 不得声明 INTERNET/cleartext，也不得保留旧 HTTP RequestTask。
+API 33 必须验证 Client2/Runtime signer parity、signature permission granted、secondary SDK dex、四项 primary natural scene 中真实按钮点击、四阶段/safe-frame/drawer、Runtime package identity、typed Session projection 和 UI reply，并固定 `http_transport_used=false`、`service_dispatch_triggered=false`、`hardware_accessed=false`。Bridge 的 12 项兼容 allowlist 继续静态验证；Client2 APK 不得声明 INTERNET/cleartext，也不得保留旧 HTTP RequestTask。
 
 该交付只关闭 Client2 Binder migration blocker。闭源 APK 维护、原始 signer/RenderService trust、目标系统 owner、R7 完整 E2E、production Effect/Model/Event/Memory/Skill-Governance 和目标硬件仍未通过；无 Driver/HAL、厂商 SDK/system binary、Linux 前端或虚拟化开发。
 
@@ -1500,3 +1500,36 @@ target_hardware_validated=false
 Runtime scenario/Graph/Effect wiring 或真实车辆/NPU。固定 alias 由 `DEV-051` 跟踪；app-private checkpoint 与量产
 storage owner 差异由 `DEV-052/ISSUE-035` 跟踪；`ISSUE-033` 保持 Open。Req IDs：`S2-UX-001..003`、
 `S2-HMI-003/005/006`、`APP-004`、`XSC-001/005/006`、`NV-G-003/006/007`、`DEL-001/003/004/005`。
+
+## Android P4-W03 Intent-first four-stage overlay shell
+
+受维护交付新增或更新：
+
+1. `main_layout.central_brain_panel.xml` 四阶段 overlay、四项自然场景、Header 和 device drawer；
+2. stage/status/section/drawer vector drawable 与 alpha=0.60 主背景；
+3. `CockpitHmiState.SurfaceStage/DeviceDrawer`、对应 reducer event 和唯一 coordinator renderer；
+4. `check_central_brain_android_client2_intent_shell.sh`、host reducer、APK build 和实体 ADB happy/recovery 门禁；
+5. R7C 1.3 应用验收合同和需求/接口/偏差/问题/Driver-HAL/README 同步。
+
+交付标志：
+
+```text
+cockpit_hmi_four_stage_shell_implemented=true
+cockpit_hmi_intent_first_primary=true
+cockpit_hmi_safe_frame_1920x1080_verified=true
+cockpit_hmi_material_alpha=0.60
+cockpit_hmi_device_drawer_scaffolded=true
+cockpit_hvac_surface_implemented=false
+cockpit_seat_surface_implemented=false
+cockpit_demo_control_loop_implemented=false
+scenario_execution_enabled=false
+service_dispatch_triggered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+本包交付 APK 内四阶段可观察 shell，不交付 P4-W04 HVAC/P4-W05 Seat controls、Runtime scenario/Graph/Effect wiring、
+车辆 readback 或真实车辆/NPU。当前固定画布/placeholder 由 `DEV-053` 跟踪；`ISSUE-033` 保持 Open。Req IDs：
+`S2-UX-001..003`、`S2-HMI-001..003/006`、`APP-004`、`XSC-001/005/006`、
+`NV-G-003/006/007`、`DEL-001/003/004/005`。

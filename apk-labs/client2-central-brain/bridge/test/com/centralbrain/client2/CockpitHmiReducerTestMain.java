@@ -20,15 +20,24 @@ public final class CockpitHmiReducerTestMain {
         CockpitHmiState state = CockpitHmiState.initial();
         check(state.getPanelVisibility() == CockpitHmiState.PanelVisibility.HIDDEN,
                 "initial panel must be hidden");
+        check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.INTENT,
+                "intent must be the initial surface");
 
         state = CockpitHmiReducer.reduce(
                 state,
                 CockpitHmiReducer.Event.panelVisibility(true));
         state = CockpitHmiReducer.reduce(
                 state,
+                CockpitHmiReducer.Event.surfaceSelected(CockpitHmiState.SurfaceStage.RESULT));
+        check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.RESULT,
+                "surface selection must be reducer-owned");
+        state = CockpitHmiReducer.reduce(
+                state,
                 CockpitHmiReducer.Event.scenarioSubmitted("care.cold"));
         check(state.getConnectionState() == CockpitHmiState.ConnectionState.CONNECTING,
                 "submission must connect");
+        check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.PLAN,
+                "submission must move the observable shell to plan");
 
         SessionHandle handle = handle();
         state = CockpitHmiReducer.reduce(
@@ -72,9 +81,16 @@ public final class CockpitHmiReducerTestMain {
 
         CockpitHmiState hidden = CockpitHmiReducer.reduce(
                 state,
+                CockpitHmiReducer.Event.drawerSelected(CockpitHmiState.DeviceDrawer.HVAC));
+        check(hidden.getDeviceDrawer() == CockpitHmiState.DeviceDrawer.HVAC,
+                "device drawer selection must be reducer-owned");
+        hidden = CockpitHmiReducer.reduce(
+                hidden,
                 CockpitHmiReducer.Event.panelVisibility(false));
         check(hidden.hasSession() && hidden.getLastEventSequence() == 2,
                 "hiding must preserve session state");
+        check(hidden.getDeviceDrawer() == CockpitHmiState.DeviceDrawer.CLOSED,
+                "hiding must close the secondary drawer");
         CockpitHmiState detached = CockpitHmiReducer.reduce(
                 hidden,
                 CockpitHmiReducer.Event.detached());
@@ -102,6 +118,8 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_hmi_hidden_state_preserved=true");
         System.out.println("cockpit_hmi_checkpoint_text_persisted=false");
         System.out.println("cockpit_hmi_recreation_resume_state_verified=true");
+        System.out.println("cockpit_hmi_four_stage_reducer_verified=true");
+        System.out.println("cockpit_hmi_device_drawer_reducer_verified=true");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
     }

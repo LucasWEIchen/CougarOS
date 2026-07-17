@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -13,7 +13,7 @@
       "type": "apktool-resource-xml",
       "target": "res/layout/main_layout.xml",
       "source": "apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml",
-      "summary": "Keeps the original Client2 render region full-screen and overlays a grouped, scrollable right-side test console with 12 KaKaClaw-inspired Agent scenarios.",
+      "summary": "Keeps the original Client2 render region full-screen and overlays a bounded 1920x1080 intent-first shell with Intent, Plan, Execution and Result stages, four natural scene inputs and a secondary HVAC/Seat detail drawer.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -21,6 +21,10 @@
         "XSC-003",
         "XSC-005",
         "XSC-006",
+        "S2-HMI-001",
+        "S2-HMI-002",
+        "S2-HMI-003",
+        "S2-HMI-006",
         "DEL-001",
         "DEL-003",
         "DEL-004"
@@ -57,7 +61,7 @@
       "type": "embedded-secondary-dex",
       "target": "classes2.dex",
       "source": "apk-labs/client2-central-brain/bridge/src",
-      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, immutable HMI state/reducer, the Java lifecycle coordinator, existing-Session resume, a 12-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
+      "summary": "Embeds SessionClient, generated Session/Event AIDL parcelables, immutable HMI state/reducer, four-stage and drawer state, the Java lifecycle coordinator, existing-Session resume, a 12-alias canonical ID map and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -81,6 +85,7 @@
   "tracked_deviations": [
     "DEV-017: APK reverse demo path remains a test integration path rather than a vendor source-tree build",
     "DEV-051: two-segment UI aliases remain a compatibility boundary; the legacy static lifecycle owner is retired",
-    "DEV-052: the app-private text-free recreation checkpoint is not a production encrypted HMI state store"
+    "DEV-052: the app-private text-free recreation checkpoint is not a production encrypted HMI state store",
+    "DEV-053: the fixed 1920x1080 safe frame and unavailable projections are not a production multi-display HMI or vehicle readback"
   ]
 }
