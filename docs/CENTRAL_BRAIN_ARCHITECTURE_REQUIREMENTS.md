@@ -2724,3 +2724,26 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4b`。tracking：`DEV-102`、`ISSUE-022/026/030/033`。
+
+## 95. P4-D4c simulated scenario Binder trace
+
+1. `APP-004/XSC-001`：AIDL、Parcelable、Service 和 manifest 必须仅存在于 debug source set。
+2. `XSC-004/006`：每次 Binder 调用必须同时执行 signature permission 与 `SIMULATION_CONTROL` capability 检查。
+3. `S2-SCN-001`：start 只接受 Cold/Fatigue 和 Parked/Moving build-owned enum，不接受自由文本或外部 manifest。
+4. `S2-CTX-001/XSC-005`：synthetic Context 只能由固定工厂生成，不得接受任意 vehicle scalar 或设备输入。
+5. `S2-GRF-001/S2-EVT-001`：Service 必须复用 D4b Runtime，不得复制 Graph/Event 状态机。
+6. `S2-HMI-003/006`：Parcelable 必须只携带 Session/Plan/Graph/pending/event metadata 与 false-authority flags。
+7. `S2-EFF-001`：outcome 方法不得调用 Effect adapter、vehicle readback 或 approval authority。
+8. `XSC-006`：action、scenario、driving、outcome、run 与 asset size mismatch 必须失败关闭。
+9. `DEL-003/004`：debug manifest 必须声明 signature permission；release source/manifest 不得包含 D4c。
+10. `DEL-001/005`：host JVM/compile 不是 Android 13 ARM64 或目标硬件验收。
+11. `DEL-001/004`：Android 13 安装与未授权拒绝可单独记账；未完成同签名 AIDL 正向调用时不得声明 Binder 功能验收。
+
+当前 `simulated_scenario_binder_defined=true`、`simulated_scenario_android_service_published=true`、
+`simulated_scenario_session_event_binder_published=true`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_binder_android13_install_verified=true`、
+`simulated_scenario_binder_unauthorized_access_denied_verified=true`、
+`simulated_scenario_binder_authorized_call_verified=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4c`。
+tracking：`DEV-103`、`ISSUE-022/026/030/033`。

@@ -3729,3 +3729,16 @@ productionRegistered/hardwareAccessed/productionReady/targetHardwareValidated=fa
 
 Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-003/006`；tracking：
 `DEV-102`、`ISSUE-022/026/030/033`。
+
+## 64. P4-D4c ISimulatedScenarioRuntime AIDL
+
+Debug AIDL v1 方法：`getProtocolVersion/getProtocolHash/startScenario/getSnapshot/supplyPendingOutcome/cancel`。输入枚举固定为
+Cold/Fatigue、Parked/Moving 和 Succeeded/Failed/Skipped；未知值拒绝。
+
+`SimulatedScenarioBinderSnapshot` v1 包含 run/session/scenario/Plan identity、session state、Graph revision、automatic/supplied counts、pending
+stage/node/capability、last event sequence/count、projection digest 及 Effect/readback/approval/hardware/production false flags。
+
+Service action 为 `BIND_SIMULATED_SCENARIO_RUNTIME`，调用要求 signature `CONTROL_DEBUG_SIMULATION` 和 capability
+`debug.simulation.control`。接口没有自由文本、vehicle scalar、file path、device identity、adapter handle 或 approval token。
+
+Req IDs：`S2-SCN-001/S2-GRF-001/S2-EVT-001/S2-HMI-003/006/APP-004/XSC-001/004/005/006`；tracking：`DEV-103`。

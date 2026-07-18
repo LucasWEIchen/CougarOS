@@ -1702,3 +1702,23 @@ P8 真实 vehicle/owner evidence 到位前，production dispatch 不得开启。
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4b`。
+
+## DEV-103 P4-D4c debug Binder publication is not Effect or production execution
+
+P4-D4c 已发布 signature/capability 双保护的 debug Android Service/AIDL，Client 可跨进程启动固定场景并读取 metadata。该进展关闭了
+D4b 的“无 Android 入口”差距，但 Binder outcome 是显式仿真输入，不是 adapter、readback 或 owner approval 证据。
+
+Service、AIDL、Parcelable 与 input factory 全部在 debug source，release absent。固定 Context 使用 build-owned synthetic values；不能用于
+目标车辆状态、驾驶安全或硬件验收。状态：`Accepted Temporary`。下一步 D4d 才接 simulated adapter/readback，随后接 Client2。
+
+Android 13 已验证 Debug 安装可见和未授权调用被签名权限拒绝；同签名 AIDL 正向调用仍缺失。该结果缩小安装/权限偏差，不关闭
+Binder 功能、Client2、Effect/readback 或目标硬件偏差。
+
+当前 `simulated_scenario_android_runtime_wired=true`、`simulated_scenario_android_service_published=true`、
+`simulated_scenario_session_event_binder_published=true`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_binder_android13_install_verified=true`、
+`simulated_scenario_binder_unauthorized_access_denied_verified=true`、
+`simulated_scenario_binder_authorized_call_verified=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`simulated_scenario_production_registered=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4c`。

@@ -1180,3 +1180,18 @@ P4-D4c signature-protected debug Binder Service；后续仍需 adapter/readback 
 `simulated_scenario_session_event_binder_published=false`、`simulated_scenario_client2_wired=false`、
 `simulated_scenario_effect_dispatch_enabled=false`、`scenario_execution_enabled=false`、
 `hmi_d4_demo_control_loop_complete=false`、`hardware_accessed=false`。tracking：`DEV-101/102`。
+
+### ISSUE-033 P4-D4c update
+
+P4-D4c 已提供固定场景 debug Binder。Client2 未来可使用 Cold/Fatigue、Parked/Moving enum 启动 session，并读取 Plan/Graph/pending/event
+metadata；Service 具有 signature permission 与 capability 双门禁，release source absent。
+
+Android 13 Debug APK 已安装，Service/action/permission 可见，ADB shell 未授权调用被系统拒绝；同签名 AIDL 正向调用未验证。
+
+ISSUE-033 仍 Open：Binder 尚未调用 simulated adapters/readback，Client2 尚未绑定，approval 仍无 authority。下一软件增量为 P4-D4d
+debug adapter/readback composition。当前 `simulated_scenario_client2_wired=false`、
+`simulated_scenario_binder_android13_install_verified=true`、
+`simulated_scenario_binder_unauthorized_access_denied_verified=true`、
+`simulated_scenario_binder_authorized_call_verified=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`hmi_d4_demo_control_loop_complete=false`。tracking：`DEV-101/102/103`。

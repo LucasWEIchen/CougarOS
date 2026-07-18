@@ -752,6 +752,20 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 下一软件增量：`P4-D4c signature-protected debug Binder Service`，发布固定场景输入和只读 Session/Event projection；继续禁止
   production registration 与真实车辆/NPU/Driver-HAL。
 
+### `P4-D4c` signature-protected debug Binder Service
+
+- 状态：`DEVELOPED / ADAPTER_READBACK_CLIENT_PENDING`；需求：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、
+  `S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`。
+- 接口：debug-only `ISimulatedScenarioRuntime` AIDL v1，支持 protocol、start/get/outcome/cancel；返回
+  `SimulatedScenarioBinderSnapshot` metadata，不接受任意 Parcelable 输入。
+- 输入：只允许 Cold/Fatigue 与 Parked/Moving 的 2x2 build-owned 枚举；`SimulatedScenarioInputFactory` 从 APK 内置 manifest
+  生成 synthetic Context，不接受自由文本、任意车辆值或外部场景文件。
+- 安全：复用 signature `CONTROL_DEBUG_SIMULATION` 与 `debug.simulation.control` capability；action 不匹配、未知枚举、未知 run
+  均失败关闭。
+- 边界：Service 只在 debug manifest/source；release absent。Binder outcome 仍是测试输入，不调用 adapter、不读 readback、不拥有
+  approval authority，Client2 尚未绑定。
+- 下一软件增量：`P4-D4d debug adapter/readback composition`；随后再接 Client2 调用链 UI。
+
 ## 9. P5 Tool/Skill 与 Memory
 
 ### `P5-W01` Tool manifest/schema

@@ -4921,3 +4921,25 @@ false authority。Static checker 验证 source-set、JSON、test、docs、main/r
 P4-D4c 才能发布 signature-protected debug Binder Service。D4b 保持 Android Service/Binder、Client2、Effect dispatch、readback、approval
 authority、hardware 和 production false。Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、
 `S2-HMI-003/006`；tracking：`DEV-102`、`ISSUE-022/026/030/033`。
+
+## 52. P4-D4c Simulated Scenario Binder detailed design
+
+`ISimulatedScenarioRuntime` 是 debug AIDL v1，提供 protocol、start/get/outcome/cancel。每次调用先执行 signature permission，再通过
+`AndroidCallerIdentityResolver` 与 debug capability policy 校验 `SIMULATION_CONTROL`。action 不匹配时 `onBind` 返回 null。
+
+`SimulatedScenarioInputFactory` 只允许两个 scenario 和两个 driving profile。Factory 用内置三份 manifest catalog、固定 SOFT_SIM capability、
+synthetic valid Digital Twin 与 runtime-owned Safety stub 生成 Compiler input；plan/session UUID 与 120 s deadline 由 Service 产生。不存在任意文本、
+车辆 scalar、外部路径或 network 输入。
+
+`SimulatedScenarioBinderSnapshot` 是 metadata-only Parcelable。Service audit 只记录 operation、state、revision、event count、projection digest 和
+false flags，不记录 raw Context、payload、caller identity 或 device identity。每个内置 asset 最大 64 KiB。
+
+六组 JVM tests 验证 Cold/Fatigue parked/moving、seat branch pruning、invalid/null/clock、unique identity 和 Parcelable false claims。Static checker
+验证 AIDL/manifest/permission/capability/release absence。D4c 不调用 adapters/readback；下一步 P4-D4d。
+
+Android 13 设备验证分两级记录：Debug APK 安装后 package manager 必须可见 Service/action/signature permission；ADB shell 未授权访问必须
+被拒绝。只有同签名测试客户端完成 `getProtocolVersion/startScenario/getSnapshot` 正向调用后，才允许将
+`simulated_scenario_binder_authorized_call_verified` 置为 true。本增量该值仍为 false。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`；
+tracking：`DEV-103`、`ISSUE-022/026/030/033`。
