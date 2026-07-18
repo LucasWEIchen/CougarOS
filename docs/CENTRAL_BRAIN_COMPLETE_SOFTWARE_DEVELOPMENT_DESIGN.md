@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W07`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W08`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W07`.
+`implementation_stage=P5-W08`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W07`.
+`implementation_stage=P5-W08`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W07`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W08`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +2990,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,7 +3060,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P5-W03 Tool RuleSolver detailed design
@@ -3149,7 +3149,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W04 Tool Executor detailed design
@@ -3224,7 +3224,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `os_virtualization_enabled=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.
 
 ## P5-W05 Skill package verifier detailed design
@@ -3300,7 +3300,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W07`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W08`.
 Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
 
 ## P5-W06 WorkingMemoryStore detailed design
@@ -3398,6 +3398,96 @@ Status: `working_memory_store_defined=true`, `working_memory_session_scope_verif
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W07`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
 `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-068`,
 `ISSUE-041`.
+
+## P5-W07 ProfileMemoryStore detailed design
+
+### Design intent and ownership
+
+`ProfileMemoryStore` is the first typed profile-value data-plane contract. It is deliberately Android-independent so field, consent,
+scope and encryption-owner behavior can be tested without changing the black-box Android 13 system. It must not be instantiated by
+`CentralBrainRuntimeService` until ISSUE-042 publishes production identity, consent/revocation, key and repository owners.
+
+The class exposes only `createForContractTest`. This prevents a caller from confusing the current process-local map and debug XOR owner
+with durable encrypted production Memory. `MemoryRuntimeReadinessSnapshot` remains the production source of truth and continues to
+report all durable encrypted storage/key/consent/repository/Runtime blockers.
+
+### Data model
+
+- `ProfileScope`: lowercase SHA-256 owner fingerprint plus enum `SeatScope`. `USER_GLOBAL` is the only user scope; four explicit seat
+  values are the only seat scopes.
+- `ProfileKey`: immutable scope + enum Field; equality and hash include both, preventing cross-user or cross-seat lookup.
+- `Field`: seven build-owned preferences with exact `ScopeKind`, `ValueKind`, integer range or bounded language-tag format.
+- `FieldPolicy`: immutable non-empty enum subset. It cannot introduce a vendor field by string.
+- `ProfileValue`: integer/boolean/text constructors plus canonical bounded encoding. The store never retains this object.
+- `Entry`: key, monotonically increasing per-key revision, elapsed expiry and a sealed payload only.
+
+### Consent and authorization
+
+`ConsentEvidence` binds consent ID, owner, field set, seat set, elapsed valid window, revision and evidence digest. A structural match is
+necessary but not sufficient: the injected `ConsentAuthority` must also report active. Any exception is invalid. update/read always
+require consent.
+
+`AuthorizationEvidence` additionally binds DELETE or EXPORT. delete intentionally does not require active consent so revocation cannot
+make erase impossible; it requires current DELETE authorization. export requires both active consent and EXPORT authorization for all
+requested fields. No method accepts an HMI boolean as authority.
+
+### Encryption owner gate
+
+`EncryptionOwnerState` binds owner ID, key alias digest, generation, algorithm ID, at-rest availability and key lifecycle readiness. If either readiness
+bit is false, or obtaining state throws, no value operation proceeds. `SealedPayload` carries matching owner/key metadata, algorithm ID
+and a defensive ciphertext copy. The store verifies state/payload owner, alias, generation and configured byte limits.
+
+The main module does not implement cipher, Keystore, TEE or persistent repository. Unit/debug XOR implementations are test doubles and
+set production evidence false. They exist only to execute the state machine and prove plaintext fallback is absent.
+
+### Algorithms
+
+update: expire old records; check field/scope/value/retention; verify consent; verify owner gate; check global/per-owner count; encode
+transient; seal; wipe transient in finally; verify sealed metadata; calculate replacement-adjusted owner byte budget; replace atomically;
+wipe old ciphertext; return metadata only.
+
+read: expire; check field/scope/consent/gate; exact key lookup; defensive sealed copy to open; reject null/oversize/invalid decode; wipe
+opened bytes in finally; return typed value and metadata. No cross-owner not-found oracle is exposed before consent validation.
+
+delete: expire; check field/scope/DELETE authorization/gate; exact remove; wipe retained ciphertext; return outcome and wiped-byte count.
+Repeated delete returns NOT_FOUND.
+
+export: validate non-empty bounded field set and one scope; verify consent for every field; verify one EXPORT authorization covers every
+field; open existing records in enum-name order; if any open/decode fails, return no partial items; otherwise return immutable list.
+
+expiry and snapshot: expiry uses injected nonnegative elapsed realtime, removes all due records and wipes ciphertext. Snapshot returns
+counts and fixed false production flags only; it never returns key, owner, field value, consent or ciphertext.
+
+### Limits and concurrency
+
+All public state methods synchronize on the store. Absolute ceilings are 512 records, 64 records per owner, 256 KiB sealed bytes per
+owner, 8 KiB per sealed payload, 32 export records and 30-day retention. Runtime-configured `Limits` may only reduce these ceilings and
+must be internally consistent. No silent eviction, truncation, summarization, fallback key or plaintext path exists.
+
+### Integration and privacy boundary
+
+Main source has no Android framework, Binder, Room, filesystem, SharedPreferences, network, Android Car/VHAL, ModelProvider, NPU,
+Driver/HAL, production crypto or logging dependency. Release manifest has no probe. Debug logs contain only nonce and booleans/counts;
+no owner, consent/auth ID, field/value, ciphertext, digest, model text or vehicle payload is emitted.
+
+### Verification matrix
+
+Six JVM tests cover owner/key/consent fail-closed, field allowlist and scope/value exactness, sealed update/read isolation and revision,
+replacement wipe, consent revocation plus authorized erase, bounded immutable export, retention/capacity and malformed contracts. The
+debug DUMP probe repeats the contract on API 33 ARM64 when available. The dedicated checker rejects production persistence/crypto,
+Binder/model/network/vehicle/hardware imports and verifies Runtime/Graph remain unwired.
+
+状态：`profile_memory_store_defined=true`、`profile_memory_explicit_consent_verified=true`、
+`profile_memory_field_allowlist_verified=true`、`profile_memory_user_seat_scope_verified=true`、
+`profile_memory_read_update_verified=true`、`profile_memory_delete_verified=true`、`profile_memory_export_verified=true`、
+`profile_memory_consent_revocation_fail_closed=true`、`profile_memory_encryption_owner_gate_verified=true`、
+`profile_memory_sealed_payload_zeroized=true`、`profile_memory_android13_arm64_verified=false`、
+`profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
+`profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
+`profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。Req IDs：`S2-MEM-001`、
+`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`；
+tracking：`DEV-069`、`ISSUE-042`。

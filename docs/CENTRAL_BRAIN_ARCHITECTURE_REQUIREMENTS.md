@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W07`。
+`implementation_stage=P5-W08`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 49. P4-W08 driving restriction renderer trace
 
@@ -1403,7 +1403,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 50. P4-W09 engineer simulation drawer trace
 
@@ -1432,7 +1432,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W07`。
+`implementation_stage=P5-W08`。
 
 ## 51. P4-W10 scenario/manual-control synchronization trace
 
@@ -1461,7 +1461,7 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`cockpit_scenario_effect_dispatch_enabled=false`、
 `cockpit_scenario_readback_available=false`、`scenario_execution_enabled=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 52. P4-W11 accessibility/display matrix trace
 
@@ -1489,7 +1489,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、
 `cockpit_accessibility_state_not_color_only=true`、`cockpit_display_large_text_1_3_verified=true`、
 `cockpit_display_unsupported_fail_closed=true`、`cockpit_display_matrix_android13_arm64_verified=true`、
 `cockpit_display_effect_authorization_source=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 53. P4-W12 Android device acceptance/fault/recovery trace
 
@@ -1522,7 +1522,7 @@ Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`
 `p4_approval_response_service_published=false`、`p4_undo_service_published=false`、
 `p4_vehicle_readback_available=false`、`client2_production_release_artifact_available=false`、
 `hmi_d4_demo_control_loop_complete=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W07`。
+`implementation_stage=P5-W08`。
 
 ## 54. P5-W01 Tool Manifest/Schema trace
 
@@ -1552,7 +1552,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 55. P5-W02 Tool Registry/Resolver trace
 
@@ -1584,7 +1584,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_registry_android13_arm64_verified=false`、`tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 56. P5-W03 Tool RuleSolver trace
 
@@ -1618,7 +1618,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、`tool_execution_enabled=false`、
 `production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W07`。
+`implementation_stage=P5-W08`。
 
 
 ## 57. P5-W04 Tool Executor boundary trace
@@ -1655,7 +1655,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_executor_audit_bounded_verified=true`、`tool_executor_android13_arm64_verified=false`、
 `tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
 `production_tool_registered=false`、`os_virtualization_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 58. P5-W05 Skill package verifier trace
 
@@ -1693,7 +1693,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-008`、`DEL-001/004
 `skill_revocation_downgrade_fail_closed=true`、`skill_package_verifier_android13_arm64_verified=false`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 
 ## 59. P5-W06 WorkingMemoryStore trace
 
@@ -1732,4 +1732,44 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`target_hardware_validated=false`、`implementation_stage=P5-W08`。
+
+## 60. P5-W07 ProfileMemoryStore trace
+
+本增量映射 `S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-F-001`、
+`NV-G-005/006/007`、`DEL-001/004/005`：
+
+1. Profile Memory 必须以受信 owner fingerprint 与 `USER_GLOBAL/DRIVER/FRONT_PASSENGER/REAR_LEFT/REAR_RIGHT`
+   scope 定位，调用方不能用任意字符串创建隐藏 seat/user namespace。
+2. 可保存字段必须来自 build-owned `Field` enum 与 `FieldPolicy` allowlist。首版只允许 cabin temperature、seat recline、
+   seat heat/vent、media volume、avoid-highway 与 language tag；字段类型、范围、seat/user scope 必须精确匹配。
+3. update/read 必须携带结构完整且当前有效的 `ConsentEvidence`，并由独立 `ConsentAuthority` 复验 active/revoked 状态。
+   缺失、过期、owner/seat/field 不匹配或 authority 异常必须稳定失败关闭。
+4. delete 不得依赖仍有效的 consent，以保证用户撤回同意后仍可清除数据；但必须携带独立 DELETE authorization。
+   export 必须同时满足 active consent 与独立 EXPORT authorization，且只返回请求 allowlist 中已有记录。
+5. `EncryptionOwner` gate 必须在任何 value seal/open 前提供 owner ID、key alias digest、generation、at-rest availability 与
+   key lifecycle ready。gate 缺失或异常不得回退 plaintext、默认 key、SharedPreferences 或未加密文件。
+6. store 只保留 `SealedPayload`，update/delete/expiry 必须覆零其 retained ciphertext。plaintext 编解码只存在于有界 transient
+   byte array，并在 seal/open 后 finally 覆零；API 返回 typed value 后的 JVM object 生命周期不冒充 secure erase。
+7. retention 最大 30 天；全局 record、每 owner record/sealed bytes、单 sealed payload 与 export page 都必须有绝对上限。
+   无界配置、超限写入或部分 export 不得 silent evict/truncate/fallback。
+8. P5-W07 main source 只提供 `createForContractTest`；不得提供 production factory、Android Keystore/TEE 实现、Room/file
+   repository、Binder Service 或 Runtime/Graph/model composition。
+9. debug/test XOR owner 仅证明 gate、owner metadata binding 与 ciphertext lifecycle，不是密码学、硬件密钥、加密静态存储或
+   production signer evidence。所有 production readiness 与 durable storage marker 必须保持 false。
+10. main source 不得记录 owner、consent/authorization ID、字段值、ciphertext 或 digest。debug probe 只输出固定 nonce、
+    boolean 和 count，release manifest 不得包含 probe。
+11. JVM 必须覆盖 gate/consent fail-closed、field/scope/value、read/update isolation、sealed replacement wipe、consent revoke 后
+    delete、bounded immutable export、retention/capacity/malformed input；debug/release 必须编译同一 main source。
+12. Android 13 ARM64 probe 未实际通过时 `profile_memory_android13_arm64_verified=false`；未来通过也只证明 contract-test path
+    在 API 33 ARM64 可运行，不证明 durable encrypted repository、production authority、Runtime wiring 或目标硬件资格。
+
+状态：`profile_memory_store_defined=true`、`profile_memory_explicit_consent_verified=true`、
+`profile_memory_field_allowlist_verified=true`、`profile_memory_user_seat_scope_verified=true`、
+`profile_memory_read_update_verified=true`、`profile_memory_delete_verified=true`、`profile_memory_export_verified=true`、
+`profile_memory_consent_revocation_fail_closed=true`、`profile_memory_encryption_owner_gate_verified=true`、
+`profile_memory_sealed_payload_zeroized=true`、`profile_memory_android13_arm64_verified=false`、
+`profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
+`profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
+`profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
