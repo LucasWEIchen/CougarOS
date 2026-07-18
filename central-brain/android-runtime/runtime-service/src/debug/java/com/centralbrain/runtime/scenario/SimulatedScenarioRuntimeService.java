@@ -17,6 +17,7 @@ import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
 import com.centralbrain.runtime.scenario.SimulatedScenarioInputFactory.DrivingProfile;
 import com.centralbrain.runtime.scenario.SimulatedScenarioInputFactory.Input;
 import com.centralbrain.runtime.scenario.SimulatedScenarioInputFactory.ScenarioKind;
+import com.centralbrain.runtime.simulation.SimulationClock;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,7 +38,7 @@ public final class SimulatedScenarioRuntimeService extends Service {
 
     private AndroidCallerIdentityResolver identityResolver;
     private CallerCapabilityPolicy capabilityPolicy;
-    private SimulatedScenarioRuntime runtime;
+    private SimulatedScenarioEffectComposition composition;
     private SimulatedScenarioInputFactory inputs;
 
     private final AgentGraphRuntime.Clock clock = new AgentGraphRuntime.Clock() {
@@ -74,18 +75,15 @@ public final class SimulatedScenarioRuntimeService extends Service {
                     return audited("startScenario", () -> {
                         Input input = inputs.create(
                                 scenario(scenario), drivingProfile(drivingState));
-                        return runtime.start(
-                                input.getRequest(),
-                                input.getResolution(),
-                                input.getContext(),
-                                input.getCapabilities());
+                        return composition.start(
+                                input, scenario(scenario), drivingProfile(drivingState));
                     });
                 }
 
                 @Override
                 public SimulatedScenarioBinderSnapshot getSnapshot(String runId) {
                     authorize();
-                    return audited("getSnapshot", () -> runtime.get(runId));
+                    return audited("getSnapshot", () -> composition.get(runId));
                 }
 
                 @Override
@@ -94,13 +92,13 @@ public final class SimulatedScenarioRuntimeService extends Service {
                         int outcome) {
                     authorize();
                     return audited("supplyPendingOutcome", () ->
-                            runtime.supplyPendingOutcome(runId, outcome(outcome)));
+                            composition.supplyApprovalOutcome(runId, outcome(outcome)));
                 }
 
                 @Override
                 public SimulatedScenarioBinderSnapshot cancel(String runId) {
                     authorize();
-                    return audited("cancel", () -> runtime.cancel(runId));
+                    return audited("cancel", () -> composition.cancel(runId));
                 }
             };
 
@@ -115,7 +113,8 @@ public final class SimulatedScenarioRuntimeService extends Service {
                 this,
                 R.xml.central_brain_capability_policy,
                 identityResolver.resolveOwnIdentity());
-        runtime = new SimulatedScenarioRuntime(clock);
+        composition = new SimulatedScenarioEffectComposition(
+                clock, new SimulationClock(SystemClock.elapsedRealtime()));
         inputs = new SimulatedScenarioInputFactory(
                 loadCatalog(),
                 clock::epochTimeMs,
@@ -123,7 +122,9 @@ public final class SimulatedScenarioRuntimeService extends Service {
                 () -> UUID.randomUUID().toString());
         Log.i(TAG, "created debug_only=true fixed_scenario_count=2"
                 + " session_event_metadata_only=true"
-                + " effect_dispatch_enabled=false readback_accessed=false"
+                + " simulated_effect_dispatch_enabled=true"
+                + " simulated_readback_enabled=true"
+                + " approval_authority_available=false"
                 + " hardware_accessed=false production_ready=false");
     }
 
@@ -158,14 +159,17 @@ public final class SimulatedScenarioRuntimeService extends Service {
             String operation,
             SnapshotOperation command) {
         try {
-            SimulatedScenarioRuntime.Snapshot snapshot = command.run();
+            SimulatedScenarioEffectComposition.Snapshot snapshot = command.run();
             Log.i(TAG, "simulated_scenario_binder_audit=true operation=" + operation
                     + " outcome=APPLIED"
                     + " session_state=" + snapshot.getSessionState().name()
-                    + " graph_revision=" + snapshot.getGraphRevision()
-                    + " projected_event_count=" + snapshot.getProjectedEventCount()
+                    + " effect_dispatch_count=" + snapshot.getEffectDispatchCount()
+                    + " readback_match_count=" + snapshot.getReadbackMatchCount()
+                    + " approval_input_count=" + snapshot.getApprovalInputCount()
+                    + " failure_count=" + snapshot.getFailureCount()
                     + " projection_digest=" + snapshot.getProjectionDigest()
-                    + " effect_dispatch_enabled=false readback_accessed=false"
+                    + " simulated_effect_dispatch_enabled=true"
+                    + " hardware_effect_dispatch_enabled=false"
                     + " hardware_accessed=false production_ready=false");
             return SimulatedScenarioBinderSnapshot.from(snapshot);
         } catch (RuntimeException failure) {
@@ -246,6 +250,6 @@ public final class SimulatedScenarioRuntimeService extends Service {
     }
 
     private interface SnapshotOperation {
-        SimulatedScenarioRuntime.Snapshot run();
+        SimulatedScenarioEffectComposition.Snapshot run();
     }
 }

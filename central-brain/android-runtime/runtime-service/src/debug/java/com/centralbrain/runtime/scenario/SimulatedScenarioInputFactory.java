@@ -41,6 +41,10 @@ public final class SimulatedScenarioInputFactory {
         ScenarioKind(String scenarioId) {
             this.scenarioId = scenarioId;
         }
+
+        String getScenarioId() {
+            return scenarioId;
+        }
     }
 
     public enum DrivingProfile {

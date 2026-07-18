@@ -2667,3 +2667,22 @@ versioned JSON 和静态门禁。允许声明 debug Android Binder 已发布且�
 `simulated_scenario_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4c`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
 `S2-EVT-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`。
+
+## Android P4-D4d Simulated Effect Composition
+
+交付包含 debug-only composition、Binder/Parcelable v2、Partial/Stuck 投影、八组 JVM tests、DUMP same-signer probe、versioned JSON 与门禁。
+Cold 必须完成 3 dispatch/3 matched readback；approved parked Fatigue 完成 5/3/1 approval；Moving Fatigue 完成 4/2 且无 approval/recline；
+skipped parked approval 必须以 Partial 完成 4/2。
+
+不得声明真实 HVAC/Seat/Media/Nav 已执行、production approval 可用、Client2 已接入或目标硬件已验收。Probe 只证明同签名 debug Binder 与
+process-local simulated adapter composition。实体 Android 13 probe 已输出 protocol v2、2 个场景、8 dispatch、6 matched readback、
+1 approval input、0 failure，且 `hardware_accessed=false`。
+
+当前 `simulated_scenario_effect_composition_defined=true`、`simulated_scenario_effect_adapter_count=4`、
+`simulated_scenario_fixed_target_count=7`、`simulated_scenario_effect_dispatch_enabled=true`、
+`simulated_scenario_readback_accessed=true`、`simulated_scenario_android_debug_probe_available=true`、
+`simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_client2_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4d`。
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
+`APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`。

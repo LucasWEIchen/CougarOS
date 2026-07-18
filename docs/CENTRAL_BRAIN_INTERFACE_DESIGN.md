@@ -3742,3 +3742,26 @@ Service action 为 `BIND_SIMULATED_SCENARIO_RUNTIME`，调用要求 signature `C
 `debug.simulation.control`。接口没有自由文本、vehicle scalar、file path、device identity、adapter handle 或 approval token。
 
 Req IDs：`S2-SCN-001/S2-GRF-001/S2-EVT-001/S2-HMI-003/006/APP-004/XSC-001/004/005/006`；tracking：`DEV-103`。
+
+## 65. P4-D4d ISimulatedScenarioRuntime v2 and composition projection
+
+方法签名保持 `getProtocolVersion/getProtocolHash/startScenario/getSnapshot/supplyPendingOutcome/cancel`，protocol 升级为 v2。
+`supplyPendingOutcome` 的 v2 语义收紧为只接受当前 `approval.interrupt`；Effect 与 readback outcome 由组合层产生，Client 不再能人工完成这些节点。
+
+`SimulatedScenarioBinderSnapshot` schema v2 在 v1 metadata 后新增：
+
+- `simulatedEffectDispatchCount`
+- `simulatedReadbackAttemptCount`
+- `simulatedReadbackMatchCount`
+- `simulatedApprovalInputCount`
+- `simulatedFailureCount`
+
+Session state 新增 `SESSION_PARTIAL=7`、`SESSION_STUCK=8`。这些字段只描述 debug simulation，不包含 target value、Context、adapter evidence、
+approval digest、vehicle payload 或 device identity。`effectDispatchEnabled=true` 必须与 `hardwareAccessed=false` 联合解释。
+
+DUMP probe 是同 APK、同 signer 的固定客户端：先执行 Cold parked，再执行 Fatigue parked approval success，只输出聚合计数和 false-authority flags。
+实体 Android 13 已验证 protocol v2、2 个场景、8 dispatch、6 matched readback、1 approval input、0 failure；Release 无
+probe/composition/AIDL entry。
+
+Req IDs：`S2-SCN-001/S2-GRF-001/S2-EVT-001/S2-EFF-001/S2-SAF-001/S2-HMI-003/006/APP-004/XSC-001/004/005/006`；
+tracking：`DEV-104`、`ISSUE-033`。

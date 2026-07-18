@@ -5,8 +5,8 @@ import com.centralbrain.runtime.scenario.SimulatedScenarioBinderSnapshot;
 // Debug-only fixed-scenario metadata endpoint. Absent from release builds.
 // Req IDs: S2-SCN-001, S2-GRF-001, S2-EVT-001, S2-HMI-003/006, APP-004.
 interface ISimulatedScenarioRuntime {
-    const int INTERFACE_VERSION = 1;
-    const String INTERFACE_HASH = "ee0846a379810be2416f88481e7247eb7015ea223dbcb4262d2d5bd5f37dbd85";
+    const int INTERFACE_VERSION = 2;
+    const String INTERFACE_HASH = "acfd1cffb193433425bd173477b826c9a0dca66d87488348fd4a513b895ee9c6";
 
     const int SCENARIO_COLD = 1;
     const int SCENARIO_FATIGUE = 2;
@@ -24,6 +24,8 @@ interface ISimulatedScenarioRuntime {
     const int SESSION_COMPLETED = 4;
     const int SESSION_FAILED = 5;
     const int SESSION_CANCELLED = 6;
+    const int SESSION_PARTIAL = 7;
+    const int SESSION_STUCK = 8;
 
     const int PENDING_NONE = 0;
     const int PENDING_APPROVAL = 1;

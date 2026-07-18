@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p4-d4d-simulated-effect-composition-v1",
+  "maturity": "debug_effect_readback_composed_client_pending",
+  "requirement_ids": [
+    "S2-SCN-001", "S2-GRF-001", "S2-EVT-001", "S2-EFF-001",
+    "S2-SAF-001", "S2-HMI-003", "S2-HMI-006", "APP-004",
+    "XSC-001", "XSC-004", "XSC-005", "XSC-006",
+    "DEL-001", "DEL-003", "DEL-004", "DEL-005"
+  ],
+  "source_set": "debug",
+  "binder_protocol_version": 2,
+  "binder_parcel_schema_version": 2,
+  "runtime_event_schema_count": 10,
+  "adapter_ids": [
+    "debug.simulated.hvac.v1",
+    "debug.simulated.seat.v1",
+    "debug.simulated.media.v1",
+    "debug.simulated.navigation.v1"
+  ],
+  "fixed_targets": [
+    "vehicle.hvac.power=true",
+    "vehicle.hvac.target_temperature.row1.driver=23.0",
+    "vehicle.hvac.fan_level.cabin=3",
+    "vehicle.seat.heating.row1.driver=2",
+    "vehicle.seat.recline.row1.driver=30.0",
+    "media.playback=PAUSE",
+    "navigation.poi=build_owned_nearby_rest_area"
+  ],
+  "scenario_outcomes": {
+    "cold": {
+      "effect_dispatch_count": 3,
+      "readback_match_count": 3,
+      "approval_input_count": 0,
+      "terminal_state": "COMPLETED"
+    },
+    "fatigue_parked_approved": {
+      "effect_dispatch_count": 5,
+      "readback_match_count": 3,
+      "approval_input_count": 1,
+      "terminal_state": "COMPLETED"
+    },
+    "fatigue_parked_skipped": {
+      "effect_dispatch_count": 4,
+      "readback_match_count": 2,
+      "approval_input_count": 1,
+      "terminal_state": "PARTIAL"
+    },
+    "fatigue_moving": {
+      "effect_dispatch_count": 4,
+      "readback_match_count": 2,
+      "approval_input_count": 0,
+      "terminal_state": "COMPLETED"
+    }
+  },
+  "probe": {
+    "activity": "com.centralbrain.runtime.scenario.SimulatedScenarioCompositionProbeActivity",
+    "permission": "android.permission.DUMP",
+    "same_signer_binder_client": true,
+    "fixed_scenario_count": 2,
+    "executed_on_android13": true,
+    "observed_protocol_version": 2,
+    "observed_effect_dispatch_count": 8,
+    "observed_readback_match_count": 6,
+    "observed_approval_input_count": 1,
+    "observed_failure_count": 0,
+    "raw_payload_logged": false,
+    "device_identity_logged": false
+  },
+  "claim_state": {
+    "simulated_scenario_effect_composition_defined": true,
+    "simulated_scenario_effect_adapter_count": 4,
+    "simulated_scenario_fixed_target_count": 7,
+    "simulated_scenario_effect_dispatch_enabled": true,
+    "simulated_scenario_readback_accessed": true,
+    "simulated_scenario_approval_input_explicit": true,
+    "simulated_scenario_partial_stuck_projection_defined": true,
+    "simulated_scenario_binder_protocol_version": 2,
+    "simulated_scenario_binder_parcel_schema_version": 2,
+    "simulated_scenario_android_debug_probe_available": true,
+    "simulated_scenario_android_debug_probe_executed": true,
+    "simulated_scenario_binder_authorized_call_verified": true,
+    "simulated_scenario_hardware_effect_dispatch_enabled": false,
+    "simulated_scenario_approval_authority_available": false,
+    "simulated_scenario_client2_wired": false,
+    "simulated_scenario_production_registered": false,
+    "scenario_execution_enabled": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P4-D4d"
+  }
+}

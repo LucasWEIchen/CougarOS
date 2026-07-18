@@ -1856,3 +1856,19 @@ Android 13 安装与签名权限拒绝已验证，但没有读取任何车辆/NP
 当前 `driver_development_triggered=false`、`simulated_scenario_effect_dispatch_enabled=false`、
 `simulated_scenario_readback_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4c`。
+
+## P4-D4d Simulated Effect Composition Driver/HAL Boundary
+
+D4d 调用的四个 adapter 全部位于 Android debug source，并只更新 process-local simulated state/Digital Twin。它们不加载 Vendor SO、不访问
+VehicleProperty、device node、sysfs、PCIe/NPU、JNI 或网络，也不启动外部 Media/Navigation Activity。
+
+`simulated_scenario_effect_dispatch_enabled=true` 只表示 debug simulated dispatch；硬件字段必须单独保持
+`simulated_scenario_hardware_effect_dispatch_enabled=false`。因此本增量不新增 C/C++、HAL 或 Driver 工作量，也不能关闭 P8 OEM API 缺口。
+
+实体 Android 13 同签名 probe 只经 Android framework Binder 调用了 process-local composition；8 次 dispatch 与 6 次 matched readback
+均为模拟计数，未读取设备节点、车辆属性或 Vendor API。
+
+当前 `driver_development_triggered=false`、`simulated_scenario_readback_accessed=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4d`。

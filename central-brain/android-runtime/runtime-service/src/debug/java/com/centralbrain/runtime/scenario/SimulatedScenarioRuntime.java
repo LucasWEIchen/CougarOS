@@ -35,6 +35,10 @@ public final class SimulatedScenarioRuntime {
             "cougaros.sim.session.failed.v1";
     public static final String SCHEMA_SESSION_CANCELLED =
             "cougaros.sim.session.cancelled.v1";
+    public static final String SCHEMA_SESSION_PARTIAL =
+            "cougaros.sim.session.partial.v1";
+    public static final String SCHEMA_SESSION_STUCK =
+            "cougaros.sim.session.stuck.v1";
 
     private static final String EVENT_DIGEST_DOMAIN =
             "central-brain-p4-d4b-simulated-event-v1";
@@ -46,8 +50,10 @@ public final class SimulatedScenarioRuntime {
         WAITING_EFFECT,
         WAITING_READBACK,
         COMPLETED,
+        PARTIAL,
         FAILED,
-        CANCELLED
+        CANCELLED,
+        STUCK
     }
 
     /** Immutable HMI-facing metadata projection. It contains no raw request or vehicle payload. */
@@ -382,6 +388,14 @@ public final class SimulatedScenarioRuntime {
                     schemaId = SCHEMA_SESSION_CANCELLED;
                     projectionCode = "TERMINAL:CANCELLED";
                     break;
+                case PARTIAL:
+                    schemaId = SCHEMA_SESSION_PARTIAL;
+                    projectionCode = "TERMINAL:PARTIAL";
+                    break;
+                case STUCK:
+                    schemaId = SCHEMA_SESSION_STUCK;
+                    projectionCode = "TERMINAL:STUCK";
+                    break;
                 default:
                     throw violation("graph projection has no pending or terminal state");
             }
@@ -442,10 +456,14 @@ public final class SimulatedScenarioRuntime {
         switch (graph.getGraphState()) {
             case COMPLETED:
                 return SessionState.COMPLETED;
+            case PARTIAL:
+                return SessionState.PARTIAL;
             case FAILED:
                 return SessionState.FAILED;
             case CANCELLED:
                 return SessionState.CANCELLED;
+            case STUCK:
+                return SessionState.STUCK;
             default:
                 throw violation("graph projection has no pending or terminal state");
         }

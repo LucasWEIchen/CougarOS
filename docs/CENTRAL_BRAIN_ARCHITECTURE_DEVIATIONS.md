@@ -1722,3 +1722,20 @@ Binder 功能、Client2、Effect/readback 或目标硬件偏差。
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `simulated_scenario_production_registered=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4c`。
+
+## DEV-104 P4-D4d simulated Effect success is not vehicle Effect authority
+
+P4-D4d 将四个既有 debug simulated adapters 接入场景 Graph，关闭“Binder 只能人工伪造 Effect/readback outcome”的软件偏差。目标值、
+readback 和 approval digest 都是 build-owned process-local simulation；没有 VehicleProperty/Vendor SOA、真实 readback 或 owner approval。
+
+Binder v2 增加计数和 Partial/Stuck 状态，允许 Client2 后续展示自动执行链路，但这些字段不是车辆执行证据。状态：`Accepted Temporary`；
+P4-D4e 只接 Client2，真实车辆路径仍由 P8/OEM evidence 阻塞。
+
+实体 Android 13 同签名 probe 已通过 8 次 simulated dispatch、6 次 matched readback、1 次显式 approval input 和 0 failure；这只关闭
+debug Binder/composition 的执行证据，不改变本偏差状态。
+
+当前 `simulated_scenario_effect_dispatch_enabled=true`、`simulated_scenario_readback_accessed=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_approval_authority_available=false`、
+`simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
+`simulated_scenario_client2_wired=false`、`simulated_scenario_production_registered=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4d`。

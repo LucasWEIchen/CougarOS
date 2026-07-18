@@ -4943,3 +4943,30 @@ Android 13 设备验证分两级记录：Debug APK 安装后 package manager 必
 
 Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`；
 tracking：`DEV-103`、`ISSUE-022/026/030/033`。
+
+## 53. P4-D4d Simulated Effect Composition detailed design
+
+`SimulatedScenarioEffectComposition` 以 `SimulatedScenarioRuntime` 为唯一 Graph/Event owner。`start` 接收 D4c build-owned `Input`、scenario 和
+driving profile；启动后循环读取 pending node。Approval 立即返回；Effect 调用 `dispatch`；Readback 调用 `verify`；终态返回 immutable Snapshot。
+
+Effect payload 映射固定为七项：HVAC power true、driver target 23.0 C、cabin fan 3、driver seat heat 2、approved driver recline 30 degree、
+media PAUSE 和 build-owned nearby-rest-area query。每次 invocation 的 idempotency token 绑定 run/node/idempotency/input digest，envelope 绑定
+run/node/input digest；Binder 无 target-value 参数。
+
+HVAC/Seat 使用 isolated Digital Twin desired/reported；Media/Nav 使用 safe process-local backend。Readback 查询
+`SimulationObservation`，只有 `MATCHED + SIMULATED + !productionTrusted` 才向 Graph 提交 Succeeded。其他状态或异常提交 Failed；Graph 决定
+required fail 或 optional Partial，组合层不得覆盖。
+
+Seat recline 的 synthetic Safety/occupant 只在 adapter call scope 可见。Moving 不会出现 recline node；Parked 必须有显式 approval success，
+生成 run/plan/approval-node/count-bound digest。Verifier 仅接受该 run、driver area 和 action；该机制不是 production approval authority。
+
+Runtime 补充 `PARTIAL/STUCK` Session state 和 `cougaros.sim.session.partial.v1` / `stuck.v1` event schema。Parcelable v2 增加五个聚合计数。
+Probe Activity 受 DUMP 保护，以同 signer 绑定 Service，固定验证 Cold 3/3 和 approved parked Fatigue 5/3/1，不记录 target、Context、caller 或设备身份。
+实体 Android 13 通过条件为 protocol v2、2 个场景、总计 8 dispatch/6 matched readback/1 approval input/0 failure，并同时保持
+`hardwareAccessed=false`、`productionReady=false`、`targetHardwareValidated=false`。
+
+八组 JVM tests 覆盖 Cold、Fatigue parked/moving、approval skip Partial、required Effect failure、readback mismatch、Binder v2 projection 和非法
+external outcome。Static checker 必须验证 debug-only/release absence、四 adapter、七 target、probe 权限与所有 false-authority flags。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
+`APP-004`、`XSC-001/004/005/006`；tracking：`DEV-104`、`ISSUE-022/026/030/033`。

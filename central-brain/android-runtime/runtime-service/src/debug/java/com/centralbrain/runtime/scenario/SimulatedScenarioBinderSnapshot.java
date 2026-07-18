@@ -21,6 +21,11 @@ public final class SimulatedScenarioBinderSnapshot implements Parcelable {
     public long lastEventSequence;
     public int projectedEventCount;
     public String projectionDigest = "";
+    public int simulatedEffectDispatchCount;
+    public int simulatedReadbackAttemptCount;
+    public int simulatedReadbackMatchCount;
+    public int simulatedApprovalInputCount;
+    public int simulatedFailureCount;
     public boolean effectDispatchEnabled;
     public boolean readbackAccessed;
     public boolean approvalAuthorityAvailable;
@@ -29,7 +34,7 @@ public final class SimulatedScenarioBinderSnapshot implements Parcelable {
     public boolean targetHardwareValidated;
 
     public SimulatedScenarioBinderSnapshot() {
-        schemaVersion = 1;
+        schemaVersion = 2;
     }
 
     private SimulatedScenarioBinderSnapshot(Parcel input) {
@@ -49,6 +54,11 @@ public final class SimulatedScenarioBinderSnapshot implements Parcelable {
         lastEventSequence = input.readLong();
         projectedEventCount = input.readInt();
         projectionDigest = nonNull(input.readString());
+        simulatedEffectDispatchCount = input.readInt();
+        simulatedReadbackAttemptCount = input.readInt();
+        simulatedReadbackMatchCount = input.readInt();
+        simulatedApprovalInputCount = input.readInt();
+        simulatedFailureCount = input.readInt();
         effectDispatchEnabled = input.readInt() != 0;
         readbackAccessed = input.readInt() != 0;
         approvalAuthorityAvailable = input.readInt() != 0;
@@ -59,6 +69,7 @@ public final class SimulatedScenarioBinderSnapshot implements Parcelable {
 
     static SimulatedScenarioBinderSnapshot from(SimulatedScenarioRuntime.Snapshot source) {
         SimulatedScenarioBinderSnapshot result = new SimulatedScenarioBinderSnapshot();
+        result.schemaVersion = 1;
         result.runId = source.getRunId();
         result.sessionId = source.getSessionId();
         result.scenarioId = source.getScenarioId();
@@ -77,6 +88,25 @@ public final class SimulatedScenarioBinderSnapshot implements Parcelable {
         result.projectedEventCount = source.getProjectedEventCount();
         result.projectionDigest = source.getProjectionDigest();
         result.effectDispatchEnabled = source.isEffectDispatchEnabled();
+        result.readbackAccessed = source.isReadbackAccessed();
+        result.approvalAuthorityAvailable = source.isApprovalAuthorityAvailable();
+        result.hardwareAccessed = source.isHardwareAccessed();
+        result.productionReady = source.isProductionReady();
+        result.targetHardwareValidated = source.isTargetHardwareValidated();
+        return result;
+    }
+
+    static SimulatedScenarioBinderSnapshot from(
+            SimulatedScenarioEffectComposition.Snapshot source) {
+        SimulatedScenarioBinderSnapshot result = from(source.getRuntimeSnapshot());
+        result.schemaVersion = 2;
+        result.projectionDigest = source.getProjectionDigest();
+        result.simulatedEffectDispatchCount = source.getEffectDispatchCount();
+        result.simulatedReadbackAttemptCount = source.getReadbackAttemptCount();
+        result.simulatedReadbackMatchCount = source.getReadbackMatchCount();
+        result.simulatedApprovalInputCount = source.getApprovalInputCount();
+        result.simulatedFailureCount = source.getFailureCount();
+        result.effectDispatchEnabled = source.isSimulatedEffectDispatchEnabled();
         result.readbackAccessed = source.isReadbackAccessed();
         result.approvalAuthorityAvailable = source.isApprovalAuthorityAvailable();
         result.hardwareAccessed = source.isHardwareAccessed();
@@ -108,6 +138,11 @@ public final class SimulatedScenarioBinderSnapshot implements Parcelable {
         output.writeLong(lastEventSequence);
         output.writeInt(projectedEventCount);
         output.writeString(projectionDigest);
+        output.writeInt(simulatedEffectDispatchCount);
+        output.writeInt(simulatedReadbackAttemptCount);
+        output.writeInt(simulatedReadbackMatchCount);
+        output.writeInt(simulatedApprovalInputCount);
+        output.writeInt(simulatedFailureCount);
         output.writeInt(effectDispatchEnabled ? 1 : 0);
         output.writeInt(readbackAccessed ? 1 : 0);
         output.writeInt(approvalAuthorityAvailable ? 1 : 0);
@@ -139,10 +174,14 @@ public final class SimulatedScenarioBinderSnapshot implements Parcelable {
                 return ISimulatedScenarioRuntime.SESSION_WAITING_READBACK;
             case COMPLETED:
                 return ISimulatedScenarioRuntime.SESSION_COMPLETED;
+            case PARTIAL:
+                return ISimulatedScenarioRuntime.SESSION_PARTIAL;
             case FAILED:
                 return ISimulatedScenarioRuntime.SESSION_FAILED;
             case CANCELLED:
                 return ISimulatedScenarioRuntime.SESSION_CANCELLED;
+            case STUCK:
+                return ISimulatedScenarioRuntime.SESSION_STUCK;
             default:
                 throw new IllegalArgumentException("unknown simulated session state");
         }

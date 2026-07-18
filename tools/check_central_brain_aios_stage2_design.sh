@@ -509,7 +509,8 @@ require_text "$README" 'simulated_scenario_graph_defined=true'
 require_text "$README" 'simulated_scenario_graph_debug_only=true'
 require_text "$README" 'simulated_scenario_plan_published=true'
 require_text "$README" 'simulated_scenario_graph_progress_enabled=true'
-require_text "$README" 'simulated_scenario_effect_dispatch_enabled=false'
+require_text "$README" 'simulated_scenario_effect_dispatch_enabled=true'
+require_text "$README" 'simulated_scenario_hardware_effect_dispatch_enabled=false'
 require_text "$BACKLOG" '`P4-D4a` Simulated Scenario/Plan/Graph composition'
 require_text "$REQUIREMENTS" 'P4-D4a simulated Scenario/Plan/Graph composition trace'
 require_text "$DEVIATIONS" 'DEV-101 P4-D4a debug graph progress is not Runtime Effect execution'
@@ -529,7 +530,7 @@ require_text "$ISSUES" 'ISSUE-033 P4-D4b update'
 require_text "$DELIVERY" 'Android P4-D4b Simulated Scenario Runtime Projection'
 require_text "$DRIVER" 'P4-D4b Simulated Scenario Runtime Driver/HAL Boundary'
 require_text "$README" 'simulated_scenario_binder_defined=true'
-require_text "$README" 'simulated_scenario_binder_protocol_version=1'
+require_text "$README" 'simulated_scenario_binder_protocol_version=2'
 require_text "$README" 'simulated_scenario_binder_signature_permission_enforced=true'
 require_text "$README" 'simulated_scenario_binder_capability_enforced=true'
 require_text "$README" 'simulated_scenario_release_source_absent=true'
@@ -539,6 +540,17 @@ require_text "$DEVIATIONS" 'DEV-103 P4-D4c debug Binder publication is not Effec
 require_text "$ISSUES" 'ISSUE-033 P4-D4c update'
 require_text "$DELIVERY" 'Android P4-D4c Simulated Scenario Binder'
 require_text "$DRIVER" 'P4-D4c Simulated Scenario Binder Driver/HAL Boundary'
+require_text "$README" 'simulated_scenario_effect_composition_defined=true'
+require_text "$README" 'simulated_scenario_effect_adapter_count=4'
+require_text "$README" 'simulated_scenario_fixed_target_count=7'
+require_text "$README" 'simulated_scenario_readback_accessed=true'
+require_text "$README" 'simulated_scenario_partial_stuck_projection_defined=true'
+require_text "$BACKLOG" '`P4-D4d` Debug simulated Effect/readback composition'
+require_text "$REQUIREMENTS" 'P4-D4d simulated Effect composition trace'
+require_text "$DEVIATIONS" 'DEV-104 P4-D4d simulated Effect success is not vehicle Effect authority'
+require_text "$ISSUES" 'ISSUE-033 P4-D4d update'
+require_text "$DELIVERY" 'Android P4-D4d Simulated Effect Composition'
+require_text "$DRIVER" 'P4-D4d Simulated Effect Composition Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -743,5 +755,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_probe.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_graph.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_binder.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_simulated_effect_composition.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

@@ -1703,3 +1703,29 @@ Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-00
 `simulated_scenario_binder_authorized_call_verified=false`、
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4c`。
+
+### P4-D4d Simulated Effect Composition progress
+
+状态：`DEVELOPED / CLIENT_PENDING`（2026-07-18）。新增 debug-only `SimulatedScenarioEffectComposition`，在 D4c Service 后组合既有
+HVAC、Seat、Media 与 Navigation simulated adapters。Effect 节点自动 dispatch，verify 节点只有在 simulated observation 为
+`MATCHED` 时成功；required dispatch/readback failure 使 Graph 失败关闭。
+
+Cold 固定执行 HVAC power、23.0 C 和 driver seat heat 2；Fatigue 固定执行 HVAC power/fan 3、media pause、synthetic rest-area query，
+parked 且显式 approval 成功后才执行 30 degree seat recline。Moving 继续沿用 Compiler pruning。目标均由 build 生成，Binder 不接受任意值。
+
+Binder/Parcelable 升级 v2，新增 simulated dispatch/readback/approval/failure counts；Runtime 增加 `PARTIAL/STUCK` 终态与两类事件 schema。
+可选 approval skip 正确投影 Partial，不再被错误解释为 Completed。DUMP-protected same-signer probe 已在实体 Android 13 设备执行通过：
+protocol v2、2 个固定场景、8 次模拟 Effect dispatch、6 次 matched readback、1 次显式 approval input、0 次失败；日志只保留聚合计数与
+false-authority flags。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
+`APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`；tracking：`DEV-104`、`ISSUE-022/026/030/033`。
+`simulated_scenario_effect_composition_defined=true`、`simulated_scenario_effect_adapter_count=4`、
+`simulated_scenario_fixed_target_count=7`、`simulated_scenario_effect_dispatch_enabled=true`、
+`simulated_scenario_readback_accessed=true`、`simulated_scenario_approval_input_explicit=true`、
+`simulated_scenario_partial_stuck_projection_defined=true`、`simulated_scenario_binder_protocol_version=2`、
+`simulated_scenario_android_debug_probe_available=true`、`simulated_scenario_android_debug_probe_executed=true`、
+`simulated_scenario_binder_authorized_call_verified=true`、`simulated_scenario_hardware_effect_dispatch_enabled=false`、
+`simulated_scenario_approval_authority_available=false`、`simulated_scenario_client2_wired=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4d`。下一增量：P4-D4e Client2 scenario chain UI wiring。

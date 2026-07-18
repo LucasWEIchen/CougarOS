@@ -1697,3 +1697,32 @@ authority 或 production event broker。release source/manifest 不包含该入�
 `simulated_scenario_android_service_published=true`、`simulated_scenario_client2_wired=false`、
 `simulated_scenario_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4c`。
+
+## 60. P4-D4d simulated Effect composition
+
+```text
+same-signer debug client / future Client2 debug bridge
+  -> ISimulatedScenarioRuntime v2
+    -> SimulatedScenarioRuntimeService
+      -> SimulatedScenarioEffectComposition
+        -> SimulatedScenarioRuntime -> SimulatedScenarioGraph
+        -> pending EFFECT -> typed fixed payload -> simulated adapter.apply
+        -> pending READBACK -> SimulationObservation.MATCHED -> Graph outcome
+        -> pending APPROVAL -> return to client; explicit result only
+        -> HVAC / Seat / Media / Navigation process-local backends
+      <- v2 metadata counts + Completed/Partial/Failed/Stuck state
+```
+
+Composition 不拥有 Planner、Graph 或 Event 状态；它只翻译当前 pending node。Adapter target 是节点 capability 的 build-owned 映射，
+readback 必须是 `SIMULATED` 且 non-production-trusted。Seat recline 额外要求 Parked、unbelted synthetic occupant 和 run-bound explicit approval digest。
+
+四个 adapters 共用 debug process，但每个 invocation 使用 run/node/input-bound SHA-256 idempotency token。Binder 不暴露 token、payload 或 approval digest。
+Release/production registry 为空；Client2 与真实 Vehicle/NPU/Driver-HAL 未接。
+实体 Android 13 同签名 probe 已经过该链路完成 2 个固定场景，聚合得到 8 dispatch、6 matched readback、1 approval input 和 0 failure；
+该证据只覆盖 Android framework Binder 与 process-local simulation。
+
+当前 `simulated_scenario_effect_composition_defined=true`、`simulated_scenario_effect_dispatch_enabled=true`、
+`simulated_scenario_readback_accessed=true`、`simulated_scenario_hardware_effect_dispatch_enabled=false`、
+`simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
+`simulated_scenario_client2_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4d`。
