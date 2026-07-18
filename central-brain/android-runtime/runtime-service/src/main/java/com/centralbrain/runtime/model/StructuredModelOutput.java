@@ -369,12 +369,13 @@ public final class StructuredModelOutput {
                 checkedRequest,
                 manifest,
                 scenarioCatalog.getCatalogDigest(),
-                capabilityCatalogDigest(capabilityCatalog),
+                digestCapabilityCatalog(capabilityCatalog),
                 parameters,
                 summary);
     }
 
-    private static String capabilityCatalogDigest(CapabilityCatalog catalog) {
+    public static String digestCapabilityCatalog(CapabilityCatalog catalog) {
+        Objects.requireNonNull(catalog, "catalog");
         List<VehicleCapability> capabilities = new ArrayList<>(catalog.all());
         capabilities.sort(Comparator.comparing(
                 capability -> capability.getId().getCanonicalId()));

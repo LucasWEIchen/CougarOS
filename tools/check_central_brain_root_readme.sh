@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P7-W06' \
+  'implementation_stage=P7-W07' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -696,8 +696,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P7-W06" not in remaining or "Model Runtime production" not in remaining:
-    raise SystemExit("README remaining-work table must identify P7-W06 evaluation as the next unfinished scope")
+if "P7-W07" not in remaining or "Model Runtime production" not in remaining:
+    raise SystemExit("README remaining-work table must identify P7-W07 resource admission as the next unfinished scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:
@@ -720,6 +720,8 @@ if "P7 LocalModelProvider" not in developed:
     raise SystemExit("README developed table must include the completed P7-W04 LocalModelProvider")
 if "P7 Structured Model Output" not in developed:
     raise SystemExit("README developed table must include the completed P7-W05 Structured Model Output")
+if "P7 Scenario Evaluation" not in developed:
+    raise SystemExit("README developed table must include the completed P7-W06 Scenario Evaluation")
 if "P5 Tool Executor boundary" not in developed:
     raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
 if "P5 Skill package verifier" not in developed:
