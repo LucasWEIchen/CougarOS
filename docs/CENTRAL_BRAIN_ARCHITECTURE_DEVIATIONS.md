@@ -93,6 +93,7 @@
 | DEV-067 | P5-W05 只验证调用方提供的 digest evidence；不获取平台 signer、不验证签名链、不加载或执行 Skill package。 | S2-TOL-001, S2-SAF-001, FW-U-008, ISSUE-036/040 | Accepted Temporary |
 | DEV-068 | P5-W06 Working Memory 保存 process-local opaque bytes 并做 best-effort array wipe；尚无 Runtime session hook、durable encryption、tokenizer binding 或 model publication。 | S2-MEM-001, S2-SAF-001, ISSUE-025/031/041 | Accepted Temporary |
 | DEV-069 | P5-W07 Profile Memory 只有 contract-test encryption owner 和 process-local sealed bytes；debug/test XOR 不是 production encrypted storage、Keystore/TEE 或 secure erase。 | S2-MEM-001, S2-SAF-001, ISSUE-025/031/041/042 | Accepted Temporary |
+| DEV-070 | P5-W08 只保存 process-local typed episode summary/result；catalog、policy/read/erase authority、durable encrypted repository 与 Runtime/model publication 未完成。 | S2-MEM-001, S2-SAF-001, ISSUE-025/031/041/042/043 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1021,7 +1022,7 @@ Vehicle/NPU Tool 仍需 P8 OEM/Vendor authority。当前：`tool_rule_set_contra
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W09`。
 
 ## DEV-066 P5-W04 built-in execution is not production Tool authority
 
@@ -1041,7 +1042,7 @@ Tool。状态：`Accepted Temporary`。关闭条件是 P5-W05 冻结 signer/vers
 Runtime/Graph publication。当前：`tool_executor_contract_defined=true`、`tool_executor_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_execution_enabled=false`、`production_tool_registered=false`、
 `os_virtualization_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W08`。
+`target_hardware_validated=false`、`implementation_stage=P5-W09`。
 
 ## DEV-067 P5-W05 static package verification is not production artifact trust
 
@@ -1059,7 +1060,7 @@ Model/NPU、network 或 Driver/HAL；无 file/parser/class loader/subprocess。�
 composition 和 P9 fault/security evidence。当前：`skill_artifact_verifier_contract_defined=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W09`。
 
 ## DEV-068 P5-W06 process-local Working Memory is not production Memory
 
@@ -1079,7 +1080,7 @@ privacy/security evidence。当前：`working_memory_store_defined=true`、`work
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W08`。
+`target_hardware_validated=false`、`implementation_stage=P5-W09`。
 
 ## DEV-069 P5-W07 contract cipher is not production encrypted storage
 
@@ -1098,4 +1099,23 @@ owners、真实 AEAD 与 key lifecycle、schema migration/backup policy、proces
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W08`。
+`target_hardware_validated=false`、`implementation_stage=P5-W09`。
+
+## DEV-070 P5-W08 process-local episodic summaries are not production Memory
+
+P5-W08 新增 `EpisodicMemoryStore`，它只接受 build-owned `ScenarioReference`、固定 trigger/result/outcome enum、动作计数、elapsed
+时间和 retention。main API 没有 raw signal array、任意 byte payload、user/model text 或自由文本入口；同 episode 的 exact replay
+幂等，内容冲突失败关闭，容量超限不 silent eviction。
+
+当前 `ScenarioCatalogAuthority`、`StoragePolicyAuthority`、`ReadAuthority` 与 `EraseAuthority` 只有 contract-test composition。store 只在单 JVM
+process 保存分类摘要，没有 durable/encrypted repository、process-death recovery、可信跨重启 retention clock、consent/revocation
+push、production identity 或 audit publisher。类型收窄降低原始信号滞留风险，但不等于 privacy/compliance qualification。
+
+代码未接 Binder、Room/file、Runtime/Graph、ModelProvider/context assembly、Effect、Vehicle、NPU、network 或 Driver/HAL。状态：
+`Accepted Temporary`。关闭条件是 ISSUE-043 冻结 catalog/policy/read/erase owner、durable encrypted schema、retention/clock、consent、
+backup/migration 与 process-death evidence，并完成 P5-W09/W10 和 P9 验收。当前：`episodic_memory_store_defined=true`、
+`episodic_memory_android13_arm64_verified=false`、`episodic_memory_process_local=true`、
+`episodic_memory_read_fail_closed=true`、`episodic_memory_production_read_authority_wired=false`、
+`episodic_memory_raw_continuous_signal_stored=false`、`episodic_memory_persistence_wired=false`、
+`episodic_memory_runtime_wired=false`、`episodic_memory_model_context_published=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W09`。

@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W08`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W09`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W08`.
+`implementation_stage=P5-W09`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W08`.
+`implementation_stage=P5-W09`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W08`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W09`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +2990,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,7 +3060,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P5-W03 Tool RuleSolver detailed design
@@ -3149,7 +3149,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W04 Tool Executor detailed design
@@ -3224,7 +3224,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `os_virtualization_enabled=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.
 
 ## P5-W05 Skill package verifier detailed design
@@ -3300,7 +3300,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W08`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`.
 Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
 
 ## P5-W06 WorkingMemoryStore detailed design
@@ -3398,7 +3398,7 @@ Status: `working_memory_store_defined=true`, `working_memory_session_scope_verif
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W08`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
 `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-068`,
 `ISSUE-041`.
 
@@ -3488,6 +3488,98 @@ Binder/model/network/vehicle/hardware imports and verifies Runtime/Graph remain 
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。Req IDs：`S2-MEM-001`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W09`。Req IDs：`S2-MEM-001`、
 `S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`；
 tracking：`DEV-069`、`ISSUE-042`。
+
+## P5-W08 EpisodicMemoryStore detailed design
+
+### Design intent
+
+`EpisodicMemoryStore` preserves only the minimum categorical result needed to answer questions such as whether a governed fatigue-care
+scenario succeeded and how many planned actions completed. It is deliberately not a trace archive, time-series database, conversation
+history or model-memory payload store. The narrow DTO surface is the primary privacy control.
+
+### Module allocation
+
+| Module | Responsibility | Explicit non-responsibility |
+| --- | --- | --- |
+| `EpisodicMemoryStore` | synchronized admission, owner isolation, replay/conflict, expiry, capacity, read and erase | production service, persistence, context assembly |
+| `ScenarioReference` | canonical scenario ID + exact catalog SHA-256 binding | dynamic manifest loading or signature validation |
+| `RecordRequest` | typed trigger/result/outcome, action counts, elapsed interval, retention | raw signals, arbitrary bytes/maps, user/model text |
+| `StoragePolicyEvidence` | owner/episode and active elapsed window | self-authorizing consent or durable grant |
+| `ReadEvidence` | owner and active elapsed window | implicit caller trust or content query |
+| `EraseEvidence` | exact EPISODE/OWNER operation binding and active window | production identity or UI authorization |
+| `ScenarioCatalogAuthority` | injected build-owned scenario decision | vendor catalog discovery |
+| `StoragePolicyAuthority` | injected purpose/retention admission decision | storage implementation |
+| `ReadAuthority` | injected owner read authorization decision | production identity or context assembly |
+| `EraseAuthority` | injected deletion authorization decision | repository deletion transaction |
+| `Limits` | reduce-only global/owner/read/retention/duration ceilings | pressure eviction or summarization |
+| `EpisodicMemoryStoreProbeActivity` | debug API 33 ARM64 boolean/count evidence | release exposure or content logging |
+
+### Data model and invariants
+
+The primary key is `ownerFingerprint + ':' + episodeId`. Owner is exact lowercase SHA-256 and every identifier is bounded canonical
+lowercase token syntax. A retained record has only scenario ID/catalog digest, three enums, two action counts, four elapsed timestamps
+and an internal request fingerprint. Policy and erase evidence identifiers are validated but never retained in a record.
+
+`completedActionCount <= plannedActionCount <= 64`; finish is not before start; absolute duration is at most 24 hours; retention is
+positive and at most 30 days. `Limits` may reduce duration/retention and record counts. No caller can configure an unbounded or internally
+inconsistent limit.
+
+### Store algorithm
+
+1. Read a non-negative injected elapsed clock and remove every `expiresAt <= now` record.
+2. Reject retention or episode duration above configured limits.
+3. Call `ScenarioCatalogAuthority`; reject false or exception as `SCENARIO_NOT_ALLOWED`.
+4. Verify policy evidence owner/episode/window, then call `StoragePolicyAuthority`; reject false or exception as `POLICY_DENIED`.
+5. Build a canonical request fingerprint. Exact existing fingerprint returns `REPLAYED` without changing expiry; changed content for the
+   same owner/episode returns `EPISODE_CONFLICT`.
+6. Compute global and owner counts. Reject overflow without eviction or partial mutation.
+7. Insert one immutable categorical record and return a detached snapshot.
+
+### Read, expiry and erase
+
+`readOwner` validates owner and page limit, expires first, checks owner-bound active `ReadEvidence` through `ReadAuthority`, then scans
+insertion order and returns an unmodifiable detached list. Denial returns an empty list with `AUTHORIZATION_DENIED`, cannot query another
+owner and exposes no authority/evidence ID or internal request fingerprint.
+
+`eraseEpisode` requires EPISODE evidence with exact owner/episode. `eraseOwner` requires OWNER evidence and a null episode. Both validate
+the active window before calling `EraseAuthority`; denial returns no existence signal. Authorized erase removes exact records and updates
+count-only statistics. Repeated authorized erase returns `NOT_FOUND`.
+
+Because records contain no raw byte payload, array zeroization is neither implemented nor claimed. Whole-record removal is the
+process-local erase semantic; JVM object/GC/page erasure and durable secure erase remain outside this increment.
+
+### Concurrency, privacy and failure handling
+
+All stateful operations synchronize on one store monitor, making expiry/admission/mutation atomic for the contract scope. Authorities
+run inside this serialized boundary and must be fast; a future production design must define timeout and snapshot semantics before
+wiring remote authorities. Runtime exceptions are converted to stable denial results and never open a fallback path.
+
+Main source has no Android framework, Binder, Room/filesystem, SharedPreferences, network, Android Car/VHAL, ModelProvider, NPU,
+Driver/HAL or logging dependency. The debug probe uses fixed synthetic values and emits only nonce, booleans and counts. Release has no
+probe activity.
+
+### Verification matrix and remaining work
+
+Six JVM tests cover typed summary-only records and owner isolation, catalog/policy denial, idempotent replay/conflict, deterministic
+retention/duration, global/per-owner capacity, exact read/erase authorization and malformed DTOs. Debug/release compile the same main source;
+the dedicated static checker rejects raw payload/free-text APIs and production wiring.
+
+Production remains blocked on ISSUE-043: trusted catalog publication, policy/revocation and erase authorities, durable encrypted schema,
+trusted cross-restart retention clock, process-death recovery, migration/backup and Runtime/model composition. Current state:
+`episodic_memory_store_defined=true`, `episodic_memory_summary_result_only_verified=true`,
+`episodic_memory_owner_isolation_verified=true`, `episodic_memory_policy_fail_closed=true`,
+`episodic_memory_read_fail_closed=true`,
+`episodic_memory_retention_verified=true`, `episodic_memory_capacity_verified=true`, `episodic_memory_erase_verified=true`,
+`episodic_memory_erase_fail_closed=true`, `episodic_memory_android13_arm64_verified=false`,
+`episodic_memory_process_local=true`, `episodic_memory_raw_continuous_signal_stored=false`,
+`episodic_memory_arbitrary_payload_stored=false`, `episodic_memory_persistence_wired=false`,
+`episodic_memory_runtime_wired=false`, `episodic_memory_model_context_published=false`,
+`episodic_memory_production_policy_authority_wired=false`, `episodic_memory_production_read_authority_wired=false`,
+`episodic_memory_production_erase_authority_wired=false`,
+`episodic_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-070`,
+`ISSUE-043`.

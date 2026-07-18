@@ -253,7 +253,15 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P5-W08' \
+  'implementation_stage=P5-W09' \
+  'episodic_memory_store_defined=true' \
+  'episodic_memory_summary_result_only_verified=true' \
+  'episodic_memory_read_fail_closed=true' \
+  'episodic_memory_raw_continuous_signal_stored=false' \
+  'episodic_memory_persistence_wired=false' \
+  'episodic_memory_runtime_wired=false' \
+  'episodic_memory_model_context_published=false' \
+  'episodic_memory_production_read_authority_wired=false' \
   'tool_manifest_contract_defined=true' \
   'tool_manifest_schema_version=1' \
   'tool_manifest_contract_digest_verified=true' \
@@ -553,8 +561,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P5-W08 EpisodicMemoryStore" not in remaining or "Tool/Skill runtime" not in remaining:
-    raise SystemExit("README remaining-work table must identify P5-W08 EpisodicMemoryStore as the next unfinished scope")
+if "P5-W09 ContextBudgetManager" not in remaining or "Tool/Skill runtime" not in remaining:
+    raise SystemExit("README remaining-work table must identify P5-W09 ContextBudgetManager as the next unfinished scope")
 if "P5 Tool Executor boundary" not in developed:
     raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
 if "P5 Skill package verifier" not in developed:
@@ -563,6 +571,8 @@ if "P5 WorkingMemoryStore" not in developed:
     raise SystemExit("README developed table must include the completed P5 WorkingMemoryStore")
 if "P5 ProfileMemoryStore" not in developed:
     raise SystemExit("README developed table must include the completed P5 ProfileMemoryStore")
+if "P5 EpisodicMemoryStore" not in developed:
+    raise SystemExit("README developed table must include the completed P5 EpisodicMemoryStore")
 
 for group in (
     "APP-004",
