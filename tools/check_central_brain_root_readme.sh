@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P6-W01' \
+  'implementation_stage=P6-W02' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -279,6 +279,18 @@ for marker in \
   'memory_consent_production_authority_wired=false' \
   'memory_consent_runtime_wired=false' \
   'memory_consent_model_context_published=false' \
+  'event_broker_interface_defined=true' \
+  'event_broker_typed_topics_verified=true' \
+  'event_broker_append_before_notify_verified=true' \
+  'event_broker_bounded_replay_filter_verified=true' \
+  'event_broker_identity_policy_verified=true' \
+  'event_broker_subscription_lifecycle_verified=true' \
+  'event_broker_android13_arm64_verified=false' \
+  'event_broker_process_local=true' \
+  'event_broker_durable_persistence_wired=false' \
+  'event_broker_dds_transport_wired=false' \
+  'event_broker_production_published=false' \
+  'event_broker_runtime_wired=false' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
@@ -584,8 +596,10 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P6-W01" not in remaining or "Event V2 cursor/ACK broker" not in remaining:
-    raise SystemExit("README remaining-work table must identify P6-W01 EventBroker as the next unfinished scope")
+if "P6-W02" not in remaining or "Event Broker production/QoS" not in remaining:
+    raise SystemExit("README remaining-work table must identify P6-W02 Backpressure/QoS as the next unfinished scope")
+if "P6 EventBroker interface/in-process" not in developed:
+    raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P5 Tool Executor boundary" not in developed:
     raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
 if "P5 Skill package verifier" not in developed:

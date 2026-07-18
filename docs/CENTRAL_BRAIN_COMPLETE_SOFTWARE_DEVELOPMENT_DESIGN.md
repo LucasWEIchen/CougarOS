@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P6-W01`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P6-W02`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -1698,6 +1698,33 @@ interface EventBroker {
 ```
 
 Stage 2 首版是 `InProcessDurableEventBroker`，不宣称 DDS/SOME-IP。Event 写入成功后再通知 callback；关键事件 notification overflow 时关闭消费者并要求 cursor replay。
+
+### 19.1.1 P6-W01 EventBroker interface/in-process detailed design
+
+**类型约束**：`EventBroker.Topic<T>` 构造器不公开，catalog 只有 Task state、Policy decision、Model health。每个 payload
+类只含 subject SHA-256、单个 fixed enum 和 canonical digest。`Topic.validate` 同时比较 exact payload class 与 kind allowlist，
+raw generic 绕过编译期时仍在运行期拒绝。`EventFilter` 只含 topic-kind 子集和最多 16 个 subject digest。
+
+**发布算法**：校验证据 shape/window -> 调用 AccessAuthority -> 检查 owner+requestId replay/conflict -> 检查 cursor overflow ->
+构造 immutable EventRecord -> append per-topic deque -> 更新 cursor -> 执行 retention eviction -> 写 bounded replay tombstone ->
+迭代 subscription snapshot 并同步 callback。callback 异常只关闭该 subscription、增加 failure counter，不回滚 event。
+
+**订阅算法**：校验证据 -> exact owner/client replay/conflict -> future/gap -> global/per-owner limit -> 最多 16 次生成唯一 handle ->
+登记 activeById/activeByClientKey。新订阅不隐式伪造历史成功，历史由显式 replay 获取。owner cancel 清除 active index并留下
+bounded close tombstone；其他 owner 统一返回 NOT_FOUND_OR_NOT_OWNER。
+
+**重放算法**：校验证据与 broker page limit -> future/gap -> 顺序扫描 bounded retained deque -> 应用 kind/subject filter ->
+返回最多 limit 条 immutable EventRecord，并给出 earliest/latest/next/hasMore。gap 返回空页，禁止从中间伪装连续历史。
+
+**并发约束**：首版公共操作 synchronized；consumer callback 内禁止 publish/subscribe/cancel mutation，允许只读 snapshot/replay。
+P6-W02 才能引入 bounded async queue、drop/coalesce/reject/disconnect 与关键事件 no-silent-drop policy。
+
+**非功能边界**：无 Room/file/SharedPreferences、Binder/AIDL Service、DDS/SOME-IP/network、Thread/Executor、Runtime/Graph/
+Effect/Vehicle/Model/NPU/Driver-HAL。required 类名不是 durability evidence。debug probe 只输出 nonce/boolean；release 不注册。
+
+**测试矩阵**：typed mismatch/filter mismatch；append-before-notify；per-topic cursor；retention gap/future；page/filter/hasMore；
+identity/policy deny/unavailable/expired/mismatch；publication/subscription exact replay/conflict；owner cancel；callback failure close；
+all production false boundaries。`implementation_stage=P6-W02`; tracking: `DEV-073`, `ISSUE-046`。
 
 ### 19.2 BackpressurePolicy
 
@@ -2846,7 +2873,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P6-W01`.
+`implementation_stage=P6-W02`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2913,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P6-W01`.
+`implementation_stage=P6-W02`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2960,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P6-W01`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P6-W02`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +3017,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P6-W01`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P6-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,7 +3087,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W01`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P5-W03 Tool RuleSolver detailed design
@@ -3149,7 +3176,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P6-W01`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P6-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W04 Tool Executor detailed design
@@ -3224,7 +3251,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `os_virtualization_enabled=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W01`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.
 
 ## P5-W05 Skill package verifier detailed design
@@ -3300,7 +3327,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W01`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`.
 Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
 
 ## P5-W06 WorkingMemoryStore detailed design
@@ -3398,7 +3425,7 @@ Status: `working_memory_store_defined=true`, `working_memory_session_scope_verif
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P6-W01`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`target_hardware_validated=false`, `implementation_stage=P6-W02`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
 `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-068`,
 `ISSUE-041`.
 
@@ -3488,7 +3515,7 @@ Binder/model/network/vehicle/hardware imports and verifies Runtime/Graph remain 
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。Req IDs：`S2-MEM-001`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。Req IDs：`S2-MEM-001`、
 `S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`；
 tracking：`DEV-069`、`ISSUE-042`。
 
@@ -3580,7 +3607,7 @@ trusted cross-restart retention clock, process-death recovery, migration/backup 
 `episodic_memory_production_policy_authority_wired=false`, `episodic_memory_production_read_authority_wired=false`,
 `episodic_memory_production_erase_authority_wired=false`,
 `episodic_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P6-W01`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`target_hardware_validated=false`, `implementation_stage=P6-W02`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
 `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-070`,
 `ISSUE-043`.
 
@@ -3656,7 +3683,7 @@ identity binding, summary/truncation executor and post-transform recount before 
 `context_budget_tokenizer_wired=false`, `context_budget_summarizer_wired=false`,
 `context_budget_production_authority_wired=false`, `context_budget_runtime_wired=false`,
 `context_budget_content_logged=false`, `model_invoked=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W01`. Req IDs: `S2-MEM-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`. Req IDs: `S2-MEM-001`,
 `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`,
 `DEL-001/004/005`; tracking: `DEV-071`, `ISSUE-044`.
 
@@ -3715,5 +3742,5 @@ process-death、audit、HMI-to-Service Binder 与真实 Car UX Context，之后�
 `memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
 `memory_consent_model_context_published=false`、`memory_consent_content_logged=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W01`. Req IDs: `S2-MEM-001`, `S2-UX-003`, `S2-SAF-001`, `S2-OBS-001`,
+`implementation_stage=P6-W02`. Req IDs: `S2-MEM-001`, `S2-UX-003`, `S2-SAF-001`, `S2-OBS-001`,
 `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-072`, `ISSUE-045`.
