@@ -1013,6 +1013,49 @@ if [[ "$LOCAL_MODEL_PROVIDER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+STRUCTURED_MODEL_OUTPUT_NONCE="$(date +%s%N)"
+STRUCTURED_MODEL_OUTPUT_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.StructuredModelOutputProbeActivity \
+  --es nonce "$STRUCTURED_MODEL_OUTPUT_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$STRUCTURED_MODEL_OUTPUT_PROBE_OUTPUT"; then
+  echo "$STRUCTURED_MODEL_OUTPUT_PROBE_OUTPUT" >&2
+  echo "StructuredModelOutput debug probe did not start successfully" >&2
+  exit 1
+fi
+STRUCTURED_MODEL_OUTPUT_PROBE_PASSED=false
+for _ in {1..40}; do
+  STRUCTURED_MODEL_OUTPUT_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbModelSchemaProbe:I)"
+  if grep -Fq \
+      "nonce=$STRUCTURED_MODEL_OUTPUT_NONCE structured_model_output_probe_complete=true" \
+      <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "structured_model_output_verified=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_output_catalog_binding_verified=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_output_unknown_capability_rejected=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_output_no_action_authority=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_output_schema_runtime_wired=false" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "production_ready=false" <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG"; then
+    STRUCTURED_MODEL_OUTPUT_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$STRUCTURED_MODEL_OUTPUT_PROBE_PASSED" != true ]]; then
+  echo "$STRUCTURED_MODEL_OUTPUT_LOG" >&2
+  echo "StructuredModelOutput probe did not pass" >&2
+  exit 1
+fi
+
 SCHEDULER_NONCE="$(date +%s%N)"
 SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.scheduler.InferenceSchedulerContractProbeActivity \
@@ -4285,6 +4328,12 @@ printf '%s\n' \
   "local_model_provider_vendor_npu_fallback_enabled=false" \
   "production_inference_enabled=false" \
   "raw_model_content_logged=false" \
+  "structured_model_output_verified=true" \
+  "model_output_catalog_binding_verified=true" \
+  "model_output_unknown_capability_rejected=true" \
+  "model_output_no_action_authority=true" \
+  "model_output_schema_runtime_wired=false" \
+  "structured_model_output_android13_arm64_verified=true" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \
