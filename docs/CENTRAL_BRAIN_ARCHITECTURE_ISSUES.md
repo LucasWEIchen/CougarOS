@@ -496,6 +496,11 @@ rebind 后 active session 重新订阅。P1-W06 已完成 Room v4 repository、v
 transaction rollback 和 Runtime process-death rehydration；相同 sessionId/event history 可恢复，
 callback 由 SDK replay 后重新注册。该问题的进程死亡子项已关闭。
 
+2026-07-19 关闭 callback 配额泄漏子项：此前健康 `reconnect()` 会清空客户端 callback map，但没有向
+仍存活的旧 Event Binder 注销 callback，连续重连可能命中每 session 4 callback 上限。transport 现已在
+unbind 前对称注销，并拒绝跨 generation 注册竞态；API 33 ARM64 连续 6 次健康重连通过，
+`healthy_reconnect_callback_cleanup_verified=true`。这不改变下述 Event V1 terminal cursor 缺口。
+
 冻结的 Event V1 还存在 cursor 语义缺口：`hasMore=false` 的 terminal page 不提供可前移的 resume cursor。
 当前 facade 只能保留该 terminal request cursor，并用递增 sequence 去除 register/reconnect replay 的
 重复事件；结果正确但可能重复读取已见历史，不能扩展为高吞吐 durable broker。P1-W07 aggregate review
@@ -564,7 +569,7 @@ migration、session token retention/erase policy 和 MDM data clear。目标 own
 | 2026-07-15 导航菜单进展 | 当前物理设备 Client2 菜单交互完成。 |
 | P1-W03 进展 | Event/callback V1 合同与物理 API 33 Parcel 证据完成；Service/Room/hardware 均未发布。 |
 | P1-W04 进展 | Effect/Approval V1 合同与物理 API 33 Parcel 证据完成；Service/grant/undo/Room/hardware 均未发布。 |
-| P1-W05 进展 | SDK facade 与 Session/Event Service 真实 Binder rebind/resubscribe 完成；process-death/Room/scenario/hardware 仍未发布。 |
+| P1-W05 进展 | SDK facade 与 Session/Event Service 真实 Binder rebind/resubscribe 完成；健康 detach 对称注销旧 callback，API 33 ARM64 连续 6 次重连通过。 |
 | P1-W06 进展 | Room v4、Session/Event process-death rehydration 已完成；ISSUE-034 仅剩 Event V1 terminal cursor/ACK 演进。 |
 | P2-W01 进展 | Canonical signal schema 与 API 33 ARM64 software probe 完成；ISSUE-030 的 property/service/permission/area/readback owner 仍开放。 |
 | P2-W02 进展 | Capability catalog 与 API 33 ARM64 software probe 完成；全部 production authorized=false，ISSUE-029/030 仍开放。 |

@@ -240,8 +240,9 @@ Service。P1-W05 因此不增加 Manifest component，而让 `CentralBrainRuntim
 action 返回独立 Session/Event V1 Binder。旧无 action 绑定仍返回 `ICentralBrainRuntime`，避免破坏
 Client2 既有路径。
 
-会话注册表提升为 Runtime 进程级 singleton，使显式 unbind/rebind 的 Service 实例重建不丢 active
-session；它没有 Room 持久化，Runtime 进程死亡后仍会丢失。因此当前固定声明：
+会话注册表最初提升为 Runtime 进程级 singleton，使显式 unbind/rebind 的 Service 实例重建不丢 active
+session；P1-W06 随后用 `DurableSessionRegistry` 替换 production endpoint。以下是 P1-W05 原始边界，
+不是当前累计状态：
 
 ```text
 session_runtime_transient_registry=true
@@ -252,6 +253,11 @@ scenario_execution_enabled=false
 
 Event V1 的 terminal page 禁止 `nextCursor`，facade 暂时重用该页的 request cursor 并按 sequence 去重
 callback replay；该兼容策略由 `ISSUE-034` 跟踪，不能描述为 durable/high-volume broker。
+
+2026-07-19 生命周期审计还发现健康 reconnect 原先只清空 transport callback map，未调用旧 Event
+Binder 的 unregister；这不是被接受的架构偏差，已直接修复。当前 detach 在 unlink/unbind 前对称注销，
+跨 generation 注册竞态立即撤销，API 33 ARM64 连续 6 次重连通过。仍接受的偏差仅是 app-layer
+Service/system placement 与 Event V1 terminal cursor，不包含 callback 配额泄漏。
 
 此外，详设 8.8 早期草图中的 `approve(ApprovalResponse)` 和 `undo(UndoRequest)` 超过 P1-W04 已冻结
 合同：当前没有 ApprovalResponse/UndoRequest DTO，也没有 grant/undo Binder。P1-W05 facade 只发布

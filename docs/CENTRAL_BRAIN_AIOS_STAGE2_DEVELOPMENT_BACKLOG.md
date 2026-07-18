@@ -193,10 +193,12 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   default-deny capability 从 Binder UID/package/current signer 派生 owner。进程级 transient registry
   有界、幂等、按 owner 隔离，不保留原始 utterance。
 - 生命周期：authoritative cursor replay 后注册 notification callback；重复 replay 按 sequence 去重；
-  Service rebind 后重新读取 snapshot 并订阅 active session。进程死亡恢复仍为
+  Service rebind 后重新读取 snapshot 并订阅 active session；健康 reconnect/close 在 unbind 前对旧
+  Event Binder 对称注销 callback，注册竞态遇到 generation 变化即撤销并失败关闭。进程死亡恢复仍为
   `session_runtime_process_death_rehydration=false`，由 P1-W06 持久化关闭。
 - 测试：fake transport、callback race、协议拒绝、close/reconnect 幂等、registry owner/capacity/
-  cursor；Android 13/API 33 ARM64 真实 Binder 验证通过，`hardware_accessed=false`。
+  cursor；Android 13/API 33 ARM64 真实 Binder 连续 6 次健康 reconnect/replay 后再 cancel，并完成
+  process-death recovery，`healthy_reconnect_callback_cleanup_verified=true`、`hardware_accessed=false`。
 - 边界：`scenario_execution_enabled=false`，不发布 Effect/approval response/undo executor，不接车辆、
   NPU 或 Driver/HAL。Event V1 terminal page cursor 限制登记于 `ISSUE-034`。
 

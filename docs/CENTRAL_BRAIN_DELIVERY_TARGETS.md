@@ -596,8 +596,10 @@ utterance，Service rebind 后可读取 snapshot/cursor replay 并重订阅，Ru
 
 JVM 测试覆盖 fake transport、protocol mismatch、callback race、replay 去重、close/reconnect 幂等、
 owner isolation、idempotency conflict、capacity 与 cursor。Android 13/API 33 ARM64 物理控制器以真实
-signature permission/Binder 完成 open -> event replay -> explicit reconnect -> active resubscribe ->
-cancel -> second event -> duplicate close。临时 instrumentation APK 验证后卸载。证据状态固定为：
+signature permission/Binder 完成 open -> event replay -> 连续 6 次 explicit reconnect -> active
+resubscribe -> cancel -> second event -> duplicate close，并继续完成 Runtime process-death recovery。
+每次健康 detach 都在 unbind 前注销旧 callback，覆盖服务端每 session 最多 4 callback 的配额边界。
+临时 instrumentation APK 验证后卸载。当前累计证据为：
 
 ```text
 sdk_facade_v2_available=true
@@ -605,11 +607,12 @@ session_runtime_service_published=true
 event_runtime_service_published=true
 event_callback_service_published=true
 active_session_reconnect_resubscribe_verified=true
+healthy_reconnect_callback_cleanup_verified=true
 callback_replay_deduplicated=true
 close_reconnect_idempotency_verified=true
-session_runtime_transient_registry=true
-session_runtime_persistence_wired=false
-session_runtime_process_death_rehydration=false
+session_runtime_transient_registry=false
+session_runtime_persistence_wired=true
+session_runtime_process_death_rehydration=true
 scenario_execution_enabled=false
 hardware_accessed=false
 production_ready=false

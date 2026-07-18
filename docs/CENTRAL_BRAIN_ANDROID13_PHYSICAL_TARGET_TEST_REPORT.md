@@ -837,3 +837,29 @@ target_hardware_validated=false
 公开 surface 可见性不能填充 property/service/area/type/access/permission/owner/version/readback/fault/rollback 矩阵。本证据只关闭
 P8-W01 公开 inventory 采集子项；P8-W01 capability mapping 与 P8-W02..W06 继续由 OEM/owner 输入外部阻塞。tracking：
 `DEV-085/110`、`ISSUE-047`。
+
+## 27. 2026-07-19 P1-W05 SDK facade healthy reconnect lifecycle
+
+在同一台 identity-redacted Android 13 / API 33 / `arm64-v8a` 目标上安装当前 Runtime debug APK 与 SDK
+instrumentation APK。测试创建一个 active session 后连续执行 6 次健康 `reconnect()`；每轮均完成双
+Binder connection、authoritative replay 与 callback 重建，随后只产生一次 cancel terminal event，并继续
+完成 Room v4 migration probe 和 Runtime process-death recovery。连续次数超过 endpoint 每 session 最多
+4 callback 的限制，可检出旧 callback 未注销导致的配额泄漏。
+
+```text
+android_api=33
+sdk_facade_v2_available=true
+active_session_reconnect_resubscribe_verified=true
+healthy_reconnect_callback_cleanup_verified=true
+callback_replay_deduplicated=true
+session_runtime_process_death_rehydration=true
+scenario_execution_enabled=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+测试临时 SDK instrumentation 包在脚本退出时卸载；报告不保存 serial、fingerprint、设备型号、原始日志、
+用户/模型文本或车辆 payload。该证据仅关闭 P1-W05 callback lifecycle 缺口，不构成 Scenario/Effect、
+Vehicle/VHAL、NPU、Driver/HAL 或 production Event broker 验收。Req IDs：`S2-SES-001`、`S2-EVT-001`、
+`APP-004`、`XSC-006`、`NV-G-003/004`、`DEL-003/004/005`。

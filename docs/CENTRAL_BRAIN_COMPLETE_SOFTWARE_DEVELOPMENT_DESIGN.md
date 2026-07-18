@@ -479,6 +479,12 @@ generation 使用新的 `ServiceConnection` 和 `DeathRecipient`，旧 generatio
 任一 Binder 死亡使这一代整体失效并清除 transport callback bridge；active subscription metadata
 保留在 facade，等待显式 reconnect。
 
+健康 `reconnect()` 与 `close()` 的 detach 顺序固定为：原子摘除 active generation 并复制 callback
+record -> 对旧 `ICentralBrainSessionEvents` 逐项 `unregisterSessionCallback` -> unlink 两个 death recipient
+-> unbind 两个 ServiceConnection。Binder 已死亡时 unregister 允许 best-effort 失败，由服务端 death
+recipient 清理；Binder 仍健康时禁止只清空本地 map。远程 register 返回后若 active generation/events
+已变化，transport 必须立即向原 events 撤销该 callback 并返回 false，避免竞态把旧代 callback 记入新代。
+
 #### 8.8.2 subscription 状态与恢复算法
 
 每个 `sessionId` 最多一个 active `Subscription`，保存 handle、listener、resume cursor、
@@ -501,6 +507,9 @@ Event V1 terminal page 禁止返回 `nextCursor`，因此当前实现无法在 t
 thread 更新 UI。`observeSession` 替换旧 subscription，`stopObserving`/`close` 先使 subscription inactive；
 已排队的旧 sink callback 在执行时再次做 identity/current 检查并丢弃。`close()` 可重复调用；close 后
 connect/reconnect 固定抛 `CLOSED`。SDK 不自动重发 open request，避免 Binder 结果未知时创建重复场景。
+实机生命周期回归必须至少连续 reconnect 6 次，超过 endpoint 每 session 4 callback 上限；每次均须收到
+connected + replay complete，最后 cancel 只产生一个 terminal event。验收标记为
+`healthy_reconnect_callback_cleanup_verified=true`。
 
 #### 8.8.4 Runtime publication 与 owner
 
@@ -540,6 +549,7 @@ sdk_facade_v2_available=true
 session_runtime_service_published=true
 event_runtime_service_published=true
 event_callback_service_published=true
+healthy_reconnect_callback_cleanup_verified=true
 room_schema_version=4
 session_runtime_persistence_wired=true
 session_runtime_process_death_rehydration=true

@@ -136,10 +136,8 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     private void verifyLiveFacade(Bundle result) throws Exception {
         ExecutorService callbacks = Executors.newSingleThreadExecutor();
         CountDownLatch connected = new CountDownLatch(1);
-        CountDownLatch reconnected = new CountDownLatch(1);
         CountDownLatch snapshotDelivered = new CountDownLatch(1);
         CountDownLatch initialReplay = new CountDownLatch(1);
-        CountDownLatch reconnectReplay = new CountDownLatch(1);
         CountDownLatch twoEvents = new CountDownLatch(2);
         AtomicInteger connectionCount = new AtomicInteger();
         AtomicInteger eventCount = new AtomicInteger();
@@ -151,11 +149,13 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                 new ScenarioClient.ConnectionListener() {
                     @Override
                     public void onConnected(ScenarioClient ignored, boolean wasReconnected) {
-                        connectionCount.incrementAndGet();
-                        if (wasReconnected) {
-                            reconnected.countDown();
-                        } else {
+                        int count = connectionCount.incrementAndGet();
+                        if (count == 1 && !wasReconnected) {
                             connected.countDown();
+                        } else if (count > 1 && !wasReconnected) {
+                            asyncFailure.compareAndSet(
+                                    "",
+                                    "CB_TEST: reconnect reported as initial connection");
                         }
                     }
 
@@ -201,8 +201,6 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                     int count = replayCount.incrementAndGet();
                     if (count == 1) {
                         initialReplay.countDown();
-                    } else if (count == 2) {
-                        reconnectReplay.countDown();
                     }
                 }
 
@@ -217,11 +215,23 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             await(snapshotDelivered, "session snapshot");
             await(initialReplay, "initial event replay");
 
-            if (!client.reconnect()) {
-                throw new AssertionError("facade reconnect returned false");
+            final int healthyReconnectCount = 6;
+            for (int reconnect = 1; reconnect <= healthyReconnectCount; reconnect++) {
+                if (!client.reconnect()) {
+                    throw new AssertionError("facade reconnect returned false: " + reconnect);
+                }
+                awaitAtLeast(
+                        connectionCount,
+                        reconnect + 1,
+                        "facade reconnect " + reconnect);
+                awaitAtLeast(
+                        replayCount,
+                        reconnect + 1,
+                        "event replay after reconnect " + reconnect);
+                if (!asyncFailure.get().isEmpty()) {
+                    throw new AssertionError(asyncFailure.get());
+                }
             }
-            await(reconnected, "facade reconnect");
-            await(reconnectReplay, "reconnect event replay");
             if (!client.cancelSession(
                     handle,
                     ICentralBrainSessionRuntime.CANCEL_REASON_USER)) {
@@ -254,6 +264,7 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                             + "\nsession_runtime_persistence_wired=true"
                             + "\nsession_runtime_process_death_rehydration=true"
                             + "\nactive_session_reconnect_resubscribe_verified=true"
+                            + "\nhealthy_reconnect_callback_cleanup_verified=true"
                             + "\ncallback_replay_deduplicated=true"
                             + "\nclose_reconnect_idempotency_verified=true"
                             + "\nscenario_execution_enabled=false"
@@ -424,6 +435,20 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     private static void await(CountDownLatch latch, String operation) throws Exception {
         if (!latch.await(10, TimeUnit.SECONDS)) {
             throw new AssertionError(operation + " timed out");
+        }
+    }
+
+    private static void awaitAtLeast(
+            AtomicInteger value,
+            int expected,
+            String operation) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (value.get() < expected && System.nanoTime() < deadline) {
+            Thread.sleep(25);
+        }
+        if (value.get() < expected) {
+            throw new AssertionError(
+                    operation + " timed out at " + value.get() + " of " + expected);
         }
     }
 

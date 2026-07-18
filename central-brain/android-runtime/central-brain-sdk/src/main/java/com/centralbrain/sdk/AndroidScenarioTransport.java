@@ -18,7 +18,9 @@ import com.centralbrain.sdk.session.SessionQuery;
 import com.centralbrain.sdk.session.SessionRequest;
 import com.centralbrain.sdk.session.SessionSnapshot;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -168,7 +170,10 @@ final class AndroidScenarioTransport implements ScenarioTransport {
         }
         CallbackRecord previous;
         synchronized (lock) {
-            if (closed || active == null || !active.isReady()) {
+            if (closed
+                    || active == null
+                    || !active.isReady()
+                    || active.events != events) {
                 try {
                     events.unregisterSessionCallback(sessionId, replacement.callback);
                 } catch (RemoteException ignored) {
@@ -211,7 +216,6 @@ final class AndroidScenarioTransport implements ScenarioTransport {
             }
             closed = true;
             previous = active;
-            callbacks.clear();
         }
         if (previous != null) {
             detach(previous, false, null);
@@ -258,14 +262,19 @@ final class AndroidScenarioTransport implements ScenarioTransport {
 
     private void detach(Attempt attempt, boolean notifyDisconnected, String failure) {
         boolean wasCurrent;
+        ICentralBrainSessionEvents events;
+        List<CallbackRecord> staleCallbacks;
         synchronized (lock) {
             wasCurrent = active == attempt;
             if (!wasCurrent) {
                 return;
             }
             active = null;
+            events = attempt.events;
+            staleCallbacks = new ArrayList<>(callbacks.values());
             callbacks.clear();
         }
+        unregisterCallbacks(events, staleCallbacks);
         safeUnlink(attempt.sessionBinder, attempt.sessionRecipient);
         safeUnlink(attempt.eventBinder, attempt.eventRecipient);
         if (attempt.sessionBound) {
@@ -278,6 +287,21 @@ final class AndroidScenarioTransport implements ScenarioTransport {
             currentListener().onConnectionFailed(failure);
         } else if (notifyDisconnected && !isClosed()) {
             currentListener().onDisconnected();
+        }
+    }
+
+    private static void unregisterCallbacks(
+            ICentralBrainSessionEvents events,
+            List<CallbackRecord> staleCallbacks) {
+        if (events == null) {
+            return;
+        }
+        for (CallbackRecord record : staleCallbacks) {
+            try {
+                events.unregisterSessionCallback(record.sessionId, record.callback);
+            } catch (RemoteException | RuntimeException ignored) {
+                // Binder death makes cleanup best effort; server death recipients own final cleanup.
+            }
         }
     }
 
