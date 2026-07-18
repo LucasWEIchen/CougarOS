@@ -5160,3 +5160,43 @@ launcher/service 和 category count；Driver Safety 只输出固定 action/polic
 privacy owner policy、production signer/install/rollback、OEM vehicle safety、complete field diagnostics/retest 或 target qualification。
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
 `DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-029/030/048..053`。
+
+## P9-W03d implementation detail: Binder identity device evidence
+
+### Source-set and deployment boundary
+
+`ISecurityIdentityProbe.aidl` 必须在 Runtime `src/debug/aidl` 与 SDK `src/androidTest/aidl` 保持字节一致。Runtime Service 只存在于
+`src/debug/java`，并仅由 debug manifest 以显式 component 导出、使用既有 signature-level `BIND_RUNTIME` permission 保护。main/release
+manifest 和 source set 不得出现该 Service/AIDL；`assembleRelease` 是必跑回归。
+
+### Service identity acquisition
+
+`SecurityIdentityProbeService` 初始化既有 `AndroidCallerIdentityResolver`。每个 AIDL 方法都在 Binder transaction 线程同步执行，先读取
+`Binder.getCallingUid()` 或调用 resolver；resolver 再通过 PackageManager 枚举该 UID 可见 package，并对 current APK content signer 做
+SHA-256。Service 不缓存 caller supplied identity，不接受 caller supplied snapshot，不将 expected 参数写入生产 policy。
+
+三个接口语义如下：
+
+1. `verifyCallingUid(expectedUid, spoofedUid)`：resolved UID 必须等于 Binder calling UID 和 expected，且不等于 spoofed。
+2. `verifyCallingPackage(expectedPackage, spoofedPackage)`：resolved package 集合必须包含 expected 且不含 spoofed。
+3. `verifyCallingSigner(expectedPackage, expectedSignerSha256, spoofedSignerSha256)`：expected package 的 current signer 集合必须包含 expected
+   digest 且不含 spoofed digest。
+
+接口只返回 boolean。禁止增加 raw UID/package/signer/certificate 返回值、异常文本透传、日志输出或 dump surface；若未来需要诊断，只能增加
+固定 enum/count 且重新进行 DEL-005 隐私评审。
+
+### Instrumentation client
+
+SDK test 首先读取自身 package/UID 和 Runtime UID，强制二者不同。它显式绑定固定 Runtime component，通过 generated AIDL Stub 获取代理，
+把 Runtime UID/package 和 64 个零的 digest 作为 spoof 值；正向 signer 由测试进程自行读取 installed package info 并计算 SHA-256。测试不能
+从 Service 获取 signer 材料，否则会形成自证循环。连接必须有 timeout，并在 finally 对称 `unbindService`。
+
+### Test runner and evidence
+
+`test_central_brain_android_security_identity.sh` 固定 API >=33、可选 exact API 33、ABI `arm64-v8a`，安装 Runtime debug 与 SDK androidTest，
+执行 `-e securityIdentity true` 并验证 exact marker。`--clean-runtime-install` 是显式 opt-in，只卸载
+`com.centralbrain.runtime` 以解决不同开发签名无法升级；默认遇到签名冲突必须失败，不得静默卸载。
+
+可声明 `security_identity_device_probe_verified=true`、Binder UID spoof 与 current signer digest acquisition true。不得声明 production signer、
+证书链/owner/release admission、coverage fuzz、Runtime production wiring、Vehicle/NPU/Driver-HAL 或 target qualification。Req IDs：
+`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。

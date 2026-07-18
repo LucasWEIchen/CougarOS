@@ -1841,3 +1841,24 @@ probe-specific boolean/count marker 和 false qualification 集合。
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
 `DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-029/030/048..053`。
+
+## P9-W03d Binder identity evidence architecture
+
+```text
+SDK androidTest process (UID A)
+  -> explicit signature-protected typed Binder
+  -> Runtime debug Service (UID B)
+       -> Binder.getCallingUid()
+       -> AndroidCallerIdentityResolver
+       -> PackageManager packagesForUid/current APK signers
+       -> boolean comparison only
+  <- true/false, no raw identity
+```
+
+该链路故意与 production Runtime endpoint 分离：它复用 production identity acquisition 组件，但不注册 capability、不执行 Session/Graph/Effect，
+也不把测试 expected 值注入 production policy。双进程 UID 必须不同；同 signer 只用于通过 signature permission，不等于同 UID。
+
+安全证据分层保持如下：W03b 验证 host policy semantics，W03c 验证 AIDL/validator inventory，W03d 验证 Android Binder/PackageManager identity
+acquisition。三者不能互相覆盖 false claim；完整安全资格还需要 callback replay、coverage-guided fuzz、production signer/owner 和 release evidence。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。

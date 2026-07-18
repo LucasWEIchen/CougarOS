@@ -108,6 +108,7 @@
 | DEV-086 | P9-W01 只冻结 initial software budgets 并验证合成报告；没有目标测量、owner approval 或量产性能资格。 | S2-OBS-001, S2-REL-001, ISSUE-048 | Accepted Temporary |
 | DEV-087 | P9-W02 只冻结并合成验证 18-case matrix；没有真实 fault injection、72h 运行或目标稳定性资格。 | S2-REL-001, S2-OBS-001, ISSUE-049 | Accepted Temporary |
 | DEV-088 | P9-W03a 只提供三个 Java boundary 的 deterministic host corpus；不是 coverage-guided fuzz、AIDL/signature review 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
+| DEV-111 | P9-W03d 只验证 debug APK 的 Binder UID/current signer 获取链；不是 production signer、完整 fuzz 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1125,6 +1126,24 @@ clock/revision、fault/freshness、NPU slot/memory/thermal semantics，并在目
 `provider_invoked=false`、`model_invoked=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
+## DEV-111 P9-W03d debug identity evidence is not production signer qualification
+
+P9-W03d 在 Android 13 ARM64 上用不同 UID 的 SDK instrumentation 调用 Runtime debug-only Service，真实验证
+`Binder.getCallingUid()`、package resolution 和 installed current APK signer SHA-256。Runtime 与 test 共享同源 typed AIDL，但接口只返回
+boolean；调用方以 Runtime UID/package 和伪 signer digest 验证 spoof 失败关闭。
+
+该结果关闭的是 W03b/W03c 明确留下的 Android Binder identity acquisition 小缺口。历史 W03b/W03c 合同中的 false marker 描述各自 host/static
+证据边界，不应被反向修改为设备证据。W03d 不验证 production certificate chain、signer owner、release cohort/code transparency、shared-UID
+量产配置、callback replay 或 coverage-guided fuzz，也没有接入 production Runtime authorization path。
+
+状态：`Accepted Temporary`。关闭条件是 production signer/rotation/revocation 证据、受控 fuzz 预算、callback replay 和安全 owner 审批全部完成。
+当前 `security_identity_device_probe_verified=true`、`security_distinct_app_uids_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=true`、
+`security_package_signature_cryptographically_verified=true`、`security_same_signer_debug_binding_verified=true`、
+`security_production_signer_verified=false`、`security_coverage_guided_fuzz_complete=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`ISSUE-050`。
+
 ## DEV-089 P9-W03b host policy corpus is not Binder or APK crypto evidence
 
 P9-W03b 新增 JSON/Java 三 surface、18-case policy corpus，并在 JVM 中调用既有 caller capability、durable principal、session
@@ -1148,10 +1167,9 @@ APK 重新提取并验证证书链。`SkillSignerPolicy` 也明确不获取 trus
 P9-W03c 从仓库实际 public AIDL 树冻结 37 项清单，并复用八个既有 validation family；新增 JVM 聚合只提交 bounded
 model/path/oversize 输入。debug-only probe 已扩展且 release manifest 无入口，installer 对 API/ABI 与 marker 失败关闭。
 
-静态 inventory 证明 surface 可追踪，不证明 Binder driver、Parcel unmarshalling 或跨进程 callback 已被 fuzz。debug APK 可编译也不证明
-probe 在当前目标执行；本轮先观察到 ADB `online=0/offline=1`，提交前复核为
-`online=0/offline=0/unauthorized=0/other=0`。没有 coverage feedback、mutation/minimization、目标 signer remeasurement、真实
-calling UID spoof、SELinux/permission attack evidence 或安全 owner approval。
+静态 inventory 证明 surface 可追踪，不证明 Binder driver、Parcel unmarshalling 或跨进程 callback 已被 fuzz。W03c 最初没有可用 ADB
+transport；后续 P9 aggregate 已在 API 33 ARM64 执行该 debug probe，但仍没有 coverage feedback、mutation/minimization、SELinux/permission
+attack evidence 或安全 owner approval。真实 calling UID/current signer acquisition 由独立 W03d 完成，不反向改变 W03c 的 static/fuzz 边界。
 
 状态：`Accepted Temporary`。关闭条件是 ISSUE-050 的 target fuzz 计划、设备可达、debug probe 执行、Binder/signature evidence 和 owner
 review 完成。当前 `security_aidl_parcel_inventory_complete=true`、`security_host_path_oversize_aggregate_verified=true`、

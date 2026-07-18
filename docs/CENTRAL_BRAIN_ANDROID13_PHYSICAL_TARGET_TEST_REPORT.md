@@ -863,3 +863,31 @@ target_hardware_validated=false
 用户/模型文本或车辆 payload。该证据仅关闭 P1-W05 callback lifecycle 缺口，不构成 Scenario/Effect、
 Vehicle/VHAL、NPU、Driver/HAL 或 production Event broker 验收。Req IDs：`S2-SES-001`、`S2-EVT-001`、
 `APP-004`、`XSC-006`、`NV-G-003/004`、`DEL-003/004/005`。
+
+## 28. 2026-07-19 P9-W03d Binder identity/current-signer evidence
+
+在 identity-redacted Android 13 / API 33 / `arm64-v8a` 目标上安装 Runtime debug APK 与 SDK instrumentation APK。两个 package
+运行在不同 UID；测试通过 signature-protected typed Binder 调用 Runtime，并以 Runtime UID/package 与伪 signer digest 验证调用方输入不能
+替代 Binder/PackageManager identity。SDK 端独立计算自身 installed current signer SHA-256，Service 只返回 boolean。
+
+```text
+android_api=33
+android_abi=arm64-v8a
+device_identity_redacted=true
+security_identity_device_probe_verified=true
+security_distinct_app_uids_verified=true
+security_binder_calling_uid_spoof_android_verified=true
+security_package_signature_cryptographically_verified=true
+security_same_signer_debug_binding_verified=true
+security_production_signer_verified=false
+security_coverage_guided_fuzz_complete=false
+security_runtime_wired=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+设备证据不保存 raw UID、package、signer digest、certificate bytes、serial、fingerprint、设备型号或原始日志。该结果仅证明 installed debug APK
+的 Binder caller UID 与 current signer acquisition，不构成 production signer/owner、证书链、release admission、coverage fuzz、Vehicle/NPU/
+Driver-HAL 或 target qualification。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-111`、`ISSUE-050`。

@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-binder-identity-device-evidence-v1",
+  "work_package": "P9-W03d",
+  "maturity": "android_application_security_evidence",
+  "req_ids": [
+    "S2-SAF-001",
+    "S2-TOL-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "probe": {
+    "runtime_component": "com.centralbrain.runtime.security.SecurityIdentityProbeService",
+    "caller_package": "com.centralbrain.sdk.test",
+    "transport": "explicit_signature_protected_binder",
+    "identity_source": "Binder.getCallingUid",
+    "signer_source": "PackageManager.GET_SIGNING_CERTIFICATES",
+    "signer_digest": "SHA-256",
+    "raw_identity_published": false
+  },
+  "device_requirements": {
+    "android_api": 33,
+    "abi": "arm64-v8a",
+    "distinct_process_uids": true,
+    "identity_redacted": true
+  },
+  "claim_state": {
+    "security_identity_device_probe_verified": true,
+    "security_distinct_app_uids_verified": true,
+    "security_binder_calling_uid_spoof_android_verified": true,
+    "security_package_signature_cryptographically_verified": true,
+    "security_same_signer_debug_binding_verified": true,
+    "security_production_signer_verified": false,
+    "security_coverage_guided_fuzz_complete": false,
+    "security_runtime_wired": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

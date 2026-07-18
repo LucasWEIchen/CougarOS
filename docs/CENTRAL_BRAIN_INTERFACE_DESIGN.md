@@ -3862,3 +3862,30 @@ Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
 `DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-029/030/048..053`。
+
+## 67. P9-W03d debug Binder identity interface
+
+机器合同：`central-brain/contracts/central_brain_android_p9_identity_device_evidence.json`。
+
+```aidl
+interface ISecurityIdentityProbe {
+    boolean verifyCallingUid(int expectedUid, int spoofedUid);
+    boolean verifyCallingPackage(String expectedPackage, String spoofedPackage);
+    boolean verifyCallingSigner(
+        String expectedPackage,
+        String expectedSignerSha256,
+        String spoofedSignerSha256);
+}
+```
+
+- endpoint：显式 `com.centralbrain.runtime/.security.SecurityIdentityProbeService`，仅 debug，signature permission
+  `com.centralbrain.permission.BIND_RUNTIME`。
+- identity source：`Binder.getCallingUid()`；package/signer source：`AndroidCallerIdentityResolver` +
+  `PackageManager.GET_SIGNING_CERTIFICATES`。
+- 参数：只用于与 trusted resolved identity 比较；不能作为身份、capability 或 signer authority。
+- 返回：单一 boolean；不返回 UID、package、digest、certificate、snapshot 或自由文本。
+- lifecycle：客户端 bind timeout 后失败；成功与失败路径均对称 unbind；Service 不保存跨调用 identity state。
+- versioning：该接口是 test-only，不进入 production AIDL version/hash；签名变化必须同步两份 AIDL、checker、instrumentation 和机器合同。
+- release：main/release manifest/source 不得出现 endpoint；release assembly 是接口验收的一部分。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。

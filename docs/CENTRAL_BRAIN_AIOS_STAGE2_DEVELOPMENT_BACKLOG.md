@@ -1144,7 +1144,8 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 
 ### `P9-W03` Security review/fuzz
 
-- 状态：`SOFTWARE_DEVELOPED / TARGET_FUZZ_PENDING`（P9-W03a/W03b/W03c developed，2026-07-18）；6-10 人日；
+- 状态：`SOFTWARE_DEVELOPED / IDENTITY_DEVICE_EVIDENCE_VERIFIED / TARGET_FUZZ_PENDING`
+  （P9-W03a/W03b/W03c developed 2026-07-18，P9-W03d verified 2026-07-19）；6-10 人日；
   `S2-SAF-001`、`S2-TOL-001`、`S2-SES-001`、`S2-MDL-001`。
 - `P9-W03a parser security corpus`：已交付 Checkpoint、ScenarioManifest、ToolSchema 三 surface / 18-case 固定 hostile-input
   JSON/Java corpus 和真实 parser/validator exact-error JVM 回归；覆盖 malformed、duplicate、unknown、oversize、digest tamper、
@@ -1154,12 +1155,18 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
   仅 host policy evidence，不等于真实 Binder UID spoof 或目标 APK 签名密码学验证。
 - `P9-W03c security boundary inventory and debug probe`：已交付 37 项 public AIDL（7 interface/30 parcelable）精确清单、
   八 validation family 聚合、model unknown/path/oversize 与 Session oversize JVM 回归，并扩展 debug-only Android probe/installer。
-  本增量先观察到设备 offline，提交前复核为零 transport；probe 仅 available 未 executed。
-- 剩余外部证据：受控 coverage-guided fuzz、真实 Binder calling UID spoof、目标 APK 签名密码学复测和安全 owner approval。
+  W03c 的 aggregate probe 已于后续 API 33 ARM64 聚合验收执行，但它不验证真实 Binder caller identity。
+- `P9-W03d Binder identity device evidence`：新增 Runtime/SDK 同源 typed debug AIDL 和 signature-protected 显式 Service；
+  Runtime 只使用 `Binder.getCallingUid()`、`AndroidCallerIdentityResolver` 与
+  `PackageManager.GET_SIGNING_CERTIFICATES` 获取 caller UID/package/current signer。SDK instrumentation 以 Runtime UID/package/伪 digest
+  发起 spoof 负例，并独立计算调用 APK 当前 signer SHA-256。API 33 ARM64 跨 UID 验证已通过，接口只返回 boolean，不回传 raw identity。
+- 剩余外部证据：受控 coverage-guided fuzz、callback replay、安全 owner approval 和 production signer/release 资格。
   当前 `security_coverage_guided_fuzz_complete=false`、
-  `security_binder_calling_uid_spoof_android_verified=false`、
-  `security_package_signature_cryptographically_verified=false`、`security_android_debug_probe_executed=false`、
-  `security_android13_arm64_verified=false`；tracking `DEV-088/089/090`、`ISSUE-050`。
+  `security_identity_device_probe_verified=true`、`security_distinct_app_uids_verified=true`、
+  `security_binder_calling_uid_spoof_android_verified=true`、
+  `security_package_signature_cryptographically_verified=true`、`security_same_signer_debug_binding_verified=true`、
+  `security_production_signer_verified=false`、`security_android13_arm64_verified=false`；tracking
+  `DEV-088/089/090/111`、`ISSUE-050`。
 
 ### `P9-W04` Privacy/data lifecycle
 

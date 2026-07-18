@@ -392,7 +392,7 @@ require_text "$DRIVER" 'P9-W02 Stability Fault Matrix Driver/HAL Boundary'
 require_text "$README" 'security_parser_corpus_defined=true'
 require_text "$README" 'security_parser_case_count=18'
 require_text "$SECURITY_REVIEW" 'Central Brain P9-W03 Security Review and Fuzz'
-require_text "$SECURITY_REVIEW" 'W03C_SOFTWARE_BOUNDARIES_VERIFIED / TARGET_FUZZ_PENDING'
+require_text "$SECURITY_REVIEW" 'W03D_ANDROID_IDENTITY_VERIFIED / TARGET_FUZZ_PENDING'
 require_text "$BACKLOG" 'P9-W03a parser security corpus'
 require_text "$REQUIREMENTS" 'P9-W03a parser security corpus trace'
 require_text "$DEVIATIONS" 'DEV-088 P9-W03a deterministic corpus is not coverage-guided fuzzing'
@@ -757,6 +757,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_performance_budget.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_stability_fault_matrix.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_parser_security_corpus.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_identity_replay_security_corpus.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_security_identity.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_security_boundary_inventory.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_data_inventory.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_policy_admission.sh"

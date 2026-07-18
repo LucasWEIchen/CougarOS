@@ -2,11 +2,22 @@ package com.centralbrain.sdk.session;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.os.Process;
 import android.util.Log;
 
+import com.centralbrain.runtime.security.ISecurityIdentityProbe;
 import com.centralbrain.sdk.RuntimeEventListener;
 import com.centralbrain.sdk.RuntimeContractV2;
 import com.centralbrain.sdk.ScenarioClient;
@@ -27,6 +38,8 @@ import com.centralbrain.sdk.plan.PlanContract;
 import com.centralbrain.sdk.plan.PlanNode;
 import com.centralbrain.sdk.plan.ScenarioPlan;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -42,6 +55,7 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     private static final String REQUEST_ID = "8d595630-2255-4f4d-ac0f-26a20ee96f29";
     private static final String SESSION_ID = "9bffbb6a-5a0b-41b5-a924-bcfb45be4f26";
     private boolean liveFacade;
+    private boolean securityIdentity;
     private boolean durableSeed;
     private boolean durableVerify;
     private String durableRequestId = "";
@@ -51,6 +65,8 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         liveFacade = arguments != null && "true".equals(arguments.getString("liveFacade"));
+        securityIdentity = arguments != null
+                && "true".equals(arguments.getString("securityIdentity"));
         durableSeed = arguments != null && "true".equals(arguments.getString("durableSeed"));
         durableVerify = arguments != null && "true".equals(arguments.getString("durableVerify"));
         if (arguments != null) {
@@ -66,6 +82,11 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         try {
             if (liveFacade) {
                 verifyLiveFacade(result);
+                finish(Activity.RESULT_OK, result);
+                return;
+            }
+            if (securityIdentity) {
+                verifySecurityIdentity(result);
                 finish(Activity.RESULT_OK, result);
                 return;
             }
@@ -272,6 +293,96 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         } finally {
             client.close();
             callbacks.shutdownNow();
+        }
+    }
+
+    private void verifySecurityIdentity(Bundle result) throws Exception {
+        Context context = getContext();
+        PackageManager packageManager = context.getPackageManager();
+        String callerPackage = context.getPackageName();
+        int callerUid = Process.myUid();
+        int runtimeUid = packageManager.getApplicationInfo(
+                "com.centralbrain.runtime",
+                PackageManager.ApplicationInfoFlags.of(0)).uid;
+        if (callerUid == runtimeUid) {
+            throw new AssertionError("security probe requires distinct app UIDs");
+        }
+
+        CountDownLatch connected = new CountDownLatch(1);
+        AtomicReference<IBinder> remote = new AtomicReference<>();
+        ServiceConnection connection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                remote.set(service);
+                connected.countDown();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {}
+        };
+        Intent intent = new Intent().setComponent(new ComponentName(
+                "com.centralbrain.runtime",
+                "com.centralbrain.runtime.security.SecurityIdentityProbeService"));
+        if (!context.bindService(intent, connection, Context.BIND_AUTO_CREATE)) {
+            throw new AssertionError("security identity probe bindService returned false");
+        }
+        try {
+            await(connected, "security identity probe connection");
+            IBinder binder = remote.get();
+            if (binder == null) {
+                throw new AssertionError("security identity probe returned no Binder");
+            }
+
+            ISecurityIdentityProbe probe = ISecurityIdentityProbe.Stub.asInterface(binder);
+            boolean uidBound = probe.verifyCallingUid(callerUid, runtimeUid);
+            boolean packageBound = probe.verifyCallingPackage(
+                    callerPackage,
+                    "com.centralbrain.runtime");
+            boolean signerBound = probe.verifyCallingSigner(
+                    callerPackage,
+                    currentSignerSha256(packageManager, callerPackage),
+                    "0".repeat(64));
+            if (!uidBound || !packageBound || !signerBound) {
+                throw new AssertionError("security identity evidence did not bind all fields");
+            }
+        } finally {
+            context.unbindService(connection);
+        }
+        result.putString(
+                "stream",
+                "\nsecurity_identity_device_probe_verified=true"
+                        + "\nsecurity_distinct_app_uids_verified=true"
+                        + "\nsecurity_binder_calling_uid_spoof_android_verified=true"
+                        + "\nsecurity_package_signature_cryptographically_verified=true"
+                        + "\nsecurity_same_signer_debug_binding_verified=true"
+                        + "\nsecurity_production_signer_verified=false"
+                        + "\nsecurity_coverage_guided_fuzz_complete=false"
+                        + "\nsecurity_runtime_wired=false"
+                        + "\nhardware_accessed=false"
+                        + "\nproduction_ready=false"
+                        + "\ntarget_hardware_validated=false\n");
+    }
+
+    private static String currentSignerSha256(
+            PackageManager packageManager,
+            String packageName) throws PackageManager.NameNotFoundException {
+        PackageInfo packageInfo = packageManager.getPackageInfo(
+                packageName,
+                PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES));
+        SigningInfo signingInfo = packageInfo.signingInfo;
+        Signature[] signers = signingInfo == null ? null : signingInfo.getApkContentsSigners();
+        if (signers == null || signers.length != 1) {
+            throw new AssertionError("security probe requires exactly one current signer");
+        }
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(signers[0].toByteArray());
+            StringBuilder encoded = new StringBuilder(64);
+            for (byte item : digest) {
+                encoded.append(String.format("%02x", item & 0xff));
+            }
+            return encoded.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            throw new AssertionError("SHA-256 is unavailable", exception);
         }
     }
 

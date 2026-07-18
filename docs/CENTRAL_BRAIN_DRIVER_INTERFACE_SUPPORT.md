@@ -1952,3 +1952,16 @@ performance 只有在 P8 capability matrix、owner/version/permission/API eviden
 `driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-109`、
 `ISSUE-029/030/048..053`。
+
+## P9-W03d Binder Identity Evidence Driver/HAL Boundary
+
+W03d 只调用 Android framework Binder、PackageManager 和 Java SHA-256。它不读取 Android Car、VehicleProperty、Vendor Binder/SOA、
+CAN、device node、sysfs、ioctl、PCIe/NPU、JNI 或网络。测试中的 UID/package/signer 都属于应用安装与 Binder 调用身份，不是车身信号。
+
+因此本增量不新增 C/C++、Driver/HAL 或虚拟化开发量，`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。只有 P8 证明公开/Vendor 应用 API 无法提供所需 identity/security primitive 且 owner/ABI/evidence
+评审通过后，才允许建立最小平台缺口；当前没有该缺口。
+
+当前 `security_identity_device_probe_verified=true`、`security_production_signer_verified=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-111`、`ISSUE-050`。

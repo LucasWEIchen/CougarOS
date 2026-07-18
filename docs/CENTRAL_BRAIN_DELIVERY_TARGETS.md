@@ -2780,3 +2780,23 @@ Partial 4/2；批准/拒绝输入总数 2；Intent/Context/Plan/Policy/Graph/Eff
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
 `DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
+
+## 2026-07-19 Android P9-W03d Binder Identity Device Evidence
+
+- 机器合同：`central-brain/contracts/central_brain_android_p9_identity_device_evidence.json`。
+- 静态门禁：`bash tools/check_central_brain_android_security_identity.sh`。
+- 设备命令：`bash tools/test_central_brain_android_security_identity.sh --require-api-33 --clean-runtime-install`。
+- 覆盖：不同 UID 的 SDK instrumentation 经 signature-protected typed Binder 调用 Runtime debug Service；验证真实 calling UID、
+  UID 对应 package 和 installed current signer SHA-256，并拒绝 Runtime UID/package 与伪 digest。
+- 隐私：Service 只返回 boolean；测试输出不包含 UID、package、signer digest、certificate bytes、serial、fingerprint 或 raw log。
+- release 边界：probe Service/AIDL 不进入 release source/manifest；release APK 构建必须继续通过。
+- 非声明：不交付 production signer/owner/release admission、callback replay、coverage-guided fuzz、Runtime authorization wiring、
+  Vehicle/NPU/Driver-HAL、production readiness 或目标硬件资格。
+
+当前 `security_identity_device_probe_verified=true`、`security_distinct_app_uids_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=true`、
+`security_package_signature_cryptographically_verified=true`、`security_same_signer_debug_binding_verified=true`、
+`security_production_signer_verified=false`、`security_coverage_guided_fuzz_complete=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、
+`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。
