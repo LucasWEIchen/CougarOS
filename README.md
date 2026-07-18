@@ -444,6 +444,7 @@ contract 和 adapter 边界保留，未来 Linux 交付必须另建正式非 Pyt
 | P9 Privacy Redaction/Audit Probe | `privacy_redacted_audit_projection_defined=true`；21 fixed keys；10 forbidden field classes；DUMP-protected debug Activity | W04c host/JVM/debug-release 已验证；`privacy_android_debug_probe_executed=false`；owner policy/repository enforcement 未完成 | `DEVELOPED` |
 | P9 Production Release Admission | `production_release_admission_defined=true`；精确三 APK set；same-signer/cohort；version/Room schema/migration/rollback gate | W05a JSON/Java/JVM 已验证；production signer/release/rollback owner、installer 与目标 rehearsal 未完成 | `DEVELOPED` |
 | P9 Production Release Metadata Probe | `release_metadata_projection_defined=true`；27 个 count/boolean key；固定三包 metadata/signer-relation；只读 ADB dry-run | W05b host/JVM/debug-release 已验证；目标 transport offline，probe 未执行；不读取 signer/certificate bytes，不安装/卸载/回滚 | `DEVELOPED` |
+| P9 Driver Safety Admission | `driver_safety_admission_defined=true`；12 action、4 UX profile、3 owner role、500 ms state freshness | W06a pure Java/JVM 已验证；moving distraction/recline hard deny；不接 Effect/Vehicle/hardware | `DEVELOPED` |
 | Runtime 与 Governance | Binder identity、capability/policy、Job Supervisor、诊断 | JVM、Binder、dumpsys | `DEVELOPED` |
 | Durable workflow | Room task/checkpoint/approval/effect/outbox/audit/recovery | repository 和进程恢复 | `DEVELOPED` |
 | Model/Event/Memory/Skill 软件合同 | scheduler、ModelProvider、bounded runtime、middleware/readiness | deterministic debug/test；无真实 NPU | `DEVELOPED` |
@@ -570,7 +571,8 @@ P6-W01..P6-W06 状态：`event_broker_interface_defined=true`；`event_broker_ty
 | P8-W01 目标能力发现 | 软件合同、只读采集器和脱敏门禁已完成；仍缺 property/service/area/type/read-write/permission/owner/version 的目标证据 | `DEV-085`、`ISSUE-047`；OEM/Vendor 输入未提供 | `EXTERNAL_BLOCKED` |
 | P9-W03 Security review/fuzz | W03a parser corpus、W03b identity/replay/signer corpus、W03c 37 项 AIDL inventory/8 类边界聚合/debug probe 已完成 | 仍需目标 Android probe、Binder UID spoof、APK signature crypto、coverage-guided fuzz 和安全 owner approval；见 `DEV-088..090`、`ISSUE-050` | `IN_PROGRESS` |
 | P9-W04 Privacy/data lifecycle | W04a 清单、W04b policy admission、W04c redacted debug probe 软件项已完成 | 仍需真实 owner ceiling/evidence、repository enforcement 和目标 probe；见 `DEV-091/092/093`、`ISSUE-051` | `EXTERNAL_BLOCKED` |
-| P9-W05 Production release | W05a 已完成精确 APK set、same-signer、version/Room schema 与 rollback 准入合同 | 下一软件增量为 P9-W05b metadata Android probe；正式 signer/OTA/rollback rehearsal 见 `DEV-094`、`ISSUE-052` | `IN_PROGRESS` |
+| P9-W05 Production release | W05a/W05b 发布准入和只读 metadata probe 软件项已完成 | 正式 signer/OTA/rollback rehearsal 见 `DEV-094/095`、`ISSUE-052` | `EXTERNAL_BLOCKED` |
+| P9-W06 Driver safety | W06a 已完成 action/UX/state/owner/capability 的失败关闭准入合同 | 下一软件增量为 P9-W06b redacted Android probe；OEM owner、真实 vehicle state、驾驶分心和座椅硬联锁验收仍阻塞 | `IN_PROGRESS` |
 | Durable Agent Graph production wiring | P3-W01..W09 state/contract/Room recovery repository 已完成；仍需 Runtime/Binder orchestration 与真实 Effect authority | `DEV-050`；P4 integration / P8 target adapter | `IN_PROGRESS` |
 | 场景与仿真 Effect 编排 | Coordinator、readback/reconcile 与 process-local Undo foundation 已完成；仍需“我冷了/我累了”和 Runtime wiring | Stage 2 P4；不依赖真实车身信号 | `IN_PROGRESS` |
 | 中控 AIOS 演示闭环 | 四阶段 shell、HVAC/Seat 手动受理、timeline/recovery/restriction、工程抽屉、场景同步、显示矩阵和 P4 聚合设备验收已完成；Runtime 自动 Plan/Effect 执行仍未发布 | P3/P4 Runtime wiring + P8 adapter；`S2-HMI-001..006` | `IN_PROGRESS` |
@@ -727,6 +729,12 @@ bash tools/check_central_brain_android_target_capability_discovery.sh
 
 ## 安全和集成边界
 
+P9-W06a 证据键：`driver_safety_admission_defined=true`、`driver_safety_action_rule_count=12`、
+`driver_safety_owner_role_count=3`、`driver_safety_state_maximum_age_ms=500`、
+`driver_safety_moving_hard_interlock_verified=true`、
+`driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
+`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`。
+
 - Runtime 三个 Service 使用 signature permission，内部再做 package/current-signer capability。
 - 模型不能直接调用 Effect/vehicle/vendor API；所有副作用必须经过治理、持久化和验证。
 - Vendor NPU、VHAL 和车辆服务缺失时返回 unavailable，不回退到已退役的 Python mock。
@@ -749,6 +757,7 @@ bash tools/check_central_brain_android_target_capability_discovery.sh
 | [P9 安全审查与模糊测试](docs/CENTRAL_BRAIN_SECURITY_REVIEW_FUZZ.md) | W03a parser corpus、fail-closed 规则、W03b/W03c 剩余安全边界 |
 | [P9 Privacy 与数据生命周期](docs/CENTRAL_BRAIN_PRIVACY_DATA_LIFECYCLE.md) | 12 个 Android 数据面、consent/retention/delete/export/redaction 分类和 policy gap |
 | [P9 生产发布准入](docs/CENTRAL_BRAIN_PRODUCTION_RELEASE_ADMISSION.md) | 三 APK set、same-signer、version/Room schema、migration 与 rollback 准入合同 |
+| [P9 驾驶分心与车辆安全准入](docs/CENTRAL_BRAIN_DRIVER_SAFETY_ADMISSION.md) | 12 action、驾驶态 UX、owner/capability gate 和 moving hard interlock |
 | [NPU Runtime](docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md) | Vendor NPU/PCIe 接入合同 |
 | [Driver/HAL](docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md) | 能力矩阵和最小缺口规则 |
 | [Python 原型退役](docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md) | 删除范围、替代关系和保留资产 |
@@ -763,6 +772,7 @@ bash tools/check_central_brain_android_target_capability_discovery.sh
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-18 | [P9-W06a Driver Safety Admission](docs/CENTRAL_BRAIN_DRIVER_SAFETY_ADMISSION.md) | 新增 12-action catalog、四类 UX profile、500 ms trusted state、三 owner role 和 capability/readback/activation gate | pure-Java policy only；Effect/Vehicle 未接，owner/target evidence 为空；下一步 P9-W06b |
 | 2026-07-18 | [P9-W05b Production Release Metadata Probe](docs/CENTRAL_BRAIN_PRODUCTION_RELEASE_ADMISSION.md) | 新增 27-key count/boolean projection、固定三包 PackageManager relation、DUMP debug Activity 和 no-install ADB dry-run adapter | host software only；ADB offline，probe 未执行；production signer/candidate/installer/rollback authority 均未提供；下一步 P9-W06a |
 | 2026-07-18 | [P9-W05a Production Release Admission](docs/CENTRAL_BRAIN_PRODUCTION_RELEASE_ADMISSION.md) | 新增三 APK exact set、same-signer/cohort、version/schema/migration 与 rollback owner/decision/data compatibility gate | synthetic contract only；不安装/卸载/回滚；production owner/target evidence 未提供；下一步 P9-W05b |
 | 2026-07-18 | [P9-W04c Privacy Redaction/Audit Probe](docs/CENTRAL_BRAIN_PRIVACY_DATA_LIFECYCLE.md) | 新增 21-key fixed projection、10 类禁止字段、DUMP debug Activity、installer/release-absence 门禁 | host software only；ADB 无 transport，probe 未执行；owner policy/repository enforcement 仍阻塞；下一步 P9-W05 |

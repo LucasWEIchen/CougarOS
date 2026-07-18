@@ -1579,3 +1579,23 @@ installer/OTA 与目标 upgrade/rollback rehearsal。当前 `release_metadata_pr
 `production_release_candidate_admitted=false`、`release_installer_wired=false`、
 `release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。
+
+## DEV-096 P9-W06a software admission is not OEM safety acceptance
+
+P9-W06a 将 12 项 action、四类 UX profile、500 ms Safety State、三 owner role 和四项 vehicle capability evidence gate
+冻结为纯 Java 合同。moving hard interlock、stale/untrusted reject 和 parked recline approval-required 的 JVM 结果只证明
+deterministic policy 行为，不证明目标平台提供可信 driving state、座椅硬联锁或驾驶分心法规符合性。
+
+JVM 中 `PLATFORM_TRUSTED_ADAPTER + hardwareBacked` 和三份 owner digest 是 synthetic fixture。仓库当前 draft approval 数为 0，
+P2 capability production authorization 数为 0；合同未接 Runtime/Governance/Effect/Vehicle Service，也没有 Android debug probe。
+`ALLOW_POLICY_ONLY` 不是 dispatch grant，`APPROVAL_REQUIRED` 不是用户已批准，更不能覆盖 moving hard interlock。
+
+产品设计中的 IDLE 需要可信 gear/speed/parking-brake 联合语义；黑盒目标 mapping 未提供时，本合同只暴露 PARKED/MOVING/
+UNKNOWN/FAULT，不能把单一软件值解释为 IDLE 或 OEM Safety source。
+
+状态：`Accepted Temporary`。关闭条件是 ISSUE-029/030 与 P8 提供命名 Safety/HMI/Vehicle owner、公开 signal/capability/
+permission/readback/activation contract、目标 Android 13 evidence、驾驶分心 acceptance matrix 和座椅硬联锁复测。当前
+`driver_safety_admission_defined=true`、`driver_safety_current_owner_policy_approved=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W06`。

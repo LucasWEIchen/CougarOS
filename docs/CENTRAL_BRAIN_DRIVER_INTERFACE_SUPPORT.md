@@ -1729,3 +1729,20 @@ evidence；不能从 W05b debug observation 推断。当前 `driver_development_
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W05`。Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-095`、`ISSUE-052`。
+
+## P9-W06a Driver Safety Admission Driver/HAL Boundary
+
+W06a 是 Android 应用层纯 Java metadata/policy contract。它只消费已有 immutable `SafetyVehicleStateSnapshot` 和调用方提供的
+capability/owner digest metadata，不读取 Android Car、VHAL、Vendor Binder、CAN、device node、sysfs、property、NPU 或网络，不调用
+Effect adapter，也不改变厂商 SDK、系统镜像或 SELinux。该增量没有 C/JNI/Driver/HAL 开发量。
+
+未来真实 `SafetyVehicleStateProvider`、gear/speed/parking-brake/occupancy/belt/recline readback 和 HVAC/Seat write capability 必须优先来自
+目标公开 Android/OEM SDK。只有接口 owner 明确证明现有 SDK 无法满足一个已编号 capability，并提供 type/unit/area/freshness/permission/
+error/readback/fault/rollback contract 后，才登记最小 Driver/HAL 缺口；不得由 P9-W06a synthetic fixture 推断接口。
+
+当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
+`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W06`。Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、
+`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-096`、`ISSUE-029/030`。

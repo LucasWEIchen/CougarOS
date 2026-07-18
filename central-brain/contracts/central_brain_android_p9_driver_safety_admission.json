@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p9-driver-safety-admission-v1",
+  "requirement_ids": [
+    "S2-UX-002",
+    "S2-SAF-001",
+    "S2-EFF-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "maximum_state_age_ms": 500,
+  "ux_profiles": [
+    "PARKED_FULL",
+    "MOVING_RESTRICTED",
+    "UNKNOWN_RESTRICTED",
+    "FAULT_RESTRICTED"
+  ],
+  "owner_roles": [
+    "FUNCTIONAL_SAFETY",
+    "DRIVER_DISTRACTION_HMI",
+    "VEHICLE_INTEGRATION"
+  ],
+  "action_rules": [
+    {"action_id":"vehicle.state.read","action_class":"READ_ONLY_UI","capability_id":null,"requires_trusted_state":false,"requires_owner_policy":false,"allowed_while_moving":true,"requires_driver_available":false,"requires_readback":false,"admitted_outcome":"ALLOW_UI_ONLY"},
+    {"action_id":"scene.intent.submit","action_class":"LOW_RISK_UI","capability_id":null,"requires_trusted_state":false,"requires_owner_policy":false,"allowed_while_moving":true,"requires_driver_available":false,"requires_readback":false,"admitted_outcome":"ALLOW_UI_ONLY"},
+    {"action_id":"session.cancel","action_class":"LOW_RISK_UI","capability_id":null,"requires_trusted_state":false,"requires_owner_policy":false,"allowed_while_moving":true,"requires_driver_available":false,"requires_readback":false,"admitted_outcome":"ALLOW_UI_ONLY"},
+    {"action_id":"ui.long_text.display","action_class":"DRIVER_DISTRACTION_UI","capability_id":null,"requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":false,"requires_driver_available":true,"requires_readback":false,"admitted_outcome":"ALLOW_UI_ONLY"},
+    {"action_id":"ui.parameter.edit","action_class":"DRIVER_DISTRACTION_UI","capability_id":null,"requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":false,"requires_driver_available":true,"requires_readback":false,"admitted_outcome":"ALLOW_UI_ONLY"},
+    {"action_id":"driver.display.video.play","action_class":"DRIVER_DISTRACTION_UI","capability_id":null,"requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":false,"requires_driver_available":true,"requires_readback":false,"admitted_outcome":"APPROVAL_REQUIRED"},
+    {"action_id":"cabin.temperature.set","action_class":"COMFORT_EFFECT","capability_id":"vehicle.hvac.target_temperature","requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":true,"requires_driver_available":true,"requires_readback":true,"admitted_outcome":"ALLOW_POLICY_ONLY"},
+    {"action_id":"vehicle.seat.driver.heating.set","action_class":"COMFORT_EFFECT","capability_id":"vehicle.seat.heating","requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":true,"requires_driver_available":true,"requires_readback":true,"admitted_outcome":"ALLOW_POLICY_ONLY"},
+    {"action_id":"vehicle.seat.driver.ventilation.set","action_class":"COMFORT_EFFECT","capability_id":"vehicle.seat.ventilation","requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":true,"requires_driver_available":true,"requires_readback":true,"admitted_outcome":"ALLOW_POLICY_ONLY"},
+    {"action_id":"vehicle.seat.driver.recline.set","action_class":"SAFETY_CRITICAL_EFFECT","capability_id":"vehicle.seat.recline","requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":false,"requires_driver_available":true,"requires_readback":true,"admitted_outcome":"APPROVAL_REQUIRED"},
+    {"action_id":"vehicle.diagnostics.write","action_class":"ENGINEERING_WRITE","capability_id":null,"requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":false,"requires_driver_available":true,"requires_readback":false,"admitted_outcome":"APPROVAL_REQUIRED"},
+    {"action_id":"system.ota.install","action_class":"OTA","capability_id":null,"requires_trusted_state":true,"requires_owner_policy":true,"allowed_while_moving":false,"requires_driver_available":true,"requires_readback":false,"admitted_outcome":"APPROVAL_REQUIRED"}
+  ],
+  "current_repository_evidence": {
+    "owner_approval_count": 0,
+    "current_owner_policy_approved": false,
+    "vehicle_state_provider_wired": false,
+    "effect_runtime_wired": false,
+    "android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

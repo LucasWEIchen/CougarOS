@@ -1525,3 +1525,21 @@ Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `release_installer_wired=false`、`release_rollback_executor_wired=false`、
 `release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W05`。
+
+### P9-W06a Driver Safety Admission progress
+
+状态：`SOFTWARE_CONTRACT_DEFINED / OEM_OWNER_AND_TARGET_EVIDENCE_OPEN`（2026-07-18）。新增 12-action JSON/Java catalog、
+PARKED/MOVING/UNKNOWN/FAULT 四 UX profile、500 ms production-trusted Safety State、三 owner role、HVAC/Seat capability
+availability/authorization/readback/activation gate、stable decision digest 和八组 JVM tests。
+
+moving 对 long text/parameter/video/driver recline/diagnostic/OTA 固定 hard deny；moving HVAC/seat heat/vent 最多 policy-only，parked
+driver recline 最多 approval-required。所有 decision 固定不授权 Effect dispatch/hardware operation。IDLE 因缺少可信 gear/speed/
+parking-brake 联合语义不在本轮伪造。
+
+当前 owner approval=0、production capability authorization=0，Runtime/Governance/Effect/Vehicle 未接，Android probe 未提供。
+Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-096`、`ISSUE-029/030`。`driver_safety_admission_defined=true`、
+`driver_safety_moving_hard_interlock_verified=true`、`driver_safety_current_owner_policy_approved=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W06`。下一小步：`P9-W06b redacted Android probe and target evidence adapter`。

@@ -1511,3 +1511,33 @@ installer/OTA/MDM 必须在 ISSUE-052 关闭后形成独立 owner-controlled ada
 `release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
 `S2-REL-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-095`、`ISSUE-052`。
+
+## P9-W06a driver safety admission architecture
+
+```text
+fixed action ID
+  + immutable SafetyVehicleStateSnapshot
+  + owner-bound PolicyProfile
+  + capability activation evidence
+        -> DriverSafetyAdmissionContract
+            -> UxProfile
+            -> stable DecisionCode + decisionDigest
+            -> UI-only / policy-only / approval-required / deny
+```
+
+合同位于 Governance 的前置决策层，但本增量没有接入 `CentralBrainGovernanceService`。Action class、moving policy、capability ID、
+readback requirement 和 admitted outcome 均由 build-owned 12-action catalog 派生，不能由 Binder/UI/model 输入覆盖。
+
+低风险 scene input、state read 和 cancel 可在 restricted UX 中继续作为 UI-only；所有其他 action 必须先通过 500 ms
+production-trusted Safety State。Safety 非 NORMAL、motion UNKNOWN、untrusted source 或 future/stale time 均失败关闭。moving 对长文本、
+参数编辑、driver video、driver recline、diagnostic 和 OTA 是硬联锁。
+
+三 owner approval 和 capability evidence 只作为 digest/boolean metadata；当前仓库两者均未获得生产批准。即使 synthetic fixture 返回
+policy-only 或 approval-required，decision 仍固定 `effectDispatchAuthorized=false`、`hardwareOperationExecuted=false`。
+
+状态：`driver_safety_admission_defined=true`、`driver_safety_action_rule_count=12`、
+`driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
+`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W06`。Req IDs：`S2-UX-002/S2-SAF-001/S2-EFF-001/S2-OBS-001`、
+`DEL-001/004/005`；tracking：`DEV-096`、`ISSUE-029/030`。

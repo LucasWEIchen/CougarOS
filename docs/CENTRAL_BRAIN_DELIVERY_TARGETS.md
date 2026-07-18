@@ -2521,3 +2521,22 @@ Activity 不读取 signer/certificate bytes、release 不含入口、adapter 没
 `release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
 `S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-095`、`ISSUE-052`。
+
+## Android P9-W06a Driver Safety Admission
+
+交付 versioned JSON、pure-Java `DriverSafetyAdmissionContract`、八组 JVM regression、专用设计文档和独立/Stage2/Runtime/CI 门禁。
+Host 验收必须证明 12-action exact catalog、四类 UX profile、500 ms state freshness、non-NORMAL fault restriction、moving hard interlock、
+三 owner role exact binding、capability availability/authorization/readback/activation 独立失败，以及 Effect/hardware authority 固定 false。
+
+当前交付不含 Android Activity、ADB target adapter、车辆 signal producer、Effect Runtime wiring 或 OEM policy。P9-W06b 可补受保护
+debug-only redacted probe，但真实验收仍要求命名 Android 13 release、Safety/HMI/Vehicle owner、公开接口、目标状态/故障矩阵和驾驶分心/
+座椅策略签署。任何原始车辆 scalar、设备身份、owner reference 或未审日志不得进入 GitHub。
+
+状态：`driver_safety_admission_defined=true`、`driver_safety_action_rule_count=12`、
+`driver_safety_owner_role_count=3`、`driver_safety_state_maximum_age_ms=500`、
+`driver_safety_moving_hard_interlock_verified=true`、`driver_safety_current_owner_policy_approved=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W06`。Req IDs：
+`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-096`、`ISSUE-029/030`。
