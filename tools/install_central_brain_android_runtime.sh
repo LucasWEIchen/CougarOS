@@ -3409,6 +3409,60 @@ if [[ "$TRIGGER_ENGINE_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+PROACTIVE_CONSENT_NONCE="$(date +%s%N)"
+PROACTIVE_CONSENT_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.events.ProactiveConsentPolicyProbeActivity \
+  --es nonce "$PROACTIVE_CONSENT_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$PROACTIVE_CONSENT_PROBE_OUTPUT"; then
+  echo "$PROACTIVE_CONSENT_PROBE_OUTPUT" >&2
+  echo "ProactiveConsentPolicy debug probe did not start successfully" >&2
+  exit 1
+fi
+PROACTIVE_CONSENT_PROBE_PASSED=false
+for _ in {1..40}; do
+  PROACTIVE_CONSENT_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbProactiveConsent:I)"
+  if grep -Fq "nonce=$PROACTIVE_CONSENT_NONCE proactive_consent_probe_complete=true" \
+      <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_grant_binding_verified=true" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_high_critical_generic_grant_blocked=true" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_grant_ttl_revoke_verified=true" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_policy_fail_closed_verified=true" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_consent_android13_arm64_verified=true" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_policy_process_local=true" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_grant_persistence_wired=false" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_consent_authority_wired=false" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_auto_execution_enabled=false" \
+        <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "proactive_runtime_wired=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "production_ready=false" <<<"$PROACTIVE_CONSENT_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$PROACTIVE_CONSENT_LOG"; then
+    PROACTIVE_CONSENT_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$PROACTIVE_CONSENT_PROBE_PASSED" != true ]]; then
+  echo "$PROACTIVE_CONSENT_LOG" >&2
+  echo "ProactiveConsentPolicy probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -4109,6 +4163,17 @@ printf '%s\n' \
   "trigger_source_adapter_wired=false" \
   "trigger_auto_execution_enabled=false" \
   "trigger_runtime_wired=false" \
+  "proactive_consent_policy_defined=true" \
+  "proactive_grant_binding_verified=true" \
+  "proactive_high_critical_generic_grant_blocked=true" \
+  "proactive_grant_ttl_revoke_verified=true" \
+  "proactive_policy_fail_closed_verified=true" \
+  "proactive_consent_android13_arm64_verified=true" \
+  "proactive_policy_process_local=true" \
+  "proactive_grant_persistence_wired=false" \
+  "proactive_consent_authority_wired=false" \
+  "proactive_auto_execution_enabled=false" \
+  "proactive_runtime_wired=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \
