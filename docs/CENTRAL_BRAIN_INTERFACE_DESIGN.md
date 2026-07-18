@@ -3442,3 +3442,25 @@ Current: `security_identity_replay_corpus_defined=true`, `security_identity_repl
 `security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
 `S2-SES-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.
+
+## Android P9-W03c Security Boundary Inventory Contract
+
+`SecurityBoundaryInventoryContract` publishes immutable counts for 7 AIDL interfaces, 30 parcelables, 37 total public
+surfaces and eight validation families. The JSON artifact is the path-level source of truth; the checker derives every
+relative `.aidl` path and declaration kind from `central-brain-sdk/src/main/aidl` and requires exact equality.
+
+| Interface | W03c use | Result |
+| --- | --- | --- |
+| `SecurityBoundaryInventoryContract.namespaces()` | namespace/interface/parcelable counts and canonical digest | metadata only |
+| `StructuredModelOutput.validate(...)` | unknown field, path-like scenario ID, 16 KiB+1 output | exact typed rejection |
+| `SessionContract.validateRequest(...)` | `MAX_UTTERANCE_CHARS + 1` | `CB_SESSION_CONTRACT` violation |
+| `StructuredModelOutputProbeActivity` | debug-only Android aggregate | fixed boolean markers; no payload output |
+
+The probe remains `android.permission.DUMP` protected and absent from the main/release manifest. Current:
+`security_aidl_parcel_inventory_complete=true`, `security_aidl_surface_count=37`,
+`security_validation_family_count=8`, `security_host_path_oversize_aggregate_verified=true`,
+`security_android_debug_probe_available=true`, `security_android_debug_probe_executed=false`,
+`security_coverage_guided_fuzz_complete=false`, `security_android13_arm64_verified=false`,
+`security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
+`S2-SES-001`, `S2-MDL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.

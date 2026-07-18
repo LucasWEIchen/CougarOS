@@ -2429,3 +2429,18 @@ target signer evidence, vehicle command, NPU call or production authorization. C
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`, `S2-SES-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.
+
+## Android P9-W03c Security Boundary Inventory
+
+Delivery adds one versioned 37-surface AIDL inventory, one metadata-only Java contract, one host aggregate suite,
+an expanded debug-only Android probe, installer marker enforcement and repository/CI gates. Acceptance requires exact
+source-to-JSON AIDL equality, 7/30 kind counts, eight validation families, exact model/session failure results, debug
+manifest presence, release manifest absence and no production Service wiring.
+
+Current checkout verification is host/build only. ADB first reported `online=0/offline=1`; the pre-commit recheck found
+no transport (`online=0/offline=0/unauthorized=0/other=0`). No APK was installed and no probe ran.
+`security_android_debug_probe_available=true`, `security_android_debug_probe_executed=false`,
+`security_android13_arm64_verified=false`, `security_coverage_guided_fuzz_complete=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`, `S2-SES-001`, `S2-MDL-001`,
+`S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.

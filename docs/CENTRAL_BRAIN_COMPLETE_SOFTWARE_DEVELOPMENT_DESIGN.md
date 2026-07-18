@@ -4467,3 +4467,41 @@ State: `security_identity_replay_corpus_defined=true`, `security_identity_replay
 `security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
 `S2-SES-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.
+
+## P9-W03c security boundary inventory detailed design
+
+### Inventory generation and drift gate
+
+`central_brain_android_p9_security_boundary_inventory.json` lists all public main AIDL relative paths and classifies
+each declaration as `INTERFACE` or `PARCELABLE`. The checker scans the actual source tree, parses only declaration
+headers, sorts by relative path and requires exact ordered equality. It separately verifies seven namespace counts and
+the Java metadata. A newly published AIDL must update the inventory, tests and review in the same change.
+
+### Host aggregate
+
+`SecurityBoundaryInventoryContractTest` reads only repository test fixtures. It proves 7 interfaces, 30 parcelables,
+37 total surfaces and namespace counts; invokes `StructuredModelOutput.validate` for unknown field, path-like scenario
+identifier and byte oversize; and invokes `SessionContract.validateRequest` for aggregate utterance oversize. Exact
+domain errors are required. Existing family-specific suites remain authoritative for Plan/Event/Effect/Checkpoint/
+ScenarioManifest/ToolSchema depth, graph, cursor, payload and schema details.
+
+### Android debug probe
+
+`StructuredModelOutputProbeActivity` remains in `src/debug` and is exported only with `android.permission.DUMP`. It
+loads build-owned scenario assets, performs the four W03c checks, logs nonce-bound booleans and finishes. It never logs
+the tested output, utterance, package inventory or device identity. `install_central_brain_android_runtime.sh` requires
+all markers and emits Android verification only after its API 33/ARM64 gates. Main/release manifest and production
+Services must contain no probe/inventory reference.
+
+### Claim boundary
+
+Repository success proves static inventory, host aggregate and probe availability. It does not prove probe execution,
+Binder/Parcel fuzz, target signer measurement, coverage-guided fuzz or target qualification. Current:
+`security_aidl_parcel_inventory_complete=true`, `security_aidl_surface_count=37`,
+`security_validation_family_count=8`, `security_host_path_oversize_aggregate_verified=true`,
+`security_android_debug_probe_available=true`, `security_android_debug_probe_executed=false`,
+`security_coverage_guided_fuzz_complete=false`, `security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
+`security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
+`S2-SES-001`, `S2-MDL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.

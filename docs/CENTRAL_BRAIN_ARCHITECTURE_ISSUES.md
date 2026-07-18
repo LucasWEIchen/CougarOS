@@ -1025,8 +1025,9 @@ crash/ANR/resource observation owner、仓库外 evidence 和 owner approval 均
 
 P9-W03a 已完成三个 Java parser/validator boundary 的固定 18-case host regression。P9-W03b 又完成 CallerPolicy、SessionReplay、
 SignerPolicy 三 surface / 18-case host policy regression，覆盖 package/current signer/capability/shared UID、stable owner replay/isolation 和
-signer rotation state/revoke/epoch。完整安全验收仍缺：AIDL/Parcel surface inventory、真实 Binder calling UID spoof、callback replay、目标
-APK 签名密码学证据、剩余 schema/model output、Android instrumentation 与 coverage-guided fuzz engine。
+signer rotation state/revoke/epoch。P9-W03c 已冻结 37 项 public AIDL/Parcel inventory、八 validation family 和 model/path/oversize
+aggregate，并交付 debug-only Android probe；本增量先观察到设备 offline，提交前复核为零 transport，probe 未执行。完整安全验收仍缺：真实 Binder calling UID spoof、callback
+replay、目标 APK 签名密码学证据、Android device evidence 与 coverage-guided fuzz engine。
 
 ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage-guided/目标 evidence 还必须明确 seed/corpus owner、mutation engine
 和版本、CPU/time/case budget、sanitizer/coverage 指标、hang/crash 判定、最小化、敏感输入和日志保留、release/source/non-secret alias、
@@ -1037,7 +1038,9 @@ ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage
 `security_parser_fail_closed_regression_verified=true`、`security_coverage_guided_fuzz_complete=false`、
 `security_identity_replay_corpus_defined=true`、`security_caller_policy_host_verified=true`、
 `security_session_replay_owner_policy_host_verified=true`、`security_signer_policy_host_verified=true`、
+`security_aidl_parcel_inventory_complete=true`、`security_host_path_oversize_aggregate_verified=true`、
+`security_android_debug_probe_available=true`、`security_android_debug_probe_executed=false`、
 `security_binder_calling_uid_spoof_android_verified=false`、
 `security_package_signature_cryptographically_verified=false`、
 `security_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089/090`。

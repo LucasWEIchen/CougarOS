@@ -2410,3 +2410,25 @@ Runtime/Governance。host snapshot/policy regression 不得声明真实 `Binder.
 `security_package_signature_cryptographically_verified=false`、`security_coverage_guided_fuzz_complete=false`、
 `security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-089`、`ISSUE-050`。
+
+## 82. P9-W03c security boundary inventory trace
+
+P9-W03c 映射 `S2-SAF-001/S2-TOL-001/S2-SES-001/S2-MDL-001/S2-OBS-001`。应用层必须发布公开 main AIDL
+的 machine-readable 精确清单，当前固定 37 项、7 interface、30 parcelable，覆盖 diagnostics/effect/event/governance/plan/
+production/session 七 namespace。checker 必须从实际 AIDL 树重新分类并与清单逐路径比较，新增、删除、漏项或 kind 漂移均失败。
+
+聚合合同必须引用既有 Session/Plan/Event/Effect/Checkpoint/ScenarioManifest/ToolSchema/StructuredModelOutput 八 validation family。
+JVM 必须实际验证 StructuredModelOutput unknown field、path-like scenario ID、16 KiB+1 output 和 Session oversize utterance 的失败关闭。
+不得新建平行 parser、扩大 request authority 或把 inventory 接入 Runtime/Governance。
+
+Android probe 必须只存在于 debug source/manifest、由 `android.permission.DUMP` 保护、输出固定布尔标志且不输出 payload。installer 只有在
+原有 API/ABI/device gate 和全部 aggregate marker 通过后才能报告 device success。probe 可编译/可安装不等于已执行；ADB offline 时
+`security_android_debug_probe_executed` 和 `security_android13_arm64_verified` 必须保持 false。
+
+当前 `security_aidl_parcel_inventory_complete=true`、`security_aidl_surface_count=37`、
+`security_validation_family_count=8`、`security_host_path_oversize_aggregate_verified=true`、
+`security_android_debug_probe_available=true`、`security_android_debug_probe_executed=false`、
+`security_coverage_guided_fuzz_complete=false`、`security_binder_calling_uid_spoof_android_verified=false`、
+`security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-090`、`ISSUE-050`。

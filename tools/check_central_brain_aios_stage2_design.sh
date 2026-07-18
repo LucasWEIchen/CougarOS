@@ -28,11 +28,12 @@ STABILITY_MATRIX_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_andro
 SECURITY_REVIEW="$ROOT_DIR/docs/CENTRAL_BRAIN_SECURITY_REVIEW_FUZZ.md"
 SECURITY_CORPUS_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_parser_security_corpus.json"
 SECURITY_IDENTITY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_identity_replay_security_corpus.json"
+SECURITY_BOUNDARY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_security_boundary_inventory.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
     "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT" \
-    "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT"; do
+    "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT" "$SECURITY_BOUNDARY_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -377,7 +378,7 @@ require_text "$DRIVER" 'P9-W02 Stability Fault Matrix Driver/HAL Boundary'
 require_text "$README" 'security_parser_corpus_defined=true'
 require_text "$README" 'security_parser_case_count=18'
 require_text "$SECURITY_REVIEW" 'Central Brain P9-W03 Security Review and Fuzz'
-require_text "$SECURITY_REVIEW" 'IN_PROGRESS / W03B_HOST_POLICY_VERIFIED'
+require_text "$SECURITY_REVIEW" 'W03C_SOFTWARE_BOUNDARIES_VERIFIED / TARGET_FUZZ_PENDING'
 require_text "$BACKLOG" 'P9-W03a parser security corpus'
 require_text "$REQUIREMENTS" 'P9-W03a parser security corpus trace'
 require_text "$DEVIATIONS" 'DEV-088 P9-W03a deterministic corpus is not coverage-guided fuzzing'
@@ -392,6 +393,15 @@ require_text "$REQUIREMENTS" 'P9-W03b identity/replay security corpus trace'
 require_text "$DEVIATIONS" 'DEV-089 P9-W03b host policy corpus is not Binder or APK crypto evidence'
 require_text "$DELIVERY" 'Android P9-W03b Identity/Replay Security Corpus'
 require_text "$DRIVER" 'P9-W03b Identity/Replay Security Driver/HAL Boundary'
+require_text "$README" 'security_aidl_parcel_inventory_complete=true'
+require_text "$README" 'security_aidl_surface_count=37'
+require_text "$README" 'security_validation_family_count=8'
+require_text "$SECURITY_REVIEW" 'P9-W03c public boundary inventory and Android debug probe'
+require_text "$BACKLOG" 'P9-W03c security boundary inventory and debug probe'
+require_text "$REQUIREMENTS" 'P9-W03c security boundary inventory trace'
+require_text "$DEVIATIONS" 'DEV-090 P9-W03c static inventory and debug probe availability are not target fuzz evidence'
+require_text "$DELIVERY" 'Android P9-W03c Security Boundary Inventory'
+require_text "$DRIVER" 'P9-W03c Security Boundary Inventory Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -585,5 +595,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_performance_budget.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_stability_fault_matrix.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_parser_security_corpus.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_identity_replay_security_corpus.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_security_boundary_inventory.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

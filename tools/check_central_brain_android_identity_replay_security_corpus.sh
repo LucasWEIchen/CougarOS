@@ -147,7 +147,7 @@ if grep -Eiq \
   exit 1
 fi
 
-require_text "$DOC" 'IN_PROGRESS / W03B_HOST_POLICY_VERIFIED'
+require_text "$DOC" 'W03C_SOFTWARE_BOUNDARIES_VERIFIED / TARGET_FUZZ_PENDING'
 require_text "$DOC" 'implementation_stage=P9-W03'
 require_text "README.md" 'P9 Identity/Replay Security Corpus'
 require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" 'P9-W03b identity/replay/signer policy corpus'

@@ -144,7 +144,7 @@ if grep -Eiq \
 fi
 
 require_text "$DOC" 'Central Brain P9-W03 Security Review and Fuzz'
-require_text "$DOC" 'IN_PROGRESS / W03B_HOST_POLICY_VERIFIED'
+require_text "$DOC" 'W03C_SOFTWARE_BOUNDARIES_VERIFIED / TARGET_FUZZ_PENDING'
 require_text "$DOC" 'implementation_stage=P9-W03'
 require_text "README.md" 'P9 Parser Security Corpus'
 require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" 'P9-W03a parser security corpus'

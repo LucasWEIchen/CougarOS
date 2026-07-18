@@ -1652,3 +1652,19 @@ evidence exists, `security_binder_calling_uid_spoof_android_verified=false`,
 `driver_development_triggered=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
 `S2-SES-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.
+
+## P9-W03c Security Boundary Inventory Driver/HAL Boundary
+
+No Driver/HAL development is triggered. The inventory reads repository AIDL source only in test/checker code; the
+Android probe calls Java validators inside the debug APK. No vendor service, CarProperty, device node, ioctl, sysfs,
+vehicle bus, NPU, kernel Binder modification or system image change is added.
+
+Future target evidence may use the existing Android framework Binder/PackageManager surfaces and approved test APKs.
+Any missing vendor contract must be recorded separately before Driver/HAL work. Current:
+`security_android_debug_probe_available=true`, `security_android_debug_probe_executed=false`,
+`security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
+`driver_development_triggered=false`, `virtualization_development_triggered=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
+`S2-SAF-001`, `S2-TOL-001`, `S2-SES-001`, `S2-MDL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking:
+`DEV-090`, `ISSUE-050`.

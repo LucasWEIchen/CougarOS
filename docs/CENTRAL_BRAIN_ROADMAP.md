@@ -1415,3 +1415,24 @@ Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-SES-001`、`S2-OBS-001`、`DEL-001/0
 `security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`、
 `security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
+### P9-W03c Security Boundary Inventory progress
+
+状态：`SOFTWARE_DEVELOPED / TARGET_FUZZ_PENDING`（2026-07-18）。新增 37 项 public main AIDL 精确 inventory（7 interface、
+30 parcelable）、八 validation family 聚合、四项 model/session path/oversize JVM regression，并扩展现有 DUMP-protected debug-only
+Android probe 和 installer marker gate。
+
+host test/debug/release compile 已通过。本增量先观察到 ADB `online=0/offline=1/unauthorized=0/other=0`，提交前复核为
+`online=0/offline=0/unauthorized=0/other=0`，因此未安装 APK、未运行新 probe；真实 Binder calling UID spoof、目标 APK 签名密码学
+证据、coverage-guided fuzz 和安全 owner approval 保持外部待办。
+
+W03a/W03b/W03c 仓库内软件项已交付；W03 完整安全资格仍由 ISSUE-050 跟踪。下一工作方向为 P9-W04 privacy/data lifecycle 的
+软件增量，同时不绕过 W03/P8 外部证据阻塞。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-SES-001`、`S2-MDL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-090`、`ISSUE-050`。`security_aidl_parcel_inventory_complete=true`、`security_aidl_surface_count=37`、
+`security_validation_family_count=8`、`security_host_path_oversize_aggregate_verified=true`、
+`security_android_debug_probe_available=true`、`security_android_debug_probe_executed=false`、
+`security_coverage_guided_fuzz_complete=false`、`security_android13_arm64_verified=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
