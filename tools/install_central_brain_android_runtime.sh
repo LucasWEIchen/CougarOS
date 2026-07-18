@@ -3306,6 +3306,55 @@ if [[ "$EVENT_BROKER_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+EVENT_QOS_NONCE="$(date +%s%N)"
+EVENT_QOS_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.events.EventBackpressureProbeActivity \
+  --es nonce "$EVENT_QOS_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$EVENT_QOS_PROBE_OUTPUT"; then
+  echo "$EVENT_QOS_PROBE_OUTPUT" >&2
+  echo "Event Backpressure/QoS debug probe did not start successfully" >&2
+  exit 1
+fi
+EVENT_QOS_PROBE_PASSED=false
+for _ in {1..40}; do
+  EVENT_QOS_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbEventQoS:I)"
+  if grep -Fq "nonce=$EVENT_QOS_NONCE event_qos_probe_complete=true" \
+      <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_policies_verified=true" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_critical_no_silent_drop_verified=true" \
+        <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_deadline_priority_verified=true" \
+        <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_consumer_isolation_verified=true" \
+        <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_android13_arm64_verified=true" \
+        <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_process_local=true" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_broker_wired=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_durable_persistence_wired=false" \
+        <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "event_qos_production_middleware_wired=false" \
+        <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "production_ready=false" <<<"$EVENT_QOS_LOG" \
+      && grep -Fq "target_hardware_validated=false" <<<"$EVENT_QOS_LOG"; then
+    EVENT_QOS_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$EVENT_QOS_PROBE_PASSED" != true ]]; then
+  echo "$EVENT_QOS_LOG" >&2
+  echo "Event Backpressure/QoS probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3984,6 +4033,16 @@ printf '%s\n' \
   "event_broker_dds_transport_wired=false" \
   "event_broker_production_published=false" \
   "event_broker_runtime_wired=false" \
+  "event_qos_contract_defined=true" \
+  "event_qos_policies_verified=true" \
+  "event_qos_critical_no_silent_drop_verified=true" \
+  "event_qos_deadline_priority_verified=true" \
+  "event_qos_consumer_isolation_verified=true" \
+  "event_qos_android13_arm64_verified=true" \
+  "event_qos_process_local=true" \
+  "event_qos_broker_wired=false" \
+  "event_qos_durable_persistence_wired=false" \
+  "event_qos_production_middleware_wired=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \

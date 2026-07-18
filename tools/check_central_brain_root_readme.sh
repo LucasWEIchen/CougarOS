@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P6-W02' \
+  'implementation_stage=P6-W03' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -291,6 +291,16 @@ for marker in \
   'event_broker_dds_transport_wired=false' \
   'event_broker_production_published=false' \
   'event_broker_runtime_wired=false' \
+  'event_qos_contract_defined=true' \
+  'event_qos_policy_count=4' \
+  'event_qos_critical_no_silent_drop_verified=true' \
+  'event_qos_deadline_priority_verified=true' \
+  'event_qos_consumer_isolation_verified=true' \
+  'event_qos_android13_arm64_verified=false' \
+  'event_qos_process_local=true' \
+  'event_qos_broker_wired=false' \
+  'event_qos_durable_persistence_wired=false' \
+  'event_qos_production_middleware_wired=false' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
@@ -596,10 +606,12 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P6-W02" not in remaining or "Event Broker production/QoS" not in remaining:
-    raise SystemExit("README remaining-work table must identify P6-W02 Backpressure/QoS as the next unfinished scope")
+if "P6-W03" not in remaining or "Event Broker production/durability" not in remaining:
+    raise SystemExit("README remaining-work table must identify P6-W03 durable append/cursor integration as the next unfinished scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
+if "P6 Event Backpressure/QoS" not in developed:
+    raise SystemExit("README developed table must include the completed P6-W02 Event Backpressure/QoS")
 if "P5 Tool Executor boundary" not in developed:
     raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
 if "P5 Skill package verifier" not in developed:
