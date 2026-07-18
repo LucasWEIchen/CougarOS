@@ -1326,6 +1326,8 @@ fi
 
 ADB="$ADB" "$ROOT_DIR/tools/probe_central_brain_android_release_metadata.sh" \
   --serial "$SERIAL"
+ADB="$ADB" "$ROOT_DIR/tools/probe_central_brain_android_driver_safety.sh" \
+  --serial "$SERIAL"
 
 SCHEDULER_NONCE="$(date +%s%N)"
 SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \

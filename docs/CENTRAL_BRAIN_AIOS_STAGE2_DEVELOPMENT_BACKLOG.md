@@ -1131,12 +1131,13 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
   production-trusted Safety State、新鲜度/时序 gate、三 owner role policy、HVAC/Seat capability availability/authorization/
   readback/activation gate 和 stable decision digest。moving 对 long text/parameter/video/driver recline/diagnostics/OTA 硬拒绝；
   parked driver recline 只返回 approval required。所有 decision 固定不授予 Effect dispatch 或 hardware operation。
-- 当前 `currentDraftPolicy()` owner approval 数为 0，P2 capability production authorization 为 0，Runtime/Governance Service
-  未接合同，实体 Android probe 未提供。JVM approved policy/capability 只为 synthetic contract fixture。
-- 下一小步 `P9-W06b redacted Android probe and target evidence adapter`：仅允许 DUMP-protected debug-only count/boolean
-  projection 和只读 adapter；不得读取车辆 scalar、设备身份、owner approval reference 或原始日志，不得触发 Effect/Vehicle。
+- `P9-W06b redacted Android probe and target evidence adapter`：已交付 27-key count/boolean projection、DUMP-protected
+  debug-only Activity、六组 JVM tests、只读 no-install ADB adapter 和 release-absence/CI 门禁。它不读取车辆 scalar、
+  设备身份、owner approval reference 或原始日志，不触发 Effect/Vehicle；当前目标 transport 未执行。
+- W06a/W06b 仓库软件项已完成。当前 `currentDraftPolicy()` owner approval 数为 0，P2 capability production
+  authorization 为 0，Runtime/Governance/Effect/Vehicle 未接；Android 合同 probe 即使执行也不构成 OEM safety evidence。
 - 真实 driving state、IDLE 联合语义、UX restriction acceptance matrix、seat/HVAC OEM policy、硬联锁和 owner sign-off 继续
-  `EXTERNAL_BLOCKED`，由 `ISSUE-029/030` 和 P8 跟踪。
+  `EXTERNAL_BLOCKED`，由 `ISSUE-029/030` 和 P8 跟踪。下一软件增量为 `P9-W07`。
 
 ### `P9-W07` Release evidence and field diagnostics
 

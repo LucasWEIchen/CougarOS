@@ -1543,3 +1543,25 @@ Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/00
 `driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
 `driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W06`。下一小步：`P9-W06b redacted Android probe and target evidence adapter`。
+
+### P9-W06b Driver Safety Redacted Probe progress
+
+状态：`SOFTWARE_DEVELOPED / TARGET_PROBE_PENDING / OEM_OWNER_BLOCKED`（2026-07-18）。新增 27-key repository-only
+count/boolean projection、六组 JVM tests、DUMP-protected debug Activity、只读 no-install ADB adapter 和
+release-absence/Stage2/Runtime/CI 门禁。
+
+探针不读取车辆 scalar、设备身份、owner/activation reference、原始日志或业务 payload，不进入 Runtime/Governance Service，
+不执行 Effect/Vehicle/hardware。当前 ADB 没有合格 online transport，probe 未执行；未来 contract probe 的 API33 ARM64 成功标志
+也不能提升 OEM safety qualification。
+
+W06a/W06b 仓库软件项已完成；真实 owner policy、Safety State producer、IDLE、驾驶分心 acceptance matrix、seat/HVAC policy
+和硬联锁继续由 ISSUE-029/030 与 P8 外部阻塞。下一软件增量为 `P9-W07 Release evidence and field diagnostics`。
+
+Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-096/097`、`ISSUE-029/030`。`driver_safety_redacted_projection_defined=true`、
+`driver_safety_audit_key_count=27`、`driver_safety_android_debug_probe_available=true`、
+`driver_safety_android_debug_probe_executed=false`、`driver_safety_target_adapter_defined=true`、
+`driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
+`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W06`。

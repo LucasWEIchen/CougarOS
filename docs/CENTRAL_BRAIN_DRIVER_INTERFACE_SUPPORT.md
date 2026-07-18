@@ -1746,3 +1746,20 @@ error/readback/fault/rollback contract 后，才登记最小 Driver/HAL 缺口�
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W06`。Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、
 `S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-096`、`ISSUE-029/030`。
+
+## P9-W06b Driver Safety Probe Driver/HAL Boundary
+
+W06b 新增的 main-source projection 是 Android-independent metadata 计算，debug Activity 只接受数字 nonce，ADB adapter 只启动
+已经安装的 Activity 并校验固定 count/boolean。三者都不读取 Android Car、VHAL、Vendor Binder、CAN、device node、sysfs、
+property、车辆 scalar、NPU 或网络，不调用 Effect adapter，也不修改厂商 SDK、系统镜像或 SELinux。
+
+本包没有 C/JNI/Driver/HAL 开发量。真实 Safety State、gear/speed/parking-brake/occupancy/belt/recline readback 与 HVAC/Seat write
+仍必须优先来自目标公开 Android/OEM SDK；只有 owner 证明既有 SDK 无法满足已编号 capability 后，才登记最小 Driver/HAL 缺口。
+
+当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`driver_safety_redacted_projection_defined=true`、`driver_safety_android_debug_probe_executed=false`、
+`driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
+`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W06`。Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、
+`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-097`、`ISSUE-029/030`。

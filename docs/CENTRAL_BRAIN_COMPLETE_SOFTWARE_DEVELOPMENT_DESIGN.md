@@ -4716,3 +4716,32 @@ forbidden in W06a。
 
 Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-096`、`ISSUE-029/030`。
+
+## 46. P9-W06b Driver Safety Redacted Probe detailed design
+
+### Projection ownership
+
+`DriverSafetyAuditProjection` owns no mutable state and accepts no input。It derives nine numeric facts from W06a build-owned classes and appends
+18 fixed booleans, producing exactly 27 ordered audit keys。The class imports no Android, storage, network, vehicle or native API；production
+Services must not reference it。
+
+### Debug activity
+
+`DriverSafetyAuditProbeActivity` is compiled only in the debug source set and protected by DUMP。Its only input is a bounded numeric nonce；it
+calls the projection once and logs only fixed count/boolean metadata。The error branch emits fixed failure booleans and never logs exception type,
+message, stack, device identity, vehicle value or owner reference。The release manifest contains no component。
+
+### Host adapter
+
+The shell adapter requires an already-installed debug package and exactly Android 13 API 33 ARM64。It starts the Activity, internally matches the
+nonce-scoped fixed log line and emits only approved counts/booleans。It has no build/install/uninstall command and no vehicle/property/service query。
+The Android contract execution marker is intentionally separate from OEM safety qualification。
+
+### Verification and unresolved boundary
+
+Six JVM methods verify exact counts, unique allowlist, forbidden fields, false authority/readiness claims, available-not-executed repository state and
+zero runtime/vehicle input。Static gates synchronize JSON/Java/test/docs, debug/release manifest boundary, target adapter commands and absence from
+Runtime/Governance Services。Real driving state, owner approvals, Effect wiring and safety acceptance remain false and externally blocked。
+
+Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-097`、`ISSUE-029/030`。

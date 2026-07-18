@@ -1599,3 +1599,21 @@ permission/readback/activation contract、目标 Android 13 evidence、驾驶分
 `driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
 `driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W06`。
+
+## DEV-097 P9-W06b Android contract probe is not target safety evidence
+
+W06b 的 27-key projection 只重新计算 W06a build-owned catalog、owner count 和 capability authorization count。debug Activity
+不读取真实 speed、gear、parking brake、occupancy、belt、seat angle、state source 或车辆故障，也不接受 owner/activation payload。
+因此 host/JVM/build 通过只证明脱敏软件入口和失败关闭声明一致，不证明目标驾驶态、座椅硬联锁或法规符合性。
+
+只读 ADB adapter 即使在 Android 13 ARM64 上成功执行，也只能设置独立的
+`driver_safety_android_contract_probe_android13_arm64_verified=true`。它不得设置
+`driver_safety_android13_arm64_verified=true`，不得批准 owner policy、激活 capability、触发 Effect 或访问硬件。当前 transport
+未执行，`driver_safety_android_debug_probe_executed=false`。
+
+状态：`Accepted Temporary`。关闭条件与 DEV-096/ISSUE-029/030 相同：命名 Safety/HMI/Vehicle owner，公开 signal/capability/
+permission/readback/activation contract，目标状态与故障矩阵，驾驶分心 acceptance matrix 和座椅硬联锁复测。当前
+`driver_safety_redacted_projection_defined=true`、`driver_safety_target_adapter_defined=true`、
+`driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
+`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W06`。

@@ -302,10 +302,16 @@ PARKED/MOVING/UNKNOWN/FAULT UX、三 owner role 和 capability availability/auth
 UI 与 driver recline 为 hard deny，parked recline 最多返回 approval required，所有 decision 均不授权 Effect dispatch。
 该结果仍无真实 owner、vehicle state producer、IDLE 联合语义、座椅硬联锁或 Android target evidence，因此 ISSUE 保持 Open。
 
+P9-W06b 进展：已新增 27-key 脱敏 projection、DUMP-protected debug Activity 和只读 ADB adapter。它只报告 W06a 固定目录的
+计数/布尔值，不读取真实车辆状态、owner reference 或硬件。当前 target probe 未执行；未来即使 contract probe 在 API 33 ARM64
+运行成功，也不等于座椅硬联锁、驾驶分心或 OEM owner 验收，因此 ISSUE 保持 Open。
+
 当前 `driver_safety_admission_defined=true`、`driver_safety_moving_hard_interlock_verified=true`、
 `driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
-`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-096`。
+`driver_safety_effect_runtime_wired=false`、`driver_safety_redacted_projection_defined=true`、
+`driver_safety_android_debug_probe_available=true`、`driver_safety_android_debug_probe_executed=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-096/097`。
 
 ## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定
 
@@ -351,6 +357,12 @@ P2-W11 进展：Media player state 和 Navigation POI/route observation 已在 d
 P2-W12 进展：debug controller 已通过 signature/capability protected Binder 设置 canonical simulated signal、
 fault 和 clock，但没有读取目标 property/service，也没有 production policy grant。该控制面只提高测试可控性，
 不提供车辆 API、权限、area mapping、readback 或 owner，本问题保持 Open。
+
+P9-W06a/W06b 进展：已冻结 12-action driver-safety admission，并增加只读脱敏 Android contract probe。projection 不接受真实
+vehicle/provider 输入，adapter 不读取 property/service/vehicle scalar，也不触发 Effect。当前
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android_debug_probe_executed=false`、`driver_safety_android13_arm64_verified=false`；所以 capability/API/permission/
+owner 缺口没有被软件探针关闭，ISSUE 保持 Open。tracking：`DEV-096/097`。
 
 ## ISSUE-031 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定
 
