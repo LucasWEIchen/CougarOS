@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-identity-replay-security-v1",
+  "maturity": "deterministic_host_policy_regression_partial_security_review",
+  "req_ids": [
+    "S2-SAF-001",
+    "S2-TOL-001",
+    "S2-SES-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "surfaces": [
+    "CALLER_POLICY",
+    "SESSION_REPLAY",
+    "SIGNER_POLICY"
+  ],
+  "cases": [
+    {"case_id": "caller.unresolved_identity.v1", "surface": "CALLER_POLICY", "threat_class": "UNRESOLVED_IDENTITY", "expected_outcome_code": "IDENTITY_UNRESOLVED"},
+    {"case_id": "caller.package_spoof.v1", "surface": "CALLER_POLICY", "threat_class": "PACKAGE_SPOOF", "expected_outcome_code": "PACKAGE_NOT_CONFIGURED"},
+    {"case_id": "caller.current_signer_spoof.v1", "surface": "CALLER_POLICY", "threat_class": "SIGNER_SPOOF", "expected_outcome_code": "CURRENT_SIGNER_MISMATCH"},
+    {"case_id": "caller.capability_escalation.v1", "surface": "CALLER_POLICY", "threat_class": "CAPABILITY_ESCALATION", "expected_outcome_code": "CAPABILITY_NOT_GRANTED"},
+    {"case_id": "caller.shared_uid_signer_confusion.v1", "surface": "CALLER_POLICY", "threat_class": "SHARED_UID_CONFUSION", "expected_outcome_code": "CURRENT_SIGNER_MISMATCH"},
+    {"case_id": "caller.principal_signer_rotation.v1", "surface": "CALLER_POLICY", "threat_class": "PRINCIPAL_ROTATION", "expected_outcome_code": "FINGERPRINT_CHANGED"},
+    {"case_id": "session.same_digest_replay.v1", "surface": "SESSION_REPLAY", "threat_class": "REPLAY", "expected_outcome_code": "SAME_HANDLE"},
+    {"case_id": "session.request_digest_conflict.v1", "surface": "SESSION_REPLAY", "threat_class": "REPLAY_CONFLICT", "expected_outcome_code": "IDEMPOTENCY_CONFLICT"},
+    {"case_id": "session.cross_owner_find.v1", "surface": "SESSION_REPLAY", "threat_class": "CROSS_OWNER_ACCESS", "expected_outcome_code": "NULL_SNAPSHOT"},
+    {"case_id": "session.cross_owner_events.v1", "surface": "SESSION_REPLAY", "threat_class": "CROSS_OWNER_ACCESS", "expected_outcome_code": "SESSION_NOT_FOUND"},
+    {"case_id": "session.cross_owner_cancel.v1", "surface": "SESSION_REPLAY", "threat_class": "CROSS_OWNER_ACCESS", "expected_outcome_code": "NO_CHANGE"},
+    {"case_id": "session.malformed_owner.v1", "surface": "SESSION_REPLAY", "threat_class": "MALFORMED_PRINCIPAL", "expected_outcome_code": "SECURITY_EXCEPTION"},
+    {"case_id": "signer.unknown.v1", "surface": "SIGNER_POLICY", "threat_class": "UNKNOWN_SIGNER", "expected_outcome_code": "UNKNOWN_SIGNER"},
+    {"case_id": "signer.not_yet_active.v1", "surface": "SIGNER_POLICY", "threat_class": "SIGNER_EPOCH", "expected_outcome_code": "SIGNER_NOT_YET_ACTIVE"},
+    {"case_id": "signer.retired.v1", "surface": "SIGNER_POLICY", "threat_class": "RETIRED_SIGNER", "expected_outcome_code": "RETIRED_SIGNER"},
+    {"case_id": "signer.revoked.v1", "surface": "SIGNER_POLICY", "threat_class": "REVOKED_SIGNER", "expected_outcome_code": "REVOKED_SIGNER"},
+    {"case_id": "signer.malformed_digest.v1", "surface": "SIGNER_POLICY", "threat_class": "MALFORMED_SIGNER_EVIDENCE", "expected_outcome_code": "POLICY_VIOLATION"},
+    {"case_id": "signer.nonpositive_epoch.v1", "surface": "SIGNER_POLICY", "threat_class": "SIGNER_EPOCH", "expected_outcome_code": "POLICY_VIOLATION"}
+  ],
+  "claim_state": {
+    "security_identity_replay_corpus_defined": true,
+    "security_identity_replay_surface_count": 3,
+    "security_identity_replay_case_count": 18,
+    "security_caller_policy_host_verified": true,
+    "security_session_replay_owner_policy_host_verified": true,
+    "security_signer_policy_host_verified": true,
+    "security_binder_calling_uid_spoof_android_verified": false,
+    "security_package_signature_cryptographically_verified": false,
+    "security_coverage_guided_fuzz_complete": false,
+    "security_android13_arm64_verified": false,
+    "security_runtime_wired": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

@@ -3416,3 +3416,29 @@ No parser API was broadened and no Runtime Service references the catalog. Curre
 `security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
 `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-088`, `ISSUE-050`.
+
+## Android P9-W03b Identity/Replay Security Corpus Contract
+
+`IdentityReplaySecurityCorpusContract` publishes an immutable ordered list of 18
+`CorpusCase(caseId, surface, threatClass, expectedOutcomeCode)` values across `CALLER_POLICY`, `SESSION_REPLAY` and
+`SIGNER_POLICY`. `requireCase` rejects unknown IDs and `corpusDigest` binds schema/profile and the full ordered list.
+
+| Existing interface | Security operation | Required host result |
+| --- | --- | --- |
+| `CallerCapabilityPolicy.evaluate(snapshot, capability)` | unresolved/package/current signer/capability/shared UID | exact `DecisionReason`, default deny |
+| `DurablePrincipalFingerprint.from(snapshot)` | Android user/package/current-signer rotation | stable 64-hex owner changes when principal evidence changes |
+| `TransientSessionRegistry.openOwned/findOwned/eventsOwned/cancelOwned` | exact replay, conflicting replay, cross-owner access, malformed owner | same handle only for exact replay; conflict/isolation fails closed |
+| `SkillSignerPolicy.evaluate(digest, epoch)` | unknown/not-active/retired/revoked/malformed/invalid epoch | exact `DecisionCode` or policy violation |
+
+The contract does not accept caller identity from a request. Production acquisition remains
+`AndroidCallerIdentityResolver.resolveCallingIdentity()` using `Binder.getCallingUid()` and current package signers.
+The host suite starts after that platform boundary and therefore cannot claim real Binder UID spoof or target APK
+certificate verification.
+
+Current: `security_identity_replay_corpus_defined=true`, `security_identity_replay_case_count=18`,
+`security_caller_policy_host_verified=true`, `security_session_replay_owner_policy_host_verified=true`,
+`security_signer_policy_host_verified=true`, `security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
+`security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
+`S2-SES-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.

@@ -1638,3 +1638,17 @@ Android/Vendor surface 经验证无法满足后，才可单独登记最小 Drive
 `driver_development_triggered=false`、`virtualization_development_triggered=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：
 `S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-088`、`ISSUE-050`。
+
+## P9-W03b Identity/Replay Security Driver/HAL Boundary
+
+No Driver/HAL development is triggered. The increment calls Java policy and process-local registry interfaces only.
+Production caller evidence remains Android framework `Binder.getCallingUid()`, `UserManager` and `PackageManager`
+current signer data; no vendor service, device node, ioctl, sysfs, CarProperty, vehicle bus or NPU interface is added.
+
+Target integration must later provide a controlled Android test caller, approved package/signing setup and sanitized
+evidence without exposing serials, fingerprints, signing material, package inventory or raw payloads. Until that
+evidence exists, `security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
+`driver_development_triggered=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
+`S2-SES-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.

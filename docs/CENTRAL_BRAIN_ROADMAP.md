@@ -1394,3 +1394,24 @@ Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
 `security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
+### P9-W03b Identity/Replay Security Corpus progress
+
+状态：`DEVELOPED / P9-W03_IN_PROGRESS`（2026-07-18）。新增 machine-readable/Java 同源 CallerPolicy、SessionReplay、
+SignerPolicy 三 surface / 18-case corpus、五组 JVM regression、独立 checker 和正式需求/接口/架构/详设/交付/偏差跟踪。
+
+CallerPolicy 覆盖 unresolved/package/current signer/capability/shared UID/principal rotation；SessionReplay 覆盖 exact replay、digest
+conflict、跨 owner find/events/cancel 与 malformed owner；SignerPolicy 覆盖 unknown/not-active/retired/revoked/malformed/epoch。所有
+测试直接调用既有策略实现，host JVM 已通过。
+
+W03b 不等于真实 Binder calling UID spoof、目标 APK 签名密码学验证、Android 13 instrumentation、coverage-guided fuzz 或目标安全资格。
+下一小步 `P9-W03c model/schema/path/oversize aggregation and Android debug probe`；P8-W01..W06 外部阻塞不变。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-SES-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-089`、`ISSUE-050`。`security_identity_replay_corpus_defined=true`、`security_identity_replay_surface_count=3`、
+`security_identity_replay_case_count=18`、`security_caller_policy_host_verified=true`、
+`security_session_replay_owner_policy_host_verified=true`、`security_signer_policy_host_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=false`、
+`security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。

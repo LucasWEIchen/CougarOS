@@ -2387,3 +2387,26 @@ Runtime/Governance。host regression 不等于 coverage-guided fuzz、AIDL ident
 `security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
 `security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088`、`ISSUE-050`。
+
+## 81. P9-W03b identity/replay security corpus trace
+
+P9-W03b 映射 `S2-SAF-001/S2-TOL-001/S2-SES-001/S2-OBS-001`。应用层必须发布 machine-readable 与 Java
+同源的固定 18-case policy corpus，精确包含 `CALLER_POLICY`、`SESSION_REPLAY`、`SIGNER_POLICY` 三个 surface，每个
+surface 六项。每项必须声明 stable case ID、threat class 和 expected outcome code；缺项、额外项、重复项或顺序漂移均失败。
+
+JVM regression 必须调用既有 `CallerCapabilityPolicy`、`DurablePrincipalFingerprint`、`TransientSessionRegistry` 和
+`SkillSignerPolicy`。Caller 必须覆盖 unresolved/package/current-signer/capability/shared-UID/principal rotation；Session 必须覆盖
+exact replay、digest conflict、跨 owner find/events/cancel、malformed owner；Signer 必须覆盖 unknown/not-yet-active/retired/revoked/
+malformed digest/nonpositive epoch。不得新增平行鉴权逻辑替代这些生产策略。
+
+主 catalog 只能保存 metadata，不得读取 Binder、PackageManager、Android、file/network/vehicle/NPU/hardware 状态，也不得注册到
+Runtime/Governance。host snapshot/policy regression 不得声明真实 `Binder.getCallingUid()` spoof、目标 APK 签名密码学复测、Android
+13 ARM64、安全 fuzz 或 production 资格。
+
+当前 `security_identity_replay_corpus_defined=true`、`security_identity_replay_surface_count=3`、
+`security_identity_replay_case_count=18`、`security_caller_policy_host_verified=true`、
+`security_session_replay_owner_policy_host_verified=true`、`security_signer_policy_host_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=false`、
+`security_package_signature_cryptographically_verified=false`、`security_coverage_guided_fuzz_complete=false`、
+`security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-089`、`ISSUE-050`。

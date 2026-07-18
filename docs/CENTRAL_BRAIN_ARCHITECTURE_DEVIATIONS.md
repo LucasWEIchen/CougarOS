@@ -1053,6 +1053,24 @@ clock/revision、fault/freshness、NPU slot/memory/thermal semantics，并在目
 `provider_invoked=false`、`model_invoked=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
+## DEV-089 P9-W03b host policy corpus is not Binder or APK crypto evidence
+
+P9-W03b 新增 JSON/Java 三 surface、18-case policy corpus，并在 JVM 中调用既有 caller capability、durable principal、session
+owner/replay 和 skill signer policy。它能证明 unresolved/package/current-signer/capability/shared-UID、request digest conflict、跨 owner
+隔离及 signer state/epoch 的确定性失败关闭。
+
+host test 构造的是 `CallerIdentitySnapshot`，没有控制 Android Binder driver 的 calling UID；signer digest 是确定性测试值，没有从目标
+APK 重新提取并验证证书链。`SkillSignerPolicy` 也明确不获取 trusted signer evidence，不要求 hardware-backed attestation。因此当前结果
+不能解释为 Binder spoof penetration test、目标 APK 密码学签名验证或 Android 13 ARM64 安全资格。
+
+状态：`Accepted Temporary`。关闭条件是 W03c 在受控 debug-only instrumentation 中验证 calling UID/package/current signer acquisition、
+跨进程 replay 和目标签名证据，并由安全 owner 审核；coverage-guided fuzz 仍按 ISSUE-050 单独完成。当前：
+`security_identity_replay_corpus_defined=true`、`security_caller_policy_host_verified=true`、
+`security_session_replay_owner_policy_host_verified=true`、`security_signer_policy_host_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=false`、
+`security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
 ## DEV-082 P7-W05 model output is proposal-only
 
 P7-W05 冻结 `scenario-output.v1` 并用 ScenarioManifest 与 CapabilityCatalog 双重验证 scenario/capability/area/scalar。它接受 bounded

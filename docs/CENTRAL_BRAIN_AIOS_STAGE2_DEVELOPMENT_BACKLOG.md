@@ -1073,14 +1073,18 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 
 ### `P9-W03` Security review/fuzz
 
-- 状态：`IN_PROGRESS`（P9-W03a developed，2026-07-18）；6-10 人日；`S2-SAF-001`、`S2-TOL-001`。
+- 状态：`IN_PROGRESS`（P9-W03a/W03b developed，2026-07-18）；6-10 人日；`S2-SAF-001`、`S2-TOL-001`、`S2-SES-001`。
 - `P9-W03a parser security corpus`：已交付 Checkpoint、ScenarioManifest、ToolSchema 三 surface / 18-case 固定 hostile-input
   JSON/Java corpus 和真实 parser/validator exact-error JVM 回归；覆盖 malformed、duplicate、unknown、oversize、digest tamper、
   path traversal、depth bomb、missing/null/type/value bound。仅 deterministic host regression。
-- 剩余：P9-W03b AIDL/caller spoof/replay/signature policy；P9-W03c model/schema/path/oversize 聚合、Android debug probe、受控
+- `P9-W03b identity/replay/signer policy corpus`：已交付 CallerPolicy、SessionReplay、SignerPolicy 三 surface / 18-case
+  JSON/Java corpus，实际验证 package/current-signer/capability/shared-UID、stable owner replay/isolation、signer state/epoch。
+  仅 host policy evidence，不等于真实 Binder UID spoof 或目标 APK 签名密码学验证。
+- 剩余：P9-W03c model/schema/path/oversize 聚合、Android debug probe、受控
   coverage-guided fuzz evidence。当前 `security_coverage_guided_fuzz_complete=false`、
-  `security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
-  `security_android13_arm64_verified=false`；tracking `DEV-088`、`ISSUE-050`。
+  `security_binder_calling_uid_spoof_android_verified=false`、
+  `security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`；tracking
+  `DEV-088/089`、`ISSUE-050`。
 
 ### `P9-W04` Privacy/data lifecycle
 

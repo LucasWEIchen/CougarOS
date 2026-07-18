@@ -1,6 +1,6 @@
 # Central Brain P9-W03 Security Review and Fuzz
 
-Status: `IN_PROGRESS / W03A_HOST_CORPUS_VERIFIED`
+Status: `IN_PROGRESS / W03B_HOST_POLICY_VERIFIED`
 
 Req IDs: `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`, `DEL-001/004/005`.
 
@@ -62,8 +62,9 @@ JAVA_HOME="$PWD/.tools/jdk" ANDROID_HOME="$PWD/.tools/android-sdk" \
 bash tools/check_central_brain_android_parser_security_corpus.sh
 ```
 
-P9-W03b must separately test Binder/caller identity spoof and replay using trusted identity snapshots and signature
-policy. P9-W03c must add remaining schema/output/path/oversize aggregation and the controlled Android debug probe.
+P9-W03b separately tests caller identity/capability policy, owner-bound replay and signer-state policy using trusted
+identity snapshots and deterministic host evidence. P9-W03c must add remaining schema/output/path/oversize aggregation
+and the controlled Android debug probe.
 Coverage-guided fuzzing requires an explicit engine, seed ownership, budget, crash minimization, corpus retention and
 sanitized evidence process before it can be claimed.
 
@@ -76,3 +77,30 @@ sanitized evidence process before it can be claimed.
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`.
 
 Tracking: `DEV-088`, `ISSUE-050`.
+
+## 7. P9-W03b identity, replay and signer policy corpus
+
+W03b publishes a second fixed 3-surface / 18-case corpus. It invokes the existing `CallerCapabilityPolicy`,
+`DurablePrincipalFingerprint`, `TransientSessionRegistry` and `SkillSignerPolicy`; it does not add a second
+authorization implementation.
+
+| Surface | Six cases | Host evidence |
+| --- | --- | --- |
+| Caller policy | unresolved identity, package spoof, current-signer spoof, capability escalation, shared-UID signer confusion, principal signer rotation | exact deny reason or changed stable principal fingerprint |
+| Session replay | same-digest replay, conflicting request digest, cross-owner find/events/cancel, malformed owner | same handle for exact replay; conflict/isolation failures for all hostile cases |
+| Signer policy | unknown, not-yet-active, retired, revoked, malformed digest, nonpositive epoch | exact signer decision or policy violation |
+
+`AndroidCallerIdentityResolver` remains the production evidence acquisition boundary: it reads
+`Binder.getCallingUid()`, resolves all visible UID packages, and hashes current APK content signers. The host corpus
+constructs immutable snapshots after that boundary, so it verifies policy semantics but does not spoof the Android
+Binder kernel identity or cryptographically remeasure a target APK. Those claims remain false until W03c device tests.
+
+Current W03b claims: `security_identity_replay_corpus_defined=true`,
+`security_identity_replay_surface_count=3`, `security_identity_replay_case_count=18`,
+`security_caller_policy_host_verified=true`, `security_session_replay_owner_policy_host_verified=true`,
+`security_signer_policy_host_verified=true`, `security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_coverage_guided_fuzz_complete=false`,
+`security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`.
+
+Tracking: `DEV-089`, `ISSUE-050`.
