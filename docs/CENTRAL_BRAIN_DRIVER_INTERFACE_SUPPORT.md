@@ -508,13 +508,16 @@ action 返回已冻结的 Session/Event V1 Binder；Manifest 仍只有 Runtime/G
 signature-protected app Service，没有新增 system/vendor/hal service。
 
 Android 13/API 33 ARM64 instrumentation 通过普通 `/data/app` signature permission 完成 open、event
-replay、Service rebind、active resubscribe、cancel 和 close；调用链没有进入 JNI/C ABI、Vehicle/VHAL、
+replay、连续 6 次健康 reconnect/active resubscribe、旧 callback 对称注销、cancel、close 和 Runtime
+process-death recovery；调用链没有进入 JNI/C ABI、Vehicle/VHAL、
 Vendor NPU、PCIe、DMA/IOMMU、SharedMemory、device node、ioctl/sysfs、CAN/DBC 或 Safety Runtime，报告
 `hardware_accessed=false`。
 
 当前 `session_runtime_service_published=true` 和 `event_callback_service_published=true` 只表示应用层
-Binder 可用，不表示 Driver/HAL 或 production Event broker。`session_runtime_persistence_wired=false`、
-`session_runtime_process_death_rehydration=false`、`scenario_execution_enabled=false`；Effect/approval
+Binder 可用，不表示 Driver/HAL 或 production Event broker。P1-W05 初始交付时
+`session_runtime_persistence_wired=false`、`session_runtime_process_death_rehydration=false`；P1-W06 后
+两者已变为 true。
+`scenario_execution_enabled=false`；Effect/approval
 response/undo/vehicle adapter 均未发布。新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变，
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。
 

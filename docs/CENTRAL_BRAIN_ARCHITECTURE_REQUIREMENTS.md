@@ -423,7 +423,10 @@ NPU、Driver/HAL 或目标硬件资格。
    callback 必须经串行 executor 分发，stop/close 后的晚到 callback 必须丢弃。
 3. `AndroidScenarioTransport` 只使用显式 `CentralBrainRuntimeService` component，并以
    `ACTION_SESSION_RUNTIME`、`ACTION_SESSION_EVENTS` 建立两个独立 Binder；任一 Binder 死亡使本代
-   transport 整体失效，调用方显式 reconnect 后恢复 active subscription。
+   transport 整体失效，调用方显式 reconnect 后恢复 active subscription。健康 reconnect/close 必须
+   先向本代 Event Binder 逐项 `unregisterSessionCallback`，再 unlink/unbind；不能只清空本地映射，
+   否则会泄漏服务端每会话 4 callback 配额。注册中的 Binder generation 发生变化时必须撤销刚注册的
+   旧代 callback 并失败关闭。
 4. Runtime Service 不新增 Manifest component。它按 action 返回 Session/Event Binder，所有操作先以
    Binder UID/package/current signer 通过 default-deny capability，再生成 durable principal fingerprint；
    request DTO 不能提供 owner/permission/Safety authority。
@@ -434,12 +437,13 @@ NPU、Driver/HAL 或目标硬件资格。
    完成 Service rebind，P1-W06 后 Runtime 进程死亡可由 Room v4 恢复。
 7. 生产 capability XML 只授权 Demo/Client2；`com.centralbrain.sdk.test` 仅存在于 debug resource overlay，
    且仍要求与 Runtime current signer 相同。release policy 不得包含测试 principal。
-8. Android 13/API 33 ARM64 已通过真实 Binder open/replay/reconnect/resubscribe/cancel/close 测试；未访问
-   Vehicle/VHAL/NPU/Driver/HAL。
+8. Android 13/API 33 ARM64 已通过真实 Binder open/replay、连续 6 次健康 reconnect/resubscribe、
+   cancel/close 与 process-death recovery 测试；未访问 Vehicle/VHAL/NPU/Driver/HAL。
 
 当前状态：`sdk_facade_v2_available=true`、`session_runtime_service_published=true`、
 `event_runtime_service_published=true`、`event_callback_service_published=true`、
-`active_session_reconnect_resubscribe_verified=true`；P1-W06 后为
+`active_session_reconnect_resubscribe_verified=true`、
+`healthy_reconnect_callback_cleanup_verified=true`；P1-W06 后为
 `session_runtime_persistence_wired=true`、`session_runtime_process_death_rehydration=true`、
 `scenario_execution_enabled=false`、`effect_runtime_service_published=false`、
 `approval_response_service_published=false`、`undo_service_published=false`、

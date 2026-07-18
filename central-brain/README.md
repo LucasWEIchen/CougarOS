@@ -40,14 +40,15 @@ Client2 / Demo
 当前 Binder task path 仍使用有界 deterministic 行为完成应用层验收；生产 Scheduler、Model Router、
 Effect dispatch、车辆服务和 Vendor NPU 不得从该行为推断为已接入。
 
-Stage 2 `P1-W01` 已冻结 Session V1，`P1-W02` 已冻结 Plan/Node V1，`P1-W03` 已冻结 Event/callback
-V1，`P1-W04` 已增加 `EffectIntent`、`EffectObservation`、`ApprovalPrompt`、`UndoHandle`、typed target、
-Effect 状态转移、stale approval/undo 校验和独立 checksum。四组合同都通过 JVM 与 Android 13 ARM64
-Parcel 验证，但
-`session_runtime_service_published=false`、`plan_runtime_published=false`、
-`event_runtime_service_published=false`、`event_callback_service_published=false`、
+Stage 2 `P1-W01` Session、`P1-W02` Plan/Node、`P1-W03` Event/callback、`P1-W04` Effect/Approval
+V1 合同，`P1-W05` SDK facade、`P1-W06` Room v4 和 `P1-W07` Runtime Contract v2 聚合门禁均已完成。
+Session/Event app-layer Binder 与进程死亡恢复已发布。P1-W05 facade
+在显式 reconnect 时先对旧 Event Binder 对称注销 callback，再解绑双 Binder；Android 13/API 33 ARM64
+已通过连续 6 次健康重连、replay 去重、cancel 与 process-death recovery，固定标记
+`healthy_reconnect_callback_cleanup_verified=true`。`plan_runtime_published=false`、
 `effect_runtime_service_published=false`、`approval_response_service_published=false`、
-`undo_service_published=false`；下一工作包是 `P1-W05 SDK facade v2`。
+`undo_service_published=false`、`scenario_execution_enabled=false`，不能把 Session/Event publication
+描述为完整 Graph/Effect 或车辆控制链。
 
 计划中的 Client2 HVAC/Seat 手动控件和“我冷了/我累了”场景必须走同一条 SDK -> Session ->
 Governance -> Durable Effect -> readback 链路。Android debug/test 可使用持续标记为 `SIMULATED` 的

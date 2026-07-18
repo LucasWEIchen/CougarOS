@@ -101,6 +101,21 @@ trap cleanup EXIT
 "${ADB_DEVICE[@]}" install -r -t "$TEST_APK" >/dev/null
 "${ADB_DEVICE[@]}" logcat -c
 
+LIVE_FACADE_OUTPUT="$("${ADB_DEVICE[@]}" shell am instrument -w -r \
+  -e liveFacade true \
+  com.centralbrain.sdk.test/com.centralbrain.sdk.session.SessionParcelInstrumentation \
+  | tr -d '\r')"
+for marker in \
+  "sdk_facade_v2_available=true" \
+  "active_session_reconnect_resubscribe_verified=true" \
+  "healthy_reconnect_callback_cleanup_verified=true" \
+  "callback_replay_deduplicated=true" \
+  "scenario_execution_enabled=false" \
+  "hardware_accessed=false"; do
+  grep -Fq "$marker" <<<"$LIVE_FACADE_OUTPUT" \
+    || { echo "live SDK facade evidence missing: $marker" >&2; exit 1; }
+done
+
 NONCE="p1-w06-$(date +%s%N)"
 "${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.persistence.MigrationProbeActivity \
@@ -163,6 +178,9 @@ printf '%s\n' \
   'room_migration_3_4_verified=true' \
   'legacy_session_v1_exposure_blocked=true' \
   'room_v4_crash_transaction_rollback_verified=true' \
+  'sdk_facade_v2_available=true' \
+  'active_session_reconnect_resubscribe_verified=true' \
+  'healthy_reconnect_callback_cleanup_verified=true' \
   'session_runtime_process_death_rehydration=true' \
   'durable_event_replay_after_process_death=true' \
   'scenario_execution_enabled=false' \

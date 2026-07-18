@@ -154,7 +154,9 @@ Effect Service、approval response/grant、undo execution 和 Room persistence �
 
 `P1-W05 SDK facade v2` 已完成：UI 可通过无 Binder primitive 的 `ScenarioClient` 使用 Session/Event
 V1；同一 Runtime Service 通过显式 action 发布两个 Binder，owner/capability、transient registry、
-cursor replay、callback 去重和 Service rebind 恢复均已进入工程并通过 Android 13 ARM64 真机验证。
+cursor replay、callback 去重和 Service rebind 恢复均已进入工程。2026-07-19 生命周期加固使 transport
+在健康 reconnect/close 的 detach 阶段先对旧 Event Binder 对称注销 callback，再解绑；Android 13
+ARM64 连续 6 次健康重连通过，`healthy_reconnect_callback_cleanup_verified=true`。
 
 `P1-W06 Room v4 schema` 已完成：六类 Stage 2 entity、v3->v4 非破坏迁移、owner-scoped durable
 Session/Event repository、事务回滚/索引计划门禁和 Android 13 Runtime 进程死亡恢复已进入工程。

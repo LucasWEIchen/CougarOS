@@ -53,14 +53,18 @@ fi
 
 require_text "$SDK/CentralBrainSdk.java" 'ACTION_SESSION_RUNTIME'
 require_text "$SDK/CentralBrainSdk.java" 'ACTION_SESSION_EVENTS'
+require_text "$SDK/AndroidScenarioTransport.java" 'unregisterCallbacks('
 for marker in \
   'active_session_reconnect_resubscribe_verified=true' \
+  'healthy_reconnect_callback_cleanup_verified=true' \
   'callback_replay_deduplicated=true' \
   'session_runtime_process_death_rehydration=true'; do
   require_text \
     "central-brain/android-runtime/central-brain-sdk/src/androidTest/java/com/centralbrain/sdk/session/SessionParcelInstrumentation.java" \
     "$marker"
 done
+require_text tools/test_central_brain_android_session_durability.sh \
+  'healthy_reconnect_callback_cleanup_verified=true'
 
 require_text "$RUNTIME/CentralBrainRuntimeService.java" \
   'CentralBrainSdk.ACTION_SESSION_RUNTIME.equals(action)'
@@ -137,5 +141,6 @@ printf '%s\n' \
   'event_callback_service_published=true' \
   'session_runtime_persistence_wired=true' \
   'session_runtime_process_death_rehydration=true' \
+  'healthy_reconnect_callback_cleanup_verified=true' \
   'scenario_execution_enabled=false' \
   'hardware_accessed=false'
