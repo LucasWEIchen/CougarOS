@@ -193,7 +193,7 @@ if grep -Eiq \
   exit 1
 fi
 
-require_text "$DOC" 'W03C_SOFTWARE_BOUNDARIES_VERIFIED / TARGET_FUZZ_PENDING'
+require_text "$DOC" 'W03D_ANDROID_IDENTITY_VERIFIED / TARGET_FUZZ_PENDING'
 require_text "$DOC" 'implementation_stage=P9-W03'
 require_text "README.md" 'P9 Security Boundary Inventory'
 require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" 'P9-W03c security boundary inventory and debug probe'

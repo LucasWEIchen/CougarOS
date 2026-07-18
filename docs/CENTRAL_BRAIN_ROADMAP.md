@@ -1771,6 +1771,24 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+### 2026-07-19 P9-W03d Binder identity device evidence
+
+状态：`DEVELOPED / ANDROID13_ARM64_DEBUG_VERIFIED`。Runtime debug source set 新增 signature-protected typed AIDL Service；每次调用均在
+Binder transaction 内读取 calling UID，并由既有 `AndroidCallerIdentityResolver` 解析 UID 对应 package/current signer。SDK androidTest
+独立计算当前 APK signer SHA-256，以 Runtime UID/package 和伪 digest 验证 spoof 失败关闭。
+
+API 33 ARM64 不同 UID 跨进程执行通过，Runtime debug/release、SDK JVM/androidTest 构建通过；release 不包含 probe Service/AIDL。接口和证据
+只包含 boolean marker，不返回或记录 raw identity。该增量关闭 P9-W03 的 Android calling identity acquisition 小缺口，未关闭 callback replay、
+coverage-guided fuzz、安全 owner、production signer/release 资格或目标硬件验收。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。
+`security_identity_device_probe_verified=true`、`security_distinct_app_uids_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=true`、
+`security_package_signature_cryptographically_verified=true`、`security_same_signer_debug_binding_verified=true`、
+`security_production_signer_verified=false`、`security_coverage_guided_fuzz_complete=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
 ### 2026-07-18 P9 Android 13 ARM64 aggregate debug probe acceptance
 
 状态：`COMPLETE / APPLICATION_DEBUG_PROBE_ONLY`。统一 installer 已在 API 33 ARM64 上通过 P9-W01/W02/W03c/W04c/W05b/W06b/W07b

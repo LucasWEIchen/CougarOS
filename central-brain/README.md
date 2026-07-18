@@ -50,6 +50,11 @@ Session/Event app-layer Binder 与进程死亡恢复已发布。P1-W05 facade
 `undo_service_published=false`、`scenario_execution_enabled=false`，不能把 Session/Event publication
 描述为完整 Graph/Effect 或车辆控制链。
 
+P9-W03d 已新增仅存在于 debug/androidTest source set 的 typed Binder identity probe。Runtime 在 transaction
+内通过 `Binder.getCallingUid()` 和 PackageManager current signer SHA-256 验证调用方，SDK instrumentation 在
+Android 13/API 33 ARM64 上完成 UID/package/signer spoof 负例。该接口不返回 raw identity，release 不包含 probe；
+`security_identity_device_probe_verified=true`，但 production signer、coverage fuzz、Runtime wiring 与目标资格仍为 false。
+
 计划中的 Client2 HVAC/Seat 手动控件和“我冷了/我累了”场景必须走同一条 SDK -> Session ->
 Governance -> Durable Effect -> readback 链路。Android debug/test 可使用持续标记为 `SIMULATED` 的
 Digital Twin；release/production 不允许在 target adapter unavailable 时隐式回退仿真。当前

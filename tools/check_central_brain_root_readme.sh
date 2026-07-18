@@ -892,7 +892,7 @@ if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
     or "P9-W03 Security review/fuzz" not in remaining
-    or "目标 Android probe" not in remaining
+    or "callback replay、coverage-guided fuzz、安全 owner approval、production signer/release 资格" not in remaining
     or "P9-W04 Privacy/data lifecycle" not in remaining
     or "P9-W05 Production release" not in remaining
     or "P9-W06 Driver safety" not in remaining

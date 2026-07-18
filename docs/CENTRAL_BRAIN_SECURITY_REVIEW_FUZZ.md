@@ -1,6 +1,6 @@
 # Central Brain P9-W03 Security Review and Fuzz
 
-Status: `W03C_SOFTWARE_BOUNDARIES_VERIFIED / TARGET_FUZZ_PENDING`
+Status: `W03D_ANDROID_IDENTITY_VERIFIED / TARGET_FUZZ_PENDING`
 
 Req IDs: `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`, `DEL-001/004/005`.
 
@@ -12,8 +12,9 @@ hardware interface. Each case invokes the actual existing parser or validator an
 
 The corpus is a repeatable security regression, not coverage-guided fuzzing, penetration testing, target-device
 qualification or a complete security review. Host identity/replay/signer policy and the public AIDL boundary inventory
-are covered by W03b/W03c; Binder caller spoof, APK signer cryptographic measurement, Android 13 ARM64 execution and
-coverage-guided fuzzing remain external evidence gaps.
+are covered by W03b/W03c. W03d separately verifies Binder caller UID and installed debug APK signer acquisition on
+Android 13 ARM64. Coverage-guided fuzzing, callback replay, production signer qualification and security-owner approval
+remain evidence gaps.
 
 ## 2. Published artifacts
 
@@ -118,20 +119,61 @@ ToolSchema and StructuredModelOutput. The new JVM suite rechecks the AIDL tree a
 unknown-field, path-like scenario identifier and 16 KiB+1 rejection plus Session utterance oversize. It calls existing
 validators and does not introduce a parallel parser or Binder endpoint.
 
-The existing `DUMP`-protected debug-only `StructuredModelOutputProbeActivity` now executes the same four aggregate
-checks on Android in addition to its prior catalog/authority checks. The runtime installer requires all new markers and
-only reports device success after its existing API/ABI gates. The activity remains absent from the main/release
-manifest. This increment first observed `online=0/offline=1`; the pre-commit recheck found no transport
-(`online=0/offline=0/unauthorized=0/other=0`). Probe availability is true, but execution and Android 13 ARM64
-verification remain false.
+The existing `DUMP`-protected debug-only `StructuredModelOutputProbeActivity` executes the same four aggregate checks
+on Android in addition to its prior catalog/authority checks. The runtime installer requires all markers and only
+reports device success after its API/ABI gates. The activity remains absent from the main/release manifest. W03c first
+observed no usable transport, then the later P9 aggregate run executed the probe on API 33 ARM64. That execution does
+not verify Binder caller identity; W03d provides the separate identity acquisition evidence.
 
 Current W03c claims: `security_aidl_parcel_inventory_complete=true`, `security_aidl_interface_count=7`,
 `security_aidl_parcelable_count=30`, `security_aidl_surface_count=37`, `security_validation_family_count=8`,
 `security_host_path_oversize_aggregate_verified=true`, `security_android_debug_probe_available=true`,
-`security_android_debug_probe_executed=false`, `security_coverage_guided_fuzz_complete=false`,
+`security_android_debug_probe_executed=true`, `security_boundary_probe_android13_arm64_verified=true`,
+`security_coverage_guided_fuzz_complete=false`,
 `security_binder_calling_uid_spoof_android_verified=false`,
 `security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
 `security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`.
 
 Tracking: `DEV-090`, `ISSUE-050`.
+
+## 9. P9-W03d Binder identity and current-signer device evidence
+
+W03d adds one debug-only, explicitly addressed and signature-permission-protected AIDL service. The AIDL source is
+identical in Runtime debug and SDK androidTest source sets. It exposes only three verification calls and returns only
+boolean outcomes; UID, package name, certificate bytes and signer digest are never returned to the caller or printed.
+
+For every call the Runtime reads `Binder.getCallingUid()` and immediately resolves the immutable
+`CallerIdentitySnapshot` through `AndroidCallerIdentityResolver`. PackageManager supplies all packages associated with
+that UID and their current APK content signer SHA-256 digests. The server compares that trusted snapshot with expected
+and deliberately spoofed values supplied by the test. It never treats a caller-supplied UID, package or signer as the
+identity source.
+
+The SDK instrumentation runs in `com.centralbrain.sdk.test`, confirms its UID differs from
+`com.centralbrain.runtime`, supplies the Runtime UID/package and a 64-zero digest as spoof values, and independently
+hashes its installed current signer. API 33 ARM64 execution verified all three negative/positive bindings. Release
+assembly also passed with no probe Service or debug AIDL in the release source set.
+
+Reproduction:
+
+```bash
+JAVA_HOME="$PWD/.tools/jdk" ANDROID_HOME="$PWD/.tools/android-sdk" \
+  bash tools/test_central_brain_android_security_identity.sh \
+  --require-api-33 --clean-runtime-install
+```
+
+`--clean-runtime-install` is explicit because a previously installed Runtime signed by a different development key
+cannot be upgraded in place. It removes only `com.centralbrain.runtime`; without the flag the test fails rather than
+silently removing an installed package.
+
+Current W03d claims: `security_identity_device_probe_verified=true`,
+`security_distinct_app_uids_verified=true`,
+`security_binder_calling_uid_spoof_android_verified=true`,
+`security_package_signature_cryptographically_verified=true`,
+`security_same_signer_debug_binding_verified=true`, `security_production_signer_verified=false`,
+`security_coverage_guided_fuzz_complete=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`.
+
+The cryptographic claim is narrowly scoped to current signer digest acquisition for the installed debug APK. It is not
+production certificate-chain validation, signer-owner approval, release admission, code transparency or target
+hardware qualification. Tracking: `DEV-111`, `ISSUE-050`.

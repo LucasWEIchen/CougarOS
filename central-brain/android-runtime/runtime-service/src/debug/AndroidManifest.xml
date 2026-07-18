@@ -18,6 +18,11 @@
             android:exported="true"
             android:permission="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" />
         <service
+            android:name=".security.SecurityIdentityProbeService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.centralbrain.permission.BIND_RUNTIME" />
+        <service
             android:name=".scenario.SimulatedScenarioRuntimeService"
             android:enabled="true"
             android:exported="true"

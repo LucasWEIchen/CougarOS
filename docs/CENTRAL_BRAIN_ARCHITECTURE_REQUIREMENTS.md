@@ -2892,3 +2892,25 @@ tracking：`DEV-104`、`ISSUE-022/026/030/033`。
 `field_diagnostics_target_category_execution_complete=false`、`release_evidence_target_report_admitted=false`、
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
+
+## 102. P9-W03d Android Binder identity evidence trace
+
+1. `S2-SAF-001`：调用身份必须在 Runtime Binder transaction 内由 `Binder.getCallingUid()` 获取；调用方传入的 UID、包名或 signer
+   只能作为待验证值，不能成为授权身份来源。
+2. `S2-SAF-001/S2-TOL-001`：UID 必须通过 `AndroidCallerIdentityResolver` 解析为全部可见 package 与 current APK signer SHA-256；
+   unresolved、package spoof、signer spoof 或 shared-UID 混淆必须失败关闭。
+3. `S2-SAF-001`：设备探针必须是 debug-only、显式 component、`BIND_RUNTIME` signature permission 保护；release source/manifest
+   不得包含探针 Service 或 AIDL。
+4. `S2-OBS-001/DEL-005`：接口与测试输出只允许 boolean marker；不得输出 raw UID、package、certificate bytes、signer digest、serial、
+   fingerprint、日志或业务 payload。
+5. `DEL-001/004`：正向证据必须在 Android API 33、ARM64、Runtime/SDK 不同 UID 的跨进程 Binder 调用中完成，并同时覆盖 UID、package、
+   signer spoof 负例。
+6. `DEL-004`：测试端必须通过 PackageManager 独立计算自身 installed current signer SHA-256；不得复用 Runtime 返回的身份材料。
+7. `S2-SAF-001`：debug same-signer 验证不得提升为 production signer、release admission、coverage fuzz、Runtime wiring 或目标硬件资格。
+
+当前 `security_identity_device_probe_verified=true`、`security_distinct_app_uids_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=true`、
+`security_package_signature_cryptographically_verified=true`、`security_same_signer_debug_binding_verified=true`、
+`security_production_signer_verified=false`、`security_coverage_guided_fuzz_complete=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-111`、`ISSUE-050`。
