@@ -1541,7 +1541,7 @@ Renderer IDs 为 `centralBrainApprovalStateText`、`centralBrainPartialStateText
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`implementation_stage=P9-W01`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
+`implementation_stage=P9-W02`。Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-057`、`ISSUE-022/026/030/033`。
 
 ## Android P3-W07 Effect verification/reconciliation
@@ -2109,7 +2109,7 @@ with `media.`, `navigation.` or `nav.`; otherwise both remain UNAVAILABLE. The r
 Status: `cockpit_execution_timeline_implemented=true`, `cockpit_execution_timeline_reducer_owned=true`,
 `cockpit_execution_typed_event_projection=true`, `cockpit_execution_trace_capacity=8`,
 `cockpit_execution_plan_published=false`, `cockpit_execution_effect_dispatch_enabled=false`,
-`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P9-W01`.
+`cockpit_execution_readback_available=false`, `hardware_accessed=false`, `implementation_stage=P9-W02`.
 Req IDs: `S2-UX-001`, `S2-HMI-003/006`, `S2-EVT-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-056`,
 `ISSUE-022/026/030/033`.
 
@@ -2152,7 +2152,7 @@ MOVING and UNKNOWN presentation. Production Context/Safety remains outside HMI a
 
 Status: `cockpit_driving_ux_policy_implemented=true`, `cockpit_unknown_driving_restricted=true`,
 `cockpit_restricted_parameter_editing_disabled=true`, `cockpit_high_risk_controls_disabled=true`,
-`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P9-W01`.
+`cockpit_runtime_policy_authority_independent=true`, `hardware_accessed=false`, `implementation_stage=P9-W02`.
 Req IDs: `S2-UX-002`, `S2-HMI-002`, `S2-SAF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-058`,
 `ISSUE-023/029/030/033`.
 
@@ -2193,7 +2193,7 @@ emit reducer events only and cannot access SessionClient, Adapter, vehicle or NP
 Plan and drawer renderers read the same `CockpitScenarioControlState`. Positive Plan publication requires
 `SessionSnapshot.activePlanRevision>0`; otherwise UI says NOT PUBLISHED. Device role is labeled as catalog/manual participation and
 must not change desired/reported state. Effect/readback accessors remain false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`, `APP-004`,
-`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P9-W01`.
+`XSC-001/005/006`; tracking: `DEV-060`, `ISSUE-022/026/030/033`; `implementation_stage=P9-W02`.
 
 ## Client2 P4-W09 Engineer Simulation Interfaces
 
@@ -2247,7 +2247,7 @@ Status: `cockpit_engineer_simulation_drawer_implemented=true`,
 `cockpit_engineer_signature_permission_required=true`, `cockpit_engineer_capability_required=true`,
 `cockpit_engineer_context_revisioned=true`, `cockpit_engineer_runtime_release_service_absent=true`,
 `cockpit_engineer_effect_authorization_source=false`, `cockpit_engineer_production_available=false`,
-`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P9-W01`.
+`vehicle_signal_provider_wired=false`, `hardware_accessed=false`, `implementation_stage=P9-W02`.
 Req IDs: `S2-HMI-004`, `S2-ADP-001`, `S2-OBS-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-059`,
 `ISSUE-023/029/030/033`.
 
@@ -2304,7 +2304,7 @@ Status: `cockpit_display_matrix_defined=true`, `cockpit_display_profile_count=3`
 `cockpit_accessibility_semantics_runtime_owned=true`, `cockpit_accessibility_state_not_color_only=true`,
 `cockpit_display_large_text_1_3_verified=true`, `cockpit_display_unsupported_fail_closed=true`,
 `cockpit_display_matrix_android13_arm64_verified=true`, `cockpit_display_effect_authorization_source=false`,
-`hardware_accessed=false`, `implementation_stage=P9-W01`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
+`hardware_accessed=false`, `implementation_stage=P9-W02`. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`,
 `XSC-001/005/006`; tracking: `DEV-061`, `ISSUE-019/033`.
 
 ## P4-W12 aggregate Android acceptance interface
@@ -2354,7 +2354,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_automatic_plan_runtim
 `p4_production_effect_dispatch_enabled=false`, `p4_approval_response_service_published=false`,
 `p4_undo_service_published=false`, `p4_vehicle_readback_available=false`,
 `client2_production_release_artifact_available=false`, `hmi_d4_demo_control_loop_complete=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`. Req IDs:
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W02`. Req IDs:
 `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`, `S2-EFF-001`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-062`, `ISSUE-033`.
 
@@ -2399,7 +2399,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P9-W01`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P9-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## Android P5-W02 Tool Registry/Resolver
@@ -2452,7 +2452,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W02`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## Android P5-W03 Tool RuleSolver
@@ -2492,7 +2492,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_approval_annotation_fail_closed=true`, `tool_rule_solver_android13_arm64_verified=false`,
 `tool_rule_solver_published=false`, `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`,
 `tool_execution_enabled=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P9-W01`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P9-W02`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
 
 ## Android P5-W04 Tool Executor
@@ -2532,7 +2532,7 @@ eviction count.
 
 The production integration contract is intentionally absent: no Binder, Service, Graph hook, package loader or approval input exists.
 `isProductionWired()` and `isOsVirtualizationEnabled()` are false. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
-`DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`; `implementation_stage=P9-W01`.
+`DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`; `implementation_stage=P9-W02`.
 
 ## Android P5-W05 Skill package verifier
 
@@ -2592,7 +2592,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W02`.
 Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
 
 ## Android P5-W06 WorkingMemoryStore
@@ -2642,7 +2642,7 @@ absent. Status: `working_memory_store_defined=true`, `working_memory_session_sco
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P9-W01`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`target_hardware_validated=false`, `implementation_stage=P9-W02`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
 `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-068`,
 `ISSUE-041`.
 
@@ -2691,7 +2691,7 @@ production consent、key、repository 与 Runtime publication 均未发布。
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`；tracking：`DEV-069`、`ISSUE-042`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`；tracking：`DEV-069`、`ISSUE-042`。
 
 ## Android P5-W08 EpisodicMemoryStore
 
@@ -2731,7 +2731,7 @@ authority, Binder/Runtime/Graph/model publication and hardware are unavailable. 
 `episodic_memory_read_fail_closed=true`, `episodic_memory_production_read_authority_wired=false`,
 `episodic_memory_persistence_wired=false`, `episodic_memory_runtime_wired=false`,
 `episodic_memory_model_context_published=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P9-W01`; tracking: `DEV-070`, `ISSUE-043`.
+`target_hardware_validated=false`, `implementation_stage=P9-W02`; tracking: `DEV-070`, `ISSUE-043`.
 
 ## Android P5-W09 ContextBudgetManager
 
@@ -2768,7 +2768,7 @@ for tokenizer, summarizer, budget authority, Runtime, model and hardware remain 
 `context_budget_tokenizer_wired=false`, `context_budget_summarizer_wired=false`,
 `context_budget_production_authority_wired=false`, `context_budget_runtime_wired=false`,
 `context_budget_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P9-W01`; tracking: `DEV-071`, `ISSUE-044`.
+`target_hardware_validated=false`, `implementation_stage=P9-W02`; tracking: `DEV-071`, `ISSUE-044`.
 
 ## Android P5-W10 Memory consent HMI/API
 
@@ -2812,7 +2812,7 @@ factory、Binder Service、durable repository 或 consent owner。debug `MemoryC
 `memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
 `memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
 `memory_consent_model_context_published=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`; tracking: `DEV-072`, `ISSUE-045`.
+`target_hardware_validated=false`、`implementation_stage=P9-W02`; tracking: `DEV-072`, `ISSUE-045`.
 
 ## Android P6-W01 EventBroker interface/in-process implementation
 
@@ -2852,7 +2852,7 @@ event 已在 callback 前 append，因此可用 cursor 重放。P6-W01 没有异
 `event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`; tracking: `DEV-073`,
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`; tracking: `DEV-073`,
 `ISSUE-046`。
 
 ## Android P6-W02 Event Backpressure/QoS
@@ -2891,7 +2891,7 @@ Broker attachment、durable ACK 或 middleware transport。
 `event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`; tracking: `DEV-073`, `ISSUE-046`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`; tracking: `DEV-073`, `ISSUE-046`。
 
 ## Android P6-W03 TriggerRule manifest/engine
 
@@ -2931,7 +2931,7 @@ Session admission、Policy grant、Plan 或 Effect receipt。
 `trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`; tracking: `DEV-074`, `ISSUE-031`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`; tracking: `DEV-074`, `ISSUE-031`。
 
 ## Android P6-W04 Proactive consent/policy
 
@@ -2964,7 +2964,7 @@ exact grant 中才返回 `POLICY_ELIGIBLE`；HIGH/CRITICAL 无条件 `EXPLICIT_A
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。Req IDs：`S2-SAF-001`、`S2-MEM-001`、
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。Req IDs：`S2-SAF-001`、`S2-MEM-001`、
 `S2-EVT-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-075`、`ISSUE-031`。
 
 ## Android P6-W05 Context source adapters
@@ -3014,7 +3014,7 @@ Observation {
 `context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。Req IDs：`S2-CTX-001`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。Req IDs：`S2-CTX-001`、
 `S2-EVT-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-076`、`ISSUE-031`。
 
 ## Android P6-W06 Active suggestion UX
@@ -3046,7 +3046,7 @@ ActionResult neverAsk(String ownerFingerprint, String suggestionId, DrivingState
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。Req IDs：`S2-UX-002`、`S2-TRG-002`、
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。Req IDs：`S2-UX-002`、`S2-TRG-002`、
 `S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-077`、`ISSUE-031`。
 
 ## Android P7-W01 ModelRequest/Result v2
@@ -3080,7 +3080,7 @@ ModelContractV2.ModelResult result = ModelResult.completed(
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
 `model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+`implementation_stage=P9-W02`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-078`、`ISSUE-024/044`。
 
 ## Android P7-W02 ModelProviderRegistry/health
@@ -3108,7 +3108,7 @@ snapshot 不删除过期记录，而是投影 `UNKNOWN/STALE` 并保留 revision
 `model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+`implementation_stage=P9-W02`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-079`、`ISSUE-024`。
 
 ## Android P7-W03 PolicyAwareModelRouter
@@ -3145,7 +3145,7 @@ fallback policy 最大 selection=2、fallback=1。`isActionAuthorizationGranted`
 `model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=false`、
 `model_policy_router_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+`implementation_stage=P9-W02`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-080`、`ISSUE-024`。
 
 ## Android P7-W04 LocalModelProvider
@@ -3196,7 +3196,7 @@ fallback=`NEVER`、max concurrency=1、hardware=false、production=false。静�
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
 `local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+`implementation_stage=P9-W02`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-081`、`ISSUE-024`。
 
 ## Android P7-W05 Structured Model Output
@@ -3248,7 +3248,7 @@ fallback decision；P7-W06 只能把拒绝原因计入评测，Runtime compositi
 `model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=false`、
 `model_invoked=false`、`raw_model_content_logged=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+`implementation_stage=P9-W02`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-082`、`ISSUE-024`。
 
 ## Android P7-W06 Scenario Evaluation Harness
@@ -3285,7 +3285,7 @@ report 与 case authority getter 恒为 false；`isRawContentRetained/isModelInv
 
 状态：`scenario_evaluation_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
 `raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
 Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-083`、`ISSUE-024`。
 
 ## Android P7-W07 Resource and Thermal Admission
@@ -3320,7 +3320,7 @@ context digest binding、effective token/queue/deadline 和可选 active schedul
 所有 authority getter 恒为 false。接口只产生 scheduler metadata，不产生 lease claim、Provider call、model result、Plan、approval、
 Effect 或硬件动作。状态：`model_resource_admission_verified=true`、`resource_admission_runtime_wired=false`、
 `model_resource_admission_android13_arm64_verified=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、
 `S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：`DEV-084`、`ISSUE-024`。
 
 ## Android P8-W01 Target Capability Discovery
@@ -3349,6 +3349,28 @@ collector 不提供 property getter/setter、Vendor Binder client、CarPropertyM
 当前：`target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
 `target_capability_matrix_complete=false`、`target_capability_discovery_external_blocked=true`、
 `vehicle_property_mapping_configured=false`、`production_adapter_registered=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。Req IDs：
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。Req IDs：
 `S2-ADP-002`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：
 `DEV-085`、`ISSUE-024/027/030/047`。
+
+## Android P9-W01 Performance Budget Contract
+
+| Interface | Input | Output | Failure boundary |
+| --- | --- | --- | --- |
+| `PerformanceBudgetContract.catalog()` | none | immutable seven-category/ten-metric budget list | catalog shape mismatch fails class initialization |
+| `catalogDigest()` | fixed profile | canonical SHA-256 | no runtime/environment input |
+| `Measurement(...)` | typed metric/unit, aggregate value, sample count, evidence digest | immutable aggregate measurement | negative/range/digest invalid rejected |
+| `ReportContext(...)` | evidence mode, release, source commit, non-secret alias, evidence digest, owner approval | immutable context + digest | owner approval outside target mode rejected |
+| `evaluate(context, measurements)` | at most one row per fixed metric | ordered `MetricResult` + `PASSED/EXCEEDED/INCOMPLETE` + digest | duplicate rejected; missing/unit/sample/threshold fail closed |
+
+`CONTRACT_TEST` requires one synthetic sample per metric. `ANDROID_APPLICATION` and `TARGET_ANDROID13` require 30 aggregated samples per metric.
+Target mode and owner approval can only set `targetEvidenceStructurallyComplete`; `isTargetHardwareQualified()`、`isProductionReady()`、
+`isRuntimeWired()` and `isHardwareAccessed()` remain false. No API accepts serial、raw trace、vehicle/model payload or free-form metric ID.
+
+Current: `performance_budget_contract_defined=true`, `performance_budget_category_count=7`,
+`performance_budget_metric_count=10`, `performance_budget_report_validation_verified=true`,
+`performance_budget_target_owner_approved=false`, `performance_budget_target_measurement_complete=false`,
+`performance_budget_android13_arm64_verified=false`, `performance_budget_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W02`. Req IDs:
+`S2-OBS-001`, `S2-REL-001`, `XSC-001/004/005/006`, `KH-003/006`, `DEL-001/004/005`; tracking:
+`DEV-086`, `ISSUE-048`.

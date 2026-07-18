@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0.0",
+  "budget_profile_id": "android13-app-baseline-v1",
+  "maturity": "initial_software_budget",
+  "status": "software_defined_target_measurement_pending",
+  "req_ids": [
+    "S2-OBS-001",
+    "S2-REL-001",
+    "XSC-001",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "KH-003",
+    "KH-006",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "metric_categories": [
+    "binder",
+    "plan",
+    "effect_dispatch",
+    "database",
+    "memory",
+    "cpu",
+    "startup"
+  ],
+  "evidence_modes": {
+    "CONTRACT_TEST": {
+      "minimum_samples": 1,
+      "target_evidence": false
+    },
+    "ANDROID_APPLICATION": {
+      "minimum_samples": 30,
+      "target_evidence": false
+    },
+    "TARGET_ANDROID13": {
+      "minimum_samples": 30,
+      "target_evidence": true,
+      "requires_release_source_alias_digest_and_owner_approval": true
+    }
+  },
+  "budgets": [
+    {
+      "metric_id": "binder.protocol_negotiation.latency_us",
+      "category": "binder",
+      "aggregation": "P95",
+      "unit": "MICROSECONDS",
+      "limit": 10000,
+      "scope": "version and hash negotiation only"
+    },
+    {
+      "metric_id": "binder.session_open.latency_us",
+      "category": "binder",
+      "aggregation": "P95",
+      "unit": "MICROSECONDS",
+      "limit": 50000,
+      "scope": "typed session open admission only"
+    },
+    {
+      "metric_id": "binder.read_cancel.latency_us",
+      "category": "binder",
+      "aggregation": "P95",
+      "unit": "MICROSECONDS",
+      "limit": 30000,
+      "scope": "bounded read or cancel admission only"
+    },
+    {
+      "metric_id": "binder.callback_registration.latency_us",
+      "category": "binder",
+      "aggregation": "P95",
+      "unit": "MICROSECONDS",
+      "limit": 50000,
+      "scope": "callback registration and owner validation only"
+    },
+    {
+      "metric_id": "plan.compile.latency_us",
+      "category": "plan",
+      "aggregation": "P95",
+      "unit": "MICROSECONDS",
+      "limit": 300000,
+      "scope": "accepted resolution through validated immutable plan; model time excluded"
+    },
+    {
+      "metric_id": "effect.dispatch_admission.latency_us",
+      "category": "effect_dispatch",
+      "aggregation": "P95",
+      "unit": "MICROSECONDS",
+      "limit": 200000,
+      "scope": "policy prepare durable admission and claim; vehicle apply and readback excluded"
+    },
+    {
+      "metric_id": "database.combined_size.bytes",
+      "category": "database",
+      "aggregation": "MAX",
+      "unit": "BYTES",
+      "limit": 67108864,
+      "scope": "Room database plus wal and shm after bounded acceptance workload"
+    },
+    {
+      "metric_id": "runtime.pss.bytes",
+      "category": "memory",
+      "aggregation": "MAX",
+      "unit": "BYTES",
+      "limit": 268435456,
+      "scope": "Runtime process total PSS after steady-state acceptance workload"
+    },
+    {
+      "metric_id": "runtime.cpu.single_core_permille",
+      "category": "cpu",
+      "aggregation": "P95",
+      "unit": "PERMILLE_SINGLE_CORE",
+      "limit": 300,
+      "scope": "steady-state Runtime process CPU normalized to one core"
+    },
+    {
+      "metric_id": "runtime.cold_start_to_binder_ready.latency_us",
+      "category": "startup",
+      "aggregation": "P95",
+      "unit": "MICROSECONDS",
+      "limit": 3000000,
+      "scope": "cold process start through typed Binder ready after reconciliation barrier"
+    }
+  ],
+  "claim_state": {
+    "performance_budget_contract_defined": true,
+    "performance_budget_category_count": 7,
+    "performance_budget_metric_count": 10,
+    "performance_budget_report_validation_verified": true,
+    "performance_budget_target_owner_approved": false,
+    "performance_budget_android13_arm64_verified": false,
+    "performance_budget_target_measurement_complete": false,
+    "performance_budget_runtime_wired": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}
