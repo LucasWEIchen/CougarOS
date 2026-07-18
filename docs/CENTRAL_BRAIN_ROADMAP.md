@@ -1454,3 +1454,22 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。
+
+### P9-W04b Privacy Policy Admission progress
+
+状态：`SOFTWARE_DEVELOPED / OWNER_POLICY_BLOCKED`（2026-07-18）。新增 versioned draft policy、纯 Java admission/preflight contract 与七组 JVM
+test。Policy body 绑定 W04a inventory digest、12 个有序 surface rule 和 Privacy/Functional Safety/Compliance 三 owner digest evidence。
+
+Effect recovery/Audit 分别要求正数 retention ceiling 与 active Effect/compensation、legal/safety hold guard。delete/erase/export preflight 需要
+authorization；Profile export 另需 consent，其他 export 禁止。decision 不修改 repository、不导出数据、不授予 Runtime authority。
+
+当前 draft 两个 ceiling unset、owner evidence 为空，因此确定性拒绝激活；JVM complete policy 只是 synthetic fixture。下一小步
+`P9-W04c redaction/audit Android probe`，增加 DUMP-protected debug-only evidence，release 不暴露入口；真实 owner policy 与 repository enforcement
+继续由 ISSUE-051 阻塞。
+
+Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-091/092`、`ISSUE-051`。
+`privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。

@@ -4540,3 +4540,36 @@ W04a 不读取真实数据，也不实现 owner policy、retention scheduler、e
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-091`、`ISSUE-051`。
+
+## P9-W04b privacy policy admission detailed design
+
+### Policy model
+
+`PrivacyLifecyclePolicyAdmission` 定义 `SurfacePolicy`、`PolicyProfile`、`ApprovalEvidence` 和 `AdmissionDecision`。Policy canonical body
+包含 schema/profile/policy identity/version、W04a inventory digest 与有序 12-rule tuple；approval evidence 必须绑定 body/inventory/reference
+三个 digest，且 Privacy/Functional Safety/Compliance role 精确齐全。
+
+两个 gap 的完整 rule 必须为 `OWNER_APPROVED + positive ceiling + exact HoldGuard`。其余 10 row 只能是
+`INVENTORY_BOUND + unset ceiling + NONE`，防止 W04b 重写已冻结行为。当前 build-owned draft 保持 unresolved，不能 admission。
+
+### Operation preflight
+
+`OperationRequest` 只有 surface/type、authorization/consent digest 和四个非负计数，不接受 payload。`evaluateOperation` 先复验 policy admission，
+再按 W04a deletion/export mode 和 W04b hold guard 判定。Effect active/pending compensation、Audit legal/safety hold 分别产生 typed rejection；
+Profile export 缺 auth/consent 失败，其他 surface export 失败。
+
+`AdmissionDecision` 与 `OperationDecision` 都是 immutable metadata。即使 admitted，`grantsRepositoryMutationAuthority()`、
+`grantsRuntimeAuthority()`、`dataWasMutated()`、`dataWasExported()` 均为 false。
+
+### Test and claim boundary
+
+七组 JVM test 覆盖 current draft rejection、三 owner/digest、两类 hold、唯一 export、no-authority 和 false claims。Synthetic complete policy
+仅用于 validator reachability，不进入生产 contract。Checker 复验 JSON/inventory order、gap rows、空 approval、preflight flags、prohibited import/
+wiring 和文档聚合。
+
+当前 `privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-092`、`ISSUE-051`。

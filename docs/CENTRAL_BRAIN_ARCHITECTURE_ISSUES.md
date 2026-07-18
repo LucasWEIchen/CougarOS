@@ -1057,8 +1057,14 @@ W04b 在没有产品隐私 owner、功能安全 owner 和合规 owner 一致批�
 compensation 或安全审计依赖，同时禁止 raw user/model/vehicle/location payload 和未授权 export。关闭 ISSUE 需要命名 policy version/
 digest、每 surface 规则、JVM/Android evidence、迁移/回滚行为和 owner approval reference。
 
+W04b 已关闭“缺少机器可判定准入与 active/hold guard”的软件子项：draft policy 绑定 12 surface 和 inventory digest；三 owner evidence、
+ceiling、Effect/compensation 与 legal/safety hold、Profile export consent/authorization 均 fail closed。当前 draft 因两个 ceiling 和全部 owner
+evidence 缺失而拒绝激活，ISSUE 保持 Open。后续仍需真实 owner 输入、repository enforcement、迁移/回滚和 W04c Android evidence。
+
 当前 `privacy_data_inventory_complete=true`、`privacy_policy_gap_count=2`、
 `privacy_authorized_export_surface_count=1`、`privacy_owner_policy_approved=false`、
+`privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_repository_mutation_wired=false`、
 `privacy_production_lifecycle_complete=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
 `privacy_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091`。
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091/092`。

@@ -1679,3 +1679,14 @@ W04a 只枚举现有 Java/Room/process-local/transient 数据边界，不调用�
 `virtualization_development_triggered=false`、`privacy_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：
 `S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-091`、`ISSUE-051`。
+
+## P9-W04b Privacy Policy Admission Driver/HAL Boundary
+
+W04b 是应用层纯 Java metadata validator。它不打开 Room、文件、日志、Binder、Vendor service、CarProperty、设备节点、网络或 NPU，
+不修改芯片厂商 SDK/系统镜像，也不触发 Driver/HAL 或虚拟化开发。LifecycleStateSnapshot 由 JVM fixture 提供，不读取真实车辆或设备状态。
+
+未来 repository enforcement 若需要系统级 secure storage、hardware-backed key 或 Vendor persistence API，必须在目标公开合同与 owner policy
+到位后另立缺口；当前不得推断。`driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`privacy_repository_mutation_wired=false`、`privacy_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：
+`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-092`、`ISSUE-051`。

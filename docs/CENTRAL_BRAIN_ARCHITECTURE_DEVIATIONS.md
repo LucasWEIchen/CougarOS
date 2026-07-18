@@ -1518,3 +1518,18 @@ delete/erase/export authorization 和 redacted evidence；W04c 再完成 Android
 `privacy_production_lifecycle_complete=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
 `privacy_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W04`。
+
+## DEV-092 P9-W04b admission is not an approved lifecycle policy
+
+W04b 新增 policy body digest、三 owner evidence 校验和 delete/erase/export preflight，但仓库 policy 仍是
+`cougaros-privacy-draft/0.1.0-draft`。Effect recovery 与 Audit ceiling 未设置，owner evidence 数组为空，所以当前 policy 必须拒绝激活。
+
+JVM 使用的正数 ceiling 与 digest 只是 synthetic contract fixture，用于证明完整输入可通过 validator；它们不是产品 retention schedule、
+合规决定、功能安全放行或目标设备证据。即使 preflight 返回 admitted，也固定不修改 repository、不导出数据、不授予 Runtime authority。
+
+状态：`Accepted Temporary`。关闭条件仍是三类 owner 对同一 policy/inventory 的真实批准引用、迁移/回滚设计、repository enforcement 与
+W04c Android evidence。当前 `privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。

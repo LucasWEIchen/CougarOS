@@ -1092,16 +1092,20 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 
 ### `P9-W04` Privacy/data lifecycle
 
-- 状态：`IN_PROGRESS / W04A_INVENTORY_VERIFIED`（2026-07-18）；4-6 人日；`S2-MEM-001`、`S2-SAF-001`、
+- 状态：`IN_PROGRESS / W04B_ADMISSION_DEFINED`（2026-07-18）；4-6 人日；`S2-MEM-001`、`S2-SAF-001`、
   `S2-OBS-001`。
 - `P9-W04a privacy data inventory`：已冻结 12 个当前 Android 数据面（6 Room、5 process-local、1 transient），
   同源 JSON/Java 绑定 sensitivity/storage/content/owner/consent/retention/delete/export/log/enforcement 和 source class。
   durable Effect recovery 与 Audit 精确标记为两个 `POLICY_GAP`；唯一 authorized bounded export 是 explicit-consent
   Profile Memory。五组 JVM regression 和独立 checker 已验证，不读取数据库或内容。
-- `P9-W04b retention/delete/export policy`：待开发 owner-approved policy version/digest、每数据面 retention ceiling、
-  active safety recovery guard、delete/erase/export authorization、replay/conflict 和 redacted evidence。
+- `P9-W04b privacy policy admission`：已交付 draft policy version/body digest、12-surface exact binding、三 owner digest evidence
+  准入、active Effect/compensation 与 legal/safety hold guard，以及 delete/erase/export metadata preflight。当前两个 ceiling 未获 owner
+  输入，草案必须拒绝激活；没有 repository mutation 或 Runtime wiring。
 - `P9-W04c redaction/audit Android probe`：待开发 DUMP-protected debug-only probe 和 installer gate；release 不得暴露入口。
-- 边界：W04a 不新增 Store/Binder/Room/API，不接 Runtime/Governance，不宣称 owner policy、生产 lifecycle 或 Android 实体完成。
+- 边界：W04a/W04b 不新增 Store/Binder/Room/API，不接 Runtime/Governance，不宣称 owner policy、生产 lifecycle 或 Android 实体完成。
+  synthetic approved policy 只用于 contract test，数值与 digest 不是 owner 输入。
+  `privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+  `privacy_repository_mutation_wired=false`、
   `privacy_owner_policy_approved=false`、`privacy_production_lifecycle_complete=false`、
   `privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`。
 

@@ -3486,3 +3486,24 @@ The probe remains `android.permission.DUMP` protected and absent from the main/r
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-091`、`ISSUE-051`。
+
+## Android P9-W04b Privacy Policy Admission Contract
+
+| API | 输入 | 输出/约束 |
+| --- | --- | --- |
+| `currentDraft()` | 无 | immutable 12-rule draft；两个 gap unresolved |
+| `policyProfile(...)` | policy id/version、inventory digest、12 rules | canonical body SHA-256；不读取数据 |
+| `approvalEvidence(...)` | owner role、policy/inventory/reference digest | 只接 lowercase SHA-256 |
+| `evaluate(...)` | profile + approvals | typed `AdmissionCode`；缺失/重复/漂移 fail closed |
+| `evaluateOperation(...)` | admitted profile、surface、DELETE/ERASE/EXPORT、auth/consent digest、计数快照 | typed `OperationCode`；只做 preflight |
+
+完整准入要求 Privacy/Functional Safety/Compliance 三 role；Effect/Audit 的 ceiling 必须正数且 guard 精确。Operation preflight 不接收 payload；
+Effect/compensation 和 legal/safety hold 均可阻断删除，Profile 是唯一可授权导出的 surface。所有 decision 固定 no mutation/no export/no
+Runtime authority。
+
+当前 `privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-092`、`ISSUE-051`。
