@@ -3139,6 +3139,62 @@ if [[ "$EPISODIC_MEMORY_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+CONTEXT_BUDGET_NONCE="$(date +%s%N)"
+CONTEXT_BUDGET_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.memory.ContextBudgetManagerProbeActivity \
+  --es nonce "$CONTEXT_BUDGET_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$CONTEXT_BUDGET_PROBE_OUTPUT"; then
+  echo "$CONTEXT_BUDGET_PROBE_OUTPUT" >&2
+  echo "Context Budget manager debug probe did not start successfully" >&2
+  exit 1
+fi
+CONTEXT_BUDGET_PROBE_PASSED=false
+for _ in {1..40}; do
+  CONTEXT_BUDGET_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbContextBudget:I)"
+  if grep -Fq \
+      "nonce=$CONTEXT_BUDGET_NONCE context_budget_manager_probe_complete=true" \
+      <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_category_allocation_verified=true" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_dual_limit_verified=true" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_deterministic_overflow_verified=true" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_required_fail_closed=true" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_android13_arm64_verified=true" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_decision_only=true" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_text_payload_accepted=false" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_tokenizer_wired=false" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_summarizer_wired=false" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_production_authority_wired=false" \
+        <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_runtime_wired=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "context_budget_content_logged=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "production_ready=false" <<<"$CONTEXT_BUDGET_LOG" \
+      && grep -Fq "target_hardware_validated=false" <<<"$CONTEXT_BUDGET_LOG"; then
+    CONTEXT_BUDGET_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$CONTEXT_BUDGET_PROBE_PASSED" != true ]]; then
+  echo "$CONTEXT_BUDGET_LOG" >&2
+  echo "Context Budget manager probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3780,6 +3836,19 @@ printf '%s\n' \
   "episodic_memory_production_read_authority_wired=false" \
   "episodic_memory_production_erase_authority_wired=false" \
   "episodic_memory_content_logged=false" \
+  "context_budget_manager_defined=true" \
+  "context_budget_category_allocation_verified=true" \
+  "context_budget_dual_limit_verified=true" \
+  "context_budget_deterministic_overflow_verified=true" \
+  "context_budget_required_fail_closed=true" \
+  "context_budget_android13_arm64_verified=true" \
+  "context_budget_decision_only=true" \
+  "context_budget_text_payload_accepted=false" \
+  "context_budget_tokenizer_wired=false" \
+  "context_budget_summarizer_wired=false" \
+  "context_budget_production_authority_wired=false" \
+  "context_budget_runtime_wired=false" \
+  "context_budget_content_logged=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \

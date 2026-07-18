@@ -714,7 +714,7 @@ PARKED；重建后必须重新握手，直到成功前维持 UNKNOWN restricted�
 `cockpit_engineer_signature_permission_required=true`、`cockpit_engineer_capability_required=true`、
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
-`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W09`。
+`vehicle_signal_provider_wired=false`、`hardware_accessed=false`、`implementation_stage=P5-W10`。
 Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/006`；tracking：
 `DEV-059`、`ISSUE-023/029/030/033`。
 
@@ -2846,7 +2846,7 @@ Host tests cover cold/fatigue/rest, manual HVAC, canonical mismatch, no syntheti
 event sequence. Static gate rejects concrete SessionClient ownership in the bridge and direct Adapter/vehicle imports. `R7C-E-013`
 covers cold/fatigue/rest plus manual HVAC/Seat on API 33 ARM64. This remains application evidence; production Runtime execution and
 target hardware stay false. Req IDs: `S2-HMI-001..006`, `S2-SCN-001`; tracking: `DEV-060`, `ISSUE-022/026/030/033`;
-`implementation_stage=P5-W09`.
+`implementation_stage=P5-W10`.
 
 ## P4-W11 implementation detail: Accessibility/display matrix
 
@@ -2886,7 +2886,7 @@ longest Chinese, tests `1366x768` rejection, and restores settings in a trap. R7
 This is application evidence only. TalkBack exploratory testing, OEM multi-display/rotation policy, distraction compliance and target
 HMI certification remain external. Req IDs: `S2-UX-003`, `S2-HMI-001/002`, `APP-004`, `XSC-001/005/006`;
 tracking: `DEV-061`, `ISSUE-019/033`; `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W09`.
+`implementation_stage=P5-W10`.
 
 ## P4-W12 implementation detail: aggregate device acceptance
 
@@ -2933,7 +2933,7 @@ Status: `p4_w12_application_acceptance_complete=true`, `p4_android13_arm64_aggre
 `p4_plan_effect_projection_host_verified=true`, `p4_automatic_plan_runtime_published=false`,
 `p4_production_effect_dispatch_enabled=false`, `p4_vehicle_readback_available=false`,
 `hmi_d4_demo_control_loop_complete=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W09`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
+`implementation_stage=P5-W10`. Req IDs: `S2-UX-001..003`, `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`,
 `S2-EFF-001`, `APP-004`, `XSC-001/005/006`; tracking: `DEV-062`, `ISSUE-033`.
 
 ## P5-W01 Tool Manifest/Schema detailed design
@@ -2990,7 +2990,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W10`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`,
 `DEL-001/004/005`; tracking: `DEV-063`, `ISSUE-036`.
 
 ## P5-W02 Tool Registry/Resolver detailed design
@@ -3060,7 +3060,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-064`, `ISSUE-037`.
 
 ## P5-W03 Tool RuleSolver detailed design
@@ -3149,7 +3149,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
+`implementation_stage=P5-W10`. Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-065`, `ISSUE-038`.
 
 ## P5-W04 Tool Executor detailed design
@@ -3224,7 +3224,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `os_virtualization_enabled=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-TOL-001`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`. Req IDs: `S2-TOL-001`,
 `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-066`, `ISSUE-039`.
 
 ## P5-W05 Skill package verifier detailed design
@@ -3300,7 +3300,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`.
 Req IDs: `S2-TOL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-008`, `DEL-001/004/005`; tracking: `DEV-067`, `ISSUE-040`.
 
 ## P5-W06 WorkingMemoryStore detailed design
@@ -3398,7 +3398,7 @@ Status: `working_memory_store_defined=true`, `working_memory_session_scope_verif
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W10`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
 `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-068`,
 `ISSUE-041`.
 
@@ -3488,7 +3488,7 @@ Binder/model/network/vehicle/hardware imports and verifies Runtime/Graph remain 
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W09`。Req IDs：`S2-MEM-001`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。Req IDs：`S2-MEM-001`、
 `S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`；
 tracking：`DEV-069`、`ISSUE-042`。
 
@@ -3580,6 +3580,82 @@ trusted cross-restart retention clock, process-death recovery, migration/backup 
 `episodic_memory_production_policy_authority_wired=false`, `episodic_memory_production_read_authority_wired=false`,
 `episodic_memory_production_erase_authority_wired=false`,
 `episodic_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W09`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
+`target_hardware_validated=false`, `implementation_stage=P5-W10`. Req IDs: `S2-MEM-001`, `S2-SAF-001`,
 `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`, `DEL-001/004/005`; tracking: `DEV-070`,
 `ISSUE-043`.
+
+## P5-W09 ContextBudgetManager detailed design
+
+### Design intent
+
+`ContextBudgetManager` makes context pressure deterministic before a tokenizer/model composition owner exists. It prevents system
+requirements from being silently displaced by history, gives every category an explicit token and byte envelope, and turns optional
+overflow into an auditable directive. It is intentionally metadata-only so this application-layer contract cannot archive or log user,
+model, profile, episode or vehicle content.
+
+### Module allocation
+
+| Module | Responsibility | Explicit non-responsibility |
+| --- | --- | --- |
+| `ContextBudgetManager` | validate, order and allocate trusted size metadata | retrieve Memory, tokenize, summarize, truncate content or invoke model |
+| `Category` | fixed SYSTEM/CONTEXT/PROFILE/EPISODE/HISTORY order | caller-defined namespaces |
+| `CategoryLimit` | bounded token and byte envelope | dynamic quota discovery or cross-category borrowing |
+| `BudgetPolicy` | global token/byte/item ceiling and all five category limits | production quota authority or provider routing |
+| `ContextDescriptor` | canonical ID, trusted size, required/summary flags and priority | raw text, bytes, prompt, model output or vehicle signal |
+| `Decision` | handling plus requested/target token and byte counts | transformed content or execution evidence |
+| `AllocationResult` | immutable outcome, decisions, totals and counts | partial required plan or model-ready prompt |
+| `ContextBudgetManagerProbeActivity` | debug API 33 ARM64 boolean/count evidence | release exposure or content logging |
+
+### Invariants and validation
+
+Absolute ceilings are 262144 total tokens, 1048576 total bytes, 512 descriptors, 65536 tokens per descriptor and 262144 bytes per
+descriptor. Policy values can only reduce those ceilings. Every category limit is mandatory; zero disables its optional capacity while
+negative or over-ceiling values are rejected. Descriptor IDs use bounded lowercase canonical token syntax. Token/byte values are
+positive and priority is 0..100.
+
+The allocator first copies and validates the complete descriptor list, rejects null or duplicate IDs, then sorts a detached list. No
+mutable caller list is retained. `BudgetPolicy.getCategoryLimits` and result decisions are unmodifiable snapshots.
+
+### Allocation algorithm
+
+1. Validate policy, item count, every descriptor and global duplicate ID set before allocating anything.
+2. Sort descriptors by category enum, priority descending and canonical ID ascending.
+3. Iterate required descriptors only. INCLUDE requires both requested token and byte counts to fit global and category remaining
+   envelopes. The first failure returns an empty `REQUIRED_BUDGET_EXCEEDED` result with zero totals.
+4. Iterate optional descriptors in the same order. A whole fit returns INCLUDE.
+5. For overflow, compute `targetTokens=min(requestedTokens, globalRemainingTokens, categoryRemainingTokens)` and the equivalent byte
+   target. If either target is zero, return DROP with zero targets.
+6. When both targets are positive, return SUMMARIZE_TO_BUDGET if summaryAllowed, otherwise TRUNCATE_TO_BUDGET, and reserve those exact
+   target counts so later items cannot overcommit.
+7. Re-sort decisions by the public stable order and return aggregate token/byte plus handling counts.
+
+The manager does not execute step 5/6 against content. `isSummaryGenerated=false` and `isContentTruncated=false` distinguish planned
+handling from evidence. A production executor must recount transformed content and fail closed if it does not fit the decision target.
+
+### Concurrency, privacy and integration
+
+The class is immutable/stateless after factory creation; allocation uses only method-local state, so simultaneous calls do not share
+quota or content. Production quota accounting therefore needs a separately owned atomic/session policy before Runtime wiring.
+
+Main source imports only Java collections and regex. It has no Android framework, Binder, Room/filesystem, network, ModelProvider,
+tokenizer, NPU, Android Car/VHAL, Effect, Driver/HAL or logging dependency. Debug uses fixed synthetic descriptors and emits only nonce,
+booleans and counts. The release manifest contains no probe.
+
+### Verification and remaining work
+
+Six JVM tests cover five-category stable ordering across input permutations, required no-partial failure, summarize/truncate/drop
+directives, category non-borrowing and global dual limits, malformed/duplicate metadata, immutable outputs and all production false
+flags. Debug/release compile the same main source; a dedicated checker rejects content/model/hardware APIs and Runtime/Graph wiring.
+
+ISSUE-044 must publish trusted source size evidence, tokenizer family/version/digest, production budget policy/quota owner, exact content
+identity binding, summary/truncation executor and post-transform recount before model composition. Current state:
+`context_budget_manager_defined=true`, `context_budget_category_allocation_verified=true`,
+`context_budget_dual_limit_verified=true`, `context_budget_deterministic_overflow_verified=true`,
+`context_budget_required_fail_closed=true`, `context_budget_android13_arm64_verified=false`,
+`context_budget_decision_only=true`, `context_budget_text_payload_accepted=false`,
+`context_budget_tokenizer_wired=false`, `context_budget_summarizer_wired=false`,
+`context_budget_production_authority_wired=false`, `context_budget_runtime_wired=false`,
+`context_budget_content_logged=false`, `model_invoked=false`, `npu_accessed=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`. Req IDs: `S2-MEM-001`,
+`S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `FW-U-001/006/007`, `NV-F-001`, `NV-G-005/006/007`,
+`DEL-001/004/005`; tracking: `DEV-071`, `ISSUE-044`.

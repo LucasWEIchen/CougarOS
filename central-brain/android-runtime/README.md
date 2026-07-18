@@ -984,7 +984,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W09`.
+`target_hardware_validated=false`, `implementation_stage=P5-W10`.
 
 ## P5-W02 Tool Registry/Resolver
 
@@ -1010,7 +1010,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`. Next: P5-W03 ToolRuleSolver.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`. Next: P5-W03 ToolRuleSolver.
 
 ## P5-W03 Tool RuleSolver
 
@@ -1035,7 +1035,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P5-W09`.
+`implementation_stage=P5-W10`.
 
 ## P5-W04 Tool Executor boundary
 
@@ -1059,7 +1059,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `tool_approval_authority_available=false`, `os_virtualization_enabled=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`.
 Next: P5-W05 Skill package verifier.
 
 ## P5-W05 Skill package verifier
@@ -1083,7 +1083,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`.
 Next: P5-W06 WorkingMemoryStore.
 
 ## P5-W06 WorkingMemoryStore
@@ -1109,7 +1109,7 @@ Status: `working_memory_store_defined=true`, `working_memory_session_scope_verif
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W09`. Next: P5-W07 ProfileMemoryStore.
+`target_hardware_validated=false`, `implementation_stage=P5-W10`. Next: P5-W07 ProfileMemoryStore.
 
 ## P5-W07 ProfileMemoryStore
 
@@ -1133,7 +1133,7 @@ Status: `profile_memory_store_defined=true`, `profile_memory_explicit_consent_ve
 `profile_memory_process_local=true`, `profile_memory_durable_storage_wired=false`,
 `profile_memory_production_encryption_owner_configured=false`, `profile_memory_consent_authority_production_wired=false`,
 `profile_memory_runtime_wired=false`, `profile_memory_content_logged=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W09`. Next: P5-W08 EpisodicMemoryStore.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P5-W10`. Next: P5-W08 EpisodicMemoryStore.
 
 ## P5-W08 EpisodicMemoryStore
 
@@ -1161,4 +1161,24 @@ Status: `episodic_memory_store_defined=true`, `episodic_memory_summary_result_on
 `episodic_memory_production_policy_authority_wired=false`, `episodic_memory_production_erase_authority_wired=false`,
 `episodic_memory_production_read_authority_wired=false`,
 `episodic_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P5-W09`. Next: P5-W09 ContextBudgetManager.
+`target_hardware_validated=false`, `implementation_stage=P5-W10`.
+
+## P5-W09 ContextBudgetManager
+
+`ContextBudgetManager` is an Android-independent, metadata-only allocator. Its five fixed categories are SYSTEM, CONTEXT, PROFILE,
+EPISODE and HISTORY. A reduce-only `BudgetPolicy` supplies global and category token/byte envelopes plus a bounded item count. Required
+descriptors are admitted first; if any required item cannot fit fully, the result is `REQUIRED_BUDGET_EXCEEDED` with no partial plan.
+
+Optional descriptors are processed by category, descending priority and canonical ID. An item is included whole when possible; otherwise
+the result contains `SUMMARIZE_TO_BUDGET`, `TRUNCATE_TO_BUDGET` or `DROP` and exact target token/byte counts. These are directives only:
+the manager accepts no text/byte payload, invokes no tokenizer or summarizer, and never claims generated or truncated content.
+
+State: `context_budget_manager_defined=true`, `context_budget_category_allocation_verified=true`,
+`context_budget_dual_limit_verified=true`, `context_budget_deterministic_overflow_verified=true`,
+`context_budget_required_fail_closed=true`, `context_budget_android13_arm64_verified=false`,
+`context_budget_decision_only=true`, `context_budget_text_payload_accepted=false`,
+`context_budget_tokenizer_wired=false`, `context_budget_summarizer_wired=false`,
+`context_budget_production_authority_wired=false`, `context_budget_runtime_wired=false`,
+`context_budget_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P5-W10`. Next: P5-W10 Memory consent HMI/API; tracking: `DEV-071`,
+`ISSUE-044`.
