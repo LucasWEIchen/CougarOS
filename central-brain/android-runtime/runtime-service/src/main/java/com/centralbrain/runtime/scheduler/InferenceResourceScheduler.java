@@ -622,6 +622,22 @@ public final class InferenceResourceScheduler {
                     true);
         }
 
+        static RouteTarget forFixedAdmissionContract(
+                String providerId,
+                int maxConcurrentRequests,
+                boolean supportsCancellation) {
+            if (!ModelProviderProfiles.DETERMINISTIC_STUB_ID.equals(providerId)) {
+                throw new IllegalArgumentException(
+                        "fixed admission contract only permits deterministic.stub");
+            }
+            return new RouteTarget(
+                    providerId,
+                    true,
+                    supportsCancellation,
+                    maxConcurrentRequests,
+                    true);
+        }
+
         public String getProviderId() {
             return providerId;
         }

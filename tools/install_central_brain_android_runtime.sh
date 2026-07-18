@@ -1111,6 +1111,56 @@ if [[ "$SCENARIO_EVALUATION_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+RESOURCE_ADMISSION_NONCE="$(date +%s%N)"
+RESOURCE_ADMISSION_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.scheduler.ModelResourceAdmissionProbeActivity \
+  --es nonce "$RESOURCE_ADMISSION_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$RESOURCE_ADMISSION_PROBE_OUTPUT"; then
+  echo "$RESOURCE_ADMISSION_PROBE_OUTPUT" >&2
+  echo "model resource admission debug probe did not start successfully" >&2
+  exit 1
+fi
+RESOURCE_ADMISSION_PROBE_PASSED=false
+for _ in {1..40}; do
+  RESOURCE_ADMISSION_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbResourceProbe:I)"
+  if grep -Fq \
+      "nonce=$RESOURCE_ADMISSION_NONCE resource_admission_probe_complete=true" \
+      <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "model_resource_admission_verified=true" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "foreground_vehicle_priority_verified=true" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "thermal_degradation_verified=true" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "thermal_resource_fail_closed_verified=true" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "admission_boundary_verified=true" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "resource_admission_runtime_wired=false" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "provider_invoked=false" <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "action_authorization_granted=false" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "effect_dispatch_requested=false" \
+        <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "production_ready=false" <<<"$RESOURCE_ADMISSION_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$RESOURCE_ADMISSION_LOG"; then
+    RESOURCE_ADMISSION_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$RESOURCE_ADMISSION_PROBE_PASSED" != true ]]; then
+  echo "$RESOURCE_ADMISSION_LOG" >&2
+  echo "model resource admission probe did not pass" >&2
+  exit 1
+fi
+
 SCHEDULER_NONCE="$(date +%s%N)"
 SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.scheduler.InferenceSchedulerContractProbeActivity \
@@ -4401,6 +4451,13 @@ printf '%s\n' \
   "scenario_evaluation_runtime_wired=false" \
   "raw_evaluation_content_logged=false" \
   "scenario_evaluation_android13_arm64_verified=true" \
+  "model_resource_admission_verified=true" \
+  "foreground_vehicle_priority_verified=true" \
+  "thermal_degradation_verified=true" \
+  "thermal_resource_fail_closed_verified=true" \
+  "admission_boundary_verified=true" \
+  "resource_admission_runtime_wired=false" \
+  "model_resource_admission_android13_arm64_verified=true" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \
