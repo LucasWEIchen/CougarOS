@@ -1667,3 +1667,20 @@ replacement release、全八类事实和 owner/retest evidence 进行 admission 
 复测；production signer/installer/rollback 还需 ISSUE-052。当前 `field_diagnostics_android_debug_probe_executed=false`、
 `field_diagnostics_android13_arm64_verified=false`、`release_evidence_retest_workflow_wired=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+
+## DEV-101 P4-D4a debug graph progress is not Runtime Effect execution
+
+P4-D4a 复用真实 Scenario Compiler 与 control-only AgentGraph，并自动推进 Context/Policy/Summary 本地节点；这比 HMI 静态 projection
+多了一层确定性 Plan/Graph 组合。但 approval、Effect 与 readback 仍只形成 pending node，JVM supplied outcome 是测试输入，不是 adapter、
+车辆回读或 owner approval 证据。
+
+该类仅存在于 debug source set，没有 Android Service、Session/Event Binder 或 Client2 注册。生产 Runtime 仍输出
+`scenario_execution_enabled=false`，release source 不包含该类。因此不能把 `simulated_scenario_plan_published=true` 解释为 production
+Plan publication，也不能关闭 ISSUE-022/026/030/033。
+
+状态：`Accepted Temporary`。P4-D4b 负责 debug Runtime Session/Event projection，后续包再分别接 debug adapter/readback 和 Client2；
+真实 production Effect 仍需 P8 capability/permission/owner evidence。当前 `simulated_scenario_graph_defined=true`、
+`simulated_scenario_android_runtime_wired=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4a`。

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p4-d4a-simulated-scenario-graph-v1",
+  "maturity": "debug_graph_composition_defined_runtime_wiring_pending",
+  "requirement_ids": [
+    "S2-SCN-001", "S2-GRF-001", "S2-EFF-001", "S2-HMI-003", "S2-HMI-006",
+    "APP-004", "XSC-001", "XSC-005", "XSC-006", "DEL-001", "DEL-004", "DEL-005"
+  ],
+  "source_set": "debug",
+  "maximum_run_count": 16,
+  "automatic_projection_node_types": [
+    "context.capture", "policy.evaluate", "summary.render"
+  ],
+  "external_result_node_types": [
+    {"node_type": "approval.interrupt", "pending_stage": "APPROVAL"},
+    {"node_type": "effect.execute", "pending_stage": "EFFECT"},
+    {"node_type": "effect.verify", "pending_stage": "READBACK"}
+  ],
+  "admission": {
+    "accepted_or_degraded_resolution_required": true,
+    "context_digest_match_required": true,
+    "capability_digest_match_required": true,
+    "manifest_digest_match_required": true,
+    "compiled_plan_graph_validation_required": true,
+    "moving_seat_branch_pruned_by_compiler": true,
+    "unsupported_node_type_fails_closed": true
+  },
+  "projection": {
+    "plan_identity_exposed": true,
+    "graph_state_exposed": true,
+    "pending_node_id_exposed": true,
+    "pending_node_type_exposed": true,
+    "pending_capability_id_exposed": true,
+    "pending_required_flag_exposed": true,
+    "stable_projection_digest_exposed": true,
+    "raw_user_or_model_text_exposed": false,
+    "vehicle_payload_exposed": false,
+    "device_identity_exposed": false
+  },
+  "claim_state": {
+    "simulated_scenario_graph_defined": true,
+    "simulated_scenario_graph_debug_only": true,
+    "simulated_scenario_plan_published": true,
+    "simulated_scenario_graph_progress_enabled": true,
+    "simulated_scenario_android_runtime_wired": false,
+    "simulated_scenario_client2_wired": false,
+    "simulated_scenario_effect_dispatch_enabled": false,
+    "simulated_scenario_readback_accessed": false,
+    "simulated_scenario_approval_authority_available": false,
+    "simulated_scenario_production_registered": false,
+    "scenario_execution_enabled": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P4-D4a"
+  }
+}

@@ -1630,3 +1630,25 @@ replacement release 的确认作为关单前置。当前 `release_retest_state_m
 `release_retest_automatic_issue_close_allowed=false`、`release_retest_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
 Req IDs：`S2-OBS-001/S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。
+
+## P4-D4a simulated Scenario/Plan/Graph composition architecture
+
+```text
+accepted/degraded ScenarioResolution + immutable Context/Capability
+        -> ScenarioPlanCompiler + PlanGraphValidator
+            -> control-only AgentGraphRuntime
+                -> auto: context.capture / policy.evaluate
+                -> pending: approval.interrupt / effect.execute / effect.verify
+                -> auto: summary.render after supplied terminal outcomes
+                    -> digest-only HMI projection candidate
+```
+
+该模块位于 Runtime `src/debug`，用于补齐 HMI-D4 的确定性 Plan/Graph 组合层。它不复制 Resolver/Compiler/Graph 规则，不新增 node type，
+也不绕过 moving fatigue 的 seat branch pruning。每次只允许一个 pending external node，防止并发 UI outcome 被错误绑定。
+
+该类尚未进入 Android Service composition，Client2 也不消费其 Snapshot。下一层 P4-D4b 只能把 projection 发布到 debug Session/Event；
+Effect adapter/readback 和 Client2 renderer 必须分开实现与验收。当前 `simulated_scenario_graph_defined=true`、
+`simulated_scenario_android_runtime_wired=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4a`。
+Req IDs：`S2-SCN-001/S2-GRF-001/S2-EFF-001/S2-HMI-003/006`；tracking：`DEV-101`、`ISSUE-022/026/030/033`。

@@ -2676,3 +2676,29 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `release_evidence_automatic_upload_enabled=false`、`release_retest_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W07`。tracking：`DEV-100`、`ISSUE-052/053`。
+
+## 93. P4-D4a simulated Scenario/Plan/Graph composition trace
+
+本增量映射 `S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、
+`XSC-001/005/006`、`DEL-001/004/005`：
+
+1. 编排类必须只存在于 Runtime debug source set，main/release 不得包含同名实现或 production 注册。
+2. 输入必须是 P2 已验证的 `CompileRequest`、accepted/degraded `ScenarioResolution`、同摘要 Context 与 Capability snapshot。
+3. 必须复用 `ScenarioPlanCompiler` 和 `PlanGraphValidator`，不得从 UI 文本、模型输出或任意 map 构造节点或 capability。
+4. 必须复用 control-only `AgentGraphRuntime`；registry dispatch/production authority 必须保持 false。
+5. 只有 `context.capture`、`policy.evaluate`、`summary.render` 可作为 deterministic local projection 自动成功。
+6. `approval.interrupt`、`effect.execute`、`effect.verify` 必须分别停在 APPROVAL、EFFECT、READBACK，等待显式 typed outcome。
+7. 同一时刻最多一个 pending node；不存在 pending node、未知 run、unsupported node type、容量耗尽必须失败关闭。
+8. Cold 必须先自动推进 Context/Policy 再停于 required HVAC；parked fatigue 必须先停于 seat approval。
+9. Moving fatigue 必须沿用 Compiler 规则裁掉 approval/recline 分支，不得由 debug runner 恢复被安全策略删除的节点。
+10. Required external node FAILED 必须使 Graph 失败；supplied outcome 只是测试输入，不代表 adapter 调用或 readback 证据。
+11. Snapshot 只暴露 plan/run/scenario identity、graph state/revision、pending node metadata、计数与 SHA-256；不得暴露 raw user/model/vehicle/device data。
+12. 本包不得接 Runtime Service、Session/Event Binder、Client2、approval authority、Effect adapter、Vehicle/NPU/Driver-HAL 或硬件。
+
+状态：`simulated_scenario_graph_defined=true`、`simulated_scenario_graph_debug_only=true`、
+`simulated_scenario_plan_published=true`、`simulated_scenario_graph_progress_enabled=true`、
+`simulated_scenario_android_runtime_wired=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`simulated_scenario_approval_authority_available=false`、`simulated_scenario_production_registered=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4a`。tracking：`DEV-101`、`ISSUE-022/026/030/033`。

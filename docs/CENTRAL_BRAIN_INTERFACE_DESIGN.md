@@ -3684,3 +3684,28 @@ identity 均不同。非法 actor/state/release 返回 rejected `Decision`，原
 rollback 或 Android entry；repository 静态 claim 不因 JVM fixture 变化。
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。
+
+## Android P4-D4a Simulated Scenario Graph Interfaces
+
+### Start API
+
+`SimulatedScenarioGraph.start(CompileRequest, ScenarioResolution, ContextSnapshot, CapabilitySnapshot)` 先调用既有 Compiler/validator，
+再把 immutable Plan 交给 control-only AgentGraph。Resolution、Context、Capability 或 manifest digest 漂移沿用 P2 错误失败关闭；runner
+不接受 UI 文本、Bundle、任意 node map 或模型输出。
+
+### Pending-node API
+
+Runner 只自动完成 `context.capture`、`policy.evaluate`、`summary.render`。首个可执行外部节点被 suspend 并转换为 immutable
+`PendingNode(nodeId,nodeType,capabilityId,required,stage)`；stage 只有 APPROVAL、EFFECT、READBACK。`supplyPendingOutcome(runId,
+NodeExecutionOutcome)` 只恢复当前 WAITING node，不存在 pending 或 run 时返回 `CB_SIM_SCENARIO_GRAPH` 失败。
+
+### Snapshot API
+
+`Snapshot` 暴露 run/session/scenario/plan identity、plan revision、Graph state/revision、自动投影数、外部结果数、可选 pending node 和稳定
+SHA-256。所有 collection 由内部 immutable Plan 建立；不暴露用户/模型文本、车辆值、设备身份、adapter material 或 readback payload。
+
+### Authority boundary
+
+Plan/Graph progress 为 true 只表示 debug control flow 已推进。Effect dispatch、readback、approval response、Android Runtime/Client2 wiring、
+production registration、hardware/production/target qualification 全部 false。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
+`S2-EFF-001`、`S2-HMI-003/006`；tracking：`DEV-101`、`ISSUE-022/026/030/033`。

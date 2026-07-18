@@ -717,6 +717,24 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   fail-closed，不能声明真实执行。Runtime release simulation surface absent；无 production Client2 release artifact。
   `hmi_d4_demo_control_loop_complete=false`，边界由 `DEV-062` 跟踪。
 
+### `P4-D4a` Simulated Scenario/Plan/Graph composition
+
+- 状态：`DEVELOPED / DEBUG_RUNTIME_WIRING_PENDING`（2026-07-18）；1.5-2.5 人日；需求：`S2-SCN-001`、
+  `S2-GRF-001`、`S2-EFF-001`、`S2-HMI-003/006`。
+- 类：debug-only `SimulatedScenarioGraph`；合同：`android13-p4-d4a-simulated-scenario-graph-v1`。
+- DoD：复用 P2 resolver/compiler 与 P3 AgentGraph，自动推进 `context.capture`、`policy.evaluate`、`summary.render`；
+  approval、Effect、readback 节点必须停住并等待显式 typed outcome。Snapshot 暴露 plan/graph/pending-node 元数据和稳定摘要，
+  不暴露用户/模型文本、车辆 payload 或设备身份。
+- 交付：cold 在 Context/Policy 后停于 HVAC Effect；parked fatigue 先停于 approval；moving fatigue 由 Compiler 裁掉
+  approval/recline 分支；required Effect 失败使 Graph 失败关闭。八组 JVM regression 与 debug/release source 边界已完成。
+- 边界：本包不注册 Android Service、不接 Session/Event Binder 或 Client2，不调 adapter、不读 readback、不拥有 approval authority。
+  `simulated_scenario_graph_defined=true`、`simulated_scenario_graph_debug_only=true`、
+  `simulated_scenario_plan_published=true`、`simulated_scenario_graph_progress_enabled=true`、
+  `simulated_scenario_android_runtime_wired=false`、`simulated_scenario_client2_wired=false`、
+  `simulated_scenario_effect_dispatch_enabled=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`。
+- 下一软件增量：`P4-D4b debug Runtime Session/Event projection`，把该内核接入受控 debug composition，并继续禁止
+  production Effect/Vehicle/NPU/Driver-HAL。
+
 ## 9. P5 Tool/Skill 与 Memory
 
 ### `P5-W01` Tool manifest/schema
