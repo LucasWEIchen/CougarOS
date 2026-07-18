@@ -2,12 +2,16 @@ package com.centralbrain.runtime.model;
 
 import java.util.Objects;
 
-/** Current Android model-provider profiles; neither profile is production-routable in R5A1. */
+/** Current Android model-provider profiles; no profile is production-routable. */
 public final class ModelProviderProfiles {
     public static final String DETERMINISTIC_STUB_ID = "deterministic.stub";
+    public static final String ANDROID_LOCAL_DEVELOPMENT_ID =
+            "android.local.development";
     public static final String VENDOR_NPU_EMPTY_ID = "vendor.npu.empty";
 
     private static final Profile DETERMINISTIC_STUB = createDeterministicStub();
+    private static final Profile ANDROID_LOCAL_DEVELOPMENT =
+            createAndroidLocalDevelopment();
     private static final Profile VENDOR_NPU_EMPTY = createVendorNpuEmpty();
 
     private ModelProviderProfiles() {
@@ -15,6 +19,10 @@ public final class ModelProviderProfiles {
 
     public static Profile deterministicStub() {
         return DETERMINISTIC_STUB;
+    }
+
+    public static Profile androidLocalDevelopment() {
+        return ANDROID_LOCAL_DEVELOPMENT;
     }
 
     public static Profile vendorNpuEmpty() {
@@ -72,6 +80,33 @@ public final class ModelProviderProfiles {
                 0,
                 false,
                 "VENDOR_RUNTIME_UNAVAILABLE");
+        return new Profile(descriptor, snapshot, false, false);
+    }
+
+    private static Profile createAndroidLocalDevelopment() {
+        ModelProvider.Descriptor descriptor = new ModelProvider.Descriptor(
+                ANDROID_LOCAL_DEVELOPMENT_ID,
+                ModelProvider.BackendKind.ANDROID_LOCAL_DEVELOPMENT,
+                ModelProvider.Assurance.DEBUG_ONLY,
+                ModelProvider.FallbackClass.NEVER,
+                false,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                1);
+        ModelProvider.Snapshot snapshot = new ModelProvider.Snapshot(
+                descriptor,
+                ModelProvider.LifecycleState.COLD,
+                ModelProvider.HealthState.HEALTHY,
+                0,
+                0,
+                0,
+                false,
+                "LOCAL_DEVELOPMENT_IMPLEMENTATION_NOT_CONFIGURED");
         return new Profile(descriptor, snapshot, false, false);
     }
 

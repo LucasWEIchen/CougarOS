@@ -106,4 +106,5 @@ jobs:
           bash tools/check_central_brain_android_model_contract_v2.sh
           bash tools/check_central_brain_android_model_provider_registry.sh
           bash tools/check_central_brain_android_policy_aware_model_router.sh
+          bash tools/check_central_brain_android_local_model_provider.sh
           bash tools/check_central_brain_root_readme.sh

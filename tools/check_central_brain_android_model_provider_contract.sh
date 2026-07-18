@@ -54,21 +54,24 @@ for operation in \
   require_text "$CONTRACT" "$operation"
 done
 require_text "$CONTRACT" "DETERMINISTIC_STUB"
+require_text "$CONTRACT" "ANDROID_LOCAL_DEVELOPMENT"
 require_text "$CONTRACT" "OLLAMA_DEBUG"
 require_text "$CONTRACT" "VENDOR_NPU"
 require_text "$CONTRACT" "FAULT_ISOLATED"
 require_text "$CONTRACT" "POLICY_CONTROLLED"
-require_text "$CONTRACT" "stub and Ollama debug providers cannot claim hardware or production"
+require_text "$CONTRACT" "development providers cannot claim hardware or production"
 require_text "$CONTRACT" "empty providers must remain unavailable and non-routable"
 require_text "$CONTRACT" "MAX_STREAM_CHUNK_BYTES"
 require_text "$CONTRACT" "Arrays.copyOf"
 
 require_text "$PROFILES" 'DETERMINISTIC_STUB_ID = "deterministic.stub"'
+require_text "$PROFILES" 'ANDROID_LOCAL_DEVELOPMENT_ID ='
 require_text "$PROFILES" 'VENDOR_NPU_EMPTY_ID = "vendor.npu.empty"'
 require_text "$PROFILES" '"STUB_IMPLEMENTATION_NOT_WIRED"'
 require_text "$PROFILES" '"VENDOR_RUNTIME_UNAVAILABLE"'
 require_text "$PROFILES" "return new Profile(descriptor, snapshot, false, false)"
 require_text "$TEST" "unsafeStubAndEmptyDescriptorsAreRejected"
+require_text "$TEST" "androidLocalProfileIsDevelopmentOnlyAndNotConfiguredByDefault"
 require_text "$TEST" "streamChunksAreBoundedAndDefensivelyCopied"
 require_text "$DEBUG_MANIFEST" ".model.ModelProviderContractProbeActivity"
 

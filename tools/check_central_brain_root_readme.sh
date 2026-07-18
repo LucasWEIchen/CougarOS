@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P7-W04' \
+  'implementation_stage=P7-W05' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -362,7 +362,7 @@ for marker in \
   'model_provider_availability_separation_verified=true' \
   'model_provider_placeholder_fail_closed=true' \
   'model_contract_test_available_count=1' \
-  'model_development_available_count=0' \
+  'model_development_available_count=1' \
   'model_production_ready_count=0' \
   'model_provider_registry_android13_arm64_verified=false' \
   'model_provider_registry_runtime_wired=false' \
@@ -374,6 +374,16 @@ for marker in \
   'model_policy_router_android13_arm64_verified=false' \
   'model_policy_router_runtime_wired=false' \
   'provider_invoked=false' \
+  'local_model_provider_verified=true' \
+  'local_model_provider_deadline_verified=true' \
+  'local_model_provider_cancel_verified=true' \
+  'local_model_provider_stream_limit_verified=true' \
+  'local_model_provider_debug_only=true' \
+  'local_model_provider_release_source_absent=true' \
+  'local_model_provider_runtime_wired=false' \
+  'local_model_provider_vendor_npu_fallback_enabled=false' \
+  'local_model_provider_android13_arm64_verified=false' \
+  'production_inference_enabled=false' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
