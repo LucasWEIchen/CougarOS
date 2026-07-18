@@ -1313,3 +1313,10 @@ flowchart LR
   `hardware_accessed=false`、`scenario_execution_enabled=false`、`production_ready=false`、`target_hardware_validated=false`。
 - P4-D4 debug 演示链路已闭合；P8 真实 Vehicle adapter/Driver-HAL、production approval、正式 Client2 artifact 与 P9 目标 owner
   证据继续外部阻塞，不得用本项替代。
+
+## 20. P5 Android physical probe acceptance update
+
+- `P5-W01..P5-W10`：软件状态保持 `DEVELOPED`，Android 13 ARM64 debug probe 子项升级为 `COMPLETE`。
+- 统一验收覆盖 10 个模块，`p5_android13_arm64_probe_acceptance_complete=true`、`p5_probe_module_count=10`。
+- production Tool/Memory composition、跨进程 Runtime、持久化/加密、真实 tokenizer/summarizer、Vehicle/NPU/Driver-HAL 仍未完成。
+- 下一可执行验收包为 P6-W01..W06 Android aggregate probes；production owner 工作继续由 ISSUE-036..046 跟踪。

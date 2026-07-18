@@ -658,3 +658,38 @@ target_hardware_validated=false
 复测时必须通过统一 installer 的 `tool_registry_probe_complete=true`、conflict/highest-version/state-separation/no-fallback/
 health markers，并继续要求 publication/execution/hardware 为 false。该 transport 阻塞不回退 P5-W02 pure-Java 软件合同，
 production publisher/composition 风险由 `DEV-064`、`ISSUE-037` 跟踪。
+
+## 22. 2026-07-18 P5 Tool/Skill/Memory aggregate Android acceptance evidence
+
+ADB transport 恢复后，统一 installer 在 Android API 33 / ARM64 上顺序执行 P5-W01..W10 debug probes，并完成 Runtime/Demo 全安装回归。
+提交证据仅保留布尔/计数 marker，不包含 serial、model、fingerprint、签名材料、raw log、用户/模型文本、memory/token 或车辆 payload。
+
+```text
+device_transport_selected=true
+device_identity_redacted=true
+android_api=33
+device_abi=arm64-v8a
+p5_probe_module_count=10
+p5_android13_arm64_probe_acceptance_complete=true
+tool_manifest_android13_arm64_verified=true
+tool_registry_android13_arm64_verified=true
+tool_rule_solver_android13_arm64_verified=true
+tool_executor_android13_arm64_verified=true
+skill_package_verifier_android13_arm64_verified=true
+working_memory_android13_arm64_verified=true
+profile_memory_android13_arm64_verified=true
+episodic_memory_android13_arm64_verified=true
+context_budget_android13_arm64_verified=true
+memory_consent_android13_arm64_verified=true
+android_runtime_full_install_regression_passed=true
+production_tool_authority_published=false
+production_memory_authority_published=false
+production_runtime_wired=false
+driver_hal_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据仅确认 build-owned debug fixture 在目标 Android ABI/API 上的 contract 行为，不构成 production Tool/Memory authority、Vehicle/NPU/
+Driver-HAL 或目标硬件 qualification。tracking：`DEV-106`、`ISSUE-036..045`。

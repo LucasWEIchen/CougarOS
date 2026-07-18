@@ -1888,3 +1888,16 @@ failure/readback、owner、rollback 与 safety evidence；不得直接复用 deb
 `simulated_scenario_client2_wired=true`、`simulated_scenario_android13_arm64_client_verified=true`、
 `simulated_scenario_hardware_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4e`。
+
+## P5 Android 13 ARM64 aggregate probe Driver/HAL boundary
+
+P5 aggregate acceptance 只启动应用私有 debug Activity；Tool/Skill/Memory 实现只使用 Java/Android application API 和 build-owned fixture。
+installer 不查询 VHAL、CarProperty、Vendor SOA、CAN、PCIe、NPU、native device node 或系统服务私有接口，也不读取设备 model/serial。
+
+因此本轮不新增 Driver/HAL 开发量，`driver_development_triggered=false`、`virtualization_development_triggered=false`。
+真实 Tool/Memory 与 Vehicle/NPU 集成仍必须先取得 P8 capability/property/service/permission/owner/version evidence；只有公开/Vendor API
+明确不足且 gap 经评审后，才能新增最小 Driver/HAL 工作包。
+
+当前 `p5_android13_arm64_probe_acceptance_complete=true`、`device_identity_redacted=true`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_tool_authority_published=false`、
+`production_memory_authority_published=false`、`production_ready=false`、`target_hardware_validated=false`。

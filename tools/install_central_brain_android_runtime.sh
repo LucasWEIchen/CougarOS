@@ -94,7 +94,6 @@ fi
 
 SDK="$("${ADB_DEVICE[@]}" shell getprop ro.build.version.sdk | tr -d '\r')"
 ABI="$("${ADB_DEVICE[@]}" shell getprop ro.product.cpu.abi | tr -d '\r')"
-MODEL="$("${ADB_DEVICE[@]}" shell getprop ro.product.model | tr -d '\r')"
 if [[ ! "$SDK" =~ ^[0-9]+$ ]] || ((SDK < 33)); then
   echo "Android API 33 or newer is required; device reported '$SDK'" >&2
   exit 1
@@ -2881,6 +2880,13 @@ if [[ "$GRAPH_RESTART_REPLAY_PASSED" != true ]]; then
   exit 1
 fi
 
+# Client2's renderer can fill logcat fast enough to evict the caller-identity
+# evidence below. Start the Demo acceptance from a controlled process/log window.
+"${ADB_DEVICE[@]}" shell am force-stop com.tuanjie.urasclient2
+"${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.demo
+"${ADB_DEVICE[@]}" shell am force-stop com.centralbrain.runtime
+"${ADB_DEVICE[@]}" logcat -c
+
 DEMO_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W -n com.centralbrain.demo/.DemoActivity)"
 if ! grep -Fq "Status: ok" <<<"$DEMO_OUTPUT"; then
   echo "$DEMO_OUTPUT" >&2
@@ -4119,8 +4125,8 @@ if [[ "$SDK" == "33" ]]; then
 fi
 
 printf '%s\n' \
-  "device_serial=$SERIAL" \
-  "device_model=$MODEL" \
+  "device_transport_selected=true" \
+  "device_identity_redacted=true" \
   "android_api=$SDK" \
   "device_abi=$ABI" \
   "runtime_service_running=true" \
@@ -4999,4 +5005,5 @@ printf '%s\n' \
   "r4_durable_workflow_exit_criteria_met=$API_33_EXIT" \
   "hardware_accessed=false" \
   "driver_development_triggered=false" \
-  "virtualization_development_triggered=false"
+  "virtualization_development_triggered=false" \
+  "android_runtime_full_install_regression_passed=true"

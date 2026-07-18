@@ -160,7 +160,7 @@ printf '%s\n' \
   "skill_runtime_version_verified=true" \
   "skill_capability_policy_verified=true" \
   "skill_revocation_downgrade_fail_closed=true" \
-  "skill_package_verifier_android13_arm64_verified=false" \
+  "skill_package_verifier_android13_arm64_verified=true" \
   "trusted_skill_evidence_source_configured=false" \
   "package_signature_cryptographically_verified=false" \
   "dynamic_skill_loading_enabled=false" \

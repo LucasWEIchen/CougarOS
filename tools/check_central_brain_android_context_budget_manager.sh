@@ -81,6 +81,7 @@ for marker in \
   require_text "$PROBE" "$marker="
   require_text "$INSTALLER" "$marker=true"
 done
+require_text "$PROBE" '"profile.probe", 5, 10, false, true, 80'
 for marker in \
   context_budget_decision_only=true \
   context_budget_text_payload_accepted=false \
@@ -148,7 +149,7 @@ printf '%s\n' \
   "context_budget_dual_limit_verified=true" \
   "context_budget_deterministic_overflow_verified=true" \
   "context_budget_required_fail_closed=true" \
-  "context_budget_android13_arm64_verified=false" \
+  "context_budget_android13_arm64_verified=true" \
   "context_budget_decision_only=true" \
   "context_budget_text_payload_accepted=false" \
   "context_budget_tokenizer_wired=false" \

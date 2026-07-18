@@ -2707,3 +2707,18 @@ Partial 4/2；批准/拒绝输入总数 2；Intent/Context/Plan/Policy/Graph/Eff
 `target_hardware_validated=false`、`implementation_stage=P4-D4e`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
 `S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`、
 `DEL-001/003/004/005`；tracking：`DEV-105`、`ISSUE-033`。
+
+## 2026-07-18 P5 Android 13 ARM64 Tool/Skill/Memory probe acceptance
+
+- 机器合同：`central-brain/contracts/central_brain_android_p5_physical_acceptance.json`。
+- 设备命令：`bash tools/install_central_brain_android_runtime.sh --skip-build --require-api-33`。
+- 覆盖：P5-W01..W10 共 10 个 Tool/Skill/Memory debug Activity，以及 Runtime/Demo 完整安装回归。
+- 结果：API 33、ARM64、十个 completion/functional marker 和 false-authority marker 全部通过。
+- 隐私：只交付 `device_transport_selected=true`、`device_identity_redacted=true`；不交付 raw device identity 或 payload。
+- 非声明：不交付 production Tool/Memory authority、Runtime composition、Vehicle/NPU/Driver-HAL、量产 release 或目标硬件资格。
+
+当前 `p5_android13_arm64_probe_acceptance_complete=true`、`p5_probe_module_count=10`、
+`production_tool_authority_published=false`、`production_memory_authority_published=false`、
+`production_runtime_wired=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-TOL-001`、`S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、
+`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、`ISSUE-036..045`。

@@ -161,7 +161,7 @@ printf '%s\n' \
   "profile_memory_consent_revocation_fail_closed=true" \
   "profile_memory_encryption_owner_gate_verified=true" \
   "profile_memory_sealed_payload_zeroized=true" \
-  "profile_memory_android13_arm64_verified=false" \
+  "profile_memory_android13_arm64_verified=true" \
   "profile_memory_process_local=true" \
   "profile_memory_durable_storage_wired=false" \
   "profile_memory_production_encryption_owner_configured=false" \

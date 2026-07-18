@@ -140,7 +140,7 @@ printf '%s\n' \
   "working_memory_token_limit_verified=true" \
   "working_memory_terminal_cleanup_verified=true" \
   "working_memory_payload_zeroized_on_cleanup=true" \
-  "working_memory_android13_arm64_verified=false" \
+  "working_memory_android13_arm64_verified=true" \
   "working_memory_process_local=true" \
   "working_memory_persistence_wired=false" \
   "working_memory_runtime_wired=false" \

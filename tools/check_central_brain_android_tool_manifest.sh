@@ -135,7 +135,7 @@ printf '%s\n' \
   "tool_manifest_contract_digest_verified=true" \
   "tool_schema_exact_scalar_validation_verified=true" \
   "tool_manifest_health_fail_closed=true" \
-  "tool_manifest_android13_arm64_verified=false" \
+  "tool_manifest_android13_arm64_verified=true" \
   "tool_registry_published=false" \
   "tool_resolver_published=false" \
   "tool_execution_enabled=false" \
