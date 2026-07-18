@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "centralbrain.model.scenario-output.v1",
+  "title": "Central Brain Structured Scenario Candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "scenarioId", "parameters", "summary"],
+  "properties": {
+    "schemaVersion": {"type": "integer", "const": 1},
+    "scenarioId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[.][a-z0-9][a-z0-9_-]*){2,7}$",
+      "maxLength": 96
+    },
+    "parameters": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capabilityId", "area", "value"],
+        "properties": {
+          "capabilityId": {"type": "string", "maxLength": 96},
+          "area": {"type": "string", "maxLength": 32},
+          "value": {"type": ["boolean", "integer", "number", "string"]}
+        }
+      }
+    },
+    "summary": {"type": "string", "minLength": 1, "maxLength": 256}
+  }
+}
