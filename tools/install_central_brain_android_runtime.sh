@@ -3251,6 +3251,61 @@ if [[ "$MEMORY_CONSENT_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+EVENT_BROKER_NONCE="$(date +%s%N)"
+EVENT_BROKER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.events.EventBrokerProbeActivity \
+  --es nonce "$EVENT_BROKER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$EVENT_BROKER_PROBE_OUTPUT"; then
+  echo "$EVENT_BROKER_PROBE_OUTPUT" >&2
+  echo "Event Broker debug probe did not start successfully" >&2
+  exit 1
+fi
+EVENT_BROKER_PROBE_PASSED=false
+for _ in {1..40}; do
+  EVENT_BROKER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbEventBroker:I)"
+  if grep -Fq \
+      "nonce=$EVENT_BROKER_NONCE event_broker_probe_complete=true" \
+      <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_typed_topics_verified=true" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_append_before_notify_verified=true" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_bounded_replay_filter_verified=true" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_identity_policy_verified=true" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_subscription_lifecycle_verified=true" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_android13_arm64_verified=true" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_process_local=true" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_durable_persistence_wired=false" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_dds_transport_wired=false" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_production_published=false" \
+        <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "event_broker_runtime_wired=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "production_ready=false" <<<"$EVENT_BROKER_LOG" \
+      && grep -Fq "target_hardware_validated=false" <<<"$EVENT_BROKER_LOG"; then
+    EVENT_BROKER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$EVENT_BROKER_PROBE_PASSED" != true ]]; then
+  echo "$EVENT_BROKER_LOG" >&2
+  echo "Event Broker probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3917,6 +3972,18 @@ printf '%s\n' \
   "memory_consent_runtime_wired=false" \
   "memory_consent_model_context_published=false" \
   "memory_consent_content_logged=false" \
+  "event_broker_interface_defined=true" \
+  "event_broker_typed_topics_verified=true" \
+  "event_broker_append_before_notify_verified=true" \
+  "event_broker_bounded_replay_filter_verified=true" \
+  "event_broker_identity_policy_verified=true" \
+  "event_broker_subscription_lifecycle_verified=true" \
+  "event_broker_android13_arm64_verified=true" \
+  "event_broker_process_local=true" \
+  "event_broker_durable_persistence_wired=false" \
+  "event_broker_dds_transport_wired=false" \
+  "event_broker_production_published=false" \
+  "event_broker_runtime_wired=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \
