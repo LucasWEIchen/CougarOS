@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W06`。
+`implementation_stage=P7-W01`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 
 ## 49. P4-W08 driving restriction renderer trace
@@ -1404,7 +1404,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 50. P4-W09 engineer simulation drawer trace
 
@@ -1433,7 +1433,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W06`。
+`implementation_stage=P7-W01`。
 
 ## 51. P4-W10 scenario/manual-control synchronization trace
 
@@ -1462,7 +1462,39 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`cockpit_scenario_effect_dispatch_enabled=false`、
 `cockpit_scenario_readback_available=false`、`scenario_execution_enabled=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`target_hardware_validated=false`、`implementation_stage=P7-W01`。
+
+## 69. P6-W06 Active suggestion UX trace
+
+本增量映射 `S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. `ActiveSuggestionController` 必须固定 schema V1、16 条 active、64 条 replay、64 个 never-ask scope、5 分钟有效期和
+   24 小时 cooldown 上限；容量满不得静默驱逐 active suggestion。
+2. candidate 只接受 canonical suggestion/scenario/zone ID、lowercase SHA-256 owner/payload/evidence、fixed `ReasonCode`、
+   monotonic observed/expiry 与 bounded cooldown；不得接受用户/模型自由文本、任意 map/byte payload 或 executable action。
+3. merge key 必须是 owner+scenario+zone。重复 scope 合并 count、取最高 priority reason 和最大 expiry/cooldown；不同 scope 不得合并。
+4. suggestion ID exact replay 必须不改变 state；相同 ID 不同 payload/fields 必须返回 conflict。future、expired、capacity、cooldown 和
+   never-ask suppression 必须显式返回 code。
+5. dismiss 在 PARKED/MOVING/UNKNOWN 均可用，并为 merge scope 建立 process-local cooldown；cooldown 内新 suggestion 必须显式 suppress。
+6. “不再询问”只能在 PARKED 生效，按 owner+scenario+zone 隔离并移除 active；MOVING/UNKNOWN 必须在 mutation 前拒绝。
+7. PARKED snapshot 必须为 `FULL_CARD`，展示固定 why key、plan key、merge count、cooldown 和 REVIEW/DISMISS/NEVER_ASK。
+8. MOVING 与 UNKNOWN 必须保守地使用 `MINIMAL_BANNER`，只显示最高优先级一条和 DISMISS；复杂 why/review/never-ask 隐藏。
+9. minimal voice 只能输出固定 projection key；`isVoiceSynthesisRequested=false`，不得启动 TTS/audio 或记录话术。
+10. `neverAsk` 只更新进程内 preference projection，`isPreferencePersisted=false`；HMI 不得宣称已经持久化或跨重启生效。
+11. suggestion card 不得授权 scenario、approval、Graph 或 Effect。production source/Trigger/Graph/Effect/voice/persistence/hardware flags 必须 false。
+12. debug `ActiveSuggestionHmiActivity` 必须是 DUMP-protected、release manifest absent、响应式右侧半透明浮层；自动探针只输出 boolean。
+13. JVM 必须覆盖 full card、merge/replay、never-ask、moving/unknown、expiry/cooldown/conflict/capacity 和 false boundaries；
+    debug/release 必须编译同一 main controller。
+14. Android 13 ARM64 probe 未实际通过前 `active_suggestion_android13_arm64_verified=false`；即使通过也只证明 UX policy/projection，
+    不证明 Client2 production integration、自动编排、车控、模型/NPU 或目标硬件资格。
+
+状态：`active_suggestion_controller_defined=true`、`active_suggestion_full_card_verified=true`、
+`active_suggestion_merge_replay_verified=true`、`active_suggestion_moving_minimal_verified=true`、
+`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=false`、
+`active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
+`active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
+`trigger_engine_wired=false`、`graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 68. P6-W05 Context source adapters trace
 
@@ -1501,7 +1533,7 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。tracking：`DEV-076`、`ISSUE-031`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。tracking：`DEV-076`、`ISSUE-031`。
 
 ## 67. P6-W04 Proactive consent/policy trace
 
@@ -1536,7 +1568,7 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W06`。tracking：`DEV-075`、`ISSUE-031`。
+`target_hardware_validated=false`、`implementation_stage=P7-W01`。tracking：`DEV-075`、`ISSUE-031`。
 
 ## 66. P6-W03 TriggerRule manifest/engine trace
 
@@ -1570,7 +1602,7 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 52. P4-W11 accessibility/display matrix trace
 
@@ -1598,7 +1630,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、
 `cockpit_accessibility_state_not_color_only=true`、`cockpit_display_large_text_1_3_verified=true`、
 `cockpit_display_unsupported_fail_closed=true`、`cockpit_display_matrix_android13_arm64_verified=true`、
 `cockpit_display_effect_authorization_source=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 53. P4-W12 Android device acceptance/fault/recovery trace
 
@@ -1631,7 +1663,7 @@ Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`
 `p4_approval_response_service_published=false`、`p4_undo_service_published=false`、
 `p4_vehicle_readback_available=false`、`client2_production_release_artifact_available=false`、
 `hmi_d4_demo_control_loop_complete=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W06`。
+`implementation_stage=P7-W01`。
 
 ## 54. P5-W01 Tool Manifest/Schema trace
 
@@ -1661,7 +1693,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 55. P5-W02 Tool Registry/Resolver trace
 
@@ -1693,7 +1725,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_registry_android13_arm64_verified=false`、`tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 56. P5-W03 Tool RuleSolver trace
 
@@ -1727,7 +1759,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、`tool_execution_enabled=false`、
 `production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W06`。
+`implementation_stage=P7-W01`。
 
 
 ## 57. P5-W04 Tool Executor boundary trace
@@ -1764,7 +1796,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_executor_audit_bounded_verified=true`、`tool_executor_android13_arm64_verified=false`、
 `tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
 `production_tool_registered=false`、`os_virtualization_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 58. P5-W05 Skill package verifier trace
 
@@ -1802,7 +1834,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-008`、`DEL-001/004
 `skill_revocation_downgrade_fail_closed=true`、`skill_package_verifier_android13_arm64_verified=false`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 59. P5-W06 WorkingMemoryStore trace
 
@@ -1841,7 +1873,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 60. P5-W07 ProfileMemoryStore trace
 
@@ -1881,7 +1913,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 61. P5-W08 EpisodicMemoryStore trace
 
@@ -1926,7 +1958,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `episodic_memory_production_policy_authority_wired=false`、`episodic_memory_production_read_authority_wired=false`、
 `episodic_memory_production_erase_authority_wired=false`、
 `episodic_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 62. P5-W09 ContextBudgetManager trace
 
@@ -1965,7 +1997,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
 `context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
 `context_budget_content_logged=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 
 ## 63. P5-W10 Memory consent HMI/API trace
@@ -2002,7 +2034,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
 `memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
 `memory_consent_model_context_published=false`、`memory_consent_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 64. P6-W01 EventBroker interface/in-process implementation trace
 
@@ -2042,7 +2074,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-W01`。
 
 ## 65. P6-W02 Backpressure/QoS trace
 
@@ -2080,4 +2112,4 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W06`。
+`target_hardware_validated=false`、`implementation_stage=P7-W01`。

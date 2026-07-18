@@ -3522,6 +3522,63 @@ if [[ "$CONTEXT_SOURCE_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+ACTIVE_SUGGESTION_NONCE="$(date +%s%N)"
+ACTIVE_SUGGESTION_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.suggestion.ActiveSuggestionHmiActivity \
+  --ez automated true \
+  --es nonce "$ACTIVE_SUGGESTION_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$ACTIVE_SUGGESTION_PROBE_OUTPUT"; then
+  echo "$ACTIVE_SUGGESTION_PROBE_OUTPUT" >&2
+  echo "Active suggestion UX debug probe did not start successfully" >&2
+  exit 1
+fi
+ACTIVE_SUGGESTION_PROBE_PASSED=false
+for _ in {1..40}; do
+  ACTIVE_SUGGESTION_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbActiveSuggestion:I)"
+  if grep -Fq \
+      "nonce=$ACTIVE_SUGGESTION_NONCE active_suggestion_hmi_probe_complete=true" \
+      <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_full_card_verified=true" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_merge_replay_verified=true" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_moving_minimal_verified=true" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_never_ask_verified=true" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_android13_arm64_verified=true" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_hmi_projection_only=true" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_production_source_wired=false" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_preference_repository_wired=false" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "active_suggestion_voice_engine_wired=false" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "trigger_engine_wired=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" \
+        <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "production_ready=false" <<<"$ACTIVE_SUGGESTION_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$ACTIVE_SUGGESTION_LOG"; then
+    ACTIVE_SUGGESTION_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$ACTIVE_SUGGESTION_PROBE_PASSED" != true ]]; then
+  echo "$ACTIVE_SUGGESTION_LOG" >&2
+  echo "Active suggestion UX probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3593,6 +3650,16 @@ printf '%s\n' \
   "context_source_production_registry_published=false" \
   "context_source_runtime_wired=false" \
   "context_source_trigger_engine_wired=false" \
+  "active_suggestion_controller_defined=true" \
+  "active_suggestion_full_card_verified=true" \
+  "active_suggestion_merge_replay_verified=true" \
+  "active_suggestion_moving_minimal_verified=true" \
+  "active_suggestion_never_ask_verified=true" \
+  "active_suggestion_android13_arm64_verified=true" \
+  "active_suggestion_hmi_projection_only=true" \
+  "active_suggestion_production_source_wired=false" \
+  "active_suggestion_preference_repository_wired=false" \
+  "active_suggestion_voice_engine_wired=false" \
   "scenario_manifest_schema_version=1" \
   "scenario_catalog_count=3" \
   "scenario_manifest_android13_arm64_verified=true" \
