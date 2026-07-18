@@ -1548,3 +1548,17 @@ policy 缺口；21-key 日志同样不是合规审计持久化或法律证据。
 `privacy_repository_mutation_wired=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。
+## DEV-094 P9-W05a contract admission is not a production release
+
+W05a 用 synthetic digest/metadata fixture 证明 exact package set、same-signer/cohort、version/schema、migration 与 rollback gate 可达。
+它不测量真实 APK signer，不验证证书链/轮换历史，不生成或持有私钥，不调用 OTA/MDM，也不执行升级或 rollback。
+
+仓库 JSON 的 owner evidence 均为 null，当前 APK class 仍是 debug；JVM `ADMITTED` 只表示一组完整 synthetic 输入满足静态规则，不能
+提升 `production_signer_owner_approved`、`production_release_candidate_admitted`、Android target 或 production readiness。
+
+状态：`Accepted Temporary`。关闭条件是 ISSUE-052 获得命名 production signer/release/rollback owner、受控 signer measurement、正式
+release/source/archive、Room migration/rollback compatibility evidence，并在目标 Android 13 上完成 same-signer upgrade 与 rollback
+rehearsal。当前 `production_signer_owner_approved=false`、`production_release_candidate_admitted=false`、
+`release_installer_wired=false`、`release_rollback_executor_wired=false`、
+`release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W05`。

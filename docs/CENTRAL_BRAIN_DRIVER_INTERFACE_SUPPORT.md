@@ -1702,3 +1702,15 @@ W04c 只使用 Android app debug Activity、`android.permission.DUMP` 和 Log AP
 `privacy_repository_mutation_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、
 `DEL-001/004/005`；tracking：`DEV-093`、`ISSUE-051`。
+## P9-W05a Production Release Admission Driver/HAL Boundary
+
+W05a 是应用层纯 Java metadata validator，不调用 PackageManager、keystore、Room、ADB、Vendor service、CarProperty、设备节点、网络、
+NPU、Driver/HAL，也不修改系统镜像/SELinux。Signer/artifact/source/archive 均只作为调用方提供的 SHA-256 metadata，不读取证书或 APK。
+
+未来 production signer measurement 和 OTA/MDM installer 优先使用 Android 标准 package/signing API 与 OEM 已发布管理接口。只有 owner
+确认公开 surface 无法满足且给出最小接口合同后，才评估系统/Driver 缺口；本增量不触发。当前
+`driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`production_signer_owner_approved=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
+`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。

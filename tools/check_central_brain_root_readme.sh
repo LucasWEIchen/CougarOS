@@ -761,15 +761,18 @@ if "P9 Privacy Policy Admission" not in developed:
     raise SystemExit("README developed table must include the completed P9-W04b policy admission")
 if "P9 Privacy Redaction/Audit Probe" not in developed:
     raise SystemExit("README developed table must include the completed P9-W04c redacted probe")
+if "P9 Production Release Admission" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W05a release admission")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
     or "P9-W03 Security review/fuzz" not in remaining
     or "目标 Android probe" not in remaining
     or "P9-W04 Privacy/data lifecycle" not in remaining
-    or "下一软件增量为 P9-W05" not in readme
+    or "P9-W05 Production release" not in remaining
+    or "下一软件增量为 P9-W05b" not in readme
 ):
-    raise SystemExit("README must keep target evidence and privacy lifecycle gaps open and identify P9-W05 as the next software scope")
+    raise SystemExit("README must keep target evidence and P9 owner gaps open and identify P9-W05b as the next software scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:

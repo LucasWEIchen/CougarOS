@@ -2508,3 +2508,25 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
 `privacy_runtime_lifecycle_wiring_complete=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091/092/093`、`ISSUE-051`。
+
+## 86. P9-W05a production release admission trace
+
+本增量映射 `S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. 固定 Runtime/Demo/Client2 三 APK package set、name/order，并把当前 Gradle versionCode 与 Runtime Room v4 纳入 checker。
+2. Installed/candidate 必须各自绑定 release/source/archive 与每包 artifact/signer digest；逐包 signer 必须相同，candidate 三包
+   必须形成单一 signer cohort。
+3. Upgrade release sequence 严格递增；逐包 versionCode 不下降且至少一个增加；candidate 必须能读 installed DB，schema 不下降，
+   schema 增加必须绑定 migration evidence。
+4. Rollback release sequence 严格递减；逐包 versionCode 不上升且至少一个下降；必须绑定独立 rollback owner/decision/data
+   compatibility evidence，target Runtime 必须能读当前 installed DB，禁止 destructive DB downgrade。
+5. Production signer owner 与 release owner evidence 缺失时失败关闭；合同不接受 APK/certificate bytes，不读取 PackageManager/
+   keystore/Room，不安装/卸载或执行 rollback。
+6. 当前 production owner 输入与 Android 13 target evidence 未取得；synthetic JVM fixture 不是量产 release evidence。
+
+状态：`production_release_admission_defined=true`、`release_package_set_count=3`、
+`same_signer_upgrade_fail_closed=true`、`release_database_compatibility_fail_closed=true`、
+`release_rollback_decision_fail_closed=true`、`production_signer_owner_approved=false`、
+`production_release_candidate_admitted=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。

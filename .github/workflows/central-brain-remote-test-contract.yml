@@ -119,4 +119,5 @@ jobs:
           bash tools/check_central_brain_android_privacy_data_inventory.sh
           bash tools/check_central_brain_android_privacy_policy_admission.sh
           bash tools/check_central_brain_android_privacy_redaction_audit.sh
+          bash tools/check_central_brain_android_production_release_admission.sh
           bash tools/check_central_brain_root_readme.sh
