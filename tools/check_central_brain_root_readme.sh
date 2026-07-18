@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P7-W01' \
+  'implementation_stage=P7-W02' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -346,6 +346,15 @@ for marker in \
   'active_suggestion_production_source_wired=false' \
   'active_suggestion_preference_repository_wired=false' \
   'active_suggestion_voice_engine_wired=false' \
+  'model_contract_v2_defined=true' \
+  'model_request_v2_fields_verified=true' \
+  'model_result_v2_binding_verified=true' \
+  'model_privacy_fallback_fail_closed=true' \
+  'model_raw_content_accepted=false' \
+  'model_provider_registry_wired=false' \
+  'model_policy_router_wired=false' \
+  'model_contract_v2_android13_arm64_verified=false' \
+  'model_invoked=false' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
@@ -651,8 +660,8 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P7-W01" not in remaining or "ModelRequest/Result v2" not in remaining:
-    raise SystemExit("README remaining-work table must identify P7-W01 ModelRequest/Result v2 as the next unfinished scope")
+if "P7-W02" not in remaining or "Model Runtime production" not in remaining:
+    raise SystemExit("README remaining-work table must identify P7-W02 ModelProviderRegistry/health as the next unfinished scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:
@@ -665,6 +674,8 @@ if "P6 Context source adapters" not in developed:
     raise SystemExit("README developed table must include the completed P6-W05 Context source adapters")
 if "P6 Active suggestion UX" not in developed:
     raise SystemExit("README developed table must include the completed P6-W06 Active suggestion UX")
+if "P7 ModelRequest/Result v2" not in developed:
+    raise SystemExit("README developed table must include the completed P7-W01 ModelRequest/Result v2")
 if "P5 Tool Executor boundary" not in developed:
     raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
 if "P5 Skill package verifier" not in developed:

@@ -103,4 +103,5 @@ jobs:
           bash tools/check_central_brain_android_proactive_consent_policy.sh
           bash tools/check_central_brain_android_context_source_adapters.sh
           bash tools/check_central_brain_android_active_suggestion_ux.sh
+          bash tools/check_central_brain_android_model_contract_v2.sh
           bash tools/check_central_brain_root_readme.sh
