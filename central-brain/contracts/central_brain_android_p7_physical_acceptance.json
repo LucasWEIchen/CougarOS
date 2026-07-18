@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "acceptance_id": "android-p7-model-runtime-evaluation-device-probe-acceptance",
+  "status": "verified",
+  "evidence_scope": "android13-arm64-debug-application-probes",
+  "required_android_api": 33,
+  "required_abi": "arm64-v8a",
+  "req_ids": [
+    "S2-MDL-001",
+    "S2-SAF-001",
+    "S2-OBS-001",
+    "NV-G-004",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "test_command": "bash tools/install_central_brain_android_runtime.sh --skip-build --require-api-33",
+  "probe_modules": [
+    {
+      "work_package": "P7-W01",
+      "marker": "model_contract_v2_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P7-W02",
+      "marker": "model_provider_registry_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P7-W03",
+      "marker": "model_policy_router_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P7-W04",
+      "marker": "local_model_provider_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P7-W05",
+      "marker": "structured_model_output_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P7-W06",
+      "marker": "scenario_evaluation_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P7-W07",
+      "marker": "model_resource_admission_android13_arm64_verified=true"
+    }
+  ],
+  "claim_state": {
+    "p7_probe_module_count": 7,
+    "p7_android13_arm64_probe_acceptance_complete": true,
+    "android_runtime_full_install_regression_passed": true,
+    "device_identity_redacted": true,
+    "debug_probe_only": true,
+    "production_model_provider_published": false,
+    "production_model_router_wired": false,
+    "production_inference_enabled": false,
+    "production_model_output_runtime_wired": false,
+    "production_evaluation_authority_published": false,
+    "production_resource_snapshot_provider_wired": false,
+    "production_runtime_wired": false,
+    "provider_invoked": false,
+    "model_invoked": false,
+    "network_accessed": false,
+    "npu_accessed": false,
+    "vehicle_accessed": false,
+    "driver_hal_accessed": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  },
+  "non_claims": [
+    "production model Provider Router inference or Runtime composition",
+    "real prompt model output evaluation quality or resource telemetry authority",
+    "network cloud model vendor NPU vehicle Driver HAL or hardware integration",
+    "production release qualification or target hardware validation"
+  ]
+}

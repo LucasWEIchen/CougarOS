@@ -2224,11 +2224,11 @@ API 33 ARM64 debug probe 已安装执行并通过；结果不构成 production o
 usage/state/detail invariant 和 no-action-authority。它不证明 Provider registry、routing、模型输出质量、schema validation、NPU、网络或
 车辆动作。
 
-实体 probe 只在 exactly one online Android 13 ARM64 transport 时运行。否则保持：
+实体 probe 已在 exactly one online Android 13 ARM64 transport 上运行通过；当前状态：
 `model_contract_v2_defined=true`、`model_request_v2_fields_verified=true`、
 `model_result_v2_binding_verified=true`、`model_privacy_fallback_fail_closed=true`、
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
-`model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
+`model_contract_v2_android13_arm64_verified=true`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-078`、`ISSUE-024/044`。
@@ -2241,11 +2241,11 @@ tracking：`DEV-078`、`ISSUE-024/044`。
 软件验收证明 fixed four-provider catalog、immutable capability、health source/revision/freshness、replay/conflict 和
 test/development/production readiness 分离。它不证明 provider implementation、生产 health authority、routing、模型/NPU/network 或硬件。
 
-实体 probe 未通过前状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+实体 probe 已通过；只证明 Registry metadata contract。状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
-`model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
+`model_provider_registry_android13_arm64_verified=true`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
@@ -2260,10 +2260,10 @@ tracking：`DEV-079`、`ISSUE-024`。
 request/registry/policy binding、最多 1 个 fallback 和 no-action-authority。它不证明 production policy/health producer、Provider
 implementation、模型质量、推理、真实网络/NPU/热/配额/车辆硬件或 Runtime composition。
 
-实体 probe 未通过前状态：`model_policy_router_defined=true`、
+实体 probe 已通过；只证明 route admission metadata。状态：`model_policy_router_defined=true`、
 `model_policy_router_privacy_network_thermal_verified=true`、
 `model_policy_router_latency_capability_quota_verified=true`、`model_policy_router_fallback_bounded=true`、
-`model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=false`、
+`model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=true`、
 `model_policy_router_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
@@ -2279,12 +2279,12 @@ main source 获取该类，release manifest 不含 probe。
 projection、absolute/instance limits、typed terminal/fault、bounded metadata history，以及 DEVELOPMENT/PRODUCTION 分离。它不证明 prompt/
 output schema、模型质量、tokenization、生产 health/policy owner、Runtime dispatch、Vendor NPU、网络、热资源或目标性能。
 
-实体 probe 未通过前状态：`local_model_provider_verified=true`、`local_model_provider_lifecycle_verified=true`、
+实体 probe 已通过；只证明 debug injected engine。状态：`local_model_provider_verified=true`、`local_model_provider_lifecycle_verified=true`、
 `local_model_provider_deadline_verified=true`、`local_model_provider_cancel_verified=true`、
 `local_model_provider_stream_limit_verified=true`、`local_model_provider_overflow_rejected=true`、
 `local_model_provider_debug_only=true`、`local_model_provider_release_source_absent=true`、
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
-`local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`raw_model_content_logged=false`、
+`local_model_provider_android13_arm64_verified=true`、`production_inference_enabled=false`、`raw_model_content_logged=false`、
 `network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、
 `S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-081`、`ISSUE-024`。
@@ -2298,9 +2298,9 @@ output schema、模型质量、tokenization、生产 health/policy owner、Runti
 typed value/area/range/step、duplicate/size/summary bound、canonical digest 与 no-action-authority。它不证明真实模型调用、prompt quality、
 repair/fallback、evaluation quality、Runtime composition、Vendor NPU、车辆动作或目标性能。
 
-实体 probe 未通过前状态：`structured_model_output_verified=true`、`model_output_catalog_binding_verified=true`、
+实体 probe 已通过；只证明 strict validator。状态：`structured_model_output_verified=true`、`model_output_catalog_binding_verified=true`、
 `model_output_unknown_capability_rejected=true`、`model_output_no_action_authority=true`、
-`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=false`、
+`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=true`、
 `model_invoked=false`、`raw_model_content_logged=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
@@ -2315,12 +2315,10 @@ tracking：`DEV-082`、`ISSUE-024`。
 latency、token cost、fallback 分类和 budget/revision fail-closed。它不证明真实模型调用、生产数据集代表性、tokenizer/计费准确性、
 Runtime composition、Vendor NPU、车辆动作或目标性能。
 
-本轮 ADB 脱敏复核为 `online=0/offline=1/unauthorized=0/other=0`；没有读取设备身份或日志，也没有安装/运行 probe。
-
-实体 probe 未通过前状态：`scenario_evaluation_verified=true`、`evaluation_corpus_verified=true`、
+实体 probe 已通过；只证明 fixed synthetic evaluation。状态：`scenario_evaluation_verified=true`、`evaluation_corpus_verified=true`、
 `evaluation_metrics_verified=true`、`evaluation_boundary_verified=true`、`evaluation_case_count=12`、
 `scenario_evaluation_runtime_wired=false`、`raw_evaluation_content_logged=false`、
-`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
+`scenario_evaluation_android13_arm64_verified=true`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-083`、`ISSUE-024`。
 
@@ -2334,12 +2332,10 @@ ELEVATED/CONSTRAINED compact budget、HOT minimal safety、UNKNOWN/CRITICAL/EXHA
 projection 和 no-authority。它不证明真实 thermal/resource producer、Provider/model invocation、Runtime composition、Vendor NPU、车辆动作
 或目标性能。
 
-本轮 ADB 脱敏复核为 `online=0/offline=1/unauthorized=0/other=0`；没有读取设备身份或日志，也没有安装/运行 probe。
-
-实体 probe 未通过前状态：`model_resource_admission_verified=true`、`foreground_vehicle_priority_verified=true`、
+实体 probe 已通过；只证明 fixture-owned resource admission。状态：`model_resource_admission_verified=true`、`foreground_vehicle_priority_verified=true`、
 `thermal_degradation_verified=true`、`thermal_resource_fail_closed_verified=true`、
 `admission_boundary_verified=true`、`resource_admission_runtime_wired=false`、
-`resource_snapshot_producer_wired=false`、`model_resource_admission_android13_arm64_verified=false`、
+`resource_snapshot_producer_wired=false`、`model_resource_admission_android13_arm64_verified=true`、
 `provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、
@@ -2740,3 +2736,21 @@ Partial 4/2；批准/拒绝输入总数 2；Intent/Context/Plan/Policy/Graph/Eff
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-EVT-001`、
 `S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、`S2-OBS-001`、
 `DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。
+
+## 2026-07-18 P7 Android 13 ARM64 Model/Router/Evaluation probe acceptance
+
+- 机器合同：`central-brain/contracts/central_brain_android_p7_physical_acceptance.json`。
+- 设备命令：`bash tools/install_central_brain_android_runtime.sh --skip-build --require-api-33`。
+- 覆盖：P7-W01..W07 共 7 个 model contract/registry/router/provider/output/evaluation/resource debug Activity，以及完整安装回归。
+- 结果：API 33、ARM64、七个 completion/functional marker 和 false-authority marker 全部通过。
+- 隐私：只交付 identity-redacted boolean/count/schema；不交付 prompt、model output、evaluation content 或设备/车辆 payload。
+- 非声明：不交付 production Provider/Router/inference/Runtime、真实 evaluation/resource authority、network/NPU/Vehicle/Driver-HAL、
+  量产 release 或目标硬件资格。
+
+当前 `p7_android13_arm64_probe_acceptance_complete=true`、`p7_probe_module_count=7`、
+`production_model_provider_published=false`、`production_model_router_wired=false`、`production_inference_enabled=false`、
+`production_model_output_runtime_wired=false`、`production_evaluation_authority_published=false`、
+`production_resource_snapshot_provider_wired=false`、`production_runtime_wired=false`、`provider_invoked=false`、
+`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、`driver_hal_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-MDL-001`、
+`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：`DEV-108`、`ISSUE-024/044`。

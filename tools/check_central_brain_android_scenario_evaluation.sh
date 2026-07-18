@@ -142,7 +142,7 @@ printf '%s\n' \
   "fallback_rate_permille=0" \
   "scenario_evaluation_runtime_wired=false" \
   "raw_evaluation_content_logged=false" \
-  "scenario_evaluation_android13_arm64_verified=false" \
+  "scenario_evaluation_android13_arm64_verified=true" \
   "model_invoked=false" \
   "network_accessed=false" \
   "npu_accessed=false" \

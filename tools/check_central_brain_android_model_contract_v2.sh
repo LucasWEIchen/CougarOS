@@ -133,7 +133,7 @@ printf '%s\n' \
   "model_raw_content_accepted=false" \
   "model_provider_registry_wired=false" \
   "model_policy_router_wired=false" \
-  "model_contract_v2_android13_arm64_verified=false" \
+  "model_contract_v2_android13_arm64_verified=true" \
   "model_invoked=false" \
   "npu_accessed=false" \
   "hardware_accessed=false" \

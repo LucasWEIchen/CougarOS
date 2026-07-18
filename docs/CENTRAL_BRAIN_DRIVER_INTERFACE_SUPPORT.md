@@ -1460,7 +1460,7 @@ Vendor SOA/Binder 或 network。
 empty/test placeholder；只有取得 Vendor SDK/ABI、模型 artifact 格式、buffer ownership/alignment、cancel/deadline、fault/thermal/power
 和目标性能证据后，才允许在 `ISSUE-024` 下评估最小 C/JNI/Driver-HAL gap。
 
-状态：`model_contract_v2_defined=true`、`model_contract_v2_android13_arm64_verified=false`、
+状态：`model_contract_v2_defined=true`、`model_contract_v2_android13_arm64_verified=true`、
 `model_provider_registry_wired=false`、`model_policy_router_wired=false`、`vendor_npu_provider_available=false`、
 `model_invoked=false`、`npu_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1477,7 +1477,7 @@ Vendor HEALTHY report 仅为 metadata 测试，不能设置 implementation avail
 isolation、permission/SELinux 和签名证据后接入。Cloud 同理需要 network/privacy/consent owner，不属于 Driver/HAL。
 
 状态：`model_provider_registry_defined=true`、`model_provider_count=4`、`model_production_ready_count=0`、
-`model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
+`model_provider_registry_android13_arm64_verified=true`、`model_provider_registry_runtime_wired=false`、
 `vendor_npu_provider_available=false`、`model_policy_router_wired=false`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1495,7 +1495,7 @@ DMA/IOMMU、CarProperty/VHAL、Vendor SOA/Binder 或网络。
 真实 producer/Provider 必须在 `ISSUE-024` 下冻结 SDK/ABI、identity/permission、clock/revision、resource/thermal/quota semantics、
 cancel/deadline、fault isolation 和目标证据后再接入。
 
-状态：`model_policy_router_defined=true`、`model_policy_router_android13_arm64_verified=false`、
+状态：`model_policy_router_defined=true`、`model_policy_router_android13_arm64_verified=true`、
 `model_policy_router_runtime_wired=false`、`vendor_npu_provider_available=false`、`provider_invoked=false`、
 `model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1518,7 +1518,7 @@ streaming semantics、fault isolation、thermal/power/resource admission、permi
 
 状态：`local_model_provider_debug_only=true`、`local_model_provider_release_source_absent=true`、
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
-`local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`network_accessed=false`、
+`local_model_provider_android13_arm64_verified=true`、`production_inference_enabled=false`、`network_accessed=false`、
 `npu_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`XSC-001/004/005/006`、
@@ -1535,7 +1535,7 @@ PCIe、DMA/IOMMU、NPU firmware/runtime 或网络。
 单独决定。本包不触发 Driver/HAL gap。
 
 状态：`structured_model_output_verified=true`、`model_output_schema_runtime_wired=false`、
-`structured_model_output_android13_arm64_verified=false`、`model_invoked=false`、`network_accessed=false`、
+`structured_model_output_android13_arm64_verified=true`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、
@@ -1552,7 +1552,7 @@ metadata，不是 Vendor profiler 或 NPU telemetry。P7-W07 资源/热准入仍
 冻结 API、权限、时间基准和 evidence，不能复用本评测结果冒充硬件发现。本包不触发 Driver/HAL gap。
 
 状态：`scenario_evaluation_verified=true`、`scenario_evaluation_runtime_wired=false`、
-`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
+`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=true`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、
@@ -1916,3 +1916,16 @@ area/unit/freshness/owner/version evidence；只有公开/Vendor API 明确不�
 `production_event_middleware_published=false`、`production_context_source_registry_published=false`、
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-107`、`ISSUE-031/046`。
+
+## P7 Android 13 ARM64 aggregate probe Driver/HAL boundary
+
+P7 aggregate acceptance 只启动应用私有 debug Activity。Registry/Router/evaluator/admission 使用 pure Java metadata；LocalModelProvider
+使用 debug-only injected in-process engine，不加载 Vendor NPU SO，不访问 PCIe、device node、ioctl、sysfs、Android Car、网络或 JNI。
+
+因此本轮不新增 C/C++、Driver/HAL 或虚拟化开发量，`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。真实 NPU provider 必须先取得 P8 vendor ABI/API、model format、memory/stream、cancel、
+thermal/resource、fault/rollback、owner/version evidence；只有公开/Vendor API 明确不足并评审后才新增最小 Driver/HAL 工作包。
+
+当前 `p7_android13_arm64_probe_acceptance_complete=true`、`device_identity_redacted=true`、
+`production_inference_enabled=false`、`network_accessed=false`、`npu_accessed=false`、`driver_hal_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-108`、`ISSUE-024/044`。

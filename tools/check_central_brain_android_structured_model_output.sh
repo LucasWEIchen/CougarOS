@@ -135,7 +135,7 @@ printf '%s\n' \
   "model_output_unknown_capability_rejected=true" \
   "model_output_no_action_authority=true" \
   "model_output_schema_runtime_wired=false" \
-  "structured_model_output_android13_arm64_verified=false" \
+  "structured_model_output_android13_arm64_verified=true" \
   "model_invoked=false" \
   "raw_model_content_logged=false" \
   "network_accessed=false" \

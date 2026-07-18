@@ -2130,12 +2130,12 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 9. Result 不得承载或授予 action authorization、Effect dispatch、vendor property、shell/device node 或 arbitrary Tool ID。
 10. v2 contract 不得接 Runtime/Governance Service、Provider registry/router、network、NPU、Vehicle、Binder 或 Driver/HAL。
 11. debug probe 只能输出 nonce 与 boolean marker，并由 DUMP permission 保护；release manifest 不得注册 probe。
-12. Android 13 ARM64 probe 未实际通过前 `model_contract_v2_android13_arm64_verified=false`；host/Gradle 不得替代实体证据。
+12. Android 13 ARM64 probe 已通过，`model_contract_v2_android13_arm64_verified=true`；该证据不替代真实模型或生产证据。
 
 状态：`model_contract_v2_defined=true`、`model_request_v2_fields_verified=true`、
 `model_result_v2_binding_verified=true`、`model_privacy_fallback_fail_closed=true`、
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
-`model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
+`model_contract_v2_android13_arm64_verified=true`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。tracking：`DEV-078`、`ISSUE-024/044`。
 
@@ -2156,13 +2156,13 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 9. capability set 与 snapshot list 必须 immutable；catalog 按 provider ID 排序并有 deterministic digest。
 10. P7-W02 不得提供 route/infer API，不得构造 Provider instance，不得接 Runtime/Governance Service 或 P7-W03 Router。
 11. main source 不得访问 network、NPU、vehicle、Binder、Driver/HAL 或硬件；cloud network-required 只是 descriptor 元数据。
-12. debug probe 只输出 nonce、boolean 和 count；release manifest 不得注册。实体 probe 未通过前 verified 保持 false。
+12. debug probe 只输出 nonce、boolean 和 count；release manifest 不得注册。实体 probe 已通过但只证明 metadata contract。
 
 状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
-`model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
+`model_provider_registry_android13_arm64_verified=true`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。tracking：`DEV-079`、`ISSUE-024`。
@@ -2185,11 +2185,11 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 10. Decision 必须绑定 request ID/fingerprint/trace、policy snapshot digest、registry catalog digest 和全部 candidate digest。
 11. Route Decision 不得授予 action authorization、请求 Effect dispatch、实例化/调用 Provider、执行模型或访问 network/NPU/hardware。
 12. Router 不得接 Runtime/Governance Service、Graph、Effect、Vehicle、Binder、Driver/HAL；debug probe 只输出 nonce/boolean。
-13. release manifest 不得注册 probe；实体 Android 13 ARM64 probe 未通过前 verified 保持 false。
+13. release manifest 不得注册 probe；实体 Android 13 ARM64 probe 已通过但不构成 production route authority。
 
 状态：`model_policy_router_defined=true`、`model_policy_router_privacy_network_thermal_verified=true`、
 `model_policy_router_latency_capability_quota_verified=true`、`model_policy_router_fallback_bounded=true`、
-`model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=false`、
+`model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=true`、
 `model_policy_router_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。tracking：`DEV-080`、`ISSUE-024`。
@@ -2211,13 +2211,13 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 11. executor、engine、observer、deadline、cancel、close 必须形成单一 terminal；metrics 不得使 completed/cancelled/failure 总数超过 accepted。
 12. terminal history 只保留 bounded request/result digest metadata，不得记录或持久化 raw output；probe 只输出 nonce/boolean。
 13. 本包不得接 Runtime/Governance、Graph、Effect、Vehicle、network、NPU、Driver/HAL，也不得成为 Vendor NPU 的隐式 fallback。
-14. 实体 Android 13 ARM64 probe 未通过前 `local_model_provider_android13_arm64_verified=false`，且不得声明 production inference。
+14. 实体 Android 13 ARM64 probe 已通过，`local_model_provider_android13_arm64_verified=true`；不得声明 production inference。
 
 状态：`local_model_provider_verified=true`、`local_model_provider_deadline_verified=true`、
 `local_model_provider_cancel_verified=true`、`local_model_provider_stream_limit_verified=true`、
 `local_model_provider_debug_only=true`、`local_model_provider_release_source_absent=true`、
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
-`local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`network_accessed=false`、
+`local_model_provider_android13_arm64_verified=true`、`production_inference_enabled=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。tracking：`DEV-081`、`ISSUE-024`。
 
@@ -2243,11 +2243,11 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 10. accepted output 只能作为 proposal；`isActionAuthorizationGranted`、`isApprovalDecisionGranted`、
     `isEffectDispatchRequested` 必须固定 false。
 11. 本包不得调用 Provider/model、执行 repair prompt、接 Runtime/Graph/Effect/Vehicle、访问 network/NPU/Driver/HAL 或生成 vendor property。
-12. 目标 Android 13 ARM64 probe 未通过前 `structured_model_output_android13_arm64_verified=false`；host/build 成功不得冒充真机或模型质量证据。
+12. 目标 Android 13 ARM64 probe 已通过，`structured_model_output_android13_arm64_verified=true`；不得冒充真实模型质量证据。
 
 状态：`structured_model_output_verified=true`、`model_output_catalog_binding_verified=true`、
 `model_output_unknown_capability_rejected=true`、`model_output_no_action_authority=true`、
-`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=false`、
+`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=true`、
 `model_invoked=false`、`raw_model_content_logged=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。tracking：`DEV-082`、`ISSUE-024`。
@@ -2272,12 +2272,12 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 10. report/result 必须 immutable、canonical-sort、digest-bound；不同输入顺序必须得到相同 report digest。
 11. harness、probe 和 checker 不得调用 Provider/model、连接 Runtime/Graph/Effect/Vehicle、访问 network/NPU/Driver-HAL，所有 action/
     effect/production authority getter 必须固定 false。
-12. deterministic 1000/0 probe 只验证软件统计链；Android 13 ARM64 probe 未通过前
-    `scenario_evaluation_android13_arm64_verified=false`，并且永远不能冒充生产模型质量或硬件资格。
+12. deterministic 1000/0 probe 只验证软件统计链；Android 13 ARM64 probe 已通过，
+    `scenario_evaluation_android13_arm64_verified=true`，并且永远不能冒充生产模型质量或硬件资格。
 
 状态：`scenario_evaluation_verified=true`、`evaluation_corpus_verified=true`、`evaluation_metrics_verified=true`、
 `evaluation_boundary_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
-`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
+`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=true`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-083`、`ISSUE-024`。
 
@@ -2297,7 +2297,7 @@ Plan/Effect/action authority。debug probe 只记录 nonce、布尔值和计数�
 `foreground_vehicle_priority_verified=true`、`thermal_degradation_verified=true`、
 `thermal_resource_fail_closed_verified=true`、`admission_boundary_verified=true`、
 `resource_admission_runtime_wired=false`、`resource_snapshot_producer_wired=false`、
-`model_resource_admission_android13_arm64_verified=false`、`provider_invoked=false`、`model_invoked=false`、
+`model_resource_admission_android13_arm64_verified=true`、`provider_invoked=false`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-084`、`ISSUE-024`。
 
@@ -2838,3 +2838,25 @@ tracking：`DEV-104`、`ISSUE-022/026/030/033`。
 `production_context_source_registry_published=false`、`production_active_suggestion_source_wired=false`、
 `production_runtime_wired=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-107`、`ISSUE-031/046`。
+
+## 100. P7 Android 13 ARM64 Model/Router/Evaluation probe acceptance trace
+
+1. `S2-MDL-001`：P7-W01..W05 必须在 API 33 ARM64 上验证 digest-only request/result、fixed provider registry、policy route、
+   debug-only local provider lifecycle 和 structured output validation；不得把 probe fixture 解释为生产模型调用。
+2. `S2-MDL-001/S2-OBS-001`：P7-W06 必须验证 12-case synthetic corpus、1000 intent permille、0 unsafe/invalid/fallback 和
+   digest/revision binding；不得声明真实模型质量或保存 evaluation content。
+3. `S2-MDL-001/NV-G-004`：P7-W07 必须验证 request/route/policy/resource binding、foreground priority 和 thermal fail-closed；
+   resource snapshot 仍由 fixture 提供，不读取系统 thermal 或 NPU telemetry。
+4. `S2-SAF-001`：Router/output/admission 只产生 metadata/proposal/queue decision，`provider_invoked=false`、
+   `model_invoked=false`，不得授予 Graph/Effect action authority。
+5. `S2-OBS-001`：统一 installer 必须检查七个 completion marker、功能 marker 和 network/NPU/hardware/production false marker。
+6. `DEL-001/004`：验收目标固定 Android API 33、ARM64，并在七个 probe 后执行 Runtime/Demo 完整安装回归。
+7. `DEL-005`：证据不得包含 prompt、raw model output、用户/车辆 payload、设备身份、签名材料或 raw log。
+
+当前 `p7_android13_arm64_probe_acceptance_complete=true`、`p7_probe_module_count=7`、
+`device_identity_redacted=true`、`production_model_provider_published=false`、`production_model_router_wired=false`、
+`production_inference_enabled=false`、`production_model_output_runtime_wired=false`、
+`production_evaluation_authority_published=false`、`production_resource_snapshot_provider_wired=false`、
+`production_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
+`npu_accessed=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-108`、`ISSUE-024/044`。

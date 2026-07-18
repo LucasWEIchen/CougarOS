@@ -1329,3 +1329,11 @@ flowchart LR
 - production Event middleware 与主动智能 owner 工作继续由 `ISSUE-046`、`ISSUE-031` 跟踪，P8 Vehicle/NPU/Driver-HAL 不因 probe 改变。
 - 下一可执行验收包为 P7-W01..W07 Android aggregate probes；`production_ready=false`、
   `target_hardware_validated=false` 保持不变。
+
+## 22. P7 Android physical probe acceptance update
+
+- `P7-W01..P7-W07`：软件状态保持 `DEVELOPED`，Android 13 ARM64 debug probe 子项升级为 `COMPLETE`。
+- 统一验收覆盖 7 个模块，`p7_android13_arm64_probe_acceptance_complete=true`、`p7_probe_module_count=7`。
+- LocalModelProvider 仍为 debug injected engine；Registry/Router/Output/Evaluation/Resource 仍未接 production Runtime 或真实 producer。
+- production model/NPU/network、正式 evaluation/resource owner 与 context/tokenizer 工作继续由 `ISSUE-024/044` 跟踪；P8 不因 probe 改变。
+- P5-P7 应用 probe 验收流完成；`production_ready=false`、`target_hardware_validated=false` 保持不变。
