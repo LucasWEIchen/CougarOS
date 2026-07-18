@@ -1506,3 +1506,22 @@ Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `production_release_candidate_admitted=false`、`release_installer_wired=false`、
 `release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。
+
+### P9-W05b Production Release Metadata Probe progress
+
+状态：`SOFTWARE_DEVELOPED / TARGET_PROBE_PENDING / PRODUCTION_OWNER_BLOCKED`（2026-07-18）。新增 W05a 同源固定三包 metadata query、
+27-key count/boolean projection、七组 JVM tests、DUMP-protected debug Activity、只读 ADB dry-run adapter 和 release-absence/CI 门禁。
+
+探针只读取 installed/versionCode 和 Android signer relation code，不读取或输出证书/签名 bytes、包路径、设备身份、原始日志或业务 payload；
+adapter 不 build/install/uninstall/rollback。当前 ADB `online=0/offline=1/unauthorized=0/other=0`，未运行 probe，因此 Android evidence=false。
+
+W05a/W05b 仓库内软件项已完成；正式 signer/candidate/OTA/rollback rehearsal 继续由 ISSUE-052 外部阻塞。下一可执行软件增量为
+`P9-W06a driver-distraction/safety admission contract`，只定义失败关闭策略，不伪造 vehicle state 或 OEM owner evidence。
+
+Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094/095`、`ISSUE-052`。
+`release_metadata_projection_defined=true`、`release_installer_dry_run_adapter_defined=true`、
+`release_android_debug_probe_available=true`、`release_android_debug_probe_executed=false`、
+`production_signer_owner_approved=false`、`production_release_candidate_admitted=false`、
+`release_installer_wired=false`、`release_rollback_executor_wired=false`、
+`release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W05`。

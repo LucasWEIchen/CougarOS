@@ -3535,3 +3535,29 @@ installer/rehearsal 的必要条件，不能据此直接安装、打开数据库
 提供；本接口不接收证书、私钥、APK bytes 或设备身份。
 
 Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。
+
+## Android P9-W05b Production Release Metadata Probe Contract
+
+### Java projection
+
+`ProductionReleaseMetadataProjection.evaluate(List<PackageObservation>)` 要求精确三项 observation。每项只含 `installed`、
+`repositoryVersionMatched` 和 `signerMatchedRuntime`；缺包 factory 强制后二者为 false。输入数量错误或 null 项抛
+`IllegalArgumentException`，不生成部分结果。
+
+`Snapshot.auditMetadata()` 固定输出 27 个有序 key：3 个 query/match count、2 个 signer pair count、3 个 observed boolean 以及所有
+candidate/authority/logging/hardware/readiness false claim。接口不返回 package identity、versionCode、signer/certificate 或路径。
+
+### Android evidence adapter
+
+`ProductionReleaseMetadataProbeActivity` 是 debug-only DUMP Activity。它对固定三包调用
+`PackageManager.getPackageInfo(name, PackageInfoFlags.of(0))` 获取存在性和 versionCode，并调用两次
+`PackageManager.checkSignatures(runtime, peer)` 获取 relation code。它不请求 `GET_SIGNING_CERTIFICATES`，不读取 `Signature`、
+`SigningInfo` 或 bytes。唯一 Intent 输入是有界 `nonce`；唯一输出是 tag `CbReleaseProbe` 的固定 metadata。
+
+### Host entry
+
+`probe_central_brain_android_release_metadata.sh [--serial SERIAL]` 是只读 target adapter：验证 online/API33/arm64、启动 Activity、按 nonce
+匹配 fixed markers，并输出脱敏 counts。它不 build、不接收 artifact、不调用 package install/uninstall/rollback。现有 debug installer 仅在
+自身安装流程完成后调用该 adapter；这不使 `release_installer_wired` 成为 true。
+
+Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-095`、`ISSUE-052`。

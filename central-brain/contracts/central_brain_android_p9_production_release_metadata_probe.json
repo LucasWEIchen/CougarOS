@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-production-release-metadata-probe-v1",
+  "maturity": "debug_probe_available_target_execution_pending",
+  "req_ids": [
+    "S2-REL-001",
+    "S2-SAF-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "package_queries": [
+    {
+      "package_id": "runtime-service",
+      "package_name": "com.centralbrain.runtime",
+      "repository_version_code": 3
+    },
+    {
+      "package_id": "demo-hmi",
+      "package_name": "com.centralbrain.demo",
+      "repository_version_code": 1
+    },
+    {
+      "package_id": "client2-demo",
+      "package_name": "com.tuanjie.urasclient2",
+      "repository_version_code": 1
+    }
+  ],
+  "metadata_projection": {
+    "audit_key_count": 27,
+    "allowed_audit_keys": [
+      "release_metadata_probe_complete",
+      "release_metadata_projection_verified",
+      "release_package_query_count",
+      "release_installed_package_count",
+      "release_repository_version_match_count",
+      "release_same_signer_pair_query_count",
+      "release_same_signer_pair_match_count",
+      "release_exact_package_set_observed",
+      "release_repository_version_set_observed",
+      "release_same_signer_cohort_observed",
+      "release_candidate_metadata_complete",
+      "release_dry_run_admitted",
+      "production_signer_owner_approved",
+      "production_release_candidate_admitted",
+      "release_installer_wired",
+      "release_install_executed",
+      "release_uninstall_executed",
+      "release_rollback_executor_wired",
+      "release_rollback_executed",
+      "release_signer_material_logged",
+      "release_certificate_material_logged",
+      "release_package_name_logged",
+      "release_device_identity_logged",
+      "release_raw_log_persisted",
+      "hardware_accessed",
+      "production_ready",
+      "target_hardware_validated"
+    ],
+    "forbidden_projection_fields": [
+      "signer_digest",
+      "certificate",
+      "package_name",
+      "package_path",
+      "source_dir",
+      "archive_path",
+      "device_serial",
+      "device_fingerprint",
+      "raw_log",
+      "payload"
+    ]
+  },
+  "android_probe": {
+    "component": "com.centralbrain.runtime/.release.ProductionReleaseMetadataProbeActivity",
+    "permission": "android.permission.DUMP",
+    "debug_only": true,
+    "release_source_absent": true,
+    "reads_package_manager_metadata": true,
+    "reads_signer_or_certificate_bytes": false,
+    "logs_package_or_device_identity": false,
+    "accepts_content_payload": false
+  },
+  "installer_dry_run_adapter": {
+    "path": "tools/probe_central_brain_android_release_metadata.sh",
+    "requires_existing_debug_install": true,
+    "requires_exact_android_api": 33,
+    "requires_primary_abi": "arm64-v8a",
+    "builds_artifacts": false,
+    "installs_packages": false,
+    "uninstalls_packages": false,
+    "executes_rollback": false,
+    "persists_raw_log": false
+  },
+  "claim_state": {
+    "release_metadata_projection_defined": true,
+    "release_installer_dry_run_adapter_defined": true,
+    "release_android_debug_probe_available": true,
+    "release_android_debug_probe_executed": false,
+    "production_signer_owner_approved": false,
+    "production_release_candidate_admitted": false,
+    "release_installer_wired": false,
+    "release_rollback_executor_wired": false,
+    "release_android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P9-W05"
+  }
+}

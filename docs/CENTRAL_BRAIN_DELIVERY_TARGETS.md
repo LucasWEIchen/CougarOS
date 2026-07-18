@@ -2503,3 +2503,21 @@ rehearsal。
 `release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
 `S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。
+
+## Android P9-W05b Production Release Metadata Probe
+
+交付 versioned JSON、27-key pure-Java redacted projection、七组 JVM regression、DUMP-protected debug-only Activity、固定三包 debug queries、
+只读 ADB dry-run adapter 和独立/Stage2/Runtime/CI 门禁。Host/build 验收必须证明 package set 与 W05a 同源、输出仅 count/boolean、
+Activity 不读取 signer/certificate bytes、release 不含入口、adapter 没有 build/install/uninstall/rollback command。
+
+目标验收要求 exactly one Android 13 ARM64 transport、已安装当前 debug Runtime，并执行
+`probe_central_brain_android_release_metadata.sh`。证据只允许三个 count 和固定 boolean；不得提交 serial/fingerprint、包清单、signer material
+或原始 logcat。当前无合格 online transport，未执行目标 probe。
+
+状态：`release_metadata_projection_defined=true`、`release_installer_dry_run_adapter_defined=true`、
+`release_android_debug_probe_available=true`、`release_android_debug_probe_executed=false`、
+`production_signer_owner_approved=false`、`production_release_candidate_admitted=false`、
+`release_installer_wired=false`、`release_rollback_executor_wired=false`、
+`release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
+`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-095`、`ISSUE-052`。

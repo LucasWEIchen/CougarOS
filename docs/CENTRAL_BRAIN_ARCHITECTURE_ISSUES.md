@@ -1082,6 +1082,10 @@ W05a 已交付机器可判定的发布集准入合同，但当前仓库只有 de
 release sequence、OTA/MDM owner、目标普通包/系统包安装策略、rollback decision owner、目标数据库兼容 evidence 或受控 rehearsal。
 不得上传私钥、keystore、certificate bytes、设备 serial/fingerprint、未审日志、内部路径或原始业务 payload。
 
+W05b 已交付固定三包的 debug-only installed/version/signer-relation metadata probe 和 no-install ADB dry-run adapter。该探针不读取或输出
+signer/certificate bytes、包路径或设备身份；当前 transport offline，未执行。即使未来三包 observation 全匹配，也只证明当前 debug
+installed set 的关系，不提供正式 candidate、owner approval、OTA/MDM 或 rollback authority，因此本 ISSUE 保持 Open。
+
 解除条件：
 
 1. 以 digest reference 提供命名 production signer/release/rollback owner approval；
@@ -1094,4 +1098,6 @@ release sequence、OTA/MDM owner、目标普通包/系统包安装策略、rollb
 当前 `production_release_admission_defined=true`、`production_signer_owner_approved=false`、
 `production_release_candidate_admitted=false`、`release_installer_wired=false`、
 `release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。tracking：`DEV-094`。
+`release_metadata_projection_defined=true`、`release_installer_dry_run_adapter_defined=true`、
+`release_android_debug_probe_available=true`、`release_android_debug_probe_executed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。tracking：`DEV-094/095`。

@@ -35,13 +35,15 @@ PRIVACY_POLICY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android
 PRIVACY_REDACTION_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_privacy_redaction_audit.json"
 PRODUCTION_RELEASE="$ROOT_DIR/docs/CENTRAL_BRAIN_PRODUCTION_RELEASE_ADMISSION.md"
 PRODUCTION_RELEASE_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_production_release_admission.json"
+PRODUCTION_RELEASE_PROBE_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_production_release_metadata_probe.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
     "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT" \
     "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT" "$SECURITY_BOUNDARY_CONTRACT" \
     "$PRIVACY_LIFECYCLE" "$PRIVACY_INVENTORY_CONTRACT" "$PRIVACY_POLICY_CONTRACT" \
-    "$PRIVACY_REDACTION_CONTRACT" "$PRODUCTION_RELEASE" "$PRODUCTION_RELEASE_CONTRACT"; do
+    "$PRIVACY_REDACTION_CONTRACT" "$PRODUCTION_RELEASE" "$PRODUCTION_RELEASE_CONTRACT" \
+    "$PRODUCTION_RELEASE_PROBE_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -441,13 +443,21 @@ require_text "$README" 'release_database_compatibility_fail_closed=true'
 require_text "$README" 'release_rollback_decision_fail_closed=true'
 require_text "$README" 'production_signer_owner_approved=false'
 require_text "$README" 'production_release_candidate_admitted=false'
-require_text "$PRODUCTION_RELEASE" 'SOFTWARE_CONTRACT_DEFINED / PRODUCTION_OWNER_INPUT_OPEN'
+require_text "$PRODUCTION_RELEASE" 'DEBUG_METADATA_PROBE_AVAILABLE / TARGET_EXECUTION_PENDING'
 require_text "$BACKLOG" 'P9-W05a production release admission'
 require_text "$REQUIREMENTS" 'P9-W05a production release admission trace'
 require_text "$DEVIATIONS" 'DEV-094 P9-W05a contract admission is not a production release'
 require_text "$ISSUES" 'ISSUE-052 P9 production signer and rollback owner evidence is unavailable'
 require_text "$DELIVERY" 'Android P9-W05a Production Release Admission'
 require_text "$DRIVER" 'P9-W05a Production Release Admission Driver/HAL Boundary'
+require_text "$README" 'release_metadata_projection_defined=true'
+require_text "$README" 'release_installer_dry_run_adapter_defined=true'
+require_text "$README" 'release_android_debug_probe_executed=false'
+require_text "$BACKLOG" 'P9-W05b production release metadata Android probe'
+require_text "$REQUIREMENTS" 'P9-W05b production release metadata probe trace'
+require_text "$DEVIATIONS" 'DEV-095 P9-W05b metadata observation is not production signer qualification'
+require_text "$DELIVERY" 'Android P9-W05b Production Release Metadata Probe'
+require_text "$DRIVER" 'P9-W05b Production Release Metadata Probe Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -646,5 +656,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_privacy_data_inventory.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_policy_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_redaction_audit.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_production_release_admission.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_production_release_metadata_probe.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"
