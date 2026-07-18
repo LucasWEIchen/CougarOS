@@ -901,6 +901,58 @@ if [[ "$MODEL_REGISTRY_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MODEL_POLICY_ROUTER_NONCE="$(date +%s%N)"
+MODEL_POLICY_ROUTER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.PolicyAwareModelRouterProbeActivity \
+  --es nonce "$MODEL_POLICY_ROUTER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MODEL_POLICY_ROUTER_PROBE_OUTPUT"; then
+  echo "$MODEL_POLICY_ROUTER_PROBE_OUTPUT" >&2
+  echo "PolicyAwareModelRouter debug probe did not start successfully" >&2
+  exit 1
+fi
+MODEL_POLICY_ROUTER_PROBE_PASSED=false
+for _ in {1..40}; do
+  MODEL_POLICY_ROUTER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbModelRouter:I)"
+  if grep -Fq \
+      "nonce=$MODEL_POLICY_ROUTER_NONCE model_policy_router_probe_complete=true" \
+      <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_policy_router_verified=true" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_policy_router_selection_verified=true" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_policy_router_privacy_network_thermal_verified=true" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_policy_router_quota_verified=true" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_policy_router_fallback_bounded=true" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_policy_router_android13_arm64_verified=true" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_policy_router_runtime_wired=false" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "action_authorization_granted=false" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "effect_dispatch_requested=false" \
+        <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "provider_invoked=false" <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "production_ready=false" <<<"$MODEL_POLICY_ROUTER_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$MODEL_POLICY_ROUTER_LOG"; then
+    MODEL_POLICY_ROUTER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MODEL_POLICY_ROUTER_PROBE_PASSED" != true ]]; then
+  echo "$MODEL_POLICY_ROUTER_LOG" >&2
+  echo "PolicyAwareModelRouter probe did not pass" >&2
+  exit 1
+fi
+
 SCHEDULER_NONCE="$(date +%s%N)"
 SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.scheduler.InferenceSchedulerContractProbeActivity \
@@ -4149,6 +4201,16 @@ printf '%s\n' \
   "model_production_ready_count=0" \
   "model_provider_registry_android13_arm64_verified=true" \
   "model_provider_registry_runtime_wired=false" \
+  "model_policy_router_defined=true" \
+  "model_policy_router_privacy_network_thermal_verified=true" \
+  "model_policy_router_latency_capability_quota_verified=true" \
+  "model_policy_router_fallback_bounded=true" \
+  "model_policy_router_no_action_authority=true" \
+  "model_policy_router_android13_arm64_verified=true" \
+  "model_policy_router_runtime_wired=false" \
+  "provider_invoked=false" \
+  "model_invoked=false" \
+  "network_accessed=false" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \
