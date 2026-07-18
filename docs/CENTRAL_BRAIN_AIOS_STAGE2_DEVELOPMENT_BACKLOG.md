@@ -1126,7 +1126,17 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 
 ### `P9-W06` Driver distraction/vehicle safety acceptance
 
-- 5-8 人日；`S2-UX-002`、`S2-SAF-001`。真实 driving state、UX restriction、seat/HVAC policy、OEM owner sign-off。
+- 状态：`IN_PROGRESS`；5-8 人日；`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`。
+- `P9-W06a driver-distraction/safety admission contract`：已交付 12 项 fixed action catalog、四类 UX profile、500 ms
+  production-trusted Safety State、新鲜度/时序 gate、三 owner role policy、HVAC/Seat capability availability/authorization/
+  readback/activation gate 和 stable decision digest。moving 对 long text/parameter/video/driver recline/diagnostics/OTA 硬拒绝；
+  parked driver recline 只返回 approval required。所有 decision 固定不授予 Effect dispatch 或 hardware operation。
+- 当前 `currentDraftPolicy()` owner approval 数为 0，P2 capability production authorization 为 0，Runtime/Governance Service
+  未接合同，实体 Android probe 未提供。JVM approved policy/capability 只为 synthetic contract fixture。
+- 下一小步 `P9-W06b redacted Android probe and target evidence adapter`：仅允许 DUMP-protected debug-only count/boolean
+  projection 和只读 adapter；不得读取车辆 scalar、设备身份、owner approval reference 或原始日志，不得触发 Effect/Vehicle。
+- 真实 driving state、IDLE 联合语义、UX restriction acceptance matrix、seat/HVAC OEM policy、硬联锁和 owner sign-off 继续
+  `EXTERNAL_BLOCKED`，由 `ISSUE-029/030` 和 P8 跟踪。
 
 ### `P9-W07` Release evidence and field diagnostics
 

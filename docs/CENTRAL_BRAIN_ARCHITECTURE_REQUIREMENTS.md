@@ -2554,3 +2554,27 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `release_installer_wired=false`、`release_rollback_executor_wired=false`、
 `release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W05`。tracking：`DEV-095`、`ISSUE-052`。
+
+## 88. P9-W06a driver-distraction/safety admission trace
+
+本增量映射 `S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. 必须提供 versioned JSON 与 Android-independent Java 同源的固定 12-action catalog；caller 不得提供 action class、moving policy 或 risk。
+2. UX profile 必须精确为 `PARKED_FULL/MOVING_RESTRICTED/UNKNOWN_RESTRICTED/FAULT_RESTRICTED`；缺失、陈旧、未来时间、untrusted 或 unknown motion 必须 restricted。
+3. 受控 action 必须使用不超过 500 ms 的 `SafetyVehicleStateSnapshot`，且仅 `PLATFORM_TRUSTED_ADAPTER + hardwareBacked` 可作为 production trust。
+4. Safety State 只允许 `NORMAL`；DEGRADED/EMERGENCY/UNKNOWN 必须 `FAULT_RESTRICTED` 并拒绝受控动作。
+5. moving 必须硬拒绝 long text、parameter edit、driver video、driver seat recline、diagnostic write 和 OTA；UI approval 不得覆盖该 interlock。
+6. moving HVAC、driver seat heating/ventilation 最多返回 `ALLOW_POLICY_ONLY`；parked driver recline 最多返回 `APPROVAL_REQUIRED`。
+7. owner policy 必须精确包含 Functional Safety、Driver Distraction HMI、Vehicle Integration 三个唯一角色，全部绑定同一 profile/schema/catalog digest。
+8. 车辆 Effect 必须匹配固定 capability ID，并分别要求 production available、production authorized、readback available 和 activation evidence digest。
+9. `scene.intent.submit`、`session.cancel` 和 vehicle-state read 只允许 UI-only，不能授予 Effect authority。
+10. 所有 decision 的 Effect dispatch 与 hardware operation 标志必须固定 false；P9-W06a 不接 Runtime/Governance Service、Effect、Vehicle、NPU 或 Driver/HAL。
+11. 产品 `IDLE` 状态在没有可信 gear/speed/parking-brake 联合语义时不得伪造；目标 mapping 缺失时按 PARKED 或 UNKNOWN contract 处理。
+12. 当前 draft owner approval=0、production capability authorization=0；JVM complete fixture 不能提升 OEM/Android/target/production 状态。
+
+状态：`driver_safety_admission_defined=true`、`driver_safety_action_rule_count=12`、
+`driver_safety_owner_role_count=3`、`driver_safety_state_maximum_age_ms=500`、
+`driver_safety_moving_hard_interlock_verified=true`、`driver_safety_current_owner_policy_approved=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W06`。tracking：`DEV-096`、`ISSUE-029/030`。

@@ -297,6 +297,16 @@ P2-W10 进展：Seat recline 已在 debug adapter 的 admission 和 dispatch 两
 driver availability、occupancy、belt 和 approval revision；moving/unknown/belt/approval race 永久拒绝且不写
 reported。该输入均为 simulation-only 注入，不定义 OEM 最大角度、硬联锁或批准 authority，本问题保持 Open。
 
+P9-W06a 进展：已新增 12-action 生产准入合同，固定 500 ms production-trusted Safety State、
+PARKED/MOVING/UNKNOWN/FAULT UX、三 owner role 和 capability availability/authorization/readback/activation。moving 对驾驶分心
+UI 与 driver recline 为 hard deny，parked recline 最多返回 approval required，所有 decision 均不授权 Effect dispatch。
+该结果仍无真实 owner、vehicle state producer、IDLE 联合语义、座椅硬联锁或 Android target evidence，因此 ISSUE 保持 Open。
+
+当前 `driver_safety_admission_defined=true`、`driver_safety_moving_hard_interlock_verified=true`、
+`driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
+`driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-096`。
+
 ## ISSUE-030 黑盒 Android 13 的车辆控制 API、权限和 owner 未确定
 
 当前没有可发布的 HVAC/Seat/Media/Navigation property/service 目录、写权限、area mapping、

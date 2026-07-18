@@ -3561,3 +3561,30 @@ candidate/authority/logging/hardware/readiness false claim。接口不返回 pac
 自身安装流程完成后调用该 adapter；这不使 `release_installer_wired` 成为 true。
 
 Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-095`、`ISSUE-052`。
+
+## Android P9-W06a Driver Safety Admission Contract
+
+### Java entry
+
+`DriverSafetyAdmissionContract.evaluate(AdmissionRequest)` 接收固定 action ID、immutable
+`SafetyVehicleStateSnapshot`、observe elapsed time、`PolicyProfile` 和可选 `CapabilityEvidence`。无 Android 类型、Bundle、JSON、车辆值、
+用户文本或任意 caller risk 字段。返回 `Decision`，包含 action class、UX profile、outcome、stable code 和 SHA-256 digest。
+
+### Owner policy
+
+`PolicyProfile` 必须绑定 `android13-p9-driver-safety-admission-v1`、schema 1 和 Java catalog digest。`OwnerApproval` 精确覆盖
+`FUNCTIONAL_SAFETY`、`DRIVER_DISTRACTION_HMI`、`VEHICLE_INTEGRATION`，role 和 approval digest 均唯一。当前
+`currentDraftPolicy()` approval list 为空，因此所有需要 owner policy 的 action 拒绝。
+
+### Capability evidence
+
+HVAC target、driver seat heat/vent/recline rule 各自绑定 `VehicleCapability.CapabilityId` canonical ID。Evidence 必须分别提供
+production availability、authorization、readback availability 和 activation digest；任何字段缺失不得用 simulation capability 补位。
+
+### Output boundary
+
+`ALLOW_UI_ONLY` 只允许 UI 输入/读取/取消；`ALLOW_POLICY_ONLY` 只允许进入后续治理；`APPROVAL_REQUIRED` 只创建批准需求资格；
+`DENY` 终止。四种结果均不执行 Effect/Vehicle，`isEffectDispatchAuthorized()` 和 `isHardwareOperationExecuted()` 固定 false。
+
+Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-096`、`ISSUE-029/030`。

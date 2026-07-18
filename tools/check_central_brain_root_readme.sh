@@ -429,6 +429,15 @@ for marker in \
   'stability_target_owner_approved=false' \
   'stability_android13_arm64_verified=false' \
   'stability_fault_injection_runtime_wired=false' \
+  'driver_safety_admission_defined=true' \
+  'driver_safety_action_rule_count=12' \
+  'driver_safety_owner_role_count=3' \
+  'driver_safety_state_maximum_age_ms=500' \
+  'driver_safety_moving_hard_interlock_verified=true' \
+  'driver_safety_current_owner_policy_approved=false' \
+  'driver_safety_vehicle_state_provider_wired=false' \
+  'driver_safety_effect_runtime_wired=false' \
+  'driver_safety_android13_arm64_verified=false' \
   'security_parser_corpus_defined=true' \
   'security_parser_surface_count=3' \
   'security_parser_case_count=18' \
@@ -765,6 +774,8 @@ if "P9 Production Release Admission" not in developed:
     raise SystemExit("README developed table must include the completed P9-W05a release admission")
 if "P9 Production Release Metadata Probe" not in developed:
     raise SystemExit("README developed table must include the completed P9-W05b metadata probe")
+if "P9 Driver Safety Admission" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W06a safety admission")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
@@ -772,9 +783,10 @@ if (
     or "目标 Android probe" not in remaining
     or "P9-W04 Privacy/data lifecycle" not in remaining
     or "P9-W05 Production release" not in remaining
-    or "下一软件增量为 P9-W05b" not in readme
+    or "P9-W06 Driver safety" not in remaining
+    or "下一软件增量为 P9-W06b" not in readme
 ):
-    raise SystemExit("README must keep target evidence and P9 owner gaps open and identify P9-W05b as the next software scope")
+    raise SystemExit("README must keep target evidence and P9 owner gaps open and identify P9-W06b as the next software scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:

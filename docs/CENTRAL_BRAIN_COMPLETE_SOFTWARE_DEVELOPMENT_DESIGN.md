@@ -4680,3 +4680,39 @@ path/identity APIs, install/uninstall/rollback commands and log echo。
 Seven JVM methods plus contract checker, debug/release manifest check and Gradle assembly form the software DoD。Physical execution must be separately
 recorded without device identity。Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-095`、`ISSUE-052`。
+
+## 45. P9-W06a Driver Safety Admission detailed design
+
+### Catalog ownership
+
+`DriverSafetyAdmissionContract` owns an immutable insertion-ordered 12-action catalog。Rules bind action class, optional vehicle capability,
+trusted-state requirement, owner-policy requirement, moving allowance, driver availability, readback requirement and admitted outcome。The catalog
+digest covers every field and is referenced by all owner approvals；callers cannot supply or override rule metadata。
+
+### State projection
+
+`projectUxProfile` uses only elapsed time and `SafetyVehicleStateSnapshot` metadata。Missing, future, older than 500 ms, non-production-trusted or
+UNKNOWN motion returns `UNKNOWN_RESTRICTED`。Any Safety state other than NORMAL returns `FAULT_RESTRICTED`。Fresh NORMAL state maps PARKED to
+`PARKED_FULL` and MOVING to `MOVING_RESTRICTED`。IDLE is intentionally absent until P8 supplies trusted gear/speed/parking-brake semantics。
+
+### Admission order
+
+Evaluation is deterministic and stops on the first failure：allowlist, state presence/time/freshness/trust, Safety NORMAL, known motion, moving hard
+interlock, driver availability, three-role policy, capability ID, availability, authorization, readback and activation digest。Decision digest binds the
+rule, projected profile, state metadata, policy metadata and capability metadata；it contains no raw vehicle scalar, user/model text or device identity。
+
+### Action behavior
+
+State read, scene submit and cancel are UI-only even when state is unknown。Long text/parameter edit/video/diagnostics/OTA and driver recline require
+fresh parked state；moving returns `MOVING_HARD_INTERLOCK` before owner or capability checks。HVAC and driver heat/vent may reach policy-only while
+moving only with complete owner and capability evidence。Parked driver recline reaches approval-required, never dispatch。
+
+### Tests and boundaries
+
+Eight JVM methods cover exact catalog/UI-only behavior, stale/future/untrusted state, moving comfort versus distraction/recline, parked approval,
+owner uniqueness/binding, four independent capability gates, fault/unknown/driver absence and repository false claims。Static checker synchronizes JSON,
+source, test and docs and rejects Android/platform/network/vehicle/native wiring。P9-W06b may add a debug-only probe；production Service wiring remains
+forbidden in W06a。
+
+Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-096`、`ISSUE-029/030`。
