@@ -1167,3 +1167,16 @@ ISSUE-052。当前 `release_evidence_envelope_defined=true`、`release_evidence_
 `release_retest_automatic_issue_close_allowed=false`、`release_evidence_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
 tracking：`DEV-098/099/100`。
+
+### ISSUE-033 P4-D4b update
+
+P4-D4b 已把 D4a Graph 接入 debug-only `SimulatedScenarioRuntime`。Session projection 可表达 Plan identity、Graph/session state、pending
+approval/effect/readback 与 terminal state；Event projection 通过既有 `BoundedEventRuntime` 发布两类 topic 和八类 digest-only schema。
+
+该增量仍没有 Android Service/Binder、Client2、adapter apply、readback 或 approval response。ISSUE-033 保持 Open，下一软件增量是
+P4-D4c signature-protected debug Binder Service；后续仍需 adapter/readback 与 Client2 展示链路。
+
+当前 `simulated_scenario_debug_runtime_wired=true`、`simulated_scenario_android_service_published=false`、
+`simulated_scenario_session_event_binder_published=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`scenario_execution_enabled=false`、
+`hmi_d4_demo_control_loop_complete=false`、`hardware_accessed=false`。tracking：`DEV-101/102`。

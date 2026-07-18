@@ -1652,3 +1652,26 @@ Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-HMI-003/006`、`APP-0
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4a`。
+
+### P4-D4b Debug Runtime Session/Event projection progress
+
+状态：`DEVELOPED / DEBUG_BINDER_PENDING`（2026-07-18）。新增 debug-only `SimulatedScenarioRuntime`、versioned JSON、八组 JVM
+regression 和独立/Stage2/Runtime/CI 门禁。该组件复用 P4-D4a `SimulatedScenarioGraph` 与 P6 `BoundedEventRuntime`，形成进程内
+Session/Plan/Event projection。
+
+Session Snapshot 暴露 run/session/scenario/Plan identity、Graph/session state、pending stage/node/capability、revision、计数和稳定 digest。
+Event 只使用 `runtime.task.state` 与 `governance.policy.decision` 两类既有可信 topic；八类 schema 表示 Plan published、outcome supplied、
+approval/effect/readback pending 和 completed/failed/cancelled，payload 只保留 digest。
+
+本增量没有 Android Service、AIDL/Binder、Client2、adapter apply、readback 或 approval authority。下一增量为 P4-D4c
+signature-protected debug Binder Service；其后再分别实现 debug adapter/readback 与 Client2 wiring。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、
+`XSC-001/005/006`、`DEL-001/004/005`；tracking：`DEV-102`、`ISSUE-022/026/030/033`。
+`simulated_scenario_debug_runtime_projection_defined=true`、`simulated_scenario_debug_runtime_wired=true`、
+`simulated_scenario_session_projection_enabled=true`、`simulated_scenario_event_projection_enabled=true`、
+`simulated_scenario_process_local=true`、`simulated_scenario_android_runtime_wired=false`、
+`simulated_scenario_android_service_published=false`、`simulated_scenario_session_event_binder_published=false`、
+`simulated_scenario_client2_wired=false`、`simulated_scenario_effect_dispatch_enabled=false`、
+`simulated_scenario_readback_accessed=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4b`。

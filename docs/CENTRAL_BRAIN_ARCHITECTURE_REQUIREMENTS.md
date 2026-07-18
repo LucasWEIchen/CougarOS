@@ -2702,3 +2702,25 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `simulated_scenario_approval_authority_available=false`、`simulated_scenario_production_registered=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4a`。tracking：`DEV-101`、`ISSUE-022/026/030/033`。
+
+## 94. P4-D4b debug Runtime Session/Event projection trace
+
+1. `S2-SCN-001/S2-GRF-001`：D4b 必须复用 D4a Compiler/Graph composition，不得新增第二套 Planner、Graph 或 node semantics。
+2. `S2-EVT-001`：事件必须复用 `BoundedEventRuntime` 的受信 topic、序列、retention、subscription 和 overflow 语义。
+3. `S2-EVT-001/S2-HMI-003`：必须投影 Plan published、outcome supplied、approval/effect/readback pending 与三类 terminal schema。
+4. `S2-HMI-003/006`：Session Snapshot 必须暴露 Plan、Graph、pending stage/node/capability、revision、计数和稳定 digest。
+5. `S2-HMI-006/XSC-005`：事件 payload 必须 digest-only，不得暴露 user/model text、Context value、vehicle payload 或 device identity。
+6. `S2-EFF-001`：supplied outcome 只能是 debug 测试输入，不得解释为 adapter apply、车辆回读或 owner approval。
+7. `XSC-001/006`：run ownership 必须失败关闭；unknown run 与无 pending outcome 必须拒绝。
+8. `APP-004/DEL-004`：D4b 只进入 Runtime `src/debug`，main/release 不得包含该类。
+9. `APP-004`：D4b 不发布 Android Service、AIDL 或 Binder；该入口由后续 D4c 单独验收。
+10. `NV-F-011/NV-P-002`：D4b 不启动 process/network，不访问 Vehicle/NPU/Driver/HAL/hardware。
+11. `DEL-001/005`：JVM 与静态门禁通过不能替代 Android 13 ARM64 或实体硬件证据。
+12. `DEL-004/005`：README 与全部设计/偏差/问题/交付文档必须同步 D4b 的 true/false 边界。
+
+当前 `simulated_scenario_debug_runtime_projection_defined=true`、`simulated_scenario_debug_runtime_wired=true`、
+`simulated_scenario_event_topic_count=2`、`simulated_scenario_event_schema_count=8`、
+`simulated_scenario_android_service_published=false`、`simulated_scenario_session_event_binder_published=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4b`。tracking：`DEV-102`、`ISSUE-022/026/030/033`。

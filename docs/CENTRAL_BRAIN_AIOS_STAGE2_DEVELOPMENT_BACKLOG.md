@@ -735,6 +735,23 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 下一软件增量：`P4-D4b debug Runtime Session/Event projection`，把该内核接入受控 debug composition，并继续禁止
   production Effect/Vehicle/NPU/Driver-HAL。
 
+### `P4-D4b` debug Runtime Session/Event projection
+
+- 状态：`DEVELOPED / DEBUG_BINDER_PENDING`；需求：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、
+  `S2-EFF-001`、`S2-HMI-003/006`。
+- 类：debug-only `SimulatedScenarioRuntime` 组合 P4-D4a `SimulatedScenarioGraph` 与 P6 `BoundedEventRuntime`，不复制
+  Compiler、Graph 或 Event queue。
+- Session projection：输出 run/session/scenario/Plan identity、Graph/session state、pending node/stage、revision、计数和稳定 digest；
+  不输出 raw utterance、model text、Context field、vehicle payload 或 device identity。
+- Event projection：只发布 `runtime.task.state` 与 `governance.policy.decision` 两类受信 topic；八类 schema 覆盖 Plan published、
+  outcome supplied、approval/effect/readback pending 和 completed/failed/cancelled。payload 仅为 SHA-256 digest。
+- 交付：八组 JVM regression 覆盖 cold、parked fatigue、订阅回放、Effect 到 readback 进度、完整成功、失败/取消、digest 和
+  false-authority claims。
+- 边界：`simulated_scenario_debug_runtime_wired=true` 仅表示 debug 进程内 composition；没有 Android Service、Session/Event Binder、
+  Client2、adapter apply、readback 或 approval authority，production Event broker 也未接通。
+- 下一软件增量：`P4-D4c signature-protected debug Binder Service`，发布固定场景输入和只读 Session/Event projection；继续禁止
+  production registration 与真实车辆/NPU/Driver-HAL。
+
 ## 9. P5 Tool/Skill 与 Memory
 
 ### `P5-W01` Tool manifest/schema

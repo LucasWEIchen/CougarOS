@@ -3709,3 +3709,23 @@ SHA-256。所有 collection 由内部 immutable Plan 建立；不暴露用户/�
 Plan/Graph progress 为 true 只表示 debug control flow 已推进。Effect dispatch、readback、approval response、Android Runtime/Client2 wiring、
 production registration、hardware/production/target qualification 全部 false。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
 `S2-EFF-001`、`S2-HMI-003/006`；tracking：`DEV-101`、`ISSUE-022/026/030/033`。
+
+## 63. P4-D4b Simulated Scenario Runtime interface
+
+`SimulatedScenarioRuntime` 是 debug 进程内 facade：
+
+- `start(CompileRequest, ScenarioResolution, ContextSnapshot, CapabilitySnapshot) -> Snapshot`：启动 D4a 并先后发布 Plan 与当前 Graph projection；
+- `supplyPendingOutcome(runId, NodeExecutionOutcome) -> Snapshot`：发布 outcome metadata，再推进到下一 pending/terminal；
+- `cancel(runId) / get(runId) / size()`：受限 run 管理；unknown run 失败关闭；
+- `subscribe(TrustedSubscription, EventObserver)`、`dispatchOwned(...)`、`cancelSubscriptionOwned(...)`：直接复用 P6 bounded Event 语义；
+- `eventRuntimeSnapshot()`：只读返回全局 sequence、retention 和 delivery 计数。
+
+`Snapshot` 是 immutable metadata view，字段包括 run/session/scenario/plan IDs、Plan/Graph revision、Graph/Session state、pending node、
+projection/outcome 计数、last event sequence、event count 和 stable digest。Event schema ID 可供后续 HMI 建立调用链；payload 只为 digest。
+
+D4b 没有 AIDL。`isDebugRuntimeWired/sessionProjectionEnabled/eventProjectionEnabled/processLocal=true`；
+`isAndroidServicePublished/sessionEventBinderPublished/client2Wired/effectDispatchEnabled/readbackAccessed/approvalAuthorityAvailable/
+productionRegistered/hardwareAccessed/productionReady/targetHardwareValidated=false`。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-003/006`；tracking：
+`DEV-102`、`ISSUE-022/026/030/033`。

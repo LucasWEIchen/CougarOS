@@ -116,7 +116,16 @@ for marker in \
   'simulated_scenario_graph_debug_only=true' \
   'simulated_scenario_plan_published=true' \
   'simulated_scenario_graph_progress_enabled=true' \
+  'simulated_scenario_debug_runtime_projection_defined=true' \
+  'simulated_scenario_debug_runtime_wired=true' \
+  'simulated_scenario_session_projection_enabled=true' \
+  'simulated_scenario_event_projection_enabled=true' \
+  'simulated_scenario_event_topic_count=2' \
+  'simulated_scenario_event_schema_count=8' \
+  'simulated_scenario_process_local=true' \
   'simulated_scenario_android_runtime_wired=false' \
+  'simulated_scenario_android_service_published=false' \
+  'simulated_scenario_session_event_binder_published=false' \
   'simulated_scenario_client2_wired=false' \
   'simulated_scenario_effect_dispatch_enabled=false' \
   'simulated_scenario_readback_accessed=false' \
@@ -650,6 +659,7 @@ required_paths=(
   central-brain/contracts/central_brain_github_remote_testing.json
   central-brain/contracts/central_brain_runtime_contract_v2.json
   central-brain/contracts/central_brain_android_p4_d4a_simulated_scenario_graph.json
+  central-brain/contracts/central_brain_android_p4_d4b_simulated_scenario_runtime.json
   central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
@@ -669,6 +679,7 @@ required_paths=(
   tools/check_central_brain_android_runtime_evolution.sh
   tools/check_central_brain_android_release_retest_workflow.sh
   tools/check_central_brain_android_simulated_scenario_graph.sh
+  tools/check_central_brain_android_simulated_scenario_runtime.sh
   tools/check_central_brain_android_session_contract.sh
   tools/check_central_brain_android_plan_contract.sh
   tools/check_central_brain_android_event_contract.sh
@@ -804,8 +815,10 @@ if "P9 Release Retest Workflow" not in developed:
     raise SystemExit("README developed table must include the completed P9-W07c release/retest workflow")
 if "P4-D4a Simulated Scenario Graph" not in developed:
     raise SystemExit("README developed table must include the completed P4-D4a debug composition")
-if "场景与仿真 Effect 编排" not in remaining or "P4-D4b debug Runtime projection" not in remaining:
-    raise SystemExit("README must keep P4-D4b runtime projection in the remaining-work table")
+if "P4-D4b Simulated Scenario Runtime" not in developed:
+    raise SystemExit("README developed table must include the completed P4-D4b projection")
+if "场景与仿真 Effect 编排" not in remaining or "P4-D4c debug Binder Service" not in remaining:
+    raise SystemExit("README must keep P4-D4c Binder publication in the remaining-work table")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining

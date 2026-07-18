@@ -1684,3 +1684,21 @@ Plan publication，也不能关闭 ISSUE-022/026/030/033。
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4a`。
+
+## DEV-102 P4-D4b process-local Runtime projection is not an Android Binder runtime
+
+P4-D4b 已把 D4a Graph 接入 debug 进程内 Session/Plan/Event projection，并复用 P6 `BoundedEventRuntime` 的 topic、sequence、retention
+和 subscription。相比 D4a，它能产生可订阅的调用链 metadata，但事件 payload 只有 digest，且没有跨进程入口。
+
+该类不在 main/release，没有 Android Service、AIDL、Session/Event Binder、Client2 binding 或 production broker。JVM supplied outcome 仍不是
+Effect adapter、readback 或 approval authority；`simulated_scenario_debug_runtime_wired=true` 不能解释为
+`simulated_scenario_android_runtime_wired=true`。
+
+状态：`Accepted Temporary`。P4-D4c 负责 signature-protected debug Binder；后续包再接 debug adapter/readback 和 Client2。
+P8 真实 vehicle/owner evidence 到位前，production dispatch 不得开启。
+
+当前 `simulated_scenario_android_runtime_wired=false`、`simulated_scenario_android_service_published=false`、
+`simulated_scenario_session_event_binder_published=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4b`。

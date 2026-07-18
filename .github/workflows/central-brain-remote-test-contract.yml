@@ -127,4 +127,5 @@ jobs:
           bash tools/check_central_brain_android_field_diagnostics_probe.sh
           bash tools/check_central_brain_android_release_retest_workflow.sh
           bash tools/check_central_brain_android_simulated_scenario_graph.sh
+          bash tools/check_central_brain_android_simulated_scenario_runtime.sh
           bash tools/check_central_brain_root_readme.sh
