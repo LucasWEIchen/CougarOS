@@ -1489,3 +1489,20 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。
+### P9-W05a Production Release Admission progress
+
+状态：`SOFTWARE_CONTRACT_DEFINED / PRODUCTION_OWNER_INPUT_OPEN`（2026-07-18）。新增固定三 APK set、installed/candidate
+same-signer/cohort、release/package version 单调性、Room readable range、migration evidence 与 rollback owner/decision/data
+compatibility 的纯 Java准入合同和八组 JVM tests。
+
+合同不接 PackageManager/keystore/Room/Service，不安装、卸载或执行 rollback。仓库当前仍是 debug signer，production signer owner、
+release/rollback owner evidence、OTA/MDM installer 和目标 rehearsal 均缺失，因此 candidate 固定不宣称 admitted。下一小步
+`P9-W05b release metadata Android probe`；外部证据继续由 ISSUE-052 跟踪。
+
+Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。
+`production_release_admission_defined=true`、`release_package_set_count=3`、
+`same_signer_upgrade_fail_closed=true`、`release_database_compatibility_fail_closed=true`、
+`release_rollback_decision_fail_closed=true`、`production_signer_owner_approved=false`、
+`production_release_candidate_admitted=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。

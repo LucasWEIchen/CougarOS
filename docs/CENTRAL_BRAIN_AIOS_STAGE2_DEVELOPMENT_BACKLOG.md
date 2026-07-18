@@ -1115,6 +1115,11 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 ### `P9-W05` Production signer/upgrade/rollback
 
 - 4-8 人日；`S2-REL-001`。same-signer upgrade、DB migration、APK set compatibility、rollback decision、data compatibility。
+- `P9-W05a production release admission`：已交付固定三 APK set、installed/candidate same-signer/cohort、release/package
+  version 单调性、Room readable range、migration evidence、rollback owner/decision/data-compatibility 的纯 Java fail-closed
+  合同与八组 JVM tests。当前 owner evidence 为空，不安装/卸载/回滚，不接 PackageManager/keystore/Room/Service。
+- 下一小步 `P9-W05b release metadata Android probe`：只提供 debug-only metadata/probe 与 installer dry-run 适配；production signer、
+  OTA/MDM 和目标 rollback rehearsal 仍由 `ISSUE-052` 阻塞。
 
 ### `P9-W06` Driver distraction/vehicle safety acceptance
 

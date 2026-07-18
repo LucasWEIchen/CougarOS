@@ -1466,3 +1466,22 @@ Projection 位于 Runtime/repository 之外，只调用 pure-Java contracts。Ac
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-093`、`ISSUE-051`。
+## P9-W05a production release admission architecture
+
+```text
+installed release metadata --+
+candidate release metadata --+--> ProductionReleaseAdmission --> typed Decision
+signer/release owner digests --+          |                         |- no install/uninstall
+migration/rollback evidence --+          |                         |- no DB mutation
+                                           `--> exact package/signer/version/schema/rollback gates
+```
+
+该组件位于 release packaging、target installer 和 Room open 之前，不位于 Runtime Service 请求路径。W05a 复用 Android package
+same-signer 的安全语义，但不读取 PackageManager；未来 evidence adapter 负责测量，admission 只消费 digest metadata。Rollback 保留现存
+数据库，不允许旧 APK 在 readable range 之外启动。
+
+当前 `production_release_admission_defined=true`、`production_signer_owner_approved=false`、
+`production_release_candidate_admitted=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
+`S2-REL-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。

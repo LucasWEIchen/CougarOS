@@ -3524,3 +3524,14 @@ Activity 不提供 UI/Binder，不读其他 Intent 字段；异常只输出 type
 `privacy_runtime_lifecycle_wiring_complete=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：
 `S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-093`、`ISSUE-051`。
+## Android P9-W05a Production Release Admission Contract
+
+`ProductionReleaseAdmission.evaluate(installed, candidate, request)` 是 release pipeline 前置的纯 Java quick-return 接口。`ReleaseSet`
+携带 canonical release ID/sequence、source/archive digest 和精确三个 `PackageSnapshot`；每个 snapshot 携带 package identity、
+versionCode、signer/artifact digest、data schema/readable range。`AdmissionRequest` 携带 mode 及 owner/migration/rollback evidence digest。
+
+返回 `Decision` 只包含 `DecisionCode`、mode、decision digest 和四个恒 false 的执行 authority。调用方只能把 `ADMITTED` 当作后续
+installer/rehearsal 的必要条件，不能据此直接安装、打开数据库或绕过 OEM OTA/MDM。Signer digest 由未来受控 evidence adapter
+提供；本接口不接收证书、私钥、APK bytes 或设备身份。
+
+Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。

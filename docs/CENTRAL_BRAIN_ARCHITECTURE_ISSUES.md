@@ -1074,3 +1074,24 @@ Android probe evidence 和合规审计持久化仍未完成，ISSUE 保持 Open�
 `privacy_production_lifecycle_complete=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
 `privacy_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091/092/093`。
+## ISSUE-052 P9 production signer and rollback owner evidence is unavailable
+
+状态：`Open / External Blocked`。
+
+W05a 已交付机器可判定的发布集准入合同，但当前仓库只有 debug signer 软件包。没有 production signer owner/rotation policy、正式
+release sequence、OTA/MDM owner、目标普通包/系统包安装策略、rollback decision owner、目标数据库兼容 evidence 或受控 rehearsal。
+不得上传私钥、keystore、certificate bytes、设备 serial/fingerprint、未审日志、内部路径或原始业务 payload。
+
+解除条件：
+
+1. 以 digest reference 提供命名 production signer/release/rollback owner approval；
+2. 绑定正式 source commit、archive SHA-256、三 APK SHA-256/versionCode/package/signer measurement；
+3. 对所有 schema transition 提供 Room migration fixture 与 rollback readable-range evidence；
+4. 通过受控 OTA/MDM 或批准 installer 完成 same-signer upgrade；
+5. 在非生产数据目标上完成 rollback rehearsal，证明旧 Runtime 可读现存 DB 且没有 destructive downgrade；
+6. 由 release、安全与数据 owner 评审仓库外 evidence，并发布命名 replacement release。
+
+当前 `production_release_admission_defined=true`、`production_signer_owner_approved=false`、
+`production_release_candidate_admitted=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。tracking：`DEV-094`。

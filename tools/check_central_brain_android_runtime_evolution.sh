@@ -243,6 +243,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_security_boundary_inventory.sh
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_data_inventory.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_policy_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_redaction_audit.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_production_release_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_inference_scheduler.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_deterministic_model_provider.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_test_model_router.sh"

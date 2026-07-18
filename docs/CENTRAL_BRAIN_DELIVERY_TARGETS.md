@@ -2486,3 +2486,20 @@ Host/build 可验收 software availability。目标验收要求 exactly one Andr
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-093`、`ISSUE-051`。
+## Android P9-W05a Production Release Admission
+
+交付 versioned JSON、pure-Java `ProductionReleaseAdmission`、八组 JVM regression、独立 checker 与架构/接口/详设文档聚合。验收要求
+Runtime/Demo/Client2 精确三包、same-signer/cohort、source/archive/artifact digest、release/package version、Room schema/readable
+range、migration evidence、rollback owner/decision/data compatibility 全部失败关闭。
+
+本包不接受 APK/certificate bytes，不读取 PackageManager/keystore/Room，不接 Runtime/Governance Service，不安装/卸载或执行 rollback。
+当前 owner evidence null，debug artifact 不能成为 production candidate。目标验收还需 W05b probe 与 ISSUE-052 的正式 signer/OTA/rollback
+rehearsal。
+
+状态：`production_release_admission_defined=true`、`release_package_set_count=3`、
+`same_signer_upgrade_fail_closed=true`、`release_database_compatibility_fail_closed=true`、
+`release_rollback_decision_fail_closed=true`、`production_signer_owner_approved=false`、
+`production_release_candidate_admitted=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
+`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。

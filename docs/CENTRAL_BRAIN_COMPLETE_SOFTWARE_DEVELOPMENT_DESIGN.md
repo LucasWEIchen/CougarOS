@@ -4598,3 +4598,34 @@ checker 解析 XML 并确认 main/release 不存在。installer 只匹配脱敏 
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-093`、`ISSUE-051`。
+## P9-W05a production release admission detailed design
+
+### Object model
+
+`PackageSnapshot` 是 immutable metadata，严格区分 Android versionCode 与 durable data schema。Runtime 是唯一 durable owner；Demo 与
+Client2 的三个 schema 字段必须全为 0。`ReleaseSet` defensive-copy package list；package 顺序本身属于 canonical identity，避免 map
+序列化和重复 key 差异。`AdmissionRequest` 只保存 mode 与 evidence digests。
+
+### Validator pipeline
+
+`evaluate` 先校验 installed/candidate release ID、sequence、source/archive SHA-256，再校验精确 package set、每包 evidence 与 schema
+形状，然后要求 signer/release owner evidence，最后执行 signer 与 mode-specific 规则。该顺序使 malformed package 在 owner 状态之前
+失败，并使 same-signer 成为 version/schema gate 的前置条件。
+
+Upgrade 要求 release sequence 严格增加、所有 package version 不下降、至少一个 package 增加、candidate Runtime readable range 覆盖
+installed schema、declared schema 不下降；schema 增加时 migration digest 必填。Rollback 要求三项专用 evidence、sequence/versions
+反向单调、旧 Runtime 仍可读当前 DB。Rollback 不迁移 DB 到旧 schema。
+
+### Output and audit
+
+`Decision` 不返回 signer、artifact、owner reference 或 package inventory，只返回 typed code、mode 和 SHA-256 decision digest。Digest
+domain 包含 schema/profile/code 和 canonical inputs，供未来仓库外 evidence 关联；不得作为密码学签名。Decision 不授予 installer、DB
+或 rollback authority。
+
+### Tests and claim boundary
+
+八组 JVM tests 覆盖正向 upgrade、精确 set/owner、signer/cohort、version/migration、schema、rollback evidence/compatibility 和 false
+claims。Checker 将 JSON、Java、Gradle versionCode 与 Room v4 交叉验证，并禁止 Android/file/network/vehicle/hardware import 和
+Runtime/Governance wiring。当前 production signer/OTA/rollback owner 与 target evidence 均未提供。
+
+Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。

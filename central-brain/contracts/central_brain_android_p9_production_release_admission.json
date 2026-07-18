@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-production-release-admission-v1",
+  "maturity": "software_contract_owner_input_required",
+  "req_ids": [
+    "S2-REL-001",
+    "S2-SAF-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "required_package_set": [
+    {
+      "package_id": "runtime-service",
+      "package_name": "com.centralbrain.runtime",
+      "repository_version_code": 3,
+      "repository_data_schema_version": 4
+    },
+    {
+      "package_id": "demo-hmi",
+      "package_name": "com.centralbrain.demo",
+      "repository_version_code": 1,
+      "repository_data_schema_version": 0
+    },
+    {
+      "package_id": "client2-demo",
+      "package_name": "com.tuanjie.urasclient2",
+      "repository_version_code": 1,
+      "repository_data_schema_version": 0
+    }
+  ],
+  "same_signer_cohort": [
+    "runtime-service",
+    "demo-hmi",
+    "client2-demo"
+  ],
+  "upgrade_policy": {
+    "release_sequence_must_increase": true,
+    "package_version_may_decrease": false,
+    "at_least_one_package_version_must_increase": true,
+    "installed_database_schema_must_be_readable": true,
+    "database_schema_may_decrease": false,
+    "migration_digest_required_when_schema_increases": true
+  },
+  "rollback_policy": {
+    "release_sequence_must_decrease": true,
+    "package_version_may_increase": false,
+    "at_least_one_package_version_must_decrease": true,
+    "installed_database_is_not_destructively_downgraded": true,
+    "rollback_decision_digest_required": true,
+    "rollback_data_compatibility_digest_required": true,
+    "installed_database_schema_must_be_readable_by_target": true
+  },
+  "owner_evidence": {
+    "production_signer_approval_digest": null,
+    "release_owner_approval_digest": null,
+    "rollback_owner_approval_digest": null,
+    "status": "OWNER_INPUT_REQUIRED"
+  },
+  "execution_boundary": {
+    "accepts_apk_bytes": false,
+    "accepts_certificate_bytes": false,
+    "reads_package_manager": false,
+    "reads_keystore": false,
+    "mutates_database": false,
+    "installs_packages": false,
+    "uninstalls_packages": false,
+    "executes_rollback": false
+  },
+  "claim_state": {
+    "production_release_admission_defined": true,
+    "release_package_set_count": 3,
+    "same_signer_upgrade_fail_closed": true,
+    "release_database_compatibility_fail_closed": true,
+    "release_rollback_decision_fail_closed": true,
+    "production_signer_owner_approved": false,
+    "production_release_candidate_admitted": false,
+    "release_installer_wired": false,
+    "release_rollback_executor_wired": false,
+    "release_android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P9-W05"
+  }
+}
