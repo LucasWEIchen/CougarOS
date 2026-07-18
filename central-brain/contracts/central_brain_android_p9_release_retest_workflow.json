@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p9-release-retest-workflow-v1",
+  "source_profile_id": "android13-p9-release-evidence-envelope-v1",
+  "source_issue_contract_id": "central-brain.github-remote-hardware-testing.v1",
+  "maturity": "software_state_machine_defined_target_retest_pending",
+  "requirement_ids": ["S2-OBS-001", "S2-REL-001", "DEL-001", "DEL-004", "DEL-005"],
+  "issue_state_count": 5,
+  "issue_states": [
+    "state/triage", "state/reproduced", "state/fix-ready", "state/retest", "state/verified"
+  ],
+  "transition_count": 5,
+  "transitions": [
+    {"from": "state/triage", "to": "state/reproduced", "actor": "MAINTAINER"},
+    {"from": "state/reproduced", "to": "state/fix-ready", "actor": "MAINTAINER"},
+    {"from": "state/fix-ready", "to": "state/retest", "actor": "MAINTAINER"},
+    {"from": "state/retest", "to": "state/verified", "actor": "TARGET_TESTER"},
+    {"from": "state/retest", "to": "state/fix-ready", "actor": "TARGET_TESTER"}
+  ],
+  "replacement_release": {
+    "required_fields": [
+      "release_tag", "source_git_commit", "archive_sha256", "release_set_digest",
+      "release_owner_approval_digest"
+    ],
+    "strictly_newer_than_current_required": true,
+    "distinct_source_archive_release_set_required": true,
+    "old_release_asset_replacement_allowed": false,
+    "publishes_release": false,
+    "installs_release": false
+  },
+  "target_report_admission": {
+    "target_mode_required": true,
+    "replacement_identity_match_required": true,
+    "all_eight_categories_executed_required": true,
+    "all_eight_categories_pass_required_for_verified": true,
+    "target_owner_approval_digest_required": true,
+    "release_owner_approval_digest_required": true,
+    "diagnostics_owner_approval_digest_required": true,
+    "tester_verification_digest_required": true,
+    "approval_digests_distinct_required": true,
+    "signer_cohort_observed_required": true,
+    "privacy_confirmation_required": true,
+    "automatic_upload_allowed": false,
+    "sets_target_hardware_validated": false,
+    "sets_production_ready": false
+  },
+  "issue_close_rule": {
+    "verified_state_required": true,
+    "named_replacement_release_required": true,
+    "target_tester_verification_required": true,
+    "automatic_issue_close_allowed": false,
+    "mutates_github_issue": false
+  },
+  "forbidden_inputs_or_actions": [
+    "issue_title_or_body", "device_serial_or_fingerprint", "signer_or_certificate_material",
+    "target_input_file", "raw_or_unreviewed_log", "internal_path", "user_or_model_text",
+    "memory_or_token", "vehicle_payload", "github_issue_mutation", "release_publication",
+    "package_install_or_uninstall", "rollback_execution", "automatic_upload"
+  ],
+  "claim_state": {
+    "release_retest_state_machine_defined": true,
+    "release_retest_issue_state_count": 5,
+    "release_retest_transition_count": 5,
+    "release_retest_replacement_release_published": false,
+    "release_evidence_target_report_admitted": false,
+    "release_evidence_retest_workflow_wired": false,
+    "release_retest_github_issue_mutation_wired": false,
+    "release_retest_automatic_issue_close_allowed": false,
+    "release_evidence_automatic_upload_enabled": false,
+    "release_retest_android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P9-W07"
+  }
+}

@@ -188,6 +188,20 @@ state/verified` 推进。只有测试人员在 Issue 中确认具体替代 Relea
 5. 将 Issue 标为 `state/retest`，由原测试人员复测。
 6. 复测通过后标为 `state/verified` 并关闭；失败则保留同一 Issue 的版本时间线。
 
+### 8.1 P9-W07c replacement release/retest state machine
+
+仓库内 `ReleaseRetestWorkflow` 已把上述 5 个 label 和 5 条合法转换实现为 pure-Java metadata policy。进入 retest 必须由 maintainer
+绑定严格递增且 source/archive/release-set 均不同的命名 replacement release；进入 verified 必须由 target tester 提交身份匹配、八类
+完整 PASS 的 TARGET report，以及互不相同的 target/release/diagnostics/tester approval digest。
+
+该实现只计算 workflow digest、report admission 和 manual-close eligibility，不调用 GitHub API/CLI、不发布 Release、不安装 APK，且
+`Decision.isAutomaticIssueCloseAllowed()` 固定 false。真实自动化仍只负责轮询和单步修复；它不得用 JVM fixture 或 debug probe 自动推进
+远端 label/关单。
+
+当前 `release_retest_state_machine_defined=true`、`release_retest_github_issue_mutation_wired=false`、
+`release_retest_automatic_issue_close_allowed=false`、`release_retest_replacement_release_published=false`、
+`release_evidence_target_report_admitted=false`、`production_ready=false`、`target_hardware_validated=false`。
+
 事件维护自动化 `cougaros-github-issue-maintenance` 已激活，每 15 分钟轮询一次仓库的新增或
 更新 Issue。自动化通过已授权的 `gh` CLI 访问该 Private 仓库；Codex GitHub connector 当前
 按端点返回 404/422 可见性错误，因此只作为不可用的首选通道记录。轮询不是即时 webhook；

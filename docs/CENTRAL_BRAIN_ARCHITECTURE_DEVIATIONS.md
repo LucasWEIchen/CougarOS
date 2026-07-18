@@ -1635,6 +1635,24 @@ metadata observation 成为 production candidate。
 `release_evidence_retest_workflow_wired=false`、`release_evidence_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
 
+## DEV-100 P9-W07c software admission is not a published replacement release or completed retest
+
+W07c 可以在 JVM 中构造满足四方摘要和八类 PASS 的 metadata fixture，并返回 `targetReportAdmitted=true` 与
+`issueCloseEligible=true`。这只验证 admission 算法；repository 没有真实 target report、owner digest、tester confirmation 或命名
+replacement Release，因此静态 claim 必须继续为 false。
+
+状态机不调用 GitHub、不创建 tag/asset、不安装 APK，也不自动关闭 Issue。`state/verified` 仅表示输入元数据满足关闭前置条件，真实
+Issue 仍必须由 maintainer 在 target tester 对具体 replacement release 复测后人工推进。production signer/installer/rollback 还要独立关闭
+ISSUE-052，W07c 不能替代 W05 或 P8 证据。
+
+状态：`Accepted Temporary`。关闭条件是仓库外 target report 与 release/archive digest 一致，target/release/diagnostics owner 和 tester
+完成审核，命名 replacement release 在目标复测，并由维护者记录 Issue 时间线。当前
+`release_retest_state_machine_defined=true`、`release_retest_replacement_release_published=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_retest_workflow_wired=false`、
+`release_retest_github_issue_mutation_wired=false`、`release_retest_automatic_issue_close_allowed=false`、
+`release_retest_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+
 ## DEV-099 P9-W07b debug diagnostics are not complete field acceptance
 
 W07b 在目标上可执行五类 bounded diagnostic，但 installer dry-run、installer execute 和 manual scenario matrix 明确 NOT_RUN。APK 的

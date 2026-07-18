@@ -1608,3 +1608,25 @@ issue authority。Adapter 输出可作为 W07a fact input，但当前三项 NOT_
 `release_evidence_retest_workflow_wired=false`、`field_diagnostics_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
 Req IDs：`S2-OBS-001/S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。
+
+## P9-W07c release/retest workflow architecture
+
+```text
+GitHub-safe hardware-test metadata
+        -> exact 5-state / 5-transition workflow
+            -> strictly newer named replacement release
+                -> W07a TARGET report identity + four-party digest admission
+                    -> PASS: verified + manual-close eligible
+                    -> non-PASS: same issue -> fix-ready -> next replacement
+```
+
+该模块是 release control-plane 的 pure-Java policy，不是 GitHub adapter。它复用 W07a report/evaluation，不读取 W07b probe 或 ADB 原始输出；
+所有输入由调用方先转换为 canonical tag/commit/digest/enum。状态机与 Runtime/Governance、installer、Effect、Vehicle、NPU、Driver/HAL 隔离。
+
+Verified decision 不自动改变远端 Issue。真实维护闭环仍由 `cougaros-github-issue-maintenance` 和 maintainer 执行，并以 target tester 对具体
+replacement release 的确认作为关单前置。当前 `release_retest_state_machine_defined=true`、
+`release_retest_replacement_release_published=false`、`release_evidence_target_report_admitted=false`、
+`release_evidence_retest_workflow_wired=false`、`release_retest_github_issue_mutation_wired=false`、
+`release_retest_automatic_issue_close_allowed=false`、`release_retest_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+Req IDs：`S2-OBS-001/S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。
