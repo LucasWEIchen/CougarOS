@@ -1796,3 +1796,20 @@ W07b 的 debug PackageManager/launch observation 不能用于推断 Vehicle/Driv
 `field_diagnostics_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
 `DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。
+
+## P9-W07c Release Retest Workflow Driver/HAL Boundary
+
+W07c 是 pure-Java release/issue metadata 状态机，只处理 canonical tag、commit、SHA-256、issue number、enum、cycle 和 boolean。
+它不读取 Android API、VHAL/Vendor Binder/CAN/device node/sysfs/NPU，不修改厂商 SDK、系统镜像或 SELinux，也没有 C/JNI/Driver/HAL
+或虚拟化开发量。
+
+真实 installer/rollback、车辆侧 diagnostic 与 NPU/Driver 证据仍必须通过目标公开 Android/OEM SDK 和已编号 P8 capability 提供。W07c 的
+owner/tester digest admission 不能证明底层接口存在，也不能触发新增 Driver/HAL；只有 owner 证明公开接口缺口后才登记最小实现量。
+
+当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`release_retest_state_machine_defined=true`、`release_retest_replacement_release_published=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_retest_workflow_wired=false`、
+`release_retest_github_issue_mutation_wired=false`、`release_retest_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；
+tracking：`DEV-100`、`ISSUE-052/053`。

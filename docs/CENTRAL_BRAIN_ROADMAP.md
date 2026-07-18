@@ -1607,3 +1607,25 @@ Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098/
 `release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
 `release_evidence_retest_workflow_wired=false`、`field_diagnostics_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+
+### P9-W07c Release Retest Workflow progress
+
+状态：`SOFTWARE_DEVELOPED / TARGET_RETEST_PENDING`（2026-07-18）。新增 pure-Java `ReleaseRetestWorkflow`、versioned JSON、
+九组 JVM regression 和独立/Stage2/Runtime/CI 门禁。状态目录与既有 GitHub 远程测试合同一致：triage、reproduced、fix-ready、
+retest、verified；只允许五条 actor-bound 转换。
+
+进入 retest 必须由 maintainer 绑定严格递增且 source/archive/release-set 均不同的命名 replacement release，并提供 release owner digest。
+进入 verified 必须由 target tester 提交身份匹配、GitHub-safe、八类全部执行且全部 PASS 的 W07a TARGET report，同时具备 target/release/
+diagnostics owner 与 tester 四方摘要。完整非 PASS report 回到同一 Issue 的 fix-ready，并要求下一轮使用更高 release。
+
+本状态机只返回 metadata decision、workflow digest、target-report admission 与 issue-close eligibility；不发布 Release、不安装 APK、不修改
+GitHub Issue，也没有自动关单 API。W07a/W07b/W07c 仓库软件项至此完成；真实 target report、命名 owner/retest 与正式 signer/installer/
+rollback 仍由 ISSUE-052/053 外部阻塞，P8 真实 adapter 仍未解锁。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098/099/100`、`ISSUE-052/053`。
+`release_retest_state_machine_defined=true`、`release_retest_issue_state_count=5`、
+`release_retest_transition_count=5`、`release_retest_replacement_release_published=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_retest_workflow_wired=false`、
+`release_retest_github_issue_mutation_wired=false`、`release_retest_automatic_issue_close_allowed=false`、
+`release_retest_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。

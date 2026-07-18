@@ -3658,3 +3658,29 @@ RuntimeProbe 和 DiagnosticProbe。输出固定八类 category/status/result/det
 随后脚本 nonzero；preflight 本身无法运行时只输出通用错误。
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。
+
+## Android P9-W07c Release Retest Workflow
+
+### Snapshot API
+
+`IssueSnapshot.open(long, ReleaseIdentity)` 创建 `state/triage` immutable snapshot。Snapshot 只保存 issue number、原始/替代 release
+metadata、state、retest cycle、可选 last report digest，并计算稳定 `workflowDigest`；不保存 Issue title/body、评论或原始证据。
+
+### Transition API
+
+`advance(snapshot, MAINTAINER)` 只允许 triage -> reproduced 和 reproduced -> fix-ready。
+`requestRetest(snapshot, MAINTAINER, ReplacementRelease)` 只允许 fix-ready -> retest，并强制 replacement tag 严格递增、三类 artifact
+identity 均不同。非法 actor/state/release 返回 rejected `Decision`，原 snapshot 不变。
+
+### Evidence admission API
+
+`submitRetest(snapshot, TARGET_TESTER, Report, diagnosticsOwnerDigest, testerDigest)` 要求 W07a TARGET report 与 replacement identity 完全匹配，
+并由 W07a 验证 GitHub-safe、target owner 和八类执行完整性。全部 PASS 返回 verified/admitted/close-eligible；完整非 PASS 返回 fix-ready，
+不 admitted。Release owner digest 已绑定在 replacement 中。
+
+### Authority boundary
+
+`Decision.isAutomaticIssueCloseAllowed()`、production、target-hardware 始终 false。API 没有 GitHub client、release publisher、installer、
+rollback 或 Android entry；repository 静态 claim 不因 JVM fixture 变化。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。

@@ -2651,3 +2651,28 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
 `field_diagnostics_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。tracking：`DEV-099`、`ISSUE-052/053`。
+
+## 92. P9-W07c replacement release and issue/retest trace
+
+本增量映射 `S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`：
+
+1. 状态机必须是 pure-Java metadata contract，不得依赖 Android、文件、网络、GitHub API/CLI、车辆、NPU 或 Driver/HAL。
+2. issue state 必须精确固定为 triage、reproduced、fix-ready、retest、verified，顺序与远程测试合同一致。
+3. 只允许五条转换：maintainer 推进前两步并发布 retest request；target tester 将 retest 推进到 verified 或退回 fix-ready。
+4. replacement release 必须绑定 canonical tag、source commit、archive/release-set SHA-256 和 release owner approval digest。
+5. 新 replacement tag 必须严格高于当前命名 release，且 source commit、archive digest、release-set digest 均不得复用；不得替换旧资产。
+6. verified admission 必须要求 W07a TARGET report 与 replacement identity 精确一致、GitHub-safe、八类全部执行且全部 PASS。
+7. verified admission 必须同时具备 target owner、release owner、diagnostics owner 与 target tester 四类互不相同的摘要，并观察到 signer cohort；不得接受任意文本或原始证据。
+8. 八类完整但存在 FAIL/BLOCKED 时，必须保留同一 Issue、记录 report digest、退回 fix-ready，并要求下一轮更高 replacement release。
+9. HOST、NOT_RUN、identity mismatch、缺 owner/tester digest、错误 actor 或非法转换必须失败关闭且保持原 snapshot 不变。
+10. snapshot digest 必须绑定 profile/schema、issue number、state、original/replacement identity、retest cycle 和 last report digest。
+11. verified 只产生 issue-close eligibility；自动关单必须固定 false，类中不得包含 GitHub mutation、Release publication 或 install/rollback。
+12. repository 当前无 owner/target evidence，因此 target report admitted、workflow wired、Android/hardware/production qualification 必须保持 false。
+
+状态：`release_retest_state_machine_defined=true`、`release_retest_issue_state_count=5`、
+`release_retest_transition_count=5`、`release_retest_replacement_release_published=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_retest_workflow_wired=false`、
+`release_retest_github_issue_mutation_wired=false`、`release_retest_automatic_issue_close_allowed=false`、
+`release_evidence_automatic_upload_enabled=false`、`release_retest_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W07`。tracking：`DEV-100`、`ISSUE-052/053`。

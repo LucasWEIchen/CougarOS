@@ -1,14 +1,14 @@
 # Central Brain Release Evidence And Field Diagnostics
 
-版本：1.0
+版本：1.2
 日期：2026-07-18
-状态：`P9-W07a SOFTWARE_CONTRACT_DEFINED / TARGET_EVIDENCE_PENDING`
+状态：`P9-W07a/W07b/W07c SOFTWARE_DEVELOPED / TARGET_RETEST_EXTERNAL_BLOCKED`
 
 ## 1. 目的与需求映射
 
-P9-W07 将发布身份、现场诊断、GitHub issue/retest 流程收敛为可审计交付链。W07a 仅实现 metadata-only
-`ReleaseEvidenceEnvelope`，对应 `S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`。它不采集目标数据、不执行
-ADB、不上传证据，也不替代 W05 production release admission。
+P9-W07 将发布身份、现场诊断、GitHub issue/retest 流程收敛为可审计交付链。W07a 定义 metadata-only envelope，W07b 提供
+debug-only collector/adapter，W07c 定义 replacement release/retest admission；共同对应 `S2-OBS-001`、`S2-REL-001`、
+`DEL-001/004/005`。它们不自动上传证据、修改 Issue 或替代 W05 production release admission。
 
 ## 2. 模块边界
 
@@ -104,3 +104,27 @@ W07b 软件可用不代表目标已执行。当前 ADB transport 不合格，因
 `release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
 `field_diagnostics_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。tracking：`DEV-099`、`ISSUE-052/053`。
+
+## 9. P9-W07c replacement release and issue/retest workflow
+
+`ReleaseRetestWorkflow` 延续既有 GitHub 远程测试状态目录，精确实现 5 个状态与 5 条 actor-bound 转换。Maintainer 只能推进
+triage -> reproduced -> fix-ready，并在绑定命名 replacement release 后进入 retest；Target tester 只能把 retest 推进到 verified，
+或在完整非 PASS 报告后退回 fix-ready。
+
+Replacement release 必须严格高于当前 release tag，并使用不同的 source commit、archive SHA-256 和 release-set digest，同时携带 release
+owner approval digest。Verified admission 要求 W07a TARGET report 身份完全匹配 replacement release、GitHub privacy gate 通过、八类全部
+执行且全部 PASS，观察到 signer cohort，并同时存在四个互不相同的 target owner、release owner、diagnostics owner 和 tester verification digest。
+
+完整 FAIL/BLOCKED 报告不会丢失 Issue：snapshot 保存 report digest 并回到 fix-ready；下一轮必须使用更高 replacement release。Snapshot
+digest 绑定 issue number、state、原始/替代 release、cycle 与 last report，不接受 Issue title/body、raw evidence 或 payload。
+
+软件 decision 中的 admitted/close-eligible 只验证算法。Repository 当前没有真实 owner/target evidence，因此不发布 release、不修改 GitHub
+Issue、不自动关闭、不安装/rollback，也不提升硬件或 production 状态。W07a/W07b/W07c 仓库软件项已完成，外部复测仍保持 open。
+
+当前 `release_retest_state_machine_defined=true`、`release_retest_issue_state_count=5`、
+`release_retest_transition_count=5`、`release_retest_replacement_release_published=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_retest_workflow_wired=false`、
+`release_retest_github_issue_mutation_wired=false`、`release_retest_automatic_issue_close_allowed=false`、
+`release_evidence_automatic_upload_enabled=false`、`release_retest_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W07`。tracking：`DEV-100`、`ISSUE-052/053`。

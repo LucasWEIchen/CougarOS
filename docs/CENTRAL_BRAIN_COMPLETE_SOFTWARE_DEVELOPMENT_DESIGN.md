@@ -4811,3 +4811,41 @@ Static checker 解析 JSON/Java/XML/shell/docs，验证 debug/release absence、
 installer marker；debug/release Gradle 与 Stage2/Runtime/CI aggregate 必须通过。
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。
+
+## 49. P9-W07c Release Retest Workflow detailed design
+
+### Domain model
+
+`ReleaseIdentity` 只允许 canonical Android hwtest tag、40-hex commit、archive/release-set SHA-256。`ReplacementRelease` 再绑定 release owner
+approval digest。`IssueSnapshot` 保存 issue number 1..999999999、5-state enum、original/replacement identity、cycle 0..999 和可选 last report
+digest；构造后不可变。
+
+### Version and artifact rules
+
+Tag 解析为 major/minor/patch/rc 四段 long，逐段比较且 candidate 必须严格更大。Candidate 的 source commit、archive digest、release-set
+digest 任一复用都会拒绝，防止给旧资产换名。Failed retest 后 snapshot 保留该 replacement，下一次 requestRetest 必须再提高版本。
+
+### Transition matrix
+
+Maintainer 只拥有 triage -> reproduced、reproduced -> fix-ready、fix-ready -> retest。Target tester 只拥有 retest -> verified 或 retest ->
+fix-ready。所有其他 state/actor 组合返回 rejected Decision，不抛出 side effect，不复制到新状态。
+
+### Admission order
+
+`submitRetest` 依次校验 actor/state、diagnostics owner/tester digest、replacement presence、report identity、W07a TARGET/GitHub-safe/target-owner/
+all-executed eligibility、signer cohort 和四方摘要互异，最后检查八类是否全部 PASS。Release owner digest 在 requestRetest 时绑定。缺一项即 `EVIDENCE_REJECTED`；完整非
+PASS 返回 `RETEST_FAILED_FIX_REQUIRED`，完整 PASS 返回 `RETEST_VERIFIED`。
+
+### Digest and privacy
+
+Workflow digest 的 canonical input 包含 profile/schema、issue number、state label、original/replacement canonical metadata、cycle 和 last report
+digest。输入不含 Issue title/body、device identity、signer material、target-input、raw log、内部路径、用户/模型文本、memory/token 或车辆
+payload。类不导入 Android/IO/network，也没有 GitHub/Release/installer 命令。
+
+### Verification and repository truth
+
+九组 JVM tests 覆盖 exact catalog、成功闭环、actor/transition 拒绝、replacement 单调性、四方 admission、失败复测循环、digest、非法输入和
+false repository claims。静态 checker 绑定 JSON/Java/test/docs，并拒绝 production Service wiring。JVM admitted fixture 不改变 repository：
+replacement published、target report admitted、workflow wired、GitHub mutation、automatic close、Android/hardware/production 全部 false。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。

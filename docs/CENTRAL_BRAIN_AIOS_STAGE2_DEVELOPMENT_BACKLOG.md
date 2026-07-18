@@ -1141,16 +1141,18 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 
 ### `P9-W07` Release evidence and field diagnostics
 
-- 状态：`IN_PROGRESS`；3-5 人日；`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`。
+- 状态：`SOFTWARE_DEVELOPED / TARGET_RETEST_EXTERNAL_BLOCKED`（2026-07-18）；3-5 人日；`S2-OBS-001`、`S2-REL-001`、
+  `DEL-001/004/005`。
 - `P9-W07a release evidence envelope`：已交付 strict release tag/source commit/archive SHA/release-set digest、非秘密 alias、
   evidence reference、可选 owner digest、八类有序 diagnostic fact、稳定 report digest、GitHub privacy gate 和 target-owner review
   eligibility。Host evidence 永远是 software-only；review eligible 永远不设置 production/hardware qualification。
 - `P9-W07b debug-only field diagnostics probe and host adapter`：已交付 31-key count/boolean projection、DUMP-protected Activity、
   三包/两 launcher/两 Service preflight、五类 executed + 三类 NOT_RUN adapter 和七组 JVM tests。Adapter 不 build/install/uninstall/
   rollback/upload，不输出 raw log、设备/包身份、signing material、target input、用户/模型/memory/token/车辆 payload；当前目标未执行。
-- `P9-W07c replacement release and issue/retest state machine`：待开发。必须绑定命名 replacement release，由目标 tester/owner 复测；
-  不自动关闭 issue，不把 contract probe 当作 production acceptance。
-- W07a/W07b 仓库软件项已完成；下一软件增量为 `P9-W07c replacement release and issue/retest state machine`。
+- `P9-W07c replacement release and issue/retest state machine`：已交付 5-state/5-transition pure-Java workflow、strictly newer/distinct
+  replacement release、target/release/diagnostics/tester 四方 digest admission、PASS verified 与非 PASS fix-ready 循环、九组 JVM tests。
+  Decision 只产生 manual-close eligibility，不修改 GitHub、不发布/安装 release、不自动关闭 issue。
+- W07a/W07b/W07c 仓库软件项已完成；P9 当前没有可在缺少 owner/目标证据时继续实现的软件包。
 - 当前 target owner、真实 field diagnostic report、retest evidence 和正式 signer/installer authority 不可用，由 `ISSUE-052/053` 外部跟踪。
 
 ## 14. 依赖图

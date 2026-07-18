@@ -2592,3 +2592,21 @@ serial/fingerprint、包名/路径、signer material、target input、raw log �
 `release_evidence_retest_workflow_wired=false`、`field_diagnostics_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。
+
+## Android P9-W07c Release Retest Workflow
+
+交付 versioned JSON、pure-Java `ReleaseRetestWorkflow`、九组 JVM regression 和独立/Stage2/Runtime/CI 门禁。Host 验收必须证明
+exact 5-state/5-transition actor matrix、strictly newer/distinct replacement release、四方 digest admission、完整 PASS 才 verified、完整非 PASS
+退回 fix-ready、snapshot digest 稳定绑定，以及 automatic issue close 固定禁用。
+
+本包不调用 GitHub、不发布 tag/asset、不安装/卸载/rollback，不读取设备、文件、网络、车辆、NPU 或 Driver/HAL。JVM 中 admitted fixture
+不是当前 repository evidence；目标交付仍要求命名 release、八类 target facts、受控 evidence reference、target/release/diagnostics owner 和
+tester 复测。Issue 只能在人工确认具体 replacement release 后关闭。
+
+状态：`release_retest_state_machine_defined=true`、`release_retest_issue_state_count=5`、
+`release_retest_transition_count=5`、`release_retest_replacement_release_published=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_retest_workflow_wired=false`、
+`release_retest_github_issue_mutation_wired=false`、`release_retest_automatic_issue_close_allowed=false`、
+`release_retest_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
+`DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。

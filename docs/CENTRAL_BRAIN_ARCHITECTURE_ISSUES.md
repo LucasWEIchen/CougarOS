@@ -1138,13 +1138,20 @@ GitHub issue mutation、replacement release 或 target-owner admission；Host �
 P9-W07b 已交付 31-key projection、DUMP debug Activity 和 no-install adapter。它执行五类 bounded check，另外三类明确 NOT_RUN；当前
 ADB offline，probe 未执行。即使未来五类 PASS，也因 category 不完整而不能 admit target report，不能自动关闭 issue。
 
-W07b/W07c 仍需：受保护的 Android debug diagnostics 入口；只读 no-install host adapter；命名 replacement release；issue -> triaged -> fixed ->
-retest 状态机；目标 tester 与 release/diagnostics owner approval。不得提交 serial/fingerprint、signing material、target-input files、内部路径、
-raw/未审日志、用户/模型文本、memory/token 或车辆 payload，也不得自动关闭 issue。
+P9-W07c 已交付 5-state/5-transition pure-Java workflow、严格递增且 artifact identity 不复用的 replacement release，以及 target/release/
+diagnostics/tester 四方摘要 admission。完整 PASS fixture 可返回 close eligibility，完整非 PASS 返回同一 Issue 的 fix-ready；但代码不调用
+GitHub、不发布 release、不安装 APK、不自动关闭 issue，repository 也没有真实 owner/target evidence。
+
+仓库软件已经具备 debug diagnostics 入口、只读 adapter 和 release/retest admission 状态机。仍缺的是外部事实：命名并实际发布的 replacement
+release、完整八类 target report、目标 tester 与 target/release/diagnostics owner approval。不得提交 serial/fingerprint、signing material、
+target-input files、内部路径、raw/未审日志、用户/模型文本、memory/token 或车辆 payload，也不得自动关闭 issue。
 
 解除条件：八类 target fact 由命名 release 和非秘密 alias 产生，report digest 与仓库外受控 evidence reference 一致，owner 审核 privacy 和
 diagnostic completeness，tester 对命名 replacement release 复测并记录结果。production signer/installer/rollback authority 还必须独立关闭
 ISSUE-052。当前 `release_evidence_envelope_defined=true`、`release_evidence_target_owner_approved=false`、
 `release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
-`release_evidence_retest_workflow_wired=false`、`release_evidence_android13_arm64_verified=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。tracking：`DEV-098`。
+`release_evidence_retest_workflow_wired=false`、`release_retest_state_machine_defined=true`、
+`release_retest_replacement_release_published=false`、`release_retest_github_issue_mutation_wired=false`、
+`release_retest_automatic_issue_close_allowed=false`、`release_evidence_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+tracking：`DEV-098/099/100`。
