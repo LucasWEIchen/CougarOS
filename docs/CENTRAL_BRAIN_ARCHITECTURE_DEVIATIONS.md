@@ -95,6 +95,7 @@
 | DEV-069 | P5-W07 Profile Memory 只有 contract-test encryption owner 和 process-local sealed bytes；debug/test XOR 不是 production encrypted storage、Keystore/TEE 或 secure erase。 | S2-MEM-001, S2-SAF-001, ISSUE-025/031/041/042 | Accepted Temporary |
 | DEV-070 | P5-W08 只保存 process-local typed episode summary/result；catalog、policy/read/erase authority、durable encrypted repository 与 Runtime/model publication 未完成。 | S2-MEM-001, S2-SAF-001, ISSUE-025/031/041/042/043 | Accepted Temporary |
 | DEV-071 | P5-W09 只根据受信 token/byte metadata 生成预算指令；没有 production tokenizer、summary/truncation executor、budget authority 或 Runtime/model composition。 | S2-MEM-001, S2-MDL-001, S2-SAF-001, ISSUE-041/043/044 | Accepted Temporary |
+| DEV-072 | P5-W10 只更新 process-local Memory consent HMI projection；没有 production consent authority、repository mutation 或 Runtime/model publication。 | S2-MEM-001, S2-UX-003, S2-SAF-001, ISSUE-041/042/043/045 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1023,7 +1024,7 @@ Vehicle/NPU Tool 仍需 P8 OEM/Vendor authority。当前：`tool_rule_set_contra
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## DEV-071 P5-W09 decision-only context budget is not production model budgeting
 
@@ -1043,7 +1044,28 @@ model route composition、quality/privacy/evaluation 与目标硬件证据。
 `context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
 `context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
 `model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
+
+## DEV-072 P5-W10 process-local Memory consent projection is not production Memory control
+
+P5-W10 新增固定三来源、retained-memory 开关、profile preference clear、owner-bound evidence、replay/conflict、PARKED-only
+management 和 debug interactive HMI。成功结果只改变 `MemoryConsentController` 当前进程中的 projection revision；它不调用
+P5-W07/P5-W08 store，不持久化 consent，也不删除 Room/file/Keystore 数据。
+
+debug Activity 使用 fixed allow authority 以验证 UI/API 状态机。该 authority 不是用户身份、签名、policy、revocation 或审计证据；
+`MutationResult.isRepositoryMutationApplied=false` 恒成立。MOVING/UNKNOWN 的拒绝只证明本地 Car UX gate，不替代 production trusted
+Context 和独立 Safety/Governance 复验。
+
+代码未接 Binder Service、durable consent/repository、Runtime/Graph/model、Effect、Vehicle/NPU 或 Driver/HAL。状态：
+`Accepted Temporary`。关闭条件是 ISSUE-045 发布 production identity/consent authority、HMI-to-Service contract、transactional
+repository mutation/delete evidence、revocation/process-death/audit 和可信 driving Context，并完成 Android 13 目标验收。当前：
+`memory_consent_controller_defined=true`、`memory_consent_source_visibility_verified=true`、
+`memory_consent_disable_verified=true`、`memory_consent_preference_clear_verified=true`、
+`memory_consent_moving_restriction_verified=true`、`memory_consent_android13_arm64_verified=false`、
+`memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
+`memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
+`memory_consent_model_context_published=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## DEV-066 P5-W04 built-in execution is not production Tool authority
 
@@ -1063,7 +1085,7 @@ Tool。状态：`Accepted Temporary`。关闭条件是 P5-W05 冻结 signer/vers
 Runtime/Graph publication。当前：`tool_executor_contract_defined=true`、`tool_executor_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_execution_enabled=false`、`production_tool_registered=false`、
 `os_virtualization_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## DEV-067 P5-W05 static package verification is not production artifact trust
 
@@ -1081,7 +1103,7 @@ Model/NPU、network 或 Driver/HAL；无 file/parser/class loader/subprocess。�
 composition 和 P9 fault/security evidence。当前：`skill_artifact_verifier_contract_defined=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## DEV-068 P5-W06 process-local Working Memory is not production Memory
 
@@ -1101,7 +1123,7 @@ privacy/security evidence。当前：`working_memory_store_defined=true`、`work
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## DEV-069 P5-W07 contract cipher is not production encrypted storage
 
@@ -1120,7 +1142,7 @@ owners、真实 AEAD 与 key lifecycle、schema migration/backup policy、proces
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## DEV-070 P5-W08 process-local episodic summaries are not production Memory
 
@@ -1139,4 +1161,4 @@ backup/migration 与 process-death evidence，并完成 P5-W09/W10 和 P9 验收
 `episodic_memory_read_fail_closed=true`、`episodic_memory_production_read_authority_wired=false`、
 `episodic_memory_raw_continuous_signal_stored=false`、`episodic_memory_persistence_wired=false`、
 `episodic_memory_runtime_wired=false`、`episodic_memory_model_context_published=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。

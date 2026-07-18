@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P5-W10' \
+  'implementation_stage=P6-W01' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -268,6 +268,17 @@ for marker in \
   'context_budget_deterministic_overflow_verified=true' \
   'context_budget_required_fail_closed=true' \
   'context_budget_android13_arm64_verified=false' \
+  'memory_consent_controller_defined=true' \
+  'memory_consent_source_visibility_verified=true' \
+  'memory_consent_disable_verified=true' \
+  'memory_consent_preference_clear_verified=true' \
+  'memory_consent_moving_restriction_verified=true' \
+  'memory_consent_android13_arm64_verified=false' \
+  'memory_consent_hmi_projection_only=true' \
+  'memory_consent_repository_mutation_wired=false' \
+  'memory_consent_production_authority_wired=false' \
+  'memory_consent_runtime_wired=false' \
+  'memory_consent_model_context_published=false' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
@@ -573,14 +584,16 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P5-W10 Memory consent HMI/API" not in remaining or "Tool/Skill runtime" not in remaining:
-    raise SystemExit("README remaining-work table must identify P5-W10 Memory consent HMI/API as the next unfinished scope")
+if "P6-W01" not in remaining or "Event V2 cursor/ACK broker" not in remaining:
+    raise SystemExit("README remaining-work table must identify P6-W01 EventBroker as the next unfinished scope")
 if "P5 Tool Executor boundary" not in developed:
     raise SystemExit("README developed table must include the completed P5 Tool Executor boundary")
 if "P5 Skill package verifier" not in developed:
     raise SystemExit("README developed table must include the completed P5 Skill package verifier")
 if "P5 ContextBudgetManager" not in developed:
     raise SystemExit("README developed table must include the completed P5 ContextBudgetManager")
+if "P5 Memory consent HMI/API" not in developed:
+    raise SystemExit("README developed table must include the completed P5 Memory consent HMI/API")
 if "P5 WorkingMemoryStore" not in developed:
     raise SystemExit("README developed table must include the completed P5 WorkingMemoryStore")
 if "P5 ProfileMemoryStore" not in developed:

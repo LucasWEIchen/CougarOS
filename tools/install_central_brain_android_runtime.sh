@@ -3195,6 +3195,62 @@ if [[ "$CONTEXT_BUDGET_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MEMORY_CONSENT_NONCE="$(date +%s%N)"
+MEMORY_CONSENT_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.memory.MemoryConsentHmiActivity \
+  --ez automated true \
+  --es nonce "$MEMORY_CONSENT_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MEMORY_CONSENT_PROBE_OUTPUT"; then
+  echo "$MEMORY_CONSENT_PROBE_OUTPUT" >&2
+  echo "Memory consent HMI debug probe did not start successfully" >&2
+  exit 1
+fi
+MEMORY_CONSENT_PROBE_PASSED=false
+for _ in {1..40}; do
+  MEMORY_CONSENT_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbMemoryConsent:I)"
+  if grep -Fq \
+      "nonce=$MEMORY_CONSENT_NONCE memory_consent_hmi_probe_complete=true" \
+      <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_source_visibility_verified=true" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_disable_verified=true" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_preference_clear_verified=true" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_moving_restriction_verified=true" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_android13_arm64_verified=true" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_hmi_projection_only=true" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_repository_mutation_wired=false" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_production_authority_wired=false" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_runtime_wired=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_model_context_published=false" \
+        <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "memory_consent_content_logged=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "production_ready=false" <<<"$MEMORY_CONSENT_LOG" \
+      && grep -Fq "target_hardware_validated=false" <<<"$MEMORY_CONSENT_LOG"; then
+    MEMORY_CONSENT_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MEMORY_CONSENT_PROBE_PASSED" != true ]]; then
+  echo "$MEMORY_CONSENT_LOG" >&2
+  echo "Memory consent HMI probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3849,6 +3905,18 @@ printf '%s\n' \
   "context_budget_production_authority_wired=false" \
   "context_budget_runtime_wired=false" \
   "context_budget_content_logged=false" \
+  "memory_consent_controller_defined=true" \
+  "memory_consent_source_visibility_verified=true" \
+  "memory_consent_disable_verified=true" \
+  "memory_consent_preference_clear_verified=true" \
+  "memory_consent_moving_restriction_verified=true" \
+  "memory_consent_android13_arm64_verified=true" \
+  "memory_consent_hmi_projection_only=true" \
+  "memory_consent_repository_mutation_wired=false" \
+  "memory_consent_production_authority_wired=false" \
+  "memory_consent_runtime_wired=false" \
+  "memory_consent_model_context_published=false" \
+  "memory_consent_content_logged=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \

@@ -96,4 +96,5 @@ jobs:
           bash tools/check_central_brain_android_profile_memory_store.sh
           bash tools/check_central_brain_android_episodic_memory_store.sh
           bash tools/check_central_brain_android_context_budget_manager.sh
+          bash tools/check_central_brain_android_memory_consent_hmi.sh
           bash tools/check_central_brain_root_readme.sh
