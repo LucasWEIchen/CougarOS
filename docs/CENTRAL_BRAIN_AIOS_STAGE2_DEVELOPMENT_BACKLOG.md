@@ -741,7 +741,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   `isExecutionEnabled=false`。JVM 和 debug/release compile 已验证；Android 13 ARM64 probe 已实现但 adb transport=0。
 - 边界：只消费 P5-W01 immutable manifest/digest/schema，不重新解释 input/output；不接 Runtime/Graph/Binder/Room，不注册
   production Tool，不发布 Registry/Resolver Service，不触发 Effect/vehicle/model/NPU/network/hardware。下一工作包
-  `P5-W03 ToolRuleSolver`；`implementation_stage=P5-W08`，tracking `DEV-064`、`ISSUE-037`。
+  `P5-W03 ToolRuleSolver`；`implementation_stage=P5-W09`，tracking `DEV-064`、`ISSUE-037`。
 
 ### `P5-W03` ToolRuleSolver
 
@@ -752,7 +752,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   未完成、空模型交集和无 USABLE Tool 均稳定 fail closed。requires-approval 只标记，不产生 approval grant；所有 execution
   flag 固定 false。JVM 与 debug/release compile 已验证；Android 13 ARM64 probe 已接入但当前 ADB transport 不可用。
 - 边界：不调用模型，不接 Runtime/Graph/Binder/Room/Executor，不注册 production Tool，不触发 Effect/vehicle/NPU/network/
-  Driver-HAL。下一工作包 `P5-W04 ToolExecutor boundary`；`implementation_stage=P5-W08`，tracking `DEV-065`、`ISSUE-038`。
+  Driver-HAL。下一工作包 `P5-W04 ToolExecutor boundary`；`implementation_stage=P5-W09`，tracking `DEV-065`、`ISSUE-038`。
 
 ### `P5-W04` ToolExecutor boundary
 
@@ -764,7 +764,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 边界：不动态装载 package，不启动 subprocess，不实现 OS 虚拟化；approval-required selection 必须拒绝；不接
   Runtime/Graph/Binder/Room/Effect/Vehicle/Model/NPU/Driver-HAL。当前 signer digest 是受信构造输入，不是 production
   PackageManager 证据；非合作 built-in 不能被同步 cooperative executor 强制抢占。下一工作包 `P5-W05 Skill package
-  verifier`；`implementation_stage=P5-W08`，tracking `DEV-066`、`ISSUE-039`。
+  verifier`；`implementation_stage=P5-W09`，tracking `DEV-066`、`ISSUE-039`。
 
 ### `P5-W05` Skill package verifier
 
@@ -777,7 +777,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   transport 恢复。
 - 边界：只消费受信上游提供的 digest evidence，不读取 APK/JAR/dex/certificate/PackageManager/keystore/TEE，不验证签名链，
   不动态加载、不接 Runtime/Graph/Binder/Room/ToolExecutor/Effect/Vehicle/NPU/Driver-HAL。下一工作包
-  `P5-W06 WorkingMemoryStore`；`implementation_stage=P5-W08`，tracking `DEV-067`、`ISSUE-040`。
+  `P5-W06 WorkingMemoryStore`；`implementation_stage=P5-W09`，tracking `DEV-067`、`ISSUE-040`。
 
 ### `P5-W06` WorkingMemoryStore
 
@@ -788,7 +788,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   与 debug/release compile；API 33 ARM64 debug probe 已接 installer，实体证据待 ADB transport 恢复。
 - 边界：只保存 process-local bounded opaque bytes，不持久化、不记录内容、不发布给 model context，不接 Runtime/Graph/Binder/
   Room/Effect/Vehicle/Model/NPU/Driver-HAL。token count 仍由受信调用方提供，production session terminal hook、tokenizer、
-  encryption/retention owner 未发布。下一工作包 `P5-W07 ProfileMemoryStore`；`implementation_stage=P5-W08`，tracking
+  encryption/retention owner 未发布。下一工作包 `P5-W07 ProfileMemoryStore`；`implementation_stage=P5-W09`，tracking
   `DEV-068`、`ISSUE-041`。
 
 ### `P5-W07` ProfileMemoryStore
@@ -802,12 +802,19 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 边界：main 仅提供 process-local contract-test factory 与 encryption owner gate；不提供 production consent/revocation authority、
   Android Keystore/TEE、Room/文件 repository、Runtime/Graph/Binder/model/Effect/Vehicle/NPU/Driver-HAL 接线。debug/test XOR 只验证
   gate 与 ciphertext lifecycle，不是生产密码学证据。下一工作包 `P5-W08 EpisodicMemoryStore`；
-  `implementation_stage=P5-W08`，tracking `DEV-069`、`ISSUE-042`。
+  `implementation_stage=P5-W09`，tracking `DEV-069`、`ISSUE-042`。
 
 ### `P5-W08` EpisodicMemoryStore
 
-- 状态：`NOT_STARTED`；2.5 人日；需求：`S2-MEM-001`。
-- DoD：只存场景摘要/结果，不存原始连续信号；retention/capacity/erase。
+- 状态：`DEVELOPED`（2026-07-18）；2.5 人日；需求：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`。
+- 类：`EpisodicMemoryStore`、`ScenarioReference`、`RecordRequest`、`StoragePolicyEvidence`、`ReadEvidence`、`EraseEvidence`、`Limits`。
+- DoD：只存 build-owned 场景引用、触发/结果枚举、动作计数和 elapsed 时间；main API 不接受 byte array、连续 signal、
+  任意 payload、user/model text。owner isolation、catalog/policy fail-closed、exact replay/conflict、retention/duration、global/per-owner
+  capacity、owner-bound read、单 episode/owner erase 已通过 JVM 与 debug/release compile；API 33 ARM64 debug probe 已接 installer，实体证据待 ADB
+  transport 恢复。
+- 边界：只提供 process-local contract-test factory；不提供 production scenario catalog、storage/read/erase authority、durable/encrypted
+  repository、Binder/Runtime/Graph/model context、Effect/Vehicle/NPU/Driver-HAL 接线。下一工作包 `P5-W09 ContextBudgetManager`；
+  `implementation_stage=P5-W09`，tracking `DEV-070`、`ISSUE-043`。
 
 ### `P5-W09` ContextBudgetManager
 
