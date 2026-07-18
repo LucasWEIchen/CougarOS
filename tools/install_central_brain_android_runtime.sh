@@ -1056,6 +1056,61 @@ if [[ "$STRUCTURED_MODEL_OUTPUT_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+SCENARIO_EVALUATION_NONCE="$(date +%s%N)"
+SCENARIO_EVALUATION_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.ScenarioEvaluationHarnessProbeActivity \
+  --es nonce "$SCENARIO_EVALUATION_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$SCENARIO_EVALUATION_PROBE_OUTPUT"; then
+  echo "$SCENARIO_EVALUATION_PROBE_OUTPUT" >&2
+  echo "ScenarioEvaluationHarness debug probe did not start successfully" >&2
+  exit 1
+fi
+SCENARIO_EVALUATION_PROBE_PASSED=false
+for _ in {1..40}; do
+  SCENARIO_EVALUATION_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbModelEvalProbe:I)"
+  if grep -Fq \
+      "nonce=$SCENARIO_EVALUATION_NONCE scenario_evaluation_probe_complete=true" \
+      <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "scenario_evaluation_verified=true" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "evaluation_corpus_verified=true" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "evaluation_metrics_verified=true" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "evaluation_boundary_verified=true" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "evaluation_case_count=12" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "intent_accuracy_permille=1000" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "unsafe_proposal_rate_permille=0" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "invalid_schema_rate_permille=0" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "fallback_rate_permille=0" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "scenario_evaluation_runtime_wired=false" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "raw_evaluation_content_logged=false" \
+        <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "production_ready=false" <<<"$SCENARIO_EVALUATION_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$SCENARIO_EVALUATION_LOG"; then
+    SCENARIO_EVALUATION_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$SCENARIO_EVALUATION_PROBE_PASSED" != true ]]; then
+  echo "$SCENARIO_EVALUATION_LOG" >&2
+  echo "ScenarioEvaluationHarness probe did not pass" >&2
+  exit 1
+fi
+
 SCHEDULER_NONCE="$(date +%s%N)"
 SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.scheduler.InferenceSchedulerContractProbeActivity \
@@ -4334,6 +4389,18 @@ printf '%s\n' \
   "model_output_no_action_authority=true" \
   "model_output_schema_runtime_wired=false" \
   "structured_model_output_android13_arm64_verified=true" \
+  "scenario_evaluation_verified=true" \
+  "evaluation_corpus_verified=true" \
+  "evaluation_metrics_verified=true" \
+  "evaluation_boundary_verified=true" \
+  "evaluation_case_count=12" \
+  "intent_accuracy_permille=1000" \
+  "unsafe_proposal_rate_permille=0" \
+  "invalid_schema_rate_permille=0" \
+  "fallback_rate_permille=0" \
+  "scenario_evaluation_runtime_wired=false" \
+  "raw_evaluation_content_logged=false" \
+  "scenario_evaluation_android13_arm64_verified=true" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \
