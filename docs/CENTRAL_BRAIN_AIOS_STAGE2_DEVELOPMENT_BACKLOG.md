@@ -741,7 +741,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   `isExecutionEnabled=false`。JVM 和 debug/release compile 已验证；Android 13 ARM64 probe 已实现但 adb transport=0。
 - 边界：只消费 P5-W01 immutable manifest/digest/schema，不重新解释 input/output；不接 Runtime/Graph/Binder/Room，不注册
   production Tool，不发布 Registry/Resolver Service，不触发 Effect/vehicle/model/NPU/network/hardware。下一工作包
-  `P5-W03 ToolRuleSolver`；`implementation_stage=P7-W02`，tracking `DEV-064`、`ISSUE-037`。
+  `P5-W03 ToolRuleSolver`；`implementation_stage=P7-W03`，tracking `DEV-064`、`ISSUE-037`。
 
 ### `P5-W03` ToolRuleSolver
 
@@ -752,7 +752,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   未完成、空模型交集和无 USABLE Tool 均稳定 fail closed。requires-approval 只标记，不产生 approval grant；所有 execution
   flag 固定 false。JVM 与 debug/release compile 已验证；Android 13 ARM64 probe 已接入但当前 ADB transport 不可用。
 - 边界：不调用模型，不接 Runtime/Graph/Binder/Room/Executor，不注册 production Tool，不触发 Effect/vehicle/NPU/network/
-  Driver-HAL。下一工作包 `P5-W04 ToolExecutor boundary`；`implementation_stage=P7-W02`，tracking `DEV-065`、`ISSUE-038`。
+  Driver-HAL。下一工作包 `P5-W04 ToolExecutor boundary`；`implementation_stage=P7-W03`，tracking `DEV-065`、`ISSUE-038`。
 
 ### `P5-W04` ToolExecutor boundary
 
@@ -764,7 +764,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 边界：不动态装载 package，不启动 subprocess，不实现 OS 虚拟化；approval-required selection 必须拒绝；不接
   Runtime/Graph/Binder/Room/Effect/Vehicle/Model/NPU/Driver-HAL。当前 signer digest 是受信构造输入，不是 production
   PackageManager 证据；非合作 built-in 不能被同步 cooperative executor 强制抢占。下一工作包 `P5-W05 Skill package
-  verifier`；`implementation_stage=P7-W02`，tracking `DEV-066`、`ISSUE-039`。
+  verifier`；`implementation_stage=P7-W03`，tracking `DEV-066`、`ISSUE-039`。
 
 ### `P5-W05` Skill package verifier
 
@@ -777,7 +777,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   transport 恢复。
 - 边界：只消费受信上游提供的 digest evidence，不读取 APK/JAR/dex/certificate/PackageManager/keystore/TEE，不验证签名链，
   不动态加载、不接 Runtime/Graph/Binder/Room/ToolExecutor/Effect/Vehicle/NPU/Driver-HAL。下一工作包
-  `P5-W06 WorkingMemoryStore`；`implementation_stage=P7-W02`，tracking `DEV-067`、`ISSUE-040`。
+  `P5-W06 WorkingMemoryStore`；`implementation_stage=P7-W03`，tracking `DEV-067`、`ISSUE-040`。
 
 ### `P5-W06` WorkingMemoryStore
 
@@ -788,7 +788,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   与 debug/release compile；API 33 ARM64 debug probe 已接 installer，实体证据待 ADB transport 恢复。
 - 边界：只保存 process-local bounded opaque bytes，不持久化、不记录内容、不发布给 model context，不接 Runtime/Graph/Binder/
   Room/Effect/Vehicle/Model/NPU/Driver-HAL。token count 仍由受信调用方提供，production session terminal hook、tokenizer、
-  encryption/retention owner 未发布。下一工作包 `P5-W07 ProfileMemoryStore`；`implementation_stage=P7-W02`，tracking
+  encryption/retention owner 未发布。下一工作包 `P5-W07 ProfileMemoryStore`；`implementation_stage=P7-W03`，tracking
   `DEV-068`、`ISSUE-041`。
 
 ### `P5-W07` ProfileMemoryStore
@@ -802,7 +802,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 边界：main 仅提供 process-local contract-test factory 与 encryption owner gate；不提供 production consent/revocation authority、
   Android Keystore/TEE、Room/文件 repository、Runtime/Graph/Binder/model/Effect/Vehicle/NPU/Driver-HAL 接线。debug/test XOR 只验证
   gate 与 ciphertext lifecycle，不是生产密码学证据。下一工作包 `P5-W08 EpisodicMemoryStore`；
-  `implementation_stage=P7-W02`，tracking `DEV-069`、`ISSUE-042`。
+  `implementation_stage=P7-W03`，tracking `DEV-069`、`ISSUE-042`。
 
 ### `P5-W08` EpisodicMemoryStore
 
@@ -814,7 +814,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   transport 恢复。
 - 边界：只提供 process-local contract-test factory；不提供 production scenario catalog、storage/read/erase authority、durable/encrypted
   repository、Binder/Runtime/Graph/model context、Effect/Vehicle/NPU/Driver-HAL 接线。下一工作包 `P5-W09 ContextBudgetManager`；
-  `implementation_stage=P7-W02`，tracking `DEV-070`、`ISSUE-043`。
+  `implementation_stage=P7-W03`，tracking `DEV-070`、`ISSUE-043`。
 
 ### `P5-W09` ContextBudgetManager
 
@@ -827,7 +827,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   debug probe 已接 installer，实体证据待 ADB transport 恢复。
 - 边界：main API 只接受受信 size/priority metadata，不接受、保存或记录原始文本/byte payload；不调用 tokenizer、summarizer、
   model/NPU，不接 Runtime/Graph/Binder/Room/Effect/Vehicle/Driver-HAL。生产 budget authority 与执行器未发布。下一工作包
-  `P5-W10 Memory consent HMI/API`；`implementation_stage=P7-W02`，tracking `DEV-071`、`ISSUE-044`。
+  `P5-W10 Memory consent HMI/API`；`implementation_stage=P7-W03`，tracking `DEV-071`、`ISSUE-044`。
 
 ### `P5-W10` Memory consent HMI/API
 
@@ -838,7 +838,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   半透明面板并可交互，automated probe 输出 boolean evidence。
 - 边界：控制器只更新 process-local HMI projection；不读取或记录 Memory 内容，不修改 production repository，不发布
   consent authority，不接 Runtime/Graph/model/Effect/Vehicle/NPU/Driver-HAL。下一工作包 `P6-W01 EventBroker interface/in-process
-  implementation`；`implementation_stage=P7-W02`，tracking `DEV-072`、`ISSUE-045`。
+  implementation`；`implementation_stage=P7-W03`，tracking `DEV-072`、`ISSUE-045`。
 
 ## 10. P6 Event 与主动智能
 
@@ -853,7 +853,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   debug/release compile。API 33 ARM64 debug probe 已接 installer，实体证据待 ADB transport 恢复。
 - 边界：required 类名中的 `Durable` 不代表 process-death durability；当前 retention/replay 仅 process-local，未与旧
   `DurableEventCursorRepository` 接线，不发布 Binder/AIDL/DDS/SOME-IP broker，不接 Runtime/Graph/Effect/Vehicle/
-  Model/NPU/Driver-HAL。下一工作包 `P6-W02 Backpressure/QoS`；`implementation_stage=P7-W02`，tracking
+  Model/NPU/Driver-HAL。下一工作包 `P6-W02 Backpressure/QoS`；`implementation_stage=P7-W03`，tracking
   `DEV-073`、`ISSUE-046`。
 
 ### `P6-W02` Backpressure/QoS
@@ -867,7 +867,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 关键边界：`CRITICAL_ACTION_OBSERVATION` 不可 drop/coalesce；满队列、过期和 disconnect 必须返回恢复游标/显式 count，不能静默
   成功。当前 controller 仍 process-local，未接 P6-W01 Broker callback、旧 Room cursor repository、Binder/DDS/SOME-IP 或
   Runtime/Graph/Effect/Vehicle/Model/NPU/Driver-HAL。下一工作包 `P6-W03 TriggerRule manifest/engine`；
-  `implementation_stage=P7-W02`，tracking `DEV-073`、`ISSUE-046`。
+  `implementation_stage=P7-W03`，tracking `DEV-073`、`ISSUE-046`。
 
 ### `P6-W03` TriggerRule manifest/engine
 
@@ -880,7 +880,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 关键边界：输出仅为 digest-only `ScenarioSuggestion`，不含用户/模型文本或 Effect payload，auto-execution/Effect 恒为 false。
   `CooldownStore` 与 rule state 只在单进程内，不接 production source adapter、EventBroker、Runtime/Graph、Vehicle、Model/NPU、
   Driver-HAL。上一轮将 P6-W03 误标为 durable append/cursor 的进度文档漂移已在本包纠正；正式基线始终是 TriggerRule。
-  下一工作包 `P6-W04 Proactive consent/policy`；`implementation_stage=P7-W02`，tracking `DEV-074`、`ISSUE-031`。
+  下一工作包 `P6-W04 Proactive consent/policy`；`implementation_stage=P7-W03`，tracking `DEV-074`、`ISSUE-031`。
 
 ### `P6-W04` Proactive consent/policy
 
@@ -892,7 +892,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   TTL expiry、owner-scoped revoke 和 authority unavailable/denied 均确定性失败关闭。
 - 关键边界：HIGH/CRITICAL 在 authority 前禁止通用 grant，并始终返回 explicit approval required。POLICY_ELIGIBLE 只代表进入
   后续 Safety/Policy 复验，`effect_dispatch_authorized=false`；不接 TriggerEngine、Runtime/Graph、Binder、持久化、Vehicle、
-  Model/NPU 或 Driver/HAL。下一工作包 `P6-W05 Context source adapters`；`implementation_stage=P7-W02`，tracking `DEV-075`、
+  Model/NPU 或 Driver/HAL。下一工作包 `P6-W05 Context source adapters`；`implementation_stage=P7-W03`，tracking `DEV-075`、
   `ISSUE-031`。
 
 ### `P6-W05` Context source adapters
@@ -908,7 +908,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - 关键边界：不接 TriggerEngine、Runtime/Graph/Effect、Binder、EventBroker publication、Vehicle service/property、Model/NPU、
   network、Driver/HAL 或硬件。`context_source_production_registry_published=false`、
   `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`；真实 vehicle source 后置 P8。
-  下一工作包 `P6-W06 Active suggestion UX`；`implementation_stage=P7-W02`，tracking `DEV-076`、`ISSUE-031`。
+  下一工作包 `P6-W06 Active suggestion UX`；`implementation_stage=P7-W03`，tracking `DEV-076`、`ISSUE-031`。
 
 ### `P6-W06` Active suggestion UX
 
@@ -921,7 +921,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   最小提示、expiry/replay/conflict/capacity 与 production false boundary；DUMP probe、installer 和独立/Stage2/Runtime/CI 门禁已接入。
 - 边界：HMI 只投影受信上游未来可能提供的 suggestion，不读取用户/模型自由文本，不发布 Trigger/Runtime/Graph/Effect，不调用
   voice engine，不持久化 never-ask，不连接 Client2 production overlay、vehicle/Model/NPU/Driver-HAL。下一工作包
-  `P7-W01 ModelRequest/Result v2`；`implementation_stage=P7-W02`，tracking `DEV-077`、`ISSUE-031`。
+  `P7-W01 ModelRequest/Result v2`；`implementation_stage=P7-W03`，tracking `DEV-077`、`ISSUE-031`。
 
 ## 11. P7 Model Runtime 与评测
 
@@ -935,13 +935,18 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   独立/Runtime/CI 门禁已接入。
 - 边界：不替换旧 ModelProvider，不接 ProviderRegistry/Router/Runtime/Graph，不接受 raw user/model/prompt/vehicle payload，不调用
   model/NPU/network/hardware，不授权 Effect。下一工作包 `P7-W02 ModelProviderRegistry/health`；
-  `implementation_stage=P7-W02`，tracking `DEV-078`、`ISSUE-024/044`。
+  `implementation_stage=P7-W03`，tracking `DEV-078`、`ISSUE-024/044`。
 
 ### `P7-W02` ModelProviderRegistry/health
 
-- 状态：`NOT_STARTED`；2 人日；需求：`S2-MDL-001`。
-- provider：deterministic Android test provider、可选 Android 本地开发 provider、vendor NPU placeholder、cloud placeholder。
-- DoD：production readiness 与 test availability 分离。
+- 状态：`DEVELOPED`（2026-07-18）；2 人日；需求：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`。
+- 实现：fixed four-entry `ModelProviderRegistry`，包含 deterministic Android contract-test、Android local development、vendor NPU
+  placeholder、cloud placeholder；descriptor 冻结 source/capability/network/hardware expectation 与三层 availability。
+- DoD：source/revision/elapsed validity/digest health report、replay/conflict/out-of-order/future/expiry、UNKNOWN/STALE projection、
+  test=1/development=0/production-ready=0 separation 与 healthy-placeholder fail-closed 已通过六项 JVM test；debug/release/probe/
+  installer/CI 门禁已接入。
+- 边界：不动态注册、不提供 route/infer、不构造 Provider instance、不接 Runtime/Router，不访问 network/NPU/vehicle/hardware。
+  下一工作包 `P7-W03 PolicyAwareModelRouter`；`implementation_stage=P7-W03`，tracking `DEV-079`、`ISSUE-024`。
 
 ### `P7-W03` PolicyAwareModelRouter
 

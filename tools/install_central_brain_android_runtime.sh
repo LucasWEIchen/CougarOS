@@ -843,6 +843,64 @@ if [[ "$MODEL_CONTRACT_V2_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+MODEL_REGISTRY_NONCE="$(date +%s%N)"
+MODEL_REGISTRY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.ModelProviderRegistryProbeActivity \
+  --es nonce "$MODEL_REGISTRY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$MODEL_REGISTRY_PROBE_OUTPUT"; then
+  echo "$MODEL_REGISTRY_PROBE_OUTPUT" >&2
+  echo "Model Provider Registry debug probe did not start successfully" >&2
+  exit 1
+fi
+MODEL_REGISTRY_PROBE_PASSED=false
+for _ in {1..40}; do
+  MODEL_REGISTRY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbModelRegistry:I)"
+  if grep -Fq \
+      "nonce=$MODEL_REGISTRY_NONCE model_provider_registry_probe_complete=true" \
+      <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_registry_verified=true" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_catalog_verified=true" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_health_freshness_verified=true" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_health_replay_verified=true" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_availability_separation_verified=true" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_placeholder_fail_closed=true" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_count=4" <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_contract_test_available_count=1" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_development_available_count=0" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_production_ready_count=0" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_registry_android13_arm64_verified=true" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_registry_runtime_wired=false" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_policy_router_wired=false" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "production_ready=false" <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$MODEL_REGISTRY_LOG"; then
+    MODEL_REGISTRY_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$MODEL_REGISTRY_PROBE_PASSED" != true ]]; then
+  echo "$MODEL_REGISTRY_LOG" >&2
+  echo "Model Provider Registry probe did not pass" >&2
+  exit 1
+fi
+
 SCHEDULER_NONCE="$(date +%s%N)"
 SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.scheduler.InferenceSchedulerContractProbeActivity \
@@ -4079,6 +4137,18 @@ printf '%s\n' \
   "model_provider_registry_wired=false" \
   "model_policy_router_wired=false" \
   "model_contract_v2_android13_arm64_verified=true" \
+  "model_provider_registry_defined=true" \
+  "model_provider_catalog_verified=true" \
+  "model_provider_count=4" \
+  "model_provider_health_freshness_verified=true" \
+  "model_provider_health_replay_verified=true" \
+  "model_provider_availability_separation_verified=true" \
+  "model_provider_placeholder_fail_closed=true" \
+  "model_contract_test_available_count=1" \
+  "model_development_available_count=0" \
+  "model_production_ready_count=0" \
+  "model_provider_registry_android13_arm64_verified=true" \
+  "model_provider_registry_runtime_wired=false" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \
