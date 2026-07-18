@@ -307,6 +307,13 @@
             android:permission="android.permission.DUMP"
             android:theme="@android:style/Theme.NoDisplay" />
         <activity
+            android:name=".events.ProactiveConsentPolicyProbeActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:permission="android.permission.DUMP"
+            android:theme="@android:style/Theme.NoDisplay" />
+        <activity
             android:name=".persistence.DurableEventCursorRepositoryProbeActivity"
             android:excludeFromRecents="true"
             android:exported="true"
