@@ -1503,3 +1503,18 @@ test、量产安全审查或 Android 13 ARM64 evidence。
 `security_signature_policy_review_complete=false`、`security_android13_arm64_verified=false`、
 `security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
+## DEV-091 P9-W04a inventory is not lifecycle enforcement
+
+P9-W04a 冻结 12 个当前 Android 数据面及其 consent/retention/delete/export/redaction 分类，并通过源码存在性和 JSON/Java 同源
+检查。该清单可以发现边界漂移，但不会改变 Room、Memory、Event、Tool 或 Model 的运行行为。
+
+durable Effect recovery 与 durable Audit 当前没有 owner-approved retention/delete policy，因此明确记录为两个 `POLICY_GAP`。
+不能因为记录均为固定 metadata/digest 就推断可以无限保留，也不能为了通过门禁虚构 retention 时长或删除 active safety recovery。
+
+状态：`Accepted Temporary`。关闭条件是 W04b 获得 policy owner 输入并实现 version/digest、retention ceiling、active-state guard、
+delete/erase/export authorization 和 redacted evidence；W04c 再完成 Android probe。当前
+`privacy_data_inventory_complete=true`、`privacy_policy_gap_count=2`、`privacy_owner_policy_approved=false`、
+`privacy_production_lifecycle_complete=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
+`privacy_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。

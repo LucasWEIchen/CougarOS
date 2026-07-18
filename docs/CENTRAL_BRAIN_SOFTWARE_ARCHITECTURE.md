@@ -1403,3 +1403,24 @@ Current `security_aidl_parcel_inventory_complete=true`, `security_aidl_surface_c
 `security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
 `S2-SAF-001/S2-TOL-001/S2-SES-001/S2-MDL-001/S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.
+
+## P9-W04a privacy data inventory architecture
+
+```text
+Room entity source paths ---------+
+Memory/Event/Tool source paths ---+--> PrivacyDataInventoryContract --> JVM invariant tests
+Model transient source paths -----+                 |
+                                                   +--> versioned JSON --> repository/CI checker
+                                                   |
+                                                   +--> no Runtime/Governance wiring
+```
+
+W04a 位于 governance metadata 层，不位于数据访问路径。它描述 12 个 surface 及其 lifecycle contract，不包装 DAO、Store、Binder
+或 payload。两项 `POLICY_GAP` 进入 W04b 输入；它们不会在 W04a 自动获得默认期限或删除行为。
+
+当前 `privacy_data_inventory_complete=true`、`privacy_policy_gap_count=2`、
+`privacy_owner_policy_approved=false`、`privacy_production_lifecycle_complete=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-091`、`ISSUE-051`。

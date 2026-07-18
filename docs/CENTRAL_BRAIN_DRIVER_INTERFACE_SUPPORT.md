@@ -1668,3 +1668,14 @@ Any missing vendor contract must be recorded separately before Driver/HAL work. 
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
 `S2-SAF-001`, `S2-TOL-001`, `S2-SES-001`, `S2-MDL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking:
 `DEV-090`, `ISSUE-050`.
+
+## P9-W04a Privacy Data Inventory Driver/HAL Boundary
+
+W04a 只枚举现有 Java/Room/process-local/transient 数据边界，不调用数据库实例、Android framework、Vendor service、CarProperty、
+文件、设备节点、网络、NPU 或 Driver/HAL。没有新增驱动开发量，也不修改芯片厂商 SDK 或已刷机系统。
+
+未来 W04b 的 retention/delete/export policy 仍应在应用层和现有 repository boundary 实现；只有明确发现系统级安全存储、硬件密钥
+或 Vendor persistence contract 缺口时才单独触发 Driver/HAL 评审。当前 `driver_development_triggered=false`、
+`virtualization_development_triggered=false`、`privacy_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：
+`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-091`、`ISSUE-051`。
