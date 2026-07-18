@@ -2471,3 +2471,18 @@ Profile 唯一 export consent/authorization 和 no-mutation/no-export/no-Runtime
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-091/092`、`ISSUE-051`。
+
+## Android P9-W04c Privacy Redaction/Audit Probe
+
+交付 21-key pure-Java redacted projection、四组 JVM regression、DUMP-protected debug-only Activity、installer probe 和独立/Stage2/Runtime/CI
+门禁。验收要求精确 allowlist/order、两个 digest/四个 count/boolean-only、10 类 forbidden field、numeric nonce、debug manifest 权限及
+main/release absence。
+
+Host/build 可验收 software availability。目标验收要求 exactly one Android 13 ARM64 transport，安装 debug Runtime、启动 Activity 并匹配
+`CbPrivacyProbe` 脱敏 markers；不得保留原始 log。当前无 transport，未安装、未执行：
+`privacy_android_debug_probe_available=true`、`privacy_android_debug_probe_executed=false`、
+`privacy_android13_arm64_verified=false`、`privacy_owner_policy_approved=false`、
+`privacy_repository_mutation_wired=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-093`、`ISSUE-051`。

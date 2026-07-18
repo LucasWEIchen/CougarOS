@@ -32,12 +32,14 @@ SECURITY_BOUNDARY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_andr
 PRIVACY_LIFECYCLE="$ROOT_DIR/docs/CENTRAL_BRAIN_PRIVACY_DATA_LIFECYCLE.md"
 PRIVACY_INVENTORY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_privacy_data_inventory.json"
 PRIVACY_POLICY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_privacy_policy_admission.json"
+PRIVACY_REDACTION_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_privacy_redaction_audit.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
     "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT" \
     "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT" "$SECURITY_BOUNDARY_CONTRACT" \
-    "$PRIVACY_LIFECYCLE" "$PRIVACY_INVENTORY_CONTRACT" "$PRIVACY_POLICY_CONTRACT"; do
+    "$PRIVACY_LIFECYCLE" "$PRIVACY_INVENTORY_CONTRACT" "$PRIVACY_POLICY_CONTRACT" \
+    "$PRIVACY_REDACTION_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -423,6 +425,13 @@ require_text "$REQUIREMENTS" 'P9-W04b privacy policy admission trace'
 require_text "$DEVIATIONS" 'DEV-092 P9-W04b admission is not an approved lifecycle policy'
 require_text "$DELIVERY" 'Android P9-W04b Privacy Policy Admission'
 require_text "$DRIVER" 'P9-W04b Privacy Policy Admission Driver/HAL Boundary'
+require_text "$README" 'privacy_redacted_audit_projection_defined=true'
+require_text "$README" 'privacy_android_debug_probe_executed=false'
+require_text "$BACKLOG" 'P9-W04c privacy redaction/audit Android probe'
+require_text "$REQUIREMENTS" 'P9-W04c privacy redaction/audit probe trace'
+require_text "$DEVIATIONS" 'DEV-093 P9-W04c probe availability is not owner policy or target evidence'
+require_text "$DELIVERY" 'Android P9-W04c Privacy Redaction/Audit Probe'
+require_text "$DRIVER" 'P9-W04c Privacy Redaction/Audit Probe Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -619,5 +628,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_identity_replay_security_corpu
 bash "$ROOT_DIR/tools/check_central_brain_android_security_boundary_inventory.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_data_inventory.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_policy_admission.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_privacy_redaction_audit.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

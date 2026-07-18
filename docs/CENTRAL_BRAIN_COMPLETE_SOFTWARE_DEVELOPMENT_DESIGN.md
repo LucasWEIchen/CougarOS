@@ -4573,3 +4573,28 @@ wiring 和文档聚合。
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-092`、`ISSUE-051`。
+
+## P9-W04c privacy redaction/audit probe detailed design
+
+### Projection
+
+`PrivacyRedactionAuditProjection.evaluateCurrentDraft()` 调用 W04a/W04b pure-Java API，确认 12 surface、2 unresolved、3 admission code、
+1 operation code 和 no-authority invariants。Snapshot 只保留 inventory/policy digest、计数和 verified boolean。
+
+`auditMetadata()` 按 build-owned `allowedAuditKeys()` 顺序输出 21 个 `key=value` token。JVM 将 token key 与 JSON 精确比较，并拒绝
+surface/source、owner role、source path 等标识出现在值中。projection API 无 payload 参数。
+
+### Android evidence adapter
+
+Debug Activity 读取单一 bounded numeric nonce，调用 projection 并写入 `CbPrivacyProbe`。Manifest 要求 exported + DUMP + noHistory + NoDisplay；
+checker 解析 XML 并确认 main/release 不存在。installer 只匹配脱敏 marker，不采集或发布原始 log。
+
+### Claim boundary
+
+四组 JVM test 和 debug/release compile 证明软件边界；没有 transport 时不能证明执行。Probe 不批准 policy、不修改 repository、不形成合规
+持久化审计。当前 `privacy_android_debug_probe_available=true`、`privacy_android_debug_probe_executed=false`、
+`privacy_android13_arm64_verified=false`、`privacy_owner_policy_approved=false`、
+`privacy_repository_mutation_wired=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-093`、`ISSUE-051`。

@@ -1455,6 +1455,22 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。
 
+### P9-W04c Privacy Redaction/Audit Probe progress
+
+状态：`SOFTWARE_DEVELOPED / TARGET_PROBE_PENDING / OWNER_POLICY_BLOCKED`（2026-07-18）。新增 21-key fixed redacted projection、10 类 forbidden
+field contract、四组 JVM test、DUMP-protected debug Activity、installer marker 与 release-absence/Stage2/Runtime/CI 门禁。
+
+Host/JVM/debug-release compile 可证明 projection 与入口存在。当前 ADB `online=0/offline=0/unauthorized=0`，未安装 APK、未运行 probe，故
+`executed=false`、Android evidence=false。W04a/W04b/W04c 仓库内软件项已完成；真实 owner policy、repository enforcement 和目标 evidence
+继续由 ISSUE-051 跟踪。下一软件工作包 `P9-W05 Production signer/upgrade/rollback`。
+
+Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-091/092/093`、`ISSUE-051`。
+`privacy_redacted_audit_projection_defined=true`、`privacy_android_debug_probe_available=true`、
+`privacy_android_debug_probe_executed=false`、`privacy_android13_arm64_verified=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。
+
 ### P9-W04b Privacy Policy Admission progress
 
 状态：`SOFTWARE_DEVELOPED / OWNER_POLICY_BLOCKED`（2026-07-18）。新增 versioned draft policy、纯 Java admission/preflight contract 与七组 JVM

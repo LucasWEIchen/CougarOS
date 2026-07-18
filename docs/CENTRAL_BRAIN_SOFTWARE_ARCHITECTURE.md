@@ -1446,3 +1446,23 @@ W04a inventory digest ----+                     +--> typed admission decision
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-092`、`ISSUE-051`。
+
+## P9-W04c privacy redaction/audit probe architecture
+
+```text
+W04a inventory ----+
+                    +--> PrivacyRedactionAuditProjection --> fixed 21-key metadata
+W04b current draft +                                      |
+                                                           +--> JVM allowlist tests
+                                                           `--> debug DUMP Activity --> installer marker check
+                                                                      |
+                                                                      `--> absent from release
+```
+
+Projection 位于 Runtime/repository 之外，只调用 pure-Java contracts。Activity 只是 Android debug evidence adapter，不接生产 Service 或数据源。
+当前 `privacy_android_debug_probe_available=true`、`privacy_android_debug_probe_executed=false`、
+`privacy_android13_arm64_verified=false`、`privacy_owner_policy_approved=false`、
+`privacy_repository_mutation_wired=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-093`、`ISSUE-051`。
