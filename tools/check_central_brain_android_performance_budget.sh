@@ -185,7 +185,7 @@ require_text "$PROBE" 'EvidenceMode.CONTRACT_TEST'
 require_text "$PROBE" 'budget.getLimit()'
 require_text "$DOC" 'Central Brain P9-W01 Performance Budgets'
 require_text "$DOC" 'initial_software_budget'
-require_text "$DOC" 'implementation_stage=P9-W02'
+require_text "$DOC" 'implementation_stage=P9-W03'
 
 require_text "central-brain/android-runtime/README.md" "P9-W01 Performance budgets"
 require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" '`P9-W01` Performance budgets'
@@ -216,4 +216,4 @@ printf '%s\n' \
   "hardware_accessed=false" \
   "production_ready=false" \
   "target_hardware_validated=false" \
-  "implementation_stage=P9-W02"
+  "implementation_stage=P9-W03"

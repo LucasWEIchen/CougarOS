@@ -106,6 +106,7 @@
 | DEV-084 | P7-W07 只消费 caller-owned resource/thermal metadata；没有可信 producer、Runtime wiring 或 Vendor NPU。 | S2-MDL-001, S2-SAF-001, S2-OBS-001, ISSUE-024 | Accepted Temporary |
 | DEV-085 | P8-W01 只完成发现合同、矩阵模板和只读脱敏采集工具；目标 property/service/permission evidence 仍缺失。 | S2-ADP-002, S2-OBS-001, ISSUE-024/027/030/047 | Accepted Temporary |
 | DEV-086 | P9-W01 只冻结 initial software budgets 并验证合成报告；没有目标测量、owner approval 或量产性能资格。 | S2-OBS-001, S2-REL-001, ISSUE-048 | Accepted Temporary |
+| DEV-087 | P9-W02 只冻结并合成验证 18-case matrix；没有真实 fault injection、72h 运行或目标稳定性资格。 | S2-REL-001, S2-OBS-001, ISSUE-049 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1034,7 +1035,7 @@ Vehicle/NPU Tool 仍需 P8 OEM/Vendor authority。当前：`tool_rule_set_contra
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-084 P7-W07 admission uses caller-owned resource metadata
 
@@ -1049,7 +1050,7 @@ clock/revision、fault/freshness、NPU slot/memory/thermal semantics，并在目
 当前：`model_resource_admission_verified=true`、`resource_snapshot_producer_wired=false`、
 `resource_admission_runtime_wired=false`、`model_resource_admission_android13_arm64_verified=false`、
 `provider_invoked=false`、`model_invoked=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-082 P7-W05 model output is proposal-only
 
@@ -1061,7 +1062,7 @@ natural-language summary 作为一次性返回对象，但不记录 raw JSON/sum
 P8/P9 冻结 production model/target authority 和真实故障性能证据。当前：`structured_model_output_verified=true`、
 `model_output_no_action_authority=true`、`model_output_schema_runtime_wired=false`、
 `structured_model_output_android13_arm64_verified=false`、`model_invoked=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-083 P7-W06 evaluator is offline and digest-only
 
@@ -1074,7 +1075,7 @@ Runtime/Graph/Effect，也不能授予 action/approval/effect authority。状态
 P8/P9 在目标硬件上用经批准的数据治理、模型/provider、真实性能与故障证据完成生产资格。当前：
 `scenario_evaluation_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
 `raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-081 P7-W04 local provider is development-only
 
@@ -1093,7 +1094,7 @@ validator、evaluation/resource policy、production publisher/composition、Vend
 `local_model_provider_release_source_absent=true`、`local_model_provider_runtime_wired=false`、
 `local_model_provider_vendor_npu_fallback_enabled=false`、`local_model_provider_android13_arm64_verified=false`、
 `production_inference_enabled=false`、`network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-078 P7-W01 ModelRequest/Result v2 is a contract, not production inference
 
@@ -1111,7 +1112,7 @@ registry health 与 policy routing；P7-W05 必须完成 prompt/output schema �
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
 `model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W02`。
+`implementation_stage=P9-W03`。
 
 ## DEV-079 P7-W02 Registry health is metadata, not production availability
 
@@ -1133,7 +1134,7 @@ production implementation/eligibility/routing 仍为 false。
 `model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W02`。
+`implementation_stage=P9-W03`。
 
 ## DEV-077 P6-W06 Active suggestion UX is a projection, not production orchestration
 
@@ -1147,7 +1148,7 @@ Android 13 fault evidence。当前：`active_suggestion_controller_defined=true`
 `active_suggestion_android13_arm64_verified=false`、`active_suggestion_hmi_projection_only=true`、
 `active_suggestion_production_source_wired=false`、`active_suggestion_preference_repository_wired=false`、
 `active_suggestion_voice_engine_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-076 P6-W05 Context source adapters are contracts, not production providers
 
@@ -1164,7 +1165,7 @@ timezone authority、vehicle SDK service/property/area/rate/fault contract、ide
 `context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-075 P6-W04 process-local proactive consent is not production authorization
 
@@ -1182,7 +1183,7 @@ schema/clock/revoke、single-use high-risk approval、Runtime publication、Safe
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-080 P7-W03 route decision is not model execution
 
@@ -1200,7 +1201,7 @@ quota consumption、fallback/retry/cancel、output validation、Runtime composit
 `model_policy_router_defined=true`、`model_policy_router_android13_arm64_verified=false`、
 `model_policy_router_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W02`。
+`implementation_stage=P9-W03`。
 
 ## DEV-074 P6-W03 process-local TriggerEngine is not production proactive intelligence
 
@@ -1224,7 +1225,7 @@ durable cooldown/identity/privacy/audit 和 target Android fault evidence，再�
 `trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-071 P5-W09 decision-only context budget is not production model budgeting
 
@@ -1244,7 +1245,7 @@ model route composition、quality/privacy/evaluation 与目标硬件证据。
 `context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
 `context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
 `model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 
 ## DEV-072 P5-W10 process-local Memory consent projection is not production Memory control
@@ -1266,7 +1267,7 @@ repository mutation/delete evidence、revocation/process-death/audit 和可信 d
 `memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
 `memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
 `memory_consent_model_context_published=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-073 P6-W01 process-local Event Broker is not durable middleware
 
@@ -1284,7 +1285,7 @@ identity/policy authority contract。它比 R6A1 的旧 bounded callback runtime
 `event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ### P6-W02 pressure queues remain process-local
 
@@ -1303,7 +1304,7 @@ no-silent-drop 只证明本地决策路径可观测，不代表 process death、
 `event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 
 ## DEV-066 P5-W04 built-in execution is not production Tool authority
@@ -1324,7 +1325,7 @@ Tool。状态：`Accepted Temporary`。关闭条件是 P5-W05 冻结 signer/vers
 Runtime/Graph publication。当前：`tool_executor_contract_defined=true`、`tool_executor_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_execution_enabled=false`、`production_tool_registered=false`、
 `os_virtualization_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-067 P5-W05 static package verification is not production artifact trust
 
@@ -1342,7 +1343,7 @@ Model/NPU、network 或 Driver/HAL；无 file/parser/class loader/subprocess。�
 composition 和 P9 fault/security evidence。当前：`skill_artifact_verifier_contract_defined=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-068 P5-W06 process-local Working Memory is not production Memory
 
@@ -1362,7 +1363,7 @@ privacy/security evidence。当前：`working_memory_store_defined=true`、`work
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-069 P5-W07 contract cipher is not production encrypted storage
 
@@ -1381,7 +1382,7 @@ owners、真实 AEAD 与 key lifecycle、schema migration/backup policy、proces
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-070 P5-W08 process-local episodic summaries are not production Memory
 
@@ -1400,7 +1401,7 @@ backup/migration 与 process-death evidence，并完成 P5-W09/W10 和 P9 验收
 `episodic_memory_read_fail_closed=true`、`episodic_memory_production_read_authority_wired=false`、
 `episodic_memory_raw_continuous_signal_stored=false`、`episodic_memory_persistence_wired=false`、
 `episodic_memory_runtime_wired=false`、`episodic_memory_model_context_published=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-085 P8-W01 discovery tooling does not complete target discovery
 
@@ -1416,7 +1417,7 @@ readback/fault/rollback evidence。Automotive feature 和 service name 不能证
 当前 `target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
 `target_capability_matrix_complete=false`、`target_capability_discovery_external_blocked=true`、
 `vehicle_property_mapping_configured=false`、`production_adapter_registered=false`、`driver_development_triggered=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-086 P9-W01 initial budgets are not target measurements
 
@@ -1432,4 +1433,19 @@ Android profiler、Perfetto、`/proc`、system clock、车辆接口或 NPU telem
 `performance_budget_contract_defined=true`、`performance_budget_report_validation_verified=true`、
 `performance_budget_target_owner_approved=false`、`performance_budget_target_measurement_complete=false`、
 `performance_budget_android13_arm64_verified=false`、`performance_budget_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
+## DEV-087 P9-W02 synthetic matrix is not a 72h target run
+
+P9-W02 新增 versioned JSON/Java 三 workload、六 fault、18-case cross-product、三种 evidence mode、strict aggregate report 和
+debug-only synthetic probe。JVM 测试只证明矩阵形状、crash/ANR/invariant/outcome/recovery/duration gate 和 canonical digest 确定性。
+
+当前实现不循环真实 Session/Graph/Effect，不杀 Adapter/Runtime，不制造磁盘或网络故障，也不读取 tombstone、ANR trace、系统资源、
+车辆接口或 NPU。`CONTRACT_TEST` 的 18 条记录是合成合同证据，不能解释为 Android soak，更不能解释为 72h target run。
+
+状态：`Accepted Temporary`。关闭条件是 ISSUE-049 冻结 production-like workload、fault injector、observation owner、终止条件和仓库外
+证据，在命名目标 Android 13 release 上完成至少 72h 并由 owner 评审。当前：
+`stability_fault_matrix_contract_defined=true`、`stability_matrix_case_count=18`、
+`stability_target_72h_complete=false`、`stability_target_owner_approved=false`、
+`stability_android13_arm64_verified=false`、`stability_fault_injection_runtime_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
