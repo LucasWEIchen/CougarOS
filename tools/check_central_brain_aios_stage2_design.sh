@@ -19,9 +19,11 @@ ISSUES="$ROOT_DIR/docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md"
 DELIVERY="$ROOT_DIR/docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md"
 DRIVER="$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md"
 README="$ROOT_DIR/README.md"
+TARGET_DISCOVERY="$ROOT_DIR/docs/CENTRAL_BRAIN_TARGET_CAPABILITY_DISCOVERY.md"
+TARGET_DISCOVERY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p8_target_capability_discovery.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
-    "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README"; do
+    "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -331,7 +333,18 @@ require_text "$README" 'client2_hmi_checkpoint_text_persisted=false'
 require_text "$README" 'cockpit_hmi_four_stage_shell_implemented=true'
 require_text "$README" 'cockpit_hmi_safe_frame_1920x1080_verified=true'
 require_text "$README" 'cockpit_hmi_device_drawer_scaffolded=true'
-require_text "$README" 'implementation_stage=P8-W01'
+require_text "$README" 'implementation_stage=P9-W01'
+require_text "$README" 'target_capability_discovery_contract_defined=true'
+require_text "$README" 'target_capability_discovery_hardware_mapping_complete=false'
+require_text "$README" 'target_capability_discovery_external_blocked=true'
+require_text "$TARGET_DISCOVERY" 'P8-W01 Target Capability Discovery Contract'
+require_text "$TARGET_DISCOVERY" 'implementation_stage=P9-W01'
+require_text "$BACKLOG" 'P8-W01 software preparation'
+require_text "$REQUIREMENTS" 'P8-W01 target capability discovery trace'
+require_text "$DEVIATIONS" 'DEV-085 P8-W01 discovery tooling does not complete target discovery'
+require_text "$ISSUES" 'ISSUE-047 P8 target capability discovery evidence is unavailable'
+require_text "$DELIVERY" 'Android P8-W01 Target Capability Discovery Preparation'
+require_text "$DRIVER" 'P8-W01 Target Capability Discovery Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -520,5 +533,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_tool_manifest.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_registry.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_rule_solver.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_executor.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_target_capability_discovery.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

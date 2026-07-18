@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "discovery_id": "android-p8-target-capability-discovery",
+  "status": "external_blocked",
+  "required_android_api": 33,
+  "req_ids": [
+    "S2-ADP-002",
+    "S2-OBS-001",
+    "XSC-001",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "KH-003",
+    "KH-006",
+    "KH-007",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "required_inputs": [
+    "public Android Car property list with area and access metadata",
+    "published vendor service AIDL or SDK API",
+    "permission and signature policy",
+    "interface owner and version policy",
+    "readback fault timeout and rollback semantics"
+  ],
+  "matrix_columns": [
+    "capability_id",
+    "surface_kind",
+    "public_identifier",
+    "service_interface",
+    "area",
+    "value_type",
+    "access",
+    "permission",
+    "signer_owner",
+    "interface_version",
+    "readback_semantics",
+    "fault_semantics",
+    "evidence_reference",
+    "discovery_status"
+  ],
+  "required_capability_ids": [
+    "vehicle.hvac.target_temperature",
+    "vehicle.hvac.power",
+    "vehicle.hvac.fan_level",
+    "vehicle.seat.heating",
+    "vehicle.seat.ventilation",
+    "vehicle.seat.recline",
+    "media.playback",
+    "navigation.poi"
+  ],
+  "read_only_evidence_sources": [
+    "PackageManager feature advertisement",
+    "ADB shell visible Binder service inventory",
+    "ADB shell visible command service inventory",
+    "owner supplied public Android Car property export",
+    "owner supplied vendor SDK AIDL and permission documents"
+  ],
+  "prohibited_operations": [
+    "privilege escalation",
+    "root or remount",
+    "package install or uninstall",
+    "SELinux mutation",
+    "private device-node scan",
+    "unpublished vendor API invocation",
+    "property write or vehicle command",
+    "raw device evidence publication"
+  ],
+  "completion_gate": {
+    "all_required_capability_rows_present": true,
+    "owner_api_permission_version_complete": true,
+    "readback_fault_rollback_complete": true,
+    "internal_evidence_reference_present": true,
+    "target_owner_approved": true
+  },
+  "claim_state": {
+    "target_capability_discovery_contract_defined": true,
+    "target_capability_read_only_collector_defined": true,
+    "target_capability_matrix_complete": false,
+    "public_car_property_list_available": false,
+    "vendor_service_contract_available": false,
+    "permission_signature_policy_available": false,
+    "target_capability_discovery_external_blocked": true,
+    "vehicle_property_mapping_configured": false,
+    "production_adapter_registered": false,
+    "vendor_npu_provider_available": false,
+    "driver_development_triggered": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P8-W01' \
+  'implementation_stage=P9-W01' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -399,6 +399,13 @@ for marker in \
   'resource_admission_runtime_wired=false' \
   'resource_snapshot_producer_wired=false' \
   'model_resource_admission_android13_arm64_verified=false' \
+  'target_capability_discovery_contract_defined=true' \
+  'target_capability_discovery_matrix_column_count=14' \
+  'target_capability_discovery_capability_count=8' \
+  'target_capability_discovery_redaction_verified=true' \
+  'target_capability_discovery_hardware_mapping_complete=false' \
+  'target_capability_discovery_android13_arm64_verified=false' \
+  'target_capability_discovery_external_blocked=true' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
@@ -704,8 +711,14 @@ if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")
 if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
-if "P8-W01" not in remaining or "Model Runtime production" not in remaining:
-    raise SystemExit("README remaining-work table must identify P8-W01 capability discovery as the next unfinished scope")
+if "P8 Target Capability Discovery 软件准备" not in developed:
+    raise SystemExit("README developed table must include the P8-W01 software-preparation boundary")
+if (
+    "P8-W01 目标能力发现" not in remaining
+    or "`EXTERNAL_BLOCKED`" not in remaining
+    or "P9-W01 性能预算" not in remaining
+):
+    raise SystemExit("README must keep P8-W01 externally blocked and identify P9-W01 as the independent next scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:

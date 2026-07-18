@@ -984,7 +984,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P8-W01`.
+`target_hardware_validated=false`, `implementation_stage=P9-W01`.
 
 ## P5-W02 Tool Registry/Resolver
 
@@ -1010,7 +1010,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P5-W03 ToolRuleSolver.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P5-W03 ToolRuleSolver.
 
 ## P5-W03 Tool RuleSolver
 
@@ -1035,7 +1035,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P8-W01`.
+`implementation_stage=P9-W01`.
 
 ## P5-W04 Tool Executor boundary
 
@@ -1059,7 +1059,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `tool_approval_authority_available=false`, `os_virtualization_enabled=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P8-W01`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`.
 Next: P5-W05 Skill package verifier.
 
 ## P5-W05 Skill package verifier
@@ -1083,7 +1083,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P8-W01`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`.
 Next: P5-W06 WorkingMemoryStore.
 
 ## P5-W06 WorkingMemoryStore
@@ -1109,7 +1109,7 @@ Status: `working_memory_store_defined=true`, `working_memory_session_scope_verif
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P5-W07 ProfileMemoryStore.
+`target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P5-W07 ProfileMemoryStore.
 
 ## P5-W07 ProfileMemoryStore
 
@@ -1133,7 +1133,7 @@ Status: `profile_memory_store_defined=true`, `profile_memory_explicit_consent_ve
 `profile_memory_process_local=true`, `profile_memory_durable_storage_wired=false`,
 `profile_memory_production_encryption_owner_configured=false`, `profile_memory_consent_authority_production_wired=false`,
 `profile_memory_runtime_wired=false`, `profile_memory_content_logged=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P5-W08 EpisodicMemoryStore.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P5-W08 EpisodicMemoryStore.
 
 ## P5-W08 EpisodicMemoryStore
 
@@ -1161,7 +1161,7 @@ Status: `episodic_memory_store_defined=true`, `episodic_memory_summary_result_on
 `episodic_memory_production_policy_authority_wired=false`, `episodic_memory_production_erase_authority_wired=false`,
 `episodic_memory_production_read_authority_wired=false`,
 `episodic_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P8-W01`.
+`target_hardware_validated=false`, `implementation_stage=P9-W01`.
 
 ## P5-W09 ContextBudgetManager
 
@@ -1180,7 +1180,7 @@ State: `context_budget_manager_defined=true`, `context_budget_category_allocatio
 `context_budget_tokenizer_wired=false`, `context_budget_summarizer_wired=false`,
 `context_budget_production_authority_wired=false`, `context_budget_runtime_wired=false`,
 `context_budget_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P5-W10 Memory consent HMI/API; tracking: `DEV-071`,
+`target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P5-W10 Memory consent HMI/API; tracking: `DEV-071`,
 `ISSUE-044`.
 
 ## P5-W10 Memory consent HMI/API
@@ -1210,7 +1210,7 @@ bash tools/check_central_brain_android_memory_consent_hmi.sh
 `memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
 `memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
 `memory_consent_model_context_published=false`、`memory_consent_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P8-W01`. Next: P6-W01 EventBroker;
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`. Next: P6-W01 EventBroker;
 tracking: `DEV-072`, `ISSUE-045`.
 
 ## P6-W01 EventBroker interface/in-process implementation
@@ -1241,7 +1241,7 @@ Status: `event_broker_interface_defined=true`, `event_broker_typed_topics_verifi
 `event_broker_android13_arm64_verified=false`, `event_broker_process_local=true`,
 `event_broker_durable_persistence_wired=false`, `event_broker_dds_transport_wired=false`,
 `event_broker_production_published=false`, `event_broker_runtime_wired=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P6-W02 Backpressure/QoS;
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P6-W02 Backpressure/QoS;
 tracking: `DEV-073`, `ISSUE-046`.
 
 ## P6-W02 Event Backpressure/QoS
@@ -1271,7 +1271,7 @@ Status: `event_qos_contract_defined=true`, `event_qos_policy_count=4`,
 `event_qos_consumer_isolation_verified=true`, `event_qos_android13_arm64_verified=false`,
 `event_qos_process_local=true`, `event_qos_broker_wired=false`, `event_qos_durable_persistence_wired=false`,
 `event_qos_production_middleware_wired=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P6-W03 TriggerRule manifest/engine;
+`target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P6-W03 TriggerRule manifest/engine;
 tracking: `DEV-073`, `ISSUE-046`.
 
 ## P6-W03 TriggerRule manifest/engine
@@ -1303,7 +1303,7 @@ Status: `trigger_rule_manifest_defined=true`, `trigger_rule_manifest_verified=tr
 `trigger_cooldown_persistence_wired=false`, `trigger_source_adapter_wired=false`,
 `trigger_auto_execution_enabled=false`, `trigger_runtime_wired=false`, `model_invoked=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P8-W01`. Next: P6-W04 Proactive consent/policy; tracking: `DEV-074`, `ISSUE-031`.
+`implementation_stage=P9-W01`. Next: P6-W04 Proactive consent/policy; tracking: `DEV-074`, `ISSUE-031`.
 
 ## P6-W04 Proactive consent/policy
 
@@ -1333,7 +1333,7 @@ Status: `proactive_consent_policy_defined=true`, `proactive_grant_binding_verifi
 `proactive_policy_process_local=true`, `proactive_grant_persistence_wired=false`,
 `proactive_consent_authority_wired=false`, `proactive_auto_execution_enabled=false`,
 `proactive_runtime_wired=false`, `model_invoked=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P6-W05 Context source adapters; tracking:
+`target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P6-W05 Context source adapters; tracking:
 `DEV-075`, `ISSUE-031`.
 
 ## P6-W05 Context source adapters
@@ -1363,7 +1363,7 @@ Status: `context_source_adapter_contract_defined=true`, `context_source_count=3`
 `context_source_android13_arm64_verified=false`, `context_source_production_registry_published=false`,
 `context_source_runtime_wired=false`, `context_source_trigger_engine_wired=false`,
 `vehicle_signal_provider_wired=false`, `vehicle_property_mapping_configured=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P8-W01`. Next: P6-W06 Active suggestion UX;
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`. Next: P6-W06 Active suggestion UX;
 tracking: `DEV-076`, `ISSUE-031`.
 
 ## P6-W06 Active suggestion UX
@@ -1394,7 +1394,7 @@ Status: `active_suggestion_controller_defined=true`, `active_suggestion_full_car
 `active_suggestion_preference_repository_wired=false`, `active_suggestion_voice_engine_wired=false`,
 `trigger_engine_wired=false`, `graph_execution_enabled=false`, `effect_dispatch_enabled=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P8-W01`. Next: P7-W01 ModelRequest/Result v2; tracking: `DEV-077`, `ISSUE-031`.
+`implementation_stage=P9-W01`. Next: P7-W01 ModelRequest/Result v2; tracking: `DEV-077`, `ISSUE-031`.
 
 ## P7-W01 ModelRequest/Result v2
 
@@ -1421,7 +1421,7 @@ Status: `model_contract_v2_defined=true`, `model_request_v2_fields_verified=true
 `model_raw_content_accepted=false`, `model_provider_registry_wired=false`, `model_policy_router_wired=false`,
 `model_contract_v2_android13_arm64_verified=false`, `model_invoked=false`, `npu_accessed=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P8-W01`. Next: P7-W02 ModelProviderRegistry/health; tracking: `DEV-078`, `ISSUE-024/044`.
+`implementation_stage=P9-W01`. Next: P7-W02 ModelProviderRegistry/health; tracking: `DEV-078`, `ISSUE-024/044`.
 
 ## P7-W02 ModelProviderRegistry/health
 
@@ -1450,7 +1450,7 @@ Status: `model_provider_registry_defined=true`, `model_provider_count=4`,
 `model_provider_registry_android13_arm64_verified=false`, `model_provider_registry_runtime_wired=false`,
 `model_policy_router_wired=false`, `model_invoked=false`, `network_accessed=false`, `npu_accessed=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P8-W01`. Next: P7-W03 PolicyAwareModelRouter; tracking: `DEV-079`, `ISSUE-024`.
+`implementation_stage=P9-W01`. Next: P7-W03 PolicyAwareModelRouter; tracking: `DEV-079`, `ISSUE-024`.
 
 ## P7-W03 PolicyAwareModelRouter
 
@@ -1478,7 +1478,7 @@ Status: `model_policy_router_defined=true`, `model_policy_router_privacy_network
 `model_policy_router_no_action_authority=true`, `model_policy_router_android13_arm64_verified=false`,
 `model_policy_router_runtime_wired=false`, `provider_invoked=false`, `model_invoked=false`, `network_accessed=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P8-W01`. Next: P7-W04 LocalModelProvider; tracking: `DEV-080`, `ISSUE-024`.
+`implementation_stage=P9-W01`. Next: P7-W04 LocalModelProvider; tracking: `DEV-080`, `ISSUE-024`.
 
 ## P7-W04 LocalModelProvider
 
@@ -1510,7 +1510,7 @@ bash tools/check_central_brain_android_local_model_provider.sh
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
 `local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P8-W01`。下一步：P7-W05 Prompt/Output schema；tracking：`DEV-081`、`ISSUE-024`。
+`implementation_stage=P9-W01`。下一步：P7-W05 Prompt/Output schema；tracking：`DEV-081`、`ISSUE-024`。
 
 ## P7-W05 Structured model output schema
 
@@ -1536,7 +1536,7 @@ bash tools/check_central_brain_android_structured_model_output.sh
 `model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=false`、
 `model_invoked=false`、`raw_model_content_logged=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P8-W01`。下一步：P7-W06 Scenario evaluation harness；tracking：`DEV-082`、`ISSUE-024`。
+`implementation_stage=P9-W01`。下一步：P7-W06 Scenario evaluation harness；tracking：`DEV-082`、`ISSUE-024`。
 
 ## P7-W06 Scenario evaluation harness
 
@@ -1561,7 +1561,7 @@ bash tools/check_central_brain_android_scenario_evaluation.sh
 `evaluation_boundary_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
 `raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P8-W01`。下一步：P7-W07 Resource/thermal admission；tracking：
+`target_hardware_validated=false`、`implementation_stage=P9-W01`。下一步：P7-W07 Resource/thermal admission；tracking：
 `DEV-083`、`ISSUE-024`。
 
 ## P7-W07 Resource and thermal admission
@@ -1592,4 +1592,27 @@ bash tools/check_central_brain_android_model_resource_admission.sh
 `resource_snapshot_producer_wired=false`、`model_resource_admission_android13_arm64_verified=false`、
 `provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P8-W01`。下一步：P8-W01 Target capability discovery；tracking：`DEV-084`、`ISSUE-024`。
+`implementation_stage=P9-W01`。下一步：P8-W01 Target capability discovery；tracking：`DEV-084`、`ISSUE-024`。
+
+## P8-W01 Target Capability Discovery Preparation
+
+P8-W01 没有新增 APK/AAR 或 Runtime 代码。仓库根目录新增 machine-readable discovery contract、固定八行 capability matrix、
+只读 ADB collector 和 fake-ADB redaction checker。原始 feature/service/command evidence 强制写到仓库外的私有目录，summary 只输出
+非秘密 alias、计数、布尔值和 SHA-256 reference。
+
+```bash
+bash tools/check_central_brain_android_target_capability_discovery.sh
+bash tools/collect_central_brain_android_target_capabilities.sh \
+  --adb /mnt/e/platform-tools/adb.exe \
+  --serial <serial> \
+  --device-alias local-cockpit-a13-01 \
+  --evidence-dir /tmp/cougaros-p8-capability-evidence
+```
+
+当前设备 offline，且没有公开 CarProperty list、Vendor AIDL/SDK 或 permission/signature owner 文档，因此：
+`target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
+`target_capability_matrix_complete=false`、`target_capability_discovery_external_blocked=true`、
+`vehicle_property_mapping_configured=false`、`production_adapter_registered=false`、
+`vendor_npu_provider_available=false`、`driver_development_triggered=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。P8-W02..W06 保持阻塞，
+下一可独立增量为 P9-W01；tracking：`DEV-085`、`ISSUE-024/027/030/047`。

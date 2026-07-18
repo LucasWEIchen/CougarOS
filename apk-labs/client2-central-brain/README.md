@@ -271,7 +271,7 @@ client2_hmi_hidden_state_recreation_verified=true
 client2_hmi_checkpoint_text_persisted=false
 legacy_text_callback_authoritative=false
 cockpit_demo_control_loop_implemented=false
-implementation_stage=P8-W01
+implementation_stage=P9-W01
 ```
 
 The implementation plan, class/file map and acceptance matrix are maintained in
@@ -366,5 +366,5 @@ trigger. It records no raw serial, UI tree, screenshot, log, user/model text or 
 This closes P4 application acceptance only. Automatic Plan publication, production Effect dispatch, approval response, undo, vehicle
 readback and an independent production Client2 release remain unavailable. `p4_w12_application_acceptance_complete=true`,
 `p4_automatic_plan_runtime_published=false`, `hmi_d4_demo_control_loop_complete=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P8-W01`. Req IDs: `S2-UX-001..003`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W01`. Req IDs: `S2-UX-001..003`,
 `S2-HMI-001..006`, `S2-SCN-001`, `S2-SAF-001`, `S2-EFF-001`; tracking: `DEV-062`, `ISSUE-033`.
