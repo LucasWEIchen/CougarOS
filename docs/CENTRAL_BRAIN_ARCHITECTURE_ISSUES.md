@@ -622,6 +622,18 @@ Plan/Effect/Media/Nav/approval/partial/mismatch/undo 在当前证据中仍是 ho
 production Client2 release artifact，`hmi_d4_demo_control_loop_complete=false`。因此 ISSUE-033 保持 Open，后续 Runtime
 execution wiring 与真实车辆分别由 `ISSUE-022/026/030` 推进。tracking：`DEV-062`。
 
+### ISSUE-033 P4-D4a update
+
+P4-D4a 已把 P2 `ScenarioPlanCompiler` 与 P3 control-only `AgentGraphRuntime` 组合为 debug-only runner。Cold 会自动完成 Context/Policy
+并停在 HVAC Effect；parked fatigue 停在 approval；moving fatigue 不会恢复被 Compiler 裁掉的 seat recline 分支；required Effect
+失败会使 Graph 失败关闭。Snapshot 可为后续 HMI 展示 Plan/Graph/pending-node 调用链。
+
+该 runner 没有注册 Android Service，也未接 Session/Event Binder、Client2、Effect adapter、approval response 或 readback；JVM supplied
+outcome 不能算车辆执行。因此 ISSUE-033 仍为 Open，下一软件增量是 P4-D4b debug Runtime Session/Event projection。当前
+`simulated_scenario_graph_defined=true`、`simulated_scenario_android_runtime_wired=false`、
+`simulated_scenario_client2_wired=false`、`simulated_scenario_effect_dispatch_enabled=false`、
+`scenario_execution_enabled=false`、`hmi_d4_demo_control_loop_complete=false`。tracking：`DEV-101`。
+
 ## ISSUE-036 Tool production owner, health source and execution authority
 
 P5-W01 已冻结 Tool 静态合同、bounded scalar input/output schema、canonical digest 和 mandatory health freshness metadata，

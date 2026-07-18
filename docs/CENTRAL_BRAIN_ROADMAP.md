@@ -1629,3 +1629,26 @@ Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098/
 `release_retest_github_issue_mutation_wired=false`、`release_retest_automatic_issue_close_allowed=false`、
 `release_retest_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。
+
+### P4-D4a Simulated Scenario/Plan/Graph composition progress
+
+状态：`DEVELOPED / DEBUG_RUNTIME_WIRING_PENDING`（2026-07-18）。在 P9 软件包完成后的全局未完成项审计中，确认 HMI-D4
+仍存在一个不依赖真实车身接口的组合缺口。新增 debug-only `SimulatedScenarioGraph`、versioned JSON、八组 JVM regression 和
+独立/Stage2/Runtime/CI 门禁。
+
+该组件复用现有 `ScenarioPlanCompiler` 和 control-only `AgentGraphRuntime`。它自动完成 Context、Policy 与 Summary 本地投影；
+approval、Effect execution、readback verification 必须转为单一 pending node，只有外部显式提交 typed outcome 才能继续。Cold 自动
+推进到 HVAC Effect；parked fatigue 先停在 seat approval；moving fatigue 继续使用 Compiler 的 approval/recline pruning；required
+Effect failure 使 Graph 失败关闭。
+
+本增量没有 Android Service/Binder/Client2 wiring，也没有 adapter apply、readback、approval response、生产注册或硬件访问。
+下一增量为 P4-D4b debug Runtime Session/Event projection；P8 真实 adapter 和 production authority 仍保持外部阻塞。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、
+`XSC-001/005/006`、`DEL-001/004/005`；tracking：`DEV-101`、`ISSUE-022/026/030/033`。
+`simulated_scenario_graph_defined=true`、`simulated_scenario_graph_debug_only=true`、
+`simulated_scenario_plan_published=true`、`simulated_scenario_graph_progress_enabled=true`、
+`simulated_scenario_android_runtime_wired=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4a`。

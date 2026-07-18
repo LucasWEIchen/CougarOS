@@ -2610,3 +2610,21 @@ tester 复测。Issue 只能在人工确认具体 replacement release 后关闭�
 `release_retest_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
 `DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。
+
+## Android P4-D4a Simulated Scenario/Plan/Graph Composition
+
+交付 debug-only `SimulatedScenarioGraph`、versioned JSON、八组 JVM regression 与独立/Stage2/Runtime/CI 门禁。验收必须证明 cold 的
+Context/Policy 自动推进和 HVAC pending Effect、parked fatigue 的 approval gate、moving fatigue 的 seat branch pruning、required Effect
+失败关闭、显式 outcome 逐节点恢复以及稳定 projection digest。
+
+该交付不包含 Activity/Service/Binder/Client2 wiring，不调用 Effect adapter，不读取 readback，不提供 approval authority。Release 编译
+不得包含同名 main-source class；Runtime/Governance Service 不得引用该 runner。实体 ADB 不在线，因此没有目标执行证据。
+
+状态：`simulated_scenario_graph_defined=true`、`simulated_scenario_graph_debug_only=true`、
+`simulated_scenario_plan_published=true`、`simulated_scenario_graph_progress_enabled=true`、
+`simulated_scenario_android_runtime_wired=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4a`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
+`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；
+tracking：`DEV-101`、`ISSUE-022/026/030/033`。

@@ -1813,3 +1813,20 @@ owner/tester digest admission 不能证明底层接口存在，也不能触发�
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；
 tracking：`DEV-100`、`ISSUE-052/053`。
+
+## P4-D4a Simulated Scenario Graph Driver/HAL Boundary
+
+P4-D4a 只在 Android Runtime debug source set 中组合 pure-Java Scenario Compiler 和 control-only AgentGraph。输入是既有 immutable
+Context/Capability/Resolution 元数据；输出是 Plan/Graph/pending-node projection。它不读取 Android Car、VHAL、Vendor Binder、CAN、
+device node、sysfs、property、NPU 或网络，不调用 Effect adapter，也不修改厂商 SDK、系统镜像或 SELinux。
+
+本增量没有 C/JNI/Driver/HAL 或虚拟化开发量。未来 P4-D4c 接入 simulated adapter 仍只能使用 debug source；真实车辆 Effect 必须等 P8
+公开 property/service/permission/owner evidence。JVM supplied outcome 不得用于推断底层接口或硬件资格。
+
+当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`simulated_scenario_graph_defined=true`、`simulated_scenario_android_runtime_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4a`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
+`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；
+tracking：`DEV-101`、`ISSUE-022/026/030/033`。

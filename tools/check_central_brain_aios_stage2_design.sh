@@ -505,6 +505,17 @@ require_text "$REQUIREMENTS" 'P9-W07c replacement release and issue/retest trace
 require_text "$DEVIATIONS" 'DEV-100 P9-W07c software admission is not a published replacement release or completed retest'
 require_text "$DELIVERY" 'Android P9-W07c Release Retest Workflow'
 require_text "$DRIVER" 'P9-W07c Release Retest Workflow Driver/HAL Boundary'
+require_text "$README" 'simulated_scenario_graph_defined=true'
+require_text "$README" 'simulated_scenario_graph_debug_only=true'
+require_text "$README" 'simulated_scenario_plan_published=true'
+require_text "$README" 'simulated_scenario_graph_progress_enabled=true'
+require_text "$README" 'simulated_scenario_effect_dispatch_enabled=false'
+require_text "$BACKLOG" '`P4-D4a` Simulated Scenario/Plan/Graph composition'
+require_text "$REQUIREMENTS" 'P4-D4a simulated Scenario/Plan/Graph composition trace'
+require_text "$DEVIATIONS" 'DEV-101 P4-D4a debug graph progress is not Runtime Effect execution'
+require_text "$ISSUES" 'ISSUE-033 P4-D4a update'
+require_text "$DELIVERY" 'Android P4-D4a Simulated Scenario/Plan/Graph Composition'
+require_text "$DRIVER" 'P4-D4a Simulated Scenario Graph Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -706,5 +717,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_production_release_admission.s
 bash "$ROOT_DIR/tools/check_central_brain_android_production_release_metadata_probe.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_probe.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_graph.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

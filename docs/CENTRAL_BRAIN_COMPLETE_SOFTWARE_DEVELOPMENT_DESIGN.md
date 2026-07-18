@@ -4849,3 +4849,38 @@ false repository claims。静态 checker 绑定 JSON/Java/test/docs，并拒绝 
 replacement published、target report admitted、workflow wired、GitHub mutation、automatic close、Android/hardware/production 全部 false。
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-100`、`ISSUE-052/053`。
+
+## 50. P4-D4a Simulated Scenario/Plan/Graph Composition detailed design
+
+### Composition ownership
+
+`SimulatedScenarioGraph` 只编译进 debug variant。构造器创建一个最大 16 run、最大 8 active session、最大 256 event projection 的
+`AgentGraphRuntime`，registry 固定使用 `controlOnlyContractRegistry()`。Runner 自身持有 Plan node index、自动投影计数、外部 outcome 计数和
+唯一 pending node ID；所有 mutation 由 synchronized public method 串行化。
+
+### Start algorithm
+
+`start` 先检查 run capacity，再调用 `ScenarioPlanCompiler.compile`。Compiler 负责 resolution/context/capability/manifest binding、optional
+fallback、moving seat pruning 和 DAG validation。Runner 只允许六种 node type：三种 local projection 和 approval/effect/verify；其他 node
+即使属于通用 Plan schema也会失败关闭，避免本 demo 偷渡 Tool/Model/Memory 行为。
+
+### Automatic progress algorithm
+
+Runner 对新 Plan 调用 Graph `start` 和 `pump`。READY node 按 Plan 顺序 claim；Context/Policy/Summary 立即以 SUCCEEDED 完成，其他节点先
+`suspendClaimedNode` 再记录 pending。外部只能通过 `supplyPendingOutcome` 完成该 WAITING node，随后再次进入自动循环。Required FAILED
+由 AgentGraph 转为 FAILED；optional SKIPPED/PARTIAL 继续沿用 Graph 语义。`cancel` 清除 pending 并调用 Graph cancel。
+
+### Projection and privacy
+
+Snapshot 的 digest 绑定 profile、run/session/scenario/plan identity、plan/graph revision、Graph state、计数、pending stage/node 和 Graph event
+digest。Snapshot 不保存 raw utterance、model output、Context fields、vehicle scalar、device identity 或 adapter material。Plan/capability ID 是
+build-owned allowlist metadata。
+
+### Verification and next boundary
+
+八组 JVM tests 覆盖 cold、parked/moving fatigue、完整外部成功序列、required failure、cancel/unknown run、digest 和 false authority claims。
+Static checker 验证 debug-only source、JSON、tests、docs 和 production Service absence。P4-D4b 才能添加 debug Runtime projection；本包
+保持 Effect dispatch/readback/approval authority/Client2/hardware/production false。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-HMI-003/006`；tracking：`DEV-101`、
+`ISSUE-022/026/030/033`。
