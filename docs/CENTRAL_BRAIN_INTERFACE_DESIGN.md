@@ -3507,3 +3507,20 @@ Runtime authority。
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-092`、`ISSUE-051`。
+
+## Android P9-W04c Privacy Redaction/Audit Probe Contract
+
+| API/entry | 输入 | 输出/约束 |
+| --- | --- | --- |
+| `evaluateCurrentDraft()` | 无 | immutable Snapshot；复验 W04a/W04b current draft |
+| `allowedAuditKeys()` | 无 | 21 个固定有序 key |
+| `Snapshot.auditMetadata()` | 无 | 两 digest、四 count、15 boolean；无 payload/reference/identity |
+| debug Activity | 1..24 位数字 nonce | DUMP-protected `CbPrivacyProbe` 单行 metadata |
+
+Activity 不提供 UI/Binder，不读其他 Intent 字段；异常只输出 type。installer 用 nonce 关联并验证 digest regex/固定 marker，release 不含 Activity。
+当前 `privacy_redacted_audit_projection_defined=true`、`privacy_android_debug_probe_available=true`、
+`privacy_android_debug_probe_executed=false`、`privacy_android13_arm64_verified=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：
+`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-093`、`ISSUE-051`。

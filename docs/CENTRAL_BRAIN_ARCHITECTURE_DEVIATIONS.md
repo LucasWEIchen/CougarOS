@@ -1533,3 +1533,18 @@ W04c Android evidence。当前 `privacy_policy_admission_defined=true`、`privac
 `privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。
+
+## DEV-093 P9-W04c probe availability is not owner policy or target evidence
+
+W04c 在 debug APK 中提供 DUMP-protected redacted projection probe，并把 release absence 与 installer markers 纳入门禁。Host JVM 与 APK
+compile 只能证明入口和脱敏规则存在；在 ADB 无 transport 时不能把 `available=true` 提升为 `executed=true` 或 Android 13 ARM64 evidence。
+
+Probe 只观察 current draft 的 rejected metadata，不读取 repository，也不证明 retention/delete/export enforcement。它不能关闭 W04b 的 owner
+policy 缺口；21-key 日志同样不是合规审计持久化或法律证据。
+
+状态：`Accepted Temporary`。当前 `privacy_redacted_audit_projection_defined=true`、
+`privacy_android_debug_probe_available=true`、`privacy_android_debug_probe_executed=false`、
+`privacy_android13_arm64_verified=false`、`privacy_owner_policy_approved=false`、
+`privacy_repository_mutation_wired=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。

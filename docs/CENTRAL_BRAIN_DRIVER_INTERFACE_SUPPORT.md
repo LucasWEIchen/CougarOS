@@ -1690,3 +1690,15 @@ W04b 是应用层纯 Java metadata validator。它不打开 Room、文件、日�
 `privacy_repository_mutation_wired=false`、`privacy_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：
 `S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-092`、`ISSUE-051`。
+
+## P9-W04c Privacy Redaction/Audit Probe Driver/HAL Boundary
+
+W04c 只使用 Android app debug Activity、`android.permission.DUMP` 和 Log API；main projection 是纯 Java。它不读取 Room/file/device node、
+不调用 Binder/Vendor/CarProperty/network/NPU，不修改系统镜像/SELinux，也不新增 Driver/HAL 或虚拟化开发量。Nonce 是有界非秘密关联值。
+
+未来合规审计持久化或 hardware-backed evidence 若要求目标专有服务，必须先获得公开 SDK contract 和 owner policy 后单独评审；debug Log
+不能替代。当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`privacy_android_debug_probe_executed=false`、`privacy_android13_arm64_verified=false`、
+`privacy_repository_mutation_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、
+`DEL-001/004/005`；tracking：`DEV-093`、`ISSUE-051`。

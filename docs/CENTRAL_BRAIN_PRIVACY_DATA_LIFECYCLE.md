@@ -1,8 +1,10 @@
 # Central Brain P9-W04 Privacy and Data Lifecycle
 
-Status: `W04B_ADMISSION_DEFINED / OWNER_POLICY_INPUT_OPEN`
+Status: `W04C_SOFTWARE_VERIFIED / TARGET_PROBE_PENDING / OWNER_POLICY_INPUT_OPEN`
 
 W04a baseline: `W04A_INVENTORY_VERIFIED / POLICY_GAPS_OPEN`
+
+W04b baseline: `W04B_ADMISSION_DEFINED / OWNER_POLICY_INPUT_OPEN`
 
 Req IDs: `S2-MEM-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`.
 
@@ -125,6 +127,35 @@ privacy_owner_policy_approved=false
 privacy_repository_mutation_wired=false
 privacy_runtime_lifecycle_wiring_complete=false
 privacy_android13_arm64_verified=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+implementation_stage=P9-W04
+```
+
+## 9. P9-W04c redacted audit projection
+
+`PrivacyRedactionAuditProjection` 复验 W04a inventory 与 W04b current draft，只投影 21 个固定 key：两个 SHA-256、四个计数和
+15 个 boolean。输出不包含 surface ID、source class、owner approval reference、authorization/consent digest、设备身份或任何原始
+user/model/vehicle/location 内容。JVM 逐键验证 allowlist、正则字符集、精确计数及 no-authority false claim。
+
+## 10. Android debug probe boundary
+
+`PrivacyRedactionAuditProbeActivity` 只存在于 debug source，使用 `android.permission.DUMP`、`NoDisplay`、`noHistory`。唯一输入是
+1..24 位数字 correlation nonce；其他 Intent extras/data/clip 均不读取。Activity 调用固定 projection 后写入 tag `CbPrivacyProbe`，不打开
+Room、文件、网络、车辆、NPU 或 Vendor API；异常只记录异常类型，不记录 stack/payload。
+
+installer 只匹配 nonce、digest 形状、计数和固定 boolean。release source/manifest 不含 probe。当前 ADB 无 transport，故仅能声明软件入口
+available，不能声明 executed/Android verified：
+
+```text
+privacy_redacted_audit_projection_defined=true
+privacy_android_debug_probe_available=true
+privacy_android_debug_probe_executed=false
+privacy_android13_arm64_verified=false
+privacy_owner_policy_approved=false
+privacy_repository_mutation_wired=false
+privacy_runtime_lifecycle_wiring_complete=false
 hardware_accessed=false
 production_ready=false
 target_hardware_validated=false

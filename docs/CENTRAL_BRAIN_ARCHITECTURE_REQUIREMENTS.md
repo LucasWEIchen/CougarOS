@@ -2486,3 +2486,25 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。tracking：`DEV-091/092`、`ISSUE-051`。
+
+## 85. P9-W04c privacy redaction/audit probe trace
+
+本增量继续映射 `S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. 必须提供 main-source pure-Java fixed projection，复验 W04a inventory 与 W04b current draft，不接收 payload。
+2. projection 必须精确输出 21 个 allowlisted key，只允许两个 digest、四个 count 和 boolean；key 顺序属于合同。
+3. 禁止投影 surface/source、raw user/model/vehicle/location、owner reference、authorization/consent digest 和 device identity。
+4. 当前 draft projection 必须显示 surface=12、unresolved=2、admission code=3、operation code=1、policy admitted=false。
+5. debug Activity 只接受 1..24 位数字 nonce，不读取其他 extras/data/clip，不记录异常 stack 或输入。
+6. Activity 必须位于 debug source，DUMP-protected、exported、noHistory、NoDisplay；main/release 不得包含入口。
+7. installer 必须按 nonce、digest 形状、计数和固定 false claim 验证，不打印设备身份或业务 payload。
+8. JVM 必须验证精确 key allowlist、metadata 字符集、禁止标识不存在和 readiness false claim。
+9. projection/Activity 不得接 Runtime/Governance、Room/file/network/vehicle/NPU/Driver-HAL/hardware。
+10. probe available 不等于 executed；只有 exactly one Android 13 ARM64 transport 的实际结果才能提升 Android evidence。
+11. W04c 不批准 W04b policy、不实现 repository retention/delete/export、不关闭 ISSUE-051。
+
+当前 `privacy_redacted_audit_projection_defined=true`、`privacy_android_debug_probe_available=true`、
+`privacy_android_debug_probe_executed=false`、`privacy_android13_arm64_verified=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091/092/093`、`ISSUE-051`。
