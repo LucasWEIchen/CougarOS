@@ -61,6 +61,7 @@
 | ISSUE-039 | Production built-in signer evidence、artifact revoke/rollback 与非合作实现的 deadline/cancel owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W05/P9 | Open |
 | ISSUE-040 | Trusted signer evidence、Skill policy 原子发布、签名链、lifecycle 与动态装载 owner 未确定。 | S2-TOL-001, S2-SAF-001, FW-U-008, P8/P9 | Open |
 | ISSUE-041 | Working Memory 的 production Session terminal source、tokenizer/budget authority、payload privacy 与 durable storage owner 未确定。 | S2-MEM-001, S2-SAF-001, P5-W07..W10/P9 | Open |
+| ISSUE-042 | Profile Memory 的 user/seat identity、consent/revocation、Keystore/TEE key lifecycle、durable repository 与 export/delete owner 未确定。 | S2-MEM-001, S2-SAF-001, P5-W08..W10/P9 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -492,6 +493,7 @@ migration、session token retention/erase policy 和 MDM data clear。目标 own
 | P5-W04 进展 | in-process built-in executor boundary 已完成；production signer evidence、hard cancel 与 Runtime publication 未关闭，ISSUE-039 保持 Open。 |
 | P5-W05 进展 | static Skill package verifier 已完成；trusted evidence、签名链、atomic policy/dynamic load 未关闭，ISSUE-040 保持 Open。 |
 | P5-W06 进展 | process-local WorkingMemoryStore 已完成；Session terminal publisher、tokenizer、durable storage/privacy owner 未关闭，ISSUE-041 保持 Open。 |
+| P5-W07 进展 | consent/field/scope/encryption-owner-gated ProfileMemoryStore 合同已完成；真实 identity、authority、key 与 repository 未关闭，ISSUE-042 保持 Open。 |
 
 ### ISSUE-033 P4-W10 update
 
@@ -579,7 +581,7 @@ Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。V
 状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W07`。tracking：`DEV-065`。
+`target_hardware_validated=false`、`implementation_stage=P5-W08`。tracking：`DEV-065`。
 
 ## ISSUE-039 Production built-in signer and cooperative cancellation ownership
 
@@ -601,7 +603,7 @@ composition。Vehicle/NPU Tool 还需 P8 vendor cancellable API 与 readback 合
 `built_in_signer_artifact_bound=true`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`production_tool_registered=false`、`os_virtualization_enabled=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W07`。tracking：`DEV-066`。
+`implementation_stage=P5-W08`。tracking：`DEV-066`。
 
 P5-W05 进展：只读 verifier 已冻结 ACTIVE/RETIRED/REVOKED、artifact epoch、Runtime compatibility、防降级与 capability
 allowlist，关闭 pure-Java static policy 子项。它不解决 signer evidence acquisition、签名链、atomic publish 或 hard cancel，
@@ -622,7 +624,7 @@ Signer、version、capability、minimum epoch 与 rollback policy 还需要一�
 `skill_version_policy_contract_defined=true`、`skill_revocation_downgrade_fail_closed=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W07`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W08`。
 tracking：`DEV-067`。
 
 ## ISSUE-041 Working Memory session owner, tokenizer and storage publication
@@ -640,4 +642,22 @@ recovery 和日志/诊断脱敏。P5-W07 Profile 与 P5-W08 Episodic Memory 不�
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W07`。tracking：`DEV-068`。
+`target_hardware_validated=false`、`implementation_stage=P5-W08`。tracking：`DEV-068`。
+
+## ISSUE-042 Profile Memory authority, key owner and durable repository publication
+
+P5-W07 的 owner fingerprint、consent/authorization evidence 和 `EncryptionOwnerState` 都是受信 composition 输入；当前没有
+production owner 指定 Android multi-user/driver profile 到 fingerprint 的派生、seat occupancy/account switching、consent UI、
+revocation push、authority process identity、证据签名与进程死亡后的重新验证。HMI checkbox 或模型输出不能成为 consent grant。
+
+量产 key/storage 必须冻结 Android Keystore/TEE 或 vendor secure-storage owner、AEAD algorithm/nonce/AAD、key alias/generation、
+rotation/revocation、hardware-backed/attestation 要求、locked-user/direct-boot 行为、Room/file schema、transaction、migration、
+backup/restore、factory reset、multi-user delete、wear/capacity 与 crash/power-loss recovery。delete 必须在 consent 撤回后仍可执行；
+export 必须定义授权、格式、分页、审计与敏感字段脱敏，且不得产生未加密临时文件。
+
+P5-W07 只完成 process-local contract-test path；debug/test XOR 不是密码学证据。状态：`Open`。当前
+`profile_memory_store_defined=true`、`profile_memory_android13_arm64_verified=false`、
+`profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
+`profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
+`profile_memory_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P5-W08`。tracking：`DEV-069`。

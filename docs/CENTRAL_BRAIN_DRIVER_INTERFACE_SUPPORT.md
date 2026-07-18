@@ -1179,7 +1179,7 @@ regex 和 SHA-256；静态门禁禁止 Binder、Room、network、Android Car/VHA
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
-`implementation_stage=P5-W07`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`implementation_stage=P5-W08`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
 `DEL-004/005`；tracking：`DEV-065`、`ISSUE-038`。
 
 ## P5-W04 Tool Executor Driver/HAL Boundary
@@ -1198,7 +1198,7 @@ Tool 必须在 P8 获得 OEM/Vendor capability、权限、area、readback、canc
 `tool_executor_android13_arm64_verified=false`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
-`implementation_stage=P5-W07`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
+`implementation_stage=P5-W08`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、`XSC-001/005/006`、`KH-003/006/007`、
 `DEL-004/005`；tracking：`DEV-066`、`ISSUE-039`。
 
 ## P5-W05 Skill package verifier Driver/HAL Boundary
@@ -1217,7 +1217,7 @@ hardware-backed attestation。未来若 owner 明确要求 TEE/secure element at
 `package_signature_cryptographically_verified=false`、`dynamic_skill_loading_enabled=false`、
 `skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、`vehicle_readback_accessed=false`、
 `model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
-`virtualization_development_triggered=false`、`implementation_stage=P5-W07`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、
+`virtualization_development_triggered=false`、`implementation_stage=P5-W08`。Req IDs：`S2-TOL-001`、`S2-SAF-001`、
 `FW-U-008`、`XSC-001/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-067`、`ISSUE-040`。
 
 ## P5-W06 WorkingMemoryStore Driver/HAL Boundary
@@ -1238,5 +1238,27 @@ Vendor NPU shared buffer、secure memory 或跨进程零拷贝，必须先获得
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`driver_development_triggered=false`、
-`virtualization_development_triggered=false`、`implementation_stage=P5-W07`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、
+`virtualization_development_triggered=false`、`implementation_stage=P5-W08`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、
 `S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-068`、`ISSUE-041`。
+
+## P5-W07 ProfileMemoryStore Driver/HAL Boundary
+
+`ProfileMemoryStore` 的 owner fingerprint、user/seat scope、field/value、consent/authorization evidence、elapsed retention 与
+`SealedPayload` 是 Android application software contract，不是 VHAL property、vendor service、device node、ioctl、PCIe/NPU
+buffer、DMA/IOMMU handle 或 Driver/HAL endpoint。
+
+main source 只使用 Java collections、UTF-8 byte array、elapsed clock 和 synchronized monitor；没有 Android Keystore/TEE、
+Room/file/network/Android Car/VHAL/NPU 访问。`EncryptionOwner` 是应用层 owner gate interface，当前没有 vendor implementation。
+debug/test XOR 只验证 state binding 和 ciphertext cleanup，不触发硬件加密、secure erase 或 BSP 开发。
+
+当前新增 Driver/HAL 开发量为 0，`DRV-GAP-001..005` 不变。未来 OEM 若要求 hardware-backed key、TEE sealed storage、跨 SoC
+profile replication 或 secure memory，必须先取得公开/vendor SDK 的 key/storage/identity API 和证据；只有确认能力不足并批准
+最小缺口后才登记新 DRV-GAP，不得由本合同猜测 vendor 接口。
+
+状态：`profile_memory_store_defined=true`、`profile_memory_android13_arm64_verified=false`、
+`profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
+`profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
+`profile_memory_runtime_wired=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`、`implementation_stage=P5-W08`。
+Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007`、
+`DEL-004/005`；tracking：`DEV-069`、`ISSUE-042`。

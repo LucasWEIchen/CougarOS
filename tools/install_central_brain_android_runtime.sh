@@ -3000,6 +3000,71 @@ if [[ "$WORKING_MEMORY_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+PROFILE_MEMORY_NONCE="$(date +%s%N)"
+PROFILE_MEMORY_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.memory.ProfileMemoryStoreProbeActivity \
+  --es nonce "$PROFILE_MEMORY_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$PROFILE_MEMORY_PROBE_OUTPUT"; then
+  echo "$PROFILE_MEMORY_PROBE_OUTPUT" >&2
+  echo "Profile Memory store debug probe did not start successfully" >&2
+  exit 1
+fi
+PROFILE_MEMORY_PROBE_PASSED=false
+for _ in {1..40}; do
+  PROFILE_MEMORY_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbProfileMemory:I)"
+  if grep -Fq \
+      "nonce=$PROFILE_MEMORY_NONCE profile_memory_store_probe_complete=true" \
+      <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_explicit_consent_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_field_allowlist_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_user_seat_scope_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_read_update_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_delete_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_export_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_consent_revocation_fail_closed=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_encryption_owner_gate_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_sealed_payload_zeroized=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_android13_arm64_verified=true" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_process_local=true" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_durable_storage_wired=false" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_production_encryption_owner_configured=false" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_consent_authority_production_wired=false" \
+        <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_runtime_wired=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "profile_memory_content_logged=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "production_ready=false" <<<"$PROFILE_MEMORY_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$PROFILE_MEMORY_LOG"; then
+    PROFILE_MEMORY_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$PROFILE_MEMORY_PROBE_PASSED" != true ]]; then
+  echo "$PROFILE_MEMORY_LOG" >&2
+  echo "Profile Memory store probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3604,6 +3669,23 @@ printf '%s\n' \
   "working_memory_model_context_published=false" \
   "working_memory_tokenizer_verified=false" \
   "working_memory_content_logged=false" \
+  "profile_memory_store_defined=true" \
+  "profile_memory_explicit_consent_verified=true" \
+  "profile_memory_field_allowlist_verified=true" \
+  "profile_memory_user_seat_scope_verified=true" \
+  "profile_memory_read_update_verified=true" \
+  "profile_memory_delete_verified=true" \
+  "profile_memory_export_verified=true" \
+  "profile_memory_consent_revocation_fail_closed=true" \
+  "profile_memory_encryption_owner_gate_verified=true" \
+  "profile_memory_sealed_payload_zeroized=true" \
+  "profile_memory_android13_arm64_verified=true" \
+  "profile_memory_process_local=true" \
+  "profile_memory_durable_storage_wired=false" \
+  "profile_memory_production_encryption_owner_configured=false" \
+  "profile_memory_consent_authority_production_wired=false" \
+  "profile_memory_runtime_wired=false" \
+  "profile_memory_content_logged=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \
