@@ -145,7 +145,7 @@ printf '%s\n' \
   "tool_rule_model_intersection_fail_closed=true" \
   "tool_rule_terminal_requirements_verified=true" \
   "tool_rule_approval_annotation_fail_closed=true" \
-  "tool_rule_solver_android13_arm64_verified=false" \
+  "tool_rule_solver_android13_arm64_verified=true" \
   "tool_rule_solver_published=false" \
   "tool_rule_solver_runtime_wired=false" \
   "tool_approval_authority_available=false" \

@@ -155,7 +155,7 @@ printf '%s\n' \
   "tool_resolver_states_separated=true" \
   "tool_resolver_unhealthy_no_fallback=true" \
   "tool_health_fail_closed=true" \
-  "tool_registry_android13_arm64_verified=false" \
+  "tool_registry_android13_arm64_verified=true" \
   "tool_registry_published=false" \
   "tool_resolver_published=false" \
   "tool_registry_runtime_wired=false" \

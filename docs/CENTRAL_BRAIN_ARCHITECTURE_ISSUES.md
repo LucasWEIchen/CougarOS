@@ -1225,3 +1225,15 @@ ISSUE-033 仍 Open，因为闭环仅使用 debug process-local simulation。真�
 `simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_approval_authority_available=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-101/102/103/104/105`。
+
+### P5 Android 13 ARM64 probe acceptance update
+
+P5-W01..W10 的十个 debug probe 已在 Android 13 ARM64 上由统一 installer 执行通过：Tool manifest、Registry/Resolver、RuleSolver、
+Executor、Skill verifier、Working/Profile/Episodic Memory、ContextBudget 和 Memory consent。完整 Runtime/Demo 安装回归也已通过，
+设备身份输出已脱敏。此前 ADB transport offline 只保留为历史记录，不再是这些应用层 probe 的阻塞项。
+
+ISSUE-036..045 仍保持 Open：probe fixture 不提供 production signer/health/rule/consent authority，不发布 Runtime，不提供 durable encrypted
+repository，不调用模型/NPU/车辆或 Driver/HAL。当前 `p5_android13_arm64_probe_acceptance_complete=true`、
+`p5_probe_module_count=10`、`production_tool_authority_published=false`、`production_memory_authority_published=false`、
+`production_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-106`、`ISSUE-036..045`。

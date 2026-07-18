@@ -2798,3 +2798,21 @@ tracking：`DEV-104`、`ISSUE-022/026/030/033`。
 `simulated_scenario_production_registered=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4e`。tracking：`DEV-105`、
 `ISSUE-022/026/030/033`。
+
+## 98. P5 Android 13 ARM64 Tool/Skill/Memory probe acceptance trace
+
+1. `S2-TOL-001`：P5-W01..W05 必须分别在 API 33 ARM64 debug Activity 中验证 manifest、registry/resolver、rule solver、
+   built-in executor boundary 与 Skill package verifier，不能用 host JVM 结果代替。
+2. `S2-MEM-001/S2-MDL-001`：P5-W06..W10 必须验证 Working/Profile/Episodic Memory、ContextBudget 与 Memory consent；
+   ContextBudget fixture 必须确定地产生 summarize/truncate/drop 各一次。
+3. `S2-SAF-001`：所有 probe 必须保持 production authority、Runtime wiring、Vehicle/NPU/Driver-HAL 和 hardware access 为 false。
+4. `S2-OBS-001`：统一 installer 必须检查 fresh completion marker、每个功能 marker 和 false-authority marker。
+5. `DEL-001/004`：验收目标必须是 Android API 33、ARM64；installer 必须完成 Runtime/Demo 全安装回归。
+6. `DEL-005`：提交证据不得包含 serial、model、fingerprint、签名材料、raw log、用户/模型文本、memory/token 或车辆 payload。
+7. debug Activity 通过只允许设置对应 `*_android13_arm64_verified=true`，不得设置量产 Tool/Memory authority 或目标硬件资格。
+
+当前 `p5_android13_arm64_probe_acceptance_complete=true`、`p5_probe_module_count=10`、
+`device_identity_redacted=true`、`production_tool_authority_published=false`、
+`production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-106`、
+`ISSUE-036..045`。

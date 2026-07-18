@@ -144,6 +144,13 @@ for marker in \
   'simulated_scenario_projection_reducer_owned=true' \
   'simulated_scenario_seven_stage_ui_verified=true' \
   'simulated_scenario_android13_arm64_client_verified=true' \
+  'p5_android13_arm64_probe_acceptance_complete=true' \
+  'p5_probe_module_count=10' \
+  'device_identity_redacted=true' \
+  'production_tool_authority_published=false' \
+  'production_memory_authority_published=false' \
+  'production_runtime_wired=false' \
+  'driver_hal_accessed=false' \
   'hmi_d4_debug_demo_control_loop_complete=true' \
   'simulated_scenario_effect_dispatch_enabled=true' \
   'simulated_scenario_hardware_effect_dispatch_enabled=false' \
@@ -309,13 +316,13 @@ for marker in \
   'context_budget_dual_limit_verified=true' \
   'context_budget_deterministic_overflow_verified=true' \
   'context_budget_required_fail_closed=true' \
-  'context_budget_android13_arm64_verified=false' \
+  'context_budget_android13_arm64_verified=true' \
   'memory_consent_controller_defined=true' \
   'memory_consent_source_visibility_verified=true' \
   'memory_consent_disable_verified=true' \
   'memory_consent_preference_clear_verified=true' \
   'memory_consent_moving_restriction_verified=true' \
-  'memory_consent_android13_arm64_verified=false' \
+  'memory_consent_android13_arm64_verified=true' \
   'memory_consent_hmi_projection_only=true' \
   'memory_consent_repository_mutation_wired=false' \
   'memory_consent_production_authority_wired=false' \
@@ -505,7 +512,7 @@ for marker in \
   'tool_manifest_contract_digest_verified=true' \
   'tool_schema_exact_scalar_validation_verified=true' \
   'tool_manifest_health_fail_closed=true' \
-  'tool_manifest_android13_arm64_verified=false' \
+  'tool_manifest_android13_arm64_verified=true' \
   'tool_registry_contract_defined=true' \
   'tool_resolver_contract_defined=true' \
   'tool_health_dynamic_snapshot_defined=true' \
@@ -513,7 +520,7 @@ for marker in \
   'tool_registry_version_conflict_rejected=true' \
   'tool_resolver_states_separated=true' \
   'tool_resolver_unhealthy_no_fallback=true' \
-  'tool_registry_android13_arm64_verified=false' \
+  'tool_registry_android13_arm64_verified=true' \
   'tool_registry_published=false' \
   'tool_resolver_published=false' \
   'tool_registry_runtime_wired=false' \
@@ -527,7 +534,7 @@ for marker in \
   'tool_executor_deadline_cancel_verified=true' \
   'tool_executor_output_limit_verified=true' \
   'tool_executor_audit_bounded_verified=true' \
-  'tool_executor_android13_arm64_verified=false' \
+  'tool_executor_android13_arm64_verified=true' \
   'tool_executor_runtime_wired=false' \
   'skill_artifact_verifier_contract_defined=true' \
   'skill_signer_policy_contract_defined=true' \
@@ -538,7 +545,7 @@ for marker in \
   'skill_runtime_version_verified=true' \
   'skill_capability_policy_verified=true' \
   'skill_revocation_downgrade_fail_closed=true' \
-  'skill_package_verifier_android13_arm64_verified=false' \
+  'skill_package_verifier_android13_arm64_verified=true' \
   'trusted_skill_evidence_source_configured=false' \
   'package_signature_cryptographically_verified=false' \
   'dynamic_skill_loading_enabled=false' \

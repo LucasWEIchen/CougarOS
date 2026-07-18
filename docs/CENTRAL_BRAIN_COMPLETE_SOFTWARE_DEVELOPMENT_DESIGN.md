@@ -5042,3 +5042,30 @@ P8 capability contract 替换 adapter，不能把本模块直接切换为 produc
 
 Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
 `APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`；tracking：`DEV-105`、`ISSUE-022/026/030/033`。
+
+## P5 implementation detail: aggregate Android probe acceptance
+
+### 入口与顺序
+
+开发人员使用统一 installer，不直接拼接 Activity 命令。runner 先确认 API/ABI，再安装同 signer Runtime/Demo，停止 Client2 和旧测试进程，
+清空 logcat 后按 P5-W01..W10 顺序启动 probe。每项必须同时满足 completion marker、模块正向/负向 marker 和所有 false-authority marker；
+任一项缺失立即退出，不继续推导成功。
+
+### 日志与隐私
+
+Client2 Unity renderer 会产生高频日志，可能把 Runtime trusted-caller marker 挤出 bounded buffer。因此 Demo Binder acceptance 前必须 force-stop
+Client2、force-stop Runtime/Demo 并清空 logcat。runner 只能输出 `device_transport_selected=true` 和
+`device_identity_redacted=true`，禁止读取/打印 model、serial、fingerprint、签名材料、raw log 或业务 payload。
+
+### ContextBudget 回归夹具
+
+`ContextBudgetManagerProbeActivity` 的 `profile.probe` 固定为 token=5、byte=10。结合固定全局/category budget 后，probe 必须得到
+SUMMARIZE/TRUNCATE/DROP 计数 1/1/1，并继续验证 required no-partial、category allocation 和 dual limit。不要通过放宽期望值修复失败；
+应检查预算数学、排序和 fixture 是否仍能覆盖三种 overflow directive。
+
+### 可声明与不可声明
+
+可以声明十个 `*_android13_arm64_verified=true` 和完整安装回归通过。不得声明 production Registry/Executor/Skill authority、durable Memory、
+consent authority、model context publication、Vehicle/NPU/Driver-HAL 或 target hardware validation。Req IDs：`S2-TOL-001`、
+`S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、
+`ISSUE-036..045`。

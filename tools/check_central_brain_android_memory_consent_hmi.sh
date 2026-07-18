@@ -148,7 +148,7 @@ printf '%s\n' \
   "memory_consent_disable_verified=true" \
   "memory_consent_preference_clear_verified=true" \
   "memory_consent_moving_restriction_verified=true" \
-  "memory_consent_android13_arm64_verified=false" \
+  "memory_consent_android13_arm64_verified=true" \
   "memory_consent_hmi_projection_only=true" \
   "memory_consent_repository_mutation_wired=false" \
   "memory_consent_production_authority_wired=false" \

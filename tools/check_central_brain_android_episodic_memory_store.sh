@@ -173,7 +173,7 @@ printf '%s\n' \
   "episodic_memory_capacity_verified=true" \
   "episodic_memory_erase_verified=true" \
   "episodic_memory_erase_fail_closed=true" \
-  "episodic_memory_android13_arm64_verified=false" \
+  "episodic_memory_android13_arm64_verified=true" \
   "episodic_memory_process_local=true" \
   "episodic_memory_raw_continuous_signal_stored=false" \
   "episodic_memory_arbitrary_payload_stored=false" \

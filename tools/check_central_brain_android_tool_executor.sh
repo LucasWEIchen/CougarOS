@@ -165,7 +165,7 @@ printf '%s\n' \
   "tool_executor_deadline_cancel_verified=true" \
   "tool_executor_output_limit_verified=true" \
   "tool_executor_audit_bounded_verified=true" \
-  "tool_executor_android13_arm64_verified=false" \
+  "tool_executor_android13_arm64_verified=true" \
   "tool_executor_runtime_wired=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \

@@ -3799,3 +3799,18 @@ capability` 时映射 HMI target `vehicle.seat.recline`。其他节点/空 capab
 
 Req IDs：`S2-SCN-001/S2-GRF-001/S2-EVT-001/S2-EFF-001/S2-SAF-001/S2-HMI-003/006/APP-004/XSC-001/004/005/006`；
 tracking：`DEV-105`、`ISSUE-033`。
+
+## P5 Android 13 ARM64 aggregate probe acceptance interface
+
+机器合同：`central-brain/contracts/central_brain_android_p5_physical_acceptance.json`。
+
+- `probe_modules[]`：固定 10 项；每项包含 `work_package` 与唯一 completion marker，不接受运行时扩展。
+- `required_android_api=33`、`required_abi=arm64-v8a`：不满足时 installer 失败关闭。
+- `test_command`：统一入口 `install_central_brain_android_runtime.sh --skip-build --require-api-33`。
+- `device_identity_redacted=true`：只输出 transport selected，不输出 serial/model/fingerprint。
+- `claim_state`：明确区分 probe verified 与 production Tool/Memory authority、Runtime、Vehicle/NPU/Driver-HAL/target qualification。
+- 每个 Activity 以固定 package/component 启动，只允许 boolean/count/schema marker；不得把用户/模型文本或 memory/token 写入证据。
+
+ContextBudget probe 的 build-owned `profile.probe` fixture 使用 token/byte 预算 `5/10`，与全局预算共同确定地产生
+SUMMARIZE/TRUNCATE/DROP 各一次；checker 锁定该值，防止测试退化为只验证 compile。Req IDs：`S2-TOL-001`、`S2-MEM-001`、
+`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、`ISSUE-036..045`。

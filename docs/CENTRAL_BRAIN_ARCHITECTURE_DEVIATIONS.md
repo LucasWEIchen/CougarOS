@@ -1759,3 +1759,18 @@ Completed 和 Partial 均来自 process-local simulated adapters 与 simulated o
 `hmi_d4_debug_demo_control_loop_complete=true`、`simulated_scenario_hardware_effect_dispatch_enabled=false`、
 `simulated_scenario_approval_authority_available=false`、`client2_production_release_artifact_available=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4e`。
+
+## DEV-106 P5 debug probe acceptance is not production Tool or Memory authority
+
+P5-W01..W10 已在 Android 13 ARM64 上通过统一 debug probe 与完整安装回归。探针使用 build-owned fixture、进程内对象和 DUMP-protected
+Activity，证明 Java contract 在目标 Android ABI/API 上可加载并按预期失败关闭；它不证明 production Registry、health publisher、
+Rule/Skill signer authority、durable encrypted Memory、consent authority、model context composition 或 Runtime publication。
+
+installer 已停止输出 raw serial/model，并在 Demo acceptance 前停止 Client2、清空 logcat，避免 renderer 日志挤掉 trusted-caller marker。
+ContextBudget fixture 固定为必须触发 summarize/truncate/drop 的预算组合。状态：`Accepted Temporary`；ISSUE-036..045 保持 Open，
+直到 owner、持久化、跨进程发布、P8 Vendor 接口和 P9 量产证据分别关闭。
+
+当前 `p5_android13_arm64_probe_acceptance_complete=true`、`device_identity_redacted=true`、
+`production_tool_authority_published=false`、`production_memory_authority_published=false`、
+`production_runtime_wired=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。

@@ -42,7 +42,7 @@ public final class ContextBudgetManagerProbeActivity extends Activity {
                             item(ContextBudgetManager.Category.CONTEXT,
                                     "context.probe", 4, 8, false, false, 90),
                             item(ContextBudgetManager.Category.PROFILE,
-                                    "profile.probe", 4, 8, false, true, 80),
+                                    "profile.probe", 5, 10, false, true, 80),
                             item(ContextBudgetManager.Category.HISTORY,
                                     "history.probe", 4, 8, false, true, 70)));
             ContextBudgetManager.AllocationResult requiredFailure = manager.allocate(

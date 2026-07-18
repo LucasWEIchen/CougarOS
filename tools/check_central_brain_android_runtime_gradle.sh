@@ -133,6 +133,12 @@ require_text "central-brain/android-runtime/runtime-service/src/debug/AndroidMan
 require_text "central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/RuntimeProbeActivity.java" "BuildConfig.DEBUG"
 require_text "tools/install_central_brain_android_runtime.sh" "--require-api-33"
 require_text "tools/install_central_brain_android_runtime.sh" "r1_api33_exit_criteria_met"
+require_text "tools/install_central_brain_android_runtime.sh" "device_identity_redacted=true"
+if grep -Eq 'ro[.]product[.]model|device_serial=|device_model=' \
+    "$ROOT_DIR/tools/install_central_brain_android_runtime.sh"; then
+  echo "Android runtime installer must not collect or print raw device identity" >&2
+  exit 1
+fi
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'EVOLUTION_STAGE = "R4_DURABLE_WORKFLOW"'
 require_text "central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java" 'MATURITY = "android_integrated"'
 require_text "central-brain/android-runtime/central-brain-sdk/build.gradle.kts" "aidl = true"

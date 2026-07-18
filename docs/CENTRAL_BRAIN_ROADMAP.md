@@ -1752,3 +1752,18 @@ Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-00
 `simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_approval_authority_available=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4e`。
+
+### 2026-07-18 P5 Android 13 ARM64 aggregate probe acceptance
+
+状态：`COMPLETE / APPLICATION_DEBUG_PROBE_ONLY`。统一 installer 已在 API 33 ARM64 上通过 P5-W01..W10 十个 Tool/Skill/Memory
+probe 和完整 Runtime/Demo 安装回归。修复了两项验收基础设施问题：Client2 renderer 日志隔离，避免 trusted caller marker 被挤出；
+ContextBudget fixture 调整为确定性 summarize/truncate/drop 1/1/1。installer 不再输出 raw serial/model。
+
+本项关闭 P5 应用层 Android ABI/API probe 证据缺口，不关闭 ISSUE-036..045 的量产 owner、跨进程 Runtime、持久化/加密、真实 tokenizer/
+summarizer、Vehicle/NPU 或 Driver/HAL 缺口。下一未验收的软件流为 P6 Android 13 ARM64 aggregate probes。
+
+Req IDs：`S2-TOL-001`、`S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_complete=true`、
+`p5_probe_module_count=10`、`device_identity_redacted=true`、`production_tool_authority_published=false`、
+`production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。

@@ -1759,3 +1759,22 @@ registry 均不在该架构路径中。
 `simulated_scenario_client2_wired=true`、`hmi_d4_debug_demo_control_loop_complete=true`、
 `simulated_scenario_hardware_effect_dispatch_enabled=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4e`。
+
+## P5 Android 13 ARM64 aggregate probe acceptance architecture
+
+统一 installer 是 P5 设备验收 orchestrator：它安装 Runtime/Demo debug APK，按固定 component 启动十个 DUMP-protected probe Activity，
+为每个 Activity 清理并读取有界 log marker，最后执行完整安装回归。probe 直接实例化 main-source Java contract，不通过自由文本、网络、
+模型或设备 payload 驱动。
+
+```text
+installer
+  -> Tool Manifest -> Registry/Resolver -> RuleSolver -> Executor
+  -> Skill Package Verifier
+  -> Working Memory -> Profile Memory -> Episodic Memory
+  -> Context Budget -> Memory Consent
+  -> Runtime/Demo full install regression
+```
+
+验收契约只把各模块的 Android ABI/API probe 标记设为 true。production composition root、Binder Runtime、durable repository、
+consent/signer authority、Vehicle/NPU/Driver-HAL 均不在此调用链，保持失败关闭。Req IDs：`S2-TOL-001`、`S2-MEM-001`、
+`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、`ISSUE-036..045`。

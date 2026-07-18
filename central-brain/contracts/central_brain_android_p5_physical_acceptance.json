@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0.0",
+  "acceptance_id": "android-p5-tool-skill-memory-device-probe-acceptance",
+  "status": "verified",
+  "evidence_scope": "android13-arm64-debug-application-probes",
+  "required_android_api": 33,
+  "required_abi": "arm64-v8a",
+  "req_ids": [
+    "S2-TOL-001",
+    "S2-MEM-001",
+    "S2-MDL-001",
+    "S2-SAF-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "test_command": "bash tools/install_central_brain_android_runtime.sh --skip-build --require-api-33",
+  "probe_modules": [
+    {
+      "work_package": "P5-W01",
+      "marker": "tool_manifest_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W02",
+      "marker": "tool_registry_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W03",
+      "marker": "tool_rule_solver_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W04",
+      "marker": "tool_executor_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W05",
+      "marker": "skill_package_verifier_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W06",
+      "marker": "working_memory_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W07",
+      "marker": "profile_memory_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W08",
+      "marker": "episodic_memory_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W09",
+      "marker": "context_budget_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P5-W10",
+      "marker": "memory_consent_android13_arm64_verified=true"
+    }
+  ],
+  "claim_state": {
+    "p5_probe_module_count": 10,
+    "p5_android13_arm64_probe_acceptance_complete": true,
+    "android_runtime_full_install_regression_passed": true,
+    "device_identity_redacted": true,
+    "debug_probe_only": true,
+    "production_tool_authority_published": false,
+    "production_memory_authority_published": false,
+    "production_runtime_wired": false,
+    "vehicle_accessed": false,
+    "npu_accessed": false,
+    "driver_hal_accessed": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  },
+  "non_claims": [
+    "production Tool registry rule executor or Skill loading authority",
+    "durable encrypted Memory repository consent authority or model context publication",
+    "vehicle Effect dispatch readback NPU Driver HAL or vendor SDK integration",
+    "production release qualification or target hardware validation"
+  ]
+}

@@ -97,6 +97,7 @@ jobs:
           bash tools/check_central_brain_android_episodic_memory_store.sh
           bash tools/check_central_brain_android_context_budget_manager.sh
           bash tools/check_central_brain_android_memory_consent_hmi.sh
+          bash tools/check_central_brain_android_p5_physical_acceptance.sh
           bash tools/check_central_brain_android_event_broker.sh
           bash tools/check_central_brain_android_event_backpressure_qos.sh
           bash tools/check_central_brain_android_trigger_engine.sh
