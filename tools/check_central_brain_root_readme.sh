@@ -755,14 +755,17 @@ if "P9 Identity/Replay Security Corpus" not in developed:
     raise SystemExit("README developed table must include the completed P9-W03b host policy corpus")
 if "P9 Security Boundary Inventory" not in developed:
     raise SystemExit("README developed table must include the completed P9-W03c boundary inventory")
+if "P9 Privacy Data Inventory" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W04a privacy inventory")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
     or "P9-W03 Security review/fuzz" not in remaining
     or "目标 Android probe" not in remaining
-    or "下一软件增量为 P9-W04" not in readme
+    or "P9-W04 Privacy/data lifecycle" not in remaining
+    or "下一软件增量为 P9-W04b" not in readme
 ):
-    raise SystemExit("README must keep P8-W01 and target security evidence blocked and identify P9-W04 as the next software scope")
+    raise SystemExit("README must keep target evidence and privacy lifecycle gaps open and identify P9-W04b as the next software scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:

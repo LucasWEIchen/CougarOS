@@ -3464,3 +3464,25 @@ The probe remains `android.permission.DUMP` protected and absent from the main/r
 `security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
 `S2-SES-001`, `S2-MDL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.
+
+## Android P9-W04a Privacy Data Inventory Contract
+
+`PrivacyDataInventoryContract` 是无参数、只读、immutable 元数据接口：
+
+| API | 返回 | 约束 |
+| --- | --- | --- |
+| `surfaces()` | 12 个 immutable `DataSurface` | 固定顺序；调用方不能注册 surface |
+| `inventoryDigest()` | lowercase SHA-256 | 覆盖 profile 与全部 tuple/source class |
+| `DataSurface` getter | sensitivity/storage/content/owner/consent/retention/delete/export/log/enforcement/source | 不返回数据内容 |
+| `isInventoryComplete()` | `true` | 仅当前源码清单完整 |
+| readiness/privacy getter | 固定 boolean | owner policy、production lifecycle、Android/hardware 全 false |
+
+`DataSurface` 构造私有，只能由 build-owned catalog 创建；policy-gap/retention、transient/not-stored、authorized-export/explicit-consent
+和 content/log 组合在构造期失败关闭。接口不接 Binder、Room instance 或 production Service。
+
+当前 `privacy_data_inventory_complete=true`、`privacy_data_surface_count=12`、`privacy_policy_gap_count=2`、
+`privacy_owner_policy_approved=false`、`privacy_production_lifecycle_complete=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-091`、`ISSUE-051`。

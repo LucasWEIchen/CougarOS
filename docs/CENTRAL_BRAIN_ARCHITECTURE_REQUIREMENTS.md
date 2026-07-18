@@ -2432,3 +2432,34 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`、
 `security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-090`、`ISSUE-050`。
+
+## 83. P9-W04a privacy data inventory trace
+
+本增量映射 `S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. 必须以 versioned JSON 与 Android-independent Java 合同冻结当前数据面，固定 12 个 surface：6 个 durable Room、5 个
+   process-local、1 个 transient；任何新增/删除/重分类必须同步评审。
+2. 每个 surface 必须绑定 sensitivity、storage、content form、owner scope、consent、retention、deletion、export、log、
+   enforcement state 和 1..8 个实际 main-source class；source 缺失必须失败。
+3. durable Room 必须覆盖 Session/Event、Plan/Graph、Effect recovery、Approval、Audit、Event cursor，且不能把 Room 持久化解释为
+   owner 已批准 retention/delete。
+4. process-local 必须覆盖 Working/Profile/Episodic Memory、Event Broker 和 Tool execution audit；它们的 contract-test 行为不能提升
+   production Memory/Runtime readiness。
+5. model inference boundary 必须是唯一 `TRANSIENT_ONLY`，并绑定 `CALL_ONLY/NOT_STORED/FORBIDDEN export`。
+6. `POLICY_GAP` 必须与 `OWNER_POLICY_MISSING` 一一对应；首版精确为 durable Effect recovery 与 durable Audit 两项。
+7. 任何接受 content payload 的 surface 必须 `CONTENT_FORBIDDEN`。首版精确为 Working Memory、Profile Memory 和 transient model；
+   inventory API 自身不得接受 payload。
+8. 外部 `AUTHORIZED_BOUNDED` export 只允许 explicit-consent Profile Memory，并要求 authorized delete；其余 surface 必须 forbidden。
+9. 必须明确 `privacy_raw_user_text_persisted=false`、`privacy_raw_model_output_persisted=false`、
+   `privacy_raw_vehicle_payload_persisted=false`、`privacy_location_persisted=false`、`privacy_audit_content_logged=false`。
+10. main inventory 不得接 Android、Room、文件、网络、Runtime/Governance、车辆、NPU、Driver/HAL 或硬件；不得新增 Binder/数据库表。
+11. JVM 必须验证精确计数、source existence、两个 policy gap、content/log 约束、唯一 export 和所有 false claim；debug/release 必须编译。
+12. W04a 不执行 Android probe；`privacy_owner_policy_approved=false`、`privacy_production_lifecycle_complete=false`、
+    `privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false` 必须保持。
+
+当前 `privacy_data_inventory_complete=true`、`privacy_data_surface_count=12`、`privacy_durable_surface_count=6`、
+`privacy_process_local_surface_count=5`、`privacy_transient_surface_count=1`、`privacy_policy_gap_count=2`、
+`privacy_authorized_export_surface_count=1`、`privacy_owner_policy_approved=false`、
+`privacy_production_lifecycle_complete=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
+`privacy_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091`、`ISSUE-051`。

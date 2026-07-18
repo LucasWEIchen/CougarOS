@@ -1044,3 +1044,21 @@ ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage
 `security_package_signature_cryptographically_verified=false`、
 `security_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089/090`。
+
+## ISSUE-051 P9 durable privacy lifecycle policies are incomplete
+
+状态：`Open / Policy Owner Input Required`。
+
+W04a 已盘点 12 个数据面并验证现有源码边界。Working/Profile/Episodic Memory、Event Broker、Tool audit 和 model transient path
+已有有界 contract；Room 的 Session/Plan/Approval/Cursor 也有技术性 cascade/expiry/capacity 行为。但 durable Effect recovery 与
+durable Audit 缺少 owner-approved retention ceiling、delete/erase authority、legal/safety hold 和 lifecycle evidence。
+
+W04b 在没有产品隐私 owner、功能安全 owner 和合规 owner 一致批准前不得猜测期限。实现必须防止删除 active/pending Effect、未完成
+compensation 或安全审计依赖，同时禁止 raw user/model/vehicle/location payload 和未授权 export。关闭 ISSUE 需要命名 policy version/
+digest、每 surface 规则、JVM/Android evidence、迁移/回滚行为和 owner approval reference。
+
+当前 `privacy_data_inventory_complete=true`、`privacy_policy_gap_count=2`、
+`privacy_authorized_export_surface_count=1`、`privacy_owner_policy_approved=false`、
+`privacy_production_lifecycle_complete=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
+`privacy_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091`。

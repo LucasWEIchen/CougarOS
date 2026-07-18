@@ -4505,3 +4505,38 @@ Binder/Parcel fuzz, target signer measurement, coverage-guided fuzz or target qu
 `security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
 `S2-SES-001`, `S2-MDL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.
+
+## P9-W04a privacy data inventory detailed design
+
+### Design intent
+
+把 P9-W04 的 privacy/lifecycle 工作从抽象条目转为可编译清单。清单必须指出哪些数据实际 durable、哪些只在 contract-test 内存、
+哪些只瞬态存在，以及 retention/delete/export 的 owner policy 是否真的存在。
+
+### Data model
+
+`DataSurface` 保存固定 surface ID、十类 enum/boolean policy 与 source class list。所有集合 defensive copy 后 unmodifiable；surface ID
+和 source path 使用 canonical regex；重复 source/ID、空 source、矛盾 transient/delete、gap/retention、export/consent、content/log
+组合在 class initialization 时失败。
+
+### Aggregate invariants
+
+- surface=12，durable=6，process-local=5，transient=1；
+- policy gap=2，精确为 `durable.effect_recovery`、`durable.audit`；
+- authorized export=1，精确为 `memory.profile`；
+- content payload surface=3，精确为 Working/Profile/Model，且全部 `CONTENT_FORBIDDEN`；
+- raw user/model/vehicle/location persistence 和 audit content logging 均 false。
+
+### Test design
+
+五组 JVM test 验证 source existence/count、gap pairing、content/log、explicit-consent export 和 false claims。独立 checker 从 JSON 与
+Java `surface(...)` tuple 重建同源清单，检查文档/CI/wiring/prohibited import。debug/release 只编译 main contract；W04a 不新增 probe。
+
+### Claim boundary
+
+W04a 不读取真实数据，也不实现 owner policy、retention scheduler、erase/export service、Android evidence 或 production wiring。当前
+`privacy_owner_policy_approved=false`、`privacy_production_lifecycle_complete=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-091`、`ISSUE-051`。

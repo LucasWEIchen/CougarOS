@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-privacy-data-inventory-v1",
+  "maturity": "static_inventory_policy_gaps_explicit",
+  "surface_count": 12,
+  "durable_surface_count": 6,
+  "process_local_surface_count": 5,
+  "transient_surface_count": 1,
+  "policy_gap_count": 2,
+  "authorized_export_surface_count": 1,
+  "surfaces": [
+    {"id":"durable.session_event","sensitivity":"SENSITIVE","storage":"DURABLE_ROOM","content":"FIXED_METADATA","owner":"PRINCIPAL_SESSION","consent":"OPERATIONAL_POLICY","retention":"TERMINAL_CAPACITY_BOUNDED","deletion":"TERMINAL_CASCADE","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"PARTIAL_RUNTIME","accepts_content_payload":false,"sources":["com/centralbrain/runtime/persistence/SessionEntity.java","com/centralbrain/runtime/persistence/RuntimeEventEntity.java"]},
+    {"id":"durable.plan_graph","sensitivity":"RESTRICTED","storage":"DURABLE_ROOM","content":"DIGEST_METADATA","owner":"SESSION_TASK","consent":"OPERATIONAL_POLICY","retention":"SESSION_CASCADE","deletion":"TERMINAL_CASCADE","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"PARTIAL_RUNTIME","accepts_content_payload":false,"sources":["com/centralbrain/runtime/persistence/PlanEntity.java","com/centralbrain/runtime/persistence/PlanNodeEntity.java","com/centralbrain/runtime/persistence/RuntimeTaskEntity.java","com/centralbrain/runtime/persistence/TaskCheckpointEntity.java"]},
+    {"id":"durable.effect_recovery","sensitivity":"RESTRICTED","storage":"DURABLE_ROOM","content":"DIGEST_METADATA","owner":"SESSION_TASK","consent":"OPERATIONAL_POLICY","retention":"OWNER_POLICY_MISSING","deletion":"NO_PUBLIC_DELETE","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"POLICY_GAP","accepts_content_payload":false,"sources":["com/centralbrain/runtime/persistence/PendingEffectEntity.java","com/centralbrain/runtime/persistence/OutboxEntity.java","com/centralbrain/runtime/persistence/EffectObservationEntity.java","com/centralbrain/runtime/persistence/CompensationEntity.java"]},
+    {"id":"durable.approval","sensitivity":"SENSITIVE","storage":"DURABLE_ROOM","content":"FIXED_METADATA","owner":"PRINCIPAL","consent":"AUTHORITY_EVIDENCE","retention":"EXPIRY_BOUNDED","deletion":"CAPACITY_EVICTION","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"PARTIAL_RUNTIME","accepts_content_payload":false,"sources":["com/centralbrain/runtime/persistence/ApprovalRequestEntity.java"]},
+    {"id":"durable.audit","sensitivity":"SENSITIVE","storage":"DURABLE_ROOM","content":"DIGEST_METADATA","owner":"SYSTEM","consent":"OPERATIONAL_POLICY","retention":"OWNER_POLICY_MISSING","deletion":"NO_PUBLIC_DELETE","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"POLICY_GAP","accepts_content_payload":false,"sources":["com/centralbrain/runtime/persistence/AuditEventEntity.java"]},
+    {"id":"durable.event_cursor","sensitivity":"SENSITIVE","storage":"DURABLE_ROOM","content":"FIXED_METADATA","owner":"PRINCIPAL","consent":"ACCESS_POLICY_EVIDENCE","retention":"CANCELLED_CAPACITY_BOUNDED","deletion":"CAPACITY_EVICTION","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"PARTIAL_RUNTIME","accepts_content_payload":false,"sources":["com/centralbrain/runtime/persistence/EventCursorEntity.java"]},
+    {"id":"memory.working","sensitivity":"RESTRICTED","storage":"PROCESS_LOCAL","content":"BOUNDED_OPAQUE_CONTENT","owner":"SESSION","consent":"SESSION_POLICY","retention":"TTL_SESSION_TERMINAL","deletion":"TERMINAL_CASCADE","export":"FORBIDDEN","log":"CONTENT_FORBIDDEN","enforcement":"CONTRACT_TEST_ONLY","accepts_content_payload":true,"sources":["com/centralbrain/runtime/memory/WorkingMemoryStore.java"]},
+    {"id":"memory.profile","sensitivity":"SENSITIVE","storage":"PROCESS_LOCAL","content":"SEALED_TYPED_PREFERENCE","owner":"PRINCIPAL","consent":"EXPLICIT_CONSENT","retention":"MAXIMUM_30_DAYS","deletion":"AUTHORIZED_DELETE","export":"AUTHORIZED_BOUNDED","log":"CONTENT_FORBIDDEN","enforcement":"CONTRACT_TEST_ONLY","accepts_content_payload":true,"sources":["com/centralbrain/runtime/memory/ProfileMemoryStore.java"]},
+    {"id":"memory.episodic","sensitivity":"SENSITIVE","storage":"PROCESS_LOCAL","content":"FIXED_ENUM_SUMMARY","owner":"PRINCIPAL","consent":"AUTHORITY_EVIDENCE","retention":"MAXIMUM_30_DAYS","deletion":"AUTHORIZED_ERASE","export":"FORBIDDEN","log":"CONTENT_FORBIDDEN","enforcement":"CONTRACT_TEST_ONLY","accepts_content_payload":false,"sources":["com/centralbrain/runtime/memory/EpisodicMemoryStore.java"]},
+    {"id":"events.broker","sensitivity":"INTERNAL","storage":"PROCESS_LOCAL","content":"DIGEST_METADATA","owner":"PRINCIPAL","consent":"ACCESS_POLICY_EVIDENCE","retention":"CAPACITY_BOUNDED","deletion":"CAPACITY_EVICTION","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"CONTRACT_TEST_ONLY","accepts_content_payload":false,"sources":["com/centralbrain/runtime/events/InProcessDurableEventBroker.java"]},
+    {"id":"tools.execution_audit","sensitivity":"SENSITIVE","storage":"PROCESS_LOCAL","content":"DIGEST_METADATA","owner":"TASK","consent":"OPERATIONAL_POLICY","retention":"CAPACITY_BOUNDED","deletion":"CAPACITY_EVICTION","export":"FORBIDDEN","log":"DIGEST_METADATA_ONLY","enforcement":"CONTRACT_TEST_ONLY","accepts_content_payload":false,"sources":["com/centralbrain/runtime/tools/InProcessBuiltInToolExecutor.java"]},
+    {"id":"model.inference_boundary","sensitivity":"RESTRICTED","storage":"TRANSIENT_ONLY","content":"TRANSIENT_MODEL_CONTENT","owner":"SESSION_TASK","consent":"AUTHORITY_EVIDENCE","retention":"CALL_ONLY","deletion":"NOT_STORED","export":"FORBIDDEN","log":"CONTENT_FORBIDDEN","enforcement":"TRANSIENT_ENFORCED","accepts_content_payload":true,"sources":["com/centralbrain/runtime/model/ModelContractV2.java","com/centralbrain/runtime/model/StructuredModelOutput.java"]}
+  ],
+  "claim_state": {
+    "privacy_data_inventory_complete": true,
+    "privacy_raw_user_text_persisted": false,
+    "privacy_raw_model_output_persisted": false,
+    "privacy_raw_vehicle_payload_persisted": false,
+    "privacy_location_persisted": false,
+    "privacy_audit_content_logged": false,
+    "privacy_owner_policy_approved": false,
+    "privacy_production_lifecycle_complete": false,
+    "privacy_runtime_lifecycle_wiring_complete": false,
+    "privacy_android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P9-W04"
+  }
+}

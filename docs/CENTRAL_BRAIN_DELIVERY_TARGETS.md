@@ -2444,3 +2444,16 @@ no transport (`online=0/offline=0/unauthorized=0/other=0`). No APK was installed
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`, `S2-SES-001`, `S2-MDL-001`,
 `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.
+
+## Android P9-W04a Privacy Data Inventory
+
+交付 versioned 12-surface JSON、metadata-only Java contract、五组 JVM regression、独立 checker 和 README/Stage2/Runtime/CI
+聚合。验收要求 6 Room + 5 process-local + 1 transient 精确计数、全部 source class 存在、两个 policy gap 精确、content logging
+禁止、Profile 唯一 authorized bounded export、无 production Service wiring。
+
+本增量不交付 APK 功能或 Android probe，不读取数据库、日志或设备。`privacy_data_inventory_complete=true` 只证明当前源码清单可追踪；
+`privacy_owner_policy_approved=false`、`privacy_production_lifecycle_complete=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-091`、`ISSUE-051`。

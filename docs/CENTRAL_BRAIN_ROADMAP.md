@@ -1436,3 +1436,21 @@ Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-SES-001`、`S2-MDL-001`、`S2-OBS-00
 `security_coverage_guided_fuzz_complete=false`、`security_android13_arm64_verified=false`、
 `security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
+### P9-W04a Privacy Data Inventory progress
+
+状态：`DEVELOPED / P9-W04_IN_PROGRESS`（2026-07-18）。新增 12-surface versioned JSON/Java inventory：6 Room、5
+process-local、1 transient，绑定 sensitivity/storage/content/owner/consent/retention/delete/export/log/enforcement 和实际 source class。
+
+五组 JVM test 已验证 source/count、两个 policy gap、content logging prohibition、Profile 唯一 authorized export 与全部 false claim。
+durable Effect recovery 与 Audit 没有 owner-approved retention/delete policy，明确保持 `POLICY_GAP`；W04a 不修改运行行为。
+
+下一小步 `P9-W04b retention/delete/export policy`。必须先冻结 owner policy version/digest 与 active safety recovery guard；不得猜测期限、
+删除 active Effect/compensation 或启用未授权 export。随后 W04c 才提供 debug-only Android redaction/audit probe。
+
+Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-091`、`ISSUE-051`。
+`privacy_data_inventory_complete=true`、`privacy_data_surface_count=12`、`privacy_policy_gap_count=2`、
+`privacy_owner_policy_approved=false`、`privacy_production_lifecycle_complete=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。

@@ -29,11 +29,14 @@ SECURITY_REVIEW="$ROOT_DIR/docs/CENTRAL_BRAIN_SECURITY_REVIEW_FUZZ.md"
 SECURITY_CORPUS_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_parser_security_corpus.json"
 SECURITY_IDENTITY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_identity_replay_security_corpus.json"
 SECURITY_BOUNDARY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_security_boundary_inventory.json"
+PRIVACY_LIFECYCLE="$ROOT_DIR/docs/CENTRAL_BRAIN_PRIVACY_DATA_LIFECYCLE.md"
+PRIVACY_INVENTORY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_privacy_data_inventory.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
     "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT" \
-    "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT" "$SECURITY_BOUNDARY_CONTRACT"; do
+    "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT" "$SECURITY_BOUNDARY_CONTRACT" \
+    "$PRIVACY_LIFECYCLE" "$PRIVACY_INVENTORY_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -402,6 +405,16 @@ require_text "$REQUIREMENTS" 'P9-W03c security boundary inventory trace'
 require_text "$DEVIATIONS" 'DEV-090 P9-W03c static inventory and debug probe availability are not target fuzz evidence'
 require_text "$DELIVERY" 'Android P9-W03c Security Boundary Inventory'
 require_text "$DRIVER" 'P9-W03c Security Boundary Inventory Driver/HAL Boundary'
+require_text "$README" 'privacy_data_inventory_complete=true'
+require_text "$README" 'privacy_data_surface_count=12'
+require_text "$README" 'privacy_policy_gap_count=2'
+require_text "$PRIVACY_LIFECYCLE" 'W04A_INVENTORY_VERIFIED / POLICY_GAPS_OPEN'
+require_text "$BACKLOG" 'P9-W04a privacy data inventory'
+require_text "$REQUIREMENTS" 'P9-W04a privacy data inventory trace'
+require_text "$DEVIATIONS" 'DEV-091 P9-W04a inventory is not lifecycle enforcement'
+require_text "$ISSUES" 'ISSUE-051 P9 durable privacy lifecycle policies are incomplete'
+require_text "$DELIVERY" 'Android P9-W04a Privacy Data Inventory'
+require_text "$DRIVER" 'P9-W04a Privacy Data Inventory Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -596,5 +609,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_stability_fault_matrix.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_parser_security_corpus.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_identity_replay_security_corpus.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_security_boundary_inventory.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_privacy_data_inventory.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"
