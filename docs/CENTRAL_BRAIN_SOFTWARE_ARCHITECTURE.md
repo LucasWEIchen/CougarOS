@@ -1424,3 +1424,25 @@ W04a 位于 governance metadata 层，不位于数据访问路径。它描述 12
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-091`、`ISSUE-051`。
+
+## P9-W04b privacy policy admission architecture
+
+```text
+W04a inventory digest ----+                     +--> typed admission decision
+12-surface policy draft --+--> PolicyAdmission -+--> no Runtime/repository authority
+3 owner evidence digests -+                     |
+                                                +--> Operation preflight
+                                                     |- active Effect/compensation guard
+                                                     |- legal/safety hold guard
+                                                     `- Profile-only consented export guard
+```
+
+该层位于 repository 之前，只验证 policy metadata 与 lifecycle count snapshot。当前 draft 的两个 gap 没有 ceiling，三 owner evidence 为空，
+因此不能产生可激活策略。即使 synthetic fixture 通过，preflight 也不调用 DAO/Store/Binder，不携带或导出 payload。
+
+当前 `privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-092`、`ISSUE-051`。

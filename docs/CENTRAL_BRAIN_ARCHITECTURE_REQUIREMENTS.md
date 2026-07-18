@@ -2463,3 +2463,26 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `privacy_production_lifecycle_complete=false`、`privacy_runtime_lifecycle_wiring_complete=false`、
 `privacy_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W04`。tracking：`DEV-091`、`ISSUE-051`。
+
+## 84. P9-W04b privacy policy admission trace
+
+本增量继续映射 `S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. 必须冻结 schema/profile/policy identity/version，并将 policy body digest 绑定 W04a `inventoryDigest()` 与精确 12 个 surface rule。
+2. 10 个非 gap surface 必须保持 `INVENTORY_BOUND`，不得通过 W04b 放宽 retention/delete/export/log 规则。
+3. Effect recovery 与 Audit 在 owner 输入缺失时必须为 `OWNER_INPUT_REQUIRED` 且 ceiling unset；当前草案必须 fail closed。
+4. 完整候选对两个 gap 必须提供正数 ceiling；Effect guard 必须是 active Effect + pending compensation，Audit guard 必须是 legal + safety hold。
+5. Privacy、Functional Safety、Compliance 三类 owner evidence 必须各一项，且只接受绑定 policy body/inventory/reference 的 SHA-256。
+6. approval role/reference 缺失或重复、policy/inventory digest 不一致、surface 顺序/数量漂移、guard 不匹配必须返回 typed rejection。
+7. delete/erase/export 只做 metadata preflight；authorization digest 必需，Profile export 另需 consent digest，其他 export 禁止。
+8. active Effect、pending compensation、legal hold、safety hold 必须分别阻止对应 durable delete。
+9. admission/operation decision 必须固定不授予 repository mutation、Runtime authority，也不得表示数据已删除或导出。
+10. JVM synthetic approved fixture 只能证明 validator 可达，不得写入生产 JSON、owner evidence 或 readiness claim。
+11. main contract 不得读取 Android/Room/file/network/vehicle/NPU/Driver-HAL/hardware，不得接 Runtime/Governance Service。
+12. W04b 不新增 Android probe；W04c 才验证 debug-only redaction/audit projection。
+
+当前 `privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。tracking：`DEV-091/092`、`ISSUE-051`。

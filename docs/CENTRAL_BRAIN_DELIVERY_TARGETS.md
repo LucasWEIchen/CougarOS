@@ -2457,3 +2457,17 @@ no transport (`online=0/offline=0/unauthorized=0/other=0`). No APK was installed
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-091`、`ISSUE-051`。
+
+## Android P9-W04b Privacy Policy Admission
+
+交付 versioned draft JSON、纯 Java admission/preflight contract、七组 JVM regression、独立 checker 与 README/Stage2/Runtime/CI 聚合。
+验收要求 12-surface/inventory exact binding、三 owner digest evidence、两个 gap ceiling/guard、active Effect/compensation、legal/safety hold、
+Profile 唯一 export consent/authorization 和 no-mutation/no-export/no-Runtime-authority invariant。
+
+当前草案缺少 owner 输入，必须拒绝激活。本增量不交付 repository mutation、retention scheduler、export payload、APK probe 或目标证据。
+`privacy_policy_admission_defined=true`、`privacy_current_policy_admitted=false`、
+`privacy_owner_policy_approved=false`、`privacy_repository_mutation_wired=false`、
+`privacy_runtime_lifecycle_wiring_complete=false`、`privacy_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W04`。Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-091/092`、`ISSUE-051`。

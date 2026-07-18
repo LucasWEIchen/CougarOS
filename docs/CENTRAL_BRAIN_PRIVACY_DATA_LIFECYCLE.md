@@ -1,6 +1,8 @@
 # Central Brain P9-W04 Privacy and Data Lifecycle
 
-Status: `W04A_INVENTORY_VERIFIED / POLICY_GAPS_OPEN`
+Status: `W04B_ADMISSION_DEFINED / OWNER_POLICY_INPUT_OPEN`
+
+W04a baseline: `W04A_INVENTORY_VERIFIED / POLICY_GAPS_OPEN`
 
 Req IDs: `S2-MEM-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`.
 
@@ -88,3 +90,43 @@ Current claims: `privacy_data_inventory_complete=true`, `privacy_data_surface_co
 `privacy_runtime_lifecycle_wiring_complete=false`, `privacy_android13_arm64_verified=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W04`.
+
+## 7. P9-W04b owner policy admission
+
+`PrivacyLifecyclePolicyAdmission` 只处理 metadata，不接收内容、设备标识或原始车辆数据。输入由 policy identity/version、W04a inventory
+digest、12 个精确 surface rule 和三项 owner approval evidence 组成。approval 只允许保存 policy body、inventory 和审批引用的 SHA-256，
+不得把审批文件、签名材料或人员信息写入合同。
+
+当前 `cougaros-privacy-draft/0.1.0-draft` 对 10 个已有 surface 使用 `INVENTORY_BOUND`；
+`durable.effect_recovery` 与 `durable.audit` 保持 `OWNER_INPUT_REQUIRED` 且 retention ceiling 未设置。因此当前草案必须同时返回
+`SURFACE_POLICY_UNRESOLVED`、`RETENTION_CEILING_INVALID` 和 `OWNER_APPROVAL_MISSING`，不能激活。
+
+完整候选策略必须满足：
+
+1. surface 顺序、数量和 inventory digest 精确一致；
+2. Effect recovery 必须有正数 retention ceiling 和 `ACTIVE_EFFECT_AND_COMPENSATION` guard；
+3. Audit 必须有正数 retention ceiling 和 `LEGAL_AND_SAFETY` guard；
+4. Privacy、Functional Safety、Compliance 三类 owner 必须各提供一项绑定相同 policy body/inventory 的 digest evidence；
+5. 任一 role/reference 缺失或重复、policy/inventory digest 不一致均 fail closed。
+
+## 8. Delete / erase / export preflight
+
+准入成功也只产生 preflight metadata，不授予 repository mutation 或 Runtime authority。Effect recovery 在 active Effect 或 pending
+compensation 大于零时禁止删除；Audit 在 legal/safety hold 大于零时禁止删除。外部 export 仍只允许 `memory.profile`，且同时要求
+authorization digest 与 consent receipt digest。所有 decision 固定 `dataWasMutated=false`、`dataWasExported=false`。
+
+JVM 的 owner-approved policy 仅为 synthetic contract fixture，其 retention 数值和 approval digest 不代表产品策略、目标设备证据或 owner
+批准。仓库真实状态保持：
+
+```text
+privacy_policy_admission_defined=true
+privacy_current_policy_admitted=false
+privacy_owner_policy_approved=false
+privacy_repository_mutation_wired=false
+privacy_runtime_lifecycle_wiring_complete=false
+privacy_android13_arm64_verified=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+implementation_stage=P9-W04
+```

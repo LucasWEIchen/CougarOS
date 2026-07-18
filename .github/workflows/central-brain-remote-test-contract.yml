@@ -117,4 +117,5 @@ jobs:
           bash tools/check_central_brain_android_identity_replay_security_corpus.sh
           bash tools/check_central_brain_android_security_boundary_inventory.sh
           bash tools/check_central_brain_android_privacy_data_inventory.sh
+          bash tools/check_central_brain_android_privacy_policy_admission.sh
           bash tools/check_central_brain_root_readme.sh

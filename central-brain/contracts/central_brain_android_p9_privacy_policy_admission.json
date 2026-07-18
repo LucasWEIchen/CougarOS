@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-privacy-policy-admission-v1",
+  "policy_id": "cougaros-privacy-draft",
+  "policy_version": "0.1.0-draft",
+  "inventory_profile_id": "android13-p9-privacy-data-inventory-v1",
+  "maturity": "fail_closed_owner_input_required",
+  "required_surface_count": 12,
+  "required_owner_roles": ["PRIVACY", "FUNCTIONAL_SAFETY", "COMPLIANCE"],
+  "surface_policies": [
+    {"surface_id":"durable.session_event","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"durable.plan_graph","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"durable.effect_recovery","state":"OWNER_INPUT_REQUIRED","retention_ceiling_seconds":null,"hold_guard":"ACTIVE_EFFECT_AND_COMPENSATION"},
+    {"surface_id":"durable.approval","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"durable.audit","state":"OWNER_INPUT_REQUIRED","retention_ceiling_seconds":null,"hold_guard":"LEGAL_AND_SAFETY"},
+    {"surface_id":"durable.event_cursor","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"memory.working","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"memory.profile","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"memory.episodic","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"events.broker","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"tools.execution_audit","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"},
+    {"surface_id":"model.inference_boundary","state":"INVENTORY_BOUND","retention_ceiling_seconds":null,"hold_guard":"NONE"}
+  ],
+  "owner_approval_evidence": [],
+  "operation_preflight": {
+    "effect_delete_guard": "ACTIVE_EFFECT_AND_COMPENSATION",
+    "audit_delete_guard": "LEGAL_AND_SAFETY",
+    "authorized_export_surface": "memory.profile",
+    "authorization_digest_required": true,
+    "profile_export_consent_digest_required": true,
+    "accepts_content_payload": false,
+    "mutates_repository": false,
+    "exports_data": false
+  },
+  "claim_state": {
+    "privacy_policy_admission_defined": true,
+    "privacy_current_policy_admitted": false,
+    "privacy_owner_policy_approved": false,
+    "privacy_repository_mutation_wired": false,
+    "privacy_runtime_lifecycle_wiring_complete": false,
+    "privacy_android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P9-W04"
+  }
+}
