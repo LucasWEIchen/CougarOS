@@ -2575,3 +2575,20 @@ serial/fingerprint、车辆 scalar、owner reference、原始 logcat 或业务 p
 `release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
 `DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。
+
+## Android P9-W07b Field Diagnostics Probe
+
+交付 versioned JSON、31-key pure-Java projection、七组 JVM regression、DUMP-protected debug-only Activity、no-install adapter 和独立/
+Stage2/Runtime/CI 门禁。Host/build 验收必须证明 exact keys、三包/两 launcher/两 Service aggregate query、debug/release source boundary、
+adapter 八类顺序/status/result/digest 和禁止 install/uninstall/rollback/upload/raw evidence。
+
+目标执行要求 already-installed debug Runtime、Android 13 API33 ARM64。Adapter 运行五类 bounded checks，三类保持 NOT_RUN；输出不得含
+serial/fingerprint、包名/路径、signer material、target input、raw log 或用户/模型/memory/token/车辆 payload。当前 offline，未执行。
+
+状态：`field_diagnostics_projection_defined=true`、`field_diagnostics_audit_key_count=31`、
+`field_diagnostics_android_debug_probe_available=true`、`field_diagnostics_android_debug_probe_executed=false`、
+`field_diagnostics_target_adapter_defined=true`、`field_diagnostics_target_category_execution_complete=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`field_diagnostics_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。

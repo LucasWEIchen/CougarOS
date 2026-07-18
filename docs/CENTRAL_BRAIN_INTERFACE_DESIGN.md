@@ -3637,3 +3637,24 @@ digest 且八类均已执行时才 review eligible；`Evaluation.isProductionRea
 diagnostic、不验证证据内容、不改变 release/issue/retest 状态。
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。
+
+## Android P9-W07b Field Diagnostics Probe
+
+### Projection API
+
+`FieldDiagnosticsProjection.evaluate(ProbeObservation)` 接收三个 aggregate count、两个 launchable boolean 和两个 Service-declared boolean。
+构造器验证 count 上限与 installed/version/signer/launchable 关系，返回 immutable `Snapshot`。`auditMetadata()` 精确输出 31 个
+allowlisted count/boolean key；API 不接受包名、Intent、Bundle、日志、target input 或 payload。
+
+### Android debug entry
+
+`FieldDiagnosticsProbeActivity` 只接受 numeric nonce。它调用 `PackageManager.getPackageInfo(flags=0)`、`checkSignatures`、
+`getLaunchIntentForPackage` 和本包 `getServiceInfo`，随后只记录 projection。Activity 不启动外部组件、不绑定 Service、不读取 signer bytes。
+
+### Host adapter
+
+`probe_central_brain_android_field_diagnostics.sh [--serial SERIAL]` 执行 exact API/ABI preflight、APK projection、Demo/Client2 launch、
+RuntimeProbe 和 DiagnosticProbe。输出固定八类 category/status/result/detail-digest；三个未执行项没有 detail digest。失败项仍形成 FAIL fact，
+随后脚本 nonzero；preflight 本身无法运行时只输出通用错误。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。

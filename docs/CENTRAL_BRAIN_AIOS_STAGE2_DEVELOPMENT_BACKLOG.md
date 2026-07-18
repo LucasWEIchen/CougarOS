@@ -1145,10 +1145,12 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 - `P9-W07a release evidence envelope`：已交付 strict release tag/source commit/archive SHA/release-set digest、非秘密 alias、
   evidence reference、可选 owner digest、八类有序 diagnostic fact、稳定 report digest、GitHub privacy gate 和 target-owner review
   eligibility。Host evidence 永远是 software-only；review eligible 永远不设置 production/hardware qualification。
-- `P9-W07b debug-only field diagnostics probe and host adapter`：待开发。只允许输出 W07a metadata，不得上传 raw log、设备身份、
-  signing material、target input、用户/模型文本或车辆 payload。
+- `P9-W07b debug-only field diagnostics probe and host adapter`：已交付 31-key count/boolean projection、DUMP-protected Activity、
+  三包/两 launcher/两 Service preflight、五类 executed + 三类 NOT_RUN adapter 和七组 JVM tests。Adapter 不 build/install/uninstall/
+  rollback/upload，不输出 raw log、设备/包身份、signing material、target input、用户/模型/memory/token/车辆 payload；当前目标未执行。
 - `P9-W07c replacement release and issue/retest state machine`：待开发。必须绑定命名 replacement release，由目标 tester/owner 复测；
   不自动关闭 issue，不把 contract probe 当作 production acceptance。
+- W07a/W07b 仓库软件项已完成；下一软件增量为 `P9-W07c replacement release and issue/retest state machine`。
 - 当前 target owner、真实 field diagnostic report、retest evidence 和正式 signer/installer authority 不可用，由 `ISSUE-052/053` 外部跟踪。
 
 ## 14. 依赖图

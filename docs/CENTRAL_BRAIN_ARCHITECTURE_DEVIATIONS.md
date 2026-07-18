@@ -1634,3 +1634,18 @@ metadata observation 成为 production candidate。
 `release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
 `release_evidence_retest_workflow_wired=false`、`release_evidence_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+
+## DEV-099 P9-W07b debug diagnostics are not complete field acceptance
+
+W07b 在目标上可执行五类 bounded diagnostic，但 installer dry-run、installer execute 和 manual scenario matrix 明确 NOT_RUN。APK 的
+PackageManager preflight 只证明当前安装集合、launcher/service declaration 的低敏元数据；`am start` 与 Diagnostics Binder probe 只证明
+debug entry 可启动，不证明业务场景质量、正式 release signer、installer/rollback、72h 稳定性或 production owner approval。
+
+为避免伪造，adapter 不接收 artifact 或 target-input file，不执行 install/uninstall/rollback，不上传或修改 GitHub issue。即使五类 PASS，
+`field_diagnostics_target_category_execution_complete=false` 和 `release_evidence_target_report_admitted=false`；只有 W07c 对命名
+replacement release、全八类事实和 owner/retest evidence 进行 admission 后才可变化。
+
+状态：`Accepted Temporary`。关闭条件是 W07c 提供 complete report/replacement release/issue-retest state machine，并由目标 tester/owner
+复测；production signer/installer/rollback 还需 ISSUE-052。当前 `field_diagnostics_android_debug_probe_executed=false`、
+`field_diagnostics_android13_arm64_verified=false`、`release_evidence_retest_workflow_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
