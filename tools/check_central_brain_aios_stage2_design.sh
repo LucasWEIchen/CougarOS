@@ -363,7 +363,7 @@ require_text "$README" 'target_capability_discovery_hardware_mapping_complete=fa
 require_text "$README" 'target_capability_discovery_external_blocked=true'
 require_text "$TARGET_DISCOVERY" 'P8-W01 Target Capability Discovery Contract'
 require_text "$TARGET_DISCOVERY" 'implementation_stage=P9-W03'
-require_text "$BACKLOG" 'P8-W01 software preparation'
+require_text "$BACKLOG" 'P8-W01 public inventory'
 require_text "$REQUIREMENTS" 'P8-W01 target capability discovery trace'
 require_text "$DEVIATIONS" 'DEV-085 P8-W01 discovery tooling does not complete target discovery'
 require_text "$ISSUES" 'ISSUE-047 P8 target capability discovery evidence is unavailable'

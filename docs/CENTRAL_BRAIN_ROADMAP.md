@@ -1315,26 +1315,29 @@ Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004
 
 ### P8-W01 Target Capability Discovery software preparation
 
-状态：`SOFTWARE_PREPARED / EXTERNAL_BLOCKED`（2026-07-18）。新增 machine-readable discovery contract、固定八能力/14 列
+状态：`PUBLIC_INVENTORY_COLLECTED / MAPPING_EXTERNAL_BLOCKED`（2026-07-18）。已交付 machine-readable discovery contract、固定八能力/14 列
 matrix template、只读 ADB collector、仓库外私有 evidence 约束和动态 fake-ADB redaction 门禁。
 
 collector 只读取 Android API、PackageManager feature、shell 可见 Binder/command inventory。summary 不包含 serial、fingerprint、车型、
 signer、原始 service name、车辆值或用户/模型 payload；代码禁止 root/remount/install/uninstall、SELinux mutation、device-node scan、
 unpublished Vendor API 和 property write。
 
-当前 Windows platform-tools 脱敏状态仍为 `online=0/offline=1/unauthorized=0/other=0`，且没有公开 property list、Vendor AIDL/SDK、
-permission/signature/owner/version/readback/fault/rollback 文档，所以 matrix 全部保持 EXTERNAL_BLOCKED，P8-W02..W06 不启动。独立软件加固
-已转入并完成 P9-W01 Performance budgets 软件合同。
+已在 identity-redacted Android API 33 目标上完成公开只读 inventory，内部引用 `internal:p8-capability-20260718`。只发布 69 项 feature、
+274 项 shell-visible Binder service、2 项 car 关键词匹配、265 项 command service 和 Automotive feature=true 的聚合结果；原始身份和
+service 名未入库。因仍无公开 property list、Vendor AIDL/SDK、permission/signature/owner/version/readback/fault/rollback 文档，matrix
+全部保持 EXTERNAL_BLOCKED，P8-W02..W06 不启动。
 
 Req IDs：`S2-ADP-002`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：
 `DEV-085`、`ISSUE-024/027/030/047`。`target_capability_discovery_contract_defined=true`、
 `target_capability_read_only_collector_verified=true`、`target_capability_matrix_template_count=8`、
-`target_capability_summary_redaction_verified=true`、`target_capability_matrix_complete=false`、
+`target_capability_summary_redaction_verified=true`、`target_public_inventory_collected=true`、
+`target_public_inventory_identity_redacted=true`、`target_public_inventory_privacy_confirmed=true`、
+`target_public_inventory_api33_verified=true`、`target_capability_matrix_complete=false`、
 `public_car_property_list_available=false`、`vendor_service_contract_available=false`、
 `permission_signature_policy_available=false`、`target_capability_discovery_external_blocked=true`、
 `vehicle_property_mapping_configured=false`、`production_adapter_registered=false`、`vendor_npu_provider_available=false`、
 `driver_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W03`。P9-W01 软件合同现已完成，下一工作包见下节。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking 补充 `DEV-110`；下一步等待 ISSUE-047 的 OEM/owner 输入。
 
 ### P9-W01 Performance Budget progress
 

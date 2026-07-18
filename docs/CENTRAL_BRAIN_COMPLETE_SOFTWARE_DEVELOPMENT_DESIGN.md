@@ -4309,15 +4309,22 @@ The checker validates JSON structure and exact catalog order, rejects mutation/p
 ADB target containing secret serial and service names, and verifies those values are absent from the summary. It also validates private file modes
 and eight matrix rows. No APK, Java/AIDL/C/JNI or Runtime path changes in this package.
 
+The 2026-07-18 target run produced an identity-redacted API 33 public-inventory snapshot referenced as
+`internal:p8-capability-20260718`. The repository records only aggregate counts (69 features, 274 Binder services, 2 car-name matches and
+265 command services), collection booleans and privacy confirmation. Raw service names and target identity remain repository-external.
+These observations satisfy only the public-inventory collection sub-gate; they cannot populate any of the fourteen matrix columns.
+
 State: `target_capability_discovery_contract_defined=true`, `target_capability_read_only_collector_verified=true`,
 `target_capability_matrix_template_count=8`, `target_capability_summary_redaction_verified=true`,
+`target_public_inventory_collected=true`, `target_public_inventory_identity_redacted=true`,
+`target_public_inventory_privacy_confirmed=true`, `target_public_inventory_api33_verified=true`,
 `target_capability_matrix_complete=false`, `public_car_property_list_available=false`,
 `vendor_service_contract_available=false`, `permission_signature_policy_available=false`,
 `target_capability_discovery_external_blocked=true`, `vehicle_property_mapping_configured=false`,
 `production_adapter_registered=false`, `vendor_npu_provider_available=false`, `driver_development_triggered=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`.
 Req IDs: `S2-ADP-002`, `S2-OBS-001`, `XSC-001/004/005/006`, `KH-003/006/007`, `DEL-004/005`; tracking:
-`DEV-085`, `ISSUE-024/027/030/047`.
+`DEV-085/110`, `ISSUE-024/027/030/047`.
 
 ## P9-W01 performance budget detailed design
 

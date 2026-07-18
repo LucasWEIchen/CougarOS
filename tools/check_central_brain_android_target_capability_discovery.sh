@@ -38,7 +38,7 @@ expected = [
     "media.playback",
     "navigation.poi",
 ]
-if value.get("schema_version") != "1.0.0":
+if value.get("schema_version") != "1.1.0":
     raise SystemExit("P8-W01 discovery schema version changed")
 if value.get("status") != "external_blocked":
     raise SystemExit("P8-W01 must remain external_blocked without target evidence")
@@ -54,6 +54,31 @@ required_columns = {
 if set(columns) != required_columns or len(columns) != len(required_columns):
     raise SystemExit("P8-W01 matrix columns are incomplete or duplicated")
 state = value.get("claim_state", {})
+snapshot = value.get("target_public_inventory_snapshot", {})
+expected_snapshot = {
+    "status": "collected_redacted",
+    "evidence_reference": "internal:p8-capability-20260718",
+    "privacy_confirmation": "raw evidence remains repository-external; device identity and service names are not published",
+    "android_api": 33,
+    "automotive_feature_advertised": True,
+    "package_feature_count": 69,
+    "visible_binder_service_count": 274,
+    "visible_car_service_match_count": 2,
+    "visible_command_service_count": 265,
+    "service_list_collected": True,
+    "command_list_collected": True,
+}
+if snapshot != expected_snapshot:
+    raise SystemExit("P8-W01 redacted target public inventory changed")
+required_true = [
+    "target_capability_discovery_contract_defined",
+    "target_capability_read_only_collector_defined",
+    "target_public_inventory_collected",
+    "target_public_inventory_identity_redacted",
+    "target_public_inventory_privacy_confirmed",
+    "target_public_inventory_api33_verified",
+    "target_capability_discovery_external_blocked",
+]
 required_false = [
     "target_capability_matrix_complete",
     "public_car_property_list_available",
@@ -67,10 +92,8 @@ required_false = [
     "production_ready",
     "target_hardware_validated",
 ]
-if not state.get("target_capability_discovery_contract_defined"):
-    raise SystemExit("P8-W01 contract marker is false")
-if not state.get("target_capability_discovery_external_blocked"):
-    raise SystemExit("P8-W01 external blocker marker is false")
+if any(state.get(key) is not True for key in required_true):
+    raise SystemExit("P8-W01 completed public-inventory marker is false")
 if any(state.get(key) is not False for key in required_false):
     raise SystemExit("P8-W01 unavailable or authority marker was raised")
 PY
@@ -165,12 +188,16 @@ fi
 
 for marker in \
   'P8-W01 Target Capability Discovery Contract' \
+  'target_public_inventory_collected=true' \
+  'target_public_inventory_identity_redacted=true' \
+  'target_public_inventory_privacy_confirmed=true' \
+  'target_public_inventory_api33_verified=true' \
   'target_capability_discovery_external_blocked=true' \
   'implementation_stage=P9-W03'; do
   require_text "$DOC" "$marker"
 done
 require_text "README.md" "P8 Target Capability Discovery"
-require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" "P8-W01 software preparation"
+require_text "docs/CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md" "P8-W01 public inventory"
 require_text "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" "P8-W01 target capability discovery trace"
 require_text "docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md" "Android P8-W01 Target Capability Discovery"
 require_text "docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md" "P8-W01 target capability discovery architecture"
@@ -187,6 +214,10 @@ printf '%s\n' \
   "target_capability_read_only_collector_verified=true" \
   "target_capability_matrix_template_count=8" \
   "target_capability_summary_redaction_verified=true" \
+  "target_public_inventory_collected=true" \
+  "target_public_inventory_identity_redacted=true" \
+  "target_public_inventory_privacy_confirmed=true" \
+  "target_public_inventory_api33_verified=true" \
   "target_capability_matrix_complete=false" \
   "public_car_property_list_available=false" \
   "vendor_service_contract_available=false" \

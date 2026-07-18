@@ -2318,12 +2318,15 @@ list、Vendor AIDL/SDK、permission/signature、owner/version 和 readback/fault
 
 当前 `target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
 `target_capability_matrix_template_count=8`、`target_capability_summary_redaction_verified=true`、
+`target_public_inventory_collected=true`、`target_public_inventory_identity_redacted=true`、
+`target_public_inventory_privacy_confirmed=true`、`target_public_inventory_api33_verified=true`、
 `target_capability_matrix_complete=false`、`public_car_property_list_available=false`、
 `vendor_service_contract_available=false`、`permission_signature_policy_available=false`、
 `target_capability_discovery_external_blocked=true`、`vehicle_property_mapping_configured=false`、
 `production_adapter_registered=false`、`vendor_npu_provider_available=false`、`driver_development_triggered=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
-tracking：`DEV-085`、`ISSUE-024/027/030/047`。
+公开清单证据引用 `internal:p8-capability-20260718`；其 69/274/2/265 聚合计数不得被解释为 capability row 完成。
+tracking：`DEV-085/110`、`ISSUE-024/027/030/047`。
 
 ## 78. P9-W01 performance budget trace
 

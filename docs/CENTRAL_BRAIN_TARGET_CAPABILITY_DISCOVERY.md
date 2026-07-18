@@ -1,10 +1,10 @@
 # Central Brain P8-W01 Target Capability Discovery Contract
 
-版本：1.0
+版本：1.1
 
 日期：2026-07-18
 
-状态：software preparation complete / target evidence external-blocked
+状态：public inventory collected / capability mapping external-blocked
 
 ## 目的
 
@@ -57,14 +57,23 @@ deterministic provider、service name、`dumpsys` 车辆状态或猜测 property
 
 ## 当前结论
 
-当前 ADB transport 为 offline，且仓库没有目标公开 CarProperty list、Vendor AIDL/SDK 或权限/签名文档。
-因此本轮只完成软件准备，不完成真实目标发现：
+2026-07-18 已在 identity-redacted Android API 33 目标上完成一次只读公开清单采集。内部证据引用为
+`internal:p8-capability-20260718`；原始文件保留在仓库外私有目录，未发布 serial、fingerprint、设备型号、原始 service 名、
+车辆值或业务 payload。允许公开的聚合结果为：69 项 PackageManager feature、274 项 shell 可见 Binder service、2 项 car
+关键词匹配、265 项 command service；Automotive feature advertised=true。计数和关键词匹配只代表公开 surface visibility。
+
+仓库仍没有目标公开 CarProperty list、Vendor AIDL/SDK 或权限/签名文档，因此本轮只关闭公开 inventory 采集子项，
+不完成 capability mapping：
 
 ```text
 target_capability_discovery_contract_defined=true
 target_capability_read_only_collector_verified=true
 target_capability_matrix_template_count=8
 target_capability_summary_redaction_verified=true
+target_public_inventory_collected=true
+target_public_inventory_identity_redacted=true
+target_public_inventory_privacy_confirmed=true
+target_public_inventory_api33_verified=true
 target_capability_matrix_complete=false
 public_car_property_list_available=false
 vendor_service_contract_available=false
@@ -80,5 +89,5 @@ target_hardware_validated=false
 implementation_stage=P9-W03
 ```
 
-P8-W02..W06 继续外部阻塞。其间可独立推进 P9-W01 性能预算合同，但不得把 P9 软件证据解释为
-P8 adapter、车辆控制、Vendor NPU 或目标硬件完成。
+P8-W01 capability mapping 和 P8-W02..W06 继续外部阻塞。不得把公开 service 可见性、Automotive feature 或 P9 软件证据解释为
+P8 adapter、车辆控制、Vendor NPU 或目标硬件完成。tracking：`DEV-085/110`、`ISSUE-047`。

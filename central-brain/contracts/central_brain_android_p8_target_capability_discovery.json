@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "discovery_id": "android-p8-target-capability-discovery",
   "status": "external_blocked",
   "required_android_api": 33,
@@ -73,9 +73,26 @@
     "internal_evidence_reference_present": true,
     "target_owner_approved": true
   },
+  "target_public_inventory_snapshot": {
+    "status": "collected_redacted",
+    "evidence_reference": "internal:p8-capability-20260718",
+    "privacy_confirmation": "raw evidence remains repository-external; device identity and service names are not published",
+    "android_api": 33,
+    "automotive_feature_advertised": true,
+    "package_feature_count": 69,
+    "visible_binder_service_count": 274,
+    "visible_car_service_match_count": 2,
+    "visible_command_service_count": 265,
+    "service_list_collected": true,
+    "command_list_collected": true
+  },
   "claim_state": {
     "target_capability_discovery_contract_defined": true,
     "target_capability_read_only_collector_defined": true,
+    "target_public_inventory_collected": true,
+    "target_public_inventory_identity_redacted": true,
+    "target_public_inventory_privacy_confirmed": true,
+    "target_public_inventory_api33_verified": true,
     "target_capability_matrix_complete": false,
     "public_car_property_list_available": false,
     "vendor_service_contract_available": false,

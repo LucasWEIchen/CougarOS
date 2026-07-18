@@ -3327,7 +3327,7 @@ Effect 或硬件动作。状态：`model_resource_admission_verified=true`、`re
 
 ### Machine-readable contract
 
-`central_brain_android_p8_target_capability_discovery.json` 固定 schema `1.0.0`、Android API 33、八项 Stage 2 capability、
+`central_brain_android_p8_target_capability_discovery.json` 固定 schema `1.1.0`、Android API 33、八项 Stage 2 capability、
 14 个矩阵字段、只读 evidence source、禁止操作、完成门禁和失败关闭 claim state。required capability 顺序必须与 P2-W02
 `CapabilityCatalog` 一致。
 
@@ -3347,11 +3347,14 @@ collect_central_brain_android_target_capabilities.sh
 
 collector 不提供 property getter/setter、Vendor Binder client、CarPropertyManager、NPU/JNI、Driver/HAL 或 activation API。
 当前：`target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
+`target_public_inventory_collected=true`、`target_public_inventory_identity_redacted=true`、
+`target_public_inventory_privacy_confirmed=true`、`target_public_inventory_api33_verified=true`、
 `target_capability_matrix_complete=false`、`target_capability_discovery_external_blocked=true`、
 `vehicle_property_mapping_configured=false`、`production_adapter_registered=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：
 `S2-ADP-002`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：
-`DEV-085`、`ISSUE-024/027/030/047`。
+API 33 公开清单聚合为 feature=69、Binder=274、car-match=2、command=265，内部引用
+`internal:p8-capability-20260718`；该接口不公开原始清单。tracking：`DEV-085/110`、`ISSUE-024/027/030/047`。
 
 ## Android P9-W01 Performance Budget Contract
 
