@@ -3611,3 +3611,29 @@ vehicle scalar、source、owner/approval reference、设备身份或原始 paylo
 
 Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-097`、`ISSUE-029/030`。
+
+## Android P9-W07a Release Evidence Envelope
+
+### Java entry
+
+`ReleaseEvidenceEnvelope.Report(EvidenceMode, Identity, List<DiagnosticFact>)` 接收严格 release identity 和八类有序诊断事实。
+Constructor 验证 exact count/order/status/result/digest，并在 immutable copy 上计算 canonical SHA-256 `reportDigest`。
+
+### Identity contract
+
+`Identity` 要求 canonical release tag、40 位 source commit、64 位 archive/release-set digest、有界 delivery ID、非秘密 device alias、
+evidence reference、可选 owner approval digest 和四个 policy boolean。输入无 Bundle/JSON/Android 类型，不允许任意 text/payload。
+
+### Diagnostic contract
+
+`DiagnosticCategory` 精确固定 `release.bundle`、`installer.dry_run`、`installer.execute`、`demo.launch`、`client2.launch`、
+`runtime.service`、`diagnostics.service`、`manual.scenario_matrix`。`DiagnosticFact` 强制 PASS=0、FAIL/BLOCKED=1..255、
+NOT_RUN=-1/no digest；其他组合抛出 `IllegalArgumentException`。
+
+### Evaluation contract
+
+`ReleaseEvidenceEnvelope.evaluate(Report)` 先执行 GitHub privacy gate，再区分 host software-only 与 target owner review。Target 只有 owner
+digest 且八类均已执行时才 review eligible；`Evaluation.isProductionReady()` 和 `isTargetHardwareValidated()` 固定 false。API 不执行
+diagnostic、不验证证据内容、不改变 release/issue/retest 状态。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。

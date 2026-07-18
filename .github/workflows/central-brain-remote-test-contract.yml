@@ -123,4 +123,5 @@ jobs:
           bash tools/check_central_brain_android_production_release_metadata_probe.sh
           bash tools/check_central_brain_android_driver_safety_admission.sh
           bash tools/check_central_brain_android_driver_safety_probe.sh
+          bash tools/check_central_brain_android_release_evidence_envelope.sh
           bash tools/check_central_brain_root_readme.sh

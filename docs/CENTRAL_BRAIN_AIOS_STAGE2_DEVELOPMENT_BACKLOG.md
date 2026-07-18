@@ -1141,7 +1141,15 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 
 ### `P9-W07` Release evidence and field diagnostics
 
-- 3-5 人日；`S2-OBS-001`、`S2-REL-001`。版本、commit、hash、signer、脱敏 diagnostics、issue/retest workflow。
+- 状态：`IN_PROGRESS`；3-5 人日；`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`。
+- `P9-W07a release evidence envelope`：已交付 strict release tag/source commit/archive SHA/release-set digest、非秘密 alias、
+  evidence reference、可选 owner digest、八类有序 diagnostic fact、稳定 report digest、GitHub privacy gate 和 target-owner review
+  eligibility。Host evidence 永远是 software-only；review eligible 永远不设置 production/hardware qualification。
+- `P9-W07b debug-only field diagnostics probe and host adapter`：待开发。只允许输出 W07a metadata，不得上传 raw log、设备身份、
+  signing material、target input、用户/模型文本或车辆 payload。
+- `P9-W07c replacement release and issue/retest state machine`：待开发。必须绑定命名 replacement release，由目标 tester/owner 复测；
+  不自动关闭 issue，不把 contract probe 当作 production acceptance。
+- 当前 target owner、真实 field diagnostic report、retest evidence 和正式 signer/installer authority 不可用，由 `ISSUE-052/053` 外部跟踪。
 
 ## 14. 依赖图
 

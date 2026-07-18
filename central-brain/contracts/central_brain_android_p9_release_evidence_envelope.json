@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p9-release-evidence-envelope-v1",
+  "maturity": "software_contract_defined_target_evidence_pending",
+  "requirement_ids": ["S2-OBS-001", "S2-REL-001", "DEL-001", "DEL-004", "DEL-005"],
+  "evidence_modes": ["HOST_SYNTHETIC", "TARGET"],
+  "required_identity_fields": [
+    "release_tag", "source_git_commit", "archive_sha256", "delivery_id", "release_set_digest",
+    "device_alias", "evidence_reference", "signer_cohort_observed", "privacy_confirmed",
+    "raw_or_derived_device_identity_included", "automatic_upload_enabled"
+  ],
+  "diagnostic_category_count": 8,
+  "diagnostic_categories": [
+    "release.bundle", "installer.dry_run", "installer.execute", "demo.launch", "client2.launch",
+    "runtime.service", "diagnostics.service", "manual.scenario_matrix"
+  ],
+  "diagnostic_statuses": ["PASS", "FAIL", "BLOCKED", "NOT_RUN"],
+  "diagnostic_fact_fields": ["category", "status", "result_code", "detail_digest"],
+  "github_policy": {
+    "privacy_confirmation_required": true,
+    "raw_or_derived_device_identity_allowed": false,
+    "automatic_upload_allowed": false,
+    "arbitrary_text_or_payload_allowed": false,
+    "signer_material_allowed": false,
+    "target_input_allowed": false,
+    "raw_log_allowed": false
+  },
+  "target_owner_review_eligibility": {
+    "target_mode_required": true,
+    "target_owner_approval_digest_required": true,
+    "all_diagnostic_categories_executed_required": true,
+    "sets_target_hardware_validated": false,
+    "sets_production_ready": false
+  },
+  "claim_state": {
+    "release_evidence_envelope_defined": true,
+    "release_evidence_diagnostic_category_count": 8,
+    "release_evidence_report_digest_defined": true,
+    "release_evidence_target_owner_approved": false,
+    "release_evidence_target_report_admitted": false,
+    "release_evidence_runtime_diagnostics_wired": false,
+    "release_evidence_retest_workflow_wired": false,
+    "release_evidence_automatic_upload_enabled": false,
+    "release_evidence_android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P9-W07"
+  }
+}

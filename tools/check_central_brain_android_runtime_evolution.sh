@@ -247,6 +247,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_production_release_admission.s
 bash "$ROOT_DIR/tools/check_central_brain_android_production_release_metadata_probe.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_probe.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_release_evidence_envelope.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_inference_scheduler.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_deterministic_model_provider.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_test_model_router.sh"
