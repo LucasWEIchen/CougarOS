@@ -1365,7 +1365,7 @@ process-local policy 猜测。
 critical no-silent-drop 当前只保证结果显式并要求 cursor replay，不证明跨进程/重启无损。未来必须由 ISSUE-046/DRV-GAP-004
 关闭 durable append/ACK、Binder death、disk-full、network partition、slow consumer 与 target latency/fault evidence。
 
-状态：`event_qos_contract_defined=true`、`event_qos_android13_arm64_verified=false`、
+状态：`event_qos_contract_defined=true`、`event_qos_android13_arm64_verified=true`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1386,7 +1386,7 @@ rate/backpressure 和 target evidence 后，才能把 adapter observation 映射
 partition 和 cooldown ownership。当前 `CooldownStore` 重启即丢失，不能作为整车免打扰或频控证据。无新增 Driver/HAL gap；
 既有 `DRV-GAP-004` 保持 Open。
 
-状态：`trigger_rule_manifest_defined=true`、`trigger_engine_android13_arm64_verified=false`、
+状态：`trigger_rule_manifest_defined=true`、`trigger_engine_android13_arm64_verified=true`、
 `trigger_engine_process_local=true`、`trigger_cooldown_persistence_wired=false`、
 `trigger_source_adapter_wired=false`、`trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`、`hardware_accessed=false`、
@@ -1403,7 +1403,7 @@ SHA-256 evidence，不读取 Vehicle property、DMS signal、PCIe/NPU、device n
 `ISSUE-031/030/046` 记录 owner、接口、权限、ABI、故障语义和证据，再决定是否触发最小 Driver/HAL 工作包。P6-W04 不预设
 property ID、binder service、SELinux policy 或厂商源码改动。
 
-状态：`proactive_consent_policy_defined=true`、`proactive_consent_android13_arm64_verified=false`、
+状态：`proactive_consent_policy_defined=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`driver_development_triggered=false`、
@@ -1423,7 +1423,7 @@ sysfs、JNI/C ABI、PCIe/NPU 或 DMA/IOMMU。
 fault/readback 和签名证据，再判断 `DRV-GAP-001..005` 是否需要最小新增工作。
 
 状态：`context_source_adapter_contract_defined=true`、`context_source_count=3`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`、`hardware_accessed=false`、
@@ -1441,7 +1441,7 @@ HMI 中“预览升温/座椅加热”与“预览座椅舒缓/通风”仅为 p
 未来接入 Client2/真实车控必须先由 P8 adapter 冻结 SDK API、permission/SELinux、capability、desired/reported、fault、rollback 和
 readback；P6-W06 不猜测厂家接口。
 
-状态：`active_suggestion_controller_defined=true`、`active_suggestion_android13_arm64_verified=false`、
+状态：`active_suggestion_controller_defined=true`、`active_suggestion_android13_arm64_verified=true`、
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `trigger_engine_wired=false`、`graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、
@@ -1901,3 +1901,18 @@ installer 不查询 VHAL、CarProperty、Vendor SOA、CAN、PCIe、NPU、native 
 当前 `p5_android13_arm64_probe_acceptance_complete=true`、`device_identity_redacted=true`、
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_tool_authority_published=false`、
 `production_memory_authority_published=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+## P6 Android 13 ARM64 aggregate probe Driver/HAL boundary
+
+P6 aggregate acceptance 只启动应用私有 debug Activity。Event/Trigger/Consent/Suggestion 使用 pure Java 进程内状态；Context source
+只消费 build-owned Runtime health、SIMULATED SignalValue 和注入时间，不读取 Android Car、VehicleProperty、Vendor Binder/SOA、CAN、
+device node、sysfs、PCIe/NPU、JNI 或网络。
+
+因此本轮不新增 C/C++、Driver/HAL 或虚拟化开发量，`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。真实 Context source 和跨 SOC Event transport 必须先取得 P8 service/property/permission/
+area/unit/freshness/owner/version evidence；只有公开/Vendor API 明确不足且缺口经评审后，才新增最小 Driver/HAL 工作包。
+
+当前 `p6_android13_arm64_probe_acceptance_complete=true`、`device_identity_redacted=true`、
+`production_event_middleware_published=false`、`production_context_source_registry_published=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-107`、`ISSUE-031/046`。

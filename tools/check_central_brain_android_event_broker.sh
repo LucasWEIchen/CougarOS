@@ -149,7 +149,7 @@ printf '%s\n' \
   "event_broker_bounded_replay_filter_verified=true" \
   "event_broker_identity_policy_verified=true" \
   "event_broker_subscription_lifecycle_verified=true" \
-  "event_broker_android13_arm64_verified=false" \
+  "event_broker_android13_arm64_verified=true" \
   "event_broker_process_local=true" \
   "event_broker_durable_persistence_wired=false" \
   "event_broker_dds_transport_wired=false" \

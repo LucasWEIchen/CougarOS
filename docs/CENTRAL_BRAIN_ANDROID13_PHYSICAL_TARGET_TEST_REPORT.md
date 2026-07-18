@@ -693,3 +693,37 @@ target_hardware_validated=false
 
 该证据仅确认 build-owned debug fixture 在目标 Android ABI/API 上的 contract 行为，不构成 production Tool/Memory authority、Vehicle/NPU/
 Driver-HAL 或目标硬件 qualification。tracking：`DEV-106`、`ISSUE-036..045`。
+
+## 23. 2026-07-18 P6 Event/Proactive/Context aggregate Android acceptance evidence
+
+统一 installer 在 Android API 33 / ARM64 上顺序执行 P6-W01..W06 debug probes，并完成 Runtime/Demo 全安装回归。证据仅保留
+boolean/count marker，不包含 serial、model、fingerprint、raw log、Context scalar、用户/模型文本、授权材料或车辆 payload。
+
+```text
+device_transport_selected=true
+device_identity_redacted=true
+android_api=33
+device_abi=arm64-v8a
+p6_probe_module_count=6
+p6_android13_arm64_probe_acceptance_complete=true
+event_broker_android13_arm64_verified=true
+event_qos_android13_arm64_verified=true
+trigger_engine_android13_arm64_verified=true
+proactive_consent_android13_arm64_verified=true
+context_source_android13_arm64_verified=true
+active_suggestion_android13_arm64_verified=true
+android_runtime_full_install_regression_passed=true
+production_event_middleware_published=false
+production_trigger_runtime_wired=false
+production_proactive_authority_published=false
+production_context_source_registry_published=false
+production_active_suggestion_source_wired=false
+production_runtime_wired=false
+driver_hal_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据只确认 build-owned debug fixtures 在目标 Android ABI/API 上按合同执行，不构成 production Event/Trigger/Consent/Context/
+Suggestion authority、Vehicle/NPU/Driver-HAL 或目标硬件 qualification。tracking：`DEV-107`、`ISSUE-031/046`。

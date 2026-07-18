@@ -2849,7 +2849,7 @@ event 已在 callback 前 append，因此可用 cursor 重放。P6-W01 没有异
 
 `InProcessDurableEventBroker.createForContractTest` 是唯一 factory。状态：
 `event_broker_interface_defined=true`、`event_broker_typed_topics_verified=true`、
-`event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
+`event_broker_android13_arm64_verified=true`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`; tracking: `DEV-073`,
@@ -2888,7 +2888,7 @@ Broker attachment、durable ACK 或 middleware transport。
 
 状态：`event_qos_contract_defined=true`、`event_qos_policies_verified=true`、
 `event_qos_critical_no_silent_drop_verified=true`、`event_qos_deadline_priority_verified=true`、
-`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
+`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=true`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`; tracking: `DEV-073`, `ISSUE-046`。
@@ -2928,7 +2928,7 @@ Session admission、Policy grant、Plan 或 Effect receipt。
 状态：`trigger_rule_manifest_defined=true`、`trigger_rule_manifest_verified=true`、
 `trigger_threshold_window_debounce_verified=true`、`trigger_cooldown_scope_verified=true`、
 `trigger_input_fail_closed_verified=true`、`trigger_suggestion_only_verified=true`、
-`trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
+`trigger_engine_android13_arm64_verified=true`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`; tracking: `DEV-074`, `ISSUE-031`。
@@ -2960,7 +2960,7 @@ exact grant 中才返回 `POLICY_ELIGIBLE`；HIGH/CRITICAL 无条件 `EXPLICIT_A
 
 状态：`proactive_consent_policy_defined=true`、`proactive_grant_binding_verified=true`、
 `proactive_high_critical_generic_grant_blocked=true`、`proactive_grant_ttl_revoke_verified=true`、
-`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -3011,7 +3011,7 @@ Observation {
 
 状态：`context_source_adapter_contract_defined=true`、`context_source_count=3`、
 `context_source_allowlist_verified=true`、`context_source_freshness_quality_verified=true`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-CTX-001`、
@@ -3042,7 +3042,7 @@ ActionResult neverAsk(String ownerFingerprint, String suggestionId, DrivingState
 
 状态：`active_suggestion_controller_defined=true`、`active_suggestion_full_card_verified=true`、
 `active_suggestion_merge_replay_verified=true`、`active_suggestion_moving_minimal_verified=true`、
-`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=false`、
+`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=true`、
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -3814,3 +3814,18 @@ tracking：`DEV-105`、`ISSUE-033`。
 ContextBudget probe 的 build-owned `profile.probe` fixture 使用 token/byte 预算 `5/10`，与全局预算共同确定地产生
 SUMMARIZE/TRUNCATE/DROP 各一次；checker 锁定该值，防止测试退化为只验证 compile。Req IDs：`S2-TOL-001`、`S2-MEM-001`、
 `S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、`ISSUE-036..045`。
+
+## P6 Android 13 ARM64 aggregate probe acceptance interface
+
+机器合同为 `central-brain/contracts/central_brain_android_p6_physical_acceptance.json`：
+
+- `probe_modules[]` 固定六项 P6-W01..W06，顺序和唯一 completion marker 不允许运行时扩展。
+- `required_android_api=33`、`required_abi=arm64-v8a`；不满足时统一 installer 在启动 probe 前失败关闭。
+- `test_command` 是唯一设备入口；每个 Activity 使用固定 component 和 build-owned fixture。
+- `claim_state` 的 true/false key 集合由 checker 精确比较，新增或删除 claim 必须进行合同版本评审。
+- `device_identity_redacted=true`；设备输出禁止 serial/model/fingerprint，模块输出禁止自由文本、Context scalar 和车辆 payload。
+- 独立 checker 必须同时输出对应 `*_android13_arm64_verified=true`；仅在 README 或 JSON 改 marker 不能通过聚合门禁。
+
+P6 验收接口只交换 boolean/count/schema marker，不是 EventBroker、Trigger、Consent、Context 或 Suggestion 的生产调用接口。
+Req IDs：`S2-EVT-001`、`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、
+`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。

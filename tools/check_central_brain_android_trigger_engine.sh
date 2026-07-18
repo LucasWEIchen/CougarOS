@@ -155,7 +155,7 @@ printf '%s\n' \
   "trigger_cooldown_scope_verified=true" \
   "trigger_input_fail_closed_verified=true" \
   "trigger_suggestion_only_verified=true" \
-  "trigger_engine_android13_arm64_verified=false" \
+  "trigger_engine_android13_arm64_verified=true" \
   "trigger_engine_process_local=true" \
   "trigger_cooldown_persistence_wired=false" \
   "trigger_source_adapter_wired=false" \
