@@ -1677,3 +1677,23 @@ HMI 显示为自动化调用链，但 payload 不含 raw data。D4b 没有 Andro
 `simulated_scenario_android_service_published=false`、`simulated_scenario_session_event_binder_published=false`、
 `simulated_scenario_client2_wired=false`、`simulated_scenario_effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4b`。
+
+## 59. P4-D4c Debug Binder architecture
+
+```text
+Client (future Client2)
+  -> signature permission + capability policy
+    -> ISimulatedScenarioRuntime (debug only)
+      -> SimulatedScenarioInputFactory (fixed enum -> built-in manifest + synthetic Context)
+        -> SimulatedScenarioRuntime (D4b)
+          -> SimulatedScenarioGraph (D4a) + BoundedEventRuntime (P6)
+      <- Parcelable Session/Plan/Graph/Event metadata
+```
+
+Android Binder 只承担 transport、安全和固定输入映射；Planner/Graph/Event 规则仍由 D4a/D4b 所有。Service 不持有 adapter registry、approval
+authority 或 production event broker。release source/manifest 不包含该入口。
+
+下一层 D4d 组合 simulated adapters/readback；Client2 binding 在其后独立实现。当前 `simulated_scenario_android_runtime_wired=true`、
+`simulated_scenario_android_service_published=true`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4c`。

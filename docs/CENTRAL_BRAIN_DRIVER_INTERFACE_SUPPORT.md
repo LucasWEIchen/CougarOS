@@ -1845,3 +1845,14 @@ simulated adapter apply 与 readback 都不属于 D4b；D4c 也只能发布 debu
 `simulated_scenario_readback_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4b`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
 `S2-EVT-001`、`S2-EFF-001`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；tracking：`DEV-102`。
+
+## P4-D4c Simulated Scenario Binder Driver/HAL Boundary
+
+D4c 新增的 Android Service/AIDL 只读取 APK 内置 scenario assets 并生成 synthetic Context。它不调用 VehicleProperty/Vendor SOA/NPU/PCIe、
+不访问 device node/sysfs/JNI，不触发 C/C++、HAL 或 Driver 开发。
+
+Binder 可达性不等于车辆接口可达性。D4d 也只能连接既有 debug simulated adapters；真实 Driver/HAL 仍须 P8 目标 API 缺口证据。
+Android 13 安装与签名权限拒绝已验证，但没有读取任何车辆/NPU/Driver/HAL 状态，因此 `hardware_accessed=false` 不变。
+当前 `driver_development_triggered=false`、`simulated_scenario_effect_dispatch_enabled=false`、
+`simulated_scenario_readback_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4c`。

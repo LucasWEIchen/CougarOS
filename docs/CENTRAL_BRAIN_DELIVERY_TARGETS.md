@@ -2648,3 +2648,22 @@ approval authority、production Event broker 或 target hardware 已完成。D4c
 `target_hardware_validated=false`、`implementation_stage=P4-D4b`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
 `S2-EVT-001`、`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；
 tracking：`DEV-102`、`ISSUE-022/026/030/033`。
+
+## Android P4-D4c Simulated Scenario Binder
+
+交付包含 debug AIDL/Parcelable、`SimulatedScenarioInputFactory`、`SimulatedScenarioRuntimeService`、debug manifest entry、六组 JVM tests、
+versioned JSON 和静态门禁。允许声明 debug Android Binder 已发布且固定场景输入可编译。
+
+不得声明 Client2 已接入、Effect/seat/HVAC 已执行、车辆已回读、approval 已授权、release 含该入口或目标硬件已验证。目标 Android 13
+已完成 Debug APK 安装，服务/动作/签名权限可见，ADB shell 未授权调用被系统拒绝；尚无同签名测试客户端完成 AIDL 正向调用，
+`target_hardware_validated=false` 保持不变。
+
+当前 `simulated_scenario_binder_defined=true`、`simulated_scenario_android_service_published=true`、
+`simulated_scenario_session_event_binder_published=true`、`simulated_scenario_debug_only=true`、
+`simulated_scenario_release_source_absent=true`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_binder_android13_install_verified=true`、
+`simulated_scenario_binder_unauthorized_access_denied_verified=true`、
+`simulated_scenario_binder_authorized_call_verified=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4c`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
+`S2-EVT-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`。

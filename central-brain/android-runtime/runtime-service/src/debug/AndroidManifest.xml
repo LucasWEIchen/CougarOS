@@ -17,6 +17,15 @@
             android:enabled="true"
             android:exported="true"
             android:permission="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" />
+        <service
+            android:name=".scenario.SimulatedScenarioRuntimeService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION">
+            <intent-filter>
+                <action android:name="com.centralbrain.runtime.action.BIND_SIMULATED_SCENARIO_RUNTIME" />
+            </intent-filter>
+        </service>
         <activity
             android:name=".simulation.DebugSimulationControllerProbeActivity"
             android:excludeFromRecents="true"

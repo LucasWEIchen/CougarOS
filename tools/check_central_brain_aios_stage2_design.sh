@@ -520,14 +520,25 @@ require_text "$README" 'simulated_scenario_debug_runtime_projection_defined=true
 require_text "$README" 'simulated_scenario_debug_runtime_wired=true'
 require_text "$README" 'simulated_scenario_session_projection_enabled=true'
 require_text "$README" 'simulated_scenario_event_projection_enabled=true'
-require_text "$README" 'simulated_scenario_android_service_published=false'
-require_text "$README" 'simulated_scenario_session_event_binder_published=false'
+require_text "$README" 'simulated_scenario_android_service_published=true'
+require_text "$README" 'simulated_scenario_session_event_binder_published=true'
 require_text "$BACKLOG" '`P4-D4b` debug Runtime Session/Event projection'
 require_text "$REQUIREMENTS" 'P4-D4b debug Runtime Session/Event projection trace'
 require_text "$DEVIATIONS" 'DEV-102 P4-D4b process-local Runtime projection is not an Android Binder runtime'
 require_text "$ISSUES" 'ISSUE-033 P4-D4b update'
 require_text "$DELIVERY" 'Android P4-D4b Simulated Scenario Runtime Projection'
 require_text "$DRIVER" 'P4-D4b Simulated Scenario Runtime Driver/HAL Boundary'
+require_text "$README" 'simulated_scenario_binder_defined=true'
+require_text "$README" 'simulated_scenario_binder_protocol_version=1'
+require_text "$README" 'simulated_scenario_binder_signature_permission_enforced=true'
+require_text "$README" 'simulated_scenario_binder_capability_enforced=true'
+require_text "$README" 'simulated_scenario_release_source_absent=true'
+require_text "$BACKLOG" '`P4-D4c` signature-protected debug Binder Service'
+require_text "$REQUIREMENTS" 'P4-D4c simulated scenario Binder trace'
+require_text "$DEVIATIONS" 'DEV-103 P4-D4c debug Binder publication is not Effect or production execution'
+require_text "$ISSUES" 'ISSUE-033 P4-D4c update'
+require_text "$DELIVERY" 'Android P4-D4c Simulated Scenario Binder'
+require_text "$DRIVER" 'P4-D4c Simulated Scenario Binder Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -731,5 +742,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_probe.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_graph.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_runtime.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_binder.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

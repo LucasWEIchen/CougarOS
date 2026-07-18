@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p4-d4c-simulated-scenario-binder-v1",
+  "maturity": "debug_binder_published_adapter_and_client_pending",
+  "requirement_ids": [
+    "S2-SCN-001", "S2-GRF-001", "S2-EVT-001", "S2-EFF-001",
+    "S2-HMI-003", "S2-HMI-006", "APP-004", "XSC-001", "XSC-004",
+    "XSC-005", "XSC-006", "DEL-001", "DEL-003", "DEL-004", "DEL-005"
+  ],
+  "source_set": "debug",
+  "aidl_interface": "com.centralbrain.runtime.scenario.ISimulatedScenarioRuntime",
+  "aidl_version": 1,
+  "signature_permission": "com.centralbrain.permission.CONTROL_DEBUG_SIMULATION",
+  "capability": "debug.simulation.control",
+  "fixed_scenarios": ["COLD", "FATIGUE"],
+  "fixed_driving_profiles": ["PARKED", "MOVING"],
+  "accepted_outcomes": ["SUCCEEDED", "FAILED", "SKIPPED"],
+  "operations": [
+    "getProtocolVersion", "getProtocolHash", "startScenario", "getSnapshot",
+    "supplyPendingOutcome", "cancel"
+  ],
+  "projection": {
+    "parcelable_schema_version": 1,
+    "session_plan_graph_metadata_exposed": true,
+    "pending_node_metadata_exposed": true,
+    "event_sequence_and_count_exposed": true,
+    "false_authority_claims_exposed": true,
+    "raw_user_or_model_text_accepted": false,
+    "arbitrary_vehicle_scalar_accepted": false,
+    "external_scenario_file_accepted": false,
+    "device_identity_exposed": false
+  },
+  "claim_state": {
+    "simulated_scenario_binder_defined": true,
+    "simulated_scenario_binder_protocol_version": 1,
+    "simulated_scenario_binder_signature_permission_enforced": true,
+    "simulated_scenario_binder_capability_enforced": true,
+    "simulated_scenario_fixed_scenario_count": 2,
+    "simulated_scenario_fixed_driving_profile_count": 2,
+    "simulated_scenario_android_runtime_wired": true,
+    "simulated_scenario_android_service_published": true,
+    "simulated_scenario_session_event_binder_published": true,
+    "simulated_scenario_debug_only": true,
+    "simulated_scenario_release_source_absent": true,
+    "simulated_scenario_binder_android13_install_verified": true,
+    "simulated_scenario_binder_unauthorized_access_denied_verified": true,
+    "simulated_scenario_binder_authorized_call_verified": false,
+    "simulated_scenario_client2_wired": false,
+    "simulated_scenario_effect_dispatch_enabled": false,
+    "simulated_scenario_readback_accessed": false,
+    "simulated_scenario_approval_authority_available": false,
+    "simulated_scenario_production_registered": false,
+    "scenario_execution_enabled": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P4-D4c"
+  }
+}

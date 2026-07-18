@@ -1675,3 +1675,31 @@ Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-00
 `simulated_scenario_client2_wired=false`、`simulated_scenario_effect_dispatch_enabled=false`、
 `simulated_scenario_readback_accessed=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4b`。
+
+### P4-D4c Simulated Scenario Binder progress
+
+状态：`DEVELOPED / ADAPTER_READBACK_CLIENT_PENDING`（2026-07-18）。新增 debug-only AIDL v1、Parcelable Snapshot、固定输入工厂、
+signature/capability 双保护 Service、versioned JSON、六组 JVM tests 与独立/Stage2/Runtime/CI 门禁。
+
+Binder 只接受 Cold/Fatigue 和 Parked/Moving 枚举，返回 Session/Plan/Graph/pending/event metadata。内置 Scenario assets 每文件限制
+64 KiB；unknown action/scenario/driving/outcome/run 全部拒绝。Service 不接收自由文本、任意 vehicle scalar、外部文件或 device identity。
+
+本增量使 `simulated_scenario_android_runtime_wired/android_service_published/session_event_binder_published=true`，但范围仅限 debug。
+下一增量 P4-D4d 组合既有 simulated Effect adapters 与 readback；Client2、production 与 hardware 仍未接。
+
+目标 Android 13 设备已完成 Debug APK 安装，package manager 可见 Service/action/signature permission；ADB shell 的未授权调用被系统以
+`Requires permission` 拒绝。该证据只确认安装与权限失败关闭，尚无同签名测试客户端完成 AIDL 正向调用，因此不构成 Binder 功能验收或
+目标硬件验收。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、
+`XSC-001/004/005/006`、`DEL-001/003/004/005`；tracking：`DEV-103`、`ISSUE-022/026/030/033`。
+`simulated_scenario_binder_defined=true`、`simulated_scenario_binder_protocol_version=1`、
+`simulated_scenario_binder_signature_permission_enforced=true`、`simulated_scenario_binder_capability_enforced=true`、
+`simulated_scenario_android_runtime_wired=true`、`simulated_scenario_android_service_published=true`、
+`simulated_scenario_session_event_binder_published=true`、`simulated_scenario_debug_only=true`、
+`simulated_scenario_release_source_absent=true`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_binder_android13_install_verified=true`、
+`simulated_scenario_binder_unauthorized_access_denied_verified=true`、
+`simulated_scenario_binder_authorized_call_verified=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4c`。
