@@ -4422,3 +4422,48 @@ State: `security_parser_corpus_defined=true`, `security_parser_surface_count=3`,
 `security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
 `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-088`, `ISSUE-050`.
+
+## P9-W03b identity/replay security corpus detailed design
+
+### Catalog
+
+`IdentityReplaySecurityCorpusContract` freezes profile `android13-p9-identity-replay-security-v1`, three surfaces, six
+cases per surface and 18 total cases. `CorpusCase` validates canonical IDs and uppercase outcome codes. Static
+construction rejects duplicate IDs/count drift; the SHA-256 digest binds schema/profile and ordered tuples. The JSON
+contract must stay semantically equivalent to the Java tuples through the repository checker.
+
+### Caller policy tests
+
+Tests construct immutable `CallerIdentitySnapshot` objects only; request DTOs never carry trusted caller fields. They
+assert exact `DecisionReason` for unresolved identity, unknown package, current-signer mismatch, missing capability and
+shared-UID signer confusion. A signer rotation must change `DurablePrincipalFingerprint`; a UID reassignment with the
+same Android user/package/signer principal remains stable by the existing fingerprint contract.
+
+### Replay and owner tests
+
+`TransientSessionRegistry` receives a 64-hex durable owner. `owner + requestId` locates replay state and the canonical
+request digest distinguishes exact replay from conflict. Exact replay must return the original handle without growing
+the registry. Cross-owner find returns no snapshot, events return session-not-found, cancel reports no change, and a
+malformed owner raises `SecurityException`. No raw utterance is published as corpus metadata or evidence.
+
+### Signer policy tests
+
+Tests use one ACTIVE, one RETIRED and one REVOKED entry with explicit epochs. They require exact `DecisionCode` for
+unknown, not-yet-active, retired and revoked evidence. Malformed digest and nonpositive epoch must raise the policy's
+bounded `IllegalArgumentException`. These tests validate policy state only; trusted signer evidence acquisition and
+hardware attestation remain false.
+
+### Implementation guardrails
+
+The main catalog must never import Android APIs, read files/network/hardware, generate random attacks, register a
+Binder service or dispatch Runtime/Graph/Effect. Host policy success leaves real Binder UID spoof, target APK
+certificate measurement, Android instrumentation, coverage fuzz and production qualification false.
+
+State: `security_identity_replay_corpus_defined=true`, `security_identity_replay_surface_count=3`,
+`security_identity_replay_case_count=18`, `security_caller_policy_host_verified=true`,
+`security_session_replay_owner_policy_host_verified=true`, `security_signer_policy_host_verified=true`,
+`security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
+`security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`,
+`S2-SES-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.

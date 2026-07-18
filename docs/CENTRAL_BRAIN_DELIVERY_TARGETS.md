@@ -2412,3 +2412,20 @@ target authority 分离。它不证明真实场景已循环、故障已注入、
 `security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：
 `S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-088`、`ISSUE-050`。
+
+## Android P9-W03b Identity/Replay Security Corpus
+
+Delivery adds the versioned JSON contract, immutable Java metadata catalog, 18-case JVM policy regression and
+repository checker for caller capability, stable-owner replay and signer-state policy. Acceptance requires exact
+JSON/Java ordered tuple equality, all 18 cases present in tests, focused JVM success, no Service registration and no
+Android/file/network/vehicle/hardware dependency in main catalog code.
+
+This delivery is host policy evidence only. It does not include an APK change, debug probe, Binder spoof harness,
+target signer evidence, vehicle command, NPU call or production authorization. Current:
+`security_identity_replay_corpus_defined=true`, `security_caller_policy_host_verified=true`,
+`security_session_replay_owner_policy_host_verified=true`, `security_signer_policy_host_verified=true`,
+`security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P9-W03`. Req IDs: `S2-SAF-001`, `S2-TOL-001`, `S2-SES-001`, `S2-OBS-001`,
+`DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.

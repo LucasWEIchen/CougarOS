@@ -1336,3 +1336,40 @@ Current `security_parser_corpus_defined=true`, `security_parser_case_count=18`,
 `security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
 `S2-SAF-001/S2-TOL-001/S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-088`, `ISSUE-050`.
+
+## P9-W03b identity/replay security corpus architecture
+
+W03b adds a metadata-only catalog beside four existing policy components. It does not add a production endpoint or a
+parallel identity implementation. The test path exercises policy decisions after trusted identity acquisition:
+
+```mermaid
+flowchart LR
+    B["Binder.getCallingUid + PackageManager"] --> R["AndroidCallerIdentityResolver"]
+    R --> S["CallerIdentitySnapshot"]
+    S --> C["CallerCapabilityPolicy"]
+    S --> F["DurablePrincipalFingerprint"]
+    F --> O["owner-scoped Session registry"]
+    P["SkillSignerPolicy"] --> D["signer-state decision"]
+    J["versioned JSON corpus"] --> G["repository synchronization gate"]
+    M["Java metadata catalog"] --> G
+    M --> T["host JVM policy regression"]
+    T --> C
+    T --> F
+    T --> O
+    T --> P
+    T -. no platform spoof .-> B
+```
+
+The caller policy is default-deny and rejects any configured shared-UID package whose current signer set differs.
+Durable ownership excludes transient UID but binds Android user serial and sorted package/current-signer pairs. Session
+idempotency keys include owner and request ID, while a request digest prevents conflicting replay. Signer state rejects
+unknown, premature, retired and revoked signers. Main catalog code has no Android, file, network, vehicle or hardware
+dependency and is not referenced by Runtime/Governance services.
+
+Current `security_identity_replay_corpus_defined=true`, `security_identity_replay_case_count=18`,
+`security_caller_policy_host_verified=true`, `security_session_replay_owner_policy_host_verified=true`,
+`security_signer_policy_host_verified=true`, `security_binder_calling_uid_spoof_android_verified=false`,
+`security_package_signature_cryptographically_verified=false`, `security_android13_arm64_verified=false`,
+`security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
+`S2-SAF-001/S2-TOL-001/S2-SES-001/S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.

@@ -1023,9 +1023,10 @@ crash/ANR/resource observation owner、仓库外 evidence 和 owner approval 均
 
 ## ISSUE-050 P9 complete security fuzz evidence is unavailable
 
-P9-W03a 已完成三个 Java parser/validator boundary 的固定 18-case host regression，但完整安全验收仍缺：AIDL/Parcel surface inventory、
-calling UID/package/current signer spoof、跨 Session/callback/request replay、signer rotation/revoke/upgrade policy、剩余 schema/model output、
-Android instrumentation 与 coverage-guided fuzz engine。
+P9-W03a 已完成三个 Java parser/validator boundary 的固定 18-case host regression。P9-W03b 又完成 CallerPolicy、SessionReplay、
+SignerPolicy 三 surface / 18-case host policy regression，覆盖 package/current signer/capability/shared UID、stable owner replay/isolation 和
+signer rotation state/revoke/epoch。完整安全验收仍缺：AIDL/Parcel surface inventory、真实 Binder calling UID spoof、callback replay、目标
+APK 签名密码学证据、剩余 schema/model output、Android instrumentation 与 coverage-guided fuzz engine。
 
 ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage-guided/目标 evidence 还必须明确 seed/corpus owner、mutation engine
 和版本、CPU/time/case budget、sanitizer/coverage 指标、hang/crash 判定、最小化、敏感输入和日志保留、release/source/non-secret alias、
@@ -1034,6 +1035,9 @@ ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage
 关闭条件：所有 W03 surface 有稳定 case/owner/expected result，受控 fuzz 达到批准预算且 crash/hang 已归零或有接受记录，目标 Android
 13 release 完成命名 device evidence 并经安全 owner 评审。当前 `security_parser_corpus_defined=true`、
 `security_parser_fail_closed_regression_verified=true`、`security_coverage_guided_fuzz_complete=false`、
-`security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
+`security_identity_replay_corpus_defined=true`、`security_caller_policy_host_verified=true`、
+`security_session_replay_owner_policy_host_verified=true`、`security_signer_policy_host_verified=true`、
+`security_binder_calling_uid_spoof_android_verified=false`、
+`security_package_signature_cryptographically_verified=false`、
 `security_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089`。
