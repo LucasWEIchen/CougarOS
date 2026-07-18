@@ -429,6 +429,15 @@ for marker in \
   'stability_target_owner_approved=false' \
   'stability_android13_arm64_verified=false' \
   'stability_fault_injection_runtime_wired=false' \
+  'security_parser_corpus_defined=true' \
+  'security_parser_surface_count=3' \
+  'security_parser_case_count=18' \
+  'security_parser_fail_closed_regression_verified=true' \
+  'security_coverage_guided_fuzz_complete=false' \
+  'security_aidl_identity_review_complete=false' \
+  'security_signature_policy_review_complete=false' \
+  'security_android13_arm64_verified=false' \
+  'security_runtime_wired=false' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
@@ -740,12 +749,15 @@ if "P9 Performance Budget Contract" not in developed:
     raise SystemExit("README developed table must include the completed P9-W01 software contract")
 if "P9 Stability Fault Matrix Contract" not in developed:
     raise SystemExit("README developed table must include the completed P9-W02 software contract")
+if "P9 Parser Security Corpus" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W03a host corpus")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
     or "P9-W03 Security review/fuzz" not in remaining
+    or "下一小步 P9-W03b" not in remaining
 ):
-    raise SystemExit("README must keep P8-W01 externally blocked and identify P9-W03 as the next scope")
+    raise SystemExit("README must keep P8-W01 blocked and identify P9-W03b as the next security scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:

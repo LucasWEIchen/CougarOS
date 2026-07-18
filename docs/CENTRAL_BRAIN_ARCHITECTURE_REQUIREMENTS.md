@@ -2367,3 +2367,23 @@ debug probe 只允许 CONTRACT_TEST 合成记录并从 release manifest 缺席�
 `stability_android13_arm64_verified=false`、`stability_fault_injection_runtime_wired=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 tracking：`DEV-087`、`ISSUE-049`。
+
+## 80. P9-W03a parser security corpus trace
+
+P9-W03a 映射 `S2-SAF-001/S2-TOL-001/S2-OBS-001`。应用层必须发布 machine-readable 与 Java 同源的固定 hostile-input
+catalog，精确包含 Checkpoint、ScenarioManifest、ToolSchema 三个 surface，每个 surface 六项，共 18 个唯一 case。每项必须声明
+stable case ID、threat class 和精确 expected typed error；缺项、额外项、重复项或错误码漂移均失败。
+
+JVM regression 必须实际调用现有 `JsonPrimitiveCheckpointSerializer`、`ScenarioManifestParser` 与 `ToolSchemaValidator`。Checkpoint
+覆盖 malformed/duplicate/unknown/oversize/digest tamper/privileged path key；Scenario 覆盖 source path traversal、unknown/duplicate、
+oversize、trailing JSON、depth bomb；ToolSchema 覆盖 missing/unknown/null/type confusion/value bound/payload oversize。任一输入成功、
+抛非 domain exception 或返回非 catalog error code 均失败关闭。
+
+主 catalog 只能保存 metadata，不得保存攻击 payload、解析输入、使用随机/时钟/Android/file/network/vehicle/NPU/hardware API 或接入
+Runtime/Governance。host regression 不等于 coverage-guided fuzz、AIDL identity/signature review、Android 13 ARM64 或 production 资格。
+
+当前 `security_parser_corpus_defined=true`、`security_parser_surface_count=3`、`security_parser_case_count=18`、
+`security_parser_fail_closed_regression_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
+`security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088`、`ISSUE-050`。

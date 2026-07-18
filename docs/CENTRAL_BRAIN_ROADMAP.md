@@ -1375,3 +1375,22 @@ Req IDs：`S2-REL-001`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006`、`
 `stability_android13_arm64_verified=false`、`stability_fault_injection_runtime_wired=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 下一工作包：`P9-W03 Security review/fuzz`。
+
+### P9-W03a Parser Security Corpus progress
+
+状态：`DEVELOPED / P9-W03_IN_PROGRESS`（2026-07-18）。新增 machine-readable/Java 同源三 surface / 18-case security corpus、
+五组 JVM security regression、独立 checker 和正式设计/交付/偏差/Issue 跟踪。
+
+Checkpoint 六项覆盖 malformed/duplicate/unknown/oversize/digest tamper/path key；ScenarioManifest 六项覆盖 source traversal、
+unknown/duplicate/oversize/trailing/depth；ToolSchema 六项覆盖 missing/unknown/null/type/value/payload bound。每项实际调用现有边界并要求
+精确 typed error；host test 已通过。
+
+W03a 不等于 coverage-guided fuzz、AIDL caller spoof/replay、signature policy、Android 13 instrumentation 或目标安全资格。下一小步
+`P9-W03b Binder identity/replay/signature policy`，随后 W03c 完成剩余 schema/aggregation/debug probe。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-088`、`ISSUE-050`。
+`security_parser_corpus_defined=true`、`security_parser_surface_count=3`、`security_parser_case_count=18`、
+`security_parser_fail_closed_regression_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
+`security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。

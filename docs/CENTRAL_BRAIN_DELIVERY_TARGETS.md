@@ -2396,3 +2396,19 @@ target authority 分离。它不证明真实场景已循环、故障已注入、
 `stability_fault_injection_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-REL-001`、`S2-OBS-001`、
 `XSC-001/004/005/006`、`KH-003/006`、`DEL-001/004/005`；tracking：`DEV-087`、`ISSUE-049`。
+
+## Android P9-W03a Parser Security Corpus
+
+交付 versioned 18-case JSON corpus、main-source immutable metadata catalog、实际调用三个现有边界的 JVM security regression、
+独立 checker 和工程师说明。交付范围精确为 Checkpoint、ScenarioManifest、ToolSchema 各六个 hostile case。
+
+验收要求每项攻击输入都返回 catalog 指定的 domain exception/error code；JSON/Java tuple、计数、顺序和测试 case ID 必须同步。
+主 catalog 不含攻击 payload，也不接 Runtime/Governance/Graph/Effect/Vehicle/NPU/Driver-HAL/hardware。
+
+本项是 host deterministic regression，不是 coverage-guided fuzz、AIDL caller/signature review、Android instrumentation 或目标安全资格。
+当前 `security_parser_corpus_defined=true`、`security_parser_surface_count=3`、`security_parser_case_count=18`、
+`security_parser_fail_closed_regression_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
+`security_android13_arm64_verified=false`、`security_runtime_wired=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：
+`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-088`、`ISSUE-050`。

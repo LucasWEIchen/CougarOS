@@ -69,6 +69,7 @@
 | ISSUE-047 | P8 目标 property/service/permission/owner/version/readback/fault evidence 未取得，真实 adapter 不能启动。 | S2-ADP-002, S2-OBS-001, P8-W01..W06 | Open / External Blocked |
 | ISSUE-048 | P9 十项预算缺目标 Android 13 采集、30-sample 报告、owner approval 和 release qualification。 | S2-OBS-001, S2-REL-001, P9-W01/W02 | Open |
 | ISSUE-049 | P9 稳定性矩阵缺真实 fault injector、目标 72h run、受控证据和 owner approval。 | S2-REL-001, S2-OBS-001, P9-W02 | Open / External Blocked |
+| ISSUE-050 | P9 完整安全 fuzz 缺 engine/budget/corpus/evidence owner，AIDL caller/signature/device review 仍未完成。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, P9-W03 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1019,3 +1020,20 @@ crash/ANR/resource observation owner、仓库外 evidence 和 owner approval 均
 `stability_target_owner_approved=false`、`stability_android13_arm64_verified=false`、
 `stability_fault_injection_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-087`。
+
+## ISSUE-050 P9 complete security fuzz evidence is unavailable
+
+P9-W03a 已完成三个 Java parser/validator boundary 的固定 18-case host regression，但完整安全验收仍缺：AIDL/Parcel surface inventory、
+calling UID/package/current signer spoof、跨 Session/callback/request replay、signer rotation/revoke/upgrade policy、剩余 schema/model output、
+Android instrumentation 与 coverage-guided fuzz engine。
+
+ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage-guided/目标 evidence 还必须明确 seed/corpus owner、mutation engine
+和版本、CPU/time/case budget、sanitizer/coverage 指标、hang/crash 判定、最小化、敏感输入和日志保留、release/source/non-secret alias、
+仓库外 evidence reference 与安全 owner approval。不得上传 raw user/model/vehicle payload、设备身份、签名材料或未审日志。
+
+关闭条件：所有 W03 surface 有稳定 case/owner/expected result，受控 fuzz 达到批准预算且 crash/hang 已归零或有接受记录，目标 Android
+13 release 完成命名 device evidence 并经安全 owner 评审。当前 `security_parser_corpus_defined=true`、
+`security_parser_fail_closed_regression_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_aidl_identity_review_complete=false`、`security_signature_policy_review_complete=false`、
+`security_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088`。

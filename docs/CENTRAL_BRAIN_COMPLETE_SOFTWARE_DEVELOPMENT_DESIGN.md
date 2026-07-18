@@ -4390,3 +4390,35 @@ State: `stability_fault_matrix_contract_defined=true`, `stability_workload_count
 `stability_android13_arm64_verified=false`, `stability_fault_injection_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-REL-001`,
 `S2-OBS-001`, `XSC-001/004/005/006`, `KH-003/006`, `DEL-001/004/005`; tracking: `DEV-087`, `ISSUE-049`.
+
+## P9-W03a parser security corpus detailed design
+
+### Catalog
+
+`ParserSecurityCorpusContract` freezes schema/profile, 3 surfaces, 6 cases/surface and 18 total cases. `CorpusCase`
+validates canonical case ID and expected error code, stores only surface/threat/error metadata, and contributes to one
+ordered SHA-256 corpus digest. Static construction rejects duplicate IDs or count drift.
+
+### Execution
+
+The JVM suite generates hostile values in memory and runs five groups: catalog shape, six Checkpoint cases, six
+ScenarioManifest cases, six ToolSchema cases and authority-boundary assertions. Each adapter resolves the expected
+error through `requireCase`, converts it to the existing domain enum, requires the domain exception and compares the
+exact code. It never treats any exception as a pass.
+
+Checkpoint cases exercise strict JSON, field allowlist, byte bound, digest binding and privileged material keys.
+Scenario cases exercise canonical source name, strict object shape, byte/depth/trailing limits. Tool cases exercise
+required/exact scalar schema and encoded payload budgets. Existing production code is reused unchanged.
+
+### Remaining review
+
+W03a does not test Binder caller UID/package/current signer, callback or request replay, signature rotation/revoke,
+StructuredModelOutput/other schemas, instrumentation/device behavior or a coverage-guided engine. These remain W03b/
+W03c and `ISSUE-050`; no Android probe is added in this subincrement.
+
+State: `security_parser_corpus_defined=true`, `security_parser_surface_count=3`, `security_parser_case_count=18`,
+`security_parser_fail_closed_regression_verified=true`, `security_coverage_guided_fuzz_complete=false`,
+`security_aidl_identity_review_complete=false`, `security_signature_policy_review_complete=false`,
+`security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
+`S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-088`, `ISSUE-050`.

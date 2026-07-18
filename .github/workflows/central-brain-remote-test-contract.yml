@@ -113,4 +113,5 @@ jobs:
           bash tools/check_central_brain_android_target_capability_discovery.sh
           bash tools/check_central_brain_android_performance_budget.sh
           bash tools/check_central_brain_android_stability_fault_matrix.sh
+          bash tools/check_central_brain_android_parser_security_corpus.sh
           bash tools/check_central_brain_root_readme.sh
