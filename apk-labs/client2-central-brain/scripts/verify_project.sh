@@ -45,12 +45,19 @@ for java_file in \
   DrivingUxPolicy.java \
   CockpitEngineerState.java \
   DebugSimulationControllerClient.java \
+  CockpitSimulatedScenarioState.java \
+  SimulatedScenarioRuntimeClient.java \
   CockpitScenarioControlState.java \
   CockpitDisplayPolicy.java \
   CockpitHmiReducer.java \
   CockpitControlCoordinator.java; do
   test -f "$PROJECT_DIR/bridge/src/com/centralbrain/client2/$java_file"
 done
+test -f "$PROJECT_DIR/bridge/src/com/centralbrain/runtime/scenario/SimulatedScenarioBinderSnapshot.java"
+rg -q 'ISimulatedScenarioRuntime.aidl' "$PROJECT_DIR/scripts/build_binder_bridge_dex.sh"
+rg -q 'Expected exactly twenty Client2' "$PROJECT_DIR/scripts/build_binder_bridge_dex.sh"
+rg -q 'Expected exactly two generated debug simulation Binder sources' \
+  "$PROJECT_DIR/scripts/build_binder_bridge_dex.sh"
 if find "$PROJECT_DIR/patches/smali" -type f -name '*.smali' -print -quit 2>/dev/null \
     | grep -q .; then
   echo "maintained Client2 Smali controller must be absent" >&2
@@ -211,6 +218,8 @@ if [[ -d "$WORK_DIR" ]]; then
   test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController.smali"
   test ! -f "$WORK_DIR/smali/com/tuanjie/urasclient2/CentralBrainPanelController\$UiUpdate.smali"
   test -f "$WORK_DIR/unknown/classes2.dex"
+  rg -a -q 'BIND_SIMULATED_SCENARIO_RUNTIME' "$WORK_DIR/unknown/classes2.dex"
+  rg -a -q 'cockpit_simulated_scenario_binder_v2_wired' "$WORK_DIR/unknown/classes2.dex"
   if rg -a -q "http://10.0.2.2:8787|HttpURLConnection" "$WORK_DIR"; then
     echo "legacy Client2 HTTP transport remains in generated workdir" >&2
     exit 1

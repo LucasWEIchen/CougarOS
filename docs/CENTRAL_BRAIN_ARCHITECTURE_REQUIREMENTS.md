@@ -2770,3 +2770,31 @@ tracking：`DEV-103`、`ISSUE-022/026/030/033`。
 `simulated_scenario_approval_authority_available=false`、`simulated_scenario_client2_wired=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4d`。
 tracking：`DEV-104`、`ISSUE-022/026/030/033`。
+
+## 97. P4-D4e Client2 scenario-chain UI wiring trace
+
+1. `APP-004/XSC-001`：Client2 只能绑定显式 Runtime package/component 和 D4d debug action，不得发现或调用未知服务。
+2. `XSC-004/006`：Client2 与 Runtime 必须同 signer，Binder protocol version/hash 不匹配时必须失败关闭。
+3. `S2-HMI-003/006`：HMI 只接收 run/scenario/Plan/Graph/pending/event/count/boolean metadata，不得持有 raw Context、target payload、
+   approval digest、用户/模型文本或 device identity。
+4. `S2-EVT-001/XSC-006`：Client Parcelable 的 27 字段读写顺序和 32/64-bit 类型必须与 Runtime v2 完全一致并由 checker 比较。
+5. `S2-SCN-001`：UI 只允许 `care.cold` 与 `care.fatigue`，并严格绑定既有 canonical scenario ID。
+6. `S2-SAF-001`：unknown/moving Context 必须映射 `MOVING_RESTRICTED`；只有 reducer 当前确认 PARKED 时才请求 parked debug profile。
+7. `S2-SAF-001/XSC-005`：approval wire capability 为空时，只允许固定 `request_seat_approval` 映射到
+   `vehicle.seat.recline`；任意其他空 capability、node 或 target 必须拒绝。
+8. `S2-GRF-001/S2-HMI-003`：Graph revision 必须使用独立有界范围，不能用 event-count 上限截断或拒绝合法全局 revision。
+9. `S2-HMI-003/006`：sole reducer 必须投影 Intent、Context、Plan、Policy、Graph、Effect、Readback；异步 Session 回调不得覆盖
+   simulated projection。
+10. `S2-EFF-001`：Effect/readback 的 APPLIED/VERIFIED 只能来自 D4d snapshot count/terminal state，不得由 Session 文本推断。
+11. `S2-SAF-001`：批准/拒绝按钮仅在 WAITING_APPROVAL + APPROVAL pending 时启用；批准映射 SUCCEEDED，拒绝映射 SKIPPED。
+12. `XSC-006`：schema、UUID、digest、authority flag、count、pending/terminal invariant 或 revision 越界必须失败关闭并显示固定安全错误码。
+13. `DEL-001/005`：Android 13 ARM64 必须覆盖 Cold Completed、Fatigue approved Completed、Fatigue rejected Partial 和七阶段 UI。
+14. `DEL-004/005`：所有页面必须显示 SIMULATED/DEBUG/HARDWARE NOT ACCESSED；不得声明 production Client2、车辆回读或目标硬件验收。
+
+当前 `simulated_scenario_client2_wired=true`、`simulated_scenario_client_parcel_wire_verified=true`、
+`simulated_scenario_projection_reducer_owned=true`、`simulated_scenario_seven_stage_ui_verified=true`、
+`simulated_scenario_android13_arm64_client_verified=true`、`hmi_d4_debug_demo_control_loop_complete=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_approval_authority_available=false`、
+`simulated_scenario_production_registered=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4e`。tracking：`DEV-105`、
+`ISSUE-022/026/030/033`。

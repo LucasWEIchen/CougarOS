@@ -7,7 +7,8 @@ WORK_DIR="${CLIENT2_CB_WORK_DIR:-$ROOT_DIR/builds/client2-central-brain/workdir}
 BUILD_DIR="$ROOT_DIR/builds/client2-central-brain/bridge"
 SDK_AAR="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar"
 SIM_AIDL_ROOT="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/aidl"
-SIM_AIDL="$SIM_AIDL_ROOT/com/centralbrain/runtime/simulation/IDebugSimulationController.aidl"
+SIM_CONTROLLER_AIDL="$SIM_AIDL_ROOT/com/centralbrain/runtime/simulation/IDebugSimulationController.aidl"
+SIM_SCENARIO_AIDL="$SIM_AIDL_ROOT/com/centralbrain/runtime/scenario/ISimulatedScenarioRuntime.aidl"
 
 if [[ -f "$ROOT_DIR/env.sh" ]]; then
   # shellcheck source=/dev/null
@@ -35,10 +36,12 @@ if [[ -z "$AIDL" || ! -x "$AIDL" ]]; then
   echo "Android aidl compiler is unavailable" >&2
   exit 1
 fi
-if [[ ! -f "$SIM_AIDL" ]]; then
-  echo "Missing debug simulation AIDL: $SIM_AIDL" >&2
-  exit 1
-fi
+for aidl_source in "$SIM_CONTROLLER_AIDL" "$SIM_SCENARIO_AIDL"; do
+  if [[ ! -f "$aidl_source" ]]; then
+    echo "Missing debug simulation AIDL: $aidl_source" >&2
+    exit 1
+  fi
+done
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/aar" "$BUILD_DIR/classes" "$BUILD_DIR/dex" "$BUILD_DIR/generated"
@@ -53,14 +56,17 @@ if [[ ! -f "$SDK_CLASSES" ]]; then
 fi
 
 mapfile -t SOURCES < <(find "$PROJECT_DIR/bridge/src" -type f -name '*.java' -print | sort)
-if [[ "${#SOURCES[@]}" -ne 17 ]]; then
-  echo "Expected exactly seventeen Client2 HMI/Session/debug-control Java sources" >&2
+if [[ "${#SOURCES[@]}" -ne 20 ]]; then
+  echo "Expected exactly twenty Client2 HMI/Session/debug-control Java sources" >&2
   exit 1
 fi
-"$AIDL" --lang=java -I"$SIM_AIDL_ROOT" -o "$BUILD_DIR/generated" "$SIM_AIDL"
+"$AIDL" --lang=java -I"$SIM_AIDL_ROOT" -o "$BUILD_DIR/generated" \
+  "$SIM_CONTROLLER_AIDL"
+"$AIDL" --lang=java -I"$SIM_AIDL_ROOT" -o "$BUILD_DIR/generated" \
+  "$SIM_SCENARIO_AIDL"
 mapfile -t GENERATED_SOURCES < <(find "$BUILD_DIR/generated" -type f -name '*.java' -print | sort)
-if [[ "${#GENERATED_SOURCES[@]}" -ne 1 ]]; then
-  echo "Expected exactly one generated debug simulation Binder source" >&2
+if [[ "${#GENERATED_SOURCES[@]}" -ne 2 ]]; then
+  echo "Expected exactly two generated debug simulation Binder sources" >&2
   exit 1
 fi
 

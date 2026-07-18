@@ -116,7 +116,7 @@ for marker in \
 done
 
 grep -Fq 'com.centralbrain.permission.CONTROL_DEBUG_SIMULATION' "$PATCHER"
-grep -Fq 'Expected exactly seventeen Client2 HMI/Session/debug-control Java sources' "$DEX_BUILD"
+grep -Fq 'Expected exactly twenty Client2 HMI/Session/debug-control Java sources' "$DEX_BUILD"
 grep -Fq 'IDebugSimulationController.aidl' "$DEX_BUILD"
 grep -Fq -- '--lang=java' "$DEX_BUILD"
 grep -Fq 'android:permission="com.centralbrain.permission.CONTROL_DEBUG_SIMULATION"' \

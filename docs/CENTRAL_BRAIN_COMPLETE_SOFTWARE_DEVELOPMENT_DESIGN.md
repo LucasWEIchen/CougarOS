@@ -4970,3 +4970,75 @@ external outcome。Static checker 必须验证 debug-only/release absence、四 
 
 Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
 `APP-004`、`XSC-001/004/005/006`；tracking：`DEV-104`、`ISSUE-022/026/030/033`。
+
+## 54. P4-D4e Client2 Simulated Scenario Chain detailed design
+
+### 54.1 模块职责
+
+| 模块 | 输入 | 输出 | 约束 |
+|---|---|---|---|
+| `SimulatedScenarioRuntimeClient` | UI scenario ID、reducer driving state、approval command | availability、validated Projection、fixed error | Android/Binder 边界；单线程；无 raw payload |
+| Client `SimulatedScenarioBinderSnapshot` | Binder Parcel v2 | 27-field wire DTO | 必须与 Runtime exact-order/type 一致 |
+| `CockpitSimulatedScenarioState` | validated Projection | immutable debug lifecycle/count state | pure Java；bounded；false authority |
+| `CockpitHmiReducer` | scenario/availability/snapshot/failure event | new immutable HMI state | sole writer；不执行 Android API |
+| `CockpitExecutionTimeline` | simulated state | seven stage status/target/source/result | 不从 Session 文本推断 Effect |
+| `CockpitControlCoordinator` | Android lifecycle/click/reducer state | Binder command 与 view render | 不持有业务权威状态 |
+
+### 54.2 生命周期与并发
+
+Activity install 时 coordinator 创建 Session client、debug Context client 和 scenario client。`connect()` 先发布 CONNECTING，再 explicit bind；
+Service connected 后 executor 校验 protocol/hash。UI 可在验证前提交一个场景，客户端只保留最后一个 `PendingStart`。每次 start 增加
+generation；publish 前必须比对 generation，旧 run 回调直接丢弃。Binder thread 不触碰 View，所有 callback 进入 main handler 和 reducer。
+
+关闭时清空 runtime/pending/snapshot，按 bound 状态 unbind，shutdown executor，并移除 main callbacks。Binder death/null/disconnect 只产生固定
+error code，不自动重连、不把旧 approval 恢复为可点击。Activity recreate 只恢复 text-free HMI checkpoint；simulated run 不持久化。
+
+### 54.3 输入与场景绑定
+
+`care.cold -> SCENARIO_COLD -> scene.comfort.cold.v1`；`care.fatigue -> SCENARIO_FATIGUE -> scene.fatigue.assist.v1`。任何其他 alias 在
+Client 边界拒绝。DrivingState 只有 PARKED 映射 `DRIVING_PARKED`，MOVING 和 UNKNOWN_RESTRICTED 均映射 `DRIVING_MOVING`。该映射只选择
+build-owned synthetic Context，不读取车辆标量。
+
+现有 `Client2ScenarioBridge.openSession` 与 debug scenario start 并行：前者保持产品演示中的受理/回复兼容，后者提供真实可观察的固定 debug
+Graph。两者不得互相冒充；Session 文本不能设置 APPLIED/VERIFIED，simulated snapshot 不能声明 production Session authority。
+
+### 54.4 DTO 校验顺序
+
+1. snapshot 非空且 schema=2；
+2. run ID 是 canonical lowercase UUID；Plan/projection digest 是 lowercase SHA-256；
+3. effect dispatch 必须启用；readback boolean 必须与 attempt count 一致；approval/hardware/production/target flags 必须 false；
+4. pending stage 为 NONE 时 node/capability 必须为空；APPROVAL 时只接受固定 fatigue approval node；EFFECT/READBACK 要求合法 node/capability；
+5. plan revision、event count、effect/readback/approval/failure count 分别按独立上限校验；graph revision 64-bit 精确转换后按 1,000,000 限制；
+6. terminal 不得保留 pending；WAITING_APPROVAL 必须对应 APPROVAL；COMPLETED 不得含 failure；
+7. 校验完成后才写入 latest snapshot 与 reducer。
+
+任何步骤失败均使用 `CB_SIM_SCENARIO_START_*` 或 `CB_SIM_SCENARIO_APPROVAL_*` 固定错误码。日志只允许 state/count/boolean，不输出 request、
+Context value、target payload、approval digest、device identity、用户/模型文本。
+
+### 54.5 Reducer 与 UI 映射
+
+`SCENARIO_SUBMITTED` 清空上一 simulated state 并建立 CONNECTING；availability 只更新可用性；snapshot 必须匹配当前 UI scenario 才接收；
+failure 进入 FAILED 并至少记录一个 failure count；detach 立即撤销 approval input。snapshot 到达后 UI 自动选择 EXECUTION surface。
+
+七阶段映射：Intent=SESSION_ACCEPTED；Context=CAPTURED/SIMULATED；Plan=PUBLISHED；Policy 在 waiting 时 APPROVAL_REQUIRED，否则 ACTIVE；
+Graph 按 lifecycle 映射 ACTIVE/VERIFIED/SKIPPED/FAILED；Effect 在 dispatch>0 且 failure=0 时 APPLIED；Readback 在 attempt>0 且全部 match
+时 VERIFIED，否则 NO_EVIDENCE/MISMATCH/FAILED。Result 页面只显示 lifecycle、聚合 count 和 SIMULATED/HARDWARE NOT ACCESSED。
+
+### 54.6 审批与结果
+
+只有 `runtimeAvailable && WAITING_APPROVAL && pendingStage=APPROVAL` 时批准/拒绝可用。批准发送 SUCCEEDED，拒绝发送 SKIPPED；按钮点击不接收
+任意 target、时限或 approval token。批准结果应为 Fatigue Completed、5 dispatch、3/3 readback、1 input；拒绝结果应为 Partial、4 dispatch、
+2/2 readback、1 input。Cold 无审批，结果为 Completed、3/3。
+
+### 54.7 测试与交付
+
+Host reducer test 覆盖七阶段、approval waiting、Partial、detach、graph revision > event bound 与 false hardware。APK build 必须把两个 AIDL 和
+20 个 bridge source 编入 `classes2.dex`。静态 checker 比较双端 Parcelable wire、固定 approval mapping、project version、docs 和 false claims。
+实机脚本安装同 signer Runtime/Client2，设置 build-owned PARKED，依次执行 Cold、Fatigue approve、Fatigue reject，并读取 UI resource 状态。
+
+实机通过不改变生产边界：`hmi_d4_debug_demo_control_loop_complete=true` 仅指 D4 debug 演示；
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。真实开发必须从
+P8 capability contract 替换 adapter，不能把本模块直接切换为 production。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
+`APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`；tracking：`DEV-105`、`ISSUE-022/026/030/033`。

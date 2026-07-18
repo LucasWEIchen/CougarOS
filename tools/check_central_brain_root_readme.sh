@@ -139,7 +139,12 @@ for marker in \
   'simulated_scenario_android_runtime_wired=true' \
   'simulated_scenario_android_service_published=true' \
   'simulated_scenario_session_event_binder_published=true' \
-  'simulated_scenario_client2_wired=false' \
+  'simulated_scenario_client2_wired=true' \
+  'simulated_scenario_client_parcel_wire_verified=true' \
+  'simulated_scenario_projection_reducer_owned=true' \
+  'simulated_scenario_seven_stage_ui_verified=true' \
+  'simulated_scenario_android13_arm64_client_verified=true' \
+  'hmi_d4_debug_demo_control_loop_complete=true' \
   'simulated_scenario_effect_dispatch_enabled=true' \
   'simulated_scenario_hardware_effect_dispatch_enabled=false' \
   'simulated_scenario_readback_accessed=true' \
@@ -841,8 +846,10 @@ if "P4-D4c Simulated Scenario Binder" not in developed:
     raise SystemExit("README developed table must include the completed P4-D4c Binder")
 if "P4-D4d Simulated Effect Composition" not in developed:
     raise SystemExit("README developed table must include the completed P4-D4d composition")
-if "场景与仿真 Effect 编排" not in remaining or "P4-D4e Client2 wiring" not in remaining:
-    raise SystemExit("README must keep P4-D4e Client2 wiring open")
+if "P4-D4e Client2 Simulated Scenario Chain" not in developed:
+    raise SystemExit("README developed table must include the completed P4-D4e Client2 chain")
+if "P4-D4e Client2 wiring" in remaining:
+    raise SystemExit("README must not keep completed P4-D4e Client2 wiring open")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining

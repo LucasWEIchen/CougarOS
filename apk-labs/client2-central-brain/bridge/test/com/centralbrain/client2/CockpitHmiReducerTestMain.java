@@ -37,6 +37,7 @@ public final class CockpitHmiReducerTestMain {
         verifySeatReduction();
         verifyExecutionTimeline();
         verifyRecoveryUxReduction();
+        verifySimulatedScenarioReduction();
 
         state = CockpitHmiReducer.reduce(
                 state,
@@ -177,8 +178,134 @@ public final class CockpitHmiReducerTestMain {
         System.out.println("cockpit_display_large_text_1_3_verified=true");
         System.out.println("cockpit_display_unsupported_fail_closed=true");
         System.out.println("cockpit_display_effect_authorization_source=false");
+        System.out.println("cockpit_simulated_scenario_projection_reducer_owned=true");
+        System.out.println("cockpit_simulated_scenario_seven_stage_projection_verified=true");
+        System.out.println("cockpit_simulated_scenario_partial_projection_verified=true");
+        System.out.println("cockpit_simulated_graph_revision_bound_independent=true");
+        System.out.println("cockpit_simulated_approval_input_explicit=true");
+        System.out.println("cockpit_simulated_hardware_effect_dispatch_enabled=false");
         System.out.println("scenario_execution_enabled=false");
         System.out.println("hardware_accessed=false");
+    }
+
+    private static void verifySimulatedScenarioReduction() {
+        CockpitHmiState state = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.simulatedRuntimeAvailability(true, ""));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.scenarioSubmitted("care.cold", "PARKED"));
+        state = CockpitHmiReducer.reduce(
+                state,
+                CockpitHmiReducer.Event.simulatedScenarioSnapshot(
+                        simulationProjection(
+                                "care.cold",
+                                CockpitSimulatedScenarioState.Lifecycle.COMPLETED,
+                                CockpitSimulatedScenarioState.PendingStage.NONE,
+                                "",
+                                3, 3, 3, 0, 0)));
+
+        CockpitSimulatedScenarioState cold = state.getSimulatedScenarioState();
+        check(cold.isRuntimeAvailable()
+                        && cold.getLifecycle()
+                        == CockpitSimulatedScenarioState.Lifecycle.COMPLETED
+                        && cold.getEffectDispatchCount() == 3
+                        && cold.getReadbackMatchCount() == 3
+                        && cold.isSimulatedOnly()
+                        && !cold.isHardwareAccessed(),
+                "cold simulation must preserve count evidence and false hardware authority");
+        check(state.getSurfaceStage() == CockpitHmiState.SurfaceStage.EXECUTION,
+                "simulated metadata must reveal the automatic execution chain");
+        check(state.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.CONTEXT).getStatus()
+                        == CockpitExecutionTimeline.Status.CAPTURED
+                        && state.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.PLAN).getStatus()
+                        == CockpitExecutionTimeline.Status.PUBLISHED
+                        && state.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.GRAPH).getStatus()
+                        == CockpitExecutionTimeline.Status.VERIFIED
+                        && state.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.EFFECT).getStatus()
+                        == CockpitExecutionTimeline.Status.APPLIED
+                        && state.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.READBACK).getStatus()
+                        == CockpitExecutionTimeline.Status.VERIFIED,
+                "simulated metadata must project Context through readback without payloads");
+
+        CockpitHmiState fatigue = CockpitHmiReducer.reduce(
+                CockpitHmiState.initial(),
+                CockpitHmiReducer.Event.simulatedRuntimeAvailability(true, ""));
+        fatigue = CockpitHmiReducer.reduce(
+                fatigue,
+                CockpitHmiReducer.Event.scenarioSubmitted("care.fatigue", "PARKED"));
+        fatigue = CockpitHmiReducer.reduce(
+                fatigue,
+                CockpitHmiReducer.Event.simulatedScenarioSnapshot(
+                        simulationProjection(
+                                "care.fatigue",
+                                CockpitSimulatedScenarioState.Lifecycle.WAITING_APPROVAL,
+                                CockpitSimulatedScenarioState.PendingStage.APPROVAL,
+                                "vehicle.seat.recline",
+                                0, 0, 0, 0, 0)));
+        check(fatigue.getSimulatedScenarioState().isApprovalInputEnabled()
+                        && fatigue.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.POLICY).getStatus()
+                        == CockpitExecutionTimeline.Status.APPROVAL_REQUIRED
+                        && fatigue.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.EFFECT).getStatus()
+                        == CockpitExecutionTimeline.Status.NOT_DISPATCHED,
+                "parked fatigue must expose explicit debug approval before Effect dispatch");
+
+        fatigue = CockpitHmiReducer.reduce(
+                fatigue,
+                CockpitHmiReducer.Event.simulatedScenarioSnapshot(
+                        simulationProjection(
+                                "care.fatigue",
+                                CockpitSimulatedScenarioState.Lifecycle.PARTIAL,
+                                CockpitSimulatedScenarioState.PendingStage.NONE,
+                                "",
+                                4, 2, 2, 1, 0)));
+        check(fatigue.getSimulatedScenarioState().getLifecycle()
+                        == CockpitSimulatedScenarioState.Lifecycle.PARTIAL
+                        && !fatigue.getSimulatedScenarioState().isApprovalInputEnabled()
+                        && fatigue.getExecutionTimeline()
+                        .getStage(CockpitExecutionTimeline.Phase.GRAPH).getStatus()
+                        == CockpitExecutionTimeline.Status.SKIPPED,
+                "skipped approval must project Partial without retaining command authority");
+        CockpitHmiState detached = CockpitHmiReducer.reduce(
+                fatigue, CockpitHmiReducer.Event.detached());
+        check(!detached.getSimulatedScenarioState().isRuntimeAvailable()
+                        && !detached.getSimulatedScenarioState().isApprovalInputEnabled(),
+                "lifecycle detach must disable debug approval input");
+    }
+
+    private static CockpitSimulatedScenarioState.Projection simulationProjection(
+            String uiScenarioId,
+            CockpitSimulatedScenarioState.Lifecycle lifecycle,
+            CockpitSimulatedScenarioState.PendingStage pendingStage,
+            String pendingCapabilityId,
+            int effectCount,
+            int readbackAttemptCount,
+            int readbackMatchCount,
+            int approvalInputCount,
+            int failureCount) {
+        return CockpitSimulatedScenarioState.Projection.create(
+                uiScenarioId,
+                "care.cold".equals(uiScenarioId)
+                        ? "scene.comfort.cold.v1" : "scene.fatigue.assist.v1",
+                "PARKED",
+                lifecycle,
+                pendingStage,
+                pendingCapabilityId,
+                1,
+                96,
+                3,
+                effectCount,
+                readbackAttemptCount,
+                readbackMatchCount,
+                approvalInputCount,
+                failureCount);
     }
 
     private static void verifyDisplayPolicy() {

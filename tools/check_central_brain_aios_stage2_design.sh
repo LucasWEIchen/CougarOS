@@ -551,6 +551,16 @@ require_text "$DEVIATIONS" 'DEV-104 P4-D4d simulated Effect success is not vehic
 require_text "$ISSUES" 'ISSUE-033 P4-D4d update'
 require_text "$DELIVERY" 'Android P4-D4d Simulated Effect Composition'
 require_text "$DRIVER" 'P4-D4d Simulated Effect Composition Driver/HAL Boundary'
+require_text "$README" 'simulated_scenario_client2_wired=true'
+require_text "$README" 'simulated_scenario_client_parcel_wire_verified=true'
+require_text "$README" 'simulated_scenario_android13_arm64_client_verified=true'
+require_text "$README" 'hmi_d4_debug_demo_control_loop_complete=true'
+require_text "$BACKLOG" '`P4-D4e` Client2 simulated scenario chain'
+require_text "$REQUIREMENTS" 'P4-D4e Client2 scenario-chain UI wiring trace'
+require_text "$DEVIATIONS" 'DEV-105 P4-D4e Client2 debug loop is not production vehicle execution'
+require_text "$ISSUES" 'ISSUE-033 P4-D4e update'
+require_text "$DELIVERY" 'Android P4-D4e Client2 Simulated Scenario Chain'
+require_text "$DRIVER" 'P4-D4e Client2 Simulated Scenario Chain Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -756,5 +766,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_graph.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_binder.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_effect_composition.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_client2_simulated_scenario_chain.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

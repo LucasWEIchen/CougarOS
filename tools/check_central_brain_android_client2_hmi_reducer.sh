@@ -17,6 +17,7 @@ PRESENTATION_MODE="$PROJECT/bridge/src/com/centralbrain/client2/PanelPresentatio
 DRIVING_UX_POLICY="$PROJECT/bridge/src/com/centralbrain/client2/DrivingUxPolicy.java"
 ENGINEER_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitEngineerState.java"
 SCENARIO_CONTROL="$PROJECT/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java"
+SIMULATED_SCENARIO_STATE="$PROJECT/bridge/src/com/centralbrain/client2/CockpitSimulatedScenarioState.java"
 DISPLAY_POLICY="$PROJECT/bridge/src/com/centralbrain/client2/CockpitDisplayPolicy.java"
 COORDINATOR="$PROJECT/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
 TEST_MAIN="$PROJECT/bridge/test/com/centralbrain/client2/CockpitHmiReducerTestMain.java"
@@ -37,7 +38,7 @@ for path in \
   "$RECOVERY_STATE" \
   "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
   "$ENGINEER_STATE" \
-  "$SCENARIO_CONTROL" "$DISPLAY_POLICY" \
+  "$SCENARIO_CONTROL" "$SIMULATED_SCENARIO_STATE" "$DISPLAY_POLICY" \
   "$COORDINATOR" "$TEST_MAIN" "$ANDROID_JAR"; do
   test -f "$path"
 done
@@ -50,7 +51,7 @@ fi
 if grep -Eq '^import android\.' \
     "$STATE" "$REDUCER" "$HVAC_STATE" "$HVAC_INTENT" "$SEAT_STATE" "$SEAT_INTENT" \
     "$EXECUTION_TIMELINE" "$RECOVERY_STATE" "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
-    "$ENGINEER_STATE" "$SCENARIO_CONTROL" "$DISPLAY_POLICY"; then
+    "$ENGINEER_STATE" "$SCENARIO_CONTROL" "$SIMULATED_SCENARIO_STATE" "$DISPLAY_POLICY"; then
   echo "Cockpit HMI state/reducer must remain Android-view independent" >&2
   exit 1
 fi
@@ -86,7 +87,8 @@ javac \
   "$HVAC_INTENT" "$HVAC_STATE" "$SEAT_INTENT" "$SEAT_STATE" \
   "$EXECUTION_TIMELINE" "$RECOVERY_STATE" "$PRESENTATION_MODE" "$DRIVING_UX_POLICY" \
   "$ENGINEER_STATE" \
-  "$SCENARIO_CONTROL" "$DISPLAY_POLICY" "$STATE" "$REDUCER" "$TEST_MAIN"
+  "$SCENARIO_CONTROL" "$SIMULATED_SCENARIO_STATE" "$DISPLAY_POLICY" \
+  "$STATE" "$REDUCER" "$TEST_MAIN"
 
 java \
   -classpath "$ANDROID_JAR:$SDK_CLASSES:$BUILD_DIR/classes" \

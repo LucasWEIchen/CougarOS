@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p4-d4e-client2-scenario-chain-v1",
+  "maturity": "debug_client_hmi_control_loop_verified",
+  "requirement_ids": [
+    "S2-SCN-001", "S2-GRF-001", "S2-EVT-001", "S2-EFF-001",
+    "S2-SAF-001", "S2-HMI-003", "S2-HMI-006", "APP-004",
+    "XSC-001", "XSC-004", "XSC-005", "XSC-006",
+    "DEL-001", "DEL-003", "DEL-004", "DEL-005"
+  ],
+  "client_package": "com.tuanjie.urasclient2",
+  "runtime_package": "com.centralbrain.runtime",
+  "source_set": "debug_reverse_demo",
+  "binder_protocol_version": 2,
+  "binder_parcel_schema_version": 2,
+  "parcel_field_order": [
+    "schemaVersion", "runId", "sessionId", "scenarioId", "planDigest",
+    "planRevision", "sessionState", "graphRevision", "automaticProjectionCount",
+    "suppliedOutcomeCount", "pendingStage", "pendingNodeId",
+    "pendingCapabilityId", "lastEventSequence", "projectedEventCount",
+    "projectionDigest", "simulatedEffectDispatchCount",
+    "simulatedReadbackAttemptCount", "simulatedReadbackMatchCount",
+    "simulatedApprovalInputCount", "simulatedFailureCount",
+    "effectDispatchEnabled", "readbackAccessed", "approvalAuthorityAvailable",
+    "hardwareAccessed", "productionReady", "targetHardwareValidated"
+  ],
+  "scenario_bindings": {
+    "care.cold": "scene.comfort.cold.v1",
+    "care.fatigue": "scene.fatigue.assist.v1"
+  },
+  "approval_binding": {
+    "pending_node_id": "request_seat_approval",
+    "pending_capability_id_on_wire": "",
+    "hmi_target_id": "vehicle.seat.recline",
+    "authority": "simulation_only"
+  },
+  "hmi_stages": [
+    "Intent", "Context", "Plan", "Policy", "Graph", "Effect", "Readback"
+  ],
+  "projection_limits": {
+    "maximum_effect_count": 16,
+    "maximum_event_count": 64,
+    "maximum_graph_revision": 1000000
+  },
+  "android13_arm64_observation": {
+    "executed": true,
+    "scenario_path_count": 3,
+    "cold_effect_dispatch_count": 3,
+    "cold_readback_match_count": 3,
+    "fatigue_approved_effect_dispatch_count": 5,
+    "fatigue_approved_readback_match_count": 3,
+    "fatigue_rejected_effect_dispatch_count": 4,
+    "fatigue_rejected_readback_match_count": 2,
+    "approval_input_count": 2,
+    "seven_stage_ui_verified": true,
+    "raw_payload_logged": false,
+    "device_identity_logged": false
+  },
+  "claim_state": {
+    "simulated_scenario_client2_wired": true,
+    "simulated_scenario_client_parcel_wire_verified": true,
+    "simulated_scenario_projection_reducer_owned": true,
+    "simulated_scenario_seven_stage_ui_verified": true,
+    "simulated_scenario_effect_dispatch_enabled": true,
+    "simulated_scenario_readback_accessed": true,
+    "simulated_scenario_approval_input_explicit": true,
+    "simulated_scenario_android13_arm64_client_verified": true,
+    "hmi_d4_debug_demo_control_loop_complete": true,
+    "simulated_scenario_hardware_effect_dispatch_enabled": false,
+    "simulated_scenario_approval_authority_available": false,
+    "simulated_scenario_production_registered": false,
+    "client2_production_release_artifact_available": false,
+    "scenario_execution_enabled": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P4-D4e"
+  }
+}

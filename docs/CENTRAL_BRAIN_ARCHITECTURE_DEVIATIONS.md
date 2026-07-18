@@ -1739,3 +1739,23 @@ debug Binder/composition 的执行证据，不改变本偏差状态。
 `simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
 `simulated_scenario_client2_wired=false`、`simulated_scenario_production_registered=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4d`。
+
+### DEV-105 P4-D4e Client2 debug loop is not production vehicle execution
+
+**Status:** Open / tracked
+
+Client2 现在可以从自然场景按钮启动 D4d debug Binder，显示七阶段链路，并对 parked Fatigue 提供显式批准/拒绝。UI 中 APPLIED、VERIFIED、
+Completed 和 Partial 均来自 process-local simulated adapters 与 simulated observation，不是 VehicleProperty/Vendor SOA/CAN/Media/Nav/Seat/HVAC
+硬件证据。
+
+本偏差要求所有 D4e 表面保持 `SIMULATED`、`DEBUG ONLY`、`HARDWARE NOT ACCESSED`；`scenario_execution_enabled=false` 表示量产执行
+仍未启用。D4e APK 仍是逆向集成 debug artifact，不是正式 vendor source-tree Client2 release。批准按钮只向 debug graph 提供测试 outcome，
+不构成 production approval authority。
+
+实体 Android 13 ARM64 已验证 Cold 3/3、Fatigue approved 5/3、Fatigue rejected 4/2 Partial、两次显式输入与七阶段 UI；这只关闭 D4e
+应用层仿真验收，不关闭 P8/P9、真实 Driver/HAL、production signer/installer、车辆安全 owner 或 target hardware qualification。
+
+当前 `simulated_scenario_client2_wired=true`、`simulated_scenario_android13_arm64_client_verified=true`、
+`hmi_d4_debug_demo_control_loop_complete=true`、`simulated_scenario_hardware_effect_dispatch_enabled=false`、
+`simulated_scenario_approval_authority_available=false`、`client2_production_release_artifact_available=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4e`。

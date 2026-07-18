@@ -26,6 +26,7 @@ public final class CockpitControlCoordinator implements
         View.OnClickListener,
         ScenarioCallback,
         DebugSimulationControllerClient.Callback,
+        SimulatedScenarioRuntimeClient.Callback,
         Application.ActivityLifecycleCallbacks {
     private static final String TAG = "CbClient2Hmi";
     private static final String MENU_TAG = "central_brain_menu_toggle";
@@ -41,6 +42,8 @@ public final class CockpitControlCoordinator implements
     private static final String HVAC_TAG_PREFIX = "central_brain_hvac_";
     private static final String SEAT_TAG_PREFIX = "central_brain_seat_";
     private static final String RECOVERY_TAG_PREFIX = "central_brain_recovery_";
+    private static final String RECOVERY_APPROVE_TAG = "central_brain_recovery_approve";
+    private static final String RECOVERY_REJECT_TAG = "central_brain_recovery_reject";
     private static final String ENGINEER_TAG_PREFIX = "central_brain_engineer_";
     private static final long HVAC_DEBOUNCE_MS = 300L;
     private static final long SEAT_DEBOUNCE_MS = 300L;
@@ -58,6 +61,7 @@ public final class CockpitControlCoordinator implements
     private final Runnable submitHvacRunnable = this::submitPendingHvac;
     private final Runnable submitSeatRunnable = this::submitPendingSeat;
     private final DebugSimulationControllerClient debugSimulationClient;
+    private final SimulatedScenarioRuntimeClient simulatedScenarioClient;
     private final CockpitDisplayPolicy displayPolicy;
 
     private CockpitHmiState state;
@@ -135,6 +139,7 @@ public final class CockpitControlCoordinator implements
         this.application = activity.getApplication();
         this.preferences = activity.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE);
         this.debugSimulationClient = new DebugSimulationControllerClient(activity, this);
+        this.simulatedScenarioClient = new SimulatedScenarioRuntimeClient(activity, this);
         DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         this.displayPolicy = CockpitDisplayPolicy.resolve(
                 metrics.widthPixels,
@@ -183,6 +188,7 @@ public final class CockpitControlCoordinator implements
             resumeSession();
         }
         debugSimulationClient.connect();
+        simulatedScenarioClient.connect();
     }
 
     private void bindViews() {
@@ -382,6 +388,16 @@ public final class CockpitControlCoordinator implements
             return;
         }
         if (tagValue.startsWith(RECOVERY_TAG_PREFIX)) {
+            if (state.getSimulatedScenarioState().isApprovalInputEnabled()) {
+                if (RECOVERY_APPROVE_TAG.equals(tagValue)) {
+                    simulatedScenarioClient.approvePending();
+                    return;
+                }
+                if (RECOVERY_REJECT_TAG.equals(tagValue)) {
+                    simulatedScenarioClient.skipPending();
+                    return;
+                }
+            }
             Log.w(TAG, markers()
                     + " client2_hmi_recovery_command_available=false"
                     + " recovery_command=" + tagValue);
@@ -433,10 +449,19 @@ public final class CockpitControlCoordinator implements
         if (scenarioId == null || scenarioId.isEmpty()) {
             return;
         }
-        accept(CockpitHmiReducer.Event.scenarioSubmitted(scenarioId));
+        CockpitSeatState.DrivingState drivingState =
+                state.getSeatState().getSafetyContext().getDrivingState();
+        String simulatedDrivingProfile =
+                drivingState == CockpitSeatState.DrivingState.PARKED
+                        ? "PARKED" : "MOVING_RESTRICTED";
+        accept(CockpitHmiReducer.Event.scenarioSubmitted(
+                scenarioId, simulatedDrivingProfile));
         Client2ScenarioBridge.SessionConnection opened =
                 Client2ScenarioBridge.openSession(activity, scenarioId, userText, this);
         replaceConnection(opened);
+        if (CockpitSimulatedScenarioState.isSupported(scenarioId)) {
+            simulatedScenarioClient.startScenario(scenarioId, drivingState);
+        }
     }
 
     private void handleHvacControl(String tag) {
@@ -730,6 +755,24 @@ public final class CockpitControlCoordinator implements
         accept(CockpitHmiReducer.Event.engineerFailure(code));
     }
 
+    @Override
+    public void onSimulatedRuntimeAvailability(boolean available, String failureCode) {
+        accept(CockpitHmiReducer.Event.simulatedRuntimeAvailability(
+                available, failureCode));
+    }
+
+    @Override
+    public void onSimulatedScenarioSnapshot(
+            CockpitSimulatedScenarioState.Projection projection) {
+        accept(CockpitHmiReducer.Event.simulatedScenarioSnapshot(projection));
+    }
+
+    @Override
+    public void onSimulatedScenarioFailure(String uiScenarioId, String failureCode) {
+        accept(CockpitHmiReducer.Event.simulatedScenarioFailure(
+                uiScenarioId, failureCode));
+    }
+
     private void resumeSession() {
         SessionHandle handle = state.toSessionHandle();
         if (handle == null || state.getUiScenarioId().isEmpty()) {
@@ -908,6 +951,7 @@ public final class CockpitControlCoordinator implements
         setText(connectionView, connectionLabel(current.getConnectionState()));
         String phrase = phraseForScenario(current.getUiScenarioId());
         CockpitScenarioControlState scenarioControl = current.getScenarioControlState();
+        CockpitSimulatedScenarioState simulated = current.getSimulatedScenarioState();
         setText(intentPreviewView, phrase.isEmpty() ? "选择一个场景意图" : phrase);
         if (current.hasSession()) {
             String canonical = current.getCanonicalScenarioId().isEmpty()
@@ -934,6 +978,26 @@ public final class CockpitControlCoordinator implements
                             + "\n05  Effect：未调度");
             setText(sessionStripTitleView, "等待场景输入");
         }
+        if (simulated.hasScenario()) {
+            String canonical = simulated.getCanonicalScenarioId().isEmpty()
+                    ? CockpitScenarioControlState.canonicalScenarioId(
+                            simulated.getUiScenarioId())
+                    : simulated.getCanonicalScenarioId();
+            setText(planSummaryView,
+                    simulated.hasSnapshot()
+                            ? "Debug 仿真 Plan 已发布"
+                            : "Debug 仿真 Runtime 正在受理");
+            setText(planChainView,
+                    "01  意图：" + canonical
+                            + "\n02  Context：SIMULATED · "
+                            + simulated.getDrivingProfile()
+                            + "\n03  Plan：" + simulationPlanLabel(simulated)
+                            + "\n04  Policy：" + simulationPolicyLabel(simulated)
+                            + "\n05  Graph：" + simulationGraphLabel(simulated)
+                            + "\n固定目标：" + fixedTargetLabel(simulated.getUiScenarioId())
+                            + "\n边界：DEBUG ONLY · HARDWARE NOT ACCESSED");
+            setText(sessionStripTitleView, "AIOS Debug 仿真链路");
+        }
         renderExecutionTimeline(current, presentationMode);
         setText(resultSummaryView, "暂无可验证车辆结果");
         CockpitHvacState hvac = current.getHvacState();
@@ -942,7 +1006,18 @@ public final class CockpitControlCoordinator implements
                 + "\nReported：UNAVAILABLE"
                 + "\nSource：UNAVAILABLE"
                 + "\nQuality：NO EVIDENCE";
-        if (scenarioControl.getOrigin() == CockpitScenarioControlState.Origin.NATURAL) {
+        if (simulated.hasSnapshot()) {
+            setText(resultSummaryView, simulationResultLabel(simulated));
+            resultEvidence = "Simulation：" + simulated.getLifecycle()
+                    + "\nEffect dispatch：" + simulated.getEffectDispatchCount()
+                    + " · SIMULATED"
+                    + "\nReadback matched：" + simulated.getReadbackMatchCount()
+                    + "/" + simulated.getReadbackAttemptCount()
+                    + " · SIMULATED"
+                    + "\nApproval input：" + simulated.getApprovalInputCount()
+                    + " · Failure：" + simulated.getFailureCount()
+                    + "\nHardware：NOT ACCESSED · Production：NOT READY";
+        } else if (scenarioControl.getOrigin() == CockpitScenarioControlState.Origin.NATURAL) {
             resultEvidence = "Catalog target：HVAC "
                     + deviceRoleLabel(scenarioControl.getHvacRole())
                     + " · Seat " + deviceRoleLabel(scenarioControl.getSeatRole())
@@ -978,7 +1053,9 @@ public final class CockpitControlCoordinator implements
             CockpitHmiState current,
             PanelPresentationMode presentationMode) {
         CockpitSeatState.SafetyContext context = current.getSeatState().getSafetyContext();
-        setText(sourceView, context.getSource().name());
+        CockpitSimulatedScenarioState simulated = current.getSimulatedScenarioState();
+        setText(sourceView, simulated.hasSnapshot()
+                ? "SIMULATED" : context.getSource().name());
         String drivingLabel;
         String restrictionLabel;
         if (presentationMode == PanelPresentationMode.PARKED_FULL) {
@@ -1011,8 +1088,11 @@ public final class CockpitControlCoordinator implements
             CockpitHmiState current,
             PanelPresentationMode presentationMode) {
         CockpitExecutionTimeline timeline = current.getExecutionTimeline();
+        CockpitSimulatedScenarioState simulated = current.getSimulatedScenarioState();
         setText(executionSummaryView,
-                current.hasSession()
+                simulated.hasSnapshot()
+                        ? "AIOS 自动执行链 · " + simulated.getLifecycle()
+                        : current.hasSession()
                         ? "可观察执行时间线 · Session 已受理"
                         : "可观察执行时间线 · 等待意图");
         boolean concise = !presentationMode.isLongTextVisible();
@@ -1053,23 +1133,50 @@ public final class CockpitControlCoordinator implements
             trace.append("\n暂无 Runtime typed event");
         }
         setText(executionActionsView,
-                "Media STOP：" + media + " · Navigation CANCEL：" + navigation);
-        renderRecoveryState(current.getRecoveryState(), concise);
+                simulated.hasSnapshot()
+                        ? "固定目标：" + fixedTargetLabel(simulated.getUiScenarioId())
+                                + "\nEffect " + simulated.getEffectDispatchCount()
+                                + " · Readback " + simulated.getReadbackMatchCount()
+                                + "/" + simulated.getReadbackAttemptCount()
+                        : "Media STOP：" + media + " · Navigation CANCEL：" + navigation);
+        renderRecoveryState(current, concise);
+        if (simulated.hasSnapshot()) {
+            trace.append("\nDebug metadata · Event ")
+                    .append(simulated.getProjectedEventCount())
+                    .append(" · Graph rev ").append(simulated.getGraphRevision())
+                    .append("\nNo target payload · No vehicle evidence");
+        }
         setText(executionChainView, trace.toString());
     }
 
-    private void renderRecoveryState(CockpitRecoveryState recovery, boolean concise) {
+    private void renderRecoveryState(CockpitHmiState current, boolean concise) {
+        CockpitRecoveryState recovery = current.getRecoveryState();
+        CockpitSimulatedScenarioState simulated = current.getSimulatedScenarioState();
         String expiry = recovery.getApprovalExpiresAtEpochMs() > 0
                 ? Long.toString(recovery.getApprovalExpiresAtEpochMs())
                 : "UNAVAILABLE";
-        setText(approvalStateView, concise
-                ? "Approval：" + statusLabel(recovery.getApprovalStatus())
-                        + " · 行驶呈现不授予权限"
-                : "Approval：" + statusLabel(recovery.getApprovalStatus())
-                        + "\nReason：" + recovery.getApprovalReasonCode()
-                        + " · Target：" + recovery.getApprovalTarget()
-                        + "\nExpiry：" + expiry
-                        + " · Response service：NOT PUBLISHED");
+        if (simulated.hasScenario()
+                && (simulated.hasSnapshot()
+                        || simulated.getLifecycle()
+                                == CockpitSimulatedScenarioState.Lifecycle.FAILED)) {
+            setText(approvalStateView, concise
+                    ? "Debug approval：" + simulated.getLifecycle()
+                            + " · 不授予生产权限"
+                    : "Debug approval：" + simulated.getLifecycle()
+                            + "\nTarget：" + (simulated.getPendingCapabilityId().isEmpty()
+                                    ? "NONE" : simulated.getPendingCapabilityId())
+                            + " · Input count：" + simulated.getApprovalInputCount()
+                            + "\nAuthority：SIMULATION ONLY · Production：UNAVAILABLE");
+        } else {
+            setText(approvalStateView, concise
+                    ? "Approval：" + statusLabel(recovery.getApprovalStatus())
+                            + " · 行驶呈现不授予权限"
+                    : "Approval：" + statusLabel(recovery.getApprovalStatus())
+                            + "\nReason：" + recovery.getApprovalReasonCode()
+                            + " · Target：" + recovery.getApprovalTarget()
+                            + "\nExpiry：" + expiry
+                            + " · Response service：NOT PUBLISHED");
+        }
         setText(partialStateView, concise
                 ? "Outcome：" + statusLabel(recovery.getAggregateStatus())
                         + " · V" + recovery.getVerifiedCount()
@@ -1082,8 +1189,10 @@ public final class CockpitControlCoordinator implements
         setText(compensationStateView,
                 "Compensation：" + statusLabel(recovery.getCompensationStatus())
                         + " · Undo handle：NOT PUBLISHED");
-        setEnabled(approveButton, recovery.isApproveEnabled());
-        setEnabled(rejectButton, recovery.isRejectEnabled());
+        setEnabled(approveButton,
+                simulated.isApprovalInputEnabled() || recovery.isApproveEnabled());
+        setEnabled(rejectButton,
+                simulated.isApprovalInputEnabled() || recovery.isRejectEnabled());
         setEnabled(retryButton, recovery.isRetryEnabled());
         setEnabled(undoButton, recovery.isUndoEnabled());
     }
@@ -1475,6 +1584,55 @@ public final class CockpitControlCoordinator implements
         return "";
     }
 
+    private static String simulationPlanLabel(CockpitSimulatedScenarioState state) {
+        return state.hasSnapshot()
+                ? "REV " + state.getPlanRevision() + " · FIXED DEBUG PLAN"
+                : "WAITING";
+    }
+
+    private static String simulationPolicyLabel(CockpitSimulatedScenarioState state) {
+        return state.getLifecycle() == CockpitSimulatedScenarioState.Lifecycle.WAITING_APPROVAL
+                ? "EXPLICIT DEBUG APPROVAL REQUIRED"
+                : "SIMULATION ONLY · NO PRODUCTION AUTHORITY";
+    }
+
+    private static String simulationGraphLabel(CockpitSimulatedScenarioState state) {
+        return state.getLifecycle() == CockpitSimulatedScenarioState.Lifecycle.FAILED
+                && !state.getFailureCode().isEmpty()
+                ? "FAILED · " + state.getFailureCode()
+                : state.getLifecycle().name();
+    }
+
+    private static String fixedTargetLabel(String uiScenarioId) {
+        if ("care.cold".equals(uiScenarioId)) {
+            return "空调开启 / 23 C / 主驾座椅加热";
+        }
+        if ("care.fatigue".equals(uiScenarioId)) {
+            return "空调风量 / 媒体暂停 / 休息区导航 / 审批后座椅放倒";
+        }
+        return "UNAVAILABLE";
+    }
+
+    private static String simulationResultLabel(CockpitSimulatedScenarioState state) {
+        switch (state.getLifecycle()) {
+            case COMPLETED:
+                return "Debug 仿真执行完成";
+            case PARTIAL:
+                return "Debug 仿真部分完成";
+            case WAITING_APPROVAL:
+                return "等待显式 Debug 审批";
+            case FAILED:
+            case STUCK:
+                return "Debug 仿真失败关闭";
+            case CANCELLED:
+                return "Debug 仿真已取消";
+            case CONNECTING:
+            case RUNNING:
+            default:
+                return "Debug 仿真执行中";
+        }
+    }
+
     private CockpitHmiState restoreCheckpoint() {
         if (preferences.getInt("schema", 0) != CHECKPOINT_SCHEMA) {
             return CockpitHmiState.initial();
@@ -1558,6 +1716,7 @@ public final class CockpitControlCoordinator implements
             previous.close();
         }
         debugSimulationClient.close();
+        simulatedScenarioClient.close();
         application.unregisterActivityLifecycleCallbacks(this);
         Log.i(TAG, markers()
                 + " client2_hmi_lifecycle_detached=true"
@@ -1606,6 +1765,12 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_scenario_catalog_normalized=true"
                 + " cockpit_scenario_manual_shared_client=true"
                 + " cockpit_scenario_device_session_synchronized=true"
+                + " cockpit_simulated_scenario_binder_v2_wired=true"
+                + " cockpit_simulated_scenario_projection_reducer_owned=true"
+                + " cockpit_simulated_scenario_effect_dispatch_enabled=true"
+                + " cockpit_simulated_scenario_readback_available=true"
+                + " cockpit_simulated_approval_input_explicit=true"
+                + " cockpit_simulated_hardware_effect_dispatch_enabled=false"
                 + " cockpit_display_matrix_defined=true"
                 + " cockpit_accessibility_semantics_runtime_owned=true"
                 + " cockpit_touch_target_min_dp=48"

@@ -1726,3 +1726,36 @@ Release/production registry 为空；Client2 与真实 Vehicle/NPU/Driver-HAL �
 `simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
 `simulated_scenario_client2_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4d`。
+
+## 61. P4-D4e Client2 scenario-chain architecture
+
+```mermaid
+flowchart LR
+    U["Natural scene input"] --> C["CockpitControlCoordinator"]
+    C --> S["Existing Session/Event client"]
+    C --> B["SimulatedScenarioRuntimeClient v2"]
+    B --> R["Debug Runtime Service"]
+    R --> G["Scenario Compiler and Agent Graph"]
+    G --> E["Simulated Effect composition"]
+    E --> B
+    B --> V["Validated metadata Projection"]
+    S --> D["Sole HMI reducer"]
+    V --> D
+    D --> T["Intent Context Plan Policy Graph Effect Readback"]
+```
+
+Session/Event 路径继续负责场景 admission 与既有回复；D4e Binder 路径只负责固定 debug graph/effect/readback metadata。两条异步路径最终
+都进入 sole reducer，任何 Session replay/snapshot 都会重新应用当前 simulated state，防止较晚回调抹除七阶段证据。
+
+`SimulatedScenarioRuntimeClient` 是 Android 边界层；`CockpitSimulatedScenarioState` 是纯 Java domain state；
+`CockpitExecutionTimeline.simulatedScenario` 是唯一七阶段映射；`CockpitControlCoordinator` 只负责生命周期、点击分发和 view rendering。
+审批按钮不直接调用 adapter，只向 Binder 提供 typed debug outcome。
+
+安全边界：Client2/Runtime 同 signer + capability；explicit component；protocol/hash；exact Parcelable wire；fixed scenario/approval mapping；
+generation suppression；bounded count/revision；main-thread reducer；false hardware/production flags。真实 Vehicle/NPU/Driver-HAL 与 production
+registry 均不在该架构路径中。
+
+实体 Android 13 ARM64 已覆盖 Cold Completed、Fatigue approval Completed、Fatigue skip Partial。当前
+`simulated_scenario_client2_wired=true`、`hmi_d4_debug_demo_control_loop_complete=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4e`。

@@ -174,6 +174,11 @@ public final class CockpitHmiReducer {
                         .scenarioRequested(event.uiScenarioId);
                 next.executionTimeline = current.getExecutionTimeline()
                         .scenarioRequested(event.uiScenarioId);
+                next.simulatedScenarioState = CockpitSimulatedScenarioState.isSupported(
+                        event.uiScenarioId)
+                        ? current.getSimulatedScenarioState().requested(
+                                event.uiScenarioId, event.simulatedDrivingProfile)
+                        : current.getSimulatedScenarioState().idle();
                 next.recoveryState = current.getRecoveryState().scenarioRequested();
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTING;
                 next.surfaceStage = CockpitHmiState.SurfaceStage.PLAN;
@@ -195,6 +200,30 @@ public final class CockpitHmiReducer {
                 next.replayComplete = false;
                 next.terminal = false;
                 return next.buildNext();
+            case SIMULATED_RUNTIME_AVAILABILITY:
+                next.simulatedScenarioState = current.getSimulatedScenarioState()
+                        .availability(event.flag, event.errorCode);
+                return next.buildNext();
+            case SIMULATED_SCENARIO_SNAPSHOT:
+                CockpitSimulatedScenarioState simulated =
+                        current.getSimulatedScenarioState().snapshot(
+                                event.simulatedProjection);
+                if (simulated == current.getSimulatedScenarioState()) {
+                    return current;
+                }
+                next.simulatedScenarioState = simulated;
+                next.executionTimeline = current.getExecutionTimeline()
+                        .simulatedScenario(simulated);
+                next.surfaceStage = CockpitHmiState.SurfaceStage.EXECUTION;
+                return next.buildNext();
+            case SIMULATED_SCENARIO_FAILURE:
+                CockpitSimulatedScenarioState failedSimulation =
+                        current.getSimulatedScenarioState().failure(
+                                event.uiScenarioId, event.errorCode);
+                next.simulatedScenarioState = failedSimulation;
+                next.executionTimeline = current.getExecutionTimeline()
+                        .simulatedScenario(failedSimulation);
+                return next.buildNext();
             case CONNECTION_CHANGED:
                 next.connectionState = event.flag
                         ? CockpitHmiState.ConnectionState.CONNECTED
@@ -215,7 +244,8 @@ public final class CockpitHmiReducer {
                 next.expiresAtEpochMs = event.handle.expiresAtEpochMs;
                 next.canonicalScenarioId = event.canonicalScenarioId;
                 next.executionTimeline = current.getExecutionTimeline()
-                        .sessionOpened(event.canonicalScenarioId);
+                        .sessionOpened(event.canonicalScenarioId)
+                        .simulatedScenario(current.getSimulatedScenarioState());
                 next.connectionState = CockpitHmiState.ConnectionState.CONNECTED;
                 if (!openedScenario.isCatalogMatched()) {
                     next.connectionState = CockpitHmiState.ConnectionState.FAILED;
@@ -249,7 +279,8 @@ public final class CockpitHmiReducer {
                 next.canonicalScenarioId = event.canonicalScenarioId;
                 next.sessionState = event.sessionState;
                 next.executionTimeline = current.getExecutionTimeline()
-                        .snapshot(event.sessionState, event.activePlanRevision);
+                        .snapshot(event.sessionState, event.activePlanRevision)
+                        .simulatedScenario(current.getSimulatedScenarioState());
                 next.recoveryState = current.getRecoveryState().snapshot(event.sessionState);
                 next.snapshotSummary = event.text;
                 next.terminal = event.terminal;
@@ -282,7 +313,8 @@ public final class CockpitHmiReducer {
                 next.scenarioControlState = current.getScenarioControlState()
                         .runtimeEvent(event.sequence);
                 CockpitExecutionTimeline updatedTimeline = current.getExecutionTimeline()
-                        .runtimeEvent(event.timelineEvent);
+                        .runtimeEvent(event.timelineEvent)
+                        .simulatedScenario(current.getSimulatedScenarioState());
                 next.executionTimeline = updatedTimeline;
                 if (!updatedTimeline.getTraceItems().isEmpty()) {
                     next.recoveryState = current.getRecoveryState().runtimeEvent(
@@ -340,6 +372,7 @@ public final class CockpitHmiReducer {
                 }
                 return next.buildNext();
             case DETACHED:
+                next.simulatedScenarioState = current.getSimulatedScenarioState().detached();
                 next.connectionState = current.hasSession() && !current.isTerminal()
                         ? CockpitHmiState.ConnectionState.DISCONNECTED
                         : current.getConnectionState();
@@ -353,6 +386,7 @@ public final class CockpitHmiReducer {
                 next.deviceDrawer = CockpitHmiState.DeviceDrawer.CLOSED;
                 next.presentationMode = PanelPresentationMode.MOVING_RESTRICTED;
                 next.engineerState = CockpitEngineerState.unavailable();
+                next.simulatedScenarioState = CockpitSimulatedScenarioState.initial();
                 next.scenarioControlState = CockpitScenarioControlState.restored(
                         checkpoint.uiScenarioId,
                         checkpoint.canonicalScenarioId);
@@ -431,6 +465,9 @@ public final class CockpitHmiReducer {
             ENGINEER_RESET_APPLIED,
             ENGINEER_FAILURE,
             SCENARIO_SUBMITTED,
+            SIMULATED_RUNTIME_AVAILABILITY,
+            SIMULATED_SCENARIO_SNAPSHOT,
+            SIMULATED_SCENARIO_FAILURE,
             CONNECTION_CHANGED,
             SESSION_OPENED,
             SNAPSHOT,
@@ -469,10 +506,12 @@ public final class CockpitHmiReducer {
         private String eventType = "";
         private String text = "";
         private String errorCode = "";
+        private String simulatedDrivingProfile = "MOVING_RESTRICTED";
         private boolean terminal;
         private SessionHandle handle;
         private CockpitHmiState.Checkpoint checkpoint;
         private CockpitExecutionTimeline.ProjectedEvent timelineEvent;
+        private CockpitSimulatedScenarioState.Projection simulatedProjection;
 
         private Event(Type type) {
             this.type = type;
@@ -594,8 +633,38 @@ public final class CockpitHmiReducer {
         }
 
         public static Event scenarioSubmitted(String uiScenarioId) {
+            return scenarioSubmitted(uiScenarioId, "MOVING_RESTRICTED");
+        }
+
+        public static Event scenarioSubmitted(
+                String uiScenarioId,
+                String simulatedDrivingProfile) {
             Event event = new Event(Type.SCENARIO_SUBMITTED);
             event.uiScenarioId = bounded(uiScenarioId, 96);
+            event.simulatedDrivingProfile = bounded(simulatedDrivingProfile, 32);
+            return event;
+        }
+
+        public static Event simulatedRuntimeAvailability(
+                boolean available,
+                String failureCode) {
+            Event event = new Event(Type.SIMULATED_RUNTIME_AVAILABILITY);
+            event.flag = available;
+            event.errorCode = bounded(failureCode, 64);
+            return event;
+        }
+
+        public static Event simulatedScenarioSnapshot(
+                CockpitSimulatedScenarioState.Projection projection) {
+            Event event = new Event(Type.SIMULATED_SCENARIO_SNAPSHOT);
+            event.simulatedProjection = Objects.requireNonNull(projection, "projection");
+            return event;
+        }
+
+        public static Event simulatedScenarioFailure(String uiScenarioId, String code) {
+            Event event = new Event(Type.SIMULATED_SCENARIO_FAILURE);
+            event.uiScenarioId = bounded(uiScenarioId, 96);
+            event.errorCode = bounded(code, 64);
             return event;
         }
 
