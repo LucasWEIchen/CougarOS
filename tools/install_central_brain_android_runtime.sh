@@ -3355,6 +3355,60 @@ if [[ "$EVENT_QOS_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+TRIGGER_ENGINE_NONCE="$(date +%s%N)"
+TRIGGER_ENGINE_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.events.TriggerEngineProbeActivity \
+  --es nonce "$TRIGGER_ENGINE_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$TRIGGER_ENGINE_PROBE_OUTPUT"; then
+  echo "$TRIGGER_ENGINE_PROBE_OUTPUT" >&2
+  echo "TriggerEngine debug probe did not start successfully" >&2
+  exit 1
+fi
+TRIGGER_ENGINE_PROBE_PASSED=false
+for _ in {1..40}; do
+  TRIGGER_ENGINE_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbTriggerEngine:I)"
+  if grep -Fq "nonce=$TRIGGER_ENGINE_NONCE trigger_engine_probe_complete=true" \
+      <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_rule_manifest_verified=true" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_threshold_window_debounce_verified=true" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_cooldown_scope_verified=true" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_input_fail_closed_verified=true" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_suggestion_only_verified=true" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_engine_android13_arm64_verified=true" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_engine_process_local=true" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_cooldown_persistence_wired=false" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_source_adapter_wired=false" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_auto_execution_enabled=false" \
+        <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "trigger_runtime_wired=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "vehicle_readback_accessed=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "production_ready=false" <<<"$TRIGGER_ENGINE_LOG" \
+      && grep -Fq "target_hardware_validated=false" <<<"$TRIGGER_ENGINE_LOG"; then
+    TRIGGER_ENGINE_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$TRIGGER_ENGINE_PROBE_PASSED" != true ]]; then
+  echo "$TRIGGER_ENGINE_LOG" >&2
+  echo "TriggerEngine probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -4043,6 +4097,18 @@ printf '%s\n' \
   "event_qos_broker_wired=false" \
   "event_qos_durable_persistence_wired=false" \
   "event_qos_production_middleware_wired=false" \
+  "trigger_rule_manifest_defined=true" \
+  "trigger_rule_manifest_verified=true" \
+  "trigger_threshold_window_debounce_verified=true" \
+  "trigger_cooldown_scope_verified=true" \
+  "trigger_input_fail_closed_verified=true" \
+  "trigger_suggestion_only_verified=true" \
+  "trigger_engine_android13_arm64_verified=true" \
+  "trigger_engine_process_local=true" \
+  "trigger_cooldown_persistence_wired=false" \
+  "trigger_source_adapter_wired=false" \
+  "trigger_auto_execution_enabled=false" \
+  "trigger_runtime_wired=false" \
   "tool_approval_authority_available=false" \
   "tool_execution_enabled=false" \
   "production_tool_execution_enabled=false" \
