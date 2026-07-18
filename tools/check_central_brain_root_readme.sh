@@ -466,6 +466,17 @@ for marker in \
   'production_model_output_runtime_wired=false' \
   'production_evaluation_authority_published=false' \
   'production_resource_snapshot_provider_wired=false' \
+  'p9_android13_arm64_probe_acceptance_complete=true' \
+  'p9_probe_module_count=7' \
+  'performance_budget_contract_probe_android13_arm64_verified=true' \
+  'stability_matrix_contract_probe_android13_arm64_verified=true' \
+  'security_boundary_probe_android13_arm64_verified=true' \
+  'privacy_redaction_probe_android13_arm64_verified=true' \
+  'release_metadata_probe_android13_arm64_verified=true' \
+  'driver_safety_android_contract_probe_android13_arm64_verified=true' \
+  'field_diagnostics_probe_android13_arm64_verified=true' \
+  'field_diagnostics_target_category_execution_complete=false' \
+  'release_evidence_target_report_admitted=false' \
   'target_capability_discovery_contract_defined=true' \
   'target_capability_discovery_matrix_column_count=14' \
   'target_capability_discovery_capability_count=8' \
@@ -709,6 +720,7 @@ required_paths=(
   central-brain/contracts/central_brain_android_p4_d4a_simulated_scenario_graph.json
   central-brain/contracts/central_brain_android_p4_d4b_simulated_scenario_runtime.json
   central-brain/contracts/central_brain_android_p4_d4c_simulated_scenario_binder.json
+  central-brain/contracts/central_brain_android_p9_physical_acceptance.json
   central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
@@ -726,6 +738,7 @@ required_paths=(
   docs/CENTRAL_BRAIN_ROADMAP.md
   docs/CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md
   tools/check_central_brain_android_runtime_evolution.sh
+  tools/check_central_brain_android_p9_physical_acceptance.sh
   tools/check_central_brain_android_release_retest_workflow.sh
   tools/check_central_brain_android_simulated_scenario_graph.sh
   tools/check_central_brain_android_simulated_scenario_runtime.sh

@@ -922,6 +922,25 @@ Client2 改为只消费该权威 Context 的版本化只读接口，并完成真
 `cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`production_ready=false`、
 `target_hardware_validated=false`。
 
+## DEV-109 P9 debug probe acceptance is not production hardening qualification
+
+P9-W01/W02/W03c/W04c/W05b/W06b/W07b 的 debug application probes 已在 Android 13 ARM64 统一执行通过。该证据只证明
+synthetic budget/matrix、security boundary、privacy redaction、release metadata、driver-safety contract 和 field diagnostics
+projection 可在目标 API/ABI 加载并失败关闭；不证明真实 workload、72h、fuzz、owner policy、正式 signer/installer、OEM Safety
+State、车辆 Effect 或 target retest 完成。
+
+状态：`Accepted Temporary`。历史文档中的 ADB-offline 记录是 probe 开发时状态，以本次 nonce-bound installer evidence 为当前状态。
+应用探针使用专用 marker，避免提升 broader qualification：`performance_budget_contract_probe_android13_arm64_verified=true`、
+`stability_matrix_contract_probe_android13_arm64_verified=true`、`security_boundary_probe_android13_arm64_verified=true`、
+`privacy_redaction_probe_android13_arm64_verified=true`、`release_metadata_probe_android13_arm64_verified=true`、
+`driver_safety_android_contract_probe_android13_arm64_verified=true`、`field_diagnostics_probe_android13_arm64_verified=true`。
+
+`performance_budget_target_measurement_complete=false`、`stability_target_72h_complete=false`、
+`security_coverage_guided_fuzz_complete=false`、`privacy_owner_policy_approved=false`、
+`production_signer_owner_approved=false`、`driver_safety_android13_arm64_verified=false`、
+`field_diagnostics_target_category_execution_complete=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false` 保持不变。
+
 ## DEV-108 P7 debug probe acceptance is not production inference or model quality
 
 P7-W01..W07 已在 Android 13 ARM64 上通过 build-owned debug Activity 与统一安装回归。证据证明模型 DTO、Registry、Router、

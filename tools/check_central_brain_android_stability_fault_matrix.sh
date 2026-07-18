@@ -240,6 +240,7 @@ printf '%s\n' \
   "stability_report_validation_verified=true" \
   "stability_failure_invariants_verified=true" \
   "stability_evidence_mode_separation_verified=true" \
+  "stability_matrix_contract_probe_android13_arm64_verified=true" \
   "stability_target_72h_complete=false" \
   "stability_target_owner_approved=false" \
   "stability_android13_arm64_verified=false" \

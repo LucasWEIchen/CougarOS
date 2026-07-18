@@ -216,7 +216,8 @@ printf '%s\n' \
   'security_validation_family_count=8' \
   'security_host_path_oversize_aggregate_verified=true' \
   'security_android_debug_probe_available=true' \
-  'security_android_debug_probe_executed=false' \
+  'security_android_debug_probe_executed=true' \
+  'security_boundary_probe_android13_arm64_verified=true' \
   'security_coverage_guided_fuzz_complete=false' \
   'security_binder_calling_uid_spoof_android_verified=false' \
   'security_package_signature_cryptographically_verified=false' \

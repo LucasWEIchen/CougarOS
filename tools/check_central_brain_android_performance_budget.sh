@@ -209,6 +209,7 @@ printf '%s\n' \
   "performance_budget_report_validation_verified=true" \
   "performance_budget_threshold_fail_closed_verified=true" \
   "performance_budget_evidence_mode_separation_verified=true" \
+  "performance_budget_contract_probe_android13_arm64_verified=true" \
   "performance_budget_target_owner_approved=false" \
   "performance_budget_target_measurement_complete=false" \
   "performance_budget_android13_arm64_verified=false" \

@@ -1683,3 +1683,19 @@ identity/caller spoof, signer policy, Android 13 ARM64, target or production qua
 `security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Next: P9-W03b; tracking:
 `DEV-088`, `ISSUE-050`.
+
+## P9 Android 13 ARM64 aggregate debug probe acceptance
+
+The unified installer now executes seven P9 debug application probes on API 33 `arm64-v8a`: synthetic performance
+budget, synthetic stability matrix, security boundary inventory, privacy redaction, release metadata, driver-safety
+contract projection and field diagnostics. The probes and full Runtime/Demo install regression pass with redacted
+boolean/count evidence.
+
+Probe-specific markers are intentionally separate from production qualification. Target performance samples, the 72h
+run, coverage-guided fuzz, privacy owner policy, production signer/install/rollback, OEM Safety State/vehicle Effect and
+complete target retest remain unavailable. State: `p9_android13_arm64_probe_acceptance_complete=true`,
+`p9_probe_module_count=7`, `performance_target_measurement_complete=false`, `stability_target_72h_complete=false`,
+`security_coverage_guided_fuzz_complete=false`, `privacy_owner_policy_approved=false`,
+`production_signer_owner_approved=false`, `driver_safety_android13_arm64_verified=false`,
+`field_diagnostics_target_category_execution_complete=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`. Tracking: `DEV-109`, `ISSUE-029/030/048..053`.

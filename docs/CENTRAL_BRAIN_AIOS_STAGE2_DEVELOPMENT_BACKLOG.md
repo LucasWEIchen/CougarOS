@@ -1337,3 +1337,11 @@ flowchart LR
 - LocalModelProvider 仍为 debug injected engine；Registry/Router/Output/Evaluation/Resource 仍未接 production Runtime 或真实 producer。
 - production model/NPU/network、正式 evaluation/resource owner 与 context/tokenizer 工作继续由 `ISSUE-024/044` 跟踪；P8 不因 probe 改变。
 - P5-P7 应用 probe 验收流完成；`production_ready=false`、`target_hardware_validated=false` 保持不变。
+
+## 23. P9 Android physical debug probe acceptance update
+
+- `P9-W01/W02/W03c/W04c/W05b/W06b/W07b`：仓库软件状态不变，Android 13 ARM64 debug application probe 子项升级为 `COMPLETE`。
+- 统一验收覆盖 7 个模块，`p9_android13_arm64_probe_acceptance_complete=true`、`p9_probe_module_count=7`。
+- 性能仍无 target samples，稳定性仍无 72h，安全仍无 coverage fuzz/UID spoof/signature qualification，隐私仍无 owner policy。
+- production signer/install/rollback、OEM vehicle safety、完整 field diagnostic category/retest 继续由 `ISSUE-029/030/048..053` 跟踪。
+- P8 真实 adapter 仍为外部阻塞；`production_ready=false`、`target_hardware_validated=false` 保持不变。

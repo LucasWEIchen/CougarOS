@@ -199,7 +199,8 @@ printf '%s\n' \
   'driver_safety_redacted_projection_defined=true' \
   'driver_safety_audit_key_count=27' \
   'driver_safety_android_debug_probe_available=true' \
-  'driver_safety_android_debug_probe_executed=false' \
+  'driver_safety_android_debug_probe_executed=true' \
+  'driver_safety_android_contract_probe_android13_arm64_verified=true' \
   'driver_safety_target_adapter_defined=true' \
   'driver_safety_current_owner_policy_approved=false' \
   'driver_safety_vehicle_state_provider_wired=false' \

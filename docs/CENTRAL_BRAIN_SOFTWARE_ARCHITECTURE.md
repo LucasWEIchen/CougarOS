@@ -1816,3 +1816,22 @@ Runtime/Graph/Effect/network/NPU/Vehicle/Driver-HAL 保持不可达。
 
 Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：
 `DEV-108`、`ISSUE-024/044`。
+
+## P9 Android 13 ARM64 aggregate debug probe acceptance architecture
+
+统一 installer 在 Runtime debug package 安装后按下列只读/合成路径执行：
+
+```text
+installer
+  -> synthetic Performance Budget -> synthetic Stability Matrix
+  -> Security Boundary -> Privacy Redaction
+  -> Release Metadata -> Driver Safety Contract -> Field Diagnostics
+  -> Runtime/Demo full install regression
+```
+
+该拓扑不是 production hardening pipeline。Budget/Matrix 不采集 profiler 或 72h workload；Security 不执行 coverage fuzz/UID spoof；
+Privacy 不修改 repository；Release/Field adapters 不安装、回滚或上传；Driver Safety 不读取车辆状态或调度 Effect。聚合器只验证
+probe-specific boolean/count marker 和 false qualification 集合。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
+`DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-029/030/048..053`。

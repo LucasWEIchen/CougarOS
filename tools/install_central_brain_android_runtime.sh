@@ -4620,6 +4620,7 @@ printf '%s\n' \
   "security_host_path_oversize_aggregate_verified=true" \
   "security_android_debug_probe_available=true" \
   "security_android_debug_probe_executed=true" \
+  "security_boundary_probe_android13_arm64_verified=true" \
   "security_android13_arm64_verified=true" \
   "security_coverage_guided_fuzz_complete=false" \
   "security_binder_calling_uid_spoof_android_verified=false" \
@@ -4647,6 +4648,7 @@ printf '%s\n' \
   "performance_budget_catalog_verified=true" \
   "performance_budget_report_validation_verified=true" \
   "performance_budget_boundary_verified=true" \
+  "performance_budget_contract_probe_android13_arm64_verified=true" \
   "performance_budget_category_count=7" \
   "performance_budget_metric_count=10" \
   "performance_budget_target_measurement_complete=false" \
@@ -4656,6 +4658,7 @@ printf '%s\n' \
   "stability_matrix_verified=true" \
   "stability_report_validation_verified=true" \
   "stability_boundary_verified=true" \
+  "stability_matrix_contract_probe_android13_arm64_verified=true" \
   "stability_workload_count=3" \
   "stability_fault_count=6" \
   "stability_matrix_case_count=18" \
@@ -4677,7 +4680,11 @@ printf '%s\n' \
   "privacy_runtime_lifecycle_wiring_complete=false" \
   "privacy_android_debug_probe_available=true" \
   "privacy_android_debug_probe_executed=true" \
+  "privacy_redaction_probe_android13_arm64_verified=true" \
   "privacy_android13_arm64_verified=true" \
+  "release_metadata_probe_android13_arm64_verified=true" \
+  "driver_safety_android_contract_probe_android13_arm64_verified=true" \
+  "field_diagnostics_probe_android13_arm64_verified=true" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \

@@ -288,7 +288,8 @@ printf '%s\n' \
   'release_metadata_audit_key_count=27' \
   'release_installer_dry_run_adapter_defined=true' \
   'release_android_debug_probe_available=true' \
-  'release_android_debug_probe_executed=false' \
+  'release_android_debug_probe_executed=true' \
+  'release_metadata_probe_android13_arm64_verified=true' \
   'production_signer_owner_approved=false' \
   'production_release_candidate_admitted=false' \
   'release_installer_wired=false' \

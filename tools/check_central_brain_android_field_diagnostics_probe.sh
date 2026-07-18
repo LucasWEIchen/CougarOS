@@ -244,7 +244,8 @@ printf '%s\n' \
   'field_diagnostics_projection_defined=true' \
   'field_diagnostics_audit_key_count=31' \
   'field_diagnostics_android_debug_probe_available=true' \
-  'field_diagnostics_android_debug_probe_executed=false' \
+  'field_diagnostics_android_debug_probe_executed=true' \
+  'field_diagnostics_probe_android13_arm64_verified=true' \
   'field_diagnostics_target_adapter_defined=true' \
   'field_diagnostics_target_category_execution_complete=false' \
   'release_evidence_target_report_admitted=false' \
