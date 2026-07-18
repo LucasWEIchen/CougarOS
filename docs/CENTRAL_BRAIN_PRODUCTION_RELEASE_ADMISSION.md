@@ -1,8 +1,10 @@
 # Central Brain Android 生产发布准入合同
 
-状态：`SOFTWARE_CONTRACT_DEFINED / PRODUCTION_OWNER_INPUT_OPEN`
+状态：`DEBUG_METADATA_PROBE_AVAILABLE / TARGET_EXECUTION_PENDING`
 
-阶段：`P9-W05a`
+阶段：`P9-W05a/W05b`
+
+W05a 子阶段状态：`SOFTWARE_CONTRACT_DEFINED / PRODUCTION_OWNER_INPUT_OPEN`
 
 Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`
 
@@ -127,5 +129,67 @@ production_ready=false
 target_hardware_validated=false
 ```
 
-下一小步 W05b 应提供 debug-only Android release metadata probe 和 installer dry-run evidence adapter；它仍不得生成/上传签名材料或自动卸载。
-真实 production signer、OTA/MDM、目标升级和 rollback rehearsal 继续由 `ISSUE-052` 外部阻塞。
+W05b 已提供 debug-only Android release metadata probe 和 installer dry-run evidence adapter；它不生成/上传签名材料，也不安装、卸载或
+执行 rollback。真实 production signer、OTA/MDM、目标升级和 rollback rehearsal 继续由 `ISSUE-052` 外部阻塞。
+
+## 9. W05b release metadata Android probe
+
+### 9.1 模块
+
+| 模块 | 责任 | 明确禁止 |
+| --- | --- | --- |
+| `ProductionReleaseMetadataProjection` | 将三个固定 package observation 投影为 27 个固定顺序的 count/boolean key | Android API、包名/路径、signer/certificate bytes、设备身份、原始日志 |
+| `ProductionReleaseMetadataProbeActivity` | debug APK 中通过 `PackageManager` 查询安装状态/versionCode，并用 `checkSignatures` 计算两个关系结果 | `GET_SIGNING_CERTIFICATES`、`Signature/SigningInfo`、证书摘要输出、业务 payload |
+| `probe_central_brain_android_release_metadata.sh` | 在已安装 debug Runtime 上启动探针、匹配 nonce 和脱敏 marker | build/install/uninstall/rollback、打印 serial、持久化或回显原始 logcat |
+| `install_central_brain_android_runtime.sh` | 完成既有 debug 安装验收后调用只读 dry-run adapter | 将 dry-run 结果解释为 production release admission |
+
+### 9.2 调用关系
+
+```text
+approved test operator
+  -> probe_central_brain_android_release_metadata.sh
+      -> ADB am start (DUMP-protected debug Activity, numeric nonce only)
+          -> PackageManager.getPackageInfo(package, flags=0)
+          -> PackageManager.checkSignatures(runtime, peer)
+          -> ProductionReleaseMetadataProjection.evaluate(observations)
+          -> CbReleaseProbe fixed counts/booleans
+      -> marker validation -> sanitized counts and false claims only
+```
+
+Activity 查询集合精确为 Runtime、Demo HMI、Client2。缺包是合法 observation：投影仍完成，但
+`release_exact_package_set_observed=false`。三个包都存在、仓库 versionCode 都匹配、两个 signer relation 都匹配时，相应 observed
+marker 可为 true；`release_candidate_metadata_complete`、`release_dry_run_admitted` 和
+`production_release_candidate_admitted` 仍固定 false，因为探针没有正式 candidate artifact/owner evidence。
+
+### 9.3 调试接口
+
+```bash
+source env.sh
+bash tools/probe_central_brain_android_release_metadata.sh [--serial SERIAL]
+```
+
+前置条件是目标已安装当前 debug Runtime，且 transport 为 Android API 33 / `arm64-v8a`。脚本不接受 APK 路径、signer digest、证书、release
+ID 或业务数据。成功时只输出 query/match count、probe/Android 条件和固定 false authority；失败时返回非零状态和固定错误类别，不输出
+设备 identity 或原始 logcat。
+
+### 9.4 安全与发布边界
+
+debug manifest 通过 `<queries>` 固定三包可见性；Activity 为 exported + `android.permission.DUMP` + noHistory + NoDisplay。main/release
+manifest 不包含 Activity，也不包含 W05b 的 Demo/Client2 peer queries；依赖合并产生的既有 Runtime self-query 不属于 W05b。Runtime/Governance
+Service 不引用 projection。PackageManager signer relation 只说明当前已安装 debug
+包的 Android 同签名判断，不能证明证书链、production signer approval、候选 APK same-signer upgrade 或 rollback 可执行。
+
+### 9.5 验证
+
+```bash
+bash tools/check_central_brain_android_production_release_metadata_probe.sh
+cd central-brain/android-runtime
+./gradlew :runtime-service:testDebugUnitTest \
+  --tests com.centralbrain.runtime.release.ProductionReleaseMetadataProjectionTest
+./gradlew :runtime-service:assembleDebug :runtime-service:assembleRelease
+```
+
+七组 JVM test 覆盖完整三包、缺包失败关闭、精确 key/order、无 identity/digest、全部执行/readiness false claim 和错误 observation set。
+当前 checkout 的脱敏 ADB 状态为 `online=0/offline=1/unauthorized=0/other=0`，未执行目标 probe，故
+`release_android_debug_probe_executed=false`、
+`release_android13_arm64_verified=false`、`production_ready=false`、`target_hardware_validated=false`。

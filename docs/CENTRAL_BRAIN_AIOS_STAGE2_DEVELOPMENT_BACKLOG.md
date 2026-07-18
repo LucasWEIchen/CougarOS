@@ -1118,8 +1118,11 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 - `P9-W05a production release admission`：已交付固定三 APK set、installed/candidate same-signer/cohort、release/package
   version 单调性、Room readable range、migration evidence、rollback owner/decision/data-compatibility 的纯 Java fail-closed
   合同与八组 JVM tests。当前 owner evidence 为空，不安装/卸载/回滚，不接 PackageManager/keystore/Room/Service。
-- 下一小步 `P9-W05b release metadata Android probe`：只提供 debug-only metadata/probe 与 installer dry-run 适配；production signer、
-  OTA/MDM 和目标 rollback rehearsal 仍由 `ISSUE-052` 阻塞。
+- `P9-W05b production release metadata Android probe`：已交付 27-key count/boolean projection、固定三包 PackageManager
+  metadata/signature-relation query、DUMP-protected debug-only Activity、只读 ADB dry-run adapter、七组 JVM tests 和 release-absence 门禁。
+  探针不读取或输出 signer/certificate bytes、package/device identity 或原始日志，不安装/卸载/回滚；当前目标未执行。
+- W05 仓库内软件项完成；production signer、OTA/MDM、正式 candidate 与目标 rollback rehearsal 仍由 `ISSUE-052` 阻塞。下一可开发
+  软件增量为 `P9-W06a driver-distraction/safety admission contract`，真实 vehicle state/OEM owner evidence 仍失败关闭。
 
 ### `P9-W06` Driver distraction/vehicle safety acceptance
 

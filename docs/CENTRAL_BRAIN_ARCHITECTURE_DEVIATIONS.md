@@ -1562,3 +1562,20 @@ rehearsal。当前 `production_signer_owner_approved=false`、`production_releas
 `release_installer_wired=false`、`release_rollback_executor_wired=false`、
 `release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W05`。
+
+## DEV-095 P9-W05b metadata observation is not production signer qualification
+
+W05b 通过 Android public PackageManager 在 debug Activity 中观察固定三包的 installed/version-match 和 signer relation，并将结果压缩为
+27 个 count/boolean key。`checkSignatures` 没有输出 signer/certificate bytes，但也没有验证 certificate chain、rotation history、正式
+candidate APK、source/archive/artifact digest 或 owner approval。
+
+只读 ADB adapter 要求已安装 debug Runtime；现有 debug installer 可在自身安装后调用它，但 adapter 本身不安装、卸载或 rollback。即使
+三包 observed set/cohort/version 都匹配，candidate metadata/admission 与 installer authority 仍为 false。当前 transport 不在线，探针未执行。
+
+状态：`Accepted Temporary`。关闭条件仍是 ISSUE-052 的正式 production signer/release/rollback owner、受控 candidate evidence、批准
+installer/OTA 与目标 upgrade/rollback rehearsal。当前 `release_metadata_projection_defined=true`、
+`release_installer_dry_run_adapter_defined=true`、`release_android_debug_probe_available=true`、
+`release_android_debug_probe_executed=false`、`production_signer_owner_approved=false`、
+`production_release_candidate_admitted=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。

@@ -4629,3 +4629,54 @@ claims。Checker 将 JSON、Java、Gradle versionCode 与 Room v4 交叉验证�
 Runtime/Governance wiring。当前 production signer/OTA/rollback owner 与 target evidence 均未提供。
 
 Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。
+
+## P9-W05b production release metadata probe detailed design
+
+### Package and class layout
+
+| Source set | Class/file | Responsibility |
+| --- | --- | --- |
+| `main` | `release/ProductionReleaseMetadataProjection.java` | pure-Java observation validation, count aggregation, fixed-key audit projection |
+| `debug` | `release/ProductionReleaseMetadataProbeActivity.java` | PackageManager collection and correlation log |
+| `test` | `release/ProductionReleaseMetadataProjectionTest.java` | projection invariants and false-claim regression |
+| host tool | `probe_central_brain_android_release_metadata.sh` | no-install Android 13 ARM64 evidence execution |
+| contract | `central_brain_android_p9_production_release_metadata_probe.json` | package set, 27 keys, forbidden fields, Activity and adapter boundary |
+
+### Observation construction
+
+Activity loops over exactly three repository constants. `NameNotFoundException` maps to `notInstalled()` and is not an Activity failure. Installed packages
+map to two booleans: `getLongVersionCode()==repositoryVersionCode` and, for peer packages, `checkSignatures(runtime, peer)==SIGNATURE_MATCH`。Runtime
+self observation uses signer-match true but does not contribute to the two peer match count. Any other RuntimeException returns only the exception class and
+all authority/readiness false.
+
+### Projection algorithm
+
+`evaluate` first rejects null/non-three observations. It counts installed and version-match over all three; signer match only over indexes 1 and 2。
+`exactPackageSetObserved` requires installed count 3；`repositoryVersionSetObserved` additionally requires version count 3；
+`sameSignerCohortObserved` additionally requires peer signer count 2。These booleans are descriptive current-install evidence only. Candidate metadata/admission and all
+install/uninstall/rollback methods remain false regardless of observed values.
+
+### Logging and privacy
+
+`auditMetadata()` uses a fixed catalog and `[a-z0-9_= ]` values only。No digest is emitted. Activity appends only
+`release_android_debug_probe_available/executed`。Nonce is 1..24 decimal digits or literal `invalid`。The host adapter keeps logcat in a process variable,
+validates exact markers, extracts only three single-digit counts and never echoes/persists raw log or serial。
+
+### Manifest and release isolation
+
+Debug manifest adds the exact package query allowlist and one exported Activity guarded by `android.permission.DUMP`, `noHistory=true`,
+`Theme.NoDisplay`。Main manifest and release source have no component or Demo/Client2 peer query；merged release 中依赖提供的 Runtime self-query
+不属于 W05b。Production Services do not reference the projection。Checker parses XML rather than relying on text order and rejects signer APIs,
+path/identity APIs, install/uninstall/rollback commands and log echo。
+
+### Failure behavior and tests
+
+- no/multiple online transports, non-API33, non-arm64, Activity start failure or missing marker: host exits nonzero with generic text；
+- absent peer APK: probe succeeds as observation, but exact set/cohort are false；
+- version/signer mismatch: corresponding counts fall and no remediation occurs；
+- malformed Java observation set: `IllegalArgumentException`；
+- successful exact debug set: observed markers may be true, but candidate/production/installer/rollback/hardware markers remain false。
+
+Seven JVM methods plus contract checker, debug/release manifest check and Gradle assembly form the software DoD。Physical execution must be separately
+recorded without device identity。Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-095`、`ISSUE-052`。

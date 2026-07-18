@@ -763,6 +763,8 @@ if "P9 Privacy Redaction/Audit Probe" not in developed:
     raise SystemExit("README developed table must include the completed P9-W04c redacted probe")
 if "P9 Production Release Admission" not in developed:
     raise SystemExit("README developed table must include the completed P9-W05a release admission")
+if "P9 Production Release Metadata Probe" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W05b metadata probe")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining

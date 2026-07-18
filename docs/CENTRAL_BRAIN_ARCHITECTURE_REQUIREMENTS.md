@@ -2530,3 +2530,27 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `production_release_candidate_admitted=false`、`release_installer_wired=false`、
 `release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。
+
+## 87. P9-W05b production release metadata probe trace
+
+本增量继续映射 `S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. package query 必须与 W05a 精确三包及仓库 versionCode 同源，不允许动态包名或设备 inventory。
+2. main-source projection 必须只接收三项 installed/version-match/signer-relation observation，精确输出 27 个有序 count/boolean key。
+3. 投影和 Android log 禁止 signer digest、certificate、package name/path、source/archive path、serial/fingerprint、raw log 和 payload。
+4. debug Activity 只允许公开 `PackageManager.getPackageInfo(..., flags=0)` 和 `checkSignatures`；禁止读取 signer/certificate bytes。
+5. Activity 只接受 1..24 位数字 nonce，必须 DUMP-protected、exported、noHistory、NoDisplay；main/release 不得暴露入口或 queries。
+6. 缺包、version mismatch 或 signer relation mismatch 必须保留为 count/false observation，不得自动修复、卸载或放宽准入。
+7. 已安装三包完全匹配也不得提升 candidate metadata、owner approval、release admission、installer 或 rollback authority。
+8. dry-run adapter 必须要求已安装 debug Runtime 和 exactly one Android 13 ARM64 transport，不得 build/install/uninstall/rollback。
+9. adapter 不得打印 transport identity 或原始 logcat，只输出有界 count/boolean 和固定 false authority。
+10. Runtime/Governance/Room/Vehicle/NPU/Driver-HAL 不得引用 projection；W05b 不修改运行时业务行为。
+11. JVM、checker 和 debug/release build 必须验证 exact keys、forbidden fields、Manifest/source absence 和 dry-run command boundary。
+12. probe available 不等于 executed；当前 checkout 没有合格 online transport，Android/production qualification 保持 false。
+
+状态：`release_metadata_projection_defined=true`、`release_installer_dry_run_adapter_defined=true`、
+`release_android_debug_probe_available=true`、`release_android_debug_probe_executed=false`、
+`production_signer_owner_approved=false`、`production_release_candidate_admitted=false`、
+`release_installer_wired=false`、`release_rollback_executor_wired=false`、
+`release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W05`。tracking：`DEV-095`、`ISSUE-052`。

@@ -1485,3 +1485,29 @@ same-signer 的安全语义，但不读取 PackageManager；未来 evidence adap
 `release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
 `S2-REL-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。
+
+## P9-W05b production release metadata probe architecture
+
+```text
+ADB dry-run adapter
+  -> DUMP-protected debug Activity
+      -> Android PackageManager public metadata
+          -> three PackageObservation values
+              -> pure-Java redacted projection
+                  -> fixed counts/booleans
+```
+
+该链位于调试验收面，不进入 Runtime/Governance Service、release APK 或生产安装路径。Android adapter 拥有 package identity 常量，但
+`evaluate` 输入与输出只看到 installed/version-match/signer-relation；因此包名、证书和签名材料不会跨越投影输出边界。Debug manifest 的
+`<queries>` 是固定三包 allowlist，release manifest 不合并 W05b 的 Demo/Client2 peer 可见性；既有 Runtime self-query 不属于本增量。
+
+W05a 仍是 candidate/installed release policy owner，W05b 只测量“当前已安装 debug set”的低敏元数据。两者没有自动 composition：
+W05b 不能构造正式 `ReleaseSet`，因为它没有 source/archive/artifact digest、正式 candidate、owner approval 或 rollback evidence。真实
+installer/OTA/MDM 必须在 ISSUE-052 关闭后形成独立 owner-controlled adapter。
+
+当前 `release_metadata_projection_defined=true`、`release_installer_dry_run_adapter_defined=true`、
+`release_android_debug_probe_available=true`、`release_android_debug_probe_executed=false`、
+`production_release_candidate_admitted=false`、`release_installer_wired=false`、
+`release_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
+`S2-REL-001/S2-SAF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-095`、`ISSUE-052`。

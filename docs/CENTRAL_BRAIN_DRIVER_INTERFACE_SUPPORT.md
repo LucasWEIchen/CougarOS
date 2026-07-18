@@ -1714,3 +1714,18 @@ NPU、Driver/HAL，也不修改系统镜像/SELinux。Signer/artifact/source/arc
 `release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。Req IDs：
 `S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-094`、`ISSUE-052`。
+
+## P9-W05b Production Release Metadata Probe Driver/HAL Boundary
+
+W05b 只使用应用层 `PackageManager.getPackageInfo(flags=0)`、`checkSignatures`、debug Activity、DUMP permission 和 ADB shell。它不读取
+certificate/signature bytes，不访问 keystore/Room/Vendor service/CarProperty/device node/network/NPU，不修改系统镜像、SELinux 或厂商 SDK。
+Dry-run adapter 不执行 package install/uninstall/rollback，因此没有新增 Driver/HAL 或虚拟化开发量。
+
+未来 OTA/MDM、system-package policy、signer rotation 或 rollback 若需要 OEM 接口，必须先取得公开 SDK contract、命名 owner 和最小 capability
+evidence；不能从 W05b debug observation 推断。当前 `driver_development_triggered=false`、
+`virtualization_development_triggered=false`、`release_android_debug_probe_executed=false`、
+`production_signer_owner_approved=false`、`release_installer_wired=false`、
+`release_rollback_executor_wired=false`、`release_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W05`。Req IDs：`S2-REL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-095`、`ISSUE-052`。
