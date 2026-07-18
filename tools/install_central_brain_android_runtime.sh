@@ -3463,6 +3463,65 @@ if [[ "$PROACTIVE_CONSENT_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+CONTEXT_SOURCE_NONCE="$(date +%s%N)"
+CONTEXT_SOURCE_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.events.ContextSourceAdaptersProbeActivity \
+  --es nonce "$CONTEXT_SOURCE_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$CONTEXT_SOURCE_PROBE_OUTPUT"; then
+  echo "$CONTEXT_SOURCE_PROBE_OUTPUT" >&2
+  echo "Context source adapters debug probe did not start successfully" >&2
+  exit 1
+fi
+CONTEXT_SOURCE_PROBE_PASSED=false
+for _ in {1..40}; do
+  CONTEXT_SOURCE_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbContextSources:I)"
+  if grep -Fq "nonce=$CONTEXT_SOURCE_NONCE context_source_probe_complete=true" \
+      <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_allowlist_verified=true" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_runtime_health_verified=true" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_simulated_vehicle_verified=true" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_time_verified=true" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_freshness_quality_verified=true" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_fail_closed_verified=true" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_android13_arm64_verified=true" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_count=3" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_production_registry_published=false" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_runtime_wired=false" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "context_source_trigger_engine_wired=false" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "vehicle_signal_provider_wired=false" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "vehicle_property_mapping_configured=false" \
+        <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "graph_execution_enabled=false" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "effect_dispatch_enabled=false" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "model_invoked=false" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "production_ready=false" <<<"$CONTEXT_SOURCE_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$CONTEXT_SOURCE_LOG"; then
+    CONTEXT_SOURCE_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$CONTEXT_SOURCE_PROBE_PASSED" != true ]]; then
+  echo "$CONTEXT_SOURCE_LOG" >&2
+  echo "Context source adapters probe did not pass" >&2
+  exit 1
+fi
+
 API_33_EXIT=false
 if [[ "$SDK" == "33" ]]; then
   API_33_EXIT=true
@@ -3522,6 +3581,18 @@ printf '%s\n' \
   "context_snapshot_android13_arm64_verified=true" \
   "context_snapshot_production_trusted=false" \
   "context_snapshot_production_wired=false" \
+  "context_source_adapter_contract_defined=true" \
+  "context_source_count=3" \
+  "context_source_allowlist_verified=true" \
+  "context_source_runtime_health_verified=true" \
+  "context_source_simulated_vehicle_verified=true" \
+  "context_source_time_verified=true" \
+  "context_source_freshness_quality_verified=true" \
+  "context_source_fail_closed_verified=true" \
+  "context_source_android13_arm64_verified=true" \
+  "context_source_production_registry_published=false" \
+  "context_source_runtime_wired=false" \
+  "context_source_trigger_engine_wired=false" \
   "scenario_manifest_schema_version=1" \
   "scenario_catalog_count=3" \
   "scenario_manifest_android13_arm64_verified=true" \
