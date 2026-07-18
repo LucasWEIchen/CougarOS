@@ -294,6 +294,76 @@ public final class CockpitExecutionTimeline {
         return next;
     }
 
+    CockpitExecutionTimeline simulatedScenario(CockpitSimulatedScenarioState simulated) {
+        Objects.requireNonNull(simulated, "simulated");
+        if (!simulated.hasScenario()) {
+            return this;
+        }
+        CockpitExecutionTimeline next = this;
+        if (!simulated.hasSnapshot()) {
+            if (simulated.getLifecycle() == CockpitSimulatedScenarioState.Lifecycle.FAILED) {
+                next = next.replace(
+                        Phase.GRAPH,
+                        Status.FAILED,
+                        "DEBUG_SCENARIO_BINDER",
+                        "RUNTIME_DEBUG",
+                        simulated.getFailureCode());
+            }
+            return next;
+        }
+
+        next = next.replace(
+                Phase.INTENT,
+                Status.SESSION_ACCEPTED,
+                simulated.getCanonicalScenarioId(),
+                "RUNTIME_DEBUG",
+                "FIXED_SCENARIO");
+        next = next.replace(
+                Phase.CONTEXT,
+                Status.CAPTURED,
+                "BUILD_OWNED_CONTEXT",
+                "SIMULATED",
+                simulated.getDrivingProfile());
+        next = next.replace(
+                Phase.PLAN,
+                Status.PUBLISHED,
+                "PLAN_REV_" + simulated.getPlanRevision(),
+                "RUNTIME_DEBUG",
+                "GRAPH_REV_" + simulated.getGraphRevision());
+
+        CockpitExecutionTimeline.Status policyStatus =
+                simulated.getLifecycle()
+                        == CockpitSimulatedScenarioState.Lifecycle.WAITING_APPROVAL
+                        ? Status.APPROVAL_REQUIRED : Status.ACTIVE;
+        String target = simulated.getPendingCapabilityId().isEmpty()
+                ? "FIXED_SCENARIO_TARGETS" : simulated.getPendingCapabilityId();
+        next = next.replace(
+                Phase.POLICY,
+                policyStatus,
+                target,
+                "RUNTIME_DEBUG",
+                "SIMULATION_ONLY");
+        next = next.replace(
+                Phase.GRAPH,
+                graphStatus(simulated.getLifecycle()),
+                target,
+                "GRAPH_DEBUG",
+                simulated.getLifecycle().name());
+        next = next.replace(
+                Phase.EFFECT,
+                effectStatus(simulated),
+                "FIXED_SCENARIO_TARGETS",
+                "SIMULATED_ADAPTER",
+                "DISPATCH_COUNT_" + simulated.getEffectDispatchCount());
+        return next.replace(
+                Phase.READBACK,
+                readbackStatus(simulated),
+                "SIMULATED_OBSERVATION",
+                "SIMULATED_ADAPTER",
+                "MATCH_" + simulated.getReadbackMatchCount()
+                        + "_OF_" + simulated.getReadbackAttemptCount());
+    }
+
     CockpitExecutionTimeline runtimeEvent(ProjectedEvent event) {
         Objects.requireNonNull(event, "event");
         if (event.sequence <= lastSequence) {
@@ -485,6 +555,42 @@ public final class CockpitExecutionTimeline {
             default:
                 return Status.UNAVAILABLE;
         }
+    }
+
+    private static Status graphStatus(CockpitSimulatedScenarioState.Lifecycle lifecycle) {
+        switch (lifecycle) {
+            case COMPLETED:
+                return Status.VERIFIED;
+            case PARTIAL:
+            case CANCELLED:
+                return Status.SKIPPED;
+            case FAILED:
+            case STUCK:
+                return Status.FAILED;
+            case WAITING_APPROVAL:
+            case RUNNING:
+            case CONNECTING:
+            default:
+                return Status.ACTIVE;
+        }
+    }
+
+    private static Status effectStatus(CockpitSimulatedScenarioState state) {
+        if (state.getEffectDispatchCount() == 0) {
+            return Status.NOT_DISPATCHED;
+        }
+        return state.getFailureCount() > 0 ? Status.FAILED : Status.APPLIED;
+    }
+
+    private static Status readbackStatus(CockpitSimulatedScenarioState state) {
+        if (state.getReadbackAttemptCount() == 0) {
+            return Status.NO_EVIDENCE;
+        }
+        if (state.getFailureCount() > 0) {
+            return Status.FAILED;
+        }
+        return state.getReadbackMatchCount() == state.getReadbackAttemptCount()
+                ? Status.VERIFIED : Status.MISMATCH;
     }
 
     private static Stage stage(

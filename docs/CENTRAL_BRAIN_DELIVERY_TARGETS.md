@@ -2686,3 +2686,24 @@ process-local simulated adapter composition。实体 Android 13 probe 已输出 
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4d`。
 Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
 `APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`。
+
+## Android P4-D4e Client2 Simulated Scenario Chain
+
+交付包含 Client2 Binder v2 客户端、exact-wire Parcelable、immutable simulated scenario state、sole-reducer events、七阶段 timeline、显式
+debug approval/skip、固定错误码、host reducer tests、Android 13 UI acceptance、versioned JSON 与独立/聚合 CI 门禁。
+
+验收通过条件为：Cold Completed 3 dispatch/3 matched readback；parked Fatigue 先进入 WAITING_APPROVAL，批准后 Completed 5/3，拒绝后
+Partial 4/2；批准/拒绝输入总数 2；Intent/Context/Plan/Policy/Graph/Effect/Readback 均可由 UI 读取。Client 与 Runtime Parcelable 的字段
+顺序和类型必须一致，approval interrupt 只能映射固定 seat-recline target。
+
+实体 Android 13 ARM64 已完成上述三条路径。交付不包含 production Client2 artifact、真实车辆/NPU/Driver-HAL、production approval、
+正式 signer/installer 或 target hardware qualification；提交证据不含 raw payload、device identity 或未审日志。
+
+当前 `simulated_scenario_client2_wired=true`、`simulated_scenario_client_parcel_wire_verified=true`、
+`simulated_scenario_projection_reducer_owned=true`、`simulated_scenario_seven_stage_ui_verified=true`、
+`simulated_scenario_android13_arm64_client_verified=true`、`hmi_d4_debug_demo_control_loop_complete=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_approval_authority_available=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4e`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
+`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`、
+`DEL-001/003/004/005`；tracking：`DEV-105`、`ISSUE-033`。

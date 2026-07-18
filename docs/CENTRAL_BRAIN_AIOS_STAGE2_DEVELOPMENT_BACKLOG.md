@@ -1296,3 +1296,20 @@ flowchart LR
 - P9 全部通过；
 - 生产 signer/升级/回滚、长稳、性能、安全、隐私、驾驶分心和整车策略有 owner 签署；
 - 只有此时才可评估 `production_ready=true`。
+
+## 17. `P4-D4e` Client2 simulated scenario chain
+
+- 状态：`SOFTWARE_DEVELOPED / ANDROID13_ARM64_DEBUG_VERIFIED`（2026-07-18）；Req IDs：`S2-SCN-001`、
+  `S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、`APP-004`、
+  `XSC-001/004/005/006`、`DEL-001/003/004/005`。
+- Client2 内嵌同签名 Binder v2 客户端，复用现有自然场景 Session admission，同时读取 D4d debug Runtime 的 Plan/Graph、
+  simulated Effect/readback 和 approval metadata；不接收 raw Context、任意 target value、用户/模型文本或设备标识。
+- `CockpitSimulatedScenarioState` 和 sole reducer 持有生命周期、pending stage、Plan/Graph revision 与聚合计数；UI 映射固定为
+  Intent -> Context -> Plan -> Policy -> Graph -> Effect -> Readback 七阶段。
+- Cold 自动完成 3 dispatch/3 matched readback；parked Fatigue 先停在显式 debug approval，批准后为 5/3/Completed，拒绝后为
+  4/2/Partial。审批节点只允许固定 `request_seat_approval -> vehicle.seat.recline` 映射。
+- Client Parcelable 与 Runtime v2 的 27 字段读写顺序由静态门禁逐项比较；Graph revision 使用独立上限，不再误用 64-event bound。
+- 实体 Android 13 ARM64 已验证三条路径、两次显式审批输入和七阶段 UI；所有证据均为 process-local simulation，
+  `hardware_accessed=false`、`scenario_execution_enabled=false`、`production_ready=false`、`target_hardware_validated=false`。
+- P4-D4 debug 演示链路已闭合；P8 真实 Vehicle adapter/Driver-HAL、production approval、正式 Client2 artifact 与 P9 目标 owner
+  证据继续外部阻塞，不得用本项替代。

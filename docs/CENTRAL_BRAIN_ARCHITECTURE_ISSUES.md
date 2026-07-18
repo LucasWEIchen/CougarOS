@@ -1210,3 +1210,18 @@ owner approval 与 production authority 也未提供。下一软件增量为 P4-
 `simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_client2_wired=false`、
 `simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
 `hmi_d4_demo_control_loop_complete=false`。tracking：`DEV-101/102/103/104`。
+
+### ISSUE-033 P4-D4e update
+
+P4-D4e 已关闭 ISSUE-033 中的 Client2 debug 展示子项：Client2 绑定 Binder v2，reducer 显示 Context -> Plan -> Policy -> Graph ->
+Effect -> Readback，并允许 parked Fatigue 的显式模拟批准/拒绝。实体 Android 13 ARM64 已验证 Cold 3/3、批准 5/3、拒绝 4/2 Partial，
+Parcelable wire order 与 approval node binding 已加入持续门禁。
+
+ISSUE-033 仍 Open，因为闭环仅使用 debug process-local simulation。真实 Vehicle adapter、production approval/Effect runtime、OEM Context、
+正式 Client2 release、retry/undo 的真实执行语义、P8 capability evidence 和 P9 owner/target qualification 尚未提供。
+
+当前 `simulated_scenario_client2_wired=true`、`simulated_scenario_client_parcel_wire_verified=true`、
+`simulated_scenario_android13_arm64_client_verified=true`、`hmi_d4_debug_demo_control_loop_complete=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_approval_authority_available=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-101/102/103/104/105`。

@@ -1729,3 +1729,26 @@ Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-00
 `simulated_scenario_approval_authority_available=false`、`simulated_scenario_client2_wired=false`、
 `scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4d`。下一增量：P4-D4e Client2 scenario chain UI wiring。
+
+### P4-D4e Client2 scenario-chain progress
+
+状态：`DEVELOPED / ANDROID13_ARM64_DEBUG_VERIFIED`（2026-07-18）。Client2 已通过同签名、capability-protected Binder v2 连接 D4d
+debug Runtime，并把固定场景 metadata 投影到 reducer-owned 七阶段 UI。Cold 自动完成 3 次模拟 dispatch 与 3 次 matched readback；
+parked Fatigue 等待显式 UI 审批，批准后 Completed 5/3，拒绝后 Partial 4/2。
+
+本增量修正并固化两项接口问题：Client Parcelable 必须逐字段匹配 Runtime v2 wire order；approval interrupt 在线上 capability 为空时，
+只能把固定 `request_seat_approval` 映射为 `vehicle.seat.recline`，未知节点继续失败关闭。Graph revision 采用独立有界范围，避免第二场景
+因全局 revision 超过 event count 上限而被误拒绝。
+
+实体 Android 13 ARM64 已通过三路径 UI 验收和两次显式审批输入；没有 raw payload/device identity 进入提交证据。完成的是 D4 debug
+process-local simulated control loop，不是车辆执行。P8 真实 adapter、production approval/runtime、正式 Client2 release 和 P9 owner/目标证据
+仍保持外部阻塞。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、
+`APP-004`、`XSC-001/004/005/006`、`DEL-001/003/004/005`；tracking：`DEV-105`、`ISSUE-022/026/030/033`。
+`simulated_scenario_client2_wired=true`、`simulated_scenario_client_parcel_wire_verified=true`、
+`simulated_scenario_projection_reducer_owned=true`、`simulated_scenario_seven_stage_ui_verified=true`、
+`simulated_scenario_android13_arm64_client_verified=true`、`hmi_d4_debug_demo_control_loop_complete=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_approval_authority_available=false`、
+`scenario_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4e`。

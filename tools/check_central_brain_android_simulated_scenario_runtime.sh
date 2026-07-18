@@ -133,7 +133,7 @@ for doc_marker in \
   'simulated_scenario_session_event_binder_published=true' \
   'simulated_scenario_effect_dispatch_enabled=true' \
   'simulated_scenario_readback_accessed=true' \
-  'implementation_stage=P4-D4d'; do
+  'implementation_stage=P4-D4e'; do
   grep -Fq -- "$doc_marker" "$ROOT_DIR/README.md" \
     || { echo "P4-D4b README marker missing: $doc_marker" >&2; exit 1; }
 done

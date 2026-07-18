@@ -144,7 +144,7 @@ for marker in \
   'simulated_scenario_android_debug_probe_executed=true' \
   'simulated_scenario_binder_authorized_call_verified=true' \
   'simulated_scenario_hardware_effect_dispatch_enabled=false' \
-  'implementation_stage=P4-D4d'; do
+  'implementation_stage=P4-D4e'; do
   grep -Fq -- "$marker" "$ROOT_DIR/README.md" \
     || { echo "P4-D4d README marker missing: $marker" >&2; exit 1; }
 done

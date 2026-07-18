@@ -133,9 +133,9 @@ for marker in \
   'P4-D4c Simulated Scenario Binder' \
   'simulated_scenario_binder_defined=true' \
   'simulated_scenario_android_service_published=true' \
-  'simulated_scenario_client2_wired=false' \
+  'simulated_scenario_client2_wired=true' \
   'simulated_scenario_effect_dispatch_enabled=true' \
-  'implementation_stage=P4-D4d'; do
+  'implementation_stage=P4-D4e'; do
   grep -Fq -- "$marker" "$ROOT_DIR/README.md" \
     || { echo "P4-D4c README marker missing: $marker" >&2; exit 1; }
 done

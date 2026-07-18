@@ -3765,3 +3765,37 @@ probe/composition/AIDL entry。
 
 Req IDs：`S2-SCN-001/S2-GRF-001/S2-EVT-001/S2-EFF-001/S2-SAF-001/S2-HMI-003/006/APP-004/XSC-001/004/005/006`；
 tracking：`DEV-104`、`ISSUE-033`。
+
+## 66. P4-D4e Client2 scenario-chain interface
+
+### 66.1 连接与协议
+
+`SimulatedScenarioRuntimeClient` 使用显式 component `com.centralbrain.runtime/.scenario.SimulatedScenarioRuntimeService` 和 action
+`BIND_SIMULATED_SCENARIO_RUNTIME`。连接后先校验 `INTERFACE_VERSION=2` 与固定 hash；验证完成前只保留最后一个 bounded pending start。
+Binder 调用在单线程 executor 上执行，回调经 main looper 进入 sole reducer；generation 防止旧 run 覆盖新场景。
+
+### 66.2 Parcelable wire contract
+
+Client DTO 必须逐项匹配 Runtime v2 的 27 字段：schema、run/session/scenario、Plan digest/revision、session state、64-bit graph revision、
+automatic/supplied count、pending stage/node/capability、event sequence/count/digest、五类 simulated count 和六个 authority boolean。任何字段
+插入、删除、换序或 32/64-bit 类型变化都必须升级协议，不得静默兼容。D4e checker 同时扫描 Runtime/Client constructor 与 writer 顺序。
+
+### 66.3 HMI projection contract
+
+Client 校验 schema=2、canonical UUID、两个 SHA-256、count/revision bounds、readback flag、全部 false-authority flag 与 terminal/pending invariant，
+再构造 `CockpitSimulatedScenarioState.Projection`。`graphRevision` 先 `Math.toIntExact`，再检查独立 `MAX_REVISION=1_000_000`；event count
+仍限制 64，二者不得混用。
+
+审批 wire node 为 `request_seat_approval`，capability 按 manifest 为空。Client 只在 `care.fatigue + PENDING_APPROVAL + exact node + empty
+capability` 时映射 HMI target `vehicle.seat.recline`。其他节点/空 capability/任意 target 全部抛出固定 projection failure。
+
+### 66.4 Command and callback contract
+
+- `startScenario(uiScenarioId, drivingState)`：只允许 cold/fatigue；PARKED 只来自当前 reducer Context，其余映射 MOVING。
+- `approvePending()`：仅 WAITING_APPROVAL snapshot 可发送 `OUTCOME_SUCCEEDED`。
+- `skipPending()`：仅 WAITING_APPROVAL snapshot 可发送 `OUTCOME_SKIPPED`。
+- callback：availability、validated projection 或固定 failure code；不返回 throwable、payload、digest、device identity 或自由文本。
+- 新场景开始前只取消旧的非终态 run；terminal run 不重复 cancel。
+
+Req IDs：`S2-SCN-001/S2-GRF-001/S2-EVT-001/S2-EFF-001/S2-SAF-001/S2-HMI-003/006/APP-004/XSC-001/004/005/006`；
+tracking：`DEV-105`、`ISSUE-033`。

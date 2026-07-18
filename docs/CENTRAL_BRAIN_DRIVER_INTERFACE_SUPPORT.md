@@ -1872,3 +1872,19 @@ VehicleProperty、device node、sysfs、PCIe/NPU、JNI 或网络，也不启动�
 `simulated_scenario_hardware_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
 `target_hardware_validated=false`、`implementation_stage=P4-D4d`。
+
+## P4-D4e Client2 Simulated Scenario Chain Driver/HAL Boundary
+
+D4e 只通过标准 Android Binder 在 Client2 与 Runtime debug Service 间传输 metadata。Client2 不读取 Android Car API、VehicleProperty、
+Vendor Binder/SOA、CAN、device node、sysfs、PCIe/NPU，不启动外部 Media/Navigation Activity，也不修改厂商 SDK、系统镜像或 SELinux。
+
+UI 中的 3/3、5/3、4/2 都是 D4d process-local adapter/readback 计数。实机运行只证明 Android 13 ARM64 上 APK 安装、同 signer Binder、
+reducer 和 UI 链路可用；不证明 HVAC、Seat、Media、Navigation 或车辆信号接口存在。因此本增量不触发 C/C++、HAL、Driver 或虚拟化开发。
+
+未来把 D4e 替换为真实执行时，必须按 P8 capability 分别提供公开 property/service/action、permission、area mapping、单位、freshness、
+failure/readback、owner、rollback 与 safety evidence；不得直接复用 debug approval 或 simulated target 作为生产接口。
+
+当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`simulated_scenario_client2_wired=true`、`simulated_scenario_android13_arm64_client_verified=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4e`。
