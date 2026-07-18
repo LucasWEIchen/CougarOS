@@ -785,6 +785,8 @@ if "P9 Driver Safety Redacted Probe" not in developed:
     raise SystemExit("README developed table must include the completed P9-W06b safety probe")
 if "P9 Release Evidence Envelope" not in developed:
     raise SystemExit("README developed table must include the completed P9-W07a evidence envelope")
+if "P9 Field Diagnostics Probe" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W07b field diagnostics probe")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
@@ -794,9 +796,9 @@ if (
     or "P9-W05 Production release" not in remaining
     or "P9-W06 Driver safety" not in remaining
     or "P9-W07 Release evidence/diagnostics" not in remaining
-    or "下一软件增量为 P9-W07b" not in readme
+    or "下一软件增量为 P9-W07c" not in readme
 ):
-    raise SystemExit("README must keep target evidence and P9 owner gaps open and identify P9-W07b as the next software scope")
+    raise SystemExit("README must keep target evidence and P9 owner gaps open and identify P9-W07c as the next software scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:

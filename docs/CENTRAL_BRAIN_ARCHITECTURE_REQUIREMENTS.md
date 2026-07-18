@@ -2626,3 +2626,28 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
 `release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。tracking：`DEV-098`、`ISSUE-052/053`。
+
+## 91. P9-W07b field diagnostics probe trace
+
+本增量映射 `S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`：
+
+1. main projection 必须只接受 aggregate count/boolean，不得包含 Android 类型、包 ID、target input、raw log 或 payload。
+2. projection 必须精确输出 31 个有序 count/boolean key，并与 versioned JSON allowlist 同源。
+3. debug Activity 必须 DUMP-protected、NoDisplay、noHistory、release absent，只接受 1..24 位数字 nonce。
+4. Activity 只能通过标准 PackageManager 查询三包 version/signer relation、两个 launch intent 和本包两个 Service declaration。
+5. Activity 不得读取 certificate/signature bytes、package path、device identity、文件、网络、车辆、NPU、Driver/HAL，也不得启动外部 Activity/Service。
+6. target adapter 必须要求 already-installed debug Runtime、API 33 和 ARM64；不得 build/install/uninstall/rollback/upload 或修改 issue。
+7. adapter 必须按 W07a 顺序输出八类；release/Demo/Client2/Runtime/Diagnostics 五类 executed，installer dry-run/execute/manual 三类 NOT_RUN。
+8. executed fact 必须输出 PASS/FAIL、0/1 result 和 SHA-256 detail digest；NOT_RUN 必须为 -1 且不得输出 detail digest。
+9. adapter 可在内存中检查 `am start`/logcat，但不得持久化或回显原始输出、serial、包名、signer material 或业务 payload。
+10. W07b repository 状态必须保持 probe available but unexecuted；目标运行结果必须单独记录，不能反写软件源码 claim。
+11. 五类通过仍不是完整 report：三项 NOT_RUN 必须使 target category execution complete 和 target report admitted 保持 false。
+12. Runtime/Governance production Service、release APK、installer authority、automatic upload、hardware/production qualification 必须保持未接。
+
+状态：`field_diagnostics_projection_defined=true`、`field_diagnostics_audit_key_count=31`、
+`field_diagnostics_android_debug_probe_available=true`、`field_diagnostics_android_debug_probe_executed=false`、
+`field_diagnostics_target_adapter_defined=true`、`field_diagnostics_target_category_execution_complete=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
+`field_diagnostics_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。tracking：`DEV-099`、`ISSUE-052/053`。

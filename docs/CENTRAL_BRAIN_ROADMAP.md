@@ -1587,3 +1587,23 @@ Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`
 `release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
 `release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。
+
+### P9-W07b Field Diagnostics Probe progress
+
+状态：`SOFTWARE_DEVELOPED / TARGET_PROBE_PENDING`（2026-07-18）。新增 31-key pure-Java redacted projection、DUMP-protected
+debug-only Activity、七组 JVM regression、no-install target adapter 和 manifest/source/command/CI 门禁。
+
+APK preflight 只查询三包 aggregate version/signer relation、两个 launcher intent 和 Runtime/Diagnostics Service declaration，不输出包名、
+路径、设备身份、签名材料、raw log 或业务 payload。Adapter 实际执行 release bundle、Demo/Client2 launch、Runtime/Diagnostics probe 五类，
+installer dry-run/execute 与 manual matrix 明确 NOT_RUN；所有执行项只输出 status/result/digest。
+
+当前 ADB 为 offline，未执行目标 probe。W07b 即使在 API33 ARM64 上完成，也只提供 field-diagnostic contract evidence，三项 NOT_RUN 使
+category execution incomplete，不能 admit target report。下一小步：`P9-W07c replacement release and issue/retest state machine`。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098/099`、`ISSUE-052/053`。
+`field_diagnostics_projection_defined=true`、`field_diagnostics_audit_key_count=31`、
+`field_diagnostics_android_debug_probe_available=true`、`field_diagnostics_android_debug_probe_executed=false`、
+`field_diagnostics_target_adapter_defined=true`、`field_diagnostics_target_category_execution_complete=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`field_diagnostics_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。

@@ -1780,3 +1780,19 @@ synthetic report 推断接口或硬件资格。
 `release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
 `DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。
+
+## P9-W07b Field Diagnostics Probe Driver/HAL Boundary
+
+W07b 的 main projection 是 pure Java；debug Activity 只使用标准 PackageManager 和应用自身组件声明；host adapter 只使用 ADB shell
+`am start`/logcat 对已安装 debug APK 进行 bounded check。三者不读取 VHAL/Vendor Binder/CAN/device node/sysfs/NPU，不修改系统镜像、
+SELinux 或厂商 SDK，不执行安装、卸载或 rollback。本增量没有 C/JNI/Driver/HAL 或虚拟化开发量。
+
+未来某类 field diagnostic 若需要 OEM service，必须先由 owner 提供公开 component/property/permission/version/redaction/evidence contract。
+W07b 的 debug PackageManager/launch observation 不能用于推断 Vehicle/Driver 接口或量产资格。
+
+当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`field_diagnostics_android_debug_probe_executed=false`、`field_diagnostics_target_category_execution_complete=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_retest_workflow_wired=false`、
+`field_diagnostics_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
+`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。

@@ -1587,3 +1587,24 @@ W07b 才能添加 debug-only target collector，W07c 才能形成 replacement re
 `release_evidence_retest_workflow_wired=false`、`release_evidence_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
 Req IDs：`S2-OBS-001/S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。
+
+## P9-W07b field diagnostics architecture
+
+```text
+PackageManager aggregate preflight
+        -> FieldDiagnosticsProjection (31 count/boolean keys)
+            -> DUMP debug Activity
+                -> no-install ADB adapter
+                    -> 5 executed + 3 NOT_RUN diagnostic facts
+```
+
+APK preflight 与 host execution 分层：Activity 只判断 package/version/signer relation、launchability 和 Service declaration；adapter 才启动
+Demo、Client2、Runtime probe 与 Diagnostics Binder probe。两层均不进入 production Runtime/Governance wiring，不拥有 installer/release/
+issue authority。Adapter 输出可作为 W07a fact input，但当前三项 NOT_RUN，不能构造 complete target report。
+
+状态：`field_diagnostics_projection_defined=true`、`field_diagnostics_android_debug_probe_available=true`、
+`field_diagnostics_android_debug_probe_executed=false`、`field_diagnostics_target_adapter_defined=true`、
+`field_diagnostics_target_category_execution_complete=false`、`release_evidence_target_report_admitted=false`、
+`release_evidence_retest_workflow_wired=false`、`field_diagnostics_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+Req IDs：`S2-OBS-001/S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。

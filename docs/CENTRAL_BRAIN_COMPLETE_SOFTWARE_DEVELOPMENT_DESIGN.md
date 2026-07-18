@@ -4777,3 +4777,37 @@ repository false claims。静态 checker 同步 JSON/Java/test/docs，拒绝 And
 wiring；Stage2、Runtime aggregate 和 GitHub CI 必须调用该 checker。
 
 Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。
+
+## 48. P9-W07b Field Diagnostics Probe detailed design
+
+### Projection model
+
+`ProbeObservation` 保存 installed/version/signer counts 和四个 capability booleans。Validation 强制 installed <=3、version <= installed、
+signer <= min(2, installed-1)、launchable <= min(2, installed)。`Snapshot` 派生 launch/service counts 和 exact release-bundle preflight；
+它不保存 Android object、identifier 或 content。
+
+### Android collector
+
+Activity 在 debug source set 中使用 W05b 的固定 package catalog，避免新增 caller-controlled package query。Version 使用 longVersionCode，
+signer 只保留 relation boolean，launcher 只保留 intent exists，Service 只保留 declared/enabled。NameNotFound 映射为 count/false，不记录异常。
+错误分支只输出固定 false claims。
+
+### Adapter state machine
+
+Adapter 先验证 exactly one online transport、API33、arm64，再运行 collector。Collector 成功后顺序执行 Demo launch、Client2 launch、
+RuntimeProbe Activity 和 DiagnosticProbe Binder。每个 executed category 映射 PASS=0 或 FAIL=1，detail digest 对 profile/category/status 和
+脱敏 aggregate 计算 SHA-256。三个有意未执行项映射 NOT_RUN=-1 且不输出 digest。任一 executed FAIL 时先输出完整 fixed report 再 nonzero。
+
+### Privacy and authority
+
+ADB serial 仅用于 transport selection，不输出。所有 `am start` 和 logcat 原文只存在 shell variable，不写文件、不回显；输出不含 component/
+package identity。脚本没有 build/install/uninstall/rollback/network/gh command。Probe success 不设置 target report admitted、retest wired、
+production ready 或 target hardware validated。
+
+### Verification
+
+七组 JVM tests 覆盖 exact keys、complete/incomplete preflight、count validation、allowlisted encoding、forbidden content 和 repository false claims。
+Static checker 解析 JSON/Java/XML/shell/docs，验证 debug/release absence、Activity API boundary、adapter command boundary、W07a category binding 和
+installer marker；debug/release Gradle 与 Stage2/Runtime/CI aggregate 必须通过。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-099`、`ISSUE-052/053`。

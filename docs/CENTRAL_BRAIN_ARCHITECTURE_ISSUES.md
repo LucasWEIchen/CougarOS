@@ -1135,6 +1135,9 @@ P9-W07a 已交付 metadata-only release evidence envelope：严格绑定 release
 diagnostic fact 和稳定 report digest，并对 GitHub privacy、raw identity、automatic upload 失败关闭。它没有 Android probe、ADB execution、
 GitHub issue mutation、replacement release 或 target-owner admission；Host 报告永远不是 target evidence。
 
+P9-W07b 已交付 31-key projection、DUMP debug Activity 和 no-install adapter。它执行五类 bounded check，另外三类明确 NOT_RUN；当前
+ADB offline，probe 未执行。即使未来五类 PASS，也因 category 不完整而不能 admit target report，不能自动关闭 issue。
+
 W07b/W07c 仍需：受保护的 Android debug diagnostics 入口；只读 no-install host adapter；命名 replacement release；issue -> triaged -> fixed ->
 retest 状态机；目标 tester 与 release/diagnostics owner approval。不得提交 serial/fingerprint、signing material、target-input files、内部路径、
 raw/未审日志、用户/模型文本、memory/token 或车辆 payload，也不得自动关闭 issue。
