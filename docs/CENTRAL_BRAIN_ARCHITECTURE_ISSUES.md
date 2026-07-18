@@ -586,7 +586,7 @@ Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。V
 状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W02`。tracking：`DEV-065`。
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-065`。
 
 ## ISSUE-039 Production built-in signer and cooperative cancellation ownership
 
@@ -608,7 +608,7 @@ composition。Vehicle/NPU Tool 还需 P8 vendor cancellable API 与 readback 合
 `built_in_signer_artifact_bound=true`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`production_tool_registered=false`、`os_virtualization_enabled=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W02`。tracking：`DEV-066`。
+`implementation_stage=P6-W03`。tracking：`DEV-066`。
 
 P5-W05 进展：只读 verifier 已冻结 ACTIVE/RETIRED/REVOKED、artifact epoch、Runtime compatibility、防降级与 capability
 allowlist，关闭 pure-Java static policy 子项。它不解决 signer evidence acquisition、签名链、atomic publish 或 hard cancel，
@@ -629,7 +629,7 @@ Signer、version、capability、minimum epoch 与 rollback policy 还需要一�
 `skill_version_policy_contract_defined=true`、`skill_revocation_downgrade_fail_closed=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 tracking：`DEV-067`。
 
 ## ISSUE-041 Working Memory session owner, tokenizer and storage publication
@@ -647,7 +647,7 @@ recovery 和日志/诊断脱敏。P5-W07 Profile 与 P5-W08 Episodic Memory 不�
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W02`。tracking：`DEV-068`。
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-068`。
 
 ## ISSUE-042 Profile Memory authority, key owner and durable repository publication
 
@@ -665,7 +665,7 @@ P5-W07 只完成 process-local contract-test path；debug/test XOR 不是密码�
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W02`。tracking：`DEV-069`。
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-069`。
 
 ## ISSUE-043 Episodic Memory policy, repository and erase authority publication
 
@@ -684,7 +684,7 @@ retention 内的摘要；不得读取原始连续信号，也不能把 episode s
 `episodic_memory_raw_continuous_signal_stored=false`、`episodic_memory_persistence_wired=false`、
 `episodic_memory_production_policy_authority_wired=false`、`episodic_memory_production_erase_authority_wired=false`、
 `episodic_memory_runtime_wired=false`、`episodic_memory_model_context_published=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。tracking：`DEV-070`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-070`。
 
 ## ISSUE-044 Context tokenizer, summary executor and budget authority publication
 
@@ -707,7 +707,7 @@ SUMMARIZE/TRUNCATE 也只是目标，不是内容变换或质量证据。
 `context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
 `context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
 `model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W02`。tracking：`DEV-071`。
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-071`。
 
 ## ISSUE-045 Memory consent authority and repository mutation publication
 
@@ -729,7 +729,7 @@ erase evidence。状态：`Open`。当前 `memory_consent_controller_defined=tru
 `memory_consent_android13_arm64_verified=false`、`memory_consent_hmi_projection_only=true`、
 `memory_consent_repository_mutation_wired=false`、`memory_consent_production_authority_wired=false`、
 `memory_consent_runtime_wired=false`、`memory_consent_model_context_published=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。tracking：`DEV-072`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-072`。
 
 ## ISSUE-046 Event Broker durable repository and production middleware publication
 
@@ -749,4 +749,19 @@ publication 仍需确定：
 `event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。tracking：`DEV-073`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-073`。
+
+### P6-W02 Backpressure/QoS progress
+
+P6-W02 已完成 process-local per-subscription queue 合同和四种压力策略验证。`DROP_OLD` 只移除不高于 incoming
+priority 的非关键事件；`COALESCE` 只替换同 digest key 的非关键事件；`REJECT` 与 `DISCONNECT` 返回显式结果；
+critical Action Observation 无可用容量或到期时进入 replay-required/disconnect，不能静默 drop/coalesce。
+
+仍未关闭 ISSUE-046：P6-W02 队列没有接 P6-W01 broker、durable event/ACK/cursor repository、Binder consumer death、
+production identity/policy、DDS/SOME-IP/vendor middleware 或跨 SOC QoS。Android 13 ARM64 probe 因 ADB transport offline
+尚未执行。当前 `event_qos_contract_defined=true`、`event_qos_policy_count=4`、
+`event_qos_critical_no_silent_drop_verified=true`、`event_qos_deadline_priority_verified=true`、
+`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
+`event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
+`event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。tracking：`DEV-073`。

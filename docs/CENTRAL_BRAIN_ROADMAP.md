@@ -793,7 +793,7 @@ working_memory_payload_zeroized_on_cleanup=true
 working_memory_android13_arm64_verified=false
 working_memory_runtime_wired=false
 working_memory_model_context_published=false
-implementation_stage=P6-W02
+implementation_stage=P6-W03
 event_v2_cursor_ack_required=true
 event_v2_interface_published=false
 plan_contract_v1_defined=true
@@ -836,7 +836,7 @@ acceptance/fault/recovery 聚合验收。
 
 Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`；tracking：`DEV-061`、
 `ISSUE-019/033`。显示策略不是 Effect authority，Plan/Graph/Effect/readback/车辆/NPU/Driver-HAL 仍未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P4-W12 progress
 
@@ -850,7 +850,7 @@ Tool manifest/schema。
 
 Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`S2-EFF-001`、
 `APP-004`、`XSC-001/005/006`；tracking：`DEV-062`、`ISSUE-022/026/030/033`。车辆/NPU/Driver-HAL 未启用，
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W01 progress
 
@@ -866,7 +866,7 @@ contract。下一工作包为 P5-W02 ToolRegistry/Resolver。
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-063`、`ISSUE-036`。
 `tool_registry_published=false`、`tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W02 progress
 
@@ -884,7 +884,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_registry_published=false`、`tool_resolver_published=false`、`tool_registry_runtime_wired=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 
 ### 2026-07-18 P5-W03 progress
@@ -903,7 +903,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 
 ### 2026-07-18 P5-W04 progress
@@ -923,7 +923,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
 `production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W02`。
+`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W05 progress
 
@@ -940,7 +940,7 @@ Effect/车辆/NPU/Driver-HAL。当前 ADB transport 不可用，`skill_package_v
 Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-008`、`DEL-001/004/005`；tracking：`DEV-067`、
 `ISSUE-040`。`trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W06 progress
 
@@ -959,7 +959,7 @@ P5-W06 不接 Runtime/Graph/Binder/Room/model context、Effect、车辆、NPU �
 `DEV-068`、`ISSUE-041`。`working_memory_store_defined=true`、`working_memory_process_local=true`、
 `working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W07 progress
 
@@ -981,7 +981,7 @@ Effect/Vehicle/NPU/Driver-HAL 接线。debug/test XOR 不是密码学 evidence�
 `profile_memory_user_seat_scope_verified=true`、`profile_memory_encryption_owner_gate_verified=true`、
 `profile_memory_durable_storage_wired=false`、`profile_memory_production_encryption_owner_configured=false`、
 `profile_memory_consent_authority_production_wired=false`、`profile_memory_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W08 progress
 
@@ -1002,7 +1002,7 @@ tracking：`DEV-070`、`ISSUE-043`。`episodic_memory_store_defined=true`、
 `episodic_memory_read_fail_closed=true`、`episodic_memory_production_read_authority_wired=false`、
 `episodic_memory_persistence_wired=false`、`episodic_memory_runtime_wired=false`、
 `episodic_memory_model_context_published=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W09 progress
 
@@ -1025,7 +1025,7 @@ tracking：`DEV-071`、`ISSUE-044`。`context_budget_manager_defined=true`、
 `context_budget_summarizer_wired=false`、`context_budget_production_authority_wired=false`、
 `context_budget_runtime_wired=false`、`context_budget_content_logged=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P6-W02`。
+`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P5-W10 progress
 
@@ -1047,7 +1047,7 @@ Effect/Vehicle/NPU/Driver-HAL。下一工作包为 P6-W01 EventBroker。Req IDs�
 `memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
 `memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
 `memory_consent_model_context_published=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。
 
 ### 2026-07-18 P6-W01 progress
 
@@ -1067,4 +1067,22 @@ Backpressure/QoS、Runtime/Graph/Effect/Vehicle/NPU/Driver-HAL 均未启用。�
 `DEL-001/004/005`；tracking：`DEV-073`、`ISSUE-046`。`event_broker_interface_defined=true`、
 `event_broker_typed_topics_verified=true`、`event_broker_durable_persistence_wired=false`、
 `event_broker_dds_transport_wired=false`、`event_broker_production_published=false`、`event_broker_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`。
+
+### 2026-07-18 P6-W02 progress
+
+新增 schema V1 `EventDeliveryQoS` 与 `InProcessEventBackpressureQueue`。每个实例绑定单一 owner/topic subscription，固定
+capacity/max batch/deadline window 和 `DROP_OLD/COALESCE/REJECT/DISCONNECT`；所有 pressure outcome 都携带显式 code、
+displaced/discarded count 与 replay-after cursor。
+
+`CRITICAL_ACTION_OBSERVATION` 不能 coalesce，也不会被 drop-old；满载只能显式 reject/disconnect，关键 head 过期必须断连并要求
+replay。drop-old 按 priority 只替换非关键低优先级候选，coalesce 只替换相同 digest key。callback failure 保留 head，双 queue
+隔离已由六项 JVM test 验证；debug/release compile、DUMP probe、installer、独立 checker 与 CI/runtime evolution 已接入。
+
+本轮 queue 尚未接 P6-W01 Broker、旧 Room cursor repository、Binder/DDS/SOME-IP、Runtime/Graph/Effect/Vehicle/Model/NPU/
+Driver-HAL；实体 ADB offline，`event_qos_android13_arm64_verified=false`。下一工作包为 P6-W03 TriggerRule manifest/engine。
+Req IDs：`S2-EVT-001`、`NV-G-004`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-073`、
+`ISSUE-046`。`event_qos_contract_defined=true`、`event_qos_critical_no_silent_drop_verified=true`、
+`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
+`event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P6-W03`。

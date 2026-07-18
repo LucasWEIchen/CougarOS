@@ -984,7 +984,7 @@ Status: `tool_manifest_contract_defined=true`, `tool_manifest_schema_version=1`,
 `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_execution_enabled=false`, `production_tool_artifact_loaded=false`, `effect_dispatch_enabled=false`,
 `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P6-W02`.
+`target_hardware_validated=false`, `implementation_stage=P6-W03`.
 
 ## P5-W02 Tool Registry/Resolver
 
@@ -1010,7 +1010,7 @@ Status: `tool_registry_contract_defined=true`, `tool_resolver_contract_defined=t
 `tool_registry_android13_arm64_verified=false`, `tool_registry_published=false`, `tool_resolver_published=false`,
 `tool_registry_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_registered=false`,
 `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`. Next: P5-W03 ToolRuleSolver.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W03`. Next: P5-W03 ToolRuleSolver.
 
 ## P5-W03 Tool RuleSolver
 
@@ -1035,7 +1035,7 @@ Status: `tool_rule_set_contract_defined=true`, `tool_rule_type_count=6`, `tool_r
 `tool_rule_solver_runtime_wired=false`, `tool_approval_authority_available=false`, `tool_execution_enabled=false`,
 `production_tool_registered=false`, `effect_dispatch_enabled=false`, `vehicle_readback_accessed=false`, `model_invoked=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
-`implementation_stage=P6-W02`.
+`implementation_stage=P6-W03`.
 
 ## P5-W04 Tool Executor boundary
 
@@ -1059,7 +1059,7 @@ Status: `tool_executor_contract_defined=true`, `tool_invocation_context_defined=
 `tool_executor_audit_bounded_verified=true`, `tool_executor_android13_arm64_verified=false`,
 `tool_executor_runtime_wired=false`, `tool_execution_enabled=false`, `production_tool_execution_enabled=false`,
 `production_tool_registered=false`, `tool_approval_authority_available=false`, `os_virtualization_enabled=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W03`.
 Next: P5-W05 Skill package verifier.
 
 ## P5-W05 Skill package verifier
@@ -1083,7 +1083,7 @@ Status: `skill_artifact_verifier_contract_defined=true`, `skill_signer_policy_co
 `skill_revocation_downgrade_fail_closed=true`, `skill_package_verifier_android13_arm64_verified=false`,
 `trusted_skill_evidence_source_configured=false`, `package_signature_cryptographically_verified=false`,
 `dynamic_skill_loading_enabled=false`, `skill_execution_enabled=false`, `skill_package_verifier_runtime_wired=false`,
-`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`.
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W03`.
 Next: P5-W06 WorkingMemoryStore.
 
 ## P5-W06 WorkingMemoryStore
@@ -1109,7 +1109,7 @@ Status: `working_memory_store_defined=true`, `working_memory_session_scope_verif
 `working_memory_process_local=true`, `working_memory_persistence_wired=false`, `working_memory_runtime_wired=false`,
 `working_memory_model_context_published=false`, `working_memory_tokenizer_verified=false`,
 `working_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P6-W02`. Next: P5-W07 ProfileMemoryStore.
+`target_hardware_validated=false`, `implementation_stage=P6-W03`. Next: P5-W07 ProfileMemoryStore.
 
 ## P5-W07 ProfileMemoryStore
 
@@ -1133,7 +1133,7 @@ Status: `profile_memory_store_defined=true`, `profile_memory_explicit_consent_ve
 `profile_memory_process_local=true`, `profile_memory_durable_storage_wired=false`,
 `profile_memory_production_encryption_owner_configured=false`, `profile_memory_consent_authority_production_wired=false`,
 `profile_memory_runtime_wired=false`, `profile_memory_content_logged=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`. Next: P5-W08 EpisodicMemoryStore.
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W03`. Next: P5-W08 EpisodicMemoryStore.
 
 ## P5-W08 EpisodicMemoryStore
 
@@ -1161,7 +1161,7 @@ Status: `episodic_memory_store_defined=true`, `episodic_memory_summary_result_on
 `episodic_memory_production_policy_authority_wired=false`, `episodic_memory_production_erase_authority_wired=false`,
 `episodic_memory_production_read_authority_wired=false`,
 `episodic_memory_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P6-W02`.
+`target_hardware_validated=false`, `implementation_stage=P6-W03`.
 
 ## P5-W09 ContextBudgetManager
 
@@ -1180,7 +1180,7 @@ State: `context_budget_manager_defined=true`, `context_budget_category_allocatio
 `context_budget_tokenizer_wired=false`, `context_budget_summarizer_wired=false`,
 `context_budget_production_authority_wired=false`, `context_budget_runtime_wired=false`,
 `context_budget_content_logged=false`, `hardware_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P6-W02`. Next: P5-W10 Memory consent HMI/API; tracking: `DEV-071`,
+`target_hardware_validated=false`, `implementation_stage=P6-W03`. Next: P5-W10 Memory consent HMI/API; tracking: `DEV-071`,
 `ISSUE-044`.
 
 ## P5-W10 Memory consent HMI/API
@@ -1210,7 +1210,7 @@ bash tools/check_central_brain_android_memory_consent_hmi.sh
 `memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
 `memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
 `memory_consent_model_context_published=false`、`memory_consent_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W02`. Next: P6-W01 EventBroker;
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W03`. Next: P6-W01 EventBroker;
 tracking: `DEV-072`, `ISSUE-045`.
 
 ## P6-W01 EventBroker interface/in-process implementation
@@ -1241,5 +1241,35 @@ Status: `event_broker_interface_defined=true`, `event_broker_typed_topics_verifi
 `event_broker_android13_arm64_verified=false`, `event_broker_process_local=true`,
 `event_broker_durable_persistence_wired=false`, `event_broker_dds_transport_wired=false`,
 `event_broker_production_published=false`, `event_broker_runtime_wired=false`, `hardware_accessed=false`,
-`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W02`. Next: P6-W02 Backpressure/QoS;
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P6-W03`. Next: P6-W02 Backpressure/QoS;
+tracking: `DEV-073`, `ISSUE-046`.
+
+## P6-W02 Event Backpressure/QoS
+
+`EventDeliveryQoS` 定义 process-local per-subscription queue 的容量、batch、deadline、priority、delivery class 和四种
+overflow policy：`DROP_OLD`、`COALESCE`、`REJECT`、`DISCONNECT`。`InProcessEventBackpressureQueue` 对 request replay、
+owner/topic、cursor、deadline 和 callback failure 进行确定性失败关闭，并保持 consumer 间隔离。
+
+critical Action Observation 不能被 drop/coalesce。容量不足或 critical deadline 到期时返回显式 replay-required/
+disconnect；该行为不等于 durable no-loss。priority 只控制压力下的 admission/displacement，正常 drain 保持 FIFO。
+当前组件没有接入 P6-W01 broker，也不创建线程、不调用 Binder/Room/DDS/SOME-IP、Runtime、Graph、Effect、Vehicle、
+Model/NPU 或 Driver/HAL。
+
+Validation:
+
+```bash
+source ../../env.sh
+./gradlew :runtime-service:testDebugUnitTest \
+  --tests com.centralbrain.runtime.events.InProcessEventBackpressureQueueTest
+./gradlew :runtime-service:assembleDebug :runtime-service:assembleRelease
+cd ../..
+bash tools/check_central_brain_android_event_backpressure_qos.sh
+```
+
+Status: `event_qos_contract_defined=true`, `event_qos_policy_count=4`,
+`event_qos_critical_no_silent_drop_verified=true`, `event_qos_deadline_priority_verified=true`,
+`event_qos_consumer_isolation_verified=true`, `event_qos_android13_arm64_verified=false`,
+`event_qos_process_local=true`, `event_qos_broker_wired=false`, `event_qos_durable_persistence_wired=false`,
+`event_qos_production_middleware_wired=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`, `implementation_stage=P6-W03`. Next: P6-W03 Durable append/cursor integration;
 tracking: `DEV-073`, `ISSUE-046`.
