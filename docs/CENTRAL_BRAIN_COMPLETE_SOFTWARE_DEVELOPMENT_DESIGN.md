@@ -4745,3 +4745,35 @@ Runtime/Governance Services。Real driving state, owner approvals, Effect wiring
 
 Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-097`、`ISSUE-029/030`。
+
+## 47. P9-W07a Release Evidence Envelope detailed design
+
+### Value objects and validation
+
+`Identity` 在构造时验证 release tag/source commit/digest/identifier/reference，避免未规范字段进入摘要。`DiagnosticFact` 在构造时验证
+status-result-digest 三元组。`Report` 要求八类事实精确且顺序一致，复制为 unmodifiable list，随后计算摘要；任何缺项、重复、错序、null
+或非法状态都立即抛出 `IllegalArgumentException`。
+
+### Canonical digest
+
+Canonical input 依次包含 profile ID、schema、mode、全部 identity 字段和八类 fact 的 category/status/result/detail digest。null owner/digest
+使用固定 `-` sentinel。SHA-256 输出小写 64 位十六进制；重复构造必须稳定，任一诊断状态或 detail digest 变化必须改变报告摘要。
+
+### Policy evaluation
+
+Evaluation 顺序固定：privacy confirmation、raw/derived identity、automatic upload；随后 evidence mode；最后 owner digest 与 executed category
+count。GitHub policy 失败优先于其他结果。Host 不进入 target review。Target NOT_RUN 使 eligibility 为 false；FAIL/BLOCKED 仍算“已执行”，
+仅允许进入 owner review，是否接受由 W07c policy 决定。
+
+### Repository claims
+
+W07a 只把 contract/report digest 定义为 true。target owner、target report admission、runtime diagnostics、retest workflow、automatic upload、
+Android13 ARM64、hardware、production 和 target qualification 全部固定 false。Production Runtime/Governance Service 不得引用该类。
+
+### Verification
+
+九组 JVM tests 覆盖目录顺序、host 边界、target eligibility、GitHub policy、摘要稳定/变化、identity 格式、status/result 一致性、事实错序和
+repository false claims。静态 checker 同步 JSON/Java/test/docs，拒绝 Android/IO/network/platform/vehicle/native 引用和 production Service
+wiring；Stage2、Runtime aggregate 和 GitHub CI 必须调用该 checker。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。

@@ -1617,3 +1617,20 @@ permission/readback/activation contract，目标状态与故障矩阵，驾驶�
 `driver_safety_current_owner_policy_approved=false`、`driver_safety_vehicle_state_provider_wired=false`、
 `driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W06`。
+
+## DEV-098 P9-W07a metadata eligibility is not target qualification
+
+W07a 把发布身份和八类现场诊断统一为稳定摘要合同，但不采集或验证真实 target evidence。Host synthetic 报告即使八类 PASS 也只能返回
+`HOST_SOFTWARE_ONLY`；Target 报告即使存在 owner digest 且没有 NOT_RUN，也只返回 `TARGET_OWNER_REVIEW_ELIGIBLE`。该结果不判断
+PASS/FAIL/BLOCKED 组合能否验收，不证明 source/archive/artifact、signer、安装、启动、服务或场景结果真实。
+
+偏差原因是当前缺少在线目标 transport、命名 release/diagnostics/test owner、受控 evidence 和 replacement release。W07a 禁止 automatic
+upload，不接 Android probe、GitHub mutation、Runtime/Governance Service 或 installer。它不能关闭 ISSUE-052，也不能继承 W05 debug
+metadata observation 成为 production candidate。
+
+状态：`Accepted Temporary`。关闭条件是 W07b/W07c 提供受保护的目标 probe、脱敏报告 admission、命名 replacement release、issue/retest
+状态机和 owner-approved target evidence；production signer/installer/rollback 仍需 ISSUE-052。当前
+`release_evidence_envelope_defined=true`、`release_evidence_target_owner_approved=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`release_evidence_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。

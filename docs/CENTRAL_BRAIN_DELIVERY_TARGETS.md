@@ -2558,3 +2558,20 @@ serial/fingerprint、车辆 scalar、owner reference、原始 logcat 或业务 p
 `driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W06`。Req IDs：`S2-UX-002`、`S2-SAF-001`、
 `S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-097`、`ISSUE-029/030`。
+
+## Android P9-W07a Release Evidence Envelope
+
+交付 versioned JSON、pure-Java `ReleaseEvidenceEnvelope`、九组 JVM regression、专用设计文档和独立/Stage2/Runtime/CI 门禁。Host
+验收必须证明 strict release identity、八类 exact ordered diagnostics、status/result/digest 一致性、stable report digest、GitHub privacy
+失败关闭，以及 software-only/target-review/production qualification 三层不混淆。
+
+本包不读取目标设备、APK、PackageManager、文件、网络、车辆、NPU 或 Driver/HAL，不含 Activity/ADB adapter，不修改 GitHub issue，
+不自动上传。W07b/W07c 负责 target diagnostics 和 replacement release/retest；正式 signer/installer/rollback 仍由 ISSUE-052 阻塞。
+
+状态：`release_evidence_envelope_defined=true`、`release_evidence_diagnostic_category_count=8`、
+`release_evidence_report_digest_defined=true`、`release_evidence_target_owner_approved=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
+`release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
+`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。

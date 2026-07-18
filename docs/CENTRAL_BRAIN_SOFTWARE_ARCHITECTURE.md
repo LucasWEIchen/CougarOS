@@ -1564,3 +1564,26 @@ Runtime/Governance/Effect/Vehicle/NPU/Driver-HAL；API33 ARM64 contract probe �
 `target_hardware_validated=false`、`implementation_stage=P9-W06`。Req IDs：
 `S2-UX-002/S2-SAF-001/S2-EFF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-097`、`ISSUE-029/030`。
+
+## P9-W07a release evidence envelope architecture
+
+```text
+strict release identity
+  + 8 ordered digest-only diagnostic facts
+        -> ReleaseEvidenceEnvelope.Report
+            -> stable report SHA-256
+                -> GitHub policy gate
+                    -> host software-only
+                    -> target owner-review eligibility
+```
+
+该模块位于 release/observability 控制面，不进入 Runtime/Governance Service、installer 或 GitHub mutation path。W05 admission 仍拥有
+production candidate/signer/rollback policy；W07a 只规范证据封装和 review eligibility，不能把 W05 debug observation 转换为正式 release。
+W07b 才能添加 debug-only target collector，W07c 才能形成 replacement release/retest 状态机。
+
+输入输出只有有界 ID、digest、enum、int 和 boolean；不包含任意文本、设备身份、签名材料、车辆/模型 payload 或原始日志。当前
+`release_evidence_envelope_defined=true`、`release_evidence_target_owner_approved=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`release_evidence_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。
+Req IDs：`S2-OBS-001/S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。

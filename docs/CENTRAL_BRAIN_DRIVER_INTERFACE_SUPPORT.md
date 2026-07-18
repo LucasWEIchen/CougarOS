@@ -1763,3 +1763,20 @@ property、车辆 scalar、NPU 或网络，不调用 Effect adapter，也不修�
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W06`。Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、
 `S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-097`、`ISSUE-029/030`。
+
+## P9-W07a Release Evidence Envelope Driver/HAL Boundary
+
+W07a 是 Android 应用工程内的 pure-Java metadata contract。它只消费调用方提供的 release/diagnostic digest、bounded identifier 和布尔值，
+不读取 Android API、PackageManager、文件、网络、Vehicle/VHAL、Vendor Binder、device node、NPU，也不修改厂商 SDK、系统镜像或
+SELinux。本增量没有 C/JNI/Driver/HAL 或虚拟化开发量。
+
+未来 W07b target diagnostics 优先使用应用层 debug Activity、ADB 和目标已公开 Android/OEM SDK。只有命名 owner 证明某个已编号 diagnostic
+category 无法由公开接口完成，并提供最小 type/permission/error/redaction/evidence contract 后，才登记 Driver/HAL 缺口；不得从 W07a
+synthetic report 推断接口或硬件资格。
+
+当前 `driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`release_evidence_envelope_defined=true`、`release_evidence_target_owner_approved=false`、
+`release_evidence_runtime_diagnostics_wired=false`、`release_evidence_retest_workflow_wired=false`、
+`release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。Req IDs：`S2-OBS-001`、`S2-REL-001`、
+`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。

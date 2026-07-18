@@ -1565,3 +1565,25 @@ Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/00
 `driver_safety_effect_runtime_wired=false`、`driver_safety_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W06`。
+
+### P9-W07a Release Evidence Envelope progress
+
+状态：`SOFTWARE_DEVELOPED / TARGET_EVIDENCE_PENDING`（2026-07-18）。新增 pure-Java
+`ReleaseEvidenceEnvelope`、versioned JSON、九组 JVM regression、稳定 report SHA-256 和专用静态门禁。合同固定 release tag、
+source commit、archive/release-set digest、非秘密 alias/evidence reference、可选 owner digest，以及 release/install/launch/service/manual
+八类有序 diagnostic fact。
+
+GitHub policy 对 privacy confirmation、raw/derived identity 和 automatic upload 失败关闭；Host 报告只能是 software-only。Target 报告即使
+具备 owner digest 且八类全部执行，也只达到 owner review eligible，`production_ready` 和 `target_hardware_validated` 始终为 false。
+本增量不读取目标、Android、PackageManager、vehicle、NPU、Driver/HAL，不连接 Runtime/Governance Service。
+
+下一小步：`P9-W07b debug-only field diagnostics probe and host adapter`；随后 `P9-W07c replacement release and issue/retest state machine`。
+目标 transport、正式报告、owner/retest approval 由 ISSUE-052/053 外部跟踪。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`；tracking：`DEV-098`、`ISSUE-052/053`。
+`release_evidence_envelope_defined=true`、`release_evidence_diagnostic_category_count=8`、
+`release_evidence_report_digest_defined=true`、`release_evidence_target_owner_approved=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
+`release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。

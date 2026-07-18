@@ -70,6 +70,9 @@
 | ISSUE-048 | P9 十项预算缺目标 Android 13 采集、30-sample 报告、owner approval 和 release qualification。 | S2-OBS-001, S2-REL-001, P9-W01/W02 | Open |
 | ISSUE-049 | P9 稳定性矩阵缺真实 fault injector、目标 72h run、受控证据和 owner approval。 | S2-REL-001, S2-OBS-001, P9-W02 | Open / External Blocked |
 | ISSUE-050 | P9 完整安全 fuzz 缺 engine/budget/corpus/evidence owner，AIDL caller/signature/device review 仍未完成。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, P9-W03 | Open |
+| ISSUE-051 | P9 durable privacy lifecycle 缺 owner policy、repository enforcement 和目标 evidence。 | S2-MEM-001, S2-SAF-001, P9-W04 | Open |
+| ISSUE-052 | P9 production signer、installer/rollback owner 和受控发布证据不可用。 | S2-REL-001, P9-W05 | Open / External Blocked |
+| ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1123,3 +1126,22 @@ installed set 的关系，不提供正式 candidate、owner approval、OTA/MDM �
 `release_metadata_projection_defined=true`、`release_installer_dry_run_adapter_defined=true`、
 `release_android_debug_probe_available=true`、`release_android_debug_probe_executed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W05`。tracking：`DEV-094/095`。
+
+## ISSUE-053 P9 target field diagnostics and retest evidence is unavailable
+
+状态：`Open / External Blocked`。
+
+P9-W07a 已交付 metadata-only release evidence envelope：严格绑定 release/source/archive/release-set、非秘密 alias/reference、八类有序
+diagnostic fact 和稳定 report digest，并对 GitHub privacy、raw identity、automatic upload 失败关闭。它没有 Android probe、ADB execution、
+GitHub issue mutation、replacement release 或 target-owner admission；Host 报告永远不是 target evidence。
+
+W07b/W07c 仍需：受保护的 Android debug diagnostics 入口；只读 no-install host adapter；命名 replacement release；issue -> triaged -> fixed ->
+retest 状态机；目标 tester 与 release/diagnostics owner approval。不得提交 serial/fingerprint、signing material、target-input files、内部路径、
+raw/未审日志、用户/模型文本、memory/token 或车辆 payload，也不得自动关闭 issue。
+
+解除条件：八类 target fact 由命名 release 和非秘密 alias 产生，report digest 与仓库外受控 evidence reference 一致，owner 审核 privacy 和
+diagnostic completeness，tester 对命名 replacement release 复测并记录结果。production signer/installer/rollback authority 还必须独立关闭
+ISSUE-052。当前 `release_evidence_envelope_defined=true`、`release_evidence_target_owner_approved=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`release_evidence_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W07`。tracking：`DEV-098`。

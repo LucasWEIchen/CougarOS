@@ -2602,3 +2602,27 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
 `driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W06`。tracking：`DEV-097`、`ISSUE-029/030`。
+
+## 90. P9-W07a release evidence envelope trace
+
+本增量映射 `S2-OBS-001`、`S2-REL-001`、`DEL-001/004/005`：
+
+1. envelope 必须是 pure-Java metadata contract，不得依赖 Android、文件、网络、PackageManager、车辆、NPU 或 Driver/HAL。
+2. release identity 必须严格验证 canonical tag、40 位 source commit、archive/release-set SHA-256、有界 delivery ID、非秘密 alias 和 evidence reference。
+3. target owner approval 只允许可选 SHA-256 reference，不得接收 signer material、设备身份、内部路径、用户/模型文本、车辆值、raw log 或 payload。
+4. diagnostic catalog 必须精确包含八类且顺序固定：release bundle、installer dry-run/execute、Demo/Client2 launch、Runtime/Diagnostics Service、manual scenario matrix。
+5. diagnostic status 必须固定为 PASS/FAIL/BLOCKED/NOT_RUN；status、result code 和 detail digest 必须一致并失败关闭。
+6. report digest 必须绑定 profile/schema/mode、全部 release identity 和八类有序事实；同输入稳定，任一事实变化必须变化。
+7. GitHub-safe 必须要求 privacy confirmed、raw/derived identity absent、automatic upload disabled；不符合时必须拒绝。
+8. host synthetic evidence 必须永远返回 software-only，不得进入 target-owner review eligibility。
+9. target review eligibility 必须同时要求 target mode、owner digest 和八类事实全部执行；eligibility 不等于 PASS，也不等于 admitted。
+10. 所有 evaluation 和 repository claim 必须保持 `production_ready=false`、`target_hardware_validated=false`、hardware accessed=false。
+11. main-source class 不得被 Runtime/Governance Service 引用；W07a 不提供 Android Activity、ADB adapter、issue mutation 或 automatic upload。
+12. W07b/W07c 必须沿用本合同并独立验证目标 probe、replacement release、issue/retest 与 owner approval，不得反向伪造 W07a 状态。
+
+状态：`release_evidence_envelope_defined=true`、`release_evidence_diagnostic_category_count=8`、
+`release_evidence_report_digest_defined=true`、`release_evidence_target_owner_approved=false`、
+`release_evidence_target_report_admitted=false`、`release_evidence_runtime_diagnostics_wired=false`、
+`release_evidence_retest_workflow_wired=false`、`release_evidence_automatic_upload_enabled=false`、
+`release_evidence_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W07`。tracking：`DEV-098`、`ISSUE-052/053`。
