@@ -2628,3 +2628,23 @@ Context/Policy 自动推进和 HVAC pending Effect、parked fatigue 的 approval
 `target_hardware_validated=false`、`implementation_stage=P4-D4a`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
 `S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；
 tracking：`DEV-101`、`ISSUE-022/026/030/033`。
+
+## Android P4-D4b Simulated Scenario Runtime Projection
+
+Host/debug 软件交付包含：
+
+- `SimulatedScenarioRuntime.java`：D4a Graph 与 P6 bounded Event runtime 的进程内组合；
+- `SimulatedScenarioRuntimeTest.java`：八组 JVM regression；
+- `central_brain_android_p4_d4b_simulated_scenario_runtime.json`：两 topic、八 schema 与 false-authority 基线；
+- `check_central_brain_android_simulated_scenario_runtime.sh`：debug-only、JSON、test、docs 和禁止 wiring 门禁。
+
+验收允许声明 Session/Plan/Event projection 已在 debug 进程内完成。不得声明 Android Service/Binder、Client2、Effect apply、readback、
+approval authority、production Event broker 或 target hardware 已完成。D4c 前不可由 APK 跨进程调用本组件。
+
+当前 `simulated_scenario_debug_runtime_projection_defined=true`、`simulated_scenario_debug_runtime_wired=true`、
+`simulated_scenario_session_projection_enabled=true`、`simulated_scenario_event_projection_enabled=true`、
+`simulated_scenario_android_service_published=false`、`simulated_scenario_session_event_binder_published=false`、
+`simulated_scenario_effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4b`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
+`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；
+tracking：`DEV-102`、`ISSUE-022/026/030/033`。

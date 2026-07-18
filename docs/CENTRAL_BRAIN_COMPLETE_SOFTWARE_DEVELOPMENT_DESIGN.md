@@ -4884,3 +4884,40 @@ Static checker 验证 debug-only source、JSON、tests、docs 和 production Ser
 
 Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-HMI-003/006`；tracking：`DEV-101`、
 `ISSUE-022/026/030/033`。
+
+## 51. P4-D4b Simulated Scenario Runtime detailed design
+
+### Intent and ownership
+
+`SimulatedScenarioRuntime` 解决 D4a Graph 已能推进但 HMI 无 Session/Event 调用链的问题。它位于 `runtime-service/src/debug`，拥有
+process-local run index 与 projection mapping，不拥有 Planner、Graph scheduler、Effect adapter、approval policy、readback 或 production
+Event broker。最大 run 数仍由 D4a 固定为 16。
+
+### Session projection state machine
+
+每个 D4a Snapshot 映射到 `WAITING_APPROVAL`、`WAITING_EFFECT`、`WAITING_READBACK`、`COMPLETED`、`FAILED` 或 `CANCELLED`。
+非 terminal 且无 pending node 属于非法 projection 并失败关闭。Snapshot 绑定 run/session/scenario/Plan identity、Plan/Graph revision、
+automatic/supplied counts、pending metadata、last event sequence/count、P6 global event counters 和 D4a digest。
+
+### Event projection mapping
+
+Start 固定发布 `plan.published`，随后发布当前 pending/terminal。每次 supplied outcome 先发布 `outcome.supplied`，再发布推进后的
+pending/terminal；cancel 只发布 cancelled terminal。Approval 使用 `governance.policy.decision`，其余使用 `runtime.task.state`。所有 event
+payload 由 domain-separated SHA-256 生成，不保存 raw request、Context value、vehicle payload、model output 或 device identity。
+
+P6 `BoundedEventRuntime` 负责 global sequence、64-event retention、owner subscription、replay、queue 和 overflow。D4b 不绕过其 API，也不
+把 process-local event 声称为 durable/production broker evidence。
+
+### Concurrency and failure behavior
+
+Run mutation 由 facade synchronized，D4a 与 P6 各自继续保持内部同步。unknown run、missing pending、unsupported projection state、event publish
+failure 全部拒绝。Supplied outcome 为显式 debug input；required failure 由 D4a 使 Graph FAILED，D4b 只投影结果。
+
+### Verification and next boundary
+
+八组 JVM tests 覆盖两类 topic、八类 schema、retained delivery、cold/fatigue、Effect/readback progression、完整成功、失败/取消、digest 与
+false authority。Static checker 验证 source-set、JSON、test、docs、main/release absence 和无 Android/IO/network/process/vehicle/NPU access。
+
+P4-D4c 才能发布 signature-protected debug Binder Service。D4b 保持 Android Service/Binder、Client2、Effect dispatch、readback、approval
+authority、hardware 和 production false。Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、
+`S2-HMI-003/006`；tracking：`DEV-102`、`ISSUE-022/026/030/033`。

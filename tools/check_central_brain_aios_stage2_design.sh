@@ -516,6 +516,18 @@ require_text "$DEVIATIONS" 'DEV-101 P4-D4a debug graph progress is not Runtime E
 require_text "$ISSUES" 'ISSUE-033 P4-D4a update'
 require_text "$DELIVERY" 'Android P4-D4a Simulated Scenario/Plan/Graph Composition'
 require_text "$DRIVER" 'P4-D4a Simulated Scenario Graph Driver/HAL Boundary'
+require_text "$README" 'simulated_scenario_debug_runtime_projection_defined=true'
+require_text "$README" 'simulated_scenario_debug_runtime_wired=true'
+require_text "$README" 'simulated_scenario_session_projection_enabled=true'
+require_text "$README" 'simulated_scenario_event_projection_enabled=true'
+require_text "$README" 'simulated_scenario_android_service_published=false'
+require_text "$README" 'simulated_scenario_session_event_binder_published=false'
+require_text "$BACKLOG" '`P4-D4b` debug Runtime Session/Event projection'
+require_text "$REQUIREMENTS" 'P4-D4b debug Runtime Session/Event projection trace'
+require_text "$DEVIATIONS" 'DEV-102 P4-D4b process-local Runtime projection is not an Android Binder runtime'
+require_text "$ISSUES" 'ISSUE-033 P4-D4b update'
+require_text "$DELIVERY" 'Android P4-D4b Simulated Scenario Runtime Projection'
+require_text "$DRIVER" 'P4-D4b Simulated Scenario Runtime Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -718,5 +730,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_production_release_metadata_pr
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_probe.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_graph.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_runtime.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

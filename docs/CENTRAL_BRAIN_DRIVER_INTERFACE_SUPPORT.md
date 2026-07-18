@@ -1830,3 +1830,18 @@ device node、sysfs、property、NPU 或网络，不调用 Effect adapter，也�
 `target_hardware_validated=false`、`implementation_stage=P4-D4a`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
 `S2-EFF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；
 tracking：`DEV-101`、`ISSUE-022/026/030/033`。
+
+## P4-D4b Simulated Scenario Runtime Driver/HAL Boundary
+
+P4-D4b 只组合 debug Java 类：`SimulatedScenarioGraph` 和 `BoundedEventRuntime`。输入仍是既有 immutable Context/Resolution/Capability
+对象；输出是 Session/Plan metadata 与 digest-only Event envelope。它不查询 VehicleProperty、Vendor SOA、NPU、PCIe、device node、
+sysfs、JNI 或 native driver。
+
+因此本增量不触发 C/C++、HAL 或 Driver 新增开发量，也不改变现有 Driver/HAL 支持矩阵。Android Service/Binder、Client2、
+simulated adapter apply 与 readback 都不属于 D4b；D4c 也只能发布 debug Binder，不得借此猜测 OEM API。
+
+当前 `driver_development_triggered=false`、`simulated_scenario_android_service_published=false`、
+`simulated_scenario_session_event_binder_published=false`、`simulated_scenario_effect_dispatch_enabled=false`、
+`simulated_scenario_readback_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-D4b`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、
+`S2-EVT-001`、`S2-EFF-001`、`APP-004`、`XSC-001/005/006`、`DEL-001/004/005`；tracking：`DEV-102`。

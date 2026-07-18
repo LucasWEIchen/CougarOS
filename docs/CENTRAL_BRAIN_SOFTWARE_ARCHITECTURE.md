@@ -1652,3 +1652,28 @@ Effect adapter/readback 和 Client2 renderer 必须分开实现与验收。当�
 `simulated_scenario_effect_dispatch_enabled=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4a`。
 Req IDs：`S2-SCN-001/S2-GRF-001/S2-EFF-001/S2-HMI-003/006`；tracking：`DEV-101`、`ISSUE-022/026/030/033`。
+
+## 58. P4-D4b Debug Runtime projection architecture
+
+```text
+Compile inputs -> SimulatedScenarioGraph (D4a)
+                    -> immutable Graph Snapshot
+                        -> SimulatedScenarioRuntime
+                            -> Session/Plan current projection + digest
+                            -> BoundedEventRuntime (P6)
+                                -> runtime.task.state
+                                -> governance.policy.decision
+                                -> retained/replayed digest-only events
+```
+
+D4b 建立的是 Runtime module 内的 debug process-local composition。它不复制 Graph 或 Event 实现；事件 topic、sequence、retention、queue、
+subscription 与 overflow 均由 P6 组件负责。D4b 只定义 Graph Snapshot 到两 topic/八 schema 的 deterministic mapping。
+
+Session projection 是当前状态 view，Event projection 是有序变更 view。Plan published、pending stage、outcome supplied 和 terminal 均可被后续
+HMI 显示为自动化调用链，但 payload 不含 raw data。D4b 没有 Android component，release 不含该类。
+
+下一层 P4-D4c 才能增加 signature-protected debug Binder Service；adapter/readback 和 Client2 renderer 仍需后续独立验收。当前
+`simulated_scenario_debug_runtime_wired=true`、`simulated_scenario_android_runtime_wired=false`、
+`simulated_scenario_android_service_published=false`、`simulated_scenario_session_event_binder_published=false`、
+`simulated_scenario_client2_wired=false`、`simulated_scenario_effect_dispatch_enabled=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4b`。
