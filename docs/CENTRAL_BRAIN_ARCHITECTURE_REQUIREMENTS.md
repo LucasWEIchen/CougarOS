@@ -2578,3 +2578,27 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
 `driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W06`。tracking：`DEV-096`、`ISSUE-029/030`。
+
+## 89. P9-W06b driver safety redacted probe trace
+
+本增量继续映射 `S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`：
+
+1. main-source projection 必须只读取 W06a build-owned repository metadata，不得接受 Runtime、vehicle、owner 或 capability payload。
+2. 投影必须精确输出 27 个有序 count/boolean key，并与 versioned JSON allowlist 同源。
+3. 输出禁止 vehicle scalar、speed/gear/parking-brake、occupancy/belt/seat angle、state source、owner/approval/activation reference、设备身份、raw log 和 payload。
+4. debug Activity 只允许 1..24 位数字 nonce，必须 DUMP-protected、exported、noHistory、NoDisplay；main/release 不得暴露入口。
+5. Activity、projection 和 adapter 不得读取 Android Car、VHAL、Vendor Binder、CAN、device node、sysfs、NPU 或网络。
+6. target adapter 必须要求已安装 debug Runtime、Android 13 API 33 和 ARM64，不得 build/install/uninstall 或读取车辆状态。
+7. adapter 不得输出 transport identity 或原始 logcat，只允许固定计数、布尔值和 qualification=false 标志。
+8. probe available 不等于 executed；软件 probe 执行成功也只能设置独立 contract-probe marker，不能设置 OEM safety qualification。
+9. current owner approval、vehicle provider、Effect Runtime、Effect dispatch、hardware operation 和目标 safety qualification 必须保持 false。
+10. Runtime/Governance Service、release APK、production adapter、Driver/HAL 和厂商系统软件不得引用本投影。
+11. checker、JVM、debug/release build 必须验证 exact keys、禁止字段、manifest/source absence 和 adapter command boundary。
+12. 真实 driving state、IDLE、驾驶分心矩阵、seat/HVAC policy、硬联锁和 owner sign-off 继续由 ISSUE-029/030 与 P8 提供。
+
+状态：`driver_safety_redacted_projection_defined=true`、`driver_safety_audit_key_count=27`、
+`driver_safety_android_debug_probe_available=true`、`driver_safety_android_debug_probe_executed=false`、
+`driver_safety_target_adapter_defined=true`、`driver_safety_current_owner_policy_approved=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W06`。tracking：`DEV-097`、`ISSUE-029/030`。

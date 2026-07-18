@@ -132,6 +132,40 @@ production_ready=false
 target_hardware_validated=false
 ```
 
-P9-W06b 才可增加 DUMP-protected debug-only redacted probe 和只读 target evidence adapter。真实 owner
-签署、driver-distraction acceptance matrix、车辆 signal producer、座椅硬联锁和 Effect activation 继续由
-`ISSUE-029/030` 及 P8 外部工作包跟踪。
+P9-W06b 已增加 DUMP-protected debug-only redacted probe 和只读 target evidence adapter。该软件入口当前
+未在目标设备执行，真实 owner 签署、driver-distraction acceptance matrix、车辆 signal producer、座椅硬联锁
+和 Effect activation 继续由 `ISSUE-029/030` 及 P8 外部工作包跟踪。
+
+## 10. P9-W06b 脱敏 Android 探针
+
+W06b 以 `DriverSafetyAuditProjection.evaluateCurrentRepository()` 重新计算 W06a build-owned catalog 的固定元数据，
+不接受 Runtime、车辆、owner 或 capability 输入。投影精确输出 27 个有序 key，仅包含计数和布尔值：12 个 action、
+4 个 UX profile、3 个 owner role、500 ms 最大状态年龄、0 个当前 owner approval、6 个 moving blocked action、
+4 个 vehicle Effect action、4 个 approval-required action 和 0 个 production-authorized capability。
+
+`DriverSafetyAuditProbeActivity` 只存在于 debug source set，要求 `android.permission.DUMP`，并且只接受 1..24 位数字
+nonce。它不读取 Android Car、VHAL、Vendor Binder、车辆 scalar、设备身份、owner approval reference、原始日志或
+业务 payload；main/release manifest 不暴露该入口。投影也未接入 Runtime/Governance Service。
+
+`tools/probe_central_brain_android_driver_safety.sh` 仅对已经安装的 debug Runtime 执行只读 probe。它要求 Android 13
+API 33、ARM64 和在线 transport，但不 build、install、uninstall，不读取 vehicle state，也不保存或打印原始 logcat。
+成功执行只证明当前 APK 内的软件合同可运行；`driver_safety_android_contract_probe_android13_arm64_verified=true`
+不得提升为 `driver_safety_android13_arm64_verified=true`，后者仍要求真实 Safety source、OEM owner 和目标策略证据。
+
+```text
+driver_safety_redacted_projection_defined=true
+driver_safety_audit_key_count=27
+driver_safety_android_debug_probe_available=true
+driver_safety_android_debug_probe_executed=false
+driver_safety_target_adapter_defined=true
+driver_safety_current_owner_policy_approved=false
+driver_safety_vehicle_state_provider_wired=false
+driver_safety_effect_runtime_wired=false
+driver_safety_android13_arm64_verified=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-097`、`ISSUE-029/030`。

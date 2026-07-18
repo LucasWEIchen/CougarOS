@@ -1541,3 +1541,26 @@ policy-only 或 approval-required，decision 仍固定 `effectDispatchAuthorized
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W06`。Req IDs：`S2-UX-002/S2-SAF-001/S2-EFF-001/S2-OBS-001`、
 `DEL-001/004/005`；tracking：`DEV-096`、`ISSUE-029/030`。
+
+## P9-W06b driver safety redacted probe architecture
+
+```text
+W06a build-owned admission metadata
+        -> DriverSafetyAuditProjection
+            -> 27 ordered count/boolean keys
+                -> debug-only DUMP Activity
+                    -> read-only API33/ARM64 ADB adapter
+```
+
+Projection 不接受 Runtime、Vehicle、owner 或 capability payload，不读取平台服务。debug Activity 只接受数字 nonce；main/release
+不含入口。adapter 不 build/install/uninstall，不读取车身信号，也不打印 transport identity 或原始 logcat。该链不接
+Runtime/Governance/Effect/Vehicle/NPU/Driver-HAL；API33 ARM64 contract probe 成功也不代表 OEM safety qualification。
+
+状态：`driver_safety_redacted_projection_defined=true`、`driver_safety_audit_key_count=27`、
+`driver_safety_android_debug_probe_available=true`、`driver_safety_android_debug_probe_executed=false`、
+`driver_safety_target_adapter_defined=true`、`driver_safety_current_owner_policy_approved=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W06`。Req IDs：
+`S2-UX-002/S2-SAF-001/S2-EFF-001/S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-097`、`ISSUE-029/030`。

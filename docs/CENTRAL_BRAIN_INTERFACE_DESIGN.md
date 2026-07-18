@@ -3588,3 +3588,26 @@ production availability、authorization、readback availability 和 activation d
 
 Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-096`、`ISSUE-029/030`。
+
+## Android P9-W06b Driver Safety Redacted Probe
+
+### Java projection
+
+`DriverSafetyAuditProjection.evaluateCurrentRepository()` 无参数，只根据 W06a 固定 catalog、UX/owner enum、draft approval count 和
+P2 production-authorized capability count 生成 immutable `Snapshot`。`Snapshot.auditMetadata()` 精确输出 27 个有序
+count/boolean key；`allowedAuditKeys()` 提供同源不可变 allowlist。
+
+### Android debug entry
+
+`DriverSafetyAuditProbeActivity` 仅存在于 debug source set。组件要求 `android.permission.DUMP`、`exported=true`、
+`noHistory=true`、`Theme.NoDisplay`，只读取 `nonce` 字符串并接受 1..24 位数字。输出 tag 为 `CbSafetyProbe`，不包含
+vehicle scalar、source、owner/approval reference、设备身份或原始 payload。
+
+### Target adapter
+
+`probe_central_brain_android_driver_safety.sh [--serial SERIAL]` 要求已经安装 debug Runtime、Android 13 API 33 和 ARM64。
+它只启动 Activity、按 nonce 验证固定 marker 并输出脱敏 count/boolean；不 build/install/uninstall，不读取车辆状态，不持久化
+原始 logcat。成功时独立 contract-probe marker 可为 true，但 `driver_safety_android13_arm64_verified` 固定 false。
+
+Req IDs：`S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
+`DEV-097`、`ISSUE-029/030`。

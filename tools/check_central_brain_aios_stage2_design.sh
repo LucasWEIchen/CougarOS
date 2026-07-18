@@ -38,6 +38,7 @@ PRODUCTION_RELEASE_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_and
 PRODUCTION_RELEASE_PROBE_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_production_release_metadata_probe.json"
 DRIVER_SAFETY="$ROOT_DIR/docs/CENTRAL_BRAIN_DRIVER_SAFETY_ADMISSION.md"
 DRIVER_SAFETY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_driver_safety_admission.json"
+DRIVER_SAFETY_PROBE_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_driver_safety_audit_probe.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
@@ -45,7 +46,8 @@ for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_
     "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT" "$SECURITY_BOUNDARY_CONTRACT" \
     "$PRIVACY_LIFECYCLE" "$PRIVACY_INVENTORY_CONTRACT" "$PRIVACY_POLICY_CONTRACT" \
     "$PRIVACY_REDACTION_CONTRACT" "$PRODUCTION_RELEASE" "$PRODUCTION_RELEASE_CONTRACT" \
-    "$PRODUCTION_RELEASE_PROBE_CONTRACT" "$DRIVER_SAFETY" "$DRIVER_SAFETY_CONTRACT"; do
+    "$PRODUCTION_RELEASE_PROBE_CONTRACT" "$DRIVER_SAFETY" "$DRIVER_SAFETY_CONTRACT" \
+    "$DRIVER_SAFETY_PROBE_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -468,6 +470,13 @@ require_text "$REQUIREMENTS" 'P9-W06a driver-distraction/safety admission trace'
 require_text "$DEVIATIONS" 'DEV-096 P9-W06a software admission is not OEM safety acceptance'
 require_text "$DELIVERY" 'Android P9-W06a Driver Safety Admission'
 require_text "$DRIVER" 'P9-W06a Driver Safety Admission Driver/HAL Boundary'
+require_text "$README" 'driver_safety_redacted_projection_defined=true'
+require_text "$README" 'driver_safety_target_adapter_defined=true'
+require_text "$BACKLOG" 'P9-W06b redacted Android probe and target evidence adapter'
+require_text "$REQUIREMENTS" 'P9-W06b driver safety redacted probe trace'
+require_text "$DEVIATIONS" 'DEV-097 P9-W06b Android contract probe is not target safety evidence'
+require_text "$DELIVERY" 'Android P9-W06b Driver Safety Redacted Probe'
+require_text "$DRIVER" 'P9-W06b Driver Safety Probe Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -668,5 +677,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_privacy_redaction_audit.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_production_release_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_production_release_metadata_probe.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_admission.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_probe.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

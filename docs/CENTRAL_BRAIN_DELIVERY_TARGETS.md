@@ -2540,3 +2540,21 @@ debug-only redacted probe，但真实验收仍要求命名 Android 13 release、
 `target_hardware_validated=false`、`implementation_stage=P9-W06`。Req IDs：
 `S2-UX-002`、`S2-SAF-001`、`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-096`、`ISSUE-029/030`。
+
+## Android P9-W06b Driver Safety Redacted Probe
+
+交付 versioned JSON、27-key pure-Java `DriverSafetyAuditProjection`、六组 JVM regression、DUMP-protected debug-only
+Activity、只读 ADB adapter 和独立/Stage2/Runtime/CI 门禁。Host/build 验收必须证明投影只使用 W06a repository metadata、
+只输出计数/布尔值、main/release 不含 Activity、adapter 不 build/install/uninstall 且不读取车辆状态。
+
+目标执行要求已经安装当前 debug Runtime、Android 13 API 33、ARM64 和在线 transport。证据只允许固定 count/boolean；不得提交
+serial/fingerprint、车辆 scalar、owner reference、原始 logcat 或业务 payload。成功运行只证明 APK 内 contract probe 可执行，
+不得作为 OEM Safety、驾驶分心或 seat/HVAC 硬联锁验收。
+
+状态：`driver_safety_redacted_projection_defined=true`、`driver_safety_audit_key_count=27`、
+`driver_safety_android_debug_probe_available=true`、`driver_safety_android_debug_probe_executed=false`、
+`driver_safety_target_adapter_defined=true`、`driver_safety_current_owner_policy_approved=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、
+`driver_safety_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W06`。Req IDs：`S2-UX-002`、`S2-SAF-001`、
+`S2-EFF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-097`、`ISSUE-029/030`。

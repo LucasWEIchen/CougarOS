@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-p9-driver-safety-audit-v1",
+  "maturity": "debug_probe_available_target_execution_pending",
+  "requirement_ids": ["S2-UX-002", "S2-SAF-001", "S2-EFF-001", "S2-OBS-001", "DEL-001", "DEL-004", "DEL-005"],
+  "source_contract_profile_id": "android13-p9-driver-safety-admission-v1",
+  "audit_key_count": 27,
+  "allowed_audit_keys": [
+    "driver_safety_probe_complete", "driver_safety_projection_verified", "driver_safety_action_rule_count",
+    "driver_safety_ux_profile_count", "driver_safety_owner_role_count", "driver_safety_state_maximum_age_ms",
+    "driver_safety_current_owner_approval_count", "driver_safety_moving_blocked_action_count",
+    "driver_safety_vehicle_effect_action_count", "driver_safety_approval_required_action_count",
+    "driver_safety_production_capability_authorized_count", "driver_safety_exact_catalog_verified",
+    "driver_safety_non_normal_fault_restricted", "driver_safety_unknown_restricted",
+    "driver_safety_moving_hard_interlock_verified", "driver_safety_current_owner_policy_approved",
+    "driver_safety_vehicle_state_provider_wired", "driver_safety_effect_runtime_wired",
+    "driver_safety_effect_dispatch_authorized", "driver_safety_hardware_operation_executed",
+    "driver_safety_vehicle_scalar_read", "driver_safety_owner_approval_reference_logged",
+    "driver_safety_raw_log_persisted", "driver_safety_android13_arm64_verified", "hardware_accessed",
+    "production_ready", "target_hardware_validated"
+  ],
+  "forbidden_projection_fields": [
+    "vehicle_scalar", "speed", "gear", "parking_brake", "seat_occupancy", "seat_belt", "seat_angle",
+    "state_source_id", "owner_approval_reference", "approval_digest", "activation_evidence_digest",
+    "device_serial", "device_fingerprint", "raw_log", "payload"
+  ],
+  "android_probe": {
+    "component": "com.centralbrain.runtime/.governance.DriverSafetyAuditProbeActivity",
+    "permission": "android.permission.DUMP",
+    "debug_only": true,
+    "release_source_absent": true,
+    "accepts_only_numeric_nonce": true,
+    "reads_vehicle_state": false,
+    "accepts_owner_or_capability_payload": false,
+    "logs_device_or_vehicle_identity": false
+  },
+  "target_adapter": {
+    "path": "tools/probe_central_brain_android_driver_safety.sh",
+    "requires_existing_debug_install": true,
+    "requires_exact_android_api": 33,
+    "requires_primary_abi": "arm64-v8a",
+    "builds_artifacts": false,
+    "installs_packages": false,
+    "uninstalls_packages": false,
+    "reads_vehicle_state": false,
+    "persists_raw_log": false,
+    "qualifies_target_safety": false
+  },
+  "claim_state": {
+    "driver_safety_redacted_projection_defined": true,
+    "driver_safety_android_debug_probe_available": true,
+    "driver_safety_android_debug_probe_executed": false,
+    "driver_safety_target_adapter_defined": true,
+    "driver_safety_current_owner_policy_approved": false,
+    "driver_safety_vehicle_state_provider_wired": false,
+    "driver_safety_effect_runtime_wired": false,
+    "driver_safety_android13_arm64_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P9-W06"
+  }
+}
