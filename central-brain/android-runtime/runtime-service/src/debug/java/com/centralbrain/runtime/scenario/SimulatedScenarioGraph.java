@@ -42,6 +42,9 @@ public final class SimulatedScenarioGraph {
         private final String nodeId;
         private final String nodeType;
         private final String capabilityId;
+        private final String inputDigest;
+        private final String idempotencyKey;
+        private final int maxAttempts;
         private final boolean required;
         private final PendingStage stage;
 
@@ -49,6 +52,9 @@ public final class SimulatedScenarioGraph {
             this.nodeId = node.nodeId;
             this.nodeType = node.nodeType;
             this.capabilityId = node.capabilityId;
+            this.inputDigest = node.inputDigest;
+            this.idempotencyKey = node.idempotencyKey;
+            this.maxAttempts = node.maxAttempts;
             this.required = node.required;
             this.stage = pendingStage(node.nodeType);
         }
@@ -63,6 +69,18 @@ public final class SimulatedScenarioGraph {
 
         public String getCapabilityId() {
             return capabilityId;
+        }
+
+        public String getInputDigest() {
+            return inputDigest;
+        }
+
+        public String getIdempotencyKey() {
+            return idempotencyKey;
+        }
+
+        public int getMaxAttempts() {
+            return maxAttempts;
         }
 
         public boolean isRequired() {

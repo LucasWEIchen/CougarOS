@@ -121,9 +121,14 @@ for marker in \
   'simulated_scenario_session_projection_enabled=true' \
   'simulated_scenario_event_projection_enabled=true' \
   'simulated_scenario_event_topic_count=2' \
-  'simulated_scenario_event_schema_count=8' \
+  'simulated_scenario_event_schema_count=10' \
   'simulated_scenario_binder_defined=true' \
-  'simulated_scenario_binder_protocol_version=1' \
+  'simulated_scenario_binder_protocol_version=2' \
+  'simulated_scenario_binder_parcel_schema_version=2' \
+  'simulated_scenario_effect_composition_defined=true' \
+  'simulated_scenario_effect_adapter_count=4' \
+  'simulated_scenario_fixed_target_count=7' \
+  'simulated_scenario_partial_stuck_projection_defined=true' \
   'simulated_scenario_binder_signature_permission_enforced=true' \
   'simulated_scenario_binder_capability_enforced=true' \
   'simulated_scenario_fixed_scenario_count=2' \
@@ -135,8 +140,13 @@ for marker in \
   'simulated_scenario_android_service_published=true' \
   'simulated_scenario_session_event_binder_published=true' \
   'simulated_scenario_client2_wired=false' \
-  'simulated_scenario_effect_dispatch_enabled=false' \
-  'simulated_scenario_readback_accessed=false' \
+  'simulated_scenario_effect_dispatch_enabled=true' \
+  'simulated_scenario_hardware_effect_dispatch_enabled=false' \
+  'simulated_scenario_readback_accessed=true' \
+  'simulated_scenario_approval_input_explicit=true' \
+  'simulated_scenario_android_debug_probe_available=true' \
+  'simulated_scenario_android_debug_probe_executed=true' \
+  'simulated_scenario_binder_authorized_call_verified=true' \
   'simulated_scenario_approval_authority_available=false' \
   'simulated_scenario_production_registered=false' \
   'simulated_effect_adapter_base_defined=true' \
@@ -829,8 +839,10 @@ if "P4-D4b Simulated Scenario Runtime" not in developed:
     raise SystemExit("README developed table must include the completed P4-D4b projection")
 if "P4-D4c Simulated Scenario Binder" not in developed:
     raise SystemExit("README developed table must include the completed P4-D4c Binder")
-if "场景与仿真 Effect 编排" not in remaining or "P4-D4d adapter/readback composition" not in remaining:
-    raise SystemExit("README must keep P4-D4d adapter/readback composition open")
+if "P4-D4d Simulated Effect Composition" not in developed:
+    raise SystemExit("README developed table must include the completed P4-D4d composition")
+if "场景与仿真 Effect 编排" not in remaining or "P4-D4e Client2 wiring" not in remaining:
+    raise SystemExit("README must keep P4-D4e Client2 wiring open")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining

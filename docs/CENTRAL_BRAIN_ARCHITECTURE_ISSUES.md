@@ -1195,3 +1195,18 @@ debug adapter/readback composition。当前 `simulated_scenario_client2_wired=fa
 `simulated_scenario_binder_authorized_call_verified=false`、
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `hmi_d4_demo_control_loop_complete=false`。tracking：`DEV-101/102/103`。
+
+### ISSUE-033 P4-D4d update
+
+P4-D4d 已将固定场景 pending Effect/verify 节点组合到四个 debug simulated adapters，并保持 approval 显式挂起、Moving seat branch pruning、
+required failure fail-closed。Binder v2 现可提供自动 dispatch/readback/approval/failure counts 和 Partial/Stuck 状态。
+实体 Android 13 同签名 probe 已验证 protocol v2、2 个场景、8 dispatch、6 matched readback、1 approval input、0 failure；
+这只关闭 D4d debug Binder/composition 可执行性证据缺口。
+
+ISSUE-033 仍 Open：Client2 尚未绑定 v2 Binder，HMI 尚未展示 Context -> Plan -> Policy -> Effect -> readback 链路；真实 Vehicle adapter、
+owner approval 与 production authority 也未提供。下一软件增量为 P4-D4e Client2 scenario chain UI wiring。
+
+当前 `simulated_scenario_effect_dispatch_enabled=true`、`simulated_scenario_readback_accessed=true`、
+`simulated_scenario_hardware_effect_dispatch_enabled=false`、`simulated_scenario_client2_wired=false`、
+`simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
+`hmi_d4_demo_control_loop_complete=false`。tracking：`DEV-101/102/103/104`。

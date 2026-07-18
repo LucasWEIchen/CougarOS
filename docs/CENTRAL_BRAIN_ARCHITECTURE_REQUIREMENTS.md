@@ -2747,3 +2747,26 @@ Android probe 必须只存在于 debug source/manifest、由 `android.permission
 `simulated_scenario_effect_dispatch_enabled=false`、`simulated_scenario_readback_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4c`。
 tracking：`DEV-103`、`ISSUE-022/026/030/033`。
+
+## 96. P4-D4d simulated Effect composition trace
+
+1. `S2-GRF-001/S2-EFF-001`：组合层必须消费 D4b pending node，不得复制或跳过 Agent Graph 状态机。
+2. `S2-EFF-001/XSC-001`：只能使用 debug HVAC/Seat/Media/Navigation adapter，production registry 必须为空。
+3. `S2-SCN-001/XSC-005`：七类目标必须是 build-owned 常量；Binder 不得接收任意 target value、query 或 adapter handle。
+4. `S2-SAF-001`：parked Fatigue seat recline 必须先停在 approval；Moving 必须保持 Compiler pruning。
+5. `S2-SAF-001/XSC-006`：approval success 只生成 run-bound simulation digest，不得声明 production approval authority。
+6. `S2-EFF-001`：`effect.verify` 只有 simulation observation 为 `MATCHED/SIMULATED/non-production-trusted` 时成功。
+7. `S2-GRF-001/S2-EVT-001`：`PARTIAL/STUCK` 必须有独立 Session/Binder/Event 投影，不得合并到 Completed/Failed。
+8. `S2-HMI-003/006`：Parcelable v2 只增加 dispatch/readback/approval/failure counts，不暴露 target 或 Context payload。
+9. `APP-004/DEL-003/004`：composition/probe 仅在 debug；release source 和 manifest 必须为零。
+10. `DEL-001/005`：host JVM 和 debug probe 不能证明真实 Vehicle Effect、Driver/HAL 或 production readiness。
+11. 实体 Android 13 同签名 probe 必须验证 protocol v2、Cold 3/3、parked Fatigue 5/3/1、聚合总计 8 dispatch/6 matched
+    readback/1 approval/0 failure；通过后只允许把 debug probe 与 authorized Binder call 置为 true。
+
+当前 `simulated_scenario_effect_composition_defined=true`、`simulated_scenario_effect_dispatch_enabled=true`、
+`simulated_scenario_readback_accessed=true`、`simulated_scenario_approval_input_explicit=true`、
+`simulated_scenario_partial_stuck_projection_defined=true`、`simulated_scenario_hardware_effect_dispatch_enabled=false`、
+`simulated_scenario_android_debug_probe_executed=true`、`simulated_scenario_binder_authorized_call_verified=true`、
+`simulated_scenario_approval_authority_available=false`、`simulated_scenario_client2_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-D4d`。
+tracking：`DEV-104`、`ISSUE-022/026/030/033`。

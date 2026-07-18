@@ -81,7 +81,7 @@ assert s["implementation_stage"] == "P4-D4c"
 PY
 
 for marker in \
-  'const int INTERFACE_VERSION = 1;' \
+  'const int INTERFACE_VERSION = 2;' \
   'const int SCENARIO_COLD = 1;' \
   'const int SCENARIO_FATIGUE = 2;' \
   'SimulatedScenarioBinderSnapshot startScenario' \
@@ -95,11 +95,11 @@ done
 for marker in \
   'enforceCallingOrSelfPermission' \
   'Capability.SIMULATION_CONTROL' \
-  'new SimulatedScenarioRuntime(clock)' \
+  'new SimulatedScenarioEffectComposition' \
   'new SimulatedScenarioInputFactory' \
   'fixed_scenario_count=2' \
-  'effect_dispatch_enabled=false' \
-  'readback_accessed=false' \
+  'simulated_effect_dispatch_enabled=true' \
+  'hardware_effect_dispatch_enabled=false' \
   'hardware_accessed=false'; do
   grep -Fq -- "$marker" "$SERVICE" \
     || { echo "P4-D4c Service marker missing: $marker" >&2; exit 1; }
@@ -134,7 +134,8 @@ for marker in \
   'simulated_scenario_binder_defined=true' \
   'simulated_scenario_android_service_published=true' \
   'simulated_scenario_client2_wired=false' \
-  'implementation_stage=P4-D4c'; do
+  'simulated_scenario_effect_dispatch_enabled=true' \
+  'implementation_stage=P4-D4d'; do
   grep -Fq -- "$marker" "$ROOT_DIR/README.md" \
     || { echo "P4-D4c README marker missing: $marker" >&2; exit 1; }
 done

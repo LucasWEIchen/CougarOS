@@ -766,6 +766,26 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   approval authority，Client2 尚未绑定。
 - 下一软件增量：`P4-D4d debug adapter/readback composition`；随后再接 Client2 调用链 UI。
 
+### `P4-D4d` Debug simulated Effect/readback composition
+
+- 状态：`DEVELOPED / CLIENT_PENDING`（2026-07-18）；需求：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、
+  `S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、`APP-004`、`XSC-001/004/005/006`、
+  `DEL-001/003/004/005`。
+- 组合：debug-only `SimulatedScenarioEffectComposition` 复用既有 HVAC/Seat/Media/Navigation typed adapter；Graph
+  `effect.execute` 自动 dispatch，`effect.verify` 只在 simulated readback `MATCHED` 时成功。
+- 固定目标：Cold 使用 HVAC power/23.0 C/seat heat 2；Fatigue 使用 HVAC power/fan 3、approved parked seat recline 30 degree、
+  media pause 与 build-owned synthetic rest-area query。不得接受客户端任意 target value。
+- 审批：parked fatigue 继续停在 `approval.interrupt`；只有显式 Debug 成功结果生成 run-bound simulation digest，且
+  `approvalAuthorityAvailable=false`。Moving 继续由 Compiler 裁掉 approval/recline 分支。
+- 状态机：Binder v2/Parcelable v2 增加 dispatch/readback/approval/failure counts，并补齐 `PARTIAL/STUCK` 终态投影；
+  required Effect/readback failure 必须失败关闭，optional skip 投影为 Partial。
+- 探针：DUMP-protected same-signer Activity 固定执行 Cold 与 parked Fatigue；只输出 counts/booleans/digest，不输出 target、
+  Context、设备身份或车辆 payload。实体 Android 13 已通过 protocol v2、2 场景、8 dispatch、6 matched readback、1 approval、
+  0 failure；Release 不包含组合层或探针。
+- 边界：只启用 simulated Effect/readback；Client2、真实 Vehicle/NPU/Driver-HAL、production registration 与量产 approval
+  authority 均未接。
+- 下一软件增量：`P4-D4e Client2 scenario chain UI wiring`。
+
 ## 9. P5 Tool/Skill 与 Memory
 
 ### `P5-W01` Tool manifest/schema
