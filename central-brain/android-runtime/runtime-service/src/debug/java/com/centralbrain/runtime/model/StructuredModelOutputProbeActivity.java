@@ -6,6 +6,9 @@ import android.util.Log;
 
 import com.centralbrain.runtime.scenario.ScenarioCatalog;
 import com.centralbrain.runtime.vehicle.capability.CapabilityCatalog;
+import com.centralbrain.sdk.session.ICentralBrainSessionRuntime;
+import com.centralbrain.sdk.session.SessionContract;
+import com.centralbrain.sdk.session.SessionRequest;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,11 +46,29 @@ public final class StructuredModelOutputProbeActivity extends Activity {
                     validOutput().replace(
                             "vehicle.hvac.target_temperature", "vehicle.shell.command"),
                     StructuredModelOutput.ErrorCode.UNKNOWN_CAPABILITY);
+            boolean unknownFieldRejected = rejects(
+                    scenarios,
+                    validOutput().replace(
+                            "\"summary\"", "\"command\":\"shell\",\"summary\""),
+                    StructuredModelOutput.ErrorCode.UNKNOWN_FIELD);
+            boolean pathLikeIdentifierRejected = rejects(
+                    scenarios,
+                    validOutput().replace("scene.comfort.cold.v1", "../private/model"),
+                    StructuredModelOutput.ErrorCode.UNKNOWN_SCENARIO);
+            boolean oversizeRejected = rejects(
+                    scenarios,
+                    new byte[StructuredModelOutput.MAX_OUTPUT_BYTES + 1],
+                    StructuredModelOutput.ErrorCode.OVERSIZE);
+            boolean sessionOversizeRejected = rejectsSessionOversize();
             boolean authorityDenied = !accepted.isActionAuthorizationGranted()
                     && !accepted.isApprovalDecisionGranted()
                     && !accepted.isEffectDispatchRequested();
             boolean verified = catalogBindingVerified
                     && unsafeOutputRejected
+                    && unknownFieldRejected
+                    && pathLikeIdentifierRejected
+                    && oversizeRejected
+                    && sessionOversizeRejected
                     && authorityDenied
                     && accepted.getOutputDigest().matches("[0-9a-f]{64}");
 
@@ -56,6 +77,14 @@ public final class StructuredModelOutputProbeActivity extends Activity {
                     + " structured_model_output_verified=" + verified
                     + " model_output_catalog_binding_verified=" + catalogBindingVerified
                     + " model_output_unknown_capability_rejected=" + unsafeOutputRejected
+                    + " security_boundary_probe_complete=" + verified
+                    + " model_output_unknown_field_rejected=" + unknownFieldRejected
+                    + " model_output_path_like_identifier_rejected="
+                    + pathLikeIdentifierRejected
+                    + " model_output_oversize_rejected=" + oversizeRejected
+                    + " session_request_oversize_rejected=" + sessionOversizeRejected
+                    + " security_android_debug_probe_available=true"
+                    + " security_android_debug_probe_executed=true"
                     + " model_output_no_action_authority=" + authorityDenied
                     + " model_output_schema_runtime_wired=false"
                     + " model_invoked=false"
@@ -67,6 +96,9 @@ public final class StructuredModelOutputProbeActivity extends Activity {
         } catch (IOException | RuntimeException exception) {
             Log.e(TAG, "nonce=" + nonce
                     + " structured_model_output_probe_complete=false"
+                    + " security_boundary_probe_complete=false"
+                    + " security_android_debug_probe_available=true"
+                    + " security_android_debug_probe_executed=true"
                     + " error=" + exception.getClass().getSimpleName()
                     + " model_output_schema_runtime_wired=false"
                     + " model_invoked=false"
@@ -94,15 +126,41 @@ public final class StructuredModelOutputProbeActivity extends Activity {
             ScenarioCatalog scenarios,
             String output,
             StructuredModelOutput.ErrorCode errorCode) {
+        return rejects(scenarios, bytes(output), errorCode);
+    }
+
+    private static boolean rejects(
+            ScenarioCatalog scenarios,
+            byte[] output,
+            StructuredModelOutput.ErrorCode errorCode) {
         try {
             StructuredModelOutput.validate(
                     request(),
-                    bytes(output),
+                    output,
                     scenarios,
                     CapabilityCatalog.stage2Defaults());
             return false;
         } catch (StructuredModelOutput.ValidationException exception) {
             return exception.getErrorCode() == errorCode;
+        }
+    }
+
+    private static boolean rejectsSessionOversize() {
+        SessionRequest request = new SessionRequest();
+        request.requestId = "8d595630-2255-4f4d-ac0f-26a20ee96f29";
+        request.scenarioId = "scene.fatigue.assist.v1";
+        request.utterance = "x".repeat(SessionContract.MAX_UTTERANCE_CHARS + 1);
+        request.source = ICentralBrainSessionRuntime.SOURCE_HMI_BUTTON;
+        request.seatZone = ICentralBrainSessionRuntime.SEAT_ZONE_DRIVER;
+        request.locale = "en-US";
+        long now = 1_750_000_000_000L;
+        request.deadlineEpochMs = now + 60_000L;
+        request.clientContextVersion = 4;
+        try {
+            SessionContract.validateRequest(request, now);
+            return false;
+        } catch (IllegalArgumentException failure) {
+            return failure.getMessage().startsWith("CB_SESSION_CONTRACT:");
         }
     }
 

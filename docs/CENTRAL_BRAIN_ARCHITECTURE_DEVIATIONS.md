@@ -1071,6 +1071,23 @@ APK 重新提取并验证证书链。`SkillSignerPolicy` 也明确不获取 trus
 `security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
+## DEV-090 P9-W03c static inventory and debug probe availability are not target fuzz evidence
+
+P9-W03c 从仓库实际 public AIDL 树冻结 37 项清单，并复用八个既有 validation family；新增 JVM 聚合只提交 bounded
+model/path/oversize 输入。debug-only probe 已扩展且 release manifest 无入口，installer 对 API/ABI 与 marker 失败关闭。
+
+静态 inventory 证明 surface 可追踪，不证明 Binder driver、Parcel unmarshalling 或跨进程 callback 已被 fuzz。debug APK 可编译也不证明
+probe 在当前目标执行；本轮先观察到 ADB `online=0/offline=1`，提交前复核为
+`online=0/offline=0/unauthorized=0/other=0`。没有 coverage feedback、mutation/minimization、目标 signer remeasurement、真实
+calling UID spoof、SELinux/permission attack evidence 或安全 owner approval。
+
+状态：`Accepted Temporary`。关闭条件是 ISSUE-050 的 target fuzz 计划、设备可达、debug probe 执行、Binder/signature evidence 和 owner
+review 完成。当前 `security_aidl_parcel_inventory_complete=true`、`security_host_path_oversize_aggregate_verified=true`、
+`security_android_debug_probe_available=true`、`security_android_debug_probe_executed=false`、
+`security_coverage_guided_fuzz_complete=false`、`security_binder_calling_uid_spoof_android_verified=false`、
+`security_package_signature_cryptographically_verified=false`、`security_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
 ## DEV-082 P7-W05 model output is proposal-only
 
 P7-W05 冻结 `scenario-output.v1` 并用 ScenarioManifest 与 CapabilityCatalog 双重验证 scenario/capability/area/scalar。它接受 bounded

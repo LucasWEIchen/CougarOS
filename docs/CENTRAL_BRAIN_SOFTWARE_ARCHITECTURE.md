@@ -1373,3 +1373,33 @@ Current `security_identity_replay_corpus_defined=true`, `security_identity_repla
 `security_runtime_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
 `S2-SAF-001/S2-TOL-001/S2-SES-001/S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-089`, `ISSUE-050`.
+
+## P9-W03c security boundary inventory architecture
+
+W03c adds a static inventory and verification layer around existing public contracts. It does not sit on production
+request flow:
+
+```mermaid
+flowchart LR
+    A["37 main AIDL files"] --> C["machine inventory checker"]
+    J["versioned JSON inventory"] --> C
+    M["Java count/family metadata"] --> C
+    C --> H["host aggregate regression"]
+    H --> S["Session Contract"]
+    H --> O["Structured Model Output"]
+    O --> P["debug-only DUMP probe"]
+    P --> I["API/ABI-gated installer"]
+    P -. absent .-> R["release manifest"]
+    M -. no wiring .-> X["Runtime / Governance / Effect / hardware"]
+```
+
+The eight families reuse Session/Plan/Event/Effect/Checkpoint/ScenarioManifest/ToolSchema/StructuredModelOutput
+validators. Only test/debug code constructs hostile values. The main inventory stores counts, enum names and a digest;
+it has no Android/file/network/vehicle/hardware access and no Service reference.
+
+Current `security_aidl_parcel_inventory_complete=true`, `security_aidl_surface_count=37`,
+`security_host_path_oversize_aggregate_verified=true`, `security_android_debug_probe_available=true`,
+`security_android_debug_probe_executed=false`, `security_coverage_guided_fuzz_complete=false`,
+`security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
+`S2-SAF-001/S2-TOL-001/S2-SES-001/S2-MDL-001/S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-090`, `ISSUE-050`.

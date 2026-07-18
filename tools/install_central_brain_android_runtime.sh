@@ -1034,6 +1034,20 @@ for _ in {1..40}; do
         <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
       && grep -Fq "model_output_unknown_capability_rejected=true" \
         <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "security_boundary_probe_complete=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_output_unknown_field_rejected=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_output_path_like_identifier_rejected=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "model_output_oversize_rejected=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "session_request_oversize_rejected=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "security_android_debug_probe_available=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
+      && grep -Fq "security_android_debug_probe_executed=true" \
+        <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
       && grep -Fq "model_output_no_action_authority=true" \
         <<<"$STRUCTURED_MODEL_OUTPUT_LOG" \
       && grep -Fq "model_output_schema_runtime_wired=false" \
@@ -4522,6 +4536,14 @@ printf '%s\n' \
   "model_output_no_action_authority=true" \
   "model_output_schema_runtime_wired=false" \
   "structured_model_output_android13_arm64_verified=true" \
+  "security_aidl_parcel_inventory_complete=true" \
+  "security_host_path_oversize_aggregate_verified=true" \
+  "security_android_debug_probe_available=true" \
+  "security_android_debug_probe_executed=true" \
+  "security_android13_arm64_verified=true" \
+  "security_coverage_guided_fuzz_complete=false" \
+  "security_binder_calling_uid_spoof_android_verified=false" \
+  "security_package_signature_cryptographically_verified=false" \
   "scenario_evaluation_verified=true" \
   "evaluation_corpus_verified=true" \
   "evaluation_metrics_verified=true" \
