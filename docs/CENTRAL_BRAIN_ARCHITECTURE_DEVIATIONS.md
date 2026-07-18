@@ -107,6 +107,7 @@
 | DEV-085 | P8-W01 只完成发现合同、矩阵模板和只读脱敏采集工具；目标 property/service/permission evidence 仍缺失。 | S2-ADP-002, S2-OBS-001, ISSUE-024/027/030/047 | Accepted Temporary |
 | DEV-086 | P9-W01 只冻结 initial software budgets 并验证合成报告；没有目标测量、owner approval 或量产性能资格。 | S2-OBS-001, S2-REL-001, ISSUE-048 | Accepted Temporary |
 | DEV-087 | P9-W02 只冻结并合成验证 18-case matrix；没有真实 fault injection、72h 运行或目标稳定性资格。 | S2-REL-001, S2-OBS-001, ISSUE-049 | Accepted Temporary |
+| DEV-088 | P9-W03a 只提供三个 Java boundary 的 deterministic host corpus；不是 coverage-guided fuzz、AIDL/signature review 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1449,3 +1450,21 @@ debug-only synthetic probe。JVM 测试只证明矩阵形状、crash/ANR/invaria
 `stability_target_72h_complete=false`、`stability_target_owner_approved=false`、
 `stability_android13_arm64_verified=false`、`stability_fault_injection_runtime_wired=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
+## DEV-088 P9-W03a deterministic corpus is not coverage-guided fuzzing
+
+P9-W03a 新增 JSON/Java 三 surface、18-case metadata catalog，并以 JVM 测试向实际 Checkpoint、ScenarioManifest、ToolSchema
+边界提交固定 hostile input，要求精确 typed error。它能阻止已知 malformed/duplicate/unknown/oversize/tamper/path/depth/type/value
+回归，但不搜索未知输入空间，也没有 coverage feedback、mutation engine、crash minimization 或 corpus retention policy。
+
+当前没有测试 Binder calling UID/package/current signer spoof、callback/request replay、signer rotation/revoke、全部 AIDL/Parcel、
+StructuredModelOutput/其他 schema、Android instrumentation/SELinux 或 Vendor/硬件攻击面。host JVM 成功不能解释为 target penetration
+test、量产安全审查或 Android 13 ARM64 evidence。
+
+状态：`Accepted Temporary`。关闭条件是 W03b/W03c 完成 caller/replay/signature 与剩余 schema/device probe，ISSUE-050 冻结并执行
+受控 coverage-guided fuzz/目标 evidence，由安全 owner 评审。当前：`security_parser_corpus_defined=true`、
+`security_parser_case_count=18`、`security_parser_fail_closed_regression_verified=true`、
+`security_coverage_guided_fuzz_complete=false`、`security_aidl_identity_review_complete=false`、
+`security_signature_policy_review_complete=false`、`security_android13_arm64_verified=false`、
+`security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。

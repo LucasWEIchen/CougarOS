@@ -25,10 +25,13 @@ PERFORMANCE_BUDGET="$ROOT_DIR/docs/CENTRAL_BRAIN_PERFORMANCE_BUDGETS.md"
 PERFORMANCE_BUDGET_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_performance_budget.json"
 STABILITY_MATRIX="$ROOT_DIR/docs/CENTRAL_BRAIN_STABILITY_FAULT_MATRIX.md"
 STABILITY_MATRIX_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_stability_fault_matrix.json"
+SECURITY_REVIEW="$ROOT_DIR/docs/CENTRAL_BRAIN_SECURITY_REVIEW_FUZZ.md"
+SECURITY_CORPUS_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_parser_security_corpus.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
-    "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT"; do
+    "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT" \
+    "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -370,6 +373,16 @@ require_text "$DEVIATIONS" 'DEV-087 P9-W02 synthetic matrix is not a 72h target 
 require_text "$ISSUES" 'ISSUE-049 P9 target 72h stability evidence is unavailable'
 require_text "$DELIVERY" 'Android P9-W02 Stability Fault Matrix Contract'
 require_text "$DRIVER" 'P9-W02 Stability Fault Matrix Driver/HAL Boundary'
+require_text "$README" 'security_parser_corpus_defined=true'
+require_text "$README" 'security_parser_case_count=18'
+require_text "$SECURITY_REVIEW" 'Central Brain P9-W03 Security Review and Fuzz'
+require_text "$SECURITY_REVIEW" 'IN_PROGRESS / W03A_HOST_CORPUS_VERIFIED'
+require_text "$BACKLOG" 'P9-W03a parser security corpus'
+require_text "$REQUIREMENTS" 'P9-W03a parser security corpus trace'
+require_text "$DEVIATIONS" 'DEV-088 P9-W03a deterministic corpus is not coverage-guided fuzzing'
+require_text "$ISSUES" 'ISSUE-050 P9 complete security fuzz evidence is unavailable'
+require_text "$DELIVERY" 'Android P9-W03a Parser Security Corpus'
+require_text "$DRIVER" 'P9-W03a Parser Security Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -561,5 +574,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_tool_executor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_target_capability_discovery.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_performance_budget.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_stability_fault_matrix.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_parser_security_corpus.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

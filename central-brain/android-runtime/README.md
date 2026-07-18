@@ -1664,3 +1664,22 @@ debug probe 只使用 `CONTRACT_TEST` 合成记录，不循环场景、不注入
 `stability_android13_arm64_verified=false`、`stability_fault_injection_runtime_wired=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。下一步 P9-W03；tracking：`DEV-087`、`ISSUE-049`。
+
+## P9-W03a Parser security corpus
+
+`ParserSecurityCorpusContract` freezes 18 metadata-only hostile-input cases across Checkpoint, ScenarioManifest and
+ToolSchema. `ParserSecurityCorpusContractTest` executes all cases against the existing parser/validator and requires the
+cataloged exact typed error; JSON/Java synchronization is enforced by:
+
+```bash
+bash tools/check_central_brain_android_parser_security_corpus.sh
+```
+
+This is a deterministic host regression only. It does not add an Android probe or claim coverage-guided fuzz, AIDL
+identity/caller spoof, signer policy, Android 13 ARM64, target or production qualification. State:
+`security_parser_corpus_defined=true`, `security_parser_surface_count=3`, `security_parser_case_count=18`,
+`security_parser_fail_closed_regression_verified=true`, `security_coverage_guided_fuzz_complete=false`,
+`security_aidl_identity_review_complete=false`, `security_signature_policy_review_complete=false`,
+`security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Next: P9-W03b; tracking:
+`DEV-088`, `ISSUE-050`.

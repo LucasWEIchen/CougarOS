@@ -1306,3 +1306,33 @@ Android resources、tombstone、网络、车辆接口或 NPU。JSON/Java 固定�
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 Req IDs：`S2-REL-001`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006`、`DEL-001/004/005`；tracking：
 `DEV-087`、`ISSUE-049`。
+
+## P9-W03a parser security corpus architecture
+
+W03a adds a metadata-only `ParserSecurityCorpusContract` beside the existing parser boundaries. The contract does not
+sit on a production request path. Test code selects each fixed catalog entry, constructs one bounded hostile input and
+calls the real Checkpoint, ScenarioManifest or ToolSchema implementation; only the domain error code is compared.
+
+```mermaid
+flowchart LR
+    J["versioned JSON corpus"] --> G["repository synchronization gate"]
+    C["Java metadata catalog"] --> G
+    C --> T["host JVM security regression"]
+    T --> CP["Checkpoint serializer"]
+    T --> SM["ScenarioManifest parser"]
+    T --> TS["ToolSchema validator"]
+    CP --> E["exact typed error"]
+    SM --> E
+    TS --> E
+    E --> R["fail-closed test result"]
+    R -. no wiring .-> X["Runtime / Governance / Effect / hardware"]
+```
+
+Attack payloads are test-local and are not published through Runtime, logs, evidence or the main catalog. The checker
+rejects random/time/Android/file/network/vehicle/hardware dependencies in main source and rejects Service references.
+Current `security_parser_corpus_defined=true`, `security_parser_case_count=18`,
+`security_parser_fail_closed_regression_verified=true`, `security_coverage_guided_fuzz_complete=false`,
+`security_aidl_identity_review_complete=false`, `security_signature_policy_review_complete=false`,
+`security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
+`S2-SAF-001/S2-TOL-001/S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-088`, `ISSUE-050`.

@@ -3394,3 +3394,25 @@ Current: `stability_fault_matrix_contract_defined=true`, `stability_workload_cou
 `stability_android13_arm64_verified=false`, `stability_fault_injection_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-REL-001`,
 `S2-OBS-001`, `XSC-001/004/005/006`, `KH-003/006`, `DEL-001/004/005`; tracking: `DEV-087`, `ISSUE-049`.
+
+## Android P9-W03a Parser Security Corpus Contract
+
+`ParserSecurityCorpusContract` is a main-source metadata catalog. `cases()` returns an immutable ordered list of 18
+`CorpusCase(caseId, surface, threatClass, expectedErrorCode)` values across `CHECKPOINT`, `SCENARIO_MANIFEST` and
+`TOOL_SCHEMA`; `requireCase` rejects unknown IDs and `corpusDigest` binds the full ordered catalog.
+
+`ParserSecurityCorpusContractTest` owns hostile bytes/values and invokes the existing public interfaces:
+
+| Interface | Security call | Fail-closed result |
+| --- | --- | --- |
+| `JsonPrimitiveCheckpointSerializer.deserialize(byte[])` | malformed/duplicate/unknown/oversize/tamper/path key | exact `CheckpointException.ErrorCode` |
+| `ScenarioManifestParser.parse(sourceName, bytes)` | source traversal/unknown/duplicate/oversize/trailing/depth | exact `ParseException.ErrorCode` |
+| `ToolSchemaValidator.validateInput(manifest, values)` | missing/unknown/null/type/value/payload bounds | exact `ValidationException.ErrorCode` |
+
+No parser API was broadened and no Runtime Service references the catalog. Current:
+`security_parser_corpus_defined=true`, `security_parser_surface_count=3`, `security_parser_case_count=18`,
+`security_parser_fail_closed_regression_verified=true`, `security_coverage_guided_fuzz_complete=false`,
+`security_aidl_identity_review_complete=false`, `security_signature_policy_review_complete=false`,
+`security_android13_arm64_verified=false`, `security_runtime_wired=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs:
+`S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-088`, `ISSUE-050`.

@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-parser-security-v1",
+  "maturity": "deterministic_host_regression_partial_security_review",
+  "req_ids": [
+    "S2-SAF-001",
+    "S2-TOL-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "surfaces": [
+    "CHECKPOINT",
+    "SCENARIO_MANIFEST",
+    "TOOL_SCHEMA"
+  ],
+  "cases": [
+    {"case_id": "checkpoint.malformed_json.v1", "surface": "CHECKPOINT", "threat_class": "MALFORMED_INPUT", "expected_error_code": "MALFORMED_JSON"},
+    {"case_id": "checkpoint.duplicate_field.v1", "surface": "CHECKPOINT", "threat_class": "DUPLICATE_FIELD", "expected_error_code": "DUPLICATE_FIELD"},
+    {"case_id": "checkpoint.unknown_field.v1", "surface": "CHECKPOINT", "threat_class": "UNKNOWN_FIELD", "expected_error_code": "UNKNOWN_FIELD"},
+    {"case_id": "checkpoint.oversize.v1", "surface": "CHECKPOINT", "threat_class": "OVERSIZE", "expected_error_code": "OVERSIZE"},
+    {"case_id": "checkpoint.digest_tamper.v1", "surface": "CHECKPOINT", "threat_class": "REPLAY_OR_TAMPER", "expected_error_code": "DIGEST_MISMATCH"},
+    {"case_id": "checkpoint.privileged_path_key.v1", "surface": "CHECKPOINT", "threat_class": "PATH_TRAVERSAL", "expected_error_code": "PAYLOAD_REJECTED"},
+    {"case_id": "scenario.invalid_source_path.v1", "surface": "SCENARIO_MANIFEST", "threat_class": "PATH_TRAVERSAL", "expected_error_code": "INVALID_SOURCE"},
+    {"case_id": "scenario.unknown_field.v1", "surface": "SCENARIO_MANIFEST", "threat_class": "UNKNOWN_FIELD", "expected_error_code": "UNKNOWN_FIELD"},
+    {"case_id": "scenario.duplicate_field.v1", "surface": "SCENARIO_MANIFEST", "threat_class": "DUPLICATE_FIELD", "expected_error_code": "DUPLICATE_FIELD"},
+    {"case_id": "scenario.oversize.v1", "surface": "SCENARIO_MANIFEST", "threat_class": "OVERSIZE", "expected_error_code": "OVERSIZE"},
+    {"case_id": "scenario.trailing_json.v1", "surface": "SCENARIO_MANIFEST", "threat_class": "MALFORMED_INPUT", "expected_error_code": "MALFORMED_JSON"},
+    {"case_id": "scenario.depth_bomb.v1", "surface": "SCENARIO_MANIFEST", "threat_class": "DEPTH_BOMB", "expected_error_code": "MALFORMED_JSON"},
+    {"case_id": "tool_schema.missing_field.v1", "surface": "TOOL_SCHEMA", "threat_class": "MISSING_FIELD", "expected_error_code": "MISSING_FIELD"},
+    {"case_id": "tool_schema.unknown_field.v1", "surface": "TOOL_SCHEMA", "threat_class": "UNKNOWN_FIELD", "expected_error_code": "UNKNOWN_FIELD"},
+    {"case_id": "tool_schema.null_value.v1", "surface": "TOOL_SCHEMA", "threat_class": "NULL_VALUE", "expected_error_code": "NULL_VALUE"},
+    {"case_id": "tool_schema.type_confusion.v1", "surface": "TOOL_SCHEMA", "threat_class": "TYPE_CONFUSION", "expected_error_code": "TYPE_MISMATCH"},
+    {"case_id": "tool_schema.value_boundary.v1", "surface": "TOOL_SCHEMA", "threat_class": "VALUE_BOUNDARY", "expected_error_code": "VALUE_OUT_OF_RANGE"},
+    {"case_id": "tool_schema.payload_oversize.v1", "surface": "TOOL_SCHEMA", "threat_class": "OVERSIZE", "expected_error_code": "PAYLOAD_TOO_LARGE"}
+  ],
+  "claim_state": {
+    "security_parser_corpus_defined": true,
+    "security_parser_surface_count": 3,
+    "security_parser_case_count": 18,
+    "security_parser_fail_closed_regression_verified": true,
+    "security_coverage_guided_fuzz_complete": false,
+    "security_aidl_identity_review_complete": false,
+    "security_signature_policy_review_complete": false,
+    "security_android13_arm64_verified": false,
+    "security_runtime_wired": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

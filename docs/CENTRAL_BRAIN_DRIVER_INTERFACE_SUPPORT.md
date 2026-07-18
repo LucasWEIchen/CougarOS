@@ -1622,3 +1622,19 @@ tombstone、ANR、`/proc`、Perfetto、Vehicle/VHAL、PCIe/DMA/IOMMU 或 NPU tel
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 Req IDs：`S2-REL-001`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007/008/009`、
 `DEL-001/004/005`；tracking：`DEV-087`、`ISSUE-049`。
+
+## P9-W03a Parser Security Driver/HAL Boundary
+
+本增量只在 host JVM 中向现有 Java parser/validator 提交有界恶意输入；不新增 C/JNI、Driver/HAL、Vendor SDK、Android
+system-service、device node、ioctl/sysfs、CarProperty/VHAL、PCIe/DMA/IOMMU 或 NPU 调用。Scenario source path 仅作为 parser
+字符串输入验证，测试不会打开该路径。
+
+覆盖或模糊测试发现 Java 应用层缺陷时必须先在对应 parser/validator 修复。只有未来目标安全需求明确要求硬件/固件 evidence，且公开
+Android/Vendor surface 经验证无法满足后，才可单独登记最小 Driver/HAL gap；W03a 不触发该条件，不开发虚拟化。
+
+状态：`security_parser_corpus_defined=true`、`security_parser_case_count=18`、
+`security_parser_fail_closed_regression_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_android13_arm64_verified=false`、`security_runtime_wired=false`、
+`driver_development_triggered=false`、`virtualization_development_triggered=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：
+`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-088`、`ISSUE-050`。
