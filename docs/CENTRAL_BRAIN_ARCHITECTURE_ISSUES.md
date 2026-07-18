@@ -67,6 +67,7 @@
 | ISSUE-045 | Memory consent 的 production identity/authority、HMI Service、repository mutation/delete evidence 与 trusted driving Context owner 未确定。 | S2-MEM-001, S2-UX-003, S2-SAF-001, P8/P9 | Open |
 | ISSUE-046 | Event Broker 的 durable append/cursor repository、middleware/QoS、identity/policy 与跨进程 callback owner 未确定。 | S2-EVT-001, S2-SAF-001, P6-W02/P8/P9 | Open |
 | ISSUE-047 | P8 目标 property/service/permission/owner/version/readback/fault evidence 未取得，真实 adapter 不能启动。 | S2-ADP-002, S2-OBS-001, P8-W01..W06 | Open / External Blocked |
+| ISSUE-048 | P9 十项预算缺目标 Android 13 采集、30-sample 报告、owner approval 和 release qualification。 | S2-OBS-001, S2-REL-001, P9-W01/W02 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -189,7 +190,7 @@ policy router、local/vendor/cloud provider、NPU C/JNI/Driver-HAL、资源标�
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
 `model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-078`。
+`implementation_stage=P9-W02`。tracking：`DEV-078`。
 
 ### P7-W02 ModelProviderRegistry/health progress
 
@@ -207,7 +208,7 @@ placeholder 仍不可用、不可 production ready、不可路由。
 `model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-079`。
+`implementation_stage=P9-W02`。tracking：`DEV-079`。
 
 ### P7-W03 PolicyAwareModelRouter progress
 
@@ -224,7 +225,7 @@ cancel 和目标性能/故障证据均未完成。当前 production ready Provid
 `model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=false`、
 `model_policy_router_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-080`。
+`implementation_stage=P9-W02`。tracking：`DEV-080`。
 
 ### P7-W04 LocalModelProvider progress
 
@@ -242,7 +243,7 @@ debug Local Provider 不进入 release source，不得作为 Vendor NPU 或 prod
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
 `local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-081`。
+`implementation_stage=P9-W02`。tracking：`DEV-081`。
 
 ## ISSUE-025 Event、Memory、Skill 生命周期与治理链
 
@@ -656,7 +657,7 @@ Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。V
 状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-065`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-065`。
 
 ## ISSUE-039 Production built-in signer and cooperative cancellation ownership
 
@@ -678,7 +679,7 @@ composition。Vehicle/NPU Tool 还需 P8 vendor cancellable API 与 readback 合
 `built_in_signer_artifact_bound=true`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`production_tool_registered=false`、`os_virtualization_enabled=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-066`。
+`implementation_stage=P9-W02`。tracking：`DEV-066`。
 
 P5-W05 进展：只读 verifier 已冻结 ACTIVE/RETIRED/REVOKED、artifact epoch、Runtime compatibility、防降级与 capability
 allowlist，关闭 pure-Java static policy 子项。它不解决 signer evidence acquisition、签名链、atomic publish 或 hard cancel，
@@ -699,7 +700,7 @@ Signer、version、capability、minimum epoch 与 rollback policy 还需要一�
 `skill_version_policy_contract_defined=true`、`skill_revocation_downgrade_fail_closed=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
 tracking：`DEV-067`。
 
 ## ISSUE-041 Working Memory session owner, tokenizer and storage publication
@@ -717,7 +718,7 @@ recovery 和日志/诊断脱敏。P5-W07 Profile 与 P5-W08 Episodic Memory 不�
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-068`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-068`。
 
 ## ISSUE-042 Profile Memory authority, key owner and durable repository publication
 
@@ -735,7 +736,7 @@ P5-W07 只完成 process-local contract-test path；debug/test XOR 不是密码�
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-069`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-069`。
 
 ## ISSUE-043 Episodic Memory policy, repository and erase authority publication
 
@@ -754,7 +755,7 @@ retention 内的摘要；不得读取原始连续信号，也不能把 episode s
 `episodic_memory_raw_continuous_signal_stored=false`、`episodic_memory_persistence_wired=false`、
 `episodic_memory_production_policy_authority_wired=false`、`episodic_memory_production_erase_authority_wired=false`、
 `episodic_memory_runtime_wired=false`、`episodic_memory_model_context_published=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-070`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-070`。
 
 ## ISSUE-044 Context tokenizer, summary executor and budget authority publication
 
@@ -777,7 +778,7 @@ SUMMARIZE/TRUNCATE 也只是目标，不是内容变换或质量证据。
 `context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
 `context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
 `model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-071`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-071`。
 
 ## ISSUE-045 Memory consent authority and repository mutation publication
 
@@ -799,7 +800,7 @@ erase evidence。状态：`Open`。当前 `memory_consent_controller_defined=tru
 `memory_consent_android13_arm64_verified=false`、`memory_consent_hmi_projection_only=true`、
 `memory_consent_repository_mutation_wired=false`、`memory_consent_production_authority_wired=false`、
 `memory_consent_runtime_wired=false`、`memory_consent_model_context_published=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-072`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-072`。
 
 ## ISSUE-046 Event Broker durable repository and production middleware publication
 
@@ -819,7 +820,7 @@ publication 仍需确定：
 `event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-073`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-073`。
 
 ### P6-W02 Backpressure/QoS progress
 
@@ -834,7 +835,7 @@ production identity/policy、DDS/SOME-IP/vendor middleware 或跨 SOC QoS。Andr
 `event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-073`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-073`。
 
 ### P6-W03 TriggerEngine progress (ISSUE-031)
 
@@ -858,7 +859,7 @@ ISSUE-031 仍为 Open，关闭前必须确定：
 `trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-074`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-074`。
 
 ### P6-W04 proactive consent progress (ISSUE-031)
 
@@ -876,7 +877,7 @@ Runtime/Event publication、Safety revalidation 与 Android 13 fault/rollback ev
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-075`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-075`。
 
 ### P6-W05 Context source adapters progress (ISSUE-031)
 
@@ -895,7 +896,7 @@ Trigger input。
 `context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-076`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-076`。
 
 ### P6-W06 Active suggestion UX progress (ISSUE-031)
 
@@ -913,7 +914,7 @@ cooldown/never-ask、voice/TTS 策略、Client2 production overlay、approval/un
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `trigger_engine_wired=false`、`graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-077`。
+`implementation_stage=P9-W02`。tracking：`DEV-077`。
 
 ### P7-W05 Structured Model Output progress (ISSUE-024)
 
@@ -929,7 +930,7 @@ Provider/Router/Runtime wiring、可信 health/policy owner、Vendor SDK/NPU Pro
 `model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=false`、
 `model_invoked=false`、`raw_model_content_logged=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-082`。
+`implementation_stage=P9-W02`。tracking：`DEV-082`。
 
 ### P7-W06 Scenario Evaluation progress (ISSUE-024)
 
@@ -946,7 +947,7 @@ Runtime wiring、可信 health/policy/resource owner、Vendor SDK/NPU Provider�
 `evaluation_boundary_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
 `raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W01`。tracking：`DEV-083`。
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-083`。
 
 ### P7-W07 Resource and Thermal Admission progress (ISSUE-024)
 
@@ -964,7 +965,7 @@ service/permission 文档，不能用 caller-owned snapshot 或 deterministic st
 `resource_snapshot_producer_wired=false`、`model_resource_admission_android13_arm64_verified=false`、
 `provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P9-W01`。tracking：`DEV-084`。
+`implementation_stage=P9-W02`。tracking：`DEV-084`。
 
 ## ISSUE-047 P8 target capability discovery evidence is unavailable
 
@@ -983,5 +984,21 @@ capability 分别进入 P8-W02..W06，不允许全局 activation。当前：
 `vendor_service_contract_available=false`、`permission_signature_policy_available=false`、
 `target_capability_discovery_external_blocked=true`、`vehicle_property_mapping_configured=false`、
 `production_adapter_registered=false`、`vendor_npu_provider_available=false`、`driver_development_triggered=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W01`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W02`。
 tracking：`DEV-085`、`ISSUE-024/027/030`。
+
+## ISSUE-048 P9 target performance evidence is unavailable
+
+P9-W01 软件合同已完成：JSON/Java 固定七类十项 initial budget；三种 evidence mode 分离 host contract、Android application 和 target；
+aggregate report 对 missing/unit/sample/threshold/duplicate 失败关闭并生成稳定 digest。debug probe 只验证合成阈值，没有读取真实性能。
+
+ISSUE-048 保持 Open。当前 ADB transport 为 offline，没有目标 Runtime APK probe、Perfetto/系统统计采集、30-sample 十项结果、受控原始证据、
+目标 release/source/non-secret alias 绑定或 owner approval。Plan/Effect 当前也未 production-wired，真实车辆 apply/readback 与 Vendor NPU
+耗时不在本预算测量中，不能被应用层 admission 指标替代。
+
+解除条件：冻结测量 workload、warm/cold 状态、clock、采样窗口、P95/MAX 计算、DB/WAL/SHM 与 PSS/CPU 口径；在目标 Android 13 ARM64
+上绑定命名 release/source/evidence 执行至少 30 样本并由 owner 评审。P9-W02 还需把 72h stability/fault 的资源趋势纳入独立验收。
+当前 `performance_budget_contract_defined=true`、`performance_budget_target_owner_approved=false`、
+`performance_budget_target_measurement_complete=false`、`performance_budget_android13_arm64_verified=false`、
+`performance_budget_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W02`。tracking：`DEV-086`。

@@ -166,7 +166,7 @@ fi
 for marker in \
   'P8-W01 Target Capability Discovery Contract' \
   'target_capability_discovery_external_blocked=true' \
-  'implementation_stage=P9-W01'; do
+  'implementation_stage=P9-W02'; do
   require_text "$DOC" "$marker"
 done
 require_text "README.md" "P8 Target Capability Discovery"
@@ -199,4 +199,4 @@ printf '%s\n' \
   "hardware_accessed=false" \
   "production_ready=false" \
   "target_hardware_validated=false" \
-  "implementation_stage=P9-W01"
+  "implementation_stage=P9-W02"

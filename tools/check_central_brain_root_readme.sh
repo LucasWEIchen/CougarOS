@@ -253,7 +253,7 @@ for marker in \
   'graph_restart_executor_dispatch_enabled=false' \
   'graph_restart_effect_dispatch_enabled=false' \
   'graph_restart_production_wired=false' \
-  'implementation_stage=P9-W01' \
+  'implementation_stage=P9-W02' \
   'episodic_memory_store_defined=true' \
   'episodic_memory_summary_result_only_verified=true' \
   'episodic_memory_read_fail_closed=true' \
@@ -406,6 +406,17 @@ for marker in \
   'target_capability_discovery_hardware_mapping_complete=false' \
   'target_capability_discovery_android13_arm64_verified=false' \
   'target_capability_discovery_external_blocked=true' \
+  'performance_budget_contract_defined=true' \
+  'performance_budget_category_count=7' \
+  'performance_budget_metric_count=10' \
+  'performance_budget_catalog_verified=true' \
+  'performance_budget_report_validation_verified=true' \
+  'performance_budget_threshold_fail_closed_verified=true' \
+  'performance_budget_evidence_mode_separation_verified=true' \
+  'performance_budget_target_owner_approved=false' \
+  'performance_budget_target_measurement_complete=false' \
+  'performance_budget_android13_arm64_verified=false' \
+  'performance_budget_runtime_wired=false' \
   'context_budget_decision_only=true' \
   'context_budget_text_payload_accepted=false' \
   'context_budget_tokenizer_wired=false' \
@@ -713,12 +724,14 @@ if "Runtime Contract v2" not in developed or "`DEVELOPED`" not in developed:
     raise SystemExit("README developed table must include the completed Runtime Contract v2 aggregate")
 if "P8 Target Capability Discovery 软件准备" not in developed:
     raise SystemExit("README developed table must include the P8-W01 software-preparation boundary")
+if "P9 Performance Budget Contract" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W01 software contract")
 if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
-    or "P9-W01 性能预算" not in remaining
+    or "P9-W02 72h 稳定性与故障矩阵" not in remaining
 ):
-    raise SystemExit("README must keep P8-W01 externally blocked and identify P9-W01 as the independent next scope")
+    raise SystemExit("README must keep P8-W01 externally blocked and identify P9-W02 as the next scope")
 if "P6 EventBroker interface/in-process" not in developed:
     raise SystemExit("README developed table must include the completed P6-W01 EventBroker")
 if "P6 Event Backpressure/QoS" not in developed:
