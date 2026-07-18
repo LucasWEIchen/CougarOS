@@ -873,7 +873,7 @@ for _ in {1..40}; do
       && grep -Fq "model_provider_count=4" <<<"$MODEL_REGISTRY_LOG" \
       && grep -Fq "model_contract_test_available_count=1" \
         <<<"$MODEL_REGISTRY_LOG" \
-      && grep -Fq "model_development_available_count=0" \
+      && grep -Fq "model_development_available_count=1" \
         <<<"$MODEL_REGISTRY_LOG" \
       && grep -Fq "model_production_ready_count=0" \
         <<<"$MODEL_REGISTRY_LOG" \
@@ -950,6 +950,66 @@ done
 if [[ "$MODEL_POLICY_ROUTER_PROBE_PASSED" != true ]]; then
   echo "$MODEL_POLICY_ROUTER_LOG" >&2
   echo "PolicyAwareModelRouter probe did not pass" >&2
+  exit 1
+fi
+
+LOCAL_MODEL_PROVIDER_NONCE="$(date +%s%N)"
+LOCAL_MODEL_PROVIDER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.model.LocalModelProviderProbeActivity \
+  --es nonce "$LOCAL_MODEL_PROVIDER_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$LOCAL_MODEL_PROVIDER_PROBE_OUTPUT"; then
+  echo "$LOCAL_MODEL_PROVIDER_PROBE_OUTPUT" >&2
+  echo "LocalModelProvider debug probe did not start successfully" >&2
+  exit 1
+fi
+LOCAL_MODEL_PROVIDER_PROBE_PASSED=false
+for _ in {1..40}; do
+  LOCAL_MODEL_PROVIDER_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbLocalProvider:I)"
+  if grep -Fq \
+      "nonce=$LOCAL_MODEL_PROVIDER_NONCE local_model_provider_probe_complete=true" \
+      <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_verified=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_lifecycle_verified=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_stream_limit_verified=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_cancel_verified=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_deadline_verified=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_overflow_rejected=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_profile_boundary_verified=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_registry_boundary_verified=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_debug_only=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_release_source_absent=true" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_runtime_wired=false" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "local_model_provider_vendor_npu_fallback_enabled=false" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "production_inference_enabled=false" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "raw_model_content_logged=false" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "network_accessed=false" <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "npu_accessed=false" <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "production_ready=false" <<<"$LOCAL_MODEL_PROVIDER_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$LOCAL_MODEL_PROVIDER_LOG"; then
+    LOCAL_MODEL_PROVIDER_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$LOCAL_MODEL_PROVIDER_PROBE_PASSED" != true ]]; then
+  echo "$LOCAL_MODEL_PROVIDER_LOG" >&2
+  echo "LocalModelProvider probe did not pass" >&2
   exit 1
 fi
 
@@ -4197,7 +4257,7 @@ printf '%s\n' \
   "model_provider_availability_separation_verified=true" \
   "model_provider_placeholder_fail_closed=true" \
   "model_contract_test_available_count=1" \
-  "model_development_available_count=0" \
+  "model_development_available_count=1" \
   "model_production_ready_count=0" \
   "model_provider_registry_android13_arm64_verified=true" \
   "model_provider_registry_runtime_wired=false" \
@@ -4211,6 +4271,20 @@ printf '%s\n' \
   "provider_invoked=false" \
   "model_invoked=false" \
   "network_accessed=false" \
+  "local_model_provider_verified=true" \
+  "local_model_provider_lifecycle_verified=true" \
+  "local_model_provider_stream_limit_verified=true" \
+  "local_model_provider_cancel_verified=true" \
+  "local_model_provider_deadline_verified=true" \
+  "local_model_provider_overflow_rejected=true" \
+  "local_model_provider_profile_boundary_verified=true" \
+  "local_model_provider_registry_boundary_verified=true" \
+  "local_model_provider_debug_only=true" \
+  "local_model_provider_release_source_absent=true" \
+  "local_model_provider_runtime_wired=false" \
+  "local_model_provider_vendor_npu_fallback_enabled=false" \
+  "production_inference_enabled=false" \
+  "raw_model_content_logged=false" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \

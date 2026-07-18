@@ -26,7 +26,7 @@ public final class ModelProviderRegistryProbeActivity extends Activity {
             boolean catalogVerified = initial.getProviders().size()
                     == ModelProviderRegistry.PROVIDER_COUNT
                     && initial.getContractTestAvailableCount() == 1
-                    && initial.getDevelopmentAvailableCount() == 0
+                    && initial.getDevelopmentAvailableCount() == 1
                     && initial.getProductionReadyCount() == 0;
 
             ModelProviderRegistry.HealthReport report = report(
@@ -73,7 +73,7 @@ public final class ModelProviderRegistryProbeActivity extends Activity {
                     && !vendor.isRoutingEnabled();
             boolean availabilitySeparationVerified =
                     initial.getContractTestAvailableCount() == 1
-                            && initial.getDevelopmentAvailableCount() == 0
+                            && initial.getDevelopmentAvailableCount() == 1
                             && initial.getProductionReadyCount() == 0;
             ModelProviderRegistry.RegistrySnapshot finalSnapshot = registry.snapshot(1_000);
             boolean verified = catalogVerified

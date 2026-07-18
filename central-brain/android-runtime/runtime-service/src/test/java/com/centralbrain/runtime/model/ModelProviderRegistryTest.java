@@ -72,7 +72,7 @@ public final class ModelProviderRegistryTest {
         ModelProviderRegistry.RegistrySnapshot snapshot = registry().snapshot(1_000);
 
         assertEquals(1, snapshot.getContractTestAvailableCount());
-        assertEquals(0, snapshot.getDevelopmentAvailableCount());
+        assertEquals(1, snapshot.getDevelopmentAvailableCount());
         assertEquals(0, snapshot.getProductionReadyCount());
         ModelProviderRegistry.ProviderView testProvider = find(
                 snapshot,
@@ -80,6 +80,15 @@ public final class ModelProviderRegistryTest {
         assertTrue(testProvider.isContractTestAvailable());
         assertFalse(testProvider.isDevelopmentAvailable());
         assertFalse(testProvider.isProductionReady());
+        ModelProviderRegistry.ProviderView localProvider = find(
+                snapshot,
+                ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID);
+        assertFalse(localProvider.isContractTestAvailable());
+        assertTrue(localProvider.isDevelopmentAvailable());
+        assertFalse(localProvider.getDescriptor().isProductionImplementationAvailable());
+        assertFalse(localProvider.getDescriptor().isProductionEligible());
+        assertFalse(localProvider.isProductionReady());
+        assertFalse(localProvider.isRoutingEnabled());
         assertEquals(ModelProviderRegistry.HealthFreshness.MISSING,
                 testProvider.getHealthFreshness());
     }

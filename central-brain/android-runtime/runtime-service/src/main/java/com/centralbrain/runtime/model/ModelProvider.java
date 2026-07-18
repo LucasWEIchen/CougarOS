@@ -35,6 +35,7 @@ public interface ModelProvider extends AutoCloseable {
 
     enum BackendKind {
         DETERMINISTIC_STUB,
+        ANDROID_LOCAL_DEVELOPMENT,
         OLLAMA_DEBUG,
         VENDOR_NPU
     }
@@ -136,10 +137,11 @@ public interface ModelProvider extends AutoCloseable {
                         "production eligibility requires production assurance");
             }
             if ((backendKind == BackendKind.DETERMINISTIC_STUB
+                    || backendKind == BackendKind.ANDROID_LOCAL_DEVELOPMENT
                     || backendKind == BackendKind.OLLAMA_DEBUG)
                     && (hardwareBacked || productionEligible)) {
                 throw new IllegalArgumentException(
-                        "stub and Ollama debug providers cannot claim hardware or production");
+                        "development providers cannot claim hardware or production");
             }
             if (assurance == Assurance.EMPTY
                     && (supportsWarmup

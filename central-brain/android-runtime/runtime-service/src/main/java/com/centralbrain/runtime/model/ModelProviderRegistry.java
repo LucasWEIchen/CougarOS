@@ -25,7 +25,7 @@ public final class ModelProviderRegistry {
     public static final String DETERMINISTIC_TEST_ID =
             ModelProviderProfiles.DETERMINISTIC_STUB_ID;
     public static final String ANDROID_LOCAL_DEVELOPMENT_ID =
-            "android.local.development";
+            ModelProviderProfiles.ANDROID_LOCAL_DEVELOPMENT_ID;
     public static final String VENDOR_NPU_PLACEHOLDER_ID =
             ModelProviderProfiles.VENDOR_NPU_EMPTY_ID;
     public static final String CLOUD_PLACEHOLDER_ID = "cloud.placeholder";
@@ -551,7 +551,7 @@ public final class ModelProviderRegistry {
                         ModelContractV2.RequiredCapability.TEXT_GENERATION,
                         ModelContractV2.RequiredCapability.SUMMARIZATION),
                 false,
-                false,
+                true,
                 false,
                 false,
                 false,

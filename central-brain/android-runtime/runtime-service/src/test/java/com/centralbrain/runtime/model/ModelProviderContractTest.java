@@ -56,6 +56,26 @@ public final class ModelProviderContractTest {
     }
 
     @Test
+    public void androidLocalProfileIsDevelopmentOnlyAndNotConfiguredByDefault() {
+        ModelProviderProfiles.Profile profile =
+                ModelProviderProfiles.androidLocalDevelopment();
+        ModelProvider.Descriptor descriptor = profile.getDescriptor();
+
+        assertTrue(descriptor.getBackendKind()
+                == ModelProvider.BackendKind.ANDROID_LOCAL_DEVELOPMENT);
+        assertTrue(descriptor.getAssurance() == ModelProvider.Assurance.DEBUG_ONLY);
+        assertTrue(descriptor.getFallbackClass() == ModelProvider.FallbackClass.NEVER);
+        assertTrue(descriptor.isSupportsInference());
+        assertTrue(descriptor.isSupportsStreaming());
+        assertTrue(descriptor.isSupportsCancellation());
+        assertFalse(descriptor.isHardwareBacked());
+        assertFalse(descriptor.isProductionEligible());
+        assertFalse(profile.isImplementationConfigured());
+        assertFalse(profile.isRoutingEnabled());
+        assertFalse(profile.getSnapshot().isHardwareAccessed());
+    }
+
+    @Test
     public void unsafeStubAndEmptyDescriptorsAreRejected() {
         expectInvalid(() -> new ModelProvider.Descriptor(
                 "unsafe.stub",
@@ -83,6 +103,20 @@ public final class ModelProviderContractTest {
                 false,
                 false,
                 false,
+                true,
+                1));
+        expectInvalid(() -> new ModelProvider.Descriptor(
+                "unsafe.local",
+                ModelProvider.BackendKind.ANDROID_LOCAL_DEVELOPMENT,
+                ModelProvider.Assurance.PRODUCTION,
+                ModelProvider.FallbackClass.POLICY_CONTROLLED,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
                 true,
                 1));
     }
