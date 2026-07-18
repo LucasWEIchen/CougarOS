@@ -765,6 +765,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_production_release_admission.s
 bash "$ROOT_DIR/tools/check_central_brain_android_production_release_metadata_probe.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_driver_safety_probe.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_p9_physical_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_graph.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_runtime.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_scenario_binder.sh"

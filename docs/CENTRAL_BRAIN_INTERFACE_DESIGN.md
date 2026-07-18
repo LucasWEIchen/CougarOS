@@ -3844,3 +3844,18 @@ Req IDs：`S2-EVT-001`、`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002
 
 Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：
 `DEV-108`、`ISSUE-024/044`。
+
+## P9 Android 13 ARM64 aggregate debug probe acceptance interface
+
+机器合同为 `central-brain/contracts/central_brain_android_p9_physical_acceptance.json`：
+
+- `probe_modules[]` 固定 P9-W01/W02/W03c/W04c/W05b/W06b/W07b 七项及唯一 probe-specific marker。
+- `required_android_api=33`、`required_abi=arm64-v8a`；目标不匹配时在执行 probe 前失败关闭。
+- 合同层的 `executed=false` 表示设计 artifact 不得自证目标执行；installer 成功后派生的 `*_probe_android13_arm64_verified=true`
+  是独立运行证据，两者不得混用。
+- Release/Driver/Field host adapters 只接受已安装 debug package，禁止 build/install/uninstall/rollback/upload 和 raw-log 输出。
+- `claim_state` 精确锁定 72h/fuzz/owner/signer/vehicle/Effect/target/production false 集合；单独修改 README 或 JSON 不能提升状态。
+- 七个独立 checker、installer marker、文档锚点与完整安装回归必须共同通过。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
+`DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-029/030/048..053`。

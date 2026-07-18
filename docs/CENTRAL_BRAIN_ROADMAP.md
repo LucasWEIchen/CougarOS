@@ -1766,6 +1766,25 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+### 2026-07-18 P9 Android 13 ARM64 aggregate debug probe acceptance
+
+状态：`COMPLETE / APPLICATION_DEBUG_PROBE_ONLY`。统一 installer 已在 API 33 ARM64 上通过 P9-W01/W02/W03c/W04c/W05b/W06b/W07b
+七个 hardening/release debug probes，并完成 Runtime/Demo 安装回归。机器合同固定 probe-specific marker、API/ABI、设备身份脱敏与
+qualification false 集合，避免把 contract probe 提升为 target/production evidence。
+
+本项只关闭历史 ADB-offline 导致的应用探针执行缺口。P8 仍为外部阻塞；P9 仍缺 target performance、72h、coverage fuzz、owner privacy
+policy、production signer/install/rollback、OEM vehicle safety 和完整 target retest。下一步不得发明 vendor 接口或提升 readiness，必须等待
+受控 OEM/owner/release evidence。
+
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
+`DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-029/030/048..053`。
+`p9_android13_arm64_probe_acceptance_complete=true`、`p9_probe_module_count=7`、`device_identity_redacted=true`、
+`performance_budget_target_measurement_complete=false`、`stability_target_72h_complete=false`、
+`security_coverage_guided_fuzz_complete=false`、`privacy_owner_policy_approved=false`、
+`production_signer_owner_approved=false`、`driver_safety_android13_arm64_verified=false`、
+`field_diagnostics_target_category_execution_complete=false`、`release_evidence_target_report_admitted=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+
 ### 2026-07-18 P7 Android 13 ARM64 aggregate probe acceptance
 
 状态：`COMPLETE / APPLICATION_DEBUG_PROBE_ONLY`。统一 installer 已在 API 33 ARM64 上通过 P7-W01..W07 七个 Model contract、

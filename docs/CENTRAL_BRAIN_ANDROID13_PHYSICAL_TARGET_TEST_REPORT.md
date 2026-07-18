@@ -767,3 +767,37 @@ target_hardware_validated=false
 
 该证据只确认 build-owned debug fixtures 在目标 Android ABI/API 上按合同执行，不构成 production model/quality/resource authority、
 network/NPU/Vehicle/Driver-HAL 或目标硬件 qualification。tracking：`DEV-108`、`ISSUE-024/044`。
+
+## 25. 2026-07-18 P9 hardening/release aggregate Android probe evidence
+
+当前源码统一 installer 在一台 identity-redacted Android API 33 / `arm64-v8a` 目标上执行 P9-W01/W02/W03c/W04c/W05b/W06b/W07b。
+七项 nonce-bound debug probe 与完整 Runtime/Demo 安装回归通过。只保留下列允许的 boolean/count marker：
+
+```text
+p9_android13_arm64_probe_acceptance_complete=true
+p9_probe_module_count=7
+device_identity_redacted=true
+performance_budget_contract_probe_android13_arm64_verified=true
+stability_matrix_contract_probe_android13_arm64_verified=true
+security_boundary_probe_android13_arm64_verified=true
+privacy_redaction_probe_android13_arm64_verified=true
+release_metadata_probe_android13_arm64_verified=true
+driver_safety_android_contract_probe_android13_arm64_verified=true
+field_diagnostics_probe_android13_arm64_verified=true
+performance_budget_target_measurement_complete=false
+stability_target_72h_complete=false
+security_coverage_guided_fuzz_complete=false
+privacy_owner_policy_approved=false
+production_signer_owner_approved=false
+driver_safety_android13_arm64_verified=false
+field_diagnostics_target_category_execution_complete=false
+release_evidence_target_report_admitted=false
+driver_hal_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据不包含 raw log、设备/包身份、证书/signer、target input 或用户/模型/记忆/车辆 payload；不构成 target performance、72h、
+coverage fuzz、owner policy、production release/rollback、OEM safety 或目标硬件 qualification。tracking：`DEV-109`、
+`ISSUE-029/030/048..053`。

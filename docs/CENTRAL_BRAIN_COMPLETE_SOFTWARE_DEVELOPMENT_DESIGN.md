@@ -5122,3 +5122,24 @@ Driver/HAL、Graph 或 Effect。
 可以声明七个 Android marker、`p7_probe_module_count=7` 和完整安装回归通过。不得声明 production inference、真实模型质量、
 production resource authority、云/Ollama/Vendor NPU、Runtime composition 或 target hardware validation。Req IDs：`S2-MDL-001`、
 `S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：`DEV-108`、`ISSUE-024/044`。
+
+## P9 implementation detail: aggregate Android debug probe acceptance
+
+### Evidence derivation
+
+P9 aggregate checker 不改变七个原始设计合同。统一 installer 必须先通过 nonce-bound Activity/adapter completion、允许字段、release
+absence、API/ABI、identity redaction 和完整安装回归，才派生七个 `*_probe_android13_arm64_verified=true` marker。任何 probe 失败均终止
+installer，不输出 aggregate complete。
+
+### Data boundary
+
+Budget/Matrix 输入为 synthetic report；Security/Privacy 输入为 build-owned inventory/policy digest；Release/Field 只输出 package relation、
+launcher/service 和 category count；Driver Safety 只输出固定 action/policy count。禁止 raw log、包/设备身份、证书/signer、target input、
+用户/模型/记忆/车辆 payload、CarProperty、Vendor Service、network、NPU、JNI、Driver/HAL 和 Effect dispatch。
+
+### Qualification boundary
+
+可以声明七个 application debug probe、`p9_probe_module_count=7` 和完整安装回归通过。不得声明 target performance、72h、fuzz、
+privacy owner policy、production signer/install/rollback、OEM vehicle safety、complete field diagnostics/retest 或 target qualification。
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
+`DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-029/030/048..053`。

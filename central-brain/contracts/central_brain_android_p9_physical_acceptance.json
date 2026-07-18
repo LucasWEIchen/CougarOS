@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0.0",
+  "acceptance_id": "android-p9-hardening-release-device-probe-acceptance",
+  "status": "verified",
+  "evidence_scope": "android13-arm64-debug-application-probes",
+  "required_android_api": 33,
+  "required_abi": "arm64-v8a",
+  "req_ids": [
+    "S2-OBS-001",
+    "S2-REL-001",
+    "S2-SAF-001",
+    "S2-MEM-001",
+    "S2-UX-002",
+    "S2-EFF-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "test_command": "bash tools/install_central_brain_android_runtime.sh --skip-build --require-api-33",
+  "probe_modules": [
+    {
+      "work_package": "P9-W01",
+      "marker": "performance_budget_contract_probe_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P9-W02",
+      "marker": "stability_matrix_contract_probe_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P9-W03c",
+      "marker": "security_boundary_probe_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P9-W04c",
+      "marker": "privacy_redaction_probe_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P9-W05b",
+      "marker": "release_metadata_probe_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P9-W06b",
+      "marker": "driver_safety_android_contract_probe_android13_arm64_verified=true"
+    },
+    {
+      "work_package": "P9-W07b",
+      "marker": "field_diagnostics_probe_android13_arm64_verified=true"
+    }
+  ],
+  "claim_state": {
+    "p9_probe_module_count": 7,
+    "p9_android13_arm64_probe_acceptance_complete": true,
+    "android_runtime_full_install_regression_passed": true,
+    "device_identity_redacted": true,
+    "debug_probe_only": true,
+    "performance_budget_target_measurement_complete": false,
+    "stability_target_72h_complete": false,
+    "security_coverage_guided_fuzz_complete": false,
+    "security_binder_calling_uid_spoof_android_verified": false,
+    "security_package_signature_cryptographically_verified": false,
+    "privacy_owner_policy_approved": false,
+    "privacy_current_policy_admitted": false,
+    "privacy_repository_mutation_wired": false,
+    "production_signer_owner_approved": false,
+    "production_release_candidate_admitted": false,
+    "release_installer_wired": false,
+    "release_rollback_executor_wired": false,
+    "driver_safety_current_owner_policy_approved": false,
+    "driver_safety_vehicle_state_provider_wired": false,
+    "driver_safety_effect_runtime_wired": false,
+    "driver_safety_android13_arm64_verified": false,
+    "field_diagnostics_target_category_execution_complete": false,
+    "release_evidence_target_report_admitted": false,
+    "release_evidence_runtime_diagnostics_wired": false,
+    "release_evidence_automatic_upload_enabled": false,
+    "vehicle_accessed": false,
+    "driver_hal_accessed": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  },
+  "non_claims": [
+    "target performance measurement or 72 hour stability execution",
+    "coverage guided fuzz Binder identity spoof or package signature qualification",
+    "privacy owner policy production signer release install rollback or admitted target evidence",
+    "OEM driver safety approval vehicle state Effect Driver HAL or hardware integration",
+    "production release qualification or target hardware validation"
+  ]
+}

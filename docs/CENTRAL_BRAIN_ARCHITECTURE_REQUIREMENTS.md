@@ -2860,3 +2860,28 @@ tracking：`DEV-104`、`ISSUE-022/026/030/033`。
 `production_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-108`、`ISSUE-024/044`。
+
+## 101. P9 Android 13 ARM64 hardening/release debug probe acceptance trace
+
+1. `S2-OBS-001/S2-REL-001`：P9-W01/W02 只能验证 synthetic budget report 与 18-case matrix 合同可在 API 33 ARM64
+   执行；`performance_budget_target_measurement_complete=false`、`stability_target_72h_complete=false` 必须保持不变。
+2. `S2-SAF-001`：P9-W03c 只验证 AIDL/Parcelable boundary inventory 和固定 hostile-input 路径；coverage-guided fuzz、
+   Binder UID spoof 与 package signature qualification 不得由 debug probe 推导。
+3. `S2-MEM-001/S2-SAF-001`：P9-W04c 只输出 21-key redacted audit projection；owner policy、repository mutation 和
+   production lifecycle 不得启用。
+4. `S2-REL-001`：P9-W05b 只读三包 metadata/signer relation count；不得输出包名、证书、signer bytes、设备身份或执行
+   install/uninstall/rollback。
+5. `S2-UX-002/S2-EFF-001`：P9-W06b 只验证 27-key safety contract projection；不得读取真实 driving state、授予 Effect
+   或声明 OEM safety acceptance，`driver_safety_android13_arm64_verified=false` 必须保持不变。
+6. `S2-OBS-001/S2-REL-001`：P9-W07b 只验证 build-owned field diagnostics preflight；八类 target category 未全部执行，
+   report 不得 admit 或自动上传。
+7. `DEL-001/004/005`：聚合验收固定 API 33、ARM64、7 个 probe-specific marker、identity redaction 与完整安装回归；
+   不允许 raw log、target input、用户/模型/记忆/车辆 payload 或签名材料进入仓库证据。
+
+当前 `p9_android13_arm64_probe_acceptance_complete=true`、`p9_probe_module_count=7`、
+`performance_budget_target_measurement_complete=false`、`stability_target_72h_complete=false`、
+`security_coverage_guided_fuzz_complete=false`、`privacy_owner_policy_approved=false`、
+`production_signer_owner_approved=false`、`driver_safety_android13_arm64_verified=false`、
+`field_diagnostics_target_category_execution_complete=false`、`release_evidence_target_report_admitted=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。

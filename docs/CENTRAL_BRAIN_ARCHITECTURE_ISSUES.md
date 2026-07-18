@@ -1268,3 +1268,21 @@ LocalModelProvider、Structured output、Scenario evaluation 与 Resource admiss
 `production_resource_snapshot_provider_wired=false`、`provider_invoked=false`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-108`、`ISSUE-024/044`。
+
+### P9 Android 13 ARM64 debug probe acceptance update
+
+P9 七个 debug application probes 已在 API 33 ARM64 上统一通过，关闭 `ISSUE-048..053` 中“应用探针未执行”的子项：synthetic
+performance budget、synthetic stability matrix、security boundary inventory、privacy redaction、production release metadata、
+driver-safety contract projection 和 field diagnostics projection。完整 Runtime/Demo 安装回归同时通过，输出仅保留脱敏 count/boolean。
+
+Issues 仍保持 Open：`ISSUE-048` 缺 target performance samples/owner；`ISSUE-049` 缺 72h workload/fault injection；`ISSUE-050`
+缺 coverage fuzz、Binder UID spoof 和 signer crypto review；`ISSUE-051` 缺 privacy owner policy/repository lifecycle；`ISSUE-052/053`
+缺 production signer/installer/rollback、八类 target evidence、replacement release 与 tester admission；`ISSUE-029/030` 缺 OEM Safety State、
+车辆能力、readback 和硬联锁。
+
+当前 `p9_android13_arm64_probe_acceptance_complete=true`、`p9_probe_module_count=7`、
+`performance_budget_target_measurement_complete=false`、`stability_target_72h_complete=false`、
+`security_coverage_guided_fuzz_complete=false`、`privacy_owner_policy_approved=false`、
+`production_signer_owner_approved=false`、`driver_safety_android13_arm64_verified=false`、
+`field_diagnostics_target_category_execution_complete=false`、`release_evidence_target_report_admitted=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-109`。

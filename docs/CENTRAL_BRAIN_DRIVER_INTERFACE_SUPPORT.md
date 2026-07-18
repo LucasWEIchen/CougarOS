@@ -1929,3 +1929,18 @@ thermal/resource、fault/rollback、owner/version evidence；只有公开/Vendor
 当前 `p7_android13_arm64_probe_acceptance_complete=true`、`device_identity_redacted=true`、
 `production_inference_enabled=false`、`network_accessed=false`、`npu_accessed=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-108`、`ISSUE-024/044`。
+
+## P9 Android 13 ARM64 aggregate debug probe Driver/HAL boundary
+
+P9 aggregate acceptance 只运行应用私有 debug Activity 和三项只读 host adapter。性能/稳定性使用 synthetic contract report；安全/
+隐私使用固定 redacted projection；release/field diagnostics 仅查询 build-owned package metadata counts；driver-safety probe 不读取真实
+driving scalar、CarProperty、Vendor Service、device node、ioctl、sysfs、PCIe 或 NPU。
+
+因此不新增 C/C++、Driver/HAL 或虚拟化开发量，`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。真实 Safety State、HVAC/Seat capability/readback、NPU telemetry、fault injection 和 target
+performance 只有在 P8 capability matrix、owner/version/permission/API evidence 完整后才可立项；不得从 debug probe 反推 vendor 接口。
+
+当前 `p9_android13_arm64_probe_acceptance_complete=true`、`driver_safety_android13_arm64_verified=false`、
+`driver_safety_vehicle_state_provider_wired=false`、`driver_safety_effect_runtime_wired=false`、`driver_hal_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-109`、
+`ISSUE-029/030/048..053`。

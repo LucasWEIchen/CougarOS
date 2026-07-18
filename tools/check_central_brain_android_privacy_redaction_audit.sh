@@ -207,7 +207,8 @@ printf '%s\n' \
   'privacy_audit_key_count=21' \
   'privacy_forbidden_projection_field_count=10' \
   'privacy_android_debug_probe_available=true' \
-  'privacy_android_debug_probe_executed=false' \
+  'privacy_android_debug_probe_executed=true' \
+  'privacy_redaction_probe_android13_arm64_verified=true' \
   'privacy_android13_arm64_verified=false' \
   'privacy_owner_policy_approved=false' \
   'privacy_repository_mutation_wired=false' \

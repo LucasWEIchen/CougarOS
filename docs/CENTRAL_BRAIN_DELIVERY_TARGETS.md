@@ -2754,3 +2754,22 @@ Partial 4/2；批准/拒绝输入总数 2；Intent/Context/Plan/Policy/Graph/Eff
 `model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-MDL-001`、
 `S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：`DEV-108`、`ISSUE-024/044`。
+
+## 2026-07-18 P9 Android 13 ARM64 hardening/release debug probe acceptance
+
+- 机器合同：`central-brain/contracts/central_brain_android_p9_physical_acceptance.json`。
+- 设备命令：`bash tools/install_central_brain_android_runtime.sh --skip-build --require-api-33`。
+- 覆盖：P9-W01/W02/W03c/W04c/W05b/W06b/W07b 共 7 个 debug application probe，以及完整安装回归。
+- 结果：API 33、ARM64、七个 probe-specific marker、identity redaction 和全部 false-authority marker 通过。
+- 隐私：不交付 raw log、设备/包身份、证书/signer、target input、用户/模型/记忆/车辆 payload。
+- 非声明：不交付 target performance、72h、coverage fuzz、privacy owner policy、production signer/install/rollback、OEM vehicle safety、
+  完整 field diagnostic category、production release 或目标硬件资格。
+
+当前 `p9_android13_arm64_probe_acceptance_complete=true`、`p9_probe_module_count=7`、
+`performance_budget_target_measurement_complete=false`、`stability_target_72h_complete=false`、
+`security_coverage_guided_fuzz_complete=false`、`privacy_owner_policy_approved=false`、
+`production_signer_owner_approved=false`、`driver_safety_android13_arm64_verified=false`、
+`field_diagnostics_target_category_execution_complete=false`、`release_evidence_target_report_admitted=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002`、`S2-EFF-001`、
+`DEL-001/004/005`；tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
