@@ -132,7 +132,7 @@ printf '%s\n' \
   "model_policy_router_latency_capability_quota_verified=true" \
   "model_policy_router_fallback_bounded=true" \
   "model_policy_router_no_action_authority=true" \
-  "model_policy_router_android13_arm64_verified=false" \
+  "model_policy_router_android13_arm64_verified=true" \
   "model_policy_router_runtime_wired=false" \
   "provider_invoked=false" \
   "model_invoked=false" \

@@ -3963,7 +3963,7 @@ state detail 和全部 production false boundary。旧 `ModelProvider` 不能导
 状态：`model_contract_v2_defined=true`、`model_request_v2_fields_verified=true`、
 `model_result_v2_binding_verified=true`、`model_privacy_fallback_fail_closed=true`、
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
-`model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
+`model_contract_v2_android13_arm64_verified=true`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`. Req IDs: `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-078`, `ISSUE-024/044`.
@@ -4000,7 +4000,7 @@ healthy placeholder fail-closed 和 Runtime/model/network/NPU/hardware boundary�
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
-`model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
+`model_provider_registry_android13_arm64_verified=true`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`. Req IDs: `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
@@ -4072,7 +4072,7 @@ Static checks reject release probe leakage, production Service wiring and transp
 
 State: `model_policy_router_defined=true`, `model_policy_router_privacy_network_thermal_verified=true`,
 `model_policy_router_latency_capability_quota_verified=true`, `model_policy_router_fallback_bounded=true`,
-`model_policy_router_no_action_authority=true`, `model_policy_router_android13_arm64_verified=false`,
+`model_policy_router_no_action_authority=true`, `model_policy_router_android13_arm64_verified=true`,
 `model_policy_router_runtime_wired=false`, `provider_invoked=false`, `model_invoked=false`, `network_accessed=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Req IDs: `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
@@ -4145,7 +4145,7 @@ State: `local_model_provider_verified=true`, `local_model_provider_deadline_veri
 `local_model_provider_cancel_verified=true`, `local_model_provider_stream_limit_verified=true`,
 `local_model_provider_debug_only=true`, `local_model_provider_release_source_absent=true`,
 `local_model_provider_runtime_wired=false`, `local_model_provider_vendor_npu_fallback_enabled=false`,
-`local_model_provider_android13_arm64_verified=false`, `production_inference_enabled=false`, `network_accessed=false`,
+`local_model_provider_android13_arm64_verified=true`, `production_inference_enabled=false`, `network_accessed=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Req IDs: `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
 tracking: `DEV-081`, `ISSUE-024`.
@@ -4191,7 +4191,7 @@ schema, tests, probe, installer/CI/docs markers, no Service wiring and no networ
 
 State: `structured_model_output_verified=true`, `model_output_catalog_binding_verified=true`,
 `model_output_unknown_capability_rejected=true`, `model_output_no_action_authority=true`,
-`model_output_schema_runtime_wired=false`, `structured_model_output_android13_arm64_verified=false`,
+`model_output_schema_runtime_wired=false`, `structured_model_output_android13_arm64_verified=true`,
 `model_invoked=false`, `raw_model_content_logged=false`, `network_accessed=false`, `npu_accessed=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Req IDs: `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`;
@@ -4237,7 +4237,7 @@ Vehicle/hardware API references.
 
 State: `scenario_evaluation_verified=true`, `evaluation_corpus_verified=true`, `evaluation_metrics_verified=true`,
 `evaluation_boundary_verified=true`, `evaluation_case_count=12`, `scenario_evaluation_runtime_wired=false`,
-`raw_evaluation_content_logged=false`, `scenario_evaluation_android13_arm64_verified=false`, `model_invoked=false`,
+`raw_evaluation_content_logged=false`, `scenario_evaluation_android13_arm64_verified=true`, `model_invoked=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`.
 Req IDs: `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `DEL-001/004/005`; tracking: `DEV-083`, `ISSUE-024`.
 
@@ -4275,7 +4275,7 @@ vehicle/hardware APIs.
 State: `model_resource_admission_verified=true`, `foreground_vehicle_priority_verified=true`,
 `thermal_degradation_verified=true`, `thermal_resource_fail_closed_verified=true`, `admission_boundary_verified=true`,
 `resource_admission_runtime_wired=false`, `resource_snapshot_producer_wired=false`,
-`model_resource_admission_android13_arm64_verified=false`, `provider_invoked=false`, `model_invoked=false`,
+`model_resource_admission_android13_arm64_verified=true`, `provider_invoked=false`, `model_invoked=false`,
 `network_accessed=false`, `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Req IDs: `S2-MDL-001`, `S2-SAF-001`,
 `S2-OBS-001`, `NV-G-004`, `DEL-001/004/005`; tracking: `DEV-084`, `ISSUE-024`.
@@ -5096,3 +5096,29 @@ Probe 输入全部为 build-owned immutable fixture。Event 只使用 typed meta
 Trigger runtime、proactive authority、production Context registry、active suggestion source、自动 Effect、Vehicle/NPU/Driver-HAL 或 target
 hardware validation。Req IDs：`S2-EVT-001`、`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、
 `S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。
+
+## P7 implementation detail: aggregate Android probe acceptance
+
+### 执行顺序与失败语义
+
+统一 runner 先验证 API/ABI 和身份脱敏，再启动 Contract、Registry、Router、Local provider、Output、Evaluation、Resource 七个
+DUMP-protected Activity。每项必须具备 completion、功能和 false-authority marker；任一旧日志、缺项、重复、越界或 Activity 失败立即退出。
+最后必须完成 Runtime/Demo 全安装回归。
+
+### LocalModelProvider 派生 marker
+
+LocalModelProvider Activity 不自报目标资格。installer 只有在 nonce-bound complete、lifecycle、stream limits、cancel、deadline、overflow、
+debug/release separation、Registry boundary 及 `production_inference/network/npu/hardware=false` 全部成立后，才输出
+`local_model_provider_android13_arm64_verified=true`。该 marker 只证明 debug injected engine 路径可执行。
+
+### 数据与调用边界
+
+Probe 输入是 digest/enum/count 和 synthetic metadata。Structured output 使用 build-owned JSON；Evaluation 使用固定 12-case corpus；
+Resource snapshot 由 fixture 提供。不得保存 prompt、模型输出、评测内容或车辆标量；不得调用 Provider、模型、网络、NPU、Vehicle、JNI、
+Driver/HAL、Graph 或 Effect。
+
+### 可声明与不可声明
+
+可以声明七个 Android marker、`p7_probe_module_count=7` 和完整安装回归通过。不得声明 production inference、真实模型质量、
+production resource authority、云/Ollama/Vendor NPU、Runtime composition 或 target hardware validation。Req IDs：`S2-MDL-001`、
+`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：`DEV-108`、`ISSUE-024/044`。

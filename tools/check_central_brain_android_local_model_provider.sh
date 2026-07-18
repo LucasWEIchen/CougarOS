@@ -143,6 +143,7 @@ printf '%s\n' \
   "local_model_provider_release_source_absent=true" \
   "local_model_provider_runtime_wired=false" \
   "local_model_provider_vendor_npu_fallback_enabled=false" \
+  "local_model_provider_android13_arm64_verified=true" \
   "production_inference_enabled=false" \
   "network_accessed=false" \
   "npu_accessed=false" \

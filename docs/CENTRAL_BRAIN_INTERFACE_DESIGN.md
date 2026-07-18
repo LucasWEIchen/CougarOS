@@ -3078,7 +3078,7 @@ ModelContractV2.ModelResult result = ModelResult.completed(
 状态：`model_contract_v2_defined=true`、`model_request_v2_fields_verified=true`、
 `model_result_v2_binding_verified=true`、`model_privacy_fallback_fail_closed=true`、
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
-`model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
+`model_contract_v2_android13_arm64_verified=true`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-078`、`ISSUE-024/044`。
@@ -3105,7 +3105,7 @@ snapshot 不删除过期记录，而是投影 `UNKNOWN/STALE` 并保留 revision
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
-`model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
+`model_provider_registry_android13_arm64_verified=true`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
@@ -3142,7 +3142,7 @@ fallback policy 最大 selection=2、fallback=1。`isActionAuthorizationGranted`
 
 状态：`model_policy_router_defined=true`、`model_policy_router_privacy_network_thermal_verified=true`、
 `model_policy_router_latency_capability_quota_verified=true`、`model_policy_router_fallback_bounded=true`、
-`model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=false`、
+`model_policy_router_no_action_authority=true`、`model_policy_router_android13_arm64_verified=true`、
 `model_policy_router_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
@@ -3194,7 +3194,7 @@ fallback=`NEVER`、max concurrency=1、hardware=false、production=false。静�
 `local_model_provider_cancel_verified=true`、`local_model_provider_stream_limit_verified=true`、
 `local_model_provider_debug_only=true`、`local_model_provider_release_source_absent=true`、
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
-`local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`network_accessed=false`、
+`local_model_provider_android13_arm64_verified=true`、`production_inference_enabled=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-081`、`ISSUE-024`。
@@ -3245,7 +3245,7 @@ fallback decision；P7-W06 只能把拒绝原因计入评测，Runtime compositi
 
 状态：`structured_model_output_verified=true`、`model_output_catalog_binding_verified=true`、
 `model_output_unknown_capability_rejected=true`、`model_output_no_action_authority=true`、
-`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=false`、
+`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=true`、
 `model_invoked=false`、`raw_model_content_logged=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；
@@ -3284,7 +3284,7 @@ fallback count 与 permille、fallback 分类、p50/p95/max latency、total inpu
 report 与 case authority getter 恒为 false；`isRawContentRetained/isModelInvoked/isProductionQualified` 恒为 false。
 
 状态：`scenario_evaluation_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
-`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
+`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=true`、`model_invoked=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-083`、`ISSUE-024`。
 
@@ -3319,7 +3319,7 @@ context digest binding、effective token/queue/deadline 和可选 active schedul
 
 所有 authority getter 恒为 false。接口只产生 scheduler metadata，不产生 lease claim、Provider call、model result、Plan、approval、
 Effect 或硬件动作。状态：`model_resource_admission_verified=true`、`resource_admission_runtime_wired=false`、
-`model_resource_admission_android13_arm64_verified=false`、`production_ready=false`、
+`model_resource_admission_android13_arm64_verified=true`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-MDL-001`、`S2-SAF-001`、
 `S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：`DEV-084`、`ISSUE-024`。
 
@@ -3829,3 +3829,18 @@ SUMMARIZE/TRUNCATE/DROP 各一次；checker 锁定该值，防止测试退化为
 P6 验收接口只交换 boolean/count/schema marker，不是 EventBroker、Trigger、Consent、Context 或 Suggestion 的生产调用接口。
 Req IDs：`S2-EVT-001`、`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、
 `S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。
+
+## P7 Android 13 ARM64 aggregate probe acceptance interface
+
+机器合同为 `central-brain/contracts/central_brain_android_p7_physical_acceptance.json`：
+
+- `probe_modules[]` 固定七项 P7-W01..W07，顺序和唯一 completion marker 不允许运行时扩展。
+- `required_android_api=33`、`required_abi=arm64-v8a`；不满足时在启动任何模型 probe 前失败关闭。
+- `claim_state` 的 true/false key 集合由 checker 精确比较；Provider/model/network/NPU/hardware 必须保持 false。
+- LocalModelProvider 的设备 marker 由 installer 在 complete + lifecycle + stream + cancel + deadline + overflow + profile/registry boundary
+  与全部 false-authority marker 同时通过后派生，不表示真实模型或 NPU 被调用。
+- 每个 Activity 使用 fixed build-owned fixture；证据禁止 prompt、raw model output、evaluation content、设备身份和车辆 payload。
+- 七个独立 checker、installer marker、文档锚点与完整安装回归必须共同通过，单独改 README/JSON 无法提升状态。
+
+Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`NV-G-004`、`DEL-001/004/005`；tracking：
+`DEV-108`、`ISSUE-024/044`。

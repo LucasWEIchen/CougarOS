@@ -727,3 +727,43 @@ target_hardware_validated=false
 
 该证据只确认 build-owned debug fixtures 在目标 Android ABI/API 上按合同执行，不构成 production Event/Trigger/Consent/Context/
 Suggestion authority、Vehicle/NPU/Driver-HAL 或目标硬件 qualification。tracking：`DEV-107`、`ISSUE-031/046`。
+
+## 24. 2026-07-18 P7 Model/Router/Evaluation aggregate Android acceptance evidence
+
+统一 installer 在 Android API 33 / ARM64 上顺序执行 P7-W01..W07 debug probes，并完成 Runtime/Demo 全安装回归。证据仅保留
+boolean/count marker，不包含 serial、model、fingerprint、prompt、model output、evaluation content、raw log 或车辆 payload。
+
+```text
+device_transport_selected=true
+device_identity_redacted=true
+android_api=33
+device_abi=arm64-v8a
+p7_probe_module_count=7
+p7_android13_arm64_probe_acceptance_complete=true
+model_contract_v2_android13_arm64_verified=true
+model_provider_registry_android13_arm64_verified=true
+model_policy_router_android13_arm64_verified=true
+local_model_provider_android13_arm64_verified=true
+structured_model_output_android13_arm64_verified=true
+scenario_evaluation_android13_arm64_verified=true
+model_resource_admission_android13_arm64_verified=true
+android_runtime_full_install_regression_passed=true
+production_model_provider_published=false
+production_model_router_wired=false
+production_inference_enabled=false
+production_model_output_runtime_wired=false
+production_evaluation_authority_published=false
+production_resource_snapshot_provider_wired=false
+production_runtime_wired=false
+provider_invoked=false
+model_invoked=false
+network_accessed=false
+npu_accessed=false
+driver_hal_accessed=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+该证据只确认 build-owned debug fixtures 在目标 Android ABI/API 上按合同执行，不构成 production model/quality/resource authority、
+network/NPU/Vehicle/Driver-HAL 或目标硬件 qualification。tracking：`DEV-108`、`ISSUE-024/044`。

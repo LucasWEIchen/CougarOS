@@ -1419,7 +1419,7 @@ bash tools/check_central_brain_android_model_contract_v2.sh
 Status: `model_contract_v2_defined=true`, `model_request_v2_fields_verified=true`,
 `model_result_v2_binding_verified=true`, `model_privacy_fallback_fail_closed=true`,
 `model_raw_content_accepted=false`, `model_provider_registry_wired=false`, `model_policy_router_wired=false`,
-`model_contract_v2_android13_arm64_verified=false`, `model_invoked=false`, `npu_accessed=false`,
+`model_contract_v2_android13_arm64_verified=true`, `model_invoked=false`, `npu_accessed=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Next: P7-W02 ModelProviderRegistry/health; tracking: `DEV-078`, `ISSUE-024/044`.
 
@@ -1447,7 +1447,7 @@ Status: `model_provider_registry_defined=true`, `model_provider_count=4`,
 `model_provider_health_freshness_verified=true`, `model_provider_health_replay_verified=true`,
 `model_provider_availability_separation_verified=true`, `model_provider_placeholder_fail_closed=true`,
 `model_contract_test_available_count=1`, `model_development_available_count=1`, `model_production_ready_count=0`,
-`model_provider_registry_android13_arm64_verified=false`, `model_provider_registry_runtime_wired=false`,
+`model_provider_registry_android13_arm64_verified=true`, `model_provider_registry_runtime_wired=false`,
 `model_policy_router_wired=false`, `model_invoked=false`, `network_accessed=false`, `npu_accessed=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Next: P7-W03 PolicyAwareModelRouter; tracking: `DEV-079`, `ISSUE-024`.
@@ -1475,7 +1475,7 @@ bash tools/check_central_brain_android_policy_aware_model_router.sh
 
 Status: `model_policy_router_defined=true`, `model_policy_router_privacy_network_thermal_verified=true`,
 `model_policy_router_latency_capability_quota_verified=true`, `model_policy_router_fallback_bounded=true`,
-`model_policy_router_no_action_authority=true`, `model_policy_router_android13_arm64_verified=false`,
+`model_policy_router_no_action_authority=true`, `model_policy_router_android13_arm64_verified=true`,
 `model_policy_router_runtime_wired=false`, `provider_invoked=false`, `model_invoked=false`, `network_accessed=false`,
 `npu_accessed=false`, `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P9-W03`. Next: P7-W04 LocalModelProvider; tracking: `DEV-080`, `ISSUE-024`.
@@ -1508,7 +1508,7 @@ bash tools/check_central_brain_android_local_model_provider.sh
 `local_model_provider_stream_limit_verified=true`、`local_model_provider_overflow_rejected=true`、
 `local_model_provider_debug_only=true`、`local_model_provider_release_source_absent=true`、
 `local_model_provider_runtime_wired=false`、`local_model_provider_vendor_npu_fallback_enabled=false`、
-`local_model_provider_android13_arm64_verified=false`、`production_inference_enabled=false`、`network_accessed=false`、
+`local_model_provider_android13_arm64_verified=true`、`production_inference_enabled=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。下一步：P7-W05 Prompt/Output schema；tracking：`DEV-081`、`ISSUE-024`。
 
@@ -1533,7 +1533,7 @@ bash tools/check_central_brain_android_structured_model_output.sh
 
 状态：`structured_model_output_verified=true`、`model_output_catalog_binding_verified=true`、
 `model_output_unknown_capability_rejected=true`、`model_output_no_action_authority=true`、
-`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=false`、
+`model_output_schema_runtime_wired=false`、`structured_model_output_android13_arm64_verified=true`、
 `model_invoked=false`、`raw_model_content_logged=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。下一步：P7-W06 Scenario evaluation harness；tracking：`DEV-082`、`ISSUE-024`。
@@ -1559,7 +1559,7 @@ bash tools/check_central_brain_android_scenario_evaluation.sh
 
 状态：`scenario_evaluation_verified=true`、`evaluation_corpus_verified=true`、`evaluation_metrics_verified=true`、
 `evaluation_boundary_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
-`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
+`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=true`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。下一步：P7-W07 Resource/thermal admission；tracking：
 `DEV-083`、`ISSUE-024`。
@@ -1589,7 +1589,7 @@ bash tools/check_central_brain_android_model_resource_admission.sh
 状态：`model_resource_admission_verified=true`、`foreground_vehicle_priority_verified=true`、
 `thermal_degradation_verified=true`、`thermal_resource_fail_closed_verified=true`、
 `admission_boundary_verified=true`、`resource_admission_runtime_wired=false`、
-`resource_snapshot_producer_wired=false`、`model_resource_admission_android13_arm64_verified=false`、
+`resource_snapshot_producer_wired=false`、`model_resource_admission_android13_arm64_verified=true`、
 `provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。下一步：P8-W01 Target capability discovery；tracking：`DEV-084`、`ISSUE-024`。

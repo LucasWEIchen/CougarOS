@@ -140,7 +140,7 @@ printf '%s\n' \
   "thermal_resource_fail_closed_verified=true" \
   "admission_boundary_verified=true" \
   "resource_admission_runtime_wired=false" \
-  "model_resource_admission_android13_arm64_verified=false" \
+  "model_resource_admission_android13_arm64_verified=true" \
   "provider_invoked=false" \
   "model_invoked=false" \
   "network_accessed=false" \

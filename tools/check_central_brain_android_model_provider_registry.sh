@@ -139,7 +139,7 @@ printf '%s\n' \
   "model_contract_test_available_count=1" \
   "model_development_available_count=1" \
   "model_production_ready_count=0" \
-  "model_provider_registry_android13_arm64_verified=false" \
+  "model_provider_registry_android13_arm64_verified=true" \
   "model_provider_registry_runtime_wired=false" \
   "model_policy_router_wired=false" \
   "model_invoked=false" \

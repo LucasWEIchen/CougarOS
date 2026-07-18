@@ -922,6 +922,22 @@ Client2 改为只消费该权威 Context 的版本化只读接口，并完成真
 `cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`production_ready=false`、
 `target_hardware_validated=false`。
 
+## DEV-108 P7 debug probe acceptance is not production inference or model quality
+
+P7-W01..W07 已在 Android 13 ARM64 上通过 build-owned debug Activity 与统一安装回归。证据证明模型 DTO、Registry、Router、
+development-only Provider、output validator、offline evaluator 和 resource admission 在目标 ABI/API 上可执行，不证明 production
+Provider/Router/Runtime、真实 prompt/model output、云网络、Ollama、Vendor NPU、目标性能或模型质量已接入。
+
+偏差状态为 `Accepted Temporary`。LocalModelProvider 仍只存在于 debug source 并使用 injected engine；evaluation 仍是固定 synthetic
+metadata；resource/thermal snapshot 仍由调用方提供。关闭偏差需独立提供 provider owner、模型/版本/评测数据治理、真实资源 producer、
+NPU/网络接口、Runtime composition、安全/隐私/性能和 P8/P9 目标证据，不得仅提升 probe marker。
+
+当前 `p7_android13_arm64_probe_acceptance_complete=true`、`production_model_provider_published=false`、
+`production_model_router_wired=false`、`production_inference_enabled=false`、`production_model_output_runtime_wired=false`、
+`production_evaluation_authority_published=false`、`production_resource_snapshot_provider_wired=false`、
+`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-024/044`。
+
 ## DEV-107 P6 debug probe acceptance is not production Event or proactive authority
 
 P6-W01..W06 已在 Android 13 ARM64 上通过 build-owned debug Activity 和统一安装回归。证据证明 process-local Event、QoS、
@@ -1065,7 +1081,7 @@ Vendor NPU SDK 或目标资源管理器发布这些 snapshot。
 clock/revision、fault/freshness、NPU slot/memory/thermal semantics，并在目标 Android 13 ARM64 上完成故障与性能证据。
 
 当前：`model_resource_admission_verified=true`、`resource_snapshot_producer_wired=false`、
-`resource_admission_runtime_wired=false`、`model_resource_admission_android13_arm64_verified=false`、
+`resource_admission_runtime_wired=false`、`model_resource_admission_android13_arm64_verified=true`、
 `provider_invoked=false`、`model_invoked=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
@@ -1113,7 +1129,7 @@ natural-language summary 作为一次性返回对象，但不记录 raw JSON/sum
 模型质量合格、动作安全或硬件可用。状态：`Accepted Temporary`。关闭条件是 P7-W06/W07 完成 synthetic evaluation 与 resource admission，
 P8/P9 冻结 production model/target authority 和真实故障性能证据。当前：`structured_model_output_verified=true`、
 `model_output_no_action_authority=true`、`model_output_schema_runtime_wired=false`、
-`structured_model_output_android13_arm64_verified=false`、`model_invoked=false`、`hardware_accessed=false`、
+`structured_model_output_android13_arm64_verified=true`、`model_invoked=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-083 P7-W06 evaluator is offline and digest-only
@@ -1126,7 +1142,7 @@ P7-W05 validator，CaseResult 只保留 output digest、typed error、计数与�
 Runtime/Graph/Effect，也不能授予 action/approval/effect authority。状态：`Accepted Temporary`。关闭条件是 P7-W07 完成资源/热准入，
 P8/P9 在目标硬件上用经批准的数据治理、模型/provider、真实性能与故障证据完成生产资格。当前：
 `scenario_evaluation_verified=true`、`evaluation_case_count=12`、`scenario_evaluation_runtime_wired=false`、
-`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=false`、`model_invoked=false`、
+`raw_evaluation_content_logged=false`、`scenario_evaluation_android13_arm64_verified=true`、`model_invoked=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
 ## DEV-081 P7-W04 local provider is development-only
@@ -1144,7 +1160,7 @@ fixed registry 的 `developmentAvailable` 更新为 true，因此 DEVELOPMENT ro
 validator、evaluation/resource policy、production publisher/composition、Vendor SDK/NPU Provider 和目标故障/性能证据；开发 Provider
 继续保持隔离。当前：`local_model_provider_verified=true`、`local_model_provider_debug_only=true`、
 `local_model_provider_release_source_absent=true`、`local_model_provider_runtime_wired=false`、
-`local_model_provider_vendor_npu_fallback_enabled=false`、`local_model_provider_android13_arm64_verified=false`、
+`local_model_provider_vendor_npu_fallback_enabled=false`、`local_model_provider_android13_arm64_verified=true`、
 `production_inference_enabled=false`、`network_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
@@ -1162,7 +1178,7 @@ registry health 与 policy routing；P7-W05 必须完成 prompt/output schema �
 状态：`model_contract_v2_defined=true`、`model_request_v2_fields_verified=true`、
 `model_result_v2_binding_verified=true`、`model_privacy_fallback_fail_closed=true`、
 `model_raw_content_accepted=false`、`model_provider_registry_wired=false`、`model_policy_router_wired=false`、
-`model_contract_v2_android13_arm64_verified=false`、`model_invoked=false`、`npu_accessed=false`、
+`model_contract_v2_android13_arm64_verified=true`、`model_invoked=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。
 
@@ -1183,7 +1199,7 @@ production implementation/eligibility/routing 仍为 false。
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
-`model_provider_registry_android13_arm64_verified=false`、`model_provider_registry_runtime_wired=false`、
+`model_provider_registry_android13_arm64_verified=true`、`model_provider_registry_runtime_wired=false`、
 `model_policy_router_wired=false`、`model_invoked=false`、`network_accessed=false`、`npu_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。
@@ -1250,7 +1266,7 @@ retry execution 或 production model service。
 代码未接 Runtime/Governance Service、Scheduler、Provider instance、Graph、Effect、Vehicle、network、NPU、Binder 或 Driver/HAL。
 状态：`Accepted Temporary`。关闭条件是 ISSUE-024/P7-W04..W07/P8 冻结 production policy/health/resource owners、Provider implementation、
 quota consumption、fallback/retry/cancel、output validation、Runtime composition 和目标 Android 13/NPU 证据。当前：
-`model_policy_router_defined=true`、`model_policy_router_android13_arm64_verified=false`、
+`model_policy_router_defined=true`、`model_policy_router_android13_arm64_verified=true`、
 `model_policy_router_runtime_wired=false`、`provider_invoked=false`、`model_invoked=false`、`network_accessed=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。
