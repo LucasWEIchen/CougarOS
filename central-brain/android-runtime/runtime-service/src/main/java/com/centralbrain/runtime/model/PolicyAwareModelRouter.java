@@ -344,6 +344,14 @@ public final class PolicyAwareModelRouter {
             return traceId;
         }
 
+        public String getPolicySnapshotDigest() {
+            return policySnapshotDigest;
+        }
+
+        public String getRegistryCatalogDigest() {
+            return registryCatalogDigest;
+        }
+
         public String getPrimaryProviderId() {
             return primaryProviderId;
         }
