@@ -1350,7 +1350,7 @@ Req IDs：`S2-UX-001`、`S2-HMI-003/006`、`S2-EVT-001`、`APP-004`、`XSC-001/0
 `cockpit_execution_typed_event_projection=true`、`cockpit_execution_trace_capacity=8`、
 `cockpit_execution_plan_published=false`、`cockpit_execution_effect_dispatch_enabled=false`、
 `cockpit_execution_readback_available=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W10`。
+`implementation_stage=P6-W01`。
 
 ## 48. P4-W07 approval/partial/retry/undo UX trace
 
@@ -1377,7 +1377,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-003`、`S2-SAF-001`、`S2-EFF-001`、`APP-004`�
 `cockpit_partial_outcome_projection=true`、`cockpit_compensation_projection=true`、
 `cockpit_approval_response_service_published=false`、`cockpit_retry_service_published=false`、
 `cockpit_undo_service_published=false`、`cockpit_recovery_commands_enabled=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 49. P4-W08 driving restriction renderer trace
 
@@ -1403,7 +1403,7 @@ Req IDs：`S2-UX-002`、`S2-HMI-002`、`S2-SAF-001`、`APP-004`、`XSC-001/005/0
 `cockpit_moving_long_text_hidden=true`、`cockpit_restricted_parameter_editing_disabled=true`、
 `cockpit_high_risk_controls_disabled=true`、`cockpit_runtime_policy_authority_independent=true`、
 `cockpit_hvac_manual_session_admission_retested=false`、`cockpit_seat_manual_session_admission_retested=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 50. P4-W09 engineer simulation drawer trace
 
@@ -1432,7 +1432,7 @@ Req IDs：`S2-HMI-004`、`S2-ADP-001`、`S2-OBS-001`、`APP-004`、`XSC-001/005/
 `cockpit_engineer_context_revisioned=true`、`cockpit_engineer_runtime_release_service_absent=true`、
 `cockpit_engineer_effect_authorization_source=false`、`cockpit_engineer_production_available=false`、
 `vehicle_signal_provider_wired=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W10`。
+`implementation_stage=P6-W01`。
 
 ## 51. P4-W10 scenario/manual-control synchronization trace
 
@@ -1461,46 +1461,7 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 `cockpit_scenario_manual_shared_client=true`、`cockpit_scenario_device_session_synchronized=true`、
 `cockpit_scenario_plan_publication_inferred=false`、`cockpit_scenario_effect_dispatch_enabled=false`、
 `cockpit_scenario_readback_available=false`、`scenario_execution_enabled=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
-
-## 62. P5-W09 ContextBudgetManager trace
-
-本增量映射 `S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、
-`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`：
-
-1. `ContextBudgetManager` 必须是 Android-independent schema V1，只提供 `createForContractTest`；不得由
-   `CentralBrainRuntimeService` 或 `AgentGraphRuntime` 实例化。
-2. category 固定为 SYSTEM、CONTEXT、PROFILE、EPISODE、HISTORY，不允许调用方创建任意 namespace；排序固定为 category
-   enum、priority 降序、canonical ID 升序，输入排列不得改变结果。
-3. `ContextDescriptor.fromTrustedMetadata` 只能接收 category、canonical ID、positive bounded token/byte size、required、
-   summaryAllowed 与 0..100 priority；不得接收 raw text、byte payload、prompt、conversation、model output 或 vehicle signal。
-4. `BudgetPolicy` 必须同时限制 global token、global byte、item count 和每个 category 的 token/byte envelope；所有配置只能在
-   absolute ceiling 内收窄，不允许 unbounded、负值或缺失 category。
-5. required descriptor 必须先于 optional admission。任何 required item 不能完整容纳时，必须返回
-   `REQUIRED_BUDGET_EXCEEDED`、空 decision list 和零分配，不得 partial plan、silent drop、truncate、summarize 或 model fallback。
-6. optional descriptor 完整容纳时返回 INCLUDE；超限且仍有双预算时依据 summaryAllowed 返回
-   `SUMMARIZE_TO_BUDGET` 或 `TRUNCATE_TO_BUDGET`；任一维度无剩余时返回 DROP。
-7. `SUMMARIZE_TO_BUDGET/TRUNCATE_TO_BUDGET` 只携带目标 token/byte 数，不得在本模块执行内容变换；
-   `isSummaryGenerated=false`、`isContentTruncated=false` 必须保持真实。
-8. category envelope 不得向其他 category 借用；global envelope 同时限制总量。重复 ID、null item、超限 item/count 和 malformed
-   metadata 必须在分配前失败，不得产生 partial mutation。
-9. token 与 byte 数均为受信上游 metadata，不是 tokenizer evidence。在 production tokenizer family/version/digest、计数失败策略、
-   summary/truncation executor 与 budget authority 发布前，相关 wired flag 必须为 false。
-10. main source 不得记录 descriptor ID、size 或内容，不得依赖 Android framework、Binder、Room/file、network、ModelProvider、
-    NPU、Android Car/VHAL、Effect 或 Driver/HAL。
-11. JVM 必须覆盖五类顺序/input permutation、required no-partial failure、三种 over-budget directive、category/global 双包络、
-    malformed/duplicate metadata、immutable output 和 production boundary。debug/release 必须编译同一 main source，release 无 probe。
-12. Android 13 ARM64 probe 未实际通过时 `context_budget_android13_arm64_verified=false`；未来通过只证明 metadata allocator
-    在 API 33 ARM64 可运行，不证明真实 tokenizer、summary quality、model integration、NPU 性能或目标硬件资格。
-
-状态：`context_budget_manager_defined=true`、`context_budget_category_allocation_verified=true`、
-`context_budget_dual_limit_verified=true`、`context_budget_deterministic_overflow_verified=true`、
-`context_budget_required_fail_closed=true`、`context_budget_android13_arm64_verified=false`、
-`context_budget_decision_only=true`、`context_budget_text_payload_accepted=false`、
-`context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
-`context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
-`context_budget_content_logged=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 52. P4-W11 accessibility/display matrix trace
 
@@ -1528,7 +1489,7 @@ Req IDs：`S2-UX-003`、`S2-HMI-001/002`、`APP-004`、`XSC-001/005/006`、
 `cockpit_accessibility_state_not_color_only=true`、`cockpit_display_large_text_1_3_verified=true`、
 `cockpit_display_unsupported_fail_closed=true`、`cockpit_display_matrix_android13_arm64_verified=true`、
 `cockpit_display_effect_authorization_source=false`、`scenario_execution_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 53. P4-W12 Android device acceptance/fault/recovery trace
 
@@ -1561,7 +1522,7 @@ Req IDs：`S2-UX-001..003`、`S2-HMI-001..006`、`S2-SCN-001`、`S2-SAF-001`、`
 `p4_approval_response_service_published=false`、`p4_undo_service_published=false`、
 `p4_vehicle_readback_available=false`、`client2_production_release_artifact_available=false`、
 `hmi_d4_demo_control_loop_complete=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W10`。
+`implementation_stage=P6-W01`。
 
 ## 54. P5-W01 Tool Manifest/Schema trace
 
@@ -1591,7 +1552,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_execution_enabled=false`、`production_tool_artifact_loaded=false`、`effect_dispatch_enabled=false`、
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 55. P5-W02 Tool Registry/Resolver trace
 
@@ -1623,7 +1584,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_registry_android13_arm64_verified=false`、`tool_registry_published=false`、`tool_resolver_published=false`、
 `tool_registry_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_registered=false`、
 `effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 56. P5-W03 Tool RuleSolver trace
 
@@ -1657,7 +1618,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、`tool_execution_enabled=false`、
 `production_tool_registered=false`、`effect_dispatch_enabled=false`、`vehicle_readback_accessed=false`、`model_invoked=false`、
 `npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W10`。
+`implementation_stage=P6-W01`。
 
 
 ## 57. P5-W04 Tool Executor boundary trace
@@ -1694,7 +1655,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`。
 `tool_executor_audit_bounded_verified=true`、`tool_executor_android13_arm64_verified=false`、
 `tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、`production_tool_execution_enabled=false`、
 `production_tool_registered=false`、`os_virtualization_enabled=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 58. P5-W05 Skill package verifier trace
 
@@ -1732,7 +1693,7 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-008`、`DEL-001/004
 `skill_revocation_downgrade_fail_closed=true`、`skill_package_verifier_android13_arm64_verified=false`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 59. P5-W06 WorkingMemoryStore trace
 
@@ -1771,7 +1732,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 60. P5-W07 ProfileMemoryStore trace
 
@@ -1811,7 +1772,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`profile_memory_content_logged=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 
 ## 61. P5-W08 EpisodicMemoryStore trace
 
@@ -1856,4 +1817,80 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 `episodic_memory_production_policy_authority_wired=false`、`episodic_memory_production_read_authority_wired=false`、
 `episodic_memory_production_erase_authority_wired=false`、
 `episodic_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。
+
+## 62. P5-W09 ContextBudgetManager trace
+
+本增量映射 `S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、
+`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`：
+
+1. `ContextBudgetManager` 必须是 Android-independent schema V1，只提供 `createForContractTest`；不得由
+   `CentralBrainRuntimeService` 或 `AgentGraphRuntime` 实例化。
+2. category 固定为 SYSTEM、CONTEXT、PROFILE、EPISODE、HISTORY，不允许调用方创建任意 namespace；排序固定为 category
+   enum、priority 降序、canonical ID 升序，输入排列不得改变结果。
+3. `ContextDescriptor.fromTrustedMetadata` 只能接收 category、canonical ID、positive bounded token/byte size、required、
+   summaryAllowed 与 0..100 priority；不得接收 raw text、byte payload、prompt、conversation、model output 或 vehicle signal。
+4. `BudgetPolicy` 必须同时限制 global token、global byte、item count 和每个 category 的 token/byte envelope；所有配置只能在
+   absolute ceiling 内收窄，不允许 unbounded、负值或缺失 category。
+5. required descriptor 必须先于 optional admission。任何 required item 不能完整容纳时，必须返回
+   `REQUIRED_BUDGET_EXCEEDED`、空 decision list 和零分配，不得 partial plan、silent drop、truncate、summarize 或 model fallback。
+6. optional descriptor 完整容纳时返回 INCLUDE；超限且仍有双预算时依据 summaryAllowed 返回
+   `SUMMARIZE_TO_BUDGET` 或 `TRUNCATE_TO_BUDGET`；任一维度无剩余时返回 DROP。
+7. `SUMMARIZE_TO_BUDGET/TRUNCATE_TO_BUDGET` 只携带目标 token/byte 数，不得在本模块执行内容变换；
+   `isSummaryGenerated=false`、`isContentTruncated=false` 必须保持真实。
+8. category envelope 不得向其他 category 借用；global envelope 同时限制总量。重复 ID、null item、超限 item/count 和 malformed
+   metadata 必须在分配前失败，不得产生 partial mutation。
+9. token 与 byte 数均为受信上游 metadata，不是 tokenizer evidence。在 production tokenizer family/version/digest、计数失败策略、
+   summary/truncation executor 与 budget authority 发布前，相关 wired flag 必须为 false。
+10. main source 不得记录 descriptor ID、size 或内容，不得依赖 Android framework、Binder、Room/file、network、ModelProvider、
+    NPU、Android Car/VHAL、Effect 或 Driver/HAL。
+11. JVM 必须覆盖五类顺序/input permutation、required no-partial failure、三种 over-budget directive、category/global 双包络、
+    malformed/duplicate metadata、immutable output 和 production boundary。debug/release 必须编译同一 main source，release 无 probe。
+12. Android 13 ARM64 probe 未实际通过时 `context_budget_android13_arm64_verified=false`；未来通过只证明 metadata allocator
+    在 API 33 ARM64 可运行，不证明真实 tokenizer、summary quality、model integration、NPU 性能或目标硬件资格。
+
+状态：`context_budget_manager_defined=true`、`context_budget_category_allocation_verified=true`、
+`context_budget_dual_limit_verified=true`、`context_budget_deterministic_overflow_verified=true`、
+`context_budget_required_fail_closed=true`、`context_budget_android13_arm64_verified=false`、
+`context_budget_decision_only=true`、`context_budget_text_payload_accepted=false`、
+`context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
+`context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
+`context_budget_content_logged=false`、`model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
+
+
+## 63. P5-W10 Memory consent HMI/API trace
+
+本增量映射 `S2-MEM-001`、`S2-UX-003`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、
+`NV-F-001`、`NV-G-005/006/007`、`DEL-001/004/005`：
+
+1. 用户可见来源只能是固定 `WORKING_SESSION`、`PROFILE_PREFERENCE`、`EPISODIC_SCENARIO`，每项必须展示固定 purpose、
+   retention 和 enabled 状态，不得返回原始记忆、用户/模型文本、车辆 payload 或任意扩展 map。
+2. `WORKING_SESSION` 是会话连续性来源并始终 session-scoped；“关闭记忆”只关闭 Profile/Episodic retained capture，不能破坏
+   当前 Session 的短期控制状态。
+3. Profile 保留策略为 user clear，Episode 最大 30 天；这些是 UI contract，不代表 production repository 已执行 retention。
+4. HMI 在 PARKED 可执行 retained-memory enable/disable 与 profile preference clear；MOVING 和 UNKNOWN 都必须仅显示来源摘要，
+   复杂管理在 authority 调用前失败关闭。
+5. mutation 必须绑定 lowercase SHA-256 owner fingerprint、canonical request ID、operation、目标值与 elapsed validity window；
+   owner/operation/target/window 不匹配必须返回稳定拒绝。
+6. request ID exact replay 必须幂等；相同 ID 不同 operation/target 必须返回 conflict，不能再次授权或改变 projection。
+7. `MutationAuthority` 异常、null 或 deny 必须失败关闭；HMI checkbox、模型输出或调用方布尔值不能自行成为 production consent。
+8. `clearProfilePreferences` 当前只清除 process-local HMI projection；`isRepositoryMutationApplied` 必须恒为 false，不能显示为
+   production encrypted repository 已擦除。
+9. MOVING/UNKNOWN snapshot 不得披露 preference presence；其 storage presence 必须为 `NOT_DISCLOSED`。
+10. debug `MemoryConsentHmiActivity` 必须在 1920x1080 边界内使用响应式右侧半透明面板，并支持交互模式与 automated boolean probe；
+    release manifest 不得包含该 Activity。
+11. main controller 只使用 Java collections/regex；不得接 Binder、Room/file、SharedPreferences、network、ModelProvider、
+    Android Car/VHAL、NPU、Driver/HAL 或 logging。
+12. JVM 必须覆盖固定来源、驻车关闭/清除、moving/unknown restriction、evidence/authority fail-closed、replay/conflict、immutable
+    output 与 production false boundaries；debug/release 编译同一 main source。
+13. 未在 Android 13 ARM64 实体运行 automated probe 前 `memory_consent_android13_arm64_verified=false`；即使通过也只证明
+    process-local HMI/API，不证明 production authority、repository erase、model publication 或目标硬件资格。
+
+状态：`memory_consent_controller_defined=true`、`memory_consent_source_visibility_verified=true`、
+`memory_consent_disable_verified=true`、`memory_consent_preference_clear_verified=true`、
+`memory_consent_moving_restriction_verified=true`、`memory_consent_android13_arm64_verified=false`、
+`memory_consent_hmi_projection_only=true`、`memory_consent_repository_mutation_wired=false`、
+`memory_consent_production_authority_wired=false`、`memory_consent_runtime_wired=false`、
+`memory_consent_model_context_published=false`、`memory_consent_content_logged=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。

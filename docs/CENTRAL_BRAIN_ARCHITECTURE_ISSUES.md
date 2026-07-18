@@ -64,6 +64,7 @@
 | ISSUE-042 | Profile Memory 的 user/seat identity、consent/revocation、Keystore/TEE key lifecycle、durable repository 与 export/delete owner 未确定。 | S2-MEM-001, S2-SAF-001, P5-W08..W10/P9 | Open |
 | ISSUE-043 | Episodic Memory 的 production catalog、storage/read/erase authority、retention clock、durable repository 与 model publication owner 未确定。 | S2-MEM-001, S2-SAF-001, P5-W09/W10/P9 | Open |
 | ISSUE-044 | Context 的 production tokenizer/version/digest、size evidence、budget authority、summary/truncation executor 与 Runtime/model composition owner 未确定。 | S2-MEM-001, S2-MDL-001, S2-SAF-001, P5-W10/P7/P9 | Open |
+| ISSUE-045 | Memory consent 的 production identity/authority、HMI Service、repository mutation/delete evidence 与 trusted driving Context owner 未确定。 | S2-MEM-001, S2-UX-003, S2-SAF-001, P8/P9 | Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -584,7 +585,7 @@ Plan/Context/Policy binding、atomic epoch、restart/replay 和 audit 验证。V
 状态：`Open`。当前 `tool_rule_set_contract_defined=true`、`tool_rule_solver_android13_arm64_verified=false`、
 `tool_rule_solver_published=false`、`tool_rule_solver_runtime_wired=false`、`tool_approval_authority_available=false`、
 `tool_execution_enabled=false`、`production_tool_registered=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。tracking：`DEV-065`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。tracking：`DEV-065`。
 
 ## ISSUE-039 Production built-in signer and cooperative cancellation ownership
 
@@ -606,7 +607,7 @@ composition。Vehicle/NPU Tool 还需 P8 vendor cancellable API 与 readback 合
 `built_in_signer_artifact_bound=true`、`tool_executor_runtime_wired=false`、`tool_execution_enabled=false`、
 `production_tool_execution_enabled=false`、`production_tool_registered=false`、`os_virtualization_enabled=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
-`implementation_stage=P5-W10`。tracking：`DEV-066`。
+`implementation_stage=P6-W01`。tracking：`DEV-066`。
 
 P5-W05 进展：只读 verifier 已冻结 ACTIVE/RETIRED/REVOKED、artifact epoch、Runtime compatibility、防降级与 capability
 allowlist，关闭 pure-Java static policy 子项。它不解决 signer evidence acquisition、签名链、atomic publish 或 hard cancel，
@@ -627,7 +628,7 @@ Signer、version、capability、minimum epoch 与 rollback policy 还需要一�
 `skill_version_policy_contract_defined=true`、`skill_revocation_downgrade_fail_closed=true`、
 `trusted_skill_evidence_source_configured=false`、`package_signature_cryptographically_verified=false`、
 `dynamic_skill_loading_enabled=false`、`skill_execution_enabled=false`、`skill_package_verifier_runtime_wired=false`、
-`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。
 tracking：`DEV-067`。
 
 ## ISSUE-041 Working Memory session owner, tokenizer and storage publication
@@ -645,7 +646,7 @@ recovery 和日志/诊断脱敏。P5-W07 Profile 与 P5-W08 Episodic Memory 不�
 `working_memory_process_local=true`、`working_memory_persistence_wired=false`、`working_memory_runtime_wired=false`、
 `working_memory_model_context_published=false`、`working_memory_tokenizer_verified=false`、
 `working_memory_content_logged=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。tracking：`DEV-068`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。tracking：`DEV-068`。
 
 ## ISSUE-042 Profile Memory authority, key owner and durable repository publication
 
@@ -663,7 +664,7 @@ P5-W07 只完成 process-local contract-test path；debug/test XOR 不是密码�
 `profile_memory_process_local=true`、`profile_memory_durable_storage_wired=false`、
 `profile_memory_production_encryption_owner_configured=false`、`profile_memory_consent_authority_production_wired=false`、
 `profile_memory_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。tracking：`DEV-069`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。tracking：`DEV-069`。
 
 ## ISSUE-043 Episodic Memory policy, repository and erase authority publication
 
@@ -682,7 +683,7 @@ retention 内的摘要；不得读取原始连续信号，也不能把 episode s
 `episodic_memory_raw_continuous_signal_stored=false`、`episodic_memory_persistence_wired=false`、
 `episodic_memory_production_policy_authority_wired=false`、`episodic_memory_production_erase_authority_wired=false`、
 `episodic_memory_runtime_wired=false`、`episodic_memory_model_context_published=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-W10`。tracking：`DEV-070`。
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。tracking：`DEV-070`。
 
 ## ISSUE-044 Context tokenizer, summary executor and budget authority publication
 
@@ -705,4 +706,26 @@ SUMMARIZE/TRUNCATE 也只是目标，不是内容变换或质量证据。
 `context_budget_tokenizer_wired=false`、`context_budget_summarizer_wired=false`、
 `context_budget_production_authority_wired=false`、`context_budget_runtime_wired=false`、
 `model_invoked=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P5-W10`。tracking：`DEV-071`。
+`target_hardware_validated=false`、`implementation_stage=P6-W01`。tracking：`DEV-071`。
+
+## ISSUE-045 Memory consent authority and repository mutation publication
+
+P5-W10 已冻结来源、purpose/retention、retained enable/disable、profile clear、evidence、replay/conflict 和 driving restriction，但
+只存在 process-local projection。量产前必须确定：
+
+1. user/profile/seat identity owner，以及跨 user switch、guest、valet、factory reset 的映射；
+2. consent grant/revoke/delete/export 的签发者、调用者权限、签名/attestation、有效期、撤销推送和审计；
+3. HMI 到 Runtime/Memory Service 的 versioned Binder contract、timeout/retry/idempotency 与 process-death reconciliation；
+4. Profile/Episode encrypted repository 的原子 enable/disable、clear、retention、backup/migration 和可验证 deletion semantics；
+5. trusted driving Context 与 Car UX policy owner，以及 MOVING/UNKNOWN 的跨进程强制门禁；
+6. source status 的 privacy disclosure policy，确保未授权 HMI 不通过 count/presence 推断用户行为；
+7. Android 13 目标上的身份、重启、撤销、删除、行驶限制和 audit evidence。
+
+HMI checkbox 或模型输出不能直接授权记忆；debug allow authority 和 projection revision 不能作为 production consent 或 repository
+erase evidence。状态：`Open`。当前 `memory_consent_controller_defined=true`、
+`memory_consent_source_visibility_verified=true`、`memory_consent_disable_verified=true`、
+`memory_consent_preference_clear_verified=true`、`memory_consent_moving_restriction_verified=true`、
+`memory_consent_android13_arm64_verified=false`、`memory_consent_hmi_projection_only=true`、
+`memory_consent_repository_mutation_wired=false`、`memory_consent_production_authority_wired=false`、
+`memory_consent_runtime_wired=false`、`memory_consent_model_context_published=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-W01`。tracking：`DEV-072`。
