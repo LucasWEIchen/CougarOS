@@ -1085,11 +1085,11 @@ P8 每个 adapter 都必须单独立项，禁止打包成“接一下 VHAL”。
 - 状态：`EXTERNAL_BLOCKED`；2-5 人日；需求：`S2-ADP-002`。
 - 输入：公开 `CarPropertyManager` list、Vendor service AIDL/API、permission/signature 文档。
 - DoD：property/service/area/type/read-write/permission/owner/version matrix；不访问私有 node。
-- P8-W01 software preparation（2026-07-18）：机器可读 discovery contract、固定八能力/14 列矩阵模板、只读 ADB
-  feature/service/command inventory、仓库外 `0600` evidence 和脱敏 summary 动态门禁已完成。当前 ADB offline，公开
-  property list、Vendor AIDL/SDK 和 permission/signature owner 文档仍缺失，所以 matrix complete 保持 false，P8-W02..W06
-  不可启动。独立推进的 `P9-W01 Performance budgets` 软件合同现已完成；`implementation_stage=P9-W03`，tracking `DEV-085`、
-  `ISSUE-024/027/030/047`。
+- P8-W01 public inventory（2026-07-18）：机器可读 discovery contract、固定八能力/14 列矩阵模板、只读 ADB collector、
+  仓库外 `0600` evidence 和脱敏 summary 动态门禁已完成；并在 API 33 目标完成一次 identity-redacted 公开清单采集。
+  仅发布 69/274/2/265 聚合计数和内部引用，未发布原始 service/设备身份。公开 property list、Vendor AIDL/SDK 和
+  permission/signature owner 文档仍缺失，所以 matrix complete=false，P8-W02..W06 不可启动；
+  `implementation_stage=P9-W03`，tracking `DEV-085/110`、`ISSUE-024/027/030/047`。
 
 ### `P8-W02` VSS to AAOS mapping
 

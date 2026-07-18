@@ -1585,13 +1585,18 @@ CarProperty getter/setter、VHAL、Vendor Binder API、CAN/DBC 或 SOA command�
 Driver/HAL gap 触发条件保持不变：必须先取得并评审 public/Vendor API、permission、owner/version、readback/fault/rollback 完整矩阵，
 然后证明特定 capability 无法由公开接口满足，才可登记最小 gap。当前没有该证据，所以 P8-W02..W06 不启动，也不新增 C/JNI/driver。
 
+API 33 上已完成公开只读 inventory，脱敏聚合为 feature/Binder/car-match/command count 69/274/2/265；这不构成任何 Driver/HAL
+缺口证据，不触发 device-node、JNI 或内核开发。
+
 状态：`target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
+`target_public_inventory_collected=true`、`target_public_inventory_identity_redacted=true`、
+`target_public_inventory_privacy_confirmed=true`、`target_public_inventory_api33_verified=true`、
 `target_capability_matrix_complete=false`、`target_capability_discovery_external_blocked=true`、
 `vehicle_property_mapping_configured=false`、`production_adapter_registered=false`、
 `vendor_npu_provider_available=false`、`driver_development_triggered=false`、
 `virtualization_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-ADP-002`、`S2-OBS-001`、
-`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-085`、`ISSUE-047`。
+`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-085/110`、`ISSUE-047`。
 
 ## P9-W01 Performance Budget Driver/HAL Boundary
 

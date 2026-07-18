@@ -1246,12 +1246,18 @@ P8 发现平面与 Runtime 数据/控制平面隔离。collector 是仓库工具
 注入 CapabilityCatalog。矩阵只有 owner/API/permission/version/readback/fault/evidence 完整时才允许从 EXTERNAL_BLOCKED 迁移；迁移仍按
 单 capability 进入 adapter 评审，不提供全局开关。
 
+API 33 目标的公开 inventory 已完成并脱敏：聚合 feature/Binder/car-match/command count 为 69/274/2/265，内部引用
+`internal:p8-capability-20260718`。原始清单留在仓库外；该 evidence node 只连接 discovery evidence store，不连接 Runtime、
+CapabilityCatalog 或 adapter activation。
+
 当前 `target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
-`target_capability_summary_redaction_verified=true`、`target_capability_matrix_complete=false`、
+`target_capability_summary_redaction_verified=true`、`target_public_inventory_collected=true`、
+`target_public_inventory_identity_redacted=true`、`target_public_inventory_privacy_confirmed=true`、
+`target_public_inventory_api33_verified=true`、`target_capability_matrix_complete=false`、
 `target_capability_discovery_external_blocked=true`、`production_adapter_registered=false`、
 `driver_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-ADP-002`、`S2-OBS-001`、
-`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-085`、`ISSUE-047`。
+`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；tracking：`DEV-085/110`、`ISSUE-047`。
 
 ## P9-W01 performance budget architecture
 

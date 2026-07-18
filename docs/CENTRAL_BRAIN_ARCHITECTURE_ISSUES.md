@@ -1012,9 +1012,11 @@ P8-W01 软件准备已完成：机器可读 contract 固定八项 capability 和
 service/command inventory，把原始证据保存到仓库外的私有目录，并只输出非秘密 alias、计数、布尔值与 SHA-256 reference。
 动态假设备测试证明 summary 不泄漏 serial、fingerprint、车型或原始 Vendor service 名。
 
-ISSUE-047 仍为 Open / External Blocked。当前真实 ADB transport 为 offline，且未提供公开 Android Car property list、Vendor
-service AIDL/SDK、permission/signature policy、owner/version、readback/fault/rollback 文档。service 可见性与 Automotive feature
-不能替代这些输入，不能用于配置 property mapping、注册 production adapter 或触发 Driver/HAL。
+ISSUE-047 仍为 Open / External Blocked。2026-07-18 已在 identity-redacted Android API 33 目标完成公开只读 inventory；仓库仅记录
+feature/Binder/car-match/command count 69/274/2/265、隐私确认和内部引用 `internal:p8-capability-20260718`。原始设备身份与 service
+清单未发布。仍未提供公开 Android Car property list、Vendor service AIDL/SDK、permission/signature policy、owner/version、
+readback/fault/rollback 文档。service 可见性与 Automotive feature 不能替代这些输入，不能用于配置 property mapping、注册
+production adapter 或触发 Driver/HAL。tracking：`DEV-085/110`。
 
 解除条件：目标测试人员使用非秘密设备 alias 生成内部 evidence reference，目标 owner 审核并补齐八项 capability matrix；此后每个
 capability 分别进入 P8-W02..W06，不允许全局 activation。当前：

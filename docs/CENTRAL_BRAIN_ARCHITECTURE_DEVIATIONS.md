@@ -922,6 +922,21 @@ Client2 改为只消费该权威 Context 的版本化只读接口，并完成真
 `cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`production_ready=false`、
 `target_hardware_validated=false`。
 
+## DEV-110 P8 public target inventory is not capability mapping
+
+P8-W01 collector 已在 identity-redacted Android API 33 目标上完成只读公开 inventory。仓库只记录 69 项 feature、274 项
+shell-visible Binder service、2 项 car 关键词匹配、265 项 command service、Automotive feature 布尔值、隐私确认和内部 evidence
+reference；原始设备身份与 service 名留在仓库外。
+
+该证据只关闭公开 surface inventory 采集子项。它没有公开 CarProperty ID/area/type/access、Vendor AIDL/SDK、permission/signature
+owner、interface version 或 readback/fault/rollback semantics，因此八项 capability matrix 仍全部 EXTERNAL_BLOCKED。不得由 service
+可见性推断可调用性、写权限、车辆 Effect authority、Vendor NPU 或 Driver/HAL gap。
+
+状态：`Accepted Temporary`。`target_public_inventory_collected=true`、`target_public_inventory_identity_redacted=true`、
+`target_public_inventory_privacy_confirmed=true`、`target_public_inventory_api33_verified=true`、
+`target_capability_matrix_complete=false`、`production_adapter_registered=false`、`driver_development_triggered=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-047`。
+
 ## DEV-109 P9 debug probe acceptance is not production hardening qualification
 
 P9-W01/W02/W03c/W04c/W05b/W06b/W07b 的 debug application probes 已在 Android 13 ARM64 统一执行通过。该证据只证明

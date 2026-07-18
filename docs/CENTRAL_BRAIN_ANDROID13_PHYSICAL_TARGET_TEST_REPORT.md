@@ -801,3 +801,39 @@ target_hardware_validated=false
 该证据不包含 raw log、设备/包身份、证书/signer、target input 或用户/模型/记忆/车辆 payload；不构成 target performance、72h、
 coverage fuzz、owner policy、production release/rollback、OEM safety 或目标硬件 qualification。tracking：`DEV-109`、
 `ISSUE-029/030/048..053`。
+
+## 26. 2026-07-18 P8-W01 redacted public target inventory
+
+只读 collector 在一台 identity-redacted Android API 33 目标上执行成功。原始 feature/service/command 文件保留在仓库外权限受限
+evidence 目录；仓库和报告不包含 serial、fingerprint、设备型号、原始 service 名、车辆值或业务 payload。内部证据引用：
+`internal:p8-capability-20260718`。
+
+```text
+target_public_inventory_collected=true
+target_public_inventory_identity_redacted=true
+target_public_inventory_privacy_confirmed=true
+target_public_inventory_api33_verified=true
+automotive_feature_advertised=true
+package_feature_count=69
+visible_binder_service_count=274
+visible_car_service_match_count=2
+visible_command_service_count=265
+service_list_collected=true
+command_list_collected=true
+target_capability_matrix_complete=false
+public_car_property_list_available=false
+vendor_service_contract_available=false
+permission_signature_policy_available=false
+target_capability_discovery_external_blocked=true
+vehicle_property_mapping_configured=false
+production_adapter_registered=false
+vendor_npu_provider_available=false
+driver_development_triggered=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+```
+
+公开 surface 可见性不能填充 property/service/area/type/access/permission/owner/version/readback/fault/rollback 矩阵。本证据只关闭
+P8-W01 公开 inventory 采集子项；P8-W01 capability mapping 与 P8-W02..W06 继续由 OEM/owner 输入外部阻塞。tracking：
+`DEV-085/110`、`ISSUE-047`。

@@ -2350,16 +2350,20 @@ command inventory，禁止 install/root/remount/SELinux mutation/device-node/Ven
 验收证明 contract/catalog 顺序、矩阵列、禁止操作、仓库外 evidence 路径、`0700/0600` 权限、summary 计数/digest 脱敏和 raw serial/
 service-name non-disclosure。它不证明 property list、Vendor AIDL/SDK、permission/signature、owner/version、readback/fault/rollback 已取得。
 
-当前 ADB transport 为 offline，因此没有采集新的目标 evidence。P8-W01 保持 `EXTERNAL_BLOCKED`，P8-W02..W06 不启动；独立推进的
-P9-W01 软件合同现已完成。状态：`target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
+已在 identity-redacted Android API 33 目标完成公开只读 inventory。仓库只记录 feature/Binder/car-match/command count
+69/274/2/265、Automotive feature=true、隐私确认和内部引用 `internal:p8-capability-20260718`，不记录原始设备或 service 清单。
+P8-W01 capability mapping 保持 `EXTERNAL_BLOCKED`，P8-W02..W06 不启动。状态：
+`target_capability_discovery_contract_defined=true`、`target_capability_read_only_collector_verified=true`、
 `target_capability_matrix_template_count=8`、`target_capability_summary_redaction_verified=true`、
+`target_public_inventory_collected=true`、`target_public_inventory_identity_redacted=true`、
+`target_public_inventory_privacy_confirmed=true`、`target_public_inventory_api33_verified=true`、
 `target_capability_matrix_complete=false`、`public_car_property_list_available=false`、
 `vendor_service_contract_available=false`、`permission_signature_policy_available=false`、
 `target_capability_discovery_external_blocked=true`、`vehicle_property_mapping_configured=false`、
 `production_adapter_registered=false`、`vendor_npu_provider_available=false`、`driver_development_triggered=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
 Req IDs：`S2-ADP-002`、`S2-OBS-001`、`XSC-001/004/005/006`、`KH-003/006/007`、`DEL-004/005`；
-tracking：`DEV-085`、`ISSUE-024/027/030/047`。
+tracking：`DEV-085/110`、`ISSUE-024/027/030/047`。
 
 ## Android P9-W01 Performance Budget Contract
 
