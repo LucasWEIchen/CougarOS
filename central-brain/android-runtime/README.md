@@ -1238,7 +1238,7 @@ bash tools/check_central_brain_android_event_broker.sh
 Status: `event_broker_interface_defined=true`, `event_broker_typed_topics_verified=true`,
 `event_broker_append_before_notify_verified=true`, `event_broker_bounded_replay_filter_verified=true`,
 `event_broker_identity_policy_verified=true`, `event_broker_subscription_lifecycle_verified=true`,
-`event_broker_android13_arm64_verified=false`, `event_broker_process_local=true`,
+`event_broker_android13_arm64_verified=true`, `event_broker_process_local=true`,
 `event_broker_durable_persistence_wired=false`, `event_broker_dds_transport_wired=false`,
 `event_broker_production_published=false`, `event_broker_runtime_wired=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Next: P6-W02 Backpressure/QoS;
@@ -1268,7 +1268,7 @@ bash tools/check_central_brain_android_event_backpressure_qos.sh
 
 Status: `event_qos_contract_defined=true`, `event_qos_policy_count=4`,
 `event_qos_critical_no_silent_drop_verified=true`, `event_qos_deadline_priority_verified=true`,
-`event_qos_consumer_isolation_verified=true`, `event_qos_android13_arm64_verified=false`,
+`event_qos_consumer_isolation_verified=true`, `event_qos_android13_arm64_verified=true`,
 `event_qos_process_local=true`, `event_qos_broker_wired=false`, `event_qos_durable_persistence_wired=false`,
 `event_qos_production_middleware_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P9-W03`. Next: P6-W03 TriggerRule manifest/engine;
@@ -1299,7 +1299,7 @@ bash tools/check_central_brain_android_trigger_engine.sh
 Status: `trigger_rule_manifest_defined=true`, `trigger_rule_manifest_verified=true`,
 `trigger_threshold_window_debounce_verified=true`, `trigger_cooldown_scope_verified=true`,
 `trigger_input_fail_closed_verified=true`, `trigger_suggestion_only_verified=true`,
-`trigger_engine_android13_arm64_verified=false`, `trigger_engine_process_local=true`,
+`trigger_engine_android13_arm64_verified=true`, `trigger_engine_process_local=true`,
 `trigger_cooldown_persistence_wired=false`, `trigger_source_adapter_wired=false`,
 `trigger_auto_execution_enabled=false`, `trigger_runtime_wired=false`, `model_invoked=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`,
@@ -1329,7 +1329,7 @@ bash tools/check_central_brain_android_proactive_consent_policy.sh
 
 Status: `proactive_consent_policy_defined=true`, `proactive_grant_binding_verified=true`,
 `proactive_high_critical_generic_grant_blocked=true`, `proactive_grant_ttl_revoke_verified=true`,
-`proactive_policy_fail_closed_verified=true`, `proactive_consent_android13_arm64_verified=false`,
+`proactive_policy_fail_closed_verified=true`, `proactive_consent_android13_arm64_verified=true`,
 `proactive_policy_process_local=true`, `proactive_grant_persistence_wired=false`,
 `proactive_consent_authority_wired=false`, `proactive_auto_execution_enabled=false`,
 `proactive_runtime_wired=false`, `model_invoked=false`, `hardware_accessed=false`, `production_ready=false`,
@@ -1360,7 +1360,7 @@ Status: `context_source_adapter_contract_defined=true`, `context_source_count=3`
 `context_source_allowlist_verified=true`, `context_source_runtime_health_verified=true`,
 `context_source_simulated_vehicle_verified=true`, `context_source_time_verified=true`,
 `context_source_freshness_quality_verified=true`, `context_source_fail_closed_verified=true`,
-`context_source_android13_arm64_verified=false`, `context_source_production_registry_published=false`,
+`context_source_android13_arm64_verified=true`, `context_source_production_registry_published=false`,
 `context_source_runtime_wired=false`, `context_source_trigger_engine_wired=false`,
 `vehicle_signal_provider_wired=false`, `vehicle_property_mapping_configured=false`, `hardware_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P9-W03`. Next: P6-W06 Active suggestion UX;
@@ -1389,7 +1389,7 @@ bash tools/check_central_brain_android_active_suggestion_ux.sh
 
 Status: `active_suggestion_controller_defined=true`, `active_suggestion_full_card_verified=true`,
 `active_suggestion_merge_replay_verified=true`, `active_suggestion_moving_minimal_verified=true`,
-`active_suggestion_never_ask_verified=true`, `active_suggestion_android13_arm64_verified=false`,
+`active_suggestion_never_ask_verified=true`, `active_suggestion_android13_arm64_verified=true`,
 `active_suggestion_hmi_projection_only=true`, `active_suggestion_production_source_wired=false`,
 `active_suggestion_preference_repository_wired=false`, `active_suggestion_voice_engine_wired=false`,
 `trigger_engine_wired=false`, `graph_execution_enabled=false`, `effect_dispatch_enabled=false`,

@@ -1485,12 +1485,12 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
 12. debug `ActiveSuggestionHmiActivity` 必须是 DUMP-protected、release manifest absent、响应式右侧半透明浮层；自动探针只输出 boolean。
 13. JVM 必须覆盖 full card、merge/replay、never-ask、moving/unknown、expiry/cooldown/conflict/capacity 和 false boundaries；
     debug/release 必须编译同一 main controller。
-14. Android 13 ARM64 probe 未实际通过前 `active_suggestion_android13_arm64_verified=false`；即使通过也只证明 UX policy/projection，
+14. Android 13 ARM64 probe 已通过，`active_suggestion_android13_arm64_verified=true`；该证据只证明 UX policy/projection，
     不证明 Client2 production integration、自动编排、车控、模型/NPU 或目标硬件资格。
 
 状态：`active_suggestion_controller_defined=true`、`active_suggestion_full_card_verified=true`、
 `active_suggestion_merge_replay_verified=true`、`active_suggestion_moving_minimal_verified=true`、
-`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=false`、
+`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=true`、
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `trigger_engine_wired=false`、`graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
@@ -1523,14 +1523,14 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
     EventBroker。`production_registry_published=false`、`runtime_wired=false`、`trigger_engine_wired=false`。
 11. JVM 必须覆盖固定 catalog、Runtime fresh/stale/unavailable、simulated typed/freshness、provenance/quality conflict、time/future 和
     production false boundary；debug/release 编译相同 main source，probe 只能存在于 debug manifest。
-12. Android 13 ARM64 probe 未执行时 `context_source_android13_arm64_verified=false`；即使通过也只证明纯 Java normalization，
+12. Android 13 ARM64 probe 已执行，`context_source_android13_arm64_verified=true`；该证据只证明纯 Java normalization，
     不证明真实 vehicle source、Runtime publication、Trigger composition、Driver/HAL 或目标硬件资格。真实 vehicle source 后置 P8。
 
 状态：`context_source_adapter_contract_defined=true`、`context_source_count=3`、
 `context_source_allowlist_verified=true`、`context_source_runtime_health_verified=true`、
 `context_source_simulated_vehicle_verified=true`、`context_source_time_verified=true`、
 `context_source_freshness_quality_verified=true`、`context_source_fail_closed_verified=true`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-076`、`ISSUE-031`。
@@ -1559,12 +1559,12 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
     `safety_revalidation_required=true`；P6-W04 不调用 TriggerEngine、Session/Plan、Graph、Effect 或 Vehicle。
 11. JVM 必须覆盖 exact binding、HIGH/CRITICAL、mismatch/risk、TTL/revoke/replay/conflict/capacity、driving/evidence/authority 与全部
     production false boundaries；debug/release 必须编译同一 main source，probe 只能存在于 debug manifest。
-12. Android 13 ARM64 probe 未执行时 `proactive_consent_android13_arm64_verified=false`；即使通过也不证明 production consent
+12. Android 13 ARM64 probe 已执行，`proactive_consent_android13_arm64_verified=true`；该证据不证明 production consent
     authority、durable grant、auto execution、Effect dispatch 或目标硬件资格。
 
 状态：`proactive_consent_policy_defined=true`、`proactive_grant_binding_verified=true`、
 `proactive_high_critical_generic_grant_blocked=true`、`proactive_grant_ttl_revoke_verified=true`、
-`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1593,13 +1593,13 @@ Req IDs：`S2-HMI-001..006`、`S2-SCN-001`、`APP-004`、`XSC-001/005/006`、
     Vehicle/VHAL、Model/NPU、Driver/HAL、network、thread/executor。
 11. JVM 必须覆盖 manifest digest/invalid、threshold-window-debounce、false/gap reset、cooldown scope/capacity/expiry、quality/freshness/
     ordering/replay 和全部 production false boundaries；debug/release 编译同一 main source。
-12. Android 13 ARM64 probe 未实际通过时 `trigger_engine_android13_arm64_verified=false`；即使通过也不构成 production source、
+12. Android 13 ARM64 probe 已通过，`trigger_engine_android13_arm64_verified=true`；该证据不构成 production source、
     proactive policy、durable cooldown、自动执行或目标硬件资格。
 
 状态：`trigger_rule_manifest_defined=true`、`trigger_rule_manifest_verified=true`、
 `trigger_threshold_window_debounce_verified=true`、`trigger_cooldown_scope_verified=true`、
 `trigger_input_fail_closed_verified=true`、`trigger_suggestion_only_verified=true`、
-`trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
+`trigger_engine_android13_arm64_verified=true`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -2065,13 +2065,13 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 12. JVM 必须覆盖 typed mismatch、append-before-notify、bounded replay/filter/gap/future、identity/policy fail-closed、
     subscription replay/conflict/owner/callback failure/cancel 和 production false boundaries。
 13. debug `EventBrokerProbeActivity` 只允许 DUMP-protected、NoDisplay、nonce-bound boolean probe；release manifest 不得包含。
-14. Android 13 ARM64 probe 未实际通过时 `event_broker_android13_arm64_verified=false`；即使通过也只证明 process-local
+14. Android 13 ARM64 probe 已通过，`event_broker_android13_arm64_verified=true`；该证据只证明 process-local
     contract，不证明 durable repository、DDS、中间件 QoS、production identity/policy 或目标硬件资格。
 
 状态：`event_broker_interface_defined=true`、`event_broker_typed_topics_verified=true`、
 `event_broker_append_before_notify_verified=true`、`event_broker_bounded_replay_filter_verified=true`、
 `event_broker_identity_policy_verified=true`、`event_broker_subscription_lifecycle_verified=true`、
-`event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
+`event_broker_android13_arm64_verified=true`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -2104,12 +2104,12 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
     Vehicle/VHAL、Model/NPU、Driver/HAL、thread/executor 或 network。
 12. JVM 必须覆盖四策略、priority displacement、critical no-silent-drop、deadline、idempotency/conflict、owner、callback failure、
     consumer isolation 与全部 production false boundary；debug/release 编译同一 main source。
-13. Android 13 ARM64 probe 未实际通过时 `event_qos_android13_arm64_verified=false`；即使通过也只证明 process-local Java queue，
+13. Android 13 ARM64 probe 已通过，`event_qos_android13_arm64_verified=true`；该证据只证明 process-local Java queue，
     不证明 production middleware、durability、目标负载或硬件资格。
 
 状态：`event_qos_contract_defined=true`、`event_qos_policies_verified=true`、
 `event_qos_critical_no_silent_drop_verified=true`、`event_qos_deadline_priority_verified=true`、
-`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
+`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=true`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -2816,3 +2816,25 @@ tracking：`DEV-104`、`ISSUE-022/026/030/033`。
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-106`、
 `ISSUE-036..045`。
+
+## 99. P6 Android 13 ARM64 Event/Proactive/Context probe acceptance trace
+
+1. `S2-EVT-001`：P6-W01/W02 必须在 API 33 ARM64 上验证 typed topic、append-before-notify、bounded replay 和
+   critical event no-silent-drop；通过不等于 durable Event middleware 已发布。
+2. `S2-SCN-001/S2-CTX-001`：P6-W03/W05 必须验证 Trigger 的 window/debounce/cooldown 失败关闭，以及三个
+   build-owned Context source 的 allowlist、freshness、quality 与 provenance；不得读取真实 VehicleProperty。
+3. `S2-UX-002/S2-TRG-002`：P6-W06 必须验证 parked full card、moving minimal、merge/replay、dismiss cooldown 和
+   PARKED-only never-ask；UI 仍是 process-local projection。
+4. `S2-SAF-001`：P6-W04 的 grant 必须绑定 owner/scenario/capability/zone/risk/TTL，HIGH/CRITICAL 通用授权失败关闭，
+   `effect_dispatch_authorized=false` 保持不变。
+5. `S2-OBS-001`：统一 installer 必须检查六个 completion marker、各模块功能 marker 和全部 false-authority marker。
+6. `DEL-001/004`：验收目标固定 Android API 33、ARM64，并在六个 probe 后执行 Runtime/Demo 完整安装回归。
+7. `DEL-005`：提交证据只允许 boolean/count/schema；不得包含 serial、model、fingerprint、raw log、用户/模型文本、
+   Context scalar、车辆 payload 或授权材料。
+
+当前 `p6_android13_arm64_probe_acceptance_complete=true`、`p6_probe_module_count=6`、
+`device_identity_redacted=true`、`production_event_middleware_published=false`、
+`production_trigger_runtime_wired=false`、`production_proactive_authority_published=false`、
+`production_context_source_registry_published=false`、`production_active_suggestion_source_wired=false`、
+`production_runtime_wired=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-107`、`ISSUE-031/046`。

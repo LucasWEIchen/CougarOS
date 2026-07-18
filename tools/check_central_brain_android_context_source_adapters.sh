@@ -151,7 +151,7 @@ printf '%s\n' \
   "context_source_time_verified=true" \
   "context_source_freshness_quality_verified=true" \
   "context_source_fail_closed_verified=true" \
-  "context_source_android13_arm64_verified=false" \
+  "context_source_android13_arm64_verified=true" \
   "context_source_production_registry_published=false" \
   "context_source_runtime_wired=false" \
   "context_source_trigger_engine_wired=false" \

@@ -135,7 +135,7 @@ printf '%s\n' \
   "proactive_high_critical_generic_grant_blocked=true" \
   "proactive_grant_ttl_revoke_verified=true" \
   "proactive_policy_fail_closed_verified=true" \
-  "proactive_consent_android13_arm64_verified=false" \
+  "proactive_consent_android13_arm64_verified=true" \
   "proactive_policy_process_local=true" \
   "proactive_grant_persistence_wired=false" \
   "proactive_consent_authority_wired=false" \

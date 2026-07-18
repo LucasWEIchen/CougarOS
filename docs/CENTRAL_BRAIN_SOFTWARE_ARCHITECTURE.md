@@ -807,7 +807,7 @@ boolean 当成授权。
 当前 callback 同步执行且无 queue，因此 P6-W01 不宣称 backpressure、priority、coalesce、critical no-drop 或 disconnect QoS；
 这些属于 P6-W02。状态：`event_broker_interface_defined=true`、`event_broker_typed_topics_verified=true`、
 `event_broker_append_before_notify_verified=true`、`event_broker_bounded_replay_filter_verified=true`、
-`event_broker_identity_policy_verified=true`、`event_broker_android13_arm64_verified=false`、
+`event_broker_identity_policy_verified=true`、`event_broker_android13_arm64_verified=true`、
 `event_broker_process_local=true`、`event_broker_durable_persistence_wired=false`、
 `event_broker_dds_transport_wired=false`、`event_broker_production_published=false`、
 `event_broker_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -840,7 +840,7 @@ event。`COALESCE` 用 caller 提供的 digest key 只替换非关键旧状态�
 
 状态：`event_qos_contract_defined=true`、`event_qos_policies_verified=true`、
 `event_qos_critical_no_silent_drop_verified=true`、`event_qos_deadline_priority_verified=true`、
-`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
+`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=true`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`. Req IDs: `S2-EVT-001`, `NV-G-004`,
@@ -874,7 +874,7 @@ Vehicle source adapter；在此之前 Runtime composition 和所有硬件路径�
 状态：`trigger_rule_manifest_defined=true`、`trigger_rule_manifest_verified=true`、
 `trigger_threshold_window_debounce_verified=true`、`trigger_cooldown_scope_verified=true`、
 `trigger_input_fail_closed_verified=true`、`trigger_suggestion_only_verified=true`、
-`trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
+`trigger_engine_android13_arm64_verified=true`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`. Req IDs: `S2-EVT-001`,
@@ -906,7 +906,7 @@ owns suggestion UX; production consent ownership remains ISSUE-031.
 
 状态：`proactive_consent_policy_defined=true`、`proactive_grant_binding_verified=true`、
 `proactive_high_critical_generic_grant_blocked=true`、`proactive_grant_ttl_revoke_verified=true`、
-`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -936,7 +936,7 @@ digest-bound health evidence and does not inspect a process. P8 remains the owne
 `context_source_allowlist_verified=true`、`context_source_runtime_health_verified=true`、
 `context_source_simulated_vehicle_verified=true`、`context_source_time_verified=true`、
 `context_source_freshness_quality_verified=true`、`context_source_fail_closed_verified=true`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`. Req IDs: `S2-CTX-001`,
@@ -966,7 +966,7 @@ Safety/Policy/Approval/Effect 状态机。
 
 状态：`active_suggestion_controller_defined=true`、`active_suggestion_full_card_verified=true`、
 `active_suggestion_merge_replay_verified=true`、`active_suggestion_moving_minimal_verified=true`、
-`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=false`、
+`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=true`、
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `trigger_engine_wired=false`、`graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
@@ -1778,3 +1778,22 @@ installer
 验收契约只把各模块的 Android ABI/API probe 标记设为 true。production composition root、Binder Runtime、durable repository、
 consent/signer authority、Vehicle/NPU/Driver-HAL 均不在此调用链，保持失败关闭。Req IDs：`S2-TOL-001`、`S2-MEM-001`、
 `S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、`ISSUE-036..045`。
+
+## P6 Android 13 ARM64 aggregate probe acceptance architecture
+
+统一 installer 是设备验收编排器，按依赖顺序执行六个独立 debug probe，最后执行 Runtime/Demo 全安装回归：
+
+```text
+installer
+  -> EventBroker -> Event Backpressure/QoS
+  -> TriggerEngine -> Proactive Consent Policy
+  -> Context Source Adapters -> Active Suggestion UX
+  -> Runtime/Demo full install regression
+```
+
+该顺序不是 production composition：Event QoS queue 未接 Broker callback，Trigger 未消费 Context adapter，Consent 未授权 Trigger，
+Suggestion 未消费生产 Trigger output。每个模块独立使用 build-owned fixture 验证 typed contract 和失败关闭，聚合层只汇总 marker，不传递
+业务 payload。production Event transport、Runtime/Graph/Effect、Vehicle/NPU/Driver-HAL 继续保持不可达。
+
+Req IDs：`S2-EVT-001`、`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、
+`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。

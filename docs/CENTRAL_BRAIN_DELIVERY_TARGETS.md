@@ -2074,14 +2074,14 @@ cd ../..
 bash tools/check_central_brain_android_event_broker.sh
 ```
 
-实体探针仅在 exactly one online Android 13 ARM64 transport 时由 installer 执行；当前 ADB offline，因此
-`event_broker_android13_arm64_verified=false`。probe 通过也只证明 process-local Java contract，不证明 Room/process-death
+实体探针已由 exactly one online Android 13 ARM64 transport 上的 installer 执行，
+`event_broker_android13_arm64_verified=true`。该证据只证明 process-local Java contract，不证明 Room/process-death
 durability、DDS/SOME-IP、QoS/backpressure、production identity/policy 或目标硬件资格。
 
 状态：`event_broker_interface_defined=true`、`event_broker_typed_topics_verified=true`、
 `event_broker_append_before_notify_verified=true`、`event_broker_bounded_replay_filter_verified=true`、
 `event_broker_identity_policy_verified=true`、`event_broker_subscription_lifecycle_verified=true`、
-`event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
+`event_broker_android13_arm64_verified=true`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -2108,13 +2108,13 @@ cd ../..
 bash tools/check_central_brain_android_event_backpressure_qos.sh
 ```
 
-实体探针只在 exactly one online Android 13 ARM64 transport 时执行；当前 ADB offline，所以
-`event_qos_android13_arm64_verified=false`。probe 通过也只证明 process-local queue，不证明 Broker 已接线、durable ACK、
+实体探针已在 exactly one online Android 13 ARM64 transport 上执行，
+`event_qos_android13_arm64_verified=true`。该证据只证明 process-local queue，不证明 Broker 已接线、durable ACK、
 production middleware throughput/latency 或目标硬件资格。
 
 状态：`event_qos_contract_defined=true`、`event_qos_policies_verified=true`、
 `event_qos_critical_no_silent_drop_verified=true`、`event_qos_deadline_priority_verified=true`、
-`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
+`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=true`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-EVT-001`、`NV-G-004`、
@@ -2142,14 +2142,14 @@ cd ../..
 bash tools/check_central_brain_android_trigger_engine.sh
 ```
 
-实体探针只在 exactly one online Android 13 ARM64 transport 时执行；当前 ADB offline，所以
-`trigger_engine_android13_arm64_verified=false`。probe 通过也只证明 process-local deterministic evaluator，不证明 production source、
+实体探针已在 exactly one online Android 13 ARM64 transport 上执行，
+`trigger_engine_android13_arm64_verified=true`。该证据只证明 process-local deterministic evaluator，不证明 production source、
 durable cooldown、proactive consent、auto execution、Runtime composition 或目标硬件资格。
 
 状态：`trigger_rule_manifest_defined=true`、`trigger_rule_manifest_verified=true`、
 `trigger_threshold_window_debounce_verified=true`、`trigger_cooldown_scope_verified=true`、
 `trigger_input_fail_closed_verified=true`、`trigger_suggestion_only_verified=true`、
-`trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
+`trigger_engine_android13_arm64_verified=true`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：
@@ -2165,10 +2165,10 @@ factory、Binder Service、Room entity 或 Client2 UI。
 request replay/conflict、容量、TTL、owner revoke，以及 HIGH/CRITICAL 永不接受通用 grant。`POLICY_ELIGIBLE` 始终要求后续
 Safety revalidation，不能作为 Effect dispatch evidence。
 
-目标设备 ADB offline 时不得执行安装或将 host/build 结果写为实体证据。状态：
+目标设备 API 33 ARM64 probe 已安装执行并通过；结果只表示 debug application contract。状态：
 `proactive_consent_policy_defined=true`、`proactive_grant_binding_verified=true`、
 `proactive_high_critical_generic_grant_blocked=true`、`proactive_grant_ttl_revoke_verified=true`、
-`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -2185,11 +2185,11 @@ provider、receiver、worker、Binder 或 Event publisher。
 vehicle provenance、injected time 和 future/invalid fail-closed。它不证明真实车辆 API、Runtime health producer、系统时钟 authority、
 Trigger composition 或硬件可用。
 
-ADB 无在线设备时不得安装或把 host/build 标为实体证据。状态：`context_source_adapter_contract_defined=true`、
+API 33 ARM64 debug probe 已安装执行并通过；结果不构成真实 source authority。状态：`context_source_adapter_contract_defined=true`、
 `context_source_count=3`、`context_source_allowlist_verified=true`、
 `context_source_runtime_health_verified=true`、`context_source_simulated_vehicle_verified=true`、
 `context_source_time_verified=true`、`context_source_freshness_quality_verified=true`、
-`context_source_fail_closed_verified=true`、`context_source_android13_arm64_verified=false`、
+`context_source_fail_closed_verified=true`、`context_source_android13_arm64_verified=true`、
 `context_source_production_registry_published=false`、`context_source_runtime_wired=false`、
 `context_source_trigger_engine_wired=false`、`vehicle_signal_provider_wired=false`、
 `vehicle_property_mapping_configured=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -2206,10 +2206,10 @@ ADB 无在线设备时不得安装或把 host/build 标为实体证据。状态�
 never-ask，以及 MOVING/UNKNOWN 单卡 minimal banner。它不证明 production suggestion source、Client2 integration、TTS、durable preference、
 自动 approval/Graph/Effect 或真实车辆动作。
 
-ADB 无在线设备时不得安装或标记实体证据。状态：`active_suggestion_controller_defined=true`、
+API 33 ARM64 debug probe 已安装执行并通过；结果不构成 production orchestration。状态：`active_suggestion_controller_defined=true`、
 `active_suggestion_full_card_verified=true`、`active_suggestion_merge_replay_verified=true`、
 `active_suggestion_moving_minimal_verified=true`、`active_suggestion_never_ask_verified=true`、
-`active_suggestion_android13_arm64_verified=false`、`active_suggestion_hmi_projection_only=true`、
+`active_suggestion_android13_arm64_verified=true`、`active_suggestion_hmi_projection_only=true`、
 `active_suggestion_production_source_wired=false`、`active_suggestion_preference_repository_wired=false`、
 `active_suggestion_voice_engine_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。Req IDs：`S2-UX-002`、
@@ -2722,3 +2722,21 @@ Partial 4/2；批准/拒绝输入总数 2；Intent/Context/Plan/Policy/Graph/Eff
 `production_runtime_wired=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-TOL-001`、`S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、
 `S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、`ISSUE-036..045`。
+
+## 2026-07-18 P6 Android 13 ARM64 Event/Proactive/Context probe acceptance
+
+- 机器合同：`central-brain/contracts/central_brain_android_p6_physical_acceptance.json`。
+- 设备命令：`bash tools/install_central_brain_android_runtime.sh --skip-build --require-api-33`。
+- 覆盖：P6-W01..W06 共 6 个 Event/QoS/Trigger/Consent/Context/Suggestion debug Activity，以及 Runtime/Demo 全安装回归。
+- 结果：API 33、ARM64、六个 completion/functional marker 和 false-authority marker 全部通过。
+- 隐私：只交付 `device_transport_selected=true`、`device_identity_redacted=true` 和 bounded boolean/count；不交付设备身份或业务 payload。
+- 非声明：不交付 production Event middleware、Trigger runtime、Consent authority、Context registry、Suggestion source、Vehicle/NPU/
+  Driver-HAL、量产 release 或目标硬件资格。
+
+当前 `p6_android13_arm64_probe_acceptance_complete=true`、`p6_probe_module_count=6`、
+`production_event_middleware_published=false`、`production_trigger_runtime_wired=false`、
+`production_proactive_authority_published=false`、`production_context_source_registry_published=false`、
+`production_active_suggestion_source_wired=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-EVT-001`、
+`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、`S2-OBS-001`、
+`DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。

@@ -334,7 +334,7 @@ for marker in \
   'event_broker_bounded_replay_filter_verified=true' \
   'event_broker_identity_policy_verified=true' \
   'event_broker_subscription_lifecycle_verified=true' \
-  'event_broker_android13_arm64_verified=false' \
+  'event_broker_android13_arm64_verified=true' \
   'event_broker_process_local=true' \
   'event_broker_durable_persistence_wired=false' \
   'event_broker_dds_transport_wired=false' \
@@ -345,7 +345,7 @@ for marker in \
   'event_qos_critical_no_silent_drop_verified=true' \
   'event_qos_deadline_priority_verified=true' \
   'event_qos_consumer_isolation_verified=true' \
-  'event_qos_android13_arm64_verified=false' \
+  'event_qos_android13_arm64_verified=true' \
   'event_qos_process_local=true' \
   'event_qos_broker_wired=false' \
   'event_qos_durable_persistence_wired=false' \
@@ -356,7 +356,7 @@ for marker in \
   'trigger_cooldown_scope_verified=true' \
   'trigger_input_fail_closed_verified=true' \
   'trigger_suggestion_only_verified=true' \
-  'trigger_engine_android13_arm64_verified=false' \
+  'trigger_engine_android13_arm64_verified=true' \
   'trigger_engine_process_local=true' \
   'trigger_cooldown_persistence_wired=false' \
   'trigger_source_adapter_wired=false' \
@@ -367,7 +367,7 @@ for marker in \
   'proactive_high_critical_generic_grant_blocked=true' \
   'proactive_grant_ttl_revoke_verified=true' \
   'proactive_policy_fail_closed_verified=true' \
-  'proactive_consent_android13_arm64_verified=false' \
+  'proactive_consent_android13_arm64_verified=true' \
   'proactive_policy_process_local=true' \
   'proactive_grant_persistence_wired=false' \
   'proactive_consent_authority_wired=false' \
@@ -381,7 +381,7 @@ for marker in \
   'context_source_time_verified=true' \
   'context_source_freshness_quality_verified=true' \
   'context_source_fail_closed_verified=true' \
-  'context_source_android13_arm64_verified=false' \
+  'context_source_android13_arm64_verified=true' \
   'context_source_production_registry_published=false' \
   'context_source_runtime_wired=false' \
   'context_source_trigger_engine_wired=false' \
@@ -390,11 +390,18 @@ for marker in \
   'active_suggestion_merge_replay_verified=true' \
   'active_suggestion_moving_minimal_verified=true' \
   'active_suggestion_never_ask_verified=true' \
-  'active_suggestion_android13_arm64_verified=false' \
+  'active_suggestion_android13_arm64_verified=true' \
   'active_suggestion_hmi_projection_only=true' \
   'active_suggestion_production_source_wired=false' \
   'active_suggestion_preference_repository_wired=false' \
   'active_suggestion_voice_engine_wired=false' \
+  'p6_android13_arm64_probe_acceptance_complete=true' \
+  'p6_probe_module_count=6' \
+  'production_event_middleware_published=false' \
+  'production_trigger_runtime_wired=false' \
+  'production_proactive_authority_published=false' \
+  'production_context_source_registry_published=false' \
+  'production_active_suggestion_source_wired=false' \
   'model_contract_v2_defined=true' \
   'model_request_v2_fields_verified=true' \
   'model_result_v2_binding_verified=true' \

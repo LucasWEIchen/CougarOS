@@ -922,6 +922,22 @@ Client2 改为只消费该权威 Context 的版本化只读接口，并完成真
 `cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`production_ready=false`、
 `target_hardware_validated=false`。
 
+## DEV-107 P6 debug probe acceptance is not production Event or proactive authority
+
+P6-W01..W06 已在 Android 13 ARM64 上通过 build-owned debug Activity 和统一安装回归。证据证明 process-local Event、QoS、
+Trigger、Consent、Context normalization 与 Suggestion projection 的 Java 合同可在目标 ABI/API 上执行，不证明跨进程/跨 SOC
+事件中间件、持久化 cursor/cooldown/preference、真实 Context provider、主动服务 owner authority 或自动 Effect execution 已完成。
+
+偏差状态为 `Accepted Temporary`。当前保留独立 queue 未接 Broker、Trigger 未接 source/runtime、Consent 未接生产 authority、
+Context registry 未发布、Suggestion 未接生产 source/voice/Client2。关闭偏差前必须分别提供 owner、持久化、Binder/DDS/SOME-IP、
+真实 Vehicle source、production Runtime composition 和 P8/P9 目标证据；不得通过改 marker 消除这些缺口。
+
+当前 `p6_android13_arm64_probe_acceptance_complete=true`、`production_event_middleware_published=false`、
+`production_trigger_runtime_wired=false`、`production_proactive_authority_published=false`、
+`production_context_source_registry_published=false`、`production_active_suggestion_source_wired=false`、
+`production_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`ISSUE-031/046`。
+
 ## DEV-060 P4-W10 catalog participation is not Runtime Plan publication
 
 P4-W10 把 Client2 原有 14 个 alias/canonical ID 收敛到 `CockpitScenarioControlState`，并根据已冻结的 cold/fatigue/rest
@@ -1181,7 +1197,7 @@ composition、Client2 overlay wiring、durable preference、voice engine、appro
 状态：`Accepted Temporary`。关闭条件为 ISSUE-031/P8/P9 冻结 production suggestion event schema/owner、identity 与 driving state authority、
 durable cooldown/never-ask、HMI/voice disclosure、Client2 integration、approval/undo/partial-failure、Graph/Effect receipt、vehicle readback 和
 Android 13 fault evidence。当前：`active_suggestion_controller_defined=true`、
-`active_suggestion_android13_arm64_verified=false`、`active_suggestion_hmi_projection_only=true`、
+`active_suggestion_android13_arm64_verified=true`、`active_suggestion_hmi_projection_only=true`、
 `active_suggestion_production_source_wired=false`、`active_suggestion_preference_repository_wired=false`、
 `active_suggestion_voice_engine_wired=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -1198,7 +1214,7 @@ timezone authority、vehicle SDK service/property/area/rate/fault contract、ide
 
 当前：`context_source_adapter_contract_defined=true`、`context_source_count=3`、
 `context_source_allowlist_verified=true`、`context_source_freshness_quality_verified=true`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -1215,7 +1231,7 @@ TriggerEngine、EventBroker、Binder、Room/file、Runtime/Graph、Effect、Vehi
 
 状态：`Accepted Temporary`。关闭条件是 ISSUE-031 冻结 consent/privacy owner、identity/scope、HMI/voice disclosure、durable grant
 schema/clock/revoke、single-use high-risk approval、Runtime publication、Safety revalidation 和 Android 13 fault evidence。当前：
-`proactive_consent_policy_defined=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_consent_policy_defined=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1258,7 +1274,7 @@ durable cooldown/identity/privacy/audit 和 target Android fault evidence，再�
 `trigger_rule_manifest_defined=true`、`trigger_rule_manifest_verified=true`、
 `trigger_threshold_window_debounce_verified=true`、`trigger_cooldown_scope_verified=true`、
 `trigger_input_fail_closed_verified=true`、`trigger_suggestion_only_verified=true`、
-`trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
+`trigger_engine_android13_arm64_verified=true`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -1318,7 +1334,7 @@ identity/policy authority contract。它比 R6A1 的旧 bounded callback runtime
 代码未接 Binder/AIDL Service、Room/file、DDS/SOME-IP/network、Runtime/Graph、Effect、Vehicle、Model/NPU 或 Driver/HAL。
 状态：`Accepted Temporary`。关闭条件是 ISSUE-046 冻结 production repository/middleware/identity-policy owners、事务与重启
 语义、关键事件 no-silent-drop QoS 和 Android 13 目标 fault evidence。当前：`event_broker_interface_defined=true`、
-`event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
+`event_broker_android13_arm64_verified=true`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
@@ -1337,7 +1353,7 @@ no-silent-drop 只证明本地决策路径可观测，不代表 process death、
 跨进程 consumer lifecycle、QoS 映射与 Android 13 fault evidence。当前：
 `event_qos_contract_defined=true`、`event_qos_policy_count=4`、
 `event_qos_critical_no_silent_drop_verified=true`、`event_qos_deadline_priority_verified=true`、
-`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
+`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=true`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。

@@ -138,7 +138,7 @@ printf '%s\n' \
   "event_qos_critical_no_silent_drop_verified=true" \
   "event_qos_deadline_priority_verified=true" \
   "event_qos_consumer_isolation_verified=true" \
-  "event_qos_android13_arm64_verified=false" \
+  "event_qos_android13_arm64_verified=true" \
   "event_qos_process_local=true" \
   "event_qos_broker_wired=false" \
   "event_qos_durable_persistence_wired=false" \

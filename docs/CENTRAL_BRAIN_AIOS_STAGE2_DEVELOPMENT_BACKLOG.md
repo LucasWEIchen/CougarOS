@@ -919,7 +919,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 - DoD：固定 Task state、Policy decision、Model health 三类 generic typed topic；每 topic monotonic cursor、
   append-before-notify、bounded retention/page/filter、future/gap 显式结果、owner-scoped subscription、exact
   publication/subscription replay、callback failure close 与 identity/policy authority fail-closed 已通过 JVM 和
-  debug/release compile。API 33 ARM64 debug probe 已接 installer，实体证据待 ADB transport 恢复。
+  debug/release compile。API 33 ARM64 debug probe 已由统一 installer 执行通过。
 - 边界：required 类名中的 `Durable` 不代表 process-death durability；当前 retention/replay 仅 process-local，未与旧
   `DurableEventCursorRepository` 接线，不发布 Binder/AIDL/DDS/SOME-IP broker，不接 Runtime/Graph/Effect/Vehicle/
   Model/NPU/Driver-HAL。下一工作包 `P6-W02 Backpressure/QoS`；`implementation_stage=P9-W03`，tracking
@@ -1320,3 +1320,12 @@ flowchart LR
 - 统一验收覆盖 10 个模块，`p5_android13_arm64_probe_acceptance_complete=true`、`p5_probe_module_count=10`。
 - production Tool/Memory composition、跨进程 Runtime、持久化/加密、真实 tokenizer/summarizer、Vehicle/NPU/Driver-HAL 仍未完成。
 - 下一可执行验收包为 P6-W01..W06 Android aggregate probes；production owner 工作继续由 ISSUE-036..046 跟踪。
+
+## 21. P6 Android physical probe acceptance update
+
+- `P6-W01..P6-W06`：软件状态保持 `DEVELOPED`，Android 13 ARM64 debug probe 子项升级为 `COMPLETE`。
+- 统一验收覆盖 6 个模块，`p6_android13_arm64_probe_acceptance_complete=true`、`p6_probe_module_count=6`。
+- P6-W01/W02 仍是 process-local Event/QoS；P6-W03..W06 仍未接 production source、authority、preference、Runtime/Graph/Effect。
+- production Event middleware 与主动智能 owner 工作继续由 `ISSUE-046`、`ISSUE-031` 跟踪，P8 Vehicle/NPU/Driver-HAL 不因 probe 改变。
+- 下一可执行验收包为 P7-W01..W07 Android aggregate probes；`production_ready=false`、
+  `target_hardware_validated=false` 保持不变。

@@ -1058,7 +1058,7 @@ cursor replay。
 publish 与 subscribe 支持 owner-scoped exact replay/conflict。replay 对 page/filter/retention 有界，明确返回 future cursor 与
 cursor gap；subscribe/cancel 绑定 owner。所有操作经 operation/topic/owner/identity/policy/elapsed evidence 与 injected authority，
 deny/null/exception/expired/mismatch 均失败关闭。六项 JVM test、debug/release compile、DUMP-protected debug probe、installer、
-独立 checker 与 CI/runtime evolution 已接入；当前 ADB offline，`event_broker_android13_arm64_verified=false`。
+独立 checker 与 CI/runtime evolution 已接入；API 33 ARM64 debug probe 已通过，`event_broker_android13_arm64_verified=true`。
 
 required 类名中的 Durable 不代表 process-death durability；旧 Room cursor repository 未接线，DDS/SOME-IP、Binder publication、
 Backpressure/QoS、Runtime/Graph/Effect/Vehicle/NPU/Driver-HAL 均未启用。下一工作包为 P6-W02 Backpressure/QoS。Req IDs：
@@ -1079,7 +1079,7 @@ replay。drop-old 按 priority 只替换非关键低优先级候选，coalesce �
 隔离已由六项 JVM test 验证；debug/release compile、DUMP probe、installer、独立 checker 与 CI/runtime evolution 已接入。
 
 本轮 queue 尚未接 P6-W01 Broker、旧 Room cursor repository、Binder/DDS/SOME-IP、Runtime/Graph/Effect/Vehicle/Model/NPU/
-Driver-HAL；实体 ADB offline，`event_qos_android13_arm64_verified=false`。下一工作包为 P6-W03 TriggerRule manifest/engine。
+Driver-HAL；API 33 ARM64 debug probe 已通过，`event_qos_android13_arm64_verified=true`。下一工作包为 P6-W03 TriggerRule manifest/engine。
 Req IDs：`S2-EVT-001`、`NV-G-004`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-073`、
 `ISSUE-046`。`event_qos_contract_defined=true`、`event_qos_critical_no_silent_drop_verified=true`、
 `event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
@@ -1097,8 +1097,8 @@ invalid/stale 或 sample gap 时重置；满足 window/sample/debounce 后通过
 固定 TRIGGER，auto-execution 与 Effect dispatch 恒为 false。
 
 六项 JVM test、debug/release compile、DUMP probe、installer、独立 checker 与 CI/runtime evolution 已接入。当前不接 production source
-adapter、P6-W01 Broker、Runtime/Graph、Vehicle、Model/NPU/Driver-HAL；实体 ADB offline，
-`trigger_engine_android13_arm64_verified=false`。下一工作包为 P6-W04 Proactive consent/policy。
+adapter、P6-W01 Broker、Runtime/Graph、Vehicle、Model/NPU/Driver-HAL；API 33 ARM64 debug probe 已通过，
+`trigger_engine_android13_arm64_verified=true`。下一工作包为 P6-W04 Proactive consent/policy。
 
 基线纠正：P6-W02 合并时根 README、Android README 和自动化记忆曾把 P6-W03 误标为 durable append/cursor；权威 backlog 与本路线图
 始终定义 P6-W03 为 TriggerRule。该跟踪漂移在实现前纠正并记录于 DEV-074，没有产生 durable repository 代码或状态误报。
@@ -1117,12 +1117,12 @@ P6-W04 已完成 process-local consent/policy contract。grant 只在 PARKED 且
 authority 前硬拒绝通用 grant，candidate 也始终要求 explicit approval。
 
 六项 JVM 测试和 debug/release 编译覆盖 exact binding、risk/mismatch、TTL/revoke、replay/conflict/capacity、driving/evidence/
-authority 与 production boundary。debug probe 已实现；ADB transport 当前 offline，因此没有安装或实体证据。
+authority 与 production boundary。API 33 ARM64 debug probe 已安装执行并通过。
 
 Req IDs：`S2-SAF-001`、`S2-MEM-001`、`S2-EVT-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-075`、
 `ISSUE-031`。`proactive_consent_policy_defined=true`、`proactive_grant_binding_verified=true`、
 `proactive_high_critical_generic_grant_blocked=true`、`proactive_grant_ttl_revoke_verified=true`、
-`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1135,7 +1135,7 @@ P6-W05 已完成 fixed three-source normalization contract。Runtime health、ca
 unavailable/error/conflict 显式失败关闭。
 
 六项 JVM 测试和 debug/release 编译覆盖 catalog、三来源、freshness/quality、provenance 与 production boundary。debug-only probe、
-installer 和独立/Stage2/Runtime/CI 门禁已接入；ADB 当前无可见设备，因此没有安装或实体证据。真实 vehicle source 继续后置 P8，
+installer 和独立/Stage2/Runtime/CI 门禁已接入；API 33 ARM64 debug probe 已安装执行并通过。真实 vehicle source 继续后置 P8，
 本增量不触发 Driver/HAL 开发。
 
 Req IDs：`S2-CTX-001`、`S2-EVT-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-076`、
@@ -1143,7 +1143,7 @@ Req IDs：`S2-CTX-001`、`S2-EVT-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/0
 `context_source_allowlist_verified=true`、`context_source_runtime_health_verified=true`、
 `context_source_simulated_vehicle_verified=true`、`context_source_time_verified=true`、
 `context_source_freshness_quality_verified=true`、`context_source_fail_closed_verified=true`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。下一工作包：
@@ -1157,14 +1157,14 @@ suggestion ID replay/conflict、owner+scenario+zone merge、expiry/capacity、di
 PARKED 输出 why/plan/cooldown/merge count 与 review/dismiss/never-ask full card；MOVING/UNKNOWN 只输出最高优先级 minimal banner、
 dismiss 和固定 voice projection key。debug-only 响应式半透明 HMI 展示“场景输入→原因→方案→等待确认”链路，并明确未执行车控。
 
-六项 JVM 测试和 debug/release 编译已通过，DUMP probe、installer 与独立/Stage2/Runtime/CI 门禁已接入。ADB 当前
-`online=0/offline=1/unauthorized=0`，因此没有安装或实体证据。生产 suggestion source、Client2 wiring、voice engine、durable preference、Trigger/Graph/Effect/vehicle/
+六项 JVM 测试和 debug/release 编译已通过，DUMP probe、installer 与独立/Stage2/Runtime/CI 门禁已接入。API 33 ARM64 debug probe
+已安装执行并通过。生产 suggestion source、Client2 wiring、voice engine、durable preference、Trigger/Graph/Effect/vehicle/
 Model/NPU/Driver-HAL 均未接。
 
 Req IDs：`S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：
 `DEV-077`、`ISSUE-031`。`active_suggestion_controller_defined=true`、`active_suggestion_full_card_verified=true`、
 `active_suggestion_merge_replay_verified=true`、`active_suggestion_moving_minimal_verified=true`、
-`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=false`、
+`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=true`、
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `effect_dispatch_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -1766,4 +1766,22 @@ Req IDs：`S2-TOL-001`、`S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-00
 tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_complete=true`、
 `p5_probe_module_count=10`、`device_identity_redacted=true`、`production_tool_authority_published=false`、
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+### 2026-07-18 P6 Android 13 ARM64 aggregate probe acceptance
+
+状态：`COMPLETE / APPLICATION_DEBUG_PROBE_ONLY`。统一 installer 已在 API 33 ARM64 上通过 P6-W01..W06 六个 Event、QoS、
+Trigger、Consent、Context 与 Suggestion probe，并完成 Runtime/Demo 安装回归。机器合同固定模块顺序、marker、API/ABI、设备身份脱敏和
+positive/false claim 精确集合；聚合 checker 同时执行六个独立门禁，避免文档状态领先于实现。
+
+本项关闭 P6 应用层 Android ABI/API probe 证据缺口，不关闭 `ISSUE-046` 的 durable/cross-process Event middleware，也不关闭
+`ISSUE-031` 的 production source、authority、preference、Runtime/Graph/Effect 和真实 Vehicle 接线。下一未验收软件流为
+P7-W01..W07 Android 13 ARM64 aggregate probes。
+
+Req IDs：`S2-EVT-001`、`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、`S2-SAF-001`、
+`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。
+`p6_android13_arm64_probe_acceptance_complete=true`、`p6_probe_module_count=6`、`device_identity_redacted=true`、
+`production_event_middleware_published=false`、`production_trigger_runtime_wired=false`、
+`production_proactive_authority_published=false`、`production_context_source_registry_published=false`、
+`production_active_suggestion_source_wired=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。

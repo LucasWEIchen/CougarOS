@@ -856,7 +856,7 @@ publication 仍需确定：
 
 当前 process-local retention 和 debug allow authority 不能替代以上 owner。状态：`Open`。当前
 `event_broker_interface_defined=true`、`event_broker_typed_topics_verified=true`、
-`event_broker_android13_arm64_verified=false`、`event_broker_process_local=true`、
+`event_broker_android13_arm64_verified=true`、`event_broker_process_local=true`、
 `event_broker_durable_persistence_wired=false`、`event_broker_dds_transport_wired=false`、
 `event_broker_production_published=false`、`event_broker_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-073`。
@@ -871,7 +871,7 @@ critical Action Observation 无可用容量或到期时进入 replay-required/di
 production identity/policy、DDS/SOME-IP/vendor middleware 或跨 SOC QoS。Android 13 ARM64 probe 因 ADB transport offline
 尚未执行。当前 `event_qos_contract_defined=true`、`event_qos_policy_count=4`、
 `event_qos_critical_no_silent_drop_verified=true`、`event_qos_deadline_priority_verified=true`、
-`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=false`、
+`event_qos_consumer_isolation_verified=true`、`event_qos_android13_arm64_verified=true`、
 `event_qos_process_local=true`、`event_qos_broker_wired=false`、`event_qos_durable_persistence_wired=false`、
 `event_qos_production_middleware_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-073`。
@@ -895,7 +895,7 @@ ISSUE-031 仍为 Open，关闭前必须确定：
 `trigger_rule_manifest_defined=true`、`trigger_rule_manifest_verified=true`、
 `trigger_threshold_window_debounce_verified=true`、`trigger_cooldown_scope_verified=true`、
 `trigger_input_fail_closed_verified=true`、`trigger_suggestion_only_verified=true`、
-`trigger_engine_android13_arm64_verified=false`、`trigger_engine_process_local=true`、
+`trigger_engine_android13_arm64_verified=true`、`trigger_engine_process_local=true`、
 `trigger_cooldown_persistence_wired=false`、`trigger_source_adapter_wired=false`、
 `trigger_auto_execution_enabled=false`、`trigger_runtime_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-074`。
@@ -912,7 +912,7 @@ Runtime/Event publication、Safety revalidation 与 Android 13 fault/rollback ev
 
 当前 `proactive_consent_policy_defined=true`、`proactive_grant_binding_verified=true`、
 `proactive_high_critical_generic_grant_blocked=true`、`proactive_grant_ttl_revoke_verified=true`、
-`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -932,7 +932,7 @@ Trigger input。
 `context_source_allowlist_verified=true`、`context_source_runtime_health_verified=true`、
 `context_source_simulated_vehicle_verified=true`、`context_source_time_verified=true`、
 `context_source_freshness_quality_verified=true`、`context_source_fail_closed_verified=true`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-076`。
@@ -948,7 +948,7 @@ cooldown/never-ask、voice/TTS 策略、Client2 production overlay、approval/un
 
 当前 `active_suggestion_controller_defined=true`、`active_suggestion_full_card_verified=true`、
 `active_suggestion_merge_replay_verified=true`、`active_suggestion_moving_minimal_verified=true`、
-`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=false`、
+`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=true`、
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `trigger_engine_wired=false`、`graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
@@ -1237,3 +1237,18 @@ repository，不调用模型/NPU/车辆或 Driver/HAL。当前 `p5_android13_arm
 `p5_probe_module_count=10`、`production_tool_authority_published=false`、`production_memory_authority_published=false`、
 `production_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 tracking：`DEV-106`、`ISSUE-036..045`。
+
+### P6 Android 13 ARM64 probe acceptance update
+
+P6-W01..W06 的六个 debug probe 已在 Android API 33 / ARM64 上统一通过：EventBroker、Backpressure/QoS、TriggerEngine、
+Proactive consent、Context source adapters 与 Active suggestion UX。完整 Runtime/Demo 安装回归通过，证据输出已脱敏。
+
+`ISSUE-046` 仍 Open：EventBroker retention/cursor 和 QoS queue 仅进程内，未接 durable repository、生产 Broker callback、
+Binder/DDS/SOME-IP。`ISSUE-031` 仍 Open：Trigger/Consent/Context/Suggestion 没有 production source、authority、preference store、
+Runtime/Graph/Effect 或真实车辆接线。实机 probe 只关闭 Android ABI/API 可执行性子项，不关闭上述生产职责。
+
+当前 `p6_android13_arm64_probe_acceptance_complete=true`、`p6_probe_module_count=6`、
+`production_event_middleware_published=false`、`production_trigger_runtime_wired=false`、
+`production_proactive_authority_published=false`、`production_context_source_registry_published=false`、
+`production_active_suggestion_source_wired=false`、`production_runtime_wired=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-107`、`ISSUE-031/046`。

@@ -132,7 +132,7 @@ printf '%s\n' \
   "active_suggestion_merge_replay_verified=true" \
   "active_suggestion_moving_minimal_verified=true" \
   "active_suggestion_never_ask_verified=true" \
-  "active_suggestion_android13_arm64_verified=false" \
+  "active_suggestion_android13_arm64_verified=true" \
   "active_suggestion_hmi_projection_only=true" \
   "active_suggestion_production_source_wired=false" \
   "active_suggestion_preference_repository_wired=false" \

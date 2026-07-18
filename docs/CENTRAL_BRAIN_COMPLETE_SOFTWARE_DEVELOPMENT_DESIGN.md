@@ -3855,7 +3855,7 @@ authority；production boundary。debug probe 只输出 boolean markers，releas
 
 状态：`proactive_consent_policy_defined=true`、`proactive_grant_binding_verified=true`、
 `proactive_high_critical_generic_grant_blocked=true`、`proactive_grant_ttl_revoke_verified=true`、
-`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=false`、
+`proactive_policy_fail_closed_verified=true`、`proactive_consent_android13_arm64_verified=true`、
 `proactive_policy_process_local=true`、`proactive_grant_persistence_wired=false`、
 `proactive_consent_authority_wired=false`、`proactive_auto_execution_enabled=false`、
 `proactive_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
@@ -3890,7 +3890,7 @@ boundary。debug Activity 仅以 DUMP permission 暴露，release manifest 不�
 `context_source_allowlist_verified=true`、`context_source_runtime_health_verified=true`、
 `context_source_simulated_vehicle_verified=true`、`context_source_time_verified=true`、
 `context_source_freshness_quality_verified=true`、`context_source_fail_closed_verified=true`、
-`context_source_android13_arm64_verified=false`、`context_source_production_registry_published=false`、
+`context_source_android13_arm64_verified=true`、`context_source_production_registry_published=false`、
 `context_source_runtime_wired=false`、`context_source_trigger_engine_wired=false`、
 `vehicle_signal_provider_wired=false`、`vehicle_property_mapping_configured=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`. Req IDs: `S2-CTX-001`,
@@ -3923,7 +3923,7 @@ expiry/cooldown/conflict/capacity 和 production false boundaries。debug probe 
 
 状态：`active_suggestion_controller_defined=true`、`active_suggestion_full_card_verified=true`、
 `active_suggestion_merge_replay_verified=true`、`active_suggestion_moving_minimal_verified=true`、
-`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=false`、
+`active_suggestion_never_ask_verified=true`、`active_suggestion_android13_arm64_verified=true`、
 `active_suggestion_hmi_projection_only=true`、`active_suggestion_production_source_wired=false`、
 `active_suggestion_preference_repository_wired=false`、`active_suggestion_voice_engine_wired=false`、
 `trigger_engine_wired=false`、`graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
@@ -5069,3 +5069,30 @@ SUMMARIZE/TRUNCATE/DROP 计数 1/1/1，并继续验证 required no-partial、cat
 consent authority、model context publication、Vehicle/NPU/Driver-HAL 或 target hardware validation。Req IDs：`S2-TOL-001`、
 `S2-MEM-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-106`、
 `ISSUE-036..045`。
+
+## P6 implementation detail: aggregate Android probe acceptance
+
+### 执行顺序与失败语义
+
+开发人员只调用统一 installer。runner 先验证 API/ABI 和设备身份脱敏，再启动 EventBroker、QoS、Trigger、Consent、Context、Suggestion
+六个 DUMP-protected Activity。每一项必须同时具备 completion marker、功能 marker 和 false-authority marker；缺失、重复、旧日志或 Activity
+失败立即终止，禁止根据后续模块成功反推前项成功。最后必须完成 Runtime/Demo 安装回归。
+
+### 聚合门禁
+
+`check_central_brain_android_p6_physical_acceptance.sh` 验证 JSON schema、固定 work-package 顺序、精确 true/false claim 集合、installer
+marker、六个独立 checker 结果和所有文档锚点。它被 Stage2、Runtime evolution 与 GitHub Actions 调用。模块 checker 中的
+`*_android13_arm64_verified=true` 只能在本报告存在后保留；删除报告、合同或 installer marker 会使全链路失败。
+
+### 数据与硬件边界
+
+Probe 输入全部为 build-owned immutable fixture。Event 只使用 typed metadata；Trigger/Consent/Suggestion 不接受任意用户文本；Context source
+不读取系统 clock 或真实车辆属性。输出限 boolean/count/schema，不写 raw log、设备身份、Context scalar、车辆 payload、授权证据或模型内容。
+本实现不调用 Vehicle、NPU、网络、JNI、Driver/HAL，不发布 production Runtime。
+
+### 可声明与不可声明
+
+可以声明六个 `*_android13_arm64_verified=true`、`p6_probe_module_count=6` 和完整安装回归通过。不得声明 durable/cross-process Event、
+Trigger runtime、proactive authority、production Context registry、active suggestion source、自动 Effect、Vehicle/NPU/Driver-HAL 或 target
+hardware validation。Req IDs：`S2-EVT-001`、`S2-SCN-001`、`S2-CTX-001`、`S2-UX-002`、`S2-TRG-002`、
+`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-107`、`ISSUE-031/046`。
