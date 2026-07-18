@@ -1203,6 +1203,47 @@ if [[ "$PERFORMANCE_BUDGET_PROBE_PASSED" != true ]]; then
   exit 1
 fi
 
+STABILITY_MATRIX_NONCE="$(date +%s%N)"
+STABILITY_MATRIX_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
+  -n com.centralbrain.runtime/.reliability.StabilityFaultMatrixProbeActivity \
+  --es nonce "$STABILITY_MATRIX_NONCE")"
+if ! grep -Fq "Status: ok" <<<"$STABILITY_MATRIX_PROBE_OUTPUT"; then
+  echo "$STABILITY_MATRIX_PROBE_OUTPUT" >&2
+  echo "stability fault matrix debug probe did not start successfully" >&2
+  exit 1
+fi
+STABILITY_MATRIX_PROBE_PASSED=false
+for _ in {1..40}; do
+  STABILITY_MATRIX_LOG="$("${ADB_DEVICE[@]}" logcat -d -s CbStabilityProbe:I)"
+  if grep -Fq \
+      "nonce=$STABILITY_MATRIX_NONCE stability_fault_matrix_probe_complete=true" \
+      <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "stability_fault_matrix_contract_verified=true" \
+        <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "stability_matrix_verified=true" <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "stability_report_validation_verified=true" \
+        <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "stability_boundary_verified=true" \
+        <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "stability_target_72h_complete=false" \
+        <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "stability_fault_injection_runtime_wired=false" \
+        <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "hardware_accessed=false" <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "production_ready=false" <<<"$STABILITY_MATRIX_LOG" \
+      && grep -Fq "target_hardware_validated=false" \
+        <<<"$STABILITY_MATRIX_LOG"; then
+    STABILITY_MATRIX_PROBE_PASSED=true
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$STABILITY_MATRIX_PROBE_PASSED" != true ]]; then
+  echo "$STABILITY_MATRIX_LOG" >&2
+  echo "stability fault matrix probe did not pass" >&2
+  exit 1
+fi
+
 SCHEDULER_NONCE="$(date +%s%N)"
 SCHEDULER_PROBE_OUTPUT="$("${ADB_DEVICE[@]}" shell am start -W \
   -n com.centralbrain.runtime/.scheduler.InferenceSchedulerContractProbeActivity \
@@ -4509,6 +4550,16 @@ printf '%s\n' \
   "performance_budget_target_measurement_complete=false" \
   "performance_budget_runtime_wired=false" \
   "performance_budget_android13_arm64_verified=true" \
+  "stability_fault_matrix_contract_verified=true" \
+  "stability_matrix_verified=true" \
+  "stability_report_validation_verified=true" \
+  "stability_boundary_verified=true" \
+  "stability_workload_count=3" \
+  "stability_fault_count=6" \
+  "stability_matrix_case_count=18" \
+  "stability_target_72h_complete=false" \
+  "stability_fault_injection_runtime_wired=false" \
+  "stability_android13_arm64_verified=true" \
   "inference_scheduler_contract_verified=true" \
   "trusted_effective_priority_verified=true" \
   "priority_deadline_fifo_order_verified=true" \

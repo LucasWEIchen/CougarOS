@@ -23,10 +23,12 @@ TARGET_DISCOVERY="$ROOT_DIR/docs/CENTRAL_BRAIN_TARGET_CAPABILITY_DISCOVERY.md"
 TARGET_DISCOVERY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p8_target_capability_discovery.json"
 PERFORMANCE_BUDGET="$ROOT_DIR/docs/CENTRAL_BRAIN_PERFORMANCE_BUDGETS.md"
 PERFORMANCE_BUDGET_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_performance_budget.json"
+STABILITY_MATRIX="$ROOT_DIR/docs/CENTRAL_BRAIN_STABILITY_FAULT_MATRIX.md"
+STABILITY_MATRIX_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_stability_fault_matrix.json"
 
 for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_MOCKUPS" "$REQUIREMENTS" "$ROADMAP" \
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
-    "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT"; do
+    "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT"; do
   [[ -f "$file" ]] || { echo "AIOS Stage 2 design file missing: $file" >&2; exit 1; }
 done
 
@@ -336,12 +338,12 @@ require_text "$README" 'client2_hmi_checkpoint_text_persisted=false'
 require_text "$README" 'cockpit_hmi_four_stage_shell_implemented=true'
 require_text "$README" 'cockpit_hmi_safe_frame_1920x1080_verified=true'
 require_text "$README" 'cockpit_hmi_device_drawer_scaffolded=true'
-require_text "$README" 'implementation_stage=P9-W02'
+require_text "$README" 'implementation_stage=P9-W03'
 require_text "$README" 'target_capability_discovery_contract_defined=true'
 require_text "$README" 'target_capability_discovery_hardware_mapping_complete=false'
 require_text "$README" 'target_capability_discovery_external_blocked=true'
 require_text "$TARGET_DISCOVERY" 'P8-W01 Target Capability Discovery Contract'
-require_text "$TARGET_DISCOVERY" 'implementation_stage=P9-W02'
+require_text "$TARGET_DISCOVERY" 'implementation_stage=P9-W03'
 require_text "$BACKLOG" 'P8-W01 software preparation'
 require_text "$REQUIREMENTS" 'P8-W01 target capability discovery trace'
 require_text "$DEVIATIONS" 'DEV-085 P8-W01 discovery tooling does not complete target discovery'
@@ -351,13 +353,23 @@ require_text "$DRIVER" 'P8-W01 Target Capability Discovery Driver/HAL Boundary'
 require_text "$README" 'performance_budget_contract_defined=true'
 require_text "$README" 'performance_budget_metric_count=10'
 require_text "$PERFORMANCE_BUDGET" 'Central Brain P9-W01 Performance Budgets'
-require_text "$PERFORMANCE_BUDGET" 'implementation_stage=P9-W02'
+require_text "$PERFORMANCE_BUDGET" 'implementation_stage=P9-W03'
 require_text "$BACKLOG" '`P9-W01` Performance budgets'
 require_text "$REQUIREMENTS" 'P9-W01 performance budget trace'
 require_text "$DEVIATIONS" 'DEV-086 P9-W01 initial budgets are not target measurements'
 require_text "$ISSUES" 'ISSUE-048 P9 target performance evidence is unavailable'
 require_text "$DELIVERY" 'Android P9-W01 Performance Budget Contract'
 require_text "$DRIVER" 'P9-W01 Performance Budget Driver/HAL Boundary'
+require_text "$README" 'stability_fault_matrix_contract_defined=true'
+require_text "$README" 'stability_matrix_case_count=18'
+require_text "$STABILITY_MATRIX" 'Central Brain P9-W02 Stability and Fault Matrix'
+require_text "$STABILITY_MATRIX" 'implementation_stage=P9-W03'
+require_text "$BACKLOG" '`P9-W02` 72h stability and fault matrix'
+require_text "$REQUIREMENTS" 'P9-W02 stability and fault matrix trace'
+require_text "$DEVIATIONS" 'DEV-087 P9-W02 synthetic matrix is not a 72h target run'
+require_text "$ISSUES" 'ISSUE-049 P9 target 72h stability evidence is unavailable'
+require_text "$DELIVERY" 'Android P9-W02 Stability Fault Matrix Contract'
+require_text "$DRIVER" 'P9-W02 Stability Fault Matrix Driver/HAL Boundary'
 require_text "$README" 'working_memory_store_defined=true'
 require_text "$README" 'working_memory_terminal_cleanup_verified=true'
 require_text "$README" 'working_memory_runtime_wired=false'
@@ -548,5 +560,6 @@ bash "$ROOT_DIR/tools/check_central_brain_android_tool_rule_solver.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_executor.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_target_capability_discovery.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_performance_budget.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_stability_fault_matrix.sh"
 
 echo "Central Brain AIOS Stage 2 design check passed"

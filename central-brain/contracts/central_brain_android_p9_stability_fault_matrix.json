@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-stability-v1",
+  "maturity": "software_contract_target_72h_pending",
+  "req_ids": [
+    "S2-REL-001",
+    "S2-OBS-001",
+    "XSC-001",
+    "XSC-004",
+    "XSC-005",
+    "XSC-006",
+    "KH-003",
+    "KH-006",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "workloads": [
+    "scene.comfort.cold.v1",
+    "scene.fatigue.assist.v1",
+    "scene.rest.nap.v1"
+  ],
+  "faults": [
+    {
+      "fault_id": "none",
+      "expected_outcome": "COMPLETED",
+      "recovery_budget_ms": 0
+    },
+    {
+      "fault_id": "adapter_death",
+      "expected_outcome": "RECOVERED",
+      "recovery_budget_ms": 5000
+    },
+    {
+      "fault_id": "runtime_restart",
+      "expected_outcome": "RECOVERED",
+      "recovery_budget_ms": 30000
+    },
+    {
+      "fault_id": "storage_pressure",
+      "expected_outcome": "FAIL_CLOSED",
+      "recovery_budget_ms": 5000
+    },
+    {
+      "fault_id": "callback_churn",
+      "expected_outcome": "RECOVERED",
+      "recovery_budget_ms": 5000
+    },
+    {
+      "fault_id": "network_loss",
+      "expected_outcome": "DEGRADED",
+      "recovery_budget_ms": 5000
+    }
+  ],
+  "evidence_modes": {
+    "CONTRACT_TEST": {
+      "minimum_iterations_per_case": 1,
+      "minimum_duration_ms": 0,
+      "target_evidence": false
+    },
+    "ANDROID_APPLICATION": {
+      "minimum_iterations_per_case": 30,
+      "minimum_duration_ms": 60000,
+      "target_evidence": false
+    },
+    "TARGET_ANDROID13_72H": {
+      "minimum_iterations_per_case": 30,
+      "minimum_duration_ms": 259200000,
+      "target_evidence": true,
+      "requires_release_source_alias_digest_and_owner_approval": true
+    }
+  },
+  "matrix": [
+    {"case_id": "scene.comfort.cold.v1::none", "workload": "scene.comfort.cold.v1", "fault": "none"},
+    {"case_id": "scene.comfort.cold.v1::adapter_death", "workload": "scene.comfort.cold.v1", "fault": "adapter_death"},
+    {"case_id": "scene.comfort.cold.v1::runtime_restart", "workload": "scene.comfort.cold.v1", "fault": "runtime_restart"},
+    {"case_id": "scene.comfort.cold.v1::storage_pressure", "workload": "scene.comfort.cold.v1", "fault": "storage_pressure"},
+    {"case_id": "scene.comfort.cold.v1::callback_churn", "workload": "scene.comfort.cold.v1", "fault": "callback_churn"},
+    {"case_id": "scene.comfort.cold.v1::network_loss", "workload": "scene.comfort.cold.v1", "fault": "network_loss"},
+    {"case_id": "scene.fatigue.assist.v1::none", "workload": "scene.fatigue.assist.v1", "fault": "none"},
+    {"case_id": "scene.fatigue.assist.v1::adapter_death", "workload": "scene.fatigue.assist.v1", "fault": "adapter_death"},
+    {"case_id": "scene.fatigue.assist.v1::runtime_restart", "workload": "scene.fatigue.assist.v1", "fault": "runtime_restart"},
+    {"case_id": "scene.fatigue.assist.v1::storage_pressure", "workload": "scene.fatigue.assist.v1", "fault": "storage_pressure"},
+    {"case_id": "scene.fatigue.assist.v1::callback_churn", "workload": "scene.fatigue.assist.v1", "fault": "callback_churn"},
+    {"case_id": "scene.fatigue.assist.v1::network_loss", "workload": "scene.fatigue.assist.v1", "fault": "network_loss"},
+    {"case_id": "scene.rest.nap.v1::none", "workload": "scene.rest.nap.v1", "fault": "none"},
+    {"case_id": "scene.rest.nap.v1::adapter_death", "workload": "scene.rest.nap.v1", "fault": "adapter_death"},
+    {"case_id": "scene.rest.nap.v1::runtime_restart", "workload": "scene.rest.nap.v1", "fault": "runtime_restart"},
+    {"case_id": "scene.rest.nap.v1::storage_pressure", "workload": "scene.rest.nap.v1", "fault": "storage_pressure"},
+    {"case_id": "scene.rest.nap.v1::callback_churn", "workload": "scene.rest.nap.v1", "fault": "callback_churn"},
+    {"case_id": "scene.rest.nap.v1::network_loss", "workload": "scene.rest.nap.v1", "fault": "network_loss"}
+  ],
+  "pass_invariants": {
+    "unexpected_crash_count": 0,
+    "anr_count": 0,
+    "invariant_violation_count": 0,
+    "completed_iterations_equal_attempted": true,
+    "observed_outcome_matches_matrix": true,
+    "max_recovery_within_fault_budget": true
+  },
+  "claim_state": {
+    "stability_fault_matrix_contract_defined": true,
+    "stability_workload_count": 3,
+    "stability_fault_count": 6,
+    "stability_matrix_case_count": 18,
+    "stability_report_validation_verified": true,
+    "stability_target_72h_complete": false,
+    "stability_target_owner_approved": false,
+    "stability_android13_arm64_verified": false,
+    "stability_fault_injection_runtime_wired": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}
