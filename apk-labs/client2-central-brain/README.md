@@ -90,10 +90,14 @@ primary Intent surface exposes four natural scenes and the stage rail exposes
 Intent, Plan, Execution and Result. HVAC/Seat remain secondary detail drawers;
 HVAC contains the P4-W04 governed manual control surface and Seat contains the
 P4-W05 safety-gated governed manual control surface.
-Each scene creates a typed
-Session through `CockpitControlCoordinator -> Client2ScenarioBridge.openSession
--> SessionClient`; snapshot, typed events and authoritative cursor replay are
-reduced into immutable `CockpitHmiState` before rendering. The bridge
+Each scene first creates a typed Session through
+`CockpitControlCoordinator -> Client2ScenarioBridge.openSession -> SessionClient`.
+After Runtime returns the owner-scoped Session ID, cold/fatigue scenes continue
+through `OrchestrationRuntimeClient -> OrchestrationClient V1`. The client reads
+an existing projection before starting, validates the typed Plan against the
+snapshot, and projects Plan/Graph/Effect/readback metadata into immutable HMI
+state. Session snapshots, typed events and authoritative cursor replay are also
+reduced into `CockpitHmiState` before rendering. The bridge
 `submit(...)` descriptor remains only as an unused compatibility wrapper.
 The SDK, AIDL parcelables and a narrow Client2 bridge are compiled into
 `classes2.dex`. The APK requests no network permission and contains no direct
@@ -109,8 +113,12 @@ The Execution surface also owns a fail-closed approval and recovery section.
 `CockpitRecoveryState` projects approval status, partial terminal evidence and
 compensation from sanitized Session/Event data. Because the current Client2
 surface does not receive `ApprovalPrompt`, `EffectObservation.retryable` or
-`UndoHandle`, approve/reject/retry/undo stay visible and disabled; outside
-dismissal preserves the active Session and recovery projection.
+`UndoHandle`, retry/undo stay visible and disabled. For the formal Orchestration
+V1 debug profile only, approve/reject become enabled when the latest projection
+contains a pending approval and `approvalResponseAvailable=true`. The response
+is bound to the current `approvalId` and `projectionDigest`; it is not an
+approval grant, and Runtime revalidates authority and Context. Outside dismissal
+preserves the active Session and recovery projection.
 
 `DrivingUxPolicy` now maps the immutable Seat/Context driving projection to
 `PanelPresentationMode`. Missing, stale, unavailable, unknown, or moving
@@ -166,9 +174,50 @@ partial failure, retry and undo commands remain P4-W07 work and are not synthesi
 
 Maintained Java code in `classes2.dex` now owns immutable HMI state, reducer,
 rendering and SDK coordination. Smali is only the one-line install bootstrap.
-Manual controls and AI scenarios both submit through the Scenario/Session SDK;
-neither the View nor the bridge may call a simulated or target vehicle adapter
-directly. Runtime Governance/Graph/Effect wiring remains a later work package.
+Manual controls submit through the Scenario/Session SDK. Cold/fatigue AI scenes
+add the formal Orchestration V1 SDK after Session admission. Neither the View nor
+the bridge calls a simulated or target vehicle adapter directly, and the legacy
+`ISimulatedScenarioRuntime` Client2 path is removed.
+
+## Orchestration V1 Client2 migration
+
+The maintained Client2 source has one execution projection path:
+
+```text
+natural scene button
+  -> SessionClient.openSession
+  -> owner-scoped SessionHandle
+  -> OrchestrationClient.getSnapshot
+  -> start(PROFILE_DEBUG_SIMULATION) only when not already started
+  -> typed ScenarioPlan validation
+  -> OrchestrationSnapshot Plan/Graph/Effect/readback projection
+  -> CockpitHmiReducer
+  -> seven-stage observable UI
+```
+
+Fatigue approval uses `OrchestrationClient.respondToApproval`. The request binds
+the current Session, approval ID and projection digest. Process/activity resume
+reads the existing orchestration projection before deciding whether to start,
+so recreation does not unconditionally execute a second graph. Release Runtime
+continues to return a fail-closed blocked projection because production Context,
+Safety, approval and vehicle Effect authorities are not configured.
+
+Current markers:
+
+```text
+client2_orchestration_sdk_v1_wired=true
+client2_session_before_orchestration=true
+client2_orchestration_resume_read_before_start=true
+client2_orchestration_plan_validated=true
+client2_orchestration_approval_projection_bound=true
+client2_legacy_simulated_scenario_binder_used=false
+client2_android13_x86_64_verified=true
+client2_android13_arm64_verified=false
+hardware_accessed=false
+production_ready=false
+target_hardware_validated=false
+implementation_stage=P4-R2
+```
 
 Without real vehicle signals, only debug/test builds may use the Android Digital
 Twin and simulated HVAC/Seat adapters. The panel must continuously display

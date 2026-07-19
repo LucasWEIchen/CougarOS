@@ -247,6 +247,47 @@ public final class GraphRestartReconcilerTest {
                 GraphRunState.WAITING, nodes, List.of(), List.of()));
     }
 
+    @Test
+    public void emptyIdempotencyKeyMatchesTypedPlanSideEffectRules() {
+        PersistentNode context = new PersistentNode(
+                "context_node",
+                "context.capture",
+                NodeRunState.READY,
+                0,
+                NOW + 5_000L,
+                "",
+                "",
+                SHA_A,
+                NOW);
+
+        PersistentRun accepted = run(
+                GraphRunState.WAITING,
+                List.of(context, new PersistentNode(
+                        "policy_node",
+                        "policy.evaluate",
+                        NodeRunState.READY,
+                        0,
+                        NOW + 5_000L,
+                        "",
+                        "",
+                        SHA_B,
+                        NOW)),
+                List.of(),
+                List.of());
+
+        assertEquals(2, accepted.getNodes().size());
+        assertThrows(IllegalArgumentException.class, () -> new PersistentNode(
+                "effect_node",
+                "effect.execute",
+                NodeRunState.READY,
+                0,
+                NOW + 5_000L,
+                "",
+                "",
+                SHA_C,
+                NOW));
+    }
+
     private static PersistentRun run(
             GraphRunState state,
             List<PersistentNode> nodes,

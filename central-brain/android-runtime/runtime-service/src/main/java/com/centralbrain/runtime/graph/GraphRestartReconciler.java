@@ -35,6 +35,8 @@ public final class GraphRestartReconciler {
             "effect.execute", "effect.verify");
     private static final Set<String> OTHER_SIDE_EFFECT_NODE_TYPES = Set.of(
             "tool.invoke", "model.invoke", "memory.write");
+    private static final Set<String> IDEMPOTENCY_REQUIRED_NODE_TYPES = Set.of(
+            "effect.execute", "tool.invoke", "memory.write", "compensate");
 
     public enum CheckpointStatus {
         VALID,
@@ -513,7 +515,9 @@ public final class GraphRestartReconciler {
             Set<String> nodeIds = new HashSet<>();
             Set<String> idempotencyKeys = new HashSet<>();
             for (PersistentNode node : result) {
-                if (!nodeIds.add(node.nodeId) || !idempotencyKeys.add(node.idempotencyKey)) {
+                if (!nodeIds.add(node.nodeId)
+                        || (!node.idempotencyKey.isEmpty()
+                                && !idempotencyKeys.add(node.idempotencyKey))) {
                     throw violation("durable nodes contain duplicate identity");
                 }
             }
@@ -607,8 +611,14 @@ public final class GraphRestartReconciler {
             if (deadlineEpochMs <= 0L || updatedAtEpochMs <= 0L) {
                 throw violation("node timestamp is invalid");
             }
-            if (idempotencyKey == null || !IDEMPOTENCY_KEY.matcher(idempotencyKey).matches()) {
+            if (idempotencyKey == null
+                    || (!idempotencyKey.isEmpty()
+                            && !IDEMPOTENCY_KEY.matcher(idempotencyKey).matches())) {
                 throw violation("node idempotency key is not canonical");
+            }
+            if (idempotencyKey.isEmpty()
+                    && IDEMPOTENCY_REQUIRED_NODE_TYPES.contains(nodeType)) {
+                throw violation("side-effect node requires an idempotency key");
             }
             if (!checkpointRef.isEmpty()) {
                 requireDigest(checkpointRef, "checkpointRef");

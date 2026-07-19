@@ -5359,3 +5359,29 @@ dispatched/cancelled through `BoundedEventRuntime`; exactly two events are requi
 
 The resulting evidence is combined with P5 evidence using a domain-separated SHA-256 and is passed to every Node/Effect projection. Completion is
 idempotent; close stops the test provider. Release contains no boundary class. Stage `P6-P7-R1`; tracking `DEV-118`, `ISSUE-024/031/044/046`.
+
+## P4-R2 Client2 Orchestration V1 migration detailed design
+
+`CockpitControlCoordinator.startScenario` only reduces the user intent and opens a `SessionClient` connection. It must not start
+orchestration before an owner-scoped `SessionHandle` exists. `onSessionOpened` then calls `OrchestrationRuntimeClient.openOrResume`.
+The client serializes Binder work on one executor, calls `getSnapshot(sessionId)`, and issues a debug-profile start only for the exact
+empty blocked projection `ORCHESTRATION_NOT_STARTED`. An existing Plan is projected without a second start.
+
+Every accepted snapshot passes SDK `OrchestrationContract.validateSnapshot`, then `getPlan` and
+`validatePlanForSnapshot`. The HMI projection maps bounded state/revision/node/effect counts only; no target or reported scalar crosses
+the bridge. Approval creates a new request ID and binds session ID, approval ID and expected projection digest. Binder death clears
+availability and reconnects; lifecycle close unbinds the SDK and stops the executor. The legacy direct simulated-scenario Binder client,
+copied Parcelable and generated AIDL are absent. Stage `P4-R2`; tracking `DEV-119`, `ISSUE-033`.
+
+Durable projection derives `recovery:<nodeId>` only for typed Plan nodes whose idempotency key is legally empty; side-effect nodes still
+require a canonical key. Debug Plan compilation takes the durable Session deadline. Approval and Undo compare against a timestamp-stable
+projection. Readback verification is bound per capability through succeeded `effect.verify` nodes, and Client2 counts only `VERIFIED`
+effects as matched observations. API 33 x86_64 validates Cold 3/3, Fatigue approve 5/3 and reject 4/2; ARM64 remains pending.
+
+## P10-R1 Android repository software completion
+
+The repository implementation baseline is complete for all work that does not require an OEM/Vendor API, real vehicle or NPU,
+production signing/system ownership, or target-owner evidence. The completion contract classifies every remaining item and keeps
+all external activation paths fail closed. It does not change production or target claims: `production_ready=false` and
+`target_hardware_validated=false`. Engineers must add any future target integration as a new Req-ID-traceable contract rather than
+silently replacing an empty adapter.

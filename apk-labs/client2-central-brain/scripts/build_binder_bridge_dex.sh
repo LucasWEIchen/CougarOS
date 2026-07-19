@@ -8,7 +8,6 @@ BUILD_DIR="$ROOT_DIR/builds/client2-central-brain/bridge"
 SDK_AAR="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/build/outputs/aar/central-brain-sdk-debug.aar"
 SIM_AIDL_ROOT="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/aidl"
 SIM_CONTROLLER_AIDL="$SIM_AIDL_ROOT/com/centralbrain/runtime/simulation/IDebugSimulationController.aidl"
-SIM_SCENARIO_AIDL="$SIM_AIDL_ROOT/com/centralbrain/runtime/scenario/ISimulatedScenarioRuntime.aidl"
 
 if [[ -f "$ROOT_DIR/env.sh" ]]; then
   # shellcheck source=/dev/null
@@ -36,7 +35,7 @@ if [[ -z "$AIDL" || ! -x "$AIDL" ]]; then
   echo "Android aidl compiler is unavailable" >&2
   exit 1
 fi
-for aidl_source in "$SIM_CONTROLLER_AIDL" "$SIM_SCENARIO_AIDL"; do
+for aidl_source in "$SIM_CONTROLLER_AIDL"; do
   if [[ ! -f "$aidl_source" ]]; then
     echo "Missing debug simulation AIDL: $aidl_source" >&2
     exit 1
@@ -56,17 +55,15 @@ if [[ ! -f "$SDK_CLASSES" ]]; then
 fi
 
 mapfile -t SOURCES < <(find "$PROJECT_DIR/bridge/src" -type f -name '*.java' -print | sort)
-if [[ "${#SOURCES[@]}" -ne 20 ]]; then
-  echo "Expected exactly twenty Client2 HMI/Session/debug-control Java sources" >&2
+if [[ "${#SOURCES[@]}" -ne 19 ]]; then
+  echo "Expected exactly nineteen Client2 HMI/Session/orchestration Java sources" >&2
   exit 1
 fi
 "$AIDL" --lang=java -I"$SIM_AIDL_ROOT" -o "$BUILD_DIR/generated" \
   "$SIM_CONTROLLER_AIDL"
-"$AIDL" --lang=java -I"$SIM_AIDL_ROOT" -o "$BUILD_DIR/generated" \
-  "$SIM_SCENARIO_AIDL"
 mapfile -t GENERATED_SOURCES < <(find "$BUILD_DIR/generated" -type f -name '*.java' -print | sort)
-if [[ "${#GENERATED_SOURCES[@]}" -ne 2 ]]; then
-  echo "Expected exactly two generated debug simulation Binder sources" >&2
+if [[ "${#GENERATED_SOURCES[@]}" -ne 1 ]]; then
+  echo "Expected exactly one generated debug simulation-controller Binder source" >&2
   exit 1
 fi
 

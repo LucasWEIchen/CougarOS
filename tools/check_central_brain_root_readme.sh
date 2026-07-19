@@ -838,7 +838,13 @@ remaining = readme.split("### 未开发或外部阻塞", 1)[1].split(
 )[0]
 remaining_rows = sum(
     remaining.count(status)
-    for status in ("`IN_PROGRESS`", "`NOT_STARTED`", "`EXTERNAL_BLOCKED`", "`OUT_OF_SCOPE`")
+    for status in (
+        "`SOFTWARE_COMPLETE / EXTERNAL_BLOCKED`",
+        "`SOFTWARE_BASELINE_COMPLETE / EXTERNAL_BLOCKED`",
+        "`SUSPENDED / EXTERNAL_BLOCKED`",
+        "`EXTERNAL_BLOCKED`",
+        "`OUT_OF_SCOPE`",
+    )
 )
 if remaining_rows < 12:
     raise SystemExit("README remaining-work table must contain at least twelve modules")

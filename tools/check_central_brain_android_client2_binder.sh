@@ -265,6 +265,11 @@ expected = {
     "runtime.event.protocol.read",
     "runtime.event.read.own",
     "runtime.event.subscribe.own",
+    "runtime.orchestration.protocol.read",
+    "runtime.orchestration.start.own",
+    "runtime.orchestration.read.own",
+    "runtime.orchestration.approval.respond.own",
+    "runtime.orchestration.cancel.own",
 }
 if actual != expected:
     raise SystemExit(f"Client2 capability set is not least privilege: {actual}")

@@ -2895,3 +2895,27 @@ API 33 x86_64 probe 已确认 Context/Trigger、consent fail-closed、determinis
 `production_decision_composition_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-CTX-001`、`S2-EVT-001`、`S2-MDL-001`、`S2-SAF-001`、
 `S2-OBS-001`、`DEL-001/003/004/005`；tracking：`DEV-118`、`ISSUE-024/031/044/046`；stage `P6-P7-R1`。
+
+## P4-R2 Client2 Orchestration V1 migration delivery
+
+交付文件：`OrchestrationRuntimeClient.java`、更新后的 coordinator/timeline、19-source secondary-dex 构建、
+`central_brain_android_client2_orchestration_migration_v1.json`、静态 checker 和 Android 13 UI 验收脚本。
+APK 调用顺序固定为 Session-first、snapshot-read-before-start、typed Plan validation、reducer projection；审批绑定
+当前 projection。旧 `SimulatedScenarioRuntimeClient` 与复制 Parcelable 不再交付。
+API 33 x86_64 UI 验收已通过 Cold 3/3、Fatigue approve 5/3、reject 4/2，并覆盖 Session/Plan deadline、
+recovery key、stable approval projection 与 capability-bound readback 的运行期回归。
+
+当前交付为 debug application integration。`client2_orchestration_sdk_v1_wired=true`、
+`client2_legacy_simulated_scenario_binder_used=false`、`client2_android13_x86_64_verified=true`、
+`client2_android13_arm64_verified=false`（P4-R2 新链）、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：
+`APP-004`、`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-SAF-001`、
+`S2-HMI-003/006`、`XSC-001/005/006`、`DEL-001/003/004`；tracking：`DEV-119/ISSUE-033`；stage `P4-R2`。
+
+## P10-R1 Android repository software completion
+
+新增机器可读 completion V1 contract 和聚合 checker。交付判定是“仓库内可实现的软件需求无遗漏”，不是量产准入。
+标准 Android SDK AAR、Runtime APK、Demo APK、Client2 debug APK 与文档/合同均继续由既有构建和发布门禁管理；
+目标车辆 adapter、Vendor NPU、production signer/installer、72h/性能/驾驶安全和 replacement-release 证据不在本次
+仓库完成声明内。`repository_software_requirements_complete=true`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-120`。

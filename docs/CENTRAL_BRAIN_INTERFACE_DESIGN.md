@@ -3995,3 +3995,25 @@ vehicle payload, token buffers or Binder parcelables. `combine(decisionEvidence,
 This interface is package-private, debug-only and not Binder/AIDL. Production callers must use separately published Context, Consent, ModelProvider
 and Event contracts; absence remains fail closed. Req IDs：`S2-CTX-001`、`S2-EVT-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`；
 tracking：`DEV-118`、`ISSUE-024/031/044/046`；stage `P6-P7-R1`。
+
+## P4-R2 Client2 Orchestration V1 migration interface
+
+Public SDK dependency: `OrchestrationClient(Context, Executor, ConnectionListener)` with `connect`, `getSnapshot`, `start`, `getPlan`,
+`respondToApproval`, `cancel`, and `close`. Client2 wrapper API is `openOrResume(sessionId, uiScenarioId, DrivingState)`,
+`approvePending`, `rejectPending`, plus availability/snapshot/failure callbacks. It accepts only cold/fatigue aliases and maps them to
+the canonical Session scenario. All calls are owner-scoped by Runtime Binder identity.
+
+`OrchestrationStartRequest` always uses schema V1, UUID request/session IDs, canonical scenario, explicit
+`PROFILE_DEBUG_SIMULATION`, parked/moving simulation motion and current wall time. `ApprovalResponse` always uses schema V1, UUID
+request ID, current session/approval IDs, current projection digest, approve/reject and current time. No API returns target values,
+user/model text, vehicle payload or an approval grant. Stage `P4-R2`; tracking `DEV-119`, `ISSUE-033`.
+
+Persistence adapters normalize only empty non-side-effect keys to `recovery:<nodeId>`, bind Plan deadline to Session deadline, and preserve
+projection timestamps while state is unchanged. `OrchestrationEffect.STATE_VERIFIED` is the only Client2 readback-match signal; `DELIVERED`
+means delivery only. API 33 x86_64 is verified; ARM64, production authority and target evidence remain false.
+
+## P10-R1 Android repository software completion
+
+No repository-owned interface remains undefined. External boundaries continue to return typed unavailable/not-authorized results for
+Vehicle/VHAL/SOA, Vendor NPU, trusted Safety/identity and production release ownership. The completion V1 contract is the authoritative
+classification surface; it never promotes an empty adapter or debug simulation to production capability.

@@ -79,9 +79,13 @@ if grep -Eq 'CentralBrainDatabase|DurableEventCursorRepository|RuntimeStateDao' 
   echo "Event readiness snapshot must not open or construct durable storage" >&2
   exit 1
 fi
-if grep -Eq 'DurableEventCursorRepository|import .*BoundedEventRuntime|new BoundedEventRuntime|createForContractTest' \
+if grep -Eq 'import .*BoundedEventRuntime|new BoundedEventRuntime|createForContractTest' \
     "$ROOT_DIR/$RUNTIME" "$ROOT_DIR/$DIAGNOSTIC"; then
-  echo "R6A3 production Services must consume readiness only" >&2
+  echo "R6A3 production Services must not activate the bounded test Event runtime" >&2
+  exit 1
+fi
+if grep -Fq 'DurableEventCursorRepository' "$ROOT_DIR/$DIAGNOSTIC"; then
+  echo "R6A3 diagnostics must consume readiness without owning Event V2 storage" >&2
   exit 1
 fi
 if grep -R -Eiq \

@@ -971,6 +971,28 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-120 P10-R1 Android repository software completion
+
+偏差：历史路线图和完成度表把已经完成的软件 composition 仍标为“待开发”，并混淆仓库完成与目标量产完成。
+处理：建立 completion V1 契约和静态门禁，将所有剩余项显式分类为 external blocked、suspended 或 out of scope。
+该处理不伪造 OEM/Vendor/真实车辆/NPU/签名/责任人证据；`production_ready=false`、
+`target_hardware_validated=false` 保持不变。
+
+## DEV-119 P4-R2 Client2 Orchestration V1 migration is debug integration, not production vehicle authority
+
+P4-R2 删除了 Client2 对 `ISimulatedScenarioRuntime` 的直接依赖，统一改用正式 `OrchestrationClient` V1。
+Session-first、resume read-before-start、typed Plan validation 和 projection-bound approval 已解决应用侧双链与
+恢复重复启动风险。历史 P4-D4e 合同保留为过去 ARM64 debug 证据，但旧 client/runtime path 不再是当前 APK 能力。
+API 33 x86_64 全链验证期间发现并修复 recovery empty-key、Session/Plan deadline、approval timestamp digest 与
+Effect/readback capability binding 四项仓库实现偏差；这些修复不授予生产车辆 authority。
+
+状态：`Accepted Temporary`。当前 Client2 仍是闭源 APK patch/debug signer 路径；Orchestration 使用显式 simulation
+profile，Context 来自 build-owned debug controller，approval response 不是 production grant，Effect/readback 不访问车辆。
+关闭本偏差需要 OEM source/build/signing owner、production trusted Context/Safety/approval、真实 Vehicle adapter/readback
+和目标发布证据。`client2_legacy_simulated_scenario_binder_used=false`、`hardware_accessed=false`、
+`client2_android13_x86_64_verified=true`、`client2_android13_arm64_verified=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P4-R2`。tracking：`ISSUE-030/033`。
+
 ## DEV-118 P6-P7-R1 debug decision composition is not production AI authority
 
 P6-P7-R1 关闭了 Event/Trigger/Context/Model 软件模块在 debug Orchestration 中互不调用的偏差，但该链只消费 build-owned metadata、

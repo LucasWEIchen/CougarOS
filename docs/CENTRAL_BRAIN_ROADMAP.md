@@ -152,12 +152,13 @@ signer、system/privileged deployment 和整车资格仍未完成。
 | S2-P0 | 完整 AIOS Stage 2 设计冻结 | 调研、UX、最小工作包、详设、HMI 高保真稿件、验收指标 | 已完成 |
 | S2-P1 | Runtime Contract v2 | Session、Plan、Effect、Event、facade、Room 与 aggregate gate | 已完成（W01-W07） |
 | S2-P2 | Context、Digital Twin 与 Scenario foundation | Android debug/test context/twin；build-owned manifest；deterministic resolver/compiler；simulated adapters/controller；production 无 fallback | 已完成（W01-W12） |
-| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 已完成软件 foundation（W01-W09；Runtime/production wiring 仍 false） |
-| S2-P4 | Client2 HMI 与场景/Effect 投影 | P4-W01..W12 应用验收完成；Runtime 自动 Plan/Effect/readback 待接 | 应用层完成 / Runtime 未完成 |
-| S2-P5 | Tool/Skill 与 Memory | Tool manifest/schema、Registry/Resolver/RuleSolver/Executor、Skill trust、Memory lifecycle | W01-W08 已完成，W09-W10 待开发 |
-| S2-P6 | Event/Model 与高级 Memory 集成 | durable broker、proactive trigger、model routing、context budget | 未开始 |
-| S2-P7 | 质量与发布 | fault matrix、性能、隐私、安全、升级 | 未开始 |
+| S2-P3 | Durable Agent Graph | plan/step/checkpoint/recovery/compensation | 仓库软件完成（W01-W09 + P4-R1 Orchestration/Room composition）；production Effect material/authority 外部阻塞 |
+| S2-P4 | Client2 HMI 与场景/Effect 投影 | P4-W01..W12 UI/UX + P4-R2 正式 Orchestration SDK、typed Plan、debug Effect/readback | 仓库软件完成；API 33 x86_64 闭环通过，ARM64 目标复测和真实车控外部阻塞 |
+| S2-P5 | Tool/Skill 与 Memory | Tool manifest/schema、Registry/Resolver/RuleSolver/Executor、Skill trust、Working/Profile/Episodic Memory、Context budget/consent | 仓库软件完成（W01-W10 + P5-R1 debug composition）；production signer/storage/owner 外部阻塞 |
+| S2-P6 | Event、Trigger、Consent 与决策组合 | Event V2 durable Session cursor、broker/QoS、Context/Trigger/consent/suggestion、P6-P7-R1 decision composition | 仓库软件完成；production middleware、可信 Context/DMS 与产品/隐私 owner 外部阻塞 |
+| S2-P7 | Model Runtime 与资源治理 | Model V2、provider registry/health、router、structured output、evaluation、resource/thermal admission | 仓库软件完成；Vendor NPU/provider、资源标定与 production authority 外部阻塞 |
 | S2-P8 | 真实车辆适配 | 按 capability 引入已确认的 vendor/public adapter | 外部阻塞 |
+| S2-P9 | 质量、隐私与发布 | 性能/稳定性合同、隐私清单/准入、发布/回滚、驾驶安全和现场证据接口 | 仓库软件与非执行证据接口完成；可执行 security campaign 挂起，目标测量/责任人/量产签名外部阻塞 |
 
 P0-P7 估算为 136-184 人日；其中 Client2 HVAC/Seat 中控闭环为 24-32 人日。该估算不含 Vendor
 SDK、Driver/HAL、功能安全认证、量产 HMI 重写和
@@ -1813,6 +1814,31 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `p5_probe_module_count=10`、`device_identity_redacted=true`、`production_tool_authority_published=false`、
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+## P10-R1 Android repository software completion
+
+S2-P0..P7 的仓库软件工作已完成；S2-P8 为 OEM/Vendor/车辆/NPU 外部适配，S2-P9 已完成软件合同和
+非执行证据接口，但 security campaign 挂起且目标资格仍外部阻塞。完成度契约禁止出现未分类仓库需求，
+也禁止把外部阻塞误报为 production 完成。`repository_software_requirements_complete=true`、
+`unclassified_repository_requirement_count=0`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-120`；stage `P10-R1`。
+
+### 2026-07-19 P4-R2 Client2 Orchestration V1 migration
+
+状态：`DEVELOPED / API33_X86_VERIFIED / ARM64_PENDING`。Client2 cold/fatigue 路径已删除历史
+`ISimulatedScenarioRuntime` client 和复制 Parcelable，改为 `SessionClient.openSession -> SessionHandle ->
+OrchestrationClient.getSnapshot -> start only when not started -> getPlan/validatePlanForSnapshot -> reducer`。
+Activity/Session 恢复不会无条件重启 Graph；批准/拒绝绑定最新 approval ID 与 projection digest。
+API 33 x86_64 已验证 Cold completed 3/3、Fatigue approved completed 5/3、Fatigue rejected partial 4/2；同时修复
+non-side-effect recovery key、Session/Plan deadline、稳定 approval projection 与 capability-bound readback 四项契约对齐。
+
+本项关闭 `ISSUE-033` 中“双场景执行链、Client2 未消费正式 Orchestration”的仓库软件子项。正式车辆
+Context、production approval authority、Effect adapter/readback、OEM signer 和目标硬件证据仍由
+`ISSUE-022/030/031/033` 管理。Req IDs：`APP-004`、`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、
+`S2-EFF-001`、`S2-SAF-001`、`S2-HMI-003/006`、`XSC-001/005/006`、`DEL-001/003/004`；tracking：
+`DEV-119`。`client2_orchestration_sdk_v1_wired=true`、`client2_legacy_simulated_scenario_binder_used=false`、
+`client2_android13_x86_64_verified=true`、`client2_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P4-R2`。
 
 ### 2026-07-19 P6-P7-R1 Decision composition progress
 

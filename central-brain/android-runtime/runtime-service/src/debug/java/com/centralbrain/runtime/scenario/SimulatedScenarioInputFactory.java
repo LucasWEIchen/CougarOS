@@ -22,6 +22,7 @@ import com.centralbrain.runtime.vehicle.schema.SignalValue;
 import com.centralbrain.runtime.vehicle.schema.VehicleSignalPath;
 import com.centralbrain.runtime.vehicle.twin.DigitalTwinSnapshot;
 import com.centralbrain.runtime.vehicle.twin.VehicleDigitalTwinStore;
+import com.centralbrain.sdk.plan.PlanContract;
 
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -115,12 +116,42 @@ public final class SimulatedScenarioInputFactory {
             ScenarioKind scenario,
             DrivingProfile driving,
             String sessionId) {
+        long nowEpochMs = epochMs.getAsLong();
+        return createForSession(
+                scenario,
+                driving,
+                sessionId,
+                nowEpochMs,
+                nowEpochMs + DEADLINE_MS);
+    }
+
+    public Input createForSession(
+            ScenarioKind scenario,
+            DrivingProfile driving,
+            String sessionId,
+            long deadlineEpochMs) {
+        return createForSession(
+                scenario,
+                driving,
+                sessionId,
+                epochMs.getAsLong(),
+                deadlineEpochMs);
+    }
+
+    private Input createForSession(
+            ScenarioKind scenario,
+            DrivingProfile driving,
+            String sessionId,
+            long nowEpochMs,
+            long deadlineEpochMs) {
         ScenarioKind requiredScenario = Objects.requireNonNull(scenario, "scenario");
         DrivingProfile requiredDriving = Objects.requireNonNull(driving, "driving");
         String canonicalSessionId = canonicalUuid(sessionId, "sessionId");
-        long nowEpochMs = epochMs.getAsLong();
         long nowElapsedMs = elapsedRealtimeMs.getAsLong();
-        if (nowEpochMs <= 0 || nowElapsedMs < 0) {
+        if (nowEpochMs <= 0
+                || nowElapsedMs < 0
+                || deadlineEpochMs <= nowEpochMs
+                || deadlineEpochMs - nowEpochMs > PlanContract.MAX_PLAN_DEADLINE_MS) {
             throw violation("clock is invalid");
         }
         ContextFieldPolicy policy = requiredScenario == ScenarioKind.COLD
@@ -145,7 +176,7 @@ public final class SimulatedScenarioInputFactory {
                 canonicalSessionId,
                 1,
                 nowEpochMs,
-                nowEpochMs + DEADLINE_MS);
+                deadlineEpochMs);
         return new Input(request, resolution, context, capabilities);
     }
 

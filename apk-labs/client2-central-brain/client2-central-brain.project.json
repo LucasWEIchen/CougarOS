@@ -1,6 +1,6 @@
 {
   "project": "client2-central-brain-apk-reverse-demo",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "source_apk": "apks/original/client2_20260306_170923.apk",
   "package_name": "com.tuanjie.urasclient2",
   "launch_activity": "com.tuanjie.urasclient2.MainActivity",
@@ -64,7 +64,7 @@
       "type": "embedded-secondary-dex",
       "target": "classes2.dex",
       "source": "apk-labs/client2-central-brain/bridge/src",
-      "summary": "Embeds the ScenarioClient-backed Session implementation, generated Session/Event and debug-simulation AIDL, exact Runtime v2 simulated-scenario Parcelable wire DTO, immutable HMI/HVAC/Seat/execution/recovery/presentation/engineer/scenario-control/simulated-scenario state, DrivingUxPolicy, the sole reducer, bounded typed-event projection, synchronized catalog device roles, seven-stage debug simulated Effect/readback projection, explicit simulated approval/Partial handling, protected debug Context/fault controls, 300 ms HVAC/Seat debounce, governed manual Sessions, existing-Session resume, a shared 14-alias canonical ID catalog and the unused legacy compatibility wrapper; the output is signed with the Runtime debug signer.",
+      "summary": "Embeds the ScenarioClient-backed Session implementation and formal OrchestrationClient V1 SDK projection, generated debug-controller AIDL only, immutable HMI/HVAC/Seat/execution/recovery/presentation/engineer/scenario state, DrivingUxPolicy, the sole reducer, bounded typed-event projection, synchronized catalog device roles, seven-stage Plan/Graph/Effect/readback projection, projection-bound approval response, protected debug Context/fault controls, 300 ms HVAC/Seat debounce, governed manual Sessions, existing-Session resume, a shared 14-alias canonical ID catalog and the unused legacy compatibility wrapper; the legacy ISimulatedScenarioRuntime client and copied Parcelable are absent, and the output is signed with the Runtime debug signer.",
       "req_ids": [
         "APP-004",
         "XSC-001",
@@ -96,6 +96,7 @@
     "DEV-057: recovery UX cannot receive ApprovalPrompt, EffectObservation.retryable or UndoHandle through the current Client2 Session/Event surface",
     "DEV-058: the physical Client2 has no production trusted global Context provider; P4-W09 closes only the protected debug testability subcondition",
     "DEV-059: the engineer drawer projects acknowledged debug-controller state locally and is absent from Runtime release; it is not production Context, Safety or Effect authority",
-    "DEV-105: the Client2 D4e loop displays debug simulated Effect/readback and explicit simulation input; it is not production vehicle execution, approval authority or hardware evidence"
+    "DEV-105: the historical Client2 D4e loop displayed debug simulated Effect/readback and explicit simulation input; it was not production vehicle execution, approval authority or hardware evidence",
+    "DEV-119: Client2 now consumes formal Orchestration V1 only for the debug profile; production Context, approval authority, vehicle adapters and target evidence remain external"
   ]
 }

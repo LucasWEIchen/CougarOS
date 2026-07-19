@@ -305,8 +305,8 @@ public final class CockpitExecutionTimeline {
                 next = next.replace(
                         Phase.GRAPH,
                         Status.FAILED,
-                        "DEBUG_SCENARIO_BINDER",
-                        "RUNTIME_DEBUG",
+                        "ORCHESTRATION_V1",
+                        "RUNTIME_SDK",
                         simulated.getFailureCode());
             }
             return next;
@@ -316,7 +316,7 @@ public final class CockpitExecutionTimeline {
                 Phase.INTENT,
                 Status.SESSION_ACCEPTED,
                 simulated.getCanonicalScenarioId(),
-                "RUNTIME_DEBUG",
+                "ORCHESTRATION_V1",
                 "FIXED_SCENARIO");
         next = next.replace(
                 Phase.CONTEXT,
@@ -328,7 +328,7 @@ public final class CockpitExecutionTimeline {
                 Phase.PLAN,
                 Status.PUBLISHED,
                 "PLAN_REV_" + simulated.getPlanRevision(),
-                "RUNTIME_DEBUG",
+                "ORCHESTRATION_V1",
                 "GRAPH_REV_" + simulated.getGraphRevision());
 
         CockpitExecutionTimeline.Status policyStatus =
@@ -341,25 +341,25 @@ public final class CockpitExecutionTimeline {
                 Phase.POLICY,
                 policyStatus,
                 target,
-                "RUNTIME_DEBUG",
+                "ORCHESTRATION_V1",
                 "SIMULATION_ONLY");
         next = next.replace(
                 Phase.GRAPH,
                 graphStatus(simulated.getLifecycle()),
                 target,
-                "GRAPH_DEBUG",
+                "GRAPH_V1",
                 simulated.getLifecycle().name());
         next = next.replace(
                 Phase.EFFECT,
                 effectStatus(simulated),
                 "FIXED_SCENARIO_TARGETS",
-                "SIMULATED_ADAPTER",
+                "EFFECT_V1_DEBUG",
                 "DISPATCH_COUNT_" + simulated.getEffectDispatchCount());
         return next.replace(
                 Phase.READBACK,
                 readbackStatus(simulated),
                 "SIMULATED_OBSERVATION",
-                "SIMULATED_ADAPTER",
+                "READBACK_V1_DEBUG",
                 "MATCH_" + simulated.getReadbackMatchCount()
                         + "_OF_" + simulated.getReadbackAttemptCount());
     }

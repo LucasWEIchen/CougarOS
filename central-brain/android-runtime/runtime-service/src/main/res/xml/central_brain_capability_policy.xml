@@ -43,7 +43,6 @@
         <capability name="runtime.orchestration.start.own" />
         <capability name="runtime.orchestration.read.own" />
         <capability name="runtime.orchestration.approval.respond.own" />
-        <capability name="runtime.orchestration.undo.request.own" />
         <capability name="runtime.orchestration.cancel.own" />
     </principal>
 </capability-policy>

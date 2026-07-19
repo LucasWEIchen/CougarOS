@@ -4,14 +4,14 @@
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
-## P4-R1 issue update
+## P10-R1 issue update
 
-`ISSUE-022` 的 Binder 编排、Room Plan/Node/Session 投影和 restart-to-STUCK/no-replay 软件子项已完成；完整 Plan
-rehydration、可信 Effect material、retention/encryption/clock 仍 Open。`ISSUE-033` 的 Runtime Plan/Graph/Effect
-projection API 子项已完成，但 Client2 仍使用旧 debug scenario Binder，尚未迁移到 Orchestration SDK，所以 HMI
-生产闭环仍 Open。`ISSUE-030` 的 OEM Vehicle/VHAL/SOA adapter、真实 readback 和 target evidence 不由本软件
-增量伪造。当前 `orchestration_android13_arm64_verified=false`、`production_ready=false`、
-`target_hardware_validated=false`；里程碑 `P4-R1`。
+P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Session/Plan/Graph/Effect/readback debug 软件链
+不再有第二套 legacy scenario Binder。P5/P6/P7/P9 的 Tool/Skill/Memory、Event/Trigger/Consent、Model、隐私/发布/
+诊断软件合同和组合项也已归类完成。`ISSUE-019/021..031/033/035..049/051..053` 仅继续跟踪 OEM、Vendor、
+真实车辆/NPU、责任人、量产签名或目标证据；`ISSUE-050` 按用户决策挂起。当前没有未分类的仓库开发需求，
+但 `production_ready=false`、`target_hardware_validated=false`；里程碑 `P10-R1`。
+历史 `P4-R1` issue update 已由 P4-R2 的正式 SDK 迁移结论取代，但其外部 Effect/车辆风险继续保留。
 
 ## 使用规则
 
@@ -61,8 +61,8 @@ projection API 子项已完成，但 Client2 仍使用旧 debug scenario Binder�
 | ISSUE-030 | 车辆控制 API、权限、area mapping、readback 和 owner 未确定。 | S2-ADP-002 | Open |
 | ISSUE-031 | 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定。 | S2-MEM-001, S2-EVT-001 | Open |
 | ISSUE-032 | Python 原型退役后禁止把已删除 gateway/test oracle 当成 Android fallback。 | DEV-026 | Closed |
-| ISSUE-033 | Client2 尚无意图编排四阶段、HVAC/Seat Effect 详情和可观察控制闭环。 | S2-HMI-001..006, DEV-024/025 | Open |
-| ISSUE-034 | Event V1 terminal cursor 不能前移 ACK；当前靠 sequence 去重但不适合高吞吐 broker。 | S2-EVT-001, P6-W01/W02 | Open / Design Decided |
+| ISSUE-033 | Client2 意图编排、HVAC/Seat、正式 Orchestration、Effect/readback 和七阶段可观察闭环的软件子项已完成；真实车控与量产 HMI 继续外部跟踪。 | S2-HMI-001..006, DEV-119 | Software Closed / External Integration Open |
+| ISSUE-034 | Event V2 已增加 opaque terminal cursor、显式 ACK 和 Room durable Session cursor；production middleware 风险转由 ISSUE-046 跟踪。 | S2-EVT-001, P6-EV2 | Closed / Superseded |
 | ISSUE-035 | Client2 process-recreation checkpoint 的 production storage/backup/user owner 未确定。 | S2-UX-001..003, DEV-052 | Open |
 | ISSUE-036 | Tool production owner、health source、artifact trust 与 execution authority 未确定。 | S2-TOL-001, P5-W02..W05 | Open |
 | ISSUE-037 | Tool health publisher、production Registry composition 和 snapshot trust owner 未确定。 | S2-TOL-001, S2-SAF-001, P5-W03..W05/P8 | Open |
@@ -74,7 +74,7 @@ projection API 子项已完成，但 Client2 仍使用旧 debug scenario Binder�
 | ISSUE-043 | Episodic Memory 的 production catalog、storage/read/erase authority、retention clock、durable repository 与 model publication owner 未确定。 | S2-MEM-001, S2-SAF-001, P5-W09/W10/P9 | Open |
 | ISSUE-044 | Context 的 production tokenizer/version/digest、size evidence、budget authority、summary/truncation executor 与 Runtime/model composition owner 未确定。 | S2-MEM-001, S2-MDL-001, S2-SAF-001, P5-W10/P7/P9 | Open |
 | ISSUE-045 | Memory consent 的 production identity/authority、HMI Service、repository mutation/delete evidence 与 trusted driving Context owner 未确定。 | S2-MEM-001, S2-UX-003, S2-SAF-001, P8/P9 | Open |
-| ISSUE-046 | Event Broker 的 durable append/cursor repository、middleware/QoS、identity/policy 与跨进程 callback owner 未确定。 | S2-EVT-001, S2-SAF-001, P6-W02/P8/P9 | Open |
+| ISSUE-046 | Event V2 Room cursor/ACK 与 process broker/QoS 软件完成；production durable publisher、middleware、identity/policy 和跨进程 callback owner 未确定。 | S2-EVT-001, S2-SAF-001, P6-EV2/P8/P9 | Open / External Blocked |
 | ISSUE-047 | P8 目标 property/service/permission/owner/version/readback/fault evidence 未取得，真实 adapter 不能启动。 | S2-ADP-002, S2-OBS-001, P8-W01..W06 | Open / External Blocked |
 | ISSUE-048 | P9 十项预算缺目标 Android 13 采集、30-sample 报告、owner approval 和 release qualification。 | S2-OBS-001, S2-REL-001, P9-W01/W02 | Open |
 | ISSUE-049 | P9 稳定性矩阵缺真实 fault injector、目标 72h run、受控证据和 owner approval。 | S2-REL-001, S2-OBS-001, P9-W02 | Open / External Blocked |
@@ -1343,6 +1343,28 @@ ISSUE-044 仍缺 production tokenizer/summary/model-context authority。`runtime
 JVM 与 API 33 x86_64 probe 子项通过。
 
 Issues 保持 Open：ISSUE-024 缺真实 Provider/NPU/资源 owner；ISSUE-031 缺可信 DMS/Context 和 consent/product/privacy owner；
-ISSUE-044 缺 production tokenizer/context composer；ISSUE-046 缺 durable Event repository、Binder/DDS/SOME-IP transport 和 callback owner。
+ISSUE-044 缺 production tokenizer/context composer；ISSUE-046 缺 production durable publisher、DDS/SOME-IP middleware 和 callback owner。
 `decision_composition_android13_arm64_verified=false`、`production_decision_composition_wired=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-118`、`ISSUE-024/031/044/046`；stage `P6-P7-R1`。
+
+### ISSUE-033 P4-R2 Client2 Orchestration V1 migration update
+
+仓库软件子项已完成：Client2 不再绑定历史 `ISimulatedScenarioRuntime`，只通过正式 Orchestration SDK 获取
+Plan/Graph/Effect/readback；Session 建立先于 Orchestration，恢复先读 snapshot，批准/拒绝绑定 projection digest。
+旧 client、复制 Parcelable 和第二条场景 AIDL 生成链均已删除，避免同一按钮同时驱动两套状态机。
+API 33 x86_64 已通过 Cold 3/3、Fatigue approve 5/3 与 reject 4/2；recovery key、Session/Plan deadline、
+approval stable projection 和 capability-bound readback 的仓库缺口已关闭。
+
+ISSUE-033 保持 `Open / External Integration`：尚缺 OEM production Client2 build/signer、可信 Context/Safety/approval owner、
+真实车辆 Effect/readback、目标 HMI 资格与发布证据。`ISSUE-030` 继续拥有 Vehicle/VHAL/SOA mapping；`ISSUE-022`
+继续拥有完整恢复 material/retention/encryption。当前 `client2_orchestration_sdk_v1_wired=true`、
+`client2_legacy_simulated_scenario_binder_used=false`、`hardware_accessed=false`、`production_ready=false`、
+`client2_android13_x86_64_verified=true`、`client2_android13_arm64_verified=false`、
+`target_hardware_validated=false`；tracking：`DEV-119`；stage `P4-R2`。
+
+## P10-R1 Android repository software completion
+
+仓库软件子项已全部关闭或以明确空接口失败关闭，`unclassified_repository_requirement_count=0`。
+本文件保留的 Open 项均需要 OEM/Vendor、车辆/NPU、量产 signer/系统 owner、产品/隐私/Safety owner 或目标证据；
+`ISSUE-050` 明确 Suspended。该结论不关闭外部风险，`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-120`。
