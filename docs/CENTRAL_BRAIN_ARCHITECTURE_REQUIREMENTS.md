@@ -2930,3 +2930,19 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 `security_cross_uid_callback_owner_isolation_verified=true`、`security_debug_test_principal_release_excluded=true`、
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-112`、`ISSUE-050`。
+
+## 104. P9-W03f bounded parser robustness trace
+
+1. `S2-SAF-001`：checkpoint、scenario manifest 和 Tool input 三类不可信输入边界必须分别进入真实 production parser/validator；测试 target
+   不得复制 production 解析逻辑。
+2. `S2-SAF-001/S2-TOL-001`：每类入口只允许其文档化 typed rejection；unchecked exception、Error、hang、OOM 或 crash artifact 必须失败。
+3. `S2-OBS-001`：证据只允许输出预算、执行量、覆盖率、入口计数、崩溃计数和 boolean；不得输出 raw input、用户/model/vehicle 数据。
+4. `DEL-001/004`：Jazzer 版本、默认/最大预算、单输入 timeout、input/RSS 上限、seed 数和三类 surface 必须由 machine contract 与 checker 固定。
+5. `DEL-005`：默认 20 秒 campaign 必须可由单命令复验，且执行量/覆盖率/各入口调用均大于零、崩溃数为零。
+6. 本 host campaign 不访问网络、ADB、Vehicle/NPU、Driver/HAL；不能替代 Android Binder/Parcel、目标长预算或量产安全 owner 证据。
+
+当前 `security_parser_robustness_engine_pinned=true`、`security_parser_robustness_budget_defined=true`、
+`security_parser_robustness_surface_count=3`、`security_parser_robustness_seed_count=6`、
+`security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W03`。tracking：`DEV-113`、`ISSUE-050`。

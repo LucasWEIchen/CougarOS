@@ -856,6 +856,10 @@ if "P9 Identity/Replay Security Corpus" not in developed:
     raise SystemExit("README developed table must include the completed P9-W03b host policy corpus")
 if "P9 Security Boundary Inventory" not in developed:
     raise SystemExit("README developed table must include the completed P9-W03c boundary inventory")
+if "P9 Callback Replay Device Evidence" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W03e callback evidence")
+if "P9 Parser Robustness Host Campaign" not in developed:
+    raise SystemExit("README developed table must include the completed P9-W03f host campaign")
 if "P9 Privacy Data Inventory" not in developed:
     raise SystemExit("README developed table must include the completed P9-W04a privacy inventory")
 if "P9 Privacy Policy Admission" not in developed:
@@ -892,7 +896,7 @@ if (
     "P8-W01 目标能力发现" not in remaining
     or "`EXTERNAL_BLOCKED`" not in remaining
     or "P9-W03 Security review/fuzz" not in remaining
-    or "callback replay、coverage-guided fuzz、安全 owner approval、production signer/release 资格" not in remaining
+    or "安全 owner approval、production signer/release 资格与目标级安全测试" not in remaining
     or "P9-W04 Privacy/data lifecycle" not in remaining
     or "P9-W05 Production release" not in remaining
     or "P9-W06 Driver safety" not in remaining

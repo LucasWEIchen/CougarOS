@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-parser-robustness-host-campaign-v1",
+  "work_package": "P9-W03f",
+  "maturity": "bounded_host_robustness_evidence",
+  "requirements": [
+    "S2-SAF-001",
+    "S2-TOL-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "engine": {
+    "name": "Jazzer",
+    "version": "0.30.0",
+    "mode": "coverage_guided_jvm",
+    "dependency_scope": "parserSecurityFuzzRuntime"
+  },
+  "campaign": {
+    "default_budget_seconds": 20,
+    "maximum_budget_seconds": 300,
+    "per_input_timeout_seconds": 5,
+    "maximum_input_bytes": 65538,
+    "maximum_rss_mib": 2048,
+    "seed_count": 6,
+    "retained_input_policy": "generated_synthetic_corpus_build_directory_only",
+    "crash_artifact_policy": "local_build_directory_only"
+  },
+  "surfaces": [
+    {
+      "surface_id": "checkpoint.envelope.deserialize.v1",
+      "entrypoint": "JsonPrimitiveCheckpointSerializer.deserialize",
+      "accepted_rejection": "CheckpointException"
+    },
+    {
+      "surface_id": "scenario.manifest.parse.v1",
+      "entrypoint": "ScenarioManifestParser.parse",
+      "accepted_rejection": "ParseException"
+    },
+    {
+      "surface_id": "tool.input.validate.v1",
+      "entrypoint": "ToolSchemaValidator.validateInput",
+      "accepted_rejection": "ValidationException"
+    }
+  ],
+  "evidence_policy": {
+    "minimum_executed_units": 1,
+    "minimum_edge_coverage": 1,
+    "every_surface_must_execute": true,
+    "crash_count_must_equal": 0,
+    "raw_input_logging_allowed": false,
+    "network_access_allowed": false,
+    "android_device_access_required": false
+  },
+  "claim_state": {
+    "security_parser_robustness_engine_pinned": true,
+    "security_parser_robustness_budget_defined": true,
+    "security_parser_robustness_surface_count": 3,
+    "security_parser_robustness_seed_count": 6,
+    "security_parser_robustness_host_campaign_verified": true,
+    "security_coverage_guided_fuzz_complete": false,
+    "security_production_signer_verified": false,
+    "network_accessed": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

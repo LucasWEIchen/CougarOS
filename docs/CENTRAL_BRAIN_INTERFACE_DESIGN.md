@@ -3902,3 +3902,21 @@ Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 - evidence：API 33 ARM64 双 UID 四例，只输出 boolean markers；不输出 task/UID/signer/device/raw payload。
 
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。
+
+## Android P9-W03f Parser Robustness Campaign Contract
+
+| Interface | Input/admission | Accepted output | Failure boundary |
+| --- | --- | --- | --- |
+| `ParserSecurityFuzzTarget.fuzzerTestOneInput(byte[])` | 1..65,538 bytes; selector routes to one of three surfaces | return or surface-specific typed rejection | unchecked exception, Error, timeout or crash |
+| `JsonPrimitiveCheckpointSerializer.deserialize` | raw or bounded mutation of canonical checkpoint | `CheckpointEnvelope` or `CheckpointException` | any other throwable |
+| `ScenarioManifestParser.parse` | bounded source name plus raw/baseline-mutated bytes | manifest or `ParseException` | any other throwable |
+| `ToolSchemaValidator.validateInput` | bounded map with known/unknown fields and typed mutations | validated map or `ValidationException` | any other throwable |
+| `fuzzParserSecurity` Gradle task | pinned engine, reset synthetic corpus, 1..300 second caller budget | Jazzer final stats and per-surface counters | non-zero process exit |
+| campaign shell runner | final stats, target counters and local artifact directory | bounded scalar markers | missing/zero metric, any crash artifact or raw-input marker mismatch |
+
+The interface is host-test-only and adds no AIDL, JNI, C ABI or Android component. Machine contract:
+`central_brain_android_p9_parser_robustness_campaign.json`. Evidence command:
+`bash tools/test_central_brain_android_parser_robustness_campaign.sh`. Current
+`security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`。
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。

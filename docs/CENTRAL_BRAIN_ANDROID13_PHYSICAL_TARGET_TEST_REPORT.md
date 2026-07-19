@@ -906,3 +906,15 @@ owner-B 的 exact active replay 返回同 task，重复 sequence 被 SDK guard �
 `security_debug_test_principal_release_excluded=true`。`security_coverage_guided_fuzz_complete=false`、
 `security_production_signer_verified=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。
+
+## 27. 2026-07-19 P9-W03f host parser robustness and Android compatibility evidence
+
+W03f campaign 本身是 host JVM 工程证据，不在目标设备执行。正式默认 20 秒预算固定 Jazzer 0.30.0 和 6 个 synthetic seed，覆盖 checkpoint、
+scenario manifest、Tool input 三类 production Java parser。正式运行结果：executed units 1,152,237、edge coverage 1,145、checkpoint calls
+441,158、scenario calls 428,249、Tool calls 282,829、crash artifacts 0、`raw_input_logged=false`；不保存 raw engine log 或 generated corpus。
+
+同一增量继续执行既有 API 33 ARM64 callback replay/Runtime compatibility probe，证明 APK 构建和既有目标安全边界未回归；该设备 probe 不被
+表述为 W03f coverage campaign。`security_parser_robustness_host_campaign_verified=true`、
+`security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、
+`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。

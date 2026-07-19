@@ -1364,3 +1364,13 @@ flowchart LR
   terminal replay、cross-UID owner replay。debug policy overlay 不进入 main/release。
 - `ISSUE-050` 的 callback-replay 子项关闭；下一仓库内增量为 coverage-guided fuzz engine/budget/evidence。production signer、security owner、
   Vehicle/NPU/Driver-HAL 和目标硬件资格保持 false。tracking：`DEV-112`、`ISSUE-050`。
+
+## 25. P9-W03f bounded parser robustness campaign
+
+- 状态：`COMPLETE / BOUNDED_HOST_EVIDENCE`（2026-07-19）。
+- 独立 Gradle 配置固定 Jazzer 0.30.0；默认预算 20 秒、上限 300 秒、单输入 5 秒、最大输入 65,538 bytes、RSS 上限 2,048 MiB。
+- 6 个纯合成 seed 驱动 checkpoint envelope、scenario manifest、Tool input schema 三类入口；只有各入口声明的 typed rejection 可被接收，
+  未检查异常、Error、hang 或崩溃使任务失败。
+- runner 必须证明执行量和覆盖率大于零、三类入口均执行、崩溃产物为零、raw-input logging 为 false；生成 corpus 仅位于 `build/`。
+- 本项关闭 `ISSUE-050` 的仓库内 engine/budget/host evidence 子项。production signer、安全 owner、目标级 Android/Binder 长预算测试和 release
+  qualification 保持外部阻塞；`security_coverage_guided_fuzz_complete=false`。tracking：`DEV-113`、`ISSUE-050`。

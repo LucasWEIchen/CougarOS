@@ -1771,6 +1771,19 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+### 2026-07-19 P9-W03f bounded parser robustness campaign
+
+状态：`COMPLETE / BOUNDED_HOST_EVIDENCE`。Jazzer 0.30.0、20 秒默认预算、6 个 synthetic seed 和 checkpoint/scenario/tool 三类 production
+Java parser surface 已由 machine contract 固定；受控 runner 校验执行量、边覆盖、各 surface calls、零 crash artifact 和无 raw-input logging。
+
+本项完成后，`ISSUE-050` 的仓库内 engine/budget/host evidence 已关闭，P9-W03 的可实现仓库工作转为外部阻塞。剩余是安全 owner 批准的
+目标 Android Binder/Parcel/长预算 evidence、production signer/release qualification；不触发 Vehicle/NPU/Driver-HAL 开发。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。
+`security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`network_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
 ### 2026-07-19 P9-W03e callback replay device evidence
 
 状态：`DEVELOPED / ANDROID13_ARM64_DEBUG_VERIFIED`。SDK 新增 callback replay guard，绑定 task ID 并只投影严格递增 update sequence，

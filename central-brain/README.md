@@ -101,3 +101,13 @@ bash tools/check_central_brain_python_prototype_retirement.sh
 update，并保证 completion/failure 终态只交付一次。Android debug capability overlay 仅为 `com.centralbrain.sdk.test` 提供任务测试权限；main/release
 policy 不包含该主体。API 33 ARM64 已用 `com.centralbrain.demo` 与 `com.centralbrain.sdk.test` 两个不同 owner UID 验证同 owner 重放、冲突静默、
 终态重放和跨 UID owner 隔离。`security_task_callback_replay_android_verified=true`；coverage fuzz、production signer 与目标资格仍为 false。
+
+## P9-W03f bounded parser robustness campaign
+
+Runtime host test source set 通过独立 `parserSecurityFuzzRuntime` 配置固定 Jazzer 0.30.0，并用 6 个纯合成 seed 覆盖 checkpoint
+反序列化、scenario manifest 解析和 Tool input schema 校验。`fuzzParserSecurity` 默认运行 20 秒；受控 runner 只输出执行量、边覆盖指标、
+三类入口计数、崩溃数和隐私 marker，不保存业务输入。该证据不访问 Android 设备、网络、Vehicle/NPU 或 Driver/HAL。
+
+运行：`bash tools/test_central_brain_android_parser_robustness_campaign.sh`。当前
+`security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`。
