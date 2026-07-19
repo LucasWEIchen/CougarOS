@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.List;
 
 /**
  * Debug-only composition of scenario compilation and the control-only Agent Graph.
@@ -104,6 +105,8 @@ public final class SimulatedScenarioGraph {
         private final int suppliedOutcomeCount;
         private final PendingNode pendingNode;
         private final String projectionDigest;
+        private final ScenarioPlan plan;
+        private final List<AgentGraphRuntime.NodeRunSnapshot> nodes;
 
         private Snapshot(RunRecord record, AgentGraphRuntime.GraphRunSnapshot graph) {
             this.runId = graph.getRunId();
@@ -117,6 +120,8 @@ public final class SimulatedScenarioGraph {
             this.suppliedOutcomeCount = record.suppliedOutcomeCount;
             this.pendingNode = record.pendingNodeId.isEmpty()
                     ? null : new PendingNode(record.nodes.get(record.pendingNodeId));
+            this.plan = ScenarioPlanCompiler.copyPlan(record.plan);
+            this.nodes = graph.getNodes();
             this.projectionDigest = digest(
                     PROFILE_ID,
                     runId,
@@ -175,6 +180,14 @@ public final class SimulatedScenarioGraph {
 
         public String getProjectionDigest() {
             return projectionDigest;
+        }
+
+        public ScenarioPlan toScenarioPlan() {
+            return ScenarioPlanCompiler.copyPlan(plan);
+        }
+
+        public List<AgentGraphRuntime.NodeRunSnapshot> getNodeSnapshots() {
+            return nodes;
         }
 
         public boolean isPlanPublished() {

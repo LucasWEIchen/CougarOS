@@ -4,6 +4,22 @@
 
 日期：2026-07-17
 
+## Android P4-R1 Orchestration V1 delivery
+
+交付七个 Orchestration AIDL 类型、checksum、Java SDK client、Runtime Binder endpoint、caller capability/owner
+隔离、release fail-closed/debug simulation 双后端、Room v4 Plan/Node/Session/Event 投影、startup
+restart-to-STUCK/no-effect-replay、JVM tests、DUMP debug probe、机器合同和 CI 门禁。HMI 可读取 typed Plan、
+Node/Effect 状态并提交 approval response、undo request 或 cancel；这些请求不携带车身值或授权材料。
+
+当前 `orchestration_v1_interface_published=true`、`orchestration_sdk_negotiation_wired=true`、
+`orchestration_room_projection_wired=true`、`orchestration_debug_probe_available=true`、
+`orchestration_debug_probe_executed=false`、`orchestration_android13_arm64_verified=false`、
+`production_approval_authority_trusted=false`、`production_effect_authority_available=false`、
+`production_undo_authority_available=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。ADB 无在线设备，禁止把构建/JVM 证据提升为目标硬件验收。Req IDs：
+`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-UX-003`、
+`NV-F-001`、`NV-G-004..007`、`XSC-001/005/006`、`DEL-001/003/004`；里程碑 `P4-R1`。
+
 ## Android P6-EV2 durable Session Event delivery
 
 交付 `ICentralBrainSessionEventsV2` 七个 AIDL 类型、V2 checksum、terminal resume cursor、Room v4

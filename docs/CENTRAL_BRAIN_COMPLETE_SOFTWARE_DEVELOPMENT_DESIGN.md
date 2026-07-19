@@ -4,6 +4,46 @@
 
 日期：2026-07-17
 
+## P4-R1 Orchestration V1 detailed design
+
+### 设计意图与边界
+
+Orchestration V1 是应用 HMI 与内部 Session/Scenario/Plan/Graph/Effect 模块之间的只读投影加受控命令面。
+它解决“场景输入后看不到自动执行链”的软件缺口，但不拥有车辆、安全或 NPU 权限。接口独立于冻结 V1，
+action 为 `com.centralbrain.runtime.action.ORCHESTRATION`，协议 version=1，hash 由七个 AIDL 文件共同冻结。
+`OrchestrationClient` 必须显式绑定 Runtime 组件并校验 version/hash；不匹配时连接失败，不进行隐式 REST、
+Python 或旧 simulation Binder 回退。
+
+### 调用与状态
+
+1. App 先用 Session SDK 创建 durable Session，再以同一 `sessionId/scenarioId` 调 `start`。
+2. `OrchestrationEndpoint` 从 Binder calling UID 经 capability policy 推导 owner，重新读取 Room Session，拒绝跨
+   owner、scenario mismatch、terminal 或过期 Session。
+3. build-variant backend 返回 `ScenarioPlan + OrchestrationSnapshot + manifestDigest`。Contract 校验 ID、数量、
+   状态、Plan 绑定、节点/Effect 绑定、boolean authority invariants 和 canonical projection digest。
+4. `DurableOrchestrationProjectionRepository` 在 Room transaction 内创建或更新 Plan/Node、Session 和
+   metadata-only `SessionStateChanged` Event；transaction 成功后才通知 Event V1/V2 live callback。
+5. App 通过 `getSnapshot/getPlan` 获取执行链。`respondToApproval` 绑定 approval ID 与 projection digest；
+   `requestUndo` 绑定 undo ID 与 digest；`cancel` 使用 Session cancel reason。响应仍由 Contract 全量校验。
+
+### 构建变体与恢复
+
+debug backend 只接受 `PROFILE_DEBUG_SIMULATION`，根据显式 PARKED/MOVING simulation input 组合已有
+Scenario compiler、Agent Graph、simulated Effect/readback。fatigue approval response 是测试输入，始终标记
+`approvalAuthorityTrusted=false`；Undo 固定 `UNDO_AUTHORITY_UNAVAILABLE`。release factory 只返回
+`FailClosedOrchestrationBackend`，detail 为 `PRODUCTION_AUTHORITIES_UNAVAILABLE`，不创建 Plan、不触发 Effect。
+
+Room 只保存恢复所需 metadata/digest，不保存完整 Plan wire 或 backend 内存。服务启动时查询 non-terminal Plan，
+用空且不可信 evidence 运行 `GraphRestartReconciler`，将无法证明状态的执行置为 `STUCK`；不调用任何 executor、
+adapter 或 Effect dispatcher。当前无法在重启后重新提供完整 typed Plan，客户端必须把 `STUCK` 视为需要人工
+重新发起的新 Session，而不是自动重试。
+
+实现状态 `DEVELOPED_WITH_EXTERNAL_AUTHORITIES_BLOCKED`，里程碑 `P4-R1`。
+`orchestration_v1_interface_published=true`、`orchestration_room_projection_wired=true`、
+`orchestration_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、
+`S2-SAF-001`、`S2-UX-003`、`NV-G-004..007`、`XSC-001/005/006`、`DEL-001/003/004`。
+
 ## P6-EV2 Session Event V2 detailed design
 
 `ICentralBrainSessionEventsV2` 是与冻结 Event V1 并行的 signature/capability-protected Binder。`getEvents`

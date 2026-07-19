@@ -15,6 +15,12 @@
         <capability name="runtime.event.protocol.read" />
         <capability name="runtime.event.read.own" />
         <capability name="runtime.event.subscribe.own" />
+        <capability name="runtime.orchestration.protocol.read" />
+        <capability name="runtime.orchestration.start.own" />
+        <capability name="runtime.orchestration.read.own" />
+        <capability name="runtime.orchestration.approval.respond.own" />
+        <capability name="runtime.orchestration.undo.request.own" />
+        <capability name="runtime.orchestration.cancel.own" />
         <capability name="governance.protocol.read" />
         <capability name="governance.action.evaluate" />
         <capability name="governance.approval.request" />
@@ -33,5 +39,11 @@
         <capability name="runtime.event.protocol.read" />
         <capability name="runtime.event.read.own" />
         <capability name="runtime.event.subscribe.own" />
+        <capability name="runtime.orchestration.protocol.read" />
+        <capability name="runtime.orchestration.start.own" />
+        <capability name="runtime.orchestration.read.own" />
+        <capability name="runtime.orchestration.approval.respond.own" />
+        <capability name="runtime.orchestration.undo.request.own" />
+        <capability name="runtime.orchestration.cancel.own" />
     </principal>
 </capability-policy>

@@ -4,6 +4,20 @@
 
 日期：2026-07-17
 
+## P4-R1 Orchestration Driver/HAL Boundary
+
+`P4-R1` 只使用 Java/AIDL Binder、Room/SQLite、PackageManager-derived caller identity 和现有 debug simulator，
+不访问 Android Car、VHAL、CAN、Vendor SOA、device node、sysfs、ioctl、PCIe/NPU 或新 JNI。故本增量
+`driver_development_triggered=false`、`virtualization_development_triggered=false`。release backend 明确留空并
+fail closed；未来生产 backend 必须由 P8 target mapping 提供 property/service ID、area、type、unit、freshness、
+write permission、readback、timeout、owner 和 version 后才可接入。
+
+当前 `orchestration_runtime_service_published=true`、`vehicle_signal_provider_wired=false`、
+`vehicle_capability_adapter_registry_wired=false`、`production_effect_authority_available=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-EFF-001`、`S2-SAF-001`、`XSC-004/006`、
+`NV-F-001`、`NV-G-005..007`、`DEL-001/003/004`；里程碑 `P4-R1`。
+
 ## P6-EV2 Session Event Driver/HAL Boundary
 
 `P6-EV2` 仅使用 Android Binder、Room/SQLite、PackageManager-derived owner 和 Java SHA-256，不读取

@@ -17,6 +17,8 @@ public final class CentralBrainSdk {
             "com.centralbrain.runtime.action.SESSION_EVENTS";
     public static final String ACTION_SESSION_EVENTS_V2 =
             "com.centralbrain.runtime.action.SESSION_EVENTS_V2";
+    public static final String ACTION_ORCHESTRATION =
+            "com.centralbrain.runtime.action.ORCHESTRATION";
 
     private CentralBrainSdk() {
     }

@@ -25,10 +25,13 @@ import com.centralbrain.runtime.identity.DurablePrincipalFingerprint;
 import com.centralbrain.runtime.memory.MemoryRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.nativebridge.NativeRuntimeProcessSnapshot;
+import com.centralbrain.runtime.orchestration.OrchestrationBackendFactory;
+import com.centralbrain.runtime.orchestration.OrchestrationEndpoint;
 import com.centralbrain.runtime.persistence.CentralBrainDatabase;
 import com.centralbrain.runtime.persistence.DurableDigest;
 import com.centralbrain.runtime.persistence.DurableEventCursorRepository;
 import com.centralbrain.runtime.persistence.DurableTaskRepository;
+import com.centralbrain.runtime.persistence.DurableOrchestrationProjectionRepository.RecoveryReport;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy.Capability;
@@ -94,7 +97,9 @@ public final class CentralBrainRuntimeService extends Service {
     private CentralBrainDatabase database;
     private DurableTaskRepository taskRepository;
     private Future<DurableTaskRepository.ReconciliationReport> startupReconciliation;
+    private Future<RecoveryReport> startupOrchestrationReconciliation;
     private TransientSessionEndpoint transientSessionEndpoint;
+    private OrchestrationEndpoint orchestrationEndpoint;
 
     private final ICentralBrainRuntime.Stub binder = new ICentralBrainRuntime.Stub() {
         @Override
@@ -228,6 +233,30 @@ public final class CentralBrainRuntimeService extends Service {
                         capabilityForSessionOperation(operation))),
                 DurableSessionRegistry.create(database),
                 DurableEventCursorRepository.create(database, 128, 16, 64));
+        orchestrationEndpoint = new OrchestrationEndpoint(
+                database,
+                operation -> {
+                    awaitOrchestrationStartupReconciliation();
+                    return DurablePrincipalFingerprint.from(resolveAuthorizedCaller(
+                            capabilityForOrchestrationOperation(operation)));
+                },
+                OrchestrationBackendFactory.create(this),
+                transientSessionEndpoint::dispatchCommittedOwned);
+        startupOrchestrationReconciliation = executor.submit(() -> {
+            RecoveryReport orchestrationRecovery =
+                    orchestrationEndpoint.reconcileInterrupted();
+            Log.i(TAG, "orchestration restart reconciliation completed"
+                    + " graph_restart_runtime_wired=true"
+                    + " graph_restart_candidate_count="
+                    + orchestrationRecovery.getCandidateCount()
+                    + " graph_restart_reconciled_count="
+                    + orchestrationRecovery.getReconciledCount()
+                    + " graph_restart_stuck_count="
+                    + orchestrationRecovery.getStuckCount()
+                    + " effect_replay_performed=false"
+                    + " hardware_accessed=false");
+            return orchestrationRecovery;
+        });
         taskRepository = DurableTaskRepository.create(database);
         startupReconciliation = executor.submit(() -> {
             DurableTaskRepository.ReconciliationReport reconciliation =
@@ -358,6 +387,14 @@ public final class CentralBrainRuntimeService extends Service {
                 + memoryRuntimeReadiness.getBlockersCsv()
                 + " durable_dispatch_enabled=false"
                 + " hardware_accessed=false");
+        Log.i(TAG, "orchestration_runtime_service_published=true"
+                + " orchestration_release_fail_closed=" + !BuildConfig.DEBUG
+                + " orchestration_debug_simulation_available=" + BuildConfig.DEBUG
+                + " production_context_authority_wired=false"
+                + " production_approval_authority_wired=false"
+                + " production_effect_adapter_wired=false"
+                + " production_undo_authority_wired=false"
+                + " hardware_accessed=false production_ready=false");
         Log.i(TAG, "skill_governance_readiness_snapshot_wired=true"
                 + " skill_governance_activation_allowed="
                 + skillGovernanceReadiness.isActivationAllowed()
@@ -476,6 +513,14 @@ public final class CentralBrainRuntimeService extends Service {
                     + " hardware_accessed=false");
             return transientSessionEndpoint.eventBinderV2();
         }
+        if (CentralBrainSdk.ACTION_ORCHESTRATION.equals(action)) {
+            Log.i(TAG, "orchestration binder requested"
+                    + " orchestration_runtime_service_published=true"
+                    + " caller_owner_scoped=true"
+                    + " production_effect_dispatch_enabled=false"
+                    + " hardware_accessed=false production_ready=false");
+            return orchestrationEndpoint.binder();
+        }
         Log.i(TAG, "production binder requested hardware_accessed=false");
         return binder;
     }
@@ -492,6 +537,12 @@ public final class CentralBrainRuntimeService extends Service {
         writer.println("event_v2_terminal_resume_cursor=true");
         writer.println("event_v2_room_ack_wired=true");
         writer.println("event_v2_sdk_negotiation_wired=true");
+        writer.println("orchestration_runtime_service_published=true");
+        writer.println("orchestration_debug_simulation_available=" + BuildConfig.DEBUG);
+        writer.println("production_context_authority_wired=false");
+        writer.println("production_approval_authority_wired=false");
+        writer.println("production_effect_adapter_wired=false");
+        writer.println("production_undo_authority_wired=false");
         writer.println("session_runtime_transient_registry=false");
         writer.println("session_runtime_persistence_wired=true");
         writer.println("session_runtime_process_death_rehydration=true");
@@ -713,6 +764,9 @@ public final class CentralBrainRuntimeService extends Service {
     public void onDestroy() {
         if (transientSessionEndpoint != null) {
             transientSessionEndpoint.close();
+        }
+        if (orchestrationEndpoint != null) {
+            orchestrationEndpoint.close();
         }
         executor.shutdownNow();
         tasks.values().forEach(this::unlinkCallbackDeath);
@@ -1113,6 +1167,24 @@ public final class CentralBrainRuntimeService extends Service {
         }
     }
 
+    private RecoveryReport awaitOrchestrationStartupReconciliation() {
+        Future<RecoveryReport> reconciliation = startupOrchestrationReconciliation;
+        if (reconciliation == null) {
+            throw new IllegalStateException(
+                    "orchestration restart reconciliation is not initialized");
+        }
+        try {
+            return reconciliation.get();
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(
+                    "orchestration restart reconciliation wait was interrupted", exception);
+        } catch (ExecutionException exception) {
+            throw new IllegalStateException(
+                    "orchestration restart reconciliation failed", exception.getCause());
+        }
+    }
+
     private void persistTransition(
             TaskRecord record,
             JobSupervisor.Snapshot before,
@@ -1388,6 +1460,26 @@ public final class CentralBrainRuntimeService extends Service {
                 return Capability.EVENT_SUBSCRIBE_OWN;
             default:
                 throw new SecurityException("unsupported session operation");
+        }
+    }
+
+    private static Capability capabilityForOrchestrationOperation(
+            OrchestrationEndpoint.Operation operation) {
+        switch (operation) {
+            case PROTOCOL_READ:
+                return Capability.ORCHESTRATION_PROTOCOL_READ;
+            case START_OWN:
+                return Capability.ORCHESTRATION_START_OWN;
+            case READ_OWN:
+                return Capability.ORCHESTRATION_READ_OWN;
+            case APPROVAL_RESPOND_OWN:
+                return Capability.ORCHESTRATION_APPROVAL_RESPOND_OWN;
+            case UNDO_REQUEST_OWN:
+                return Capability.ORCHESTRATION_UNDO_REQUEST_OWN;
+            case CANCEL_OWN:
+                return Capability.ORCHESTRATION_CANCEL_OWN;
+            default:
+                throw new SecurityException("unsupported orchestration operation");
         }
     }
 

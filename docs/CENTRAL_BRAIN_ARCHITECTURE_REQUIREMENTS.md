@@ -4,6 +4,20 @@
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
+## P4-R1 implementation trace
+
+`S2-SCN-001/S2-GRF-001/S2-EFF-001/S2-SAF-001/S2-UX-003` 要求应用输入能形成可观察的
+Intent -> Plan -> Graph -> Effect -> readback 链。`P4-R1` 以独立、版本化、哈希冻结的 Orchestration V1
+承载该链，不修改 Session/Plan/Effect V1。所有 start/read/approval/undo/cancel 请求必须先由 Binder calling UID
+推导 owner 并绑定已有 durable Session；Binder 只发布有界元数据与 digest，不发布模型文本、车身 target、
+reported value、checkpoint 或授权材料。
+
+release backend 在 production Context/Safety/Effect/Undo authority 未接入时必须结构化阻断。debug backend 只能
+在显式 simulation profile 与显式模拟运动状态下运行；其 approval response 仅是仿真输入，不得成为 production
+grant。Room 只持久化 recovery metadata；重启必须将无可信 evidence 的未完成执行置为 `STUCK` 且 Effect replay
+为零。状态：`orchestration_v1_interface_published=true`、`orchestration_room_projection_wired=true`、
+`orchestration_android13_arm64_verified=false`；里程碑 `P4-R1`。
+
 ## P6-EV2 implementation trace
 
 `S2-EVT-001`、`FW-U-003`、`NV-G-004/006/007` 和 `XSC-001/005/006` 的 Event cursor

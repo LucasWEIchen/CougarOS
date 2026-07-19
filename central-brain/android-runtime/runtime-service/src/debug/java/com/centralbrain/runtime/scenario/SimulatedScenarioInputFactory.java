@@ -108,8 +108,16 @@ public final class SimulatedScenarioInputFactory {
     }
 
     public Input create(ScenarioKind scenario, DrivingProfile driving) {
+        return createForSession(scenario, driving, nextUuid());
+    }
+
+    public Input createForSession(
+            ScenarioKind scenario,
+            DrivingProfile driving,
+            String sessionId) {
         ScenarioKind requiredScenario = Objects.requireNonNull(scenario, "scenario");
         DrivingProfile requiredDriving = Objects.requireNonNull(driving, "driving");
+        String canonicalSessionId = canonicalUuid(sessionId, "sessionId");
         long nowEpochMs = epochMs.getAsLong();
         long nowElapsedMs = elapsedRealtimeMs.getAsLong();
         if (nowEpochMs <= 0 || nowElapsedMs < 0) {
@@ -134,7 +142,7 @@ public final class SimulatedScenarioInputFactory {
                 capabilities);
         CompileRequest request = new CompileRequest(
                 nextUuid(),
-                nextUuid(),
+                canonicalSessionId,
                 1,
                 nowEpochMs,
                 nowEpochMs + DEADLINE_MS);
@@ -220,13 +228,17 @@ public final class SimulatedScenarioInputFactory {
 
     private String nextUuid() {
         String value = uuidSupplier.get();
+        return canonicalUuid(value, "UUID supplier value");
+    }
+
+    private static String canonicalUuid(String value, String field) {
         try {
             if (value == null || !UUID.fromString(value).toString().equals(value)) {
-                throw violation("UUID supplier is not canonical lowercase");
+                throw violation(field + " is not canonical lowercase UUID");
             }
             return value;
         } catch (IllegalArgumentException failure) {
-            throw violation("UUID supplier is not canonical lowercase");
+            throw violation(field + " is not canonical lowercase UUID");
         }
     }
 

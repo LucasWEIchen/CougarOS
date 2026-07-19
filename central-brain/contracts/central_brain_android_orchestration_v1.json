@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-orchestration-v1",
+  "maturity": "application_runtime_implemented",
+  "requirement_ids": [
+    "S2-SCN-001", "S2-GRF-001", "S2-EFF-001", "S2-SAF-001", "S2-UX-003",
+    "NV-F-001", "NV-G-004", "NV-G-005", "NV-G-006", "NV-G-007",
+    "XSC-001", "XSC-005", "XSC-006", "DEL-001", "DEL-003", "DEL-004"
+  ],
+  "binder": {
+    "action": "com.centralbrain.runtime.action.ORCHESTRATION",
+    "interface_version": 1,
+    "interface_hash": "bd188de5d9b531c4765f0c21f99381e373c377cb4c9b8a75f2d87e6a8541fa19",
+    "aidl_type_count": 7,
+    "frozen_session_plan_effect_v1_unchanged": true,
+    "owner_session_scoped": true,
+    "metadata_digest_only": true
+  },
+  "composition": {
+    "intent_to_typed_plan": true,
+    "typed_plan_to_agent_graph": true,
+    "node_and_effect_projection": true,
+    "approval_response_endpoint": true,
+    "undo_request_endpoint": true,
+    "cancel_endpoint": true,
+    "event_v2_notification_after_room_commit": true
+  },
+  "persistence": {
+    "room_plan_and_node_projection": true,
+    "session_state_projection": true,
+    "metadata_only_runtime_event": true,
+    "restart_unfinished_to_stuck": true,
+    "restart_effect_replay_enabled": false,
+    "full_plan_rehydration_after_restart": false
+  },
+  "authority": {
+    "release_backend_fail_closed": true,
+    "debug_simulation_explicit_profile_only": true,
+    "debug_simulation_motion_explicit": true,
+    "approval_response_is_grant": false,
+    "production_approval_authority_trusted": false,
+    "production_effect_authority_available": false,
+    "production_undo_authority_available": false
+  },
+  "claim_state": {
+    "orchestration_v1_interface_published": true,
+    "orchestration_runtime_service_published": true,
+    "orchestration_sdk_negotiation_wired": true,
+    "orchestration_room_projection_wired": true,
+    "orchestration_restart_stuck_no_replay_wired": true,
+    "orchestration_debug_probe_available": true,
+    "orchestration_debug_probe_executed": false,
+    "orchestration_android13_arm64_verified": false,
+    "vehicle_bus_accessed": false,
+    "npu_accessed": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P4-R1"
+  }
+}

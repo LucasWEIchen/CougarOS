@@ -4,6 +4,22 @@
 日期：2026-07-17
 状态：Stage 2 P6 in progress
 
+### 2026-07-19 P4-R1 progress
+
+`P4-R1` 已完成独立 `ICentralBrainOrchestration`、Java SDK protocol negotiation、caller capability/owner
+隔离、release fail-closed backend、debug fixed-scenario backend、Plan/Node/Effect 投影、显式 approval/undo/cancel
+入口、Room v4 元数据投影和 startup restart reconciliation。未完成执行在重启后进入 `STUCK`，恢复不重放
+Effect；完整 Plan wire 不从 Room 元数据反序列化。编译和 JVM 测试已通过，ADB 当前无在线设备，debug probe
+只达到可构建状态。
+
+当前 `orchestration_v1_interface_published=true`、`orchestration_runtime_service_published=true`、
+`orchestration_room_projection_wired=true`、`orchestration_debug_probe_available=true`、
+`orchestration_debug_probe_executed=false`、`orchestration_android13_arm64_verified=false`、
+`production_effect_authority_available=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、
+`S2-SAF-001`、`S2-UX-003`、`NV-F-001`、`NV-G-004..007`、`XSC-001/005/006`、
+`DEL-001/003/004`；tracking：`DEV-116`、`ISSUE-022/030/033`。
+
 ### 2026-07-19 P6-EV2 progress
 
 `P6-EV2` 已完成独立 `ICentralBrainSessionEventsV2`、terminal resume cursor、owner/session-scoped

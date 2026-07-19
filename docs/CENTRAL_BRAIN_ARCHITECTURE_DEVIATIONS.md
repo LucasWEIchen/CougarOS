@@ -4,6 +4,21 @@
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
+## DEV-116 P4-R1 软件编排已发布但生产 authority 仍为空接口
+
+架构基线要求中央大脑自动执行车控链，但黑盒 Android 13 当前没有可信 Vehicle Context、OEM Safety approval、
+Effect material/adapter、readback 或 compensation authority。`P4-R1` 因此发布独立 Orchestration V1 软件控制面：
+debug 构建组合固定 simulator，release 构建 fail closed。Room 持久化 Plan/Node/Session 恢复元数据，但不保存完整
+Plan wire、target value 或授权材料；进程重启后不能恢复 process-local backend，只把未完成计划置为 `STUCK`，
+不重放副作用。
+
+处理：本偏差为 `Accepted Temporary`。解除条件是 OEM/Vendor owner 提供 Context/Safety/Effect/readback/undo
+接口、签名/权限、目标映射和 Android 13 ARM64 证据，随后才能实现生产 backend 与完整受控 rehydration。
+当前 `orchestration_runtime_service_published=true`、`orchestration_debug_simulation_available=true`、
+`production_effect_authority_available=false`、`orchestration_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：
+`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-SAF-001`、`NV-G-004..007`；里程碑 `P4-R1`。
+
 ## DEV-115 P6-EV2 以独立 Binder 演进而不修改 Event V1
 
 架构要求 durable cursor/ACK，但已发布 Event V1 terminal page 无前移 cursor。`P6-EV2` 新增独立 action、

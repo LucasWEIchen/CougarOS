@@ -24,6 +24,13 @@ public final class CallerCapabilityPolicy {
         EVENT_PROTOCOL_READ("runtime.event.protocol.read"),
         EVENT_READ_OWN("runtime.event.read.own"),
         EVENT_SUBSCRIBE_OWN("runtime.event.subscribe.own"),
+        ORCHESTRATION_PROTOCOL_READ("runtime.orchestration.protocol.read"),
+        ORCHESTRATION_START_OWN("runtime.orchestration.start.own"),
+        ORCHESTRATION_READ_OWN("runtime.orchestration.read.own"),
+        ORCHESTRATION_APPROVAL_RESPOND_OWN(
+                "runtime.orchestration.approval.respond.own"),
+        ORCHESTRATION_UNDO_REQUEST_OWN("runtime.orchestration.undo.request.own"),
+        ORCHESTRATION_CANCEL_OWN("runtime.orchestration.cancel.own"),
         GOVERNANCE_PROTOCOL_READ("governance.protocol.read"),
         ACTION_EVALUATE("governance.action.evaluate"),
         APPROVAL_REQUEST("governance.approval.request"),

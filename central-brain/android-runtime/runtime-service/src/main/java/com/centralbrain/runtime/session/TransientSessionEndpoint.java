@@ -9,6 +9,7 @@ import com.centralbrain.sdk.event.EventAckRequest;
 import com.centralbrain.sdk.event.EventAckResult;
 import com.centralbrain.sdk.event.EventSubscriptionHandle;
 import com.centralbrain.sdk.event.EventSubscriptionRequest;
+import com.centralbrain.sdk.event.EventContract;
 import com.centralbrain.sdk.event.EventV2Contract;
 import com.centralbrain.sdk.event.ICentralBrainSessionEventCallback;
 import com.centralbrain.sdk.event.ICentralBrainSessionEventCallbackV2;
@@ -260,6 +261,17 @@ public final class TransientSessionEndpoint implements AutoCloseable {
 
     public IBinder eventBinderV2() {
         return eventBinderV2;
+    }
+
+    /** Delivers an already committed owner-scoped event from another Runtime repository. */
+    public void dispatchCommittedOwned(String owner, String sessionId, RuntimeEvent event) {
+        Objects.requireNonNull(owner, "owner");
+        Objects.requireNonNull(sessionId, "sessionId");
+        EventContract.validateEvent(Objects.requireNonNull(event, "event"));
+        synchronized (lock) {
+            rejectClosed();
+            dispatchOwned(owner, sessionId, event);
+        }
     }
 
     @Override
