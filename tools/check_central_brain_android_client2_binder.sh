@@ -314,15 +314,7 @@ for doc_pattern in \
 done
 
 bash "$ROOT_DIR/tools/check_central_brain_android_capability_policy.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_hvac_surface.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_seat_surface.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_execution_timeline.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_recovery_ux.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_driving_restriction.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_engineer_simulation.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_scenario_sync.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_accessibility_display.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_voice_first_hmi.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 
 echo "Central Brain Android Client2 Binder migration check passed"

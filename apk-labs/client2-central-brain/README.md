@@ -21,7 +21,9 @@ then rebuilds and signs a debug APK.
 | --- | --- | --- |
 | Android demo delivery | `DEL-001`, `DEL-003` | Produces a debuggable APK for emulator/device validation. |
 | Platform difference visibility | `DEL-004` | Documents that this is an APK patch path, not a production system-service path. |
-| AI SDK entry point | `APP-004`, `XSC-001` | The right panel is reserved for AI SDK/Agent state and must not call NPU directly. |
+| AI SDK entry point | `APP-004`, `S2-HMI-007`, `XSC-001` | The right panel exposes scene triggers and live Runtime milestones; it must not call NPU directly. |
+| Cockpit model context | `S2-MDL-002` | Ollama/OpenClaw share a bounded automotive driver-service prompt and action allowlist. |
+| Live execution projection | `S2-OBS-002` | Ten bounded Runtime/model/effect milestones feed one 32-line scrolling trace. |
 | Typed Binder boundary | `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002` | Client2 uses the public SDK/AIDL contract, Runtime package visibility, signature permission and package/current-signer capability policy. |
 | Uni Info Bus / SOA / Governance | `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006` | Runtime remains the single app-facing ingress; Client2 does not bypass it for model or vehicle access. |
 
@@ -31,6 +33,13 @@ Build the patched APK:
 
 ```bash
 bash tools/build_client2_central_brain_demo.sh
+```
+
+Build the fixed target OpenClaw profile. Its control URL and token are compiled
+from `OpenClawEndpointConfig`; no provisioning command is required:
+
+```bash
+CENTRAL_BRAIN_TARGET_OPENCLAW=true bash tools/build_client2_central_brain_demo.sh
 ```
 
 Verify the project and latest signed output:
@@ -79,17 +88,19 @@ right-side overlay in the existing root `FrameLayout`:
 ```text
 Activity
 ├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
-├── floating overlay: 624x888 translucent Central Brain panel in the 1920x1080 safe frame
+├── floating overlay: 600x760 translucent Central Brain panel in the 1920x1080 safe frame
+├── bottom HVAC setpoint overlays updated by simulated Effect feedback
+├── left actuator overlay: HVAC and scenario-dependent Seat animation
 └── bottom trigger rail: transparent target over the rendered navigation icon
 ```
 
 The overlay does not resize the vehicle scene. One navigation-target click
 shows the panel; a second click or a click outside the panel hides it. The panel
-consumes touches over its own surface so its controls do not dismiss it. The
-primary Intent surface exposes four natural scenes and the stage rail exposes
-Intent, Plan, Execution and Result. HVAC/Seat remain secondary detail drawers;
-HVAC contains the P4-W04 governed manual control surface and Seat contains the
-P4-W05 safety-gated governed manual control surface.
+consumes touches over its own surface so its controls do not dismiss it. P4-R3
+exposes only `care.fatigue`, `care.cold` and one live scrolling call-chain view.
+The former Intent/Plan/Execution/Result tabs, manual HVAC/Seat controls and
+engineer drawer remain maintained classes for engineering regression but are
+not inflated in the driver-facing layout.
 Each scene first creates a typed Session through
 `CockpitControlCoordinator -> Client2ScenarioBridge.openSession -> SessionClient`.
 After Runtime returns the owner-scoped Session ID, cold/fatigue scenes continue
@@ -102,6 +113,14 @@ reduced into `CockpitHmiState` before rendering. The bridge
 The SDK, AIDL parcelables and a narrow Client2 bridge are compiled into
 `classes2.dex`. The APK requests no network permission and contains no direct
 HTTP fallback.
+
+`OrchestrationRuntimeClient.Callback.onPipelineMilestone` projects RUNTIME,
+INTENT, CONTEXT, MODEL, PLAN, POLICY, GRAPH, SAFETY, EFFECT and READBACK states.
+`CockpitControlCoordinator` paces the view at 360 ms, retains 32 lines and shows
+MODEL/RUNNING before network I/O. Cold animates 26.5 to 28.0 degrees C. Fatigue
+animates fan 1 to 3 and shows a left-side driver-seat 15 to 30 degree response.
+These are View animations only, continuously labeled `SIMULATED`; no vehicle
+bus or hardware readback is accessed.
 
 The four visible XML scenario tags remain stable two-segment UI aliases. A 14-entry exact bridge
 compatibility allowlist still maps all supported aliases to qualified Session IDs before Runtime admission; unknown

@@ -13,6 +13,7 @@ import com.centralbrain.runtime.events.TimeContextSourceAdapter;
 import com.centralbrain.runtime.events.TriggerEngine;
 import com.centralbrain.runtime.events.TriggerRule;
 import com.centralbrain.runtime.model.DeterministicStubModelProvider;
+import com.centralbrain.runtime.model.CockpitModelPrompt;
 import com.centralbrain.runtime.model.LocalModelProvider;
 import com.centralbrain.runtime.model.ModelContractV2;
 import com.centralbrain.runtime.model.ModelProvider;
@@ -226,6 +227,7 @@ final class DebugDecisionCompositionBoundary {
                 consentDecision.getCode().name(),
                 modelEvidence.routeDigest,
                 modelEvidence.outputDigest,
+                String.join("|", modelEvidence.admittedActions),
                 eventEvidence.digest);
         Evidence evidence = new Evidence(
                 evidenceDigest,
@@ -240,7 +242,8 @@ final class DebugDecisionCompositionBoundary {
                 modelEvidence.networkAccessed,
                 modelEvidence.assistantDisplayText,
                 modelEvidence.providerId,
-                modelEvidence.latencyMs);
+                modelEvidence.latencyMs,
+                modelEvidence.admittedActions);
         bySession.put(session.getSessionId(), new Entry(requestDigest, evidence));
         return evidence;
     }
@@ -510,7 +513,11 @@ final class DebugDecisionCompositionBoundary {
                 || observer.terminal.getState() != ModelProvider.TerminalState.COMPLETED
                 || observer.terminal.getOutputDigest() == null
                 || observer.chunkCount < 1) {
-            throw violation("model inference did not complete");
+            String failureCode = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+                    ? openClawEngine.snapshot().getLastFailureCode()
+                    : "";
+            throw violation("model inference did not complete"
+                    + (failureCode.isEmpty() ? "" : ": " + failureCode));
         }
         if (networkModel) {
             long latencyMs = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
@@ -528,7 +535,8 @@ final class DebugDecisionCompositionBoundary {
                     true,
                     projection.assistantDisplayText,
                     providerId,
-                    projection.latencyMs);
+                    projection.latencyMs,
+                    projection.admittedActions);
         }
         return new ModelEvidence(
                 route.getDecisionDigest(),
@@ -537,7 +545,8 @@ final class DebugDecisionCompositionBoundary {
                 false,
                 "",
                 "",
-                0L);
+                0L,
+                List.of());
     }
 
     private static ModelProjection parseModelProjection(
@@ -560,7 +569,16 @@ final class DebugDecisionCompositionBoundary {
                     || engineLatencyMs > MODEL_INFERENCE_TIMEOUT_MS) {
                 throw violation("model projection latency evidence is invalid");
             }
-            return new ModelProjection(reply, engineLatencyMs);
+            List<String> admittedActions = new ArrayList<>();
+            output.getAsJsonArray("actions").forEach(element -> {
+                if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
+                    throw violation("model projection action is invalid");
+                }
+                admittedActions.add(element.getAsString());
+            });
+            CockpitModelPrompt.forScenario("0".repeat(64), expectedScenarioId)
+                    .validateAdmittedActions(admittedActions);
+            return new ModelProjection(reply, engineLatencyMs, admittedActions);
         } catch (RuntimeException failure) {
             if (failure instanceof IllegalArgumentException
                     && failure.getMessage() != null
@@ -749,6 +767,7 @@ final class DebugDecisionCompositionBoundary {
         private final String assistantDisplayText;
         private final String modelProviderId;
         private final long modelLatencyMs;
+        private final List<String> admittedActions;
 
         private Evidence(
                 String digest,
@@ -763,7 +782,8 @@ final class DebugDecisionCompositionBoundary {
                 boolean networkAccessed,
                 String assistantDisplayText,
                 String modelProviderId,
-                long modelLatencyMs) {
+                long modelLatencyMs,
+                List<String> admittedActions) {
             this.digest = digest;
             this.contextObservationCount = contextObservationCount;
             this.suggestionDigest = suggestionDigest;
@@ -777,6 +797,9 @@ final class DebugDecisionCompositionBoundary {
             this.assistantDisplayText = assistantDisplayText;
             this.modelProviderId = modelProviderId;
             this.modelLatencyMs = modelLatencyMs;
+            this.admittedActions = Collections.unmodifiableList(
+                    new ArrayList<>(Objects.requireNonNull(
+                            admittedActions, "admittedActions")));
         }
 
         String getDigest() { return digest; }
@@ -794,6 +817,7 @@ final class DebugDecisionCompositionBoundary {
         String getAssistantDisplayText() { return assistantDisplayText; }
         String getModelProviderId() { return modelProviderId; }
         long getModelLatencyMs() { return modelLatencyMs; }
+        List<String> getAdmittedActions() { return admittedActions; }
         boolean isNpuAccessed() { return false; }
         boolean isHardwareAccessed() { return false; }
     }
@@ -854,6 +878,7 @@ final class DebugDecisionCompositionBoundary {
         private final String assistantDisplayText;
         private final String providerId;
         private final long latencyMs;
+        private final List<String> admittedActions;
 
         private ModelEvidence(
                 String routeDigest,
@@ -862,7 +887,8 @@ final class DebugDecisionCompositionBoundary {
                 boolean networkAccessed,
                 String assistantDisplayText,
                 String providerId,
-                long latencyMs) {
+                long latencyMs,
+                List<String> admittedActions) {
             this.routeDigest = routeDigest;
             this.outputDigest = outputDigest;
             this.healthEvidenceDigest = healthEvidenceDigest;
@@ -870,16 +896,24 @@ final class DebugDecisionCompositionBoundary {
             this.assistantDisplayText = assistantDisplayText;
             this.providerId = providerId;
             this.latencyMs = latencyMs;
+            this.admittedActions = Collections.unmodifiableList(
+                    new ArrayList<>(admittedActions));
         }
     }
 
     private static final class ModelProjection {
         private final String assistantDisplayText;
         private final long latencyMs;
+        private final List<String> admittedActions;
 
-        private ModelProjection(String assistantDisplayText, long latencyMs) {
+        private ModelProjection(
+                String assistantDisplayText,
+                long latencyMs,
+                List<String> admittedActions) {
             this.assistantDisplayText = assistantDisplayText;
             this.latencyMs = latencyMs;
+            this.admittedActions = Collections.unmodifiableList(
+                    new ArrayList<>(admittedActions));
         }
     }
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: S2-UX-001..003, S2-HMI-001..006, S2-SCN-001, S2-SAF-001,
+# Req IDs: S2-UX-001..003, S2-HMI-001..007, S2-MDL-002, S2-OBS-002,
+# S2-SCN-001, S2-SAF-001,
 # S2-EFF-001, APP-004, XSC-001/005/006, DEL-001/003/004/005.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -161,10 +162,7 @@ for marker in \
 done
 
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_recovery_ux.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_engineer_simulation.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_scenario_sync.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_accessibility_display.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_voice_first_hmi.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_effect_adapter.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_hvac_adapter.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_simulated_seat_adapter.sh"
@@ -173,6 +171,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_simulated_media_navigation_ada
 printf '%s\n' \
   'p4_w12_acceptance_contract_verified=true' \
   'p4_acceptance_evidence_modes_separated=true' \
+  'p4_r3_visible_hmi_supersedes_legacy_surfaces=true' \
   'hmi_d4_demo_control_loop_complete=false' \
   'production_ready=false' \
   'target_hardware_validated=false'

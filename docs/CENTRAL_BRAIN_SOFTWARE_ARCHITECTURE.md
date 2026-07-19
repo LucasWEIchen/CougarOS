@@ -1,8 +1,8 @@
 # 车载中央大脑软件架构设计
 
-版本：3.4
+版本：3.5
 
-日期：2026-07-17
+日期：2026-07-20
 
 目标平台：黑盒 Android 13 座舱域控制器
 
@@ -1970,3 +1970,43 @@ The Android application, SDK/Binder, Runtime/Room/Orchestration, Tool/Skill/Memo
 layers have a complete repository software baseline. Hardware-facing adapters remain deliberately empty and fail closed. The architecture
 therefore reports `repository_software_requirements_complete=true` while retaining `production_ready=false` and
 `target_hardware_validated=false`; OEM/Vendor integration starts only from a separately approved Req-ID contract.
+
+## P4-R3 voice-first cockpit composition
+
+Req IDs: `APP-004`, `S2-HMI-007`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`,
+`S2-EFF-001`, `XSC-001/005/006`.
+
+```mermaid
+sequenceDiagram
+    participant Driver
+    participant HMI as Client2 voice-first HMI
+    participant SDK as Session/Orchestration SDK
+    participant Runtime as Android Runtime
+    participant Context as CockpitModelPrompt
+    participant Model as Ollama or OpenClaw Provider
+    participant Policy as Scenario/Policy/Safety
+    participant Effect as Simulated Effect Adapter
+
+    Driver->>HMI: voice transcript / fixed task trigger
+    HMI->>SDK: owner-bound scenario request
+    SDK->>Runtime: Session then Orchestration V1
+    Runtime-->>HMI: RUNTIME/INTENT/CONTEXT milestones
+    Runtime->>Context: build automotive driver-service context
+    Runtime-->>HMI: MODEL RUNNING
+    Context->>Model: bounded prompt + allowed/required actions
+    Model-->>Runtime: strict scenario/reply/actions JSON
+    Runtime->>Policy: bind admitted actions to fixed Plan
+    Policy->>Effect: debug simulation-only dispatch
+    Runtime-->>HMI: PLAN/POLICY/GRAPH/SAFETY/EFFECT/READBACK
+    Effect-->>HMI: HVAC/Seat View animation only
+```
+
+The architecture does not add a UI-owned workflow or vehicle-control path. `CockpitModelPrompt` is provider neutral.
+The admitted model action set may only remove catalog-declared optional capabilities. Session, Plan, Policy, Safety and
+Effect ownership remain in Runtime. `OrchestrationRuntimeClient.Callback.onPipelineMilestone` is a bounded projection,
+not an audit authority. HVAC/Seat animation uses no Vehicle/VHAL/CAN/Driver-HAL API and is never accepted as readback.
+
+The fixed OpenClaw target profile is `P7-R3-OC2`: WebSocket protocol v3 uses the fixed link-local host, while the
+maintainer-specified control URL/token is compiled in `OpenClawEndpointConfig`. This removes the provisioning surface but
+creates the explicit `DEV-124` extractable-credential deviation. The 2026-07-20 target host is reachable, but TCP 18789
+refuses connections (`ISSUE-054`), so current target model regression remains external-blocked.

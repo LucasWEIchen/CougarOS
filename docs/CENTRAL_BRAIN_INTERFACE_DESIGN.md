@@ -4040,7 +4040,7 @@ to 16 entries and is never durable. Client2 consumes it after validating Orchest
 not contain or publish this debug surface. Release BuildConfig remains fail closed with
 `OLLAMA_DEVELOPMENT_ENABLED=false` and `OLLAMA_MODEL=UNCONFIGURED`. Stage `P7-R2`; tracking `DEV-121`, `ISSUE-024/044`.
 
-## P7-R3-OC OpenClaw target interfaces
+## P7-R3-OC2 OpenClaw target interfaces
 
 The target integration adds no caller-selected URL. `OpenClawEndpointConfig` owns the fixed link-local WebSocket URI and
 protocol v3. `ModelProviderProfiles.targetOpenClawTransitional()` exposes backend `OPENCLAW_GATEWAY`, assurance
@@ -4053,10 +4053,33 @@ RFC6455 upgrade, v3 challenge/connect authentication, `chat.send`, best-effort `
 `chat.history` fallback. Output is canonical UTF-8 JSON with exactly `scenario_id`, `reply`, `actions`; no raw WebSocket
 frame, prompt, response or credential crosses the provider interface or audit boundary.
 
-`OpenClawCredentialProvisioningActivity` is debug-only and `android.permission.DUMP` protected. It writes only to
-`OpenClawCredentialStore`; there is no SharedPreferences, Room, file, Keystore or release Service interface. Client2 is
+Per maintainer directive, `OpenClawEndpointConfig` also owns the complete control-UI URL and fixed target token.
+`OpenClawInferenceEngine` obtains the token from that build-owned profile; the former debug provisioning Activity and
+process-local Store are removed. The token is consequently persisted in source/Git/APK and is extractable. Client2 is
 unchanged at the model boundary: it reads `ICentralBrainDevelopmentModelProjection` after Orchestration V1 validation.
 Full protocol, lifecycle and integration guidance is in `CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`.
 
-Current `external_compute_accessed=true`, `direct_npu_accessed=false`, `production_provider_qualified=false`,
-`production_ready=false`, `target_hardware_validated=false`; stage `P7-R3-OC`, tracking `DEV-122/ISSUE-024/044`.
+Current `external_compute_accessed=true`, `fixed_target_credential_active=true`,
+`latest_target_connectivity_verified=false`, `direct_npu_accessed=false`, `production_provider_qualified=false`,
+`production_ready=false`, `target_hardware_validated=false`; stage `P7-R3-OC2`, tracking
+`DEV-122/124` and `ISSUE-024/044/054`.
+
+## P4-R3 voice-first HMI and live execution interfaces
+
+`OrchestrationRuntimeClient.Callback.onPipelineMilestone(stage, state, detail)` is the single Client2 projection entry.
+The client emits bounded milestones for `RUNTIME`, `INTENT`, `CONTEXT`, `MODEL`, `PLAN`, `POLICY`, `GRAPH`, `SAFETY`,
+`EFFECT` and `READBACK`. It does not expose raw model prompt, raw provider frame, vehicle payload, Binder identity or token.
+`CockpitControlCoordinator` serializes milestones onto the main thread, paces them at 360 ms, retains at most 32 rendered
+lines and always scrolls the `centralBrainLiveTraceScroll` view to the latest line.
+
+`CockpitModelPrompt.forScenario(inputDigest, scenarioId)` is shared by Ollama and OpenClaw. It supplies fixed automotive
+environment/driver-goal metadata, synthetic cabin state, `UI_SIMULATION_ONLY`, `SAFETY_INTERFACE_RESERVED`, per-scenario
+allowed actions and required actions. Provider JSON is admitted only after exact scenario/reply/action validation.
+`DebugDecisionCompositionBoundary.Evidence.getAdmittedModelActions()` binds the admitted set to the request; the debug
+scenario backend may only prune catalog-declared optional capabilities. It cannot add a capability or bypass Plan/Policy.
+
+The UI effect feedback has no Binder/Vehicle/VHAL interface. `animateTemperature`, `animateFan` and `animateSeat` modify
+only Client2 views. Cold shows HVAC feedback and updates both cockpit setpoint overlays from 26.5 to 28.0 degrees C.
+Fatigue shows HVAC plus a left-side driver-seat region, fan 1 to 3 and seat 15 to 30 degrees. Every panel displays
+`SIMULATED` and no-vehicle-bus text. Req IDs: `APP-004`, `S2-HMI-007`, `S2-MDL-002`, `S2-OBS-002`,
+`S2-SAF-001`, `S2-EFF-001`, `XSC-005/006`; tracking `DEV-123`.

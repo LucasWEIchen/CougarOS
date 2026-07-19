@@ -198,6 +198,7 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | S2-HMI-004 | 无真实信号的演示来源 | Android debug/test Digital Twin；持续显示 SIMULATED |
 | S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
+| S2-HMI-007 | 语音优先极简 HMI 与末端反馈 | 仅保留场景触发和实时链路；HVAC/Seat 结果以显式 SIMULATED 动画反馈 |
 | S2-SES-001 | versioned durable Session | P1-W01/P1-W03 contract、P1-W05 facade/Service、P1-W06 Room v4/process-death recovery 已完成 |
 | S2-CTX-001 | typed Context snapshot | typed source/freshness/trust 与 debug composition 软件完成；production source 外部阻塞 |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test store 与显式 SIMULATED 投影完成；production 禁止 fallback |
@@ -210,8 +211,10 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | S2-MEM-001 | memory lifecycle | Working/Profile/Episodic、budget/consent 软件合同与 debug composition 完成；production repository/owner 外部阻塞 |
 | S2-EVT-001 | proactive Event trigger | Event V2、broker/QoS、Trigger/consent/suggestion 软件完成；production middleware/Context owner 外部阻塞 |
 | S2-MDL-001 | model routing | Model V2/router/evaluation/resource admission 与 debug decision composition 完成；Vendor NPU/provider 外部阻塞 |
+| S2-MDL-002 | 座舱模型上下文与动作约束 | 驾驶员服务目标、座舱状态、UI 仿真边界和必要动作必须进入模型 prompt；输出需白名单后再进入 Plan |
 | S2-ADP-002 | real vehicle adapter | owner/API/permission/readback/rollback |
 | S2-OBS-001 | trace/metric/audit | no-raw-content 软件 audit/diagnostic/release evidence 接口完成；目标采集外部阻塞 |
+| S2-OBS-002 | HMI 实时调用链投影 | Runtime/Intent/Context/Model/Plan/Policy/Graph/Safety/Effect/Readback 里程碑有界、顺序、滚动显示 |
 | S2-REL-001 | release/rollback/compatibility | admission/rollback/retest 软件接口完成；量产 signer/installer/replacement evidence 外部阻塞，security campaign 挂起 |
 
 Production adapter registry must return adapter unavailable rather than silently falling back to simulation.
@@ -3050,7 +3053,7 @@ debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle
 `production_npu_validated=false`、`implementation_stage=P7-R2`。P10-R1 是此前范围基线；新增 P7-R3 已明确归类为
 `PLANNED`，不再使用“当前全部开发完成”描述扩展后的范围。tracking：`DEV-121`、`ISSUE-024/044`。
 
-## P7-R3-OC OpenClaw Target Gateway Requirements
+## P7-R3-OC2 OpenClaw Target Gateway Requirements
 
 1. `S2-MDL-001/XSC-001`：目标地址固定为 `169.254.208.110:18789`，调用方不得覆盖 host、port、path 或协议版本。
 2. `S2-MDL-001`：`/chat` 仅为控制 UI；模型 Runtime 必须使用 WebSocket root、protocol 3、challenge/connect、
@@ -3058,9 +3061,31 @@ debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle
 3. `S2-SAF-001`：目标 Provider assurance 为 `TARGET_INTEGRATION`，不得声明 production eligible、hardware backed、
    direct NPU access、action authority 或 Effect authority。
 4. `S2-SAF-001`：响应必须 strict UTF-8/JSON、exact keys、scenario binding、reply/action bound 和 action allowlist。
-5. `S2-OBS-001/XSC-006`：credential、prompt、reply 不得进入源码、APK 常量、Room、checkpoint、日志或测试证据；
-   debug credential 仅允许 DUMP-protected process-local injection。
+5. `S2-OBS-001/XSC-006`：按维护者明确指令，完整控制页 URL/token 固化在 `OpenClawEndpointConfig`；凭据会进入源码、Git
+   历史和 APK，必须标记 `CLOSED_TARGET_TEST_ONLY` 且不得写日志、Room、checkpoint 或测试输出。旧 DUMP 注入 Activity/Store 删除。
 6. `DEL-003/004/005`：必须有 JVM、static contract、target APK、API 33 ARM64 Runtime probe 和 Client2 projection evidence。
 
 当前 `openclaw_target_integration_implemented=true`、`openclaw_target_android13_arm64_verified=true`、
-`production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；stage `P7-R3-OC`。
+`fixed_target_credential_active=true`、`latest_target_connectivity_verified=false`、`production_provider_qualified=false`、
+`production_ready=false`、`target_hardware_validated=false`；stage `P7-R3-OC2`。2026-07-20 当前目标主机可达但
+18789 返回 `Connection refused`，未进入协议或 token 校验。
+
+## P4-R3 Voice-first live cockpit HMI requirements
+
+1. `APP-004/S2-HMI-006/007`：Client2 中央大脑面板只保留固定场景触发和一个有界实时滚动调用链，不再把手动
+   HVAC/Seat 调参、多页 tab、工程抽屉作为驾驶员主交互。
+2. `S2-MDL-002/S2-SAF-001`：Cold/Fatigue prompt 必须声明汽车座舱、驾驶员服务目标、当前座舱温度、默认 HVAC
+   设定、疲劳上下文、`UI_SIMULATION_ONLY` 和 `SAFETY_INTERFACE_RESERVED`；响应必须 strict JSON、场景绑定、动作白名单。
+3. `S2-MDL-002/S2-EFF-001`：模型 action 只决定固定场景 Plan 中哪些可选 capability 被保留；不得新建 capability、
+   绕过 Scenario Catalog/Policy/Safety 或直接调用 adapter。
+4. `S2-OBS-002`：Client2 必须按 Runtime、Intent、Context、Model、Plan、Policy、Graph、Safety、Effect、Readback
+   顺序增量投影，模型等待期间立即显示 RUNNING，最多保留 32 行并自动滚动。
+5. `S2-HMI-004/007`：无车身通信时，HVAC 温度/风量和驾驶席角度只通过 Android UI 动画反馈；Cold 由 26.5°C
+   变为 28.0°C，Fatigue 风量 1->3 且座椅 15->30 度。Seat 只在场景实际包含座椅动作时显示。
+6. `S2-SAF-001`：所有动画持续标记 `SIMULATED`、未连接车辆总线且不构成实车证据；security executable 保持挂起，
+   demo 自动继续不得授予 production authority。
+
+当前 `voice_first_hmi_implemented=true`、`cockpit_context_prompt_bound=true`、
+`model_action_plan_binding_verified=true`、`live_pipeline_trace_verified=true`、
+`simulated_actuator_feedback_verified=true`、`vehicle_bus_accessed=false`、`security_implementation_present=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-123/124`、`ISSUE-054`。

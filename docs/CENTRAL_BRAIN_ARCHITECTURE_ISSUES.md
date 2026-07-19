@@ -1,7 +1,7 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.7
-日期：2026-07-17
+版本：0.8
+日期：2026-07-20
 状态：Android 13 实际工程基线
 
 ## P10-R1 issue update
@@ -82,6 +82,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-051 | P9 durable privacy lifecycle 缺 owner policy、repository enforcement 和目标 evidence。 | S2-MEM-001, S2-SAF-001, P9-W04 | Open |
 | ISSUE-052 | P9 production signer、installer/rollback owner 和受控发布证据不可用。 | S2-REL-001, P9-W05 | Open / External Blocked |
 | ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
+| ISSUE-054 | 当前 Android 可达 OpenClaw 主机，但 18789 端口拒绝连接；固定凭据构建无法完成当前模型回归。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Open / External Service Blocked |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1385,14 +1386,31 @@ ISSUE-024 保持 Open：`169.254.208.110` 的 production Provider、量产模型
 `production_provider_implemented=false`、`production_npu_validated=false`、`production_ready=false`、
 `target_hardware_validated=false`；tracking：`DEV-121`；stage `P7-R2`。
 
-## P7-R3-OC OpenClaw target update (ISSUE-024/044)
+## P7-R3-OC2 OpenClaw target update (ISSUE-024/044/054)
 
 ISSUE-024 的“目标 Android 无真实模型 Provider”软件子项已关闭：固定 OpenClaw v3 Provider、认证、结构化回复、
 Runtime probe 和 Client2 projection 已在 API 33 ARM64 通过。ISSUE-044 的 model-to-fixed-scenario projection 子项已关闭；
 模型 action 仍不拥有 Plan/Effect authority。
 
-Issues 保持 Open：共享 credential、明文 link-local transport、Gateway health/version、model artifact owner、release signer/profile、
+按维护者指令，完整控制 URL/token 已固化在源码/APK，旧进程内 provisioning 面已删除。该改动关闭了安装后再次注入凭据的
+操作依赖，但形成 `DEV-124` 的可提取凭据偏差，不是正式 secret management。
+
+Issues 保持 Open：固定共享 credential、明文 link-local transport、Gateway health/version、model artifact owner、release signer/profile、
 resource/thermal producer、Ollama migration、direct NPU attribution 和 target qualification 未完成。
-`openclaw_target_android13_arm64_verified=true`、`direct_npu_accessed=false`、
+2026-07-20 真机从 `169.254.208.100` 可 ping 通目标，TCP 18789 立即返回 `Connection refused`；因此当前回归未进入
+WebSocket、authentication 或 token validation。恢复条件是算力单元 owner 启动并监听 18789 后重跑 Runtime probe 和 Client2 场景。
+
+`openclaw_target_android13_arm64_verified=true`（历史）、`latest_target_connectivity_verified=false`、
+`fixed_target_credential_active=true`、`direct_npu_accessed=false`、
 `production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
-tracking：`DEV-122`；stage `P7-R3-OC`。
+tracking：`DEV-122/124`；stage `P7-R3-OC2`。
+
+## ISSUE-054 OpenClaw target service is not listening
+
+目标 Android 13 ARM64 的 link-local 路由和 ICMP 可达性正常，但当前 `169.254.208.110:18789` 拒绝 TCP 连接。
+该故障发生在 WebSocket handshake、challenge/auth、prompt、模型推理和 action allowlist 之前，不能通过修改 token、
+Client2 UI 或模型 schema 修复。
+
+状态：`Open / External Service Blocked`。算力基座 owner 需要提供端口监听、服务进程和协议版本证据；恢复后必须执行
+固定目标 build 的 Runtime probe、Cold/Fatigue Client2 调用和无原始 prompt/reply/token 日志检查。此前 2026-07-19 的
+成功 WebSocket v3 证据保留，但不代表 2026-07-20 服务仍在线。

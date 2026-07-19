@@ -15,6 +15,7 @@ import com.centralbrain.runtime.scenario.ScenarioResolver.CapabilityProfile;
 import com.centralbrain.runtime.scenario.ScenarioResolver.CapabilitySnapshot;
 import com.centralbrain.runtime.scenario.ScenarioResolver.Request;
 import com.centralbrain.runtime.vehicle.capability.CapabilityCatalog;
+import com.centralbrain.runtime.vehicle.capability.VehicleCapability.CapabilityId;
 import com.centralbrain.runtime.vehicle.schema.SignalQuality;
 import com.centralbrain.runtime.vehicle.schema.SignalSource;
 import com.centralbrain.runtime.vehicle.schema.SignalTimestamp;
@@ -122,7 +123,8 @@ public final class SimulatedScenarioInputFactory {
                 driving,
                 sessionId,
                 nowEpochMs,
-                nowEpochMs + DEADLINE_MS);
+                nowEpochMs + DEADLINE_MS,
+                Set.of());
     }
 
     public Input createForSession(
@@ -135,7 +137,23 @@ public final class SimulatedScenarioInputFactory {
                 driving,
                 sessionId,
                 epochMs.getAsLong(),
-                deadlineEpochMs);
+                deadlineEpochMs,
+                Set.of());
+    }
+
+    public Input createForSession(
+            ScenarioKind scenario,
+            DrivingProfile driving,
+            String sessionId,
+            long deadlineEpochMs,
+            Set<CapabilityId> runtimeUnavailable) {
+        return createForSession(
+                scenario,
+                driving,
+                sessionId,
+                epochMs.getAsLong(),
+                deadlineEpochMs,
+                runtimeUnavailable);
     }
 
     private Input createForSession(
@@ -143,7 +161,8 @@ public final class SimulatedScenarioInputFactory {
             DrivingProfile driving,
             String sessionId,
             long nowEpochMs,
-            long deadlineEpochMs) {
+            long deadlineEpochMs,
+            Set<CapabilityId> runtimeUnavailable) {
         ScenarioKind requiredScenario = Objects.requireNonNull(scenario, "scenario");
         DrivingProfile requiredDriving = Objects.requireNonNull(driving, "driving");
         String canonicalSessionId = canonicalUuid(sessionId, "sessionId");
@@ -161,7 +180,7 @@ public final class SimulatedScenarioInputFactory {
                 CapabilityCatalog.stage2Defaults(),
                 CapabilityProfile.SOFTWARE_SIMULATION,
                 1,
-                Set.of());
+                Objects.requireNonNull(runtimeUnavailable, "runtimeUnavailable"));
         ScenarioResolution resolution = new DeterministicScenarioResolver().resolve(
                 new Request(
                         requiredScenario.scenarioId,

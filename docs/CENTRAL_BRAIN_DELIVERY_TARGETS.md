@@ -2935,13 +2935,28 @@ NPU/resource/thermal evidence、生产网络风险批准和目标 release qualif
 `production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-121/ISSUE-024/044`；stage `P7-R2`。
 
-## P7-R3-OC OpenClaw target delivery
+## P7-R3-OC2 OpenClaw target delivery
 
-交付固定 endpoint/config、OpenClaw v3 engine、TARGET_INTEGRATION provider/router、process-local credential、
-DUMP-protected provisioning/probe、JVM tests、machine contract、CI checker、build profile 和 Client2 projection。
+交付固定 endpoint/config（含维护者指定控制 URL/token）、OpenClaw v3 engine、TARGET_INTEGRATION provider/router、
+DUMP-protected probe、JVM tests、machine contract、CI checker、build profile 和 Client2 projection；旧 provisioning
+Activity/Store/script 已删除。
 API 33 ARM64 已验证 Runtime probe 与 Client2 cold scenario 的真实外部模型终态。
 
+2026-07-20 当前复测只能确认 Android 到目标主机可达；TCP 18789 `Connection refused`，所以最新模型回归未通过。
+
 交付不包含 release credential、TLS、Gateway lifecycle/health owner、Ollama target deployment、direct NPU proof、
-Vendor SDK、Vehicle Effect 或 production installer。`external_compute_accessed=true`、`direct_npu_accessed=false`、
+Vendor SDK、Vehicle Effect 或 production installer。固定 token 可从源码/APK 提取，只适用于封闭测试。
+`external_compute_accessed=true`、`fixed_target_credential_active=true`、`latest_target_connectivity_verified=false`、`direct_npu_accessed=false`、
 `production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
-tracking：`DEV-122/ISSUE-024/044`；stage `P7-R3-OC`。
+tracking：`DEV-122/124`、`ISSUE-024/044/054`；stage `P7-R3-OC2`。
+
+## P4-R3 voice-first HMI delivery
+
+交付 Client2 两个自然场景触发、32 行实时滚动调用链、共享汽车座舱模型上下文、模型 action 到固定 Plan optional
+capability 的白名单绑定，以及 HVAC/Seat Android 动画反馈。目标 UI 固定在 1920x1080 边界内；Cold 更新现有温度显示，
+Fatigue 在左侧显示座椅响应。所有 effect feedback 均为 `SIMULATED`，无 Vehicle/VHAL/CAN/Driver-HAL 调用。
+
+开发环境 Android 13 ARM64 经 ADB reverse 实际调用 WSL Ollama 的 Cold/Fatigue 通过；当前目标 OpenClaw 由
+`ISSUE-054` 阻塞。`voice_first_hmi_implemented=true`、`simulated_actuator_feedback_verified=true`、
+`vehicle_bus_accessed=false`、`security_implementation_present=false`、`production_ready=false`、
+`target_hardware_validated=false`；tracking：`DEV-123/124`、`ISSUE-054`。

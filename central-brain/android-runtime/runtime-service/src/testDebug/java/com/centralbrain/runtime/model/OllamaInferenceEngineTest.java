@@ -86,6 +86,36 @@ public final class OllamaInferenceEngineTest {
     }
 
     @Test
+    public void fatigueRequestContainsCockpitContextAndRequiredActions() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicReference<OllamaInferenceEngine.Request> captured = new AtomicReference<>();
+        OllamaInferenceEngine engine = engine(clock, request -> {
+            captured.set(request);
+            return response(
+                    "scene.fatigue.assist.v1",
+                    "正在执行疲劳关怀仿真。",
+                    "hvac.ventilate",
+                    "seat.recline");
+        });
+        engine.warmup(model());
+        engine.registerScenarioPrompt(INPUT_DIGEST, "scene.fatigue.assist.v1");
+
+        engine.infer(model(), request(INPUT_DIGEST), neverCancelled());
+
+        String requestJson = new String(captured.get().body, StandardCharsets.UTF_8);
+        assertTrue(requestJson.contains("environment=AUTOMOTIVE_COCKPIT"));
+        assertTrue(requestJson.contains("occupant_role=DRIVER"));
+        assertTrue(requestJson.contains("UI_SIMULATION_ONLY"));
+
+        OllamaInferenceEngine missingSeat = engine(clock, request -> response(
+                "scene.fatigue.assist.v1", "只调整通风。", "hvac.ventilate"));
+        missingSeat.warmup(model());
+        missingSeat.registerScenarioPrompt(INPUT_DIGEST, "scene.fatigue.assist.v1");
+        assertThrows(IllegalStateException.class, () -> missingSeat.infer(
+                model(), request(INPUT_DIGEST), neverCancelled()));
+    }
+
+    @Test
     public void unknownFieldsAndMalformedUtf8FailClosed() {
         AtomicLong clock = new AtomicLong(1_000L);
         OllamaInferenceEngine unknownField = engine(clock, request -> {
@@ -148,10 +178,10 @@ public final class OllamaInferenceEngineTest {
     private static OllamaInferenceEngine.Response response(
             String scenarioId,
             String reply,
-            String action) {
+            String... actions) {
         String content = "{\"scenario_id\":\"" + scenarioId
                 + "\",\"reply\":\"" + reply
-                + "\",\"actions\":[\"" + action + "\"]}";
+                + "\",\"actions\":[\"" + String.join("\",\"", actions) + "\"]}";
         String envelope = "{\"model\":\"" + MODEL
                 + "\",\"done\":true,\"message\":{\"content\":"
                 + quote(content) + "}}";

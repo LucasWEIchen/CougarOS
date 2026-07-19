@@ -689,12 +689,12 @@ for marker in \
   'approval_response_service_published=false' \
   'undo_service_published=false' \
   'ICentralBrainSessionRuntime V1（已发布）' \
-  'cockpit_demo_control_loop_implemented=false' \
-  'S2-HMI-001..006' \
-  '意图输入（设计稿已交付）' \
-  '计划与 Policy（设计稿已交付）' \
-  '中控 AIOS 演示闭环' \
-  '七阶段执行 timeline' \
+  'voice_first_hmi_implemented=true' \
+  'cockpit_model_context_implemented=true' \
+  'live_pipeline_trace_implemented=true' \
+  'simulated_actuator_feedback_implemented=true' \
+  'S2-HMI-007' \
+  'P4-R3 Voice-first live HMI' \
   'production_ready=false' \
   'target_hardware_validated=false' \
   'driver_development_triggered=false' \
@@ -720,6 +720,7 @@ required_paths=(
   central-brain/contracts/central_brain_android_p4_d4a_simulated_scenario_graph.json
   central-brain/contracts/central_brain_android_p4_d4b_simulated_scenario_runtime.json
   central-brain/contracts/central_brain_android_p4_d4c_simulated_scenario_binder.json
+  central-brain/contracts/central_brain_android_voice_first_hmi_v1.json
   central-brain/contracts/central_brain_android_p9_physical_acceptance.json
   central-brain/delivery/android-hybrid/central-brain.android-hybrid-delivery-profile.json
   docs/CENTRAL_BRAIN_SOFTWARE_ARCHITECTURE.md
@@ -765,6 +766,7 @@ required_paths=(
   tools/check_central_brain_android_effect_coordinator.sh
   tools/check_central_brain_android_graph_restart_recovery.sh
   tools/check_central_brain_android_client2_intent_shell.sh
+  tools/check_central_brain_android_voice_first_hmi.sh
   tools/check_central_brain_android_client2_execution_timeline.sh
   tools/check_central_brain_android_client2_recovery_ux.sh
   tools/check_central_brain_runtime_contract_v2.sh

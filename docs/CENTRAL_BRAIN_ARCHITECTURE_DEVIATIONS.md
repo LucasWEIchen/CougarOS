@@ -971,6 +971,30 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-123 P4-R3 voice-first actuator feedback is UI simulation, not vehicle execution
+
+Client2 只保留自然场景触发和实时调用链，并通过 Android View 动画显示 HVAC/Seat 反馈。Cold 将显示温度从
+26.5°C 动画到 28.0°C；Fatigue 将风量 1 动画到 3，并将驾驶席靠背 15 度动画到 30 度。模型输出经场景绑定和
+action allowlist 后，只能裁剪固定 Plan 中的 optional capability；不能新建 capability 或授予 Effect 权限。
+
+为使无车身通信的演示可连续执行，debug UI simulation profile 可在明确显示 `SIMULATED` 后自动继续 Fatigue
+approval。该输入不是用户/OEM Safety approval，也不接 VehicleProperty、Vendor SOA、CAN、Driver/HAL 或真实 readback。
+状态：`Accepted Temporary`。关闭条件是取得 OEM capability/permission/safety/readback 合同并由目标 owner 完成
+P8/P9 验收。当前 `vehicle_bus_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-HMI-007/S2-MDL-002/S2-OBS-002/S2-SAF-001/S2-EFF-001`。
+
+## DEV-124 P7-R3-OC2 target credential is embedded in source and APK
+
+维护者明确要求将当前 OpenClaw 完整控制页 URL 和 token 直接固化在项目代码中。`OpenClawEndpointConfig`
+因此成为固定 URL/token 的唯一来源，Provider 默认读取该 token；旧的 DUMP 保护凭据注入 Activity、进程内 Store
+和 provisioning script 已删除。
+
+该做法意味着 token 可从 Git 历史、源码和 APK 反编译提取，不能视为量产凭据管理，也不满足 TLS、轮换、吊销、
+设备绑定或 secure storage 要求。状态：`Accepted by explicit maintainer directive / closed target test only`。
+关闭条件是 OpenClaw/Ollama owner 提供可轮换的正式凭据接口和加密传输，并完成 release signer/secret owner 审批。
+当前 `fixed_target_credential_active=true`、`credential_extractable_from_apk=true`、
+`production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`。
+
 ## DEV-122 OpenClaw target integration is transitional, not production qualification
 
 目标环境当前只提供 OpenClaw，故 P7-R3-OC 临时偏离原定量产 Ollama endpoint。Android 通过标准 Java Socket/WebSocket

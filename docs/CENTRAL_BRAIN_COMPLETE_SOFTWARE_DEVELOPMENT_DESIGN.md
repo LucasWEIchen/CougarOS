@@ -5029,7 +5029,7 @@ tracking：`DEV-103`、`ISSUE-022/026/030/033`。
 `SimulatedScenarioEffectComposition` 以 `SimulatedScenarioRuntime` 为唯一 Graph/Event owner。`start` 接收 D4c build-owned `Input`、scenario 和
 driving profile；启动后循环读取 pending node。Approval 立即返回；Effect 调用 `dispatch`；Readback 调用 `verify`；终态返回 immutable Snapshot。
 
-Effect payload 映射固定为七项：HVAC power true、driver target 23.0 C、cabin fan 3、driver seat heat 2、approved driver recline 30 degree、
+Effect payload 映射固定为七项：HVAC power true、driver target 28.0 C、cabin fan 3、driver seat heat 2、approved driver recline 30 degree、
 media PAUSE 和 build-owned nearby-rest-area query。每次 invocation 的 idempotency token 绑定 run/node/idempotency/input digest，envelope 绑定
 run/node/input digest；Binder 无 target-value 参数。
 
@@ -5411,13 +5411,14 @@ bounded schema, but release Provider, health/resource owners, model artifact, ta
 composition are `P7-R3 PLANNED`. Full details are in `CENTRAL_BRAIN_OLLAMA_MODEL_GATEWAY.md`.
 `production_ready=false`, `target_hardware_validated=false`; tracking `DEV-121`, `ISSUE-024/044`.
 
-## P7-R3-OC implementation delta: current target OpenClaw
+## P7-R3-OC2 implementation delta: current target OpenClaw
 
 The current target does not yet expose Ollama, so the production-host integration is implemented as a transitional debug
 target profile. Main-source contracts now define the fixed OpenClaw endpoint, provider kind, target assurance, registry
-descriptor and router mode. Debug source contains the process-local credential store, DUMP-protected provisioning/probe,
-RFC6455/v3 engine and real composition wiring. Release routing remains disabled and the release orchestration backend
-still fails closed because trusted Context/Safety/Effect and release credential ownership are absent.
+descriptor and router mode. Per maintainer directive, main source also contains the complete fixed control URL and target
+token; debug source contains the DUMP-protected probe, RFC6455/v3 engine and real composition wiring. The former credential
+provisioning Activity/Store is removed. Release routing remains disabled and the release orchestration backend still fails
+closed because trusted Context/Safety/Effect and release credential ownership are absent.
 
 The engine state machine is: warm model contract, consume one registered scenario prompt, derive bounded session and
 idempotency keys, connect fixed host, validate WebSocket accept, receive challenge, authenticate protocol 3, send chat,
@@ -5429,6 +5430,32 @@ repository and target-integration software delta for the currently available mod
 credential storage, encrypted transport, Gateway health/version, model artifact identity, direct NPU attribution, release
 signer/installer, vehicle Effect/readback or target qualification. See `CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`.
 
+The latest 2026-07-20 retest reached the target host over the Android link-local interface but TCP 18789 returned
+`Connection refused`; current authentication/model regression is therefore blocked before protocol handling. The earlier
+successful integration evidence remains historical evidence, not proof of current service availability.
+
 `openclaw_target_integration_implemented=true`, `openclaw_target_android13_arm64_verified=true`,
-`client2_openclaw_projection_verified=true`, `direct_npu_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`; stage `P7-R3-OC`, tracking `DEV-122/ISSUE-024/044`.
+`client2_openclaw_projection_verified=true`, `fixed_target_credential_active=true`,
+`latest_target_connectivity_verified=false`, `direct_npu_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`; stage `P7-R3-OC2`, tracking `DEV-122/124` and `ISSUE-024/044/054`.
+
+## P4-R3 implementation delta: voice-first live HMI
+
+The driver-facing Central Brain surface is reduced to two fixed natural-language task triggers and one live scrolling
+pipeline view. The panel no longer exposes device-centric HVAC/Seat controls, staged tabs or engineer drawers as the
+primary flow. This is a projection change only: Session/Plan/Effect ownership remains in Runtime.
+
+Both network model engines consume `CockpitModelPrompt`, which binds the automotive cockpit environment, driver service
+goal, synthetic cabin state, simulation-only effect mode, reserved safety interface and per-scenario required action set.
+Validated model actions are carried in debug decision evidence and may prune only catalog-declared optional capabilities.
+They do not create Plan nodes, authorize an Effect or access a vehicle adapter.
+
+`OrchestrationRuntimeClient` emits ten bounded milestones through `onPipelineMilestone`; `CockpitControlCoordinator`
+serializes them at 360 ms intervals into a 32-line auto-scrolling text view. Model RUNNING is emitted before network I/O,
+so long inference does not appear as an instantaneous button simulation. Cold animates the existing bottom setpoint from
+26.5 to 28.0 degrees C and the left feedback HVAC panel. Fatigue animates fan 1 to 3 and a left-side seat from 15 to 30
+degrees. Seat feedback is hidden for Cold. All effects are Android view animation only and carry visible `SIMULATED`,
+no-vehicle-bus and no-authority labels.
+
+Req IDs: `APP-004`, `S2-HMI-007`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`, `S2-EFF-001`,
+`XSC-005/006`; tracking `DEV-123`. `production_ready=false`, `target_hardware_validated=false`.

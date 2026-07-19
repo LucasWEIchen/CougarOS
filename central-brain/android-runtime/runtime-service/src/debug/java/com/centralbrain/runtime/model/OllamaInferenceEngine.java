@@ -72,34 +72,10 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         }
     }
 
-    private static final class Prompt {
-        final String inputDigest;
-        final String scenarioId;
-        final String utterance;
-        final List<String> allowedActions;
-
-        Prompt(
-                String inputDigest,
-                String scenarioId,
-                String utterance,
-                List<String> allowedActions) {
-            this.inputDigest = inputDigest;
-            this.scenarioId = scenarioId;
-            this.utterance = utterance;
-            this.allowedActions = allowedActions;
-        }
-
-        boolean matches(Prompt other) {
-            return scenarioId.equals(other.scenarioId)
-                    && utterance.equals(other.utterance)
-                    && allowedActions.equals(other.allowedActions);
-        }
-    }
-
     private final OllamaEndpointConfig endpoint;
     private final Transport transport;
     private final ElapsedClock clock;
-    private final Map<String, Prompt> pending = new LinkedHashMap<>();
+    private final Map<String, CockpitModelPrompt> pending = new LinkedHashMap<>();
     private ModelProvider.ModelSpec warmedModel;
     private boolean closed;
     private long invocationCount;
@@ -131,8 +107,8 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
 
     public synchronized void registerScenarioPrompt(String inputDigest, String scenarioId) {
         requireDigest(inputDigest);
-        Prompt prompt = prompt(inputDigest, scenarioId);
-        Prompt existing = pending.get(inputDigest);
+        CockpitModelPrompt prompt = CockpitModelPrompt.forScenario(inputDigest, scenarioId);
+        CockpitModelPrompt existing = pending.get(inputDigest);
         if (existing != null) {
             if (!existing.matches(prompt)) {
                 throw new IllegalArgumentException("Ollama input digest prompt conflict");
@@ -156,7 +132,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
             ModelProvider.ModelSpec modelSpec,
             ModelProvider.InferenceRequest request,
             LocalModelProvider.CancellationSignal cancellationSignal) {
-        Prompt prompt;
+        CockpitModelPrompt prompt;
         synchronized (this) {
             requireOpen();
             if (warmedModel == null
@@ -246,7 +222,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         return (int) Math.min(Integer.MAX_VALUE, remaining);
     }
 
-    private byte[] buildRequest(Prompt prompt) {
+    private byte[] buildRequest(CockpitModelPrompt prompt) {
         JsonObject root = new JsonObject();
         root.addProperty("model", endpoint.getModelName());
         root.addProperty("stream", false);
@@ -255,21 +231,19 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
 
         JsonArray messages = new JsonArray();
         String exactShape = "唯一合法输出形状：{\"scenario_id\":\""
-                + prompt.scenarioId
+                + prompt.getScenarioId()
                 + "\",\"reply\":\"简短中文回复\",\"actions\":[\""
-                + prompt.allowedActions.get(0)
+                + String.join("\",\"", prompt.getRequiredActions())
                 + "\"]}。键名scenario_id、reply、actions必须完全一致；"
                 + "actions的每一项必须是可用动作中的字符串，禁止输出对象。";
         messages.add(message(
                 "system",
-                "你是车载AIOS的场景规划器。只输出一个符合JSON Schema的对象，不输出解释。"
-                        + "不得创建未列出的动作，不得声明动作已经在真实车辆上执行。"
-                        + exactShape));
+                prompt.systemInstruction() + exactShape));
         messages.add(message(
                 "user",
-                "用户表达：" + prompt.utterance
-                        + "\n场景ID：" + prompt.scenarioId
-                        + "\n可用动作：" + String.join(",", prompt.allowedActions)
+                prompt.userInstruction()
+                        + "\n可用动作：" + String.join(",", prompt.getAllowedActions())
+                        + "\n必要动作：" + String.join(",", prompt.getRequiredActions())
                         + "\n" + exactShape));
         root.add("messages", messages);
         root.add("format", responseSchema(prompt));
@@ -285,7 +259,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         return encoded;
     }
 
-    private byte[] parseAndValidate(Response response, Prompt prompt) {
+    private byte[] parseAndValidate(Response response, CockpitModelPrompt prompt) {
         if (response.statusCode < 200 || response.statusCode >= 300) {
             throw new IllegalStateException("Ollama returned HTTP " + response.statusCode);
         }
@@ -311,7 +285,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
                     || !content.has("actions")) {
                 throw new IllegalStateException("Ollama content shape is not exact");
             }
-            if (!prompt.scenarioId.equals(requiredString(content, "scenario_id"))) {
+            if (!prompt.getScenarioId().equals(requiredString(content, "scenario_id"))) {
                 throw new IllegalStateException("Ollama scenario binding does not match");
             }
             String reply = requiredString(content, "reply").trim();
@@ -330,13 +304,14 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
             List<String> admitted = new ArrayList<>();
             for (JsonElement element : actions) {
                 String action = element.getAsString();
-                if (!prompt.allowedActions.contains(action) || admitted.contains(action)) {
+                if (!prompt.getAllowedActions().contains(action) || admitted.contains(action)) {
                     throw new IllegalStateException("Ollama returned an untrusted action");
                 }
                 admitted.add(action);
             }
+            prompt.validateAdmittedActions(admitted);
             JsonObject canonical = new JsonObject();
-            canonical.addProperty("scenario_id", prompt.scenarioId);
+            canonical.addProperty("scenario_id", prompt.getScenarioId());
             canonical.addProperty("reply", reply);
             JsonArray canonicalActions = new JsonArray();
             for (String action : admitted) {
@@ -349,7 +324,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         }
     }
 
-    private static JsonObject responseSchema(Prompt prompt) {
+    private static JsonObject responseSchema(CockpitModelPrompt prompt) {
         JsonObject schema = new JsonObject();
         schema.addProperty("type", "object");
         schema.addProperty("additionalProperties", false);
@@ -358,7 +333,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         JsonObject scenario = new JsonObject();
         scenario.addProperty("type", "string");
         JsonArray scenarioEnum = new JsonArray();
-        scenarioEnum.add(prompt.scenarioId);
+        scenarioEnum.add(prompt.getScenarioId());
         scenario.add("enum", scenarioEnum);
         properties.add("scenario_id", scenario);
 
@@ -376,7 +351,7 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         JsonObject item = new JsonObject();
         item.addProperty("type", "string");
         JsonArray actionEnum = new JsonArray();
-        for (String action : prompt.allowedActions) {
+        for (String action : prompt.getAllowedActions()) {
             actionEnum.add(action);
         }
         item.add("enum", actionEnum);
@@ -420,28 +395,6 @@ public final class OllamaInferenceEngine implements LocalModelProvider.LocalInfe
         } catch (CharacterCodingException failure) {
             throw new IllegalStateException("Ollama response is not valid UTF-8", failure);
         }
-    }
-
-    private static Prompt prompt(String inputDigest, String scenarioId) {
-        if ("scene.comfort.cold.v1".equals(scenarioId)) {
-            return new Prompt(
-                    inputDigest,
-                    scenarioId,
-                    "车里有点冷",
-                    List.of("hvac.warm_cabin", "media.keep_playing"));
-        }
-        if ("scene.fatigue.assist.v1".equals(scenarioId)) {
-            return new Prompt(
-                    inputDigest,
-                    scenarioId,
-                    "我有些疲惫",
-                    List.of(
-                            "seat.recline",
-                            "hvac.ventilate",
-                            "media.pause",
-                            "navigation.find_rest_area"));
-        }
-        throw new IllegalArgumentException("Ollama scenario is not allowlisted");
     }
 
     private synchronized void requireOpen() {

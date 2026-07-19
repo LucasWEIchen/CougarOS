@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "implementation_stage": "P7-R3-OC",
+  "schema_version": 2,
+  "implementation_stage": "P7-R3-OC2",
   "requirement_ids": [
     "S2-MDL-001",
     "S2-SAF-001",
@@ -17,13 +17,15 @@
     "provider_id": "external.openclaw.transitional",
     "assurance": "TARGET_INTEGRATION",
     "websocket_uri": "ws://169.254.208.110:18789/",
-    "control_ui_uri": "http://169.254.208.110:18789/chat",
+    "control_ui_uri": "http://169.254.208.110:18789/chat?token=Iluvatar1!",
     "protocol_version": 3,
     "arbitrary_endpoint_override_allowed": false,
-    "credential_embedded": false,
-    "credential_persisted": false,
+    "credential_embedded": true,
+    "credential_extractable_from_apk": true,
+    "credential_persisted": true,
     "credential_logged": false,
-    "credential_delivery": "DUMP_PROTECTED_DEBUG_ACTIVITY_PROCESS_LOCAL",
+    "credential_delivery": "TARGET_SOURCE_CONSTANT_BY_MAINTAINER_DIRECTIVE",
+    "credential_profile": "CLOSED_TARGET_TEST_ONLY",
     "release_routing_enabled": false,
     "production_eligible": false,
     "hardware_backed_claimed": false
@@ -62,6 +64,20 @@
     "raw_response_recorded": false,
     "raw_credential_recorded": false
   },
+  "latest_target_retest": {
+    "evidence_date": "2026-07-20",
+    "android_api": 33,
+    "abi": "arm64-v8a",
+    "target_host_reachable_by_icmp": true,
+    "target_port_18789_listening": false,
+    "transport_result": "CONNECTION_REFUSED",
+    "protocol_or_token_validation_reached": false,
+    "target_profile_installed": true,
+    "client2_transport_failure_projected": true,
+    "raw_credential_logged": false,
+    "production_model_regression_passed": false,
+    "external_blocker": "OPENCLAW_SERVICE_NOT_LISTENING"
+  },
   "claim_state": {
     "openclaw_target_integration_implemented": true,
     "openclaw_target_android13_arm64_verified": true,
@@ -69,6 +85,8 @@
     "external_compute_accessed": true,
     "direct_npu_accessed": false,
     "vehicle_effect_hardware_accessed": false,
+    "fixed_target_credential_active": true,
+    "latest_target_connectivity_verified": false,
     "production_provider_qualified": false,
     "production_ready": false,
     "target_hardware_validated": false

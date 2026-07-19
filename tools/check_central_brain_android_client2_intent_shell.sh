@@ -4,6 +4,12 @@ set -euo pipefail
 # Req IDs: S2-UX-001..003, S2-HMI-001..003/006, APP-004, XSC-001/005/006.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# P4-R3 superseded the visible intent/plan/execution/result shell with the
+# voice-first live trace surface. Keep this historical entrypoint so older
+# aggregate checks continue to resolve one authoritative HMI contract.
+exec bash "$ROOT_DIR/tools/check_central_brain_android_voice_first_hmi.sh"
+
 PROJECT="$ROOT_DIR/apk-labs/client2-central-brain"
 LAYOUT="$PROJECT/patches/main_layout.central_brain_panel.xml"
 PANEL_BACKGROUND="$PROJECT/patches/res/drawable/central_brain_panel_background.xml"

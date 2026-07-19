@@ -1757,7 +1757,7 @@ Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EVT-001`、`S2-EFF-001`、`S2-HMI-00
 HVAC、Seat、Media 与 Navigation simulated adapters。Effect 节点自动 dispatch，verify 节点只有在 simulated observation 为
 `MATCHED` 时成功；required dispatch/readback failure 使 Graph 失败关闭。
 
-Cold 固定执行 HVAC power、23.0 C 和 driver seat heat 2；Fatigue 固定执行 HVAC power/fan 3、media pause、synthetic rest-area query，
+Cold 固定执行 HVAC power、28.0 C 和 driver seat heat 2；Fatigue 固定执行 HVAC power/fan 3、media pause、synthetic rest-area query，
 parked 且显式 approval 成功后才执行 30 degree seat recline。Moving 继续沿用 Compiler pruning。目标均由 build 生成，Binder 不接受任意值。
 
 Binder/Parcelable 升级 v2，新增 simulated dispatch/readback/approval/failure counts；Runtime 增加 `PARTIAL/STUCK` 终态与两类事件 schema。
@@ -1815,17 +1815,40 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
-## 2026-07-19 P7-R3-OC OpenClaw target integration
+## 2026-07-20 P4-R3 voice-first live cockpit HMI
 
-完成固定 OpenClaw WebSocket v3 endpoint、process-local credential、Provider Registry/health、
+状态：`IMPLEMENTED / TARGET UI VERIFIED / VEHICLE EFFECT SIMULATED`。Client2 主交互缩减为“我有些疲惫”“车里有点冷”
+两个自然场景触发和一个 32 行有界实时调用链。Runtime/Intent/Context/Model/Plan/Policy/Graph/Safety/Effect/Readback
+以 360 ms 节奏增量滚动；模型网络调用前即显示 RUNNING，避免一键直达结果的按钮模拟观感。
+
+Ollama/OpenClaw 共用汽车座舱 prompt，固定驾驶员服务目标、座舱状态、UI 仿真和安全接口保留边界；模型输出经
+scenario/action allowlist 后只裁剪固定 Plan 的 optional capability。Cold 将既有中控温度从 26.5°C 动画到 28.0°C；
+Fatigue 将风量从 1 动画到 3，并在左侧弹出驾驶席 15->30 度动画。Seat 只在 Fatigue 显示。没有 Vehicle/VHAL/CAN/Driver-HAL
+访问，所有反馈持续标记 `SIMULATED`。开发环境 WSL Ollama 已在 Android 13 ARM64 完成 Cold/Fatigue 真实模型回归；
+本次 Cold/Fatigue 模型耗时分别为 44,090 ms / 19,802 ms，温度 28.0°C、风量 3、座椅 30 度均由 UI 树复核；
+目标 OpenClaw 当前由 ISSUE-054 阻塞。
+
+`voice_first_hmi_implemented=true`、`cockpit_context_prompt_bound=true`、
+`model_action_plan_binding_verified=true`、`live_pipeline_trace_verified=true`、
+`simulated_actuator_feedback_verified=true`、`security_implementation_present=false`、`vehicle_bus_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`；tracking：`DEV-123/124`、`ISSUE-054`。
+
+## 2026-07-20 P7-R3-OC2 OpenClaw target integration
+
+完成固定 OpenClaw WebSocket v3 endpoint、源码/APK 固定 target token、Provider Registry/health、
 `TARGET_INTEGRATION` Router、challenge/auth/send/abort/history 协议、strict output/action allowlist、
-Runtime metadata probe 和 Client2 owner/session projection。Android 13 ARM64 已执行真实外部模型调用。
+Runtime metadata probe 和 Client2 owner/session projection。2026-07-19 Android 13 ARM64 已执行真实外部模型调用。
+按维护者指令删除旧 DUMP-protected credential Activity/Store；固定凭据可从源码/Git/APK 提取，登记为 `DEV-124`。
+
+2026-07-20 当前复测中，Android 到目标主机 ICMP 正常，但 TCP 18789 返回 `Connection refused`，因此未进入
+WebSocket/auth/token/model 阶段。该服务监听问题由 `ISSUE-054` 外部阻塞，不能由 APK 侧伪造通过。
 
 下一步不再是“接通模型”，而是外部资格项：approved credential source、TLS/链路安全、Gateway health/version、
 模型 artifact owner、release Provider、资源/热管理证据、Ollama 目标端部署和直接 NPU 归属证明。车辆 Effect 继续失败关闭。
-`openclaw_target_android13_arm64_verified=true`、`direct_npu_accessed=false`、
+`openclaw_target_android13_arm64_verified=true`（历史）、`fixed_target_credential_active=true`、
+`latest_target_connectivity_verified=false`、`direct_npu_accessed=false`、
 `production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
-tracking：`DEV-122/ISSUE-024/044`；stage `P7-R3-OC`。
+tracking：`DEV-122/124`、`ISSUE-024/044/054`；stage `P7-R3-OC2`。
 
 ## 2026-07-19 P7-R2 WSL Ollama development gateway
 

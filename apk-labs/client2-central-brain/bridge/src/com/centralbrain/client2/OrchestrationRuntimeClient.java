@@ -39,6 +39,8 @@ public final class OrchestrationRuntimeClient implements
                 CockpitSimulatedScenarioState.Projection projection);
 
         void onSimulatedScenarioFailure(String uiScenarioId, String failureCode);
+
+        void onPipelineMilestone(String stage, String status, String detail);
     }
 
     private static final class PendingStart {
@@ -48,6 +50,7 @@ public final class OrchestrationRuntimeClient implements
         private final String canonicalScenarioId;
         private final String drivingProfile;
         private final int motionState;
+        private final boolean effectAnimationOnly;
 
         private PendingStart(
                 long generation,
@@ -55,13 +58,15 @@ public final class OrchestrationRuntimeClient implements
                 String uiScenarioId,
                 String canonicalScenarioId,
                 String drivingProfile,
-                int motionState) {
+                int motionState,
+                boolean effectAnimationOnly) {
             this.generation = generation;
             this.sessionId = sessionId;
             this.uiScenarioId = uiScenarioId;
             this.canonicalScenarioId = canonicalScenarioId;
             this.drivingProfile = drivingProfile;
             this.motionState = motionState;
+            this.effectAnimationOnly = effectAnimationOnly;
         }
     }
 
@@ -121,6 +126,7 @@ public final class OrchestrationRuntimeClient implements
                 return;
             }
         }
+        milestone("RUNTIME", "CONNECTING", "Binder service discovery");
         post(() -> callback.onSimulatedRuntimeAvailability(false, "CONNECTING"));
         try {
             modelProjectionClient.connect();
@@ -135,7 +141,8 @@ public final class OrchestrationRuntimeClient implements
     public void openOrResume(
             String sessionId,
             String uiScenarioId,
-            CockpitSeatState.DrivingState drivingState) {
+            CockpitSeatState.DrivingState drivingState,
+            boolean effectAnimationOnly) {
         Objects.requireNonNull(drivingState, "drivingState");
         String scenario = requireScenario(uiScenarioId);
         PendingStart start;
@@ -150,11 +157,21 @@ public final class OrchestrationRuntimeClient implements
                     requireUuid(sessionId),
                     scenario,
                     CockpitScenarioControlState.canonicalScenarioId(scenario),
-                    drivingProfile(drivingState),
-                    motionState(drivingState));
+                    effectAnimationOnly ? "PARKED" : drivingProfile(drivingState),
+                    effectAnimationOnly
+                            ? ICentralBrainOrchestration.MOTION_PARKED
+                            : motionState(drivingState),
+                    effectAnimationOnly);
             pendingStart = start;
             ready = connected;
         }
+        milestone("INTENT", "ACCEPTED", start.canonicalScenarioId);
+        milestone(
+                "CONTEXT",
+                "BOUND",
+                effectAnimationOnly
+                        ? "AUTOMOTIVE_COCKPIT · DRIVER · SIMULATED_PARKED"
+                        : "AUTOMOTIVE_COCKPIT · DRIVER · " + start.drivingProfile);
         if (ready) {
             binderExecutor.execute(this::drainPendingStart);
         }
@@ -180,6 +197,7 @@ public final class OrchestrationRuntimeClient implements
                 + " reconnected=" + reconnected
                 + " legacy_simulated_scenario_binder_used=false"
                 + " hardware_accessed=false");
+        milestone("RUNTIME", "CONNECTED", "Orchestration SDK V1");
         callback.onSimulatedRuntimeAvailability(true, "");
         binderExecutor.execute(this::drainPendingStart);
     }
@@ -221,6 +239,7 @@ public final class OrchestrationRuntimeClient implements
             OrchestrationSnapshot snapshot = client.getSnapshot(start.sessionId);
             if (isNotStarted(snapshot)) {
                 stage = "START";
+                milestone("MODEL", "RUNNING", "Provider request with cockpit context");
                 OrchestrationStartRequest request = new OrchestrationStartRequest();
                 request.schemaVersion = OrchestrationContract.SCHEMA_VERSION;
                 request.requestId = UUID.randomUUID().toString();
@@ -288,7 +307,8 @@ public final class OrchestrationRuntimeClient implements
                         uiScenarioId,
                         updated.scenarioId,
                         drivingProfile,
-                        ICentralBrainOrchestration.MOTION_UNKNOWN);
+                        ICentralBrainOrchestration.MOTION_UNKNOWN,
+                        true);
                 publish(source, updated, 1);
             } catch (RemoteException failure) {
                 fail(uiScenarioId, "CB_ORCHESTRATION_APPROVAL_REMOTE");
@@ -306,9 +326,22 @@ public final class OrchestrationRuntimeClient implements
             PendingStart start,
             OrchestrationSnapshot snapshot,
             int approvalIncrement) throws RemoteException {
+        DevelopmentModelProjection modelProjection = readModelProjection(start, snapshot);
         ScenarioPlan plan = client.getPlan(start.sessionId);
         OrchestrationContract.validatePlanForSnapshot(plan, snapshot);
-        DevelopmentModelProjection modelProjection = readModelProjection(start, snapshot);
+        if (approvalIncrement == 0) {
+            if (modelProjection == null) {
+                milestone("MODEL", "FALLBACK", "No network model projection");
+            } else {
+                milestone(
+                        "MODEL",
+                        "COMPLETED",
+                        modelProjection.providerId + " · "
+                                + modelProjection.latencyMs + " ms");
+            }
+            milestone("PLAN", "VALIDATED", "Revision " + snapshot.planRevision);
+            milestone("POLICY", "ALLOWLISTED", "Simulation authority only");
+        }
         CockpitSimulatedScenarioState.Projection projection;
         synchronized (this) {
             if (closed || start.generation != generation) {
@@ -337,7 +370,26 @@ public final class OrchestrationRuntimeClient implements
                 + " simulated_only=true"
                 + " hardware_accessed=false"
                 + " raw_payload_logged=false");
+        milestone(
+                "GRAPH",
+                lifecycle(snapshot.state).name(),
+                "Revision " + snapshot.graphRevision);
+        milestone(
+                "EFFECT",
+                length(snapshot.effects) == 0 ? "WAITING" : "DISPATCHED",
+                length(snapshot.effects) + " simulated effect record(s)");
+        if (isTerminal(snapshot.state)) {
+            milestone("READBACK", "SIMULATED", "No vehicle-bus evidence");
+        }
         post(() -> callback.onSimulatedScenarioSnapshot(projection));
+        if (start.effectAnimationOnly
+                && approvalIncrement == 0
+                && "care.fatigue".equals(start.uiScenarioId)
+                && snapshot.state == ICentralBrainOrchestration.STATE_WAITING_APPROVAL
+                && snapshot.pendingStage == ICentralBrainOrchestration.PENDING_APPROVAL) {
+            milestone("SAFETY", "RESERVED", "Demo auto-continue · no authority granted");
+            respondToApproval(ICentralBrainOrchestration.DECISION_APPROVE);
+        }
     }
 
     private void cancelPreviousIfNeeded(
@@ -559,6 +611,7 @@ public final class OrchestrationRuntimeClient implements
             }
         }
         logFailureDiagnosis(stage, reason);
+        milestone(stage, "FAILED", reason);
         fail(start.uiScenarioId, code);
     }
 
@@ -668,6 +721,10 @@ public final class OrchestrationRuntimeClient implements
             }
             runnable.run();
         });
+    }
+
+    private void milestone(String stage, String status, String detail) {
+        post(() -> callback.onPipelineMilestone(stage, status, detail));
     }
 
     @Override

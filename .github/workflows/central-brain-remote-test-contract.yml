@@ -77,15 +77,7 @@ jobs:
           bash tools/check_central_brain_android_compensation_undo.sh
           bash tools/check_central_brain_android_graph_restart_recovery.sh
           bash tools/check_central_brain_android_client2_hmi_reducer.sh
-          bash tools/check_central_brain_android_client2_intent_shell.sh
-          bash tools/check_central_brain_android_client2_hvac_surface.sh
-          bash tools/check_central_brain_android_client2_seat_surface.sh
-          bash tools/check_central_brain_android_client2_execution_timeline.sh
-          bash tools/check_central_brain_android_client2_recovery_ux.sh
-          bash tools/check_central_brain_android_client2_driving_restriction.sh
-          bash tools/check_central_brain_android_client2_engineer_simulation.sh
-          bash tools/check_central_brain_android_client2_scenario_sync.sh
-          bash tools/check_central_brain_android_client2_accessibility_display.sh
+          bash tools/check_central_brain_android_voice_first_hmi.sh
           bash tools/check_central_brain_android_client2_p4_acceptance.sh
           bash tools/check_central_brain_android_tool_manifest.sh
           bash tools/check_central_brain_android_tool_registry.sh

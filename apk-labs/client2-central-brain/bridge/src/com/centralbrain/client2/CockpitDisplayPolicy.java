@@ -152,9 +152,9 @@ public final class CockpitDisplayPolicy {
         if (!isSupported()) {
             return new Bounds(0, 0, 0, 0);
         }
-        int panelWidth = dpToPixels(624);
-        int panelHeight = dpToPixels(888);
-        int topMargin = dpToPixels(160);
+        int panelWidth = dpToPixels(600);
+        int panelHeight = dpToPixels(760);
+        int topMargin = dpToPixels(200);
         int rightMargin = dpToPixels(32);
         return new Bounds(
                 widthPixels - rightMargin - panelWidth,
