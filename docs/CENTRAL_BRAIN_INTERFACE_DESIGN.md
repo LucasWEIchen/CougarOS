@@ -3984,3 +3984,14 @@ Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 This is an internal debug Java interface, not Binder/AIDL and not present in release. Evidence getters expose digests/counts/booleans only.
 Profile/Episodic writes, Skill dispatch and production Tool authority are fixed false. Req IDs：`S2-TOL-001`、`S2-MEM-001`、
 `S2-SAF-001`、`S2-OBS-001`；tracking：`DEV-117`、`ISSUE-036..044`；stage `P5-R1`。
+
+## P6-P7-R1 Debug Decision Composition Interface
+
+Internal Java API: `prepare(SessionDescriptor, scenarioId, requestDigest) -> Evidence`, `complete(SessionDescriptor, Evidence) -> Completion`,
+`snapshot() -> Snapshot`, and `close()`. `Evidence` exposes SHA-256 values for combined decision, suggestion, route and model output plus bounded
+Context/Event counts, consent code and explicit stub/authority/I/O booleans. It never exposes Context scalar values, user text, model text,
+vehicle payload, token buffers or Binder parcelables. `combine(decisionEvidence, runtimeEvidence)` is the only Node/Effect binding function.
+
+This interface is package-private, debug-only and not Binder/AIDL. Production callers must use separately published Context, Consent, ModelProvider
+and Event contracts; absence remains fail closed. Req IDs：`S2-CTX-001`、`S2-EVT-001`、`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`；
+tracking：`DEV-118`、`ISSUE-024/031/044/046`；stage `P6-P7-R1`。

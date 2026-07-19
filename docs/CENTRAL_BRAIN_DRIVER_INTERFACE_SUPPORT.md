@@ -2034,3 +2034,13 @@ IOMMU 或 Driver/HAL，因此不新增 C/C++/驱动开发量。
 真实 Vehicle/Model/NPU 接入仍必须等待 P8 capability evidence 和 OEM/Vendor owner 接口；不得从 debug composition 推导接口。
 `driver_development_triggered=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-R1`。tracking：`DEV-117`。
+
+## P6-P7-R1 Decision Composition Driver/HAL Boundary
+
+本阶段全部位于 Android Java debug source set。Cold Context 使用 `SignalSource.SIMULATED`，Fatigue score 为 build-owned trigger stub；
+deterministic model 不访问 JNI、Vendor SDK、PCIe 或 NPU；Event 为进程内队列。因此不新增 C/Driver/HAL 开发量，也不得以该结果声明
+OEM DMS、CarProperty、Vendor NPU 或中间件兼容。
+
+预留生产接口仍为：可信 Context/DMS publisher、consent authority、durable Event transport adapter、ModelProvider/Vendor NPU adapter
+及其身份/版本/故障/性能证据。`driver_development_triggered=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-P7-R1`。tracking：`DEV-118`、`ISSUE-024/031/046`。

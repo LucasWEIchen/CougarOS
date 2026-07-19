@@ -1714,3 +1714,16 @@ Profile/Episodic Memory, free text, tokenizer, production Tool/Skill authority, 
 disabled. State: `runtime_composition_debug_wired=true`, `runtime_composition_android13_arm64_verified=false`,
 `runtime_composition_debug_probe_executed=true`, `production_runtime_composition_wired=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`. Stage: `P5-R1`; tracking: `DEV-117`, `ISSUE-036..044`.
+
+## P6-P7-R1 debug decision composition
+
+`DebugDecisionCompositionBoundary` is called before the P5 boundary by the debug Orchestration backend. It adapts Runtime health and
+time metadata plus the simulated cold-cabin signal, evaluates fixed three-sample Cold/Fatigue trigger windows, proves that proactive
+consent has no active grant, selects the deterministic contract-test provider through `PolicyAwareModelRouter`, executes it through
+`TestOnlyModelRouter`, and delivers two digest-only events through `BoundedEventRuntime`. The resulting digest is combined with the P5
+digest before Node/Effect evidence projection. Fatigue DMS input is an explicit build-owned stub, not a production Context source.
+
+The release backend is unchanged. No free text, network, NPU, vehicle bus, Driver/HAL or production authority is used. API 33 x86_64
+probe subchecks pass; ARM64 remains pending. State: `decision_composition_debug_wired=true`,
+`decision_composition_android13_arm64_verified=false`, `production_decision_composition_wired=false`, `production_ready=false`,
+`target_hardware_validated=false`. Stage `P6-P7-R1`; tracking `DEV-118`, `ISSUE-024/031/044/046`.

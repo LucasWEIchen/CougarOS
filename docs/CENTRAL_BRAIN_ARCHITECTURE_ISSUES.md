@@ -1335,3 +1335,14 @@ durable storage、tokenizer 和隐私 owner；ISSUE-042/043 不允许在无 cons
 ISSUE-044 仍缺 production tokenizer/summary/model-context authority。`runtime_composition_debug_probe_executed=true`、`runtime_composition_android13_arm64_verified=false`、
 `production_runtime_composition_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-117`、`ISSUE-036..044`。
+
+### P6-P7-R1 decision composition update
+
+已关闭 ISSUE-024/031/044/046 的“debug Runtime 未形成 Context→Trigger→Consent→Model→Event 调用链”软件子项。固定 Cold/Fatigue
+场景可产生 digest-bound decision evidence，模型测试桩被真实调用，两条摘要 Event 被交付，P5/P6/P7 证据共同进入 Node/Effect。
+JVM 与 API 33 x86_64 probe 子项通过。
+
+Issues 保持 Open：ISSUE-024 缺真实 Provider/NPU/资源 owner；ISSUE-031 缺可信 DMS/Context 和 consent/product/privacy owner；
+ISSUE-044 缺 production tokenizer/context composer；ISSUE-046 缺 durable Event repository、Binder/DDS/SOME-IP transport 和 callback owner。
+`decision_composition_android13_arm64_verified=false`、`production_decision_composition_wired=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-118`、`ISSUE-024/031/044/046`；stage `P6-P7-R1`。

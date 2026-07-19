@@ -2997,3 +2997,16 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 
 当前 `runtime_composition_debug_wired=true`、`production_runtime_composition_wired=false`、
 `runtime_composition_android13_arm64_verified=false`、`implementation_stage=P5-R1`。tracking：`DEV-117`、`ISSUE-036..044`。
+
+## P6-P7-R1 Debug Decision Composition Requirements
+
+1. `S2-CTX-001`：debug backend 必须只消费 allowlisted typed Context Adapter 输出摘要；Cold 可用 SIMULATED signal，Fatigue
+   DMS 缺口必须标记 stub，不得伪造 production provenance。
+2. `S2-EVT-001`：Trigger 必须满足三样本/持续窗口并只产生 suggestion；Event 只允许受信 topic、摘要 payload、有界队列和 owner cancel。
+3. `S2-SAF-001`：无 active consent grant 时必须返回 `NO_ACTIVE_GRANT`，不得授权 Effect；显式 HMI simulation request 不得被表述为主动授权。
+4. `S2-MDL-001`：Model Request 必须经 Registry health 与 Policy Router；本阶段只允许 deterministic contract-test provider，禁止网络/NPU。
+5. `S2-OBS-001`：不得接受或保存用户/模型明文；Context、suggestion、route、output、event 和 P5 composition 只以 SHA-256 绑定。
+6. `DEL-001/003/004/005`：必须有 JVM test、DUMP-protected Android probe、machine contract、release absence 和 CI checker。
+
+当前 `decision_composition_debug_wired=true`、`decision_composition_android13_arm64_verified=false`、
+`production_decision_composition_wired=false`、`implementation_stage=P6-P7-R1`。tracking：`DEV-118`、`ISSUE-024/031/044/046`。

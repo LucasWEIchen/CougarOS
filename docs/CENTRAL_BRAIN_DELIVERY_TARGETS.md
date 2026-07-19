@@ -2883,3 +2883,15 @@ DUMP-protected Android probe、机器合同和 CI checker。交付状态：`runt
 `production_tool_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-TOL-001`、`S2-MEM-001`、
 `S2-SAF-001`、`S2-OBS-001`、`DEL-001/003/004/005`；tracking：`DEV-117`、`ISSUE-036..044`。
+
+## 2026-07-19 Android P6-P7-R1 Decision Composition
+
+仓库交付 `DebugDecisionCompositionBoundary`、debug Orchestration wiring、JVM test、DUMP-protected probe、机器合同和 CI checker。
+API 33 x86_64 probe 已确认 Context/Trigger、consent fail-closed、deterministic model stub、digest Event、P5/P6/P7 evidence binding
+和 terminal cleanup 六个子项。交付状态：`decision_composition_debug_wired=true`、
+`decision_composition_debug_probe_executed=true`、`decision_composition_android13_arm64_verified=false`。
+
+非交付声明：Fatigue DMS 是 stub；production Context/consent/model/event、网络、NPU、车辆和 Driver/HAL 均未接。
+`production_decision_composition_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-CTX-001`、`S2-EVT-001`、`S2-MDL-001`、`S2-SAF-001`、
+`S2-OBS-001`、`DEL-001/003/004/005`；tracking：`DEV-118`、`ISSUE-024/031/044/046`；stage `P6-P7-R1`。

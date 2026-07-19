@@ -1938,3 +1938,14 @@ This composition does not merge module ownership. Tool remains manifest/rule/exe
 ContextBudget remains metadata decision-only, and Working Memory remains bounded session state. Profile/Episodic and Model are excluded
 until their external authority interfaces exist. `runtime_composition_debug_wired=true`, `production_runtime_composition_wired=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`。Stage `P5-R1`; tracking `DEV-117`。
+
+## P6-P7-R1 debug decision composition architecture
+
+The debug flow is now `ContextSourceAdapter -> TriggerEngine -> ProactiveConsentPolicy -> ModelProviderRegistry/PolicyAwareModelRouter ->
+TestOnlyModelRouter -> BoundedEventRuntime -> Orchestration evidence`. It runs before the P5 Tool/Skill/Memory boundary; both digests are
+domain-separated and combined before projection. Existing module ownership is preserved: Trigger remains suggestion-only, Consent never grants
+Effect authority, routing does not invoke a production provider, and the event bus remains process-local.
+
+Cold's simulated signal and Fatigue's explicit DMS stub are test inputs, not production provenance. The release backend remains fail closed and
+contains no decision-composition class. `decision_composition_debug_wired=true`, `production_decision_composition_wired=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`. Stage `P6-P7-R1`; tracking `DEV-118`。

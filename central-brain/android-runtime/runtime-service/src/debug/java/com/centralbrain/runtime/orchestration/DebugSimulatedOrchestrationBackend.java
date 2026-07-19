@@ -42,6 +42,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
 
     private final FailClosedOrchestrationBackend failClosed =
             new FailClosedOrchestrationBackend();
+    private final DebugDecisionCompositionBoundary decisionComposition;
     private final DebugRuntimeCompositionBoundary runtimeComposition;
     private final SimulatedScenarioEffectComposition composition;
     private final SimulatedScenarioInputFactory inputs;
@@ -62,9 +63,11 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         };
         composition = new SimulatedScenarioEffectComposition(
                 clock, new SimulationClock(SystemClock.elapsedRealtime()));
+        ScenarioCatalog catalog = loadCatalog(context);
+        decisionComposition = new DebugDecisionCompositionBoundary(catalog);
         runtimeComposition = new DebugRuntimeCompositionBoundary();
         inputs = new SimulatedScenarioInputFactory(
-                loadCatalog(context),
+                catalog,
                 clock::epochTimeMs,
                 clock::elapsedRealtimeMs,
                 () -> UUID.randomUUID().toString());
@@ -107,8 +110,16 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             throw violation("debug orchestration capacity exhausted");
         }
 
-        DebugRuntimeCompositionBoundary.Evidence compositionEvidence =
-                runtimeComposition.prepare(session, request.scenarioId, requestDigest);
+        DebugDecisionCompositionBoundary.Evidence decisionEvidence =
+                decisionComposition.prepare(session, request.scenarioId, requestDigest);
+        final DebugRuntimeCompositionBoundary.Evidence compositionEvidence;
+        try {
+            compositionEvidence =
+                    runtimeComposition.prepare(session, request.scenarioId, requestDigest);
+        } catch (RuntimeException failure) {
+            decisionComposition.complete(session, decisionEvidence);
+            throw failure;
+        }
         final SimulatedScenarioEffectComposition.Snapshot started;
         try {
             started = composition.start(
@@ -117,6 +128,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                     driving);
         } catch (RuntimeException failure) {
             runtimeComposition.complete(session, compositionEvidence);
+            decisionComposition.complete(session, decisionEvidence);
             throw failure;
         }
         RunRecord record = new RunRecord(
@@ -125,7 +137,8 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                 requestDigest,
                 request.simulationMotionState,
                 started.getRunId(),
-                compositionEvidence);
+                compositionEvidence,
+                decisionEvidence);
         bySession.put(session.getSessionId(), record);
         return result(record, started);
     }
@@ -158,7 +171,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         }
         SimulatedScenarioEffectComposition.Snapshot current = composition.get(record.runId);
         OrchestrationSnapshot projection = project(
-                current, record.compositionEvidence.getDigest());
+                current, record.boundEvidenceDigest);
         if (projection.pendingStage != ICentralBrainOrchestration.PENDING_APPROVAL
                 || !projection.approvalId.equals(response.approvalId)
                 || !projection.projectionDigest.equals(response.expectedProjectionDigest)) {
@@ -180,7 +193,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         RunRecord record = requireRun(session.getSessionId());
         SimulatedScenarioEffectComposition.Snapshot current = composition.get(record.runId);
         OrchestrationSnapshot projection = project(
-                current, record.compositionEvidence.getDigest());
+                current, record.boundEvidenceDigest);
         if (!projection.projectionDigest.equals(request.expectedProjectionDigest)) {
             throw violation("Undo request is stale");
         }
@@ -202,13 +215,14 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
     @Override
     public synchronized void close() {
         runtimeComposition.close();
+        decisionComposition.close();
     }
 
     private Result result(
             RunRecord record,
             SimulatedScenarioEffectComposition.Snapshot source) {
         OrchestrationSnapshot snapshot = project(
-                source, record.compositionEvidence.getDigest());
+                source, record.boundEvidenceDigest);
         if (source.getProjectionDigest().equals(record.sourceProjectionDigest)) {
             snapshot.updatedAtEpochMs = record.projectionUpdatedAtEpochMs;
             snapshot.projectionDigest = "";
@@ -221,6 +235,8 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         if (isTerminal(source.getSessionState()) && !record.compositionTerminal) {
             runtimeComposition.complete(
                     record.sessionDescriptor, record.compositionEvidence);
+            decisionComposition.complete(
+                    record.sessionDescriptor, record.decisionEvidence);
             record.compositionTerminal = true;
         }
         return new Result(snapshot, source.toScenarioPlan(), source.getManifestDigest());
@@ -455,7 +471,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                 value.toString().getBytes(StandardCharsets.UTF_8)).toString();
     }
 
-    private static ScenarioCatalog loadCatalog(Context context) {
+    static ScenarioCatalog loadCatalog(Context context) {
         try {
             Map<String, byte[]> assets = new LinkedHashMap<>();
             for (String name : new String[] {
@@ -499,6 +515,8 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         private final String runId;
         private final SessionDescriptor sessionDescriptor;
         private final DebugRuntimeCompositionBoundary.Evidence compositionEvidence;
+        private final DebugDecisionCompositionBoundary.Evidence decisionEvidence;
+        private final String boundEvidenceDigest;
         private String latestProjectionDigest = "";
         private String sourceProjectionDigest = "";
         private long projectionUpdatedAtEpochMs;
@@ -512,13 +530,17 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                 String requestDigest,
                 int motionState,
                 String runId,
-                DebugRuntimeCompositionBoundary.Evidence compositionEvidence) {
+                DebugRuntimeCompositionBoundary.Evidence compositionEvidence,
+                DebugDecisionCompositionBoundary.Evidence decisionEvidence) {
             this.sessionDescriptor = sessionDescriptor;
             this.requestId = requestId;
             this.requestDigest = requestDigest;
             this.motionState = motionState;
             this.runId = runId;
             this.compositionEvidence = compositionEvidence;
+            this.decisionEvidence = decisionEvidence;
+            this.boundEvidenceDigest = DebugDecisionCompositionBoundary.combine(
+                    decisionEvidence, compositionEvidence);
         }
     }
 }
