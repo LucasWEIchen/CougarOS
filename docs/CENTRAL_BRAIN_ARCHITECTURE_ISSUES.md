@@ -4,6 +4,15 @@
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
+## P4-R1 issue update
+
+`ISSUE-022` 的 Binder 编排、Room Plan/Node/Session 投影和 restart-to-STUCK/no-replay 软件子项已完成；完整 Plan
+rehydration、可信 Effect material、retention/encryption/clock 仍 Open。`ISSUE-033` 的 Runtime Plan/Graph/Effect
+projection API 子项已完成，但 Client2 仍使用旧 debug scenario Binder，尚未迁移到 Orchestration SDK，所以 HMI
+生产闭环仍 Open。`ISSUE-030` 的 OEM Vehicle/VHAL/SOA adapter、真实 readback 和 target evidence 不由本软件
+增量伪造。当前 `orchestration_android13_arm64_verified=false`、`production_ready=false`、
+`target_hardware_validated=false`；里程碑 `P4-R1`。
+
 ## 使用规则
 
 本文件记录架构图中需要确认、工程职责不清或因黑盒目标环境而无法关闭的事项。关闭软件检查项

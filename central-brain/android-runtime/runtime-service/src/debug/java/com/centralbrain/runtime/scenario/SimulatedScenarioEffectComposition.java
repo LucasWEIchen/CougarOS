@@ -21,6 +21,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.List;
+
+import com.centralbrain.sdk.plan.ScenarioPlan;
 
 /** Debug-only composition that drives fixed scenario Effects through simulated adapters. */
 public final class SimulatedScenarioEffectComposition {
@@ -47,6 +50,7 @@ public final class SimulatedScenarioEffectComposition {
         private final int approvalInputCount;
         private final int failureCount;
         private final String projectionDigest;
+        private final String manifestDigest;
 
         private Snapshot(RunRecord record) {
             runtime = record.runtime;
@@ -55,6 +59,7 @@ public final class SimulatedScenarioEffectComposition {
             readbackMatchCount = record.readbackMatchCount;
             approvalInputCount = record.approvalInputCount;
             failureCount = record.failureCount;
+            manifestDigest = record.manifestDigest;
             projectionDigest = DurableDigest.sha256(
                     PROJECTION_DOMAIN,
                     PROFILE_ID,
@@ -72,6 +77,26 @@ public final class SimulatedScenarioEffectComposition {
 
         public String getRunId() {
             return runtime.getRunId();
+        }
+
+        public String getSessionId() {
+            return runtime.getSessionId();
+        }
+
+        public String getScenarioId() {
+            return runtime.getScenarioId();
+        }
+
+        public String getPlanDigest() {
+            return runtime.getPlanDigest();
+        }
+
+        public int getPlanRevision() {
+            return runtime.getPlanRevision();
+        }
+
+        public long getGraphRevision() {
+            return runtime.getGraphRevision();
         }
 
         public SimulatedScenarioRuntime.SessionState getSessionState() {
@@ -104,6 +129,18 @@ public final class SimulatedScenarioEffectComposition {
 
         public String getProjectionDigest() {
             return projectionDigest;
+        }
+
+        public String getManifestDigest() {
+            return manifestDigest;
+        }
+
+        public ScenarioPlan toScenarioPlan() {
+            return runtime.toScenarioPlan();
+        }
+
+        public List<AgentGraphRuntime.NodeRunSnapshot> getNodeSnapshots() {
+            return runtime.getNodeSnapshots();
         }
 
         public boolean isSimulatedEffectDispatchEnabled() {
@@ -143,6 +180,7 @@ public final class SimulatedScenarioEffectComposition {
 
     private static final class RunRecord {
         private final DrivingProfile driving;
+        private final String manifestDigest;
         private final Map<String, EffectBinding> effects = new LinkedHashMap<>();
         private SimulatedScenarioRuntime.Snapshot runtime;
         private String approvalDigest = "";
@@ -154,9 +192,11 @@ public final class SimulatedScenarioEffectComposition {
 
         private RunRecord(
                 DrivingProfile driving,
-                SimulatedScenarioRuntime.Snapshot runtime) {
+                SimulatedScenarioRuntime.Snapshot runtime,
+                String manifestDigest) {
             this.driving = driving;
             this.runtime = runtime;
+            this.manifestDigest = manifestDigest;
         }
     }
 
@@ -205,7 +245,11 @@ public final class SimulatedScenarioEffectComposition {
             runtime.cancel(started.getRunId());
             throw violation("scenario input binding mismatch");
         }
-        RunRecord record = new RunRecord(requiredDriving, started);
+        String manifestDigest = requiredInput.getResolution()
+                .getSelectedManifest()
+                .orElseThrow(() -> violation("scenario manifest missing"))
+                .getArtifactDigest();
+        RunRecord record = new RunRecord(requiredDriving, started, manifestDigest);
         runs.put(started.getRunId(), record);
         return advance(record);
     }

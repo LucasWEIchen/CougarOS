@@ -4,6 +4,23 @@
 
 日期：2026-07-17
 
+## P4-R1 Orchestration V1 interface
+
+| Interface | Caller -> callee | Contract |
+| --- | --- | --- |
+| `start(request)` | SDK -> Runtime | existing owner Session; exact scenario; explicit production/debug profile |
+| `getSnapshot(sessionId)` | SDK -> Runtime | owner-scoped bounded Plan/Node/Effect metadata projection |
+| `getPlan(sessionId)` | SDK -> Runtime | typed Plan while backend projection is available |
+| `respondToApproval(response)` | SDK -> Runtime | request/approval/session/projection digest bound; response is not a grant |
+| `requestUndo(request)` | SDK -> Runtime | request/undo/session/projection digest bound; trusted compensation required |
+| `cancel(sessionId,reason)` | SDK -> Runtime | owner-scoped idempotent graph cancellation |
+
+`OrchestrationSnapshot` publishes IDs, states, attempt counts, capability IDs, evidence digests and explicit authority flags;
+it never transports model text, node input, checkpoint, vehicle target/reported value or signing material. Endpoint operations map
+to six independent capabilities. SDK accepts the Binder only when action/component/version/hash all match. release backend remains
+blocked; debug simulation cannot set hardware/production/target flags. Current `orchestration_v1_interface_published=true`、
+`orchestration_android13_arm64_verified=false`；milestone `P4-R1`。
+
 ## P6-EV2 Session Event interface
 
 | Interface | Caller -> callee | Contract |

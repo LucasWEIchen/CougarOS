@@ -59,6 +59,10 @@ public interface RuntimeStateDao {
     @Query("SELECT * FROM plans WHERE plan_id = :planId LIMIT 1")
     PlanEntity findPlan(String planId);
 
+    @Query("SELECT * FROM plans WHERE state NOT IN (5, 7, 8, 9, 10) "
+            + "ORDER BY updated_at_wall_ms, plan_id")
+    List<PlanEntity> listNonTerminalPlans();
+
     @Query("SELECT * FROM plan_nodes WHERE plan_id = :planId ORDER BY node_id")
     List<PlanNodeEntity> listPlanNodes(String planId);
 
@@ -94,6 +98,14 @@ public interface RuntimeStateDao {
             String sessionId,
             long afterSequence,
             int limit);
+
+    @Nullable
+    @Query("SELECT * FROM runtime_events WHERE session_id = :sessionId "
+            + "ORDER BY sequence DESC LIMIT 1")
+    RuntimeEventEntity findLatestRuntimeEvent(String sessionId);
+
+    @Query("SELECT COUNT(*) FROM runtime_events WHERE session_id = :sessionId")
+    int countRuntimeEvents(String sessionId);
 
     @Nullable
     @Query("SELECT * FROM runtime_task WHERE task_id = :taskId LIMIT 1")

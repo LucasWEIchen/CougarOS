@@ -421,7 +421,7 @@ public final class ScenarioPlanCompiler {
         }
     }
 
-    private static ScenarioPlan copyPlan(ScenarioPlan source) {
+    static ScenarioPlan copyPlan(ScenarioPlan source) {
         ScenarioPlan copy = new ScenarioPlan();
         copy.schemaVersion = source.schemaVersion;
         copy.planId = source.planId;

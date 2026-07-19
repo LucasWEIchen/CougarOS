@@ -6,6 +6,36 @@
 
 目标平台：黑盒 Android 13 座舱域控制器
 
+## P4-R1 runtime orchestration architecture
+
+```mermaid
+sequenceDiagram
+  participant H as Client2/HMI
+  participant S as Session SDK/Room
+  participant O as Orchestration V1
+  participant B as Variant Backend
+  participant G as Plan/Agent Graph
+  participant E as Effect/Readback Boundary
+  H->>S: create owner-scoped Session
+  H->>O: start(sessionId, scenarioId, profile)
+  O->>S: verify caller owner, state, deadline
+  O->>B: start validated request
+  B->>G: compile and execute typed graph
+  G-->>B: bounded node/effect projection
+  B-->>O: Plan + Snapshot + manifest digest
+  O->>S: atomic metadata projection and Event
+  O-->>H: validated execution chain
+  Note over E: release authority absent, fail closed
+```
+
+Orchestration V1 是 Runtime 控制面，不替代 Scenario、Graph、Governance、Effect 或 Driver/HAL owner。debug build
+把现有 fixed simulator 作为可替换 backend；release build 使用 fail-closed backend。Room 是恢复 metadata owner，
+Event callback 只在 commit 后发送。重启只进行 conservative reconcile-to-STUCK，绝不自动 replay Effect。生产
+Context/Safety/Effect/readback/Undo 接入条件继续由 P8/OEM mapping 管理。当前
+`orchestration_runtime_service_published=true`、`orchestration_room_projection_wired=true`、
+`orchestration_android13_arm64_verified=false`、`production_ready=false`、`target_hardware_validated=false`；
+里程碑 `P4-R1`。
+
 ## 架构目标
 
 在不修改厂商 Android Framework、VHAL、BSP 和已编译系统组件的条件下，以普通 APK/AAR、

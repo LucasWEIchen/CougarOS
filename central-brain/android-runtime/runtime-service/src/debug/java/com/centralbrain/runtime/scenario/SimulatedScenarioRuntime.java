@@ -7,8 +7,10 @@ import com.centralbrain.runtime.graph.GraphRunState;
 import com.centralbrain.runtime.persistence.DurableDigest;
 import com.centralbrain.runtime.scenario.ScenarioPlanCompiler.CompileRequest;
 import com.centralbrain.runtime.scenario.ScenarioResolver.CapabilitySnapshot;
+import com.centralbrain.sdk.plan.ScenarioPlan;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -72,6 +74,8 @@ public final class SimulatedScenarioRuntime {
         private final long lastEventSequence;
         private final int projectedEventCount;
         private final String projectionDigest;
+        private final ScenarioPlan plan;
+        private final List<AgentGraphRuntime.NodeRunSnapshot> nodes;
 
         private Snapshot(
                 RunRecord record,
@@ -90,6 +94,8 @@ public final class SimulatedScenarioRuntime {
             this.pendingNode = graph.getPendingNode();
             this.lastEventSequence = record.lastEventSequence;
             this.projectedEventCount = record.projectedEventCount;
+            this.plan = graph.toScenarioPlan();
+            this.nodes = graph.getNodeSnapshots();
             this.projectionDigest = DurableDigest.sha256(
                     PROJECTION_DIGEST_DOMAIN,
                     PROFILE_ID,
@@ -169,6 +175,14 @@ public final class SimulatedScenarioRuntime {
 
         public String getProjectionDigest() {
             return projectionDigest;
+        }
+
+        public ScenarioPlan toScenarioPlan() {
+            return ScenarioPlanCompiler.copyPlan(plan);
+        }
+
+        public List<AgentGraphRuntime.NodeRunSnapshot> getNodeSnapshots() {
+            return nodes;
         }
 
         public boolean isPlanPublished() {

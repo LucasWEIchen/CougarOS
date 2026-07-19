@@ -10,6 +10,20 @@ Java/AIDL/C Android Runtime、typed Binder SDK、Client2 座舱 HMI 和面向真
 `NV-G-003/005/006/007`、`NV-P-002`、`KH-003/006`、`DEL-001/003/004/005`、
 `S2-HMI-001..006`、`S2-EVT-001`。
 
+## P4-R1 Runtime 编排交付
+
+`P4-R1` 已发布独立 Orchestration V1 Binder/SDK，把既有 Session、typed Plan、Agent Graph、Effect/readback
+投影组合为可由 HMI 查询的 owner/session-scoped 执行链。debug 构建仅在显式 simulation profile 下运行固定
+cold/fatigue 场景；release 构建固定使用 fail-closed backend。Room v4 保存 Plan/Node/Session 元数据和 digest-only
+Event；服务重启把未完成执行置为 `STUCK`，不重放 Effect。approval response 不是可信授权，Undo 在缺少
+compensation authority 时返回不可用。当前 `orchestration_v1_interface_published=true`、
+`orchestration_room_projection_wired=true`、`orchestration_android13_arm64_verified=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-EFF-001`、`S2-SAF-001`、`S2-UX-003`、
+`NV-F-001`、`NV-G-004..007`、`XSC-001/005/006`、`DEL-001/003/004`；tracking：
+`DEV-116`、`ISSUE-022/030/033`。
+
 ## 当前状态
 
 更新时间：2026-07-19
