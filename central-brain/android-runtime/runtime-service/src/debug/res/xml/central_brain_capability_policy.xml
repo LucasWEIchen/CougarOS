@@ -37,6 +37,10 @@
         <capability name="debug.simulation.control" />
     </principal>
     <principal packageName="com.centralbrain.sdk.test" signer="runtime-current">
+        <capability name="runtime.protocol.read" />
+        <capability name="runtime.task.submit" />
+        <capability name="runtime.task.status.own" />
+        <capability name="runtime.task.cancel.own" />
         <capability name="runtime.session.protocol.read" />
         <capability name="runtime.session.open" />
         <capability name="runtime.session.read.own" />

@@ -891,3 +891,18 @@ target_hardware_validated=false
 的 Binder caller UID 与 current signer acquisition，不构成 production signer/owner、证书链、release admission、coverage fuzz、Vehicle/NPU/
 Driver-HAL 或 target qualification。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-111`、`ISSUE-050`。
+
+## 26. 2026-07-19 P9-W03e callback replay security evidence
+
+目标：Android API 33、`arm64-v8a`。Runtime debug/release、Demo debug/androidTest、SDK JVM/androidTest 构建通过。设备上使用三个不同 app UID
+（Runtime、Demo owner-A、SDK test owner-B），但报告不保存或显示 UID。owner-A 先完成 shared-key task；owner-B 同键请求得到独立 task。
+
+owner-B 的 exact active replay 返回同 task，重复 sequence 被 SDK guard 丢弃且两个 callback 各一个终态；conflicting payload 在 callback attach
+前拒绝且 callback 零调用；post-terminal replay 返回同 task 并只交付一次终态。main/release capability policy 未包含 SDK test principal。
+
+通过标记：`security_task_callback_replay_android_verified=true`、`security_callback_sequence_replay_suppressed=true`、
+`security_callback_terminal_replay_unique=true`、`security_idempotency_conflict_callback_silent=true`、
+`security_cross_uid_callback_owner_isolation_verified=true`、`security_distinct_callback_owner_uids_verified=true`、
+`security_debug_test_principal_release_excluded=true`。`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。

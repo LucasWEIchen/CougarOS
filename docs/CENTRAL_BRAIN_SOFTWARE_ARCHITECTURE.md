@@ -1862,3 +1862,14 @@ SDK androidTest process (UID A)
 acquisition。三者不能互相覆盖 false claim；完整安全资格还需要 callback replay、coverage-guided fuzz、production signer/owner 和 release evidence。
 
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。
+
+## P9-W03e callback replay security architecture
+
+调用链为 `Demo/SDK test -> CentralBrainClient -> ICentralBrainRuntime -> trusted owner/capability -> DurableTaskRepository ->
+ICentralBrainTaskCallback -> TaskCallbackReplayGuard -> application callback`。server 的 owner+idempotency admission 防止跨 caller 借用 task；client
+guard 负责不信任远端时序，阻断 duplicate/stale/cross-task callback 对 HMI reducer 的二次投影。两层职责独立，不能只依赖其中一层。
+
+debug policy overlay 只是设备证据装配点，不进入 release；AIDL hash/version 未变化。W03b host owner policy、W03d Android identity acquisition 与
+W03e callback replay device evidence 共同覆盖应用层身份/重放链，但不等于 coverage-guided fuzz、production signer 或 owner qualification。
+`security_task_callback_replay_android_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-112`、`ISSUE-050`。

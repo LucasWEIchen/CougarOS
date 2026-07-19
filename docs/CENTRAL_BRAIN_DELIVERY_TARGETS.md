@@ -2800,3 +2800,15 @@ Req IDs：`S2-OBS-001`、`S2-REL-001`、`S2-SAF-001`、`S2-MEM-001`、`S2-UX-002
 `security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、
 `DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。
+
+## 2026-07-19 Android P9-W03e Callback Replay Security
+
+交付 machine contract、SDK callback guard/JVM suite、debug-only capability overlay、Demo/SDK 双 owner instrumentation、脱敏 ADB runner 和仓库门禁。
+API 33 ARM64 已验证 active replay、conflict、terminal replay 与 cross-UID owner replay；main/release policy 不包含测试主体。
+
+交付状态：`security_task_callback_replay_android_verified=true`、`security_callback_sequence_replay_suppressed=true`、
+`security_callback_terminal_replay_unique=true`、`security_idempotency_conflict_callback_silent=true`、
+`security_cross_uid_callback_owner_isolation_verified=true`、`security_debug_test_principal_release_excluded=true`。
+非交付声明：`security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、
+`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。

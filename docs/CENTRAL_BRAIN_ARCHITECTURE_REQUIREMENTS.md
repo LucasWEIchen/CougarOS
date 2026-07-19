@@ -2914,3 +2914,19 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 `security_production_signer_verified=false`、`security_coverage_guided_fuzz_complete=false`、
 `security_runtime_wired=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-111`、`ISSUE-050`。
+
+## 103. P9-W03e Android task callback replay evidence trace
+
+1. `S2-SAF-001`：生产 task callback 必须绑定 Runtime 返回的 task ID；cross-task、unknown schema、非法 state/progress 必须失败关闭。
+2. `S2-TOL-001`：`TaskUpdate.sequence` 必须严格前移；active/terminal replay 产生的 duplicate/stale update 不得再次投影到 HMI。
+3. `S2-TOL-001/S2-SAF-001`：同 owner 相同 request/key 返回同 task；冲突 payload 必须在 callback attach 前拒绝；每个 callback 最多一个终态。
+4. `S2-SAF-001`：不同 Android UID 使用同一 key 不得借用对方 task 或收到对方 callback；owner isolation 继续由 Binder trusted identity 派生。
+5. `S2-OBS-001/DEL-005`：证据只能输出 boolean marker，不输出 task ID、UID、signer、serial、raw log 或用户/model/vehicle payload。
+6. `DEL-001/004`：上述四例必须在 API 33 ARM64 的真实跨进程 typed Binder 上执行；host test 不能替代。
+7. debug test principal 只能存在于 debug resource overlay，main/release policy 必须保持 absent。
+
+当前 `security_task_callback_replay_android_verified=true`、`security_callback_sequence_replay_suppressed=true`、
+`security_callback_terminal_replay_unique=true`、`security_idempotency_conflict_callback_silent=true`、
+`security_cross_uid_callback_owner_isolation_verified=true`、`security_debug_test_principal_release_excluded=true`、
+`security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-112`、`ISSUE-050`。

@@ -109,6 +109,7 @@
 | DEV-087 | P9-W02 只冻结并合成验证 18-case matrix；没有真实 fault injection、72h 运行或目标稳定性资格。 | S2-REL-001, S2-OBS-001, ISSUE-049 | Accepted Temporary |
 | DEV-088 | P9-W03a 只提供三个 Java boundary 的 deterministic host corpus；不是 coverage-guided fuzz、AIDL/signature review 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 | DEV-111 | P9-W03d 只验证 debug APK 的 Binder UID/current signer 获取链；不是 production signer、完整 fuzz 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
+| DEV-112 | P9-W03e 只验证应用层 task callback replay/owner isolation；debug test principal 与 deterministic Runtime 不是 production signer、完整 fuzz 或车辆执行。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -928,6 +929,18 @@ Client2 改为只消费该权威 Context 的版本化只读接口，并完成真
 `cockpit_engineer_runtime_release_service_absent=true`、`cockpit_engineer_effect_authorization_source=false`、
 `cockpit_engineer_production_available=false`、`vehicle_signal_provider_wired=false`、`production_ready=false`、
 `target_hardware_validated=false`。
+
+## DEV-112 P9-W03e callback replay evidence is not complete security qualification
+
+W03e 在 API 33 ARM64 上使用两个不同 UID 和真实 production task AIDL，验证 callback task identity、sequence replay suppression、single terminal、
+idempotency conflict silence 与 cross-owner isolation。为允许第二测试主体调用，Runtime debug source set 覆盖 capability policy；该 principal 不存在于
+main/release policy。Runtime 仍执行 deterministic application task，不调用模型、Effect、Vehicle 或 NPU。
+
+该结果只关闭 ISSUE-050 的 callback-replay 子项。它不是 coverage-guided fuzz、production signer/rotation/revocation、security owner approval、
+release qualification 或目标硬件安全认证。状态：`Accepted Temporary`。关闭条件仍包括受控 fuzz engine/budget/evidence、production signer 和 owner
+评审。当前 `security_task_callback_replay_android_verified=true`、`security_debug_test_principal_release_excluded=true`、
+`security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
 ## DEV-110 P8 public target inventory is not capability mapping
 

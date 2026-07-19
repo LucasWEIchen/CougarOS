@@ -5200,3 +5200,25 @@ SDK test 首先读取自身 package/UID 和 Runtime UID，强制二者不同。�
 可声明 `security_identity_device_probe_verified=true`、Binder UID spoof 与 current signer digest acquisition true。不得声明 production signer、
 证书链/owner/release admission、coverage fuzz、Runtime production wiring、Vehicle/NPU/Driver-HAL 或 target qualification。Req IDs：
 `S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。
+
+## P9-W03e callback replay implementation detail
+
+### SDK admission state
+
+每个 `CentralBrainClient.CallbackBridge` 拥有一个 `TaskCallbackReplayGuard`。`submitAgentTask()` 返回后以 `TaskHandle.taskId` 单次绑定 guard；
+Binder oneway callback 若先于 handle 返回，最多缓存 16 个 delivery，绑定后按原顺序进入 per-callback `SerialExecutor`。超过上限失败关闭，
+不得无界保留远端 DTO。
+
+`TaskUpdate` admission 检查 schema v1、exact task ID、sequence > 0、已知 state、0..100 progress、state/progress 不回退。
+`sequence <= lastSequence` 是 replay/stale，直接丢弃且不触发 HMI；cross-task、unknown schema/state 或回退被转换为一次不可重试的
+`ERROR_INTERNAL` 客户端 failure。completion/result 与 failure 同样绑定 task ID 和 schema，guard 只接收第一个终态，后续 terminal/late update 丢弃。
+
+### Runtime and device composition
+
+`CentralBrainRuntimeService` 把 `AdmissionRejectedException` 与 `IdempotencyConflictException` 统一映射为 Binder `IllegalArgumentException`，保证冲突在
+callback attach 前拒绝。debug resource overlay 在原 policy 基础上只为 `com.centralbrain.sdk.test` 开放 protocol/submit/status/cancel-own；main
+policy 不含该 principal。Demo owner-A 先创建 shared-key task，SDK owner-B 必须得到不同 task；owner-B 内部 exact active replay 必须复用 task，
+conflict 必须零回调，terminal replay 必须单终态。证据不输出 task ID/UID/签名/设备身份。
+
+当前 `security_task_callback_replay_android_verified=true`。coverage-guided fuzz、production signer/owner、Vehicle/NPU/Driver-HAL 和 target
+qualification 仍为 false。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。

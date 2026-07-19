@@ -1354,3 +1354,13 @@ flowchart LR
 - 性能仍无 target samples，稳定性仍无 72h，安全仍无 coverage fuzz/UID spoof/signature qualification，隐私仍无 owner policy。
 - production signer/install/rollback、OEM vehicle safety、完整 field diagnostic category/retest 继续由 `ISSUE-029/030/048..053` 跟踪。
 - P8 真实 adapter 仍为外部阻塞；`production_ready=false`、`target_hardware_validated=false` 保持不变。
+
+## 24. P9-W03e callback replay device evidence
+
+- 状态：`COMPLETE / ANDROID13_ARM64_DEBUG_VERIFIED`（2026-07-19）。
+- SDK callback guard 完成 task ID、schema、严格递增 sequence、state/progress 回退和 single-terminal admission；duplicate/stale replay 只丢弃，
+  cross-task/malformed callback 失败关闭为固定客户端 failure。
+- 实体 API 33 ARM64 由 Demo owner-A 和 SDK test owner-B 通过真实 `ICentralBrainRuntime` 验证四例：active replay、idempotency conflict、
+  terminal replay、cross-UID owner replay。debug policy overlay 不进入 main/release。
+- `ISSUE-050` 的 callback-replay 子项关闭；下一仓库内增量为 coverage-guided fuzz engine/budget/evidence。production signer、security owner、
+  Vehicle/NPU/Driver-HAL 和目标硬件资格保持 false。tracking：`DEV-112`、`ISSUE-050`。
