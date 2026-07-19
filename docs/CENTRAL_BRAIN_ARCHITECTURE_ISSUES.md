@@ -69,7 +69,7 @@
 | ISSUE-047 | P8 目标 property/service/permission/owner/version/readback/fault evidence 未取得，真实 adapter 不能启动。 | S2-ADP-002, S2-OBS-001, P8-W01..W06 | Open / External Blocked |
 | ISSUE-048 | P9 十项预算缺目标 Android 13 采集、30-sample 报告、owner approval 和 release qualification。 | S2-OBS-001, S2-REL-001, P9-W01/W02 | Open |
 | ISSUE-049 | P9 稳定性矩阵缺真实 fault injector、目标 72h run、受控证据和 owner approval。 | S2-REL-001, S2-OBS-001, P9-W02 | Open / External Blocked |
-| ISSUE-050 | P9 完整安全 fuzz 缺 engine/budget/callback-replay/evidence owner；debug Binder UID/current signer device evidence 已完成，production signer 仍未完成。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, P9-W03 | Open |
+| ISSUE-050 | P9 完整安全 fuzz 缺 engine/budget/evidence owner；debug Binder UID/current signer 与 task callback replay device evidence 已完成，production signer 仍未完成。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, P9-W03 | Open |
 | ISSUE-051 | P9 durable privacy lifecycle 缺 owner policy、repository enforcement 和目标 evidence。 | S2-MEM-001, S2-SAF-001, P9-W04 | Open |
 | ISSUE-052 | P9 production signer、installer/rollback owner 和受控发布证据不可用。 | S2-REL-001, P9-W05 | Open / External Blocked |
 | ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
@@ -1071,8 +1071,10 @@ P9-W03a 已完成三个 Java parser/validator boundary 的固定 18-case host re
 SignerPolicy 三 surface / 18-case host policy regression，覆盖 package/current signer/capability/shared UID、stable owner replay/isolation 和
 signer rotation state/revoke/epoch。P9-W03c 已冻结 37 项 public AIDL/Parcel inventory、八 validation family 和 model/path/oversize
 aggregate，并交付 debug-only Android probe。P9-W03d 已在 API 33 ARM64 的不同 UID 进程间验证真实 `Binder.getCallingUid()`、package resolution
-和 installed debug APK current signer SHA-256，并用 Runtime UID/package/伪 digest 覆盖 spoof 负例。完整安全验收仍缺：callback replay、
-coverage-guided fuzz engine、production signer/release 资格与安全 owner approval。
+和 installed debug APK current signer SHA-256，并用 Runtime UID/package/伪 digest 覆盖 spoof 负例。P9-W03e 又在 API 33 ARM64 上以两个
+不同 owner UID 通过真实 task Binder 验证 active/terminal callback replay、idempotency conflict 静默和跨 owner callback isolation；SDK
+现拒绝 cross-task/malformed callback，并丢弃 duplicate/stale sequence。完整安全验收仍缺 coverage-guided fuzz engine、production
+signer/release 资格与安全 owner approval。
 
 ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage-guided/目标 evidence 还必须明确 seed/corpus owner、mutation engine
 和版本、CPU/time/case budget、sanitizer/coverage 指标、hang/crash 判定、最小化、敏感输入和日志保留、release/source/non-secret alias、
@@ -1089,9 +1091,12 @@ ISSUE 保持 Open。W03b/W03c 可继续完成仓库内确定性测试；coverage
 `security_distinct_app_uids_verified=true`、
 `security_binder_calling_uid_spoof_android_verified=true`、
 `security_package_signature_cryptographically_verified=true`、`security_same_signer_debug_binding_verified=true`、
+`security_task_callback_replay_android_verified=true`、`security_callback_sequence_replay_suppressed=true`、
+`security_callback_terminal_replay_unique=true`、`security_idempotency_conflict_callback_silent=true`、
+`security_cross_uid_callback_owner_isolation_verified=true`、`security_debug_test_principal_release_excluded=true`、
 `security_production_signer_verified=false`、
 `security_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089/090/111`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089/090/111/112`。
 
 ## ISSUE-051 P9 durable privacy lifecycle policies are incomplete
 

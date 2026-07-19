@@ -18,6 +18,7 @@ import android.os.Process;
 import android.util.Log;
 
 import com.centralbrain.runtime.security.ISecurityIdentityProbe;
+import com.centralbrain.sdk.CentralBrainClient;
 import com.centralbrain.sdk.RuntimeEventListener;
 import com.centralbrain.sdk.RuntimeContractV2;
 import com.centralbrain.sdk.ScenarioClient;
@@ -37,14 +38,23 @@ import com.centralbrain.sdk.plan.NodePolicy;
 import com.centralbrain.sdk.plan.PlanContract;
 import com.centralbrain.sdk.plan.PlanNode;
 import com.centralbrain.sdk.plan.ScenarioPlan;
+import com.centralbrain.sdk.production.AgentTaskRequest;
+import com.centralbrain.sdk.production.ICentralBrainRuntime;
+import com.centralbrain.sdk.production.TaskFailure;
+import com.centralbrain.sdk.production.TaskHandle;
+import com.centralbrain.sdk.production.TaskResult;
+import com.centralbrain.sdk.production.TaskUpdate;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -56,6 +66,9 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     private static final String SESSION_ID = "9bffbb6a-5a0b-41b5-a924-bcfb45be4f26";
     private boolean liveFacade;
     private boolean securityIdentity;
+    private boolean callbackReplaySecurity;
+    private String callbackReplayNonce = "";
+    private String callbackReplayForeignTaskId = "";
     private boolean durableSeed;
     private boolean durableVerify;
     private String durableRequestId = "";
@@ -67,11 +80,16 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         liveFacade = arguments != null && "true".equals(arguments.getString("liveFacade"));
         securityIdentity = arguments != null
                 && "true".equals(arguments.getString("securityIdentity"));
+        callbackReplaySecurity = arguments != null
+                && "true".equals(arguments.getString("callbackReplaySecurity"));
         durableSeed = arguments != null && "true".equals(arguments.getString("durableSeed"));
         durableVerify = arguments != null && "true".equals(arguments.getString("durableVerify"));
         if (arguments != null) {
             durableRequestId = value(arguments.getString("durableRequestId"));
             durableSessionId = value(arguments.getString("durableSessionId"));
+            callbackReplayNonce = value(arguments.getString("callbackReplayNonce"));
+            callbackReplayForeignTaskId = value(
+                    arguments.getString("callbackReplayForeignTaskId"));
         }
         start();
     }
@@ -87,6 +105,11 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             }
             if (securityIdentity) {
                 verifySecurityIdentity(result);
+                finish(Activity.RESULT_OK, result);
+                return;
+            }
+            if (callbackReplaySecurity) {
+                verifyCallbackReplaySecurity(result);
                 finish(Activity.RESULT_OK, result);
                 return;
             }
@@ -383,6 +406,206 @@ public final class SessionParcelInstrumentation extends Instrumentation {
             return encoded.toString();
         } catch (NoSuchAlgorithmException exception) {
             throw new AssertionError("SHA-256 is unavailable", exception);
+        }
+    }
+
+    private void verifyCallbackReplaySecurity(Bundle result) throws Exception {
+        if (callbackReplayNonce.isEmpty() || callbackReplayForeignTaskId.isEmpty()) {
+            throw new AssertionError("callback replay nonce and foreign task are required");
+        }
+        Context context = getContext();
+        PackageManager packageManager = context.getPackageManager();
+        int callerUid = Process.myUid();
+        int demoUid = packageManager.getApplicationInfo(
+                "com.centralbrain.demo",
+                PackageManager.ApplicationInfoFlags.of(0)).uid;
+        int runtimeUid = packageManager.getApplicationInfo(
+                "com.centralbrain.runtime",
+                PackageManager.ApplicationInfoFlags.of(0)).uid;
+        if (callerUid == demoUid || callerUid == runtimeUid || demoUid == runtimeUid) {
+            throw new AssertionError("callback replay evidence requires three distinct app UIDs");
+        }
+
+        ExecutorService callbacks = Executors.newFixedThreadPool(4);
+        CountDownLatch connected = new CountDownLatch(1);
+        AtomicReference<String> connectionFailure = new AtomicReference<>("");
+        CentralBrainClient client = new CentralBrainClient(
+                context,
+                callbacks,
+                new CentralBrainClient.ConnectionListener() {
+                    @Override
+                    public void onConnected(CentralBrainClient ignored) {
+                        connected.countDown();
+                    }
+
+                    @Override
+                    public void onDisconnected() {}
+
+                    @Override
+                    public void onConnectionFailed(String reason) {
+                        connectionFailure.compareAndSet("", reason);
+                        connected.countDown();
+                    }
+                });
+        try {
+            if (!client.connect()) {
+                throw new AssertionError("callback replay bindService returned false");
+            }
+            await(connected, "callback replay connection");
+            if (!connectionFailure.get().isEmpty()) {
+                throw new AssertionError(connectionFailure.get());
+            }
+
+            AgentTaskRequest request = callbackReplayRequest(callbackReplayNonce);
+            CallbackReplayObservation primary = new CallbackReplayObservation();
+            CallbackReplayObservation replay = new CallbackReplayObservation();
+            TaskHandle primaryHandle = client.submitAgentTask(request, primary);
+            primary.expectTask(primaryHandle.taskId);
+            TaskHandle replayHandle = client.submitAgentTask(request, replay);
+            replay.expectTask(replayHandle.taskId);
+
+            if (!primaryHandle.taskId.equals(replayHandle.taskId)) {
+                throw new AssertionError("same-owner replay returned a different task");
+            }
+            if (primaryHandle.taskId.equals(callbackReplayForeignTaskId)) {
+                throw new AssertionError("cross-owner replay borrowed the foreign task");
+            }
+
+            CallbackReplayObservation conflict = new CallbackReplayObservation();
+            AgentTaskRequest conflictRequest = callbackReplayRequest(callbackReplayNonce);
+            conflictRequest.utterance = "conflicting callback replay payload";
+            try {
+                client.submitAgentTask(conflictRequest, conflict);
+                throw new AssertionError("conflicting idempotency replay was accepted");
+            } catch (IllegalArgumentException expected) {
+                // The rejected request must not attach or invoke its callback.
+            }
+
+            primary.awaitTerminal("primary callback replay task");
+            replay.awaitTerminal("same-owner replay callback task");
+            Thread.sleep(250);
+            primary.assertHealthy();
+            replay.assertHealthy();
+            conflict.assertSilent();
+
+            CallbackReplayObservation terminalReplay = new CallbackReplayObservation();
+            TaskHandle terminalReplayHandle = client.submitAgentTask(request, terminalReplay);
+            terminalReplay.expectTask(terminalReplayHandle.taskId);
+            if (!primaryHandle.taskId.equals(terminalReplayHandle.taskId)) {
+                throw new AssertionError("terminal replay returned a different task");
+            }
+            terminalReplay.awaitTerminal("terminal replay callback");
+            Thread.sleep(250);
+            terminalReplay.assertHealthy();
+
+            result.putString(
+                    "stream",
+                    "\nsecurity_task_callback_replay_android_verified=true"
+                            + "\nsecurity_callback_sequence_replay_suppressed=true"
+                            + "\nsecurity_callback_terminal_replay_unique=true"
+                            + "\nsecurity_idempotency_conflict_callback_silent=true"
+                            + "\nsecurity_cross_uid_callback_owner_isolation_verified=true"
+                            + "\nsecurity_distinct_callback_owner_uids_verified=true"
+                            + "\nsecurity_debug_test_principal_release_excluded=true"
+                            + "\nsecurity_coverage_guided_fuzz_complete=false"
+                            + "\nsecurity_production_signer_verified=false"
+                            + "\nhardware_accessed=false"
+                            + "\nproduction_ready=false"
+                            + "\ntarget_hardware_validated=false\n");
+        } finally {
+            client.close();
+            callbacks.shutdownNow();
+        }
+    }
+
+    private static AgentTaskRequest callbackReplayRequest(String nonce) {
+        AgentTaskRequest request = new AgentTaskRequest();
+        request.clientRequestId = "p9-w03e-" + nonce;
+        request.sessionId = "p9-w03e-callback-replay";
+        request.utterance = "verify owner-scoped callback replay";
+        request.locale = "en-US";
+        request.deadlineElapsedRealtimeMs = 0;
+        request.priority = 1;
+        request.idempotencyKey = "p9-w03e-key-" + nonce;
+        return request;
+    }
+
+    private static final class CallbackReplayObservation
+            implements CentralBrainClient.TaskCallback {
+        private final CountDownLatch terminalLatch = new CountDownLatch(1);
+        private final List<Long> sequences = new ArrayList<>();
+        private final List<String> observedTaskIds = new ArrayList<>();
+        private final AtomicInteger terminalCount = new AtomicInteger();
+        private final AtomicInteger failureCount = new AtomicInteger();
+        private final AtomicInteger lateUpdateCount = new AtomicInteger();
+        private final AtomicBoolean terminal = new AtomicBoolean();
+        private volatile String expectedTaskId = "";
+
+        void expectTask(String taskId) {
+            expectedTaskId = value(taskId);
+        }
+
+        @Override
+        public synchronized void onUpdate(TaskUpdate update) {
+            if (terminal.get()) {
+                lateUpdateCount.incrementAndGet();
+            }
+            sequences.add(update.sequence);
+            observedTaskIds.add(value(update.taskId));
+        }
+
+        @Override
+        public synchronized void onCompleted(TaskResult result) {
+            observedTaskIds.add(value(result.taskId));
+            terminalCount.incrementAndGet();
+            terminal.set(true);
+            terminalLatch.countDown();
+        }
+
+        @Override
+        public synchronized void onFailed(TaskFailure failure) {
+            observedTaskIds.add(value(failure.taskId));
+            failureCount.incrementAndGet();
+            terminalCount.incrementAndGet();
+            terminal.set(true);
+            terminalLatch.countDown();
+        }
+
+        void awaitTerminal(String operation) throws Exception {
+            await(terminalLatch, operation);
+        }
+
+        synchronized void assertHealthy() {
+            if (expectedTaskId.isEmpty()) {
+                throw new AssertionError("callback task binding is empty");
+            }
+            if (terminalCount.get() != 1 || failureCount.get() != 0) {
+                throw new AssertionError("callback terminal delivery was not unique success");
+            }
+            if (lateUpdateCount.get() != 0) {
+                throw new AssertionError("callback update arrived after terminal delivery");
+            }
+            long previous = 0;
+            for (long sequence : sequences) {
+                if (sequence <= previous) {
+                    throw new AssertionError("callback update sequence was replayed or stale");
+                }
+                previous = sequence;
+            }
+            for (String taskId : observedTaskIds) {
+                if (!expectedTaskId.equals(taskId)) {
+                    throw new AssertionError("callback crossed task ownership");
+                }
+            }
+        }
+
+        synchronized void assertSilent() {
+            if (!sequences.isEmpty()
+                    || !observedTaskIds.isEmpty()
+                    || terminalCount.get() != 0
+                    || failureCount.get() != 0) {
+                throw new AssertionError("rejected callback received a delivery");
+            }
         }
     }
 

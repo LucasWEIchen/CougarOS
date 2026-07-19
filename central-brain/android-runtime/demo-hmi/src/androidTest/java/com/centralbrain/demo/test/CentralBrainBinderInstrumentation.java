@@ -35,17 +35,91 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
     private static final String TAG = "CentralBrainBinderTest";
     private static final long WAIT_SECONDS = 10;
     private static final int RACE_TASK_COUNT = 15;
+    private boolean callbackReplayOwnerSeed;
+    private String callbackReplayNonce = "";
 
     @Override
     public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
+        callbackReplayOwnerSeed = arguments != null
+                && "true".equals(arguments.getString("callbackReplayOwnerSeed"));
+        if (arguments != null && arguments.getString("callbackReplayNonce") != null) {
+            callbackReplayNonce = arguments.getString("callbackReplayNonce");
+        }
         start();
     }
 
     @Override
     public void onStart() {
         Log.i(TAG, "R2C Binder instrumentation started");
+        if (callbackReplayOwnerSeed) {
+            verifyCallbackReplayOwnerSeed();
+            return;
+        }
         runChecks();
+    }
+
+    private void verifyCallbackReplayOwnerSeed() {
+        Bundle result = new Bundle();
+        ExecutorService callbacks = Executors.newSingleThreadExecutor();
+        ConnectionRecorder connections = new ConnectionRecorder();
+        CentralBrainClient client = new CentralBrainClient(
+                getTargetContext(), callbacks, connections);
+        try {
+            if (callbackReplayNonce.isEmpty()) {
+                throw new AssertionError("callback replay nonce is required");
+            }
+            assertTrue(client.connect(), "owner seed bindService returned false");
+            await(connections.firstConnected, "owner seed connection");
+            assertNull(connections.failure.get(), "owner seed connection failed");
+
+            CountDownLatch terminal = new CountDownLatch(1);
+            AtomicInteger terminalCount = new AtomicInteger();
+            AtomicReference<String> callbackTaskId = new AtomicReference<>("");
+            TaskHandle handle = client.submitAgentTask(
+                    callbackReplayRequest(callbackReplayNonce),
+                    new CentralBrainClient.TaskCallback() {
+                        @Override
+                        public void onUpdate(TaskUpdate update) {
+                            callbackTaskId.compareAndSet("", update.taskId);
+                            if (!handleMatches(callbackTaskId.get(), update.taskId)) {
+                                callbackTaskId.set("mismatch");
+                            }
+                        }
+
+                        @Override
+                        public void onCompleted(TaskResult taskResult) {
+                            callbackTaskId.compareAndSet("", taskResult.taskId);
+                            terminalCount.incrementAndGet();
+                            terminal.countDown();
+                        }
+
+                        @Override
+                        public void onFailed(TaskFailure failure) {
+                            callbackTaskId.set("failed:" + failure.errorCode);
+                            terminalCount.incrementAndGet();
+                            terminal.countDown();
+                        }
+                    });
+            await(terminal, "owner seed terminal callback");
+            assertEquals(1, terminalCount.get(), "owner seed terminal count");
+            assertEquals(handle.taskId, callbackTaskId.get(), "owner seed callback task binding");
+            result.putString(
+                    "stream",
+                    "\ncallback_replay_owner_seeded=true"
+                            + "\ncallback_replay_foreign_task_id=" + handle.taskId
+                            + "\ncallback_replay_owner_seed_terminal_unique=true"
+                            + "\nhardware_accessed=false\n");
+            finish(Activity.RESULT_OK, result);
+        } catch (Throwable failure) {
+            Log.e(TAG, "callback replay owner seed failed", failure);
+            result.putString("stream", "\ncallback replay owner seed failed:\n"
+                    + Log.getStackTraceString(failure));
+            finish(Activity.RESULT_CANCELED, result);
+        } finally {
+            client.close();
+            callbacks.shutdownNow();
+        }
     }
 
     private void runChecks() {
@@ -300,6 +374,22 @@ public final class CentralBrainBinderInstrumentation extends Instrumentation {
         request.priority = 1;
         request.idempotencyKey = request.clientRequestId;
         return request;
+    }
+
+    private static AgentTaskRequest callbackReplayRequest(String nonce) {
+        AgentTaskRequest request = new AgentTaskRequest();
+        request.clientRequestId = "p9-w03e-" + nonce;
+        request.sessionId = "p9-w03e-callback-replay";
+        request.utterance = "verify owner-scoped callback replay";
+        request.locale = "en-US";
+        request.deadlineElapsedRealtimeMs = 0;
+        request.priority = 1;
+        request.idempotencyKey = "p9-w03e-key-" + nonce;
+        return request;
+    }
+
+    private static boolean handleMatches(String expected, String actual) {
+        return expected == null ? actual == null : expected.equals(actual);
     }
 
     private String shell(String command) throws IOException {

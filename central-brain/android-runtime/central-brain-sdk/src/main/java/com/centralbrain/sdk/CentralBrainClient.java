@@ -16,6 +16,8 @@ import com.centralbrain.sdk.production.TaskResult;
 import com.centralbrain.sdk.production.TaskUpdate;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -28,6 +30,7 @@ import java.util.concurrent.Executor;
  * Req IDs: XSC-001, XSC-006, NV-G-003, NV-G-006, NV-P-002, DEL-001.
  */
 public final class CentralBrainClient implements AutoCloseable {
+    private static final int MAX_PRE_BIND_CALLBACKS = 16;
     public static final String RUNTIME_PACKAGE = "com.centralbrain.runtime";
     public static final String RUNTIME_SERVICE =
             "com.centralbrain.runtime.CentralBrainRuntimeService";
@@ -200,7 +203,7 @@ public final class CentralBrainClient implements AutoCloseable {
                 activeCallbacks.remove(bridge.asBinder());
                 throw new RemoteException("runtime returned a null TaskHandle");
             }
-            bridge.taskId = handle.taskId;
+            bridge.bindTaskId(handle.taskId);
             return handle;
         } catch (RemoteException | RuntimeException exception) {
             activeCallbacks.remove(bridge.asBinder());
@@ -336,8 +339,10 @@ public final class CentralBrainClient implements AutoCloseable {
     private final class CallbackBridge extends ICentralBrainTaskCallback.Stub {
         private final TaskCallback callback;
         private final Executor deliveryExecutor;
+        private final TaskCallbackReplayGuard replayGuard = new TaskCallbackReplayGuard();
+        private final List<Runnable> preBindCallbacks = new ArrayList<>();
         private boolean terminal;
-        private volatile String taskId = "";
+        private String taskId = "";
 
         CallbackBridge(TaskCallback callback) {
             this.callback = callback;
@@ -346,32 +351,24 @@ public final class CentralBrainClient implements AutoCloseable {
 
         @Override
         public synchronized void onTaskUpdate(TaskUpdate update) {
-            if (!terminal) {
-                deliveryExecutor.execute(() -> callback.onUpdate(update));
-            }
+            enqueueOrDefer(() -> deliverUpdate(update));
         }
 
         @Override
         public synchronized void onTaskCompleted(TaskResult result) {
-            if (!terminal) {
-                terminal = true;
-                activeCallbacks.remove(asBinder());
-                deliveryExecutor.execute(() -> callback.onCompleted(result));
-            }
+            enqueueOrDefer(() -> deliverCompleted(result));
         }
 
         @Override
         public synchronized void onTaskFailed(TaskFailure failure) {
-            if (!terminal) {
-                terminal = true;
-                activeCallbacks.remove(asBinder());
-                deliveryExecutor.execute(() -> callback.onFailed(failure));
-            }
+            enqueueOrDefer(() -> deliverFailed(failure));
         }
 
         synchronized void failFromClient(int errorCode, String message) {
             if (!terminal) {
                 terminal = true;
+                activeCallbacks.remove(asBinder());
+                preBindCallbacks.clear();
                 TaskFailure failure = new TaskFailure();
                 failure.taskId = taskId;
                 failure.errorCode = errorCode;
@@ -379,6 +376,106 @@ public final class CentralBrainClient implements AutoCloseable {
                 failure.retryable = true;
                 deliveryExecutor.execute(() -> callback.onFailed(failure));
             }
+        }
+
+        synchronized void bindTaskId(String value) {
+            replayGuard.bindTaskId(value);
+            taskId = value;
+            for (Runnable pending : preBindCallbacks) {
+                deliveryExecutor.execute(pending);
+            }
+            preBindCallbacks.clear();
+        }
+
+        private synchronized void enqueueOrDefer(Runnable delivery) {
+            if (terminal) {
+                return;
+            }
+            if (!replayGuard.isBound()) {
+                if (preBindCallbacks.size() >= MAX_PRE_BIND_CALLBACKS) {
+                    failFromClient(
+                            ICentralBrainRuntime.ERROR_INTERNAL,
+                            "callback pre-bind capacity exhausted");
+                    return;
+                }
+                preBindCallbacks.add(delivery);
+                return;
+            }
+            deliveryExecutor.execute(delivery);
+        }
+
+        private void deliverUpdate(TaskUpdate update) {
+            TaskCallbackReplayGuard.Admission admission;
+            synchronized (this) {
+                if (terminal) {
+                    return;
+                }
+                admission = replayGuard.admitUpdate(update);
+                if (admission.getDecision() == TaskCallbackReplayGuard.Decision.REJECT) {
+                    rejectRemoteCallback(admission.getReason());
+                    return;
+                }
+            }
+            if (admission.getDecision() == TaskCallbackReplayGuard.Decision.ACCEPT) {
+                callback.onUpdate(update);
+            }
+        }
+
+        private void deliverCompleted(TaskResult result) {
+            TaskCallbackReplayGuard.Admission admission;
+            synchronized (this) {
+                if (terminal) {
+                    return;
+                }
+                admission = replayGuard.admitCompleted(result);
+                if (admission.getDecision() == TaskCallbackReplayGuard.Decision.REJECT) {
+                    rejectRemoteCallback(admission.getReason());
+                    return;
+                }
+                if (admission.getDecision() == TaskCallbackReplayGuard.Decision.ACCEPT) {
+                    terminal = true;
+                    activeCallbacks.remove(asBinder());
+                }
+            }
+            if (admission.getDecision() == TaskCallbackReplayGuard.Decision.ACCEPT) {
+                callback.onCompleted(result);
+            }
+        }
+
+        private void deliverFailed(TaskFailure failure) {
+            TaskCallbackReplayGuard.Admission admission;
+            synchronized (this) {
+                if (terminal) {
+                    return;
+                }
+                admission = replayGuard.admitFailed(failure);
+                if (admission.getDecision() == TaskCallbackReplayGuard.Decision.REJECT) {
+                    rejectRemoteCallback(admission.getReason());
+                    return;
+                }
+                if (admission.getDecision() == TaskCallbackReplayGuard.Decision.ACCEPT) {
+                    terminal = true;
+                    activeCallbacks.remove(asBinder());
+                }
+            }
+            if (admission.getDecision() == TaskCallbackReplayGuard.Decision.ACCEPT) {
+                callback.onFailed(failure);
+            }
+        }
+
+        private void rejectRemoteCallback(String reason) {
+            if (terminal) {
+                return;
+            }
+            terminal = true;
+            activeCallbacks.remove(asBinder());
+            preBindCallbacks.clear();
+            TaskFailure failure = new TaskFailure();
+            failure.taskId = taskId;
+            failure.errorCode = ICentralBrainRuntime.ERROR_INTERNAL;
+            failure.errorMessage = "runtime callback rejected: " + reason;
+            failure.retryable = false;
+            callback.onFailed(failure);
         }
     }
 

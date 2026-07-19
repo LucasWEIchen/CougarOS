@@ -94,3 +94,10 @@ bash tools/check_central_brain_python_prototype_retirement.sh
 
 全局状态保持 `production_ready=false`、`target_hardware_validated=false`、
 `driver_development_triggered=false`、`virtualization_development_triggered=false`。
+
+## P9-W03e callback replay security
+
+`central-brain-sdk` 的 `TaskCallbackReplayGuard` 现在把回调绑定到 Runtime 返回的 task ID，只接收严格递增 sequence，丢弃 duplicate/stale
+update，并保证 completion/failure 终态只交付一次。Android debug capability overlay 仅为 `com.centralbrain.sdk.test` 提供任务测试权限；main/release
+policy 不包含该主体。API 33 ARM64 已用 `com.centralbrain.demo` 与 `com.centralbrain.sdk.test` 两个不同 owner UID 验证同 owner 重放、冲突静默、
+终态重放和跨 UID owner 隔离。`security_task_callback_replay_android_verified=true`；coverage fuzz、production signer 与目标资格仍为 false。

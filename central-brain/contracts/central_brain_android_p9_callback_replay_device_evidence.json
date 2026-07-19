@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-callback-replay-device-evidence-v1",
+  "work_package": "P9-W03e",
+  "maturity": "android_application_security_evidence",
+  "req_ids": [
+    "S2-SAF-001",
+    "S2-TOL-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "boundary": {
+    "runtime_interface": "com.centralbrain.sdk.production.ICentralBrainRuntime",
+    "callback_interface": "com.centralbrain.sdk.production.ICentralBrainTaskCallback",
+    "owner_seed_package": "com.centralbrain.demo",
+    "replay_probe_package": "com.centralbrain.sdk.test",
+    "authorization_profile": "debug_resource_overlay_only",
+    "release_test_principal_present": false,
+    "raw_identity_published": false
+  },
+  "cases": [
+    {
+      "case_id": "callback.same_owner_active_replay.v1",
+      "expected": "SAME_TASK_STRICT_SEQUENCE_ONE_TERMINAL_PER_CALLBACK"
+    },
+    {
+      "case_id": "callback.idempotency_conflict.v1",
+      "expected": "REJECTED_WITHOUT_CALLBACK_DELIVERY"
+    },
+    {
+      "case_id": "callback.same_owner_terminal_replay.v1",
+      "expected": "SAME_TASK_ONE_TERMINAL"
+    },
+    {
+      "case_id": "callback.cross_uid_owner_replay.v1",
+      "expected": "DISTINCT_TASK_NO_FOREIGN_CALLBACK"
+    }
+  ],
+  "device_requirements": {
+    "android_api": 33,
+    "abi": "arm64-v8a",
+    "distinct_owner_uids": true,
+    "device_identity_redacted": true
+  },
+  "claim_state": {
+    "security_task_callback_replay_android_verified": true,
+    "security_callback_sequence_replay_suppressed": true,
+    "security_callback_terminal_replay_unique": true,
+    "security_idempotency_conflict_callback_silent": true,
+    "security_cross_uid_callback_owner_isolation_verified": true,
+    "security_distinct_callback_owner_uids_verified": true,
+    "security_debug_test_principal_release_excluded": true,
+    "security_coverage_guided_fuzz_complete": false,
+    "security_production_signer_verified": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

@@ -1965,3 +1965,14 @@ CAN、device node、sysfs、ioctl、PCIe/NPU、JNI 或网络。测试中的 UID/
 当前 `security_identity_device_probe_verified=true`、`security_production_signer_verified=false`、
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-111`、`ISSUE-050`。
+
+## P9-W03e Callback Replay Driver/HAL Boundary
+
+本增量只涉及 Android app Binder、PackageManager-derived owner fingerprint、SDK callback admission 与 debug test resource overlay。它不读取
+VehicleProperty、CAN、device node、sysfs、Vendor NPU、TEE 或 Driver/HAL 状态，因此 `driver_development_triggered=false`。跨 UID owner isolation
+由 Android Binder identity 和现有 capability policy 完成，不需要新增内核或厂商接口。
+
+若未来 production signer/attestation owner 要求硬件背书，必须先取得 OEM SDK/permission/ABI/evidence；不得从 W03e 推导或新增驱动。
+当前 `security_task_callback_replay_android_verified=true`、`security_debug_test_principal_release_excluded=true`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-112`、`ISSUE-050`。

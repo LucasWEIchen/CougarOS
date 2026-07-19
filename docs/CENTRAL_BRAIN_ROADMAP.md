@@ -1771,6 +1771,22 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+### 2026-07-19 P9-W03e callback replay device evidence
+
+状态：`DEVELOPED / ANDROID13_ARM64_DEBUG_VERIFIED`。SDK 新增 callback replay guard，绑定 task ID 并只投影严格递增 update sequence，
+duplicate/stale update 被丢弃，cross-task/malformed callback 失败关闭，completion/failure 只允许一次。Runtime Binder 将 durable idempotency
+conflict 统一映射为调用参数拒绝，不再暴露内部 repository exception 类型。
+
+实体 API 33 ARM64 由 Demo 与 SDK test 两个不同 UID 完成 active replay、conflict、terminal replay、cross-owner replay 四例；debug capability
+overlay 只存在于 debug source set，release 构建通过且 main/release policy 不含 test principal。该增量关闭 ISSUE-050 的 callback-replay 子项。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。
+`security_task_callback_replay_android_verified=true`、`security_callback_sequence_replay_suppressed=true`、
+`security_callback_terminal_replay_unique=true`、`security_idempotency_conflict_callback_silent=true`、
+`security_cross_uid_callback_owner_isolation_verified=true`、`security_debug_test_principal_release_excluded=true`、
+`security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。下一仓库内增量：coverage-guided fuzz engine/budget。
+
 ### 2026-07-19 P9-W03d Binder identity device evidence
 
 状态：`DEVELOPED / ANDROID13_ARM64_DEBUG_VERIFIED`。Runtime debug source set 新增 signature-protected typed AIDL Service；每次调用均在

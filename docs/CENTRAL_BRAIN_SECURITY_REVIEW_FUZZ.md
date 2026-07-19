@@ -1,6 +1,8 @@
 # Central Brain P9-W03 Security Review and Fuzz
 
-Status: `W03D_ANDROID_IDENTITY_VERIFIED / TARGET_FUZZ_PENDING`
+Status: `W03E_CALLBACK_REPLAY_VERIFIED / TARGET_FUZZ_PENDING`
+
+Historical W03d checkpoint marker: `W03D_ANDROID_IDENTITY_VERIFIED / TARGET_FUZZ_PENDING`.
 
 Req IDs: `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`, `DEL-001/004/005`.
 
@@ -177,3 +179,21 @@ Current W03d claims: `security_identity_device_probe_verified=true`,
 The cryptographic claim is narrowly scoped to current signer digest acquisition for the installed debug APK. It is not
 production certificate-chain validation, signer-owner approval, release admission, code transparency or target
 hardware qualification. Tracking: `DEV-111`, `ISSUE-050`.
+
+## 10. P9-W03e task callback replay device evidence
+
+W03e exercises the production task AIDL rather than a parallel probe protocol. A debug-only capability-policy overlay admits the SDK test package while
+the main/release policy remains unchanged. Demo and SDK instrumentation run under distinct UIDs. Demo first creates an owner-A task; SDK owner-B then uses
+the same idempotency key and must receive a distinct task with callbacks bound only to that task.
+
+For one owner, an active exact replay must return the same task. The SDK `TaskCallbackReplayGuard` drops duplicate/stale update sequences created by replay
+attachment, rejects a cross-task or malformed callback, and admits only one completion/failure terminal. A conflicting payload with the same key must be
+rejected before callback attachment, while a post-terminal exact replay may return the retained terminal exactly once to its new callback.
+
+API 33 ARM64 verified all four cases. Evidence contains only booleans/count-free task comparisons; task IDs, UIDs, signer material and device identity are
+not published. Current claims: `security_task_callback_replay_android_verified=true`,
+`security_callback_sequence_replay_suppressed=true`, `security_callback_terminal_replay_unique=true`,
+`security_idempotency_conflict_callback_silent=true`, `security_cross_uid_callback_owner_isolation_verified=true`,
+`security_debug_test_principal_release_excluded=true`, `security_coverage_guided_fuzz_complete=false`,
+`security_production_signer_verified=false`, `production_ready=false`, `target_hardware_validated=false`.
+Tracking: `DEV-112`, `ISSUE-050`.

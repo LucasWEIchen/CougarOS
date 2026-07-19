@@ -3889,3 +3889,16 @@ interface ISecurityIdentityProbe {
 - release：main/release manifest/source 不得出现 endpoint；release assembly 是接口验收的一部分。
 
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-111`、`ISSUE-050`。
+
+## Android P9-W03e Task Callback Replay Contract
+
+- wire surface：不新增或修改 AIDL；继续使用冻结的 `ICentralBrainRuntime` v1 与 oneway `ICentralBrainTaskCallback`。
+- identity：server owner 只来自 `Binder.getCallingUid()` -> PackageManager -> `DurablePrincipalFingerprint`；request/key/taskId 不构成 caller identity。
+- replay：same owner + exact request/key 返回 same task；different payload + same key 抛参数冲突且 callback 不 attach；different owner + same key 是独立 task。
+- callback update：schema=1、exact taskId、known state、progress 0..100、strictly increasing sequence；duplicate/stale drop，回退/cross-task reject。
+- callback terminal：result 必须 `ERROR_NONE`，failure 必须非 `ERROR_NONE`，两者均 exact taskId；每个 bridge 仅首个终态可见。
+- pre-bind：oneway callback 早于 handle 时最多缓存 16 条并按序排空，禁止无界 queue。
+- test principal：`com.centralbrain.sdk.test` 只在 Runtime debug resource overlay 中，release policy absent。
+- evidence：API 33 ARM64 双 UID 四例，只输出 boolean markers；不输出 task/UID/signer/device/raw payload。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。

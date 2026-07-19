@@ -1,3 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="com.centralbrain.permission.BIND_RUNTIME" />
+    <queries>
+        <package android:name="com.centralbrain.runtime" />
+        <package android:name="com.centralbrain.demo" />
+    </queries>
 </manifest>

@@ -131,7 +131,8 @@ public final class CentralBrainRuntimeService extends Service {
                             request.deadlineElapsedRealtimeMs <= 0
                                     || request.deadlineElapsedRealtimeMs
                                             > SystemClock.elapsedRealtime());
-                } catch (DurableTaskRepository.AdmissionRejectedException exception) {
+                } catch (DurableTaskRepository.AdmissionRejectedException
+                        | DurableTaskRepository.IdempotencyConflictException exception) {
                     throw new IllegalArgumentException(exception.getMessage());
                 }
                 if (durableAdmission.getOutcome()
