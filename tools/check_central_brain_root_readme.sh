@@ -675,7 +675,7 @@ for marker in \
   'client2_production_release_artifact_available=false' \
   'hmi_d4_demo_control_loop_complete=false' \
   'event_v2_cursor_ack_required=true' \
-  'event_v2_interface_published=false' \
+  'event_v2_interface_published=true' \
   'plan_contract_v1_defined=true' \
   'plan_parcel_physical_android13_arm64_verified=true' \
   'plan_runtime_published=false' \

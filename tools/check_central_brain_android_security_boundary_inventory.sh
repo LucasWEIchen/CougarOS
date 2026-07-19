@@ -68,19 +68,19 @@ for path in sorted(aidl_root.rglob("*.aidl")):
 
 if contract.get("aidl_surfaces") != actual:
     raise SystemExit("P9-W03c machine inventory differs from public AIDL tree")
-if len(actual) != 37 or sum(item["kind"] == "INTERFACE" for item in actual) != 7:
+if len(actual) != 44 or sum(item["kind"] == "INTERFACE" for item in actual) != 9:
     raise SystemExit("P9-W03c AIDL surface/interface count changed")
-if sum(item["kind"] == "PARCELABLE" for item in actual) != 30:
+if sum(item["kind"] == "PARCELABLE" for item in actual) != 35:
     raise SystemExit("P9-W03c AIDL parcelable count changed")
-if contract.get("aidl_surface_count") != 37 \
-        or contract.get("aidl_interface_count") != 7 \
-        or contract.get("aidl_parcelable_count") != 30:
+if contract.get("aidl_surface_count") != 44 \
+        or contract.get("aidl_interface_count") != 9 \
+        or contract.get("aidl_parcelable_count") != 35:
     raise SystemExit("P9-W03c JSON counts changed")
 
 expected_namespaces = {
     "diagnostics": [1, 3],
     "effect": [0, 4],
-    "event": [2, 5],
+    "event": [4, 10],
     "governance": [1, 4],
     "plan": [0, 4],
     "production": [2, 5],
@@ -113,7 +113,7 @@ for family in families:
         raise SystemExit(f"P9-W03c Java validation family missing: {family}")
 
 for marker in [
-    "publicAidlTreeMatchesSevenInterfacesThirtyParcelablesAndNamespaces",
+    "publicAidlTreeMatchesNineInterfacesThirtyFiveParcelablesAndNamespaces",
     "structuredModelOutputRejectsUnknownPathAndOversizeExactly",
     "sessionContractRejectsAggregateUtteranceOversize",
     "inventoryDoesNotClaimProbeExecutionFuzzAndroidOrProductionQualification",
@@ -145,8 +145,8 @@ if any(state.get(key) is not False for key in required_false):
 PY
 
 for marker in \
-  'AIDL_INTERFACE_COUNT = 7' \
-  'AIDL_PARCELABLE_COUNT = 30' \
+  'AIDL_INTERFACE_COUNT = 9' \
+  'AIDL_PARCELABLE_COUNT = 35' \
   'AIDL_SURFACE_COUNT = AIDL_INTERFACE_COUNT + AIDL_PARCELABLE_COUNT' \
   'VALIDATION_FAMILY_COUNT = 8' \
   'isAidlParcelInventoryComplete()' \
@@ -210,9 +210,9 @@ require_text "docs/CENTRAL_BRAIN_ROADMAP.md" 'P9-W03c Security Boundary Inventor
 printf '%s\n' \
   'Central Brain Android security boundary inventory check passed' \
   'security_aidl_parcel_inventory_complete=true' \
-  'security_aidl_interface_count=7' \
-  'security_aidl_parcelable_count=30' \
-  'security_aidl_surface_count=37' \
+  'security_aidl_interface_count=9' \
+  'security_aidl_parcelable_count=35' \
+  'security_aidl_surface_count=44' \
   'security_validation_family_count=8' \
   'security_host_path_oversize_aggregate_verified=true' \
   'security_android_debug_probe_available=true' \

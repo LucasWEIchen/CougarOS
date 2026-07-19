@@ -4,6 +4,19 @@
 
 日期：2026-07-17
 
+## P6-EV2 Session Event Driver/HAL Boundary
+
+`P6-EV2` 仅使用 Android Binder、Room/SQLite、PackageManager-derived owner 和 Java SHA-256，不读取
+Android Car、VehicleProperty、Vendor Binder/SOA、CAN、device node、sysfs、ioctl、PCIe/NPU、JNI 或网络。
+因此本增量不新增 C/C++、Driver/HAL 或虚拟化代码：`driver_development_triggered=false`、
+`virtualization_development_triggered=false`。跨 SOC Event transport 仍需 P8 提供 endpoint/protocol/
+ownership/version/QoS evidence 后另立最小接口包，不能从 Session Event V2 推断厂商驱动。
+
+当前 `event_v2_interface_published=true`、`event_v2_room_ack_wired=true`、
+`event_v2_android13_arm64_verified=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-EVT-001`、`FW-U-003`、
+`NV-G-004/006/007`、`XSC-001/005/006`、`DEL-001/003/004`；里程碑 `P6-EV2`。
+
 ## 范围声明
 
 当前项目只开发黑盒 Android 13 用户态中央大脑。驱动层不是默认开发范围；只有公开 Android/NDK、

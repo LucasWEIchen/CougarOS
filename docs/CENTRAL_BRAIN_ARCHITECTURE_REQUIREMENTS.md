@@ -4,6 +4,15 @@
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
+## P6-EV2 implementation trace
+
+`S2-EVT-001`、`FW-U-003`、`NV-G-004/006/007` 和 `XSC-001/005/006` 的 Event cursor
+演进采用独立 V2 wire surface，禁止修改冻结 V1。V2 terminal page 必须始终返回 owner/session-bound opaque
+resume cursor；subscription ACK 必须写入 Room、严格单调、有界，并拒绝跨 owner/session、stale、future 和
+source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2，否则仅回退冻结 V1，不得把协议不匹配
+解释为成功。状态：`event_v2_interface_published=true`、`event_v2_room_ack_wired=true`、
+`event_v2_sdk_negotiation_wired=true`、`event_v2_android13_arm64_verified=false`；里程碑 `P6-EV2`。
+
 ## 1. 基线声明
 
 用户提供的架构图是需求基线，不是示意图。实现、测试、交付和文档必须引用 Req ID；任何偏离图中

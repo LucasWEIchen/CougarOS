@@ -12,8 +12,8 @@ import java.util.Objects;
 public final class SecurityBoundaryInventoryContract {
     public static final int SCHEMA_VERSION = 1;
     public static final String PROFILE_ID = "android13-p9-security-boundary-inventory-v1";
-    public static final int AIDL_INTERFACE_COUNT = 7;
-    public static final int AIDL_PARCELABLE_COUNT = 30;
+    public static final int AIDL_INTERFACE_COUNT = 9;
+    public static final int AIDL_PARCELABLE_COUNT = 35;
     public static final int AIDL_SURFACE_COUNT = AIDL_INTERFACE_COUNT + AIDL_PARCELABLE_COUNT;
     public static final int VALIDATION_FAMILY_COUNT = 8;
 
@@ -133,7 +133,7 @@ public final class SecurityBoundaryInventoryContract {
         List<NamespaceCount> values = new ArrayList<>();
         values.add(new NamespaceCount("diagnostics", 1, 3));
         values.add(new NamespaceCount("effect", 0, 4));
-        values.add(new NamespaceCount("event", 2, 5));
+        values.add(new NamespaceCount("event", 4, 10));
         values.add(new NamespaceCount("governance", 1, 4));
         values.add(new NamespaceCount("plan", 0, 4));
         values.add(new NamespaceCount("production", 2, 5));

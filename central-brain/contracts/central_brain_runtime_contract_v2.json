@@ -42,6 +42,13 @@
       "checksum_manifest": "central-brain/android-runtime/central-brain-sdk/aidl-api/events-v1.sha256",
       "published": true
     },
+    "event_v2": {
+      "version": 2,
+      "interface": "com.centralbrain.sdk.event.ICentralBrainSessionEventsV2",
+      "interface_hash": "97cbff7810efcece0c90d1ad6ae0587af96ee78afe2b21fc7b55b617e66466ca",
+      "checksum_manifest": "central-brain/android-runtime/central-brain-sdk/aidl-api/events-v2.sha256",
+      "published": true
+    },
     "effect": {
       "version": 1,
       "interface": null,
@@ -113,8 +120,8 @@
   "event_cursor_evolution": {
     "v1_terminal_page_resume_cursor": false,
     "v1_duplicate_suppression": "event_sequence",
-    "decision": "separate_event_v2_cursor_ack_contract_required",
-    "v2_interface_published": false,
+    "decision": "separate_event_v2_cursor_ack_contract_implemented",
+    "v2_interface_published": true,
     "v2_required_semantics": [
       "terminal_page_resume_cursor",
       "explicit_monotonic_ack",

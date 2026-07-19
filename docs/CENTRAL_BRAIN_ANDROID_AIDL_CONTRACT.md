@@ -4,6 +4,18 @@ Version: 1.4
 Date: 2026-07-17
 Stage: R2 complete / Stage 2 P1-W01..P1-W04 contracts `contract_defined`
 
+## P6-EV2 independent Session Event surface
+
+`P6-EV2` publishes `ICentralBrainSessionEventsV2` on
+`com.centralbrain.runtime.action.SESSION_EVENTS_V2` without modifying Event V1. The seven V2 AIDL files are frozen by
+`events-v2.sha256` and interface hash
+`97cbff7810efcece0c90d1ad6ae0587af96ee78afe2b21fc7b55b617e66466ca`. Terminal pages always carry an opaque
+owner/session-bound resume cursor. Durable subscriptions persist a monotonic ACK in Room and reject stale, future,
+source-regressed or cross-owner/session input. The SDK negotiates action/version/hash and falls back to frozen V1 only
+when V2 is unavailable. `event_v2_interface_published=true`, `event_v2_android13_arm64_verified=false`,
+`production_ready=false`, `target_hardware_validated=false`. Req IDs: `S2-EVT-001`, `FW-U-003`,
+`NV-G-004/006/007`, `XSC-001/005/006`, `DEL-001/003/004`; milestone `P6-EV2`.
+
 ## Scope
 
 This document defines the Android 13 user-space Protocol Binding between the Central Brain SDK AAR and Runtime Service APK. The architecture diagram remains the requirement baseline. This contract implements only the Binder boundary owned by `AI SDK -> Protocol Binding -> Runtime & Governance/AIOS Kernel`; it does not add a new architecture layer.

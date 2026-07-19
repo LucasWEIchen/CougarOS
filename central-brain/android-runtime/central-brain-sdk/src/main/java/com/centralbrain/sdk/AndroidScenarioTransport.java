@@ -8,8 +8,15 @@ import android.os.IBinder;
 import android.os.RemoteException;
 
 import com.centralbrain.sdk.event.EventPage;
+import com.centralbrain.sdk.event.EventAckRequest;
+import com.centralbrain.sdk.event.EventAckResult;
+import com.centralbrain.sdk.event.EventPageV2;
+import com.centralbrain.sdk.event.EventSubscriptionHandle;
+import com.centralbrain.sdk.event.EventSubscriptionRequest;
 import com.centralbrain.sdk.event.ICentralBrainSessionEventCallback;
+import com.centralbrain.sdk.event.ICentralBrainSessionEventCallbackV2;
 import com.centralbrain.sdk.event.ICentralBrainSessionEvents;
+import com.centralbrain.sdk.event.ICentralBrainSessionEventsV2;
 import com.centralbrain.sdk.event.RuntimeEvent;
 import com.centralbrain.sdk.session.ICentralBrainSessionRuntime;
 import com.centralbrain.sdk.session.SessionHandle;
@@ -25,11 +32,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-/** Android explicit-component transport for the two Stage 2 Binder actions. */
+/** Android explicit-component transport for the Stage 2 Session/Event Binder actions. */
 final class AndroidScenarioTransport implements ScenarioTransport {
     private final Context appContext;
     private final Object lock = new Object();
     private final Map<EventSink, CallbackRecord> callbacks = new IdentityHashMap<>();
+    private final Map<EventSink, CallbackRecordV2> callbacksV2 = new IdentityHashMap<>();
 
     private Listener listener;
     private Attempt active;
@@ -84,6 +92,16 @@ final class AndroidScenarioTransport implements ScenarioTransport {
             failAttempt(attempt, "event bindService returned false", false);
             return false;
         }
+
+        Intent eventV2Intent = new Intent(CentralBrainSdk.ACTION_SESSION_EVENTS_V2)
+                .setComponent(CentralBrainClient.RUNTIME_COMPONENT);
+        attempt.eventV2Bound = appContext.bindService(
+                eventV2Intent,
+                attempt.eventV2Connection,
+                Context.BIND_AUTO_CREATE);
+        if (!attempt.eventV2Bound) {
+            resolveEventV2(attempt, null, null, null);
+        }
         return true;
     }
 
@@ -125,6 +143,26 @@ final class AndroidScenarioTransport implements ScenarioTransport {
     @Override
     public String getEventProtocolHash() throws RemoteException {
         return requireEvents().getProtocolHash();
+    }
+
+    @Override
+    public boolean supportsEventV2() {
+        synchronized (lock) {
+            return !closed
+                    && active != null
+                    && active.isReady()
+                    && active.eventsV2 != null;
+        }
+    }
+
+    @Override
+    public int getEventV2ProtocolVersion() throws RemoteException {
+        return requireEventsV2().getProtocolVersion();
+    }
+
+    @Override
+    public String getEventV2ProtocolHash() throws RemoteException {
+        return requireEventsV2().getProtocolHash();
     }
 
     @Override
@@ -208,6 +246,79 @@ final class AndroidScenarioTransport implements ScenarioTransport {
     }
 
     @Override
+    public EventPageV2 getEventsV2(String sessionId, String cursor, int limit)
+            throws RemoteException {
+        return requireEventsV2().getEvents(sessionId, cursor, limit);
+    }
+
+    @Override
+    public EventSubscriptionHandle registerSessionCallbackV2(
+            EventSubscriptionRequest request,
+            EventSink sink) throws RemoteException {
+        Objects.requireNonNull(sink, "sink");
+        ICentralBrainSessionEventsV2 events = requireEventsV2();
+        CallbackRecordV2 replacement = new CallbackRecordV2(sink);
+        EventSubscriptionHandle handle = events.registerSessionCallback(
+                request,
+                replacement.callback);
+        if (handle == null) {
+            return null;
+        }
+        replacement.handle = handle;
+        CallbackRecordV2 previous;
+        synchronized (lock) {
+            if (closed
+                    || active == null
+                    || !active.isReady()
+                    || active.eventsV2 != events) {
+                try {
+                    events.unregisterSessionCallback(handle, replacement.callback);
+                } catch (RemoteException ignored) {
+                    // Connection already failed.
+                }
+                return null;
+            }
+            previous = callbacksV2.put(sink, replacement);
+        }
+        if (previous != null && previous.handle != null) {
+            try {
+                events.unregisterSessionCallback(previous.handle, previous.callback);
+            } catch (RemoteException ignored) {
+                // Replacement is authoritative.
+            }
+        }
+        return handle;
+    }
+
+    @Override
+    public EventAckResult acknowledgeV2(EventAckRequest request) throws RemoteException {
+        return requireEventsV2().acknowledge(request);
+    }
+
+    @Override
+    public boolean unregisterSessionCallbackV2(
+            EventSubscriptionHandle handle,
+            EventSink sink) throws RemoteException {
+        Objects.requireNonNull(sink, "sink");
+        CallbackRecordV2 record;
+        synchronized (lock) {
+            record = callbacksV2.remove(sink);
+        }
+        if (record == null) {
+            return true;
+        }
+        EventSubscriptionHandle effective = handle == null ? record.handle : handle;
+        return effective == null
+                || requireEventsV2().unregisterSessionCallback(effective, record.callback);
+    }
+
+    @Override
+    public boolean cancelSubscriptionV2(EventSubscriptionHandle handle)
+            throws RemoteException {
+        return requireEventsV2().cancelSubscription(handle);
+    }
+
+    @Override
     public void close() {
         Attempt previous;
         synchronized (lock) {
@@ -256,6 +367,53 @@ final class AndroidScenarioTransport implements ScenarioTransport {
         }
     }
 
+    private void connectedV2(Attempt attempt, IBinder binder) {
+        IBinder.DeathRecipient recipient = () -> detach(attempt, true, null);
+        try {
+            binder.linkToDeath(recipient, 0);
+            ICentralBrainSessionEventsV2 candidate =
+                    ICentralBrainSessionEventsV2.Stub.asInterface(binder);
+            if (candidate == null
+                    || candidate.getProtocolVersion()
+                            != ICentralBrainSessionEventsV2.INTERFACE_VERSION
+                    || !ICentralBrainSessionEventsV2.INTERFACE_HASH.equals(
+                            candidate.getProtocolHash())) {
+                safeUnlink(binder, recipient);
+                resolveEventV2(attempt, null, null, null);
+                return;
+            }
+            resolveEventV2(attempt, binder, recipient, candidate);
+        } catch (RemoteException | RuntimeException failure) {
+            safeUnlink(binder, recipient);
+            resolveEventV2(attempt, null, null, null);
+        }
+    }
+
+    private void resolveEventV2(
+            Attempt attempt,
+            IBinder binder,
+            IBinder.DeathRecipient recipient,
+            ICentralBrainSessionEventsV2 events) {
+        boolean notify = false;
+        synchronized (lock) {
+            if (closed || active != attempt) {
+                safeUnlink(binder, recipient);
+                return;
+            }
+            attempt.eventV2Binder = binder;
+            attempt.eventV2Recipient = recipient;
+            attempt.eventsV2 = events;
+            attempt.eventV2Resolved = true;
+            if (attempt.isReady() && !attempt.connectedNotified) {
+                attempt.connectedNotified = true;
+                notify = true;
+            }
+        }
+        if (notify) {
+            currentListener().onConnected();
+        }
+    }
+
     private void failAttempt(Attempt attempt, String message, boolean disconnected) {
         detach(attempt, disconnected, message);
     }
@@ -264,6 +422,8 @@ final class AndroidScenarioTransport implements ScenarioTransport {
         boolean wasCurrent;
         ICentralBrainSessionEvents events;
         List<CallbackRecord> staleCallbacks;
+        ICentralBrainSessionEventsV2 eventsV2;
+        List<CallbackRecordV2> staleCallbacksV2;
         synchronized (lock) {
             wasCurrent = active == attempt;
             if (!wasCurrent) {
@@ -273,15 +433,23 @@ final class AndroidScenarioTransport implements ScenarioTransport {
             events = attempt.events;
             staleCallbacks = new ArrayList<>(callbacks.values());
             callbacks.clear();
+            eventsV2 = attempt.eventsV2;
+            staleCallbacksV2 = new ArrayList<>(callbacksV2.values());
+            callbacksV2.clear();
         }
         unregisterCallbacks(events, staleCallbacks);
+        unregisterCallbacksV2(eventsV2, staleCallbacksV2);
         safeUnlink(attempt.sessionBinder, attempt.sessionRecipient);
         safeUnlink(attempt.eventBinder, attempt.eventRecipient);
+        safeUnlink(attempt.eventV2Binder, attempt.eventV2Recipient);
         if (attempt.sessionBound) {
             safeUnbind(attempt.sessionConnection);
         }
         if (attempt.eventBound) {
             safeUnbind(attempt.eventConnection);
+        }
+        if (attempt.eventV2Bound) {
+            safeUnbind(attempt.eventV2Connection);
         }
         if (failure != null) {
             currentListener().onConnectionFailed(failure);
@@ -305,6 +473,24 @@ final class AndroidScenarioTransport implements ScenarioTransport {
         }
     }
 
+    private static void unregisterCallbacksV2(
+            ICentralBrainSessionEventsV2 events,
+            List<CallbackRecordV2> staleCallbacks) {
+        if (events == null) {
+            return;
+        }
+        for (CallbackRecordV2 record : staleCallbacks) {
+            if (record.handle == null) {
+                continue;
+            }
+            try {
+                events.unregisterSessionCallback(record.handle, record.callback);
+            } catch (RemoteException | RuntimeException ignored) {
+                // Durable ACK state remains available for the next connection.
+            }
+        }
+    }
+
     private ICentralBrainSessionRuntime requireSession() {
         synchronized (lock) {
             if (closed || active == null || !active.isReady()) {
@@ -320,6 +506,18 @@ final class AndroidScenarioTransport implements ScenarioTransport {
                 throw new IllegalStateException("event Binder is not connected");
             }
             return active.events;
+        }
+    }
+
+    private ICentralBrainSessionEventsV2 requireEventsV2() {
+        synchronized (lock) {
+            if (closed
+                    || active == null
+                    || !active.isReady()
+                    || active.eventsV2 == null) {
+                throw new IllegalStateException("event V2 Binder is not connected");
+            }
+            return active.eventsV2;
         }
     }
 
@@ -371,20 +569,27 @@ final class AndroidScenarioTransport implements ScenarioTransport {
         private final long generation;
         private final ServiceConnection sessionConnection;
         private final ServiceConnection eventConnection;
+        private final ServiceConnection eventV2Connection;
         private boolean sessionBound;
         private boolean eventBound;
+        private boolean eventV2Bound;
         private ICentralBrainSessionRuntime session;
         private ICentralBrainSessionEvents events;
+        private ICentralBrainSessionEventsV2 eventsV2;
         private IBinder sessionBinder;
         private IBinder eventBinder;
+        private IBinder eventV2Binder;
         private IBinder.DeathRecipient sessionRecipient;
         private IBinder.DeathRecipient eventRecipient;
+        private IBinder.DeathRecipient eventV2Recipient;
+        private boolean eventV2Resolved;
         private boolean connectedNotified;
 
         private Attempt(long generation) {
             this.generation = generation;
             sessionConnection = connection(this, true);
             eventConnection = connection(this, false);
+            eventV2Connection = connectionV2(this);
         }
 
         private boolean isReady() {
@@ -392,6 +597,7 @@ final class AndroidScenarioTransport implements ScenarioTransport {
                     && events != null
                     && sessionBinder != null
                     && eventBinder != null
+                    && eventV2Resolved
                     && sessionBinder.isBinderAlive()
                     && eventBinder.isBinderAlive();
         }
@@ -426,6 +632,30 @@ final class AndroidScenarioTransport implements ScenarioTransport {
         };
     }
 
+    private ServiceConnection connectionV2(Attempt attempt) {
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                connectedV2(attempt, service);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                detach(attempt, true, null);
+            }
+
+            @Override
+            public void onBindingDied(ComponentName name) {
+                detach(attempt, true, null);
+            }
+
+            @Override
+            public void onNullBinding(ComponentName name) {
+                resolveEventV2(attempt, null, null, null);
+            }
+        };
+    }
+
     private static final class CallbackRecord {
         private final String sessionId;
         private final ICentralBrainSessionEventCallback callback;
@@ -440,6 +670,30 @@ final class AndroidScenarioTransport implements ScenarioTransport {
 
                 @Override
                 public void onOverflow(String resumeCursor) {
+                    sink.onOverflow(resumeCursor);
+                }
+
+                @Override
+                public void onClosed(int reasonCode, String resumeCursor) {
+                    sink.onClosed(reasonCode, resumeCursor);
+                }
+            };
+        }
+    }
+
+    private static final class CallbackRecordV2 {
+        private final ICentralBrainSessionEventCallbackV2 callback;
+        private EventSubscriptionHandle handle;
+
+        private CallbackRecordV2(EventSink sink) {
+            callback = new ICentralBrainSessionEventCallbackV2.Stub() {
+                @Override
+                public void onEvent(RuntimeEvent event, String resumeCursor) {
+                    sink.onEventV2(event, resumeCursor);
+                }
+
+                @Override
+                public void onOverflow(String resumeCursor, long droppedCount) {
                     sink.onOverflow(resumeCursor);
                 }
 

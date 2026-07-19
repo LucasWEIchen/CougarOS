@@ -12,6 +12,7 @@ JAVA_CONTRACT="$SDK/src/main/java/com/centralbrain/sdk/RuntimeContractV2.java"
 JAVA_TEST="$SDK/src/test/java/com/centralbrain/sdk/RuntimeContractV2Test.java"
 SESSION_AIDL="$SDK/src/main/aidl/com/centralbrain/sdk/session/ICentralBrainSessionRuntime.aidl"
 EVENT_AIDL="$SDK/src/main/aidl/com/centralbrain/sdk/event/ICentralBrainSessionEvents.aidl"
+EVENT_V2_AIDL="$SDK/src/main/aidl/com/centralbrain/sdk/event/ICentralBrainSessionEventsV2.aidl"
 EVENT_PAGE="$SDK/src/main/aidl/com/centralbrain/sdk/event/EventPage.aidl"
 ROOM_SCHEMA="$RUNTIME/schemas/com.centralbrain.runtime.persistence.CentralBrainDatabase/4.json"
 POLICY="$RUNTIME/src/main/res/xml/central_brain_capability_policy.xml"
@@ -26,7 +27,7 @@ require_text() {
 }
 
 for path in \
-  "$CONTRACT" "$JAVA_CONTRACT" "$JAVA_TEST" "$SESSION_AIDL" "$EVENT_AIDL" \
+  "$CONTRACT" "$JAVA_CONTRACT" "$JAVA_TEST" "$SESSION_AIDL" "$EVENT_AIDL" "$EVENT_V2_AIDL" \
   "$EVENT_PAGE" "$ROOM_SCHEMA" "$POLICY" \
   "$SDK/src/test/java/com/centralbrain/sdk/SessionClientTest.java" \
   "$SDK/src/androidTest/java/com/centralbrain/sdk/session/SessionParcelInstrumentation.java"; do
@@ -34,7 +35,7 @@ for path in \
 done
 
 python3 -B - "$ROOT_DIR/$CONTRACT" "$ROOT_DIR/$ROOM_SCHEMA" \
-  "$ROOT_DIR/$SESSION_AIDL" "$ROOT_DIR/$EVENT_AIDL" <<'PY'
+  "$ROOT_DIR/$SESSION_AIDL" "$ROOT_DIR/$EVENT_AIDL" "$ROOT_DIR/$EVENT_V2_AIDL" <<'PY'
 import json
 import pathlib
 import re
@@ -44,6 +45,7 @@ contract = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 room = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))["database"]
 session_aidl = pathlib.Path(sys.argv[3]).read_text(encoding="utf-8")
 event_aidl = pathlib.Path(sys.argv[4]).read_text(encoding="utf-8")
+event_v2_aidl = pathlib.Path(sys.argv[5]).read_text(encoding="utf-8")
 
 if contract.get("schema_version") != "2.0.0":
     raise SystemExit("aggregate Runtime contract must be schema 2.0.0")
@@ -53,14 +55,18 @@ if contract.get("status") != "contract_defined":
     raise SystemExit("aggregate Runtime contract maturity must remain contract_defined")
 
 wires = contract.get("wire_contracts", {})
-if set(wires) != {"session", "plan", "event", "effect"}:
+if set(wires) != {"session", "plan", "event", "event_v2", "effect"}:
     raise SystemExit("aggregate wire contract set drift")
-for name in wires:
+for name in ("session", "plan", "event", "effect"):
     if wires[name].get("version") != 1:
         raise SystemExit(f"{name} V1 wire/DTO version changed")
+if wires["event_v2"].get("version") != 2:
+    raise SystemExit("Event V2 wire version drift")
 if wires["plan"].get("published") or wires["effect"].get("published"):
     raise SystemExit("aggregate contract must not publish Plan or Effect execution")
-if not wires["session"].get("published") or not wires["event"].get("published"):
+if (not wires["session"].get("published")
+        or not wires["event"].get("published")
+        or not wires["event_v2"].get("published")):
     raise SystemExit("published Session/Event surfaces missing from aggregate contract")
 
 def aidl_value(text, name):
@@ -77,6 +83,10 @@ if int(aidl_value(event_aidl, "INTERFACE_VERSION")) != wires["event"]["version"]
     raise SystemExit("Event interface version drift")
 if aidl_value(event_aidl, "INTERFACE_HASH") != wires["event"]["interface_hash"]:
     raise SystemExit("Event interface hash drift")
+if int(aidl_value(event_v2_aidl, "INTERFACE_VERSION")) != wires["event_v2"]["version"]:
+    raise SystemExit("Event V2 interface version drift")
+if aidl_value(event_v2_aidl, "INTERFACE_HASH") != wires["event_v2"]["interface_hash"]:
+    raise SystemExit("Event V2 interface hash drift")
 
 capabilities = contract["capabilities"]
 expected_capabilities = {
@@ -149,10 +159,10 @@ if persistence.get("raw_utterance_persisted") is not False:
 cursor = contract["event_cursor_evolution"]
 if cursor.get("v1_terminal_page_resume_cursor") is not False:
     raise SystemExit("Event V1 terminal cursor limitation was hidden")
-if cursor.get("decision") != "separate_event_v2_cursor_ack_contract_required":
+if cursor.get("decision") != "separate_event_v2_cursor_ack_contract_implemented":
     raise SystemExit("Event cursor evolution decision drift")
-if cursor.get("v2_interface_published") is not False:
-    raise SystemExit("Event V2 cannot be claimed as published")
+if cursor.get("v2_interface_published") is not True:
+    raise SystemExit("Event V2 publication state drift")
 required_v2 = {
     "terminal_page_resume_cursor",
     "explicit_monotonic_ack",
@@ -202,8 +212,9 @@ for marker in \
   'AGGREGATE_VERSION = 2' \
   'SESSION_WIRE_VERSION = ICentralBrainSessionRuntime.INTERFACE_VERSION' \
   'EVENT_WIRE_VERSION = ICentralBrainSessionEvents.INTERFACE_VERSION' \
+  'EVENT_V2_WIRE_VERSION =' \
   'EVENT_V2_CURSOR_ACK_REQUIRED = true' \
-  'EVENT_V2_INTERFACE_PUBLISHED = false' \
+  'EVENT_V2_INTERFACE_PUBLISHED = true' \
   'SCENARIO_EXECUTION_ENABLED = false'; do
   require_text "$JAVA_CONTRACT" "$marker"
 done
@@ -221,7 +232,7 @@ done
 for marker in \
   'verifyRuntimeContractV2()' \
   'runtime_contract_v2_physical_android13_arm64_verified=true' \
-  'event_v2_interface_published=false'; do
+  'event_v2_interface_published=true'; do
   require_text "$SDK/src/androidTest/java/com/centralbrain/sdk/session/SessionParcelInstrumentation.java" \
     "$marker"
 done
@@ -231,11 +242,6 @@ require_text "$SDK/src/main/java/com/centralbrain/sdk/event/EventContract.java" 
   'terminal page must not expose a next cursor'
 require_text "$SDK/src/main/java/com/centralbrain/sdk/SessionClient.java" \
   'event replay page limit exceeded'
-if [[ -e "$ROOT_DIR/$SDK/src/main/aidl/com/centralbrain/sdk/event/ICentralBrainSessionEventsV2.aidl" ]]; then
-  echo "Event V2 interface is outside P1-W07 publication scope" >&2
-  exit 1
-fi
-
 if grep -R -Eiq \
     'HttpURLConnection|OkHttpClient|http://10\.0\.2\.2|localhost:[0-9]+|127\.0\.0\.1:[0-9]+|python gateway' \
     "$ROOT_DIR/$SDK/src/main"; then
@@ -250,6 +256,7 @@ fi
 bash "$ROOT_DIR/tools/check_central_brain_android_session_contract.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_plan_contract.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_event_contract.sh" >/dev/null
+bash "$ROOT_DIR/tools/check_central_brain_android_event_v2.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_effect_contract.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_sdk_facade.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_room_v4.sh" >/dev/null
@@ -276,7 +283,7 @@ printf '%s\n' \
   'frozen_v1_hashes_unchanged=true' \
   'room_schema_version=4' \
   'event_v2_cursor_ack_required=true' \
-  'event_v2_interface_published=false' \
+  'event_v2_interface_published=true' \
   'forbidden_network_python_fallback=false' \
   'scenario_execution_enabled=false' \
   'hardware_accessed=false'

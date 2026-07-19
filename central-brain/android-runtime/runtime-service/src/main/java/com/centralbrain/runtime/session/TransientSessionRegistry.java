@@ -220,6 +220,16 @@ public final class TransientSessionRegistry implements SessionRegistry {
     }
 
     @Override
+    public synchronized long latestEventSequenceOwned(String owner, String sessionId) {
+        requireOwner(owner);
+        Record record = owned(owner, sessionId);
+        if (record == null) {
+            throw new IllegalArgumentException("CB_SESSION_RUNTIME: session not found");
+        }
+        return record.snapshot.lastEventSequence;
+    }
+
+    @Override
     public synchronized int size() {
         return sessions.size();
     }

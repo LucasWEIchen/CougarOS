@@ -229,6 +229,16 @@ public final class DurableSessionRegistry implements SessionRegistry {
     }
 
     @Override
+    public long latestEventSequenceOwned(String owner, String sessionId) {
+        requireOwner(owner);
+        SessionEntity session = dao.findSessionOwned(sessionId, owner);
+        if (session == null) {
+            throw new IllegalArgumentException("CB_SESSION_RUNTIME: session not found");
+        }
+        return session.lastEventSequence;
+    }
+
+    @Override
     public int size() {
         return dao.countSessions();
     }

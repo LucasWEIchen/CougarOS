@@ -8,8 +8,14 @@ import static org.junit.Assert.assertTrue;
 import android.os.RemoteException;
 
 import com.centralbrain.sdk.event.EventContract;
+import com.centralbrain.sdk.event.EventAckRequest;
+import com.centralbrain.sdk.event.EventAckResult;
 import com.centralbrain.sdk.event.EventPage;
+import com.centralbrain.sdk.event.EventPageV2;
+import com.centralbrain.sdk.event.EventSubscriptionHandle;
+import com.centralbrain.sdk.event.EventSubscriptionRequest;
 import com.centralbrain.sdk.event.ICentralBrainSessionEvents;
+import com.centralbrain.sdk.event.ICentralBrainSessionEventsV2;
 import com.centralbrain.sdk.event.RuntimeEvent;
 import com.centralbrain.sdk.session.ICentralBrainSessionRuntime;
 import com.centralbrain.sdk.session.SessionHandle;
@@ -76,6 +82,48 @@ public final class SessionClientTest {
     public void protocolMismatchFailsClosed() {
         FakeTransport transport = new FakeTransport();
         transport.sessionHash = "bad";
+        RecordingConnection connection = new RecordingConnection();
+        SessionClient client = new SessionClient(transport, Runnable::run, connection);
+
+        assertTrue(client.connect());
+        assertFalse(client.isConnected());
+        assertEquals(ScenarioClient.ERROR_PROTOCOL_MISMATCH, connection.failureCode);
+        assertTrue(transport.closed);
+    }
+
+    @Test
+    public void eventV2UsesTerminalCursorAndAcknowledgesLiveEvents() {
+        FakeTransport transport = new FakeTransport();
+        transport.eventV2 = true;
+        RecordingConnection connection = new RecordingConnection();
+        SessionClient client = new SessionClient(transport, Runnable::run, connection);
+        assertTrue(client.connect());
+
+        RecordingEvents events = new RecordingEvents();
+        SessionHandle handle = client.openSession(request(), events);
+        assertEquals(List.of(1L), events.sequences);
+        assertEquals(1L, transport.registeredV2Sequence);
+
+        assertTrue(client.cancelSession(
+                handle,
+                ICentralBrainSessionRuntime.CANCEL_REASON_USER));
+        assertEquals(List.of(1L, 2L), events.sequences);
+        assertEquals(List.of(2L), transport.acknowledgedV2Sequences);
+
+        transport.disconnect();
+        assertTrue(client.reconnect());
+        assertEquals(2L, transport.registeredV2Sequence);
+        assertEquals(List.of(1L, 2L), events.sequences);
+
+        client.stopObserving(handle);
+        assertTrue(transport.cancelledV2);
+    }
+
+    @Test
+    public void eventV2ProtocolMismatchFailsClosed() {
+        FakeTransport transport = new FakeTransport();
+        transport.eventV2 = true;
+        transport.eventV2Hash = "bad";
         RecordingConnection connection = new RecordingConnection();
         SessionClient client = new SessionClient(transport, Runnable::run, connection);
 
@@ -157,6 +205,11 @@ public final class SessionClientTest {
         private boolean connected;
         private boolean closed;
         private String sessionHash = ICentralBrainSessionRuntime.INTERFACE_HASH;
+        private String eventV2Hash = ICentralBrainSessionEventsV2.INTERFACE_HASH;
+        private boolean eventV2;
+        private boolean cancelledV2;
+        private long registeredV2Sequence;
+        private final List<Long> acknowledgedV2Sequences = new ArrayList<>();
         private final Map<String, SessionSnapshot> snapshots = new LinkedHashMap<>();
         private final Map<String, List<RuntimeEvent>> events = new LinkedHashMap<>();
         private EventSink sink;
@@ -214,6 +267,21 @@ public final class SessionClientTest {
         }
 
         @Override
+        public boolean supportsEventV2() {
+            return eventV2;
+        }
+
+        @Override
+        public int getEventV2ProtocolVersion() {
+            return ICentralBrainSessionEventsV2.INTERFACE_VERSION;
+        }
+
+        @Override
+        public String getEventV2ProtocolHash() {
+            return eventV2Hash;
+        }
+
+        @Override
         public SessionHandle openSession(SessionRequest request) {
             String sessionId = "9bffbb6a-5a0b-41b5-a924-bcfb45be4f26";
             SessionHandle handle = new SessionHandle();
@@ -261,7 +329,11 @@ public final class SessionClientTest {
             RuntimeEvent event = event(handle.sessionId, 2, "SessionStateChanged");
             events.get(handle.sessionId).add(event);
             if (sink != null && sinkSession.equals(handle.sessionId)) {
-                sink.onEvent(event);
+                if (eventV2) {
+                    sink.onEventV2(event, v2Cursor(event.sequence));
+                } else {
+                    sink.onEvent(event);
+                }
             }
             return true;
         }
@@ -309,6 +381,71 @@ public final class SessionClientTest {
         }
 
         @Override
+        public EventPageV2 getEventsV2(String sessionId, String cursor, int limit) {
+            long after = cursor.isEmpty()
+                    ? 0 : Long.parseLong(cursor.split(":", 3)[1]);
+            EventPage legacy = getEvents(
+                    sessionId,
+                    after == 0 ? "" : "e:" + after,
+                    limit);
+            EventPageV2 page = new EventPageV2();
+            page.sessionId = sessionId;
+            page.requestCursor = cursor;
+            page.afterSequence = after;
+            page.events = legacy.events;
+            page.resumeSequence = legacy.nextSequence;
+            page.resumeCursor = v2Cursor(page.resumeSequence);
+            page.hasMore = legacy.hasMore;
+            page.generatedAtEpochMs = legacy.generatedAtEpochMs;
+            return page;
+        }
+
+        @Override
+        public EventSubscriptionHandle registerSessionCallbackV2(
+                EventSubscriptionRequest request,
+                EventSink sink) {
+            this.sink = sink;
+            this.sinkSession = request.sessionId;
+            registeredV2Sequence = request.resumeSequence;
+            EventSubscriptionHandle handle = new EventSubscriptionHandle();
+            handle.subscriptionId = "event-v2-test";
+            handle.clientSubscriptionId = request.clientSubscriptionId;
+            handle.sessionId = request.sessionId;
+            handle.resumeCursor = request.resumeCursor;
+            handle.acknowledgedSequence = request.resumeSequence;
+            handle.state = ICentralBrainSessionEventsV2.SUBSCRIPTION_STATE_ACTIVE;
+            handle.updatedAtEpochMs = NOW;
+            return handle;
+        }
+
+        @Override
+        public EventAckResult acknowledgeV2(EventAckRequest request) {
+            acknowledgedV2Sequences.add(request.acknowledgedSequence);
+            EventAckResult result = new EventAckResult();
+            result.outcome = ICentralBrainSessionEventsV2.ACK_APPLIED;
+            result.subscriptionId = request.subscriptionId;
+            result.acknowledgedSequence = request.acknowledgedSequence;
+            result.resumeCursor = request.resumeCursor;
+            return result;
+        }
+
+        @Override
+        public boolean unregisterSessionCallbackV2(
+                EventSubscriptionHandle handle,
+                EventSink sink) {
+            if (this.sink == sink) {
+                this.sink = null;
+            }
+            return true;
+        }
+
+        @Override
+        public boolean cancelSubscriptionV2(EventSubscriptionHandle handle) {
+            cancelledV2 = true;
+            return true;
+        }
+
+        @Override
         public void close() {
             closed = true;
             connected = false;
@@ -333,6 +470,10 @@ public final class SessionClientTest {
             event.eventDigest = sequence == 1 ? "b".repeat(64) : "c".repeat(64);
             event.payloadKind = EventContract.PAYLOAD_NONE;
             return event;
+        }
+
+        private static String v2Cursor(long sequence) {
+            return "ev2:" + sequence + ":" + "d".repeat(64);
         }
     }
 }

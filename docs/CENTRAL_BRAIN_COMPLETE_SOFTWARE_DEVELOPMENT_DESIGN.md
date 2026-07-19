@@ -4,6 +4,29 @@
 
 日期：2026-07-17
 
+## P6-EV2 Session Event V2 detailed design
+
+`ICentralBrainSessionEventsV2` 是与冻结 Event V1 并行的 signature/capability-protected Binder。`getEvents`
+把 owner/session 和 sequence 交给 `SessionEventCursorCodec` 生成 digest-bound `ev2` cursor，terminal page 也返回
+`resumeCursor/resumeSequence`。`registerSessionCallback` 以 caller-derived owner、client UUID、session UUID、
+cursor sequence 和 bounded queue 创建/重开 `DurableEventCursorRepository` 记录；调用方不能提交身份。
+
+`DurableEventCursorRepository` 复用 Room v4 `event_cursor` 表并以 `session:<uuid>` 表达 scope。注册只接受
+CREATED/REOPENED/REPLAYED；STALE/UNACKNOWLEDGED/FUTURE/SOURCE_REGRESSION/CONFLICT 均拒绝。ACK 同时校验
+opaque cursor MAC、subscription ID、session ID、owner 和 latest sequence，只允许单调推进。callback death
+只移除 transient Binder record，保留 durable ACK；显式 cancel 才取消记录，之后可从同一 ACK 重开。
+
+`AndroidScenarioTransport` 同时绑定 Session、Event V1 和可选 Event V2 action；V2 action 缺失或协议不可用时
+标记 capability unavailable，不破坏 V1 连接。`SessionClient` 在 V2 可用时先读到 terminal cursor，再注册；
+每个 live event 在交付应用 listener 后 ACK，只有 APPLIED/REPLAYED 更新本地 cursor。V2 失败通过 durable
+cursor replay 恢复；降级 V1 时把可解析 V2 sequence 转为 `e:<sequence>`。
+
+实现状态 `DEVELOPED`，里程碑 `P6-EV2`。`event_v2_interface_published=true`、
+`event_v2_room_ack_wired=true`、`event_v2_sdk_negotiation_wired=true`、
+`event_v2_android13_arm64_verified=false`、`production_event_middleware_published=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。Req IDs：
+`S2-EVT-001`、`FW-U-003`、`NV-G-004/006/007`、`XSC-001/005/006`、`DEL-001/003/004`。
+
 状态：Stage 2 implementation baseline
 
 面向对象：Android 座舱应用、平台 Runtime、AI/Agent、车辆服务、测试与集成工程师

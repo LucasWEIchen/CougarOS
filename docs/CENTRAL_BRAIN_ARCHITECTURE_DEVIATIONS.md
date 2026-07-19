@@ -4,6 +4,18 @@
 日期：2026-07-17
 状态：Android 13 实际工程基线
 
+## DEV-115 P6-EV2 以独立 Binder 演进而不修改 Event V1
+
+架构要求 durable cursor/ACK，但已发布 Event V1 terminal page 无前移 cursor。`P6-EV2` 新增独立 action、
+AIDL version/hash 和 checksum manifest；SDK 协商成功时使用 V2，旧 Runtime 继续走 V1。这样会在过渡期维护
+两套 Event 读取接口，但避免破坏冻结 V1 transaction/hash。V2 ACK 复用 Room v4 `event_cursor` 表，scope
+编码为 `session:<uuid>`，不增加 schema migration；跨 owner/session 查询和 ACK 失败关闭。
+
+当前偏差边界：`event_v2_interface_published=true`、`frozen_v1_hashes_unchanged=true`、
+`production_event_middleware_published=false`、`vehicle_bus_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-EVT-001`、`FW-U-003`、
+`NV-G-004/006/007`、`XSC-001/005/006`、`DEL-001/003/004`；里程碑 `P6-EV2`。
+
 ## 使用规则
 
 本文件记录实现与用户架构图需求基线之间的全部已知偏差。架构图是需求，不是示意图。

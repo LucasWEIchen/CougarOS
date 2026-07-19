@@ -507,10 +507,18 @@ unbind 前对称注销，并拒绝跨 generation 注册竞态；API 33 ARM64 连
 已决定新增独立 Event V2 resume cursor/ACK contract：terminal page 也返回可恢复 cursor，ACK 必须
 monotonic、owner/session-scoped、有界留存并拒绝 stale/future cursor；不得修改已冻结 Event V1 hash。
 
-状态：`Open / Design Decided`。P1-W07 决策与 aggregate gate 已完成，V2 Binder/Room ACK/SDK negotiation/
-高吞吐 fault tests 由 `P6-W01/P6-W02` 实现。该问题不再阻塞 durable Session Runtime，但仍阻塞
-production Event broker。`event_v2_interface_published=false`、
-`session_runtime_process_death_rehydration=true`、`production_ready=false`。
+2026-07-19 `P6-EV2` 已实现独立 V2 Binder、terminal cursor、Room ACK、owner/session scope、SDK
+version/hash 协商和 V1 fallback，并增加 deterministic SDK/repository 回归。冻结 V1 hash 未改变。
+
+状态：`Repository Fix Implemented / Device Retest Pending`。本 issue 的仓库实现子项已关闭；Android 13 ARM64
+DUMP probe 和跨进程 SDK 设备验证尚待本阶段执行，因此 `event_v2_android13_arm64_verified=false`。通用
+production Event middleware、QoS broker 和跨 SOC transport 不由该 Session Event V2 Binder 冒充，继续由各自
+生产接线项跟踪。`event_v2_interface_published=true`、`event_v2_room_ack_wired=true`、
+`event_v2_sdk_negotiation_wired=true`、`session_runtime_process_death_rehydration=true`、
+`production_ready=false`；里程碑 `P6-EV2`。
+
+2026-07-19 本阶段设备重测前，WSL Linux ADB 与 Windows `E:\platform-tools\adb.exe` 均返回空 device list；
+未执行安装或设备命令，也未提升设备证据标志。恢复条件是 API 33 ARM64 设备重新出现在任一 ADB transport。
 
 P4-W02 的 HMI reducer 将 `lastEventSequence` 随 text-free checkpoint 保存，在 V1 cursor 不能前移时对重放事件做第二层
 projection 去重。它不生成 cursor/ACK，也不能关闭本问题；高吞吐 broker 仍必须实施 Event V2。

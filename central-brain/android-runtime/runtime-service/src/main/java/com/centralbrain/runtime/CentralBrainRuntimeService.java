@@ -27,6 +27,7 @@ import com.centralbrain.runtime.model.ModelRuntimeReadinessSnapshot;
 import com.centralbrain.runtime.nativebridge.NativeRuntimeProcessSnapshot;
 import com.centralbrain.runtime.persistence.CentralBrainDatabase;
 import com.centralbrain.runtime.persistence.DurableDigest;
+import com.centralbrain.runtime.persistence.DurableEventCursorRepository;
 import com.centralbrain.runtime.persistence.DurableTaskRepository;
 import com.centralbrain.runtime.policy.AndroidCapabilityPolicyLoader;
 import com.centralbrain.runtime.policy.CallerCapabilityPolicy;
@@ -225,7 +226,8 @@ public final class CentralBrainRuntimeService extends Service {
         transientSessionEndpoint = new TransientSessionEndpoint(
                 operation -> DurablePrincipalFingerprint.from(resolveAuthorizedCaller(
                         capabilityForSessionOperation(operation))),
-                DurableSessionRegistry.create(database));
+                DurableSessionRegistry.create(database),
+                DurableEventCursorRepository.create(database, 128, 16, 64));
         taskRepository = DurableTaskRepository.create(database);
         startupReconciliation = executor.submit(() -> {
             DurableTaskRepository.ReconciliationReport reconciliation =
@@ -465,6 +467,15 @@ public final class CentralBrainRuntimeService extends Service {
                     + " hardware_accessed=false");
             return transientSessionEndpoint.eventBinder();
         }
+        if (CentralBrainSdk.ACTION_SESSION_EVENTS_V2.equals(action)) {
+            Log.i(TAG, "session event V2 binder requested"
+                    + " event_v2_interface_published=true"
+                    + " event_v2_terminal_resume_cursor=true"
+                    + " event_v2_room_ack_wired=true"
+                    + " production_event_middleware_published=false"
+                    + " hardware_accessed=false");
+            return transientSessionEndpoint.eventBinderV2();
+        }
         Log.i(TAG, "production binder requested hardware_accessed=false");
         return binder;
     }
@@ -477,6 +488,10 @@ public final class CentralBrainRuntimeService extends Service {
         writer.println("session_runtime_service_published=true");
         writer.println("event_runtime_service_published=true");
         writer.println("event_callback_service_published=true");
+        writer.println("event_v2_interface_published=true");
+        writer.println("event_v2_terminal_resume_cursor=true");
+        writer.println("event_v2_room_ack_wired=true");
+        writer.println("event_v2_sdk_negotiation_wired=true");
         writer.println("session_runtime_transient_registry=false");
         writer.println("session_runtime_persistence_wired=true");
         writer.println("session_runtime_process_death_rehydration=true");
@@ -1368,6 +1383,8 @@ public final class CentralBrainRuntimeService extends Service {
             case EVENT_READ_OWN:
                 return Capability.EVENT_READ_OWN;
             case EVENT_SUBSCRIBE_OWN:
+                return Capability.EVENT_SUBSCRIBE_OWN;
+            case EVENT_ACK_OWN:
                 return Capability.EVENT_SUBSCRIBE_OWN;
             default:
                 throw new SecurityException("unsupported session operation");

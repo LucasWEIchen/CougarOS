@@ -20,6 +20,8 @@ public interface SessionRegistry {
 
     EventPage eventsOwned(String owner, String sessionId, String cursor, int limit);
 
+    long latestEventSequenceOwned(String owner, String sessionId);
+
     int size();
 
     final class CancelResult {
