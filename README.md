@@ -955,7 +955,7 @@ P9-W07b 证据键：`field_diagnostics_projection_defined=true`、`field_diagnos
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
-| 2026-07-20 | P4-R3 CI portability | 语音优先 HMI 合同门禁改用 GitHub runner 自带的 `grep`，不再依赖未安装的 `rg` | 仅修复远端验收环境依赖，不改变 Runtime、模型、车辆或量产状态 |
+| 2026-07-20 | P4-R3 CI portability | 语音优先 HMI 合同门禁改用 GitHub runner 自带的 `grep`；Ollama 门禁同步验证共享 `CockpitModelPrompt` 的动作白名单与必要动作 | 仅修复远端验收环境及新合同断言，不改变 Runtime、模型、车辆或量产状态 |
 | 2026-07-20 | [P4-R3 voice-first live HMI](central-brain/contracts/central_brain_android_voice_first_hmi_v1.json) | 主界面收敛为两个场景触发和实时调用链；新增共享座舱 prompt、模型动作绑定、HVAC/Seat 动画反馈 | Android 13 ARM64 实际 WSL Ollama Cold/Fatigue 通过；动画不是车辆 readback，security/production/target 均未提升 |
 | 2026-07-20 | [P7-R3-OC2 fixed OpenClaw target profile](central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json) | 按维护者指令固化控制页 URL/token，移除 ADB 临时注入面；保留 WebSocket v3 和 action allowlist | token 可从源码/APK 提取；当前目标 18789 拒绝连接，模型回归未通过；production/target 均未提升 |
 | 2026-07-19 | [P7-R3-OC OpenClaw target gateway](central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json) | 新增固定 WebSocket v3 Provider、运行时凭据、协议状态机、target Router profile、真机探针和 Client2 模型投影 | API 33 ARM64 外部模型链通过；direct NPU/车辆 Effect/release qualification/production/target 均未提升 |
