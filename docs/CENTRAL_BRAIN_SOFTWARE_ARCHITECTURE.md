@@ -1873,3 +1873,15 @@ debug policy overlay 只是设备证据装配点，不进入 release；AIDL hash
 W03e callback replay device evidence 共同覆盖应用层身份/重放链，但不等于 coverage-guided fuzz、production signer 或 owner qualification。
 `security_task_callback_replay_android_verified=true`、`security_coverage_guided_fuzz_complete=false`、
 `security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-112`、`ISSUE-050`。
+
+## P9-W03f parser robustness evidence architecture
+
+The host-only evidence path is `six synthetic seeds -> prepareParserSecurityFuzzCorpus -> Jazzer 0.30.0 -> ParserSecurityFuzzTarget -> existing
+Checkpoint/Scenario/Tool parser surfaces -> typed rejection or success -> scalar counters/final coverage -> bounded runner admission`. Engine dependencies
+are isolated from application and normal unit-test runtime classpaths. Generated corpus and crash artifacts are build outputs, never shipped in APKs.
+
+This layer complements W03a deterministic boundary cases, W03c surface inventory, W03d Android identity acquisition and W03e callback replay. It does not
+exercise Binder driver/Parcel unmarshalling, native code, Android target resource pressure, production signer policy or vehicle execution. Therefore
+`security_parser_robustness_host_campaign_verified=true` while `security_coverage_guided_fuzz_complete=false`,
+`security_production_signer_verified=false`, `production_ready=false`, and `target_hardware_validated=false`.
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。

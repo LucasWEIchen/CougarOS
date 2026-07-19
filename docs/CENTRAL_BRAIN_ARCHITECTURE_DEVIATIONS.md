@@ -110,6 +110,7 @@
 | DEV-088 | P9-W03a 只提供三个 Java boundary 的 deterministic host corpus；不是 coverage-guided fuzz、AIDL/signature review 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 | DEV-111 | P9-W03d 只验证 debug APK 的 Binder UID/current signer 获取链；不是 production signer、完整 fuzz 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 | DEV-112 | P9-W03e 只验证应用层 task callback replay/owner isolation；debug test principal 与 deterministic Runtime 不是 production signer、完整 fuzz 或车辆执行。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
+| DEV-113 | P9-W03f 只提供三类 Java parser 的短预算 host coverage evidence；不是 Android Binder/Parcel、目标长预算、production signer 或安全 owner 资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1877,3 +1878,16 @@ ContextBudget fixture 固定为必须触发 summarize/truncate/drop 的预算组
 `production_tool_authority_published=false`、`production_memory_authority_published=false`、
 `production_runtime_wired=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。
+
+## DEV-113 P9-W03f bounded host campaign is not complete security qualification
+
+P9-W03f 固定 Jazzer 0.30.0，以 6 个 synthetic seed 在默认 20 秒预算内直接调用 checkpoint、scenario manifest 和 Tool input 的 production
+Java parser/validator。runner 证明三类入口均执行、执行量/覆盖率大于零、crash artifact 为零且 target 不记录 raw input。
+
+该证据只关闭 `ISSUE-050` 的仓库内 engine/version/budget/host evidence 子项。短时 JVM campaign 不覆盖 Android Binder driver、Parcel
+unmarshal、native sanitizer、目标长稳、production signer/rotation/revocation、release cohort 或安全 owner 审批，也不访问 Vehicle/NPU/
+Driver-HAL。状态：`Accepted Temporary`。关闭条件仍是 owner 批准的目标 surface/budget/evidence、正式 signer/release 证据和目标资格。
+
+当前 `security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`network_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`ISSUE-050`。

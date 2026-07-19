@@ -5222,3 +5222,30 @@ conflict 必须零回调，terminal replay 必须单终态。证据不输出 tas
 
 当前 `security_task_callback_replay_android_verified=true`。coverage-guided fuzz、production signer/owner、Vehicle/NPU/Driver-HAL 和 target
 qualification 仍为 false。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。
+
+## P9-W03f implementation detail: bounded parser robustness campaign
+
+### Build isolation and execution
+
+`runtime-service` defines `parserSecurityFuzzRuntime`, containing only pinned `com.code-intelligence:jazzer:0.30.0`; it is not placed on application or
+ordinary unit-test runtime classpaths. `prepareParserSecurityFuzzCorpus` resets the build-owned corpus from six repository seeds before each run.
+`fuzzParserSecurity` reuses compiled `testDebugUnitTest` classes, adds only the dedicated engine configuration, sets a 1,024 MiB JVM heap, and applies
+contract limits: 20-second default/300-second runner maximum, 5-second input timeout, 2,048 MiB RSS and 65,538-byte maximum input.
+
+### Target dispatch and rejection model
+
+`ParserSecurityFuzzTarget.fuzzerTestOneInput(byte[])` dispatches selectors `C/c`, `S/s`, and `T/t`; unknown selectors are deterministically distributed over
+the three surfaces. Raw selectors pass bounded bytes/maps, while lowercase selectors mutate known-good build-owned baselines. Checkpoint accepts only
+`CheckpointException`, scenario only `ParseException`, and Tool schema only `ValidationException`. No catch-all exists: unexpected runtime failures,
+Errors, hangs and crashes remain visible to the engine. The target does not access network, Android, Vehicle/NPU or Driver/HAL and does not log input bytes.
+
+### Evidence admission
+
+`test_central_brain_android_parser_robustness_campaign.sh` restricts caller budget to 1..300 seconds, captures volatile engine output in a temporary file,
+and admits evidence only when final executed units and edge coverage are positive, all three target counters are positive, crash artifact count is zero,
+and the target reports `raw_input_logged=false`. Output is bounded scalar evidence; the temporary log is deleted, and generated corpus remains under
+Gradle `build/`. The static checker freezes source markers, exact seed names, machine contract, docs and CI registration.
+
+Current `security_parser_robustness_host_campaign_verified=true`; this is not Binder/Parcel/native target testing, production signer/owner approval or
+release qualification. `security_coverage_guided_fuzz_complete=false`、`production_ready=false`、`target_hardware_validated=false`。
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。

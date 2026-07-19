@@ -3,12 +3,14 @@ agp = "8.10.1"
 junit = "4.13.2"
 room = "2.8.4"
 gson = "2.11.0"
+jazzer = "0.30.0"
 
 [libraries]
 junit = { module = "junit:junit", version.ref = "junit" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+jazzer = { module = "com.code-intelligence:jazzer", version.ref = "jazzer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

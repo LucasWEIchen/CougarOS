@@ -29,6 +29,7 @@ SECURITY_REVIEW="$ROOT_DIR/docs/CENTRAL_BRAIN_SECURITY_REVIEW_FUZZ.md"
 SECURITY_CORPUS_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_parser_security_corpus.json"
 SECURITY_IDENTITY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_identity_replay_security_corpus.json"
 SECURITY_BOUNDARY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_security_boundary_inventory.json"
+SECURITY_ROBUSTNESS_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_parser_robustness_campaign.json"
 PRIVACY_LIFECYCLE="$ROOT_DIR/docs/CENTRAL_BRAIN_PRIVACY_DATA_LIFECYCLE.md"
 PRIVACY_INVENTORY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_privacy_data_inventory.json"
 PRIVACY_POLICY_CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_p9_privacy_policy_admission.json"
@@ -44,6 +45,7 @@ for file in "$RESEARCH" "$UX" "$BACKLOG" "$DESIGN" "$COCKPIT_HMI" "$COCKPIT_HMI_
     "$DEVIATIONS" "$ISSUES" "$DELIVERY" "$DRIVER" "$README" "$TARGET_DISCOVERY" "$TARGET_DISCOVERY_CONTRACT" \
     "$PERFORMANCE_BUDGET" "$PERFORMANCE_BUDGET_CONTRACT" "$STABILITY_MATRIX" "$STABILITY_MATRIX_CONTRACT" \
     "$SECURITY_REVIEW" "$SECURITY_CORPUS_CONTRACT" "$SECURITY_IDENTITY_CONTRACT" "$SECURITY_BOUNDARY_CONTRACT" \
+    "$SECURITY_ROBUSTNESS_CONTRACT" \
     "$PRIVACY_LIFECYCLE" "$PRIVACY_INVENTORY_CONTRACT" "$PRIVACY_POLICY_CONTRACT" \
     "$PRIVACY_REDACTION_CONTRACT" "$PRODUCTION_RELEASE" "$PRODUCTION_RELEASE_CONTRACT" \
     "$PRODUCTION_RELEASE_PROBE_CONTRACT" "$DRIVER_SAFETY" "$DRIVER_SAFETY_CONTRACT" \
@@ -414,6 +416,7 @@ require_text "$SECURITY_REVIEW" 'P9-W03c public boundary inventory and Android d
 require_text "$BACKLOG" 'P9-W03c security boundary inventory and debug probe'
 require_text "$REQUIREMENTS" 'P9-W03c security boundary inventory trace'
 require_text "$DEVIATIONS" 'DEV-090 P9-W03c static inventory and debug probe availability are not target fuzz evidence'
+require_text "$DEVIATIONS" 'DEV-113 P9-W03f bounded host campaign is not complete security qualification'
 require_text "$DELIVERY" 'Android P9-W03c Security Boundary Inventory'
 require_text "$DRIVER" 'P9-W03c Security Boundary Inventory Driver/HAL Boundary'
 require_text "$README" 'privacy_data_inventory_complete=true'
@@ -760,6 +763,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_identity_replay_security_corpu
 bash "$ROOT_DIR/tools/check_central_brain_android_security_identity.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_callback_replay_security.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_security_boundary_inventory.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_parser_robustness_campaign.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_data_inventory.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_policy_admission.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_privacy_redaction_audit.sh"

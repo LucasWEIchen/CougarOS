@@ -197,3 +197,19 @@ not published. Current claims: `security_task_callback_replay_android_verified=t
 `security_debug_test_principal_release_excluded=true`, `security_coverage_guided_fuzz_complete=false`,
 `security_production_signer_verified=false`, `production_ready=false`, `target_hardware_validated=false`.
 Tracking: `DEV-112`, `ISSUE-050`.
+
+## 11. P9-W03f bounded parser robustness campaign
+
+W03f pins Jazzer 0.30.0 in a dedicated test-only Gradle configuration. Six synthetic seeds select raw and baseline-mutation paths for
+`JsonPrimitiveCheckpointSerializer.deserialize`, `ScenarioManifestParser.parse`, and `ToolSchemaValidator.validateInput`. The target catches only each
+surface's documented typed rejection; unchecked exceptions, VM errors, timeouts, or crash artifacts fail the campaign.
+
+The default host budget is 20 seconds, with a repository-enforced maximum of 300 seconds. Input length is bounded to 65,538 bytes, per-input timeout to
+5 seconds, and RSS to 2,048 MiB. The runner requires non-zero execution and edge-coverage counters, non-zero calls for every surface, zero crash artifacts,
+and `security_parser_robustness_raw_input_logged=false`. Generated corpus and artifacts remain under Gradle `build/` and are not delivery inputs.
+
+This closes only the repository-local engine/budget/host-evidence part of `ISSUE-050`. It is not Android Binder/Parcel fuzz, target endurance evidence,
+production signer review, security-owner approval, or release qualification. Current claims:
+`security_parser_robustness_host_campaign_verified=true`, `security_coverage_guided_fuzz_complete=false`,
+`security_production_signer_verified=false`, `network_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`. Tracking: `DEV-113`, `ISSUE-050`.

@@ -2812,3 +2812,16 @@ API 33 ARM64 已验证 active replay、conflict、terminal replay 与 cross-UID 
 非交付声明：`security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、
 `DEL-001/004/005`；tracking：`DEV-112`、`ISSUE-050`。
+
+## 2026-07-19 Android P9-W03f Bounded Parser Robustness Campaign
+
+交付 machine contract、固定版本的 test-only Jazzer 配置、6 个 synthetic seed、checkpoint/scenario/tool 三 surface target/JUnit smoke、
+受控 runner 与静态 checker。默认 20 秒 campaign 必须报告非零 executed units/edge coverage/三 surface calls、零 crash artifacts 和
+`raw_input_logged=false`；generated corpus 只存在于 Gradle `build/`。
+
+交付状态：`security_parser_robustness_engine_pinned=true`、`security_parser_robustness_budget_defined=true`、
+`security_parser_robustness_surface_count=3`、`security_parser_robustness_seed_count=6`、
+`security_parser_robustness_host_campaign_verified=true`。非交付声明：`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`network_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-113`、`ISSUE-050`。

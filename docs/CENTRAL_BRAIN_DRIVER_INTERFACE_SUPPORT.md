@@ -1976,3 +1976,14 @@ VehicleProperty、CAN、device node、sysfs、Vendor NPU、TEE 或 Driver/HAL �
 当前 `security_task_callback_replay_android_verified=true`、`security_debug_test_principal_release_excluded=true`、
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 tracking：`DEV-112`、`ISSUE-050`。
+
+## P9-W03f Parser Robustness Driver/HAL Boundary
+
+本增量只在 host JVM test source set 调用既有 Java parser/validator。Jazzer dependency 使用独立 test-only Gradle configuration；运行器不连接
+ADB、网络、VehicleProperty、CAN、device node、sysfs、Vendor NPU、TEE 或 Driver/HAL，因此不新增 C/C++、Driver/HAL 或虚拟化开发量。
+
+Android Binder/Parcel/native target campaign 只有在安全 owner 冻结 surface、预算、sanitizer、evidence 和 OEM/Vendor 权限后才能新增，当前不得
+猜测厂商接口。`driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-113`、`ISSUE-050`。
