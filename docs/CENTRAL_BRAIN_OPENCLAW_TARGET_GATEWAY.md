@@ -22,6 +22,9 @@ Current claims:
 - `production_ready=false`
 - `target_hardware_validated=false`
 
+面向软件工程师的逐文件代码、RPC JSON、WebSocket 帧、Binder 投影和故障定位说明见
+`docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`。
+
 ## 2. Runtime call graph
 
 ```mermaid

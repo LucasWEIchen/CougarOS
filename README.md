@@ -101,7 +101,8 @@ Android 13 ARM64 真机已验证 challenge/auth、`chat.send` ACK、结构化终
 `fixed_target_credential_active=true`、`latest_target_connectivity_verified=false`、`production_provider_qualified=false`、
 `production_ready=false`、`target_hardware_validated=false`。2026-07-20 复测时 Android 可达目标主机，但 18789 端口拒绝连接；
 尚未进入鉴权或协议处理。
-详见 [OpenClaw Target Gateway 详细设计](docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md)；tracking：
+详见 [OpenClaw Target Gateway 详细设计](docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md)和
+[OpenClaw 接口代码详解](docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md)；tracking：
 `DEV-122/124`、`ISSUE-024/044/054`。
 
 ## 当前状态
@@ -934,6 +935,7 @@ P9-W07b 证据键：`field_diagnostics_projection_defined=true`、`field_diagnos
 | [中控 AIOS 闭环](docs/CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md) | Client2 意图编排四阶段、Effect 详情、状态、仿真边界和验收矩阵 |
 | [中控 UI/UX 设计稿](docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md) | 可点击意图驱动高保真原型、自动化链、Android 映射和四张 1920x1080 稿件 |
 | [接口设计](docs/CENTRAL_BRAIN_INTERFACE_DESIGN.md) | Android AIDL/Java/C 当前接口 |
+| [OpenClaw 接口代码详解](docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md) | 固定 endpoint、Provider/Router、WebSocket v3 RPC、Prompt、输出校验、Binder 投影和故障定位 |
 | [P8 目标能力发现](docs/CENTRAL_BRAIN_TARGET_CAPABILITY_DISCOVERY.md) | 14 列能力矩阵、只读采集、脱敏和外部阻塞边界 |
 | [P9 性能预算](docs/CENTRAL_BRAIN_PERFORMANCE_BUDGETS.md) | 七类十项 initial budget、证据模式、报告规则和目标验收边界 |
 | [P9 稳定性与故障矩阵](docs/CENTRAL_BRAIN_STABILITY_FAULT_MATRIX.md) | 三 workload、六 fault、18-case 规则、72h 证据模式和目标验收边界 |
@@ -955,6 +957,7 @@ P9-W07b 证据键：`field_diagnostics_projection_defined=true`、`field_diagnos
 
 | 日期 | 提交或版本 | 修改内容 | 状态边界 |
 | --- | --- | --- | --- |
+| 2026-07-20 | [P7-R3-OC2 OpenClaw interface code guide](docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md) | 新增逐文件调用链、WebSocket/RPC JSON、Prompt/动作合同、Binder/Client2 投影、失败码和调试顺序 | 仅文档化已有 debug target integration；不改变 Runtime、凭据风险、连接状态、车辆/NPU 或量产资格 |
 | 2026-07-20 | P4-R3 CI portability | 语音优先 HMI 合同门禁改用 GitHub runner 自带的 `grep`；Ollama 门禁同步验证共享 `CockpitModelPrompt` 的动作白名单与必要动作 | 仅修复远端验收环境及新合同断言，不改变 Runtime、模型、车辆或量产状态 |
 | 2026-07-20 | [P4-R3 voice-first live HMI](central-brain/contracts/central_brain_android_voice_first_hmi_v1.json) | 主界面收敛为两个场景触发和实时调用链；新增共享座舱 prompt、模型动作绑定、HVAC/Seat 动画反馈 | Android 13 ARM64 实际 WSL Ollama Cold/Fatigue 通过；动画不是车辆 readback，security/production/target 均未提升 |
 | 2026-07-20 | [P7-R3-OC2 fixed OpenClaw target profile](central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json) | 按维护者指令固化控制页 URL/token，移除 ADB 临时注入面；保留 WebSocket v3 和 action allowlist | token 可从源码/APK 提取；当前目标 18789 拒绝连接，模型回归未通过；production/target 均未提升 |

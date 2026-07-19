@@ -8,6 +8,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME="central-brain/android-runtime/runtime-service"
 CONTRACT="central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json"
 DESIGN="docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md"
+CODE_GUIDE="docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md"
 
 require_file() {
   [[ -f "$ROOT_DIR/$1" ]] || { echo "missing OpenClaw target file: $1" >&2; exit 1; }
@@ -25,8 +26,18 @@ for file in \
   "$RUNTIME/src/test/java/com/centralbrain/runtime/model/OpenClawEndpointConfigTest.java" \
   "$RUNTIME/src/testDebug/java/com/centralbrain/runtime/model/OpenClawInferenceEngineTest.java" \
   "$RUNTIME/src/debug/AndroidManifest.xml" "$RUNTIME/build.gradle.kts" \
-  "$CONTRACT" "$DESIGN"; do
+  "$CONTRACT" "$DESIGN" "$CODE_GUIDE"; do
   require_file "$file"
+done
+
+for marker in \
+  '## 2. 两类地址的语义' '## 3. 端到端调用关系' \
+  '## 11. OpenClaw protocol v3 状态机' 'connect.challenge' \
+  'chat.send' 'chat.history' 'chat.abort' \
+  '## 13. 回复到 Client2 的 Binder 路径' \
+  '## 14. 超时、取消和失败码' \
+  'release_routing_enabled=false' 'model_action_authority=false'; do
+  require_text "$CODE_GUIDE" "$marker"
 done
 
 for removed in \

@@ -1850,6 +1850,11 @@ WebSocket/auth/token/model 阶段。该服务监听问题由 `ISSUE-054` 外部�
 `production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-122/124`、`ISSUE-024/044/054`；stage `P7-R3-OC2`。
 
+2026-07-20 文档增量：新增 `CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`，逐文件固定 build/profile、
+Provider/Router、Prompt、RFC6455、OpenClaw v3 `connect/chat.send/chat.history/chat.abort`、严格回复、debug Binder、
+Client2 消费、失败码和调试顺序。该增量只固化已有实现的工程交接说明，不改变 `DEV-122/124`、`ISSUE-054` 或
+production/target false claims。
+
 ## 2026-07-19 P7-R2 WSL Ollama development gateway
 
 状态：`SOFTWARE_COMPLETE / GATEWAY_ANDROID13_ARM64_VERIFIED / PROJECTION_RETEST_PENDING`。Android debug Runtime 已通过固定
