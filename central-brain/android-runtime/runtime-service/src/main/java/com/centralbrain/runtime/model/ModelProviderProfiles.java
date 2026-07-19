@@ -8,11 +8,15 @@ public final class ModelProviderProfiles {
     public static final String ANDROID_LOCAL_DEVELOPMENT_ID =
             "android.local.development";
     public static final String VENDOR_NPU_EMPTY_ID = "vendor.npu.empty";
+    public static final String TARGET_OPENCLAW_TRANSITIONAL_ID =
+            "external.openclaw.transitional";
 
     private static final Profile DETERMINISTIC_STUB = createDeterministicStub();
     private static final Profile ANDROID_LOCAL_DEVELOPMENT =
             createAndroidLocalDevelopment();
     private static final Profile VENDOR_NPU_EMPTY = createVendorNpuEmpty();
+    private static final Profile TARGET_OPENCLAW_TRANSITIONAL =
+            createTargetOpenClawTransitional();
 
     private ModelProviderProfiles() {
     }
@@ -27,6 +31,10 @@ public final class ModelProviderProfiles {
 
     public static Profile vendorNpuEmpty() {
         return VENDOR_NPU_EMPTY;
+    }
+
+    public static Profile targetOpenClawTransitional() {
+        return TARGET_OPENCLAW_TRANSITIONAL;
     }
 
     private static Profile createDeterministicStub() {
@@ -107,6 +115,33 @@ public final class ModelProviderProfiles {
                 0,
                 false,
                 "LOCAL_DEVELOPMENT_IMPLEMENTATION_NOT_CONFIGURED");
+        return new Profile(descriptor, snapshot, false, false);
+    }
+
+    private static Profile createTargetOpenClawTransitional() {
+        ModelProvider.Descriptor descriptor = new ModelProvider.Descriptor(
+                TARGET_OPENCLAW_TRANSITIONAL_ID,
+                ModelProvider.BackendKind.OPENCLAW_GATEWAY,
+                ModelProvider.Assurance.TARGET_INTEGRATION,
+                ModelProvider.FallbackClass.NEVER,
+                false,
+                false,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                1);
+        ModelProvider.Snapshot snapshot = new ModelProvider.Snapshot(
+                descriptor,
+                ModelProvider.LifecycleState.COLD,
+                ModelProvider.HealthState.HEALTHY,
+                0,
+                0,
+                0,
+                false,
+                "TARGET_OPENCLAW_CREDENTIAL_NOT_PROVISIONED");
         return new Profile(descriptor, snapshot, false, false);
     }
 

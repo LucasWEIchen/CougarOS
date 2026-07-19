@@ -1756,3 +1756,17 @@ Effects. See `docs/CENTRAL_BRAIN_OLLAMA_MODEL_GATEWAY.md` and
 `production_endpoint_contract_defined=true`, `production_provider_implemented=false`,
 `production_npu_validated=false`, `production_ready=false`, `target_hardware_validated=false`,
 `implementation_stage=P7-R2`. Tracking: `DEV-121`, `ISSUE-024/044`.
+
+## P7-R3-OC OpenClaw target build
+
+Set `CENTRAL_BRAIN_TARGET_OPENCLAW=true` when invoking the repository build tool. The resulting debug Runtime selects
+`external.openclaw.transitional`, protocol v3 and the fixed target host; it disables the WSL Ollama route. Provision the
+credential after every install/process restart with `tools/provision_central_brain_openclaw_target.sh`, then launch Client2.
+
+The target engine implements challenge/authentication, `chat.send`, abort and history fallback, strict scenario/action
+validation and metadata-only logs. The debug projection remains owner/session scoped and non-durable. Release routing,
+direct NPU and vehicle Effect authority remain disabled. Full design: `docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`.
+
+`openclaw_target_android13_arm64_verified=true`, `client2_openclaw_projection_verified=true`,
+`external_compute_accessed=true`, `direct_npu_accessed=false`, `production_provider_qualified=false`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P7-R3-OC`.

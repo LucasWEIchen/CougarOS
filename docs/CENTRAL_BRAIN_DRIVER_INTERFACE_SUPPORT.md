@@ -1506,7 +1506,7 @@ Vendor HEALTHY report 仅为 metadata 测试，不能设置 implementation avail
 真实 vendor health source 必须在 `ISSUE-024` 下冻结 SDK/C ABI、provider process owner、device/firmware health、clock/revision、fault
 isolation、permission/SELinux 和签名证据后接入。Cloud 同理需要 network/privacy/consent owner，不属于 Driver/HAL。
 
-状态：`model_provider_registry_defined=true`、`model_provider_count=4`、`model_production_ready_count=0`、
+状态：`model_provider_registry_defined=true`、`model_provider_count=5`、`model_production_ready_count=0`、
 `model_provider_registry_android13_arm64_verified=true`、`model_provider_registry_runtime_wired=false`、
 `vendor_npu_provider_available=false`、`model_policy_router_wired=false`、`model_invoked=false`、
 `network_accessed=false`、`npu_accessed=false`、`driver_development_triggered=false`、
@@ -2077,3 +2077,13 @@ P7-R3 仍不需要修改厂商系统；只有 Vendor 明确要求 PCIe shared bu
 `android_standard_network_api_used=true`、`driver_development_triggered=false`、`driver_hal_accessed=false`、
 `production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-121/ISSUE-024`；stage `P7-R2`。
+
+## P7-R3-OC OpenClaw Driver/HAL Boundary
+
+本阶段只使用 Android `INTERNET` permission 和 Java Socket/WebSocket；未新增 C/C++、JNI、Kernel、PCIe、DMA、IOMMU、
+Vendor NPU runtime、VehicleProperty、CAN 或 Driver/HAL 修改。目标网络可达只证明外部 Gateway 调用，不能证明其后端 NPU。
+
+若后续 Ollama 或 Vendor runtime 需要专用 device node/shared buffer/ioctl，必须由 Vendor 先提供 SDK/ABI 和责任边界，再在
+现有 NPU C ABI/JNI 空接口下记录最小 gap。`android_standard_network_api_used=true`、
+`driver_development_triggered=false`、`driver_hal_accessed=false`、`direct_npu_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`；tracking：`DEV-122/ISSUE-024`；stage `P7-R3-OC`。

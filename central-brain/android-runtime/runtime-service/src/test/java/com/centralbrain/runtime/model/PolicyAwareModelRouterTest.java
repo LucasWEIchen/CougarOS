@@ -241,6 +241,38 @@ public final class PolicyAwareModelRouterTest {
         assertFalse(decision.isHardwareAccessed());
     }
 
+    @Test
+    public void targetIntegrationSelectsOpenClawWithoutGrantingProductionAuthority() {
+        ModelContractV2.ModelRequest request = request(
+                ModelContractV2.PrivacyClass.INTERNAL,
+                ModelContractV2.RequiredCapability.TEXT_GENERATION,
+                ModelContractV2.FallbackPolicy.NO_FALLBACK,
+                120_000,
+                512);
+        PolicyAwareModelRouter.RouteDecision decision = decide(
+                request,
+                policy(PolicyAwareModelRouter.RouteMode.TARGET_INTEGRATION,
+                        PolicyAwareModelRouter.NetworkPolicy.ALLOW_ANY,
+                        PolicyAwareModelRouter.NetworkState.UNMETERED,
+                        PolicyAwareModelRouter.ThermalState.NOMINAL,
+                        1,
+                        512,
+                        900,
+                        1_500),
+                targetOpenClawRegistry(),
+                1_000);
+
+        assertEquals(PolicyAwareModelRouter.DecisionCode.SELECTED, decision.getCode());
+        assertEquals(ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID,
+                decision.getPrimaryProviderId());
+        assertFalse(decision.isActionAuthorizationGranted());
+        assertFalse(decision.isEffectDispatchRequested());
+        assertFalse(decision.isProviderInvoked());
+        assertFalse(decision.isModelInvoked());
+        assertFalse(decision.isNpuAccessed());
+        assertFalse(decision.isHardwareAccessed());
+    }
+
     private static PolicyAwareModelRouter.RouteDecision decide(
             ModelContractV2.ModelRequest request,
             PolicyAwareModelRouter.PolicySnapshot policy,
@@ -258,6 +290,19 @@ public final class PolicyAwareModelRouterTest {
         registry.publishHealth(new ModelProviderRegistry.HealthReport(
                 ModelProviderRegistry.DETERMINISTIC_TEST_ID,
                 ModelProviderRegistry.HealthSource.CONTRACT_TEST,
+                ModelProviderRegistry.HealthState.HEALTHY,
+                1,
+                900,
+                1_500,
+                DIGEST_A), 1_000);
+        return registry;
+    }
+
+    private static ModelProviderRegistry targetOpenClawRegistry() {
+        ModelProviderRegistry registry = ModelProviderRegistry.createForContractTest();
+        registry.publishHealth(new ModelProviderRegistry.HealthReport(
+                ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID,
+                ModelProviderRegistry.HealthSource.TARGET_OPENCLAW_RUNTIME,
                 ModelProviderRegistry.HealthState.HEALTHY,
                 1,
                 900,

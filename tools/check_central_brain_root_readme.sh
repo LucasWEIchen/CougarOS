@@ -412,7 +412,7 @@ for marker in \
   'model_contract_v2_android13_arm64_verified=true' \
   'model_invoked=false' \
   'model_provider_registry_defined=true' \
-  'model_provider_count=4' \
+  'model_provider_count=5' \
   'model_provider_health_freshness_verified=true' \
   'model_provider_health_replay_verified=true' \
   'model_provider_availability_separation_verified=true' \

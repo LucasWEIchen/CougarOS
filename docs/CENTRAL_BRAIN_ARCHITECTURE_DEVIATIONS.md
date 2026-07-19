@@ -971,6 +971,18 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-122 OpenClaw target integration is transitional, not production qualification
+
+目标环境当前只提供 OpenClaw，故 P7-R3-OC 临时偏离原定量产 Ollama endpoint。Android 通过标准 Java Socket/WebSocket
+访问固定 link-local Gateway；共享 credential 由 DUMP-protected debug Activity 注入并只驻留进程内。当前链路为明文，
+ADB/Activity-manager 调用期间 credential 可能短暂出现在进程参数中，因此不得用于 release credential 管理。
+
+Android 13 ARM64 已证明真实外部模型调用和 Client2 投影，但未证明 Gateway 后端一定使用 NPU，也未访问 Vendor NPU SDK、
+PCIe、Driver/HAL 或车辆 Effect。状态：`Accepted Temporary`。退出条件是 approved credential source、加密认证链路、
+health/version/artifact owner、release Provider 和 Ollama 迁移完成。
+`external_compute_accessed=true`、`direct_npu_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`；tracking：`ISSUE-024/044`；stage `P7-R3-OC`。
+
 ## DEV-121 P7-R2 WSL Ollama is development compute, not the production NPU base
 
 P7-R2 已用 Android 13 ARM64、ADB reverse 和 WSL Ollama 完成真实模型调用，替代了 Client2 主演示链中的 deterministic
@@ -1358,7 +1370,7 @@ production implementation/eligibility/routing 仍为 false。
 描述成模型/NPU/network/hardware 已接。生产 health source、atomic catalog publication、Provider lifecycle 与 Router 接线继续由
 `ISSUE-024` 管理。
 
-状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+状态：`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、

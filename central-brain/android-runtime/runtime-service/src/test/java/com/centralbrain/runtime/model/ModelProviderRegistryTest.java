@@ -31,18 +31,22 @@ public final class ModelProviderRegistryTest {
                 ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID,
                 ModelProviderRegistry.CLOUD_PLACEHOLDER_ID,
                 ModelProviderRegistry.DETERMINISTIC_TEST_ID,
+                ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID,
                 ModelProviderRegistry.VENDOR_NPU_PLACEHOLDER_ID), providerIds);
         assertEquals(first.getCatalogDigest(), second.getCatalogDigest());
         ModelProviderRegistry.ProviderView local = first.getProviders().get(0);
         ModelProviderRegistry.ProviderView cloud = first.getProviders().get(1);
         ModelProviderRegistry.ProviderView deterministic = first.getProviders().get(2);
-        ModelProviderRegistry.ProviderView vendor = first.getProviders().get(3);
+        ModelProviderRegistry.ProviderView openClaw = first.getProviders().get(3);
+        ModelProviderRegistry.ProviderView vendor = first.getProviders().get(4);
         assertEquals(ModelProviderRegistry.HealthSource.LOCAL_DEVELOPMENT_RUNTIME,
                 local.getDescriptor().getHealthSource());
         assertEquals(ModelProviderRegistry.HealthSource.CLOUD_CONTROL_PLANE,
                 cloud.getDescriptor().getHealthSource());
         assertEquals(ModelProviderRegistry.HealthSource.CONTRACT_TEST,
                 deterministic.getDescriptor().getHealthSource());
+        assertEquals(ModelProviderRegistry.HealthSource.TARGET_OPENCLAW_RUNTIME,
+                openClaw.getDescriptor().getHealthSource());
         assertEquals(ModelProviderRegistry.HealthSource.VENDOR_RUNTIME,
                 vendor.getDescriptor().getHealthSource());
         assertTrue(deterministic.getDescriptor().supports(
@@ -53,7 +57,9 @@ public final class ModelProviderRegistryTest {
                 ModelContractV2.RequiredCapability.STRUCTURED_SCENARIO_CANDIDATE));
         assertTrue(local.getDescriptor().isNetworkRequired());
         assertTrue(first.getProviders().get(1).getDescriptor().isNetworkRequired());
-        assertTrue(first.getProviders().get(3).getDescriptor().isHardwareExpected());
+        assertTrue(openClaw.getDescriptor().isNetworkRequired());
+        assertFalse(openClaw.getDescriptor().isHardwareExpected());
+        assertTrue(first.getProviders().get(4).getDescriptor().isHardwareExpected());
         try {
             deterministic.getDescriptor().getCapabilities().clear();
             fail("capability set must be immutable");
@@ -75,6 +81,7 @@ public final class ModelProviderRegistryTest {
         assertEquals(1, snapshot.getContractTestAvailableCount());
         assertEquals(1, snapshot.getDevelopmentAvailableCount());
         assertEquals(0, snapshot.getProductionReadyCount());
+        assertEquals(0, snapshot.getTargetIntegrationAvailableCount());
         ModelProviderRegistry.ProviderView testProvider = find(
                 snapshot,
                 ModelProviderRegistry.DETERMINISTIC_TEST_ID);
@@ -92,6 +99,12 @@ public final class ModelProviderRegistryTest {
         assertFalse(localProvider.isRoutingEnabled());
         assertEquals(ModelProviderRegistry.HealthFreshness.MISSING,
                 testProvider.getHealthFreshness());
+        ModelProviderRegistry.ProviderView openClaw = find(
+                snapshot,
+                ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID);
+        assertTrue(openClaw.getDescriptor().isProductionImplementationAvailable());
+        assertFalse(openClaw.getDescriptor().isProductionEligible());
+        assertFalse(openClaw.isTargetIntegrationAvailable());
     }
 
     @Test

@@ -27,6 +27,7 @@ public final class ModelProviderRegistryProbeActivity extends Activity {
                     == ModelProviderRegistry.PROVIDER_COUNT
                     && initial.getContractTestAvailableCount() == 1
                     && initial.getDevelopmentAvailableCount() == 1
+                    && initial.getTargetIntegrationAvailableCount() == 0
                     && initial.getProductionReadyCount() == 0;
 
             ModelProviderRegistry.HealthReport report = report(
@@ -74,6 +75,7 @@ public final class ModelProviderRegistryProbeActivity extends Activity {
             boolean availabilitySeparationVerified =
                     initial.getContractTestAvailableCount() == 1
                             && initial.getDevelopmentAvailableCount() == 1
+                            && initial.getTargetIntegrationAvailableCount() == 0
                             && initial.getProductionReadyCount() == 0;
             ModelProviderRegistry.RegistrySnapshot finalSnapshot = registry.snapshot(1_000);
             boolean verified = catalogVerified
@@ -96,6 +98,8 @@ public final class ModelProviderRegistryProbeActivity extends Activity {
                     + finalSnapshot.getContractTestAvailableCount()
                     + " model_development_available_count="
                     + finalSnapshot.getDevelopmentAvailableCount()
+                    + " model_target_integration_available_count="
+                    + finalSnapshot.getTargetIntegrationAvailableCount()
                     + " model_production_ready_count="
                     + finalSnapshot.getProductionReadyCount()
                     + " model_provider_registry_android13_arm64_verified=true"

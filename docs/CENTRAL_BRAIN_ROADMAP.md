@@ -1253,7 +1253,7 @@ production ready=0；Registry 未接 Runtime/Provider instance/Router，未调�
 已由统一 installer 安装执行并通过。
 
 Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-079`、
-`ISSUE-024`。`model_provider_registry_defined=true`、`model_provider_count=4`、
+`ISSUE-024`。`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
@@ -1814,6 +1814,18 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `p5_probe_module_count=10`、`device_identity_redacted=true`、`production_tool_authority_published=false`、
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+
+## 2026-07-19 P7-R3-OC OpenClaw target integration
+
+完成固定 OpenClaw WebSocket v3 endpoint、process-local credential、Provider Registry/health、
+`TARGET_INTEGRATION` Router、challenge/auth/send/abort/history 协议、strict output/action allowlist、
+Runtime metadata probe 和 Client2 owner/session projection。Android 13 ARM64 已执行真实外部模型调用。
+
+下一步不再是“接通模型”，而是外部资格项：approved credential source、TLS/链路安全、Gateway health/version、
+模型 artifact owner、release Provider、资源/热管理证据、Ollama 目标端部署和直接 NPU 归属证明。车辆 Effect 继续失败关闭。
+`openclaw_target_android13_arm64_verified=true`、`direct_npu_accessed=false`、
+`production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-122/ISSUE-024/044`；stage `P7-R3-OC`。
 
 ## 2026-07-19 P7-R2 WSL Ollama development gateway
 

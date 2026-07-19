@@ -2276,7 +2276,7 @@ tracking：`DEV-078`、`ISSUE-024/044`。
 软件验收证明 fixed four-provider catalog、immutable capability、health source/revision/freshness、replay/conflict 和
 test/development/production readiness 分离。它不证明 provider implementation、生产 health authority、routing、模型/NPU/network 或硬件。
 
-实体 probe 已通过；只证明 Registry metadata contract。状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+实体 probe 已通过；只证明 Registry metadata contract。状态：`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
@@ -2934,3 +2934,14 @@ NPU/resource/thermal evidence、生产网络风险批准和目标 release qualif
 `development_projection_android13_arm64_verified=false`、
 `production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-121/ISSUE-024/044`；stage `P7-R2`。
+
+## P7-R3-OC OpenClaw target delivery
+
+交付固定 endpoint/config、OpenClaw v3 engine、TARGET_INTEGRATION provider/router、process-local credential、
+DUMP-protected provisioning/probe、JVM tests、machine contract、CI checker、build profile 和 Client2 projection。
+API 33 ARM64 已验证 Runtime probe 与 Client2 cold scenario 的真实外部模型终态。
+
+交付不包含 release credential、TLS、Gateway lifecycle/health owner、Ollama target deployment、direct NPU proof、
+Vendor SDK、Vehicle Effect 或 production installer。`external_compute_accessed=true`、`direct_npu_accessed=false`、
+`production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-122/ISSUE-024/044`；stage `P7-R3-OC`。

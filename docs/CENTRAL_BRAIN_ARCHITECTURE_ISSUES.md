@@ -215,7 +215,7 @@ ISSUE-024 仍为 Open：production health publisher identity/authority、atomic 
 vendor SDK/NPU provider、cloud consent/network owner、Router/Scheduler/Runtime composition 和目标性能/故障证据均未完成。当前 HEALTHY
 placeholder 仍不可用、不可 production ready、不可路由。
 
-状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+状态：`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
@@ -1384,3 +1384,15 @@ ISSUE-024 保持 Open：`169.254.208.110` 的 production Provider、量产模型
 `development_projection_android13_arm64_verified=false`、
 `production_provider_implemented=false`、`production_npu_validated=false`、`production_ready=false`、
 `target_hardware_validated=false`；tracking：`DEV-121`；stage `P7-R2`。
+
+## P7-R3-OC OpenClaw target update (ISSUE-024/044)
+
+ISSUE-024 的“目标 Android 无真实模型 Provider”软件子项已关闭：固定 OpenClaw v3 Provider、认证、结构化回复、
+Runtime probe 和 Client2 projection 已在 API 33 ARM64 通过。ISSUE-044 的 model-to-fixed-scenario projection 子项已关闭；
+模型 action 仍不拥有 Plan/Effect authority。
+
+Issues 保持 Open：共享 credential、明文 link-local transport、Gateway health/version、model artifact owner、release signer/profile、
+resource/thermal producer、Ollama migration、direct NPU attribution 和 target qualification 未完成。
+`openclaw_target_android13_arm64_verified=true`、`direct_npu_accessed=false`、
+`production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-122`；stage `P7-R3-OC`。

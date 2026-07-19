@@ -76,6 +76,23 @@ public final class ModelProviderContractTest {
     }
 
     @Test
+    public void targetOpenClawProfileIsTransitionalAndCannotClaimProductionOrHardware() {
+        ModelProviderProfiles.Profile profile =
+                ModelProviderProfiles.targetOpenClawTransitional();
+        ModelProvider.Descriptor descriptor = profile.getDescriptor();
+
+        assertTrue(descriptor.getBackendKind() == ModelProvider.BackendKind.OPENCLAW_GATEWAY);
+        assertTrue(descriptor.getAssurance() == ModelProvider.Assurance.TARGET_INTEGRATION);
+        assertTrue(descriptor.isSupportsInference());
+        assertTrue(descriptor.isSupportsCancellation());
+        assertFalse(descriptor.isHardwareBacked());
+        assertFalse(descriptor.isProductionEligible());
+        assertFalse(profile.isImplementationConfigured());
+        assertFalse(profile.isRoutingEnabled());
+        assertFalse(profile.getSnapshot().isHardwareAccessed());
+    }
+
+    @Test
     public void unsafeStubAndEmptyDescriptorsAreRejected() {
         expectInvalid(() -> new ModelProvider.Descriptor(
                 "unsafe.stub",

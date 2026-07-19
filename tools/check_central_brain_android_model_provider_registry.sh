@@ -28,7 +28,7 @@ done
 
 for marker in \
   'SCHEMA_VERSION = 1' \
-  'PROVIDER_COUNT = 4' \
+  'PROVIDER_COUNT = 5' \
   'MAX_HEALTH_VALIDITY_MS = 60_000L' \
   'DETERMINISTIC_TEST_ID' \
   'ANDROID_LOCAL_DEVELOPMENT_ID' \
@@ -46,6 +46,7 @@ for marker in \
   'snapshot(long nowElapsedMs)' \
   'isContractTestAvailable()' \
   'isDevelopmentAvailable()' \
+  'isTargetIntegrationAvailable()' \
   'isProductionReady()' \
   'isRoutingEnabled()' \
   'isProductionRoutingEnabled()' \
@@ -79,13 +80,14 @@ done
 for marker in \
   model_provider_registry_defined=true \
   model_provider_catalog_verified=true \
-  model_provider_count=4 \
+  model_provider_count=5 \
   model_provider_health_freshness_verified=true \
   model_provider_health_replay_verified=true \
   model_provider_availability_separation_verified=true \
   model_provider_placeholder_fail_closed=true \
   model_contract_test_available_count=1 \
   model_development_available_count=1 \
+  model_target_integration_available_count=0 \
   model_production_ready_count=0 \
   model_provider_registry_runtime_wired=false \
   model_policy_router_wired=false \
@@ -131,13 +133,14 @@ printf '%s\n' \
   "Central Brain Android ModelProviderRegistry/health check passed" \
   "model_provider_registry_defined=true" \
   "model_provider_catalog_verified=true" \
-  "model_provider_count=4" \
+  "model_provider_count=5" \
   "model_provider_health_freshness_verified=true" \
   "model_provider_health_replay_verified=true" \
   "model_provider_availability_separation_verified=true" \
   "model_provider_placeholder_fail_closed=true" \
   "model_contract_test_available_count=1" \
   "model_development_available_count=1" \
+  "model_target_integration_available_count=0" \
   "model_production_ready_count=0" \
   "model_provider_registry_android13_arm64_verified=true" \
   "model_provider_registry_runtime_wired=false" \

@@ -2185,7 +2185,7 @@ Req IDs：`S2-MEM-001`、`S2-SAF-001`、`S2-OBS-001`、`FW-U-001/006/007`、`NV-
 11. main source 不得访问 network、NPU、vehicle、Binder、Driver/HAL 或硬件；cloud network-required 只是 descriptor 元数据。
 12. debug probe 只输出 nonce、boolean 和 count；release manifest 不得注册。实体 probe 已通过但只证明 metadata contract。
 
-状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+状态：`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
@@ -3049,3 +3049,18 @@ debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle
 `production_endpoint_contract_defined=true`、`production_provider_implemented=false`、
 `production_npu_validated=false`、`implementation_stage=P7-R2`。P10-R1 是此前范围基线；新增 P7-R3 已明确归类为
 `PLANNED`，不再使用“当前全部开发完成”描述扩展后的范围。tracking：`DEV-121`、`ISSUE-024/044`。
+
+## P7-R3-OC OpenClaw Target Gateway Requirements
+
+1. `S2-MDL-001/XSC-001`：目标地址固定为 `169.254.208.110:18789`，调用方不得覆盖 host、port、path 或协议版本。
+2. `S2-MDL-001`：`/chat` 仅为控制 UI；模型 Runtime 必须使用 WebSocket root、protocol 3、challenge/connect、
+   `chat.send`、`chat.abort` 和 bounded `chat.history`。
+3. `S2-SAF-001`：目标 Provider assurance 为 `TARGET_INTEGRATION`，不得声明 production eligible、hardware backed、
+   direct NPU access、action authority 或 Effect authority。
+4. `S2-SAF-001`：响应必须 strict UTF-8/JSON、exact keys、scenario binding、reply/action bound 和 action allowlist。
+5. `S2-OBS-001/XSC-006`：credential、prompt、reply 不得进入源码、APK 常量、Room、checkpoint、日志或测试证据；
+   debug credential 仅允许 DUMP-protected process-local injection。
+6. `DEL-003/004/005`：必须有 JVM、static contract、target APK、API 33 ARM64 Runtime probe 和 Client2 projection evidence。
+
+当前 `openclaw_target_integration_implemented=true`、`openclaw_target_android13_arm64_verified=true`、
+`production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；stage `P7-R3-OC`。

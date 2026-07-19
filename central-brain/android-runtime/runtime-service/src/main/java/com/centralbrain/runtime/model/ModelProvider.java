@@ -37,6 +37,7 @@ public interface ModelProvider extends AutoCloseable {
         DETERMINISTIC_STUB,
         ANDROID_LOCAL_DEVELOPMENT,
         OLLAMA_DEBUG,
+        OPENCLAW_GATEWAY,
         VENDOR_NPU
     }
 
@@ -44,6 +45,7 @@ public interface ModelProvider extends AutoCloseable {
         EMPTY,
         TEST_ONLY,
         DEBUG_ONLY,
+        TARGET_INTEGRATION,
         PRODUCTION
     }
 
@@ -155,6 +157,11 @@ public interface ModelProvider extends AutoCloseable {
                             || hardwareBacked)) {
                 throw new IllegalArgumentException(
                         "empty providers must remain unavailable and non-routable");
+            }
+            if (assurance == Assurance.TARGET_INTEGRATION
+                    && (productionEligible || hardwareBacked)) {
+                throw new IllegalArgumentException(
+                        "target integration cannot claim production or direct hardware access");
             }
             this.hardwareBacked = hardwareBacked;
             this.productionEligible = productionEligible;
