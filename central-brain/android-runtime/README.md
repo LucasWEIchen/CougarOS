@@ -1765,7 +1765,8 @@ specified control URL and token are compiled into `OpenClawEndpointConfig`, so n
 
 The target engine implements challenge/authentication, `chat.send`, abort and history fallback, strict scenario/action
 validation and metadata-only logs. The debug projection remains owner/session scoped and non-durable. Release routing,
-direct NPU and vehicle Effect authority remain disabled. Full design: `docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`.
+direct NPU and vehicle Effect authority remain disabled. Full design: `docs/CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`;
+code-level walkthrough: `docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`.
 
 `openclaw_target_android13_arm64_verified=true`, `client2_openclaw_projection_verified=true`,
 `external_compute_accessed=true`, `fixed_target_credential_active=true`, `latest_target_connectivity_verified=false`,

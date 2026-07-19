@@ -55,6 +55,7 @@ for marker in \
   'vendor.npu.empty' \
   'CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md' \
   'CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md' \
+  'CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md' \
   'CENTRAL_BRAIN_PYTHON_PROTOTYPE_RETIREMENT.md' \
   'tools/check_central_brain_python_prototype_retirement.sh' \
   'central_brain_github_remote_testing.json' \
