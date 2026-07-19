@@ -423,7 +423,7 @@ public final class SimulatedScenarioEffectComposition {
                         .toCanonicalPayload();
             case "vehicle.hvac.target_temperature":
                 return SimulatedHvacEffectAdapter.HvacTarget.targetTemperature(
-                        "row1.driver", 23.0).toCanonicalPayload();
+                        "row1.driver", 28.0).toCanonicalPayload();
             case "vehicle.hvac.fan_level":
                 return SimulatedHvacEffectAdapter.HvacTarget.fanLevel(
                         "cabin", 3).toCanonicalPayload();

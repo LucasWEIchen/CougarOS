@@ -68,7 +68,8 @@ for marker in \
   'connection.setInstanceFollowRedirects(false)' \
   'connection.setRequestMethod("POST")' \
   'root.add("format", responseSchema(prompt))' \
-  'prompt.allowedActions.contains(action)' \
+  'prompt.getAllowedActions().contains(action)' \
+  'prompt.validateAdmittedActions(admitted)' \
   'failure_code=' \
   'raw_prompt_logged=false' \
   'raw_response_logged=false'; do

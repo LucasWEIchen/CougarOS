@@ -2078,7 +2078,7 @@ P7-R3 仍不需要修改厂商系统；只有 Vendor 明确要求 PCIe shared bu
 `production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-121/ISSUE-024`；stage `P7-R2`。
 
-## P7-R3-OC OpenClaw Driver/HAL Boundary
+## P7-R3-OC2 OpenClaw Driver/HAL Boundary
 
 本阶段只使用 Android `INTERNET` permission 和 Java Socket/WebSocket；未新增 C/C++、JNI、Kernel、PCIe、DMA、IOMMU、
 Vendor NPU runtime、VehicleProperty、CAN 或 Driver/HAL 修改。目标网络可达只证明外部 Gateway 调用，不能证明其后端 NPU。
@@ -2086,4 +2086,13 @@ Vendor NPU runtime、VehicleProperty、CAN 或 Driver/HAL 修改。目标网络�
 若后续 Ollama 或 Vendor runtime 需要专用 device node/shared buffer/ioctl，必须由 Vendor 先提供 SDK/ABI 和责任边界，再在
 现有 NPU C ABI/JNI 空接口下记录最小 gap。`android_standard_network_api_used=true`、
 `driver_development_triggered=false`、`driver_hal_accessed=false`、`direct_npu_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`；tracking：`DEV-122/ISSUE-024`；stage `P7-R3-OC`。
+`latest_target_connectivity_verified=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-122/124`、`ISSUE-024/054`；stage `P7-R3-OC2`。固定 token 只改变应用层配置，不触发 Driver/HAL 开发。
+
+## P4-R3 voice-first HMI Driver/HAL boundary
+
+HVAC 温度/风量和驾驶席角度反馈全部由 Client2 `ValueAnimator` 修改 View，未打开 VehicleProperty、Vendor SOA、
+CAN、device node、ioctl、JNI 或 C ABI。真实末端执行器仍只保留既有 adapter contract；无 OEM mapping 时失败关闭，
+不能把动画状态作为 readback。`driver_development_triggered=false`、`driver_hal_accessed=false`、
+`vehicle_bus_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`；tracking：`DEV-123`、`ISSUE-030`。

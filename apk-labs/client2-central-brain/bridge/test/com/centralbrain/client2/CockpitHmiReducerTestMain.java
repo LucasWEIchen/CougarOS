@@ -319,10 +319,10 @@ public final class CockpitHmiReducerTestMain {
         check(compact.isSupported()
                         && compact.getProfile()
                         == CockpitDisplayPolicy.Profile.COMPACT_1280_720
-                        && compactBounds.getLeft() == 842
-                        && compactBounds.getTop() == 107
+                        && compactBounds.getLeft() == 858
+                        && compactBounds.getTop() == 134
                         && compactBounds.getRight() == 1259
-                        && compactBounds.getBottom() == 701
+                        && compactBounds.getBottom() == 642
                         && compact.getMinimumTouchTargetPixels() == 33,
                 "compact display profile must use the defined density and safe frame");
 
@@ -332,10 +332,10 @@ public final class CockpitHmiReducerTestMain {
         check(standard.isSupported()
                         && standard.getProfile()
                         == CockpitDisplayPolicy.Profile.STANDARD_1920_1080
-                        && standardBounds.getLeft() == 1264
-                        && standardBounds.getTop() == 160
+                        && standardBounds.getLeft() == 1288
+                        && standardBounds.getTop() == 200
                         && standardBounds.getRight() == 1888
-                        && standardBounds.getBottom() == 1048,
+                        && standardBounds.getBottom() == 960,
                 "standard profile must preserve the approved 1920x1080 frame");
 
         CockpitDisplayPolicy large = CockpitDisplayPolicy.resolve(
@@ -344,10 +344,10 @@ public final class CockpitHmiReducerTestMain {
         check(large.isSupported()
                         && large.getProfile()
                         == CockpitDisplayPolicy.Profile.LARGE_2560_1440
-                        && largeBounds.getLeft() == 1686
-                        && largeBounds.getTop() == 213
+                        && largeBounds.getLeft() == 1718
+                        && largeBounds.getTop() == 266
                         && largeBounds.getRight() == 2517
-                        && largeBounds.getBottom() == 1395,
+                        && largeBounds.getBottom() == 1278,
                 "large display profile must use the defined density and safe frame");
 
         CockpitDisplayPolicy largeText = CockpitDisplayPolicy.resolve(

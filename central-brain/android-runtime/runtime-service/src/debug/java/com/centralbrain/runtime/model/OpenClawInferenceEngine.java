@@ -91,35 +91,11 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         }
     }
 
-    private static final class Prompt {
-        final String inputDigest;
-        final String scenarioId;
-        final String utterance;
-        final List<String> allowedActions;
-
-        Prompt(
-                String inputDigest,
-                String scenarioId,
-                String utterance,
-                List<String> allowedActions) {
-            this.inputDigest = inputDigest;
-            this.scenarioId = scenarioId;
-            this.utterance = utterance;
-            this.allowedActions = allowedActions;
-        }
-
-        boolean matches(Prompt other) {
-            return scenarioId.equals(other.scenarioId)
-                    && utterance.equals(other.utterance)
-                    && allowedActions.equals(other.allowedActions);
-        }
-    }
-
     private final OpenClawEndpointConfig endpoint;
     private final CredentialSource credentialSource;
     private final Transport transport;
     private final ElapsedClock clock;
-    private final Map<String, Prompt> pending = new LinkedHashMap<>();
+    private final Map<String, CockpitModelPrompt> pending = new LinkedHashMap<>();
     private ModelProvider.ModelSpec warmedModel;
     private boolean closed;
     private long invocationCount;
@@ -127,11 +103,12 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
     private long failureCount;
     private long historyFallbackCount;
     private long lastLatencyMs;
+    private String lastFailureCode = "";
 
     public OpenClawInferenceEngine(OpenClawEndpointConfig endpoint) {
         this(
                 endpoint,
-                OpenClawCredentialStore::requireToken,
+                endpoint::getEmbeddedToken,
                 new SocketTransport(),
                 SystemClock::elapsedRealtime);
     }
@@ -154,8 +131,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
 
     public synchronized void registerScenarioPrompt(String inputDigest, String scenarioId) {
         requireDigest(inputDigest);
-        Prompt prompt = prompt(inputDigest, scenarioId);
-        Prompt existing = pending.get(inputDigest);
+        CockpitModelPrompt prompt = CockpitModelPrompt.forScenario(inputDigest, scenarioId);
+        CockpitModelPrompt existing = pending.get(inputDigest);
         if (existing != null) {
             if (!existing.matches(prompt)) {
                 throw new IllegalArgumentException("OpenClaw input digest prompt conflict");
@@ -179,7 +156,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             ModelProvider.ModelSpec modelSpec,
             ModelProvider.InferenceRequest request,
             LocalModelProvider.CancellationSignal cancellationSignal) {
-        Prompt prompt;
+        CockpitModelPrompt prompt;
         synchronized (this) {
             requireOpen();
             if (warmedModel == null
@@ -234,6 +211,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     historyFallbackCount++;
                 }
                 lastLatencyMs = latencyMs;
+                lastFailureCode = "";
             }
             logInfo("openclaw_inference_completed=true"
                     + " endpoint_profile=" + PROFILE
@@ -249,13 +227,15 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     + " credential_logged=false");
             return LocalModelProvider.EngineOutput.of(canonical);
         } catch (RuntimeException failure) {
+            String failureCode = safeFailureCode(failure);
             synchronized (this) {
                 failureCount++;
                 lastLatencyMs = Math.max(0L, clock.nowMs() - startedAt);
+                lastFailureCode = failureCode;
             }
             logError("openclaw_inference_completed=false"
                     + " endpoint_profile=" + PROFILE
-                    + " failure_code=" + safeFailureCode(failure)
+                    + " failure_code=" + failureCode
                     + " network_accessed=true"
                     + " raw_prompt_logged=false"
                     + " raw_response_logged=false"
@@ -278,7 +258,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 failureCount,
                 historyFallbackCount,
                 pending.size(),
-                lastLatencyMs);
+                lastLatencyMs,
+                lastFailureCode);
     }
 
     private int remainingDeadlineMs(ModelProvider.InferenceRequest request) {
@@ -289,22 +270,23 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         return (int) Math.min(Integer.MAX_VALUE, remaining);
     }
 
-    private static String buildPrompt(Prompt prompt) {
-        String example = "{\"scenario_id\":\"" + prompt.scenarioId
+    private static String buildPrompt(CockpitModelPrompt prompt) {
+        String example = "{\"scenario_id\":\"" + prompt.getScenarioId()
                 + "\",\"reply\":\"简短中文回复\",\"actions\":[\""
-                + prompt.allowedActions.get(0) + "\"]}";
-        return "你是车载AIOS的场景规划器。只输出一个JSON对象，不输出Markdown、代码围栏或解释。"
-                + "不得创建未列出的动作，不得声明动作已在真实车辆上执行。"
+                + String.join("\",\"", prompt.getRequiredActions()) + "\"]}";
+        return prompt.systemInstruction()
                 + "键只能是scenario_id、reply、actions。"
-                + "scenario_id必须是" + prompt.scenarioId + "。"
+                + "scenario_id必须是" + prompt.getScenarioId() + "。"
                 + "reply必须是1到256个字符的简短中文。"
                 + "actions必须包含1到4个不重复字符串，且只能来自："
-                + String.join(",", prompt.allowedActions) + "。"
-                + "用户表达：" + prompt.utterance + "。"
+                + String.join(",", prompt.getAllowedActions()) + "。"
+                + "actions必须包含必要动作："
+                + String.join(",", prompt.getRequiredActions()) + "。"
+                + prompt.userInstruction() + "。"
                 + "输出示例：" + example;
     }
 
-    private static byte[] parseAndValidate(String raw, Prompt prompt) {
+    private static byte[] parseAndValidate(String raw, CockpitModelPrompt prompt) {
         if (raw == null) {
             throw new IllegalStateException("OpenClaw response is missing");
         }
@@ -321,7 +303,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     || !content.has("actions")) {
                 throw new IllegalStateException("OpenClaw content shape is not exact");
             }
-            if (!prompt.scenarioId.equals(requiredString(content, "scenario_id"))) {
+            if (!prompt.getScenarioId().equals(requiredString(content, "scenario_id"))) {
                 throw new IllegalStateException("OpenClaw scenario binding does not match");
             }
             String reply = requiredString(content, "reply").trim();
@@ -343,13 +325,14 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     throw new IllegalStateException("OpenClaw action must be a string");
                 }
                 String action = element.getAsString();
-                if (!prompt.allowedActions.contains(action) || admitted.contains(action)) {
+                if (!prompt.getAllowedActions().contains(action) || admitted.contains(action)) {
                     throw new IllegalStateException("OpenClaw returned an untrusted action");
                 }
                 admitted.add(action);
             }
+            prompt.validateAdmittedActions(admitted);
             JsonObject canonical = new JsonObject();
-            canonical.addProperty("scenario_id", prompt.scenarioId);
+            canonical.addProperty("scenario_id", prompt.getScenarioId());
             canonical.addProperty("reply", reply);
             JsonArray canonicalActions = new JsonArray();
             for (String action : admitted) {
@@ -361,28 +344,6 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             throw new IllegalStateException(
                     "OpenClaw response violates the structured contract", failure);
         }
-    }
-
-    private static Prompt prompt(String inputDigest, String scenarioId) {
-        if ("scene.comfort.cold.v1".equals(scenarioId)) {
-            return new Prompt(
-                    inputDigest,
-                    scenarioId,
-                    "车里有点冷",
-                    List.of("hvac.warm_cabin", "media.keep_playing"));
-        }
-        if ("scene.fatigue.assist.v1".equals(scenarioId)) {
-            return new Prompt(
-                    inputDigest,
-                    scenarioId,
-                    "我有些疲惫",
-                    List.of(
-                            "seat.recline",
-                            "hvac.ventilate",
-                            "media.pause",
-                            "navigation.find_rest_area"));
-        }
-        throw new IllegalArgumentException("OpenClaw scenario is not allowlisted");
     }
 
     private static String sessionKey(ModelProvider.InferenceRequest request) {
@@ -451,7 +412,15 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
     }
 
     private static String safeFailureCode(RuntimeException failure) {
-        String message = failure.getMessage() == null ? "" : failure.getMessage();
+        StringBuilder messages = new StringBuilder();
+        Throwable current = failure;
+        for (int depth = 0; current != null && depth < 4; depth++) {
+            if (current.getMessage() != null) {
+                messages.append(' ').append(current.getMessage());
+            }
+            current = current.getCause();
+        }
+        String message = messages.toString();
         if (message.contains("credential")) return "CREDENTIAL_UNAVAILABLE";
         if (message.contains("handshake")) return "HANDSHAKE_REJECTED";
         if (message.contains("protocol")) return "PROTOCOL_REJECTED";
@@ -497,6 +466,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         private final long historyFallbackCount;
         private final int pendingPromptCount;
         private final long lastLatencyMs;
+        private final String lastFailureCode;
 
         Snapshot(
                 long invocationCount,
@@ -504,13 +474,15 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 long failureCount,
                 long historyFallbackCount,
                 int pendingPromptCount,
-                long lastLatencyMs) {
+                long lastLatencyMs,
+                String lastFailureCode) {
             this.invocationCount = invocationCount;
             this.completedCount = completedCount;
             this.failureCount = failureCount;
             this.historyFallbackCount = historyFallbackCount;
             this.pendingPromptCount = pendingPromptCount;
             this.lastLatencyMs = lastLatencyMs;
+            this.lastFailureCode = lastFailureCode;
         }
 
         public long getInvocationCount() { return invocationCount; }
@@ -519,6 +491,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         public long getHistoryFallbackCount() { return historyFallbackCount; }
         public int getPendingPromptCount() { return pendingPromptCount; }
         public long getLastLatencyMs() { return lastLatencyMs; }
+        public String getLastFailureCode() { return lastFailureCode; }
     }
 
     private static final class SocketTransport implements Transport {

@@ -1,12 +1,40 @@
 # Central Brain 中控屏 HVAC/Seat 演示闭环规划
 
-版本：1.3
+版本：2.0
 
-日期：2026-07-16
+日期：2026-07-20
 
-状态：Implementation plan + high-fidelity design baseline
+状态：P4-R3 voice-first implementation baseline
 
 目标平台：黑盒 Android 13 座舱域控制器上的 Client2 APK
+
+## 0. P4-R3 决策覆盖
+
+P4-R3 覆盖本文件中“驾驶员主界面保留四阶段 tab、手动 HVAC/Seat 参数面板和 engineer drawer”的旧要求。
+这些软件模块和 Runtime 接口仍保留用于工程验证，但不再暴露为驾驶员主交互。当前主界面只包含：
+
+1. 两个自然场景触发：“我有些疲惫”“车里有点冷”；真实产品输入由语音转写替代按钮。
+2. 一个 32 行有界、360 ms 节奏、自动滚动的接口调用链文本框。
+3. 仅在 Effect 运行时出现的左侧 `SIMULATED` 末端反馈；Cold 只显示 HVAC，Fatigue 显示 HVAC 和 Seat。
+
+产品依据：地平线 KaKaClaw 的公开定义强调“任务即服务”、自然语言触发和物理/数字 Agent 调度，因此设备参数按钮
+不应成为 AIOS 第一入口。OpenCode 的公开客户端架构展示了 typed centralized event bus、session 状态和增量更新模式；
+本项目只借鉴“事件驱动、增量投影”原则，通过现有 Binder callback 投影里程碑，不引入 SSE 或复制其代码。
+Android Design for Driving 要求 0.25 秒内有输入响应、超过 2 秒的工作显示运行状态，并让驾驶员在 2 秒内读懂状态；
+因此 `MODEL / RUNNING` 必须在网络调用前显示，详细链路可滚动但结果摘要保持短句。Moving/unknown 的正式限制仍必须
+由 Car UX Restrictions/OEM policy 决定；当前没有可信 Vehicle State，不声明驾驶中可用。
+
+参考：
+
+- [Horizon KaKaClaw product announcement](https://www.horizon.auto/news/press/445)
+- [OpenCode repository](https://github.com/anomalyco/opencode)
+- [OpenCode web client event architecture](https://github.com/anomalyco/opencode/issues/11616)
+- [Android Design for Driving interaction principles](https://developers.google.com/cars/design/design-foundations/interaction-principles)
+- [AOSP Car UX Restrictions](https://source.android.com/docs/automotive/driver_distraction/car_uxr)
+
+架构结论：现有 Session -> Context -> Model -> Plan -> Policy -> Graph -> Effect -> Readback 分层无需重构；新增
+`S2-HMI-007`、`S2-MDL-002`、`S2-OBS-002` 即可补齐共享座舱 prompt、admitted model action binding 和实时里程碑投影。
+安全执行类需求保持接口保留，车辆通信保持空 adapter，UI 动画不得成为 readback。
 
 ## 1. 决策与需求映射
 
@@ -527,3 +555,14 @@ HVAC/Seat、execution/recovery/restriction、protected engineer drawer、scenari
 HMI-D2/HMI-D3/HMI-D4 仍未完成，因为 Runtime Scenario/Graph/Effect wiring、Digital Twin observation、approval response、
 partial/retry/undo command 和车辆 readback 未发布。P4-W12 的 host projection 与实体 disabled/unavailable 不能替代执行闭环；
 该边界由 `DEV-054..062` 与 `ISSUE-022/026/030/033` 跟踪。下一工作包为 P5-W01 Tool manifest/schema。
+
+## 18. P4-R3 当前实现进度（2026-07-20）
+
+`P4-R2` 已完成正式 Orchestration SDK 的 debug 闭环，P4-R3 在其上完成驾驶员界面收敛。`CockpitModelPrompt`
+为 Ollama/OpenClaw 提供相同汽车座舱上下文；`DebugDecisionCompositionBoundary` 将校验后的模型 action 绑定到
+固定 Plan；`OrchestrationRuntimeClient` 和 `CockpitControlCoordinator` 负责里程碑与 UI 动画。
+
+Android 13 ARM64 开发环境已通过 WSL Ollama 完成 Fatigue/Cold 实际模型调用与动画。目标 OpenClaw 历史协议证据
+存在，但 2026-07-20 当前 18789 端口拒绝连接，按 `ISSUE-054` 外部阻塞。所有车身执行仍为 UI simulation；
+`vehicle_bus_accessed=false`、`security_implementation_present=false`、`production_ready=false`、
+`target_hardware_validated=false`。

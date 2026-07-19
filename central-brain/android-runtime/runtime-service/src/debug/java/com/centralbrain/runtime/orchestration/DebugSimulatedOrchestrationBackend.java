@@ -13,6 +13,7 @@ import com.centralbrain.runtime.scenario.SimulatedScenarioInputFactory.DrivingPr
 import com.centralbrain.runtime.scenario.SimulatedScenarioInputFactory.ScenarioKind;
 import com.centralbrain.runtime.scenario.SimulatedScenarioRuntime;
 import com.centralbrain.runtime.simulation.SimulationClock;
+import com.centralbrain.runtime.vehicle.capability.VehicleCapability.CapabilityId;
 import com.centralbrain.sdk.effect.EffectContract;
 import com.centralbrain.sdk.orchestration.ApprovalResponse;
 import com.centralbrain.sdk.orchestration.ICentralBrainOrchestration;
@@ -130,7 +131,8 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                             scenario,
                             driving,
                             session.getSessionId(),
-                            session.getDeadlineEpochMs()),
+                            session.getDeadlineEpochMs(),
+                            modelUnavailableCapabilities(scenario, decisionEvidence)),
                     scenario,
                     driving);
         } catch (RuntimeException failure) {
@@ -159,6 +161,30 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         }
         bySession.put(session.getSessionId(), record);
         return result(record, started);
+    }
+
+    private static Set<CapabilityId> modelUnavailableCapabilities(
+            ScenarioKind scenario,
+            DebugDecisionCompositionBoundary.Evidence evidence) {
+        if (!evidence.isNetworkAccessed()) {
+            return Set.of();
+        }
+        Set<String> actions = new LinkedHashSet<>(evidence.getAdmittedActions());
+        Set<CapabilityId> unavailable = new LinkedHashSet<>();
+        if (scenario == ScenarioKind.COLD) {
+            unavailable.add(CapabilityId.SEAT_HEATING_LEVEL);
+            return unavailable;
+        }
+        if (!actions.contains("seat.recline")) {
+            unavailable.add(CapabilityId.SEAT_RECLINE_ANGLE);
+        }
+        if (!actions.contains("media.pause")) {
+            unavailable.add(CapabilityId.MEDIA_PLAYBACK);
+        }
+        if (!actions.contains("navigation.find_rest_area")) {
+            unavailable.add(CapabilityId.NAVIGATION_POI);
+        }
+        return unavailable;
     }
 
     @Override

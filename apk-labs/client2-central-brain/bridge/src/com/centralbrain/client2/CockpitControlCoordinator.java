@@ -1,5 +1,6 @@
 package com.centralbrain.client2;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
@@ -12,6 +13,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.centralbrain.sdk.event.RuntimeEvent;
@@ -20,6 +23,9 @@ import com.centralbrain.sdk.session.SessionHandle;
 import com.centralbrain.sdk.session.SessionSnapshot;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Locale;
 
 /** Maintained Java owner for Client2 overlay state, rendering and Session lifecycle. */
 public final class CockpitControlCoordinator implements
@@ -49,6 +55,8 @@ public final class CockpitControlCoordinator implements
     private static final long SEAT_DEBOUNCE_MS = 300L;
     private static final String PREFS_NAME = "central_brain_hmi_state_v1";
     private static final int CHECKPOINT_SCHEMA = 1;
+    private static final int MAX_LIVE_TRACE_LINES = 32;
+    private static final long LIVE_TRACE_INTERVAL_MS = 360L;
     private static final Object ACTIVE_LOCK = new Object();
 
     private static WeakReference<CockpitControlCoordinator> active = new WeakReference<>(null);
@@ -60,6 +68,9 @@ public final class CockpitControlCoordinator implements
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Runnable submitHvacRunnable = this::submitPendingHvac;
     private final Runnable submitSeatRunnable = this::submitPendingSeat;
+    private final Runnable traceDrainRunnable = this::drainNextTrace;
+    private final ArrayDeque<String> pendingTraceLines = new ArrayDeque<>();
+    private final ArrayList<String> displayedTraceLines = new ArrayList<>();
     private final DebugSimulationControllerClient debugSimulationClient;
     private final OrchestrationRuntimeClient orchestrationClient;
     private final CockpitDisplayPolicy displayPolicy;
@@ -110,6 +121,16 @@ public final class CockpitControlCoordinator implements
     private TextView engineerStatusView;
     private TextView engineerContextView;
     private TextView engineerFaultView;
+    private TextView liveTraceView;
+    private TextView driverTemperatureOverlay;
+    private TextView passengerTemperatureOverlay;
+    private TextView actuatorTitleView;
+    private TextView actuatorStateView;
+    private TextView actuatorHvacTemperatureView;
+    private TextView actuatorHvacFanView;
+    private TextView actuatorSeatAngleView;
+    private ScrollView liveTraceScroll;
+    private ProgressBar actuatorFanProgress;
     private View panelOverlay;
     private View intentSurface;
     private View planSurface;
@@ -125,6 +146,9 @@ public final class CockpitControlCoordinator implements
     private View engineerSurface;
     private View panelView;
     private View navigationTrigger;
+    private View actuatorOverlay;
+    private View seatFeedbackRegion;
+    private View seatBackView;
     private Button engineerDetailButton;
     private Button approveButton;
     private Button rejectButton;
@@ -132,6 +156,12 @@ public final class CockpitControlCoordinator implements
     private Button undoButton;
     private Button napButton;
     private View[] seatPositionControls = new View[0];
+    private int traceSequence;
+    private boolean coldHvacAnimated;
+    private boolean fatigueHvacAnimated;
+    private boolean fatigueSeatAnimated;
+    private boolean traceDrainScheduled;
+    private String displayedModelReply = "";
     private boolean detached;
 
     private CockpitControlCoordinator(Activity activity) {
@@ -240,6 +270,21 @@ public final class CockpitControlCoordinator implements
         engineerStatusView = findTextView("centralBrainEngineerStatusText");
         engineerContextView = findTextView("centralBrainEngineerContextText");
         engineerFaultView = findTextView("centralBrainEngineerFaultText");
+        liveTraceView = findTextView("centralBrainLiveTraceText");
+        driverTemperatureOverlay = findTextView("centralBrainDriverTemperatureOverlay");
+        passengerTemperatureOverlay = findTextView("centralBrainPassengerTemperatureOverlay");
+        actuatorTitleView = findTextView("centralBrainActuatorTitleText");
+        actuatorStateView = findTextView("centralBrainActuatorStateText");
+        actuatorHvacTemperatureView = findTextView(
+                "centralBrainActuatorHvacTemperatureText");
+        actuatorHvacFanView = findTextView("centralBrainActuatorHvacFanText");
+        actuatorSeatAngleView = findTextView("centralBrainActuatorSeatAngleText");
+        View traceScroll = findView("centralBrainLiveTraceScroll");
+        liveTraceScroll = traceScroll instanceof ScrollView
+                ? (ScrollView) traceScroll : null;
+        View fanProgress = findView("centralBrainActuatorFanProgress");
+        actuatorFanProgress = fanProgress instanceof ProgressBar
+                ? (ProgressBar) fanProgress : null;
         intentSurface = findView("centralBrainIntentSurface");
         planSurface = findView("centralBrainPlanSurface");
         executionSurface = findView("centralBrainExecutionSurface");
@@ -252,6 +297,9 @@ public final class CockpitControlCoordinator implements
         hvacSurface = findView("centralBrainHvacSurface");
         seatSurface = findView("centralBrainSeatSurface");
         engineerSurface = findView("centralBrainEngineerSurface");
+        actuatorOverlay = findView("centralBrainActuatorOverlay");
+        seatFeedbackRegion = findView("centralBrainSeatFeedbackRegion");
+        seatBackView = findView("centralBrainSeatBack");
         engineerDetailButton = findButton("centralBrainEngineerDetailButton");
         approveButton = findButton("centralBrainApproveButton");
         rejectButton = findButton("centralBrainRejectButton");
@@ -411,12 +459,20 @@ public final class CockpitControlCoordinator implements
             return;
         }
         String scenarioId = tagValue;
+        boolean effectAnimationOnly = CockpitSimulatedScenarioState.isSupported(scenarioId);
         if (DrivingUxPolicy.isHighRiskScenario(scenarioId)
-                && !state.getPresentationMode().isHighRiskScenarioEnabled()) {
+                && !state.getPresentationMode().isHighRiskScenarioEnabled()
+                && !effectAnimationOnly) {
             Log.w(TAG, markers()
                     + " cockpit_driving_restriction_blocked=true"
                     + " restricted_control=high_risk_scenario");
             return;
+        }
+        if (DrivingUxPolicy.isHighRiskScenario(scenarioId) && effectAnimationOnly) {
+            Log.i(TAG, markers()
+                    + " cockpit_safety_interface_reserved=true"
+                    + " effect_animation_only=true"
+                    + " effect_authority_granted=false");
         }
         CharSequence text = ((TextView) view).getText();
         startScenario(scenarioId, text == null ? "" : text.toString());
@@ -449,11 +505,9 @@ public final class CockpitControlCoordinator implements
         if (scenarioId == null || scenarioId.isEmpty()) {
             return;
         }
-        CockpitSeatState.DrivingState drivingState =
-                state.getSeatState().getSafetyContext().getDrivingState();
-        String simulatedDrivingProfile =
-                drivingState == CockpitSeatState.DrivingState.PARKED
-                        ? "PARKED" : "MOVING_RESTRICTED";
+        resetLiveTrace(scenarioId, userText);
+        resetActuatorFeedback();
+        String simulatedDrivingProfile = "PARKED";
         accept(CockpitHmiReducer.Event.scenarioSubmitted(
                 scenarioId, simulatedDrivingProfile));
         Client2ScenarioBridge.SessionConnection opened =
@@ -756,18 +810,258 @@ public final class CockpitControlCoordinator implements
     public void onSimulatedRuntimeAvailability(boolean available, String failureCode) {
         accept(CockpitHmiReducer.Event.simulatedRuntimeAvailability(
                 available, failureCode));
+        if (!available && !"CONNECTING".equals(failureCode)) {
+            appendLiveTrace("RUNTIME", "FAILED", failureCode);
+        }
     }
 
     @Override
     public void onSimulatedScenarioSnapshot(
             CockpitSimulatedScenarioState.Projection projection) {
         accept(CockpitHmiReducer.Event.simulatedScenarioSnapshot(projection));
+        CockpitSimulatedScenarioState simulated = state.getSimulatedScenarioState();
+        if (simulated.isModelInferenceCompleted()
+                && !simulated.getAssistantDisplayText().equals(displayedModelReply)) {
+            displayedModelReply = simulated.getAssistantDisplayText();
+            appendLiveTrace(
+                    "MODEL REPLY",
+                    simulated.getModelProviderId(),
+                    simulated.getAssistantDisplayText());
+        }
+        animateSimulatedEffects(simulated);
+        if (simulated.getLifecycle() == CockpitSimulatedScenarioState.Lifecycle.COMPLETED) {
+            appendLiveTrace(
+                    "RESULT",
+                    "COMPLETED",
+                    "UI simulation only · vehicle bus not accessed");
+        }
     }
 
     @Override
     public void onSimulatedScenarioFailure(String uiScenarioId, String failureCode) {
         accept(CockpitHmiReducer.Event.simulatedScenarioFailure(
                 uiScenarioId, failureCode));
+        appendLiveTrace("RESULT", "FAILED", failureCode);
+    }
+
+    @Override
+    public void onPipelineMilestone(String stage, String status, String detail) {
+        appendLiveTrace(stage, status, detail);
+    }
+
+    private void resetLiveTrace(String scenarioId, String utterance) {
+        mainHandler.removeCallbacks(traceDrainRunnable);
+        pendingTraceLines.clear();
+        displayedTraceLines.clear();
+        traceDrainScheduled = false;
+        traceSequence = 0;
+        displayedModelReply = "";
+        coldHvacAnimated = false;
+        fatigueHvacAnimated = false;
+        fatigueSeatAnimated = false;
+        if (liveTraceView != null) {
+            liveTraceView.setText("");
+        }
+        appendLiveTrace("VOICE", "TRANSCRIBED", utterance);
+        appendLiveTrace(
+                "BOUNDARY",
+                "SIMULATION",
+                "Vehicle bus unavailable · safety interfaces reserved");
+        Log.i(TAG, markers()
+                + " voice_first_scenario_requested=true"
+                + " ui_scenario_id=" + safeDisplayToken(scenarioId)
+                + " raw_utterance_logged=false"
+                + " effect_animation_only=true");
+    }
+
+    private void appendLiveTrace(String stage, String status, String detail) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post(() -> appendLiveTrace(stage, status, detail));
+            return;
+        }
+        if (detached) {
+            return;
+        }
+        String safeStage = boundedTraceValue(stage, 24);
+        String safeStatus = boundedTraceValue(status, 32);
+        String safeDetail = boundedTraceValue(detail, 180);
+        traceSequence++;
+        pendingTraceLines.addLast(
+                String.format(Locale.ROOT, "%02d  %s / %s\n    %s",
+                        traceSequence, safeStage, safeStatus, safeDetail));
+        if (!traceDrainScheduled) {
+            traceDrainScheduled = true;
+            mainHandler.post(traceDrainRunnable);
+        }
+    }
+
+    private void drainNextTrace() {
+        if (detached) {
+            return;
+        }
+        String line = pendingTraceLines.pollFirst();
+        if (line == null) {
+            traceDrainScheduled = false;
+            return;
+        }
+        displayedTraceLines.add(line);
+        while (displayedTraceLines.size() > MAX_LIVE_TRACE_LINES) {
+            displayedTraceLines.remove(0);
+        }
+        if (liveTraceView != null) {
+            liveTraceView.setText(TextUtils.join("\n\n", displayedTraceLines));
+        }
+        if (liveTraceScroll != null) {
+            liveTraceScroll.post(() -> liveTraceScroll.fullScroll(View.FOCUS_DOWN));
+        }
+        mainHandler.postDelayed(traceDrainRunnable, LIVE_TRACE_INTERVAL_MS);
+    }
+
+    private static String boundedTraceValue(String value, int maximum) {
+        String safe = value == null ? "UNAVAILABLE" : value.trim();
+        if (safe.isEmpty()) {
+            safe = "UNAVAILABLE";
+        }
+        safe = safe.replace('\n', ' ').replace('\r', ' ');
+        return safe.length() <= maximum ? safe : safe.substring(0, maximum);
+    }
+
+    private void resetActuatorFeedback() {
+        setText(driverTemperatureOverlay, "26.5°C");
+        setText(passengerTemperatureOverlay, "26.5°C");
+        setText(actuatorHvacTemperatureView, "26.5°C");
+        setText(actuatorHvacFanView, "风量 1");
+        setText(actuatorSeatAngleView, "靠背 15°");
+        if (actuatorFanProgress != null) {
+            actuatorFanProgress.setProgress(1);
+        }
+        if (seatBackView != null) {
+            seatBackView.animate().cancel();
+            seatBackView.setRotation(0.0f);
+        }
+        if (actuatorOverlay != null) {
+            actuatorOverlay.animate().cancel();
+            actuatorOverlay.setVisibility(View.GONE);
+            actuatorOverlay.setAlpha(0.0f);
+            actuatorOverlay.setTranslationX(-80.0f);
+        }
+    }
+
+    private void animateSimulatedEffects(CockpitSimulatedScenarioState simulated) {
+        if (!simulated.hasSnapshot() || simulated.getEffectDispatchCount() == 0) {
+            return;
+        }
+        showActuatorOverlay(simulated.getUiScenarioId());
+        if ("care.cold".equals(simulated.getUiScenarioId()) && !coldHvacAnimated) {
+            coldHvacAnimated = true;
+            setText(actuatorStateView, "HVAC 白名单动作执行中 · SIMULATED");
+            animateTemperature(26.5f, 28.0f);
+            appendLiveTrace(
+                    "UI EFFECT",
+                    "ANIMATING",
+                    "HVAC target 26.5°C → 28.0°C · simulated");
+            finishActuatorAnimation(1900L);
+            return;
+        }
+        if ("care.fatigue".equals(simulated.getUiScenarioId())) {
+            if (!fatigueHvacAnimated) {
+                fatigueHvacAnimated = true;
+                setText(actuatorStateView, "HVAC 通风动作执行中 · SIMULATED");
+                animateFan(1, 3);
+                appendLiveTrace(
+                        "UI EFFECT",
+                        "ANIMATING",
+                        "HVAC fan 1 → 3 · simulated");
+            }
+            if (simulated.getApprovalInputCount() > 0 && !fatigueSeatAnimated) {
+                fatigueSeatAnimated = true;
+                setText(actuatorStateView, "座椅舒展动作执行中 · SIMULATED");
+                animateSeat(15.0f, 30.0f);
+                appendLiveTrace(
+                        "UI EFFECT",
+                        "ANIMATING",
+                        "Driver seat recline 15° → 30° · simulated");
+                finishActuatorAnimation(2100L);
+            }
+        }
+    }
+
+    private void showActuatorOverlay(String scenarioId) {
+        boolean fatigue = "care.fatigue".equals(scenarioId);
+        setText(actuatorTitleView,
+                fatigue ? "疲劳关怀执行反馈" : "温度关怀执行反馈");
+        setVisible(seatFeedbackRegion, fatigue);
+        if (actuatorOverlay != null) {
+            ViewGroup.LayoutParams params = actuatorOverlay.getLayoutParams();
+            int targetHeight = Math.round((fatigue ? 520.0f : 300.0f)
+                    * activity.getResources().getDisplayMetrics().density);
+            if (params != null && params.height != targetHeight) {
+                params.height = targetHeight;
+                actuatorOverlay.setLayoutParams(params);
+            }
+        }
+        if (actuatorOverlay == null || actuatorOverlay.getVisibility() == View.VISIBLE) {
+            return;
+        }
+        actuatorOverlay.setVisibility(View.VISIBLE);
+        actuatorOverlay.setAlpha(0.0f);
+        actuatorOverlay.setTranslationX(-80.0f);
+        actuatorOverlay.animate()
+                .alpha(1.0f)
+                .translationX(0.0f)
+                .setDuration(420L)
+                .start();
+    }
+
+    private void animateTemperature(float from, float to) {
+        ValueAnimator animator = ValueAnimator.ofFloat(from, to);
+        animator.setDuration(1800L);
+        animator.addUpdateListener(value -> {
+            float current = (float) value.getAnimatedValue();
+            String label = String.format(Locale.ROOT, "%.1f°C", current);
+            setText(driverTemperatureOverlay, label);
+            setText(passengerTemperatureOverlay, label);
+            setText(actuatorHvacTemperatureView, label);
+        });
+        animator.start();
+    }
+
+    private void animateFan(int from, int to) {
+        ValueAnimator animator = ValueAnimator.ofInt(from, to);
+        animator.setDuration(1600L);
+        animator.addUpdateListener(value -> {
+            int current = (int) value.getAnimatedValue();
+            setText(actuatorHvacFanView, "风量 " + current);
+            if (actuatorFanProgress != null) {
+                actuatorFanProgress.setProgress(current);
+            }
+        });
+        animator.start();
+    }
+
+    private void animateSeat(float from, float to) {
+        ValueAnimator animator = ValueAnimator.ofFloat(from, to);
+        animator.setDuration(2000L);
+        animator.addUpdateListener(value -> {
+            float current = (float) value.getAnimatedValue();
+            setText(actuatorSeatAngleView,
+                    String.format(Locale.ROOT, "靠背 %.0f°", current));
+            if (seatBackView != null) {
+                seatBackView.setPivotX(seatBackView.getWidth() * 0.5f);
+                seatBackView.setPivotY(seatBackView.getHeight());
+                seatBackView.setRotation((current - from) * 1.2f);
+            }
+        });
+        animator.start();
+    }
+
+    private void finishActuatorAnimation(long delayMs) {
+        mainHandler.postDelayed(() -> {
+            if (!detached) {
+                setText(actuatorStateView,
+                        "仿真动作完成 · VEHICLE BUS NOT ACCESSED");
+            }
+        }, delayMs);
     }
 
     private void resumeSession() {
@@ -839,7 +1133,8 @@ public final class CockpitControlCoordinator implements
             orchestrationClient.openOrResume(
                     handle.sessionId,
                     state.getUiScenarioId(),
-                    state.getSeatState().getSafetyContext().getDrivingState());
+                    state.getSeatState().getSafetyContext().getDrivingState(),
+                    true);
         }
     }
 
@@ -1610,7 +1905,7 @@ public final class CockpitControlCoordinator implements
 
     private static String fixedTargetLabel(String uiScenarioId) {
         if ("care.cold".equals(uiScenarioId)) {
-            return "空调开启 / 23 C / 主驾座椅加热";
+            return "空调开启 / 28 C / 主驾座椅加热";
         }
         if ("care.fatigue".equals(uiScenarioId)) {
             return "空调风量 / 媒体暂停 / 休息区导航 / 审批后座椅放倒";
@@ -1707,6 +2002,7 @@ public final class CockpitControlCoordinator implements
             detached = true;
             mainHandler.removeCallbacks(submitHvacRunnable);
             mainHandler.removeCallbacks(submitSeatRunnable);
+            mainHandler.removeCallbacks(traceDrainRunnable);
             previous = connection;
             connection = null;
         }
@@ -1732,23 +2028,21 @@ public final class CockpitControlCoordinator implements
     private String markers() {
         return "cockpit_hmi_state_reducer_implemented=true"
                 + " cockpit_hmi_lifecycle_owner_java=true"
-                + " cockpit_hmi_four_stage_shell_implemented=true"
-                + " cockpit_hmi_intent_first_primary=true"
-                + " cockpit_hmi_device_drawer_scaffolded=true"
-                + " cockpit_hvac_surface_implemented=true"
+                + " cockpit_hmi_voice_first_shell_implemented=true"
+                + " cockpit_hmi_task_trigger_count=2"
+                + " cockpit_hmi_live_trace_implemented=true"
+                + " cockpit_hmi_four_stage_shell_exposed=false"
+                + " cockpit_hmi_manual_actuator_controls_exposed=false"
+                + " cockpit_hmi_device_drawer_exposed=false"
+                + " cockpit_hvac_simulated_feedback_implemented=true"
                 + " cockpit_hvac_reducer_owned=true"
-                + " cockpit_hvac_debounce_ms=300"
-                + " cockpit_hvac_governed_manual_session=true"
                 + " cockpit_hvac_reported_readback_available=false"
-                + " cockpit_seat_surface_implemented=true"
+                + " cockpit_seat_simulated_feedback_implemented=true"
                 + " cockpit_seat_reducer_owned=true"
-                + " cockpit_seat_debounce_ms=300"
-                + " cockpit_seat_governed_manual_session=true"
                 + " cockpit_seat_unknown_restricted_fail_closed=true"
                 + " cockpit_seat_reported_readback_available=false"
-                + " cockpit_execution_timeline_implemented=true"
                 + " cockpit_execution_timeline_reducer_owned=true"
-                + " cockpit_execution_typed_event_projection=true"
+                + " cockpit_execution_live_milestone_projection=true"
                 + " cockpit_execution_plan_published=false"
                 + " cockpit_execution_effect_dispatch_enabled=false"
                 + " cockpit_execution_readback_available=false"
@@ -1760,7 +2054,7 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_driving_ux_policy_implemented=true"
                 + " cockpit_unknown_driving_restricted=true"
                 + " cockpit_runtime_policy_authority_independent=true"
-                + " cockpit_engineer_simulation_drawer_debug_only=true"
+                + " cockpit_engineer_simulation_drawer_exposed=false"
                 + " cockpit_engineer_signature_permission_required=true"
                 + " cockpit_engineer_capability_required=true"
                 + " cockpit_engineer_context_revisioned=true"
@@ -1775,7 +2069,9 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_simulated_scenario_projection_reducer_owned=true"
                 + " cockpit_simulated_scenario_effect_dispatch_enabled=true"
                 + " cockpit_simulated_scenario_readback_available=true"
-                + " cockpit_simulated_approval_input_explicit=true"
+                + " cockpit_simulated_safety_interface_reserved=true"
+                + " cockpit_simulated_demo_auto_continue=true"
+                + " cockpit_simulated_actuator_animation=true"
                 + " cockpit_simulated_hardware_effect_dispatch_enabled=false"
                 + " cockpit_display_matrix_defined=true"
                 + " cockpit_accessibility_semantics_runtime_owned=true"

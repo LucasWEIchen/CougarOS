@@ -3,7 +3,7 @@
 ## 1. Scope and status
 
 This document defines the transitional model path for the current Android 13 target. The compute base currently exposes
-OpenClaw rather than Ollama, so `P7-R3-OC` implements a fixed OpenClaw WebSocket v3 provider while preserving the
+OpenClaw rather than Ollama, so `P7-R3-OC2` implements a fixed OpenClaw WebSocket v3 provider while preserving the
 `ModelProvider` abstraction. It is a controlled target-integration build, not a production-qualified release.
 
 Req IDs: `S2-MDL-001`, `S2-SAF-001`, `S2-OBS-001`, `XSC-001/005/006`, `DEL-001/003/004/005`.
@@ -16,6 +16,8 @@ Current claims:
 - `external_compute_accessed=true`
 - `direct_npu_accessed=false`
 - `vehicle_effect_hardware_accessed=false`
+- `fixed_target_credential_active=true`
+- `latest_target_connectivity_verified=false`
 - `production_provider_qualified=false`
 - `production_ready=false`
 - `target_hardware_validated=false`
@@ -38,7 +40,7 @@ sequenceDiagram
     R-->>D: external.openclaw.transitional
     D->>P: bounded inference request
     P->>G: strict scenario prompt registration
-    G->>O: WebSocket connect v3 + runtime credential
+    G->>O: WebSocket connect v3 + fixed target credential
     O-->>G: challenge / connect response
     G->>O: chat.send(sessionKey, idempotencyKey)
     O-->>G: ACK + delta/final
@@ -55,12 +57,10 @@ target build never dispatches a real vehicle effect.
 
 | Module | Source | Responsibility |
 | --- | --- | --- |
-| Fixed endpoint | `OpenClawEndpointConfig` | Locks host, port, WebSocket path, UI path, protocol and frame/time bounds; contains no credential |
+| Fixed endpoint | `OpenClawEndpointConfig` | Locks host, port, WebSocket path, full control-UI URL, target token, protocol and frame/time bounds |
 | Provider profile | `ModelProviderProfiles.targetOpenClawTransitional()` | Declares `OPENCLAW_GATEWAY` and `TARGET_INTEGRATION`; explicitly non-production and non-hardware |
 | Registry | `ModelProviderRegistry` | Publishes the fixed provider descriptor and accepts health only from `TARGET_OPENCLAW_RUNTIME` |
 | Router | `PolicyAwareModelRouter` | Selects OpenClaw only in `TARGET_INTEGRATION`; production mode still requires a qualified production provider |
-| Credential store | `OpenClawCredentialStore` | Holds a copied credential in process memory; clear/process death removes it |
-| Provisioning surface | `OpenClawCredentialProvisioningActivity` | Debug-only, exported with `android.permission.DUMP`; validates and injects the credential without persistence |
 | Protocol engine | `OpenClawInferenceEngine` | RFC6455 client, v3 challenge/auth, send/abort/history, bounds, strict UTF-8/JSON and action allowlist |
 | Composition | `DebugDecisionCompositionBoundary` | Connects Context, Trigger, Consent, Router, Provider and Event evidence; exposes reply only through debug projection |
 | Target probe | `OpenClawTargetIntegrationProbeActivity` | Executes the complete target model chain and emits metadata-only evidence |
@@ -69,8 +69,9 @@ target build never dispatches a real vehicle effect.
 
 ## 4. Protocol contract
 
-The supplied browser location is a control UI, not the model REST endpoint. The runtime connects to the fixed WebSocket
-root and implements protocol v3:
+The supplied browser location, including its query token, is fixed in `OpenClawEndpointConfig`. It is a control UI, not
+the model REST endpoint. The runtime connects to the fixed WebSocket root, reads the same fixed token from the endpoint
+profile, and implements protocol v3:
 
 1. Receive `connect.challenge` and require a non-empty nonce.
 2. Send `connect` with protocol 3, `openclaw-control-ui`, `webchat`, operator read/write scopes and the runtime credential.
@@ -110,15 +111,9 @@ adb install -r central-brain/android-runtime/runtime-service/build/outputs/apk/d
 tools/install_client2_central_brain_demo.sh --replace-conflicting-client2
 ```
 
-Provision the credential through a hidden prompt. Do not place it in a command line, source file, Gradle property or APK:
-
-```bash
-tools/provision_central_brain_openclaw_target.sh
-```
-
-Then launch Client2, open the Central Brain panel and select a fixed scenario. A successful call displays the model reply
-and records only safe protocol/provider/latency markers. Reinstalling, force-stopping or killing the Runtime clears the
-credential; provision it again before the next call.
+No credential provisioning step is required in `P7-R3-OC2`; the maintainer explicitly required the target URL and token
+to be compiled into the controlled target build. Launch Client2, open the Central Brain panel and select a fixed scenario.
+A successful call displays the model reply and records only safe protocol/provider/latency markers.
 
 ## 7. Verification
 
@@ -134,11 +129,16 @@ The 2026-07-19 Android 13 ARM64 run verified fixed-host reachability, WebSocket 
 19,923 ms for the isolated Runtime probe and 7,066 ms for the Client2 cold scenario. Raw prompt, reply and credential were
 not captured as evidence.
 
+The 2026-07-20 retest reached the host over ICMP from the Android target, but TCP port 18789 returned
+`Connection refused`. Authentication and protocol validation were therefore not reached. This is tracked as an external
+OpenClaw service-listener blocker and does not invalidate the earlier successful protocol evidence.
+
 ## 8. Security and migration boundary
 
-Current transport is cleartext WebSocket on a dedicated link-local address. The debug credential injection path can place
-the credential transiently in ADB/Activity-manager process arguments even though it is not persisted by the application.
-Both are accepted temporary integration deviations (`DEV-122`), not release credential management.
+Current transport is cleartext WebSocket on a dedicated link-local address. Per maintainer directive, the target token is
+now a source/APK constant and is therefore extractable from Git history and the installed APK. This is an accepted
+closed-test-only deviation (`DEV-124`), not release credential management. It must be replaced before any production
+qualification; no security implementation is added by this change.
 
 The next Ollama migration keeps `ModelProvider`, `ModelRequest`, structured output and Client2 projection unchanged. It
 replaces only the target profile/transport, after the target exposes the approved Ollama endpoint, model artifact identity,

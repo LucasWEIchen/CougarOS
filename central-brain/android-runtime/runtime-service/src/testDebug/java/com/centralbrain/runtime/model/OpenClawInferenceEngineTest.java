@@ -47,7 +47,7 @@ public final class OpenClawInferenceEngineTest {
         assertTrue(request.idempotencyKey.matches(
                 "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
         assertTrue(request.message.contains("只输出一个JSON对象"));
-        assertTrue(request.message.contains("不得声明动作已在真实车辆上执行"));
+        assertTrue(request.message.contains("不能声称真实车辆已经执行"));
         assertTrue(request.message.contains("hvac.warm_cabin"));
         assertFalse(request.message.contains(TEST_TOKEN));
         String canonical = new String(
@@ -76,6 +76,8 @@ public final class OpenClawInferenceEngineTest {
         assertThrows(IllegalStateException.class, () -> untrusted.infer(
                 model(), request(INPUT_DIGEST), neverCancelled()));
         assertEquals(1, untrusted.snapshot().getFailureCount());
+        assertEquals("ACTION_ALLOWLIST_REJECTED",
+                untrusted.snapshot().getLastFailureCode());
 
         OpenClawInferenceEngine unknownField = engine(clock, request ->
                 new OpenClawInferenceEngine.Result(
@@ -88,6 +90,40 @@ public final class OpenClawInferenceEngineTest {
         unknownField.warmup(model());
         unknownField.registerScenarioPrompt(INPUT_DIGEST, "scene.comfort.cold.v1");
         assertThrows(IllegalStateException.class, () -> unknownField.infer(
+                model(), request(INPUT_DIGEST), neverCancelled()));
+    }
+
+    @Test
+    public void fatiguePromptCarriesCockpitContextAndRequiresHvacAndSeat() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicReference<OpenClawInferenceEngine.Request> captured = new AtomicReference<>();
+        OpenClawInferenceEngine engine = engine(clock, request -> {
+            captured.set(request);
+            return resultWithActions(
+                    "scene.fatigue.assist.v1",
+                    "我会调节通风并模拟座椅舒展。",
+                    "hvac.ventilate",
+                    "seat.recline");
+        });
+        engine.warmup(model());
+        engine.registerScenarioPrompt(INPUT_DIGEST, "scene.fatigue.assist.v1");
+
+        engine.infer(model(), request(INPUT_DIGEST), neverCancelled());
+
+        assertTrue(captured.get().message.contains("environment=AUTOMOTIVE_COCKPIT"));
+        assertTrue(captured.get().message.contains("occupant_role=DRIVER"));
+        assertTrue(captured.get().message.contains("UI_SIMULATION_ONLY"));
+        assertTrue(captured.get().message.contains("seat.recline,hvac.ventilate")
+                || captured.get().message.contains("hvac.ventilate,seat.recline"));
+
+        OpenClawInferenceEngine missingSeat = engine(clock, request -> result(
+                "scene.fatigue.assist.v1",
+                "只调节通风。",
+                "hvac.ventilate",
+                false));
+        missingSeat.warmup(model());
+        missingSeat.registerScenarioPrompt(INPUT_DIGEST, "scene.fatigue.assist.v1");
+        assertThrows(IllegalStateException.class, () -> missingSeat.infer(
                 model(), request(INPUT_DIGEST), neverCancelled()));
     }
 
@@ -133,6 +169,15 @@ public final class OpenClawInferenceEngineTest {
                 clock::get);
     }
 
+    @Test
+    public void defaultEngineUsesTheFixedTargetCredential() {
+        OpenClawEndpointConfig endpoint = OpenClawEndpointConfig
+                .targetProductionTransitional();
+        assertEquals("Iluvatar1!", endpoint.getEmbeddedToken());
+        assertEquals("http://169.254.208.110:18789/chat?token=Iluvatar1!",
+                endpoint.getControlUiUri().toString());
+    }
+
     private static ModelProvider.ModelSpec model() {
         return new ModelProvider.ModelSpec(
                 "central-intent-v0", "openclaw-ws-v3", "a".repeat(64));
@@ -172,5 +217,18 @@ public final class OpenClawInferenceEngineTest {
                         + "\",\"actions\":[\"" + action + "\"]}",
                 3,
                 historyFallbackUsed);
+    }
+
+    private static OpenClawInferenceEngine.Result resultWithActions(
+            String scenarioId,
+            String reply,
+            String... actions) {
+        return new OpenClawInferenceEngine.Result(
+                "{\"scenario_id\":\"" + scenarioId
+                        + "\",\"reply\":\"" + reply
+                        + "\",\"actions\":[\""
+                        + String.join("\",\"", actions) + "\"]}",
+                3,
+                false);
     }
 }

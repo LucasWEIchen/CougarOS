@@ -775,7 +775,7 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   `DEL-001/003/004/005`。
 - 组合：debug-only `SimulatedScenarioEffectComposition` 复用既有 HVAC/Seat/Media/Navigation typed adapter；Graph
   `effect.execute` 自动 dispatch，`effect.verify` 只在 simulated readback `MATCHED` 时成功。
-- 固定目标：Cold 使用 HVAC power/23.0 C/seat heat 2；Fatigue 使用 HVAC power/fan 3、approved parked seat recline 30 degree、
+- 固定目标：Cold 使用 HVAC power/28.0 C/seat heat 2；Fatigue 使用 HVAC power/fan 3、approved parked seat recline 30 degree、
   media pause 与 build-owned synthetic rest-area query。不得接受客户端任意 target value。
 - 审批：parked fatigue 继续停在 `approval.interrupt`；只有显式 Debug 成功结果生成 run-bound simulation digest，且
   `approvalAuthorityAvailable=false`。Moving 继续由 Compiler 裁掉 approval/recline 分支。

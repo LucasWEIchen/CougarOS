@@ -9,6 +9,8 @@ public final class OpenClawEndpointConfig {
     public static final int TARGET_PORT = 18_789;
     public static final String WEBSOCKET_PATH = "/";
     public static final String CONTROL_UI_PATH = "/chat";
+    public static final String TARGET_TOKEN = "Iluvatar1!";
+    public static final String CONTROL_UI_QUERY = "token=" + TARGET_TOKEN;
     public static final int PROTOCOL_VERSION = 3;
     public static final int CONNECT_TIMEOUT_MS = 3_000;
     public static final int READ_TIMEOUT_MS = 120_000;
@@ -26,7 +28,8 @@ public final class OpenClawEndpointConfig {
             webSocketUri = new URI(
                     "ws", null, TARGET_HOST, TARGET_PORT, WEBSOCKET_PATH, null, null);
             controlUiUri = new URI(
-                    "http", null, TARGET_HOST, TARGET_PORT, CONTROL_UI_PATH, null, null);
+                    "http", null, TARGET_HOST, TARGET_PORT, CONTROL_UI_PATH,
+                    CONTROL_UI_QUERY, null);
         } catch (URISyntaxException exception) {
             throw new IllegalStateException("fixed OpenClaw endpoint is invalid", exception);
         }
@@ -43,6 +46,14 @@ public final class OpenClawEndpointConfig {
 
     public URI getControlUiUri() {
         return controlUiUri;
+    }
+
+    /**
+     * Transitional fixed credential requested for the closed target integration build.
+     * This value is extractable from both source and APK and is not a production secret store.
+     */
+    public String getEmbeddedToken() {
+        return TARGET_TOKEN;
     }
 
     public int getProtocolVersion() {
@@ -69,7 +80,7 @@ public final class OpenClawEndpointConfig {
                 || !TARGET_HOST.equals(controlUiUri.getHost())
                 || controlUiUri.getPort() != TARGET_PORT
                 || !CONTROL_UI_PATH.equals(controlUiUri.getPath())
-                || controlUiUri.getQuery() != null
+                || !CONTROL_UI_QUERY.equals(controlUiUri.getQuery())
                 || controlUiUri.getFragment() != null) {
             throw new IllegalStateException("OpenClaw endpoint violates the fixed target profile");
         }

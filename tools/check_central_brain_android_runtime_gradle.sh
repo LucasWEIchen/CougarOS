@@ -149,10 +149,17 @@ require_text "central-brain/android-runtime/settings.gradle.kts" 'include(":poli
 require_text "central-brain/android-runtime/policy-probe/build.gradle.kts" 'applicationId = "com.centralbrain.policyprobe"'
 require_text "central-brain/android-runtime/policy-probe/build.gradle.kts" "minSdk = 33"
 
-if grep -R -Fq "android.permission.INTERNET" "$RUNTIME_DIR"; then
-  echo "Android runtime modules must not request network access" >&2
-  exit 1
-fi
+require_text \
+  "central-brain/android-runtime/runtime-service/src/main/AndroidManifest.xml" \
+  "android.permission.INTERNET"
+for network_free_module in central-brain-sdk native-runtime demo-hmi policy-probe; do
+  if grep -R -Fq \
+      "android.permission.INTERNET" \
+      "$RUNTIME_DIR/$network_free_module"; then
+    echo "only runtime-service may request network access" >&2
+    exit 1
+  fi
+done
 
 if grep -Fq "RuntimeProbeActivity" "$RUNTIME_DIR/runtime-service/src/main/AndroidManifest.xml"; then
   echo "the ADB lifecycle probe must remain debug-only" >&2
@@ -193,12 +200,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_skill_governance_readiness.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_binder.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_intent_shell.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_hvac_surface.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_seat_surface.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_execution_timeline.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_recovery_ux.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_client2_driving_restriction.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_voice_first_hmi.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_application_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_delivery_handoff.sh"
 bash "$ROOT_DIR/tools/check_central_brain_native_runtime.sh"

@@ -23,11 +23,10 @@ python3 -m json.tool "$PROJECT_DIR/client2-central-brain.project.json" >/dev/nul
 for resource_file in \
   'central_brain_panel_background.xml' \
   'central_brain_action_button.xml' \
-  'central_brain_reply_background.xml' \
-  'central_brain_stage_tab.xml' \
-  'central_brain_status_badge.xml' \
-  'central_brain_section_background.xml' \
-  'central_brain_drawer_background.xml'; do
+  'central_brain_live_trace_background.xml' \
+  'central_brain_effect_feedback_background.xml' \
+  'central_brain_temperature_overlay.xml' \
+  'central_brain_seat_part.xml'; do
   test -f "$PROJECT_DIR/patches/res/drawable/$resource_file"
 done
 
@@ -82,111 +81,23 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q "centralBrainColdButton" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainTiredButton" "$WORK_DIR/res/layout/main_layout.xml"
   for surface_id in \
-    centralBrainHeader \
-    centralBrainSourceText \
-    centralBrainDrivingText \
-    centralBrainRestrictionText \
-    centralBrainConnectionText \
-    centralBrainIntentTab \
-    centralBrainPlanTab \
-    centralBrainExecutionTab \
-    centralBrainResultTab \
-    centralBrainIntentSurface \
-    centralBrainPlanSurface \
-    centralBrainExecutionSurface \
-    centralBrainTimelineIntentText \
-    centralBrainTimelineContextText \
-    centralBrainTimelinePlanText \
-    centralBrainTimelinePolicyText \
-    centralBrainTimelineGraphText \
-    centralBrainTimelineEffectText \
-    centralBrainTimelineReadbackText \
-    centralBrainExecutionActionsText \
-    centralBrainApprovalStateText \
-    centralBrainApproveButton \
-    centralBrainRejectButton \
-    centralBrainPartialStateText \
-    centralBrainCompensationStateText \
-    centralBrainRetryButton \
-    centralBrainUndoButton \
-    centralBrainExecutionChainText \
-    centralBrainResultSurface \
-    centralBrainHomeButton \
-    centralBrainNapButton \
-    centralBrainSessionStrip \
-    centralBrainDeviceDrawer \
-    centralBrainHvacSurface \
-    centralBrainHvacDesiredText \
-    centralBrainHvacPowerButton \
-    centralBrainHvacTemperatureDownButton \
-    centralBrainHvacTemperatureUpButton \
-    centralBrainHvacFanDownButton \
-    centralBrainHvacFanUpButton \
-    centralBrainHvacAutoButton \
-    centralBrainHvacAcButton \
-    centralBrainHvacSyncButton \
-    centralBrainHvacAirflowButton \
-    centralBrainHvacWarmPresetButton \
-    centralBrainHvacCoolPresetButton \
-    centralBrainHvacClearPresetButton \
-    centralBrainHvacEvidenceText \
-    centralBrainHvacRequestText \
-    centralBrainSeatSurface \
-    centralBrainSeatDesiredText \
-    centralBrainSeatZoneDriverButton \
-    centralBrainSeatZonePassengerButton \
-    centralBrainSeatZoneRearLeftButton \
-    centralBrainSeatZoneRearRightButton \
-    centralBrainSeatHeatDownButton \
-    centralBrainSeatHeatUpButton \
-    centralBrainSeatVentilationDownButton \
-    centralBrainSeatVentilationUpButton \
-    centralBrainSeatMassageButton \
-    centralBrainSeatReclineDownButton \
-    centralBrainSeatReclineUpButton \
-    centralBrainSeatUprightPresetButton \
-    centralBrainSeatComfortPresetButton \
-    centralBrainSeatRestPresetButton \
-    centralBrainSeatSafetyText \
-    centralBrainSeatEvidenceText \
-    centralBrainSeatRequestText \
-    centralBrainHvacDetailButton \
-    centralBrainSeatDetailButton \
-    centralBrainEngineerDetailButton \
-    centralBrainEngineerSurface \
-    centralBrainEngineerStatusText \
-    centralBrainEngineerDrivingUnknownButton \
-    centralBrainEngineerDrivingParkedButton \
-    centralBrainEngineerDrivingMovingButton \
-    centralBrainEngineerOccupancyEmptyButton \
-    centralBrainEngineerOccupancyOccupiedButton \
-    centralBrainEngineerBeltBeltedButton \
-    centralBrainEngineerBeltUnbeltedButton \
-    centralBrainEngineerAdapterHvacButton \
-    centralBrainEngineerAdapterSeatButton \
-    centralBrainEngineerFaultNoneButton \
-    centralBrainEngineerFaultDelayButton \
-    centralBrainEngineerFaultTimeoutButton \
-    centralBrainEngineerFaultFailureButton \
-    centralBrainEngineerFaultTerminalButton \
-    centralBrainEngineerFaultMismatchButton \
-    centralBrainEngineerContextText \
-    centralBrainEngineerFaultText \
-    centralBrainEngineerResetButton; do
+    centralBrainLiveTraceScroll \
+    centralBrainLiveTraceText \
+    centralBrainDriverTemperatureOverlay \
+    centralBrainPassengerTemperatureOverlay \
+    centralBrainActuatorOverlay \
+    centralBrainActuatorTitleText \
+    centralBrainActuatorStateText \
+    centralBrainActuatorHvacTemperatureText \
+    centralBrainActuatorHvacFanText \
+    centralBrainActuatorFanProgress \
+    centralBrainSeatBack \
+    centralBrainActuatorSeatAngleText; do
     rg -q "$surface_id" "$WORK_DIR/res/layout/main_layout.xml"
-  done
-  for stage_tag in \
-    central_brain_stage_intent \
-    central_brain_stage_plan \
-    central_brain_stage_execution \
-    central_brain_stage_result; do
-    rg -Fq "android:tag=\"$stage_tag\"" "$WORK_DIR/res/layout/main_layout.xml"
   done
   for scenario_id in \
     care.cold \
-    care.fatigue \
-    task.home \
-    skill.nap; do
+    care.fatigue; do
     rg -Fq "android:tag=\"$scenario_id\"" "$WORK_DIR/res/layout/main_layout.xml"
   done
   if rg -q 'android:tag="(state\.vehicle|memory\.preference|skills\.catalog|governance\.audit|security\.denied|security\.privacy|runtime\.npu|system\.overview)"' \
@@ -194,7 +105,6 @@ if [[ -d "$WORK_DIR" ]]; then
     echo "legacy diagnostic aliases must not remain on the intent-first primary surface" >&2
     exit 1
   fi
-  rg -q "centralBrainReplyText" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "central_brain_panel_background" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainRenderRegion.*android:layout_width="match_parent".*android:layout_height="match_parent"' "$WORK_DIR/res/layout/main_layout.xml"
   if rg -q 'centralBrainRenderRegion.*android:layout_weight=' "$WORK_DIR/res/layout/main_layout.xml"; then
@@ -202,14 +112,20 @@ if [[ -d "$WORK_DIR" ]]; then
     exit 1
   fi
   rg -q 'centralBrainPanelOverlay.*android:layout_width="match_parent".*android:layout_height="match_parent".*android:visibility="gone".*android:clickable="true"' "$WORK_DIR/res/layout/main_layout.xml"
-  rg -q 'centralBrainPanel.*android:layout_width="624.0dp".*android:layout_height="888.0dp".*android:layout_gravity="top|right".*android:layout_marginTop="160.0dp".*android:layout_marginRight="32.0dp".*android:elevation="8.0dp"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'centralBrainPanel.*android:layout_width="600.0dp".*android:layout_height="760.0dp".*android:layout_gravity="top|right".*android:layout_marginTop="200.0dp".*android:layout_marginRight="32.0dp".*android:elevation="8.0dp"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'centralBrainNavigationTriggerRail.*android:layout_height="96.0dp".*android:layout_gravity="bottom".*android:weightSum="24.0"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'Space.*android:layout_weight="9.5"' "$WORK_DIR/res/layout/main_layout.xml"
-  rg -q 'centralBrainNavigationTrigger.*android:tag="central_brain_menu_toggle".*android:layout_weight="1.0".*android:background="@android:color/transparent".*android:clickable="true".*android:contentDescription="Central Brain menu"' "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q 'centralBrainNavigationTrigger.*android:tag="central_brain_menu_toggle".*android:layout_weight="1.0".*android:background="@android:color/transparent".*android:clickable="true".*android:contentDescription="AIOS task menu"' "$WORK_DIR/res/layout/main_layout.xml"
   rg -q 'Space.*android:layout_weight="13.5"' "$WORK_DIR/res/layout/main_layout.xml"
-  rg -q '#99EEF2F3' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
+  rg -q '#80EEF2F3' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
   rg -q '#E8FFFFFF' "$WORK_DIR/res/drawable/central_brain_action_button.xml"
-  rg -q '#C8FFFFFF' "$WORK_DIR/res/drawable/central_brain_reply_background.xml"
+  rg -q '#B0222B31' "$WORK_DIR/res/drawable/central_brain_live_trace_background.xml"
+  rg -q 'UI SIMULATION ONLY' "$WORK_DIR/res/layout/main_layout.xml"
+  if rg -q 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' \
+      "$WORK_DIR/res/layout/main_layout.xml"; then
+    echo "legacy multi-surface or manual actuator controls remain in voice-first HMI" >&2
+    exit 1
+  fi
   rg -q "com.centralbrain.permission.BIND_RUNTIME" "$WORK_DIR/AndroidManifest.xml"
   rg -q "com.centralbrain.permission.CONTROL_DEBUG_SIMULATION" "$WORK_DIR/AndroidManifest.xml"
   rg -q 'package android:name="com.centralbrain.runtime"' "$WORK_DIR/AndroidManifest.xml"
