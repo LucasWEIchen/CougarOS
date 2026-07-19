@@ -9,6 +9,7 @@ SERIAL="${ANDROID_SERIAL:-}"
 BUILD=true
 REQUIRE_API_33=false
 REPLACE_CONFLICTING_CLIENT2=false
+ALLOW_X86_64=false
 
 while (($# > 0)); do
   case "$1" in
@@ -16,6 +17,7 @@ while (($# > 0)); do
     --skip-build) BUILD=false; shift ;;
     --require-api-33) REQUIRE_API_33=true; shift ;;
     --replace-conflicting-client2) REPLACE_CONFLICTING_CLIENT2=true; shift ;;
+    --allow-x86-64) ALLOW_X86_64=true; shift ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
@@ -55,7 +57,10 @@ SDK="$("${DEVICE[@]}" shell getprop ro.build.version.sdk | tr -d '\r')"
 ABI="$("${DEVICE[@]}" shell getprop ro.product.cpu.abi | tr -d '\r')"
 [[ "$SDK" =~ ^[0-9]+$ ]] && ((SDK >= 33)) || { echo "Android API 33+ required" >&2; exit 1; }
 [[ "$REQUIRE_API_33" != true || "$SDK" == 33 ]] || { echo "exact Android API 33 required" >&2; exit 1; }
-[[ "$ABI" == arm64-v8a ]] || { echo "ARM64 target required" >&2; exit 1; }
+if [[ "$ABI" != arm64-v8a ]]; then
+  [[ "$ALLOW_X86_64" == true && "$ABI" == x86_64 ]] \
+    || { echo "ARM64 target required unless --allow-x86-64 is explicit" >&2; exit 1; }
+fi
 
 "${DEVICE[@]}" install -r "$(adb_path "$RUNTIME_DEBUG")" >/dev/null
 set +e
@@ -108,10 +113,10 @@ PY
 }
 
 tap_resource() {
-  local resource="$1" file="$LOG_DIR/tap-$1.xml" bounds
+  local resource="$1" file="$LOG_DIR/tap-$1.xml" bounds coordinates x y
   dump_ui "$file"
   bounds="$(node_value "$resource" bounds "$file")"
-  python3 - "$bounds" <<'PY' | while read -r x y; do "${DEVICE[@]}" shell input tap "$x" "$y"; done
+  coordinates="$(python3 - "$bounds" <<'PY'
 import re
 import sys
 match = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", sys.argv[1])
@@ -122,6 +127,25 @@ if right <= left or bottom <= top:
     raise SystemExit("resource has empty bounds")
 print((left + right) // 2, (top + bottom) // 2)
 PY
+)" || return 1
+  read -r x y <<<"$coordinates"
+  [[ "$x" =~ ^[0-9]+$ && "$y" =~ ^[0-9]+$ ]] \
+    || { echo "resource has no tappable coordinates" >&2; return 1; }
+  "${DEVICE[@]}" shell input tap "$x" "$y"
+}
+
+wait_log_marker() {
+  local marker="$1"
+  for _ in {1..60}; do
+    if "${DEVICE[@]}" logcat -d -v brief \
+        CbClient2Orchestration:I CbClient2Hmi:I '*:S' \
+        | grep -Fq -- "$marker"; then
+      return 0
+    fi
+    sleep 0.25
+  done
+  echo "required Client2 startup marker unavailable: $marker" >&2
+  return 1
 }
 
 scroll_execution_to_edge() {
@@ -192,7 +216,7 @@ assert_completed_chain() {
 "${DEVICE[@]}" logcat -c
 FILTERED_LOGCAT="$LOG_DIR/central-brain-filtered-logcat.txt"
 "${DEVICE[@]}" logcat -v threadtime \
-  CbClient2Scenario:V CbSimScenarioSvc:V CbClient2Hmi:V '*:S' \
+  CbClient2Orchestration:V CentralBrainRuntime:V CbClient2Hmi:V '*:S' \
   >"$FILTERED_LOGCAT" 2>&1 &
 FILTERED_LOGCAT_PID=$!
 cleanup_filtered_logcat() {
@@ -204,6 +228,8 @@ trap cleanup_filtered_logcat EXIT
   >"$LOG_DIR/activity-start.txt"
 grep -Fq 'Status: ok' "$LOG_DIR/activity-start.txt"
 sleep 1
+wait_log_marker 'cockpit_display_supported=true'
+wait_log_marker 'client2_orchestration_sdk_connected=true'
 tap_resource centralBrainNavigationTrigger
 
 # PARKED is build-owned debug Context and never grants production Effect authority.
@@ -252,7 +278,8 @@ wait_text centralBrainExecutionActionsText 'Readback 2/2'
 cleanup_filtered_logcat
 trap - EXIT
 for marker in \
-  'cockpit_simulated_scenario_binder_v2_wired=true' \
+  'cockpit_orchestration_sdk_v1_wired=true' \
+  'cockpit_legacy_simulated_scenario_binder_used=false' \
   'cockpit_simulated_scenario_projection_reducer_owned=true' \
   'cockpit_simulated_scenario_effect_dispatch_enabled=true' \
   'cockpit_simulated_scenario_readback_available=true' \
@@ -267,7 +294,13 @@ if grep -Fq 'hardware_accessed=true' "$LOG_DIR/logcat.txt"; then
 fi
 
 printf '%s\n' \
-  'client2_simulated_scenario_binder_v2_wired=true' \
+  'client2_orchestration_sdk_v1_wired=true' \
+  'client2_session_before_orchestration=true' \
+  'client2_orchestration_resume_read_before_start=true' \
+  'client2_orchestration_plan_validated=true' \
+  'client2_orchestration_approval_projection_bound=true' \
+  'client2_orchestration_debug_capability_policy_wired=true' \
+  'client2_legacy_simulated_scenario_binder_used=false' \
   'client2_simulated_cold_completed_verified=true' \
   'client2_simulated_cold_effect_dispatch_count=3' \
   'client2_simulated_cold_readback_match_count=3' \
@@ -285,3 +318,12 @@ printf '%s\n' \
   'hardware_accessed=false' \
   'target_hardware_validated=false' \
   'production_ready=false'
+if [[ "$ABI" == x86_64 ]]; then
+  printf '%s\n' \
+    'client2_android13_x86_64_verified=true' \
+    'client2_android13_arm64_verified=false'
+else
+  printf '%s\n' \
+    'client2_android13_x86_64_verified=false' \
+    'client2_android13_arm64_verified=true'
+fi

@@ -26,7 +26,7 @@ public final class CockpitControlCoordinator implements
         View.OnClickListener,
         ScenarioCallback,
         DebugSimulationControllerClient.Callback,
-        SimulatedScenarioRuntimeClient.Callback,
+        OrchestrationRuntimeClient.Callback,
         Application.ActivityLifecycleCallbacks {
     private static final String TAG = "CbClient2Hmi";
     private static final String MENU_TAG = "central_brain_menu_toggle";
@@ -61,7 +61,7 @@ public final class CockpitControlCoordinator implements
     private final Runnable submitHvacRunnable = this::submitPendingHvac;
     private final Runnable submitSeatRunnable = this::submitPendingSeat;
     private final DebugSimulationControllerClient debugSimulationClient;
-    private final SimulatedScenarioRuntimeClient simulatedScenarioClient;
+    private final OrchestrationRuntimeClient orchestrationClient;
     private final CockpitDisplayPolicy displayPolicy;
 
     private CockpitHmiState state;
@@ -139,7 +139,7 @@ public final class CockpitControlCoordinator implements
         this.application = activity.getApplication();
         this.preferences = activity.getSharedPreferences(PREFS_NAME, Activity.MODE_PRIVATE);
         this.debugSimulationClient = new DebugSimulationControllerClient(activity, this);
-        this.simulatedScenarioClient = new SimulatedScenarioRuntimeClient(activity, this);
+        this.orchestrationClient = new OrchestrationRuntimeClient(activity, this);
         DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         this.displayPolicy = CockpitDisplayPolicy.resolve(
                 metrics.widthPixels,
@@ -188,7 +188,7 @@ public final class CockpitControlCoordinator implements
             resumeSession();
         }
         debugSimulationClient.connect();
-        simulatedScenarioClient.connect();
+        orchestrationClient.connect();
     }
 
     private void bindViews() {
@@ -390,11 +390,11 @@ public final class CockpitControlCoordinator implements
         if (tagValue.startsWith(RECOVERY_TAG_PREFIX)) {
             if (state.getSimulatedScenarioState().isApprovalInputEnabled()) {
                 if (RECOVERY_APPROVE_TAG.equals(tagValue)) {
-                    simulatedScenarioClient.approvePending();
+                    orchestrationClient.approvePending();
                     return;
                 }
                 if (RECOVERY_REJECT_TAG.equals(tagValue)) {
-                    simulatedScenarioClient.skipPending();
+                    orchestrationClient.rejectPending();
                     return;
                 }
             }
@@ -459,9 +459,6 @@ public final class CockpitControlCoordinator implements
         Client2ScenarioBridge.SessionConnection opened =
                 Client2ScenarioBridge.openSession(activity, scenarioId, userText, this);
         replaceConnection(opened);
-        if (CockpitSimulatedScenarioState.isSupported(scenarioId)) {
-            simulatedScenarioClient.startScenario(scenarioId, drivingState);
-        }
     }
 
     private void handleHvacControl(String tag) {
@@ -836,6 +833,14 @@ public final class CockpitControlCoordinator implements
     @Override
     public void onSessionOpened(SessionHandle handle, String scenarioId) {
         accept(CockpitHmiReducer.Event.sessionOpened(handle, scenarioId));
+        if (handle != null
+                && CockpitSimulatedScenarioState.isSupported(
+                        state.getUiScenarioId())) {
+            orchestrationClient.openOrResume(
+                    handle.sessionId,
+                    state.getUiScenarioId(),
+                    state.getSeatState().getSafetyContext().getDrivingState());
+        }
     }
 
     @Override
@@ -1716,7 +1721,7 @@ public final class CockpitControlCoordinator implements
             previous.close();
         }
         debugSimulationClient.close();
-        simulatedScenarioClient.close();
+        orchestrationClient.close();
         application.unregisterActivityLifecycleCallbacks(this);
         Log.i(TAG, markers()
                 + " client2_hmi_lifecycle_detached=true"
@@ -1765,7 +1770,8 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_scenario_catalog_normalized=true"
                 + " cockpit_scenario_manual_shared_client=true"
                 + " cockpit_scenario_device_session_synchronized=true"
-                + " cockpit_simulated_scenario_binder_v2_wired=true"
+                + " cockpit_orchestration_sdk_v1_wired=true"
+                + " cockpit_legacy_simulated_scenario_binder_used=false"
                 + " cockpit_simulated_scenario_projection_reducer_owned=true"
                 + " cockpit_simulated_scenario_effect_dispatch_enabled=true"
                 + " cockpit_simulated_scenario_readback_available=true"

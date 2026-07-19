@@ -2,7 +2,7 @@ package com.centralbrain.client2;
 
 import java.util.Objects;
 
-/** Immutable HMI projection of the debug simulated-scenario Binder metadata. */
+/** Immutable HMI projection of the formal Orchestration V1 debug profile. */
 public final class CockpitSimulatedScenarioState {
     public static final int MAX_EFFECT_COUNT = 16;
     public static final int MAX_EVENT_COUNT = 64;
@@ -23,7 +23,7 @@ public final class CockpitSimulatedScenarioState {
 
     public enum PendingStage { NONE, APPROVAL, EFFECT, READBACK }
 
-    /** Pure-Java validated transfer object produced by the Android Binder client. */
+    /** Pure-Java validated transfer object produced by the Android SDK client. */
     public static final class Projection {
         private final String uiScenarioId;
         private final String canonicalScenarioId;

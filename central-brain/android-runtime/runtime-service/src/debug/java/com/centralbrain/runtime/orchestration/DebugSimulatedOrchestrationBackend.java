@@ -30,9 +30,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /** Debug-only adapter from the production orchestration contract to the fixed simulator. */
@@ -123,7 +125,11 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         final SimulatedScenarioEffectComposition.Snapshot started;
         try {
             started = composition.start(
-                    inputs.createForSession(scenario, driving, session.getSessionId()),
+                    inputs.createForSession(
+                            scenario,
+                            driving,
+                            session.getSessionId(),
+                            session.getDeadlineEpochMs()),
                     scenario,
                     driving);
         } catch (RuntimeException failure) {
@@ -170,8 +176,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             return result(record, composition.get(record.runId));
         }
         SimulatedScenarioEffectComposition.Snapshot current = composition.get(record.runId);
-        OrchestrationSnapshot projection = project(
-                current, record.boundEvidenceDigest);
+        OrchestrationSnapshot projection = stableProjection(record, current);
         if (projection.pendingStage != ICentralBrainOrchestration.PENDING_APPROVAL
                 || !projection.approvalId.equals(response.approvalId)
                 || !projection.projectionDigest.equals(response.expectedProjectionDigest)) {
@@ -192,8 +197,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
     public synchronized Result requestUndo(SessionDescriptor session, UndoRequest request) {
         RunRecord record = requireRun(session.getSessionId());
         SimulatedScenarioEffectComposition.Snapshot current = composition.get(record.runId);
-        OrchestrationSnapshot projection = project(
-                current, record.boundEvidenceDigest);
+        OrchestrationSnapshot projection = stableProjection(record, current);
         if (!projection.projectionDigest.equals(request.expectedProjectionDigest)) {
             throw violation("Undo request is stale");
         }
@@ -221,17 +225,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
     private Result result(
             RunRecord record,
             SimulatedScenarioEffectComposition.Snapshot source) {
-        OrchestrationSnapshot snapshot = project(
-                source, record.boundEvidenceDigest);
-        if (source.getProjectionDigest().equals(record.sourceProjectionDigest)) {
-            snapshot.updatedAtEpochMs = record.projectionUpdatedAtEpochMs;
-            snapshot.projectionDigest = "";
-            OrchestrationProjectionFactory.seal(snapshot);
-        } else {
-            record.sourceProjectionDigest = source.getProjectionDigest();
-            record.projectionUpdatedAtEpochMs = snapshot.updatedAtEpochMs;
-        }
-        record.latestProjectionDigest = snapshot.projectionDigest;
+        OrchestrationSnapshot snapshot = stableProjection(record, source);
         if (isTerminal(source.getSessionState()) && !record.compositionTerminal) {
             runtimeComposition.complete(
                     record.sessionDescriptor, record.compositionEvidence);
@@ -242,6 +236,22 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         return new Result(snapshot, source.toScenarioPlan(), source.getManifestDigest());
     }
 
+    private static OrchestrationSnapshot stableProjection(
+            RunRecord record,
+            SimulatedScenarioEffectComposition.Snapshot source) {
+        OrchestrationSnapshot snapshot = project(source, record.boundEvidenceDigest);
+        if (source.getProjectionDigest().equals(record.sourceProjectionDigest)) {
+            snapshot.updatedAtEpochMs = record.projectionUpdatedAtEpochMs;
+            snapshot.projectionDigest = "";
+            OrchestrationProjectionFactory.seal(snapshot);
+        } else {
+            record.sourceProjectionDigest = source.getProjectionDigest();
+            record.projectionUpdatedAtEpochMs = snapshot.updatedAtEpochMs;
+        }
+        record.latestProjectionDigest = snapshot.projectionDigest;
+        return snapshot;
+    }
+
     private static OrchestrationSnapshot project(
             SimulatedScenarioEffectComposition.Snapshot source,
             String compositionEvidenceDigest) {
@@ -249,6 +259,15 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         Map<String, PlanNode> planNodes = new LinkedHashMap<>();
         for (PlanNode node : plan.nodes) {
             planNodes.put(node.nodeId, node);
+        }
+        Set<String> verifiedCapabilities = new LinkedHashSet<>();
+        for (AgentGraphRuntime.NodeRunSnapshot sourceNode : source.getNodeSnapshots()) {
+            PlanNode planNode = planNodes.get(sourceNode.getNodeId());
+            if (planNode != null
+                    && "effect.verify".equals(planNode.nodeType)
+                    && sourceNode.getState() == NodeRunState.SUCCEEDED) {
+                verifiedCapabilities.add(planNode.capabilityId);
+            }
         }
 
         List<OrchestrationNode> nodes = new ArrayList<>();
@@ -282,7 +301,9 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                         "central-brain-debug-effect-v1", plan.sessionId, node.nodeId);
                 effect.nodeId = node.nodeId;
                 effect.capabilityId = node.capabilityId;
-                effect.state = effectState(sourceNode.getState(), source);
+                effect.state = effectState(
+                        sourceNode.getState(),
+                        verifiedCapabilities.contains(node.capabilityId));
                 effect.attemptCount = Math.max(1, node.attemptCount);
                 effect.simulated = true;
                 effect.sourceId = "debug.simulation.adapter";
@@ -394,10 +415,10 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
 
     private static int effectState(
             NodeRunState state,
-            SimulatedScenarioEffectComposition.Snapshot source) {
+            boolean readbackVerified) {
         switch (state) {
             case SUCCEEDED:
-                return source.getReadbackMatchCount() > 0
+                return readbackVerified
                         ? EffectContract.STATE_VERIFIED : EffectContract.STATE_DELIVERED;
             case FAILED:
             case STUCK:

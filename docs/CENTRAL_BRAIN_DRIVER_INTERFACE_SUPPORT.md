@@ -2044,3 +2044,23 @@ OEM DMS、CarProperty、Vendor NPU 或中间件兼容。
 预留生产接口仍为：可信 Context/DMS publisher、consent authority、durable Event transport adapter、ModelProvider/Vendor NPU adapter
 及其身份/版本/故障/性能证据。`driver_development_triggered=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-P7-R1`。tracking：`DEV-118`、`ISSUE-024/031/046`。
+
+## P4-R2 Client2 Orchestration V1 migration Driver/HAL boundary
+
+本迁移只修改 Android Java SDK client 和 APK secondary dex，不新增 C、JNI、Driver、HAL、PCIe、DMA、IOMMU 或
+Vendor NPU 调用。`IDebugSimulationController` 仍只提供签名保护的工程 Context；正式 Orchestration debug backend
+只调用 build-owned simulated adapters。Client2 不持有 vehicle property/service handle，也不接收原始车辆 payload。
+API 33 x86_64 通过的是应用/Framework debug 闭环，不触发 Driver/HAL 开发；ARM64 目标 Driver/HAL 状态不变。
+
+生产预留接口不变：OEM Vehicle/VHAL/SOA provider、area/permission mapping、Safety/approval owner、reported-state
+readback 和 Vendor NPU provider 必须由目标 SDK/责任人提供后另行实现。`driver_development_triggered=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、
+`client2_android13_x86_64_verified=true`、`client2_android13_arm64_verified=false`、
+`implementation_stage=P4-R2`。tracking：`DEV-119`、`ISSUE-024/030/033`。
+
+## P10-R1 Android repository software completion Driver/HAL Boundary
+
+仓库软件完成未触发新的 Driver/HAL 开发。Vehicle/VHAL/SOA、PCIe NPU、共享 buffer/IOMMU、可信时钟/车辆状态和
+Safety authority 均保留 versioned fail-closed 接口；只有 OEM/Vendor 明确证明公开 SDK 不足并批准最小 gap 后，
+才允许新增 C/C++ Driver/HAL 工作。`driver_development_triggered=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-120`。

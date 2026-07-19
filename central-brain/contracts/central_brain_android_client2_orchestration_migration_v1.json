@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-client2-orchestration-migration-v1",
+  "maturity": "debug_application_integration_implemented",
+  "requirement_ids": [
+    "APP-004", "S2-SCN-001", "S2-GRF-001", "S2-EVT-001",
+    "S2-EFF-001", "S2-SAF-001", "S2-HMI-003", "S2-HMI-006",
+    "XSC-001", "XSC-005", "XSC-006", "DEL-001", "DEL-003", "DEL-004"
+  ],
+  "client2": {
+    "project_version": "0.19.0",
+    "source_set": "debug_reverse_demo",
+    "java_source_count": 19,
+    "generated_debug_aidl_count": 1,
+    "generated_debug_aidl": "com.centralbrain.runtime.simulation.IDebugSimulationController",
+    "legacy_scenario_binder_client_present": false,
+    "copied_scenario_parcelable_present": false
+  },
+  "sequence": [
+    "SessionClient.openSession",
+    "SessionHandle.sessionId",
+    "OrchestrationClient.getSnapshot",
+    "OrchestrationClient.start_when_not_started",
+    "OrchestrationClient.getPlan",
+    "OrchestrationContract.validatePlanForSnapshot",
+    "CockpitHmiReducer",
+    "seven_stage_projection"
+  ],
+  "orchestration": {
+    "interface_version": 1,
+    "execution_profile": "PROFILE_DEBUG_SIMULATION",
+    "resume_reads_before_start": true,
+    "typed_plan_validated": true,
+    "projection_digest_validated_by_sdk": true,
+    "approval_response_bound_to_projection_digest": true,
+    "debug_client2_capability_policy_wired": true,
+    "approval_response_is_grant": false,
+    "release_backend_fail_closed": true
+  },
+  "runtime_alignment": {
+    "non_side_effect_empty_idempotency_recovery_normalized": true,
+    "plan_deadline_bound_to_session": true,
+    "approval_projection_timestamp_stable": true,
+    "effect_readback_capability_bound": true
+  },
+  "validation": {
+    "host_sdk_build_verified": true,
+    "client2_apk_build_verified": true,
+    "legacy_binder_string_absent_from_classes2_dex": true,
+    "android13_x86_64_emulator_executed": true,
+    "android13_arm64_target_executed": false
+  },
+  "claim_state": {
+    "client2_orchestration_sdk_v1_wired": true,
+    "client2_session_before_orchestration": true,
+    "client2_orchestration_resume_read_before_start": true,
+    "client2_orchestration_plan_validated": true,
+    "client2_orchestration_approval_projection_bound": true,
+    "client2_orchestration_debug_capability_policy_wired": true,
+    "client2_legacy_simulated_scenario_binder_used": false,
+    "client2_debug_effect_projection_enabled": true,
+    "client2_debug_readback_projection_enabled": true,
+    "client2_android13_x86_64_verified": true,
+    "client2_android13_arm64_verified": false,
+    "vehicle_bus_accessed": false,
+    "npu_accessed": false,
+    "hardware_accessed": false,
+    "scenario_execution_enabled": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P4-R2"
+  }
+}

@@ -62,15 +62,15 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 
 | Req ID | 要求 | 实现规则 | 当前状态 |
 | --- | --- | --- | --- |
-| APP-001 | 座舱 HMI | 只能经 SDK/Binder 访问 Runtime，不直连模型或车控 | Client2 四阶段、HVAC/Seat、timeline/recovery/restriction 已集成；Runtime 执行闭环待开发 |
+| APP-001 | 座舱 HMI | 只能经 SDK/Binder 访问 Runtime，不直连模型或车控 | Client2 四阶段、HVAC/Seat、七阶段 timeline 与正式 Orchestration debug 闭环已完成；production 车控外部阻塞 |
 | APP-002 | 座舱服务 | 作为受治理 Business/Foundation/Atomic service 暴露 | 外部阻塞 |
-| APP-003 | Agent App | 通过 Session/Plan/Tool/Action/Effect 执行 | Stage 2 待开发 |
+| APP-003 | Agent App | 通过 Session/Plan/Tool/Action/Effect 执行 | Session/Plan/Tool/Action/Effect debug composition 已完成；production authority 外部阻塞 |
 | APP-004 | AI SDK | 提供稳定 typed client facade、异步任务和故障语义 | Android AAR 已实现 |
 | APP-005 | Cluster/TBOX App | 与座舱域按服务合同隔离 | 外部阻塞 |
 | APP-006 | Cluster/TBOX Service | 声明显示、媒体、远控、OTA 边界 | 外部阻塞 |
 | APP-007 | ADAS App | 只读状态或发起受控请求，不进入安全闭环 | 外部阻塞 |
 | APP-008 | ADAS Service | 通过受治理 adapter/Protocol Binding 暴露 | 外部阻塞 |
-| APP-009 | 诊断/标定/Trace App | 必须受身份、capability 和 audit 控制 | 部分实现 |
+| APP-009 | 诊断/标定/Trace App | 必须受身份、capability 和 audit 控制 | 受保护 diagnostics/probe/evidence 软件接口完成；目标标定责任人外部阻塞 |
 | APP-010 | 诊断/标定/Trace Service | 不允许 App 绕过 Runtime 直达底层 | 合同已定义 |
 
 ## 5. Framework 需求
@@ -79,25 +79,25 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 
 | Req ID | 对象 | 必须语义 | 当前状态 |
 | --- | --- | --- | --- |
-| FW-U-001 | Context | 车辆、用户、环境的版本化 snapshot | Stage 2 待开发 |
-| FW-U-002 | State | 服务、模型、车辆状态查询 | diagnostics/readiness 部分实现 |
-| FW-U-003 | Event | publish/subscribe/cursor/overflow/replay | Android bounded + durable cursor 基础完成 |
+| FW-U-001 | Context | 车辆、用户、环境的版本化 snapshot | typed snapshot、freshness/trust 与 debug decision composition 完成；production source 外部阻塞 |
+| FW-U-002 | State | 服务、模型、车辆状态查询 | diagnostics/readiness 软件接口完成；真实车辆状态源外部阻塞 |
+| FW-U-003 | Event | publish/subscribe/cursor/overflow/replay | Event V1/V2、Room cursor/ACK、bounded broker/QoS 软件完成；production middleware 外部阻塞 |
 | FW-U-004 | Action | 所有副作用必须经过 policy/approval/audit | typed governance + effect gate 完成 |
-| FW-U-005 | Service | 统一服务调用和错误 envelope | Stage 2 待接真实 adapter |
-| FW-U-006 | Tool | schema、capability、安全状态和超时 | built-in Skill 合同基础完成 |
+| FW-U-005 | Service | 统一服务调用和错误 envelope | typed contract/error 与 debug adapter composition 完成；真实 adapter 外部阻塞 |
+| FW-U-006 | Tool | schema、capability、安全状态和超时 | Tool/Skill contract、resolver/executor 与 debug composition 完成；production signer/owner 外部阻塞 |
 | FW-U-007 | Permission | 身份来自 Binder，不接受请求体自报权限 | 已实现 |
-| FW-U-008 | Extension | 扩展不得绕过核心语义和治理 | production loader 未实现 |
+| FW-U-008 | Extension | 扩展不得绕过核心语义和治理 | `INTERFACE_ONLY / EXTERNAL_BLOCKED`：注册/签名/治理合同已定义；无可信 signer/lifecycle/sandbox owner，不实现 production loader |
 
 ### 5.2 SOA 服务入口
 
 | Req ID | 服务类 | 实现规则 | 当前状态 |
 | --- | --- | --- | --- |
-| FW-S-001 | Business Service | 场景编排必须生成可审计 plan/effect | Stage 2 待开发 |
+| FW-S-001 | Business Service | 场景编排必须生成可审计 plan/effect | formal Orchestration、typed Plan/Graph/Effect 与 debug audit composition 完成；production authority 外部阻塞 |
 | FW-S-002 | Foundation Service | 账号、配置、时间、权限采用可替换 adapter | 外部阻塞 |
 | FW-S-003 | Atomic Service | 最小 HVAC/Seat/Media/Navigation 能力 | debug/test adapter foundation 已完成；真实服务外部阻塞 |
 | FW-S-004 | Service Contract | IDL/schema/version/error 必须冻结 | typed AIDL 基础完成 |
-| FW-S-005 | Safety State | 强制 interlock，用户确认不能覆盖硬联锁 | owner 未接入 |
-| FW-S-006 | Extension Service | 必须注册、发现、授权、审计和撤销 | 未实现 |
+| FW-S-005 | Safety State | 强制 interlock，用户确认不能覆盖硬联锁 | 软件 fail-closed interlock 完成；可信 Safety/Vehicle authority 外部阻塞 |
+| FW-S-006 | Extension Service | 必须注册、发现、授权、审计和撤销 | `INTERFACE_ONLY / EXTERNAL_BLOCKED`：合同和拒绝路径完成；可信 lifecycle/revoke owner 未提供 |
 
 ## 6. Native 层需求
 
@@ -105,24 +105,24 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 
 | Req ID | 模块 | 实现规则 | 当前状态 |
 | --- | --- | --- | --- |
-| NV-F-001 | AIOS Kernel | Session/Task/Plan/Model/Tool/Memory/Safety 由 Runtime 拥有 | Android Runtime 基础完成 |
+| NV-F-001 | AIOS Kernel | Session/Task/Plan/Model/Tool/Memory/Safety 由 Runtime 拥有 | Android Runtime、durable Session/Graph、Orchestration 与 debug composition 软件完成 |
 | NV-F-002 | Sensor/Actuator | 统一输入输出 adapter，不猜 vendor API | 外部阻塞 |
 | NV-F-003 | Service Adapter | 语义 service 到目标 API 的唯一桥接 | empty/contract |
 | NV-F-004 | Vehicle/Body Signal | BCM/HVAC/Seat/Door/Light 需真实目录和 readback | 外部阻塞 |
 | NV-F-005 | ECU Proxy/Signal Adapter | 需 property/DBC/ARXML/area/error owner | 外部阻塞 |
-| NV-F-006 | Data/Time Sync | 高频数据需时间域和 frame metadata | 未实现 |
+| NV-F-006 | Data/Time Sync | 高频数据需时间域和 frame metadata | canonical timestamp/freshness/quality 语义完成；目标 time-domain/frame producer 外部阻塞 |
 | NV-F-007 | Connected Funcware | TBOX/V2X/OTA/Diag 经 adapter 接入 | 外部阻塞 |
-| NV-F-008 | SOA Runtime | 服务生命周期、超时、取消、健康状态 | 部分实现 |
+| NV-F-008 | SOA Runtime | 服务生命周期、超时、取消、健康状态 | 软件 lifecycle/deadline/cancel/recovery/readiness 完成；production service owner 外部阻塞 |
 | NV-F-009 | Security/Policy Adapter | Safety/zone/ASIL-QM/default-deny | 软件 policy 完成，目标 owner 阻塞 |
 | NV-F-010 | ADAS Funcware | 安全域闭环不由用户态 AIOS 接管 | 非本阶段 |
 | NV-F-011 | Model Runtime Adapter | 抽象 CPU/GPU/NPU/Cloud，受 scheduler/governance 控制 | Provider contract + Vendor empty |
-| NV-F-012 | Observability | trace/metric/audit 不得记录敏感原文 | 软件 snapshot/audit 部分完成 |
+| NV-F-012 | Observability | trace/metric/audit 不得记录敏感原文 | digest-only snapshot/audit、隐私清单和发布证据接口完成；目标测量外部阻塞 |
 
 ### 6.2 Runtime & Governance
 
 | Req ID | 能力 | 实现规则 | 当前状态 |
 | --- | --- | --- | --- |
-| NV-G-001 | Registry | 稳定 ID、版本、owner、health | production registry 待 Stage 2 |
+| NV-G-001 | Registry | 稳定 ID、版本、owner、health | Tool/Skill/Model/adapter registry 软件合同完成；production publisher/owner 外部阻塞 |
 | NV-G-002 | Discovery | App 不硬编码 provider/service 地址 | Binder explicit component 当前受控 |
 | NV-G-003 | Schema/IDL | typed、versioned、checksum/hash | 已实现 |
 | NV-G-004 | QoS | deadline、priority、quota、cancel | scheduler contract 完成 |
@@ -140,7 +140,7 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | NV-P-004 | MQTT | 必须经过 Privacy/Policy；当前不交付 | 非本阶段 |
 | NV-P-005 | REST | 不作为本地 AIOS Runtime binding，不得恢复 Python gateway | Retired |
 | NV-P-006 | DDS | 高频 topic owner/QoS/Driver-HAL 明确后实现 | 外部阻塞 |
-| NV-P-007 | 其他 | 必须登记 schema、identity、QoS 和治理 | 未实现 |
+| NV-P-007 | 其他 | 必须登记 schema、identity、QoS 和治理 | `SUSPENDED / NO_CONFIRMED_BINDING`：未确认其他 binding，不猜测实现 |
 
 ## 7. Kernel/HAL、虚拟化与硬件需求
 
@@ -149,7 +149,7 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | KH-001 | 复用 Android 文件系统、网络和系统服务基础能力 | 不重造 OS |
 | KH-002 | 共享内存和 NPU buffer 需明确 ownership/cache/IOMMU | 外部阻塞 |
 | KH-003 | Drivers 只在明确缺口时新增 | DRV-GAP 文档化，未触发 |
-| KH-004 | 其他底层扩展需单独审批 | 未实现 |
+| KH-004 | 其他底层扩展需单独审批 | `SUSPENDED / REQUIRES_SEPARATE_APPROVAL`；无批准不开发 |
 | KH-005 | 基础 Libs 需锁定版本/ABI/license | Gradle/NDK 依赖受控 |
 | KH-006 | HAL 必须有版本、错误、取消、恢复和安全边界 | NPU/VHAL 合同，未实现真实 HAL |
 | KH-007 | Safety Runtime 是硬联锁 authority | 目标接口未提供 |
@@ -199,20 +199,20 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
 | S2-SES-001 | versioned durable Session | P1-W01/P1-W03 contract、P1-W05 facade/Service、P1-W06 Room v4/process-death recovery 已完成 |
-| S2-CTX-001 | typed Context snapshot | source/freshness/trust |
-| S2-TWN-001 | Vehicle Digital Twin | debug/test only，显式 simulated |
-| S2-SCN-001 | versioned scenario catalog | P1-W02 Plan contract、P2-W05 catalog、P2-W06 resolver、P2-W07 compiler 已完成；Runtime activation 待开发 |
-| S2-GRF-001 | durable Agent Graph | P1-W02 DAG + P3-W01 process-local state machine 已完成；typed executor/checkpoint/Room/recovery 待开发 |
-| S2-SAF-001 | hard safety interlock | P1-W04 Approval/Undo 绑定合同已完成；A user confirmation cannot override this hard interlock；可信 Safety authority 待接入 |
-| S2-EFF-001 | typed Effect lifecycle | P1-W04 intent/observation/approval/undo 合同与状态转换已完成；Service/adapter/持久化待开发 |
-| S2-ADP-001 | adapter registry | source/profile/capability/evidence |
-| S2-TOL-001 | retry/timeout/partial failure | deterministic terminal result |
-| S2-MEM-001 | memory lifecycle | purpose/retention/delete/export |
-| S2-EVT-001 | proactive Event trigger | P1-W03 typed event/replay/callback contract 已完成；durable broker/trigger/consent/rate-limit/DND/policy 待开发 |
-| S2-MDL-001 | model routing | deadline/quota/privacy/provider |
+| S2-CTX-001 | typed Context snapshot | typed source/freshness/trust 与 debug composition 软件完成；production source 外部阻塞 |
+| S2-TWN-001 | Vehicle Digital Twin | debug/test store 与显式 SIMULATED 投影完成；production 禁止 fallback |
+| S2-SCN-001 | versioned scenario catalog | catalog/resolver/compiler + P4-R2 formal debug Orchestration 完成；production publication 外部阻塞 |
+| S2-GRF-001 | durable Agent Graph | typed executor/checkpoint/Room/recovery + P4-R1/P4-R2 composition 完成；production Effect authority 外部阻塞 |
+| S2-SAF-001 | hard safety interlock | fail-closed policy/approval/driver restriction 完成；A user confirmation cannot override this hard interlock；可信 authority 外部阻塞 |
+| S2-EFF-001 | typed Effect lifecycle | intent/observation/approval/undo、durable recovery 与 debug dispatch/readback 完成；production adapter 外部阻塞 |
+| S2-ADP-001 | adapter registry | source/profile/capability/evidence 软件合同与 debug registry 完成；production adapter 外部阻塞 |
+| S2-TOL-001 | retry/timeout/partial failure | deterministic terminal/recovery 软件完成；production owner evidence 外部阻塞 |
+| S2-MEM-001 | memory lifecycle | Working/Profile/Episodic、budget/consent 软件合同与 debug composition 完成；production repository/owner 外部阻塞 |
+| S2-EVT-001 | proactive Event trigger | Event V2、broker/QoS、Trigger/consent/suggestion 软件完成；production middleware/Context owner 外部阻塞 |
+| S2-MDL-001 | model routing | Model V2/router/evaluation/resource admission 与 debug decision composition 完成；Vendor NPU/provider 外部阻塞 |
 | S2-ADP-002 | real vehicle adapter | owner/API/permission/readback/rollback |
-| S2-OBS-001 | trace/metric/audit | no raw user/model/vehicle payload |
-| S2-REL-001 | release/rollback/compatibility | signed manifest + replacement evidence |
+| S2-OBS-001 | trace/metric/audit | no-raw-content 软件 audit/diagnostic/release evidence 接口完成；目标采集外部阻塞 |
+| S2-REL-001 | release/rollback/compatibility | admission/rollback/retest 软件接口完成；量产 signer/installer/replacement evidence 外部阻塞，security campaign 挂起 |
 
 Production adapter registry must return adapter unavailable rather than silently falling back to simulation.
 
@@ -3010,3 +3010,25 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 
 当前 `decision_composition_debug_wired=true`、`decision_composition_android13_arm64_verified=false`、
 `production_decision_composition_wired=false`、`implementation_stage=P6-P7-R1`。tracking：`DEV-118`、`ISSUE-024/031/044/046`。
+
+## P4-R2 Client2 Orchestration V1 migration requirements
+
+1. `APP-004/XSC-001/005/006`：Client2 必须只通过公开 SDK/Binder；不得直接调用 Graph、Effect adapter、NPU 或车辆接口。
+2. `S2-SCN-001/S2-GRF-001`：自然场景必须先创建 owner Session，再以该 Session ID 读取/启动 Orchestration；恢复必须 read-before-start。
+3. `S2-EFF-001/S2-SAF-001`：批准响应必须绑定 session/approval/projection digest，且 response 不等于 trusted grant；release 无 authority 时失败关闭。
+4. `S2-HMI-003/006`：Plan、Graph、Effect、readback 只能来自经 SDK 和 typed Plan 双重校验的 snapshot，不能从按钮点击推断成功。
+5. `DEL-001/003/004`：Client2 只能保留一个当前执行投影路径；历史 `ISimulatedScenarioRuntime` client、复制 Parcelable 和第二 AIDL 生成项必须删除。
+6. `S2-GRF-001/S2-EFF-001`：持久恢复键必须兼容 typed Plan 的可选幂等键；Plan deadline 必须绑定 durable Session；approval digest 必须使用稳定投影时间戳；readback 必须按 capability 的 verify 节点绑定。
+
+当前 `client2_orchestration_sdk_v1_wired=true`、`client2_session_before_orchestration=true`、
+`client2_orchestration_resume_read_before_start=true`、`client2_orchestration_approval_projection_bound=true`、
+`client2_legacy_simulated_scenario_binder_used=false`、`client2_android13_x86_64_verified=true`、
+`client2_android13_arm64_verified=false`、`implementation_stage=P4-R2`。tracking：`DEV-119`、`ISSUE-033`。
+
+## P10-R1 Android repository software completion
+
+所有现行 Req ID 已归入仓库软件完成、外部阻塞、挂起或范围外四类；
+`unclassified_repository_requirement_count=0`。仓库完成只覆盖 Android SDK/Binder/Runtime、Client2 HMI、
+debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle/VHAL/SOA、Vendor NPU、量产签名、
+真实 Safety/identity 或 target qualification。机器基线为
+`central-brain/contracts/central_brain_android_software_completion_v1.json`；tracking：`DEV-120`。

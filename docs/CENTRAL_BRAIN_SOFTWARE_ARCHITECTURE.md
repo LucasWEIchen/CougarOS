@@ -1949,3 +1949,24 @@ Effect authority, routing does not invoke a production provider, and the event b
 Cold's simulated signal and Fatigue's explicit DMS stub are test inputs, not production provenance. The release backend remains fail closed and
 contains no decision-composition class. `decision_composition_debug_wired=true`, `production_decision_composition_wired=false`,
 `hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`. Stage `P6-P7-R1`; tracking `DEV-118`。
+
+## P4-R2 Client2 Orchestration V1 migration architecture
+
+The current Client2 execution path is `Intent View -> CockpitControlCoordinator -> SessionClient -> owner SessionHandle ->
+OrchestrationRuntimeClient -> OrchestrationClient V1 -> Runtime OrchestrationEndpoint -> debug/release backend -> typed Plan and
+OrchestrationSnapshot -> CockpitHmiReducer -> Intent/Context/Plan/Policy/Graph/Effect/Readback UI`. Session/Event remains the durable
+conversation stream; Orchestration is the sole execution projection. The former parallel `ISimulatedScenarioRuntime` path is removed.
+
+The debug backend may compose P5/P6/P7 test boundaries and simulated Effect/readback. Release uses the fail-closed backend and does not
+gain a Client2 execution bypass. `IDebugSimulationController` remains a separate protected test Context input and never authorizes an
+Effect. `client2_orchestration_sdk_v1_wired=true`, `client2_legacy_simulated_scenario_binder_used=false`,
+`client2_android13_x86_64_verified=true`, `client2_android13_arm64_verified=false`, `hardware_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`. The persistence path aligns optional Plan idempotency, Session deadline,
+stable approval digest and per-capability readback semantics before reducer projection. Stage `P4-R2`; tracking `DEV-119`。
+
+## P10-R1 Android repository software completion
+
+The Android application, SDK/Binder, Runtime/Room/Orchestration, Tool/Skill/Memory, Event/Trigger/Consent, Model and evidence-interface
+layers have a complete repository software baseline. Hardware-facing adapters remain deliberately empty and fail closed. The architecture
+therefore reports `repository_software_requirements_complete=true` while retaining `production_ready=false` and
+`target_hardware_validated=false`; OEM/Vendor integration starts only from a separately approved Req-ID contract.

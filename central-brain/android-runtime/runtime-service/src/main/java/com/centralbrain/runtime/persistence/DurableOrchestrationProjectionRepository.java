@@ -127,7 +127,7 @@ public final class DurableOrchestrationProjectionRepository {
                     nodeState(projection.state),
                     projection.attemptCount,
                     plan.deadlineEpochMs,
-                    node.idempotencyKey,
+                    recoveryIdempotencyKey(node),
                     "",
                     node.inputDigest,
                     snapshot.updatedAtEpochMs));
@@ -186,7 +186,7 @@ public final class DurableOrchestrationProjectionRepository {
             PlanNode source = planNodes.remove(projection.nodeId);
             if (row == null || source == null
                     || !row.nodeType.equals(projection.nodeType)
-                    || !row.idempotencyKey.equals(source.idempotencyKey)
+                    || !row.idempotencyKey.equals(recoveryIdempotencyKey(source))
                     || !row.payloadDigest.equals(source.inputDigest)) {
                 throw violation("durable node identity differs from projection");
             }
@@ -289,6 +289,12 @@ public final class DurableOrchestrationProjectionRepository {
             }
         }
         return result;
+    }
+
+    private static String recoveryIdempotencyKey(PlanNode node) {
+        return node.idempotencyKey.isEmpty()
+                ? "recovery:" + node.nodeId
+                : node.idempotencyKey;
     }
 
     private static GraphRunState graphState(int state) {

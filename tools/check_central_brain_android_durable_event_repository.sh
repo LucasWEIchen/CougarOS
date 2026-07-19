@@ -72,15 +72,24 @@ for marker in \
   require_text "$INSTALLER" "$marker"
 done
 
+RUNTIME_SERVICE="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java"
+SESSION_ENDPOINT="central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/session/TransientSessionEndpoint.java"
 for service in \
-  central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainRuntimeService.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainGovernanceService.java \
   central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/CentralBrainDiagnosticService.java; do
   if grep -Fq "DurableEventCursorRepository" "$ROOT_DIR/$service"; then
-    echo "R6A2B durable Event repository must not be wired into production Services" >&2
+    echo "R6A2B durable Event repository escaped the owner-scoped Session Event V2 surface" >&2
     exit 1
   fi
 done
+require_text "$RUNTIME_SERVICE" "DurableEventCursorRepository.create(database, 128, 16, 64)"
+require_text "$SESSION_ENDPOINT" "durableEventCursors.registerSession("
+require_text "$SESSION_ENDPOINT" "durableEventCursors.acknowledgeSessionOwned("
+if grep -Eiq 'InProcessDurableEventBroker|EventBroker[ (]|java[.]net|okhttp|http://|https://|WebSocket' \
+    "$ROOT_DIR/$RUNTIME_SERVICE" "$ROOT_DIR/$SESSION_ENDPOINT"; then
+  echo "Event V2 durable cursor wiring must not activate production middleware" >&2
+  exit 1
+fi
 
 if grep -R -Eiq \
     'java\.net|okhttp|http://|https://|ioctl|sysfs|/dev/|CarPropertyManager|VehicleHal|SocketCAN|SharedMemory' \
