@@ -2,6 +2,7 @@ package com.centralbrain.runtime.orchestration;
 
 import android.os.SystemClock;
 
+import com.centralbrain.runtime.BuildConfig;
 import com.centralbrain.runtime.events.BoundedEventRuntime;
 import com.centralbrain.runtime.events.ContextSourceAdapter;
 import com.centralbrain.runtime.events.CooldownStore;
@@ -12,9 +13,12 @@ import com.centralbrain.runtime.events.TimeContextSourceAdapter;
 import com.centralbrain.runtime.events.TriggerEngine;
 import com.centralbrain.runtime.events.TriggerRule;
 import com.centralbrain.runtime.model.DeterministicStubModelProvider;
+import com.centralbrain.runtime.model.LocalModelProvider;
 import com.centralbrain.runtime.model.ModelContractV2;
 import com.centralbrain.runtime.model.ModelProvider;
 import com.centralbrain.runtime.model.ModelProviderRegistry;
+import com.centralbrain.runtime.model.OllamaEndpointConfig;
+import com.centralbrain.runtime.model.OllamaInferenceEngine;
 import com.centralbrain.runtime.model.PolicyAwareModelRouter;
 import com.centralbrain.runtime.model.TestOnlyModelRouter;
 import com.centralbrain.runtime.scenario.ScenarioCatalog;
@@ -26,7 +30,10 @@ import com.centralbrain.runtime.vehicle.schema.SignalSource;
 import com.centralbrain.runtime.vehicle.schema.SignalTimestamp;
 import com.centralbrain.runtime.vehicle.schema.SignalValue;
 import com.centralbrain.runtime.vehicle.schema.VehicleSignalPath;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -48,7 +55,9 @@ import java.util.function.Supplier;
 final class DebugDecisionCompositionBoundary {
     private static final int MAX_SESSIONS = 16;
     private static final String MODEL_DIGEST = "4".repeat(64);
-    private static final long MODEL_WINDOW_MS = 2_000L;
+    private static final long MODEL_HEALTH_WINDOW_MS = 60_000L;
+    private static final long MODEL_INFERENCE_TIMEOUT_MS = 120_000L;
+    private static final int MAX_MODEL_PROJECTION_BYTES = 16_384;
 
     interface Clock {
         long nowMs();
@@ -61,14 +70,17 @@ final class DebugDecisionCompositionBoundary {
     private final ProactiveConsentPolicy consent;
     private final ModelProviderRegistry modelRegistry;
     private final ManualExecutor modelExecutor = new ManualExecutor();
-    private final DeterministicStubModelProvider modelProvider;
+    private final ModelProvider.ModelSpec modelSpec;
+    private final ModelProvider modelProvider;
     private final TestOnlyModelRouter modelRouter;
+    private final OllamaInferenceEngine ollamaEngine;
+    private final boolean developmentOllama;
     private final BoundedEventRuntime events;
     private final Map<String, Entry> bySession = new LinkedHashMap<>();
 
     DebugDecisionCompositionBoundary(ScenarioCatalog catalog) {
         this(catalog, SystemClock::elapsedRealtime, sequence("decision-subscription-"),
-                sequence("decision-lease-"));
+                sequence("decision-lease-"), true);
     }
 
     DebugDecisionCompositionBoundary(
@@ -76,8 +88,18 @@ final class DebugDecisionCompositionBoundary {
             Clock clock,
             Supplier<String> subscriptionIds,
             Supplier<String> leaseIds) {
+        this(catalog, clock, subscriptionIds, leaseIds, false);
+    }
+
+    private DebugDecisionCompositionBoundary(
+            ScenarioCatalog catalog,
+            Clock clock,
+            Supplier<String> subscriptionIds,
+            Supplier<String> leaseIds,
+            boolean developmentOllama) {
         this.catalog = Objects.requireNonNull(catalog, "catalog");
         this.clock = Objects.requireNonNull(clock, "clock");
+        this.developmentOllama = developmentOllama;
         triggers = TriggerEngine.createForContractTest(
                 triggerManifest(catalog),
                 CooldownStore.createForContractTest(MAX_SESSIONS * 2),
@@ -87,19 +109,42 @@ final class DebugDecisionCompositionBoundary {
                 clock::nowMs,
                 (mutation, evidence) -> ProactiveConsentPolicy.AuthorityDecision.DENIED);
         modelRegistry = ModelProviderRegistry.createForContractTest();
-        ModelProvider.ModelSpec model = new ModelProvider.ModelSpec(
-                "central-intent-v0", "1", MODEL_DIGEST);
-        modelProvider = new DeterministicStubModelProvider(
-                model, modelExecutor, clock::nowMs);
-        modelProvider.warmup(model);
-        modelRouter = TestOnlyModelRouter.createForContractTest(
-                new InferenceResourceScheduler(
-                        new InferenceResourceScheduler.Limits(8, 4, 2, 1, 10_000),
-                        clock::nowMs,
-                        () -> Objects.requireNonNull(leaseIds, "leaseIds").get(),
-                        Collections.singletonList(
-                                TestOnlyModelRouter.routeTargetForContractTest(modelProvider))),
-                modelProvider);
+        if (developmentOllama) {
+            if (!BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
+                    || !"http://127.0.0.1:11434".equals(BuildConfig.OLLAMA_BASE_URL)) {
+                throw new IllegalStateException("debug Ollama build configuration is invalid");
+            }
+            OllamaEndpointConfig endpoint = OllamaEndpointConfig
+                    .developmentWslAdbReverse(BuildConfig.OLLAMA_MODEL);
+            ollamaEngine = new OllamaInferenceEngine(endpoint);
+            modelSpec = new ModelProvider.ModelSpec(
+                    "central-intent-v0",
+                    "ollama-debug-v1",
+                    digest("ollama-model-spec", endpoint.getModelName()));
+            modelProvider = LocalModelProvider.createForDevelopment(
+                    modelSpec,
+                    ollamaEngine,
+                    modelExecutor,
+                    clock::nowMs,
+                    LocalModelProvider.StreamLimits.defaults());
+            modelRouter = null;
+        } else {
+            ollamaEngine = null;
+            modelSpec = new ModelProvider.ModelSpec(
+                    "central-intent-v0", "1", MODEL_DIGEST);
+            modelProvider = new DeterministicStubModelProvider(
+                    modelSpec, modelExecutor, clock::nowMs);
+            modelRouter = TestOnlyModelRouter.createForContractTest(
+                    new InferenceResourceScheduler(
+                            new InferenceResourceScheduler.Limits(8, 4, 2, 1, 10_000),
+                            clock::nowMs,
+                            () -> Objects.requireNonNull(leaseIds, "leaseIds").get(),
+                            Collections.singletonList(
+                                    TestOnlyModelRouter.routeTargetForContractTest(
+                                            modelProvider))),
+                    modelProvider);
+        }
+        modelProvider.warmup(modelSpec);
         events = BoundedEventRuntime.createForContractTest(
                 new BoundedEventRuntime.Limits(32, MAX_SESSIONS, 4, 8, 8),
                 clock::nowMs,
@@ -146,8 +191,8 @@ final class DebugDecisionCompositionBoundary {
             throw violation("proactive consent boundary did not fail closed");
         }
 
-        ModelEvidence modelEvidence = invokeTestModel(
-                session, requestDigest, contextDigests, suggestion, now);
+        ModelEvidence modelEvidence = invokeModel(
+                session, scenarioId, requestDigest, contextDigests, suggestion, now);
         EventEvidence eventEvidence = publishDecisionEvents(
                 session, requestDigest, modelEvidence, consentDecision);
         String evidenceDigest = digest(
@@ -168,7 +213,11 @@ final class DebugDecisionCompositionBoundary {
                 modelEvidence.outputDigest,
                 eventEvidence.deliveredCount,
                 eventEvidence.lastSequence,
-                "scene.fatigue.assist.v1".equals(scenarioId));
+                "scene.fatigue.assist.v1".equals(scenarioId),
+                modelEvidence.networkAccessed,
+                modelEvidence.assistantDisplayText,
+                modelEvidence.providerId,
+                modelEvidence.latencyMs);
         bySession.put(session.getSessionId(), new Entry(requestDigest, evidence));
         return evidence;
     }
@@ -200,7 +249,7 @@ final class DebugDecisionCompositionBoundary {
                 bySession.size(),
                 completed,
                 triggers.snapshot().getSuggestionCount(),
-                modelRouter.snapshot().getCompletedCount(),
+                modelProvider.metrics().getCompletedCount(),
                 events.snapshot().getActiveSubscriptionCount());
     }
 
@@ -298,25 +347,32 @@ final class DebugDecisionCompositionBoundary {
         return terminal.getSuggestion();
     }
 
-    private ModelEvidence invokeTestModel(
+    private ModelEvidence invokeModel(
             OrchestrationBackend.SessionDescriptor session,
+            String scenarioId,
             String requestDigest,
             List<String> contextDigests,
             TriggerEngine.ScenarioSuggestion suggestion,
             long now) {
+        String providerId = developmentOllama
+                ? ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID
+                : ModelProviderRegistry.DETERMINISTIC_TEST_ID;
+        ModelProviderRegistry.HealthSource healthSource = developmentOllama
+                ? ModelProviderRegistry.HealthSource.LOCAL_DEVELOPMENT_RUNTIME
+                : ModelProviderRegistry.HealthSource.CONTRACT_TEST;
         String healthEvidence = digest("model-health", requestDigest);
         ModelProviderRegistry.PublishResult health = modelRegistry.publishHealth(
                 new ModelProviderRegistry.HealthReport(
-                        ModelProviderRegistry.DETERMINISTIC_TEST_ID,
-                        ModelProviderRegistry.HealthSource.CONTRACT_TEST,
+                        providerId,
+                        healthSource,
                         ModelProviderRegistry.HealthState.HEALTHY,
                         bySession.size() + 1L,
                         now,
-                        now + MODEL_WINDOW_MS,
+                        now + MODEL_HEALTH_WINDOW_MS,
                         healthEvidence),
                 now);
         if (health.getCode() != ModelProviderRegistry.PublishCode.UPDATED) {
-            throw violation("test model health publication failed closed");
+            throw violation("model health publication failed closed");
         }
         String inputDigest = digest(
                 "model-input", requestDigest, String.join("|", contextDigests),
@@ -325,7 +381,8 @@ final class DebugDecisionCompositionBoundary {
                 "decision." + requestDigest.substring(0, 24),
                 ModelContractV2.Purpose.SCENARIO_REASONING,
                 ModelContractV2.PrivacyClass.INTERNAL,
-                new ModelContractV2.LatencyBudget(1_000),
+                new ModelContractV2.LatencyBudget(
+                        developmentOllama ? MODEL_INFERENCE_TIMEOUT_MS : 1_000),
                 new ModelContractV2.TokenBudget(128, 128, 256),
                 ModelContractV2.RequiredCapability.TEXT_GENERATION,
                 ModelContractV2.FallbackPolicy.NO_FALLBACK,
@@ -334,50 +391,117 @@ final class DebugDecisionCompositionBoundary {
         PolicyAwareModelRouter.RouteDecision route = PolicyAwareModelRouter.decide(
                 modelRequest,
                 new PolicyAwareModelRouter.PolicySnapshot(
-                        PolicyAwareModelRouter.RouteMode.CONTRACT_TEST,
-                        PolicyAwareModelRouter.NetworkPolicy.OFFLINE_ONLY,
-                        PolicyAwareModelRouter.NetworkState.UNAVAILABLE,
+                        developmentOllama
+                                ? PolicyAwareModelRouter.RouteMode.DEVELOPMENT
+                                : PolicyAwareModelRouter.RouteMode.CONTRACT_TEST,
+                        developmentOllama
+                                ? PolicyAwareModelRouter.NetworkPolicy.ALLOW_ANY
+                                : PolicyAwareModelRouter.NetworkPolicy.OFFLINE_ONLY,
+                        developmentOllama
+                                ? PolicyAwareModelRouter.NetworkState.UNMETERED
+                                : PolicyAwareModelRouter.NetworkState.UNAVAILABLE,
                         PolicyAwareModelRouter.ThermalState.NOMINAL,
                         1,
                         256,
                         bySession.size() + 1L,
                         now,
-                        now + MODEL_WINDOW_MS,
+                        now + MODEL_HEALTH_WINDOW_MS,
                         digest("model-policy", requestDigest)),
                 modelRegistry.snapshot(now),
                 now);
         if (route.getCode() != PolicyAwareModelRouter.DecisionCode.SELECTED
-                || !ModelProviderRegistry.DETERMINISTIC_TEST_ID.equals(
-                        route.getPrimaryProviderId())
-                || route.isNetworkAccessed()
-                || route.isNpuAccessed()
-                || route.isHardwareAccessed()) {
+                || !providerId.equals(route.getPrimaryProviderId())
+                || route.isActionAuthorizationGranted()
+                || route.isEffectDispatchRequested()) {
             throw violation("model policy route failed closed");
         }
         RecordingObserver observer = new RecordingObserver();
-        TestOnlyModelRouter.SubmitResult submitted = modelRouter.submit(
-                TestOnlyModelRouter.TrustedRouteRequest.fromRuntimePolicy(
-                        modelRequest.getRequestId(),
-                        session.getOwnerFingerprint(),
-                        "central-intent-v0",
-                        inputDigest,
-                        InferenceResourceScheduler.EffectivePriority.NORMAL,
-                        now + 10_000L,
-                        5_000L,
-                        true),
-                observer);
-        if (!submitted.isDispatched()) {
-            throw violation("test model request was not dispatched");
+        if (developmentOllama) {
+            ollamaEngine.registerScenarioPrompt(inputDigest, scenarioId);
+            ModelProvider.InferenceHandle handle = modelProvider.infer(
+                    new ModelProvider.InferenceRequest(
+                            modelRequest.getRequestId(),
+                            modelSpec.getModelId(),
+                            inputDigest,
+                            now + MODEL_INFERENCE_TIMEOUT_MS,
+                            true),
+                    observer);
+            if (!providerId.equals(handle.getProviderId())) {
+                throw violation("development model provider identity mismatch");
+            }
+        } else {
+            TestOnlyModelRouter.SubmitResult submitted = modelRouter.submit(
+                    TestOnlyModelRouter.TrustedRouteRequest.fromRuntimePolicy(
+                            modelRequest.getRequestId(),
+                            session.getOwnerFingerprint(),
+                            modelSpec.getModelId(),
+                            inputDigest,
+                            InferenceResourceScheduler.EffectivePriority.NORMAL,
+                            now + 10_000L,
+                            5_000L,
+                            true),
+                    observer);
+            if (!submitted.isDispatched()) {
+                throw violation("test model request was not dispatched");
+            }
         }
         modelExecutor.drain();
         if (observer.terminal == null
                 || observer.terminal.getState() != ModelProvider.TerminalState.COMPLETED
                 || observer.terminal.getOutputDigest() == null
-                || observer.chunkCount != 2) {
-            throw violation("test model did not complete deterministically");
+                || observer.chunkCount < 1) {
+            throw violation("model inference did not complete");
+        }
+        if (developmentOllama) {
+            ModelProjection projection = parseModelProjection(
+                    observer.contentBytes(), scenarioId, ollamaEngine.snapshot());
+            return new ModelEvidence(
+                    route.getDecisionDigest(),
+                    observer.terminal.getOutputDigest(),
+                    healthEvidence,
+                    true,
+                    projection.assistantDisplayText,
+                    providerId,
+                    projection.latencyMs);
         }
         return new ModelEvidence(
-                route.getDecisionDigest(), observer.terminal.getOutputDigest(), healthEvidence);
+                route.getDecisionDigest(),
+                observer.terminal.getOutputDigest(),
+                healthEvidence,
+                false,
+                "",
+                "",
+                0L);
+    }
+
+    private static ModelProjection parseModelProjection(
+            byte[] canonicalOutput,
+            String expectedScenarioId,
+            OllamaInferenceEngine.Snapshot engineSnapshot) {
+        try {
+            JsonObject output = JsonParser.parseString(
+                    new String(canonicalOutput, StandardCharsets.UTF_8)).getAsJsonObject();
+            if (!expectedScenarioId.equals(output.get("scenario_id").getAsString())) {
+                throw violation("model projection scenario differs from request");
+            }
+            String reply = output.get("reply").getAsString().trim();
+            if (reply.isEmpty() || reply.length() > 256) {
+                throw violation("model projection reply is outside the bound");
+            }
+            if (engineSnapshot.getCompletedCount() < 1
+                    || engineSnapshot.getLastLatencyMs() < 0L
+                    || engineSnapshot.getLastLatencyMs() > MODEL_INFERENCE_TIMEOUT_MS) {
+                throw violation("model projection latency evidence is invalid");
+            }
+            return new ModelProjection(reply, engineSnapshot.getLastLatencyMs());
+        } catch (RuntimeException failure) {
+            if (failure instanceof IllegalArgumentException
+                    && failure.getMessage() != null
+                    && failure.getMessage().startsWith("CB_DEBUG_DECISION_COMPOSITION:")) {
+                throw failure;
+            }
+            throw violation("validated model output could not be projected");
+        }
     }
 
     private EventEvidence publishDecisionEvents(
@@ -554,6 +678,10 @@ final class DebugDecisionCompositionBoundary {
         private final int deliveredEventCount;
         private final long lastEventSequence;
         private final boolean fatigueSourceStubbed;
+        private final boolean networkAccessed;
+        private final String assistantDisplayText;
+        private final String modelProviderId;
+        private final long modelLatencyMs;
 
         private Evidence(
                 String digest,
@@ -564,7 +692,11 @@ final class DebugDecisionCompositionBoundary {
                 String modelOutputDigest,
                 int deliveredEventCount,
                 long lastEventSequence,
-                boolean fatigueSourceStubbed) {
+                boolean fatigueSourceStubbed,
+                boolean networkAccessed,
+                String assistantDisplayText,
+                String modelProviderId,
+                long modelLatencyMs) {
             this.digest = digest;
             this.contextObservationCount = contextObservationCount;
             this.suggestionDigest = suggestionDigest;
@@ -574,6 +706,10 @@ final class DebugDecisionCompositionBoundary {
             this.deliveredEventCount = deliveredEventCount;
             this.lastEventSequence = lastEventSequence;
             this.fatigueSourceStubbed = fatigueSourceStubbed;
+            this.networkAccessed = networkAccessed;
+            this.assistantDisplayText = assistantDisplayText;
+            this.modelProviderId = modelProviderId;
+            this.modelLatencyMs = modelLatencyMs;
         }
 
         String getDigest() { return digest; }
@@ -587,7 +723,10 @@ final class DebugDecisionCompositionBoundary {
         boolean isFatigueSourceStubbed() { return fatigueSourceStubbed; }
         boolean isAutoExecutionAuthorized() { return false; }
         boolean isProductionAuthority() { return false; }
-        boolean isNetworkAccessed() { return false; }
+        boolean isNetworkAccessed() { return networkAccessed; }
+        String getAssistantDisplayText() { return assistantDisplayText; }
+        String getModelProviderId() { return modelProviderId; }
+        long getModelLatencyMs() { return modelLatencyMs; }
         boolean isNpuAccessed() { return false; }
         boolean isHardwareAccessed() { return false; }
     }
@@ -644,12 +783,36 @@ final class DebugDecisionCompositionBoundary {
         private final String routeDigest;
         private final String outputDigest;
         private final String healthEvidenceDigest;
+        private final boolean networkAccessed;
+        private final String assistantDisplayText;
+        private final String providerId;
+        private final long latencyMs;
 
         private ModelEvidence(
-                String routeDigest, String outputDigest, String healthEvidenceDigest) {
+                String routeDigest,
+                String outputDigest,
+                String healthEvidenceDigest,
+                boolean networkAccessed,
+                String assistantDisplayText,
+                String providerId,
+                long latencyMs) {
             this.routeDigest = routeDigest;
             this.outputDigest = outputDigest;
             this.healthEvidenceDigest = healthEvidenceDigest;
+            this.networkAccessed = networkAccessed;
+            this.assistantDisplayText = assistantDisplayText;
+            this.providerId = providerId;
+            this.latencyMs = latencyMs;
+        }
+    }
+
+    private static final class ModelProjection {
+        private final String assistantDisplayText;
+        private final long latencyMs;
+
+        private ModelProjection(String assistantDisplayText, long latencyMs) {
+            this.assistantDisplayText = assistantDisplayText;
+            this.latencyMs = latencyMs;
         }
     }
 
@@ -683,15 +846,25 @@ final class DebugDecisionCompositionBoundary {
     private static final class RecordingObserver implements ModelProvider.StreamObserver {
         private ModelProvider.TerminalResult terminal;
         private int chunkCount;
+        private final ByteArrayOutputStream content = new ByteArrayOutputStream();
 
         @Override
         public void onChunk(ModelProvider.StreamChunk chunk) {
+            byte[] bytes = chunk.getContent();
+            if (content.size() + bytes.length > MAX_MODEL_PROJECTION_BYTES) {
+                throw violation("model projection exceeds the bounded envelope");
+            }
+            content.write(bytes, 0, bytes.length);
             chunkCount++;
         }
 
         @Override
         public void onTerminal(ModelProvider.TerminalResult result) {
             terminal = result;
+        }
+
+        private byte[] contentBytes() {
+            return content.toByteArray();
         }
     }
 

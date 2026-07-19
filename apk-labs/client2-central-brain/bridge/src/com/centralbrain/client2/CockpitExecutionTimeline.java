@@ -328,8 +328,11 @@ public final class CockpitExecutionTimeline {
                 Phase.PLAN,
                 Status.PUBLISHED,
                 "PLAN_REV_" + simulated.getPlanRevision(),
-                "ORCHESTRATION_V1",
-                "GRAPH_REV_" + simulated.getGraphRevision());
+                simulated.isModelInferenceCompleted()
+                        ? simulated.getModelProviderId() : "ORCHESTRATION_V1",
+                simulated.isModelInferenceCompleted()
+                        ? "MODEL_OK_" + simulated.getModelLatencyMs() + "MS"
+                        : "GRAPH_REV_" + simulated.getGraphRevision());
 
         CockpitExecutionTimeline.Status policyStatus =
                 simulated.getLifecycle()

@@ -2919,3 +2919,18 @@ recovery key、stable approval projection 与 capability-bound readback 的运�
 目标车辆 adapter、Vendor NPU、production signer/installer、72h/性能/驾驶安全和 replacement-release 证据不在本次
 仓库完成声明内。`repository_software_requirements_complete=true`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-120`。
+
+## P7-R2 WSL Ollama development delivery
+
+交付新增：固定端点配置、debug `OllamaInferenceEngine`、受限 network security config、ADB reverse 工具、
+独立 debug model projection Binder、Client2 真实回复显示、机器合同与静态门禁。冻结的 Orchestration V1 不变，
+release 不包含该 debug Service。开发包必须使用
+`qwen3.5:27b-optimized` 和 `127.0.0.1:11434`；release 包固定 `169.254.208.110:11434` 但 Provider 不启用。
+
+API 33 ARM64 已完成模型调用和终态 schema 验证；最终独立 debug projection 已完成 host/build 验证，
+因本轮 ADB 设备数为 0 待 ARM64 复测。量产交付仍缺 P7-R3 Provider、模型 artifact、
+NPU/resource/thermal evidence、生产网络风险批准和目标 release qualification。
+`development_android13_arm64_verified=true`、`production_provider_implemented=false`、
+`development_projection_android13_arm64_verified=false`、
+`production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-121/ISSUE-024/044`；stage `P7-R2`。

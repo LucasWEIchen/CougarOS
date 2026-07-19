@@ -604,6 +604,12 @@ public final class CentralBrainRuntimeService extends Service {
                 + modelRuntimeReadiness.isProductionModelRouterDispatchEnabled());
         writer.println("ollama_android_provider_configured="
                 + modelRuntimeReadiness.isOllamaAndroidProviderConfigured());
+        writer.println("ollama_development_gateway_enabled="
+                + BuildConfig.OLLAMA_DEVELOPMENT_ENABLED);
+        writer.println("ollama_endpoint_profile="
+                + (BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
+                        ? "development_wsl_adb_reverse" : "production_link_local"));
+        writer.println("ollama_release_provider_enabled=false");
         writer.println("model_runtime_activation_blockers="
                 + modelRuntimeReadiness.getBlockersCsv());
         writer.println("event_runtime_readiness_snapshot_wired=true");

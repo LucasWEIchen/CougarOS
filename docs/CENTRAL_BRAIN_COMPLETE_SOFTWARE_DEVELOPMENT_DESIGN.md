@@ -5385,3 +5385,28 @@ production signing/system ownership, or target-owner evidence. The completion co
 all external activation paths fail closed. It does not change production or target claims: `production_ready=false` and
 `target_hardware_validated=false`. Engineers must add any future target integration as a new Req-ID-traceable contract rather than
 silently replacing an empty adapter.
+
+## P7-R2 Ollama Model Gateway Detailed Module Design
+
+The debug execution path is `Client2 -> SessionClient -> OrchestrationClient ->
+DebugSimulatedOrchestrationBackend -> DebugDecisionCompositionBoundary -> PolicyAwareModelRouter ->
+LocalModelProvider -> OllamaInferenceEngine -> ADB reverse -> WSL Ollama`.
+
+The engine owns HTTP serialization and response validation. The decision boundary owns provider health publication, route policy,
+request deadline, scenario-to-prompt registration and evidence composition. It captures only the canonical validated provider chunk,
+extracts bounded display text, and binds output digest/provider/latency to decision evidence. The Orchestration backend publishes those
+fields to a 16-entry process-local `DevelopmentModelProjectionStore`; the owner-scoped debug Binder returns a digest-bound parcel only
+after signature/capability/Room-owner checks. Frozen Orchestration V1 is unchanged. Client2's `OrchestrationRuntimeClient` validates
+both independent responses, creates immutable
+`CockpitSimulatedScenarioState`, and the sole `CockpitHmiReducer` updates reply text and Plan timeline.
+
+Persistence excludes model display text. Room receives fixed orchestration detail code and projection digest only; Client2's text-free
+checkpoint also excludes the reply. Engine failure stops orchestration before simulated Effects begin. Model action IDs are validated
+proposals; the fixed Scenario Plan remains catalog-owned in P7-R2.
+
+The development HTTP/model/schema path is complete on API 33 ARM64. The final independent debug projection is software-complete and
+host/build verified; its API 33 ARM64 retest is pending because Windows ADB currently reports zero devices. Production design freezes
+`169.254.208.110:11434`, variant-specific network policy and the same
+bounded schema, but release Provider, health/resource owners, model artifact, target NPU validation and governed model-to-compiler
+composition are `P7-R3 PLANNED`. Full details are in `CENTRAL_BRAIN_OLLAMA_MODEL_GATEWAY.md`.
+`production_ready=false`, `target_hardware_validated=false`; tracking `DEV-121`, `ISSUE-024/044`.

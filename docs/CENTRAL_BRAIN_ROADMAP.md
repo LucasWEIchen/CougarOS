@@ -1815,6 +1815,27 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+## 2026-07-19 P7-R2 WSL Ollama development gateway
+
+状态：`SOFTWARE_COMPLETE / GATEWAY_ANDROID13_ARM64_VERIFIED / PROJECTION_RETEST_PENDING`。Android debug Runtime 已通过固定
+`127.0.0.1:11434`、ADB reverse 和 WSL Ollama 实际调用 `qwen3.5:27b-optimized`。响应经过 JSON Schema、
+scenario binding、reply bound 和 action allowlist 后，以独立 debug-only、owner-scoped 且不落库的
+`DevelopmentModelProjection` Binder 投影到 Client2；冻结 Orchestration V1 hash 保持不变。该最终独立 Binder 已通过
+host/build/variant 隔离验证，但本轮 Windows ADB 返回 0 台设备，Android 13 ARM64 复测待设备上线。已有网关实机观测推理耗时
+43,739 ms，Ollama processor 为 `90%/10% CPU/GPU`。
+
+量产端点合同冻结为 `169.254.208.110:11434`，release 网络策略只放行该 host，但 release Provider 仍禁用、
+模型名为 `UNCONFIGURED`。下一工作包 `P7-R3` 是量产 Provider/health/resource owner、模型版本和目标 NPU 证据；
+在完成前不得提升 production/target 状态。模型 action 当前仅为 proposal，固定场景 Plan 仍由 catalog 拥有。
+
+Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`XSC-001/005/006`、
+`DEL-001/003/004/005`；tracking：`DEV-121`、`ISSUE-024/044`。
+`development_wsl_gateway_implemented=true`、`development_android13_arm64_verified=true`、
+`development_projection_host_verified=true`、`development_projection_android13_arm64_verified=false`、
+`production_endpoint_contract_defined=true`、`production_provider_implemented=false`、
+`production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P7-R2`。
+
 ## P10-R1 Android repository software completion
 
 S2-P0..P7 的仓库软件工作已完成；S2-P8 为 OEM/Vendor/车辆/NPU 外部适配，S2-P9 已完成软件合同和

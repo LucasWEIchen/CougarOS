@@ -31,6 +31,15 @@
                 <action android:name="com.centralbrain.runtime.action.BIND_SIMULATED_SCENARIO_RUNTIME" />
             </intent-filter>
         </service>
+        <service
+            android:name=".model.DevelopmentModelProjectionService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.centralbrain.permission.BIND_RUNTIME">
+            <intent-filter>
+                <action android:name="com.centralbrain.runtime.action.DEVELOPMENT_MODEL_PROJECTION" />
+            </intent-filter>
+        </service>
         <activity
             android:name=".scenario.SimulatedScenarioCompositionProbeActivity"
             android:excludeFromRecents="true"

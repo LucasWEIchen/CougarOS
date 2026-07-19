@@ -1368,3 +1368,19 @@ ISSUE-033 保持 `Open / External Integration`：尚缺 OEM production Client2 b
 本文件保留的 Open 项均需要 OEM/Vendor、车辆/NPU、量产 signer/系统 owner、产品/隐私/Safety owner 或目标证据；
 `ISSUE-050` 明确 Suspended。该结论不关闭外部风险，`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-120`。
+
+## P7-R2 Ollama gateway update (ISSUE-024/044)
+
+已关闭 ISSUE-024 的“开发演示仍只调用 deterministic model stub”子项。Android 13 ARM64 已通过 ADB reverse 实际调用
+WSL `qwen3.5:27b-optimized`，结构化 response 和 scenario/action allowlist 已完成实机验证。最终 Client2 回复链已改为
+独立 debug Binder，JVM/build/variant 隔离通过；冻结 Orchestration V1 未修改，release 未发布该 Service，模型文本不落库。
+本轮 Windows ADB 返回 0 台设备，因此最终独立 Binder 的 Android 13 ARM64 复测保持未完成。
+
+ISSUE-024 保持 Open：`169.254.208.110` 的 production Provider、量产模型/artifact owner、Ollama/NPU health、目标性能、
+链路安全接受和真实 NPU 证据未完成。ISSUE-044 保持 Open：模型 action 尚未进入受治理 Scenario Compiler，当前固定 Plan 不依赖
+模型 action 集合。下一工作包 `P7-R3`，不得把 WSL CPU/GPU 证据升级为目标 NPU 证据。
+
+`development_android13_arm64_verified=true`、`production_endpoint_contract_defined=true`、
+`development_projection_android13_arm64_verified=false`、
+`production_provider_implemented=false`、`production_npu_validated=false`、`production_ready=false`、
+`target_hardware_validated=false`；tracking：`DEV-121`；stage `P7-R2`。

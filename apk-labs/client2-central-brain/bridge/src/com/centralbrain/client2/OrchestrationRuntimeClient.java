@@ -6,8 +6,10 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.centralbrain.sdk.DevelopmentModelProjectionClient;
 import com.centralbrain.sdk.OrchestrationClient;
 import com.centralbrain.sdk.effect.EffectContract;
+import com.centralbrain.sdk.model.DevelopmentModelProjection;
 import com.centralbrain.sdk.orchestration.ApprovalResponse;
 import com.centralbrain.sdk.orchestration.ICentralBrainOrchestration;
 import com.centralbrain.sdk.orchestration.OrchestrationContract;
@@ -67,6 +69,7 @@ public final class OrchestrationRuntimeClient implements
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService binderExecutor = Executors.newSingleThreadExecutor();
     private final OrchestrationClient client;
+    private final DevelopmentModelProjectionClient modelProjectionClient;
 
     private PendingStart pendingStart;
     private OrchestrationSnapshot latestSnapshot;
@@ -85,6 +88,31 @@ public final class OrchestrationRuntimeClient implements
                 appContext,
                 command -> mainHandler.post(command),
                 this);
+        modelProjectionClient = new DevelopmentModelProjectionClient(
+                appContext,
+                command -> mainHandler.post(command),
+                new DevelopmentModelProjectionClient.ConnectionListener() {
+                    @Override
+                    public void onConnected(
+                            DevelopmentModelProjectionClient connectedClient,
+                            boolean reconnected) {
+                        Log.i(TAG, "client2_development_model_projection_connected=true"
+                                + " reconnected=" + reconnected
+                                + " debug_only=true");
+                    }
+
+                    @Override
+                    public void onDisconnected() {
+                        Log.w(TAG, "client2_development_model_projection_connected=false"
+                                + " reason=DISCONNECTED");
+                    }
+
+                    @Override
+                    public void onConnectionFailed(String code) {
+                        Log.w(TAG, "client2_development_model_projection_connected=false"
+                                + " reason=" + code);
+                    }
+                });
     }
 
     public void connect() {
@@ -95,6 +123,7 @@ public final class OrchestrationRuntimeClient implements
         }
         post(() -> callback.onSimulatedRuntimeAvailability(false, "CONNECTING"));
         try {
+            modelProjectionClient.connect();
             if (!client.connect()) {
                 failAvailability("CB_ORCHESTRATION_BIND_REJECTED");
             }
@@ -279,6 +308,7 @@ public final class OrchestrationRuntimeClient implements
             int approvalIncrement) throws RemoteException {
         ScenarioPlan plan = client.getPlan(start.sessionId);
         OrchestrationContract.validatePlanForSnapshot(plan, snapshot);
+        DevelopmentModelProjection modelProjection = readModelProjection(start, snapshot);
         CockpitSimulatedScenarioState.Projection projection;
         synchronized (this) {
             if (closed || start.generation != generation) {
@@ -289,6 +319,7 @@ public final class OrchestrationRuntimeClient implements
                     start.uiScenarioId,
                     start.drivingProfile,
                     snapshot,
+                    modelProjection,
                     approvalInputCount);
             pendingStart = null;
             latestSnapshot = snapshot;
@@ -300,6 +331,9 @@ public final class OrchestrationRuntimeClient implements
                 + " plan_revision=" + snapshot.planRevision
                 + " graph_revision=" + snapshot.graphRevision
                 + " effect_count=" + length(snapshot.effects)
+                + " model_projection_available=" + (modelProjection != null)
+                + " model_latency_ms="
+                + (modelProjection == null ? 0L : modelProjection.latencyMs)
                 + " simulated_only=true"
                 + " hardware_accessed=false"
                 + " raw_payload_logged=false");
@@ -328,6 +362,7 @@ public final class OrchestrationRuntimeClient implements
             String uiScenarioId,
             String drivingProfile,
             OrchestrationSnapshot snapshot,
+            DevelopmentModelProjection modelProjection,
             int approvalInputCount) {
         if (snapshot == null
                 || snapshot.planId == null
@@ -346,6 +381,11 @@ public final class OrchestrationRuntimeClient implements
         }
         if (snapshot.graphRevision > CockpitSimulatedScenarioState.MAX_REVISION) {
             throw new IllegalArgumentException("Client2 orchestration graph revision overflow");
+        }
+        if (modelProjection != null
+                && (!snapshot.sessionId.equals(modelProjection.sessionId)
+                        || !snapshot.scenarioId.equals(modelProjection.scenarioId))) {
+            throw new IllegalArgumentException("Client2 model projection binding mismatch");
         }
         OrchestrationNode[] nodes = snapshot.nodes == null
                 ? new OrchestrationNode[0] : snapshot.nodes;
@@ -398,7 +438,37 @@ public final class OrchestrationRuntimeClient implements
                 Math.min(readbackAttempts, CockpitSimulatedScenarioState.MAX_EFFECT_COUNT),
                 Math.min(readbackMatches, readbackAttempts),
                 approvalInputCount,
-                Math.min(failures, CockpitSimulatedScenarioState.MAX_EFFECT_COUNT));
+                Math.min(failures, CockpitSimulatedScenarioState.MAX_EFFECT_COUNT),
+                modelProjection == null ? "" : modelProjection.assistantDisplayText,
+                modelProjection == null ? "" : modelProjection.providerId,
+                modelProjection != null,
+                modelProjection == null ? 0L : modelProjection.latencyMs);
+    }
+
+    private DevelopmentModelProjection readModelProjection(
+            PendingStart start,
+            OrchestrationSnapshot snapshot) {
+        if (!modelProjectionClient.isConnected()) {
+            Log.w(TAG, "client2_development_model_projection_available=false"
+                    + " reason=NOT_CONNECTED");
+            return null;
+        }
+        try {
+            DevelopmentModelProjection projection =
+                    modelProjectionClient.getOwnProjection(start.sessionId);
+            if (projection != null && !snapshot.scenarioId.equals(projection.scenarioId)) {
+                throw new IllegalArgumentException("model projection scenario mismatch");
+            }
+            return projection;
+        } catch (RemoteException failure) {
+            Log.w(TAG, "client2_development_model_projection_available=false"
+                    + " reason=REMOTE");
+            return null;
+        } catch (RuntimeException failure) {
+            Log.w(TAG, "client2_development_model_projection_available=false"
+                    + " reason=CONTRACT");
+            return null;
+        }
     }
 
     private static String pendingTarget(
@@ -612,6 +682,7 @@ public final class OrchestrationRuntimeClient implements
             latestSnapshot = null;
         }
         client.close();
+        modelProjectionClient.close();
         binderExecutor.shutdownNow();
         mainHandler.removeCallbacksAndMessages(null);
     }

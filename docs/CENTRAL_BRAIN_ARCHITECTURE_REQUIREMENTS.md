@@ -3032,3 +3032,20 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle/VHAL/SOA、Vendor NPU、量产签名、
 真实 Safety/identity 或 target qualification。机器基线为
 `central-brain/contracts/central_brain_android_software_completion_v1.json`；tracking：`DEV-120`。
+
+## P7-R2 Ollama Model Gateway Requirements
+
+1. `S2-MDL-001/XSC-001`：上层只能依赖 `ModelProvider`；开发/量产端点必须由 build-owned profile 固定，调用方不得传 URL。
+2. `S2-MDL-001`：开发端点固定为 `127.0.0.1:11434/api/chat`，只允许通过显式 ADB reverse 到 WSL Ollama。
+3. `S2-MDL-001`：量产端点固定为 `169.254.208.110:11434/api/chat`；P7-R2 只冻结合同，不启用 release Provider。
+4. `S2-SAF-001`：响应必须校验 HTTP/model/done、strict JSON、scenario、reply bound、action count 和 action allowlist；模型不得授权 Effect。
+5. `S2-SAF-001/XSC-005/006`：默认禁止明文；debug 只放行 `127.0.0.1`，release 只放行 `169.254.208.110`；禁止 redirect 和任意 host override。
+6. `S2-OBS-001/XSC-006`：prompt/response 不得写日志；reply 只允许由 SDK debug source set 中独立、owner-scoped
+   `ICentralBrainDevelopmentModelProjection` 瞬时投影，不得修改冻结 Orchestration V1，不得进入 Room 或 Client2 checkpoint；release 不得发布该 Service。
+7. `DEL-001/003/004/005`：必须有 JVM、静态门禁、机器合同、APK 构建和 Android 13 ARM64 实际模型调用证据。
+8. 模型 action 在 P7-R2 中是 proposal；Scenario Catalog/Compiler/Policy/Safety 仍拥有 Plan 和 Effect 权限。
+
+当前 `development_wsl_gateway_implemented=true`、`development_android13_arm64_verified=true`、
+`production_endpoint_contract_defined=true`、`production_provider_implemented=false`、
+`production_npu_validated=false`、`implementation_stage=P7-R2`。P10-R1 是此前范围基线；新增 P7-R3 已明确归类为
+`PLANNED`，不再使用“当前全部开发完成”描述扩展后的范围。tracking：`DEV-121`、`ISSUE-024/044`。

@@ -2064,3 +2064,16 @@ readback 和 Vendor NPU provider 必须由目标 SDK/责任人提供后另行实
 Safety authority 均保留 versioned fail-closed 接口；只有 OEM/Vendor 明确证明公开 SDK 不足并批准最小 gap 后，
 才允许新增 C/C++ Driver/HAL 工作。`driver_development_triggered=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-120`。
+
+## P7-R2 Ollama Gateway Driver/HAL Boundary
+
+开发链使用 Android `INTERNET` permission、Java `HttpURLConnection` 和 ADB reverse，不需要新增 C/C++、Kernel、PCIe、
+Vendor HAL 或系统修改，`driver_development_triggered=false`。WSL Ollama 的 CPU/GPU 运行不通过 Android Driver/HAL。
+
+量产地址 `169.254.208.110:11434` 当前定义为应用层固定 link-local HTTP 接口。若目标设备通过标准 Android 网络栈可达，
+P7-R3 仍不需要修改厂商系统；只有 Vendor 明确要求 PCIe shared buffer、ioctl、IOMMU、专用 daemon 或 NPU runtime ABI 时，
+才根据已冻结的 NPU C ABI/JNI 空接口记录最小新增工作。不得从 IP 可达性推断 NPU 驱动已接入。
+
+`android_standard_network_api_used=true`、`driver_development_triggered=false`、`driver_hal_accessed=false`、
+`production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-121/ISSUE-024`；stage `P7-R2`。

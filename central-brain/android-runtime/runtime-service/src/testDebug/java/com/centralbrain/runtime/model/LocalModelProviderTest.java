@@ -244,8 +244,12 @@ public final class LocalModelProviderTest {
             PolicyAwareModelRouter.RouteMode mode) {
         return new PolicyAwareModelRouter.PolicySnapshot(
                 mode,
-                PolicyAwareModelRouter.NetworkPolicy.OFFLINE_ONLY,
-                PolicyAwareModelRouter.NetworkState.UNAVAILABLE,
+                mode == PolicyAwareModelRouter.RouteMode.DEVELOPMENT
+                        ? PolicyAwareModelRouter.NetworkPolicy.ALLOW_ANY
+                        : PolicyAwareModelRouter.NetworkPolicy.OFFLINE_ONLY,
+                mode == PolicyAwareModelRouter.RouteMode.DEVELOPMENT
+                        ? PolicyAwareModelRouter.NetworkState.UNMETERED
+                        : PolicyAwareModelRouter.NetworkState.UNAVAILABLE,
                 PolicyAwareModelRouter.ThermalState.NOMINAL,
                 10,
                 10_000,

@@ -305,7 +305,11 @@ public final class CockpitHmiReducerTestMain {
                 readbackAttemptCount,
                 readbackMatchCount,
                 approvalInputCount,
-                failureCount);
+                failureCount,
+                "",
+                "",
+                false,
+                0L);
     }
 
     private static void verifyDisplayPolicy() {

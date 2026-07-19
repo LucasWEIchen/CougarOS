@@ -971,6 +971,24 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-121 P7-R2 WSL Ollama is development compute, not the production NPU base
+
+P7-R2 已用 Android 13 ARM64、ADB reverse 和 WSL Ollama 完成真实模型调用，替代了 Client2 主演示链中的 deterministic
+模型桩。该证据证明 HTTP Provider、结构化校验和超时有效，但计算实际发生在 WSL，观测为
+`90%/10% CPU/GPU`，不是 `169.254.208.110` 上的目标 NPU。
+
+模型返回的 action 只做 allowlist proposal 校验；debug 场景仍运行固定 catalog Plan，因此不得声称模型自由生成并控制车辆。
+模型回复通过独立 SDK debug Binder 投影；冻结 Orchestration V1 未修改，release 未发布该 Service。该投影仍是
+process-local 演示证据，不是量产会话、审计或恢复数据。
+最终独立 Binder 仅完成 host/build 验证；本轮 ADB 设备数为 0，Android 13 ARM64 复测未执行。
+量产 endpoint/network policy 已定义，但 release Provider、模型版本、health/resource owner、链路安全批准和目标 NPU 验证均未完成。
+
+状态：`Accepted Temporary`。关闭条件：P7-R3 在目标链路实现 production Provider，冻结模型 artifact/version，接入可信
+resource/thermal health，并完成 target NPU、性能、断链和量产发布证据。tracking：`ISSUE-024/044`。
+`production_provider_implemented=false`、`production_npu_validated=false`、`vehicle_hardware_accessed=false`、
+`development_projection_android13_arm64_verified=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P7-R2`。
+
 ## DEV-120 P10-R1 Android repository software completion
 
 偏差：历史路线图和完成度表把已经完成的软件 composition 仍标为“待开发”，并混淆仓库完成与目标量产完成。
