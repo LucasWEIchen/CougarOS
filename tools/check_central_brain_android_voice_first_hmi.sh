@@ -62,35 +62,35 @@ for marker in \
   'SAFETY_MODE = "INTERFACE_RESERVED"' \
   'hvac_setpoint=' \
   'required action is missing'; do
-  rg -Fq "$marker" "$MODEL_PROMPT"
+  grep -Fq "$marker" "$MODEL_PROMPT"
 done
-rg -Fq 'CockpitModelPrompt' "$OPENCLAW" "$OLLAMA" "$BOUNDARY"
-rg -Fq 'getAdmittedActions' "$BOUNDARY"
-rg -Fq 'modelUnavailableCapabilities' "$BACKEND"
+grep -Fq 'CockpitModelPrompt' "$OPENCLAW" "$OLLAMA" "$BOUNDARY"
+grep -Fq 'getAdmittedActions' "$BOUNDARY"
+grep -Fq 'modelUnavailableCapabilities' "$BACKEND"
 
 for id in \
   centralBrainTiredButton centralBrainColdButton centralBrainLiveTraceScroll \
   centralBrainLiveTraceText centralBrainDriverTemperatureOverlay \
   centralBrainPassengerTemperatureOverlay centralBrainActuatorOverlay \
   centralBrainActuatorFanProgress centralBrainSeatFeedbackRegion centralBrainSeatBack; do
-  rg -Fq "$id" "$LAYOUT"
+  grep -Fq "$id" "$LAYOUT"
 done
-if rg -q 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' "$LAYOUT"; then
+if grep -Eq 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' "$LAYOUT"; then
   echo "legacy multi-stage or manual actuator UI remains exposed" >&2
   exit 1
 fi
-test "$(rg -o 'android:tag="care\.(fatigue|cold)"' "$LAYOUT" | wc -l)" -eq 2
-rg -Fq 'android:layout_width="600.0dp"' "$LAYOUT"
-rg -Fq 'android:layout_height="760.0dp"' "$LAYOUT"
-rg -Fq 'LIVE_TRACE_INTERVAL_MS = 360L' "$COORDINATOR"
-rg -Fq 'MAX_LIVE_TRACE_LINES = 32' "$COORDINATOR"
-rg -Fq 'animateTemperature(26.5f, 28.0f)' "$COORDINATOR"
-rg -Fq 'animateFan(1, 3)' "$COORDINATOR"
-rg -Fq 'animateSeat(15.0f, 30.0f)' "$COORDINATOR"
-rg -Fq 'setVisible(seatFeedbackRegion, fatigue)' "$COORDINATOR"
-rg -Fq 'onPipelineMilestone' "$CLIENT" "$COORDINATOR"
-rg -Fq 'Demo auto-continue · no authority granted' "$CLIENT"
-rg -Fq 'No vehicle-bus evidence' "$CLIENT"
+test "$(grep -Eo 'android:tag="care\.(fatigue|cold)"' "$LAYOUT" | wc -l)" -eq 2
+grep -Fq 'android:layout_width="600.0dp"' "$LAYOUT"
+grep -Fq 'android:layout_height="760.0dp"' "$LAYOUT"
+grep -Fq 'LIVE_TRACE_INTERVAL_MS = 360L' "$COORDINATOR"
+grep -Fq 'MAX_LIVE_TRACE_LINES = 32' "$COORDINATOR"
+grep -Fq 'animateTemperature(26.5f, 28.0f)' "$COORDINATOR"
+grep -Fq 'animateFan(1, 3)' "$COORDINATOR"
+grep -Fq 'animateSeat(15.0f, 30.0f)' "$COORDINATOR"
+grep -Fq 'setVisible(seatFeedbackRegion, fatigue)' "$COORDINATOR"
+grep -Fq 'onPipelineMilestone' "$CLIENT" "$COORDINATOR"
+grep -Fq 'Demo auto-continue · no authority granted' "$CLIENT"
+grep -Fq 'No vehicle-bus evidence' "$CLIENT"
 
 printf '%s\n' \
   'voice_first_hmi_static_contract_verified=true' \
