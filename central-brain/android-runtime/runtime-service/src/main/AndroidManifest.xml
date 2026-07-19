@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
     <permission
         android:name="com.centralbrain.permission.BIND_RUNTIME"
         android:protectionLevel="signature" />
@@ -14,6 +15,7 @@
         android:name=".CentralBrainRuntimeApplication"
         android:allowBackup="false"
         android:label="@string/runtime_service_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true">
         <service
             android:name=".CentralBrainRuntimeService"

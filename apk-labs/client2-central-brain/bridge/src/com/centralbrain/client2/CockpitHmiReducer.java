@@ -214,6 +214,9 @@ public final class CockpitHmiReducer {
                 next.simulatedScenarioState = simulated;
                 next.executionTimeline = current.getExecutionTimeline()
                         .simulatedScenario(simulated);
+                if (simulated.isModelInferenceCompleted()) {
+                    next.assistantDisplayText = simulated.getAssistantDisplayText();
+                }
                 next.surfaceStage = CockpitHmiState.SurfaceStage.EXECUTION;
                 return next.buildNext();
             case SIMULATED_SCENARIO_FAILURE:

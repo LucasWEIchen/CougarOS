@@ -1727,3 +1727,32 @@ The release backend is unchanged. No free text, network, NPU, vehicle bus, Drive
 probe subchecks pass; ARM64 remains pending. State: `decision_composition_debug_wired=true`,
 `decision_composition_android13_arm64_verified=false`, `production_decision_composition_wired=false`, `production_ready=false`,
 `target_hardware_validated=false`. Stage `P6-P7-R1`; tracking `DEV-118`, `ISSUE-024/031/044/046`.
+
+## P7-R2 WSL Ollama development gateway
+
+The debug Orchestration backend now selects `android.local.development`, invokes
+`OllamaInferenceEngine` through `LocalModelProvider`, and sends a bounded `/api/chat` request to
+`http://127.0.0.1:11434`. The device endpoint is reachable only through an explicit
+`adb reverse tcp:11434 tcp:11434` bridge to WSL. The request uses a fixed model, non-streaming
+structured output, a 120-second deadline and scenario-specific action allowlists. Redirects and
+arbitrary endpoint overrides are rejected.
+
+Validated reply text, provider ID and latency are exposed through the owner-scoped debug-only
+`ICentralBrainDevelopmentModelProjection` Service for Client2. The interface, parcel and typed client
+exist only in the SDK debug source set; `OrchestrationSnapshot` V1 and its frozen hash remain unchanged,
+and release does not publish the Service. `DurableOrchestrationProjectionRepository` persists none of
+those fields; logs contain
+only fixed result/failure markers. The main network policy allows only `169.254.208.110`, while the
+debug overlay replaces it with loopback-only cleartext access. Release BuildConfig keeps the
+Provider disabled and the model `UNCONFIGURED`.
+
+API 33 ARM64 evidence invoked `qwen3.5:27b-optimized` successfully in 43,739 ms. This is WSL
+development compute evidence, not target NPU or production vehicle authority. The fixed scenario
+Plan remains catalog-owned; model actions are validated proposals and do not directly dispatch
+Effects. See `docs/CENTRAL_BRAIN_OLLAMA_MODEL_GATEWAY.md` and
+`central-brain/contracts/central_brain_android_ollama_gateway_v1.json`.
+
+`development_wsl_gateway_implemented=true`, `development_android13_arm64_verified=true`,
+`production_endpoint_contract_defined=true`, `production_provider_implemented=false`,
+`production_npu_validated=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P7-R2`. Tracking: `DEV-121`, `ISSUE-024/044`.

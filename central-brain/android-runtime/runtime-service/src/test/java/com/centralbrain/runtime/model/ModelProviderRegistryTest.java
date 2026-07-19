@@ -51,6 +51,7 @@ public final class ModelProviderRegistryTest {
                 ModelContractV2.RequiredCapability.STRUCTURED_SCENARIO_CANDIDATE));
         assertTrue(vendor.getDescriptor().supports(
                 ModelContractV2.RequiredCapability.STRUCTURED_SCENARIO_CANDIDATE));
+        assertTrue(local.getDescriptor().isNetworkRequired());
         assertTrue(first.getProviders().get(1).getDescriptor().isNetworkRequired());
         assertTrue(first.getProviders().get(3).getDescriptor().isHardwareExpected());
         try {

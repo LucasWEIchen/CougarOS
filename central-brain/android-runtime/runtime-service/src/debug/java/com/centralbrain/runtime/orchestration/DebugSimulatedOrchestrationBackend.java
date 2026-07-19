@@ -5,6 +5,7 @@ import android.os.SystemClock;
 
 import com.centralbrain.runtime.graph.AgentGraphRuntime;
 import com.centralbrain.runtime.graph.NodeRunState;
+import com.centralbrain.runtime.model.DevelopmentModelProjectionStore;
 import com.centralbrain.runtime.scenario.ScenarioCatalog;
 import com.centralbrain.runtime.scenario.SimulatedScenarioEffectComposition;
 import com.centralbrain.runtime.scenario.SimulatedScenarioInputFactory;
@@ -145,6 +146,17 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                 started.getRunId(),
                 compositionEvidence,
                 decisionEvidence);
+        if (decisionEvidence.isNetworkAccessed()) {
+            DevelopmentModelProjectionStore.getInstance().publish(
+                    session.getOwnerFingerprint(),
+                    session.getSessionId(),
+                    request.scenarioId,
+                    decisionEvidence.getModelProviderId(),
+                    decisionEvidence.getAssistantDisplayText(),
+                    decisionEvidence.getModelLatencyMs(),
+                    decisionEvidence.getModelOutputDigest(),
+                    System.currentTimeMillis());
+        }
         bySession.put(session.getSessionId(), record);
         return result(record, started);
     }

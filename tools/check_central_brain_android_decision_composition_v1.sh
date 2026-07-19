@@ -38,7 +38,7 @@ for marker in \
   'BoundedEventRuntime.createForContractTest(' \
   'isAutoExecutionAuthorized() { return false; }' \
   'isProductionAuthority() { return false; }' \
-  'isNetworkAccessed() { return false; }' \
+  'isNetworkAccessed() { return networkAccessed; }' \
   'isNpuAccessed() { return false; }' \
   'isHardwareAccessed() { return false; }'; do
   require_text "$BOUNDARY" "$marker"

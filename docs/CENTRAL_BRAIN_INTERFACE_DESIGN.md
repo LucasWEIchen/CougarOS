@@ -4006,7 +4006,8 @@ the canonical Session scenario. All calls are owner-scoped by Runtime Binder ide
 `OrchestrationStartRequest` always uses schema V1, UUID request/session IDs, canonical scenario, explicit
 `PROFILE_DEBUG_SIMULATION`, parked/moving simulation motion and current wall time. `ApprovalResponse` always uses schema V1, UUID
 request ID, current session/approval IDs, current projection digest, approve/reject and current time. No API returns target values,
-user/model text, vehicle payload or an approval grant. Stage `P4-R2`; tracking `DEV-119`, `ISSUE-033`.
+vehicle payload or an approval grant. P7-R2 subsequently adds a bounded ephemeral model display field; it is not an authority or
+persistent payload. Stage `P4-R2`; tracking `DEV-119`, `ISSUE-033`.
 
 Persistence adapters normalize only empty non-side-effect keys to `recovery:<nodeId>`, bind Plan deadline to Session deadline, and preserve
 projection timestamps while state is unchanged. `OrchestrationEffect.STATE_VERIFIED` is the only Client2 readback-match signal; `DELIVERED`
@@ -4017,3 +4018,24 @@ means delivery only. API 33 x86_64 is verified; ARM64, production authority and 
 No repository-owned interface remains undefined. External boundaries continue to return typed unavailable/not-authorized results for
 Vehicle/VHAL/SOA, Vendor NPU, trusted Safety/identity and production release ownership. The completion V1 contract is the authoritative
 classification surface; it never promotes an empty adapter or debug simulation to production capability.
+
+## P7-R2 Ollama Model Gateway Interfaces
+
+`OllamaEndpointConfig` is the only endpoint factory. `developmentWslAdbReverse(model)` resolves
+`http://127.0.0.1:11434/api/chat`; `productionLinkLocal(model)` resolves
+`http://169.254.208.110:11434/api/chat`. Neither API accepts a caller URL. Both use a 3-second connect,
+120-second read and 65,536-byte response bound.
+
+Debug `OllamaInferenceEngine` implements `LocalModelProvider.LocalInferenceEngine`. Input identity remains the digest-only
+`ModelProvider.InferenceRequest`; allowlisted scenario text is registered internally against that digest. The engine returns canonical
+UTF-8 JSON only after model identity, terminal state, scenario, reply and action allowlist validation. Fixed failure codes are
+observable; raw prompt/response is not.
+
+Frozen `OrchestrationSnapshot` V1 is not modified. SDK debug adds the independent
+`ICentralBrainDevelopmentModelProjection` V1 interface and `DevelopmentModelProjection` parcel with
+`sessionId/scenarioId/providerId/assistantDisplayText/latencyMs/outputDigest/projectionDigest/completedAtEpochMs`.
+`DevelopmentModelProjectionContract` bounds and digest-binds the parcel. The debug Service requires the Runtime
+signature permission, `ORCHESTRATION_READ_OWN`, and a Room-confirmed owner match; its process-local store is limited
+to 16 entries and is never durable. Client2 consumes it after validating Orchestration V1. Release AAR/manifest do
+not contain or publish this debug surface. Release BuildConfig remains fail closed with
+`OLLAMA_DEVELOPMENT_ENABLED=false` and `OLLAMA_MODEL=UNCONFIGURED`. Stage `P7-R2`; tracking `DEV-121`, `ISSUE-024/044`.

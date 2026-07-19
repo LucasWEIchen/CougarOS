@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Req IDs: XSC-004/005/006, NV-F-001/011, NV-G-003/006/007,
-# NV-P-002, DEL-001/003/004/005.
+# Req IDs: S2-MDL-001, XSC-004/005/006, NV-F-001/011,
+# NV-G-003/006/007, NV-P-002, DEL-001/003/004/005.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APK_PATH="${1:-$ROOT_DIR/central-brain/android-runtime/runtime-service/build/outputs/apk/debug/runtime-service-debug.apk}"
@@ -82,6 +82,7 @@ verify_elf "x86_64" "Advanced Micro Devices X86-64"
 BADGING="$($AAPT dump badging "$APK_PATH")"
 PERMISSIONS="$($AAPT dump permissions "$APK_PATH")"
 MANIFEST="$($AAPT dump xmltree "$APK_PATH" AndroidManifest.xml)"
+NETWORK_SECURITY="$($AAPT dump xmltree "$APK_PATH" res/xml/network_security_config.xml)"
 PACKAGE_LINE="$(grep -F "package: name='com.centralbrain.runtime'" <<<"$BADGING" | head -n 1)"
 VERSION_CODE="$(sed -n "s/.*versionCode='\([0-9][0-9]*\)'.*/\1/p" <<<"$PACKAGE_LINE")"
 VERSION_NAME="$(sed -n "s/.*versionName='\([^']*\)'.*/\1/p" <<<"$PACKAGE_LINE")"
@@ -96,8 +97,16 @@ grep -Fq "sdkVersion:'33'" <<<"$BADGING" \
   || { echo "Runtime APK minSdk mismatch" >&2; exit 1; }
 grep -Fq "com.centralbrain.runtime.CentralBrainRuntimeApplication" <<<"$MANIFEST" \
   || { echo "Runtime APK process Application owner is missing" >&2; exit 1; }
-if grep -Fq "android.permission.INTERNET" <<<"$PERMISSIONS"; then
-  echo "Runtime APK must not request INTERNET" >&2
+grep -Fq "android.permission.INTERNET" <<<"$PERMISSIONS" \
+  || { echo "Runtime APK must request INTERNET for the bounded model gateway" >&2; exit 1; }
+grep -Fq "android:networkSecurityConfig" <<<"$MANIFEST" \
+  || { echo "Runtime APK network security config is missing" >&2; exit 1; }
+grep -Fq "cleartextTrafficPermitted=(type 0x12)0x0" <<<"$NETWORK_SECURITY" \
+  || { echo "Runtime APK must deny cleartext traffic by default" >&2; exit 1; }
+grep -Fq 'C: "127.0.0.1"' <<<"$NETWORK_SECURITY" \
+  || { echo "Debug Runtime APK must allow only the ADB-reversed Ollama loopback host" >&2; exit 1; }
+if grep -Eq 'C: "(0\.0\.0\.0|localhost|169\.254\.208\.110)"' <<<"$NETWORK_SECURITY"; then
+  echo "Debug Runtime APK contains an unexpected cleartext host" >&2
   exit 1
 fi
 "$APKSIGNER" verify "$APK_PATH"
@@ -106,6 +115,8 @@ echo "native_runtime_apk_verified=true"
 echo "native_runtime_apk_version=$VERSION_NAME"
 echo "native_runtime_apk_abis=arm64-v8a,x86_64"
 echo "native_runtime_process_owner=CentralBrainRuntimeApplication"
+echo "native_runtime_internet_permission=bounded_model_gateway"
+echo "native_runtime_cleartext_host=127.0.0.1"
 echo "native_runtime_dispatch_enabled=false"
 echo "native_vendor_npu_provider_available=false"
 echo "native_hardware_accessed=false"

@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** Typed Session/Event bridge embedded into the isolated Client2 debug APK as classes2.dex. */
 public final class Client2ScenarioBridge {
     private static final String TAG = "CbClient2Session";
-    private static final long DEADLINE_MS = 10_000L;
+    private static final long DEADLINE_MS = 120_000L;
     private static final Object LEGACY_LOCK = new Object();
     private static Submission legacySubmission;
 

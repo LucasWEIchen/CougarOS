@@ -115,12 +115,17 @@ public final class ModelProviderRegistry {
                 throw new IllegalArgumentException(
                         "contract-test availability must remain isolated");
             }
-            if (kind == ProviderKind.CLOUD && !networkRequired) {
-                throw new IllegalArgumentException("cloud provider must declare network dependency");
-            }
-            if (kind != ProviderKind.CLOUD && networkRequired) {
+            if ((kind == ProviderKind.CLOUD
+                    || kind == ProviderKind.ANDROID_LOCAL_DEVELOPMENT)
+                    && !networkRequired) {
                 throw new IllegalArgumentException(
-                        "only the cloud provider may declare network dependency");
+                        "network model providers must declare their dependency");
+            }
+            if (kind != ProviderKind.CLOUD
+                    && kind != ProviderKind.ANDROID_LOCAL_DEVELOPMENT
+                    && networkRequired) {
+                throw new IllegalArgumentException(
+                        "non-network provider cannot declare a network dependency");
             }
             if (kind == ProviderKind.VENDOR_NPU != hardwareExpected) {
                 throw new IllegalArgumentException(
@@ -554,7 +559,7 @@ public final class ModelProviderRegistry {
                 true,
                 false,
                 false,
-                false,
+                true,
                 false));
         catalog.add(new ProviderDescriptor(
                 VENDOR_NPU_PLACEHOLDER_ID,

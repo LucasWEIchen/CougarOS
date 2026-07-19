@@ -39,6 +39,10 @@ public final class CockpitSimulatedScenarioState {
         private final int readbackMatchCount;
         private final int approvalInputCount;
         private final int failureCount;
+        private final String assistantDisplayText;
+        private final String modelProviderId;
+        private final boolean modelInferenceCompleted;
+        private final long modelLatencyMs;
 
         private Projection(
                 String uiScenarioId,
@@ -54,7 +58,11 @@ public final class CockpitSimulatedScenarioState {
                 int readbackAttemptCount,
                 int readbackMatchCount,
                 int approvalInputCount,
-                int failureCount) {
+                int failureCount,
+                String assistantDisplayText,
+                String modelProviderId,
+                boolean modelInferenceCompleted,
+                long modelLatencyMs) {
             this.uiScenarioId = requireScenario(uiScenarioId);
             this.canonicalScenarioId = requireCanonical(
                     this.uiScenarioId, canonicalScenarioId);
@@ -75,6 +83,12 @@ public final class CockpitSimulatedScenarioState {
                     readbackMatchCount, readbackAttemptCount, "readbackMatchCount");
             this.approvalInputCount = count(approvalInputCount, 1, "approvalInputCount");
             this.failureCount = count(failureCount, MAX_EFFECT_COUNT, "failureCount");
+            this.assistantDisplayText = bounded(
+                    assistantDisplayText, 256, "assistantDisplayText");
+            this.modelProviderId = bounded(modelProviderId, 96, "modelProviderId");
+            this.modelInferenceCompleted = modelInferenceCompleted;
+            this.modelLatencyMs = modelLatencyMs;
+            validateModelProjection();
             validateLifecycle();
         }
 
@@ -92,7 +106,11 @@ public final class CockpitSimulatedScenarioState {
                 int readbackAttemptCount,
                 int readbackMatchCount,
                 int approvalInputCount,
-                int failureCount) {
+                int failureCount,
+                String assistantDisplayText,
+                String modelProviderId,
+                boolean modelInferenceCompleted,
+                long modelLatencyMs) {
             return new Projection(
                     uiScenarioId,
                     canonicalScenarioId,
@@ -107,7 +125,27 @@ public final class CockpitSimulatedScenarioState {
                     readbackAttemptCount,
                     readbackMatchCount,
                     approvalInputCount,
-                    failureCount);
+                    failureCount,
+                    assistantDisplayText,
+                    modelProviderId,
+                    modelInferenceCompleted,
+                    modelLatencyMs);
+        }
+
+        private void validateModelProjection() {
+            if (modelLatencyMs < 0L || modelLatencyMs > 120_000L) {
+                throw new IllegalArgumentException("model latency is out of bounds");
+            }
+            if (modelInferenceCompleted) {
+                if (assistantDisplayText.isEmpty()
+                        || !modelProviderId.matches("[a-z][a-z0-9_.-]{2,95}")) {
+                    throw new IllegalArgumentException("completed model projection is incomplete");
+                }
+            } else if (!assistantDisplayText.isEmpty()
+                    || !modelProviderId.isEmpty()
+                    || modelLatencyMs != 0L) {
+                throw new IllegalArgumentException("inactive model projection carries output");
+            }
         }
 
         private void validateLifecycle() {
@@ -140,6 +178,10 @@ public final class CockpitSimulatedScenarioState {
     private final int approvalInputCount;
     private final int failureCount;
     private final String failureCode;
+    private final String assistantDisplayText;
+    private final String modelProviderId;
+    private final boolean modelInferenceCompleted;
+    private final long modelLatencyMs;
 
     private CockpitSimulatedScenarioState(
             boolean runtimeAvailable,
@@ -157,7 +199,11 @@ public final class CockpitSimulatedScenarioState {
             int readbackMatchCount,
             int approvalInputCount,
             int failureCount,
-            String failureCode) {
+            String failureCode,
+            String assistantDisplayText,
+            String modelProviderId,
+            boolean modelInferenceCompleted,
+            long modelLatencyMs) {
         this.runtimeAvailable = runtimeAvailable;
         this.uiScenarioId = bounded(uiScenarioId, 32, "uiScenarioId");
         this.canonicalScenarioId = bounded(canonicalScenarioId, 96, "canonicalScenarioId");
@@ -175,6 +221,11 @@ public final class CockpitSimulatedScenarioState {
         this.approvalInputCount = approvalInputCount;
         this.failureCount = failureCount;
         this.failureCode = bounded(failureCode, 64, "failureCode");
+        this.assistantDisplayText = bounded(
+                assistantDisplayText, 256, "assistantDisplayText");
+        this.modelProviderId = bounded(modelProviderId, 96, "modelProviderId");
+        this.modelInferenceCompleted = modelInferenceCompleted;
+        this.modelLatencyMs = modelLatencyMs;
     }
 
     public static CockpitSimulatedScenarioState initial() {
@@ -198,7 +249,7 @@ public final class CockpitSimulatedScenarioState {
                 Lifecycle.CONNECTING,
                 PendingStage.NONE,
                 "",
-                0, 0, 0, 0, 0, 0, 0, 0, "");
+                0, 0, 0, 0, 0, 0, 0, 0, "", "", "", false, 0L);
     }
 
     CockpitSimulatedScenarioState idle() {
@@ -229,7 +280,11 @@ public final class CockpitSimulatedScenarioState {
                 required.readbackMatchCount,
                 required.approvalInputCount,
                 required.failureCount,
-                "");
+                "",
+                required.assistantDisplayText,
+                required.modelProviderId,
+                required.modelInferenceCompleted,
+                required.modelLatencyMs);
     }
 
     CockpitSimulatedScenarioState failure(String scenarioId, String code) {
@@ -253,7 +308,11 @@ public final class CockpitSimulatedScenarioState {
                 readbackMatchCount,
                 approvalInputCount,
                 Math.max(1, failureCount),
-                bounded(code, 64, "failureCode"));
+                bounded(code, 64, "failureCode"),
+                assistantDisplayText,
+                modelProviderId,
+                modelInferenceCompleted,
+                modelLatencyMs);
     }
 
     CockpitSimulatedScenarioState detached() {
@@ -309,6 +368,10 @@ public final class CockpitSimulatedScenarioState {
     public int getApprovalInputCount() { return approvalInputCount; }
     public int getFailureCount() { return failureCount; }
     public String getFailureCode() { return failureCode; }
+    public String getAssistantDisplayText() { return assistantDisplayText; }
+    public String getModelProviderId() { return modelProviderId; }
+    public boolean isModelInferenceCompleted() { return modelInferenceCompleted; }
+    public long getModelLatencyMs() { return modelLatencyMs; }
 
     public static boolean isSupported(String uiScenarioId) {
         return "care.cold".equals(uiScenarioId) || "care.fatigue".equals(uiScenarioId);
@@ -334,7 +397,11 @@ public final class CockpitSimulatedScenarioState {
                 readbackMatchCount,
                 approvalInputCount,
                 failureCount,
-                nextFailureCode);
+                nextFailureCode,
+                assistantDisplayText,
+                modelProviderId,
+                modelInferenceCompleted,
+                modelLatencyMs);
     }
 
     private static CockpitSimulatedScenarioState empty(
@@ -343,7 +410,7 @@ public final class CockpitSimulatedScenarioState {
             String failureCode) {
         return new CockpitSimulatedScenarioState(
                 available, "", "", "", lifecycle, PendingStage.NONE, "",
-                0, 0, 0, 0, 0, 0, 0, 0, failureCode);
+                0, 0, 0, 0, 0, 0, 0, 0, failureCode, "", "", false, 0L);
     }
 
     private static boolean isTerminal(Lifecycle value) {

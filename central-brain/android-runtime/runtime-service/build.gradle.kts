@@ -23,6 +23,19 @@ android {
         }
     }
 
+    buildTypes {
+        getByName("debug") {
+            buildConfigField("boolean", "OLLAMA_DEVELOPMENT_ENABLED", "true")
+            buildConfigField("String", "OLLAMA_BASE_URL", "\"http://127.0.0.1:11434\"")
+            buildConfigField("String", "OLLAMA_MODEL", "\"qwen3.5:27b-optimized\"")
+        }
+        getByName("release") {
+            buildConfigField("boolean", "OLLAMA_DEVELOPMENT_ENABLED", "false")
+            buildConfigField("String", "OLLAMA_BASE_URL", "\"http://169.254.208.110:11434\"")
+            buildConfigField("String", "OLLAMA_MODEL", "\"UNCONFIGURED\"")
+        }
+    }
+
     buildFeatures {
         aidl = true
         buildConfig = true
