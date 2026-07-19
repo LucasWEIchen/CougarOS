@@ -1814,6 +1814,20 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+### 2026-07-19 P6-P7-R1 Decision composition progress
+
+状态：`DEVELOPED / HOST_AND_API33_X86_VERIFIED / ARM64_PENDING`。P4 debug Orchestration 现把 P6 Context/Trigger/Consent/Event
+和 P7 Registry/Router/Test Provider 组合成固定摘要链，再与 P5 composition digest 共同绑定 Node/Effect evidence。Cold 使用模拟舱温；
+Fatigue DMS 明确使用 build-owned debug stub。Trigger 只生成 suggestion，无 consent grant 时自动执行失败关闭；模型仅为无网络、无
+NPU 的 deterministic test provider；Event 仅 process-local 且终态无活动订阅。
+
+下一项转为 Client2 迁移至正式 SDK/Orchestration 投影。生产 Context/DMS、consent authority、durable Event transport、真实 Model/NPU
+和 ARM64 目标证据继续外部阻塞。Req IDs：`S2-CTX-001`、`S2-EVT-001`、`S2-MDL-001`、`S2-SAF-001`、
+`S2-OBS-001`、`DEL-001/003/004/005`；tracking：`DEV-118`、`ISSUE-024/031/044/046`。
+`decision_composition_debug_wired=true`、`decision_composition_debug_probe_executed=true`、
+`decision_composition_android13_arm64_verified=false`、`production_decision_composition_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P6-P7-R1`。
+
 ### 2026-07-19 P5-R1 Runtime composition progress
 
 状态：`DEVELOPED / HOST_AND_API33_X86_VERIFIED / ARM64_PENDING`。P4-R1 debug Orchestration 现按固定顺序调用 Tool

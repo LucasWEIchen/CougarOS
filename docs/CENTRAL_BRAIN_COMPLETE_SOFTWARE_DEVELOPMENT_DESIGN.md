@@ -5343,3 +5343,19 @@ repeated start/completion are idempotent and conflicting request digests fail cl
 
 The default constructor uses Android elapsed realtime; tests inject a monotonic clock and invocation ID source. Capacity is bounded to
 the existing 16 debug runs. There is no release class or production authority. Stage `P5-R1`; tracking `DEV-117`, `ISSUE-036..044`.
+
+## P6-P7-R1 detailed design: debug decision composition
+
+`DebugDecisionCompositionBoundary.prepare(session, scenarioId, requestDigest)` is the single debug composition entry. It is owner/session
+bounded, idempotent for the same request digest and rejects conflicts. The method adapts Runtime health and injected time for both scenarios;
+Cold additionally adapts a typed SIMULATED cabin-temperature signal, while Fatigue marks its DMS score source as a build-owned stub. A fixed
+`TriggerRule.Manifest` evaluates three observations over 100 ms and requires `SUGGESTED` with both auto-execution and Effect dispatch false.
+
+The suggestion is converted to an exact `AutoExecutionCandidate`; an empty `ProactiveConsentPolicy` must return `NO_ACTIVE_GRANT`. A digest-only
+`ModelRequest` then consumes Context/suggestion digests. `ModelProviderRegistry` accepts only fresh contract-test health,
+`PolicyAwareModelRouter` must select `runtime.provider.deterministic-test`, and `TestOnlyModelRouter` runs the warmed deterministic provider through
+a bounded scheduler/manual executor. Only its output digest is retained. Model-health and consent-decision digests are subscribed/published/
+dispatched/cancelled through `BoundedEventRuntime`; exactly two events are required and no active subscription may remain.
+
+The resulting evidence is combined with P5 evidence using a domain-separated SHA-256 and is passed to every Node/Effect projection. Completion is
+idempotent; close stops the test provider. Release contains no boundary class. Stage `P6-P7-R1`; tracking `DEV-118`, `ISSUE-024/031/044/046`.

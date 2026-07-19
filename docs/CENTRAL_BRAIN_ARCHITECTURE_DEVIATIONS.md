@@ -971,6 +971,17 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-118 P6-P7-R1 debug decision composition is not production AI authority
+
+P6-P7-R1 关闭了 Event/Trigger/Context/Model 软件模块在 debug Orchestration 中互不调用的偏差，但该链只消费 build-owned metadata、
+模拟舱温和疲劳分数 stub。Consent 固定无 grant，Event transport 仅进程内，Model 是 deterministic test provider；其输出摘要不能视为
+自然语言理解、主动场景授权、生产 Event 发布或真实 NPU 推理。
+
+状态：`Accepted Temporary`。关闭条件是 ISSUE-024/031/044/046 发布生产 Context/DMS、consent、model/provider、durable event
+及相关身份/版本/隐私 owner，并在 Android 13 ARM64 目标完成独立证据。当前 `production_decision_composition_wired=false`、
+`decision_composition_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`、`implementation_stage=P6-P7-R1`。
+
 ## DEV-117 P5-R1 debug composition is not production Tool/Skill/Memory authority
 
 P5-R1 关闭了既有 P5 模块彼此不连通的 debug 软件偏差：固定场景执行前现在会完成 Tool contract boundary、Skill

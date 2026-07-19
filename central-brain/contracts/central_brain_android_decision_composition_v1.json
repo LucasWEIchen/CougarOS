@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-decision-composition-v1",
+  "maturity": "debug_decision_composition_implemented",
+  "requirement_ids": [
+    "S2-CTX-001", "S2-EVT-001", "S2-MDL-001", "S2-SAF-001",
+    "S2-OBS-001", "DEL-001", "DEL-003", "DEL-004", "DEL-005"
+  ],
+  "composition": {
+    "orchestration_debug_backend_wired": true,
+    "context_source_adapter_count": 3,
+    "cold_vehicle_context_simulated": true,
+    "fatigue_dms_source_stubbed": true,
+    "trigger_suggestion_only": true,
+    "proactive_consent_fail_closed": true,
+    "model_registry_policy_route_wired": true,
+    "deterministic_test_model_invoked": true,
+    "digest_event_delivery_wired": true,
+    "event_transport_process_local": true,
+    "decision_and_runtime_evidence_bound": true,
+    "terminal_cleanup_wired": true
+  },
+  "authority": {
+    "debug_source_set_only": true,
+    "release_backend_unchanged_fail_closed": true,
+    "proactive_auto_execution_authorized": false,
+    "production_context_authority_wired": false,
+    "production_consent_authority_wired": false,
+    "production_model_invoked": false,
+    "production_event_transport_wired": false
+  },
+  "privacy_and_io": {
+    "free_text_accepted": false,
+    "user_text_persisted": false,
+    "model_text_persisted": false,
+    "network_accessed": false,
+    "npu_accessed": false,
+    "vehicle_bus_accessed": false,
+    "driver_hal_accessed": false
+  },
+  "probe_evidence": {
+    "api_level": 33,
+    "abi": "x86_64",
+    "context_trigger_chain_verified": true,
+    "proactive_consent_fail_closed_verified": true,
+    "deterministic_model_stub_verified": true,
+    "digest_event_delivery_verified": true,
+    "decision_runtime_evidence_bound": true,
+    "decision_terminal_cleanup_verified": true
+  },
+  "claim_state": {
+    "decision_composition_v1_defined": true,
+    "decision_composition_debug_wired": true,
+    "decision_composition_host_tests_verified": true,
+    "decision_composition_debug_probe_available": true,
+    "decision_composition_debug_probe_executed": true,
+    "decision_composition_android13_arm64_verified": false,
+    "production_decision_composition_wired": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P6-P7-R1"
+  }
+}

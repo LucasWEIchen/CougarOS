@@ -43,7 +43,7 @@ done
 
 for marker in \
   'runtimeComposition.prepare(' \
-  'record.compositionEvidence.getDigest()' \
+  'record.boundEvidenceDigest' \
   'runtimeComposition.complete(' \
   'runtimeComposition.close();'; do
   require_text "$BACKEND" "$marker"
