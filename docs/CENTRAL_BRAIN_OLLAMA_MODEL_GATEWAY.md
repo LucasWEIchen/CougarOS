@@ -255,3 +255,14 @@ debug Binder 尚待设备重新上线后复测。
 
 在以上条件完成前，release 中 `OLLAMA_DEVELOPMENT_ENABLED=false`、
 `OLLAMA_MODEL=UNCONFIGURED`，生产模型调用保持失败关闭。
+
+## P7-R3-OC temporary target transition
+
+The current target exposes OpenClaw rather than the planned Ollama HTTP API. `P7-R3-OC` therefore adds a transitional
+OpenClaw target profile without deleting this Ollama design. `ModelProvider`, `ModelRequest`, structured output, policy
+router and Client2 projection remain the stable migration boundary; only endpoint/profile/transport change.
+
+The OpenClaw path is verified on Android 13 ARM64 but is not a production-qualified replacement for this design. Ollama
+migration remains blocked on target endpoint deployment, artifact/health ownership, approved credential/TLS policy and
+release evidence. See `CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`. `direct_npu_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`.

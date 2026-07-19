@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public final class ModelProviderRegistry {
     public static final int SCHEMA_VERSION = 1;
-    public static final int PROVIDER_COUNT = 4;
+    public static final int PROVIDER_COUNT = 5;
     public static final long MAX_HEALTH_VALIDITY_MS = 60_000L;
     public static final String DETERMINISTIC_TEST_ID =
             ModelProviderProfiles.DETERMINISTIC_STUB_ID;
@@ -28,6 +28,8 @@ public final class ModelProviderRegistry {
             ModelProviderProfiles.ANDROID_LOCAL_DEVELOPMENT_ID;
     public static final String VENDOR_NPU_PLACEHOLDER_ID =
             ModelProviderProfiles.VENDOR_NPU_EMPTY_ID;
+    public static final String TARGET_OPENCLAW_TRANSITIONAL_ID =
+            ModelProviderProfiles.TARGET_OPENCLAW_TRANSITIONAL_ID;
     public static final String CLOUD_PLACEHOLDER_ID = "cloud.placeholder";
 
     private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9.:-]{1,128}");
@@ -38,6 +40,7 @@ public final class ModelProviderRegistry {
     public enum ProviderKind {
         DETERMINISTIC_ANDROID_TEST,
         ANDROID_LOCAL_DEVELOPMENT,
+        TARGET_OPENCLAW_TRANSITIONAL,
         VENDOR_NPU,
         CLOUD
     }
@@ -45,6 +48,7 @@ public final class ModelProviderRegistry {
     public enum HealthSource {
         CONTRACT_TEST,
         LOCAL_DEVELOPMENT_RUNTIME,
+        TARGET_OPENCLAW_RUNTIME,
         VENDOR_RUNTIME,
         CLOUD_CONTROL_PLANE
     }
@@ -116,13 +120,15 @@ public final class ModelProviderRegistry {
                         "contract-test availability must remain isolated");
             }
             if ((kind == ProviderKind.CLOUD
-                    || kind == ProviderKind.ANDROID_LOCAL_DEVELOPMENT)
+                    || kind == ProviderKind.ANDROID_LOCAL_DEVELOPMENT
+                    || kind == ProviderKind.TARGET_OPENCLAW_TRANSITIONAL)
                     && !networkRequired) {
                 throw new IllegalArgumentException(
                         "network model providers must declare their dependency");
             }
             if (kind != ProviderKind.CLOUD
                     && kind != ProviderKind.ANDROID_LOCAL_DEVELOPMENT
+                    && kind != ProviderKind.TARGET_OPENCLAW_TRANSITIONAL
                     && networkRequired) {
                 throw new IllegalArgumentException(
                         "non-network provider cannot declare a network dependency");
@@ -372,6 +378,14 @@ public final class ModelProviderRegistry {
                     && healthState == HealthState.HEALTHY;
         }
 
+        public boolean isTargetIntegrationAvailable() {
+            return descriptor.getKind() == ProviderKind.TARGET_OPENCLAW_TRANSITIONAL
+                    && descriptor.isProductionImplementationAvailable()
+                    && !descriptor.isProductionEligible()
+                    && healthFreshness == HealthFreshness.FRESH
+                    && healthState == HealthState.HEALTHY;
+        }
+
         public boolean isRoutingEnabled() {
             return false;
         }
@@ -383,6 +397,7 @@ public final class ModelProviderRegistry {
         private final int contractTestAvailableCount;
         private final int developmentAvailableCount;
         private final int productionReadyCount;
+        private final int targetIntegrationAvailableCount;
 
         private RegistrySnapshot(List<ProviderView> providers, String catalogDigest) {
             this.providers = Collections.unmodifiableList(new ArrayList<>(providers));
@@ -390,6 +405,7 @@ public final class ModelProviderRegistry {
             int testCount = 0;
             int developmentCount = 0;
             int productionCount = 0;
+            int targetIntegrationCount = 0;
             for (ProviderView provider : providers) {
                 if (provider.isContractTestAvailable()) {
                     testCount++;
@@ -400,10 +416,14 @@ public final class ModelProviderRegistry {
                 if (provider.isProductionReady()) {
                     productionCount++;
                 }
+                if (provider.isTargetIntegrationAvailable()) {
+                    targetIntegrationCount++;
+                }
             }
             this.contractTestAvailableCount = testCount;
             this.developmentAvailableCount = developmentCount;
             this.productionReadyCount = productionCount;
+            this.targetIntegrationAvailableCount = targetIntegrationCount;
         }
 
         public int getSchemaVersion() {
@@ -428,6 +448,10 @@ public final class ModelProviderRegistry {
 
         public int getProductionReadyCount() {
             return productionReadyCount;
+        }
+
+        public int getTargetIntegrationAvailableCount() {
+            return targetIntegrationAvailableCount;
         }
 
         public boolean isProductionRoutingEnabled() {
@@ -572,6 +596,19 @@ public final class ModelProviderRegistry {
                 false,
                 false,
                 true));
+        catalog.add(new ProviderDescriptor(
+                TARGET_OPENCLAW_TRANSITIONAL_ID,
+                ProviderKind.TARGET_OPENCLAW_TRANSITIONAL,
+                HealthSource.TARGET_OPENCLAW_RUNTIME,
+                EnumSet.of(
+                        ModelContractV2.RequiredCapability.TEXT_GENERATION,
+                        ModelContractV2.RequiredCapability.SUMMARIZATION),
+                false,
+                false,
+                true,
+                false,
+                true,
+                false));
         catalog.add(new ProviderDescriptor(
                 CLOUD_PLACEHOLDER_ID,
                 ProviderKind.CLOUD,

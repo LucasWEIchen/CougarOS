@@ -17,10 +17,16 @@ export ANDROID_HOME
 export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
 export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.tools/gradle-home}"
 
+GRADLE_PROFILE_ARGS=()
+if [[ "${CENTRAL_BRAIN_TARGET_OPENCLAW:-false}" == true ]]; then
+  GRADLE_PROFILE_ARGS+=("-PcentralBrainTargetOpenClaw=true")
+fi
+
 "$RUNTIME_DIR/gradlew" \
   --project-dir "$RUNTIME_DIR" \
   --no-daemon \
   --stacktrace \
+  "${GRADLE_PROFILE_ARGS[@]}" \
   :native-runtime:testDebugUnitTest \
   :native-runtime:assembleDebug \
   :central-brain-sdk:testDebugUnitTest \
@@ -31,6 +37,13 @@ export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.tools/gradle-home}"
 
 bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_aar.sh"
 bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_apk.sh"
+
+printf 'model_gateway_profile=%s\n' \
+  "$(if [[ "${CENTRAL_BRAIN_TARGET_OPENCLAW:-false}" == true ]]; then
+      printf '%s' target_openclaw_transitional
+    else
+      printf '%s' development_wsl_ollama
+    fi)"
 
 printf '%s\n' \
   "$RUNTIME_DIR/native-runtime/build/outputs/aar/native-runtime-debug.aar" \

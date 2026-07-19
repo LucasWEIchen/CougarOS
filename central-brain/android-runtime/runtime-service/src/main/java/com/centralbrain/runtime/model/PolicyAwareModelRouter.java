@@ -37,6 +37,7 @@ public final class PolicyAwareModelRouter {
     public enum RouteMode {
         CONTRACT_TEST,
         DEVELOPMENT,
+        TARGET_INTEGRATION,
         PRODUCTION
     }
 
@@ -565,6 +566,8 @@ public final class PolicyAwareModelRouter {
                 return provider.isContractTestAvailable();
             case DEVELOPMENT:
                 return provider.isDevelopmentAvailable();
+            case TARGET_INTEGRATION:
+                return provider.isTargetIntegrationAvailable();
             case PRODUCTION:
                 return provider.isProductionReady();
             default:
@@ -584,6 +587,9 @@ public final class PolicyAwareModelRouter {
                     return 0;
                 }
                 return 100 + kind.ordinal();
+            case TARGET_INTEGRATION:
+                return kind == ModelProviderRegistry.ProviderKind.TARGET_OPENCLAW_TRANSITIONAL
+                        ? 0 : 100 + kind.ordinal();
             case PRODUCTION:
                 if (kind == ModelProviderRegistry.ProviderKind.VENDOR_NPU) {
                     return 0;
@@ -638,6 +644,11 @@ public final class PolicyAwareModelRouter {
                 ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID,
                 100,
                 ModelContractV2.PrivacyClass.RESTRICTED,
+                true));
+        addProfile(profiles, new RouteProfile(
+                ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID,
+                100,
+                ModelContractV2.PrivacyClass.INTERNAL,
                 true));
         addProfile(profiles, new RouteProfile(
                 ModelProviderRegistry.VENDOR_NPU_PLACEHOLDER_ID,

@@ -869,10 +869,12 @@ for _ in {1..40}; do
         <<<"$MODEL_REGISTRY_LOG" \
       && grep -Fq "model_provider_placeholder_fail_closed=true" \
         <<<"$MODEL_REGISTRY_LOG" \
-      && grep -Fq "model_provider_count=4" <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_provider_count=5" <<<"$MODEL_REGISTRY_LOG" \
       && grep -Fq "model_contract_test_available_count=1" \
         <<<"$MODEL_REGISTRY_LOG" \
       && grep -Fq "model_development_available_count=1" \
+        <<<"$MODEL_REGISTRY_LOG" \
+      && grep -Fq "model_target_integration_available_count=0" \
         <<<"$MODEL_REGISTRY_LOG" \
       && grep -Fq "model_production_ready_count=0" \
         <<<"$MODEL_REGISTRY_LOG" \
@@ -4575,13 +4577,14 @@ printf '%s\n' \
   "model_contract_v2_android13_arm64_verified=true" \
   "model_provider_registry_defined=true" \
   "model_provider_catalog_verified=true" \
-  "model_provider_count=4" \
+  "model_provider_count=5" \
   "model_provider_health_freshness_verified=true" \
   "model_provider_health_replay_verified=true" \
   "model_provider_availability_separation_verified=true" \
   "model_provider_placeholder_fail_closed=true" \
   "model_contract_test_available_count=1" \
   "model_development_available_count=1" \
+  "model_target_integration_available_count=0" \
   "model_production_ready_count=0" \
   "model_provider_registry_android13_arm64_verified=true" \
   "model_provider_registry_runtime_wired=false" \

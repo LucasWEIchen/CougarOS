@@ -1063,7 +1063,7 @@ quota, privacy policy or fallback selection. This prevents a health publisher fr
 `networkRequired` and `hardwareExpected` are planning metadata, not access evidence. The cloud entry does not open a socket, and the vendor
 entry does not load JNI/NPU. P7-W03 may consume snapshot only after its own privacy/network/resource policy checks.
 
-状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+状态：`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、

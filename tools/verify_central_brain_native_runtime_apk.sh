@@ -104,8 +104,10 @@ grep -Fq "android:networkSecurityConfig" <<<"$MANIFEST" \
 grep -Fq "cleartextTrafficPermitted=(type 0x12)0x0" <<<"$NETWORK_SECURITY" \
   || { echo "Runtime APK must deny cleartext traffic by default" >&2; exit 1; }
 grep -Fq 'C: "127.0.0.1"' <<<"$NETWORK_SECURITY" \
-  || { echo "Debug Runtime APK must allow only the ADB-reversed Ollama loopback host" >&2; exit 1; }
-if grep -Eq 'C: "(0\.0\.0\.0|localhost|169\.254\.208\.110)"' <<<"$NETWORK_SECURITY"; then
+  || { echo "Debug Runtime APK must allow the ADB-reversed Ollama loopback host" >&2; exit 1; }
+grep -Fq 'C: "169.254.208.110"' <<<"$NETWORK_SECURITY" \
+  || { echo "Debug Runtime APK must allow the fixed OpenClaw target host" >&2; exit 1; }
+if grep -Eq 'C: "(0\.0\.0\.0|localhost)"' <<<"$NETWORK_SECURITY"; then
   echo "Debug Runtime APK contains an unexpected cleartext host" >&2
   exit 1
 fi
@@ -116,7 +118,7 @@ echo "native_runtime_apk_version=$VERSION_NAME"
 echo "native_runtime_apk_abis=arm64-v8a,x86_64"
 echo "native_runtime_process_owner=CentralBrainRuntimeApplication"
 echo "native_runtime_internet_permission=bounded_model_gateway"
-echo "native_runtime_cleartext_host=127.0.0.1"
+echo "native_runtime_cleartext_hosts=127.0.0.1,169.254.208.110"
 echo "native_runtime_dispatch_enabled=false"
 echo "native_vendor_npu_provider_available=false"
 echo "native_hardware_accessed=false"

@@ -11,10 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
-/**
- * Debug-build-only in-process model provider. It has no production, network, NPU, or hardware
- * authority. Req IDs: S2-MDL-001, S2-SAF-001, S2-OBS-001, DEL-001/004/005.
- */
+/** Debug-build provider lifecycle used by bounded development and target-integration engines. */
 public final class LocalModelProvider implements ModelProvider {
     public static final int ABSOLUTE_MAX_STREAM_CHUNKS = 32;
     public static final int ABSOLUTE_MAX_TOTAL_BYTES = 262_144;
@@ -124,9 +121,7 @@ public final class LocalModelProvider implements ModelProvider {
         }
     }
 
-    private final Descriptor descriptor = ModelProviderProfiles
-            .androidLocalDevelopment()
-            .getDescriptor();
+    private final Descriptor descriptor;
     private final ModelSpec allowedModel;
     private final LocalInferenceEngine engine;
     private final Executor executor;
@@ -147,23 +142,31 @@ public final class LocalModelProvider implements ModelProvider {
     private long failureCount;
 
     private LocalModelProvider(
+            ModelProviderProfiles.Profile profile,
             ModelSpec allowedModel,
             LocalInferenceEngine engine,
             Executor executor,
             ElapsedRealtimeClock clock,
             StreamLimits limits) {
+        this.descriptor = Objects.requireNonNull(profile, "profile").getDescriptor();
         this.allowedModel = Objects.requireNonNull(allowedModel, "allowedModel");
         this.engine = Objects.requireNonNull(engine, "engine");
         this.executor = Objects.requireNonNull(executor, "executor");
         this.clock = Objects.requireNonNull(clock, "clock");
         this.limits = Objects.requireNonNull(limits, "limits");
         this.lastFault = new FaultSnapshot(descriptor.getProviderId(), "NONE", false, false);
-        if (descriptor.getBackendKind() != BackendKind.ANDROID_LOCAL_DEVELOPMENT
-                || descriptor.getAssurance() != Assurance.DEBUG_ONLY
+        boolean developmentProfile = descriptor.getBackendKind()
+                        == BackendKind.ANDROID_LOCAL_DEVELOPMENT
+                && descriptor.getAssurance() == Assurance.DEBUG_ONLY;
+        boolean targetIntegrationProfile = descriptor.getBackendKind()
+                        == BackendKind.OPENCLAW_GATEWAY
+                && descriptor.getAssurance() == Assurance.TARGET_INTEGRATION;
+        if ((!developmentProfile && !targetIntegrationProfile)
                 || descriptor.getFallbackClass() != FallbackClass.NEVER
                 || descriptor.isHardwareBacked()
                 || descriptor.isProductionEligible()) {
-            throw new IllegalStateException("local provider profile must remain development-only");
+            throw new IllegalStateException(
+                    "network provider profile must remain non-production and non-hardware");
         }
     }
 
@@ -173,7 +176,28 @@ public final class LocalModelProvider implements ModelProvider {
             Executor executor,
             ElapsedRealtimeClock clock,
             StreamLimits limits) {
-        return new LocalModelProvider(allowedModel, engine, executor, clock, limits);
+        return new LocalModelProvider(
+                ModelProviderProfiles.androidLocalDevelopment(),
+                allowedModel,
+                engine,
+                executor,
+                clock,
+                limits);
+    }
+
+    public static LocalModelProvider createForTargetOpenClawIntegration(
+            ModelSpec allowedModel,
+            LocalInferenceEngine engine,
+            Executor executor,
+            ElapsedRealtimeClock clock,
+            StreamLimits limits) {
+        return new LocalModelProvider(
+                ModelProviderProfiles.targetOpenClawTransitional(),
+                allowedModel,
+                engine,
+                executor,
+                clock,
+                limits);
     }
 
     @Override

@@ -4069,7 +4069,7 @@ planned route policy owner。
 六项 JVM test 覆盖 catalog/order/digest/immutability、test-dev-production separation、source/time reject、revision replay/conflict/stale、
 healthy placeholder fail-closed 和 Runtime/model/network/NPU/hardware boundary。debug/release 使用同一 main source，release 不含 probe。
 
-状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+状态：`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
@@ -5410,3 +5410,25 @@ host/build verified; its API 33 ARM64 retest is pending because Windows ADB curr
 bounded schema, but release Provider, health/resource owners, model artifact, target NPU validation and governed model-to-compiler
 composition are `P7-R3 PLANNED`. Full details are in `CENTRAL_BRAIN_OLLAMA_MODEL_GATEWAY.md`.
 `production_ready=false`, `target_hardware_validated=false`; tracking `DEV-121`, `ISSUE-024/044`.
+
+## P7-R3-OC implementation delta: current target OpenClaw
+
+The current target does not yet expose Ollama, so the production-host integration is implemented as a transitional debug
+target profile. Main-source contracts now define the fixed OpenClaw endpoint, provider kind, target assurance, registry
+descriptor and router mode. Debug source contains the process-local credential store, DUMP-protected provisioning/probe,
+RFC6455/v3 engine and real composition wiring. Release routing remains disabled and the release orchestration backend
+still fails closed because trusted Context/Safety/Effect and release credential ownership are absent.
+
+The engine state machine is: warm model contract, consume one registered scenario prompt, derive bounded session and
+idempotency keys, connect fixed host, validate WebSocket accept, receive challenge, authenticate protocol 3, send chat,
+bind ACK/events to run/session, parse final/delta or bounded history, validate exact JSON/action allowlist, return canonical
+bytes, and publish only metadata/digest evidence. Transport or schema failures are terminal and trigger best-effort abort.
+
+Android 13 ARM64 verified both the isolated Runtime composition probe and Client2 owner/session projection. This closes the
+repository and target-integration software delta for the currently available model service. It does not close approved
+credential storage, encrypted transport, Gateway health/version, model artifact identity, direct NPU attribution, release
+signer/installer, vehicle Effect/readback or target qualification. See `CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`.
+
+`openclaw_target_integration_implemented=true`, `openclaw_target_android13_arm64_verified=true`,
+`client2_openclaw_projection_verified=true`, `direct_npu_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`; stage `P7-R3-OC`, tracking `DEV-122/ISSUE-024/044`.

@@ -17,6 +17,8 @@ import com.centralbrain.runtime.model.LocalModelProvider;
 import com.centralbrain.runtime.model.ModelContractV2;
 import com.centralbrain.runtime.model.ModelProvider;
 import com.centralbrain.runtime.model.ModelProviderRegistry;
+import com.centralbrain.runtime.model.OpenClawEndpointConfig;
+import com.centralbrain.runtime.model.OpenClawInferenceEngine;
 import com.centralbrain.runtime.model.OllamaEndpointConfig;
 import com.centralbrain.runtime.model.OllamaInferenceEngine;
 import com.centralbrain.runtime.model.PolicyAwareModelRouter;
@@ -63,6 +65,12 @@ final class DebugDecisionCompositionBoundary {
         long nowMs();
     }
 
+    private enum NetworkModelMode {
+        NONE,
+        OLLAMA_DEVELOPMENT,
+        OPENCLAW_TARGET
+    }
+
     private final ScenarioCatalog catalog;
     private final Clock clock;
     private final AtomicLong triggerEvaluationNow = new AtomicLong();
@@ -74,7 +82,8 @@ final class DebugDecisionCompositionBoundary {
     private final ModelProvider modelProvider;
     private final TestOnlyModelRouter modelRouter;
     private final OllamaInferenceEngine ollamaEngine;
-    private final boolean developmentOllama;
+    private final OpenClawInferenceEngine openClawEngine;
+    private final NetworkModelMode networkModelMode;
     private final BoundedEventRuntime events;
     private final Map<String, Entry> bySession = new LinkedHashMap<>();
 
@@ -96,10 +105,10 @@ final class DebugDecisionCompositionBoundary {
             Clock clock,
             Supplier<String> subscriptionIds,
             Supplier<String> leaseIds,
-            boolean developmentOllama) {
+            boolean networkModelBuild) {
         this.catalog = Objects.requireNonNull(catalog, "catalog");
         this.clock = Objects.requireNonNull(clock, "clock");
-        this.developmentOllama = developmentOllama;
+        this.networkModelMode = resolveNetworkMode(networkModelBuild);
         triggers = TriggerEngine.createForContractTest(
                 triggerManifest(catalog),
                 CooldownStore.createForContractTest(MAX_SESSIONS * 2),
@@ -109,14 +118,11 @@ final class DebugDecisionCompositionBoundary {
                 clock::nowMs,
                 (mutation, evidence) -> ProactiveConsentPolicy.AuthorityDecision.DENIED);
         modelRegistry = ModelProviderRegistry.createForContractTest();
-        if (developmentOllama) {
-            if (!BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
-                    || !"http://127.0.0.1:11434".equals(BuildConfig.OLLAMA_BASE_URL)) {
-                throw new IllegalStateException("debug Ollama build configuration is invalid");
-            }
+        if (networkModelMode == NetworkModelMode.OLLAMA_DEVELOPMENT) {
             OllamaEndpointConfig endpoint = OllamaEndpointConfig
                     .developmentWslAdbReverse(BuildConfig.OLLAMA_MODEL);
             ollamaEngine = new OllamaInferenceEngine(endpoint);
+            openClawEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0",
                     "ollama-debug-v1",
@@ -128,8 +134,25 @@ final class DebugDecisionCompositionBoundary {
                     clock::nowMs,
                     LocalModelProvider.StreamLimits.defaults());
             modelRouter = null;
+        } else if (networkModelMode == NetworkModelMode.OPENCLAW_TARGET) {
+            OpenClawEndpointConfig endpoint = OpenClawEndpointConfig
+                    .targetProductionTransitional();
+            openClawEngine = new OpenClawInferenceEngine(endpoint);
+            ollamaEngine = null;
+            modelSpec = new ModelProvider.ModelSpec(
+                    "central-intent-v0",
+                    "openclaw-ws-v3",
+                    digest("openclaw-model-spec", endpoint.getWebSocketUri().toString()));
+            modelProvider = LocalModelProvider.createForTargetOpenClawIntegration(
+                    modelSpec,
+                    openClawEngine,
+                    modelExecutor,
+                    clock::nowMs,
+                    LocalModelProvider.StreamLimits.defaults());
+            modelRouter = null;
         } else {
             ollamaEngine = null;
+            openClawEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0", "1", MODEL_DIGEST);
             modelProvider = new DeterministicStubModelProvider(
@@ -260,6 +283,30 @@ final class DebugDecisionCompositionBoundary {
         }
     }
 
+    private static NetworkModelMode resolveNetworkMode(boolean networkModelBuild) {
+        if (!networkModelBuild) {
+            return NetworkModelMode.NONE;
+        }
+        if (BuildConfig.OPENCLAW_TARGET_ROUTING_ENABLED) {
+            if (!BuildConfig.OPENCLAW_TARGET_ENDPOINT_CONFIGURED
+                    || !"target_openclaw_transitional".equals(
+                            BuildConfig.MODEL_GATEWAY_PROFILE)
+                    || !"ws://169.254.208.110:18789".equals(BuildConfig.OPENCLAW_BASE_URL)
+                    || BuildConfig.OPENCLAW_PROTOCOL_VERSION != 3
+                    || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED) {
+                throw new IllegalStateException(
+                        "target OpenClaw build configuration is invalid");
+            }
+            return NetworkModelMode.OPENCLAW_TARGET;
+        }
+        if (!BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
+                || !"development_wsl_ollama".equals(BuildConfig.MODEL_GATEWAY_PROFILE)
+                || !"http://127.0.0.1:11434".equals(BuildConfig.OLLAMA_BASE_URL)) {
+            throw new IllegalStateException("debug Ollama build configuration is invalid");
+        }
+        return NetworkModelMode.OLLAMA_DEVELOPMENT;
+    }
+
     private List<String> adaptContext(String scenarioId, String requestDigest, long now) {
         List<String> digests = new ArrayList<>();
         ContextSourceAdapter.AdaptationResult health =
@@ -354,12 +401,23 @@ final class DebugDecisionCompositionBoundary {
             List<String> contextDigests,
             TriggerEngine.ScenarioSuggestion suggestion,
             long now) {
-        String providerId = developmentOllama
-                ? ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID
-                : ModelProviderRegistry.DETERMINISTIC_TEST_ID;
-        ModelProviderRegistry.HealthSource healthSource = developmentOllama
-                ? ModelProviderRegistry.HealthSource.LOCAL_DEVELOPMENT_RUNTIME
-                : ModelProviderRegistry.HealthSource.CONTRACT_TEST;
+        boolean networkModel = networkModelMode != NetworkModelMode.NONE;
+        String providerId;
+        ModelProviderRegistry.HealthSource healthSource;
+        PolicyAwareModelRouter.RouteMode routeMode;
+        if (networkModelMode == NetworkModelMode.OPENCLAW_TARGET) {
+            providerId = ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID;
+            healthSource = ModelProviderRegistry.HealthSource.TARGET_OPENCLAW_RUNTIME;
+            routeMode = PolicyAwareModelRouter.RouteMode.TARGET_INTEGRATION;
+        } else if (networkModelMode == NetworkModelMode.OLLAMA_DEVELOPMENT) {
+            providerId = ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID;
+            healthSource = ModelProviderRegistry.HealthSource.LOCAL_DEVELOPMENT_RUNTIME;
+            routeMode = PolicyAwareModelRouter.RouteMode.DEVELOPMENT;
+        } else {
+            providerId = ModelProviderRegistry.DETERMINISTIC_TEST_ID;
+            healthSource = ModelProviderRegistry.HealthSource.CONTRACT_TEST;
+            routeMode = PolicyAwareModelRouter.RouteMode.CONTRACT_TEST;
+        }
         String healthEvidence = digest("model-health", requestDigest);
         ModelProviderRegistry.PublishResult health = modelRegistry.publishHealth(
                 new ModelProviderRegistry.HealthReport(
@@ -382,7 +440,7 @@ final class DebugDecisionCompositionBoundary {
                 ModelContractV2.Purpose.SCENARIO_REASONING,
                 ModelContractV2.PrivacyClass.INTERNAL,
                 new ModelContractV2.LatencyBudget(
-                        developmentOllama ? MODEL_INFERENCE_TIMEOUT_MS : 1_000),
+                        networkModel ? MODEL_INFERENCE_TIMEOUT_MS : 1_000),
                 new ModelContractV2.TokenBudget(128, 128, 256),
                 ModelContractV2.RequiredCapability.TEXT_GENERATION,
                 ModelContractV2.FallbackPolicy.NO_FALLBACK,
@@ -391,13 +449,11 @@ final class DebugDecisionCompositionBoundary {
         PolicyAwareModelRouter.RouteDecision route = PolicyAwareModelRouter.decide(
                 modelRequest,
                 new PolicyAwareModelRouter.PolicySnapshot(
-                        developmentOllama
-                                ? PolicyAwareModelRouter.RouteMode.DEVELOPMENT
-                                : PolicyAwareModelRouter.RouteMode.CONTRACT_TEST,
-                        developmentOllama
+                        routeMode,
+                        networkModel
                                 ? PolicyAwareModelRouter.NetworkPolicy.ALLOW_ANY
                                 : PolicyAwareModelRouter.NetworkPolicy.OFFLINE_ONLY,
-                        developmentOllama
+                        networkModel
                                 ? PolicyAwareModelRouter.NetworkState.UNMETERED
                                 : PolicyAwareModelRouter.NetworkState.UNAVAILABLE,
                         PolicyAwareModelRouter.ThermalState.NOMINAL,
@@ -416,8 +472,12 @@ final class DebugDecisionCompositionBoundary {
             throw violation("model policy route failed closed");
         }
         RecordingObserver observer = new RecordingObserver();
-        if (developmentOllama) {
-            ollamaEngine.registerScenarioPrompt(inputDigest, scenarioId);
+        if (networkModel) {
+            if (networkModelMode == NetworkModelMode.OPENCLAW_TARGET) {
+                openClawEngine.registerScenarioPrompt(inputDigest, scenarioId);
+            } else {
+                ollamaEngine.registerScenarioPrompt(inputDigest, scenarioId);
+            }
             ModelProvider.InferenceHandle handle = modelProvider.infer(
                     new ModelProvider.InferenceRequest(
                             modelRequest.getRequestId(),
@@ -452,9 +512,15 @@ final class DebugDecisionCompositionBoundary {
                 || observer.chunkCount < 1) {
             throw violation("model inference did not complete");
         }
-        if (developmentOllama) {
+        if (networkModel) {
+            long latencyMs = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+                    ? openClawEngine.snapshot().getLastLatencyMs()
+                    : ollamaEngine.snapshot().getLastLatencyMs();
+            long completedCount = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+                    ? openClawEngine.snapshot().getCompletedCount()
+                    : ollamaEngine.snapshot().getCompletedCount();
             ModelProjection projection = parseModelProjection(
-                    observer.contentBytes(), scenarioId, ollamaEngine.snapshot());
+                    observer.contentBytes(), scenarioId, completedCount, latencyMs);
             return new ModelEvidence(
                     route.getDecisionDigest(),
                     observer.terminal.getOutputDigest(),
@@ -477,7 +543,8 @@ final class DebugDecisionCompositionBoundary {
     private static ModelProjection parseModelProjection(
             byte[] canonicalOutput,
             String expectedScenarioId,
-            OllamaInferenceEngine.Snapshot engineSnapshot) {
+            long engineCompletedCount,
+            long engineLatencyMs) {
         try {
             JsonObject output = JsonParser.parseString(
                     new String(canonicalOutput, StandardCharsets.UTF_8)).getAsJsonObject();
@@ -488,12 +555,12 @@ final class DebugDecisionCompositionBoundary {
             if (reply.isEmpty() || reply.length() > 256) {
                 throw violation("model projection reply is outside the bound");
             }
-            if (engineSnapshot.getCompletedCount() < 1
-                    || engineSnapshot.getLastLatencyMs() < 0L
-                    || engineSnapshot.getLastLatencyMs() > MODEL_INFERENCE_TIMEOUT_MS) {
+            if (engineCompletedCount < 1
+                    || engineLatencyMs < 0L
+                    || engineLatencyMs > MODEL_INFERENCE_TIMEOUT_MS) {
                 throw violation("model projection latency evidence is invalid");
             }
-            return new ModelProjection(reply, engineSnapshot.getLastLatencyMs());
+            return new ModelProjection(reply, engineLatencyMs);
         } catch (RuntimeException failure) {
             if (failure instanceof IllegalArgumentException
                     && failure.getMessage() != null

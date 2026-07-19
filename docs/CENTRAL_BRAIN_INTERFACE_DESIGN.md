@@ -3132,7 +3132,7 @@ descriptor 或修改 capability。`ProviderView` 分别暴露 `isContractTestAva
 Health publisher 必须与 descriptor 的 fixed source 匹配。revision 只允许单调增加；exact replay 幂等，同 revision 不同 digest 冲突。
 snapshot 不删除过期记录，而是投影 `UNKNOWN/STALE` 并保留 revision/evidence，供后续 Router 明确拒绝 stale health。
 
-状态：`model_provider_registry_defined=true`、`model_provider_count=4`、
+状态：`model_provider_registry_defined=true`、`model_provider_count=5`、
 `model_provider_health_freshness_verified=true`、`model_provider_health_replay_verified=true`、
 `model_provider_availability_separation_verified=true`、`model_provider_placeholder_fail_closed=true`、
 `model_contract_test_available_count=1`、`model_development_available_count=1`、`model_production_ready_count=0`、
@@ -4039,3 +4039,24 @@ signature permission, `ORCHESTRATION_READ_OWN`, and a Room-confirmed owner match
 to 16 entries and is never durable. Client2 consumes it after validating Orchestration V1. Release AAR/manifest do
 not contain or publish this debug surface. Release BuildConfig remains fail closed with
 `OLLAMA_DEVELOPMENT_ENABLED=false` and `OLLAMA_MODEL=UNCONFIGURED`. Stage `P7-R2`; tracking `DEV-121`, `ISSUE-024/044`.
+
+## P7-R3-OC OpenClaw target interfaces
+
+The target integration adds no caller-selected URL. `OpenClawEndpointConfig` owns the fixed link-local WebSocket URI and
+protocol v3. `ModelProviderProfiles.targetOpenClawTransitional()` exposes backend `OPENCLAW_GATEWAY`, assurance
+`TARGET_INTEGRATION`, inference/cancel/metrics capabilities, and hard-coded non-production/non-hardware claims.
+`ModelProviderRegistry` accepts its health only from `TARGET_OPENCLAW_RUNTIME`; `PolicyAwareModelRouter` can select it only
+in `TARGET_INTEGRATION`, while `PRODUCTION` continues to require an independently qualified provider.
+
+`OpenClawInferenceEngine` consumes a registered digest-to-scenario prompt and an `InferenceRequest`. Its transport performs
+RFC6455 upgrade, v3 challenge/connect authentication, `chat.send`, best-effort `chat.abort`, and request-bound
+`chat.history` fallback. Output is canonical UTF-8 JSON with exactly `scenario_id`, `reply`, `actions`; no raw WebSocket
+frame, prompt, response or credential crosses the provider interface or audit boundary.
+
+`OpenClawCredentialProvisioningActivity` is debug-only and `android.permission.DUMP` protected. It writes only to
+`OpenClawCredentialStore`; there is no SharedPreferences, Room, file, Keystore or release Service interface. Client2 is
+unchanged at the model boundary: it reads `ICentralBrainDevelopmentModelProjection` after Orchestration V1 validation.
+Full protocol, lifecycle and integration guidance is in `CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`.
+
+Current `external_compute_accessed=true`, `direct_npu_accessed=false`, `production_provider_qualified=false`,
+`production_ready=false`, `target_hardware_validated=false`; stage `P7-R3-OC`, tracking `DEV-122/ISSUE-024/044`.

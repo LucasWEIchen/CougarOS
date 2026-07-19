@@ -86,7 +86,8 @@ for marker in \
 done
 
 for marker in \
-  'buildConfigField("boolean", "OLLAMA_DEVELOPMENT_ENABLED", "true")' \
+  '"OLLAMA_DEVELOPMENT_ENABLED"' \
+  '(!targetOpenClaw).toString()' \
   'buildConfigField("String", "OLLAMA_BASE_URL", "\"http://127.0.0.1:11434\"")' \
   'buildConfigField("boolean", "OLLAMA_DEVELOPMENT_ENABLED", "false")' \
   'buildConfigField("String", "OLLAMA_BASE_URL", "\"http://169.254.208.110:11434\"")' \
@@ -100,10 +101,7 @@ require_text "$MAIN_NETWORK" 'cleartextTrafficPermitted="false"'
 require_text "$MAIN_NETWORK" '>169.254.208.110</domain>'
 require_text "$DEBUG_NETWORK" 'cleartextTrafficPermitted="false"'
 require_text "$DEBUG_NETWORK" '>127.0.0.1</domain>'
-if grep -Fq '169.254.208.110' "$ROOT_DIR/$DEBUG_NETWORK"; then
-  echo 'debug network policy must not expose the production Ollama endpoint' >&2
-  exit 1
-fi
+require_text "$DEBUG_NETWORK" '>169.254.208.110</domain>'
 
 for marker in \
   'String assistantDisplayText = "";' \
