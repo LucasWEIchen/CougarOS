@@ -42,6 +42,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
 
     private final FailClosedOrchestrationBackend failClosed =
             new FailClosedOrchestrationBackend();
+    private final DebugRuntimeCompositionBoundary runtimeComposition;
     private final SimulatedScenarioEffectComposition composition;
     private final SimulatedScenarioInputFactory inputs;
     private final Map<String, RunRecord> bySession = new LinkedHashMap<>();
@@ -61,6 +62,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         };
         composition = new SimulatedScenarioEffectComposition(
                 clock, new SimulationClock(SystemClock.elapsedRealtime()));
+        runtimeComposition = new DebugRuntimeCompositionBoundary();
         inputs = new SimulatedScenarioInputFactory(
                 loadCatalog(context),
                 clock::epochTimeMs,
@@ -105,15 +107,25 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             throw violation("debug orchestration capacity exhausted");
         }
 
-        SimulatedScenarioEffectComposition.Snapshot started = composition.start(
-                inputs.createForSession(scenario, driving, session.getSessionId()),
-                scenario,
-                driving);
+        DebugRuntimeCompositionBoundary.Evidence compositionEvidence =
+                runtimeComposition.prepare(session, request.scenarioId, requestDigest);
+        final SimulatedScenarioEffectComposition.Snapshot started;
+        try {
+            started = composition.start(
+                    inputs.createForSession(scenario, driving, session.getSessionId()),
+                    scenario,
+                    driving);
+        } catch (RuntimeException failure) {
+            runtimeComposition.complete(session, compositionEvidence);
+            throw failure;
+        }
         RunRecord record = new RunRecord(
+                session,
                 request.requestId,
                 requestDigest,
                 request.simulationMotionState,
-                started.getRunId());
+                started.getRunId(),
+                compositionEvidence);
         bySession.put(session.getSessionId(), record);
         return result(record, started);
     }
@@ -145,7 +157,8 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             return result(record, composition.get(record.runId));
         }
         SimulatedScenarioEffectComposition.Snapshot current = composition.get(record.runId);
-        OrchestrationSnapshot projection = project(current);
+        OrchestrationSnapshot projection = project(
+                current, record.compositionEvidence.getDigest());
         if (projection.pendingStage != ICentralBrainOrchestration.PENDING_APPROVAL
                 || !projection.approvalId.equals(response.approvalId)
                 || !projection.projectionDigest.equals(response.expectedProjectionDigest)) {
@@ -166,7 +179,8 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
     public synchronized Result requestUndo(SessionDescriptor session, UndoRequest request) {
         RunRecord record = requireRun(session.getSessionId());
         SimulatedScenarioEffectComposition.Snapshot current = composition.get(record.runId);
-        OrchestrationSnapshot projection = project(current);
+        OrchestrationSnapshot projection = project(
+                current, record.compositionEvidence.getDigest());
         if (!projection.projectionDigest.equals(request.expectedProjectionDigest)) {
             throw violation("Undo request is stale");
         }
@@ -185,10 +199,16 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                 : result(record, composition.cancel(record.runId));
     }
 
+    @Override
+    public synchronized void close() {
+        runtimeComposition.close();
+    }
+
     private Result result(
             RunRecord record,
             SimulatedScenarioEffectComposition.Snapshot source) {
-        OrchestrationSnapshot snapshot = project(source);
+        OrchestrationSnapshot snapshot = project(
+                source, record.compositionEvidence.getDigest());
         if (source.getProjectionDigest().equals(record.sourceProjectionDigest)) {
             snapshot.updatedAtEpochMs = record.projectionUpdatedAtEpochMs;
             snapshot.projectionDigest = "";
@@ -198,11 +218,17 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             record.projectionUpdatedAtEpochMs = snapshot.updatedAtEpochMs;
         }
         record.latestProjectionDigest = snapshot.projectionDigest;
+        if (isTerminal(source.getSessionState()) && !record.compositionTerminal) {
+            runtimeComposition.complete(
+                    record.sessionDescriptor, record.compositionEvidence);
+            record.compositionTerminal = true;
+        }
         return new Result(snapshot, source.toScenarioPlan(), source.getManifestDigest());
     }
 
     private static OrchestrationSnapshot project(
-            SimulatedScenarioEffectComposition.Snapshot source) {
+            SimulatedScenarioEffectComposition.Snapshot source,
+            String compositionEvidenceDigest) {
         ScenarioPlan plan = source.toScenarioPlan();
         Map<String, PlanNode> planNodes = new LinkedHashMap<>();
         for (PlanNode node : plan.nodes) {
@@ -227,6 +253,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             node.evidenceDigest = OrchestrationProjectionFactory.digest(
                     "central-brain-debug-orchestration-node-v1",
                     source.getProjectionDigest(),
+                    compositionEvidenceDigest,
                     node.nodeId,
                     Integer.toString(node.state),
                     Integer.toString(node.attemptCount));
@@ -246,6 +273,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                 effect.evidenceDigest = OrchestrationProjectionFactory.digest(
                         "central-brain-debug-orchestration-effect-v1",
                         source.getProjectionDigest(),
+                        compositionEvidenceDigest,
                         effect.effectId,
                         Integer.toString(effect.state));
                 effects.add(effect);
@@ -382,6 +410,14 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         }
     }
 
+    private static boolean isTerminal(SimulatedScenarioRuntime.SessionState state) {
+        return state == SimulatedScenarioRuntime.SessionState.COMPLETED
+                || state == SimulatedScenarioRuntime.SessionState.PARTIAL
+                || state == SimulatedScenarioRuntime.SessionState.FAILED
+                || state == SimulatedScenarioRuntime.SessionState.CANCELLED
+                || state == SimulatedScenarioRuntime.SessionState.STUCK;
+    }
+
     private static ScenarioKind scenario(String scenarioId) {
         if ("scene.comfort.cold.v1".equals(scenarioId)) {
             return ScenarioKind.COLD;
@@ -461,21 +497,28 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         private final String requestDigest;
         private final int motionState;
         private final String runId;
+        private final SessionDescriptor sessionDescriptor;
+        private final DebugRuntimeCompositionBoundary.Evidence compositionEvidence;
         private String latestProjectionDigest = "";
         private String sourceProjectionDigest = "";
         private long projectionUpdatedAtEpochMs;
         private String lastApprovalRequestId = "";
         private String lastApprovalRequestDigest = "";
+        private boolean compositionTerminal;
 
         private RunRecord(
+                SessionDescriptor sessionDescriptor,
                 String requestId,
                 String requestDigest,
                 int motionState,
-                String runId) {
+                String runId,
+                DebugRuntimeCompositionBoundary.Evidence compositionEvidence) {
+            this.sessionDescriptor = sessionDescriptor;
             this.requestId = requestId;
             this.requestDigest = requestDigest;
             this.motionState = motionState;
             this.runId = runId;
+            this.compositionEvidence = compositionEvidence;
         }
     }
 }

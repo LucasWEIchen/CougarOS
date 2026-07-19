@@ -2024,3 +2024,13 @@ Driver/HAL 或虚拟化代码。不会因该挂起需求新增厂商 SDK、prope
 `security_test_execution_enabled=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 tracking：`DEV-114`、`ISSUE-050`。
+
+## P5-R1 Runtime Composition Driver/HAL Boundary
+
+P5-R1 全部位于 Android Java debug source set，只组合 build-owned metadata Tool、compiled-in Skill admission、metadata budget
+和 process-local digest Working Memory。它不调用 JNI/C ABI、Vendor SDK、VehicleProperty、CAN、device node、sysfs、NPU、DMA、
+IOMMU 或 Driver/HAL，因此不新增 C/C++/驱动开发量。
+
+真实 Vehicle/Model/NPU 接入仍必须等待 P8 capability evidence 和 OEM/Vendor owner 接口；不得从 debug composition 推导接口。
+`driver_development_triggered=false`、`driver_hal_accessed=false`、`hardware_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-R1`。tracking：`DEV-117`。

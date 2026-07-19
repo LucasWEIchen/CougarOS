@@ -5328,3 +5328,18 @@ normal platform-policy permission. Until then: `security_requirement_suspended=t
 `security_test_execution_enabled=false`, `security_external_evidence_admitted=false`, `production_ready=false`,
 `target_hardware_validated=false`. Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-114`、`ISSUE-050`。
+
+## P5-R1 detailed design: debug runtime composition
+
+`DebugRuntimeCompositionBoundary.prepare(session, scenarioId, requestDigest)` is a synchronous fail-closed adapter called before
+the fixed debug scenario graph starts. It maps Cold to `cabin.precondition` and Fatigue to `cabin.scene.nap`, admits the compiled-in
+Skill with exact schema/capabilities and no dispatch grant, resolves a build-owned metadata Tool against a fresh health snapshot,
+executes its bounded no-I/O function, and runs three fixed metadata descriptors through `ContextBudgetManager`.
+
+The boundary hashes request, Skill invocation/artifact, Tool contract/audit and budget totals into one composition digest. It stores
+only that digest in `WorkingMemoryStore` under owner/session scope with a five-minute TTL. The Orchestration projection includes the
+digest in every Node/Effect evidence hash. `complete()` and `close()` cancel the Skill admission and terminate Working Memory;
+repeated start/completion are idempotent and conflicting request digests fail closed. Profile/Episodic Memory are intentionally absent.
+
+The default constructor uses Android elapsed realtime; tests inject a monotonic clock and invocation ID source. Capacity is bounded to
+the existing 16 debug runs. There is no release class or production authority. Stage `P5-R1`; tracking `DEV-117`, `ISSUE-036..044`.
