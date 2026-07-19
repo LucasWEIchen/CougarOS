@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "android13-p9-external-security-evidence-interface-v1",
+  "work_package": "P9-W03g",
+  "status": "suspended_external_interface_only",
+  "requirements": [
+    "S2-SAF-001",
+    "S2-TOL-001",
+    "S2-OBS-001",
+    "DEL-001",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "provider_boundary": {
+    "owner": "external_security_owner",
+    "repository_executor_present": false,
+    "android_component_present": false,
+    "native_component_present": false,
+    "network_transport_present": false,
+    "automatic_execution_allowed": false
+  },
+  "submission_fields": [
+    {
+      "field": "release_id",
+      "classification": "non_secret_identifier",
+      "required": true
+    },
+    {
+      "field": "source_commit",
+      "classification": "public_digest",
+      "required": true
+    },
+    {
+      "field": "archive_sha256",
+      "classification": "public_digest",
+      "required": true
+    },
+    {
+      "field": "device_alias",
+      "classification": "non_secret_alias",
+      "required": true
+    },
+    {
+      "field": "approved_profile_id",
+      "classification": "non_secret_identifier",
+      "required": true
+    },
+    {
+      "field": "result_summary_sha256",
+      "classification": "public_digest",
+      "required": true
+    },
+    {
+      "field": "internal_evidence_reference",
+      "classification": "private_reference_only",
+      "required": true
+    },
+    {
+      "field": "privacy_confirmation",
+      "classification": "boolean",
+      "required": true
+    }
+  ],
+  "forbidden_repository_inputs": [
+    "raw_device_identity",
+    "signing_material",
+    "credentials",
+    "raw_test_input",
+    "raw_execution_log",
+    "user_text",
+    "model_text",
+    "memory_content",
+    "vehicle_payload"
+  ],
+  "claim_state": {
+    "security_external_evidence_interface_defined": true,
+    "security_requirement_suspended": true,
+    "security_test_implementation_present": false,
+    "security_test_execution_enabled": false,
+    "security_external_evidence_admitted": false,
+    "security_coverage_guided_fuzz_complete": false,
+    "security_production_signer_verified": false,
+    "network_accessed": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}

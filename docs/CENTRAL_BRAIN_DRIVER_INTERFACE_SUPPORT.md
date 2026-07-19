@@ -1987,3 +1987,13 @@ Android Binder/Parcel/native target campaign 只有在安全 owner 冻结 surfac
 `security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
 `driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 tracking：`DEV-113`、`ISSUE-050`。
+
+## P9-W03g Suspended Security Evidence Driver/HAL Boundary
+
+W03f 执行面已删除；W03g 只保留静态 JSON evidence interface，不包含 Java runtime、AIDL、JNI、C/C++、Android component、network transport、
+Driver/HAL 或虚拟化代码。不会因该挂起需求新增厂商 SDK、property、device node 或驱动接口。
+
+当前 `security_requirement_suspended=true`、`security_test_implementation_present=false`、
+`security_test_execution_enabled=false`、`driver_development_triggered=false`、`virtualization_development_triggered=false`、
+`driver_hal_accessed=false`、`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-114`、`ISSUE-050`。

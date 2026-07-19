@@ -5249,3 +5249,19 @@ Gradle `build/`. The static checker freezes source markers, exact seed names, ma
 Current `security_parser_robustness_host_campaign_verified=true`; this is not Binder/Parcel/native target testing, production signer/owner approval or
 release qualification. `security_coverage_guided_fuzz_complete=false`、`production_ready=false`、`target_hardware_validated=false`。
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。
+
+## P9-W03g implementation detail: suspended external evidence interface
+
+W03f implementation above is retained only as historical design context. Current `main` removes the engine dependency, Gradle execution/corpus tasks,
+Java target/test classes, seed resources, shell runner/checker and campaign contract. No executable replacement is permitted under this suspended scope.
+
+The retained JSON interface has four responsibilities only: identify an external owner; define eight non-secret metadata/digest/reference/boolean submission
+fields; enumerate forbidden repository inputs; and freeze all implementation/execution/admission/readiness claims false. A static shell checker parses the
+JSON, verifies exact field/claim sets, proves all retired files and Gradle markers are absent, and checks documentation/CI registration. It does not invoke
+an engine, APK, device, native binary or network endpoint.
+
+Recovery is a product-scope transition, not an implementation TODO. It requires explicit user approval, an externally approved profile/evidence owner and
+normal platform-policy permission. Until then: `security_requirement_suspended=true`, `security_test_implementation_present=false`,
+`security_test_execution_enabled=false`, `security_external_evidence_admitted=false`, `production_ready=false`,
+`target_hardware_validated=false`. Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-114`、`ISSUE-050`。

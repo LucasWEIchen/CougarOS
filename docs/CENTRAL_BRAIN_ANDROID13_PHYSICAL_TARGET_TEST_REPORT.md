@@ -918,3 +918,20 @@ scenario manifest、Tool input 三类 production Java parser。正式运行结�
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、
 `DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。
+
+## 28. 2026-07-19 P9-W03g executable campaign retirement verification
+
+该项不在设备执行 security campaign。验证目标是证明删除执行面后 Android application 未回归：Gradle dependency/task/source/resource absence
+checker 通过；Android debug build 149 tasks、Runtime/Demo release build 167 tasks 通过。Runtime/Demo APK 在 API 33 `arm64-v8a` 成功安装，Demo cold launch `Status: ok`，Runtime/Demo
+两个进程均驻留。W03f 历史标量不再代表当前 `main` 可执行能力。
+
+完整长序列 installer 在两个复验中均因 WSL Linux ADB daemon 于约两分钟后退出而中断：一次为 5037 connection refused，一次重启时报告
+Windows/WSL 5037 address conflict。中断前 APK 安装和前置 application probes 已通过；该结果不记为完整 installer acceptance，也不归因为 APK。
+本增量的目标声明仅限上述短时 API/ABI/install/launch/process compatibility。后续长序列优先使用稳定的 Windows ADB transport 单独复验。
+
+当前只保留外部 evidence interface；`security_external_evidence_interface_defined=true`、`security_requirement_suspended=true`、
+`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+`security_external_evidence_admitted=false`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；
+tracking：`DEV-114`、`ISSUE-050`。

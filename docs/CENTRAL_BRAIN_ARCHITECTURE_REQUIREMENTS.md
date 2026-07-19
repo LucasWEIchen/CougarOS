@@ -2946,3 +2946,18 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 `security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
 `security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。tracking：`DEV-113`、`ISSUE-050`。
+
+## 105. P9-W03g suspended external security evidence interface trace
+
+1. `S2-SAF-001`：仓库不得包含 W03f 第三方执行引擎、Gradle execution task、Java target/test、seed 或 shell runner。
+2. `S2-OBS-001/DEL-005`：只保留外部证据接口；允许字段限定为 release/source/archive digest、非秘密设备 alias、批准 profile、result digest、
+   internal reference 和 privacy boolean。
+3. `S2-SAF-001/S2-OBS-001`：raw identity、signing material、credential、raw input/log、user/model/memory/vehicle payload 禁止进入仓库。
+4. `DEL-001/004`：接口必须声明 repository executor、Android/native component、network transport 和 automatic execution 全部不存在。
+5. 用户范围决策：不申请 trusted-access permission；该需求保持 suspended，外部 owner 未提供批准证据前不得恢复执行实现或提升状态。
+
+当前 `security_external_evidence_interface_defined=true`、`security_requirement_suspended=true`、
+`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+`security_external_evidence_admitted=false`、`security_coverage_guided_fuzz_complete=false`、
+`security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`、
+`implementation_stage=P9-W03`。tracking：`DEV-114`、`ISSUE-050`。

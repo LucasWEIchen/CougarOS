@@ -888,6 +888,20 @@ Req IDs：`S2-TOL-001`、`S2-SAF-001`、`S2-OBS-001`、`DEL-001/004/005`；track
 `vehicle_readback_accessed=false`、`npu_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`、`implementation_stage=P9-W03`。
 
+### 2026-07-19 P9-W03g executable security campaign suspension
+
+状态：`SUSPENDED / EXTERNAL_INTERFACE_ONLY`。按用户明确决策，不申请 trusted-access permission；已删除 W03f 第三方执行依赖、Gradle task、
+Java target/test、seed、runner/checker 和 campaign contract。历史 PR/commit 记录保留，但不再代表 `main` 当前能力。
+
+当前只保留脱敏外部证据 interface 和 absence checker。P9-W03 不再包含仓库内可执行工作，恢复必须取得用户范围批准、外部 security owner
+approved profile/evidence 和正常平台政策许可。在此之前不影响其他非安全模块继续开发。
+
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-114`、`ISSUE-050`。
+`security_external_evidence_interface_defined=true`、`security_requirement_suspended=true`、
+`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+`security_external_evidence_admitted=false`、`security_coverage_guided_fuzz_complete=false`、
+`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P9-W03`。
+
 ### 2026-07-18 P5-W03 progress
 
 新增 immutable `ToolRuleSet` 与 `ToolRuleSolver`。RuleSet 冻结 init/child/conditional/terminal/required-before-exit/
