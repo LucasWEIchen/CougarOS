@@ -4,6 +4,19 @@
 日期：2026-07-17
 状态：Stage 2 P6 in progress
 
+### 2026-07-19 P6-EV2 progress
+
+`P6-EV2` 已完成独立 `ICentralBrainSessionEventsV2`、terminal resume cursor、owner/session-scoped
+Room ACK、stale/future/source-regression 拒绝、cancel/reopen、Runtime Binder action 和 SDK V2 优先/V1 回退。
+`events-v1.sha256` 等冻结合同保持不变；JVM/静态门禁已通过，Android 13 ARM64 设备探针将在本阶段构建安装后刷新。
+
+当前 `event_v2_interface_published=true`、`event_v2_terminal_cursor_implemented=true`、
+`event_v2_room_ack_wired=true`、`event_v2_sdk_negotiation_wired=true`、
+`event_v2_durable_session_cursor_verified=true`、`event_v2_android13_arm64_verified=false`、
+`production_event_middleware_published=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-EVT-001`、`FW-U-003`、`NV-G-004/006/007`、
+`XSC-001/005/006`、`DEL-001/003/004`；tracking：`DEV-115`、`ISSUE-034`。
+
 ## 1. 基线与范围
 
 用户提供的架构图是需求基线，不是示意图。当前开发对象是不能修改厂商 Framework/BSP/预编译

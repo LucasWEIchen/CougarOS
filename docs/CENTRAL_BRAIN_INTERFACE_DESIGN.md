@@ -4,6 +4,20 @@
 
 日期：2026-07-17
 
+## P6-EV2 Session Event interface
+
+| Interface | Caller -> callee | Contract |
+| --- | --- | --- |
+| `getEvents(sessionId,cursor,limit)` | SDK -> Runtime | owner-derived page replay; terminal page returns V2 cursor |
+| `registerSessionCallback(request,callback)` | SDK -> Runtime | creates/reopens bounded owner/session Room subscription |
+| `acknowledge(request)` | SDK -> Runtime | advances durable ACK monotonically after listener delivery |
+| `unregisterSessionCallback(handle,callback)` | SDK -> Runtime | removes transient Binder callback; durable ACK remains |
+| `cancelSubscription(handle)` | SDK -> Runtime | explicitly cancels durable subscription |
+
+Identity is derived from Binder and never accepted from DTO fields. `EventSubscriptionHandle` is server-issued and
+validated against owner/session state. `event_v2_interface_published=true`, `event_v2_room_ack_wired=true`,
+`event_v2_sdk_negotiation_wired=true`, `event_v2_android13_arm64_verified=false`; milestone `P6-EV2`.
+
 状态：Android 13 实际工程接口基线
 
 ## 接口设计原则

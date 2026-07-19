@@ -110,6 +110,9 @@ for marker in \
   "active_session_reconnect_resubscribe_verified=true" \
   "healthy_reconnect_callback_cleanup_verified=true" \
   "callback_replay_deduplicated=true" \
+  "event_v2_interface_published=true" \
+  "event_v2_sdk_negotiation_wired=true" \
+  "event_v2_live_ack_reconnect_verified=true" \
   "scenario_execution_enabled=false" \
   "hardware_accessed=false"; do
   grep -Fq "$marker" <<<"$LIVE_FACADE_OUTPUT" \

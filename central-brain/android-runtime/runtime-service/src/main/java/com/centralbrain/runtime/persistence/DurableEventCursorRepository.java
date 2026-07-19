@@ -136,6 +136,110 @@ public final class DurableEventCursorRepository {
         });
     }
 
+    /** Registers or reopens an Event V2 cursor bound to one owned Session. */
+    public RegisterResult registerSession(
+            String ownerFingerprint,
+            String clientSubscriptionId,
+            String sessionId,
+            long requestedAfterSequence,
+            int queueCapacity,
+            long knownLatestSequence) {
+        requireOwner(ownerFingerprint);
+        requireUuid(clientSubscriptionId, "clientSubscriptionId");
+        requireUuid(sessionId, "sessionId");
+        requireSequence(requestedAfterSequence, "requestedAfterSequence");
+        requireSequence(knownLatestSequence, "knownLatestSequence");
+        if (queueCapacity < 1 || queueCapacity > MAX_QUEUE_CAPACITY) {
+            throw new IllegalArgumentException("queueCapacity is out of range");
+        }
+        if (requestedAfterSequence > knownLatestSequence) {
+            return new RegisterResult(RegisterOutcome.FUTURE_CURSOR, null);
+        }
+        String scope = sessionScope(sessionId);
+
+        return runTransaction(() -> {
+            EventCursorEntity existing = dao.findEventCursorByOwnerAndClient(
+                    ownerFingerprint,
+                    clientSubscriptionId);
+            if (existing != null) {
+                if (!scope.equals(existing.topicsCanonical)
+                        || existing.queueCapacity != queueCapacity) {
+                    return new RegisterResult(RegisterOutcome.CONFLICT, Snapshot.from(existing));
+                }
+                if (knownLatestSequence < existing.acknowledgedSequence) {
+                    return new RegisterResult(
+                            RegisterOutcome.SOURCE_REGRESSION,
+                            Snapshot.from(existing));
+                }
+                if (requestedAfterSequence < existing.acknowledgedSequence) {
+                    return new RegisterResult(
+                            RegisterOutcome.STALE_CURSOR,
+                            Snapshot.from(existing));
+                }
+                if (requestedAfterSequence > existing.acknowledgedSequence) {
+                    return new RegisterResult(
+                            RegisterOutcome.UNACKNOWLEDGED_CURSOR,
+                            Snapshot.from(existing));
+                }
+                if (STATE_RESYNC_REQUIRED.equals(existing.state)) {
+                    return new RegisterResult(
+                            RegisterOutcome.RESYNC_REQUIRED,
+                            Snapshot.from(existing));
+                }
+
+                if (STATE_CANCELLED.equals(existing.state)) {
+                    if (dao.countActiveEventCursors() >= maxActiveRecords) {
+                        return new RegisterResult(
+                                RegisterOutcome.GLOBAL_LIMIT,
+                                Snapshot.from(existing));
+                    }
+                    if (dao.countActiveEventCursorsByOwner(ownerFingerprint)
+                            >= maxActiveRecordsPerOwner) {
+                        return new RegisterResult(
+                                RegisterOutcome.OWNER_LIMIT,
+                                Snapshot.from(existing));
+                    }
+                    long now = now();
+                    existing.requestedAfterSequence = requestedAfterSequence;
+                    existing.state = STATE_ACTIVE;
+                    existing.updatedAtWallMs = now;
+                    updateOne(existing);
+                    insertAudit(existing, AUDIT_REGISTERED, RegisterOutcome.REOPENED.name(), now);
+                    return new RegisterResult(
+                            RegisterOutcome.REOPENED,
+                            Snapshot.from(existing));
+                }
+                return new RegisterResult(RegisterOutcome.REPLAYED, Snapshot.from(existing));
+            }
+            if (dao.countActiveEventCursors() >= maxActiveRecords) {
+                return new RegisterResult(RegisterOutcome.GLOBAL_LIMIT, null);
+            }
+            if (dao.countActiveEventCursorsByOwner(ownerFingerprint)
+                    >= maxActiveRecordsPerOwner) {
+                return new RegisterResult(RegisterOutcome.OWNER_LIMIT, null);
+            }
+
+            long now = now();
+            EventCursorEntity entity = new EventCursorEntity();
+            entity.cursorId = generatedId("event-v2-");
+            entity.ownerFingerprint = ownerFingerprint;
+            entity.clientSubscriptionId = clientSubscriptionId;
+            entity.topicsCanonical = scope;
+            entity.requestedAfterSequence = requestedAfterSequence;
+            entity.acknowledgedSequence = requestedAfterSequence;
+            entity.queueCapacity = queueCapacity;
+            entity.state = STATE_ACTIVE;
+            entity.overflowFirstSequence = 0;
+            entity.overflowLastSequence = 0;
+            entity.overflowCount = 0;
+            entity.createdAtWallMs = now;
+            entity.updatedAtWallMs = now;
+            dao.insertEventCursor(entity);
+            insertAudit(entity, AUDIT_REGISTERED, RegisterOutcome.CREATED.name(), now);
+            return new RegisterResult(RegisterOutcome.CREATED, Snapshot.from(entity));
+        });
+    }
+
     public Snapshot findOwned(String cursorId, String ownerFingerprint) {
         requireId(cursorId, "cursorId");
         requireOwner(ownerFingerprint);
@@ -143,6 +247,43 @@ public final class DurableEventCursorRepository {
         return entity != null && entity.ownerFingerprint.equals(ownerFingerprint)
                 ? Snapshot.from(entity)
                 : null;
+    }
+
+    public Snapshot findSessionOwned(
+            String cursorId,
+            String ownerFingerprint,
+            String sessionId) {
+        requireUuid(sessionId, "sessionId");
+        Snapshot snapshot = findOwned(cursorId, ownerFingerprint);
+        return snapshot != null && sessionScope(sessionId).equals(snapshot.topicsCanonical)
+                ? snapshot
+                : null;
+    }
+
+    public AckOutcome acknowledgeSessionOwned(
+            String cursorId,
+            String ownerFingerprint,
+            String sessionId,
+            long acknowledgedSequence,
+            long knownLatestSequence) {
+        if (findSessionOwned(cursorId, ownerFingerprint, sessionId) == null) {
+            return AckOutcome.NOT_FOUND;
+        }
+        return acknowledgeOwned(
+                cursorId,
+                ownerFingerprint,
+                acknowledgedSequence,
+                knownLatestSequence);
+    }
+
+    public CancelOutcome cancelSessionOwned(
+            String cursorId,
+            String ownerFingerprint,
+            String sessionId) {
+        if (findSessionOwned(cursorId, ownerFingerprint, sessionId) == null) {
+            return CancelOutcome.NOT_FOUND;
+        }
+        return cancelOwned(cursorId, ownerFingerprint);
     }
 
     public AckOutcome acknowledgeOwned(
@@ -402,6 +543,10 @@ public final class DurableEventCursorRepository {
         return String.join(",", canonical);
     }
 
+    private static String sessionScope(String sessionId) {
+        return "session:" + sessionId;
+    }
+
     private <T> T runTransaction(Callable<T> operation) {
         return database.runInTransaction(operation);
     }
@@ -441,6 +586,14 @@ public final class DurableEventCursorRepository {
         }
     }
 
+    private static void requireUuid(String value, String name) {
+        if (value == null
+                || !value.matches(
+                        "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")) {
+            throw new IllegalArgumentException(name + " is invalid");
+        }
+    }
+
     private static void requireSequence(long value, String name) {
         if (value < 0) {
             throw new IllegalArgumentException(name + " must be non-negative");
@@ -454,9 +607,13 @@ public final class DurableEventCursorRepository {
 
     public enum RegisterOutcome {
         CREATED,
+        REOPENED,
         REPLAYED,
         CONFLICT,
         FUTURE_CURSOR,
+        STALE_CURSOR,
+        UNACKNOWLEDGED_CURSOR,
+        RESYNC_REQUIRED,
         SOURCE_REGRESSION,
         GLOBAL_LIMIT,
         OWNER_LIMIT
@@ -532,6 +689,7 @@ public final class DurableEventCursorRepository {
         private final long overflowCount;
         private final long createdAtWallMs;
         private final long updatedAtWallMs;
+        private final String topicsCanonical;
 
         private Snapshot(EventCursorEntity entity) {
             cursorId = entity.cursorId;
@@ -547,6 +705,7 @@ public final class DurableEventCursorRepository {
             overflowCount = entity.overflowCount;
             createdAtWallMs = entity.createdAtWallMs;
             updatedAtWallMs = entity.updatedAtWallMs;
+            topicsCanonical = entity.topicsCanonical;
         }
 
         static Snapshot from(EventCursorEntity entity) {
@@ -599,6 +758,12 @@ public final class DurableEventCursorRepository {
 
         public long getUpdatedAtWallMs() {
             return updatedAtWallMs;
+        }
+
+        public String getSessionId() {
+            return topicsCanonical.startsWith("session:")
+                    ? topicsCanonical.substring("session:".length())
+                    : "";
         }
     }
 }

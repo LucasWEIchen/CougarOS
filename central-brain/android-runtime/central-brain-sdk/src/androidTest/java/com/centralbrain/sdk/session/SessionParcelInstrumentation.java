@@ -19,6 +19,7 @@ import android.util.Log;
 
 import com.centralbrain.runtime.security.ISecurityIdentityProbe;
 import com.centralbrain.sdk.CentralBrainClient;
+import com.centralbrain.sdk.CentralBrainSdk;
 import com.centralbrain.sdk.RuntimeEventListener;
 import com.centralbrain.sdk.RuntimeContractV2;
 import com.centralbrain.sdk.ScenarioClient;
@@ -30,6 +31,7 @@ import com.centralbrain.sdk.effect.UndoHandle;
 import com.centralbrain.sdk.event.ActionEvent;
 import com.centralbrain.sdk.event.EventContract;
 import com.centralbrain.sdk.event.EventPage;
+import com.centralbrain.sdk.event.ICentralBrainSessionEventsV2;
 import com.centralbrain.sdk.event.MessageEvent;
 import com.centralbrain.sdk.event.ObservationEvent;
 import com.centralbrain.sdk.event.RuntimeEvent;
@@ -166,7 +168,7 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                             + "\nruntime_contract_v2_physical_android13_arm64_verified=true"
                             + "\nfrozen_v1_hashes_unchanged=true"
                             + "\nevent_v2_cursor_ack_required=true"
-                            + "\nevent_v2_interface_published=false"
+                            + "\nevent_v2_interface_published=true"
                             + "\nhardware_accessed=false\n");
             finish(Activity.RESULT_OK, result);
         } catch (Throwable failure) {
@@ -178,6 +180,7 @@ public final class SessionParcelInstrumentation extends Instrumentation {
     }
 
     private void verifyLiveFacade(Bundle result) throws Exception {
+        verifyEventV2BinderPublished();
         ExecutorService callbacks = Executors.newSingleThreadExecutor();
         CountDownLatch connected = new CountDownLatch(1);
         CountDownLatch snapshotDelivered = new CountDownLatch(1);
@@ -310,12 +313,52 @@ public final class SessionParcelInstrumentation extends Instrumentation {
                             + "\nactive_session_reconnect_resubscribe_verified=true"
                             + "\nhealthy_reconnect_callback_cleanup_verified=true"
                             + "\ncallback_replay_deduplicated=true"
+                            + "\nevent_v2_interface_published=true"
+                            + "\nevent_v2_sdk_negotiation_wired=true"
+                            + "\nevent_v2_live_ack_reconnect_verified=true"
                             + "\nclose_reconnect_idempotency_verified=true"
                             + "\nscenario_execution_enabled=false"
                             + "\nhardware_accessed=false\n");
         } finally {
             client.close();
             callbacks.shutdownNow();
+        }
+    }
+
+    private void verifyEventV2BinderPublished() throws Exception {
+        Context context = getContext();
+        CountDownLatch connected = new CountDownLatch(1);
+        AtomicReference<IBinder> remote = new AtomicReference<>();
+        ServiceConnection connection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                remote.set(service);
+                connected.countDown();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {}
+        };
+        Intent intent = new Intent(CentralBrainSdk.ACTION_SESSION_EVENTS_V2)
+                .setComponent(new ComponentName(
+                        "com.centralbrain.runtime",
+                        "com.centralbrain.runtime.CentralBrainRuntimeService"));
+        if (!context.bindService(intent, connection, Context.BIND_AUTO_CREATE)) {
+            throw new AssertionError("Event V2 bindService returned false");
+        }
+        try {
+            await(connected, "Event V2 Binder connection");
+            ICentralBrainSessionEventsV2 events =
+                    ICentralBrainSessionEventsV2.Stub.asInterface(remote.get());
+            if (events == null
+                    || events.getProtocolVersion()
+                            != ICentralBrainSessionEventsV2.INTERFACE_VERSION
+                    || !ICentralBrainSessionEventsV2.INTERFACE_HASH.equals(
+                            events.getProtocolHash())) {
+                throw new AssertionError("Event V2 Binder protocol mismatch");
+            }
+        } finally {
+            context.unbindService(connection);
         }
     }
 
@@ -1275,12 +1318,13 @@ public final class SessionParcelInstrumentation extends Instrumentation {
         assertEquals(2, RuntimeContractV2.AGGREGATE_VERSION, "aggregate contract version");
         assertEquals(1, RuntimeContractV2.SESSION_WIRE_VERSION, "Session wire version");
         assertEquals(1, RuntimeContractV2.EVENT_WIRE_VERSION, "Event wire version");
+        assertEquals(2, RuntimeContractV2.EVENT_V2_WIRE_VERSION, "Event V2 wire version");
         assertEquals(50, RuntimeContractV2.SESSION_PAGE_ITEMS, "Session page bound");
         assertEquals(100, RuntimeContractV2.EVENT_PAGE_ITEMS, "Event page bound");
         assertEquals(256, RuntimeContractV2.CURSOR_CHARS, "cursor bound");
         if (RuntimeContractV2.EVENT_V1_TERMINAL_RESUME_CURSOR
                 || !RuntimeContractV2.EVENT_V2_CURSOR_ACK_REQUIRED
-                || RuntimeContractV2.EVENT_V2_INTERFACE_PUBLISHED
+                || !RuntimeContractV2.EVENT_V2_INTERFACE_PUBLISHED
                 || RuntimeContractV2.SCENARIO_EXECUTION_ENABLED) {
             throw new AssertionError("Runtime Contract v2 publication boundary drift");
         }

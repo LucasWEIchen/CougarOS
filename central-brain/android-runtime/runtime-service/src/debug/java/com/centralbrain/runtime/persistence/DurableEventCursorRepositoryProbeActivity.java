@@ -20,6 +20,10 @@ public final class DurableEventCursorRepositoryProbeActivity extends Activity {
     private static final String OWNER_A = repeat("a", 64);
     private static final String OWNER_B = repeat("b", 64);
     private static final String OWNER_C = repeat("c", 64);
+    private static final String EVENT_V2_CLIENT_ID =
+            "6fa9e1c1-0ecf-4c87-98ec-cb6c73086a3a";
+    private static final String EVENT_V2_SESSION_ID =
+            "7d8f6fc4-22e1-4f7b-a1a2-1f39dbc8eb92";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -237,6 +241,115 @@ public final class DurableEventCursorRepositoryProbeActivity extends Activity {
                     && database.runtimeStateDao().countActiveEventCursors() == 1
                     && database.runtimeStateDao().countCancelledEventCursors() == 1;
 
+            DurableEventCursorRepository.RegisterResult eventV2Created =
+                    repository.registerSession(
+                            OWNER_A,
+                            EVENT_V2_CLIENT_ID,
+                            EVENT_V2_SESSION_ID,
+                            2,
+                            4,
+                            5);
+            String eventV2CursorId = eventV2Created.getSnapshot().getCursorId();
+            boolean eventV2AdmissionVerified = eventV2Created.getOutcome()
+                            == DurableEventCursorRepository.RegisterOutcome.CREATED
+                    && repository.registerSession(
+                                    OWNER_A,
+                                    EVENT_V2_CLIENT_ID,
+                                    EVENT_V2_SESSION_ID,
+                                    2,
+                                    4,
+                                    5).getOutcome()
+                            == DurableEventCursorRepository.RegisterOutcome.REPLAYED
+                    && repository.registerSession(
+                                    OWNER_A,
+                                    EVENT_V2_CLIENT_ID,
+                                    EVENT_V2_SESSION_ID,
+                                    3,
+                                    4,
+                                    5).getOutcome()
+                            == DurableEventCursorRepository.RegisterOutcome.UNACKNOWLEDGED_CURSOR;
+            boolean eventV2OwnerSessionIsolationVerified =
+                    repository.findSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_B,
+                                    EVENT_V2_SESSION_ID) == null
+                    && repository.findSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_A,
+                                    "9c369041-e7d4-4f6a-9757-26a9ac0fd136") == null
+                    && repository.acknowledgeSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_B,
+                                    EVENT_V2_SESSION_ID,
+                                    3,
+                                    5)
+                            == DurableEventCursorRepository.AckOutcome.NOT_FOUND;
+            boolean eventV2AckVerified = repository.acknowledgeSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_A,
+                                    EVENT_V2_SESSION_ID,
+                                    4,
+                                    5)
+                            == DurableEventCursorRepository.AckOutcome.APPLIED
+                    && repository.acknowledgeSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_A,
+                                    EVENT_V2_SESSION_ID,
+                                    4,
+                                    5)
+                            == DurableEventCursorRepository.AckOutcome.REPLAYED
+                    && repository.acknowledgeSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_A,
+                                    EVENT_V2_SESSION_ID,
+                                    3,
+                                    5)
+                            == DurableEventCursorRepository.AckOutcome.REGRESSION
+                    && repository.acknowledgeSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_A,
+                                    EVENT_V2_SESSION_ID,
+                                    6,
+                                    5)
+                            == DurableEventCursorRepository.AckOutcome.FUTURE_SEQUENCE
+                    && repository.registerSession(
+                                    OWNER_A,
+                                    EVENT_V2_CLIENT_ID,
+                                    EVENT_V2_SESSION_ID,
+                                    2,
+                                    4,
+                                    5).getOutcome()
+                            == DurableEventCursorRepository.RegisterOutcome.STALE_CURSOR;
+
+            database.close();
+            database = CentralBrainDatabase.open(getApplicationContext(), DATABASE_NAME);
+            repository = repository(database, wallClock, ids);
+            DurableEventCursorRepository.Snapshot eventV2Reopened =
+                    repository.findSessionOwned(
+                            eventV2CursorId,
+                            OWNER_A,
+                            EVENT_V2_SESSION_ID);
+            boolean eventV2ReopenVerified = eventV2Reopened != null
+                    && EVENT_V2_SESSION_ID.equals(eventV2Reopened.getSessionId())
+                    && eventV2Reopened.getAcknowledgedSequence() == 4
+                    && repository.cancelSessionOwned(
+                                    eventV2CursorId,
+                                    OWNER_A,
+                                    EVENT_V2_SESSION_ID)
+                            == DurableEventCursorRepository.CancelOutcome.APPLIED
+                    && repository.registerSession(
+                                    OWNER_A,
+                                    EVENT_V2_CLIENT_ID,
+                                    EVENT_V2_SESSION_ID,
+                                    4,
+                                    4,
+                                    5).getOutcome()
+                            == DurableEventCursorRepository.RegisterOutcome.REOPENED;
+            boolean eventV2DurableSessionCursorVerified = eventV2AdmissionVerified
+                    && eventV2OwnerSessionIsolationVerified
+                    && eventV2AckVerified
+                    && eventV2ReopenVerified;
+
             boolean contractVerified = registrationIdempotencyVerified
                     && admissionBoundsVerified
                     && ownerIsolationVerified
@@ -248,6 +361,7 @@ public final class DurableEventCursorRepositoryProbeActivity extends Activity {
                     && recordBoundsVerified
                     && auditExactlyOnceVerified
                     && finalReopenVerified
+                    && eventV2DurableSessionCursorVerified
                     && repository.isDurable()
                     && !repository.isProductionWired()
                     && repository.requiresDurableMonotonicEventSource();
@@ -269,6 +383,12 @@ public final class DurableEventCursorRepositoryProbeActivity extends Activity {
                     + " event_cursor_record_bounds_verified=" + recordBoundsVerified
                     + " event_cursor_audit_exactly_once_verified="
                     + auditExactlyOnceVerified
+                    + " event_v2_durable_session_cursor_verified="
+                    + eventV2DurableSessionCursorVerified
+                    + " event_v2_owner_session_isolation_verified="
+                    + eventV2OwnerSessionIsolationVerified
+                    + " event_v2_ack_monotonic_verified=" + eventV2AckVerified
+                    + " event_v2_reopen_recovery_verified=" + eventV2ReopenVerified
                     + " event_cursor_probe_persistence_verified=true"
                     + " event_cursor_repository_implementation_available=true"
                     + " event_cursor_repository_production_wired=false"

@@ -32,7 +32,7 @@ public final class SecurityBoundaryInventoryContractTest {
     private static final String INPUT = "b".repeat(64);
 
     @Test
-    public void publicAidlTreeMatchesSevenInterfacesThirtyParcelablesAndNamespaces()
+    public void publicAidlTreeMatchesNineInterfacesThirtyFiveParcelablesAndNamespaces()
             throws Exception {
         int interfaces = 0;
         int parcelables = 0;

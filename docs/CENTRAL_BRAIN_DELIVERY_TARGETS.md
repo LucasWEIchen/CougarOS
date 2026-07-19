@@ -4,6 +4,22 @@
 
 日期：2026-07-17
 
+## Android P6-EV2 durable Session Event delivery
+
+交付 `ICentralBrainSessionEventsV2` 七个 AIDL 类型、V2 checksum、terminal resume cursor、Room v4
+owner/session subscription ACK、Runtime Binder action、SDK V2 negotiation/V1 fallback、JVM tests、DUMP
+数据库重开探针、机器合同和 CI 门禁。ACK 只允许 APPLIED/REPLAYED 推进客户端 cursor；stale/future、
+source regression、跨 owner/session 和不一致 handle 失败关闭。
+
+当前 `event_v2_interface_published=true`、`event_v2_terminal_cursor_implemented=true`、
+`event_v2_room_ack_wired=true`、`event_v2_sdk_negotiation_wired=true`、
+`event_v2_durable_session_cursor_verified=true`、`event_v2_android13_arm64_verified=false`、
+`frozen_v1_hashes_unchanged=true`、`production_event_middleware_published=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。设备验收完成前不得
+把 JVM/静态证据提升为 Android 13 ARM64 证据。Req IDs：`S2-EVT-001`、`FW-U-003`、
+`NV-G-004/006/007`、`XSC-001/005/006`、`DEL-001/003/004`；里程碑 `P6-EV2`。
+2026-07-19 验收尝试时 WSL/Windows ADB 均无在线 device；当前只交付 host/JVM/build evidence，设备标志保持 false。
+
 ## 交付对象
 
 本阶段只面向黑盒 Android 13 座舱域软件工程师、目标硬件测试人员和 OEM/Vendor 集成 owner。

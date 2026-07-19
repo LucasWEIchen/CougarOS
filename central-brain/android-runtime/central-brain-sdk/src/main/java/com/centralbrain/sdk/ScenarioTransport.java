@@ -3,6 +3,11 @@ package com.centralbrain.sdk;
 import android.os.RemoteException;
 
 import com.centralbrain.sdk.event.EventPage;
+import com.centralbrain.sdk.event.EventAckRequest;
+import com.centralbrain.sdk.event.EventAckResult;
+import com.centralbrain.sdk.event.EventPageV2;
+import com.centralbrain.sdk.event.EventSubscriptionHandle;
+import com.centralbrain.sdk.event.EventSubscriptionRequest;
 import com.centralbrain.sdk.event.RuntimeEvent;
 import com.centralbrain.sdk.session.SessionHandle;
 import com.centralbrain.sdk.session.SessionPage;
@@ -22,6 +27,10 @@ interface ScenarioTransport extends AutoCloseable {
 
     interface EventSink {
         void onEvent(RuntimeEvent event);
+
+        default void onEventV2(RuntimeEvent event, String resumeCursor) {
+            onEvent(event);
+        }
 
         void onOverflow(String resumeCursor);
 
@@ -44,6 +53,18 @@ interface ScenarioTransport extends AutoCloseable {
 
     String getEventProtocolHash() throws RemoteException;
 
+    default boolean supportsEventV2() {
+        return false;
+    }
+
+    default int getEventV2ProtocolVersion() throws RemoteException {
+        throw new RemoteException("Event V2 is unavailable");
+    }
+
+    default String getEventV2ProtocolHash() throws RemoteException {
+        throw new RemoteException("Event V2 is unavailable");
+    }
+
     SessionHandle openSession(SessionRequest request) throws RemoteException;
 
     SessionSnapshot getSession(SessionHandle handle) throws RemoteException;
@@ -58,6 +79,31 @@ interface ScenarioTransport extends AutoCloseable {
             throws RemoteException;
 
     boolean unregisterSessionCallback(String sessionId, EventSink sink) throws RemoteException;
+
+    default EventPageV2 getEventsV2(String sessionId, String cursor, int limit)
+            throws RemoteException {
+        throw new RemoteException("Event V2 is unavailable");
+    }
+
+    default EventSubscriptionHandle registerSessionCallbackV2(
+            EventSubscriptionRequest request,
+            EventSink sink) throws RemoteException {
+        throw new RemoteException("Event V2 is unavailable");
+    }
+
+    default EventAckResult acknowledgeV2(EventAckRequest request) throws RemoteException {
+        throw new RemoteException("Event V2 is unavailable");
+    }
+
+    default boolean unregisterSessionCallbackV2(
+            EventSubscriptionHandle handle,
+            EventSink sink) throws RemoteException {
+        return true;
+    }
+
+    default boolean cancelSubscriptionV2(EventSubscriptionHandle handle) throws RemoteException {
+        return true;
+    }
 
     @Override
     void close();

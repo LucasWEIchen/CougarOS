@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.centralbrain.sdk.event.ICentralBrainSessionEvents;
+import com.centralbrain.sdk.event.ICentralBrainSessionEventsV2;
 import com.centralbrain.sdk.session.ICentralBrainSessionRuntime;
 
 import java.util.Set;
@@ -21,6 +22,9 @@ public final class RuntimeContractV2Test {
         assertEquals(
                 ICentralBrainSessionEvents.INTERFACE_VERSION,
                 RuntimeContractV2.EVENT_WIRE_VERSION);
+        assertEquals(
+                ICentralBrainSessionEventsV2.INTERFACE_VERSION,
+                RuntimeContractV2.EVENT_V2_WIRE_VERSION);
         assertEquals(1, RuntimeContractV2.PLAN_DTO_VERSION);
         assertEquals(1, RuntimeContractV2.EFFECT_DTO_VERSION);
         assertEquals(50, RuntimeContractV2.SESSION_PAGE_ITEMS);
@@ -51,7 +55,7 @@ public final class RuntimeContractV2Test {
     public void eventCursorEvolutionIsFailClosedAndSeparatelyVersioned() {
         assertFalse(RuntimeContractV2.EVENT_V1_TERMINAL_RESUME_CURSOR);
         assertTrue(RuntimeContractV2.EVENT_V2_CURSOR_ACK_REQUIRED);
-        assertFalse(RuntimeContractV2.EVENT_V2_INTERFACE_PUBLISHED);
+        assertTrue(RuntimeContractV2.EVENT_V2_INTERFACE_PUBLISHED);
         assertFalse(RuntimeContractV2.SCENARIO_EXECUTION_ENABLED);
     }
 }
