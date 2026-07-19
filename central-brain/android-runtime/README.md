@@ -1699,3 +1699,18 @@ complete target retest remain unavailable. State: `p9_android13_arm64_probe_acce
 `production_signer_owner_approved=false`, `driver_safety_android13_arm64_verified=false`,
 `field_diagnostics_target_category_execution_complete=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`. Tracking: `DEV-109`, `ISSUE-029/030/048..053`.
+
+## P5-R1 debug Runtime composition
+
+`DebugRuntimeCompositionBoundary` is owned by the debug source set and is invoked by the P4-R1 Orchestration backend
+before a fixed Cold/Fatigue graph starts. It resolves the allowlisted metadata Tool with fresh health, admits the
+compiled-in Skill without dispatch authority, allocates metadata-only context budget, stores only a 64-byte evidence
+digest in Working Memory, and binds the composition digest into node/effect evidence. Terminal or service-close cleanup
+cancels the Skill admission and zeroizes/removes Working Memory.
+
+Host tests and debug/release compilation pass. The API 33 x86_64 probe verifies composition and cleanup; its aggregate
+marker remains false because the AVD is not ARM64.
+Profile/Episodic Memory, free text, tokenizer, production Tool/Skill authority, model, network, vehicle and NPU remain
+disabled. State: `runtime_composition_debug_wired=true`, `runtime_composition_android13_arm64_verified=false`,
+`runtime_composition_debug_probe_executed=true`, `production_runtime_composition_wired=false`, `hardware_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`. Stage: `P5-R1`; tracking: `DEV-117`, `ISSUE-036..044`.

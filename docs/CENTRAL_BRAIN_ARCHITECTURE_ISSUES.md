@@ -1323,3 +1323,15 @@ Issues 仍保持 Open：`ISSUE-048` 缺 target performance samples/owner；`ISSU
 `production_signer_owner_approved=false`、`driver_safety_android13_arm64_verified=false`、
 `field_diagnostics_target_category_execution_complete=false`、`release_evidence_target_report_admitted=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-109`。
+
+### P5-R1 Runtime composition update
+
+P5-R1 已关闭 ISSUE-036..041 的“debug Orchestration 未调用既有 Tool/Skill/WorkingMemory/ContextBudget”子项：
+固定 Cold/Fatigue 场景会产生 digest-bound composition evidence，并在终态清理 process-local state。该子项有 JVM test、
+API 33 x86_64 Android debug probe 和 machine contract；ARM64 设备仍未连接。
+
+Issues 不关闭：ISSUE-036..040 仍缺 production owner、真实 signer/health/rule/approval/Skill policy；ISSUE-041 仍缺
+durable storage、tokenizer 和隐私 owner；ISSUE-042/043 不允许在无 consent/key/catalog/repository owner 时写 Profile/Episodic；
+ISSUE-044 仍缺 production tokenizer/summary/model-context authority。`runtime_composition_debug_probe_executed=true`、`runtime_composition_android13_arm64_verified=false`、
+`production_runtime_composition_wired=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-117`、`ISSUE-036..044`。

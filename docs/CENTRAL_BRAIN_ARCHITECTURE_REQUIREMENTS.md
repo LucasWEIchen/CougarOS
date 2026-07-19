@@ -2984,3 +2984,16 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 `security_external_evidence_admitted=false`、`security_coverage_guided_fuzz_complete=false`、
 `security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P9-W03`。tracking：`DEV-114`、`ISSUE-050`。
+
+## P5-R1 Debug Runtime Composition Requirements
+
+1. `S2-SCN-001/S2-GRF-001`：只有 P4-R1 debug Orchestration 可调用组合边界；release backend 必须保持失败关闭。
+2. `S2-TOL-001`：Tool 必须按每次 admission 的新鲜 health snapshot 解析，并绑定 contract/signer/artifact/deadline/idempotency/audit digest。
+3. `S2-TOL-001/S2-SAF-001`：Skill 只完成 compiled-in governance admission，`dispatchAllowed` 必须为 false。
+4. `S2-MEM-001`：Working Memory 只保存 64-byte composition digest，终态和 Service close 必须清理并覆零 retained payload。
+5. `S2-MEM-001/S2-MDL-001`：ContextBudget 只处理受信 metadata；本阶段不得接收文本、调用 tokenizer/summarizer/model。
+6. `S2-SAF-001`：Profile/Episodic Memory 写入、网络、NPU、Vehicle、Driver/HAL 必须为 false。
+7. `S2-OBS-001/DEL-004`：Node/Effect evidence 必须绑定 composition digest，probe/contract 必须区分 debug wiring 与 production authority。
+
+当前 `runtime_composition_debug_wired=true`、`production_runtime_composition_wired=false`、
+`runtime_composition_android13_arm64_verified=false`、`implementation_stage=P5-R1`。tracking：`DEV-117`、`ISSUE-036..044`。

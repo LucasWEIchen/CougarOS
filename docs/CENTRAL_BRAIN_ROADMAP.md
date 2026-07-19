@@ -1814,6 +1814,19 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+### 2026-07-19 P5-R1 Runtime composition progress
+
+状态：`DEVELOPED / HOST_AND_API33_X86_VERIFIED / ARM64_PENDING`。P4-R1 debug Orchestration 现按固定顺序调用 Tool
+manifest/registry/resolver/rule/executor 边界、built-in Skill 治理准入、metadata-only Context Budget 和 Working Memory。
+Cold/Fatigue 分别绑定内建 Skill；只把组合 digest 写入 session scope，并将其绑定到 Node/Effect evidence。终态或
+Service close 会取消 Skill admission 并清理 Working Memory。Profile/Episodic、自由文本、tokenizer、模型和硬件均未接入。
+
+Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-TOL-001`、`S2-MEM-001`、`S2-SAF-001`、
+`S2-OBS-001`、`DEL-001/003/004/005`；tracking：`DEV-117`、`ISSUE-036..044`。
+`runtime_composition_debug_wired=true`、`runtime_composition_host_tests_verified=true`、
+`runtime_composition_debug_probe_executed=true`、`runtime_composition_android13_arm64_verified=false`、`production_runtime_composition_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-R1`。
+
 ### 2026-07-19 P9-W03f bounded parser robustness campaign
 
 状态：`COMPLETE / BOUNDED_HOST_EVIDENCE`。Jazzer 0.30.0、20 秒默认预算、6 个 synthetic seed 和 checkpoint/scenario/tool 三类 production

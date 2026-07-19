@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-runtime-composition-v1",
+  "maturity": "debug_runtime_composition_implemented",
+  "requirement_ids": [
+    "S2-SCN-001", "S2-GRF-001", "S2-TOL-001", "S2-MEM-001",
+    "S2-SAF-001", "S2-OBS-001", "DEL-001", "DEL-003", "DEL-004", "DEL-005"
+  ],
+  "composition": {
+    "orchestration_debug_backend_wired": true,
+    "tool_manifest_registry_resolver_rules_executor_boundary_wired": true,
+    "tool_health_resolved_per_admission": true,
+    "built_in_skill_governance_admission_wired": true,
+    "context_budget_metadata_only": true,
+    "working_memory_digest_only": true,
+    "working_memory_terminal_cleanup_wired": true,
+    "node_and_effect_evidence_bind_composition_digest": true,
+    "profile_memory_written": false,
+    "episodic_memory_written": false
+  },
+  "authority": {
+    "debug_source_set_only": true,
+    "release_backend_unchanged_fail_closed": true,
+    "skill_dispatch_enabled": false,
+    "production_tool_execution_enabled": false,
+    "production_memory_authority_published": false,
+    "production_tokenizer_wired": false,
+    "production_consent_authority_wired": false
+  },
+  "privacy_and_io": {
+    "free_text_accepted": false,
+    "profile_payload_accepted": false,
+    "episodic_payload_accepted": false,
+    "network_accessed": false,
+    "npu_accessed": false,
+    "vehicle_bus_accessed": false,
+    "driver_hal_accessed": false
+  },
+  "claim_state": {
+    "runtime_composition_v1_defined": true,
+    "runtime_composition_debug_wired": true,
+    "runtime_composition_host_tests_verified": true,
+    "runtime_composition_debug_probe_available": true,
+    "runtime_composition_debug_probe_executed": true,
+    "runtime_composition_android13_arm64_verified": false,
+    "production_runtime_composition_wired": false,
+    "hardware_accessed": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P5-R1"
+  }
+}

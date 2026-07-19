@@ -101,6 +101,7 @@ jobs:
           bash tools/check_central_brain_android_event_broker.sh
           bash tools/check_central_brain_android_event_v2.sh
           bash tools/check_central_brain_android_orchestration_v1.sh
+          bash tools/check_central_brain_android_runtime_composition_v1.sh
           bash tools/check_central_brain_android_event_backpressure_qos.sh
           bash tools/check_central_brain_android_trigger_engine.sh
           bash tools/check_central_brain_android_proactive_consent_policy.sh

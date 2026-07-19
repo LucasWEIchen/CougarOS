@@ -1927,3 +1927,14 @@ integration evidence. Only W03f's campaign execution surface is withdrawn. The b
 `security_requirement_suspended=true`, `security_test_implementation_present=false`, `security_test_execution_enabled=false`,
 `security_external_evidence_admitted=false`, `production_ready=false`, `target_hardware_validated=false`。
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-114`、`ISSUE-050`。
+
+## P5-R1 debug runtime composition architecture
+
+The debug path is now: `Orchestration.start -> DebugRuntimeCompositionBoundary.prepare -> Tool Registry/Health/Rule/Executor +
+Built-in Skill admission + ContextBudget -> WorkingMemory digest -> Scenario Compiler/Graph/Effect simulation -> Node/Effect evidence ->
+terminal cleanup`. The release path remains `Orchestration.start -> FailClosedOrchestrationBackend` and has no composition class.
+
+This composition does not merge module ownership. Tool remains manifest/rule/executor policy, Skill remains compiled-in governance,
+ContextBudget remains metadata decision-only, and Working Memory remains bounded session state. Profile/Episodic and Model are excluded
+until their external authority interfaces exist. `runtime_composition_debug_wired=true`, `production_runtime_composition_wired=false`,
+`hardware_accessed=false`, `production_ready=false`, `target_hardware_validated=false`。Stage `P5-R1`; tracking `DEV-117`。

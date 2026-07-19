@@ -3971,3 +3971,16 @@ The current contract records interface shape only; it does not implement submiss
 `security_test_implementation_present=false`、`security_test_execution_enabled=false`、
 `security_external_evidence_admitted=false`、`production_ready=false`、`target_hardware_validated=false`。
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-114`、`ISSUE-050`。
+
+## P5-R1 Debug Runtime Composition Interface
+
+| Interface | Input | Output | Failure/authority |
+| --- | --- | --- | --- |
+| `prepare(SessionDescriptor, scenarioId, requestDigest)` | owner/session descriptor, canonical fixed scenario, SHA-256 request digest | immutable Skill/Tool/budget/WorkingMemory evidence summary | unknown scenario, conflict, stale/unhealthy Tool, Skill/budget/memory rejection throw typed debug violation |
+| `complete(SessionDescriptor, Evidence)` | same owner/session and exact evidence digest | cleanup counts and replay marker | cross-owner/session/evidence mismatch fails closed |
+| `snapshot()` | none | bounded counts only | no payload/text/device identity |
+| `close()` | lifecycle signal | no return | cancels all active Skill admissions and terminates Working Memory |
+
+This is an internal debug Java interface, not Binder/AIDL and not present in release. Evidence getters expose digests/counts/booleans only.
+Profile/Episodic writes, Skill dispatch and production Tool authority are fixed false. Req IDs：`S2-TOL-001`、`S2-MEM-001`、
+`S2-SAF-001`、`S2-OBS-001`；tracking：`DEV-117`、`ISSUE-036..044`；stage `P5-R1`。

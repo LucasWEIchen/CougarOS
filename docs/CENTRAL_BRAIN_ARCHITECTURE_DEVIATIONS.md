@@ -971,6 +971,18 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-117 P5-R1 debug composition is not production Tool/Skill/Memory authority
+
+P5-R1 关闭了既有 P5 模块彼此不连通的 debug 软件偏差：固定场景执行前现在会完成 Tool contract boundary、Skill
+governance admission、Context metadata budget 和 Working Memory digest lifecycle，并把组合证据带入 Node/Effect projection。
+
+该实现位于 debug source set。Tool executor 只运行无 I/O 的 build-owned metadata function；Skill 不 dispatch；Working Memory
+不持久化；Profile/Episodic 不写入；没有 production signer/health/rule/consent/tokenizer/repository owner。因此 ISSUE-036..044
+仍 Open，release backend 仍失败关闭。状态：`Accepted Temporary`。
+
+`runtime_composition_debug_wired=true`、`production_runtime_composition_wired=false`、
+`hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`、`implementation_stage=P5-R1`。
+
 ## DEV-110 P8 public target inventory is not capability mapping
 
 P8-W01 collector 已在 identity-redacted Android API 33 目标上完成只读公开 inventory。仓库只记录 69 项 feature、274 项

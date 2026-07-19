@@ -2870,3 +2870,16 @@ raw identity、signing material、credential、raw input/log 或业务 payload�
 `security_production_signer_verified=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；
 tracking：`DEV-114`、`ISSUE-050`。
+
+## 2026-07-19 Android P5-R1 Runtime Composition
+
+交付 debug-only `DebugRuntimeCompositionBoundary`、Orchestration 接线、Node/Effect evidence binding、终态清理、JVM tests、
+DUMP-protected Android probe、机器合同和 CI checker。交付状态：`runtime_composition_debug_wired=true`、
+`runtime_composition_host_tests_verified=true`、`runtime_composition_debug_probe_available=true`、
+`runtime_composition_debug_probe_executed=true`（API 33 x86_64 composition/cleanup 子项通过）。
+
+非交付声明：`runtime_composition_android13_arm64_verified=false`、`production_runtime_composition_wired=false`、
+`profile_memory_written=false`、`episodic_memory_written=false`、`skill_dispatch_enabled=false`、
+`production_tool_execution_enabled=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-SCN-001`、`S2-GRF-001`、`S2-TOL-001`、`S2-MEM-001`、
+`S2-SAF-001`、`S2-OBS-001`、`DEL-001/003/004/005`；tracking：`DEV-117`、`ISSUE-036..044`。
