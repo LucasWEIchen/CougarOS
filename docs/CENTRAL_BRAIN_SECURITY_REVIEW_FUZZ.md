@@ -213,3 +213,17 @@ production signer review, security-owner approval, or release qualification. Cur
 `security_parser_robustness_host_campaign_verified=true`, `security_coverage_guided_fuzz_complete=false`,
 `security_production_signer_verified=false`, `network_accessed=false`, `hardware_accessed=false`, `production_ready=false`,
 `target_hardware_validated=false`. Tracking: `DEV-113`, `ISSUE-050`.
+
+## 12. P9-W03g executable campaign suspension
+
+The W03f executable campaign is historical and no longer present in the repository. By explicit user decision, the engine dependency, Gradle task, Java
+target/tests, seed inputs, runner/checker, and campaign machine contract were removed. The project will not request trusted-access permission for this work.
+
+The only retained artifact is `central_brain_android_p9_security_evidence_interface.json`. It defines eight redacted metadata/digest/reference fields for a
+future externally owned submission and rejects raw identity, signing material, credentials, raw inputs/logs, and user/model/memory/vehicle payloads. It has
+no repository executor, Android/native component, network transport, or automatic execution path.
+
+Current claims: `security_external_evidence_interface_defined=true`, `security_requirement_suspended=true`,
+`security_test_implementation_present=false`, `security_test_execution_enabled=false`, `security_external_evidence_admitted=false`,
+`security_coverage_guided_fuzz_complete=false`, `security_production_signer_verified=false`, `production_ready=false`,
+`target_hardware_validated=false`. Tracking: `DEV-114`, `ISSUE-050`.

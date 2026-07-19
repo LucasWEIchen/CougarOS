@@ -69,7 +69,7 @@
 | ISSUE-047 | P8 目标 property/service/permission/owner/version/readback/fault evidence 未取得，真实 adapter 不能启动。 | S2-ADP-002, S2-OBS-001, P8-W01..W06 | Open / External Blocked |
 | ISSUE-048 | P9 十项预算缺目标 Android 13 采集、30-sample 报告、owner approval 和 release qualification。 | S2-OBS-001, S2-REL-001, P9-W01/W02 | Open |
 | ISSUE-049 | P9 稳定性矩阵缺真实 fault injector、目标 72h run、受控证据和 owner approval。 | S2-REL-001, S2-OBS-001, P9-W02 | Open / External Blocked |
-| ISSUE-050 | P9 仓库内 parser engine/budget/host evidence、debug Binder identity 与 callback replay 已完成；仍缺目标级预算、安全 owner 和 production signer/release 资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, P9-W03 | External Blocked |
+| ISSUE-050 | P9 可执行 security campaign 已按用户决策撤回并挂起；仅保留外部证据接口。debug Binder identity/callback replay 保留，production signer/owner 未完成。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, P9-W03 | Suspended |
 | ISSUE-051 | P9 durable privacy lifecycle 缺 owner policy、repository enforcement 和目标 evidence。 | S2-MEM-001, S2-SAF-001, P9-W04 | Open |
 | ISSUE-052 | P9 production signer、installer/rollback owner 和受控发布证据不可用。 | S2-REL-001, P9-W05 | Open / External Blocked |
 | ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
@@ -1077,9 +1077,9 @@ aggregate，并交付 debug-only Android probe。P9-W03d 已在 API 33 ARM64 的
 对 checkpoint/scenario/tool 三类 production Java parser 完成受控 host campaign，三类入口均执行且未产生 crash artifact。完整安全验收仍缺
 目标级 Android Binder/Parcel/长预算证据、production signer/release 资格与安全 owner approval。
 
-ISSUE 状态改为 `External Blocked`。仓库内 Java parser 的 seed、engine/version、host budget、coverage/hang/crash 判定和日志边界已冻结；目标
-evidence 仍必须由安全 owner 批准 Android Binder/Parcel/native surface、CPU/time budget、sanitizer、最小化/留存、release/source、non-secret
-alias 和仓库外 evidence reference。不得上传 raw user/model/vehicle payload、设备身份、签名材料或未审日志。
+ISSUE 状态改为 `Suspended`。W03f 可执行实现已由 P9-W03g 完整撤回，仓库只保留外部证据 submission interface；项目不申请 trusted-access
+permission。未来 evidence 必须由外部 security owner 提供批准 profile、release/source/digest、non-secret alias、内部 reference 和 privacy
+confirmation。不得上传 raw user/model/vehicle payload、设备身份、签名材料、credential、raw input 或未审日志。
 
 关闭条件：所有 W03 surface 有稳定 case/owner/expected result，受控 fuzz 达到批准预算且 crash/hang 已归零或有接受记录，目标 Android
 13 release 完成命名 device evidence 并经安全 owner 评审。当前 `security_parser_corpus_defined=true`、
@@ -1095,12 +1095,12 @@ alias 和仓库外 evidence reference。不得上传 raw user/model/vehicle payl
 `security_task_callback_replay_android_verified=true`、`security_callback_sequence_replay_suppressed=true`、
 `security_callback_terminal_replay_unique=true`、`security_idempotency_conflict_callback_silent=true`、
 `security_cross_uid_callback_owner_isolation_verified=true`、`security_debug_test_principal_release_excluded=true`、
-`security_parser_robustness_engine_pinned=true`、`security_parser_robustness_budget_defined=true`、
-`security_parser_robustness_surface_count=3`、`security_parser_robustness_seed_count=6`、
-`security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
+`security_external_evidence_interface_defined=true`、`security_requirement_suspended=true`、
+`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+`security_external_evidence_admitted=false`、`security_coverage_guided_fuzz_complete=false`、
 `security_production_signer_verified=false`、
 `security_android13_arm64_verified=false`、`hardware_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089/090/111/112/113`。
+`target_hardware_validated=false`、`implementation_stage=P9-W03`。tracking：`DEV-088/089/090/111/112/113/114`。
 
 ## ISSUE-051 P9 durable privacy lifecycle policies are incomplete
 

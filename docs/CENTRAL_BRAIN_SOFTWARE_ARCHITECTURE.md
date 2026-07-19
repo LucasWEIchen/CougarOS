@@ -1885,3 +1885,15 @@ exercise Binder driver/Parcel unmarshalling, native code, Android target resourc
 `security_parser_robustness_host_campaign_verified=true` while `security_coverage_guided_fuzz_complete=false`,
 `security_production_signer_verified=false`, `production_ready=false`, and `target_hardware_validated=false`.
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。
+
+## P9-W03g suspended evidence boundary architecture
+
+Current flow is intentionally non-executable: `external security owner -> approved evidence kept outside repository -> eight-field metadata interface ->
+future manual admission (currently absent)`. The repository contains only the JSON interface and an absence checker. There is no engine, target, seed,
+runner, Android/native component, network transport or automatic trigger.
+
+W03a..W03e deterministic/parser-inventory/Binder-identity/callback-replay artifacts remain because they are ordinary owned-code correctness tests and target
+integration evidence. Only W03f's campaign execution surface is withdrawn. The boundary keeps the main architecture fail closed:
+`security_requirement_suspended=true`, `security_test_implementation_present=false`, `security_test_execution_enabled=false`,
+`security_external_evidence_admitted=false`, `production_ready=false`, `target_hardware_validated=false`。
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-114`、`ISSUE-050`。

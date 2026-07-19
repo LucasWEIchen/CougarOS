@@ -120,7 +120,7 @@ jobs:
           bash tools/check_central_brain_android_identity_replay_security_corpus.sh
           bash tools/check_central_brain_android_security_identity.sh
           bash tools/check_central_brain_android_callback_replay_security.sh
-          bash tools/check_central_brain_android_parser_robustness_campaign.sh
+          bash tools/check_central_brain_android_security_evidence_interface.sh
           bash tools/check_central_brain_android_security_boundary_inventory.sh
           bash tools/check_central_brain_android_privacy_data_inventory.sh
           bash tools/check_central_brain_android_privacy_policy_admission.sh

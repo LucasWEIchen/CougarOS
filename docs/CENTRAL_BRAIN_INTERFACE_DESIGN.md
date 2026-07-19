@@ -3920,3 +3920,23 @@ The interface is host-test-only and adds no AIDL, JNI, C ABI or Android componen
 `security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
 `security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`。
 Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-113`、`ISSUE-050`。
+
+## Android P9-W03g External Security Evidence Interface
+
+This interface is data-only; it has no Binder, Java, JNI, C ABI, Android component, CLI executor or network transport.
+
+| Field | Type/classification | Admission rule |
+| --- | --- | --- |
+| `release_id` | non-secret identifier | required, named release only |
+| `source_commit` / `archive_sha256` | public digest | required, exact source/archive binding |
+| `device_alias` | non-secret alias | required, raw serial/fingerprint forbidden |
+| `approved_profile_id` | non-secret identifier | required, owned outside repository |
+| `result_summary_sha256` | public digest | required, raw result/log forbidden |
+| `internal_evidence_reference` | private reference only | required, referenced content stays outside repository |
+| `privacy_confirmation` | boolean | required true before any future admission review |
+
+The current contract records interface shape only; it does not implement submission parsing or admission. Current
+`security_external_evidence_interface_defined=true`、`security_requirement_suspended=true`、
+`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+`security_external_evidence_admitted=false`、`production_ready=false`、`target_hardware_validated=false`。
+Req IDs：`S2-SAF-001`、`S2-TOL-001`、`S2-OBS-001`、`DEL-001/004/005`；tracking：`DEV-114`、`ISSUE-050`。

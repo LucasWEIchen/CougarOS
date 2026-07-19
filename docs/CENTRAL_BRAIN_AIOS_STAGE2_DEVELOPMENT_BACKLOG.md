@@ -1374,3 +1374,13 @@ flowchart LR
 - runner 必须证明执行量和覆盖率大于零、三类入口均执行、崩溃产物为零、raw-input logging 为 false；生成 corpus 仅位于 `build/`。
 - 本项关闭 `ISSUE-050` 的仓库内 engine/budget/host evidence 子项。production signer、安全 owner、目标级 Android/Binder 长预算测试和 release
   qualification 保持外部阻塞；`security_coverage_guided_fuzz_complete=false`。tracking：`DEV-113`、`ISSUE-050`。
+
+## 26. P9-W03g executable security campaign suspension
+
+- 状态：`SUSPENDED / EXTERNAL_INTERFACE_ONLY`（2026-07-19，用户范围决策）。
+- W03f 的第三方引擎依赖、Gradle execution task、Java target/test、6 个 seed、shell runner/checker 和 campaign contract 已全部删除。
+- 当前只交付 `central_brain_android_p9_security_evidence_interface.json`，接收八项非秘密 metadata/digest/reference/boolean；没有 executor、
+  Android/native component、network transport 或自动执行路径。
+- 不申请可信访问权限。只有外部 security owner 提供经批准且满足隐私边界的证据时才能另行准入；当前 admission=false。
+- `security_requirement_suspended=true`、`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+  `security_external_evidence_admitted=false`、`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-114`、`ISSUE-050`。

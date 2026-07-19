@@ -102,12 +102,17 @@ update，并保证 completion/failure 终态只交付一次。Android debug capa
 policy 不包含该主体。API 33 ARM64 已用 `com.centralbrain.demo` 与 `com.centralbrain.sdk.test` 两个不同 owner UID 验证同 owner 重放、冲突静默、
 终态重放和跨 UID owner 隔离。`security_task_callback_replay_android_verified=true`；coverage fuzz、production signer 与目标资格仍为 false。
 
-## P9-W03f bounded parser robustness campaign
+## P9-W03f bounded parser robustness campaign (retired)
 
-Runtime host test source set 通过独立 `parserSecurityFuzzRuntime` 配置固定 Jazzer 0.30.0，并用 6 个纯合成 seed 覆盖 checkpoint
-反序列化、scenario manifest 解析和 Tool input schema 校验。`fuzzParserSecurity` 默认运行 20 秒；受控 runner 只输出执行量、边覆盖指标、
-三类入口计数、崩溃数和隐私 marker，不保存业务输入。该证据不访问 Android 设备、网络、Vehicle/NPU 或 Driver/HAL。
+该短预算 host campaign 曾在 2026-07-19 形成历史证据。按用户明确决策，其引擎依赖、Gradle task、Java target/test、seed、runner 和原 machine
+contract 已从当前仓库删除，不再构成当前工程能力，也不再提供执行命令。
 
-运行：`bash tools/test_central_brain_android_parser_robustness_campaign.sh`。当前
-`security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
-`security_production_signer_verified=false`、`production_ready=false`、`target_hardware_validated=false`。
+## P9-W03g external security evidence interface
+
+当前只保留 `central_brain_android_p9_security_evidence_interface.json`：它定义外部 owner 可提交的八个脱敏 metadata/digest/reference 字段，禁止
+raw identity、signing material、credential、raw input/log 和 user/model/memory/vehicle payload。仓库没有 executor、Android/native component、
+network transport 或自动执行路径，也不申请可信访问权限。
+
+当前 `security_external_evidence_interface_defined=true`、`security_requirement_suspended=true`、
+`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+`security_external_evidence_admitted=false`、`production_ready=false`、`target_hardware_validated=false`。

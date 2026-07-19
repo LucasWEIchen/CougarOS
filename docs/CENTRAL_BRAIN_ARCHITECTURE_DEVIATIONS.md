@@ -111,6 +111,7 @@
 | DEV-111 | P9-W03d 只验证 debug APK 的 Binder UID/current signer 获取链；不是 production signer、完整 fuzz 或目标安全资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 | DEV-112 | P9-W03e 只验证应用层 task callback replay/owner isolation；debug test principal 与 deterministic Runtime 不是 production signer、完整 fuzz 或车辆执行。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 | DEV-113 | P9-W03f 只提供三类 Java parser 的短预算 host coverage evidence；不是 Android Binder/Parcel、目标长预算、production signer 或安全 owner 资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
+| DEV-114 | P9-W03g 按用户决策撤回仓库内可执行 security campaign，只保留非执行型外部证据接口；需求不申请 trusted access 并保持挂起。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Suspended |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
@@ -1891,3 +1892,17 @@ Driver-HAL。状态：`Accepted Temporary`。关闭条件仍是 owner 批准的�
 当前 `security_parser_robustness_host_campaign_verified=true`、`security_coverage_guided_fuzz_complete=false`、
 `security_production_signer_verified=false`、`network_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`ISSUE-050`。
+
+## DEV-114 P9-W03g executable security campaign is suspended
+
+平台内容分类持续阻断相关开发交互，用户明确不通过申请可信访问权限解决，并要求删除该部分实现、只保留接口。W03f 的第三方 dependency、
+Gradle task、Java target/test、seed、runner/checker 和 campaign contract 因此从当前仓库撤回。DEV-113 仅保留历史证据边界，不代表当前能力。
+
+当前替代物是一个非执行型外部证据 JSON interface。它不包含算法、执行入口、Android/native component 或 network transport，只冻结脱敏
+submission fields 和 forbidden inputs。状态：`Suspended`。恢复条件是用户重新批准范围、外部 owner 提供 approved profile/evidence，且正常
+平台政策允许处理；未满足前不得恢复可执行实现。
+
+`security_external_evidence_interface_defined=true`、`security_requirement_suspended=true`、
+`security_test_implementation_present=false`、`security_test_execution_enabled=false`、
+`security_external_evidence_admitted=false`、`security_coverage_guided_fuzz_complete=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
