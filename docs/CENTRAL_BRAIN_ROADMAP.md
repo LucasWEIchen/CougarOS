@@ -1876,6 +1876,15 @@ Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`XSC-001/005/006`、
 `production_npu_validated=false`、`production_ready=false`、`target_hardware_validated=false`、
 `implementation_stage=P7-R2`。
 
+## 2026-07-20 GitHub README focused information architecture
+
+根 `README.md` 已收敛为两个且仅两个二级章节：软件架构框图，以及最细颗粒度需求跟进列表。跟进列表按
+最小工作包、Req ID、交付/证据和状态逐行维护，覆盖已开发、外部阻塞、挂起与范围外项目；原首页中的
+构建入口、模块目录、文档索引、维护规则和近期日志不再重复展示，仍由对应权威文档和 Git 历史维护。
+`tools/check_central_brain_root_readme.sh` 同步改为校验双章节边界、122 个最小跟进项、关键架构节点/调用边、
+Req ID 和状态分类。该增量追踪 `DEL-001/004/005`、`XSC-006`，不改变
+`production_ready=false`、`target_hardware_validated=false` 或任何外部阻塞结论。
+
 ## P10-R1 Android repository software completion
 
 S2-P0..P7 的仓库软件工作已完成；S2-P8 为 OEM/Vendor/车辆/NPU 外部适配，S2-P9 已完成软件合同和

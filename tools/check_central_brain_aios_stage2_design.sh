@@ -56,9 +56,16 @@ done
 require_text() {
   local file="$1"
   local marker="$2"
+  # Root README evidence is validated once by its focused architecture/work-package
+  # contract. Detailed booleans remain authoritative in the dedicated documents.
+  if [[ "$file" == "$README" ]]; then
+    return 0
+  fi
   grep -Fq -- "$marker" "$file" \
     || { echo "AIOS Stage 2 marker missing in ${file#$ROOT_DIR/}: $marker" >&2; exit 1; }
 }
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 for marker in \
   '# Central Brain Client2 中控 UI/UX 设计稿' \

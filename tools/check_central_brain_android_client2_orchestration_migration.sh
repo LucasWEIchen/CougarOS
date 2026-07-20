@@ -184,7 +184,6 @@ for marker in \
 done
 
 for doc in \
-  README.md \
   docs/CENTRAL_BRAIN_ROADMAP.md \
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \
   docs/CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md \
@@ -197,6 +196,10 @@ for doc in \
   grep -Fq 'P4-R2 Client2 Orchestration V1 migration' "$ROOT_DIR/$doc" \
     || { echo "P4-R2 documentation marker missing: $doc" >&2; exit 1; }
 done
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
+grep -Fq -- '| `P4-R2` |' "$ROOT_DIR/README.md" \
+  || { echo "P4-R2 README tracking row missing" >&2; exit 1; }
 
 bash "$ROOT_DIR/tools/check_central_brain_android_orchestration_v1.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh" >/dev/null

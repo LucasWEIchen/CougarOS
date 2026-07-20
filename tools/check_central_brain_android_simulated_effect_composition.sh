@@ -137,17 +137,9 @@ if find "$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main" \
   exit 1
 fi
 
-for marker in \
-  'P4-D4d Simulated Effect Composition' \
-  'simulated_scenario_effect_composition_defined=true' \
-  'simulated_scenario_effect_dispatch_enabled=true' \
-  'simulated_scenario_android_debug_probe_executed=true' \
-  'simulated_scenario_binder_authorized_call_verified=true' \
-  'simulated_scenario_hardware_effect_dispatch_enabled=false' \
-  'implementation_stage=P4-D4e'; do
-  grep -Fq -- "$marker" "$ROOT_DIR/README.md" \
-    || { echo "P4-D4d README marker missing: $marker" >&2; exit 1; }
-done
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
+grep -Fq -- '| `P4-D4d` |' "$ROOT_DIR/README.md" \
+  || { echo "P4-D4d README tracking row missing" >&2; exit 1; }
 
 printf '%s\n' \
   'Central Brain Android P4-D4d simulated Effect composition check passed' \

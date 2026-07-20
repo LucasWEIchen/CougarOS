@@ -148,7 +148,7 @@ require_text "$ROADMAP" '### 2026-07-18 P4-W12 progress'
 require_text "$ARCHITECTURE" '## P4-W12 aggregate Android acceptance architecture'
 require_text "$INTERFACES" '## P4-W12 aggregate Android acceptance interface'
 require_text "$DESIGN" '## P4-W12 implementation detail: aggregate device acceptance'
-require_text "$ROOT_README" '| P4 Android aggregate acceptance |'
+require_text "$ROOT_README" '| `P4-W12` |'
 require_text "$CLIENT_README" '## P4-W12 aggregate Android acceptance'
 require_text "$PHYSICAL_REPORT" '## 19. 2026-07-18 P4-W12 aggregate Android application acceptance evidence'
 require_text "$PHYSICAL_REPORT" 'p4_android13_arm64_aggregate_verified=true'
@@ -157,9 +157,10 @@ for marker in \
   'p4_automatic_plan_runtime_published=false' \
   'hmi_d4_demo_control_loop_complete=false' \
   'implementation_stage=P9-W03'; do
-  require_text "$ROOT_README" "$marker"
   require_text "$CLIENT_README" "$marker"
 done
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_voice_first_hmi.sh"

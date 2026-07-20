@@ -141,7 +141,8 @@ require_text "$ARCHITECTURE" '## P7 Android 13 ARM64 aggregate probe acceptance 
 require_text "$INTERFACES" '## P7 Android 13 ARM64 aggregate probe acceptance interface'
 require_text "$DESIGN" '## P7 implementation detail: aggregate Android probe acceptance'
 require_text "$BACKLOG" '## 22. P7 Android physical probe acceptance update'
-require_text "$README" '| P7 Android aggregate probe acceptance |'
+require_text "$README" '| `P7-W01` |'
+require_text "$README" '| `P7-W07` |'
 for marker in \
   'p7_android13_arm64_probe_acceptance_complete=true' \
   'p7_probe_module_count=7' \
@@ -161,9 +162,10 @@ for marker in \
   'hardware_accessed=false' \
   'production_ready=false' \
   'target_hardware_validated=false'; do
-  require_text "$README" "$marker"
   require_text "$REPORT" "$marker"
 done
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 printf '%s\n' \
   'p7_probe_acceptance_contract_verified=true' \
