@@ -36,6 +36,7 @@ required_tracked_paths=(
   central-brain/android-runtime/policy-probe/build.gradle.kts
   apk-labs/client2-central-brain/README.md
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
+  docs/CENTRAL_BRAIN_GRANULAR_REQUIREMENT_CATALOG.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
   docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md
   docs/CENTRAL_BRAIN_ROADMAP.md
