@@ -148,7 +148,8 @@ require_text "$ARCHITECTURE" '## P9 Android 13 ARM64 aggregate debug probe accep
 require_text "$INTERFACES" '## P9 Android 13 ARM64 aggregate debug probe acceptance interface'
 require_text "$DESIGN" '## P9 implementation detail: aggregate Android debug probe acceptance'
 require_text "$BACKLOG" '## 23. P9 Android physical debug probe acceptance update'
-require_text "$README" '| P9 Android aggregate debug probe acceptance |'
+require_text "$README" '| `P9-W01` |'
+require_text "$README" '| `P9-W07c` |'
 for marker in \
   'p9_android13_arm64_probe_acceptance_complete=true' \
   'p9_probe_module_count=7' \
@@ -165,9 +166,10 @@ for marker in \
   'hardware_accessed=false' \
   'production_ready=false' \
   'target_hardware_validated=false'; do
-  require_text "$README" "$marker"
   require_text "$REPORT" "$marker"
 done
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 printf '%s\n' \
   'p9_probe_acceptance_contract_verified=true' \

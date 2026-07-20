@@ -136,7 +136,6 @@ for document in "${DOCUMENTS[@]}"; do
   require_text "$document" 'P9-W03d'
 done
 for document in \
-  "README.md" \
   "docs/CENTRAL_BRAIN_SECURITY_REVIEW_FUZZ.md" \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md" \
   "docs/CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md" \
@@ -147,6 +146,8 @@ for document in \
   require_text "$document" 'security_distinct_app_uids_verified=true'
   require_text "$document" 'security_production_signer_verified=false'
 done
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 printf '%s\n' \
   'Central Brain Android P9-W03d security identity check passed' \

@@ -131,7 +131,8 @@ require_text "$ARCHITECTURE" '## P5 Android 13 ARM64 aggregate probe acceptance 
 require_text "$INTERFACES" '## P5 Android 13 ARM64 aggregate probe acceptance interface'
 require_text "$DESIGN" '## P5 implementation detail: aggregate Android probe acceptance'
 require_text "$BACKLOG" '## 20. P5 Android physical probe acceptance update'
-require_text "$README" '| P5 Android aggregate probe acceptance |'
+require_text "$README" '| `P5-W01` |'
+require_text "$README" '| `P5-W10` |'
 for marker in \
   'p5_android13_arm64_probe_acceptance_complete=true' \
   'p5_probe_module_count=10' \
@@ -143,9 +144,10 @@ for marker in \
   'hardware_accessed=false' \
   'production_ready=false' \
   'target_hardware_validated=false'; do
-  require_text "$README" "$marker"
   require_text "$REPORT" "$marker"
 done
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 printf '%s\n' \
   'p5_probe_acceptance_contract_verified=true' \

@@ -133,7 +133,8 @@ require_text "$ARCHITECTURE" '## P6 Android 13 ARM64 aggregate probe acceptance 
 require_text "$INTERFACES" '## P6 Android 13 ARM64 aggregate probe acceptance interface'
 require_text "$DESIGN" '## P6 implementation detail: aggregate Android probe acceptance'
 require_text "$BACKLOG" '## 21. P6 Android physical probe acceptance update'
-require_text "$README" '| P6 Android aggregate probe acceptance |'
+require_text "$README" '| `P6-W01` |'
+require_text "$README" '| `P6-W06` |'
 for marker in \
   'p6_android13_arm64_probe_acceptance_complete=true' \
   'p6_probe_module_count=6' \
@@ -148,9 +149,10 @@ for marker in \
   'hardware_accessed=false' \
   'production_ready=false' \
   'target_hardware_validated=false'; do
-  require_text "$README" "$marker"
   require_text "$REPORT" "$marker"
 done
+
+bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 printf '%s\n' \
   'p6_probe_acceptance_contract_verified=true' \
