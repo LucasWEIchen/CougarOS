@@ -1885,6 +1885,17 @@ Req IDs：`S2-MDL-001`、`S2-SAF-001`、`S2-OBS-001`、`XSC-001/005/006`、
 Req ID 和状态分类。该增量追踪 `DEL-001/004/005`、`XSC-006`，不改变
 `production_ready=false`、`target_hardware_validated=false` 或任何外部阻塞结论。
 
+## 2026-07-20 granular requirement catalog and direct links
+
+新增 `CENTRAL_BRAIN_GRANULAR_REQUIREMENT_CATALOG.md`，为根 README 中 122 个最小工作包分别建立唯一
+锚点，并逐项说明需求、追踪 Req ID、负责模块、前置输入、输出与验收、边界、状态和权威依据。README
+第二列全部改为直达对应章节的链接，不再要求工程师从汇总表反向搜索多份文档。
+
+`tools/check_central_brain_root_readme.sh` 现在强制验证 122 行与 122 个目录章节一一对应、顺序一致、
+八类说明字段完整、相对链接有效，并保持 readiness 边界。审计同时补齐 `S2-TRG-002` 在架构需求基线中
+缺失的正式定义，登记 `DEV-125` 为已解决的文档追踪偏差。该增量追踪 `DEL-003`、`XSC-006`、
+`S2-TRG-002`，不改变 `production_ready=false`、`target_hardware_validated=false`。
+
 ## P10-R1 Android repository software completion
 
 S2-P0..P7 的仓库软件工作已完成；S2-P8 为 OEM/Vendor/车辆/NPU 外部适配，S2-P9 已完成软件合同和

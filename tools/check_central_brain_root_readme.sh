@@ -7,10 +7,12 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 README="$ROOT_DIR/README.md"
+CATALOG="$ROOT_DIR/docs/CENTRAL_BRAIN_GRANULAR_REQUIREMENT_CATALOG.md"
 
 [[ -f "$README" ]] || { echo "missing repository README" >&2; exit 1; }
+[[ -f "$CATALOG" ]] || { echo "missing granular requirement catalog" >&2; exit 1; }
 
-python3 - "$README" <<'PY'
+python3 - "$README" "$CATALOG" <<'PY'
 from __future__ import annotations
 
 import re
@@ -19,6 +21,8 @@ from pathlib import Path
 
 readme_path = Path(sys.argv[1])
 readme = readme_path.read_text(encoding="utf-8")
+catalog_path = Path(sys.argv[2])
+catalog = catalog_path.read_text(encoding="utf-8")
 
 if readme.count("# CougarOS Central Brain") != 1:
     raise SystemExit("README must contain exactly one project title")
@@ -127,6 +131,90 @@ for row in table_rows:
         raise SystemExit(f"README tracking row has no requirement trace: {row}")
     if not cells[-1].startswith("`") or not cells[-1].endswith("`"):
         raise SystemExit(f"README tracking row has no explicit status: {row}")
+    item_match = re.fullmatch(r"`([^`]+)`", cells[0])
+    if item_match is None:
+        raise SystemExit(f"README tracking row has invalid work package ID: {row}")
+    item_id = item_match.group(1)
+    expected_target = (
+        "docs/CENTRAL_BRAIN_GRANULAR_REQUIREMENT_CATALOG.md#"
+        f"{item_id.lower()}"
+    )
+    link_match = re.fullmatch(r"\[([^\]]+)\]\(([^)]+)\)", cells[1])
+    if link_match is None or link_match.group(2) != expected_target:
+        raise SystemExit(
+            f"README requirement link must target its exact catalog anchor: {row}"
+        )
+    section_match = re.search(
+        rf"^### {re.escape(item_id)} ([^\n]+)\n(?P<body>.*?)(?=^### |\Z)",
+        catalog,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    if section_match is None:
+        raise SystemExit(f"granular requirement catalog section missing: {item_id}")
+    if section_match.group(1) != link_match.group(1):
+        raise SystemExit(
+            f"README label and catalog heading differ for {item_id}: "
+            f"readme={link_match.group(1)!r}, catalog={section_match.group(1)!r}"
+        )
+    section_body = section_match.group("body")
+    if not is_scope_row and f"- **需求追踪**：{cells[2]}。" not in section_body:
+        raise SystemExit(f"README and catalog requirement trace differ for {item_id}")
+    if f"- **当前状态**：{cells[-1]}。" not in section_body:
+        raise SystemExit(f"README and catalog status differ for {item_id}")
+
+expected_anchor_ids = {item.lower() for item in required_ids}
+catalog_anchor_ids = re.findall(r'^<a id="([a-z0-9-]+)"></a>$', catalog, re.MULTILINE)
+if len(catalog_anchor_ids) != len(required_ids):
+    raise SystemExit(
+        "granular requirement catalog must contain exactly one anchor per work package: "
+        f"anchors={len(catalog_anchor_ids)}, expected={len(required_ids)}"
+    )
+if len(set(catalog_anchor_ids)) != len(catalog_anchor_ids):
+    raise SystemExit("granular requirement catalog contains duplicate anchors")
+if set(catalog_anchor_ids) != expected_anchor_ids:
+    missing = sorted(expected_anchor_ids - set(catalog_anchor_ids))
+    extra = sorted(set(catalog_anchor_ids) - expected_anchor_ids)
+    raise SystemExit(f"granular requirement catalog anchor mismatch: missing={missing}, extra={extra}")
+
+catalog_heading_ids = re.findall(
+    r"^### ((?:P\d+-[A-Za-z0-9-]+)|(?:SCOPE-\d+))(?:\s|$)",
+    catalog,
+    re.MULTILINE,
+)
+if catalog_heading_ids != required_ids:
+    raise SystemExit(
+        "granular requirement catalog headings must follow the README work-package order: "
+        f"headings={len(catalog_heading_ids)}, expected={len(required_ids)}"
+    )
+
+required_catalog_fields = (
+    "- **需求描述**：",
+    "- **需求追踪**：",
+    "- **负责模块**：",
+    "- **前置输入**：",
+    "- **输出与验收**：",
+    "- **边界与非目标**：",
+    "- **当前状态**：",
+    "- **权威依据**：",
+)
+for field in required_catalog_fields:
+    count = catalog.count(field)
+    if count != len(required_ids):
+        raise SystemExit(
+            f"granular requirement catalog field count mismatch: {field}={count}, "
+            f"expected={len(required_ids)}"
+        )
+
+for target in re.findall(r"\[[^\]]+\]\(([^)]+)\)", catalog):
+    if target.startswith(("http://", "https://", "#")):
+        continue
+    relative_path = target.split("#", 1)[0]
+    if not (catalog_path.parent / relative_path).is_file():
+        raise SystemExit(f"granular requirement catalog link target does not exist: {target}")
+
+for claim in ("production_ready=false", "target_hardware_validated=false"):
+    if claim not in catalog:
+        raise SystemExit(f"granular requirement catalog boundary claim missing: {claim}")
 
 required_claims = (
     "github_source_of_truth=true",
@@ -151,6 +239,8 @@ for status in ("`EXTERNAL_BLOCKED`", "`SUSPENDED / EXTERNAL_BLOCKED`", "`OUT_OF_
         raise SystemExit(f"README remaining-work classification missing: {status}")
 
 print(f"root_readme_granular_requirement_rows={len(table_rows)}")
+print(f"root_readme_requirement_links_verified={len(table_rows)}")
+print(f"granular_requirement_catalog_entries={len(catalog_anchor_ids)}")
 print("root_readme_h2_section_count=2")
 PY
 
@@ -158,6 +248,7 @@ printf '%s\n' \
   'Central Brain focused GitHub homepage README check passed' \
   'root_readme_architecture_documented=true' \
   'root_readme_granular_requirement_tracking_documented=true' \
+  'root_readme_granular_requirement_catalog_linked=true' \
   'github_homepage_architecture_current=true' \
   'python_prototype_runtime_maintained=false' \
   'production_ready=false' \

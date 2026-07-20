@@ -1,7 +1,7 @@
 # 中央大脑架构需求基线
 
-版本：0.9
-日期：2026-07-17
+版本：1.0
+日期：2026-07-20
 状态：Android 13 实际工程基线
 
 ## P4-R1 implementation trace
@@ -210,6 +210,7 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | S2-TOL-001 | retry/timeout/partial failure | deterministic terminal/recovery 软件完成；production owner evidence 外部阻塞 |
 | S2-MEM-001 | memory lifecycle | Working/Profile/Episodic、budget/consent 软件合同与 debug composition 完成；production repository/owner 外部阻塞 |
 | S2-EVT-001 | proactive Event trigger | Event V2、broker/QoS、Trigger/consent/suggestion 软件完成；production middleware/Context owner 外部阻塞 |
+| S2-TRG-002 | 主动建议呈现与抑制 | PARKED 显示完整卡片；MOVING/UNKNOWN 仅最小提示；支持 merge/replay、dismiss cooldown 和 never-ask；投影不授予 Effect authority |
 | S2-MDL-001 | model routing | Model V2/router/evaluation/resource admission 与 debug decision composition 完成；Vendor NPU/provider 外部阻塞 |
 | S2-MDL-002 | 座舱模型上下文与动作约束 | 驾驶员服务目标、座舱状态、UI 仿真边界和必要动作必须进入模型 prompt；输出需白名单后再进入 Plan |
 | S2-ADP-002 | real vehicle adapter | owner/API/permission/readback/rollback |

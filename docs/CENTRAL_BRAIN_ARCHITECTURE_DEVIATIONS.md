@@ -1,8 +1,20 @@
 # 中央大脑架构偏差登记表
 
-版本：0.7
-日期：2026-07-17
+版本：0.8
+日期：2026-07-20
 状态：Android 13 实际工程基线
+
+## DEV-125 S2-TRG-002 缺少需求基线定义
+
+`P6-W06`、Stage 2 backlog、主动建议 UX 合同和检查器已经引用 `S2-TRG-002`，但该 Req ID
+此前没有写入架构需求基线的派生需求表，造成实现、README 跟进项与权威需求定义之间无法一一追踪。
+
+处理：在派生需求表补充 `S2-TRG-002`，明确 PARKED 完整卡片、MOVING/UNKNOWN 最小提示、
+merge/replay、dismiss cooldown、never-ask 以及“投影不授予 Effect authority”的边界；根 README 的
+`P6-W06` 链接到独立最小需求说明。该修订只关闭文档追踪缺口，不修改 Runtime 行为、软件状态或外部阻塞。
+
+状态：`Resolved`。`production_ready=false`、`target_hardware_validated=false`。Req IDs：
+`S2-TRG-002`、`S2-UX-002`、`S2-SAF-001`、`S2-OBS-001`、`DEL-003`。
 
 ## DEV-116 P4-R1 软件编排已发布但生产 authority 仍为空接口
 
@@ -139,6 +151,7 @@ AIDL version/hash 和 checksum manifest；SDK 协商成功时使用 V2，旧 Run
 | DEV-112 | P9-W03e 只验证应用层 task callback replay/owner isolation；debug test principal 与 deterministic Runtime 不是 production signer、完整 fuzz 或车辆执行。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 | DEV-113 | P9-W03f 只提供三类 Java parser 的短预算 host coverage evidence；不是 Android Binder/Parcel、目标长预算、production signer 或安全 owner 资格。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Accepted Temporary |
 | DEV-114 | P9-W03g 按用户决策撤回仓库内可执行 security campaign，只保留非执行型外部证据接口；需求不申请 trusted access 并保持挂起。 | S2-SAF-001, S2-TOL-001, S2-OBS-001, ISSUE-050 | Suspended |
+| DEV-125 | P6-W06 已引用但基线未定义的 S2-TRG-002 已补齐，并接入 README 一一对应的需求说明。 | S2-TRG-002, S2-UX-002, DEL-003 | Resolved |
 
 ## DEV-017 Client2 APK 逆向演示路径
 
