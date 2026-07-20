@@ -1896,6 +1896,18 @@ Req ID 和状态分类。该增量追踪 `DEL-001/004/005`、`XSC-006`，不改�
 缺失的正式定义，登记 `DEV-125` 为已解决的文档追踪偏差。该增量追踪 `DEL-003`、`XSC-006`、
 `S2-TRG-002`，不改变 `production_ready=false`、`target_hardware_validated=false`。
 
+## 2026-07-20 README detailed requirements and code traceability
+
+根 README 的 122 个最小工作包现直接保留需求描述、负责模块、前置输入、验收条件和非目标边界，并新增逐项
+“代码/接口”链接。链接使用 GitHub `main` 的精确行号范围，区分实际 Java/AIDL/C/Client2 实现、
+debug/合同实现、量产空接口/准入、非执行接口、已撤回代码和明确范围外项目；外部阻塞项不得被代码链接
+误报为已实现。
+
+最小需求目录同步增加 122 个“代码对应”字段。根 README 门禁验证首页详细内容与目录一致、代码链接路径和
+行号有效、链接标签与文件名一致，并要求可执行软件项至少指向一个 Android Runtime 或 Client2 源码段。
+该增量追踪 `DEL-003/004`、`XSC-006`，不改变 `repository_software_requirements_complete=true`、
+`production_ready=false`、`target_hardware_validated=false`，也没有新增架构偏差。
+
 ## P10-R1 Android repository software completion
 
 S2-P0..P7 的仓库软件工作已完成；S2-P8 为 OEM/Vendor/车辆/NPU 外部适配，S2-P9 已完成软件合同和

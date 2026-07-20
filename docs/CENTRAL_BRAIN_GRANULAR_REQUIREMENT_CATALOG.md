@@ -1,12 +1,14 @@
 # Central Brain 最小需求说明目录
 
-版本：1.0
+版本：1.1
 
 日期：2026-07-20
 
 本目录与根 `README.md` 的最细颗粒度需求跟进表一一对应。每个跟进 ID 只有一个稳定锚点；
 README 的链接必须指向该锚点。本文定义开发和验收所需的最小语义，详细状态仍以所列权威
 需求、backlog、路线图、偏差、问题、交付和 Driver/HAL 文档为准。
+每个章节同时记录与 README 完全一致的 GitHub 代码段链接；代码缺失时只能指向空接口、准入、退役或
+范围门禁，并必须保留相应的非实现分类。
 
 统一规则：
 
@@ -27,6 +29,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：用户架构图、公开行业/开源证据、产品与工程约束。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：AIOS/座舱行业证据、采用与延后边界。
 - **边界与非目标**：只冻结需求和设计，不形成 Runtime、车辆或 NPU 执行能力。
+- **代码对应**：设计门禁：[check_central_brain_aios_stage2_design.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_aios_stage2_design.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -39,6 +42,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：用户架构图、公开行业/开源证据、产品与工程约束。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：意图优先、行驶限制、失败/补偿/撤销 UX。
 - **边界与非目标**：只冻结需求和设计，不形成 Runtime、车辆或 NPU 执行能力。
+- **代码对应**：设计门禁：[check_central_brain_cockpit_hmi_design.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_cockpit_hmi_design.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -51,6 +55,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：用户架构图、公开行业/开源证据、产品与工程约束。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：模块、接口、依赖、测试、DoD 与 Req ID 追踪。
 - **边界与非目标**：只冻结需求和设计，不形成 Runtime、车辆或 NPU 执行能力。
+- **代码对应**：设计门禁：[check_central_brain_aios_stage2_design.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_aios_stage2_design.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -65,6 +70,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：冻结的 AIDL/DTO 版本、Binder 身份、Session/Plan/Event/Effect 边界和 Room schema。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：五个有界 DTO；`session_contract_v1_defined=true`、`session_parcel_physical_android13_arm64_verified=true`。
 - **边界与非目标**：Android 应用层合同/持久化证据不等于 VINTF stable AIDL、车辆/NPU 或量产 authority。
+- **代码对应**：合同实现：[SessionContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/session/SessionContract.java#L8-L26)；[check_central_brain_android_session_contract.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_session_contract.sh#L1-L19)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -77,6 +83,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：冻结的 AIDL/DTO 版本、Binder 身份、Session/Plan/Event/Effect 边界和 Room schema。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：immutable DAG/11 node allowlist；`plan_contract_v1_defined=true`、`plan_parcel_physical_android13_arm64_verified=true`、`plan_runtime_published=false`。
 - **边界与非目标**：Android 应用层合同/持久化证据不等于 VINTF stable AIDL、车辆/NPU 或量产 authority。
+- **代码对应**：合同实现：[PlanContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/plan/PlanContract.java#L16-L34)；[check_central_brain_android_plan_contract.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_plan_contract.sh#L1-L19)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -89,6 +96,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：冻结的 AIDL/DTO 版本、Binder 身份、Session/Plan/Event/Effect 边界和 Room schema。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：cursor/replay/callback；`event_contract_v1_defined=true`、`event_parcel_physical_android13_arm64_verified=true`、`event_runtime_service_published=true`、`event_callback_service_published=true`。
 - **边界与非目标**：Android 应用层合同/持久化证据不等于 VINTF stable AIDL、车辆/NPU 或量产 authority。
+- **代码对应**：合同实现：[EventContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/event/EventContract.java#L13-L31)；[check_central_brain_android_event_contract.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_event_contract.sh#L1-L19)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -101,6 +109,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：冻结的 AIDL/DTO 版本、Binder 身份、Session/Plan/Event/Effect 边界和 Room schema。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：typed target/state/approval/undo；`effect_contract_v1_defined=true`、`effect_parcel_physical_android13_arm64_verified=true`、`effect_runtime_service_published=false`、`approval_response_service_published=false`、`undo_service_published=false`。
 - **边界与非目标**：Android 应用层合同/持久化证据不等于 VINTF stable AIDL、车辆/NPU 或量产 authority。
+- **代码对应**：合同实现：[EffectContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/effect/EffectContract.java#L9-L27)；[check_central_brain_android_effect_contract.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_effect_contract.sh#L1-L19)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -113,6 +122,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：冻结的 AIDL/DTO 版本、Binder 身份、Session/Plan/Event/Effect 边界和 Room schema。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：`ScenarioClient`/`SessionClient`、replay/resubscribe、Binder death/reconnect；`sdk_facade_v2_available=true`。
 - **边界与非目标**：Android 应用层合同/持久化证据不等于 VINTF stable AIDL、车辆/NPU 或量产 authority。
+- **代码对应**：合同实现：[ScenarioClient.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/ScenarioClient.java#L10-L28)；[check_central_brain_android_sdk_facade.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_sdk_facade.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -125,6 +135,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：冻结的 AIDL/DTO 版本、Binder 身份、Session/Plan/Event/Effect 边界和 Room schema。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：durable Session/Event、v3->v4 migration、process-death rehydration；`room_schema_version=4`。
 - **边界与非目标**：Android 应用层合同/持久化证据不等于 VINTF stable AIDL、车辆/NPU 或量产 authority。
+- **代码对应**：合同实现：[CentralBrainDatabase.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/persistence/CentralBrainDatabase.java#L30-L48)；[check_central_brain_android_room_v4.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_room_v4.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -137,6 +148,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：冻结的 AIDL/DTO 版本、Binder 身份、Session/Plan/Event/Effect 边界和 Room schema。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：AIDL hash、capability、bounds、Room、SDK 与 forbidden fallback 聚合门禁。
 - **边界与非目标**：Android 应用层合同/持久化证据不等于 VINTF stable AIDL、车辆/NPU 或量产 authority。
+- **代码对应**：合同实现：[CentralBrainSdk.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/CentralBrainSdk.java#L8-L25)；[check_central_brain_runtime_contract_v2.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_runtime_contract_v2.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -149,6 +161,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：terminal cursor、owner/session Room ACK、SDK V2 negotiation/V1 fallback。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：合同实现：[EventV2Contract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/event/EventV2Contract.java#L7-L25)；[check_central_brain_android_event_v2.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_event_v2.sh#L4-L22)。
 - **当前状态**：`SOFTWARE_COMPLETE / ARM64_RETEST_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -163,6 +176,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：12 路径、timestamp/quality/source/schema；`vehicle_signal_schema_defined=true`。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：软件实现：[VehicleSignalPath.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/schema/VehicleSignalPath.java#L9-L27)；[check_central_brain_android_vehicle_signal_schema.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_vehicle_signal_schema.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -175,6 +189,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：8 capability、area/risk/adapter/authorization；production authorized=0。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：软件实现：[CapabilityCatalog.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/capability/CapabilityCatalog.java#L14-L32)；[check_central_brain_android_vehicle_capability_catalog.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_vehicle_capability_catalog.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -187,6 +202,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：desired/reported/quality/revision；process-local、非 production trust。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：软件实现：[VehicleDigitalTwinStore.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/twin/VehicleDigitalTwinStore.java#L13-L31)；[check_central_brain_android_vehicle_digital_twin.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_vehicle_digital_twin.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -199,6 +215,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：freshness/trust/restricted report；production source 未接。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：软件实现：[ContextSnapshotBuilder.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/context/ContextSnapshotBuilder.java#L30-L48)；[check_central_brain_android_context_snapshot.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_context_snapshot.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -211,6 +228,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：schema/catalog/checksum；production-signed artifact 未接。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：软件实现：[ScenarioManifestParser.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/ScenarioManifestParser.java#L38-L56)；[check_central_brain_android_scenario_manifest.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_scenario_manifest.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -223,6 +241,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed selection、availability fail-closed；model 未参与。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：软件实现：[DeterministicScenarioResolver.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/DeterministicScenarioResolver.java#L31-L49)；[check_central_brain_android_scenario_resolver.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_scenario_resolver.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -235,6 +254,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：immutable DAG、moving seat branch removal；Runtime publication 未接。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：软件实现：[ScenarioPlanCompiler.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/ScenarioPlanCompiler.java#L30-L48)；[check_central_brain_android_scenario_plan_compiler.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_scenario_plan_compiler.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -247,6 +267,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：typed target、idempotency、desired/reported；debug-only。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：Debug 实现：[SimulatedEffectAdapter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/simulation/SimulatedEffectAdapter.java#L15-L33)；[check_central_brain_android_simulated_effect_adapter.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_effect_adapter.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -259,6 +280,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：power/temp/fan typed simulation/readback。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：Debug 实现：[SimulatedHvacEffectAdapter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/simulation/SimulatedHvacEffectAdapter.java#L23-L41)；[check_central_brain_android_simulated_hvac_adapter.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_hvac_adapter.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -271,6 +293,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：recline/heat typed simulation、dispatch revalidation。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：Debug 实现：[SimulatedSeatEffectAdapter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/simulation/SimulatedSeatEffectAdapter.java#L27-L45)；[check_central_brain_android_simulated_seat_adapter.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_seat_adapter.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -283,6 +306,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：media state、synthetic navigation observation、digest-only query。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：Debug 实现：[SimulatedMediaEffectAdapter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/simulation/SimulatedMediaEffectAdapter.java#L15-L33)；[check_central_brain_android_simulated_media_navigation_adapters.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_media_navigation_adapters.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -295,6 +319,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：signature/capability protected、revision ACK、release absent。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
+- **代码对应**：Debug 实现：[DebugSimulationController.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/simulation/DebugSimulationController.java#L26-L44)；[check_central_brain_android_debug_simulation_controller.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_debug_simulation_controller.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -309,6 +334,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：10-state bounded control runtime、dependency-ready、failure closed。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[AgentGraphRuntime.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/graph/AgentGraphRuntime.java#L28-L46)；[check_central_brain_android_agent_graph_runtime.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_agent_graph_runtime.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_RUNTIME`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -321,6 +347,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：11 node schemas、7 deterministic executors；dispatch disabled。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[NodeExecutorRegistry.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/graph/NodeExecutorRegistry.java#L20-L38)；[check_central_brain_android_typed_node_executors.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_typed_node_executors.sh#L4-L22)。
 - **当前状态**：`DONE / CONTRACT`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -333,6 +360,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：registered DTO、canonical JSON、size/depth/digest guards。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[CheckpointSerializer.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/graph/CheckpointSerializer.java#L7-L25)；[check_central_brain_android_checkpoint_serializer.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_checkpoint_serializer.sh#L4-L22)。
 - **当前状态**：`DONE / CONTRACT`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -345,6 +373,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：bounded deadline/attempt/backoff；Effect retry requires reconciliation。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[NodeRetryPolicy.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/graph/NodeRetryPolicy.java#L9-L27)；[check_central_brain_android_retry_timeout_policy.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_retry_timeout_policy.sh#L4-L22)。
 - **当前状态**：`DONE / CONTRACT`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -357,6 +386,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：owner/plan/context/policy/Safety/expiry binding；authority 未发布。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[ApprovalInterruptExecutor.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/graph/ApprovalInterruptExecutor.java#L12-L30)；[check_central_brain_android_approval_interrupt.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_approval_interrupt.sh#L4-L22)。
 - **当前状态**：`DONE / CONTRACT`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -369,6 +399,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：prepare-all、dependency waves、exact adapter registry；production dispatch=false。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[EffectCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectCoordinator.java#L19-L37)；[check_central_brain_android_effect_coordinator.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_effect_coordinator.sh#L4-L22)。
 - **当前状态**：`DONE / CONTRACT`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -381,6 +412,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：delivered/applied/verified 分离、Twin reconcile、no redispatch。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[EffectVerifier.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectVerifier.java#L25-L43)；[check_central_brain_android_effect_verification.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_effect_verification.sh#L4-L22)。
 - **当前状态**：`DONE / CONTRACT`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -393,6 +425,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：before snapshot、TTL、reverse dependency、new governed task。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[CompensationPlanner.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/CompensationPlanner.java#L26-L44)；[check_central_brain_android_compensation_undo.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_compensation_undo.sh#L4-L22)。
 - **当前状态**：`DONE / CONTRACT`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -405,6 +438,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已验证的 typed Plan、Context/Policy/Safety digest、checkpoint 和 Effect/approval/undo 合同。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：Room recovery reducer、reconcile directives、exactly-once audit。
 - **边界与非目标**：软件 Graph/Effect 语义不得越过 production Effect、Safety、材料和 readback authority。
+- **代码对应**：软件实现：[GraphRestartReconciler.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/graph/GraphRestartReconciler.java#L25-L43)；[check_central_brain_android_graph_restart_recovery.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_graph_restart_recovery.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_DEBUG_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -417,6 +451,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：owner/session Binder、Plan/Graph/Effect/readback Room projection。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[OrchestrationEndpoint.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/orchestration/OrchestrationEndpoint.java#L25-L43)；[check_central_brain_android_orchestration_v1.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_orchestration_v1.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_RUNTIME`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -431,6 +466,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：Client2 typed Session/Event callbacks。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[Client2ScenarioBridge.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java#L25-L43)；[check_central_brain_android_client2_binder.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_binder.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -443,6 +479,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：immutable state、single reducer、Binder reconnect。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[CockpitHmiReducer.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitHmiReducer.java#L12-L30)；[check_central_brain_android_client2_hmi_reducer.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_hmi_reducer.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -455,6 +492,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：Intent/Plan/Execution/Result 工程状态壳。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[main_layout.central_brain_panel.xml](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml#L2-L20)；[check_central_brain_android_client2_intent_shell.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_intent_shell.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -467,6 +505,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：immutable desired、300 ms debounce、scenario ownership。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[HvacControlIntent.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/HvacControlIntent.java#L9-L27)；[check_central_brain_android_client2_hvac_surface.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_hvac_surface.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -479,6 +518,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：seat typed state、Safety/approval gate。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[SeatControlIntent.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/SeatControlIntent.java#L8-L26)；[check_central_brain_android_client2_seat_surface.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_seat_surface.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -491,6 +531,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：七阶段、最多八条 typed event、partial visibility。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[CockpitExecutionTimeline.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitExecutionTimeline.java#L16-L34)；[check_central_brain_android_client2_execution_timeline.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_execution_timeline.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -503,6 +544,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：approval/partial/retry/undo projection。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[CockpitRecoveryState.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitRecoveryState.java#L8-L26)；[check_central_brain_android_client2_recovery_ux.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_recovery_ux.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -515,6 +557,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：PARKED/MOVING/UNKNOWN_RESTRICTED rendering。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[DrivingUxPolicy.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/DrivingUxPolicy.java#L4-L22)；[check_central_brain_android_client2_driving_restriction.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_driving_restriction.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -527,6 +570,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：debug-only controller、fault/context controls。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[DebugSimulationControllerClient.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/DebugSimulationControllerClient.java#L20-L38)；[check_central_brain_android_client2_engineer_simulation.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_engineer_simulation.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -539,6 +583,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：canonical roles、lifecycle、sequence ownership。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[CockpitScenarioControlState.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitScenarioControlState.java#L11-L29)；[check_central_brain_android_client2_scenario_sync.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_scenario_sync.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -551,6 +596,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：48dp、非颜色单一表达、1920x1080 safe frame。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[CockpitDisplayPolicy.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitDisplayPolicy.java#L4-L22)；[check_central_brain_android_client2_accessibility_display.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_accessibility_display.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -563,6 +609,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：navigation/scenario/fault/restart/display application acceptance。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L31-L49)；[check_central_brain_android_client2_p4_acceptance.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_p4_acceptance.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_APP_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -575,6 +622,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed Cold/Fatigue graph、pending nodes。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Debug 实现：[SimulatedScenarioGraph.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/scenario/SimulatedScenarioGraph.java#L30-L48)；[check_central_brain_android_simulated_scenario_graph.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_scenario_graph.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -587,6 +635,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：bounded Session/Event projection、digest-only payload。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Debug 实现：[SimulatedScenarioRuntime.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/scenario/SimulatedScenarioRuntime.java#L20-L38)；[check_central_brain_android_simulated_scenario_runtime.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_scenario_runtime.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -599,6 +648,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed 2x2 input、same-signer/capability、release absent。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Debug 实现：[SimulatedScenarioRuntimeService.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/scenario/SimulatedScenarioRuntimeService.java#L30-L48)；[check_central_brain_android_simulated_scenario_binder.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_scenario_binder.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -611,6 +661,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：4 adapters、7 targets、MATCHED readback、approval projection。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Debug 实现：[SimulatedScenarioEffectComposition.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/scenario/SimulatedScenarioEffectComposition.java#L29-L47)；[check_central_brain_android_simulated_effect_composition.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_simulated_effect_composition.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_DEBUG_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -623,6 +674,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：formal chain、seven-stage UI、Cold/Fatigue approve/reject。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Debug 实现：[Client2ScenarioBridge.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/Client2ScenarioBridge.java#L25-L43)；[check_central_brain_android_client2_simulated_scenario_chain.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_simulated_scenario_chain.sh#L1-L19)。
 - **当前状态**：`DONE / ANDROID13_ARM64_DEBUG_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -635,6 +687,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：legacy scenario Binder removed；formal SDK/Room/Effect projection。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[OrchestrationRuntimeClient.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/OrchestrationRuntimeClient.java#L29-L47)；[check_central_brain_android_client2_orchestration_migration.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_client2_orchestration_migration.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_E2E`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -647,6 +700,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-scoped Session/Event/Orchestration SDK 投影、驾驶状态和显式 debug simulation profile。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：两个自然触发、32 行调用链、HVAC/Seat 动画；`voice_first_hmi_implemented=true`。
 - **边界与非目标**：Client2 是演示 HMI；UI 动画和 debug readback 不等于真实车控或量产 HMI 资格。
+- **代码对应**：Client2/Runtime 实现：[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L31-L49)；[check_central_brain_android_voice_first_hmi.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_voice_first_hmi.sh#L4-L22)。
 - **当前状态**：`DONE / UI_SIMULATION_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[座舱 HMI 闭环计划](CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md)。
 
@@ -661,6 +715,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：versioned manifest、bounded input/output schema。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[ToolManifest.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/tools/ToolManifest.java#L17-L35)；[check_central_brain_android_tool_manifest.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_tool_manifest.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -673,6 +728,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：version map、health freshness、registered/resolved/usable separation。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[ToolRegistry.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/tools/ToolRegistry.java#L16-L34)；[check_central_brain_android_tool_registry.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_tool_registry.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -685,6 +741,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：rule x model x usable intersection、fail-closed。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[ToolRuleSolver.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/tools/ToolRuleSolver.java#L13-L31)；[check_central_brain_android_tool_rule_solver.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_tool_rule_solver.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -697,6 +754,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：signed built-in executor、deadline/output bound、digest-only invocation。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[InProcessBuiltInToolExecutor.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/tools/InProcessBuiltInToolExecutor.java#L15-L33)；[check_central_brain_android_tool_executor.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_tool_executor.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -709,6 +767,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：signer/version/digest/anti-downgrade；no dynamic load。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[SkillArtifactVerifier.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/skills/SkillArtifactVerifier.java#L14-L32)；[check_central_brain_android_skill_package_verifier.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_skill_package_verifier.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -721,6 +780,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：owner/session bounded process-local store。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[WorkingMemoryStore.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/memory/WorkingMemoryStore.java#L17-L35)；[check_central_brain_android_working_memory_store.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_working_memory_store.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / PROCESS_LOCAL`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -733,6 +793,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：consent/field/user-seat binding；contract cipher only。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[ProfileMemoryStore.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/memory/ProfileMemoryStore.java#L22-L40)；[check_central_brain_android_profile_memory_store.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_profile_memory_store.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / CONTRACT_TEST`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -745,6 +806,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：typed bounded scenario summaries；process-local。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[EpisodicMemoryStore.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/memory/EpisodicMemoryStore.java#L16-L34)；[check_central_brain_android_episodic_memory_store.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_episodic_memory_store.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / PROCESS_LOCAL`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -757,6 +819,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：metadata-only budget decision；tokenizer/summary execution 未接。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[ContextBudgetManager.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/memory/ContextBudgetManager.java#L15-L33)；[check_central_brain_android_context_budget_manager.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_context_budget_manager.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / DECISION_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -769,6 +832,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：source visibility、disable、clear preference、moving restriction。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：软件实现：[MemoryConsentController.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/memory/MemoryConsentController.java#L17-L35)；[check_central_brain_android_memory_consent_hmi.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_memory_consent_hmi.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / PROJECTION_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -781,6 +845,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化 Tool/Skill manifest、健康/签名证据、Session owner、Memory consent 与上下文预算。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：Tool/Skill/ContextBudget/WorkingMemory combined evidence。
 - **边界与非目标**：process-local/contract-test 能力不得提升为 production Tool、Skill 或 Memory authority。
+- **代码对应**：Debug 实现：[DebugRuntimeCompositionBoundary.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/orchestration/DebugRuntimeCompositionBoundary.java#L30-L48)；[check_central_brain_android_runtime_composition_v1.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_runtime_composition_v1.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -795,6 +860,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：typed topic、append-before-notify、bounded replay、identity policy。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：软件实现：[InProcessDurableEventBroker.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/events/InProcessDurableEventBroker.java#L21-L39)；[check_central_brain_android_event_broker.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_event_broker.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / PROCESS_LOCAL`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -807,6 +873,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：4 policies、critical no-silent-drop、consumer isolation。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：软件实现：[InProcessEventBackpressureQueue.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/events/InProcessEventBackpressureQueue.java#L12-L30)；[check_central_brain_android_event_backpressure_qos.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_event_backpressure_qos.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / PROCESS_LOCAL`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -819,6 +886,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：threshold/window/debounce/cooldown、suggestion-only。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：软件实现：[TriggerEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/events/TriggerEngine.java#L16-L34)；[check_central_brain_android_trigger_engine.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_trigger_engine.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / PROCESS_LOCAL`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -831,6 +899,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：exact grant binding、HIGH/CRITICAL hard block、TTL/revoke。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：软件实现：[ProactiveConsentPolicy.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/events/ProactiveConsentPolicy.java#L17-L35)；[check_central_brain_android_proactive_consent_policy.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_proactive_consent_policy.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / POLICY_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -843,6 +912,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：Runtime health/time/simulated vehicle normalization。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：软件实现：[RuntimeHealthContextSourceAdapter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/events/RuntimeHealthContextSourceAdapter.java#L8-L26)；[check_central_brain_android_context_source_adapters.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_context_source_adapters.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / NORMALIZATION_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -855,6 +925,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：full/minimal card、merge/replay、never-ask。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：软件实现：[ActiveSuggestionController.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/suggestion/ActiveSuggestionController.java#L21-L39)；[check_central_brain_android_active_suggestion_ux.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_active_suggestion_ux.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / PROJECTION_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -867,6 +938,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：typed Event、Context source、Trigger rule、consent policy、QoS 和 HMI projection 输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：Context/Trigger/Consent/Model/Event chain、no action authority。
 - **边界与非目标**：主动建议不得自动获得 Effect 权限；production middleware、可信来源和 consent owner 仍需外部输入。
+- **代码对应**：Debug 实现：[DebugDecisionCompositionBoundary.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/orchestration/DebugDecisionCompositionBoundary.java#L58-L76)；[check_central_brain_android_decision_composition_v1.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_decision_composition_v1.sh#L4-L22)。
 - **当前状态**：`DONE / DEBUG_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -881,6 +953,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：privacy/latency/token/capability/fallback/digest contract。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：软件实现：[ModelContractV2.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelContractV2.java#L13-L31)；[check_central_brain_android_model_contract_v2.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_model_contract_v2.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -893,6 +966,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：5-provider catalog、health source/freshness/replay。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：软件实现：[ModelProviderRegistry.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderRegistry.java#L21-L39)；[check_central_brain_android_model_provider_registry.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_model_provider_registry.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -905,6 +979,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：privacy/network/thermal/latency/quota/fallback decision。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：软件实现：[PolicyAwareModelRouter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/PolicyAwareModelRouter.java#L21-L39)；[check_central_brain_android_policy_aware_model_router.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_policy_aware_model_router.sh#L4-L22)。
 - **当前状态**：`DEVELOPED / NO_ACTION_AUTHORITY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -917,6 +992,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：deadline/cancel/stream limits；debug source only。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：软件实现：[LocalModelProvider.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/LocalModelProvider.java#L15-L33)；[check_central_brain_android_local_model_provider.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_local_model_provider.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -929,6 +1005,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：exact JSON、scenario binding、action allowlist、raw log=false。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：软件实现：[StructuredModelOutput.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/StructuredModelOutput.java#L31-L49)；[check_central_brain_android_structured_model_output.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_structured_model_output.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -941,6 +1018,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：deterministic evaluation harness、bounded metrics。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：软件实现：[ScenarioEvaluationHarness.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ScenarioEvaluationHarness.java#L26-L44)；[check_central_brain_android_scenario_evaluation.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_scenario_evaluation.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -953,6 +1031,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：foreground priority、thermal degradation、fail-closed。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：软件实现：[ModelResourceAdmission.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scheduler/ModelResourceAdmission.java#L16-L34)；[check_central_brain_android_model_resource_admission.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_model_resource_admission.sh#L4-L22)。
 - **当前状态**：`DEVELOPED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -965,6 +1044,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：real debug model via ADB reverse、strict output、Client2 projection。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：Debug 实现：[OllamaInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OllamaInferenceEngine.java#L29-L47)；[check_central_brain_android_ollama_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_ollama_gateway.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_DEBUG_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[Ollama 网关设计](CENTRAL_BRAIN_OLLAMA_MODEL_GATEWAY.md)。
 
@@ -977,6 +1057,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed WebSocket v3、challenge/auth/send/history/abort、Client2 projection；`openclaw_target_integration_implemented=true`。
 - **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
+- **代码对应**：过渡实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L38-L56)；[check_central_brain_android_openclaw_target_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_target_gateway.sh#L4-L22)。
 - **当前状态**：`TRANSITIONAL / CURRENT_CONNECTIVITY_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[OpenClaw 网关设计](CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md)。
 
@@ -991,6 +1072,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：7 categories/10 metrics、strict report、synthetic probe。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[PerformanceBudgetContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/performance/PerformanceBudgetContract.java#L21-L39)；[check_central_brain_android_performance_budget.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_performance_budget.sh#L4-L22)。
 - **当前状态**：`SOFTWARE_COMPLETE / TARGET_MEASUREMENT_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1003,6 +1085,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：3 workloads x 6 faults = 18 cases、strict report。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[StabilityFaultMatrixContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/reliability/StabilityFaultMatrixContract.java#L21-L39)；[check_central_brain_android_stability_fault_matrix.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_stability_fault_matrix.sh#L4-L22)。
 - **当前状态**：`SOFTWARE_COMPLETE / 72H_TARGET_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1015,6 +1098,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：3 parser surfaces/18 hostile cases、deterministic regression。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[ParserSecurityCorpusContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/security/ParserSecurityCorpusContract.java#L13-L31)；[check_central_brain_android_parser_security_corpus.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_parser_security_corpus.sh#L4-L22)。
 - **当前状态**：`DONE / HOST_REGRESSION`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1027,6 +1111,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：caller/session/signer 3 surfaces/18 cases。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[IdentityReplaySecurityCorpusContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/security/IdentityReplaySecurityCorpusContract.java#L13-L31)；[check_central_brain_android_identity_replay_security_corpus.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_identity_replay_security_corpus.sh#L4-L22)。
 - **当前状态**：`DONE / HOST_POLICY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1039,6 +1124,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：37 public AIDL items、8 validation families、debug probe。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[SecurityBoundaryInventoryContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/security/SecurityBoundaryInventoryContract.java#L12-L30)；[check_central_brain_android_security_boundary_inventory.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_security_boundary_inventory.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_DEBUG_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1051,6 +1137,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：UID/package/current signer、spoof negative case。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[SecurityIdentityProbeService.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/security/SecurityIdentityProbeService.java#L12-L30)；[check_central_brain_android_security_identity.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_security_identity.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_DEBUG_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1063,6 +1150,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：task/sequence/single-terminal/cross-owner isolation。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[TaskCallbackReplayGuard.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/TaskCallbackReplayGuard.java#L9-L27)；[check_central_brain_android_callback_replay_security.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_callback_replay_security.sh#L4-L22)。
 - **当前状态**：`DONE / ANDROID13_ARM64_DEBUG_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1075,6 +1163,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：验收要求仓库中无现行执行路径，并保留“历史实现已按用户决定完整撤回”的历史结论。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：无执行代码；撤回门禁：[check_central_brain_android_security_evidence_interface.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_security_evidence_interface.sh#L4-L22)。
 - **当前状态**：`RETIRED / NOT_CURRENT_CAPABILITY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1087,6 +1176,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：验收只检查接口字段、禁止项和执行器缺失；当前交付为“8-field metadata/digest/reference interface；无 executor/transport”。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：非执行接口：[central_brain_android_p9_security_evidence_interface.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_p9_security_evidence_interface.json#L2-L20)；[check_central_brain_android_security_evidence_interface.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_security_evidence_interface.sh#L4-L22)。
 - **当前状态**：`SUSPENDED / EXTERNAL_INTERFACE_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1099,6 +1189,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：12 surfaces、retention/delete/export/log/enforcement classification。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[PrivacyDataInventoryContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/privacy/PrivacyDataInventoryContract.java#L13-L31)；[check_central_brain_android_privacy_data_inventory.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_privacy_data_inventory.sh#L4-L22)。
 - **当前状态**：`DONE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1111,6 +1202,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：owner evidence、delete/hold/export guards；draft denied。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[PrivacyLifecyclePolicyAdmission.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/privacy/PrivacyLifecyclePolicyAdmission.java#L13-L31)；[check_central_brain_android_privacy_policy_admission.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_privacy_policy_admission.sh#L4-L22)。
 - **当前状态**：`DONE / OWNER_POLICY_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1123,6 +1215,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：21 keys、10 forbidden field classes、debug Activity。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[PrivacyRedactionAuditProjection.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/privacy/PrivacyRedactionAuditProjection.java#L8-L26)；[check_central_brain_android_privacy_redaction_audit.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_privacy_redaction_audit.sh#L4-L22)。
 - **当前状态**：`DONE / TARGET_PROBE_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1135,6 +1228,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：exact 3 APK set、same-signer/cohort/version/schema/rollback gate。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[ProductionReleaseAdmission.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/release/ProductionReleaseAdmission.java#L14-L32)；[check_central_brain_android_production_release_admission.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_production_release_admission.sh#L4-L22)。
 - **当前状态**：`DONE / OWNER_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1147,6 +1241,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：27-key projection、read-only no-install adapter。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[ProductionReleaseMetadataProjection.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/release/ProductionReleaseMetadataProjection.java#L8-L26)；[check_central_brain_android_production_release_metadata_probe.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_production_release_metadata_probe.sh#L4-L22)。
 - **当前状态**：`DONE / TARGET_REHEARSAL_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1159,6 +1254,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：12 actions、4 UX profiles、500 ms state、moving hard interlock。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[DriverSafetyAdmissionContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/governance/DriverSafetyAdmissionContract.java#L20-L38)；[check_central_brain_android_driver_safety_admission.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_driver_safety_admission.sh#L4-L22)。
 - **当前状态**：`DONE / OEM_OWNER_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1171,6 +1267,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：27-key projection、DUMP Activity、no-install adapter。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[DriverSafetyAuditProjection.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/governance/DriverSafetyAuditProjection.java#L10-L28)；[check_central_brain_android_driver_safety_probe.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_driver_safety_probe.sh#L4-L22)。
 - **当前状态**：`DONE / TARGET_MATRIX_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1183,6 +1280,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：release identity、8 diagnostic categories、stable report digest。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[ReleaseEvidenceEnvelope.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/release/ReleaseEvidenceEnvelope.java#L12-L30)；[check_central_brain_android_release_evidence_envelope.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_release_evidence_envelope.sh#L4-L22)。
 - **当前状态**：`DONE / TARGET_OWNER_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1195,6 +1293,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：31-key projection、5 executed + 3 NOT_RUN adapter。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[FieldDiagnosticsProjection.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/release/FieldDiagnosticsProjection.java#L8-L26)；[check_central_brain_android_field_diagnostics_probe.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_field_diagnostics_probe.sh#L4-L22)。
 - **当前状态**：`DONE / TARGET_REPORT_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1207,6 +1306,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：版本化测试/发布合同、脱敏元数据、目标证据模式和责任人批准输入。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：5 states/5 transitions、replacement identity、four-party digest。
 - **边界与非目标**：软件合同和 debug probe 不等于目标性能、72h、安全、隐私、签名、驾驶安全或发布资格。
+- **代码对应**：合同实现：[ReleaseRetestWorkflow.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/release/ReleaseRetestWorkflow.java#L13-L31)；[check_central_brain_android_release_retest_workflow.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_release_retest_workflow.sh#L4-L22)。
 - **当前状态**：`DONE / RETEST_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1219,6 +1319,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：全部分类后的 Req ID、工作包状态、专项合同和聚合门禁结果。
 - **输出与验收**：必须能够由专项合同、测试或设备证据复现：`repository_software_requirements_complete=true`、`unclassified_repository_requirement_count=0`。
 - **边界与非目标**：仓库软件完成只说明需求已分类和软件门禁通过，不表示外部激活完成。
+- **代码对应**：聚合门禁：[central_brain_android_software_completion_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_software_completion_v1.json#L2-L20)；[check_central_brain_android_software_completion.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_software_completion.sh#L4-L22)。
 - **当前状态**：`DONE / EXTERNAL_ACTIVATION_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
@@ -1233,6 +1334,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：Effect material/authority、retention/encryption、target fault evidence；`ISSUE-022`。
 - **输出与验收**：完成条件：取得并审查“Effect material/authority、retention/encryption、target fault evidence；`ISSUE-022`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：禁止在外部 authority、目标接口和证据缺失时激活 production 路径。
+- **代码对应**：空接口/准入：[EmptyEffectMaterialSource.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EmptyEffectMaterialSource.java#L6-L24)；[check_central_brain_android_effect_activation_gate.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_effect_activation_gate.sh#L4-L22)。
 - **当前状态**：`SOFTWARE_COMPLETE / EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1245,6 +1347,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：vehicle service、approval/undo authority、target validation；`ISSUE-019/023/030/033`。
 - **输出与验收**：完成条件：取得并审查“vehicle service、approval/undo authority、target validation；`ISSUE-019/023/030/033`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：禁止在外部 authority、目标接口和证据缺失时激活 production 路径。
+- **代码对应**：空接口/准入：[AdapterRegistry.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/AdapterRegistry.java#L16-L34)；[check_central_brain_android_effect_gate_wiring.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_effect_gate_wiring.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1257,6 +1360,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：signer、storage、identity、privacy owner；`ISSUE-040..045`。
 - **输出与验收**：完成条件：取得并审查“signer、storage、identity、privacy owner；`ISSUE-040..045`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：禁止在外部 authority、目标接口和证据缺失时激活 production 路径。
+- **代码对应**：空接口/准入：[SkillGovernanceReadinessSnapshot.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/governance/SkillGovernanceReadinessSnapshot.java#L12-L30)；[check_central_brain_android_skill_governance_readiness.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_skill_governance_readiness.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1269,6 +1373,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：publisher/middleware/source/identity/receipt owner；`ISSUE-031/046`。
 - **输出与验收**：完成条件：取得并审查“publisher/middleware/source/identity/receipt owner；`ISSUE-031/046`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：禁止在外部 authority、目标接口和证据缺失时激活 production 路径。
+- **代码对应**：空接口/准入：[EventRuntimeReadinessSnapshot.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/events/EventRuntimeReadinessSnapshot.java#L10-L28)；[check_central_brain_android_event_runtime_readiness.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_event_runtime_readiness.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1281,6 +1386,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：TLS、credential owner、health/version、artifact、resource producer、NPU evidence；`ISSUE-024/044/054`。
 - **输出与验收**：完成条件：取得并审查“TLS、credential owner、health/version、artifact、resource producer、NPU evidence；`ISSUE-024/044/054`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：禁止在外部 authority、目标接口和证据缺失时激活 production 路径。
+- **代码对应**：空接口/准入：[ModelRuntimeReadinessSnapshot.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelRuntimeReadinessSnapshot.java#L9-L27)；[check_central_brain_android_model_runtime_readiness.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_model_runtime_readiness.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1295,6 +1401,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：14-column software contract/collector 已完成；缺 OEM property/service/permission/owner/version evidence；`ISSUE-047`。
 - **输出与验收**：完成条件：取得并审查“14-column software contract/collector 已完成；缺 OEM property/service/permission/owner/version evidence；`ISSUE-047`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：不得猜测 OEM/Vendor property、service、ABI、权限、buffer 或 Driver/HAL；缺失时返回 unavailable。
+- **代码对应**：空接口/准入：[central_brain_android_p8_target_capability_discovery.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_p8_target_capability_discovery.json#L2-L20)；[check_central_brain_android_target_capability_discovery.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_target_capability_discovery.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1307,6 +1414,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：缺公开 CarProperty/service schema、area/type/read-write/permission。
 - **输出与验收**：完成条件：取得并审查“缺公开 CarProperty/service schema、area/type/read-write/permission”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：不得猜测 OEM/Vendor property、service、ABI、权限、buffer 或 Driver/HAL；缺失时返回 unavailable。
+- **代码对应**：空接口/准入：[AdapterRegistry.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/AdapterRegistry.java#L16-L34)；[check_central_brain_android_target_capability_discovery.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_target_capability_discovery.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1319,6 +1427,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：缺 AAOS property contract、权限、readback、fault/rollback evidence。
 - **输出与验收**：完成条件：取得并审查“缺 AAOS property contract、权限、readback、fault/rollback evidence”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：不得猜测 OEM/Vendor property、service、ABI、权限、buffer 或 Driver/HAL；缺失时返回 unavailable。
+- **代码对应**：空接口/准入：[AdapterRegistry.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/AdapterRegistry.java#L16-L34)；[check_central_brain_android_effect_gate_wiring.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_effect_gate_wiring.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1331,6 +1440,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：缺 Vendor service ABI/AIDL、owner、version、permission。
 - **输出与验收**：完成条件：取得并审查“缺 Vendor service ABI/AIDL、owner、version、permission”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：不得猜测 OEM/Vendor property、service、ABI、权限、buffer 或 Driver/HAL；缺失时返回 unavailable。
+- **代码对应**：空接口/准入：[EffectAdapter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/effects/EffectAdapter.java#L9-L27)；[check_central_brain_android_effect_gate_wiring.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_effect_gate_wiring.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1343,6 +1453,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：缺 Vendor SDK、PCIe runtime、model artifact、memory/cancel/performance evidence。
 - **输出与验收**：完成条件：取得并审查“缺 Vendor SDK、PCIe runtime、model artifact、memory/cancel/performance evidence”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：不得猜测 OEM/Vendor property、service、ABI、权限、buffer 或 Driver/HAL；缺失时返回 unavailable。
+- **代码对应**：空接口/准入：[ModelProviderProfiles.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/ModelProviderProfiles.java#L6-L24)；[central_brain_native.h](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/native-runtime/src/main/cpp/include/central_brain_native.h#L1-L19)；[check_central_brain_npu_interface.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_npu_interface.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1355,6 +1466,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：每项 capability 的 owner/ABI/permission/safety/smoke/rollback 证据未提供。
 - **输出与验收**：完成条件：取得并审查“每项 capability 的 owner/ABI/permission/safety/smoke/rollback 证据未提供”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：不得猜测 OEM/Vendor property、service、ABI、权限、buffer 或 Driver/HAL；缺失时返回 unavailable。
+- **代码对应**：空接口/准入：[RuntimeAcceptanceSnapshot.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/acceptance/RuntimeAcceptanceSnapshot.java#L18-L36)；[check_central_brain_android_target_deployment.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_target_deployment.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1369,6 +1481,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner-approved 30-sample target evidence；`ISSUE-048`。
 - **输出与验收**：完成条件：取得并审查“owner-approved 30-sample target evidence；`ISSUE-048`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：只能由命名 owner/tester 提交的受控目标证据关闭，仓库自身不能自动判定通过。
+- **代码对应**：空接口/准入：[PerformanceBudgetContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/performance/PerformanceBudgetContract.java#L21-L39)；[check_central_brain_android_performance_budget.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_performance_budget.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1381,6 +1494,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：real workload/fault injection/72h evidence；`ISSUE-049`。
 - **输出与验收**：完成条件：取得并审查“real workload/fault injection/72h evidence；`ISSUE-049`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：只能由命名 owner/tester 提交的受控目标证据关闭，仓库自身不能自动判定通过。
+- **代码对应**：空接口/准入：[StabilityFaultMatrixContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/reliability/StabilityFaultMatrixContract.java#L21-L39)；[check_central_brain_android_stability_fault_matrix.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_stability_fault_matrix.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1393,6 +1507,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：executable campaign suspended；只接受批准的非秘密 evidence interface；`ISSUE-050`。
 - **输出与验收**：完成条件：取得并审查“executable campaign suspended；只接受批准的非秘密 evidence interface；`ISSUE-050`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：只能由命名 owner/tester 提交的受控目标证据关闭，仓库自身不能自动判定通过。
+- **代码对应**：空接口/准入：[central_brain_android_p9_security_evidence_interface.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_p9_security_evidence_interface.json#L2-L20)；[check_central_brain_android_security_evidence_interface.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_security_evidence_interface.sh#L4-L22)。
 - **当前状态**：`SUSPENDED / EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1405,6 +1520,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：owner ceiling/evidence、repository enforcement、target probe；`ISSUE-051`。
 - **输出与验收**：完成条件：取得并审查“owner ceiling/evidence、repository enforcement、target probe；`ISSUE-051`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：只能由命名 owner/tester 提交的受控目标证据关闭，仓库自身不能自动判定通过。
+- **代码对应**：空接口/准入：[PrivacyLifecyclePolicyAdmission.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/privacy/PrivacyLifecyclePolicyAdmission.java#L13-L31)；[check_central_brain_android_privacy_policy_admission.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_privacy_policy_admission.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1417,6 +1533,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：signer owner、candidate、MDM/OTA、rollback rehearsal；`ISSUE-052`。
 - **输出与验收**：完成条件：取得并审查“signer owner、candidate、MDM/OTA、rollback rehearsal；`ISSUE-052`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：只能由命名 owner/tester 提交的受控目标证据关闭，仓库自身不能自动判定通过。
+- **代码对应**：空接口/准入：[ProductionReleaseAdmission.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/release/ProductionReleaseAdmission.java#L14-L32)；[check_central_brain_android_production_release_admission.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_production_release_admission.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1429,6 +1546,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：trusted state、DMS/identity、seat/HVAC policy、hard interlock、owner sign-off；`ISSUE-029/030`。
 - **输出与验收**：完成条件：取得并审查“trusted state、DMS/identity、seat/HVAC policy、hard interlock、owner sign-off；`ISSUE-029/030`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：只能由命名 owner/tester 提交的受控目标证据关闭，仓库自身不能自动判定通过。
+- **代码对应**：空接口/准入：[DriverSafetyAdmissionContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/governance/DriverSafetyAdmissionContract.java#L20-L38)；[check_central_brain_android_driver_safety_admission.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_driver_safety_admission.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1441,6 +1559,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：named replacement release、target report、owner/tester evidence；`ISSUE-052/053`。
 - **输出与验收**：完成条件：取得并审查“named replacement release、target report、owner/tester evidence；`ISSUE-052/053`”，随后通过目标 smoke、错误/恢复、权限、安全和回滚证据；在此之前状态不得提升。
 - **边界与非目标**：只能由命名 owner/tester 提交的受控目标证据关闭，仓库自身不能自动判定通过。
+- **代码对应**：空接口/准入：[ReleaseRetestWorkflow.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/release/ReleaseRetestWorkflow.java#L13-L31)；[check_central_brain_android_release_retest_workflow.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_release_retest_workflow.sh#L4-L22)。
 - **当前状态**：`EXTERNAL_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[交付目标](CENTRAL_BRAIN_DELIVERY_TARGETS.md)；[Driver/HAL 边界](CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md)。
 
@@ -1455,6 +1574,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：已退役；`python_prototype_runtime_maintained=false`。
 - **输出与验收**：通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 OUT_OF_SCOPE。
 - **边界与非目标**：该条目不创建可执行工作包；需要恢复时必须重新立项并分配 Req ID。
+- **代码对应**：无实现；范围门禁：[check_central_brain_python_prototype_retirement.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_python_prototype_retirement.sh#L4-L22)。
 - **当前状态**：`OUT_OF_SCOPE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 <a id="scope-02"></a>
@@ -1466,6 +1586,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：本阶段只交付 Android 13 座舱应用。
 - **输出与验收**：通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 OUT_OF_SCOPE。
 - **边界与非目标**：该条目不创建可执行工作包；需要恢复时必须重新立项并分配 Req ID。
+- **代码对应**：无实现；范围门禁：[check_central_brain_python_prototype_retirement.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_python_prototype_retirement.sh#L4-L22)。
 - **当前状态**：`OUT_OF_SCOPE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1478,6 +1599,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：用户明确不开发虚拟化；只保留外部 Safety 接口。
 - **输出与验收**：通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 OUT_OF_SCOPE。
 - **边界与非目标**：该条目不创建可执行工作包；需要恢复时必须重新立项并分配 Req ID。
+- **代码对应**：无实现；范围门禁：[check_central_brain_virtualization_docs.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_virtualization_docs.sh#L1-L19)。
 - **当前状态**：`OUT_OF_SCOPE`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1490,6 +1612,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：仅在公开/Vendor API 经证明确有缺口时创建最小工作包。
 - **输出与验收**：通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 SUSPENDED。
 - **边界与非目标**：该条目不创建可执行工作包；需要恢复时必须重新立项并分配 Req ID。
+- **代码对应**：无实现；范围门禁：[check_central_brain_npu_interface.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_npu_interface.sh#L4-L22)。
 - **当前状态**：`SUSPENDED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
@@ -1502,5 +1625,6 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **前置输入**：架构图未确认的协议不得推断实现。
 - **输出与验收**：通过仓库静态门禁证明当前交付中不存在被禁止的实现；范围结论保持 SUSPENDED。
 - **边界与非目标**：该条目不创建可执行工作包；需要恢复时必须重新立项并分配 Req ID。
+- **代码对应**：无实现；范围门禁：[check_central_brain_android_aidl_contract.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_aidl_contract.sh#L1-L19)。
 - **当前状态**：`SUSPENDED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。

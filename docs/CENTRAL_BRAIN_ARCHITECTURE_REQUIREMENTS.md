@@ -181,7 +181,7 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | --- | --- | --- |
 | DEL-001 | Android 13 APK/AAR/C ABI、安装和验证 | 已有软件交付链 |
 | DEL-002 | Linux 同步交付 | 当前范围暂停，旧 Python 样例已删除 |
-| DEL-003 | 工程师文档、接口、状态机、命令 | 当前文档集 |
+| DEL-003 | 工程师文档、接口、状态机、命令 | README 详细需求/代码段追踪 + 当前文档集 |
 | DEL-004 | 黑盒 Android 平台差异、签名、SELinux、Vendor/Driver-HAL 边界 | delivery/driver/preflight docs |
 | DEL-005 | Driver/HAL 接口支持和最小 gap | Driver/HAL matrix + NPU contract |
 
