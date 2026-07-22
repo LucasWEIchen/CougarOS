@@ -4083,3 +4083,27 @@ only Client2 views. Cold shows HVAC feedback and updates both cockpit setpoint o
 Fatigue shows HVAC plus a left-side driver-seat region, fan 1 to 3 and seat 15 to 30 degrees. Every panel displays
 `SIMULATED` and no-vehicle-bus text. Req IDs: `APP-004`, `S2-HMI-007`, `S2-MDL-002`, `S2-OBS-002`,
 `S2-SAF-001`, `S2-EFF-001`, `XSC-005/006`; tracking `DEV-123`.
+
+## P7-R4-OCDEV development OpenClaw interfaces
+
+`OpenClawEndpointConfig.developmentWslAdbReverse()` returns the only development OpenClaw endpoint:
+`ws://127.0.0.1:18789/`, protocol v4. `runtime-service/build.gradle.kts` selects this profile by default for debug builds;
+`centralBrainDevelopmentOllama=true` is the explicit legacy direct-Ollama selector and `centralBrainTargetOpenClaw=true`
+selects the independent target v3 profile.
+
+`OpenClawInferenceEngine.SocketTransport` performs RFC6455 upgrade, challenge, `connect`, `chat.send`, streamed/final event,
+bounded history fallback and abort. For the development profile, `connect` uses `gateway-client/backend`, no browser Origin,
+and only `operator.read/write`; this is required by OpenClaw v4 local backend shared-auth scope policy. Target v3 keeps its
+existing identity and Origin behavior.
+
+`OpenClawDevelopmentIntegrationProbeActivity` composes a Cold scenario through the real development provider and asserts
+network access, structured output, Android 13 ARM64 and closed action/hardware authority. The ADB runner owns bridge, build,
+install, invocation and metadata-only polling. No caller can inject an endpoint or protocol.
+
+`run_client2_central_brain_openclaw_development_test.sh` is the HMI acceptance adapter. It generates the SDK AAR, Runtime APK
+and Client2 bridge dex from one build, installs both APKs, resolves navigation/scenario controls by resource ID, and accepts
+only the conjunction of a v4 model terminal marker, a model-backed orchestration projection, and a visible simulated actuator
+overlay. It never maps UI state to Vehicle/Driver authority.
+
+`development_wsl_openclaw_android13_arm64_verified=true`, `ethernet_validated=false`, `direct_npu_accessed=false`,
+`production_ready=false`, `target_hardware_validated=false`; stage `P7-R4-OCDEV`, tracking `DEV-126/ISSUE-024/054`.

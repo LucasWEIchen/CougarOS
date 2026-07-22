@@ -1414,3 +1414,21 @@ Client2 UI 或模型 schema 修复。
 状态：`Open / External Service Blocked`。算力基座 owner 需要提供端口监听、服务进程和协议版本证据；恢复后必须执行
 固定目标 build 的 Runtime probe、Cold/Fatigue Client2 调用和无原始 prompt/reply/token 日志检查。此前 2026-07-19 的
 成功 WebSocket v3 证据保留，但不代表 2026-07-20 服务仍在线。
+
+## P7-R4-OCDEV development route update (ISSUE-024/054 unchanged)
+
+真实 Android 13 ARM64 已经通过 ADB reverse 调用 WSL OpenClaw v4，并由 OpenClaw 实际调用 Ollama
+`qwen3.6:27b`；challenge/auth/chat ACK/final 和结构化 action allowlist 均通过。该增量关闭“当前开发环境只能使用
+Ollama HTTP 直连或按钮模拟”的开发测试缺口，不新增目标侧 issue。
+
+Client2/SDK/Runtime 同源重建后的 Cold 全链路也已通过，真实模型投影进入调用链和 2 个模拟 Effect。此前设备混装
+历史 Client2 时的 `SDK_PROJECTION_INVALID` 可由同源重建复现消除，因此不登记为 Runtime 契约缺陷，也不通过放宽
+`OrchestrationContract` 规避。
+
+`ISSUE-024` 保持 Open：Vendor NPU、量产模型/artifact owner、资源/热/性能和 direct NPU 归因仍缺失。
+`ISSUE-054` 保持 Open：ADB reverse 不证明 `169.254.208.110:18789` 的当前服务或以太网可用。目标服务恢复后仍须使用
+目标 v3 build 执行 Runtime 和 Client2 复测。
+
+`development_wsl_openclaw_android13_arm64_verified=true`、`ethernet_validated=false`、
+`latest_target_connectivity_verified=false`、`direct_npu_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`；tracking：`DEV-126`；stage `P7-R4-OCDEV`。

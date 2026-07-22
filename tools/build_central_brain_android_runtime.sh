@@ -18,9 +18,27 @@ export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
 export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$ROOT_DIR/.tools/gradle-home}"
 
 GRADLE_PROFILE_ARGS=()
-if [[ "${CENTRAL_BRAIN_TARGET_OPENCLAW:-false}" == true ]]; then
-  GRADLE_PROFILE_ARGS+=("-PcentralBrainTargetOpenClaw=true")
+if [[ -n "${CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE:-}" ]]; then
+  MODEL_GATEWAY_PROFILE="$CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE"
+elif [[ "${CENTRAL_BRAIN_TARGET_OPENCLAW:-false}" == true ]]; then
+  MODEL_GATEWAY_PROFILE="target_openclaw_transitional"
+else
+  MODEL_GATEWAY_PROFILE="development_wsl_openclaw"
 fi
+case "$MODEL_GATEWAY_PROFILE" in
+  development_wsl_openclaw)
+    ;;
+  development_wsl_ollama)
+    GRADLE_PROFILE_ARGS+=("-PcentralBrainDevelopmentOllama=true")
+    ;;
+  target_openclaw_transitional)
+    GRADLE_PROFILE_ARGS+=("-PcentralBrainTargetOpenClaw=true")
+    ;;
+  *)
+    echo "unsupported model gateway profile: $MODEL_GATEWAY_PROFILE" >&2
+    exit 2
+    ;;
+esac
 
 "$RUNTIME_DIR/gradlew" \
   --project-dir "$RUNTIME_DIR" \
@@ -38,12 +56,7 @@ fi
 bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_aar.sh"
 bash "$ROOT_DIR/tools/verify_central_brain_native_runtime_apk.sh"
 
-printf 'model_gateway_profile=%s\n' \
-  "$(if [[ "${CENTRAL_BRAIN_TARGET_OPENCLAW:-false}" == true ]]; then
-      printf '%s' target_openclaw_transitional
-    else
-      printf '%s' development_wsl_ollama
-    fi)"
+printf 'model_gateway_profile=%s\n' "$MODEL_GATEWAY_PROFILE"
 
 printf '%s\n' \
   "$RUNTIME_DIR/native-runtime/build/outputs/aar/native-runtime-debug.aar" \

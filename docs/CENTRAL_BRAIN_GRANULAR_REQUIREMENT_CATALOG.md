@@ -1061,6 +1061,19 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **当前状态**：`TRANSITIONAL / CURRENT_CONNECTIVITY_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[OpenClaw 网关设计](CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md)。
 
+<a id="p7-r4-ocdev"></a>
+### P7-R4-OCDEV WSL OpenClaw via real Android ADB
+
+- **需求描述**：软件必须交付“WSL OpenClaw via real Android ADB”，满足 `S2-MDL-001/002`, `S2-SAF-001`, `S2-OBS-001/002`, `XSC-001/005/006`，并以有界、版本化、可审计且失败关闭的方式提供所列能力。
+- **需求追踪**：`S2-MDL-001/002`, `S2-SAF-001`, `S2-OBS-001/002`, `XSC-001/005/006`。
+- **负责模块**：runtime-service 的 Model Provider/Registry/Router 与模型网关。
+- **前置输入**：真实 Android 13 ARM64、ADB reverse、WSL OpenClaw v4、Ollama `qwen3.6:27b`、结构化座舱 prompt 与 action allowlist。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：Android13 ARM64 -> ADB reverse -> OpenClaw v4 -> Ollama 真实终态；Client2/SDK/Runtime 同源构建，模型终态、编排投影、实时调用链、UI 仿真 Effect 和脱敏证据完整。
+- **边界与非目标**：ADB reverse 只证明开发模型链路，不是以太网、目标 NPU、车辆 Effect、Driver/HAL 或量产资格证据。
+- **代码对应**：Debug 实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L549-L583)；[run_client2_central_brain_openclaw_development_test.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/run_client2_central_brain_openclaw_development_test.sh#L65-L105)；[check_central_brain_android_openclaw_development_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_development_gateway.sh#L4-L22)。
+- **当前状态**：`DONE / ANDROID13_ARM64_CLIENT2_OPENCLAW_VERIFIED`。
+- **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[开发 OpenClaw 网关](CENTRAL_BRAIN_OPENCLAW_DEVELOPMENT_GATEWAY.md)。
+
 ## P9 软件接口与调试证据
 
 <a id="p9-w01"></a>

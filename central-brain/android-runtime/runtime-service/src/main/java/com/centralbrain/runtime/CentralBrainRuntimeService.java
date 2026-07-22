@@ -610,6 +610,15 @@ public final class CentralBrainRuntimeService extends Service {
                 + (BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
                         ? "development_wsl_adb_reverse" : "production_link_local"));
         writer.println("ollama_release_provider_enabled=false");
+        writer.println("model_gateway_profile=" + BuildConfig.MODEL_GATEWAY_PROFILE);
+        writer.println("openclaw_development_gateway_enabled="
+                + BuildConfig.OPENCLAW_DEVELOPMENT_ROUTING_ENABLED);
+        writer.println("openclaw_target_gateway_enabled="
+                + BuildConfig.OPENCLAW_TARGET_ROUTING_ENABLED);
+        writer.println("openclaw_endpoint=" + BuildConfig.OPENCLAW_BASE_URL);
+        writer.println("openclaw_protocol_version="
+                + BuildConfig.OPENCLAW_PROTOCOL_VERSION);
+        writer.println("openclaw_release_provider_enabled=false");
         writer.println("model_runtime_activation_blockers="
                 + modelRuntimeReadiness.getBlockersCsv());
         writer.println("event_runtime_readiness_snapshot_wired=true");

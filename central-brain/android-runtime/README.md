@@ -1773,3 +1773,32 @@ code-level walkthrough: `docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`.
 `direct_npu_accessed=false`, `production_provider_qualified=false`, `production_ready=false`,
 `target_hardware_validated=false`, `implementation_stage=P7-R3-OC2`. The latest 2026-07-20 target retest reached the host
 but received `Connection refused` on TCP 18789; protocol/authentication was not reached.
+
+## P7-R4-OCDEV OpenClaw development build on real Android hardware
+
+The default debug profile is now `development_wsl_openclaw`. It compiles `ws://127.0.0.1:18789`, protocol v4 and the
+development router into Runtime APK. Before launch, `adb reverse tcp:18789 tcp:18789` maps the real Android device to the
+WSL OpenClaw gateway. OpenClaw then invokes Ollama `qwen3.6:27b` at WSL port 11435.
+
+Run the complete hardware regression from the repository root:
+
+```bash
+ANDROID_TRANSPORT_ID=<id> \
+  tools/run_central_brain_android_openclaw_development_probe.sh
+```
+
+The runner builds, installs and executes the DUMP-protected probe and emits only metadata. API 33 ARM64 passed OpenClaw v4
+auth, chat ACK and real model final on 2026-07-22. This does not change the target v3 build and does not validate Ethernet,
+NPU, vehicle effects or release routing. `development_wsl_openclaw_android13_arm64_verified=true`,
+`production_ready=false`, `target_hardware_validated=false`, `implementation_stage=P7-R4-OCDEV`.
+
+Run the complete Client2 HMI path with artifacts generated from one SDK/Runtime build:
+
+```bash
+ANDROID_TRANSPORT_ID=<id> \
+  tools/run_client2_central_brain_openclaw_development_test.sh
+```
+
+This regression launches Client2 at 1920x1080, resolves controls by resource ID, invokes the real WSL OpenClaw/Ollama path,
+and verifies the orchestration projection plus simulated actuator feedback. It fails closed if an old Client2/SDK projection,
+model failure, missing HMI result or hardware-authority claim is observed.

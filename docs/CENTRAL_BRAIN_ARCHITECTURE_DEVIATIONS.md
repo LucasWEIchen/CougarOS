@@ -984,6 +984,22 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-126 Development OpenClaw uses ADB reverse instead of production Ethernet
+
+架构目标是 Android 座舱通过以太网访问外部算力基座；当前开发环境的真实 Android 设备没有可用目标以太网接口，
+因此开发 profile 通过 USB ADB reverse 把设备 `127.0.0.1:18789` 映射到 WSL OpenClaw。此路径保留了
+Android Runtime -> 网络 Gateway -> 模型 Provider 的软件层次，并实际调用 OpenClaw/Ollama，但 transport、协议版本和
+运行 owner 与量产不同。
+
+处置：开发和目标 profile 编译期隔离。开发固定 `development_wsl_openclaw`、ADB reverse、OpenClaw v4；目标固定
+`target_openclaw_transitional`、link-local Ethernet、OpenClaw v3。任何 ADB 证据必须标记 `ethernet_validated=false`，
+不得关闭 `ISSUE-054` 或提升目标/NPU/量产状态。
+
+状态：`Accepted / Development Only`。退出条件：目标 Android 通过实际以太网稳定访问已资格化模型网关，并完成同等
+protocol/model/action/readback/release 证据。Client2 全链路必须从同一次 SDK/Runtime build 生成 bridge dex，避免旧包
+混装造成伪投影故障。`development_wsl_openclaw_android13_arm64_verified=true`、
+`production_ready=false`、`target_hardware_validated=false`；stage `P7-R4-OCDEV`。
+
 ## DEV-123 P4-R3 voice-first actuator feedback is UI simulation, not vehicle execution
 
 Client2 只保留自然场景触发和实时调用链，并通过 Android View 动画显示 HVAC/Seat 反馈。Cold 将显示温度从

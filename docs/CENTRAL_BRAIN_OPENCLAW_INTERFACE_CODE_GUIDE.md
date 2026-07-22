@@ -649,3 +649,20 @@ release source set、资源管理与目标 NPU 证据前，不得把 OpenClaw ta
 
 这些项分别由 `DEV-122/124` 和 `ISSUE-024/044/054` 跟踪。当前文档只解释已有软件接口，不提升任何
 `production_ready` 或 `target_hardware_validated` 状态。
+
+## 20. P7-R4-OCDEV 开发环境补充
+
+当前 debug 默认路径不再直接调用 Ollama HTTP，而是由真实 Android 13 Runtime 经 ADB reverse 调用 WSL OpenClaw v4，
+再由 OpenClaw 调用 Ollama。`OpenClawEndpointConfig` 同时持有两个不可覆盖的协议 profile：开发 profile 为
+`127.0.0.1:18789/v4`，目标过渡 profile 为 `169.254.208.110:18789/v3`。
+
+开发 v4 的 `connect` 使用 `gateway-client/backend`、`operator.read/write` 和 shared token，WebSocket upgrade 不发送
+浏览器 Origin。原因是 OpenClaw 2026.7.1 会清除无设备密钥 UI client 的 write scope；Android Runtime 在此链路承担
+模型后端桥接，不是控制页。目标 v3 分支继续保留既有 `openclaw-control-ui/webchat` 和 Origin 行为。
+
+真机调用顺序为：`socket_connected -> websocket_handshake_complete -> connect_challenge_received ->
+connect_authenticated -> chat_sent -> chat_acknowledged -> chat_final_received`。2026-07-22 API 33 ARM64 的真实
+Ollama 终态模型延迟为 31968 ms。完整操作和边界见 `CENTRAL_BRAIN_OPENCLAW_DEVELOPMENT_GATEWAY.md`。
+
+该结果保持 `ethernet_validated=false`、`direct_npu_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`；tracking `DEV-126/ISSUE-024/054`，stage `P7-R4-OCDEV`。

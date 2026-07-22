@@ -3090,3 +3090,24 @@ debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle
 `model_action_plan_binding_verified=true`、`live_pipeline_trace_verified=true`、
 `simulated_actuator_feedback_verified=true`、`vehicle_bus_accessed=false`、`security_implementation_present=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-123/124`、`ISSUE-054`。
+
+## P7-R4-OCDEV Android-to-WSL OpenClaw Development Requirements
+
+1. `S2-MDL-001/002`：debug 默认模型路径必须为真实 Android 13 -> ADB reverse -> WSL OpenClaw -> Ollama；
+   deterministic provider 不得冒充本 profile 的通过证据。
+2. `S2-MDL-001`：开发 endpoint 固定为 `ws://127.0.0.1:18789/`，OpenClaw protocol 固定 v4；目标 endpoint
+   `ws://169.254.208.110:18789/` 和 protocol v3 必须保持独立。
+3. `S2-SAF-001`：开发 v4 客户端固定为 `gateway-client/backend`，只申请 `operator.read/write`；模型输出必须继续
+   通过 exact JSON、scenario binding 和 action allowlist，且不得授予 Plan/Effect authority。
+4. `S2-OBS-001/002`：Android probe 只输出阶段、耗时、长度、provider/profile 和安全闭锁状态；不得记录设备身份、
+   prompt、回复、token 或车辆 payload。
+5. `XSC-001/005/006`：build profile、endpoint、协议、client identity、ADB bridge、机器合同和真机证据必须一致；
+   不允许 caller URL override 或失败后静默回退到 stub。
+6. `DEL-001/003/004/005`：必须提供一键 build/install/probe 工具，支持显式 transport ID；Client2、SDK AAR 和
+   Runtime 必须同源构建后安装，并以资源 ID 触发真实 HMI 场景。验收必须同时确认模型终态、编排投影、UI 仿真
+   Effect，并声明 `ethernet_validated=false`、`production_ready=false` 和 `target_hardware_validated=false`。
+
+当前 `development_wsl_openclaw_implemented=true`、
+`development_wsl_openclaw_android13_arm64_verified=true`、`external_compute_accessed=true`、
+`direct_npu_accessed=false`、`driver_hal_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-126`、`ISSUE-024/054`；stage `P7-R4-OCDEV`。

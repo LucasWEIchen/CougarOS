@@ -87,8 +87,9 @@ for marker in \
 done
 
 for marker in \
+  'centralBrainDevelopmentOllama' \
   '"OLLAMA_DEVELOPMENT_ENABLED"' \
-  '(!targetOpenClaw).toString()' \
+  'developmentOllama.toString()' \
   'buildConfigField("String", "OLLAMA_BASE_URL", "\"http://127.0.0.1:11434\"")' \
   'buildConfigField("boolean", "OLLAMA_DEVELOPMENT_ENABLED", "false")' \
   'buildConfigField("String", "OLLAMA_BASE_URL", "\"http://169.254.208.110:11434\"")' \

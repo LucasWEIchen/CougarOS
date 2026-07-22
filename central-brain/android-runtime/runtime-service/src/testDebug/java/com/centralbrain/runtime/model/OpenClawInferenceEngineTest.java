@@ -64,6 +64,35 @@ public final class OpenClawInferenceEngineTest {
     }
 
     @Test
+    public void developmentProfileUsesTheFixedAdbReverseEndpoint() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicReference<OpenClawInferenceEngine.Request> captured = new AtomicReference<>();
+        OpenClawInferenceEngine engine = new OpenClawInferenceEngine(
+                OpenClawEndpointConfig.developmentWslAdbReverse(),
+                () -> TEST_TOKEN,
+                request -> {
+                    captured.set(request);
+                    return new OpenClawInferenceEngine.Result(
+                            "{\"scenario_id\":\"scene.comfort.cold.v1\","
+                                    + "\"reply\":\"正在为你调节座舱温度。\","
+                                    + "\"actions\":[\"hvac.warm_cabin\"]}",
+                            4,
+                            false);
+                },
+                clock::get);
+        engine.warmup(model());
+        engine.registerScenarioPrompt(INPUT_DIGEST, "scene.comfort.cold.v1");
+
+        engine.infer(model(), request(INPUT_DIGEST), neverCancelled());
+
+        assertEquals("development_wsl_openclaw",
+                captured.get().endpoint.getProfile());
+        assertEquals("ws://127.0.0.1:18789/",
+                captured.get().endpoint.getWebSocketUri().toString());
+        assertEquals(4, captured.get().endpoint.getProtocolVersion());
+    }
+
+    @Test
     public void untrustedActionAndNonExactShapeFailClosed() {
         AtomicLong clock = new AtomicLong(1_000L);
         OpenClawInferenceEngine untrusted = engine(clock, request -> result(

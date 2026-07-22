@@ -48,6 +48,13 @@
             android:permission="android.permission.DUMP"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
         <activity
+            android:name=".orchestration.OpenClawDevelopmentIntegrationProbeActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:permission="android.permission.DUMP"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
             android:name=".scenario.SimulatedScenarioCompositionProbeActivity"
             android:excludeFromRecents="true"
             android:exported="true"
