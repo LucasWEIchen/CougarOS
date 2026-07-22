@@ -1815,6 +1815,24 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+## P7-R4-OCDEV Real Android to WSL OpenClaw development route
+
+开发测试主路径改为真实 Android 13 ARM64 设备经 ADB reverse 访问 WSL OpenClaw，再由 OpenClaw 调用本地
+Ollama `qwen3.6:27b`。debug 默认 profile 为 `development_wsl_openclaw`，固定 Android endpoint
+`ws://127.0.0.1:18789/`、OpenClaw protocol v4 和 `gateway-client/backend` 身份；旧 WSL Ollama 直连只通过
+`centralBrainDevelopmentOllama=true` 显式选择。目标 `target_openclaw_transitional` 继续固定
+`169.254.208.110:18789` 和 protocol v3，两者不得互相推导证据。
+
+2026-07-22 API 33 ARM64 已通过 socket、WebSocket、challenge、v4 auth、`chat.send` ACK、真实模型 final 和严格
+JSON/action allowlist 校验；Runtime probe 延迟 31968 ms。Client2/SDK/Runtime 同源重建后的 Cold 全链路也通过，
+模型延迟 30104 ms、2 个模拟 Effect、HVAC 28.0°C UI 反馈均可观测；混装旧 Client2 的投影错误已通过同源构建消除，
+未放宽 SDK 校验。下一量产工作仍是 `ISSUE-054` 目标服务恢复、真实以太网复测、
+release provider/credential/TLS、模型/NPU 与资源资格，不由本开发路径关闭。
+
+`development_wsl_openclaw_android13_arm64_verified=true`、`ethernet_validated=false`、
+`direct_npu_accessed=false`、`vehicle_effect_hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`；tracking：`DEV-126`、`ISSUE-024/054`；stage `P7-R4-OCDEV`。
+
 ## 2026-07-20 P4-R3 voice-first live cockpit HMI
 
 状态：`IMPLEMENTED / TARGET UI VERIFIED / VEHICLE EFFECT SIMULATED`。Client2 主交互缩减为“我有些疲惫”“车里有点冷”

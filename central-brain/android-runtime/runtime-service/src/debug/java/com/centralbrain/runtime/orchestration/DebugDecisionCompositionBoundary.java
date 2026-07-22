@@ -69,6 +69,7 @@ final class DebugDecisionCompositionBoundary {
     private enum NetworkModelMode {
         NONE,
         OLLAMA_DEVELOPMENT,
+        OPENCLAW_DEVELOPMENT,
         OPENCLAW_TARGET
     }
 
@@ -135,21 +136,30 @@ final class DebugDecisionCompositionBoundary {
                     clock::nowMs,
                     LocalModelProvider.StreamLimits.defaults());
             modelRouter = null;
-        } else if (networkModelMode == NetworkModelMode.OPENCLAW_TARGET) {
-            OpenClawEndpointConfig endpoint = OpenClawEndpointConfig
-                    .targetProductionTransitional();
+        } else if (isOpenClawMode(networkModelMode)) {
+            OpenClawEndpointConfig endpoint =
+                    networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+                            ? OpenClawEndpointConfig.targetProductionTransitional()
+                            : OpenClawEndpointConfig.developmentWslAdbReverse();
             openClawEngine = new OpenClawInferenceEngine(endpoint);
             ollamaEngine = null;
             modelSpec = new ModelProvider.ModelSpec(
                     "central-intent-v0",
                     "openclaw-ws-v3",
                     digest("openclaw-model-spec", endpoint.getWebSocketUri().toString()));
-            modelProvider = LocalModelProvider.createForTargetOpenClawIntegration(
-                    modelSpec,
-                    openClawEngine,
-                    modelExecutor,
-                    clock::nowMs,
-                    LocalModelProvider.StreamLimits.defaults());
+            modelProvider = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+                    ? LocalModelProvider.createForTargetOpenClawIntegration(
+                            modelSpec,
+                            openClawEngine,
+                            modelExecutor,
+                            clock::nowMs,
+                            LocalModelProvider.StreamLimits.defaults())
+                    : LocalModelProvider.createForDevelopment(
+                            modelSpec,
+                            openClawEngine,
+                            modelExecutor,
+                            clock::nowMs,
+                            LocalModelProvider.StreamLimits.defaults());
             modelRouter = null;
         } else {
             ollamaEngine = null;
@@ -292,15 +302,30 @@ final class DebugDecisionCompositionBoundary {
         }
         if (BuildConfig.OPENCLAW_TARGET_ROUTING_ENABLED) {
             if (!BuildConfig.OPENCLAW_TARGET_ENDPOINT_CONFIGURED
+                    || BuildConfig.OPENCLAW_DEVELOPMENT_ROUTING_ENABLED
                     || !"target_openclaw_transitional".equals(
                             BuildConfig.MODEL_GATEWAY_PROFILE)
                     || !"ws://169.254.208.110:18789".equals(BuildConfig.OPENCLAW_BASE_URL)
-                    || BuildConfig.OPENCLAW_PROTOCOL_VERSION != 3
+                    || BuildConfig.OPENCLAW_PROTOCOL_VERSION
+                            != OpenClawEndpointConfig.TARGET_PROTOCOL_VERSION
                     || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED) {
                 throw new IllegalStateException(
                         "target OpenClaw build configuration is invalid");
             }
             return NetworkModelMode.OPENCLAW_TARGET;
+        }
+        if (BuildConfig.OPENCLAW_DEVELOPMENT_ROUTING_ENABLED) {
+            if (!BuildConfig.OPENCLAW_TARGET_ENDPOINT_CONFIGURED
+                    || !"development_wsl_openclaw".equals(
+                            BuildConfig.MODEL_GATEWAY_PROFILE)
+                    || !"ws://127.0.0.1:18789".equals(BuildConfig.OPENCLAW_BASE_URL)
+                    || BuildConfig.OPENCLAW_PROTOCOL_VERSION
+                            != OpenClawEndpointConfig.DEVELOPMENT_PROTOCOL_VERSION
+                    || BuildConfig.OLLAMA_DEVELOPMENT_ENABLED) {
+                throw new IllegalStateException(
+                        "development OpenClaw build configuration is invalid");
+            }
+            return NetworkModelMode.OPENCLAW_DEVELOPMENT;
         }
         if (!BuildConfig.OLLAMA_DEVELOPMENT_ENABLED
                 || !"development_wsl_ollama".equals(BuildConfig.MODEL_GATEWAY_PROFILE)
@@ -308,6 +333,11 @@ final class DebugDecisionCompositionBoundary {
             throw new IllegalStateException("debug Ollama build configuration is invalid");
         }
         return NetworkModelMode.OLLAMA_DEVELOPMENT;
+    }
+
+    private static boolean isOpenClawMode(NetworkModelMode mode) {
+        return mode == NetworkModelMode.OPENCLAW_DEVELOPMENT
+                || mode == NetworkModelMode.OPENCLAW_TARGET;
     }
 
     private List<String> adaptContext(String scenarioId, String requestDigest, long now) {
@@ -412,7 +442,8 @@ final class DebugDecisionCompositionBoundary {
             providerId = ModelProviderRegistry.TARGET_OPENCLAW_TRANSITIONAL_ID;
             healthSource = ModelProviderRegistry.HealthSource.TARGET_OPENCLAW_RUNTIME;
             routeMode = PolicyAwareModelRouter.RouteMode.TARGET_INTEGRATION;
-        } else if (networkModelMode == NetworkModelMode.OLLAMA_DEVELOPMENT) {
+        } else if (networkModelMode == NetworkModelMode.OLLAMA_DEVELOPMENT
+                || networkModelMode == NetworkModelMode.OPENCLAW_DEVELOPMENT) {
             providerId = ModelProviderRegistry.ANDROID_LOCAL_DEVELOPMENT_ID;
             healthSource = ModelProviderRegistry.HealthSource.LOCAL_DEVELOPMENT_RUNTIME;
             routeMode = PolicyAwareModelRouter.RouteMode.DEVELOPMENT;
@@ -476,7 +507,7 @@ final class DebugDecisionCompositionBoundary {
         }
         RecordingObserver observer = new RecordingObserver();
         if (networkModel) {
-            if (networkModelMode == NetworkModelMode.OPENCLAW_TARGET) {
+            if (isOpenClawMode(networkModelMode)) {
                 openClawEngine.registerScenarioPrompt(inputDigest, scenarioId);
             } else {
                 ollamaEngine.registerScenarioPrompt(inputDigest, scenarioId);
@@ -513,17 +544,17 @@ final class DebugDecisionCompositionBoundary {
                 || observer.terminal.getState() != ModelProvider.TerminalState.COMPLETED
                 || observer.terminal.getOutputDigest() == null
                 || observer.chunkCount < 1) {
-            String failureCode = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+            String failureCode = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getLastFailureCode()
                     : "";
             throw violation("model inference did not complete"
                     + (failureCode.isEmpty() ? "" : ": " + failureCode));
         }
         if (networkModel) {
-            long latencyMs = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+            long latencyMs = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getLastLatencyMs()
                     : ollamaEngine.snapshot().getLastLatencyMs();
-            long completedCount = networkModelMode == NetworkModelMode.OPENCLAW_TARGET
+            long completedCount = isOpenClawMode(networkModelMode)
                     ? openClawEngine.snapshot().getCompletedCount()
                     : ollamaEngine.snapshot().getCompletedCount();
             ModelProjection projection = parseModelProjection(

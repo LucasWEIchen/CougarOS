@@ -2960,3 +2960,21 @@ Fatigue 在左侧显示座椅响应。所有 effect feedback 均为 `SIMULATED`�
 `ISSUE-054` 阻塞。`voice_first_hmi_implemented=true`、`simulated_actuator_feedback_verified=true`、
 `vehicle_bus_accessed=false`、`security_implementation_present=false`、`production_ready=false`、
 `target_hardware_validated=false`；tracking：`DEV-123/124`、`ISSUE-054`。
+
+## P7-R4-OCDEV Android/WSL OpenClaw development delivery
+
+交付固定 development endpoint/profile、OpenClaw v4 WebSocket client、development Provider/Router、DUMP-protected
+真机 probe、ADB reverse bridge、一键 build/install/probe runner、Client2 同源构建全链路 runner、JVM/build 验证、
+机器合同和 CI checker。
+开发链实际使用 WSL OpenClaw 2026.7.1 -> Ollama `qwen3.6:27b`，不再以 deterministic stub 或按钮终态作为模型通过证据。
+
+API 33 ARM64 证据：v4 challenge/auth、`chat.send` ACK、真实模型 final、197-byte structured response、32-character
+HMI reply 和 31968 ms 模型延迟。没有记录 raw identity/prompt/reply/token。
+Client2 Cold 一键回归另行确认了 30104 ms 真实模型响应、2 个模拟 Effect、调用链实时投影与 28.0°C HVAC UI 反馈；
+车身总线仍未访问。
+
+非交付：目标以太网、`169.254.208.110` 当前连通性、release routing、TLS/credential owner、direct NPU、车辆 Effect、
+Driver/HAL 和量产资格。`development_wsl_openclaw_android13_arm64_verified=true`、`ethernet_validated=false`、
+`production_ready=false`、`target_hardware_validated=false`；Req IDs：`S2-MDL-001/002`、`S2-SAF-001`、
+`S2-OBS-001/002`、`XSC-001/005/006`、`DEL-001/003/004/005`；tracking：`DEV-126/ISSUE-024/054`；
+stage `P7-R4-OCDEV`。

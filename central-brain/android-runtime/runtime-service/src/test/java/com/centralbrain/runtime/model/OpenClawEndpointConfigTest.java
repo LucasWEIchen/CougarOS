@@ -7,10 +7,26 @@ import org.junit.Test;
 
 public final class OpenClawEndpointConfigTest {
     @Test
+    public void developmentProfileUsesAdbReverseLoopbackWithoutEndpointOverride() {
+        OpenClawEndpointConfig config = OpenClawEndpointConfig
+                .developmentWslAdbReverse();
+
+        assertEquals("development_wsl_openclaw", config.getProfile());
+        assertEquals("ws://127.0.0.1:18789/",
+                config.getWebSocketUri().toString());
+        assertEquals("http://127.0.0.1:18789/chat?token=Iluvatar1!",
+                config.getControlUiUri().toString());
+        assertEquals("Iluvatar1!", config.getEmbeddedToken());
+        assertEquals(4, config.getProtocolVersion());
+        assertNull(config.getWebSocketUri().getQuery());
+    }
+
+    @Test
     public void targetProfileUsesTheFixedGatewayAndTransitionalEmbeddedCredential() {
         OpenClawEndpointConfig config = OpenClawEndpointConfig
                 .targetProductionTransitional();
 
+        assertEquals("target_openclaw_transitional", config.getProfile());
         assertEquals("ws://169.254.208.110:18789/",
                 config.getWebSocketUri().toString());
         assertEquals("http://169.254.208.110:18789/chat?token=Iluvatar1!",

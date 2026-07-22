@@ -34,10 +34,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Transitional target OpenClaw WebSocket v3 engine for controlled hardware-test builds. */
+/** OpenClaw WebSocket engine for fixed development and target profiles. */
 public final class OpenClawInferenceEngine implements LocalModelProvider.LocalInferenceEngine {
     private static final String TAG = "CentralBrainOpenClaw";
-    private static final String PROFILE = "target_openclaw_transitional";
     private static final String SESSION_PREFIX = "agent:main:cougaros-";
     private static final int MAX_PENDING_PROMPTS = 16;
     private static final int MAX_REPLY_CHARS = 256;
@@ -122,10 +121,20 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         this.credentialSource = Objects.requireNonNull(credentialSource, "credentialSource");
         this.transport = Objects.requireNonNull(transport, "transport");
         this.clock = Objects.requireNonNull(clock, "clock");
-        if (!"ws://169.254.208.110:18789/".equals(
-                endpoint.getWebSocketUri().toString())
-                || endpoint.getProtocolVersion() != 3) {
-            throw new IllegalArgumentException("OpenClaw target endpoint is not fixed");
+        boolean developmentProfile = OpenClawEndpointConfig.DEVELOPMENT_PROFILE.equals(
+                endpoint.getProfile())
+                        && "ws://127.0.0.1:18789/".equals(
+                                endpoint.getWebSocketUri().toString())
+                        && endpoint.getProtocolVersion()
+                                == OpenClawEndpointConfig.DEVELOPMENT_PROTOCOL_VERSION;
+        boolean targetProfile = OpenClawEndpointConfig.TARGET_PROFILE.equals(
+                endpoint.getProfile())
+                        && "ws://169.254.208.110:18789/".equals(
+                                endpoint.getWebSocketUri().toString())
+                        && endpoint.getProtocolVersion()
+                                == OpenClawEndpointConfig.TARGET_PROTOCOL_VERSION;
+        if (!developmentProfile && !targetProfile) {
+            throw new IllegalArgumentException("OpenClaw endpoint is not a fixed profile");
         }
     }
 
@@ -185,8 +194,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             String token = credentialSource.requireToken();
             int remainingMs = remainingDeadlineMs(request);
             logInfo("openclaw_inference_started=true"
-                    + " endpoint_profile=" + PROFILE
-                    + " protocol=3"
+                    + " endpoint_profile=" + endpoint.getProfile()
+                    + " protocol=" + endpoint.getProtocolVersion()
                     + " raw_prompt_logged=false"
                     + " credential_logged=false");
             Result result = transport.execute(new Request(
@@ -214,8 +223,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 lastFailureCode = "";
             }
             logInfo("openclaw_inference_completed=true"
-                    + " endpoint_profile=" + PROFILE
-                    + " protocol=3"
+                    + " endpoint_profile=" + endpoint.getProfile()
+                    + " protocol=" + endpoint.getProtocolVersion()
                     + " latency_ms=" + latencyMs
                     + " response_bytes=" + canonical.length
                     + " history_fallback_used=" + result.historyFallbackUsed
@@ -234,7 +243,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 lastFailureCode = failureCode;
             }
             logError("openclaw_inference_completed=false"
-                    + " endpoint_profile=" + PROFILE
+                    + " endpoint_profile=" + endpoint.getProfile()
                     + " failure_code=" + failureCode
                     + " network_accessed=true"
                     + " raw_prompt_logged=false"
@@ -540,11 +549,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         private static int connect(WebSocketConnection connection, Request request)
                 throws IOException {
             String requestId = UUID.randomUUID().toString();
-            JsonObject client = new JsonObject();
-            client.addProperty("id", "openclaw-control-ui");
-            client.addProperty("version", "cougaros-target-integration");
-            client.addProperty("platform", "android");
-            client.addProperty("mode", "webchat");
+            JsonObject client = clientIdentity(request.endpoint);
 
             JsonObject auth = new JsonObject();
             auth.addProperty("token", request.token);
@@ -576,6 +581,24 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 logInfo("openclaw_protocol_stage=connect_authenticated");
                 return protocol;
             }
+        }
+
+        private static JsonObject clientIdentity(OpenClawEndpointConfig endpoint) {
+            JsonObject client = new JsonObject();
+            if (OpenClawEndpointConfig.DEVELOPMENT_PROFILE.equals(endpoint.getProfile())) {
+                client.addProperty("id", "gateway-client");
+                client.addProperty("displayName", "CougarOS Android runtime");
+                client.addProperty("version", "0.3.0-b3");
+                client.addProperty("platform", "android 13");
+                client.addProperty("deviceFamily", "android");
+                client.addProperty("mode", "backend");
+            } else {
+                client.addProperty("id", "openclaw-control-ui");
+                client.addProperty("version", "cougaros-target-integration");
+                client.addProperty("platform", "android");
+                client.addProperty("mode", "webchat");
+            }
+            return client;
         }
 
         private static Result chat(
@@ -783,6 +806,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 String key = Base64.getEncoder().encodeToString(nonce);
                 String host = endpoint.getWebSocketUri().getHost()
                         + ":" + endpoint.getWebSocketUri().getPort();
+                boolean developmentProfile = OpenClawEndpointConfig.DEVELOPMENT_PROFILE
+                        .equals(endpoint.getProfile());
                 String request = "GET " + endpoint.getWebSocketUri().getPath()
                         + " HTTP/1.1\r\n"
                         + "Host: " + host + "\r\n"
@@ -790,7 +815,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                         + "Connection: Upgrade\r\n"
                         + "Sec-WebSocket-Key: " + key + "\r\n"
                         + "Sec-WebSocket-Version: 13\r\n"
-                        + "Origin: http://" + host + "\r\n\r\n";
+                        + (developmentProfile ? "" : "Origin: http://" + host + "\r\n")
+                        + "\r\n";
                 output.write(request.getBytes(StandardCharsets.US_ASCII));
                 output.flush();
                 byte[] headers = readHeaders();

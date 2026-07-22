@@ -60,7 +60,7 @@ for marker in \
   'TARGET_HOST = "169.254.208.110"' 'TARGET_PORT = 18_789' \
   'WEBSOCKET_PATH = "/"' 'CONTROL_UI_PATH = "/chat"' \
   'TARGET_TOKEN = "Iluvatar1!"' 'CONTROL_UI_QUERY = "token=" + TARGET_TOKEN' \
-  'getEmbeddedToken()' 'PROTOCOL_VERSION = 3' 'getUserInfo() != null'; do
+  'getEmbeddedToken()' 'TARGET_PROTOCOL_VERSION = 3' 'getUserInfo() != null'; do
   require_text "$CONFIG" "$marker"
 done
 for marker in \

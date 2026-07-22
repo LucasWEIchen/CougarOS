@@ -2096,3 +2096,16 @@ CAN、device node、ioctl、JNI 或 C ABI。真实末端执行器仍只保留既
 不能把动画状态作为 readback。`driver_development_triggered=false`、`driver_hal_accessed=false`、
 `vehicle_bus_accessed=false`、`hardware_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`；tracking：`DEV-123`、`ISSUE-030`。
+
+## P7-R4-OCDEV Development OpenClaw Driver/HAL Boundary
+
+开发链只使用 Android `INTERNET` permission、Java Socket/WebSocket 和 ADB reverse。WSL OpenClaw/Ollama 运行在 PC，
+不经过 Android Vendor NPU、PCIe、device node、ioctl、DMA、IOMMU、VehicleProperty、CAN 或 Driver/HAL；本阶段不新增
+C/C++ 或厂商系统开发量，`driver_development_triggered=false`。
+
+ADB USB transport 不能作为目标 Ethernet、NPU 或 Driver 证据。后续只有 Vendor 明确提供 NPU SDK/ABI、device/shared
+buffer 要求和责任边界后，才可在既有 NPU C ABI/JNI 空接口下评估最小新增量。
+
+`android_standard_network_api_used=true`、`driver_hal_accessed=false`、`direct_npu_accessed=false`、
+`ethernet_validated=false`、`production_ready=false`、`target_hardware_validated=false`；tracking：`DEV-126`、
+`ISSUE-024/054`；stage `P7-R4-OCDEV`。

@@ -5459,3 +5459,27 @@ no-vehicle-bus and no-authority labels.
 
 Req IDs: `APP-004`, `S2-HMI-007`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`, `S2-EFF-001`,
 `XSC-005/006`; tracking `DEV-123`. `production_ready=false`, `target_hardware_validated=false`.
+
+## P7-R4-OCDEV implementation delta: real Android to WSL OpenClaw
+
+The development model path now mirrors the target software layering without claiming target transport equivalence. A real
+Android 13 ARM64 runtime connects to `127.0.0.1:18789`; ADB reverse terminates that device loopback connection at the WSL
+OpenClaw gateway, which invokes the real Ollama `qwen3.6:27b` provider on port 11435. The default debug build owns this route.
+
+Endpoint and protocol are immutable profile data: development is OpenClaw v4 over ADB reverse; target remains OpenClaw v3
+over link-local Ethernet. The engine uses the OpenClaw v4 local backend shared-auth contract (`gateway-client/backend`, no
+browser Origin, bounded `operator.read/write`) because an unpaired UI identity has its write scope removed. This identity is
+not enabled in release and cannot be selected through runtime input.
+
+The hardware probe verifies handshake, authentication, chat acknowledgement, terminal response, exact JSON, scenario/action
+binding, provider metadata and closed Effect authority. The runner records no serial, prompt, reply or credential. The
+2026-07-22 run completed in 31968 ms model latency on API 33 ARM64.
+
+The Client2 acceptance runner additionally rebuilds SDK, Runtime and Client2 in one transaction before installation. It uses
+stable Android resource IDs instead of coordinates, then requires the real model completion, model-backed orchestration
+snapshot and simulated actuator UI to agree. The 2026-07-22 one-command Cold run completed in 30104 ms, projected two simulated effects
+and updated the visible HVAC target to 28.0 degrees C. The UI explicitly reported that the vehicle bus was not accessed.
+
+This delta adds no Vehicle/NPU/Driver authority. `development_wsl_openclaw_android13_arm64_verified=true`,
+`ethernet_validated=false`, `direct_npu_accessed=false`, `production_ready=false`, `target_hardware_validated=false`;
+stage `P7-R4-OCDEV`, tracking `DEV-126/ISSUE-024/054`.
