@@ -113,6 +113,10 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     && sha256.equals(other.sha256)
                     && content.length == other.content.length;
         }
+
+        void clear() {
+            java.util.Arrays.fill(content, (byte) 0);
+        }
     }
 
     static final class Result {
@@ -179,7 +183,14 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
 
     public synchronized void registerScenarioPrompt(String inputDigest, String scenarioId) {
         requireDigest(inputDigest);
-        CockpitModelPrompt prompt = CockpitModelPrompt.forScenario(inputDigest, scenarioId);
+        registerPrompt(CockpitModelPrompt.forScenario(inputDigest, scenarioId));
+    }
+
+    public synchronized void registerPrompt(CockpitModelPrompt prompt) {
+        requireOpen();
+        Objects.requireNonNull(prompt, "prompt");
+        String inputDigest = prompt.getInputDigest();
+        requireDigest(inputDigest);
         CockpitModelPrompt existing = pending.get(inputDigest);
         if (existing != null) {
             if (!existing.matches(prompt)) {
@@ -327,6 +338,10 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     + " raw_response_logged=false"
                     + " credential_logged=false");
             throw failure;
+        } finally {
+            if (imageAttachment != null) {
+                imageAttachment.clear();
+            }
         }
     }
 
@@ -335,6 +350,9 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         closed = true;
         warmedModel = null;
         pending.clear();
+        for (ImageAttachment attachment : pendingImages.values()) {
+            attachment.clear();
+        }
         pendingImages.clear();
         pendingImageBytes = 0;
     }

@@ -1815,6 +1815,24 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+## 2026-07-24 P4-R4 controlled-frame multimodal HMI completion
+
+`P4-R4a..R4d` 已完成：SDK debug AIDL v2 增加 FD-based `DevelopmentModelInput`/receipt；
+Runtime 使用 owner/session/scenario 绑定、aggregate digest、一次消费和清零；Client2 增加“处理一下”、
+缩略图、居中预览、实时模型输入/输出、动作白名单和模拟执行反馈；新场景
+`scene.cabin.multimodal.assist.v1` 贯通 Context、Policy、Graph、Effect 和 Readback。
+
+Android 13 `testboard`（API 33、arm64-v8a、1920x1080）通过 Android -> ADB reverse -> WSL
+OpenClaw v4 -> Ollama 真实文字+图片调用。2,244,206-byte 受控帧被模型消费，实际获准动作是
+`hvac.ventilate`，UI 风量由 1 动画更新到 3，媒体保持播放；缩略图、居中放大和图外退出通过。
+
+`model_io_hmi_implemented=true`、`frontend_multimodal_ingress_bound=true`、
+`android13_arm64_model_io_hmi_verified=true`、`repository_software_requirements_complete=true`。
+实时摄像头、目标以太网、Vehicle/Vendor adapter、真实 NPU 和量产资格仍为外部输入/证据，
+`production_ready=false`、`target_hardware_validated=false`。详设见
+[CENTRAL_BRAIN_CLIENT2_MULTIMODAL_CONTROL_LOOP.md](CENTRAL_BRAIN_CLIENT2_MULTIMODAL_CONTROL_LOOP.md)；
+tracking：`DEV-129/ISSUE-055/056`；stage `P4-R4-IMPLEMENTED-ARM64`。
+
 ## 2026-07-23 P4-R4 multimodal model I/O live HMI requirement
 
 状态：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。新增 `S2-HMI-008`：Client2 实时滚动运行状态必须显示本次实际模型

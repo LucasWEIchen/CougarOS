@@ -122,11 +122,12 @@ declared_hash="$(sed -nE \
   's/.*INTERFACE_HASH = "([0-9a-f]{64})";.*/\1/p' \
   "$ROOT_DIR/$MODEL_INTERFACE")"
 computed_hash="$({
-  for file in "$MODEL_AIDL" "$MODEL_INTERFACE"; do
+  while IFS= read -r file; do
     sed -E \
-      's/const String INTERFACE_HASH = "[0-9a-f]{64}";/const String INTERFACE_HASH = "<generated-by-checker>";/' \
+      's/const String INTERFACE_HASH = "[^"]+";/const String INTERFACE_HASH = "<generated-by-checker>";/' \
       "$ROOT_DIR/$file"
-  done
+  done < <(find "$MODEL_AIDL_ROOT" -maxdepth 1 -type f -name '*.aidl' \
+    -printf '%p\n' | sort)
 } | sha256sum | awk '{print $1}')"
 [[ "$declared_hash" == "$computed_hash" ]] \
   || { echo "development model projection hash drift" >&2; exit 1; }
@@ -192,7 +193,7 @@ assert dev["structured_output_required"] is True
 assert dev["action_allowlist_required"] is True
 assert dev["ephemeral_reply_projection_wired"] is True
 assert dev["projection_interface"] == "com.centralbrain.sdk.model.ICentralBrainDevelopmentModelProjection"
-assert dev["projection_interface_hash"] == "6932c481e3f6556a6ffe336459615687df26419a82f47cb30c074e3ec4ffd015"
+assert dev["projection_interface_hash"] == "c966fbbac6fe3eb48b72d27c09cbc305dece035a55efa5ff0c9e3c6ea0524486"
 assert dev["projection_debug_source_set_only"] is True
 assert dev["orchestration_v1_unchanged"] is True
 assert dev["model_text_persisted"] is False

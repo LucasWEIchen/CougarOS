@@ -41,6 +41,9 @@ public final class DevelopmentModelProjectionContractTest {
         projection.providerId = "android.local.development";
         projection.assistantDisplayText = "A bounded fatigue-care plan is ready.";
         projection.latencyMs = 1_234L;
+        projection.inputAggregateDigest = "b".repeat(64);
+        projection.imageConsumed = true;
+        projection.admittedActions = new String[] {"hvac.ventilate"};
         projection.outputDigest = "a".repeat(64);
         projection.completedAtEpochMs = 1_750_000_000_000L;
         return projection;

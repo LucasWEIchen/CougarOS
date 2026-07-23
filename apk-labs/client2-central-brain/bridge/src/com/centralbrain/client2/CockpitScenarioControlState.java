@@ -274,6 +274,9 @@ public final class CockpitScenarioControlState {
                 DeviceRole.CATALOG_REQUIRED, DeviceRole.CATALOG_OPTIONAL);
         add(definitions, "care.fatigue", "scene.fatigue.assist.v1", Origin.NATURAL,
                 DeviceRole.CATALOG_REQUIRED, DeviceRole.CATALOG_OPTIONAL);
+        add(definitions, "cabin.multimodal", "scene.cabin.multimodal.assist.v1",
+                Origin.NATURAL,
+                DeviceRole.CATALOG_REQUIRED, DeviceRole.NOT_INVOLVED);
         add(definitions, "task.home", "scene.navigation.home.v1", Origin.NATURAL,
                 DeviceRole.NOT_INVOLVED, DeviceRole.NOT_INVOLVED);
         add(definitions, "skill.nap", "scene.rest.nap.v1", Origin.NATURAL,

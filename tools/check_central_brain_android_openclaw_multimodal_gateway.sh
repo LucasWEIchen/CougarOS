@@ -52,7 +52,7 @@ import pathlib
 import sys
 
 contract = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-assert contract["schema_version"] == 1
+assert contract["schema_version"] == 2
 assert contract["implementation_stage"] == "P7-R5-MMDEV"
 route = contract["development_route"]
 assert route["text_and_image_in_same_chat_send"] is True
@@ -68,6 +68,11 @@ assert probe["occupant_count"] == 3
 assert probe["visible_occupant_holding_bottle"] is True
 assert probe["all_visible_occupants_belted"] is True
 assert probe["multimodal_probe_complete"] is True
+validation = contract["development_validation"]
+assert validation["frontend_controlled_frame_binder_contract_bound"] is True
+assert validation["android13_arm64_multimodal_verified"] is True
+assert validation["client2_model_input_output_hmi_verified"] is True
+assert validation["simulated_effect_loop_verified"] is True
 boundaries = contract["open_boundaries"]
 for key in boundaries:
     assert boundaries[key] is False
@@ -89,8 +94,9 @@ done
 printf '%s\n' \
   'android_openclaw_multimodal_attachment_implemented=true' \
   'wsl_openclaw_ollama_multimodal_verified=true' \
-  'frontend_multimodal_ingress_bound=false' \
-  'android13_arm64_multimodal_verified=false' \
+  'frontend_controlled_frame_binder_contract_bound=true' \
+  'android13_arm64_multimodal_verified=true' \
+  'frontend_live_camera_ingress_bound=false' \
   'direct_npu_accessed=false' \
   'production_ready=false' \
   'target_hardware_validated=false' \

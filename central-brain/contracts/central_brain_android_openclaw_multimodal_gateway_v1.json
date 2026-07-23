@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "implementation_stage": "P7-R5-MMDEV",
   "requirement_ids": [
     "S2-MDL-001",
@@ -46,10 +46,15 @@
     "model_latency_ms_observed": 8087,
     "multimodal_probe_complete": true
   },
+  "development_validation": {
+    "frontend_controlled_frame_binder_contract_bound": true,
+    "android13_arm64_multimodal_verified": true,
+    "client2_model_input_output_hmi_verified": true,
+    "simulated_effect_loop_verified": true
+  },
   "open_boundaries": {
-    "frontend_camera_ingress_bound": false,
-    "frontend_voice_and_image_binder_contract_bound": false,
-    "android13_arm64_multimodal_verified": false,
+    "frontend_live_camera_ingress_bound": false,
+    "frontend_live_voice_and_image_history_bound": false,
     "target_ethernet_verified": false,
     "direct_npu_accessed": false,
     "vehicle_effect_hardware_accessed": false,

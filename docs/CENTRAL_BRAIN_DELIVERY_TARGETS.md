@@ -3015,3 +3015,15 @@ Client2 输入完成证据，UI 内容不得进入 Room、SharedPreferences、ch
 `production_ready=false`、`target_hardware_validated=false`；Req IDs：`S2-HMI-003/007/008`、`S2-MDL-002`、
 `S2-OBS-002`、`S2-SAF-001`、`XSC-001/005/006`、`DEL-001/003/004`；
 tracking：`DEV-128/ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。
+
+## P4-R4 controlled-frame multimodal HMI delivery
+
+已交付 Client2 “处理一下”按钮、受控 PNG 资源、文字+图片同项模型输入、缩略图、居中预览、
+图外/Back 退出、实时链路文本、模型回复、admitted actions、HVAC/Media 模拟反馈；SDK/Runtime
+交付 FD 输入 DTO/receipt、aggregate digest、owner/session 绑定、一次消费 store 和输出消费证明。
+
+Android 13 ARM64 1920x1080 已使用 WSL OpenClaw/Ollama 完成真实 exchange。验收输出为
+`hvac.ventilate`，风量 1->3，媒体保持播放；车辆总线没有访问。交付状态：
+`model_io_hmi_implemented=true`、`android13_arm64_model_io_hmi_verified=true`、
+`repository_software_requirements_complete=true`、`production_ready=false`、
+`target_hardware_validated=false`。实时 camera/voice 和目标以太网仍非本交付。

@@ -14,6 +14,7 @@ import com.centralbrain.runtime.events.TriggerEngine;
 import com.centralbrain.runtime.events.TriggerRule;
 import com.centralbrain.runtime.model.DeterministicStubModelProvider;
 import com.centralbrain.runtime.model.CockpitModelPrompt;
+import com.centralbrain.runtime.model.DevelopmentModelInputStore;
 import com.centralbrain.runtime.model.LocalModelProvider;
 import com.centralbrain.runtime.model.ModelContractV2;
 import com.centralbrain.runtime.model.ModelProvider;
@@ -35,6 +36,7 @@ import com.centralbrain.runtime.vehicle.schema.SignalValue;
 import com.centralbrain.runtime.vehicle.schema.VehicleSignalPath;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.centralbrain.sdk.model.DevelopmentModelInputReceipt;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -43,6 +45,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -88,6 +91,7 @@ final class DebugDecisionCompositionBoundary {
     private final NetworkModelMode networkModelMode;
     private final BoundedEventRuntime events;
     private final Map<String, Entry> bySession = new LinkedHashMap<>();
+    private long modelHealthRevision;
 
     DebugDecisionCompositionBoundary(ScenarioCatalog catalog) {
         this(catalog, SystemClock::elapsedRealtime, sequence("decision-subscription-"),
@@ -253,6 +257,8 @@ final class DebugDecisionCompositionBoundary {
                 modelEvidence.assistantDisplayText,
                 modelEvidence.providerId,
                 modelEvidence.latencyMs,
+                modelEvidence.inputAggregateDigest,
+                modelEvidence.imageConsumed,
                 modelEvidence.admittedActions);
         bySession.put(session.getSessionId(), new Entry(requestDigest, evidence));
         return evidence;
@@ -396,7 +402,11 @@ final class DebugDecisionCompositionBoundary {
             String requestDigest,
             long now) {
         TriggerRule.Metric metric = metricForScenario(scenarioId);
-        double value = "scene.comfort.cold.v1".equals(scenarioId) ? 17.0 : 0.8;
+        double value = "scene.fatigue.assist.v1".equals(scenarioId)
+                ? 0.8
+                : "scene.cabin.multimodal.assist.v1".equals(scenarioId)
+                        ? 1_500.0
+                        : 17.0;
         TriggerEngine.Evaluation terminal = null;
         for (int index = 0; index < 3; index++) {
             long observedAt = now - 100L + index * 50L;
@@ -458,7 +468,7 @@ final class DebugDecisionCompositionBoundary {
                         providerId,
                         healthSource,
                         ModelProviderRegistry.HealthState.HEALTHY,
-                        bySession.size() + 1L,
+                        ++modelHealthRevision,
                         now,
                         now + MODEL_HEALTH_WINDOW_MS,
                         healthEvidence),
@@ -466,9 +476,34 @@ final class DebugDecisionCompositionBoundary {
         if (health.getCode() != ModelProviderRegistry.PublishCode.UPDATED) {
             throw violation("model health publication failed closed");
         }
+        DevelopmentModelInputReceipt stagedInput = null;
+        byte[] stagedImage = null;
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
+            DevelopmentModelInputStore.ConsumedInput consumed =
+                    DevelopmentModelInputStore.getInstance().consumeOwn(
+                            session.getOwnerFingerprint(),
+                            session.getSessionId(),
+                            scenarioId);
+            if (consumed == null) {
+                throw violation("multimodal input is unavailable");
+            }
+            try {
+                stagedInput = consumed.getReceipt();
+                stagedImage = consumed.copyImageBytes();
+            } finally {
+                consumed.close();
+            }
+        }
+        try {
+        String inputAggregateDigest = stagedInput == null
+                ? "0".repeat(64) : stagedInput.inputAggregateDigest;
         String inputDigest = digest(
                 "model-input", requestDigest, String.join("|", contextDigests),
-                suggestion.getSuggestionDigest());
+                suggestion.getSuggestionDigest(), inputAggregateDigest);
+        CockpitModelPrompt prompt = stagedInput == null
+                ? CockpitModelPrompt.forScenario(inputDigest, scenarioId)
+                : CockpitModelPrompt.forMultimodal(
+                        inputDigest, stagedInput.inputText);
         ModelContractV2.ModelRequest modelRequest = new ModelContractV2.ModelRequest(
                 "decision." + requestDigest.substring(0, 24),
                 ModelContractV2.Purpose.SCENARIO_REASONING,
@@ -493,7 +528,7 @@ final class DebugDecisionCompositionBoundary {
                         PolicyAwareModelRouter.ThermalState.NOMINAL,
                         1,
                         256,
-                        bySession.size() + 1L,
+                        modelHealthRevision,
                         now,
                         now + MODEL_HEALTH_WINDOW_MS,
                         digest("model-policy", requestDigest)),
@@ -508,8 +543,23 @@ final class DebugDecisionCompositionBoundary {
         RecordingObserver observer = new RecordingObserver();
         if (networkModel) {
             if (isOpenClawMode(networkModelMode)) {
-                openClawEngine.registerScenarioPrompt(inputDigest, scenarioId);
+                openClawEngine.registerPrompt(prompt);
+                if (stagedInput != null) {
+                    try {
+                        openClawEngine.registerScenarioImageAttachment(
+                                inputDigest,
+                                stagedInput.imageMimeType,
+                                stagedInput.imageFileName,
+                                stagedImage);
+                    } finally {
+                        Arrays.fill(stagedImage, (byte) 0);
+                    }
+                }
             } else {
+                if (stagedInput != null) {
+                    Arrays.fill(stagedImage, (byte) 0);
+                    throw violation("multimodal input requires OpenClaw routing");
+                }
                 ollamaEngine.registerScenarioPrompt(inputDigest, scenarioId);
             }
             ModelProvider.InferenceHandle handle = modelProvider.infer(
@@ -558,7 +608,7 @@ final class DebugDecisionCompositionBoundary {
                     ? openClawEngine.snapshot().getCompletedCount()
                     : ollamaEngine.snapshot().getCompletedCount();
             ModelProjection projection = parseModelProjection(
-                    observer.contentBytes(), scenarioId, completedCount, latencyMs);
+                    observer.contentBytes(), prompt, completedCount, latencyMs);
             return new ModelEvidence(
                     route.getDecisionDigest(),
                     observer.terminal.getOutputDigest(),
@@ -567,6 +617,8 @@ final class DebugDecisionCompositionBoundary {
                     projection.assistantDisplayText,
                     providerId,
                     projection.latencyMs,
+                    inputAggregateDigest,
+                    stagedInput != null,
                     projection.admittedActions);
         }
         return new ModelEvidence(
@@ -577,15 +629,23 @@ final class DebugDecisionCompositionBoundary {
                 "",
                 "",
                 0L,
+                inputAggregateDigest,
+                false,
                 List.of());
+        } finally {
+            if (stagedImage != null) {
+                Arrays.fill(stagedImage, (byte) 0);
+            }
+        }
     }
 
     private static ModelProjection parseModelProjection(
             byte[] canonicalOutput,
-            String expectedScenarioId,
+            CockpitModelPrompt prompt,
             long engineCompletedCount,
             long engineLatencyMs) {
         try {
+            String expectedScenarioId = prompt.getScenarioId();
             JsonObject output = JsonParser.parseString(
                     new String(canonicalOutput, StandardCharsets.UTF_8)).getAsJsonObject();
             if (!expectedScenarioId.equals(output.get("scenario_id").getAsString())) {
@@ -607,8 +667,7 @@ final class DebugDecisionCompositionBoundary {
                 }
                 admittedActions.add(element.getAsString());
             });
-            CockpitModelPrompt.forScenario("0".repeat(64), expectedScenarioId)
-                    .validateAdmittedActions(admittedActions);
+            prompt.validateAdmittedActions(admittedActions);
             return new ModelProjection(reply, engineLatencyMs, admittedActions);
         } catch (RuntimeException failure) {
             if (failure instanceof IllegalArgumentException
@@ -688,6 +747,18 @@ final class DebugDecisionCompositionBoundary {
                 TriggerRule.Metric.DRIVER_FATIGUE_SCORE,
                 TriggerRule.ThresholdOperator.GREATER_THAN_OR_EQUAL,
                 0.8));
+        try {
+            rules.add(rule(
+                    "trigger.cabin.multimodal.driver.v1",
+                    "scene.cabin.multimodal.assist.v1",
+                    catalog.require("scene.cabin.multimodal.assist.v1")
+                            .getArtifactDigest(),
+                    TriggerRule.Metric.CABIN_CO2_PPM,
+                    TriggerRule.ThresholdOperator.GREATER_THAN_OR_EQUAL,
+                    1_000.0));
+        } catch (IllegalArgumentException ignored) {
+            // Older focused contract fixtures intentionally load only legacy scenarios.
+        }
         return new TriggerRule.Manifest("trigger-manifest.debug-decision.v1", 1, rules);
     }
 
@@ -721,6 +792,9 @@ final class DebugDecisionCompositionBoundary {
         if ("scene.fatigue.assist.v1".equals(scenarioId)) {
             return TriggerRule.Metric.DRIVER_FATIGUE_SCORE;
         }
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
+            return TriggerRule.Metric.CABIN_CO2_PPM;
+        }
         throw violation("scenario Trigger metric is unavailable");
     }
 
@@ -730,6 +804,9 @@ final class DebugDecisionCompositionBoundary {
         }
         if ("scene.fatigue.assist.v1".equals(scenarioId)) {
             return VehicleCapability.CapabilityId.SEAT_RECLINE_ANGLE;
+        }
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
+            return VehicleCapability.CapabilityId.HVAC_FAN_LEVEL;
         }
         throw violation("scenario consent capability is unavailable");
     }
@@ -798,6 +875,8 @@ final class DebugDecisionCompositionBoundary {
         private final String assistantDisplayText;
         private final String modelProviderId;
         private final long modelLatencyMs;
+        private final String inputAggregateDigest;
+        private final boolean imageConsumed;
         private final List<String> admittedActions;
 
         private Evidence(
@@ -814,6 +893,8 @@ final class DebugDecisionCompositionBoundary {
                 String assistantDisplayText,
                 String modelProviderId,
                 long modelLatencyMs,
+                String inputAggregateDigest,
+                boolean imageConsumed,
                 List<String> admittedActions) {
             this.digest = digest;
             this.contextObservationCount = contextObservationCount;
@@ -828,6 +909,8 @@ final class DebugDecisionCompositionBoundary {
             this.assistantDisplayText = assistantDisplayText;
             this.modelProviderId = modelProviderId;
             this.modelLatencyMs = modelLatencyMs;
+            this.inputAggregateDigest = inputAggregateDigest;
+            this.imageConsumed = imageConsumed;
             this.admittedActions = Collections.unmodifiableList(
                     new ArrayList<>(Objects.requireNonNull(
                             admittedActions, "admittedActions")));
@@ -848,6 +931,8 @@ final class DebugDecisionCompositionBoundary {
         String getAssistantDisplayText() { return assistantDisplayText; }
         String getModelProviderId() { return modelProviderId; }
         long getModelLatencyMs() { return modelLatencyMs; }
+        String getInputAggregateDigest() { return inputAggregateDigest; }
+        boolean isImageConsumed() { return imageConsumed; }
         List<String> getAdmittedActions() { return admittedActions; }
         boolean isNpuAccessed() { return false; }
         boolean isHardwareAccessed() { return false; }
@@ -909,6 +994,8 @@ final class DebugDecisionCompositionBoundary {
         private final String assistantDisplayText;
         private final String providerId;
         private final long latencyMs;
+        private final String inputAggregateDigest;
+        private final boolean imageConsumed;
         private final List<String> admittedActions;
 
         private ModelEvidence(
@@ -919,6 +1006,8 @@ final class DebugDecisionCompositionBoundary {
                 String assistantDisplayText,
                 String providerId,
                 long latencyMs,
+                String inputAggregateDigest,
+                boolean imageConsumed,
                 List<String> admittedActions) {
             this.routeDigest = routeDigest;
             this.outputDigest = outputDigest;
@@ -927,6 +1016,8 @@ final class DebugDecisionCompositionBoundary {
             this.assistantDisplayText = assistantDisplayText;
             this.providerId = providerId;
             this.latencyMs = latencyMs;
+            this.inputAggregateDigest = inputAggregateDigest;
+            this.imageConsumed = imageConsumed;
             this.admittedActions = Collections.unmodifiableList(
                     new ArrayList<>(admittedActions));
         }

@@ -26,7 +26,7 @@
     "action_allowlist_required": true,
     "ephemeral_reply_projection_wired": true,
     "projection_interface": "com.centralbrain.sdk.model.ICentralBrainDevelopmentModelProjection",
-    "projection_interface_hash": "6932c481e3f6556a6ffe336459615687df26419a82f47cb30c074e3ec4ffd015",
+    "projection_interface_hash": "c966fbbac6fe3eb48b72d27c09cbc305dece035a55efa5ff0c9e3c6ea0524486",
     "projection_debug_source_set_only": true,
     "orchestration_v1_unchanged": true,
     "model_text_persisted": false,

@@ -29,6 +29,9 @@ public final class DevelopmentModelProjectionStoreTest {
                 "android.local.development",
                 "A bounded fatigue-care plan is ready.",
                 1_234L,
+                "d".repeat(64),
+                true,
+                java.util.List.of("hvac.ventilate"),
                 "b".repeat(64),
                 1_750_000_000_000L);
 

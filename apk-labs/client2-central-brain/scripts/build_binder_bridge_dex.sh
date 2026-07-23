@@ -55,8 +55,8 @@ if [[ ! -f "$SDK_CLASSES" ]]; then
 fi
 
 mapfile -t SOURCES < <(find "$PROJECT_DIR/bridge/src" -type f -name '*.java' -print | sort)
-if [[ "${#SOURCES[@]}" -ne 19 ]]; then
-  echo "Expected exactly nineteen Client2 HMI/Session/orchestration Java sources" >&2
+if [[ "${#SOURCES[@]}" -ne 20 ]]; then
+  echo "Expected exactly twenty Client2 HMI/Session/orchestration Java sources" >&2
   exit 1
 fi
 "$AIDL" --lang=java -I"$SIM_AIDL_ROOT" -o "$BUILD_DIR/generated" \

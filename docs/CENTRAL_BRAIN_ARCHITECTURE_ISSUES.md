@@ -83,8 +83,8 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-052 | P9 production signer、installer/rollback owner 和受控发布证据不可用。 | S2-REL-001, P9-W05 | Open / External Blocked |
 | ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
 | ISSUE-054 | 当前 Android 可达 OpenClaw 主机，但 18789 端口拒绝连接；固定凭据构建无法完成当前模型回归。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Open / External Service Blocked |
-| ISSUE-055 | 目标 OpenClaw 协议已支持文字+图片同一 RPC，但前端语音转写/相机 Binder、统一输入摘要、history 附件绑定和目标以太网证据未完成。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / Next Software Increment |
-| ISSUE-056 | Client2 实时链路尚未显示实际模型输入/输出，也没有图片缩略图、居中预览和图外点击退出交互。 | S2-HMI-003/007/008, S2-MDL-002, S2-OBS-002, P4-R4 | Open / Software Requirement |
+| ISSUE-055 | 受控帧 debug SDK/Binder 与统一输入摘要已完成；实时语音/相机 owner、history 附件绑定、目标以太网和量产媒体治理仍缺外部接口/证据。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / External Integration |
+| ISSUE-056 | Client2 实际模型输入/输出、图片缩略图、居中预览、图外/Back 退出和 ARM64 真实模型 exchange 已完成。 | S2-HMI-003/007/008, S2-MDL-002, S2-OBS-002, P4-R4 | Resolved / DEV-129 |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1468,3 +1468,13 @@ SDK/Binder，用户可见输入也没有以 run-bound 数据投影；最终回�
 `image_center_preview_interaction_implemented=false`、`android13_arm64_model_io_hmi_verified=false`、
 `repository_software_requirements_complete=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-128/ISSUE-055`；stage `P4-R4-REQUIREMENT`。
+
+### ISSUE-056 resolution evidence
+
+2026-07-24，`DevelopmentModelInput`/receipt、FD 传输、aggregate digest、一次消费 store、模型
+`imageConsumed`/actions 投影和 Client2 renderer 已实现。Android 13 ARM64 实测 2,244,206-byte
+受控帧进入 OpenClaw v4/Ollama，同次输出生成 `hvac.ventilate`，Graph 完成两个 simulated effects，
+UI 风量 1->3；缩略图、居中预览及图外退出通过。状态：`Resolved / DEV-129`。
+
+该关闭不覆盖实时摄像头或目标以太网。它们继续由 `ISSUE-055` 跟踪；
+`production_ready=false`、`target_hardware_validated=false`。

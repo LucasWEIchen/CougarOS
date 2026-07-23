@@ -38,4 +38,23 @@ public final class CockpitModelPromptTest {
         assertThrows(IllegalArgumentException.class, () ->
                 CockpitModelPrompt.forScenario("b".repeat(64), "scene.unknown"));
     }
+
+    @Test
+    public void multimodalPromptLimitsImageReasoningAndEffects() {
+        CockpitModelPrompt prompt = CockpitModelPrompt.forMultimodal(
+                "c".repeat(64), "处理一下");
+
+        assertEquals("scene.cabin.multimodal.assist.v1", prompt.getScenarioId());
+        assertEquals("处理一下", prompt.getUtterance());
+        assertTrue(prompt.getContext().contains("image_present=true"));
+        assertTrue(prompt.getContext().contains("VISIBLE_CABIN_FACTS_ONLY"));
+        assertTrue(prompt.getContext().contains(
+                "NO_IDENTITY_OR_SENSITIVE_ATTRIBUTE_INFERENCE"));
+        assertEquals(List.of("hvac.ventilate", "media.pause"),
+                prompt.getAllowedActions());
+        assertEquals(1, prompt.getRequiredActions().size());
+        prompt.validateAdmittedActions(List.of("hvac.ventilate"));
+        assertThrows(IllegalStateException.class, () ->
+                prompt.validateAdmittedActions(List.of("media.pause")));
+    }
 }

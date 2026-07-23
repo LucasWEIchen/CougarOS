@@ -984,6 +984,18 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-129 Controlled frame implements P4-R4 but does not claim live camera ingress
+
+架构基线要求前端文字和图片进入同一次模型调用。当前黑盒 Android 13 平台没有可用的 OEM camera
+SDK/Binder，因此 P4-R4 采用构建内固定 SHA-256 的座舱帧，通过新 FD-based SDK/Binder 真实发送到
+OpenClaw/Ollama。模型输出、动作白名单和模拟执行闭环均由该次实际 exchange 产生。
+
+这是受控开发输入，不是 UI 假结果，也不等价于实时相机。处置为：关闭 Client2 模型 I/O 与预览软件缺口
+`ISSUE-056`；`ISSUE-055` 保留实时 camera/voice owner、目标以太网和量产媒体治理的外部集成子项。
+`frontend_multimodal_ingress_bound=true` 仅指本调试 Binder；`live_camera_ingress_verified=false`、
+`vehicle_bus_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-129/ISSUE-055/056`；stage `P4-R4-IMPLEMENTED-ARM64`。
+
 ## DEV-128 P4-R4 reopens the repository software completion claim
 
 P10-R1 在 2026-07-19 基于当时已分类需求声明仓库软件完成。维护者于 2026-07-23 新增模型输入/输出实时可视化要求：

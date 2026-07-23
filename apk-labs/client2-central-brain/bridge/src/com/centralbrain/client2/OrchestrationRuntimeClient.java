@@ -3,6 +3,7 @@ package com.centralbrain.client2;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -10,6 +11,8 @@ import com.centralbrain.sdk.DevelopmentModelProjectionClient;
 import com.centralbrain.sdk.OrchestrationClient;
 import com.centralbrain.sdk.effect.EffectContract;
 import com.centralbrain.sdk.model.DevelopmentModelProjection;
+import com.centralbrain.sdk.model.DevelopmentModelInput;
+import com.centralbrain.sdk.model.DevelopmentModelInputReceipt;
 import com.centralbrain.sdk.orchestration.ApprovalResponse;
 import com.centralbrain.sdk.orchestration.ICentralBrainOrchestration;
 import com.centralbrain.sdk.orchestration.OrchestrationContract;
@@ -41,6 +44,11 @@ public final class OrchestrationRuntimeClient implements
         void onSimulatedScenarioFailure(String uiScenarioId, String failureCode);
 
         void onPipelineMilestone(String stage, String status, String detail);
+
+        void onMultimodalInputAccepted(DevelopmentModelInputReceipt receipt);
+
+        void onModelExchange(
+                String uiScenarioId, DevelopmentModelProjection projection);
     }
 
     private static final class PendingStart {
@@ -51,6 +59,8 @@ public final class OrchestrationRuntimeClient implements
         private final String drivingProfile;
         private final int motionState;
         private final boolean effectAnimationOnly;
+        private CockpitMultimodalInput multimodalInput;
+        private DevelopmentModelInputReceipt inputReceipt;
 
         private PendingStart(
                 long generation,
@@ -59,7 +69,8 @@ public final class OrchestrationRuntimeClient implements
                 String canonicalScenarioId,
                 String drivingProfile,
                 int motionState,
-                boolean effectAnimationOnly) {
+                boolean effectAnimationOnly,
+                CockpitMultimodalInput multimodalInput) {
             this.generation = generation;
             this.sessionId = sessionId;
             this.uiScenarioId = uiScenarioId;
@@ -67,6 +78,7 @@ public final class OrchestrationRuntimeClient implements
             this.drivingProfile = drivingProfile;
             this.motionState = motionState;
             this.effectAnimationOnly = effectAnimationOnly;
+            this.multimodalInput = multimodalInput;
         }
     }
 
@@ -104,6 +116,8 @@ public final class OrchestrationRuntimeClient implements
                         Log.i(TAG, "client2_development_model_projection_connected=true"
                                 + " reconnected=" + reconnected
                                 + " debug_only=true");
+                        binderExecutor.execute(
+                                OrchestrationRuntimeClient.this::drainPendingStart);
                     }
 
                     @Override
@@ -143,6 +157,20 @@ public final class OrchestrationRuntimeClient implements
             String uiScenarioId,
             CockpitSeatState.DrivingState drivingState,
             boolean effectAnimationOnly) {
+        openOrResume(
+                sessionId,
+                uiScenarioId,
+                drivingState,
+                effectAnimationOnly,
+                null);
+    }
+
+    public void openOrResume(
+            String sessionId,
+            String uiScenarioId,
+            CockpitSeatState.DrivingState drivingState,
+            boolean effectAnimationOnly,
+            CockpitMultimodalInput multimodalInput) {
         Objects.requireNonNull(drivingState, "drivingState");
         String scenario = requireScenario(uiScenarioId);
         PendingStart start;
@@ -161,7 +189,8 @@ public final class OrchestrationRuntimeClient implements
                     effectAnimationOnly
                             ? ICentralBrainOrchestration.MOTION_PARKED
                             : motionState(drivingState),
-                    effectAnimationOnly);
+                    effectAnimationOnly,
+                    multimodalInput);
             pendingStart = start;
             ready = connected;
         }
@@ -232,9 +261,39 @@ public final class OrchestrationRuntimeClient implements
                 return;
             }
             start = pendingStart;
+            if (start.multimodalInput != null
+                    && start.inputReceipt == null
+                    && !modelProjectionClient.isConnected()) {
+                return;
+            }
             previous = latestSnapshot;
         }
         try {
+            if (start.multimodalInput != null && start.inputReceipt == null) {
+                stage = "STAGE_MULTIMODAL_INPUT";
+                DevelopmentModelInput input = start.multimodalInput.openParcelable(
+                        start.sessionId, start.canonicalScenarioId);
+                ParcelFileDescriptor inputFd = input.imageFd;
+                try {
+                    start.inputReceipt =
+                            modelProjectionClient.stageOwnMultimodalInput(input);
+                } finally {
+                    try {
+                        inputFd.close();
+                    } catch (java.io.IOException ignored) {
+                        // Runtime already duplicated or consumed the descriptor.
+                    }
+                    start.multimodalInput.close();
+                    start.multimodalInput = null;
+                }
+                DevelopmentModelInputReceipt accepted = start.inputReceipt;
+                milestone(
+                        "MODEL INPUT",
+                        "ACCEPTED",
+                        accepted.inputText + " · image/png · "
+                                + accepted.imageByteCount + " bytes");
+                post(() -> callback.onMultimodalInputAccepted(accepted));
+            }
             cancelPreviousIfNeeded(previous, start.sessionId);
             OrchestrationSnapshot snapshot = client.getSnapshot(start.sessionId);
             if (isNotStarted(snapshot)) {
@@ -308,7 +367,8 @@ public final class OrchestrationRuntimeClient implements
                         updated.scenarioId,
                         drivingProfile,
                         ICentralBrainOrchestration.MOTION_UNKNOWN,
-                        true);
+                        true,
+                        null);
                 publish(source, updated, 1);
             } catch (RemoteException failure) {
                 fail(uiScenarioId, "CB_ORCHESTRATION_APPROVAL_REMOTE");
@@ -327,6 +387,14 @@ public final class OrchestrationRuntimeClient implements
             OrchestrationSnapshot snapshot,
             int approvalIncrement) throws RemoteException {
         DevelopmentModelProjection modelProjection = readModelProjection(start, snapshot);
+        if (start.inputReceipt != null
+                && (modelProjection == null
+                        || !modelProjection.imageConsumed
+                        || !start.inputReceipt.inputAggregateDigest.equals(
+                                modelProjection.inputAggregateDigest))) {
+            throw new IllegalArgumentException(
+                    "multimodal model projection consumption proof is missing");
+        }
         ScenarioPlan plan = client.getPlan(start.sessionId);
         OrchestrationContract.validatePlanForSnapshot(plan, snapshot);
         if (approvalIncrement == 0) {
@@ -341,6 +409,10 @@ public final class OrchestrationRuntimeClient implements
             }
             milestone("PLAN", "VALIDATED", "Revision " + snapshot.planRevision);
             milestone("POLICY", "ALLOWLISTED", "Simulation authority only");
+            if (modelProjection != null) {
+                post(() -> callback.onModelExchange(
+                        start.uiScenarioId, modelProjection));
+            }
         }
         CockpitSimulatedScenarioState.Projection projection;
         synchronized (this) {

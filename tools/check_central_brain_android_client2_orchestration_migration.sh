@@ -29,7 +29,9 @@ done
 
 test ! -f "$SOURCE/SimulatedScenarioRuntimeClient.java"
 test ! -f "$PROJECT/bridge/src/com/centralbrain/runtime/scenario/SimulatedScenarioBinderSnapshot.java"
-[[ "$(find "$PROJECT/bridge/src" -type f -name '*.java' | wc -l)" -eq 19 ]]
+# P4-R2 remains a historical 19-source checkpoint; P4-R4 adds the controlled-frame
+# CockpitMultimodalInput source without reintroducing either legacy Binder client.
+[[ "$(find "$PROJECT/bridge/src" -type f -name '*.java' | wc -l)" -eq 20 ]]
 
 python3 -B - "$CONTRACT" "$PROJECT_JSON" "$COORDINATOR" <<'PY'
 import json
@@ -166,7 +168,7 @@ for marker in ORCHESTRATION_V1 RUNTIME_SDK GRAPH_V1 EFFECT_V1_DEBUG READBACK_V1_
     || { echo "P4-R2 timeline marker missing: $marker" >&2; exit 1; }
 done
 
-grep -Fq 'Expected exactly nineteen Client2' "$BUILD_SCRIPT"
+grep -Fq 'Expected exactly twenty Client2' "$BUILD_SCRIPT"
 grep -Fq 'Expected exactly one generated debug simulation-controller Binder source' "$BUILD_SCRIPT"
 if grep -Fq 'ISimulatedScenarioRuntime' "$BUILD_SCRIPT"; then
   echo "legacy simulated-scenario AIDL remains in Client2 build" >&2

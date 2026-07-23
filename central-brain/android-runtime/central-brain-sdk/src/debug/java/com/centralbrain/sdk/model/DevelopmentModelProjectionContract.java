@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /** Validation and digest rules for the bounded debug-only model UX projection. */
 public final class DevelopmentModelProjectionContract {
-    public static final int SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = 2;
     public static final int MAX_ASSISTANT_DISPLAY_CHARS = 256;
     public static final long MAX_LATENCY_MS = 120_000L;
 
@@ -35,6 +35,15 @@ public final class DevelopmentModelProjectionContract {
         if (projection.latencyMs < 0L || projection.latencyMs > MAX_LATENCY_MS) {
             throw violation("latency is outside the bound");
         }
+        requireDigest(projection.inputAggregateDigest, "inputAggregateDigest");
+        if (projection.admittedActions == null
+                || projection.admittedActions.length < 1
+                || projection.admittedActions.length > 4) {
+            throw violation("admitted action count is invalid");
+        }
+        for (String action : projection.admittedActions) {
+            requireIdentifier(action, 64, "admittedAction");
+        }
         requireDigest(projection.outputDigest, "outputDigest");
         requireDigest(projection.projectionDigest, "projectionDigest");
         if (projection.completedAtEpochMs <= 0L) {
@@ -48,13 +57,17 @@ public final class DevelopmentModelProjectionContract {
     public static String calculateDigest(DevelopmentModelProjection projection) {
         Objects.requireNonNull(projection, "projection");
         MessageDigest digest = sha256();
-        update(digest, "central-brain-development-model-projection-v1");
+        update(digest, "central-brain-development-model-projection-v2");
         update(digest, Integer.toString(projection.schemaVersion));
         update(digest, safe(projection.sessionId));
         update(digest, safe(projection.scenarioId));
         update(digest, safe(projection.providerId));
         update(digest, safe(projection.assistantDisplayText));
         update(digest, Long.toString(projection.latencyMs));
+        update(digest, safe(projection.inputAggregateDigest));
+        update(digest, Boolean.toString(projection.imageConsumed));
+        update(digest, String.join("|", projection.admittedActions == null
+                ? new String[0] : projection.admittedActions));
         update(digest, safe(projection.outputDigest));
         update(digest, Long.toString(projection.completedAtEpochMs));
         return toHex(digest.digest());

@@ -374,7 +374,9 @@ public final class CockpitSimulatedScenarioState {
     public long getModelLatencyMs() { return modelLatencyMs; }
 
     public static boolean isSupported(String uiScenarioId) {
-        return "care.cold".equals(uiScenarioId) || "care.fatigue".equals(uiScenarioId);
+        return "care.cold".equals(uiScenarioId)
+                || "care.fatigue".equals(uiScenarioId)
+                || "cabin.multimodal".equals(uiScenarioId);
     }
 
     private CockpitSimulatedScenarioState copy(
@@ -430,7 +432,10 @@ public final class CockpitSimulatedScenarioState {
 
     private static String requireCanonical(String uiScenarioId, String value) {
         String expected = "care.cold".equals(uiScenarioId)
-                ? "scene.comfort.cold.v1" : "scene.fatigue.assist.v1";
+                ? "scene.comfort.cold.v1"
+                : "care.fatigue".equals(uiScenarioId)
+                        ? "scene.fatigue.assist.v1"
+                        : "scene.cabin.multimodal.assist.v1";
         if (!expected.equals(value)) {
             throw new IllegalArgumentException("simulated scenario catalog mismatch");
         }

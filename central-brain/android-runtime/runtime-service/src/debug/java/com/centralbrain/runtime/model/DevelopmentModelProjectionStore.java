@@ -28,6 +28,9 @@ public final class DevelopmentModelProjectionStore {
             String providerId,
             String assistantDisplayText,
             long latencyMs,
+            String inputAggregateDigest,
+            boolean imageConsumed,
+            java.util.List<String> admittedActions,
             String outputDigest,
             long completedAtEpochMs) {
         DevelopmentModelProjection projection = new DevelopmentModelProjection();
@@ -37,6 +40,9 @@ public final class DevelopmentModelProjectionStore {
         projection.providerId = providerId;
         projection.assistantDisplayText = assistantDisplayText;
         projection.latencyMs = latencyMs;
+        projection.inputAggregateDigest = inputAggregateDigest;
+        projection.imageConsumed = imageConsumed;
+        projection.admittedActions = admittedActions.toArray(new String[0]);
         projection.outputDigest = outputDigest;
         projection.completedAtEpochMs = completedAtEpochMs;
         projection.projectionDigest =
@@ -74,6 +80,9 @@ public final class DevelopmentModelProjectionStore {
         copy.providerId = source.providerId;
         copy.assistantDisplayText = source.assistantDisplayText;
         copy.latencyMs = source.latencyMs;
+        copy.inputAggregateDigest = source.inputAggregateDigest;
+        copy.imageConsumed = source.imageConsumed;
+        copy.admittedActions = source.admittedActions.clone();
         copy.outputDigest = source.outputDigest;
         copy.projectionDigest = source.projectionDigest;
         copy.completedAtEpochMs = source.completedAtEpochMs;

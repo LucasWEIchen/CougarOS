@@ -119,8 +119,8 @@ table_rows = [
     if line.startswith("| `P") or line.startswith("| `SCOPE-")
 ]
 expected_header = "| 跟进 ID | 详细需求 | Req IDs | 代码/接口 | 已交付与证据 | 状态 |"
-if readme.count(expected_header) != 13:
-    raise SystemExit("README must use the six-column detailed requirement header 13 times")
+if readme.count(expected_header) != 14:
+    raise SystemExit("README must use the six-column detailed requirement header 14 times")
 if len(table_rows) != len(required_ids):
     raise SystemExit(
         f"README must have one row per smallest work package: rows={len(table_rows)}, "

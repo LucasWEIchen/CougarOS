@@ -363,6 +363,9 @@ final class DebugRuntimeCompositionBoundary {
         if ("scene.fatigue.assist.v1".equals(scenarioId)) {
             return BoundedBuiltInSkillRuntime.SKILL_CABIN_SCENE_NAP;
         }
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
+            return BoundedBuiltInSkillRuntime.SKILL_CABIN_PRECONDITION;
+        }
         throw violation("scenario has no built-in Skill binding");
     }
 

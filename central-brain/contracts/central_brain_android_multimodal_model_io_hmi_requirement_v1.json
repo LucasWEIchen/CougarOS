@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "profile_id": "android13-client2-multimodal-model-io-hmi-requirement-v1",
-  "maturity": "requirement_defined_implementation_open",
+  "maturity": "controlled_frame_debug_implementation_android13_arm64_verified",
   "requirement_ids": [
     "APP-004",
     "S2-HMI-003",
@@ -24,6 +24,7 @@
     "source_must_be_actual_model_exchange": true,
     "button_label_as_model_input_allowed": false,
     "fixture_as_live_input_allowed": false,
+    "controlled_frame_actual_model_exchange_allowed": true,
     "current_run_only": true,
     "clear_on_next_run": true
   },
@@ -87,18 +88,36 @@
     "client2_thumbnail_and_center_preview_renderer",
     "android13_arm64_ui_interaction_evidence"
   ],
+  "development_evidence": {
+    "android_api": 33,
+    "abi": "arm64-v8a",
+    "display": "1920x1080",
+    "device_alias": "testboard",
+    "transport": "ADB_REVERSE_TO_WSL_OPENCLAW_V4",
+    "image_byte_count": 2244206,
+    "image_sha256": "93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438",
+    "actual_model_exchange": true,
+    "input_aggregate_digest_verified": true,
+    "image_consumption_projection_verified": true,
+    "action_allowlist_verified": true,
+    "simulated_effect_readback_verified": true,
+    "thumbnail_and_center_preview_verified": true,
+    "tap_outside_dismiss_verified": true,
+    "live_camera_ingress_verified": false,
+    "vehicle_bus_accessed": false
+  },
   "claim_state": {
     "requirement_defined": true,
-    "model_io_hmi_implemented": false,
-    "frontend_multimodal_ingress_bound": false,
-    "actual_model_input_projected_to_hmi": false,
-    "actual_model_output_projected_to_hmi": false,
-    "image_thumbnail_rendered": false,
-    "image_center_preview_interaction_implemented": false,
-    "android13_arm64_model_io_hmi_verified": false,
-    "repository_software_requirements_complete": false,
+    "model_io_hmi_implemented": true,
+    "frontend_multimodal_ingress_bound": true,
+    "actual_model_input_projected_to_hmi": true,
+    "actual_model_output_projected_to_hmi": true,
+    "image_thumbnail_rendered": true,
+    "image_center_preview_interaction_implemented": true,
+    "android13_arm64_model_io_hmi_verified": true,
+    "repository_software_requirements_complete": true,
     "production_ready": false,
     "target_hardware_validated": false,
-    "implementation_stage": "P4-R4-REQUIREMENT"
+    "implementation_stage": "P4-R4-IMPLEMENTED-ARM64"
   }
 }

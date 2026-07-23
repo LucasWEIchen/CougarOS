@@ -19,6 +19,7 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="空调" android:textColor="#4A5661" android:textSize="12.0sp" android:textStyle="bold" />
                 <TextView android:id="@+id/centralBrainActuatorHvacTemperatureText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8.0dp" android:text="26.5°C" android:textColor="#172129" android:textSize="34.0sp" android:textStyle="bold" />
                 <TextView android:id="@+id/centralBrainActuatorHvacFanText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5.0dp" android:text="风量 1" android:textColor="#42515B" android:textSize="14.0sp" />
+                <TextView android:id="@+id/centralBrainActuatorMediaText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5.0dp" android:text="媒体 播放中" android:textColor="#42515B" android:textSize="14.0sp" />
             </LinearLayout>
             <ProgressBar android:id="@+id/centralBrainActuatorFanProgress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="150.0dp" android:layout_height="12.0dp" android:max="5" android:progress="1" android:progressTint="#2B8F87" android:progressBackgroundTint="#44818A91" />
         </LinearLayout>
@@ -44,10 +45,17 @@
                 <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="64.0dp" android:layout_marginTop="10.0dp">
                     <Button android:id="@+id/centralBrainTiredButton" android:tag="care.fatigue" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:background="@drawable/central_brain_action_button" android:elevation="0.0dp" android:minHeight="48.0dp" android:stateListAnimator="@null" android:text="我有些疲惫" android:textAllCaps="false" android:textColor="#20262D" android:textSize="14.0sp" android:textStyle="bold" />
                     <Button android:id="@+id/centralBrainColdButton" android:tag="care.cold" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:layout_marginLeft="10.0dp" android:background="@drawable/central_brain_action_button" android:elevation="0.0dp" android:minHeight="48.0dp" android:stateListAnimator="@null" android:text="车里有点冷" android:textAllCaps="false" android:textColor="#20262D" android:textSize="14.0sp" android:textStyle="bold" />
+                    <Button android:id="@+id/centralBrainMultimodalButton" android:tag="cabin.multimodal" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:layout_marginLeft="10.0dp" android:background="@drawable/central_brain_action_button" android:elevation="0.0dp" android:minHeight="48.0dp" android:stateListAnimator="@null" android:text="处理一下" android:textAllCaps="false" android:textColor="#20262D" android:textSize="14.0sp" android:textStyle="bold" />
                 </LinearLayout>
 
                 <ScrollView android:id="@+id/centralBrainLiveTraceScroll" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0" android:layout_marginTop="16.0dp" android:background="@drawable/central_brain_live_trace_background" android:fillViewport="true" android:padding="16.0dp">
-                    <TextView android:id="@+id/centralBrainLiveTraceText" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="monospace" android:lineSpacingExtra="6.0dp" android:text="等待语音场景输入" android:textColor="#EAF5F7" android:textIsSelectable="true" android:textSize="12.0sp" />
+                    <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content">
+                        <LinearLayout android:id="@+id/centralBrainModelInputSurface" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="14.0dp" android:visibility="gone">
+                            <TextView android:id="@+id/centralBrainModelInputText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="模型输入 · 处理一下 + 座舱图像" android:textColor="#BDE9E5" android:textSize="11.0sp" android:textStyle="bold" />
+                            <ImageView android:id="@+id/centralBrainModelInputThumbnail" android:layout_width="240.0dp" android:layout_height="135.0dp" android:layout_gravity="center_horizontal" android:layout_marginTop="8.0dp" android:adjustViewBounds="true" android:background="#26000000" android:clickable="true" android:contentDescription="点击放大座舱模型输入图片" android:focusable="true" android:scaleType="fitCenter" />
+                        </LinearLayout>
+                        <TextView android:id="@+id/centralBrainLiveTraceText" android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="monospace" android:lineSpacingExtra="6.0dp" android:text="等待语音场景输入" android:textColor="#EAF5F7" android:textIsSelectable="true" android:textSize="12.0sp" />
+                    </LinearLayout>
                 </ScrollView>
             </LinearLayout>
         </FrameLayout>
@@ -58,5 +66,8 @@
         <View android:id="@+id/centralBrainNavigationTrigger" android:tag="central_brain_menu_toggle" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:background="@android:color/transparent" android:clickable="true" android:contentDescription="AIOS task menu" android:focusable="true" android:importantForAccessibility="yes" />
         <Space android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="13.5" />
     </LinearLayout>
+    <FrameLayout android:id="@+id/centralBrainImagePreviewOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#B8000000" android:clickable="true" android:focusable="true" android:visibility="gone">
+        <ImageView android:id="@+id/centralBrainImagePreview" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="center" android:layout_marginLeft="96.0dp" android:layout_marginTop="72.0dp" android:layout_marginRight="96.0dp" android:layout_marginBottom="72.0dp" android:adjustViewBounds="true" android:clickable="true" android:contentDescription="座舱模型输入图片大图" android:scaleType="fitCenter" />
+    </FrameLayout>
     <LinearLayout android:layout_gravity="start|top" android:orientation="horizontal" android:id="@id/topControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_margin="8.0dp" />
 </FrameLayout>
