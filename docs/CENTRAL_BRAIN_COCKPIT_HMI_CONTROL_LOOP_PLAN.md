@@ -566,3 +566,19 @@ Android 13 ARM64 开发环境已通过 WSL Ollama 完成 Fatigue/Cold 实际模�
 存在，但 2026-07-20 当前 18789 端口拒绝连接，按 `ISSUE-054` 外部阻塞。所有车身执行仍为 UI simulation；
 `vehicle_bus_accessed=false`、`security_implementation_present=false`、`production_ready=false`、
 `target_hardware_validated=false`。
+
+## 19. P4-R4 模型输入/输出实时反馈需求（2026-07-23）
+
+现有 32 行实时调用链只显示阶段和里程碑，尚未显示实际模型请求内容及模型回复。P4-R4 在同一个
+`centralBrainLiveTraceScroll` 运行区域加入 render-ready model I/O item，但不允许把 UI 按钮标签、测试 fixture 或
+内部系统 prompt 当作实际模型输入。
+
+文字输入和输出直接显示，单项最多 4096 code points，截断必须可见。文字+图片输入使用同一 item：文字保持可读，
+图片以最大 `320dp x 180dp`、`FIT_CENTER`、不裁切的缩略图显示。`PARKED/IDLE` 点击缩略图后使用独立顶层 overlay
+在屏幕中心按 90% 屏宽、85% 屏高以内等比预览；overlay 背景接收外部点击并退出，图片 View 自身消费点击，Back 同样退出。
+受限驾驶态不打开大图，只显示缩略图和限制原因。
+
+实现必须新增版本化 transcript+image/request/response projection，immutable state/reducer 和 renderer；图片只存在于
+当前 Activity/进程内存，不写 checkpoint、SharedPreferences、Room、日志或证据。当前
+`model_io_hmi_implemented=false`、`image_center_preview_interaction_implemented=false`、
+`android13_arm64_model_io_hmi_verified=false`；tracking：`P4-R4/ISSUE-055/056`。

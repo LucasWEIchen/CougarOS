@@ -34,6 +34,7 @@ required_tracked_paths=(
   central-brain/android-runtime/runtime-service/build.gradle.kts
   central-brain/android-runtime/demo-hmi/build.gradle.kts
   central-brain/android-runtime/policy-probe/build.gradle.kts
+  central-brain/contracts/central_brain_android_multimodal_model_io_hmi_requirement_v1.json
   apk-labs/client2-central-brain/README.md
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
   docs/CENTRAL_BRAIN_GRANULAR_REQUIREMENT_CATALOG.md
@@ -49,6 +50,7 @@ required_tracked_paths=(
   docs/assets/cockpit-hmi-design/03-execution.png
   docs/assets/cockpit-hmi-design/04-result.png
   tools/check_central_brain_root_readme.sh
+  tools/check_central_brain_android_multimodal_model_io_hmi_requirement.sh
   tools/check_central_brain_cockpit_hmi_design.sh
   tools/check_central_brain_github_publication_tree.sh
   tools/check_central_brain_github_repository_completeness.sh

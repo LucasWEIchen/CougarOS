@@ -1966,10 +1966,11 @@ stable approval digest and per-capability readback semantics before reducer proj
 
 ## P10-R1 Android repository software completion
 
-The Android application, SDK/Binder, Runtime/Room/Orchestration, Tool/Skill/Memory, Event/Trigger/Consent, Model and evidence-interface
-layers have a complete repository software baseline. Hardware-facing adapters remain deliberately empty and fail closed. The architecture
-therefore reports `repository_software_requirements_complete=true` while retaining `production_ready=false` and
-`target_hardware_validated=false`; OEM/Vendor integration starts only from a separately approved Req-ID contract.
+This section records the pre-P4-R4 repository baseline. Hardware-facing adapters remain deliberately empty and fail closed.
+The newly classified P4-R4 model I/O HMI requirement is repository-owned and not implemented, so the architecture now reports
+`repository_software_requirements_complete=false`, `open_repository_software_requirement_count=1` and
+`unclassified_repository_requirement_count=0`, while retaining `production_ready=false` and
+`target_hardware_validated=false`.
 
 ## P4-R3 voice-first cockpit composition
 
@@ -2010,3 +2011,39 @@ The fixed OpenClaw target profile is `P7-R3-OC2`: WebSocket protocol v3 uses the
 maintainer-specified control URL/token is compiled in `OpenClawEndpointConfig`. This removes the provisioning surface but
 creates the explicit `DEV-124` extractable-credential deviation. The 2026-07-20 target host is reachable, but TCP 18789
 refuses connections (`ISSUE-054`), so current target model regression remains external-blocked.
+
+## P4-R4 multimodal model I/O HMI architecture
+
+Req IDs: `APP-004`, `S2-HMI-003/007/008`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`,
+`XSC-001/005/006`, `DEL-001/003/004`.
+
+```mermaid
+sequenceDiagram
+    participant Input as Transcript + optional image
+    participant SDK as Versioned Model I/O Binder
+    participant Runtime as Android Runtime
+    participant Model as OpenClaw model provider
+    participant State as Client2 immutable Model I/O state
+    participant UI as Live trace + image preview
+
+    Input->>SDK: text + optional bounded PNG/JPEG
+    SDK->>Runtime: run-bound aggregate input
+    Runtime-->>State: admitted MODEL_INPUT projection
+    State-->>UI: text + optional 320dp x 180dp thumbnail
+    Runtime->>Model: authenticated model request
+    Model-->>Runtime: admitted model reply
+    Runtime-->>State: run-bound MODEL_OUTPUT projection
+    State-->>UI: direct output text
+    UI->>UI: parked/idle tap opens centered preview
+    UI->>UI: backdrop or Back dismisses preview
+```
+
+The model-input/output projection is presentation data only. It does not authorize a Plan or Effect and is separate from
+metadata-only audit/event persistence. Raw text and image bytes may exist only in bounded process memory for the active
+run; durable stores, logs and repository evidence retain metadata/digests only.
+
+P4-R4 is a newly classified software requirement and therefore reopens the former P10 completion claim:
+`repository_software_requirements_complete=false`. No Client2 layout, reducer, SDK/Binder or target UI evidence implements
+this section yet. `model_io_hmi_implemented=false`, `frontend_multimodal_ingress_bound=false`,
+`android13_arm64_model_io_hmi_verified=false`, `production_ready=false`, `target_hardware_validated=false`;
+tracking `DEV-128/ISSUE-055/056`.

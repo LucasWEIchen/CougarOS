@@ -4015,9 +4015,9 @@ means delivery only. API 33 x86_64 is verified; ARM64, production authority and 
 
 ## P10-R1 Android repository software completion
 
-No repository-owned interface remains undefined. External boundaries continue to return typed unavailable/not-authorized results for
-Vehicle/VHAL/SOA, Vendor NPU, trusted Safety/identity and production release ownership. The completion V1 contract is the authoritative
-classification surface; it never promotes an empty adapter or debug simulation to production capability.
+This was the pre-P4-R4 interface baseline. External boundaries continue to return typed unavailable/not-authorized results
+for Vehicle/VHAL/SOA, Vendor NPU, trusted Safety/identity and production release ownership. Completion schema 2 now reports
+one classified open software interface, P4-R4 Model I/O projection; `repository_software_requirements_complete=false`.
 
 ## P7-R2 Ollama Model Gateway Interfaces
 
@@ -4107,3 +4107,46 @@ overlay. It never maps UI state to Vehicle/Driver authority.
 
 `development_wsl_openclaw_android13_arm64_verified=true`, `ethernet_validated=false`, `direct_npu_accessed=false`,
 `production_ready=false`, `target_hardware_validated=false`; stage `P7-R4-OCDEV`, tracking `DEV-126/ISSUE-024/054`.
+
+## P4-R4 multimodal model I/O HMI interfaces
+
+The planned interface is a versioned, owner/run-bound projection rather than an extension of
+`onPipelineMilestone(stage,state,detail)`. The milestone callback remains metadata-only. P4-R4 must introduce an immutable
+`ModelIoProjection` with these conceptual fields:
+
+```text
+version
+sessionId
+runId
+generation
+direction = INPUT | OUTPUT
+contentKind = TEXT | TEXT_IMAGE
+displayText
+imageMimeType?
+imageByteLength?
+imageSha256?
+aggregateInputDigest
+terminal
+```
+
+Bounds are one image, PNG/JPEG, 4096 display-text code points and the existing model-gateway image byte ceiling. The
+transport must use a versioned SDK/Binder contract and bind the image bytes, image digest and transcript to the same run and
+aggregate input digest. A response projection must bind the provider result to that same run and must occur only after
+structured output admission.
+
+The Client2-side planned API is:
+
+```text
+CockpitHmiReducer.reduceModelIoProjection(state, projection)
+CockpitModelIoRenderer.render(state.modelIo)
+CockpitImagePreviewController.open(imageGeneration)
+CockpitImagePreviewController.dismiss(reason)
+```
+
+The renderer uses `320dp x 180dp` `FIT_CENTER` thumbnails. Preview is allowed only in `PARKED/IDLE`, centered within 90% x
+85% of the screen, dismissed by backdrop or Back, and never by a click propagated through the image. A new run, Activity
+destroy or replacement releases decoded pixels. No raw text/image is persisted or logged.
+
+This interface is not implemented yet. Existing `ICentralBrainDevelopmentModelProjection` does not carry the model input
+image and cannot satisfy P4-R4. `frontend_multimodal_ingress_bound=false`, `model_io_hmi_implemented=false`,
+`repository_software_requirements_complete=false`; tracking `P4-R4/DEV-128/ISSUE-055/056`.

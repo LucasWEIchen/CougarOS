@@ -2060,10 +2060,12 @@ readback 和 Vendor NPU provider 必须由目标 SDK/责任人提供后另行实
 
 ## P10-R1 Android repository software completion Driver/HAL Boundary
 
-仓库软件完成未触发新的 Driver/HAL 开发。Vehicle/VHAL/SOA、PCIe NPU、共享 buffer/IOMMU、可信时钟/车辆状态和
+历史仓库软件完成未触发新的 Driver/HAL 开发。P4-R4 重新打开的是 Android UI 软件，不改变该结论。
+Vehicle/VHAL/SOA、PCIe NPU、共享 buffer/IOMMU、可信时钟/车辆状态和
 Safety authority 均保留 versioned fail-closed 接口；只有 OEM/Vendor 明确证明公开 SDK 不足并批准最小 gap 后，
-才允许新增 C/C++ Driver/HAL 工作。`driver_development_triggered=false`、`hardware_accessed=false`、
-`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-120`。
+才允许新增 C/C++ Driver/HAL 工作。`repository_software_requirements_complete=false`、
+`driver_development_triggered=false`、`hardware_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。tracking：`DEV-120/128`。
 
 ## P7-R2 Ollama Gateway Driver/HAL Boundary
 
@@ -2120,3 +2122,17 @@ buffer 要求和责任边界后，才可在既有 NPU C ABI/JNI 空接口下评�
 `android_standard_network_api_used=true`、`camera_hal_modified=false`、`driver_development_triggered=false`、
 `driver_hal_accessed=false`、`direct_npu_accessed=false`、`frontend_multimodal_ingress_bound=false`、
 `production_ready=false`、`target_hardware_validated=false`；tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。
+
+## P4-R4 model I/O HMI Driver/HAL boundary
+
+文字、图片缩略图和居中预览全部属于 Android application UI。计划实现使用公开 Binder、`byte[]`/共享只读媒体合同、
+Android Bitmap decode、`ImageView FIT_CENTER` 和 View overlay；不需要修改 Camera HAL、SurfaceFlinger、Vehicle/VHAL、
+CAN、JNI、C ABI、Kernel、PCIe、DMA、IOMMU 或 Vendor NPU Driver。
+
+前端图片来源优先由现有应用或 Android 公开 Camera API 提供。只有公开 API 被证明不能满足目标输入且 Vendor 明确提供
+ABI/owner 时，才能另行登记最小 Driver/HAL gap；P4-R4 本身不触发该开发。
+
+`driver_development_triggered=false`、`camera_hal_modified=false`、`driver_hal_accessed=false`、
+`vehicle_bus_accessed=false`、`model_io_hmi_implemented=false`、
+`repository_software_requirements_complete=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-128/ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。

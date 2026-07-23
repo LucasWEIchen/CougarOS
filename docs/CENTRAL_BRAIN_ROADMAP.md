@@ -1815,6 +1815,26 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+## 2026-07-23 P4-R4 multimodal model I/O live HMI requirement
+
+状态：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。新增 `S2-HMI-008`：Client2 实时滚动运行状态必须显示本次实际模型
+输入和输出。纯文字直接显示；文字+图片在同一 `MODEL_INPUT` 项显示文字和最大 `320dp x 180dp` 等比缩略图。
+`PARKED/IDLE` 点击缩略图后在屏幕中心按最大 90% 宽、85% 高预览，点击图外或 Back 退出；受限驾驶态禁止放大并显示原因。
+
+工作拆分：
+
+1. `P4-R4a`：版本化 transcript+image/request/response SDK/Binder 和 aggregate digest；
+2. `P4-R4b`：Client2 immutable model-I/O state、generation/run 去重和生命周期清理；
+3. `P4-R4c`：文字、缩略图、居中预览、外部点击/Back、decode failure renderer；
+4. `P4-R4d`：Android 13 ARM64 纯文字与文字+图片真实模型 exchange 验收。
+
+该需求依赖 `ISSUE-055`，当前只交付机器合同和工程设计，不修改 APK UI，不复用受控测试图片冒充前端输入。
+`model_io_hmi_implemented=false`、`frontend_multimodal_ingress_bound=false`、
+`actual_model_input_projected_to_hmi=false`、`actual_model_output_projected_to_hmi=false`、
+`image_center_preview_interaction_implemented=false`、`android13_arm64_model_io_hmi_verified=false`、
+`repository_software_requirements_complete=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-128/ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。
+
 ## P7-R5-MMDEV OpenClaw multimodal development channel
 
 第一增量已在 Android debug `OpenClawInferenceEngine` 增加 digest-bound 单图附件：PNG/JPEG allowlist、6 MiB
@@ -1949,11 +1969,10 @@ debug/合同实现、量产空接口/准入、非执行接口、已撤回代码�
 
 ## P10-R1 Android repository software completion
 
-S2-P0..P7 的仓库软件工作已完成；S2-P8 为 OEM/Vendor/车辆/NPU 外部适配，S2-P9 已完成软件合同和
-非执行证据接口，但 security campaign 挂起且目标资格仍外部阻塞。完成度契约禁止出现未分类仓库需求，
-也禁止把外部阻塞误报为 production 完成。`repository_software_requirements_complete=true`、
-`unclassified_repository_requirement_count=0`、`production_ready=false`、`target_hardware_validated=false`。
-tracking：`DEV-120`；stage `P10-R1`。
+该节记录新增 P4-R4 之前的完成状态。当前需求仍全部分类，但 P4-R4 是仓库可实现且尚未完成的软件：
+`repository_software_requirements_complete=false`、`open_repository_software_requirement_count=1`、
+`unclassified_repository_requirement_count=0`。S2-P8 外部适配、S2-P9 security 挂起与目标资格边界不变；
+tracking：`DEV-120/128`；current stage `P4-R4-REQUIREMENT`。
 
 ### 2026-07-19 P4-R2 Client2 Orchestration V1 migration
 

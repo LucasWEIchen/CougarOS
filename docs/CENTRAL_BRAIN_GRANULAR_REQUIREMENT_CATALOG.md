@@ -704,6 +704,19 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **当前状态**：`DONE / UI_SIMULATION_ONLY`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[座舱 HMI 闭环计划](CENTRAL_BRAIN_COCKPIT_HMI_CONTROL_LOOP_PLAN.md)。
 
+<a id="p4-r4"></a>
+### P4-R4 Multimodal model I/O live HMI
+
+- **需求描述**：软件必须交付“Multimodal model I/O live HMI”，满足 `S2-HMI-003/007/008`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`, `XSC-001/005/006`，并以有界、版本化、可审计且失败关闭的方式提供所列能力。
+- **需求追踪**：`S2-HMI-003/007/008`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`, `XSC-001/005/006`。
+- **负责模块**：Client2 HMI、Central Brain Java SDK 与 Runtime 模型 I/O 投影。
+- **前置输入**：实际模型 transcript、可选单张 PNG/JPEG、实际模型回复、run-bound aggregate digest 和可信 driving state。
+- **输出与验收**：纯文字直接显示；文字+图片同项显示最大 320dp x 180dp 等比缩略图；PARKED/IDLE 点击居中预览，图外或 Back 退出；Android 13 ARM64 真实模型 exchange 通过。
+- **边界与非目标**：当前只冻结需求合同；按钮标签和 fixture 不能冒充实际输入，原始内容不得持久化或获得 Plan/Effect authority。
+- **代码对应**：合同实现：[central_brain_android_multimodal_model_io_hmi_requirement_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_multimodal_model_io_hmi_requirement_v1.json#L2-L20)；[check_central_brain_android_multimodal_model_io_hmi_requirement.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_multimodal_model_io_hmi_requirement.sh#L4-L22)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[产品 UX](CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md)；[接口详设](CENTRAL_BRAIN_INTERFACE_DESIGN.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
 ## P5 Tool、Skill 与 Memory
 
 <a id="p5-w01"></a>
@@ -1343,10 +1356,10 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：全部已分类 Req IDs。
 - **负责模块**：仓库级需求治理与软件完成度门禁。
 - **前置输入**：全部分类后的 Req ID、工作包状态、专项合同和聚合门禁结果。
-- **输出与验收**：必须能够由专项合同、测试或设备证据复现：`repository_software_requirements_complete=true`、`unclassified_repository_requirement_count=0`。
-- **边界与非目标**：仓库软件完成只说明需求已分类和软件门禁通过，不表示外部激活完成。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：`repository_software_requirements_complete=false`、`open_repository_software_requirement_count=1`、`unclassified_repository_requirement_count=0`。
+- **边界与非目标**：P4-R4 已分类但尚未实现；不得沿用新增需求之前的软件完成声明，也不得把需求合同当作 UI 实现。
 - **代码对应**：聚合门禁：[central_brain_android_software_completion_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_software_completion_v1.json#L2-L20)；[check_central_brain_android_software_completion.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_software_completion.sh#L4-L22)。
-- **当前状态**：`DONE / EXTERNAL_ACTIVATION_BLOCKED`。
+- **当前状态**：`REOPENED / P4-R4_SOFTWARE_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
 ## P3-P7 量产激活剩余项
