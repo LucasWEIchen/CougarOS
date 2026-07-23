@@ -83,7 +83,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-052 | P9 production signer、installer/rollback owner 和受控发布证据不可用。 | S2-REL-001, P9-W05 | Open / External Blocked |
 | ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
 | ISSUE-054 | 当前 Android 可达 OpenClaw 主机，但 18789 端口拒绝连接；固定凭据构建无法完成当前模型回归。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Open / External Service Blocked |
-| ISSUE-055 | 前端语音转写与相机帧尚无版本化 SDK/Binder 多模态输入合同；当前仅完成 Android 网关附件实现和 WSL 模型验证。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / Next Software Increment |
+| ISSUE-055 | 目标 OpenClaw 协议已支持文字+图片同一 RPC，但前端语音转写/相机 Binder、统一输入摘要、history 附件绑定和目标以太网证据未完成。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / Next Software Increment |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1436,12 +1436,14 @@ Client2/SDK/Runtime 同源重建后的 Cold 全链路也已通过，真实模型
 
 ## ISSUE-055 Frontend voice and image ingress is not bound
 
-Android debug `OpenClawInferenceEngine` 已支持有界图片附件，WSL OpenClaw/Ollama 已使用指定座舱图片完成文字+图片
-联合推理；但 Client2/前端尚未把语音转写和相机帧通过版本化 SDK/Binder 合同绑定到同一个 digest-bound 请求。
+Android `OpenClawInferenceEngine` 已支持有界图片附件，目标 `chat.send` 能在同一 RPC 中携带 `message` 和
+`attachments[0]`；但 Client2/前端尚未把语音转写和相机帧通过版本化 SDK/Binder 合同绑定到同一个请求，
+`inputDigest` 尚未强制包含图片 SHA-256，`chat.history` 回退也尚未比较附件摘要。
 
 状态：`Open / Next Software Increment`。关闭条件：定义媒体 DTO/传输方式、大小/MIME/生命周期/背压和失败码；接入前端
-相机与语音转写；在 Android 13 ARM64 上证明同一请求含文字和图片，并保持 action allowlist、无车辆 Effect authority 与
-脱敏日志。不得用 WSL host probe 关闭真机前端缺口。
+相机与语音转写；实现 transcript/image aggregate digest 和 history attachment binding；在 Android 13 ARM64 车机通过
+以太网直连目标 OpenClaw，证明同一请求含文字和图片，并保持 action allowlist、无车辆 Effect authority 与脱敏日志。
+非目标网络证据不得关闭该缺口。
 
 `frontend_multimodal_ingress_bound=false`、`android13_arm64_multimodal_verified=false`、
 `production_media_retention_configured=false`、`production_ready=false`、`target_hardware_validated=false`；

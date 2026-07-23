@@ -31,13 +31,21 @@ for file in \
 done
 
 for marker in \
-  '## 2. 两类地址的语义' '## 3. 端到端调用关系' \
-  '## 11. OpenClaw protocol v3 状态机' 'connect.challenge' \
-  'chat.send' 'chat.history' 'chat.abort' \
-  '## 13. 回复到 Client2 的 Binder 路径' \
-  '## 14. 超时、取消和失败码' \
-  'release_routing_enabled=false' 'model_action_authority=false'; do
+  '## 2. 生产环境网络端点' '## 3. 端到端模块关系' \
+  '## 6. 文字与图片输入合同' 'registerScenarioImageAttachment' \
+  '## 10. chat.send 文字与图片 RPC' '"attachments"' \
+  'connect.challenge' 'chat.send' 'chat.history' 'chat.abort' \
+  'target_multimodal_protocol_implemented=true' \
+  'target_multimodal_frontend_bound=false' \
+  'target_multimodal_verified=false' \
+  'release_routing_enabled=false'; do
   require_text "$CODE_GUIDE" "$marker"
+done
+for forbidden in 'ADB' '127.0.0.1' 'development_wsl' 'P7-R4-OCDEV'; do
+  if grep -Fq -- "$forbidden" "$ROOT_DIR/$CODE_GUIDE" "$ROOT_DIR/$DESIGN"; then
+    echo "target OpenClaw documents contain non-target route marker: $forbidden" >&2
+    exit 1
+  fi
 done
 
 for removed in \
@@ -66,8 +74,12 @@ done
 for marker in \
   'implements LocalModelProvider.LocalInferenceEngine' 'connect.challenge' \
   'chat.send' 'chat.abort' 'chat.history' 'sec-websocket-accept' \
+  'registerScenarioImageAttachment' \
+  'attachment.addProperty("type", "image")' \
+  'params.add("attachments", attachments)' \
   'prompt.getAllowedActions().contains(action)' 'history is not bound to the current request' \
-  'raw_prompt_logged=false' 'raw_response_logged=false' 'credential_logged=false'; do
+  'raw_image_logged=false' 'raw_prompt_logged=false' \
+  'raw_response_logged=false' 'credential_logged=false'; do
   require_text "$ENGINE" "$marker"
 done
 for marker in \
@@ -94,7 +106,7 @@ import sys
 
 with open(sys.argv[1], encoding="utf-8") as handle:
     contract = json.load(handle)
-assert contract["schema_version"] == 2
+assert contract["schema_version"] == 3
 assert contract["implementation_stage"] == "P7-R3-OC2"
 target = contract["target_profile"]
 assert target["provider_id"] == "external.openclaw.transitional"
@@ -110,6 +122,15 @@ assert target["release_routing_enabled"] is False
 protocol = contract["gateway_protocol"]
 assert protocol["chat_send_method"] == "chat.send"
 assert protocol["history_fallback_method"] == "chat.history"
+assert protocol["text_input_supported"] is True
+assert protocol["image_attachment_supported"] is True
+assert protocol["text_and_image_same_chat_send"] is True
+assert protocol["maximum_image_attachments"] == 1
+assert protocol["allowlisted_image_mime_types"] == ["image/png", "image/jpeg"]
+assert protocol["maximum_image_bytes"] == 6291456
+assert protocol["maximum_pending_image_bytes"] == 12582912
+assert protocol["maximum_authenticated_multimodal_frame_bytes"] == 8500000
+assert protocol["raw_image_logged"] is False
 assert protocol["openai_http_endpoint_enabled"] is False
 assert protocol["model_action_authority"] is False
 evidence = contract["android13_arm64_evidence"]
@@ -117,6 +138,8 @@ assert evidence["android_api"] == 33
 assert evidence["abi"] == "arm64-v8a"
 assert evidence["runtime_probe_verified"] is True
 assert evidence["client2_projection_verified"] is True
+assert evidence["text_only_target_evidence"] is True
+assert evidence["multimodal_target_evidence"] is False
 assert evidence["raw_response_recorded"] is False
 latest = contract["latest_target_retest"]
 assert latest["target_host_reachable_by_icmp"] is True
@@ -128,6 +151,10 @@ assert latest["client2_transport_failure_projected"] is True
 assert latest["production_model_regression_passed"] is False
 claims = contract["claim_state"]
 assert claims["openclaw_target_integration_implemented"] is True
+assert claims["target_multimodal_protocol_implemented"] is True
+assert claims["target_multimodal_frontend_bound"] is False
+assert claims["target_multimodal_verified"] is False
+assert claims["production_media_retention_configured"] is False
 assert claims["openclaw_target_android13_arm64_verified"] is True
 assert claims["external_compute_accessed"] is True
 assert claims["direct_npu_accessed"] is False
@@ -152,6 +179,9 @@ printf '%s\n' \
   'openclaw_target_integration_implemented=true' \
   'openclaw_target_android13_arm64_verified=true' \
   'client2_openclaw_projection_verified=true' \
+  'target_multimodal_protocol_implemented=true' \
+  'target_multimodal_frontend_bound=false' \
+  'target_multimodal_verified=false' \
   'fixed_target_credential_active=true' \
   'latest_target_connectivity_verified=false' \
   'external_compute_accessed=true' \

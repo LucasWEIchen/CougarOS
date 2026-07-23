@@ -1,10 +1,12 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "implementation_stage": "P7-R3-OC2",
   "requirement_ids": [
     "S2-MDL-001",
+    "S2-MDL-002",
     "S2-SAF-001",
     "S2-OBS-001",
+    "S2-OBS-002",
     "XSC-001",
     "XSC-005",
     "XSC-006",
@@ -40,6 +42,18 @@
     "session_bound": true,
     "run_bound": true,
     "idempotency_key_required": true,
+    "text_input_supported": true,
+    "image_attachment_supported": true,
+    "text_and_image_same_chat_send": true,
+    "maximum_image_attachments": 1,
+    "allowlisted_image_mime_types": [
+      "image/png",
+      "image/jpeg"
+    ],
+    "maximum_image_bytes": 6291456,
+    "maximum_pending_image_bytes": 12582912,
+    "maximum_authenticated_multimodal_frame_bytes": 8500000,
+    "raw_image_logged": false,
     "openai_http_endpoint_enabled": false,
     "response_schema_exact": true,
     "scenario_binding_required": true,
@@ -60,6 +74,8 @@
     "client2_projection_verified": true,
     "client2_projection_latency_ms": 7066,
     "client2_non_placeholder_reply_visible": true,
+    "text_only_target_evidence": true,
+    "multimodal_target_evidence": false,
     "raw_prompt_recorded": false,
     "raw_response_recorded": false,
     "raw_credential_recorded": false
@@ -80,6 +96,10 @@
   },
   "claim_state": {
     "openclaw_target_integration_implemented": true,
+    "target_multimodal_protocol_implemented": true,
+    "target_multimodal_frontend_bound": false,
+    "target_multimodal_verified": false,
+    "production_media_retention_configured": false,
     "openclaw_target_android13_arm64_verified": true,
     "client2_openclaw_projection_verified": true,
     "external_compute_accessed": true,

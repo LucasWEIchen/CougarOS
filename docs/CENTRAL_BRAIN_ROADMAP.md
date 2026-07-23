@@ -1831,6 +1831,11 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `direct_npu_accessed=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。
 
+目标接口文档已收敛为 Android 13 车机经以太网直连 `169.254.208.110:18789` 的生产拓扑，并把纯文字与
+`message + attachments[0]` 多模态 RPC、6 MiB 单图、8.5 MB 已鉴权 frame、输出校验和 false claims 写入
+target contract v3。该文档刷新不构成目标多模态验收；前端 Binder、aggregate digest、history 附件绑定、
+服务端媒体 retention 和目标以太网终态仍由 `ISSUE-055` 跟踪。
+
 ## P7-R4-OCDEV Real Android to WSL OpenClaw development route
 
 开发测试主路径改为真实 Android 13 ARM64 设备经 ADB reverse 访问 WSL OpenClaw，再由 OpenClaw 调用本地

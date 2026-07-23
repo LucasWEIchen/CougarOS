@@ -3124,6 +3124,9 @@ debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle
    attachment。64 KiB 预鉴权上限不得因图片通道放宽。
 5. `DEL-001/003/004/005`：必须提供固定图片摘要的一键 WSL 真实模型探针和机器合同，证明文字规定输出结构、图片提供
    事实；前端相机/语音 Binder 和 Android 13 ARM64 证据未完成前必须保持开放状态。
+6. `S2-MDL-001/002`：目标接口文档必须只描述 Android 车机经以太网直连
+   `ws://169.254.208.110:18789/` 的生产拓扑，明确纯文字与文字+图片 `chat.send`，并区分协议实现、
+   前端 Binder 接入、目标终态证据和 release qualification。
 
 当前 `android_openclaw_multimodal_attachment_implemented=true`、
 `wsl_openclaw_ollama_multimodal_verified=true`、`frontend_multimodal_ingress_bound=false`、

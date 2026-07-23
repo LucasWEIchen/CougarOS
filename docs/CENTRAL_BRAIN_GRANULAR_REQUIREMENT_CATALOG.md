@@ -1054,12 +1054,12 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求描述**：软件必须交付“OpenClaw target transitional gateway”，满足 `S2-MDL-001/002`, `S2-SAF-001`, `S2-OBS-001/002`，并以有界、版本化、可审计且失败关闭的方式提供所列能力。
 - **需求追踪**：`S2-MDL-001/002`, `S2-SAF-001`, `S2-OBS-001/002`。
 - **负责模块**：runtime-service 的 Model Provider/Registry/Router 与模型网关。
-- **前置输入**：ModelRequest/Result、Provider health、routing policy、资源快照、结构化输出 schema 与座舱 prompt。
-- **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed WebSocket v3、challenge/auth/send/history/abort、Client2 projection；`openclaw_target_integration_implemented=true`。
-- **边界与非目标**：模型输出只提供候选计划，不能授权 Effect；debug/Ollama/OpenClaw 证据不等于 Vendor NPU 或量产资格。
-- **代码对应**：过渡实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L38-L56)；[check_central_brain_android_openclaw_target_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_target_gateway.sh#L4-L22)。
-- **当前状态**：`TRANSITIONAL / CURRENT_CONNECTIVITY_BLOCKED`。
-- **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[OpenClaw 网关设计](CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md)。
+- **前置输入**：Android 13 车机经目标以太网提交座舱文字及可选的单张有界 PNG/JPEG，文字与图片必须进入同一个已鉴权 `chat.send`。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed WebSocket v3、challenge/auth/send/history/abort、文字+图片附件合同、Client2 projection；`openclaw_target_integration_implemented=true`、`target_multimodal_protocol_implemented=true`。
+- **边界与非目标**：当前仅完成目标协议实现；前端图片 Binder、目标以太网多模态实测及量产媒体治理仍未完成，模型输出不能授权 Effect。
+- **代码对应**：过渡实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L38-L56)；[central_brain_android_openclaw_target_gateway_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json#L42-L58)；[check_central_brain_android_openclaw_target_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_target_gateway.sh#L4-L22)。
+- **当前状态**：`TRANSITIONAL / TARGET_MULTIMODAL_PROTOCOL_IMPLEMENTED / FRONTEND_AND_TARGET_EVIDENCE_OPEN`。
+- **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[OpenClaw 网关设计](CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md)；[车机直连接口详解](CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md)。
 
 <a id="p7-r4-ocdev"></a>
 ### P7-R4-OCDEV WSL OpenClaw via real Android ADB
