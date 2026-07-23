@@ -72,7 +72,7 @@ registerScenarioImageAttachment(
 1. `openclaw-gateway.service` 为 active，Gateway 位于 `ws://127.0.0.1:18789/`。
 2. Ollama 位于 `http://127.0.0.1:11435`，已安装 `qwen3.6:27b`。
 3. `~/.openclaw/openclaw.json` 中该模型的 `input` 必须同时包含 `text` 和 `image`。
-4. 测试图片位于 `tmp/2025-SUV-OMS-cabin-photo.png`，SHA-256 必须为
+4. 测试图片位于 `central-brain/test-assets/multimodal/2025-SUV-OMS-cabin-photo.png`，SHA-256 必须为
    `93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438`。
 
 ## 5. 执行与通过条件
@@ -85,18 +85,18 @@ tools/run_central_brain_wsl_openclaw_multimodal_probe.sh
 
 - `text_present=true`、`image_present=true`；
 - `occupant_count=3`；
-- `rear_passenger_holding_bottle=true`；
+- `visible_occupant_holding_bottle=true`；
 - `all_visible_occupants_belted=true`；
 - `multimodal_probe_complete=true`；
 - 不输出 Base64、完整 prompt、完整模型回复或 Gateway credential。
 
-2026-07-23 仓库正式探针实测耗时 35806 ms。该结果证明受控图片进入真实视觉模型并与文字联合解析；它不证明 OMS
+2026-07-23 纳入 Git 后的正式探针实测耗时 8087 ms。该结果证明受控图片进入真实视觉模型并与文字联合解析；它不证明 OMS
 座位定位、身份识别、目标 NPU、目标以太网或量产精度。
 
 ## 6. 开放项和边界
 
 - `ISSUE-055`：定义前端语音转写+相机帧的版本化 SDK/Binder 合同，并在 Android 13 ARM64 上实测。
-- 当前测试图片不进入 Git 仓库；合同只记录相对路径、大小和摘要。
+- 当前测试图片作为受控测试资产进入 Git；门禁固定校验路径、2,244,206 字节大小和 SHA-256。
 - 图片模型结果仍只是候选信息，不能直接授权 Safety 或车辆 Effect。
 - 不访问 Vehicle/VHAL/CAN、Driver/HAL 或 direct NPU。
 - 保持 `production_ready=false`、`target_hardware_validated=false`。

@@ -2983,9 +2983,10 @@ stage `P7-R4-OCDEV`。
 
 交付 Android debug OpenClaw 单图 attachment 实现、MIME/大小/魔数/digest/容量失败关闭、已鉴权大帧边界、JVM tests、
 机器合同、静态门禁、设计文档和 WSL 一键真实模型探针。指定座舱 PNG 与中文任务文字在同一 `chat.send` 中送入
-OpenClaw 2026.7.1 -> Ollama `qwen3.6:27b`，35806 ms 通过 3 项视觉事实断言。
+OpenClaw 2026.7.1 -> Ollama `qwen3.6:27b`，纳入 Git 后复测 8087 ms 通过 3 项视觉事实断言。
 
-非交付：测试图片 Git 归档、前端相机/语音 Binder、Android 13 ARM64 多模态、目标 Ethernet/NPU、Vehicle Effect、
+受控测试图片已作为固定摘要的回归资产进入 Git。非交付：前端相机/语音 Binder、Android 13 ARM64 多模态、目标
+Ethernet/NPU、Vehicle Effect、
 Driver/HAL、量产媒体 retention/cleanup。`wsl_openclaw_ollama_multimodal_verified=true`、
 `frontend_multimodal_ingress_bound=false`、`android13_arm64_multimodal_verified=false`、
 `direct_npu_accessed=false`、`production_ready=false`、`target_hardware_validated=false`；Req IDs：

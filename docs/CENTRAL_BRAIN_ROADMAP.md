@@ -1821,8 +1821,9 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 单图上限、12 MiB 暂存总量、MIME/魔数/文件名/重复注册校验，以及只对已鉴权 `chat.send` 开放的 8.5 MB
 出站帧。核心 `ModelContractV2` 继续只传摘要，不携带原始图片。
 
-2026-07-23 使用 `tmp/2025-SUV-OMS-cabin-photo.png` 经 WSL OpenClaw 2026.7.1 -> Ollama
-`qwen3.6:27b` 真实联合推理通过，35806 ms 返回 3 名乘员、后排乘员持瓶、可见乘员系安全带三个结构化断言。
+2026-07-23 使用 `central-brain/test-assets/multimodal/2025-SUV-OMS-cabin-photo.png` 经 WSL OpenClaw 2026.7.1 -> Ollama
+`qwen3.6:27b` 真实联合推理通过；图片纳入 Git 后复测 8087 ms 返回 3 名乘员、至少一名可见乘员持瓶、可见乘员系安全带三个
+结构化断言；不使用座位位置作为通道连通性断言。
 下一增量由 `ISSUE-055` 接入前端相机帧、语音转写与版本化 SDK/Binder 合同，再在 Android 13 ARM64 上复测。
 
 `android_openclaw_multimodal_attachment_implemented=true`、`wsl_openclaw_ollama_multimodal_verified=true`、

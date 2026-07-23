@@ -5,7 +5,7 @@ set -euo pipefail
 # XSC-001/005/006, DEL-001/003/004/005. Stage: P7-R5-MMDEV.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE_PATH="${1:-$ROOT_DIR/tmp/2025-SUV-OMS-cabin-photo.png}"
+IMAGE_PATH="${1:-$ROOT_DIR/central-brain/test-assets/multimodal/2025-SUV-OMS-cabin-photo.png}"
 OPENCLAW_CONFIG="${OPENCLAW_CONFIG:-$HOME/.openclaw/openclaw.json}"
 
 [[ -f "$IMAGE_PATH" ]] || { echo "multimodal test image is missing" >&2; exit 1; }
@@ -87,7 +87,7 @@ function validateReply(text) {
     return fail("STRUCTURED_REPLY_INVALID");
   }
   if (result.occupant_count !== 3
-      || result.rear_passenger_holding_bottle !== true
+      || result.visible_occupant_holding_bottle !== true
       || result.all_visible_occupants_belted !== true) {
     return fail("VISION_ASSERTION_FAILED");
   }
@@ -96,7 +96,7 @@ function validateReply(text) {
   socket.close();
   console.log(`image_sha256=${imageDigest}`);
   console.log(`image_bytes=${image.length} image_mime=image/png text_present=true image_present=true`);
-  console.log("occupant_count=3 rear_passenger_holding_bottle=true all_visible_occupants_belted=true");
+  console.log("occupant_count=3 visible_occupant_holding_bottle=true all_visible_occupants_belted=true");
   console.log(`model_reply_chars=${text.length} latency_ms=${Date.now() - startedAt}`);
   console.log("raw_image_logged=false raw_prompt_logged=false raw_response_logged=false credential_logged=false");
   console.log("direct_npu_accessed=false production_ready=false target_hardware_validated=false");
@@ -134,7 +134,7 @@ socket.addEventListener("message", event => {
   }
   if (frame.type === "res" && frame.id === connectId) {
     if (!frame.ok || frame?.payload?.protocol !== 4) return fail("CONNECT_REJECTED");
-    const message = "你是汽车座舱OMS多模态分析器。结合图片和本条文字，只输出一个JSON对象，键严格为occupant_count、rear_passenger_holding_bottle、all_visible_occupants_belted。值分别为整数、布尔值、布尔值。不要输出身份或其他敏感推断。";
+    const message = "你是汽车座舱OMS多模态分析器。结合图片和本条文字，只输出一个JSON对象，键严格为occupant_count、visible_occupant_holding_bottle、all_visible_occupants_belted。值分别为整数、布尔值、布尔值。只判断是否至少一名可见乘员持瓶，不推断其座位。不要输出身份或其他敏感推断。";
     request(chatId, "chat.send", {
       sessionKey,
       message,
