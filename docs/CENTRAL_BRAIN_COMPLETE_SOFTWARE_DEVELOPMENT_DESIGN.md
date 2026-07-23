@@ -2397,7 +2397,7 @@ central-brain-sdk AAR
 Event/Callback Binder V1、四组校验器、无 Binder primitive 的 facade、Session/Event app-layer Service、
 owner/capability、Room v4 durable registry、JVM/Android 13 ARM64 Parcel、真实 Binder 与 process-death
 测试、独立 checksum、aggregate gate、canonical signal schema、fail-closed capability catalog 与
-进程内 desired/reported Twin、versioned Context/freshness/trust foundation、三项 strict build-owned Scenario
+进程内 desired/reported Twin、versioned Context/freshness/trust foundation、四项 strict build-owned Scenario
 manifest catalog、显式/固定文本 selector、Context/capability/policy gate、immutable resolution 和
 digest-bound typed Plan compiler、debug-only simulated Effect adapter/manual clock/fault matrix、HVAC/Seat
 typed absolute target、isolated desired/reported Twin、Seat Safety race reject/progress、Media state 和 digest-only

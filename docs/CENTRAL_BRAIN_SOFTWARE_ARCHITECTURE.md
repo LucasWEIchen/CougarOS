@@ -236,7 +236,7 @@ Service wiring。下一开发工作包是 `P2-W07 ScenarioPlanCompiler`。
 `vehicle_digital_twin_store_defined=true`、`vehicle_digital_twin_persistence_wired=false`、
 `context_snapshot_defined=true`、`context_snapshot_production_trusted=false`、
 `context_snapshot_production_wired=false`、
-`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+`scenario_manifest_schema_version=1`、`scenario_catalog_count=4`、
 `scenario_manifest_artifact_crypto_verified=false`、`scenario_catalog_production_trusted=false`、
 `scenario_resolver_defined=true`、`scenario_resolution_schema_version=1`、
 `scenario_resolver_model_invoked=false`、`scenario_resolver_runtime_wired=false`、

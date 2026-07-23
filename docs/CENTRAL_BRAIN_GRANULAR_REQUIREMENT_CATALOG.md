@@ -226,7 +226,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-SCN-001`, `S2-SAF-001`。
 - **负责模块**：runtime-service 的 Context/Scenario/Digital Twin 与 debug adapter。
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
-- **输出与验收**：必须能够由专项合同、测试或设备证据复现：schema/catalog/checksum；production-signed artifact 未接。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：4 个版本化 build-owned 场景、strict schema、catalog digest 和 checksum；production-signed artifact 未接。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
 - **代码对应**：软件实现：[ScenarioManifestParser.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/ScenarioManifestParser.java#L38-L56)；[check_central_brain_android_scenario_manifest.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_scenario_manifest.sh#L4-L22)。
 - **当前状态**：`DONE`。

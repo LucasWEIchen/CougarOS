@@ -658,7 +658,7 @@ Android 13/API 33 ARM64 probe 只从本 APK `assets/scenarios` 读取三份 buil
 不映射 DMA/IOMMU、不接 Safety Runtime，也不 dispatch Effect。Manifest 中 AAOS/vehicle capability 名称是
 内部语义引用，不是 property discovery 或 hardware authorization。
 
-状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=4`、
 `scenario_manifest_artifact_crypto_verified=false`、`scenario_catalog_production_trusted=false`、
 `scenario_runtime_wired=false`、`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、

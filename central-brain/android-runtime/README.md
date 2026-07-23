@@ -259,7 +259,7 @@ without disabling unrelated valid scenarios.
 
 These are non-executable templates. P2-W05 performs no Resolver/Compiler/Graph/Effect action and does not wire the
 catalog into a production Service. The checksum is build integrity, not artifact cryptographic signature evidence.
-Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=3`,
+Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=4`,
 `scenario_manifest_artifact_crypto_verified=false`, `scenario_catalog_production_trusted=false`,
 `scenario_runtime_wired=false`, `scenario_graph_execution_enabled=false`, `hardware_accessed=false`.
 

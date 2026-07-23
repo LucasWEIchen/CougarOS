@@ -864,7 +864,7 @@ production trust。Req IDs：`S2-CTX-001`、`S2-SAF-001`、`DEL-001/003..005`；
 
 ```text
 scenario_manifest_schema_version=1
-scenario_catalog_count=3
+scenario_catalog_count=4
 scenario_manifest_android13_arm64_verified=true
 scenario_manifest_artifact_crypto_verified=false
 scenario_catalog_production_trusted=false

@@ -952,7 +952,7 @@ approval or override a hard interlock. Unknown manifest fields, unknown canonica
 oversize input, duplicate field/ID, invalid dependency/cycle/compensation and risk mismatch fail closed. One bad
 asset does not remove other unique valid scenarios.
 
-Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=3`,
+Status: `scenario_manifest_schema_version=1`, `scenario_catalog_count=4`,
 `scenario_manifest_android13_arm64_verified=true`, `scenario_manifest_artifact_crypto_verified=false`,
 `scenario_catalog_production_trusted=false`, `scenario_runtime_wired=false`,
 `scenario_graph_execution_enabled=false`, `effect_dispatch_enabled=false`, `hardware_accessed=false`.

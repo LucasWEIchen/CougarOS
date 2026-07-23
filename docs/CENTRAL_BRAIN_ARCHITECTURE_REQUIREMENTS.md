@@ -664,7 +664,7 @@ NPU、Driver/HAL 或目标硬件资格。
 8. JVM/API 33 ARM64 probe 必须覆盖三项 catalog、schema/digest、unknown/oversize/duplicate/cycle/isolation；
    P2-W05 不接 Resolver/Compiler/Graph/Effect/production Service，不访问 Vehicle/VHAL/NPU/Driver-HAL。
 
-状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=4`、
 `scenario_manifest_android13_arm64_verified=true`、`scenario_manifest_artifact_crypto_verified=false`、
 `scenario_catalog_production_trusted=false`、`scenario_runtime_wired=false`、
 `scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
