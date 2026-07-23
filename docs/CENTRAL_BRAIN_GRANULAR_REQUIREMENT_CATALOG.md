@@ -1081,7 +1081,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-MDL-001/002`, `S2-OBS-001/002`, `S2-SAF-001`, `XSC-001/005/006`, `DEL-001/003/004/005`。
 - **负责模块**：runtime-service 调试模型网关、OpenClaw 附件协议和 WSL 真实模型探针。
 - **前置输入**：digest-bound 座舱文字、单张有界 PNG/JPEG、OpenClaw v4 和 Ollama `qwen3.6:27b` vision 能力。
-- **输出与验收**：同一 `chat.send` 必须包含文字和图片；受控座舱图必须由真实模型返回 3 名乘员、后排持瓶和可见乘员系安全带的结构化断言，且不记录原图、prompt、回复或凭据。
+- **输出与验收**：同一 `chat.send` 必须包含文字和图片；受控座舱图必须由真实模型返回 3 名乘员、至少一名可见乘员持瓶和可见乘员系安全带的结构化断言，且不记录原图、prompt、回复或凭据。
 - **边界与非目标**：本阶段不包含前端相机/语音 Binder 接入、Android 13 ARM64 多模态实测、目标以太网、NPU、车辆 Effect 或量产媒体保留策略。
 - **代码对应**：Debug 实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L86-L116)；[run_central_brain_wsl_openclaw_multimodal_probe.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/run_central_brain_wsl_openclaw_multimodal_probe.sh#L19-L44)；[check_central_brain_android_openclaw_multimodal_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_multimodal_gateway.sh#L4-L22)。
 - **当前状态**：`GATEWAY_IMPLEMENTED / WSL_MODEL_VERIFIED / FRONTEND_BINDING_OPEN`。

@@ -1006,7 +1006,8 @@ protocol/model/action/readback/release 证据。Client2 全链路必须从同一
 vision 通道，并在 Android debug 模型网关实现同构 attachment 协议。尚未修改冻结的 Orchestration AIDL，也未声明
 前端相机采集或 Android 13 ARM64 端到端完成。
 
-处置：受控图片不进入 Git，仓库只保存摘要、大小、结果和可复跑脚本。核心 Model 合同保持 digest-only；后续
+处置：按维护者要求，受控测试图片进入 `central-brain/test-assets/multimodal/`，仓库同时保存并校验摘要、大小、结果和
+可复跑脚本。该资产只用于开发回归，不是设备采集证据。核心 Model 合同保持 digest-only；后续
 `ISSUE-055` 必须另行定义有界、版本化的前端媒体输入合同并在真机验证。OpenClaw 对大于 2 MB 附件的 managed inbound
 media 行为不能替代量产 retention/cleanup policy。
 

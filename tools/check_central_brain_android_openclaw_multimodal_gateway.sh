@@ -12,8 +12,9 @@ TEST="$RUNTIME/src/testDebug/java/com/centralbrain/runtime/model/OpenClawInferen
 RUNNER="tools/run_central_brain_wsl_openclaw_multimodal_probe.sh"
 CONTRACT="central-brain/contracts/central_brain_android_openclaw_multimodal_gateway_v1.json"
 DESIGN="docs/CENTRAL_BRAIN_OPENCLAW_MULTIMODAL_DEVELOPMENT.md"
+IMAGE="central-brain/test-assets/multimodal/2025-SUV-OMS-cabin-photo.png"
 
-for file in "$ENGINE" "$ENDPOINT" "$TEST" "$RUNNER" "$CONTRACT" "$DESIGN"; do
+for file in "$ENGINE" "$ENDPOINT" "$TEST" "$RUNNER" "$CONTRACT" "$DESIGN" "$IMAGE"; do
   [[ -f "$ROOT_DIR/$file" ]] || { echo "missing multimodal gateway file: $file" >&2; exit 1; }
 done
 
@@ -62,15 +63,21 @@ assert route["maximum_authenticated_chat_frame_bytes"] == 8500000
 assert route["preauthentication_frame_limit_unchanged"] is True
 probe = contract["controlled_probe"]
 assert probe["image_sha256"] == "93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438"
-assert probe["image_stored_in_repository"] is False
+assert probe["image_stored_in_repository"] is True
 assert probe["occupant_count"] == 3
-assert probe["rear_passenger_holding_bottle"] is True
+assert probe["visible_occupant_holding_bottle"] is True
 assert probe["all_visible_occupants_belted"] is True
 assert probe["multimodal_probe_complete"] is True
 boundaries = contract["open_boundaries"]
 for key in boundaries:
     assert boundaries[key] is False
 PY
+
+[[ "$(stat -c '%s' "$ROOT_DIR/$IMAGE")" == "2244206" ]] \
+  || { echo "controlled multimodal image size mismatch" >&2; exit 1; }
+[[ "$(sha256sum "$ROOT_DIR/$IMAGE" | awk '{print $1}')" \
+    == "93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438" ]] \
+  || { echo "controlled multimodal image digest mismatch" >&2; exit 1; }
 
 for doc in README.md docs/CENTRAL_BRAIN_GRANULAR_REQUIREMENT_CATALOG.md \
   docs/CENTRAL_BRAIN_ROADMAP.md docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md \

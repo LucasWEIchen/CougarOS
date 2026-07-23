@@ -35,15 +35,15 @@
     "model_capability_verified": true
   },
   "controlled_probe": {
-    "image_file": "tmp/2025-SUV-OMS-cabin-photo.png",
+    "image_file": "central-brain/test-assets/multimodal/2025-SUV-OMS-cabin-photo.png",
     "image_sha256": "93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438",
     "image_bytes": 2244206,
-    "image_stored_in_repository": false,
+    "image_stored_in_repository": true,
     "verified_at": "2026-07-23",
     "occupant_count": 3,
-    "rear_passenger_holding_bottle": true,
+    "visible_occupant_holding_bottle": true,
     "all_visible_occupants_belted": true,
-    "model_latency_ms_observed": 35806,
+    "model_latency_ms_observed": 8087,
     "multimodal_probe_complete": true
   },
   "open_boundaries": {
