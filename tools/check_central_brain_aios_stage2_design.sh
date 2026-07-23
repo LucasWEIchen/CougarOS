@@ -105,7 +105,7 @@ done
 for marker in \
   '# Central Brain AIOS Stage 2 开发计划与最小工作包' \
   'P0-P7 总计约' \
-  '136-184 人日' \
+  '139-189 人日' \
   '### `P1-W01` Session DTO/AIDL' \
   '### `P1-W02` Plan/Node DTO/AIDL' \
   '### `P1-W03` Typed Event DTO/AIDL' \
@@ -113,6 +113,7 @@ for marker in \
   '### `P2-W10` Simulated Seat adapter' \
   '### `P3-W09` Restart recovery' \
   '### `P4-W12` Android device acceptance/fault/recovery' \
+  '### `P4-R4` Multimodal model I/O live HMI' \
   '### `P5-W01` Tool manifest/schema' \
   '### `P5-W02` ToolRegistry/Resolver' \
   '### `P5-W06` WorkingMemoryStore' \
@@ -168,7 +169,8 @@ done
 
 derived_ids=(
   S2-UX-001 S2-UX-002 S2-UX-003 S2-HMI-001 S2-HMI-002 S2-HMI-003
-  S2-HMI-004 S2-HMI-005 S2-HMI-006 S2-SES-001 S2-CTX-001 S2-TWN-001
+  S2-HMI-004 S2-HMI-005 S2-HMI-006 S2-HMI-007 S2-HMI-008
+  S2-SES-001 S2-CTX-001 S2-TWN-001
   S2-SCN-001 S2-GRF-001 S2-SAF-001 S2-EFF-001 S2-ADP-001 S2-TOL-001
   S2-MEM-001 S2-EVT-001 S2-MDL-001 S2-ADP-002 S2-OBS-001 S2-REL-001
 )
@@ -746,6 +748,7 @@ PY
 bash "$ROOT_DIR/tools/check_central_brain_cockpit_hmi_design.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_hmi_reducer.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_voice_first_hmi.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_multimodal_model_io_hmi_requirement.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_p4_acceptance.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_manifest.sh"
 bash "$ROOT_DIR/tools/check_central_brain_android_tool_registry.sh"

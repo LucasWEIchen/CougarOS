@@ -2914,11 +2914,12 @@ recovery key、stable approval projection 与 capability-bound readback 的运�
 
 ## P10-R1 Android repository software completion
 
-新增机器可读 completion V1 contract 和聚合 checker。交付判定是“仓库内可实现的软件需求无遗漏”，不是量产准入。
+历史上新增 completion V1 contract 和聚合 checker，交付判定是“仓库内可实现的软件需求无遗漏”，不是量产准入。
 标准 Android SDK AAR、Runtime APK、Demo APK、Client2 debug APK 与文档/合同均继续由既有构建和发布门禁管理；
 目标车辆 adapter、Vendor NPU、production signer/installer、72h/性能/驾驶安全和 replacement-release 证据不在本次
-仓库完成声明内。`repository_software_requirements_complete=true`、`production_ready=false`、
-`target_hardware_validated=false`。tracking：`DEV-120`。
+仓库完成声明内。P4-R4 新需求已使 contract 升级为 schema 2 并重新打开软件状态：
+`repository_software_requirements_complete=false`、`open_repository_software_requirement_count=1`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-120/128`。
 
 ## P7-R2 WSL Ollama development delivery
 
@@ -2998,3 +2999,19 @@ tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。
 `169.254.208.110:18789`。文档覆盖文字、图片及同一 `chat.send` 混合输入；仍明确
 `target_multimodal_frontend_bound=false`、`target_multimodal_verified=false`、
 `production_media_retention_configured=false`。
+
+## P4-R4 multimodal model I/O HMI requirement delivery
+
+本轮交付仅包含需求基线、机器合同、接口/状态/交互详设、工作拆分和静态门禁。目标 UI 必须在实时链路中显示实际
+模型输入与输出：文字直接显示，文字+图片同项显示；缩略图最大 `320dp x 180dp` 并保持宽高比；`PARKED/IDLE`
+点击后居中预览，图外点击或 Back 退出，受限驾驶态禁止放大。
+
+本轮不交付 APK View、reducer、SDK/Binder、Runtime projection 或 Android 13 ARM64 证据。测试 fixture 不得作为
+Client2 输入完成证据，UI 内容不得进入 Room、SharedPreferences、checkpoint、日志或 GitHub evidence。
+
+`multimodal_model_io_hmi_requirement_defined=true`、`model_io_hmi_implemented=false`、
+`frontend_multimodal_ingress_bound=false`、`image_center_preview_interaction_implemented=false`、
+`android13_arm64_model_io_hmi_verified=false`、`repository_software_requirements_complete=false`、
+`production_ready=false`、`target_hardware_validated=false`；Req IDs：`S2-HMI-003/007/008`、`S2-MDL-002`、
+`S2-OBS-002`、`S2-SAF-001`、`XSC-001/005/006`、`DEL-001/003/004`；
+tracking：`DEV-128/ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。

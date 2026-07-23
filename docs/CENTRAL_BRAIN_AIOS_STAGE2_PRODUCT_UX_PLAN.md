@@ -1,10 +1,10 @@
 # Central Brain AIOS Stage 2 产品与 UI/UX 计划
 
-版本：1.2
+版本：1.3
 
-日期：2026-07-16
+日期：2026-07-23
 
-状态：Approved for implementation planning
+状态：Approved for implementation planning；P4-R4 requirement added
 
 输入：架构图需求基线、当前 Client2 演示、`CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md`
 
@@ -64,6 +64,7 @@ FAULT_RESTRICTED
 | --- | --- | --- | --- | --- |
 | 自然场景意图输入 | 语音/文本完整入口 | 语音优先 | 语音优先、简短表达 | 仅低风险建议和错误恢复 |
 | 长文本回复 | 可展开 | 可展开 | 仅一行摘要 | 仅错误/降级摘要 |
+| 模型输入图片居中预览 | 点击缩略图可打开 | 点击缩略图可打开 | 禁止；保留缩略图和限制原因 | 禁止；保留缩略图和限制原因 |
 | 参数编辑 | 允许 | 限制 | 禁止 | 禁止 |
 | 多步骤确认 | 允许 | 单步骤 | 单步骤且仅低/中风险 | 仅取消/关闭 |
 | 驾驶席大角度座椅动作 | 驻车安全条件满足后确认 | 禁止 | 禁止 | 禁止 |
@@ -81,6 +82,9 @@ FAULT_RESTRICTED
 - 所有用户可见动作必须提供来源：系统规则、用户请求、已保存偏好或主动触发。
 - 顶层界面不以设备按钮为导航；HVAC/Seat 手动控件只在 Effect 详情或明确的手动兜底入口出现。
 - 自然语言先归一化为 allowlisted bounded scenario/intent，不能把模型文本直接当作 Effect。
+- 实时链路必须区分 `MODEL_INPUT` 和 `MODEL_OUTPUT`；只显示用户可见请求内容和模型回复，不显示系统 prompt、
+  provider frame、token 或 Binder 身份。
+- 文字+图片输入在同一运行项中同时显示；缩略图等比缩放，允许的驾驶态点击后居中预览，点击图外或 Back 退出。
 - 1920x1080 画布中的 Panel 固定在 `(1264,160)-(1888,1048)`；小窗口预览只能等比缩小，
   主玻璃保持背景可辨认的 60% 浅灰透明度。
 
@@ -446,6 +450,38 @@ Stage 2 后半程增加受控主动触发，规则如下：
 | UX-P1 | Client2 面板显示 session/plan/action 状态 | SDK typed session/event API |
 | UX-P2 | 仿真 HVAC/Seat/Nav/Media 可观察执行 | Digital Twin + Effect adapters |
 | UX-P3 | “我冷了”“我累了”“休息模式”完整闭环 | Scenario/Graph/Policy/Approval |
+| UX-P4 | 实际模型文字/图片输入与模型输出实时可视化 | versioned multimodal Binder + model projection |
+
+## 15. P4-R4 模型输入/输出可视化
+
+### 15.1 信息层级
+
+实时滚动运行状态新增两种明确标记：
+
+```text
+MODEL_INPUT   用户可见文字 + optional image thumbnail
+MODEL_OUTPUT  模型回复文字
+```
+
+`MODEL_INPUT` 必须来自本次实际提交给模型的用户可见内容。系统座舱 prompt、动作 schema 和安全指令不在驾驶员
+UI 展开；`MODEL_OUTPUT` 显示经结构化校验后允许投影给用户的回复，不显示原始 provider frame。
+
+### 15.2 图片交互
+
+- 缩略图最大 `320dp x 180dp`，保持宽高比，`FIT_CENTER`，不裁切、不超过原始像素放大；
+- 图片和文字必须同时可见，不能用图片占满调用链或遮住状态；
+- `PARKED/IDLE` 点击缩略图后，图片在屏幕中心按最大 90% 宽、85% 高等比显示；
+- 点击图片外的遮罩区域或按 Back 退出；点击图片本身只消费事件，不退出、不穿透；
+- `MOVING_RESTRICTED/UNKNOWN_RESTRICTED/FAULT_RESTRICTED` 禁止放大，保留有界缩略图并显示限制原因；
+- decode/MIME/digest 失败时显示本次失败，不得回退显示上一任务图片。
+
+### 15.3 生命周期和隐私
+
+模型文字和图片只存在于当前 Client2 进程内存。新任务替换旧内容，Activity destroy 释放解码 Bitmap；不得写入
+Room、SharedPreferences、checkpoint、logcat 或 GitHub 测试证据。该需求不会让模型文本获得 Plan、Policy、Safety
+或 Effect authority。
+
+当前状态：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。依赖 `ISSUE-055`；tracking `P4-R4/DEV-128/ISSUE-056`。
 | UX-P4 | partial failure、retry、undo、restart recovery | durable graph/reconcile |
 | UX-P5 | 主动建议、偏好记忆和驾驶态精简 UI | Trigger/Memory/UX restriction |
 | UX-P6 | 目标公开接口的真实 adapter 灰度激活 | OEM/Vendor contract + permission |

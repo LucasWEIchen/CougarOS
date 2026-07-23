@@ -5380,11 +5380,10 @@ effects as matched observations. API 33 x86_64 validates Cold 3/3, Fatigue appro
 
 ## P10-R1 Android repository software completion
 
-The repository implementation baseline is complete for all work that does not require an OEM/Vendor API, real vehicle or NPU,
-production signing/system ownership, or target-owner evidence. The completion contract classifies every remaining item and keeps
-all external activation paths fail closed. It does not change production or target claims: `production_ready=false` and
-`target_hardware_validated=false`. Engineers must add any future target integration as a new Req-ID-traceable contract rather than
-silently replacing an empty adapter.
+This section records the pre-P4-R4 completion baseline. The completion contract still classifies every requirement, but the
+new repository-owned model I/O HMI work is open: `repository_software_requirements_complete=false`,
+`open_repository_software_requirement_count=1`, `unclassified_repository_requirement_count=0`. External activation paths
+remain fail closed, and `production_ready=false` and `target_hardware_validated=false` are unchanged.
 
 ## P7-R2 Ollama Model Gateway Detailed Module Design
 
@@ -5483,3 +5482,52 @@ and updated the visible HVAC target to 28.0 degrees C. The UI explicitly reporte
 This delta adds no Vehicle/NPU/Driver authority. `development_wsl_openclaw_android13_arm64_verified=true`,
 `ethernet_validated=false`, `direct_npu_accessed=false`, `production_ready=false`, `target_hardware_validated=false`;
 stage `P7-R4-OCDEV`, tracking `DEV-126/ISSUE-024/054`.
+
+## P4-R4 detailed design: multimodal model I/O live HMI
+
+### Design intent
+
+Primary derived requirement: `S2-HMI-008`.
+
+The live pipeline must expose the user-visible content that actually crossed the model boundary. `MODEL_INPUT` carries the
+current transcript and optional image; `MODEL_OUTPUT` carries the admitted model reply. A scenario button label, controlled
+fixture, internal automotive system prompt or raw provider frame is not a substitute for either item.
+
+### Planned module allocation
+
+| Module | Responsibility | Explicit non-responsibility |
+| --- | --- | --- |
+| `ModelIoProjectionContract` | Versioned request/response projection, run binding, content kind, bounds and digest | Model execution, Plan or Effect authority |
+| `CockpitModelIoState` | Immutable current-run text/image/output state and generation ownership | Room/checkpoint persistence |
+| `CockpitHmiReducer` P4-R4 event | Reject stale run/generation, replace content atomically and clear on lifecycle transition | Image decode and View mutation |
+| `CockpitModelIoRenderer` | Direct text, bounded thumbnail, decode failure and driving restriction rendering | Binder, logging or evidence export |
+| `CockpitImagePreviewController` | Center preview, backdrop/Back dismissal and bitmap release | Vehicle control or camera acquisition |
+
+### Render contract
+
+Text is displayed directly with a 4096-code-point bound and an explicit truncation marker. One PNG/JPEG may accompany the
+input text. The thumbnail uses `FIT_CENTER`, preserves aspect ratio, does not crop or upscale above native pixels, and is
+bounded to `320dp x 180dp`. In `PARKED/IDLE`, tapping it opens a centered preview bounded to 90% of screen width and 85% of
+screen height. The backdrop and Back dismiss; the image consumes its own click. Restricted driving states keep the bounded
+thumbnail and explain why expansion is unavailable.
+
+### State and lifecycle
+
+Every item binds `sessionId`, `runId`, monotonic generation and aggregate input digest. A new run clears prior text and
+bitmap before accepting projection. Decode, MIME, digest or response validation failures render an error for the current
+run and cannot reuse stale content. Raw text and decoded pixels remain process-memory-only and are excluded from Room,
+SharedPreferences, checkpoint, logcat and GitHub evidence.
+
+### Implementation and acceptance split
+
+`P4-R4a` adds the versioned SDK/Binder DTO after `ISSUE-055`; `P4-R4b` adds immutable state/reducer tests; `P4-R4c` adds the
+thumbnail/preview renderer; `P4-R4d` validates text-only and text+image exchange on Android 13 ARM64, including outside-tap,
+Back, lifecycle cleanup, restricted driving state and stale-run rejection.
+
+Current state is requirement-only:
+`model_io_hmi_implemented=false`, `frontend_multimodal_ingress_bound=false`,
+`actual_model_input_projected_to_hmi=false`, `actual_model_output_projected_to_hmi=false`,
+`image_center_preview_interaction_implemented=false`, `android13_arm64_model_io_hmi_verified=false`,
+`repository_software_requirements_complete=false`, `production_ready=false`, `target_hardware_validated=false`.
+Req IDs: `APP-004`, `S2-HMI-003/007/008`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`,
+`XSC-001/005/006`, `DEL-001/003/004`; tracking `DEV-128/ISSUE-055/056`.

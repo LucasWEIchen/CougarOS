@@ -52,6 +52,8 @@ architecture_markers = (
     'subgraph Vehicle["车辆与安全外部边界"]',
     'subgraph Delivery["交付与测试闭环"]',
     "Client2 --> Voice --> HmiState --> ClientBridge --> JavaSdk",
+    'ModelIO["模型 I/O 实时反馈\\n文字 / 图片缩略图 / 居中预览"]',
+    "ClientBridge --> ModelIO --> HmiState",
     "Identity --> Orchestration --> Durable",
     "Orchestration --> Context --> Scenario --> Graph",
     "Graph --> Model --> Prompt",
@@ -79,7 +81,7 @@ required_ids.extend(f"P3-W{i:02d}" for i in range(1, 10))
 required_ids.append("P4-R1")
 required_ids.extend(f"P4-W{i:02d}" for i in range(1, 13))
 required_ids.extend(f"P4-D4{suffix}" for suffix in "abcde")
-required_ids.extend(("P4-R2", "P4-R3"))
+required_ids.extend(("P4-R2", "P4-R3", "P4-R4"))
 required_ids.extend(f"P5-W{i:02d}" for i in range(1, 11))
 required_ids.append("P5-R1")
 required_ids.extend(f"P6-W{i:02d}" for i in range(1, 7))
@@ -213,6 +215,8 @@ for row in table_rows:
         expected_category = "Debug 实现"
     elif item_id.startswith("P1-") or item_id == "P6-EV2" or item_id.startswith("P9-W"):
         expected_category = "合同实现"
+    elif item_id == "P4-R4":
+        expected_category = "合同实现"
     elif item_id.startswith("P4-"):
         expected_category = "Client2/Runtime 实现"
     else:
@@ -259,7 +263,7 @@ for row in table_rows:
             source_link_present = True
 
     no_source_required = (
-        item_id.startswith("P0-") or item_id in {"P9-W03f", "P9-W03g", "P10-R1"}
+        item_id.startswith("P0-") or item_id in {"P4-R4", "P9-W03f", "P9-W03g", "P10-R1"}
         or "-ACT-" in item_id or item_id.startswith(("P8-", "P9-EXT-", "SCOPE-"))
     )
     if not no_source_required and not source_link_present:
@@ -323,7 +327,8 @@ for claim in ("production_ready=false", "target_hardware_validated=false"):
 required_claims = (
     "github_source_of_truth=true",
     "maintained_project_files_synced=true",
-    "repository_software_requirements_complete=true",
+    "repository_software_requirements_complete=false",
+    "open_repository_software_requirement_count=1",
     "unclassified_repository_requirement_count=0",
     "python_prototype_runtime_maintained=false",
     "production_ready=false",

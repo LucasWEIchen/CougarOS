@@ -1,14 +1,14 @@
 # Central Brain Client2 中控 UI/UX 设计稿
 
-版本：2.1
+版本：2.2
 
-日期：2026-07-16
+日期：2026-07-23
 
 状态：Intent-first high-fidelity design baseline；非 APK 实现
 
 Req ID：`APP-001/003/004`、`FW-U-001/003/004`、`FW-S-001/003/005`、`XSC-001`、
 `NV-F-001/003/004/009`、`NV-G-005/006/007`、`NV-P-002`、`DEL-001/004`、
-`S2-UX-001..003`、`S2-HMI-001..006`。
+`S2-UX-001..003`、`S2-HMI-001..008`。
 
 ## 1. 设计纠偏
 
@@ -202,3 +202,24 @@ renderer 和 SDK 协调进入 maintained Java secondary dex。
 复现：`bash docs/ui/cockpit-hmi-design/render_mockups.sh`。
 
 验证：`bash tools/check_central_brain_cockpit_hmi_design.sh`。
+
+## 10. P4-R4 模型 I/O 增量设计要求
+
+现有四张设计资产继续作为历史 P4-R3 画布，不冒充 P4-R4 实现稿。P4-R4 后续设计必须在实时调用链内增加：
+
+```text
+MODEL_INPUT
+  用户可见文字
+  [optional 320dp x 180dp FIT_CENTER thumbnail]
+
+MODEL_OUTPUT
+  经模型输出合同校验后的回复文字
+```
+
+缩略图与文字同项显示。`PARKED/IDLE` 点击后使用全屏顶层 overlay 在屏幕中心等比预览，最大占屏幕宽 90%、
+高 85%；点击图外遮罩或 Back 退出，图片本身消费点击。`MOVING_RESTRICTED/UNKNOWN_RESTRICTED/FAULT_RESTRICTED`
+不打开大图，只保留缩略图和限制原因。
+
+该增量尚无 PNG/HTML/Android 实现资产：`model_io_hmi_implemented=false`、
+`image_center_preview_interaction_implemented=false`、`repository_software_requirements_complete=false`。
+实现阶段必须更新设计资产、Android XML/Java、交互测试和本文状态；tracking `P4-R4/ISSUE-056`。

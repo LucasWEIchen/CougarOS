@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Req IDs: APP-001/003/004, FW-U-001/003/004, FW-S-001/003/005,
 # XSC-001, NV-F-001/003/004/009, NV-G-005/006/007, NV-P-002,
-# DEL-001/004, S2-UX-001..003, S2-HMI-001..006.
+# DEL-001/004, S2-UX-001..003, S2-HMI-001..008.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOC="$ROOT_DIR/docs/CENTRAL_BRAIN_COCKPIT_HMI_UX_DESIGN_MOCKUPS.md"
@@ -48,7 +48,10 @@ for marker in \
   '## 7. HVAC/Seat 次级详情' \
   '## 8. Android 开发映射' \
   '## 9. 设计验收' \
-  'S2-HMI-001..006'; do
+  '## 10. P4-R4 模型 I/O 增量设计要求' \
+  'S2-HMI-001..008' \
+  'model_io_hmi_implemented=false' \
+  'image_center_preview_interaction_implemented=false'; do
   require_text "$DOC" "$marker"
 done
 

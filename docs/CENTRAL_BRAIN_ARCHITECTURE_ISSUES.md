@@ -84,6 +84,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
 | ISSUE-054 | 当前 Android 可达 OpenClaw 主机，但 18789 端口拒绝连接；固定凭据构建无法完成当前模型回归。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Open / External Service Blocked |
 | ISSUE-055 | 目标 OpenClaw 协议已支持文字+图片同一 RPC，但前端语音转写/相机 Binder、统一输入摘要、history 附件绑定和目标以太网证据未完成。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / Next Software Increment |
+| ISSUE-056 | Client2 实时链路尚未显示实际模型输入/输出，也没有图片缩略图、居中预览和图外点击退出交互。 | S2-HMI-003/007/008, S2-MDL-002, S2-OBS-002, P4-R4 | Open / Software Requirement |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1366,10 +1367,10 @@ ISSUE-033 保持 `Open / External Integration`：尚缺 OEM production Client2 b
 
 ## P10-R1 Android repository software completion
 
-仓库软件子项已全部关闭或以明确空接口失败关闭，`unclassified_repository_requirement_count=0`。
-本文件保留的 Open 项均需要 OEM/Vendor、车辆/NPU、量产 signer/系统 owner、产品/隐私/Safety owner 或目标证据；
-`ISSUE-050` 明确 Suspended。该结论不关闭外部风险，`production_ready=false`、
-`target_hardware_validated=false`。tracking：`DEV-120`。
+该结论是新增 P4-R4 之前的历史完成基线。当前需求仍全部分类，
+`unclassified_repository_requirement_count=0`，但 `ISSUE-056` 是仓库可实现的软件需求，
+所以 `repository_software_requirements_complete=false`、`open_repository_software_requirement_count=1`。
+外部风险和 `ISSUE-050` Suspended 状态不变；tracking：`DEV-120/128`。
 
 ## P7-R2 Ollama gateway update (ISSUE-024/044)
 
@@ -1448,3 +1449,22 @@ Android `OpenClawInferenceEngine` 已支持有界图片附件，目标 `chat.sen
 `frontend_multimodal_ingress_bound=false`、`android13_arm64_multimodal_verified=false`、
 `production_media_retention_configured=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-127`；stage `P7-R5-MMDEV`。
+
+## ISSUE-056 Model input/output and image preview are not implemented in Client2
+
+现有 Client2 实时链路只显示 Runtime/Intent/Context/Model/Plan 等阶段里程碑，模型输入图片没有进入前端
+SDK/Binder，用户可见输入也没有以 run-bound 数据投影；最终回复投影不能证明输入内容。布局中不存在模型输入图片
+缩略图、中心预览 overlay 或 backdrop dismissal 控件。
+
+状态：`Open / Software Requirement`。关闭条件：
+
+1. 完成 `ISSUE-055` 的 versioned transcript+image/request 输入合同和 aggregate digest；
+2. 增加实际 `MODEL_INPUT/MODEL_OUTPUT` 投影，不接受按钮标签、fixture 或旧 run 内容；
+3. 增加 immutable state/reducer、`320dp x 180dp` 等比缩略图、允许驾驶态的居中预览以及图外/Back 退出；
+4. 证明 restricted driving state 禁止大图、decode/digest/lifecycle 失败不显示旧图；
+5. 在 Android 13 ARM64 上用真实文字及文字+图片模型 exchange 完成交互验收且不保存原始内容证据。
+
+`model_io_hmi_implemented=false`、`image_thumbnail_rendered=false`、
+`image_center_preview_interaction_implemented=false`、`android13_arm64_model_io_hmi_verified=false`、
+`repository_software_requirements_complete=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-128/ISSUE-055`；stage `P4-R4-REQUIREMENT`。

@@ -984,6 +984,20 @@ release qualification 或目标硬件安全认证。状态：`Accepted Temporary
 `security_coverage_guided_fuzz_complete=false`、`security_production_signer_verified=false`、`hardware_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`ISSUE-050`。
 
+## DEV-128 P4-R4 reopens the repository software completion claim
+
+P10-R1 在 2026-07-19 基于当时已分类需求声明仓库软件完成。维护者于 2026-07-23 新增模型输入/输出实时可视化要求：
+文字直接显示，文字+图片同显，缩略图可在允许驾驶态点击居中放大并由图外点击退出。现有 Client2 只有阶段里程碑和
+最终回复投影，没有前端图片 Binder、实际模型输入投影、缩略图或居中预览控制器。
+
+处置：新增 `S2-HMI-008/P4-R4` 需求合同并将 `repository_software_requirements_complete` 降为 false。需求已分类，
+所以 `unclassified_repository_requirement_count` 仍为 0；在 P4-R4a..R4d 的 SDK/Binder、state/reducer、renderer 和
+Android 13 ARM64 验收全部完成前，不得恢复完成声明。受控 WSL 图片只能证明模型通道，不能证明 Client2 输入或交互。
+
+状态：`Accepted / Requirement Growth`。`model_io_hmi_implemented=false`、
+`frontend_multimodal_ingress_bound=false`、`repository_software_requirements_complete=false`、
+`production_ready=false`、`target_hardware_validated=false`；tracking：`ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。
+
 ## DEV-126 Development OpenClaw uses ADB reverse instead of production Ethernet
 
 架构目标是 Android 座舱通过以太网访问外部算力基座；当前开发环境的真实 Android 设备没有可用目标以太网接口，
@@ -1076,6 +1090,9 @@ resource/thermal health，并完成 target NPU、性能、断链和量产发布�
 处理：建立 completion V1 契约和静态门禁，将所有剩余项显式分类为 external blocked、suspended 或 out of scope。
 该处理不伪造 OEM/Vendor/真实车辆/NPU/签名/责任人证据；`production_ready=false`、
 `target_hardware_validated=false` 保持不变。
+
+该条记录的是当时基线。2026-07-23 新增 P4-R4 后由 `DEV-128` 重新打开仓库软件完成状态；这不否定原门禁，
+但当前不得继续声明 `repository_software_requirements_complete=true`。
 
 ## DEV-119 P4-R2 Client2 Orchestration V1 migration is debug integration, not production vehicle authority
 

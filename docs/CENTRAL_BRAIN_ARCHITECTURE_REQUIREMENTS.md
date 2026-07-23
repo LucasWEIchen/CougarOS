@@ -199,6 +199,7 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | S2-HMI-005 | 统一请求链 | 场景和手动控件都进入 Governance/Effect/readback |
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
 | S2-HMI-007 | 语音优先极简 HMI 与末端反馈 | 仅保留场景触发和实时链路；HVAC/Seat 结果以显式 SIMULATED 动画反馈 |
+| S2-HMI-008 | 实时链路中的模型输入/输出可视化 | 文字直接显示；图片等比缩略并与文字同显；允许的驾驶态点击居中放大、点击图外退出 |
 | S2-SES-001 | versioned durable Session | P1-W01/P1-W03 contract、P1-W05 facade/Service、P1-W06 Room v4/process-death recovery 已完成 |
 | S2-CTX-001 | typed Context snapshot | typed source/freshness/trust 与 debug composition 软件完成；production source 外部阻塞 |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test store 与显式 SIMULATED 投影完成；production 禁止 fallback |
@@ -3031,11 +3032,11 @@ tracking：`DEV-109`、`ISSUE-048..053`、`ISSUE-029/030`。
 
 ## P10-R1 Android repository software completion
 
-所有现行 Req ID 已归入仓库软件完成、外部阻塞、挂起或范围外四类；
-`unclassified_repository_requirement_count=0`。仓库完成只覆盖 Android SDK/Binder/Runtime、Client2 HMI、
-debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle/VHAL/SOA、Vendor NPU、量产签名、
-真实 Safety/identity 或 target qualification。机器基线为
-`central-brain/contracts/central_brain_android_software_completion_v1.json`；tracking：`DEV-120`。
+所有现行 Req ID 均已分类，`unclassified_repository_requirement_count=0`。但新增 `S2-HMI-008/P4-R4`
+尚未实现，因此当前 `repository_software_requirements_complete=false`、
+`open_repository_software_requirement_count=1`。原完成基线只说明 P4-R4 之前的 Android SDK/Binder/Runtime、
+Client2 HMI、debug composition、fail-closed contract 和证据接口状态；机器基线已升级为 schema 2。
+tracking：`DEV-120/128`、`ISSUE-056`。
 
 ## P7-R2 Ollama Model Gateway Requirements
 
@@ -3090,6 +3091,31 @@ debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle
 `model_action_plan_binding_verified=true`、`live_pipeline_trace_verified=true`、
 `simulated_actuator_feedback_verified=true`、`vehicle_bus_accessed=false`、`security_implementation_present=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：`DEV-123/124`、`ISSUE-054`。
+
+## P4-R4 Multimodal model I/O HMI requirements
+
+1. `APP-004/S2-HMI-003/007/008`：实时滚动运行状态必须分别显示本次真实模型请求的用户可见输入和真实模型回复；
+   不得用按钮标签、固定 fixture、推测文本或阶段名称冒充模型 I/O。
+2. `S2-HMI-008/S2-MDL-002`：纯文字请求直接显示文字；文字+图片请求必须在同一 `MODEL_INPUT` 项中同时显示
+   文字与一张 PNG/JPEG 缩略图。文字最多 4096 code points，截断必须有可见标记。
+3. `S2-HMI-008/S2-UX-002`：缩略图最大 `320dp x 180dp`，使用 `FIT_CENTER`、保持宽高比、不裁切且不把图片放大
+   超过原始像素。`PARKED/IDLE` 点击缩略图后在屏幕中心显示预览，最大占屏幕宽 90%、高 85%；点击图片外区域或
+   Back 退出，点击图片本身不得透传为退出。
+4. `S2-UX-002/S2-SAF-001`：`MOVING_RESTRICTED/UNKNOWN_RESTRICTED/FAULT_RESTRICTED` 保留有界缩略图和限制原因，
+   禁止进入居中大图预览；驾驶态限制优先于图片点击需求。
+5. `XSC-001/005/006/S2-OBS-002`：UI 数据必须来自版本化 transcript+image 输入合同和模型 response 投影。
+   原始系统 prompt、provider frame、token、Binder 身份、车辆 payload 不得进入 HMI。
+6. `S2-SAF-001/DEL-004`：文字和解码后的图片只保存在当前 Client2 进程内存并在下一任务、替换或 Activity destroy
+   时清理；不得写 Room、SharedPreferences、checkpoint、日志或 GitHub 证据。
+7. 图片 decode 失败、MIME 不允许、输入摘要不匹配或模型 response 不可用时必须显示明确失败状态，不得显示旧图、
+   旧回复或伪造成功。
+
+当前只完成需求合同，尚未修改 Client2 布局、reducer、SDK/Binder 或 Runtime projection。
+`model_io_hmi_implemented=false`、`frontend_multimodal_ingress_bound=false`、
+`actual_model_input_projected_to_hmi=false`、`actual_model_output_projected_to_hmi=false`、
+`image_center_preview_interaction_implemented=false`、`android13_arm64_model_io_hmi_verified=false`、
+`repository_software_requirements_complete=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-128/ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。
 
 ## P7-R4-OCDEV Android-to-WSL OpenClaw Development Requirements
 

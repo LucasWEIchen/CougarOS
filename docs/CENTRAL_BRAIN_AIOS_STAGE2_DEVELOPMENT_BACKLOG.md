@@ -1,10 +1,10 @@
 # Central Brain AIOS Stage 2 开发计划与最小工作包
 
-版本：1.3
+版本：1.4
 
-日期：2026-07-16
+日期：2026-07-23
 
-状态：Implementation backlog baseline
+状态：Implementation backlog baseline；P4-R4 requirement reopened
 
 目标平台：黑盒 Android 13 座舱域控制器
 
@@ -22,7 +22,7 @@ HVAC/Seat 中控 UI 和演示闭环，P5-P7 扩展 Tool/Memory/Event/Model 平�
 | P1 | typed Session/Plan/Event/Effect SDK 与 Room v4 | 12-16 | 无 | Runtime Contract v2 |
 | P2 | Context/Digital Twin/Scenario/Simulated Effect | 20-26 | 无 | AIOS Demo Alpha |
 | P3 | Durable Agent Graph、恢复、确认、补偿 | 18-24 | 无 | AIOS Demo Beta |
-| P4 | Client2 HVAC/Seat 中控闭环、执行 UX、工程模式 | 24-32 | Client2 maintained patch pipeline | Cockpit UX Beta |
+| P4 | Client2 HVAC/Seat 中控闭环、执行 UX、工程模式、模型 I/O 可视化 | 27-37 | Client2 maintained patch pipeline | Cockpit UX Beta |
 | P5 | Tool/Skill 平台与分层 Memory | 24-32 | signer/update policy 的量产部分可延后 | AIOS SDK Alpha |
 | P6 | Event Trigger、主动智能、跨模块消息 | 16-22 | 目标事件源可用性 | Proactive Alpha |
 | P7 | Model Router、local/NPU/cloud profile、评测 | 16-24 | NPU SDK/云策略可延后 | Model Runtime Beta |
@@ -30,7 +30,7 @@ HVAC/Seat 中控 UI 和演示闭环，P5-P7 扩展 Tool/Memory/Event/Model 平�
 | P9 | 性能、长稳、安全、发布、OTA/回滚 | 30-45 | 生产 signer/MDM/整车测试 | Production Candidate |
 
 估算基于 1 名熟悉当前仓库的 Android/系统工程师和 1 名可兼职测试工程师。P0-P7 总计约
-136-184 人日；P8-P9 受厂商接口、签名、车辆权限和整车验证影响，不承诺固定完成日期。若 3 名
+139-189 人日；P8-P9 受厂商接口、签名、车辆权限和整车验证影响，不承诺固定完成日期。若 3 名
 开发并行且接口及时冻结，P0-P7 约 11-16 个日历周；单人串行约 7-9 个月。
 
 ## 2. 交付优先级
@@ -80,6 +80,8 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
 | `S2-HMI-004` | 无真实信号时显式标注 Android debug/test Digital Twin | `NV-F-004`、`DEL-001/004` |
 | `S2-HMI-005` | 场景与手动控制复用 SDK/Governance/Effect 链路 | `APP-004`、`NV-F-001/003/009`、`NV-P-002` |
 | `S2-HMI-006` | 自然场景意图为主入口并展示完整自动化链 | `APP-001/003/004`、`FW-U-001/004`、`NV-F-001`、`NV-G-005..007` |
+| `S2-HMI-007` | 语音优先极简 HMI 与显式 SIMULATED 末端反馈 | `APP-004`、`FW-U-004`、`NV-F-001`、`DEL-001/004` |
+| `S2-HMI-008` | 实时链路显示真实模型文字/图片输入及模型输出，并提供受驾驶态约束的图片预览 | `APP-004`、`FW-U-001/003`、`NV-G-005/007`、`XSC-001/005/006` |
 | `S2-SES-001` | 持久 session 与 action/observation event tree | `FW-U-003`、`NV-F-001`、`NV-G-003`、`NV-G-007` |
 | `S2-CTX-001` | 统一、带新鲜度和质量的 ContextSnapshot | `FW-U-001`、`FW-U-002`、`NV-F-004` |
 | `S2-TWN-001` | desired/reported last-known Vehicle Digital Twin | `FW-U-001..003`、`NV-F-004`、`NV-G-006` |
@@ -718,6 +720,23 @@ Stage 2 设计和 P0-P7 用户态实现固定：`production_ready=false`、
   Runtime/Client2 restart 与三档显示；Plan/Effect/Media/Nav/approval/partial/mismatch/undo 只保留 host projection 和实体
   fail-closed，不能声明真实执行。Runtime release simulation surface absent；无 production Client2 release artifact。
   `hmi_d4_demo_control_loop_complete=false`，边界由 `DEV-062` 跟踪。
+
+### `P4-R4` Multimodal model I/O live HMI
+
+- 状态：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`（2026-07-23）；预计 3-5 人日；需求：
+  `S2-HMI-003/007/008`、`S2-MDL-002`、`S2-OBS-002`、`S2-SAF-001`、`XSC-001/005/006`。
+- DoD：实时调用链显示实际模型输入与输出；纯文字直接显示；文字+单图同项显示，缩略图最大
+  `320dp x 180dp` 且等比 `FIT_CENTER`；`PARKED/IDLE` 点击后居中预览，点击图外或 Back 退出；
+  restricted driving state 禁止大图预览并显示原因。
+- 合同：`central_brain_android_multimodal_model_io_hmi_requirement_v1.json` 冻结 4096-code-point 文本上限、
+  PNG/JPEG、单图、预览 90% 宽/85% 高、当前任务内存生命周期和禁止 Room/SharedPreferences/checkpoint/log/evidence。
+- 实现拆分：P4-R4a 定义 transcript+image/response SDK Binder DTO；P4-R4b 增加 immutable model-I/O state/reducer；
+  P4-R4c 增加缩略图和居中预览 renderer；P4-R4d 完成 Android 13 ARM64 文字及文字+图片交互验收。
+- 依赖：`ISSUE-055` 的前端多模态输入合同必须先完成；UI 只能显示实际模型 exchange，不能用按钮文字或受控测试
+  fixture 冒充。
+- 当前：`model_io_hmi_implemented=false`、`frontend_multimodal_ingress_bound=false`、
+  `android13_arm64_model_io_hmi_verified=false`、`repository_software_requirements_complete=false`；
+  tracking：`DEV-128/ISSUE-055/056`。
 
 ### `P4-D4a` Simulated Scenario/Plan/Graph composition
 
