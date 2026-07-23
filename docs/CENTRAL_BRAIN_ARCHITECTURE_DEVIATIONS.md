@@ -1000,6 +1000,21 @@ protocol/model/action/readback/release 证据。Client2 全链路必须从同一
 混装造成伪投影故障。`development_wsl_openclaw_android13_arm64_verified=true`、
 `production_ready=false`、`target_hardware_validated=false`；stage `P7-R4-OCDEV`。
 
+## DEV-127 Multimodal validation starts with a controlled WSL image
+
+目标输入是前端应用同时提供语音转写和座舱图片；本增量先使用固定摘要的 WSL 测试图片验证 OpenClaw/Ollama
+vision 通道，并在 Android debug 模型网关实现同构 attachment 协议。尚未修改冻结的 Orchestration AIDL，也未声明
+前端相机采集或 Android 13 ARM64 端到端完成。
+
+处置：受控图片不进入 Git，仓库只保存摘要、大小、结果和可复跑脚本。核心 Model 合同保持 digest-only；后续
+`ISSUE-055` 必须另行定义有界、版本化的前端媒体输入合同并在真机验证。OpenClaw 对大于 2 MB 附件的 managed inbound
+media 行为不能替代量产 retention/cleanup policy。
+
+状态：`Accepted / Development Sequencing`。退出条件：Client2/前端语音转写与相机帧经正式 SDK/Binder 进入相同模型请求，
+通过 Android 13 ARM64 实测并完成媒体生命周期策略。`frontend_multimodal_ingress_bound=false`、
+`android13_arm64_multimodal_verified=false`、`production_media_retention_configured=false`、
+`production_ready=false`、`target_hardware_validated=false`；stage `P7-R5-MMDEV`。
+
 ## DEV-123 P4-R3 voice-first actuator feedback is UI simulation, not vehicle execution
 
 Client2 只保留自然场景触发和实时调用链，并通过 Android View 动画显示 HVAC/Seat 反馈。Cold 将显示温度从

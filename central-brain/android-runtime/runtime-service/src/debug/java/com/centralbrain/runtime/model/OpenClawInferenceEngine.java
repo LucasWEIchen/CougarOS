@@ -41,6 +41,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
     private static final int MAX_PENDING_PROMPTS = 16;
     private static final int MAX_REPLY_CHARS = 256;
     private static final int MAX_ACTIONS = 4;
+    static final int MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+    private static final int MAX_PENDING_IMAGE_BYTES = 12 * 1024 * 1024;
 
     interface CredentialSource {
         String requireToken();
@@ -60,6 +62,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         final String sessionKey;
         final String idempotencyKey;
         final String message;
+        final ImageAttachment imageAttachment;
         final int remainingDeadlineMs;
 
         Request(
@@ -68,13 +71,47 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                 String sessionKey,
                 String idempotencyKey,
                 String message,
+                ImageAttachment imageAttachment,
                 int remainingDeadlineMs) {
             this.endpoint = Objects.requireNonNull(endpoint, "endpoint");
             this.token = requireCredential(token);
             this.sessionKey = Objects.requireNonNull(sessionKey, "sessionKey");
             this.idempotencyKey = Objects.requireNonNull(idempotencyKey, "idempotencyKey");
             this.message = Objects.requireNonNull(message, "message");
+            this.imageAttachment = imageAttachment;
             this.remainingDeadlineMs = remainingDeadlineMs;
+        }
+    }
+
+    static final class ImageAttachment {
+        final String mimeType;
+        final String fileName;
+        final byte[] content;
+        final String sha256;
+
+        ImageAttachment(String mimeType, String fileName, byte[] content) {
+            if (!"image/png".equals(mimeType) && !"image/jpeg".equals(mimeType)) {
+                throw new IllegalArgumentException("OpenClaw image MIME is not allowlisted");
+            }
+            if (fileName == null || !fileName.matches("[A-Za-z0-9][A-Za-z0-9._-]{0,95}")) {
+                throw new IllegalArgumentException("OpenClaw image filename is invalid");
+            }
+            if (content == null || content.length == 0 || content.length > MAX_IMAGE_BYTES) {
+                throw new IllegalArgumentException("OpenClaw image size is invalid");
+            }
+            requireImageSignature(mimeType, content);
+            this.mimeType = mimeType;
+            this.fileName = fileName;
+            this.content = content.clone();
+            this.sha256 = sha256(this.content);
+        }
+
+        boolean matches(ImageAttachment other) {
+            return other != null
+                    && mimeType.equals(other.mimeType)
+                    && fileName.equals(other.fileName)
+                    && sha256.equals(other.sha256)
+                    && content.length == other.content.length;
         }
     }
 
@@ -95,6 +132,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
     private final Transport transport;
     private final ElapsedClock clock;
     private final Map<String, CockpitModelPrompt> pending = new LinkedHashMap<>();
+    private final Map<String, ImageAttachment> pendingImages = new LinkedHashMap<>();
+    private int pendingImageBytes;
     private ModelProvider.ModelSpec warmedModel;
     private boolean closed;
     private long invocationCount;
@@ -154,6 +193,30 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         pending.put(inputDigest, prompt);
     }
 
+    /** Registers one bounded image for the same digest-bound scenario request. */
+    public synchronized void registerScenarioImageAttachment(
+            String inputDigest,
+            String mimeType,
+            String fileName,
+            byte[] content) {
+        requireOpen();
+        requireDigest(inputDigest);
+        ImageAttachment attachment = new ImageAttachment(mimeType, fileName, content);
+        ImageAttachment existing = pendingImages.get(inputDigest);
+        if (existing != null) {
+            if (!existing.matches(attachment)) {
+                throw new IllegalArgumentException("OpenClaw input digest image conflict");
+            }
+            return;
+        }
+        if (pendingImages.size() >= MAX_PENDING_PROMPTS
+                || pendingImageBytes + attachment.content.length > MAX_PENDING_IMAGE_BYTES) {
+            throw new IllegalStateException("OpenClaw image registry capacity exhausted");
+        }
+        pendingImages.put(inputDigest, attachment);
+        pendingImageBytes += attachment.content.length;
+    }
+
     @Override
     public synchronized void warmup(ModelProvider.ModelSpec modelSpec) {
         requireOpen();
@@ -166,6 +229,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             ModelProvider.InferenceRequest request,
             LocalModelProvider.CancellationSignal cancellationSignal) {
         CockpitModelPrompt prompt;
+        ImageAttachment imageAttachment;
         synchronized (this) {
             requireOpen();
             if (warmedModel == null
@@ -175,6 +239,10 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             prompt = pending.remove(request.getInputDigest());
             if (prompt == null) {
                 throw new IllegalArgumentException("OpenClaw prompt material is unavailable");
+            }
+            imageAttachment = pendingImages.remove(request.getInputDigest());
+            if (imageAttachment != null) {
+                pendingImageBytes -= imageAttachment.content.length;
             }
             invocationCount++;
         }
@@ -196,6 +264,12 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             logInfo("openclaw_inference_started=true"
                     + " endpoint_profile=" + endpoint.getProfile()
                     + " protocol=" + endpoint.getProtocolVersion()
+                    + " image_present=" + (imageAttachment != null)
+                    + " image_bytes="
+                    + (imageAttachment == null ? 0 : imageAttachment.content.length)
+                    + " image_sha256="
+                    + (imageAttachment == null ? "none" : imageAttachment.sha256)
+                    + " raw_image_logged=false"
                     + " raw_prompt_logged=false"
                     + " credential_logged=false");
             Result result = transport.execute(new Request(
@@ -204,6 +278,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     sessionKey(request),
                     idempotencyKey(request),
                     message,
+                    imageAttachment,
                     remainingMs));
             if (cancellationSignal.isCancellationRequested()
                     || cancellationSignal.isDeadlineExceeded()) {
@@ -231,6 +306,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     + " network_accessed=true"
                     + " external_compute_accessed=true"
                     + " direct_npu_accessed=false"
+                    + " raw_image_logged=false"
                     + " raw_prompt_logged=false"
                     + " raw_response_logged=false"
                     + " credential_logged=false");
@@ -246,6 +322,7 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
                     + " endpoint_profile=" + endpoint.getProfile()
                     + " failure_code=" + failureCode
                     + " network_accessed=true"
+                    + " raw_image_logged=false"
                     + " raw_prompt_logged=false"
                     + " raw_response_logged=false"
                     + " credential_logged=false");
@@ -258,6 +335,8 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
         closed = true;
         warmedModel = null;
         pending.clear();
+        pendingImages.clear();
+        pendingImageBytes = 0;
     }
 
     public synchronized Snapshot snapshot() {
@@ -611,7 +690,26 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             params.addProperty("message", request.message);
             params.addProperty("deliver", false);
             params.addProperty("idempotencyKey", request.idempotencyKey);
-            connection.sendJson(rpcRequest(requestId, "chat.send", params));
+            if (request.imageAttachment != null) {
+                JsonObject attachment = new JsonObject();
+                attachment.addProperty("type", "image");
+                attachment.addProperty("mimeType", request.imageAttachment.mimeType);
+                attachment.addProperty("fileName", request.imageAttachment.fileName);
+                attachment.addProperty(
+                        "content",
+                        Base64.getEncoder().encodeToString(request.imageAttachment.content));
+                JsonArray attachments = new JsonArray();
+                attachments.add(attachment);
+                params.add("attachments", attachments);
+            }
+            JsonObject chatRequest = rpcRequest(requestId, "chat.send", params);
+            if (request.imageAttachment == null) {
+                connection.sendJson(chatRequest);
+            } else {
+                connection.sendJson(
+                        chatRequest,
+                        OpenClawEndpointConfig.MAX_MULTIMODAL_CHAT_FRAME_BYTES);
+            }
             logInfo("openclaw_protocol_stage=chat_sent");
 
             boolean acknowledged = false;
@@ -870,9 +968,17 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             }
 
             void sendJson(JsonObject value) throws IOException {
+                sendJson(value, OpenClawEndpointConfig.MAX_PREAUTH_FRAME_BYTES);
+            }
+
+            void sendJson(JsonObject value, int maximumBytes) throws IOException {
+                if (maximumBytes < 1
+                        || maximumBytes
+                                > OpenClawEndpointConfig.MAX_MULTIMODAL_CHAT_FRAME_BYTES) {
+                    throw new IllegalArgumentException("OpenClaw outbound frame bound is invalid");
+                }
                 byte[] payload = value.toString().getBytes(StandardCharsets.UTF_8);
-                if (payload.length == 0
-                        || payload.length > OpenClawEndpointConfig.MAX_PREAUTH_FRAME_BYTES) {
+                if (payload.length == 0 || payload.length > maximumBytes) {
                     throw new IllegalStateException("OpenClaw outbound frame is too large");
                 }
                 sendFrame(0x1, payload);
@@ -1047,6 +1153,40 @@ public final class OpenClawInferenceEngine implements LocalModelProvider.LocalIn
             return MessageDigest.getInstance("SHA-1").digest(input);
         } catch (NoSuchAlgorithmException failure) {
             throw new IllegalStateException("SHA-1 is unavailable", failure);
+        }
+    }
+
+    private static String sha256(byte[] input) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(input);
+            StringBuilder value = new StringBuilder(digest.length * 2);
+            for (byte item : digest) {
+                value.append(String.format(Locale.ROOT, "%02x", item & 0xff));
+            }
+            return value.toString();
+        } catch (NoSuchAlgorithmException failure) {
+            throw new IllegalStateException("SHA-256 is unavailable", failure);
+        }
+    }
+
+    private static void requireImageSignature(String mimeType, byte[] content) {
+        boolean png = content.length >= 8
+                && (content[0] & 0xff) == 0x89
+                && content[1] == 0x50
+                && content[2] == 0x4e
+                && content[3] == 0x47
+                && content[4] == 0x0d
+                && content[5] == 0x0a
+                && content[6] == 0x1a
+                && content[7] == 0x0a;
+        boolean jpeg = content.length >= 4
+                && (content[0] & 0xff) == 0xff
+                && (content[1] & 0xff) == 0xd8
+                && (content[content.length - 2] & 0xff) == 0xff
+                && (content[content.length - 1] & 0xff) == 0xd9;
+        if (("image/png".equals(mimeType) && !png)
+                || ("image/jpeg".equals(mimeType) && !jpeg)) {
+            throw new IllegalArgumentException("OpenClaw image signature does not match MIME");
         }
     }
 }

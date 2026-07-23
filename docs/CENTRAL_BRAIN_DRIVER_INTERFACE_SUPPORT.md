@@ -2109,3 +2109,14 @@ buffer 要求和责任边界后，才可在既有 NPU C ABI/JNI 空接口下评�
 `android_standard_network_api_used=true`、`driver_hal_accessed=false`、`direct_npu_accessed=false`、
 `ethernet_validated=false`、`production_ready=false`、`target_hardware_validated=false`；tracking：`DEV-126`、
 `ISSUE-024/054`；stage `P7-R4-OCDEV`。
+
+## P7-R5-MMDEV Multimodal Driver/HAL Boundary
+
+图片通道只增加 Android Java 内存校验、Base64 和 OpenClaw WebSocket `chat.send.attachments`。本阶段不使用 Camera HAL
+私有接口，不新增 C/C++、JNI、Kernel、PCIe、DMA、IOMMU、Vendor NPU runtime、VehicleProperty、CAN 或 Driver/HAL。
+后续前端优先使用 Android 公开 Camera/API 或现有应用提供的受控帧；只有公开 API 被证明确有缺口且 Vendor 提供 ABI/owner
+后，才登记最小 Driver/HAL 开发量。
+
+`android_standard_network_api_used=true`、`camera_hal_modified=false`、`driver_development_triggered=false`、
+`driver_hal_accessed=false`、`direct_npu_accessed=false`、`frontend_multimodal_ingress_bound=false`、
+`production_ready=false`、`target_hardware_validated=false`；tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。

@@ -85,7 +85,7 @@ required_ids.append("P5-R1")
 required_ids.extend(f"P6-W{i:02d}" for i in range(1, 7))
 required_ids.append("P6-P7-R1")
 required_ids.extend(f"P7-W{i:02d}" for i in range(1, 8))
-required_ids.extend(("P7-R2", "P7-R3-OC2", "P7-R4-OCDEV"))
+required_ids.extend(("P7-R2", "P7-R3-OC2", "P7-R4-OCDEV", "P7-R5-MMDEV"))
 required_ids.extend(("P9-W01", "P9-W02"))
 required_ids.extend(f"P9-W03{suffix}" for suffix in "abcdefg")
 required_ids.extend(f"P9-W04{suffix}" for suffix in "abc")
@@ -209,7 +209,7 @@ for row in table_rows:
         expected_category = "空接口/准入"
     elif item_id == "P7-R3-OC2":
         expected_category = "过渡实现"
-    elif re.match(r"^(P2-W0[89]|P2-W1[0-2]|P4-D4|P5-R1|P6-P7-R1|P7-R2|P7-R4-OCDEV)", item_id):
+    elif re.match(r"^(P2-W0[89]|P2-W1[0-2]|P4-D4|P5-R1|P6-P7-R1|P7-R2|P7-R4-OCDEV|P7-R5-MMDEV)", item_id):
         expected_category = "Debug 实现"
     elif item_id.startswith("P1-") or item_id == "P6-EV2" or item_id.startswith("P9-W"):
         expected_category = "合同实现"

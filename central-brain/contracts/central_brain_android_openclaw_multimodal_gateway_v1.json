@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "implementation_stage": "P7-R5-MMDEV",
+  "requirement_ids": [
+    "S2-MDL-001",
+    "S2-MDL-002",
+    "S2-OBS-001",
+    "S2-OBS-002",
+    "S2-SAF-001",
+    "XSC-001",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "development_route": {
+    "text_and_image_in_same_chat_send": true,
+    "android_gateway_attachment_shape": "openclaw_rpc_image_v1",
+    "maximum_images_per_request": 1,
+    "allowlisted_mime_types": ["image/png", "image/jpeg"],
+    "maximum_image_bytes": 6291456,
+    "maximum_authenticated_chat_frame_bytes": 8500000,
+    "preauthentication_frame_limit_unchanged": true,
+    "raw_image_logged": false,
+    "raw_prompt_logged": false,
+    "raw_response_logged": false
+  },
+  "wsl_model": {
+    "gateway": "OpenClaw 2026.7.1",
+    "provider": "ollama",
+    "model": "qwen3.6:27b",
+    "required_capabilities": ["text", "image"],
+    "model_capability_verified": true
+  },
+  "controlled_probe": {
+    "image_file": "tmp/2025-SUV-OMS-cabin-photo.png",
+    "image_sha256": "93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438",
+    "image_bytes": 2244206,
+    "image_stored_in_repository": false,
+    "verified_at": "2026-07-23",
+    "occupant_count": 3,
+    "rear_passenger_holding_bottle": true,
+    "all_visible_occupants_belted": true,
+    "model_latency_ms_observed": 35806,
+    "multimodal_probe_complete": true
+  },
+  "open_boundaries": {
+    "frontend_camera_ingress_bound": false,
+    "frontend_voice_and_image_binder_contract_bound": false,
+    "android13_arm64_multimodal_verified": false,
+    "target_ethernet_verified": false,
+    "direct_npu_accessed": false,
+    "vehicle_effect_hardware_accessed": false,
+    "production_media_retention_configured": false,
+    "production_ready": false,
+    "target_hardware_validated": false
+  }
+}
