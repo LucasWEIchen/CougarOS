@@ -1815,6 +1815,21 @@ tracking：`DEV-106`、`ISSUE-036..045`。`p5_android13_arm64_probe_acceptance_c
 `production_memory_authority_published=false`、`production_runtime_wired=false`、`driver_hal_accessed=false`、
 `hardware_accessed=false`、`production_ready=false`、`target_hardware_validated=false`。
 
+## P7-R5-MMDEV OpenClaw multimodal development channel
+
+第一增量已在 Android debug `OpenClawInferenceEngine` 增加 digest-bound 单图附件：PNG/JPEG allowlist、6 MiB
+单图上限、12 MiB 暂存总量、MIME/魔数/文件名/重复注册校验，以及只对已鉴权 `chat.send` 开放的 8.5 MB
+出站帧。核心 `ModelContractV2` 继续只传摘要，不携带原始图片。
+
+2026-07-23 使用 `tmp/2025-SUV-OMS-cabin-photo.png` 经 WSL OpenClaw 2026.7.1 -> Ollama
+`qwen3.6:27b` 真实联合推理通过，35806 ms 返回 3 名乘员、后排乘员持瓶、可见乘员系安全带三个结构化断言。
+下一增量由 `ISSUE-055` 接入前端相机帧、语音转写与版本化 SDK/Binder 合同，再在 Android 13 ARM64 上复测。
+
+`android_openclaw_multimodal_attachment_implemented=true`、`wsl_openclaw_ollama_multimodal_verified=true`、
+`frontend_multimodal_ingress_bound=false`、`android13_arm64_multimodal_verified=false`、
+`direct_npu_accessed=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。
+
 ## P7-R4-OCDEV Real Android to WSL OpenClaw development route
 
 开发测试主路径改为真实 Android 13 ARM64 设备经 ADB reverse 访问 WSL OpenClaw，再由 OpenClaw 调用本地

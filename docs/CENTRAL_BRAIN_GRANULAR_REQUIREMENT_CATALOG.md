@@ -1074,6 +1074,19 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **当前状态**：`DONE / ANDROID13_ARM64_CLIENT2_OPENCLAW_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[开发 OpenClaw 网关](CENTRAL_BRAIN_OPENCLAW_DEVELOPMENT_GATEWAY.md)。
 
+<a id="p7-r5-mmdev"></a>
+### P7-R5-MMDEV OpenClaw multimodal development channel
+
+- **需求描述**：软件必须交付“OpenClaw multimodal development channel”，满足 `S2-MDL-001/002`, `S2-OBS-001/002`, `S2-SAF-001`, `XSC-001/005/006`, `DEL-001/003/004/005`，并以有界、版本化、可审计且失败关闭的方式提供所列能力。
+- **需求追踪**：`S2-MDL-001/002`, `S2-OBS-001/002`, `S2-SAF-001`, `XSC-001/005/006`, `DEL-001/003/004/005`。
+- **负责模块**：runtime-service 调试模型网关、OpenClaw 附件协议和 WSL 真实模型探针。
+- **前置输入**：digest-bound 座舱文字、单张有界 PNG/JPEG、OpenClaw v4 和 Ollama `qwen3.6:27b` vision 能力。
+- **输出与验收**：同一 `chat.send` 必须包含文字和图片；受控座舱图必须由真实模型返回 3 名乘员、后排持瓶和可见乘员系安全带的结构化断言，且不记录原图、prompt、回复或凭据。
+- **边界与非目标**：本阶段不包含前端相机/语音 Binder 接入、Android 13 ARM64 多模态实测、目标以太网、NPU、车辆 Effect 或量产媒体保留策略。
+- **代码对应**：Debug 实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L86-L116)；[run_central_brain_wsl_openclaw_multimodal_probe.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/run_central_brain_wsl_openclaw_multimodal_probe.sh#L19-L44)；[check_central_brain_android_openclaw_multimodal_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_multimodal_gateway.sh#L4-L22)。
+- **当前状态**：`GATEWAY_IMPLEMENTED / WSL_MODEL_VERIFIED / FRONTEND_BINDING_OPEN`。
+- **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[多模态开发通道](CENTRAL_BRAIN_OPENCLAW_MULTIMODAL_DEVELOPMENT.md)。
+
 ## P9 软件接口与调试证据
 
 <a id="p9-w01"></a>

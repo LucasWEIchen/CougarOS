@@ -90,6 +90,65 @@ public final class OpenClawInferenceEngineTest {
         assertEquals("ws://127.0.0.1:18789/",
                 captured.get().endpoint.getWebSocketUri().toString());
         assertEquals(4, captured.get().endpoint.getProtocolVersion());
+        assertEquals(null, captured.get().imageAttachment);
+    }
+
+    @Test
+    public void boundedImageAttachmentIsDigestBoundAndForwardedWithText() {
+        AtomicLong clock = new AtomicLong(1_000L);
+        AtomicReference<OpenClawInferenceEngine.Request> captured = new AtomicReference<>();
+        OpenClawInferenceEngine engine = engine(clock, request -> {
+            captured.set(request);
+            return result(
+                    "scene.comfort.cold.v1",
+                    "正在结合座舱图像调节温度。",
+                    "hvac.warm_cabin",
+                    false);
+        });
+        byte[] png = minimalPng();
+        engine.warmup(model());
+        engine.registerScenarioPrompt(INPUT_DIGEST, "scene.comfort.cold.v1");
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "cabin.png", png);
+
+        engine.infer(model(), request(INPUT_DIGEST), neverCancelled());
+
+        OpenClawInferenceEngine.ImageAttachment image = captured.get().imageAttachment;
+        assertEquals("image/png", image.mimeType);
+        assertEquals("cabin.png", image.fileName);
+        assertEquals(png.length, image.content.length);
+        assertEquals(
+                "1b56b50ac4e976f488f128cabdcdffb2fc9331d6974bb9968131a415d14ade24",
+                image.sha256);
+        assertTrue(captured.get().message.contains("汽车座舱"));
+    }
+
+    @Test
+    public void invalidImageMimeSignatureSizeAndDigestConflictFailClosed() {
+        OpenClawInferenceEngine engine = engine(new AtomicLong(1_000L), request -> result(
+                "scene.comfort.cold.v1", "unused", "hvac.warm_cabin", false));
+        byte[] png = minimalPng();
+        assertThrows(IllegalArgumentException.class, () ->
+                engine.registerScenarioImageAttachment(
+                        INPUT_DIGEST, "image/gif", "cabin.gif", png));
+        assertThrows(IllegalArgumentException.class, () ->
+                engine.registerScenarioImageAttachment(
+                        INPUT_DIGEST, "image/jpeg", "cabin.jpg", png));
+        assertThrows(IllegalArgumentException.class, () ->
+                engine.registerScenarioImageAttachment(
+                        INPUT_DIGEST, "image/png", "../cabin.png", png));
+        assertThrows(IllegalArgumentException.class, () ->
+                engine.registerScenarioImageAttachment(
+                        INPUT_DIGEST,
+                        "image/png",
+                        "oversize.png",
+                        new byte[OpenClawInferenceEngine.MAX_IMAGE_BYTES + 1]));
+
+        engine.registerScenarioImageAttachment(
+                INPUT_DIGEST, "image/png", "cabin.png", png);
+        assertThrows(IllegalArgumentException.class, () ->
+                engine.registerScenarioImageAttachment(
+                        INPUT_DIGEST, "image/png", "different.png", png));
     }
 
     @Test
@@ -232,6 +291,14 @@ public final class OpenClawInferenceEngineTest {
             public boolean isDeadlineExceeded() {
                 return false;
             }
+        };
+    }
+
+    private static byte[] minimalPng() {
+        return new byte[] {
+                (byte) 0x89, 0x50, 0x4e, 0x47,
+                0x0d, 0x0a, 0x1a, 0x0a,
+                0x00, 0x00, 0x00, 0x00
         };
     }
 

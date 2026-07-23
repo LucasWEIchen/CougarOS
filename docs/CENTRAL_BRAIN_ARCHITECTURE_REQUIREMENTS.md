@@ -3111,3 +3111,21 @@ debug composition、fail-closed contract 和证据接口，不覆盖 OEM Vehicle
 `development_wsl_openclaw_android13_arm64_verified=true`、`external_compute_accessed=true`、
 `direct_npu_accessed=false`、`driver_hal_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。tracking：`DEV-126`、`ISSUE-024/054`；stage `P7-R4-OCDEV`。
+
+## P7-R5-MMDEV Multimodal Development Requirements
+
+1. `S2-MDL-001/002`：开发模型网关必须允许同一 OpenClaw `chat.send` 同时携带座舱文字和最多一张图片；模型元数据
+   必须显式声明 `text,image`，不满足时失败关闭。
+2. `S2-SAF-001`：图片只允许 PNG/JPEG，最大 6 MiB；必须校验 digest binding、文件名、MIME 与魔数，模型输出仍不得
+   授予 Safety、Plan 或 Effect authority。
+3. `S2-OBS-001/002`：日志只允许图片 MIME、字节数、SHA-256、耗时和结构化通过状态；不得记录 Base64、原图、
+   prompt、完整模型回复或 credential。
+4. `XSC-001/005/006`：核心 Model 合同继续使用 digest-only；图片字节只在 debug 模型网关暂存并映射为 OpenClaw
+   attachment。64 KiB 预鉴权上限不得因图片通道放宽。
+5. `DEL-001/003/004/005`：必须提供固定图片摘要的一键 WSL 真实模型探针和机器合同，证明文字规定输出结构、图片提供
+   事实；前端相机/语音 Binder 和 Android 13 ARM64 证据未完成前必须保持开放状态。
+
+当前 `android_openclaw_multimodal_attachment_implemented=true`、
+`wsl_openclaw_ollama_multimodal_verified=true`、`frontend_multimodal_ingress_bound=false`、
+`android13_arm64_multimodal_verified=false`、`production_ready=false`、`target_hardware_validated=false`。
+tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。

@@ -21,6 +21,7 @@ public final class OpenClawEndpointConfig {
     public static final int MAX_HANDSHAKE_BYTES = 16_384;
     public static final int MAX_PREAUTH_FRAME_BYTES = 65_536;
     public static final int MAX_FRAME_BYTES = 1_048_576;
+    public static final int MAX_MULTIMODAL_CHAT_FRAME_BYTES = 8_500_000;
     public static final int MAX_REQUEST_BYTES = 16_384;
     public static final int MAX_RESPONSE_BYTES = 65_536;
 
