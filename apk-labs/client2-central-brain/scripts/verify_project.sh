@@ -46,6 +46,7 @@ for java_file in \
   DebugSimulationControllerClient.java \
   CockpitSimulatedScenarioState.java \
   OrchestrationRuntimeClient.java \
+  CockpitMultimodalInput.java \
   CockpitScenarioControlState.java \
   CockpitDisplayPolicy.java \
   CockpitHmiReducer.java \
@@ -58,7 +59,7 @@ if rg -q 'ISimulatedScenarioRuntime.aidl' "$PROJECT_DIR/scripts/build_binder_bri
   echo "legacy simulated-scenario AIDL must not be compiled into Client2" >&2
   exit 1
 fi
-rg -q 'Expected exactly nineteen Client2' "$PROJECT_DIR/scripts/build_binder_bridge_dex.sh"
+rg -q 'Expected exactly twenty Client2' "$PROJECT_DIR/scripts/build_binder_bridge_dex.sh"
 rg -q 'Expected exactly one generated debug simulation-controller Binder source' \
   "$PROJECT_DIR/scripts/build_binder_bridge_dex.sh"
 if find "$PROJECT_DIR/patches/smali" -type f -name '*.smali' -print -quit 2>/dev/null \
@@ -80,6 +81,8 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q "@id/view1" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainColdButton" "$WORK_DIR/res/layout/main_layout.xml"
   rg -q "centralBrainTiredButton" "$WORK_DIR/res/layout/main_layout.xml"
+  rg -q "centralBrainMultimodalButton" "$WORK_DIR/res/layout/main_layout.xml"
+  test -f "$WORK_DIR/res/raw/central_brain_cabin_frame.png"
   for surface_id in \
     centralBrainLiveTraceScroll \
     centralBrainLiveTraceText \
@@ -90,14 +93,20 @@ if [[ -d "$WORK_DIR" ]]; then
     centralBrainActuatorStateText \
     centralBrainActuatorHvacTemperatureText \
     centralBrainActuatorHvacFanText \
+    centralBrainActuatorMediaText \
     centralBrainActuatorFanProgress \
     centralBrainSeatBack \
-    centralBrainActuatorSeatAngleText; do
+    centralBrainActuatorSeatAngleText \
+    centralBrainModelInputSurface \
+    centralBrainModelInputThumbnail \
+    centralBrainImagePreviewOverlay \
+    centralBrainImagePreview; do
     rg -q "$surface_id" "$WORK_DIR/res/layout/main_layout.xml"
   done
   for scenario_id in \
     care.cold \
-    care.fatigue; do
+    care.fatigue \
+    cabin.multimodal; do
     rg -Fq "android:tag=\"$scenario_id\"" "$WORK_DIR/res/layout/main_layout.xml"
   done
   if rg -q 'android:tag="(state\.vehicle|memory\.preference|skills\.catalog|governance\.audit|security\.denied|security\.privacy|runtime\.npu|system\.overview)"' \

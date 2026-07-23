@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "scene.cabin.multimodal.assist.v1",
+  "version": 1,
+  "supportedSources": ["HMI_BUTTON", "VOICE", "API"],
+  "supportedZones": ["ROW1_DRIVER"],
+  "contextPolicyId": "context.seat-comfort.v1",
+  "requiredContext": [
+    "Vehicle.Speed",
+    "Vehicle.Powertrain.Transmission.CurrentGear",
+    "Vehicle.Chassis.ParkingBrake.IsEngaged",
+    "Vehicle.Cabin.Seat.IsOccupied"
+  ],
+  "optionalContext": [
+    "Vehicle.Cabin.HVAC.IsAirConditioningActive",
+    "Vehicle.Cabin.HVAC.AmbientAirTemperature"
+  ],
+  "requiredCapabilities": ["vehicle.hvac.power", "vehicle.hvac.fan_level"],
+  "optionalCapabilities": ["media.playback"],
+  "riskClass": "LOW",
+  "planTemplate": {
+    "nodes": [
+      {
+        "nodeId": "capture_context",
+        "nodeType": "context.capture",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.context.capture.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "evaluate_policy",
+        "nodeType": "policy.evaluate",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.cabin.multimodal.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "set_hvac_power",
+        "nodeType": "effect.execute",
+        "capabilityId": "vehicle.hvac.power",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 2,
+        "idempotencyKeyTemplate": "scene.cabin.multimodal.hvac_power",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.hvac.power.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "set_hvac_fan",
+        "nodeType": "effect.execute",
+        "capabilityId": "vehicle.hvac.fan_level",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 2,
+        "idempotencyKeyTemplate": "scene.cabin.multimodal.hvac_fan",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.hvac.fan.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "pause_media",
+        "nodeType": "effect.execute",
+        "capabilityId": "media.playback",
+        "required": false,
+        "timeoutMs": 3000,
+        "maxAttempts": 2,
+        "idempotencyKeyTemplate": "scene.cabin.multimodal.media_pause",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.media.playback.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "verify_hvac_power",
+        "nodeType": "effect.verify",
+        "capabilityId": "vehicle.hvac.power",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "scene.cabin.multimodal.verify_hvac_power",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.effect.verify.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "verify_hvac_fan",
+        "nodeType": "effect.verify",
+        "capabilityId": "vehicle.hvac.fan_level",
+        "required": true,
+        "timeoutMs": 5000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "scene.cabin.multimodal.verify_hvac_fan",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.effect.verify.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "render_summary",
+        "nodeType": "summary.render",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 1000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.summary.render.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      }
+    ],
+    "dependencies": [
+      {"prerequisiteNodeId": "capture_context", "dependentNodeId": "evaluate_policy", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "set_hvac_power", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "set_hvac_fan", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "pause_media", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "set_hvac_power", "dependentNodeId": "verify_hvac_power", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "set_hvac_fan", "dependentNodeId": "verify_hvac_fan", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "verify_hvac_power", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "verify_hvac_fan", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "pause_media", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"}
+    ]
+  },
+  "fallback": {
+    "mode": "DEGRADED_OPTIONAL_ONLY",
+    "messageKey": "scenario.cabin.multimodal.partial",
+    "optionalNodeIds": ["pause_media"]
+  },
+  "ui": {
+    "displayKey": "scenario.cabin.multimodal.title",
+    "descriptionKey": "scenario.cabin.multimodal.description",
+    "iconKey": "scenario.icon.cabin",
+    "sortOrder": 30
+  }
+}

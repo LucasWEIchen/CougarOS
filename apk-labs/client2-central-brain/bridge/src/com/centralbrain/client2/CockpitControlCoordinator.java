@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,12 +13,16 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.KeyEvent;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.centralbrain.sdk.event.RuntimeEvent;
+import com.centralbrain.sdk.model.DevelopmentModelInputReceipt;
+import com.centralbrain.sdk.model.DevelopmentModelProjection;
 import com.centralbrain.sdk.session.SessionContract;
 import com.centralbrain.sdk.session.SessionHandle;
 import com.centralbrain.sdk.session.SessionSnapshot;
@@ -25,7 +30,10 @@ import com.centralbrain.sdk.session.SessionSnapshot;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
 
 /** Maintained Java owner for Client2 overlay state, rendering and Session lifecycle. */
 public final class CockpitControlCoordinator implements
@@ -129,6 +137,10 @@ public final class CockpitControlCoordinator implements
     private TextView actuatorHvacTemperatureView;
     private TextView actuatorHvacFanView;
     private TextView actuatorSeatAngleView;
+    private TextView actuatorMediaView;
+    private TextView modelInputTextView;
+    private ImageView modelInputThumbnail;
+    private ImageView imagePreview;
     private ScrollView liveTraceScroll;
     private ProgressBar actuatorFanProgress;
     private View panelOverlay;
@@ -149,6 +161,8 @@ public final class CockpitControlCoordinator implements
     private View actuatorOverlay;
     private View seatFeedbackRegion;
     private View seatBackView;
+    private View modelInputSurface;
+    private View imagePreviewOverlay;
     private Button engineerDetailButton;
     private Button approveButton;
     private Button rejectButton;
@@ -160,8 +174,14 @@ public final class CockpitControlCoordinator implements
     private boolean coldHvacAnimated;
     private boolean fatigueHvacAnimated;
     private boolean fatigueSeatAnimated;
+    private boolean multimodalHvacAnimated;
+    private boolean multimodalMediaAnimated;
     private boolean traceDrainScheduled;
     private String displayedModelReply = "";
+    private CockpitMultimodalInput pendingMultimodalInput;
+    private Bitmap modelInputBitmap;
+    private final Set<String> admittedModelActions = new LinkedHashSet<>();
+    private boolean multimodalConsumptionProved;
     private boolean detached;
 
     private CockpitControlCoordinator(Activity activity) {
@@ -279,6 +299,14 @@ public final class CockpitControlCoordinator implements
                 "centralBrainActuatorHvacTemperatureText");
         actuatorHvacFanView = findTextView("centralBrainActuatorHvacFanText");
         actuatorSeatAngleView = findTextView("centralBrainActuatorSeatAngleText");
+        actuatorMediaView = findTextView("centralBrainActuatorMediaText");
+        modelInputTextView = findTextView("centralBrainModelInputText");
+        View thumbnail = findView("centralBrainModelInputThumbnail");
+        modelInputThumbnail = thumbnail instanceof ImageView ? (ImageView) thumbnail : null;
+        View preview = findView("centralBrainImagePreview");
+        imagePreview = preview instanceof ImageView ? (ImageView) preview : null;
+        modelInputSurface = findView("centralBrainModelInputSurface");
+        imagePreviewOverlay = findView("centralBrainImagePreviewOverlay");
         View traceScroll = findView("centralBrainLiveTraceScroll");
         liveTraceScroll = traceScroll instanceof ScrollView
                 ? (ScrollView) traceScroll : null;
@@ -316,6 +344,17 @@ public final class CockpitControlCoordinator implements
         panelOverlay = findView("centralBrainPanelOverlay");
         if (panelOverlay != null) {
             panelOverlay.setOnClickListener(this);
+        }
+        if (modelInputThumbnail != null) {
+            modelInputThumbnail.setOnClickListener(ignored -> showImagePreview());
+        }
+        if (imagePreviewOverlay != null) {
+            imagePreviewOverlay.setOnClickListener(ignored -> hideImagePreview());
+        }
+        if (imagePreview != null) {
+            imagePreview.setOnClickListener(ignored -> {
+                // Consume the click so only the area outside the image closes the preview.
+            });
         }
         navigationTrigger = findView("centralBrainNavigationTrigger");
         if (navigationTrigger != null) {
@@ -507,6 +546,48 @@ public final class CockpitControlCoordinator implements
         }
         resetLiveTrace(scenarioId, userText);
         resetActuatorFeedback();
+        clearPendingMultimodalInput();
+        if (modelInputBitmap != null) {
+            modelInputBitmap.recycle();
+            modelInputBitmap = null;
+        }
+        if (modelInputThumbnail != null) {
+            modelInputThumbnail.setImageDrawable(null);
+        }
+        if (imagePreview != null) {
+            imagePreview.setImageDrawable(null);
+        }
+        admittedModelActions.clear();
+        multimodalConsumptionProved = false;
+        setVisible(modelInputSurface, false);
+        hideImagePreview();
+        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(scenarioId)) {
+            try {
+                pendingMultimodalInput = CockpitMultimodalInput.load(activity);
+                modelInputBitmap = pendingMultimodalInput.decodePreview();
+                if (modelInputThumbnail != null) {
+                    modelInputThumbnail.setImageBitmap(modelInputBitmap);
+                }
+                if (imagePreview != null) {
+                    imagePreview.setImageBitmap(modelInputBitmap);
+                }
+                setText(
+                        modelInputTextView,
+                        "模型输入 · “处理一下” + 座舱图像 · "
+                                + pendingMultimodalInput.getImageByteCount() + " bytes");
+                setVisible(modelInputSurface, true);
+                appendLiveTrace(
+                        "MODEL INPUT",
+                        "STAGING",
+                        "处理一下 + cabin frame · SHA-256 verified");
+            } catch (RuntimeException failure) {
+                appendLiveTrace(
+                        "MODEL INPUT",
+                        "FAILED",
+                        "Controlled frame integrity or decode rejected");
+                return;
+            }
+        }
         String simulatedDrivingProfile = "PARKED";
         accept(CockpitHmiReducer.Event.scenarioSubmitted(
                 scenarioId, simulatedDrivingProfile));
@@ -849,6 +930,46 @@ public final class CockpitControlCoordinator implements
         appendLiveTrace(stage, status, detail);
     }
 
+    @Override
+    public void onMultimodalInputAccepted(DevelopmentModelInputReceipt receipt) {
+        if (receipt == null
+                || !CockpitScenarioControlState.canonicalScenarioId(
+                        CockpitMultimodalInput.UI_SCENARIO_ID)
+                        .equals(receipt.scenarioId)) {
+            appendLiveTrace("MODEL INPUT", "REJECTED", "Receipt binding mismatch");
+            return;
+        }
+        appendLiveTrace(
+                "MODEL INPUT",
+                "BOUND",
+                receipt.inputText + " + image · "
+                        + receipt.imageByteCount + " bytes · "
+                        + receipt.imageSha256.substring(0, 12));
+    }
+
+    @Override
+    public void onModelExchange(
+            String uiScenarioId, DevelopmentModelProjection projection) {
+        if (projection == null) {
+            return;
+        }
+        admittedModelActions.clear();
+        admittedModelActions.addAll(Arrays.asList(projection.admittedActions));
+        multimodalConsumptionProved =
+                !CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)
+                        || projection.imageConsumed;
+        appendLiveTrace(
+                "AGENT ACTIONS",
+                "ALLOWLISTED",
+                TextUtils.join(", ", admittedModelActions));
+        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)) {
+            appendLiveTrace(
+                    "MODEL OUTPUT",
+                    projection.imageConsumed ? "IMAGE_CONSUMED" : "REJECTED",
+                    projection.assistantDisplayText);
+        }
+    }
+
     private void resetLiveTrace(String scenarioId, String utterance) {
         mainHandler.removeCallbacks(traceDrainRunnable);
         pendingTraceLines.clear();
@@ -859,6 +980,8 @@ public final class CockpitControlCoordinator implements
         coldHvacAnimated = false;
         fatigueHvacAnimated = false;
         fatigueSeatAnimated = false;
+        multimodalHvacAnimated = false;
+        multimodalMediaAnimated = false;
         if (liveTraceView != null) {
             liveTraceView.setText("");
         }
@@ -932,6 +1055,7 @@ public final class CockpitControlCoordinator implements
         setText(actuatorHvacTemperatureView, "26.5°C");
         setText(actuatorHvacFanView, "风量 1");
         setText(actuatorSeatAngleView, "靠背 15°");
+        setText(actuatorMediaView, "媒体 播放中");
         if (actuatorFanProgress != null) {
             actuatorFanProgress.setProgress(1);
         }
@@ -983,13 +1107,42 @@ public final class CockpitControlCoordinator implements
                         "Driver seat recline 15° → 30° · simulated");
                 finishActuatorAnimation(2100L);
             }
+            return;
+        }
+        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(simulated.getUiScenarioId())
+                && multimodalConsumptionProved) {
+            if (admittedModelActions.contains("hvac.ventilate")
+                    && !multimodalHvacAnimated) {
+                multimodalHvacAnimated = true;
+                setText(actuatorStateView, "模型白名单 HVAC 动作执行中 · SIMULATED");
+                animateFan(1, 3);
+                appendLiveTrace(
+                        "UI EFFECT",
+                        "ANIMATING",
+                        "Agent hvac.ventilate → HVAC fan 1 → 3 · simulated");
+            }
+            if (admittedModelActions.contains("media.pause")
+                    && !multimodalMediaAnimated) {
+                multimodalMediaAnimated = true;
+                setText(actuatorMediaView, "媒体 已暂停");
+                appendLiveTrace(
+                        "UI EFFECT",
+                        "ANIMATING",
+                        "Agent media.pause → playback PAUSED · simulated");
+            }
+            finishActuatorAnimation(1800L);
         }
     }
 
     private void showActuatorOverlay(String scenarioId) {
         boolean fatigue = "care.fatigue".equals(scenarioId);
+        boolean multimodal = CockpitMultimodalInput.UI_SCENARIO_ID.equals(scenarioId);
         setText(actuatorTitleView,
-                fatigue ? "疲劳关怀执行反馈" : "温度关怀执行反馈");
+                fatigue
+                        ? "疲劳关怀执行反馈"
+                        : multimodal
+                                ? "多模态座舱执行反馈"
+                                : "温度关怀执行反馈");
         setVisible(seatFeedbackRegion, fatigue);
         if (actuatorOverlay != null) {
             ViewGroup.LayoutParams params = actuatorOverlay.getLayoutParams();
@@ -1064,6 +1217,56 @@ public final class CockpitControlCoordinator implements
         }, delayMs);
     }
 
+    private void showImagePreview() {
+        if (modelInputBitmap == null) {
+            return;
+        }
+        CockpitSeatState.DrivingState drivingState =
+                state.getSeatState().getSafetyContext().getDrivingState();
+        CockpitSimulatedScenarioState simulated = state.getSimulatedScenarioState();
+        boolean simulatedParked = drivingState
+                == CockpitSeatState.DrivingState.UNKNOWN_RESTRICTED
+                && simulated.isRuntimeAvailable()
+                && simulated.hasSnapshot()
+                && CockpitMultimodalInput.UI_SCENARIO_ID.equals(
+                        simulated.getUiScenarioId())
+                && "PARKED".equals(simulated.getDrivingProfile());
+        if (drivingState != CockpitSeatState.DrivingState.PARKED
+                && !simulatedParked) {
+            appendLiveTrace(
+                    "MODEL INPUT",
+                    "PREVIEW_BLOCKED",
+                    "Driving state " + drivingState
+                            + " does not allow full-screen preview");
+            return;
+        }
+        setVisible(imagePreviewOverlay, true);
+        if (imagePreviewOverlay != null) {
+            imagePreviewOverlay.bringToFront();
+            imagePreviewOverlay.setFocusableInTouchMode(true);
+            imagePreviewOverlay.setOnKeyListener((view, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_BACK
+                        && event.getAction() == KeyEvent.ACTION_UP) {
+                    hideImagePreview();
+                    return true;
+                }
+                return false;
+            });
+            imagePreviewOverlay.requestFocus();
+        }
+    }
+
+    private void hideImagePreview() {
+        setVisible(imagePreviewOverlay, false);
+    }
+
+    private void clearPendingMultimodalInput() {
+        if (pendingMultimodalInput != null) {
+            pendingMultimodalInput.close();
+            pendingMultimodalInput = null;
+        }
+    }
+
     private void resumeSession() {
         SessionHandle handle = state.toSessionHandle();
         if (handle == null || state.getUiScenarioId().isEmpty()) {
@@ -1130,11 +1333,16 @@ public final class CockpitControlCoordinator implements
         if (handle != null
                 && CockpitSimulatedScenarioState.isSupported(
                         state.getUiScenarioId())) {
+            CockpitMultimodalInput multimodal =
+                    CockpitMultimodalInput.UI_SCENARIO_ID.equals(state.getUiScenarioId())
+                            ? pendingMultimodalInput : null;
+            pendingMultimodalInput = null;
             orchestrationClient.openOrResume(
                     handle.sessionId,
                     state.getUiScenarioId(),
                     state.getSeatState().getSafetyContext().getDrivingState(),
-                    true);
+                    true,
+                    multimodal);
         }
     }
 
@@ -2016,6 +2224,11 @@ public final class CockpitControlCoordinator implements
         if (previous != null) {
             previous.close();
         }
+        clearPendingMultimodalInput();
+        if (modelInputBitmap != null) {
+            modelInputBitmap.recycle();
+            modelInputBitmap = null;
+        }
         debugSimulationClient.close();
         orchestrationClient.close();
         application.unregisterActivityLifecycleCallbacks(this);
@@ -2029,8 +2242,9 @@ public final class CockpitControlCoordinator implements
         return "cockpit_hmi_state_reducer_implemented=true"
                 + " cockpit_hmi_lifecycle_owner_java=true"
                 + " cockpit_hmi_voice_first_shell_implemented=true"
-                + " cockpit_hmi_task_trigger_count=2"
+                + " cockpit_hmi_task_trigger_count=3"
                 + " cockpit_hmi_live_trace_implemented=true"
+                + " cockpit_hmi_multimodal_input_implemented=true"
                 + " cockpit_hmi_four_stage_shell_exposed=false"
                 + " cockpit_hmi_manual_actuator_controls_exposed=false"
                 + " cockpit_hmi_device_drawer_exposed=false"

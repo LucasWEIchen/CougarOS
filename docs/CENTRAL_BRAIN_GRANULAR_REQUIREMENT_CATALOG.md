@@ -226,7 +226,7 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-SCN-001`, `S2-SAF-001`。
 - **负责模块**：runtime-service 的 Context/Scenario/Digital Twin 与 debug adapter。
 - **前置输入**：canonical signal/capability、受信时间与来源元数据、build-owned scenario asset；仿真项只允许 debug/test profile。
-- **输出与验收**：必须能够由专项合同、测试或设备证据复现：schema/catalog/checksum；production-signed artifact 未接。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：4 个版本化 build-owned 场景、strict schema、catalog digest 和 checksum；production-signed artifact 未接。
 - **边界与非目标**：SIMULATED 能力不得进入 release/production registry，也不得作为真实车辆证据。
 - **代码对应**：软件实现：[ScenarioManifestParser.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/ScenarioManifestParser.java#L38-L56)；[check_central_brain_android_scenario_manifest.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_scenario_manifest.sh#L4-L22)。
 - **当前状态**：`DONE`。
@@ -710,11 +710,11 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求描述**：软件必须交付“Multimodal model I/O live HMI”，满足 `S2-HMI-003/007/008`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`, `XSC-001/005/006`，并以有界、版本化、可审计且失败关闭的方式提供所列能力。
 - **需求追踪**：`S2-HMI-003/007/008`, `S2-MDL-002`, `S2-OBS-002`, `S2-SAF-001`, `XSC-001/005/006`。
 - **负责模块**：Client2 HMI、Central Brain Java SDK 与 Runtime 模型 I/O 投影。
-- **前置输入**：实际模型 transcript、可选单张 PNG/JPEG、实际模型回复、run-bound aggregate digest 和可信 driving state。
-- **输出与验收**：纯文字直接显示；文字+图片同项显示最大 320dp x 180dp 等比缩略图；PARKED/IDLE 点击居中预览，图外或 Back 退出；Android 13 ARM64 真实模型 exchange 通过。
-- **边界与非目标**：当前只冻结需求合同；按钮标签和 fixture 不能冒充实际输入，原始内容不得持久化或获得 Plan/Effect authority。
-- **代码对应**：合同实现：[central_brain_android_multimodal_model_io_hmi_requirement_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_multimodal_model_io_hmi_requirement_v1.json#L2-L20)；[check_central_brain_android_multimodal_model_io_hmi_requirement.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_multimodal_model_io_hmi_requirement.sh#L4-L22)。
-- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **前置输入**：实际模型 transcript、单张受控 PNG/JPEG、实际模型回复、run-bound aggregate digest 和可信 driving state。
+- **输出与验收**：`处理一下` 将 2,244,206-byte 座舱帧经 FD Binder 与文字绑定到同一 OpenClaw 请求；Client2 显示缩略图、居中预览、实时输入/输出、白名单动作和模拟 Effect/Readback；Android 13 ARM64 1920x1080 通过。
+- **边界与非目标**：当前是受控帧调试入口，不是实时摄像头；原始内容不持久化，模型不授权 Effect，车辆总线未访问。
+- **代码对应**：合同实现：[CockpitMultimodalInput.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java#L19-L45)；[DevelopmentModelInput.aidl](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/debug/aidl/com/centralbrain/sdk/model/DevelopmentModelInput.aidl#L5-L16)；[DevelopmentModelInputStore.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/DevelopmentModelInputStore.java#L13-L43)；[central_brain_android_multimodal_model_io_hmi_requirement_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_multimodal_model_io_hmi_requirement_v1.json#L2-L20)。
+- **当前状态**：`DONE / ANDROID13_ARM64_CONTROLLED_FRAME_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[产品 UX](CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md)；[接口详设](CENTRAL_BRAIN_INTERFACE_DESIGN.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
 ## P5 Tool、Skill 与 Memory
@@ -1090,14 +1090,14 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 <a id="p7-r5-mmdev"></a>
 ### P7-R5-MMDEV OpenClaw multimodal development channel
 
-- **需求描述**：软件必须交付“OpenClaw multimodal development channel”，满足 `S2-MDL-001/002`, `S2-OBS-001/002`, `S2-SAF-001`, `XSC-001/005/006`, `DEL-001/003/004/005`，并以有界、版本化、可审计且失败关闭的方式提供所列能力。
+- **需求描述**：Client2“处理一下”必须把文字与当前受控座舱帧作为同一多模态输入，经 SDK/Binder、Runtime、OpenClaw/Ollama 到白名单执行闭环。
 - **需求追踪**：`S2-MDL-001/002`, `S2-OBS-001/002`, `S2-SAF-001`, `XSC-001/005/006`, `DEL-001/003/004/005`。
-- **负责模块**：runtime-service 调试模型网关、OpenClaw 附件协议和 WSL 真实模型探针。
-- **前置输入**：digest-bound 座舱文字、单张有界 PNG/JPEG、OpenClaw v4 和 Ollama `qwen3.6:27b` vision 能力。
-- **输出与验收**：同一 `chat.send` 必须包含文字和图片；受控座舱图必须由真实模型返回 3 名乘员、至少一名可见乘员持瓶和可见乘员系安全带的结构化断言，且不记录原图、prompt、回复或凭据。
-- **边界与非目标**：本阶段不包含前端相机/语音 Binder 接入、Android 13 ARM64 多模态实测、目标以太网、NPU、车辆 Effect 或量产媒体保留策略。
-- **代码对应**：Debug 实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L86-L116)；[run_central_brain_wsl_openclaw_multimodal_probe.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/run_central_brain_wsl_openclaw_multimodal_probe.sh#L19-L44)；[check_central_brain_android_openclaw_multimodal_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_multimodal_gateway.sh#L4-L22)。
-- **当前状态**：`GATEWAY_IMPLEMENTED / WSL_MODEL_VERIFIED / FRONTEND_BINDING_OPEN`。
+- **负责模块**：Client2 HMI、debug SDK/Binder、runtime-service 编排、OpenClaw 附件协议。
+- **前置输入**：文字“处理一下”、digest-bound 单张 PNG、OpenClaw v4 与 `qwen3.6:27b` vision。
+- **输出与验收**：Android 13 ARM64 必须显示输入缩略图、实际回复、获准动作与 UI 仿真 Effect；独立探针继续验证图片可见事实。
+- **边界与非目标**：固定受控帧不是实时相机；目标以太网、NPU、车辆 Effect 和量产媒体治理仍开放。
+- **代码对应**：Debug 实现：[CockpitMultimodalInput.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java#L19-L45)；[DevelopmentModelProjectionService.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/DevelopmentModelProjectionService.java#L56-L80)；[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L208-L229)；[run_client2_central_brain_openclaw_development_test.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/run_client2_central_brain_openclaw_development_test.sh#L155-L179)。
+- **当前状态**：`CONTROLLED_FRAME_BOUND / ARM64_VERIFIED / LIVE_CAMERA_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[多模态开发通道](CENTRAL_BRAIN_OPENCLAW_MULTIMODAL_DEVELOPMENT.md)。
 
 ## P9 软件接口与调试证据
@@ -1356,10 +1356,10 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：全部已分类 Req IDs。
 - **负责模块**：仓库级需求治理与软件完成度门禁。
 - **前置输入**：全部分类后的 Req ID、工作包状态、专项合同和聚合门禁结果。
-- **输出与验收**：必须能够由专项合同、测试或设备证据复现：`repository_software_requirements_complete=false`、`open_repository_software_requirement_count=1`、`unclassified_repository_requirement_count=0`。
-- **边界与非目标**：P4-R4 已分类但尚未实现；不得沿用新增需求之前的软件完成声明，也不得把需求合同当作 UI 实现。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：`repository_software_requirements_complete=true`、`open_repository_software_requirement_count=0`、`unclassified_repository_requirement_count=0`。
+- **边界与非目标**：仓库软件完成不等于量产激活；OEM Vehicle、Vendor NPU、目标签名/SELinux、目标以太网与资格证据仍为外部阻塞。
 - **代码对应**：聚合门禁：[central_brain_android_software_completion_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_software_completion_v1.json#L2-L20)；[check_central_brain_android_software_completion.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_software_completion.sh#L4-L22)。
-- **当前状态**：`REOPENED / P4-R4_SOFTWARE_OPEN`。
+- **当前状态**：`SOFTWARE_COMPLETE / EXTERNAL_PRODUCTION_BLOCKED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
 ## P3-P7 量产激活剩余项

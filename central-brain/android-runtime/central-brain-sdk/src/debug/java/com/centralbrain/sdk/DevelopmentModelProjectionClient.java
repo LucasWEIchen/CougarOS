@@ -9,6 +9,9 @@ import android.os.RemoteException;
 
 import com.centralbrain.sdk.model.DevelopmentModelProjection;
 import com.centralbrain.sdk.model.DevelopmentModelProjectionContract;
+import com.centralbrain.sdk.model.DevelopmentModelInput;
+import com.centralbrain.sdk.model.DevelopmentModelInputContract;
+import com.centralbrain.sdk.model.DevelopmentModelInputReceipt;
 import com.centralbrain.sdk.model.ICentralBrainDevelopmentModelProjection;
 
 import java.util.NoSuchElementException;
@@ -135,6 +138,21 @@ public final class DevelopmentModelProjectionClient implements AutoCloseable {
             }
         }
         return projection;
+    }
+
+    public DevelopmentModelInputReceipt stageOwnMultimodalInput(
+            DevelopmentModelInput input) throws RemoteException {
+        DevelopmentModelInputContract.validateMetadata(input);
+        DevelopmentModelInputReceipt receipt =
+                requireService().stageOwnMultimodalInput(input);
+        DevelopmentModelInputContract.validateReceipt(receipt);
+        if (!input.sessionId.equals(receipt.sessionId)
+                || !input.scenarioId.equals(receipt.scenarioId)
+                || !input.imageSha256.equals(receipt.imageSha256)) {
+            throw new IllegalArgumentException(
+                    "CB_DEVELOPMENT_MODEL_PROJECTION_CLIENT: input receipt mismatch");
+        }
+        return receipt;
     }
 
     @Override

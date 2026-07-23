@@ -7,6 +7,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_multimodal_model_io_hmi_requirement_v1.json"
 LAYOUT="$ROOT_DIR/apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml"
+CLIENT="$ROOT_DIR/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+INPUT="$ROOT_DIR/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java"
+SDK_AIDL="$ROOT_DIR/central-brain/android-runtime/central-brain-sdk/src/debug/aidl/com/centralbrain/sdk/model/DevelopmentModelInput.aidl"
+RUNTIME_STORE="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/DevelopmentModelInputStore.java"
+SCENARIO="$ROOT_DIR/central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.multimodal.assist.v1.json"
 
 python3 -m json.tool "$CONTRACT" >/dev/null
 python3 - "$CONTRACT" <<'PY'
@@ -16,7 +21,7 @@ import sys
 contract = json.load(open(sys.argv[1], encoding="utf-8"))
 assert contract["schema_version"] == 1
 assert contract["profile_id"] == "android13-client2-multimodal-model-io-hmi-requirement-v1"
-assert contract["maturity"] == "requirement_defined_implementation_open"
+assert contract["maturity"] == "controlled_frame_debug_implementation_android13_arm64_verified"
 assert {"S2-HMI-008", "S2-MDL-002", "S2-OBS-002"}.issubset(
     contract["requirement_ids"])
 
@@ -26,6 +31,7 @@ assert surface["model_output_visible"] is True
 assert surface["source_must_be_actual_model_exchange"] is True
 assert surface["button_label_as_model_input_allowed"] is False
 assert surface["fixture_as_live_input_allowed"] is False
+assert surface["controlled_frame_actual_model_exchange_allowed"] is True
 
 text = contract["text"]
 assert text["render_directly"] is True
@@ -76,11 +82,19 @@ for key in (
     "image_center_preview_interaction_implemented",
     "android13_arm64_model_io_hmi_verified",
     "repository_software_requirements_complete",
-    "production_ready",
-    "target_hardware_validated",
 ):
-    assert claims[key] is False
-assert claims["implementation_stage"] == "P4-R4-REQUIREMENT"
+    assert claims[key] is True
+assert claims["production_ready"] is False
+assert claims["target_hardware_validated"] is False
+assert claims["implementation_stage"] == "P4-R4-IMPLEMENTED-ARM64"
+evidence = contract["development_evidence"]
+assert evidence["android_api"] == 33
+assert evidence["abi"] == "arm64-v8a"
+assert evidence["display"] == "1920x1080"
+assert evidence["image_byte_count"] == 2244206
+assert evidence["actual_model_exchange"] is True
+assert evidence["image_consumption_projection_verified"] is True
+assert evidence["vehicle_bus_accessed"] is False
 PY
 
 for doc in \
@@ -101,24 +115,34 @@ for doc in \
 done
 
 for marker in \
+  'centralBrainMultimodalButton' \
   'centralBrainModelInputText' \
-  'centralBrainModelInputImageThumbnail' \
-  'centralBrainModelOutputText' \
-  'centralBrainModelImagePreviewOverlay' \
-  'centralBrainModelImagePreview'; do
-  if grep -Fq "$marker" "$LAYOUT"; then
-    echo "P4-R4 UI marker exists while requirement contract still says implementation open: $marker" >&2
-    exit 1
-  fi
+  'centralBrainModelInputThumbnail' \
+  'centralBrainImagePreviewOverlay' \
+  'centralBrainImagePreview'; do
+  grep -Fq "$marker" "$LAYOUT" \
+    || { echo "P4-R4 UI marker missing: $marker" >&2; exit 1; }
 done
+grep -Fq 'onMultimodalInputAccepted' "$CLIENT"
+grep -Fq 'MODEL OUTPUT' "$CLIENT"
+grep -Fq 'PREVIEW_BLOCKED' "$CLIENT"
+grep -Fq 'tap' "$CONTRACT"
+grep -Fq 'ParcelFileDescriptor imageFd' "$SDK_AIDL"
+grep -Fq 'consumeOwn' "$RUNTIME_STORE"
+grep -Fq 'scene.cabin.multimodal.assist.v1' "$SCENARIO"
+test -f "$ROOT_DIR/apk-labs/client2-central-brain/patches/res/raw/central_brain_cabin_frame.png"
+printf '%s  %s\n' \
+  '93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438' \
+  "$ROOT_DIR/apk-labs/client2-central-brain/patches/res/raw/central_brain_cabin_frame.png" \
+  | sha256sum -c - >/dev/null
 
 printf '%s\n' \
   'multimodal_model_io_hmi_requirement_defined=true' \
-  'model_io_hmi_implemented=false' \
-  'frontend_multimodal_ingress_bound=false' \
-  'image_center_preview_interaction_implemented=false' \
-  'android13_arm64_model_io_hmi_verified=false' \
-  'repository_software_requirements_complete=false' \
+  'model_io_hmi_implemented=true' \
+  'frontend_multimodal_ingress_bound=true' \
+  'image_center_preview_interaction_implemented=true' \
+  'android13_arm64_model_io_hmi_verified=true' \
+  'repository_software_requirements_complete=true' \
   'production_ready=false' \
   'target_hardware_validated=false' \
-  'implementation_stage=P4-R4-REQUIREMENT'
+  'implementation_stage=P4-R4-IMPLEMENTED-ARM64'

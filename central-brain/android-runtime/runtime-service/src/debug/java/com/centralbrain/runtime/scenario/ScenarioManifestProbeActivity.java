@@ -35,7 +35,7 @@ public final class ScenarioManifestProbeActivity extends Activity {
         try {
             Map<String, byte[]> assets = builtInAssets();
             ScenarioCatalog catalog = ScenarioCatalog.load(assets);
-            boolean parserVerified = catalog.size() == 3 && catalog.disabled().isEmpty();
+            boolean parserVerified = catalog.size() == 4 && catalog.disabled().isEmpty();
             boolean schemaVersionVerified = catalog.all().stream()
                     .allMatch(value -> value.getSchemaVersion() == ScenarioManifest.SCHEMA_VERSION
                             && value.getVersion() == 1);
@@ -114,6 +114,8 @@ public final class ScenarioManifestProbeActivity extends Activity {
 
     private Map<String, byte[]> builtInAssets() throws IOException {
         Map<String, byte[]> result = new LinkedHashMap<>();
+        result.put("scene.cabin.multimodal.assist.v1.json", readAsset(
+                "scenarios/scene.cabin.multimodal.assist.v1.json"));
         result.put("scene.comfort.cold.v1.json", readAsset(
                 "scenarios/scene.comfort.cold.v1.json"));
         result.put("scene.fatigue.assist.v1.json", readAsset(

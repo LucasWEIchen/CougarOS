@@ -27,16 +27,22 @@ public final class ScenarioManifestParserTest {
     private static final Path ASSETS = Path.of("src/main/assets/scenarios");
 
     @Test
-    public void loadsThreeVersionedBuiltInScenariosWithStableDigests() throws Exception {
+    public void loadsFourVersionedBuiltInScenariosWithStableDigests() throws Exception {
         ScenarioCatalog catalog = ScenarioCatalog.load(builtInAssets());
 
-        assertEquals(3, catalog.size());
+        assertEquals(4, catalog.size());
         assertTrue(catalog.disabled().isEmpty());
         assertTrue(catalog.getCatalogDigest().matches("[0-9a-f]{64}"));
         assertEquals(
                 RiskClass.MEDIUM,
                 catalog.require("scene.comfort.cold.v1").getRiskClass());
         ScenarioManifest fatigue = catalog.require("scene.fatigue.assist.v1");
+        ScenarioManifest multimodal =
+                catalog.require("scene.cabin.multimodal.assist.v1");
+        assertEquals(RiskClass.LOW, multimodal.getRiskClass());
+        assertTrue(multimodal.getRequiredCapabilities().stream()
+                .anyMatch(capability -> "vehicle.hvac.fan_level".equals(
+                        capability.getCanonicalId())));
         assertEquals(RiskClass.HIGH, fatigue.getRiskClass());
         assertTrue(fatigue.getPlanTemplate().getNodes().stream()
                 .anyMatch(node -> "vehicle.seat.recline".equals(
@@ -166,6 +172,8 @@ public final class ScenarioManifestParserTest {
 
     private static Map<String, byte[]> builtInAssets() throws IOException {
         Map<String, byte[]> result = new LinkedHashMap<>();
+        result.put("scene.cabin.multimodal.assist.v1.json",
+                asset("scene.cabin.multimodal.assist.v1.json"));
         result.put("scene.comfort.cold.v1.json", asset("scene.comfort.cold.v1.json"));
         result.put("scene.fatigue.assist.v1.json", asset("scene.fatigue.assist.v1.json"));
         result.put("scene.rest.nap.v1.json", asset("scene.rest.nap.v1.json"));

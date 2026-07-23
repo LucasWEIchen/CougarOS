@@ -156,6 +156,9 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
                     decisionEvidence.getModelProviderId(),
                     decisionEvidence.getAssistantDisplayText(),
                     decisionEvidence.getModelLatencyMs(),
+                    decisionEvidence.getInputAggregateDigest(),
+                    decisionEvidence.isImageConsumed(),
+                    decisionEvidence.getAdmittedActions(),
                     decisionEvidence.getModelOutputDigest(),
                     System.currentTimeMillis());
         }
@@ -183,6 +186,12 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         }
         if (!actions.contains("navigation.find_rest_area")) {
             unavailable.add(CapabilityId.NAVIGATION_POI);
+        }
+        if (scenario == ScenarioKind.CABIN_MULTIMODAL) {
+            unavailable.clear();
+            if (!actions.contains("media.pause")) {
+                unavailable.add(CapabilityId.MEDIA_PLAYBACK);
+            }
         }
         return unavailable;
     }
@@ -500,6 +509,9 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
         if ("scene.fatigue.assist.v1".equals(scenarioId)) {
             return ScenarioKind.FATIGUE;
         }
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
+            return ScenarioKind.CABIN_MULTIMODAL;
+        }
         return null;
     }
 
@@ -536,6 +548,7 @@ final class DebugSimulatedOrchestrationBackend implements OrchestrationBackend {
             for (String name : new String[] {
                     "scene.comfort.cold.v1.json",
                     "scene.fatigue.assist.v1.json",
+                    "scene.cabin.multimodal.assist.v1.json",
                     "scene.rest.nap.v1.json"
             }) {
                 assets.put(name, readAsset(context, "scenarios/" + name));

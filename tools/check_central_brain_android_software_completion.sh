@@ -16,9 +16,9 @@ import sys
 
 contract = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 root = pathlib.Path(sys.argv[2])
-assert contract["schema_version"] == 2
-assert contract["profile_id"] == "android13-repository-software-completion-v2"
-assert contract["maturity"] == "repository_software_reopened_new_hmi_requirement"
+assert contract["schema_version"] == 3
+assert contract["profile_id"] == "android13-repository-software-completion-v3"
+assert contract["maturity"] == "repository_software_complete_external_production_blocked"
 assert len(contract["requirement_ids"]) == len(set(contract["requirement_ids"]))
 assert contract["classification"]["unclassified_repository_requirements"] == []
 assert contract["phase_state"] == {
@@ -26,7 +26,7 @@ assert contract["phase_state"] == {
     "S2-P1": "SOFTWARE_COMPLETE",
     "S2-P2": "SOFTWARE_COMPLETE",
     "S2-P3": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
-    "S2-P4": "SOFTWARE_REOPENED_P4_R4",
+    "S2-P4": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P5": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P6": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P7": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
@@ -34,12 +34,11 @@ assert contract["phase_state"] == {
     "S2-P9": "SOFTWARE_INTERFACE_COMPLETE_EXTERNAL_QUALIFICATION_BLOCKED",
 }
 claims = contract["claim_state"]
-assert contract["classification"]["software_open"] == [
-    "p4_r4_multimodal_model_io_live_hmi"]
+assert contract["classification"]["software_open"] == []
 assert {"S2-HMI-007", "S2-HMI-008", "S2-MDL-002", "S2-OBS-002"}.issubset(
     contract["requirement_ids"])
-assert claims["repository_software_requirements_complete"] is False
-assert claims["open_repository_software_requirement_count"] == 1
+assert claims["repository_software_requirements_complete"] is True
+assert claims["open_repository_software_requirement_count"] == 0
 assert claims["unclassified_repository_requirement_count"] == 0
 assert claims["security_requirement_suspended"] is True
 for key in (
@@ -48,11 +47,11 @@ for key in (
     "hardware_accessed", "production_ready", "target_hardware_validated",
 ):
     assert claims[key] is False
-assert claims["implementation_stage"] == "P4-R4-REQUIREMENT"
+assert claims["implementation_stage"] == "P10-R1-P4-R4-COMPLETE"
 assert contract["validation"]["p4_r4_requirement_gate"] is True
-assert contract["validation"]["p4_r4_implementation"] is False
+assert contract["validation"]["p4_r4_implementation"] is True
 assert contract["validation"]["android13_x86_64_client2_e2e"] is True
-assert contract["validation"]["android13_arm64_completion_retest"] is False
+assert contract["validation"]["android13_arm64_completion_retest"] is True
 
 readme = (root / "README.md").read_text(encoding="utf-8")
 remaining = readme.split("### 未开发或外部阻塞", 1)[1].split("\n## ", 1)[0]
@@ -108,8 +107,8 @@ bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 printf '%s\n' \
   'Central Brain Android repository software completion state check passed' \
-  'repository_software_requirements_complete=false' \
-  'open_repository_software_requirement_count=1' \
+  'repository_software_requirements_complete=true' \
+  'open_repository_software_requirement_count=0' \
   'unclassified_repository_requirement_count=0' \
   'external_activation_requirements_classified=true' \
   'security_requirement_suspended=true' \
@@ -118,4 +117,4 @@ printf '%s\n' \
   'hardware_accessed=false' \
   'production_ready=false' \
   'target_hardware_validated=false' \
-  'implementation_stage=P4-R4-REQUIREMENT'
+  'implementation_stage=P10-R1-P4-R4-COMPLETE'

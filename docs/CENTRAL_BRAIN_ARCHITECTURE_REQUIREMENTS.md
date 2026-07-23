@@ -664,7 +664,7 @@ NPU、Driver/HAL 或目标硬件资格。
 8. JVM/API 33 ARM64 probe 必须覆盖三项 catalog、schema/digest、unknown/oversize/duplicate/cycle/isolation；
    P2-W05 不接 Resolver/Compiler/Graph/Effect/production Service，不访问 Vehicle/VHAL/NPU/Driver-HAL。
 
-状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=4`、
 `scenario_manifest_android13_arm64_verified=true`、`scenario_manifest_artifact_crypto_verified=false`、
 `scenario_catalog_production_trusted=false`、`scenario_runtime_wired=false`、
 `scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、`hardware_accessed=false`。
@@ -3158,3 +3158,16 @@ tracking：`DEV-128/ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。
 `wsl_openclaw_ollama_multimodal_verified=true`、`frontend_multimodal_ingress_bound=false`、
 `android13_arm64_multimodal_verified=false`、`production_ready=false`、`target_hardware_validated=false`。
 tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。
+
+## P4-R4 implementation conformance update
+
+2026-07-24 已实现版本化 FD 图片输入、文字/图片 aggregate digest、owner/session/scenario 绑定、
+模型图片消费证明、回复与 admitted action 投影、Client2 缩略图/居中预览/图外或 Back 退出，以及
+`hvac.ventilate`/`media.pause` 到模拟 Effect 的白名单映射。非 PARKED 驾驶态拒绝大图。
+
+当前开发输入是 APK 内固定摘要的受控座舱帧，它确实进入 OpenClaw/Ollama 请求，不是用 fixture
+冒充 UI 结果；但它也不是实时摄像头。Android 13 ARM64 实测确认 `imageConsumed=true`、
+Graph/Effect/Readback 完成和风量 1->3 动画。`repository_software_requirements_complete=true`，
+而 `live_camera_ingress_verified=false`、`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。详设：
+[CENTRAL_BRAIN_CLIENT2_MULTIMODAL_CONTROL_LOOP.md](CENTRAL_BRAIN_CLIENT2_MULTIMODAL_CONTROL_LOOP.md)。

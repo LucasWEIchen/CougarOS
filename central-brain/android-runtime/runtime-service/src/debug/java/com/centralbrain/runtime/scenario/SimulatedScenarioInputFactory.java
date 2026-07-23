@@ -36,7 +36,8 @@ import java.util.function.Supplier;
 public final class SimulatedScenarioInputFactory {
     public enum ScenarioKind {
         COLD("scene.comfort.cold.v1"),
-        FATIGUE("scene.fatigue.assist.v1");
+        FATIGUE("scene.fatigue.assist.v1"),
+        CABIN_MULTIMODAL("scene.cabin.multimodal.assist.v1");
 
         private final String scenarioId;
 
@@ -173,7 +174,7 @@ public final class SimulatedScenarioInputFactory {
                 || deadlineEpochMs - nowEpochMs > PlanContract.MAX_PLAN_DEADLINE_MS) {
             throw violation("clock is invalid");
         }
-        ContextFieldPolicy policy = requiredScenario == ScenarioKind.COLD
+        ContextFieldPolicy policy = requiredScenario != ScenarioKind.FATIGUE
                 ? ContextFieldPolicy.seatComfort() : ContextFieldPolicy.seatRecline();
         ContextSnapshot context = context(policy, requiredDriving, nowEpochMs, nowElapsedMs);
         CapabilitySnapshot capabilities = CapabilitySnapshot.capture(

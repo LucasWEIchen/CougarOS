@@ -77,14 +77,39 @@ public final class CockpitModelPrompt {
                             "navigation.find_rest_area"),
                     Set.of("seat.recline", "hvac.ventilate"));
         }
+        if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
+            return forMultimodal(inputDigest, "处理一下");
+        }
         throw new IllegalArgumentException(
                 "CB_COCKPIT_MODEL_PROMPT: scenario is not allowlisted");
+    }
+
+    public static CockpitModelPrompt forMultimodal(
+            String inputDigest, String inputText) {
+        return new CockpitModelPrompt(
+                inputDigest,
+                "scene.cabin.multimodal.assist.v1",
+                inputText,
+                context(
+                        "CABIN_VISIBLE_FRAME",
+                        "UNKNOWN_RESTRICTED",
+                        "ANDROID_HMI_IMAGE_AND_TEXT",
+                        "22.0_CELSIUS",
+                        "26.5_CELSIUS",
+                        "NOT_OBSERVED",
+                        "HVAC,MEDIA")
+                        + ";image_present=true"
+                        + ";image_scope=VISIBLE_CABIN_FACTS_ONLY"
+                        + ";privacy_policy=NO_IDENTITY_OR_SENSITIVE_ATTRIBUTE_INFERENCE",
+                List.of("hvac.ventilate", "media.pause"),
+                Set.of("hvac.ventilate"));
     }
 
     public String systemInstruction() {
         return "你是运行在汽车座舱中的AIOS场景规划器，首要目标是服务驾驶员的舒适、清醒和行车任务。"
                 + "你只提出候选动作，不能授权Safety或Effect，也不能声称真实车辆已经执行。"
                 + "当前末端反馈仅为UI仿真，安全接口仅保留合同。"
+                + "处理图片时只描述画面中直接可见的座舱事实，不识别人身份，不推断敏感属性。"
                 + "只输出一个JSON对象，不输出Markdown、代码围栏或解释。";
     }
 

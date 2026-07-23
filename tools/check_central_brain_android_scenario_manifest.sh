@@ -31,6 +31,7 @@ for class in ScenarioManifest ScenarioManifestParser ScenarioCatalog; do
 done
 for path in \
     "$ASSET_DIR/scene.comfort.cold.v1.json" \
+    "$ASSET_DIR/scene.cabin.multimodal.assist.v1.json" \
     "$ASSET_DIR/scene.fatigue.assist.v1.json" \
     "$ASSET_DIR/scene.rest.nap.v1.json" \
     "$ASSET_DIR/schema/scenario-manifest-v1.schema.json" \
@@ -53,7 +54,7 @@ require_text "$SCENARIO_DIR/ScenarioCatalog.java" 'isArtifactCryptographicallyVe
 require_text "$SCENARIO_DIR/ScenarioCatalog.java" 'isProductionTrusted()'
 
 for test_name in \
-  loadsThreeVersionedBuiltInScenariosWithStableDigests \
+  loadsFourVersionedBuiltInScenariosWithStableDigests \
   rejectsUnknownAndDuplicateFieldsUnderStrictPolicy \
   rejectsOversizeAndTrailingJson \
   duplicateScenarioIdsDisableAllCopiesWithoutAffectingOthers \
@@ -80,7 +81,7 @@ for marker in \
   require_text "$INSTALLER" "$marker"
 done
 require_text "$PROBE" 'scenario_catalog_count=" + catalog.size()'
-require_text "$INSTALLER" 'scenario_catalog_count=3'
+require_text "$INSTALLER" 'scenario_catalog_count=4'
 for marker in \
   scenario_manifest_artifact_crypto_verified=false \
   scenario_catalog_production_trusted=false \
@@ -107,6 +108,7 @@ required_root = {
     "optionalCapabilities", "riskClass", "planTemplate", "fallback", "ui",
 }
 expected_ids = {
+    "scene.cabin.multimodal.assist.v1",
     "scene.comfort.cold.v1",
     "scene.fatigue.assist.v1",
     "scene.rest.nap.v1",
@@ -134,7 +136,7 @@ for path in sorted(asset_dir.glob("scene.*.json")):
     documents.append(document)
 
 ids = {document["scenarioId"] for document in documents}
-if ids != expected_ids or len(documents) != 3:
+if ids != expected_ids or len(documents) != 4:
     raise SystemExit(f"Unexpected built-in Scenario catalog: {ids}")
 
 fatigue = next(value for value in documents if value["scenarioId"] == "scene.fatigue.assist.v1")
@@ -186,7 +188,7 @@ require_text "docs/CENTRAL_BRAIN_ROADMAP.md" "P2-W05 Scenario manifest/schema"
 printf '%s\n' \
   "Central Brain Android Scenario manifest check passed" \
   "scenario_manifest_schema_version=1" \
-  "scenario_catalog_count=3" \
+  "scenario_catalog_count=4" \
   "scenario_manifest_strict_parser_verified=true" \
   "scenario_manifest_artifact_crypto_verified=false" \
   "scenario_catalog_production_trusted=false" \

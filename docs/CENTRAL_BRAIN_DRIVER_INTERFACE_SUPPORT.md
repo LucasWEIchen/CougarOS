@@ -658,7 +658,7 @@ Android 13/API 33 ARM64 probe 只从本 APK `assets/scenarios` 读取三份 buil
 不映射 DMA/IOMMU、不接 Safety Runtime，也不 dispatch Effect。Manifest 中 AAOS/vehicle capability 名称是
 内部语义引用，不是 property discovery 或 hardware authorization。
 
-状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=3`、
+状态：`scenario_manifest_schema_version=1`、`scenario_catalog_count=4`、
 `scenario_manifest_artifact_crypto_verified=false`、`scenario_catalog_production_trusted=false`、
 `scenario_runtime_wired=false`、`scenario_graph_execution_enabled=false`、`effect_dispatch_enabled=false`、
 `hardware_accessed=false`、`driver_development_triggered=false`、
@@ -2136,3 +2136,14 @@ ABI/owner 时，才能另行登记最小 Driver/HAL gap；P4-R4 本身不触发�
 `vehicle_bus_accessed=false`、`model_io_hmi_implemented=false`、
 `repository_software_requirements_complete=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-128/ISSUE-055/056`；stage `P4-R4-REQUIREMENT`。
+
+## P4-R4 implementation Driver/HAL disposition
+
+本增量只新增 Android debug AIDL 和应用/Runtime 进程间 FD 传输，没有修改芯片厂商 SDK、内核、
+HAL 或已刷机系统软件。2.2 MiB 图片不进入 Binder transaction；`ParcelFileDescriptor` 由 Client2
+写端和 Runtime 读端有界传输。真实 camera source 仍没有 OEM 接口，因此没有猜测 camera HAL。
+
+`driver_hal_development_required=false`、`driver_hal_accessed=false`、
+`live_camera_ingress_verified=false`、`vehicle_bus_accessed=false`、`direct_npu_accessed=false`。
+后续只有在 OEM 提供 camera/vehicle ABI、权限和 owner 后才登记最小适配量。
+tracking：`DEV-129/ISSUE-055`；stage `P4-R4-IMPLEMENTED-ARM64`。

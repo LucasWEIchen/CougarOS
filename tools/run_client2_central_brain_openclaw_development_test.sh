@@ -19,6 +19,9 @@ case "$SCENARIO" in
   fatigue)
     scenario_button="centralBrainTiredButton"
     ;;
+  multimodal)
+    scenario_button="centralBrainMultimodalButton"
+    ;;
   *)
     echo "client2_openclaw_development_test_complete=false reason=INVALID_SCENARIO" >&2
     exit 2
@@ -130,7 +133,8 @@ tap_resource "$scenario_button" \
 
 for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
   logs="$("${adb[@]}" logcat -d -v brief \
-    -s CentralBrainOpenClaw:I CbClient2Orchestration:I '*:S' | tr -d '\r')"
+    -s CentralBrainOpenClaw:I CbClient2Orchestration:I CbDevModelProjection:I '*:S' \
+    | tr -d '\r')"
   if printf '%s\n' "$logs" | grep -Eq \
       'client2_orchestration_command_failed=true|openclaw_inference_failed=true'; then
     printf '%s\n' "$logs" | grep -E \
@@ -148,6 +152,18 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
         || ! printf '%s\n' "$ui" | grep -q 'VEHICLE BUS NOT ACCESSED'; then
       echo "client2_openclaw_development_test_complete=false reason=HMI_FEEDBACK_INCOMPLETE" >&2
       exit 12
+    fi
+    if [[ "$SCENARIO" == "multimodal" ]]; then
+      if ! { printf '%s\n' "$logs" | grep -Eq \
+              'openclaw_inference_started=true .*image_present=true image_bytes=2244206 image_sha256=93441797b96c512a7b87905e4d326fbacdbf3a80e4d336d018a41224a0cd8438' \
+            || printf '%s\n' "$logs" | grep -Eq \
+              'development_model_projection_read=true .*projection_available=true image_consumed=true'; } \
+          || ! printf '%s\n' "$ui" | grep -q 'MODEL OUTPUT / IMAGE_CONSUMED' \
+          || ! printf '%s\n' "$ui" | grep -q 'AGENT ACTIONS / ALLOWLISTED' \
+          || ! printf '%s\n' "$ui" | grep -q 'MODEL INPUT / BOUND'; then
+        echo "client2_openclaw_development_test_complete=false reason=MULTIMODAL_PROOF_INCOMPLETE" >&2
+        exit 14
+      fi
     fi
     printf '%s\n' "$logs" | grep -E \
       'openclaw_(protocol_stage|inference_(started|completed))=|client2_orchestration_snapshot_projected=true'
