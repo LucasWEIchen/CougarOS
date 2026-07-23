@@ -2992,3 +2992,9 @@ Driver/HAL、量产媒体 retention/cleanup。`wsl_openclaw_ollama_multimodal_ve
 `direct_npu_accessed=false`、`production_ready=false`、`target_hardware_validated=false`；Req IDs：
 `S2-MDL-001/002`、`S2-OBS-001/002`、`S2-SAF-001`、`XSC-001/005/006`、`DEL-001/003/004/005`；
 tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。
+
+目标接口交付同步刷新 `CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`、
+`CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md` 和 target contract v3，只描述 Android 车机通过以太网访问
+`169.254.208.110:18789`。文档覆盖文字、图片及同一 `chat.send` 混合输入；仍明确
+`target_multimodal_frontend_bound=false`、`target_multimodal_verified=false`、
+`production_media_retention_configured=false`。

@@ -1,121 +1,161 @@
-# Central Brain OpenClaw 接口代码详解
+# Central Brain Android 车机直连 OpenClaw 接口详解
 
-## 1. 文档目的
+## 1. 文档范围
 
-本文面向维护 Central Brain Android 13 工程的开发人员，逐层说明 APK 如何访问目标 OpenClaw、代码中的
-接口约束、数据结构、调用顺序、失败处理和 UI 投影路径。本文描述当前仓库实现，不把历史验证或 UI 动画
-解释为量产资格、直接 NPU 访问或真实车辆控制。
+本文只描述目标车机在生产网络拓扑下，通过 Android 硬件以太网直接访问外部 OpenClaw 算力单元的接口。
+唯一网络路径是：
 
-适用阶段：`P7-R3-OC2`。
+```text
+Android 13 座舱域控制器
+  -> 车载以太网
+  -> ws://169.254.208.110:18789/
+  -> OpenClaw Gateway
+  -> 目标模型运行时
+```
 
-Req IDs：`S2-MDL-001`、`S2-MDL-002`、`S2-SAF-001`、`S2-OBS-001/002`、
-`XSC-001/005/006`、`DEL-001/003/004/005`。
+本文覆盖：
 
-相关状态：
+- 目标地址、构建 profile 和 WebSocket v3 协议；
+- 文字输入；
+- 单张图片输入；
+- 同一 `chat.send` 中的文字+图片联合输入；
+- 模型回复校验、失败关闭、日志和 Client2 投影；
+- 当前实现边界以及目标端仍需完成的接入工作。
 
-- `openclaw_target_integration_implemented=true`
-- `openclaw_target_android13_arm64_verified=true`：历史成功证据，日期为 2026-07-19
-- `latest_target_connectivity_verified=false`：2026-07-20 复测时 TCP 18789 拒绝连接
+本文不把“生产网络拓扑”解释为“已经取得量产资格”。当前实现仍是
+`target_openclaw_transitional / TARGET_INTEGRATION`：
+
 - `release_routing_enabled=false`
-- `model_action_authority=false`
+- `production_eligible=false`
+- `target_multimodal_protocol_implemented=true`
+- `target_multimodal_frontend_bound=false`
+- `target_multimodal_verified=false`
 - `direct_npu_accessed=false`
 - `vehicle_effect_hardware_accessed=false`
 - `production_ready=false`
 - `target_hardware_validated=false`
 
-## 2. 两类地址的语义
+适用阶段：`P7-R3-OC2`、`P7-R5-MMDEV`。
 
-目标设备对外给出的地址看起来像一个普通网页地址，但代码将它拆成两个用途：
+Req IDs：`S2-MDL-001/002`、`S2-SAF-001`、`S2-OBS-001/002`、
+`XSC-001/005/006`、`DEL-001/003/004/005`。
 
-| 用途 | URI 形态 | 使用方 | 代码行为 |
+## 2. 生产环境网络端点
+
+目标 OpenClaw 暴露两个用途不同的地址：
+
+| 用途 | URI | 调用方 | 说明 |
 | --- | --- | --- | --- |
-| 控制台页面 | `http://169.254.208.110:18789/chat?token=<固化凭据>` | 人工浏览器/诊断 | 仅由 `getControlUiUri()` 表达，推理代码不会向该路径发送 HTTP POST |
-| 模型传输 | `ws://169.254.208.110:18789/` | Android Runtime | RFC6455 Upgrade 后执行 OpenClaw protocol v3 RPC |
+| 人工控制页面 | `http://169.254.208.110:18789/chat?token=<源码固化值>` | 工程人员浏览器 | 仅用于人工页面，不是模型 RPC |
+| 模型 WebSocket | `ws://169.254.208.110:18789/` | Android Runtime | RFC6455 Upgrade 后执行 OpenClaw protocol v3 |
 
-凭据不放在 WebSocket URI 的 query、userinfo 或 HTTP header 中。运行时在收到 `connect.challenge` 后，将凭据
-放入 `connect.params.auth.token`。因此，直接对 `/chat?token=...` 发 HTTP 请求不能替代当前模型调用代码。
+模型调用不得向 `/chat` 发送 HTTP POST，也不得把控制页面当作 OpenAI-compatible REST API。
+WebSocket URI 不携带 query、userinfo 或 fragment。认证值在收到 `connect.challenge` 后放入：
 
-入口实现：
+```text
+connect.params.auth.token
+```
 
-- `central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OpenClawEndpointConfig.java`
-- `central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java`
+目标地址和凭据由
+`central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/OpenClawEndpointConfig.java`
+固定。调用方不能传入其他 host、port、path 或 token。
 
-当前凭据按维护者指令固化在 `OpenClawEndpointConfig.TARGET_TOKEN`。本文不复制其明文；源码常量和机器合同
-是唯一事实来源。该值会进入 Git、编译产物和已安装 APK，可被提取，不属于安全凭据存储。
+当前关键常量：
 
-## 3. 端到端调用关系
+| 字段 | 值 | 约束 |
+| --- | ---: | --- |
+| `TARGET_HOST` | `169.254.208.110` | 外部算力单元 |
+| `TARGET_PORT` | `18789` | TCP/WebSocket 端口 |
+| `WEBSOCKET_PATH` | `/` | 模型 Upgrade 路径 |
+| `CONTROL_UI_PATH` | `/chat` | 人工页面路径 |
+| `TARGET_PROTOCOL_VERSION` | `3` | `minProtocol=maxProtocol=3` |
+| `CONNECT_TIMEOUT_MS` | `3000` | 同时受请求总 deadline 截断 |
+| `READ_TIMEOUT_MS` | `120000` | 同时受请求总 deadline 截断 |
+| `MAX_HANDSHAKE_BYTES` | `16384` | HTTP Upgrade header |
+| `MAX_PREAUTH_FRAME_BYTES` | `65536` | connect 等普通出站 RPC |
+| `MAX_MULTIMODAL_CHAT_FRAME_BYTES` | `8500000` | 已认证且携带图片的 `chat.send` |
+| `MAX_FRAME_BYTES` | `1048576` | 服务端单条或拼接入站消息 |
+| `MAX_REQUEST_BYTES` | `16384` | 文字 prompt UTF-8 |
+| `MAX_RESPONSE_BYTES` | `65536` | 模型终态文字 UTF-8 |
+
+当前是明文 `ws://`。TLS、服务端证书校验和可轮换凭据尚未进入 release 路径。
+
+## 3. 端到端模块关系
 
 ```mermaid
 sequenceDiagram
-    participant U as "驾驶员 / Client2"
-    participant C as "OrchestrationRuntimeClient"
-    participant B as "Orchestration Binder"
-    participant D as "DebugDecisionCompositionBoundary"
-    participant R as "PolicyAwareModelRouter"
-    participant P as "LocalModelProvider"
+    participant V as "语音转写模块"
+    participant C as "座舱图片来源"
+    participant A as "Android 应用输入编排"
+    participant B as "Central Brain SDK / Binder"
+    participant D as "Decision Composition"
     participant E as "OpenClawInferenceEngine"
+    participant N as "车载以太网"
     participant O as "OpenClaw Gateway"
-    participant X as "DevelopmentModelProjection Binder"
+    participant M as "目标多模态模型"
+    participant H as "Client2 HMI"
 
-    U->>C: 触发固定场景
-    C->>B: start / observe session
-    B->>D: owner + session + scenario + request digest
-    D->>R: ModelRequest + PolicySnapshot + RegistrySnapshot
-    R-->>D: external.openclaw.transitional
-    D->>E: registerScenarioPrompt(inputDigest, scenarioId)
-    D->>P: infer(InferenceRequest)
-    P->>E: infer(modelSpec, request, cancellation)
-    E->>O: TCP + WebSocket Upgrade
-    O-->>E: connect.challenge
-    E->>O: connect(protocol 3, auth token)
-    O-->>E: connect response
-    E->>O: chat.send(sessionKey, message, idempotencyKey)
-    O-->>E: ACK + chat delta/final
-    E-->>P: canonical JSON bytes
-    P-->>D: output chunk + output digest
-    D->>X: publish owner/session-scoped projection
-    C->>X: getOwnProjection(sessionId)
-    X-->>C: reply/provider/latency/digests
-    C-->>U: 文本回复、调用链和仿真动画
+    V->>A: transcript
+    C->>A: PNG/JPEG frame
+    A->>B: scenario + text digest + image metadata
+    B->>D: owner/session-bound request
+    D->>E: registerScenarioPrompt
+    D->>E: registerScenarioImageAttachment
+    D->>E: infer
+    E->>N: TCP + WebSocket v3
+    N->>O: connect/auth
+    E->>O: chat.send(message + attachments)
+    O->>M: text + image
+    M-->>O: structured candidate reply
+    O-->>E: ACK + delta/final
+    E-->>D: canonical scenario/reply/actions
+    D-->>H: owner/session-bound projection
 ```
 
-重要边界：Client2 不直接访问 OpenClaw。网络调用只能从 Runtime 的 debug 模型引擎发起；Client2 只消费经过
-Runtime 校验的会话投影。
+当前完成度必须分开理解：
+
+| 接口段 | 当前状态 |
+| --- | --- |
+| Android Runtime -> 目标 WebSocket | 已实现 |
+| 文字 `message` -> `chat.send` | 已实现；存在历史目标证据 |
+| 图片 `attachments[0]` -> `chat.send` | 已实现、JVM 合同已验证 |
+| 文字和图片同一 RPC | 已实现、JVM 合同已验证 |
+| 前端语音转写+相机帧 -> SDK/Binder | 未绑定，`ISSUE-055` |
+| 目标车机以太网多模态终态 | 未验收 |
+| release source set | 未发布 |
+
+Client2 不直接打开 OpenClaw socket。所有模型网络访问必须经过 Runtime、Provider、输出校验和会话投影。
 
 ## 4. 源码模块映射
 
 | 层级 | 文件或类型 | 责任 |
 | --- | --- | --- |
-| Build profile | `runtime-service/build.gradle.kts` | 将 Gradle 属性映射为 `BuildConfig`，确保 OpenClaw 与 WSL Ollama 路由互斥 |
-| Endpoint | `OpenClawEndpointConfig` | 固定 host、port、路径、协议、凭据和容量/超时上限 |
-| Prompt | `CockpitModelPrompt` | 固定场景语句、座舱上下文、动作白名单和必选动作 |
-| Provider profile | `ModelProviderProfiles` | 声明 `OPENCLAW_GATEWAY`、`TARGET_INTEGRATION`、非硬件、非量产 |
-| Provider registry | `ModelProviderRegistry` | 注册 provider，并只接受绑定健康源 `TARGET_OPENCLAW_RUNTIME` |
-| Router | `PolicyAwareModelRouter` | 仅在 `TARGET_INTEGRATION` 模式选择 OpenClaw；不授予动作或 Effect 权限 |
-| Provider lifecycle | `LocalModelProvider` | warmup、异步 infer、deadline/cancel、chunk、terminal、metrics |
-| Protocol engine | `OpenClawInferenceEngine` | Prompt 注册、WebSocket v3、RPC、流式回复、严格输出校验、故障码 |
-| Composition | `DebugDecisionCompositionBoundary` | Context/Trigger/Consent/Router/Provider 的集成入口 |
-| Target probe | `OpenClawTargetIntegrationProbeActivity` | DUMP-protected 的端到端元数据探针 |
-| Projection store | `DevelopmentModelProjectionStore` | 最多 16 条、进程内、owner 绑定、不落库 |
-| Projection Binder | `ICentralBrainDevelopmentModelProjection` | debug-only AIDL，按 session 读取调用方自己的投影 |
-| SDK client | `DevelopmentModelProjectionClient` | Binder 协议协商、死亡监听、投影合同复验 |
-| Client2 bridge | `OrchestrationRuntimeClient` | 读取投影并交给 `CockpitHmiReducer`，不拥有模型网络接口 |
-| Machine contract | `central_brain_android_openclaw_target_gateway_v1.json` | 固化 profile、协议、历史证据、最新复测和 false claims |
-| Static gate | `check_central_brain_android_openclaw_target_gateway.sh` | 验证关键代码、合同和文档没有漂移 |
+| Build profile | `runtime-service/build.gradle.kts` | 生成固定 target profile |
+| Endpoint | `OpenClawEndpointConfig` | 固定目标 URI、协议、凭据和容量 |
+| Prompt | `CockpitModelPrompt` | 座舱角色、场景、动作白名单 |
+| Provider | `ModelProviderProfiles` / `LocalModelProvider` | 生命周期、deadline、cancel、metrics |
+| Registry/Router | `ModelProviderRegistry` / `PolicyAwareModelRouter` | 只选择 `TARGET_INTEGRATION` provider |
+| Protocol engine | `OpenClawInferenceEngine` | WebSocket、文字/图片、RPC、输出校验 |
+| Composition | `DebugDecisionCompositionBoundary` | Context、Trigger、Policy、Provider 集成 |
+| Target probe | `OpenClawTargetIntegrationProbeActivity` | 目标链路元数据探针 |
+| Projection | `DevelopmentModelProjectionStore` / Binder | owner/session-bound 回复投影 |
+| Client2 | `OrchestrationRuntimeClient` | 读取投影，不持有网络凭据 |
+| Machine contract | `central_brain_android_openclaw_target_gateway_v1.json` | 固化目标接口和 false claims |
+| Static gate | `check_central_brain_android_openclaw_target_gateway.sh` | 检查代码、合同和本文一致 |
 
-## 5. 构建期开关
+`OpenClawInferenceEngine` 当前位于 `src/debug`，因此目标集成 profile 可运行，但 release source set
+尚未发布同等 engine。这是发布边界，不改变本文定义的生产网络接口形态。
 
-### 5.1 Gradle 属性
+## 5. 目标构建 profile
 
-`runtime-service/build.gradle.kts` 读取：
+构建目标 OpenClaw profile：
 
-```kotlin
-val targetOpenClaw = providers.gradleProperty("centralBrainTargetOpenClaw")
-    .map { it.equals("true", ignoreCase = true) }
-    .getOrElse(false)
+```bash
+CENTRAL_BRAIN_TARGET_OPENCLAW=true \
+  tools/build_central_brain_android_runtime.sh
 ```
 
-当值为 `true` 时，debug 构建生成以下语义：
+对应 BuildConfig 语义：
 
 ```text
 MODEL_GATEWAY_PROFILE=target_openclaw_transitional
@@ -126,51 +166,10 @@ OPENCLAW_PROTOCOL_VERSION=3
 OLLAMA_DEVELOPMENT_ENABLED=false
 ```
 
-不传该属性时，debug 构建选择 `development_wsl_ollama`。release 虽保留 endpoint 合同，但
-`OPENCLAW_TARGET_ROUTING_ENABLED=false`，且协议引擎只存在于 `src/debug`，所以 release 不能执行该调用。
+`DebugDecisionCompositionBoundary.resolveNetworkMode()` 交叉检查 profile、URI、协议和路由开关。
+任一字段不一致都会抛出 `target OpenClaw build configuration is invalid`，禁止隐式 fallback。
 
-仓库脚本将环境变量转换为 Gradle 参数：
-
-```bash
-CENTRAL_BRAIN_TARGET_OPENCLAW=true tools/build_central_brain_android_runtime.sh
-```
-
-### 5.2 运行时一致性检查
-
-`DebugDecisionCompositionBoundary.resolveNetworkMode()` 同时检查 profile、URI、协议、Ollama 开关和 OpenClaw
-路由开关。任一字段不一致会抛出 `target OpenClaw build configuration is invalid`，不做隐式回退。
-
-## 6. Endpoint 配置合同
-
-`OpenClawEndpointConfig` 不接受构造参数，也不允许调用方覆盖地址。`targetProductionTransitional()` 每次创建并
-验证固定配置。
-
-| 字段 | 当前值 | 作用 |
-| --- | ---: | --- |
-| `TARGET_HOST` | `169.254.208.110` | 目标计算单元 link-local 地址 |
-| `TARGET_PORT` | `18789` | TCP/WebSocket 监听端口 |
-| `WEBSOCKET_PATH` | `/` | 模型协议 Upgrade 路径 |
-| `CONTROL_UI_PATH` | `/chat` | 人工控制台路径，不用于模型 RPC |
-| `PROTOCOL_VERSION` | `3` | connect 的最小/最大协议均固定为 3 |
-| `CONNECT_TIMEOUT_MS` | `3000` | TCP connect 上限，并受请求总 deadline 截断 |
-| `READ_TIMEOUT_MS` | `120000` | 单次 socket read 上限，并受请求总 deadline 截断 |
-| `MAX_HANDSHAKE_BYTES` | `16384` | HTTP Upgrade header 上限 |
-| `MAX_PREAUTH_FRAME_BYTES` | `65536` | 客户端发出 JSON frame 上限 |
-| `MAX_FRAME_BYTES` | `1048576` | 服务端单条或拼接消息上限 |
-| `MAX_REQUEST_BYTES` | `16384` | 模型 prompt UTF-8 上限 |
-| `MAX_RESPONSE_BYTES` | `65536` | 最终模型文本 UTF-8 上限 |
-
-`validate()` 还要求 WebSocket URI 没有 userinfo/query/fragment，控制台 URI 没有 fragment。由此禁止通过调用方输入
-切换任意 endpoint。
-
-Android manifest 声明 `android.permission.INTERNET`。`network_security_config.xml` 只为固定目标主机放行明文；
-debug overlay 额外放行 `127.0.0.1`，用于 WSL Ollama。当前 OpenClaw 是 `ws://`，不是 TLS `wss://`。
-
-## 7. Provider 注册和路由
-
-### 7.1 Provider 描述
-
-`ModelProviderProfiles.targetOpenClawTransitional()` 的关键属性是：
+Provider 固定属性：
 
 ```text
 providerId=external.openclaw.transitional
@@ -181,139 +180,147 @@ hardwareBacked=false
 productionEligible=false
 ```
 
-`LocalModelProvider` 构造时再次断言 OpenClaw 只能使用 `TARGET_INTEGRATION` assurance，且必须保持
-`FallbackClass.NEVER`、`hardwareBacked=false`、`productionEligible=false`。
-
-### 7.2 健康状态和路由
-
-`DebugDecisionCompositionBoundary.invokeModel()` 先用 `TARGET_OPENCLAW_RUNTIME` 发布有时效的健康报告，再构造：
+模型输出只形成候选结果：
 
 ```text
-purpose=SCENARIO_REASONING
-privacyClass=INTERNAL
-requiredCapability=TEXT_GENERATION
-fallbackPolicy=NO_FALLBACK
-tokenBudget=128 input + 128 output, 256 total
-latencyBudget=120000 ms
+actionAuthorizationGranted=false
+effectDispatchRequested=false
 ```
 
-随后调用 `PolicyAwareModelRouter.decide()`。`TARGET_INTEGRATION` 模式优先且只允许目标集成可用的 OpenClaw
-profile；route 必须满足：
+## 6. 文字与图片输入合同
 
-- `DecisionCode.SELECTED`
-- primary provider 是 `external.openclaw.transitional`
-- `actionAuthorizationGranted=false`
-- `effectDispatchRequested=false`
+### 6.1 文字输入
 
-任何条件不满足都会失败关闭。`PRODUCTION` 路由没有把该 provider 当作候选量产实现。
+语音模块先在车机侧产生文字转写。OpenClaw 接口当前不发送原始 PCM、AAC 或其他音频字节。
+Runtime 使用 `CockpitModelPrompt` 把以下内容合成为 `chat.send.params.message`：
 
-## 8. Prompt 构造
+- 用户文字；
+- 场景 ID；
+- 汽车座舱系统指令；
+- 驾驶员服务目标；
+- 受控 Context；
+- 允许动作；
+- 必选动作；
+- 精确 JSON 输出 schema。
 
-### 8.1 注册与摘要绑定
+文字 UTF-8 最大 16 KiB。
 
-调用 Provider 前，组合层执行：
+### 6.2 图片输入
+
+模型网关图片入口：
+
+```java
+registerScenarioImageAttachment(
+    String inputDigest,
+    String mimeType,
+    String fileName,
+    byte[] content)
+```
+
+当前约束：
+
+| 项目 | 约束 |
+| --- | --- |
+| 每个请求图片数 | 最多 1 张 |
+| MIME | `image/png` 或 `image/jpeg` |
+| 单图大小 | 1..6 MiB |
+| 待处理图片总量 | 最大 12 MiB |
+| 文件名 | `[A-Za-z0-9][A-Za-z0-9._-]{0,95}` |
+| 内容校验 | MIME 必须与 PNG/JPEG 魔数一致 |
+| 内存所有权 | 注册时复制 `byte[]` |
+| 完整性 | 计算 SHA-256 |
+| 重复注册 | MIME、文件名、SHA-256、长度全部相同才幂等 |
+
+图片以 `inputDigest` 为 key，与同一场景 prompt 一起被 `infer()` 取出。当前 `inputDigest`
+本身尚未强制包含图片 SHA-256；前端媒体 DTO、组合摘要和 history 绑定由 `ISSUE-055` 继续收口。
+
+### 6.3 文字和图片必须属于同一请求
+
+调用顺序：
 
 ```java
 openClawEngine.registerScenarioPrompt(inputDigest, scenarioId);
+openClawEngine.registerScenarioImageAttachment(
+        inputDigest,
+        "image/jpeg",
+        "cabin-frame.jpg",
+        imageBytes);
+modelProvider.infer(inferenceRequest);
 ```
 
-`inputDigest` 必须是 64 位小写 SHA-256。引擎以 digest 为 key 保存最多 16 个待处理 prompt；同一 digest 重复注册
-必须内容完全一致，否则拒绝。`infer()` 使用后立即从 map 删除，防止跨请求重用。
+三个调用必须使用相同的 `inputDigest`。不能先发送文字、再使用另一个 session 单独发送图片。
 
-### 8.2 固定座舱上下文
+### 6.4 图片生命周期
 
-`CockpitModelPrompt` 把模型角色固定为“汽车座舱 AIOS 场景规划器”，并明确：
+Runtime 不把图片放入日志、模型投影或 Client2 状态。完成、失败或关闭后，待处理注册表不再保留该条目。
+但当前实现没有显式清零 JVM `byte[]`，OpenClaw 对大附件也可能使用服务端 managed inbound media。
+量产前必须由媒体生命周期 owner 冻结内存清零、服务端 retention、删除和诊断取证策略。
 
-- 服务驾驶员舒适、清醒和行车任务；
-- 模型只提出候选动作；
-- 模型不能授权 Safety 或 Effect；
-- 模型不能声称车辆已经真实执行；
-- 当前效果是 `UI_SIMULATION_ONLY`；
-- 安全模式是 `INTERFACE_RESERVED`；
-- 只允许返回一个 JSON 对象。
+## 7. 输入摘要和会话绑定
 
-当前场景表：
+核心 `ModelContractV2` 仍是 digest-only：
 
-| Scenario | 用户表达 | 固定上下文摘要 | 允许动作 | 必选动作 |
-| --- | --- | --- | --- | --- |
-| `scene.comfort.cold.v1` | 车里有点冷 | 驾驶席、模拟 17.0 C、设定 26.5 C | `hvac.warm_cabin`, `media.keep_playing` | `hvac.warm_cabin` |
-| `scene.fatigue.assist.v1` | 我有些疲惫 | 驾驶席、模拟 fatigue 0.82 | `seat.recline`, `hvac.ventilate`, `media.pause`, `navigation.find_rest_area` | `seat.recline`, `hvac.ventilate` |
-
-组合后的 prompt 再附加精确字段、reply 长度、动作数量和示例。模型必须输出：
-
-```json
-{
-  "scenario_id": "scene.comfort.cold.v1",
-  "reply": "正在为你调节座舱温度。",
-  "actions": ["hvac.warm_cabin"]
-}
+```text
+requestId
+traceId
+inputDigest
+purpose
+privacyClass
+latencyBudget
+tokenBudget
+requiredCapability
+fallbackPolicy
 ```
 
-## 9. OpenClawInferenceEngine 生命周期
-
-### 9.1 `warmup(ModelSpec)`
-
-这里不加载本地模型，只记录允许的 `ModelSpec`。后续 `infer()` 要求 model ID、version、artifact digest 与 warmup
-完全一致。OpenClaw 当前使用 `central-intent-v0` / `openclaw-ws-v3`，artifact digest 由 endpoint URI 派生。
-
-### 9.2 `infer(...)`
-
-执行顺序：
-
-1. 检查 engine 未关闭且已 warmup。
-2. 按 `inputDigest` 取出并删除 prompt。
-3. 在网络前检查 cancellation 和 deadline。
-4. 构造并验证不超过 16 KiB 的 UTF-8 prompt。
-5. 从 endpoint 读取固化凭据，并生成 session/idempotency 标识。
-6. 调用 `SocketTransport.execute()`。
-7. 检查返回协议仍为 v3。
-8. 严格解析并 canonicalize 模型回复。
-9. 更新计数、耗时和最后故障码，只记录元数据。
-
-会话标识规则：
+OpenClaw 会话标识：
 
 ```text
 sessionKey = agent:main:cougaros- + inputDigest 前 32 字符
 idempotencyKey = UUID.nameUUIDFromBytes(requestId UTF-8)
 ```
 
-因此同一个 `requestId` 会生成稳定 idempotency key；不同输入摘要使用不同 OpenClaw session。
+目标前端合同应将以下字段纳入统一 canonical digest：
 
-## 10. WebSocket 传输实现
+```text
+schema version
+normalized transcript digest
+image SHA-256
+image MIME
+scenario ID
+session ID
+capture timestamp class
+```
 
-### 10.1 TCP 与 HTTP Upgrade
+这项 aggregate digest 尚未进入公开 SDK/Binder，所以当前目标多模态不得声明端到端完成。
 
-`SocketTransport` 使用标准 Java `Socket`，不依赖 vendor SDK、NDK 或第三方 WebSocket 客户端。连接后设置
-`TCP_NODELAY` 和 bounded read timeout，然后发送 RFC6455 Upgrade：
+## 8. WebSocket Upgrade
+
+`SocketTransport` 使用 Java `Socket`，目标请求形态：
 
 ```http
 GET / HTTP/1.1
 Host: 169.254.208.110:18789
 Upgrade: websocket
 Connection: Upgrade
-Sec-WebSocket-Key: <16-byte-random-base64>
+Sec-WebSocket-Key: <random-base64>
 Sec-WebSocket-Version: 13
 Origin: http://169.254.208.110:18789
 ```
 
-客户端要求状态行以 `HTTP/1.1 101` 开头，并按 RFC6455 GUID 计算、校验
-`Sec-WebSocket-Accept`。响应 header 超过 16 KiB、accept 不匹配或连接关闭均失败。
+客户端要求：
 
-### 10.2 帧处理
+- 状态码为 HTTP 101；
+- `Sec-WebSocket-Accept` 与 RFC6455 计算结果一致；
+- header 不超过 16 KiB；
+- 客户端帧使用随机 MASK；
+- 入站帧不得带 MASK；
+- RSV 位为 0；
+- 支持 text、continuation、ping/pong、close；
+- JSON 使用严格 UTF-8。
 
-- 客户端发出的 text/pong frame 总是设置 MASK，并使用 `SecureRandom` 生成 4 字节 mask。
-- 服务端 frame 必须不带 MASK，RSV 位必须为 0。
-- 支持 text、continuation、ping/pong、close；其他非 text 数据 frame 被忽略。
-- control frame 必须 FIN 且不超过 125 bytes。
-- text fragmentation 只接受首帧 opcode `0x1` 和后续 opcode `0x0`。
-- 所有完整 JSON payload 使用严格 UTF-8 decoder；错误字节不做替换。
-- 单帧或拼接消息不能超过 1 MiB。
+## 9. OpenClaw protocol v3 鉴权
 
-## 11. OpenClaw protocol v3 状态机
-
-### 11.1 Challenge
-
-WebSocket 建立后，第一条有效协议消息必须是：
+第一条协议消息必须是：
 
 ```json
 {
@@ -323,17 +330,12 @@ WebSocket 建立后，第一条有效协议消息必须是：
 }
 ```
 
-当前客户端验证 nonce 非空，并把 challenge 作为 connect 顺序门；它不会基于 nonce 计算签名，也不会把 nonce
-回传。这与当前 target gateway 的 token 认证行为一致，但不构成 challenge-response 密码证明。
-
-### 11.2 `connect`
-
-随后发送的结构等价于：
+随后 Runtime 发送：
 
 ```json
 {
   "type": "req",
-  "id": "<random-uuid>",
+  "id": "<uuid>",
   "method": "connect",
   "params": {
     "minProtocol": 3,
@@ -347,106 +349,119 @@ WebSocket 建立后，第一条有效协议消息必须是：
     "role": "operator",
     "scopes": ["operator.read", "operator.write"],
     "caps": [],
-    "auth": {"token": "<固化凭据>"},
+    "auth": {"token": "<源码固化值>"},
     "locale": "zh-CN",
     "userAgent": "CougarOS-Android/0.3"
   }
 }
 ```
 
-引擎忽略不匹配 request ID 的异步 frame，只接受对应的 `type=res`。返回必须 `ok=true`，且
-`payload.protocol == 3`。
+返回必须 `ok=true` 且 `payload.protocol=3`。token 错误只会在 TCP、Upgrade、challenge 成功后暴露。
 
-### 11.3 `chat.send`
+## 10. chat.send 文字与图片 RPC
 
-认证成功后发送：
+### 10.1 纯文字
 
 ```json
 {
   "type": "req",
-  "id": "<random-uuid>",
+  "id": "<uuid>",
   "method": "chat.send",
   "params": {
     "sessionKey": "agent:main:cougaros-<digest-prefix>",
-    "message": "<完整座舱 prompt>",
+    "message": "<汽车座舱 prompt>",
     "deliver": false,
-    "idempotencyKey": "<deterministic-uuid>"
+    "idempotencyKey": "<uuid>"
   }
 }
 ```
 
-响应 ACK 必须 `ok=true`。若 `payload.runId` 存在，后续事件改为绑定该 run ID；否则使用 idempotency key
-作为期望 run ID。
-
-### 11.4 流式 `chat` 事件
-
-只处理同时满足下列条件的事件：
-
-- `type=event`
-- `event=chat`
-- `payload.sessionKey` 等于当前请求 session key
-- `payload.runId` 为空或等于期望 run ID
-
-`state=delta` 时，代码提取累计文本，并只接受长度不短于当前缓存的候选；`state=final` 时优先使用 final
-message，否则使用累计 delta。只有 ACK 和非空终态文本都存在，调用才成功。`state=error` 立即失败。
-
-### 11.5 `chat.history` 回退
-
-若 final 已到但没有可用文本，或 final 早于 ACK，代码发送：
+### 10.2 文字+图片
 
 ```json
 {
   "type": "req",
-  "id": "<random-uuid>",
-  "method": "chat.history",
+  "id": "<uuid>",
+  "method": "chat.send",
   "params": {
-    "sessionKey": "<current-session>",
-    "limit": 6
+    "sessionKey": "agent:main:cougaros-<digest-prefix>",
+    "message": "<汽车座舱 prompt 和用户文字>",
+    "deliver": false,
+    "idempotencyKey": "<uuid>",
+    "attachments": [
+      {
+        "type": "image",
+        "mimeType": "image/jpeg",
+        "fileName": "cabin-frame.jpg",
+        "content": "<base64 image bytes>"
+      }
+    ]
   }
 }
 ```
 
-返回消息必须为 1..6 条。代码从后向前找到 assistant 消息，再向前找到最近 user 消息；user 文本必须与本次
-完整 prompt 逐字符一致，才能采用 assistant 文本。这样避免读取同一 session 中不属于当前请求的旧回复。
+`message` 和 `attachments` 在同一个已认证 RPC 中发送。图片字节先经过本地校验，再 Base64 编码。
+只有带图片的 `chat.send` 可以使用 8.5 MB 出站上限；`connect`、`history`、`abort` 等仍使用 64 KiB 上限。
 
-### 11.6 `chat.abort`
+## 11. ACK、流式终态和 history
 
-进入 chat 阶段后若发生 RuntimeException 或 IOException，会 best-effort 发送 `chat.abort(sessionKey, runId)`。
-abort 自身失败不会覆盖原始失败。
+`chat.send` ACK 必须 `ok=true`。若 ACK 返回 `runId`，后续事件绑定该 run ID。
 
-## 12. 模型回复校验
+只处理：
 
-`parseAndValidate()` 只接受 UTF-8 JSON object，并要求 key 集合精确等于：
+- `type=event`
+- `event=chat`
+- sessionKey 与当前请求一致
+- runId 为空或与当前 run 一致
 
-```text
-scenario_id, reply, actions
+状态处理：
+
+| state | 行为 |
+| --- | --- |
+| `delta` | 更新累计文本 |
+| `final` | 优先使用 final message，否则使用累计 delta |
+| `error` | 失败关闭 |
+
+终态文本为空时，当前实现最多读取 6 条 `chat.history`，并要求最近 user 文字与当前 `message`
+逐字符一致。该回退目前不比较图片 SHA-256；目标多模态量产接入前必须补充附件摘要绑定，
+或在图片请求上禁用该回退。
+
+发生 transport/protocol 异常时，Runtime best-effort 发送 `chat.abort(sessionKey, runId)`。
+
+## 12. 模型输出合同
+
+模型必须只返回：
+
+```json
+{
+  "scenario_id": "scene.comfort.cold.v1",
+  "reply": "正在为你调节座舱温度。",
+  "actions": ["hvac.warm_cabin"]
+}
 ```
 
 校验规则：
 
 | 字段 | 规则 |
 | --- | --- |
-| `scenario_id` | 必须等于当前已注册场景 |
-| `reply` | trim 后 1..256 字符，不允许 ISO control character |
-| `actions` | 1..4 个字符串，不重复，只能来自当前场景 allowlist |
-| required actions | Cold 必须有 HVAC；Fatigue 必须同时有 Seat 和 HVAC |
-| unknown field | 任何额外 key 均拒绝 |
-| response bytes | 1..65536 bytes |
+| key 集合 | 精确为 `scenario_id`, `reply`, `actions` |
+| `scenario_id` | 与注册场景完全相同 |
+| `reply` | 1..256 字符，无控制字符 |
+| `actions` | 1..4、不重复、全部在场景 allowlist |
+| 必选动作 | Cold 必须有 HVAC；Fatigue 必须有 HVAC 和 Seat |
+| 未知字段 | 拒绝 |
+| 总响应 | 1..65536 UTF-8 bytes |
 
-通过后重新构造 canonical JSON，不直接透传原始字符串。组合层的 `parseModelProjection()` 会再次检查 scenario、
-reply、latency 和 action admission，形成第二道边界。
+通过后 Runtime 重建 canonical JSON，不直接透传原始回复。
 
-模型的 `actions` 是候选动作，不是 Effect 命令。它不能绕过 Scenario Catalog、Consent、Safety、固定 Plan 或
-adapter/readback。当前 HVAC/Seat 变化均为 debug UI 仿真。
+图片只提供额外 Context。模型不能因为识别到人物、物体或姿态而创建新的 Effect capability，
+也不能绕过 Scenario Catalog、Consent、Safety、固定 Plan、Adapter 或 readback。
 
-## 13. 回复到 Client2 的 Binder 路径
+## 13. Client2 投影
 
-### 13.1 发布
-
-`DebugSimulatedOrchestrationBackend` 在组合结果完成后调用 `DevelopmentModelProjectionStore.publish()`。投影字段为：
+Runtime 只投影已校验结果：
 
 ```text
-schemaVersion
 sessionId
 scenarioId
 providerId
@@ -457,85 +472,70 @@ projectionDigest
 completedAtEpochMs
 ```
 
-Store 最多保存 16 条，满载时删除最旧项；数据只在 Runtime 进程内存中，不写 Room，也不进入冻结的
-`OrchestrationSnapshot` V1。
+以下数据不得进入 Client2 投影：
 
-### 13.2 AIDL
+- 原始图片；
+- 图片 Base64；
+- 原始 prompt；
+- 完整原始模型回复；
+- token；
+- OpenClaw 内部 run history。
 
-debug SDK 定义：
+Client2 通过 owner/session-bound Binder 获取投影。Binder 不可用或校验失败时，不得由 Client2
+自行连接 OpenClaw。
 
-```aidl
-interface ICentralBrainDevelopmentModelProjection {
-    int getProtocolVersion();
-    String getProtocolHash();
-    DevelopmentModelProjection getOwnProjection(String sessionId);
-}
-```
+## 14. 失败关闭
 
-Service 受 `com.centralbrain.permission.BIND_RUNTIME` signature permission 保护，并在方法内做 caller identity、
-capability 和 session owner 校验。调用方只能读取自己的 session；找不到或 owner 不匹配时不会泄露他人数据。
+图片在网络前可能失败：
 
-`DevelopmentModelProjectionClient` bind 后检查 AIDL version/hash，注册 Binder death recipient，并在返回后再次执行
-字段、digest 和 session 一致性校验。
+| 条件 | 当前异常 |
+| --- | --- |
+| MIME 不在 allowlist | `IllegalArgumentException` |
+| 文件名非法 | `IllegalArgumentException` |
+| 0 字节或超过 6 MiB | `IllegalArgumentException` |
+| MIME 与魔数不一致 | `IllegalArgumentException` |
+| 同 digest 注册不同图片 | `IllegalArgumentException` |
+| 图片暂存容量超过 12 MiB | `IllegalStateException` |
 
-### 13.3 Client2 消费
-
-`apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/OrchestrationRuntimeClient.java` 在场景 snapshot
-完成时调用 `getOwnProjection(sessionId)`，并检查 projection scenario 与 orchestration snapshot 一致。合法结果只把：
-
-- `assistantDisplayText`
-- `providerId`
-- `latencyMs`
-- `modelProjection != null`
-
-送入 `CockpitSimulatedScenarioState.Projection`。Binder 未连接、RemoteException 或合同错误都会得到空投影并记录
-固定原因，不让 Client2 自行回退为未经校验的网络模型调用。
-
-## 14. 超时、取消和失败码
-
-模型请求总 deadline 为 120 秒。TCP connect、socket read 和每个协议等待都被剩余总 deadline 截断。
-
-`OpenClawInferenceEngine.safeFailureCode()` 输出：
+网络阶段故障码：
 
 | Failure code | 典型来源 |
 | --- | --- |
-| `CREDENTIAL_UNAVAILABLE` | 凭据为空、越界或 credential source 失败 |
-| `HANDSHAKE_REJECTED` | HTTP Upgrade 或 `Sec-WebSocket-Accept` 错误 |
-| `PROTOCOL_REJECTED` | challenge/protocol 版本不满足 |
-| `AUTHENTICATION_REJECTED` | connect response `ok=false` 或 AUTH 错误 |
-| `DEADLINE_EXCEEDED` | TCP/read/总 deadline 超时 |
-| `CANCELLED` | 网络前取消或 chat abort/cancel 语义 |
-| `SCENARIO_BINDING_REJECTED` | 回复场景与请求不一致 |
-| `REPLY_BOUNDS_REJECTED` | reply 为空、超长或含控制字符 |
-| `ACTION_ALLOWLIST_REJECTED` | action 未授权、重复或缺少必选动作 |
-| `STRUCTURED_OUTPUT_REJECTED` | JSON shape 或通用结构合同错误 |
-| `TRANSPORT_FAILURE` | ConnectException、EOF 或其他 IOException |
-| `INTERNAL_GATEWAY_FAILURE` | 未归类的内部错误 |
+| `CREDENTIAL_UNAVAILABLE` | token 不可用 |
+| `HANDSHAKE_REJECTED` | HTTP Upgrade 或 accept 错误 |
+| `PROTOCOL_REJECTED` | challenge/protocol 不匹配 |
+| `AUTHENTICATION_REJECTED` | connect 被拒绝 |
+| `DEADLINE_EXCEEDED` | TCP/read/总 deadline |
+| `CANCELLED` | 请求取消 |
+| `SCENARIO_BINDING_REJECTED` | 场景不一致 |
+| `REPLY_BOUNDS_REJECTED` | reply 越界 |
+| `ACTION_ALLOWLIST_REJECTED` | action 不可信 |
+| `STRUCTURED_OUTPUT_REJECTED` | JSON/schema 错误 |
+| `TRANSPORT_FAILURE` | connect、EOF 或 IOException |
+| `INTERNAL_GATEWAY_FAILURE` | 未归类内部错误 |
 
-2026-07-20 的 `Connection refused` 发生于 TCP connect，所以不会到达 WebSocket、token 或模型阶段；engine 的权威
-分类是 `TRANSPORT_FAILURE`。`OpenClawTargetIntegrationProbeActivity` 使用更粗粒度的二次分类，某些组合层错误可能
-折叠成 `MODEL_OUTPUT_REJECTED`；定位时应优先查看 `CentralBrainOpenClaw` 的 engine metadata 和合同中的
-`latest_target_retest`，不能仅依赖 probe 汇总码。
+TCP `Connection refused` 发生在 WebSocket 和鉴权前，不能通过修改 token、图片格式或 prompt 修复。
 
-## 15. 日志和可观测性
+## 15. 日志与隐私
 
-成功路径输出固定阶段标记：
+允许记录：
 
 ```text
-socket_connected
-websocket_handshake_complete
-connect_challenge_received
-connect_authenticated
-chat_sent
-chat_acknowledged
-chat_final_received
-history_received              # 仅回退时
+endpoint_profile
+protocol
+image_present
+image_bytes
+image_sha256
+latency_ms
+response_bytes
+history_fallback_used
+fixed failure_code
 ```
 
-完成日志包含 profile、protocol、latency、response byte count、history fallback、network/external compute 布尔值。
-失败日志包含固定 failure code。所有路径持续声明：
+必须持续声明：
 
 ```text
+raw_image_logged=false
 raw_prompt_logged=false
 raw_response_logged=false
 credential_logged=false
@@ -543,126 +543,109 @@ direct_npu_accessed=false
 vehicle_effect_dispatch_authorized=false
 ```
 
-`Snapshot` 仅暴露 invocation/completed/failure/history-fallback 计数、pending 数、最后耗时和最后故障码，不保存
-prompt、模型原文或凭据。
+不得记录：
 
-## 16. 探针、测试和校验
+- 图片 Base64 或图片内容；
+- 用户完整语音转写；
+- 完整模型回复；
+- token；
+- 设备序列号；
+- 车辆原始 payload。
 
-### 16.1 JVM 测试
+## 16. 目标网络部署前置条件
 
-`OpenClawEndpointConfigTest` 验证固定 URI、协议、容量界限和不可注入字段。
+目标车机与算力单元必须满足：
 
-`OpenClawInferenceEngineTest` 用可替换 `Transport` 和 `CredentialSource` 验证：
+1. 位于同一受控车载以太网段；
+2. Android 到 `169.254.208.110` 路由可达；
+3. TCP 18789 正在监听；
+4. OpenClaw 服务提供 WebSocket v3；
+5. 服务接受当前 client identity 和 operator scopes；
+6. OpenClaw 后端模型支持文字和图片；
+7. 服务端图片大小、retention 和删除策略与车机合同一致；
+8. Android 网络安全配置允许固定目标明文连接；
+9. Runtime、SDK 和 Client2 来自同一发布 cohort；
+10. 图片来源、用途和生命周期 owner 已批准。
 
-- 固定 v3 endpoint 和稳定 session/idempotency；
-- prompt 含汽车座舱、驾驶员、UI 仿真和动作约束；
-- Cold/Fatigue 回复 canonicalization；
-- unknown field、未授权动作和缺少必选动作失败关闭；
-- credential/protocol mismatch 计入失败；
-- 原始 prompt 不含 token。
+## 17. 目标排障顺序
 
-Provider、Registry 和 Router 另有测试验证 target profile 不能获得 production/hardware authority。
+1. **Ethernet/L2**：检查链路、地址、ARP/neighbor。
+2. **TCP**：检查 18789 是否监听；RST 表示服务未监听。
+3. **Upgrade**：确认 HTTP 101 和 `Sec-WebSocket-Accept`。
+4. **Challenge**：确认 `connect.challenge`。
+5. **Auth**：确认 protocol 3、token、role、scope。
+6. **Chat ACK**：确认 `chat.send` 被接受。
+7. **Image admission**：检查 MIME、大小、魔数和服务端附件限制。
+8. **Terminal**：确认 session/run-bound final。
+9. **Schema**：检查 scenario/reply/actions。
+10. **Binder/HMI**：检查 owner、session、AIDL version/hash 和投影。
 
-### 16.2 Android target probe
+## 18. 当前验证状态
 
-`OpenClawTargetIntegrationProbeActivity` 仅在 debug manifest 中声明，并受 `android.permission.DUMP` 保护。它固定执行
-Cold 场景，检查 provider ID、reply 长度、latency、network marker、Android API 33 和 arm64 ABI，然后立即结束。
-探针不记录模型输入、模型回复或凭据。
+| 证据 | 状态 |
+| --- | --- |
+| 目标纯文字 WebSocket v3 历史证据 | 已有 |
+| 目标纯文字 Client2 投影历史证据 | 已有 |
+| 最新目标端口连通 | 未确认，`ISSUE-054` |
+| 图片附件 Java 合同 | 已通过 |
+| 文字+图片 OpenClaw RPC 结构 | 已实现 |
+| 目标车机前端图片 Binder | 未实现，`ISSUE-055` |
+| 目标以太网多模态终态 | 未验证 |
+| 目标模型/NPU 归因 | 未验证 |
+| production release provider | 未发布 |
 
-### 16.3 仓库检查
+不能使用其他环境的多模态结果关闭本表中的目标证据缺口。
 
-```bash
-bash tools/check_central_brain_android_openclaw_target_gateway.sh
-bash tools/check_central_brain_root_readme.sh
-bash tools/check_central_brain_github_repository_completeness.sh
-CENTRAL_BRAIN_TARGET_OPENCLAW=true tools/build_central_brain_android_runtime.sh
-```
+## 19. 接口变更清单
 
-机器合同位于：
-`central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json`。
+### 19.1 Endpoint 或协议变化
 
-## 17. 调试判定顺序
-
-出现超时时，按层定位：
-
-1. **TCP**：确认 Android 到 `169.254.208.110` 路由可达，且 18789 正在监听。`Connection refused` 表示主机返回
-   RST，不是 token 错误。
-2. **Upgrade**：检查是否出现 `websocket_handshake_complete`。没有则检查 `/`、HTTP 101 和 accept header。
-3. **Challenge**：检查 `connect_challenge_received`。没有则服务并非当前协议端点或服务端未发送 v3 challenge。
-4. **Auth**：检查 `connect_authenticated`。到此失败才需要检查 token、role、scope 和协议版本。
-5. **Chat ACK**：检查 `chat_acknowledged`。没有则查看 `chat.send` RPC 错误码。
-6. **Terminal**：检查 `chat_final_received` 或 `history_received`。ACK 后无终态通常是服务端 run/session 问题。
-7. **Schema**：网络完整但 UI 无回复时，查看 engine failure code 是否为 scenario/reply/action/structured rejection。
-8. **Binder**：模型成功但 Client2 无文本时，检查 projection service 连接、same-signer、owner/session 和 AIDL hash。
-
-## 18. 修改指南
-
-### 18.1 OpenClaw endpoint 或协议变化
-
-必须同步修改并验证：
+必须同步：
 
 1. `OpenClawEndpointConfig`
 2. `runtime-service/build.gradle.kts`
 3. `DebugDecisionCompositionBoundary.resolveNetworkMode()`
-4. `OpenClawTargetIntegrationProbeActivity.requireTargetBuild()`
+4. `OpenClawTargetIntegrationProbeActivity`
 5. endpoint/engine JVM tests
 6. `central_brain_android_openclaw_target_gateway_v1.json`
 7. `check_central_brain_android_openclaw_target_gateway.sh`
-8. 架构偏差、问题台账、路线图和 README 状态
+8. 本文和目标网关概要
+9. 路线图、偏差、问题与交付状态
 
-不要只修改 BuildConfig 字符串；当前代码故意在多个边界交叉断言固定 profile。
+### 19.2 图片合同变化
 
-### 18.2 新增座舱场景
+必须同步：
 
-必须先在 Scenario Catalog/Plan 中建立正式场景和固定 Effect 能力，再扩展 `CockpitModelPrompt.forScenario()` 的
-utterance/context/allowed/required action，并增加 engine、composition、Client2 reducer 和 UI 测试。不能只在 prompt
-中增加动作字符串，因为模型没有创建新 Effect 能力的权限。
+1. MIME allowlist；
+2. 单图/总量/frame 上限；
+3. 图片摘要与 aggregate input digest；
+4. SDK/Binder DTO schema；
+5. OpenClaw attachment shape；
+6. history fallback 绑定；
+7. 内存和服务端 retention；
+8. 目标模型 capability；
+9. Target probe 和 Client2 HMI；
+10. 失败码与日志字段。
 
-### 18.3 后续迁移到 Ollama
+### 19.3 新增场景
 
-保持以下上层接口不变：
+必须先在 Scenario Catalog 和固定 Plan 中建立能力，再扩展 prompt、action allowlist、模型输出校验、
+Client2 reducer 和 HMI。不能只在图片 prompt 中增加车辆动作。
 
-- `ModelContractV2.ModelRequest`
-- `ModelProvider` / `LocalModelProvider`
-- `PolicyAwareModelRouter`
-- `CockpitModelPrompt`
-- canonical `scenario_id/reply/actions`
-- `DevelopmentModelProjection` 和 Client2 消费逻辑
+## 20. 明确未完成项
 
-替换 target provider profile、transport、health/version、artifact identity 和 credential owner。完成 TLS、可轮换凭据、
-release source set、资源管理与目标 NPU 证据前，不得把 OpenClaw target profile 直接重命名为 production provider。
+- 前端语音转写与相机帧的版本化 SDK/Binder DTO；
+- aggregate transcript/image digest；
+- 图片请求的 history attachment 绑定；
+- 图片内存显式清零；
+- OpenClaw managed media retention/删除策略；
+- 目标端多模态模型 capability 证据；
+- 目标以太网文字+图片端到端证据；
+- TLS/WSS 和证书校验；
+- 可轮换或硬件保护凭据；
+- release source set OpenClaw engine；
+- 目标 NPU artifact、health、资源、性能和归因；
+- 真实 Vehicle Effect 和 readback；
+- 生产资格与目标硬件验收。
 
-## 19. 当前未实现和挂起项
-
-以下内容不是当前代码能力：
-
-- OpenAI-compatible HTTP/REST fallback；
-- TLS/WSS 和服务端证书校验；
-- 可轮换或硬件保护的凭据；
-- Gateway 独立 health/version API；
-- release source set 的 OpenClaw inference engine；
-- 量产模型 artifact/签名 owner；
-- 直接 NPU runtime、PCIe、vendor SDK 调用；
-- VHAL/CAN/车辆 Service 写入与真实 readback；
-- 模型直接授权 Safety/Effect；
-- 生产资格和目标硬件验收。
-
-这些项分别由 `DEV-122/124` 和 `ISSUE-024/044/054` 跟踪。当前文档只解释已有软件接口，不提升任何
-`production_ready` 或 `target_hardware_validated` 状态。
-
-## 20. P7-R4-OCDEV 开发环境补充
-
-当前 debug 默认路径不再直接调用 Ollama HTTP，而是由真实 Android 13 Runtime 经 ADB reverse 调用 WSL OpenClaw v4，
-再由 OpenClaw 调用 Ollama。`OpenClawEndpointConfig` 同时持有两个不可覆盖的协议 profile：开发 profile 为
-`127.0.0.1:18789/v4`，目标过渡 profile 为 `169.254.208.110:18789/v3`。
-
-开发 v4 的 `connect` 使用 `gateway-client/backend`、`operator.read/write` 和 shared token，WebSocket upgrade 不发送
-浏览器 Origin。原因是 OpenClaw 2026.7.1 会清除无设备密钥 UI client 的 write scope；Android Runtime 在此链路承担
-模型后端桥接，不是控制页。目标 v3 分支继续保留既有 `openclaw-control-ui/webchat` 和 Origin 行为。
-
-真机调用顺序为：`socket_connected -> websocket_handshake_complete -> connect_challenge_received ->
-connect_authenticated -> chat_sent -> chat_acknowledged -> chat_final_received`。2026-07-22 API 33 ARM64 的真实
-Ollama 终态模型延迟为 31968 ms。完整操作和边界见 `CENTRAL_BRAIN_OPENCLAW_DEVELOPMENT_GATEWAY.md`。
-
-该结果保持 `ethernet_validated=false`、`direct_npu_accessed=false`、`production_ready=false`、
-`target_hardware_validated=false`；tracking `DEV-126/ISSUE-024/054`，stage `P7-R4-OCDEV`。
+上述缺口继续由 `DEV-122/124/127`、`ISSUE-024/044/054/055` 跟踪。
