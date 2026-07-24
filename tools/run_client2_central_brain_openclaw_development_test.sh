@@ -237,6 +237,19 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
     fi
     printf '%s\n' "$logs" | grep -E \
       'openclaw_(protocol_stage|inference_(started|completed))=|client2_orchestration_snapshot_projected=true'
+    if [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
+      route_claims=(
+        'real_wsl_openclaw_ollama_accessed=true'
+        'target_openclaw_ethernet_validated=false'
+        'ethernet_validated=false'
+      )
+    else
+      route_claims=(
+        'real_wsl_openclaw_ollama_accessed=false'
+        'target_openclaw_ethernet_validated=true'
+        'ethernet_validated=true'
+      )
+    fi
     printf '%s\n' \
       'client2_openclaw_development_test_complete=true' \
       "scenario=$SCENARIO" \
@@ -245,11 +258,9 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
       "transport=$expected_transport" \
       "endpoint_profile=$MODEL_ROUTE" \
       "openclaw_protocol=$expected_protocol" \
-      "real_wsl_openclaw_ollama_accessed=$([[ \"$MODEL_ROUTE\" == development_wsl_openclaw ]] && echo true || echo false)" \
-      "target_openclaw_ethernet_validated=$([[ \"$MODEL_ROUTE\" == target_openclaw_transitional ]] && echo true || echo false)" \
+      "${route_claims[@]}" \
       'simulated_hmi_effect_verified=true' \
       'vehicle_effect_hardware_accessed=false' \
-      "ethernet_validated=$([[ \"$MODEL_ROUTE\" == target_openclaw_transitional ]] && echo true || echo false)" \
       'production_ready=false' \
       'target_hardware_validated=false'
     exit 0

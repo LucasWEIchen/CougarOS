@@ -867,9 +867,9 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-HMI-003/007/008/009`, `S2-OBS-002`, `S2-UX-002/003`。
 - **负责模块**：Client2 immutable state/reducer/coordinator/XML、Orchestration callback 和 live trace projection。
 - **前置输入**：Runtime snapshot、模型 projection、三个 pending node、Tool 状态和最终 lifecycle。
-- **输出与验收**：交付极简按钮、动态确认条、逐条滚动链、商品/商户/订单/路线反馈；通过 testboard 1920x1080。
+- **输出与验收**：交付极简按钮、动态确认条、逐条滚动链、商品/商户/订单/路线反馈；通过 testboard 1920x1080，并由互斥环境声明区分 WSL 模型证据与目标以太证据。
 - **边界与非目标**：不得使用本地 UI 定时器伪造模型/Tool 完成或一次跳到最终结果；HMI 不持有 authority。
-- **代码对应**：Debug 实现：[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L1120-L1160)；[main_layout.central_brain_panel.xml](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml#L55-L85)。
+- **代码对应**：Debug 实现：[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L1120-L1160)；[main_layout.central_brain_panel.xml](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml#L55-L85)；[run_client2_central_brain_openclaw_development_test.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/run_client2_central_brain_openclaw_development_test.sh#L237-L266)。
 - **当前状态**：`DONE / TESTBOARD_ARM64_VERIFIED`。
 - **权威依据**：[购物与路径规划详设](CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
