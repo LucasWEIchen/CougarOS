@@ -867,10 +867,10 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-HMI-003/007/008/009`, `S2-OBS-002`, `S2-UX-002/003`。
 - **负责模块**：Client2 immutable state/reducer/coordinator/XML、Orchestration callback 和 live trace projection。
 - **前置输入**：Runtime snapshot、模型 projection、三个 pending node、Tool 状态和最终 lifecycle。
-- **输出与验收**：交付极简按钮、动态确认条、逐条滚动链、商品/商户/订单/路线反馈；通过 testboard 1920x1080，并由互斥环境声明区分 WSL 模型证据与目标以太证据。
+- **输出与验收**：交付极简按钮、动态确认条、逐条滚动链、商品/商户/订单/路线反馈；在 testboard 的 WSL 路径和生产板目标以太路径分别通过 1920x1080 验收，并由互斥环境声明区分两类证据。
 - **边界与非目标**：不得使用本地 UI 定时器伪造模型/Tool 完成或一次跳到最终结果；HMI 不持有 authority。
 - **代码对应**：Debug 实现：[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L1120-L1160)；[main_layout.central_brain_panel.xml](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml#L55-L85)；[run_client2_central_brain_openclaw_development_test.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/run_client2_central_brain_openclaw_development_test.sh#L237-L266)。
-- **当前状态**：`DONE / TESTBOARD_ARM64_VERIFIED`。
+- **当前状态**：`DONE / DUAL_ROUTE_ARM64_VERIFIED`。
 - **权威依据**：[购物与路径规划详设](CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
 ## P5 Tool、Skill 与 Memory
@@ -1224,10 +1224,10 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-MDL-001/002`, `S2-SAF-001`, `S2-OBS-001/002`。
 - **负责模块**：runtime-service 的 Model Provider/Registry/Router 与模型网关。
 - **前置输入**：Android 13 车机经目标以太网提交座舱文字及可选的单张有界 PNG/JPEG，文字与图片必须进入同一个已鉴权 `chat.send`。
-- **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed WebSocket v3、challenge/auth/send/history/abort、文字+图片附件合同、Client2 projection；`openclaw_target_integration_implemented=true`、`target_multimodal_protocol_implemented=true`。
-- **边界与非目标**：当前仅完成目标协议实现；前端图片 Binder、目标以太网多模态实测及量产媒体治理仍未完成，模型输出不能授权 Effect。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：fixed WebSocket v3、challenge/auth/send/history/abort、文字+图片附件、Client2 projection；目标板以太多模态、三个确认及 Graph revision 77 已通过。
+- **边界与非目标**：受控帧前端和目标以太多模态已完成；实时相机、量产媒体治理、持久 IPv4 和 Provider 量产资格仍未完成，模型输出不能授权 Effect。
 - **代码对应**：过渡实现：[OpenClawInferenceEngine.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/model/OpenClawInferenceEngine.java#L38-L56)；[central_brain_android_openclaw_target_gateway_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_openclaw_target_gateway_v1.json#L42-L58)；[check_central_brain_android_openclaw_target_gateway.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_openclaw_target_gateway.sh#L4-L22)。
-- **当前状态**：`TRANSITIONAL / TARGET_MULTIMODAL_PROTOCOL_IMPLEMENTED / FRONTEND_AND_TARGET_EVIDENCE_OPEN`。
+- **当前状态**：`TRANSITIONAL / TARGET_MULTIMODAL_VERIFIED / PRODUCTION_QUALIFICATION_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)；[OpenClaw 网关设计](CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md)；[车机直连接口详解](CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md)。
 
 <a id="p7-r4-ocdev"></a>

@@ -16,18 +16,22 @@ debug 路径中完成：模型 prompt、13 节点场景 v2、六个 Tool、购�
 `request_purchase_confirmation`、`request_navigation_confirmation`，最终 Graph revision 77 完成，
 `hardware_accessed=false`。
 
-生产板 `0123456789ABCDEF` 的目标 profile 固定直连 `169.254.208.110:18789`。现场检查时
-`eth0` 只有 IPv6 link-local 地址，无 `169.254.208.0/24` IPv4 地址和路由，故生产 OpenClaw
-以太网证据仍由 `ISSUE-059` 阻塞；不得用 ADB reverse 代替。
+生产板以目标 profile 固定直连 `169.254.208.110:18789`。现场为本次测试临时恢复
+`169.254.208.100/24` 后，Android 13 ARM64 通过真实以太网完成 OpenClaw protocol v3
+图片+文字请求，模型耗时 44908 ms；三个确认节点依次通过，Graph revision 77 完成。
+该证据没有使用 ADB reverse。目标 IPv4 尚未写入受管、可启动恢复的持久配置，由
+`ISSUE-059` 继续跟踪。
 
 当前 `shopping_route_planning_debug_software_implemented=true`、
 `p4_r5_open_work_package_count=0`、
 `production_navigation_adapter_wired=false`、
 `production_commerce_adapter_wired=false`、
-`production_openclaw_ethernet_verified=false`、
+`production_openclaw_ethernet_verified=true`、
+`production_openclaw_multimodal_verified=true`、
+`production_target_ipv4_configuration_persistent=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、`S2-INT-001`、`S2-NAV-001`、
-`S2-COM-001`；tracking：`DEV-130/131`、`ISSUE-057/058/059`；stage
+`S2-COM-001`；tracking：`DEV-130/131/132`、`ISSUE-057/058/059`；stage
 `P4-R5-SHOPPING-ROUTE`。
 
 ### 2026-07-19 P4-R1 progress
@@ -1943,15 +1947,17 @@ Fatigue 将风量从 1 动画到 3，并在左侧弹出驾驶席 15->30 度动�
 Runtime metadata probe 和 Client2 owner/session projection。2026-07-19 Android 13 ARM64 已执行真实外部模型调用。
 按维护者指令删除旧 DUMP-protected credential Activity/Store；固定凭据可从源码/Git/APK 提取，登记为 `DEV-124`。
 
-2026-07-20 当前复测中，Android 到目标主机 ICMP 正常，但 TCP 18789 返回 `Connection refused`，因此未进入
-WebSocket/auth/token/model 阶段。该服务监听问题由 `ISSUE-054` 外部阻塞，不能由 APK 侧伪造通过。
+2026-07-24 后续复测中，生产板以测试会话临时 IPv4 直连目标服务，完成 WebSocket/auth、
+图片+文字模型请求、三个确认和 Client2 购物/路线投影；该结果关闭 `ISSUE-054` 的服务监听问题，
+持久 IPv4 配置继续由 `ISSUE-059` 跟踪。
 
 下一步不再是“接通模型”，而是外部资格项：approved credential source、TLS/链路安全、Gateway health/version、
 模型 artifact owner、release Provider、资源/热管理证据、Ollama 目标端部署和直接 NPU 归属证明。车辆 Effect 继续失败关闭。
-`openclaw_target_android13_arm64_verified=true`（历史）、`fixed_target_credential_active=true`、
-`latest_target_connectivity_verified=false`、`direct_npu_accessed=false`、
+`openclaw_target_android13_arm64_verified=true`、`fixed_target_credential_active=true`、
+`latest_target_connectivity_verified=true`、`target_multimodal_verified=true`、
+`target_ipv4_configuration_persistent=false`、`direct_npu_accessed=false`、
 `production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
-tracking：`DEV-122/124`、`ISSUE-024/044/054`；stage `P7-R3-OC2`。
+tracking：`DEV-122/124/132`、`ISSUE-024/044/059`；stage `P7-R3-OC2`。
 
 2026-07-20 文档增量：新增 `CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`，逐文件固定 build/profile、
 Provider/Router、Prompt、RFC6455、OpenClaw v3 `connect/chat.send/chat.history/chat.abort`、严格回复、debug Binder、

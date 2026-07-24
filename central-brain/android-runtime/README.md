@@ -1769,10 +1769,11 @@ direct NPU and vehicle Effect authority remain disabled. Full design: `docs/CENT
 code-level walkthrough: `docs/CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`.
 
 `openclaw_target_android13_arm64_verified=true`, `client2_openclaw_projection_verified=true`,
-`external_compute_accessed=true`, `fixed_target_credential_active=true`, `latest_target_connectivity_verified=false`,
-`direct_npu_accessed=false`, `production_provider_qualified=false`, `production_ready=false`,
-`target_hardware_validated=false`, `implementation_stage=P7-R3-OC2`. The latest 2026-07-20 target retest reached the host
-but received `Connection refused` on TCP 18789; protocol/authentication was not reached.
+`external_compute_accessed=true`, `fixed_target_credential_active=true`, `latest_target_connectivity_verified=true`,
+`target_multimodal_verified=true`, `target_ipv4_configuration_persistent=false`, `direct_npu_accessed=false`,
+`production_provider_qualified=false`, `production_ready=false`, `target_hardware_validated=false`,
+`implementation_stage=P7-R3-OC2`. The 2026-07-24 target retest used temporary test-session IPv4 configuration
+and completed OpenClaw protocol v3 multimodal inference plus the Client2 shopping/route projection.
 
 ## P7-R4-OCDEV OpenClaw development build on real Android hardware
 

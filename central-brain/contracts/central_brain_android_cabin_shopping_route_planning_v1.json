@@ -108,10 +108,14 @@
   "hardware_validation": {
     "test_device_serial_alias": "testboard",
     "testboard_wsl_openclaw_verified": true,
-    "production_device_serial_alias": "0123456789ABCDEF",
+    "production_device_serial_alias": "production-board",
     "production_target_endpoint": "ws://169.254.208.110:18789",
-    "production_target_ipv4_route_available": false,
-    "production_openclaw_ethernet_verified": false
+    "production_target_ipv4_route_available": true,
+    "production_target_ipv4_configuration_persistent": false,
+    "production_openclaw_ethernet_verified": true,
+    "production_openclaw_multimodal_verified": true,
+    "production_model_latency_ms": 44908,
+    "production_graph_final_revision": 77
   },
   "claim_state": {
     "shopping_route_planning_requirement_defined": true,

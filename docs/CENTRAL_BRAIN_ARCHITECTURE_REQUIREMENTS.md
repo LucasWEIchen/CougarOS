@@ -21,9 +21,11 @@ Navigation adapter 仍为空接口，禁止静默回退 debug simulation。
 当前 `shopping_route_planning_requirement_defined=true`、
 `shopping_route_planning_debug_software_implemented=true`、
 `p4_r5_open_work_package_count=0`、
-`production_openclaw_ethernet_verified=false`、
+`production_openclaw_ethernet_verified=true`、
+`production_openclaw_multimodal_verified=true`、
+`production_target_ipv4_configuration_persistent=false`、
 `production_ready=false`、`target_hardware_validated=false`；tracking：
-`DEV-130/131`、`ISSUE-057/058/059`；stage `P4-R5-SHOPPING-ROUTE`。
+`DEV-130/131/132`、`ISSUE-057/058/059`；stage `P4-R5-SHOPPING-ROUTE`。
 
 ## P4-R1 implementation trace
 
@@ -3095,9 +3097,11 @@ tracking：`DEV-120/128`、`ISSUE-056`。
 6. `DEL-003/004/005`：必须有 JVM、static contract、target APK、API 33 ARM64 Runtime probe 和 Client2 projection evidence。
 
 当前 `openclaw_target_integration_implemented=true`、`openclaw_target_android13_arm64_verified=true`、
-`fixed_target_credential_active=true`、`latest_target_connectivity_verified=false`、`production_provider_qualified=false`、
-`production_ready=false`、`target_hardware_validated=false`；stage `P7-R3-OC2`。2026-07-20 当前目标主机可达但
-18789 返回 `Connection refused`，未进入协议或 token 校验。
+`fixed_target_credential_active=true`、`latest_target_connectivity_verified=true`、
+`target_multimodal_frontend_bound=true`、`target_multimodal_verified=true`、
+`target_ipv4_configuration_persistent=false`、`production_provider_qualified=false`、
+`production_ready=false`、`target_hardware_validated=false`；stage `P7-R3-OC2`。2026-07-24
+生产板通过测试会话临时 IPv4 完成目标 protocol v3 多模态和 Client2 购物/路线闭环。
 
 ## P4-R3 Voice-first live cockpit HMI requirements
 

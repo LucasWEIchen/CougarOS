@@ -2109,8 +2109,10 @@ Vendor NPU runtime、VehicleProperty、CAN 或 Driver/HAL 修改。目标网络�
 若后续 Ollama 或 Vendor runtime 需要专用 device node/shared buffer/ioctl，必须由 Vendor 先提供 SDK/ABI 和责任边界，再在
 现有 NPU C ABI/JNI 空接口下记录最小 gap。`android_standard_network_api_used=true`、
 `driver_development_triggered=false`、`driver_hal_accessed=false`、`direct_npu_accessed=false`、
-`latest_target_connectivity_verified=false`、`production_ready=false`、`target_hardware_validated=false`；
-tracking：`DEV-122/124`、`ISSUE-024/054`；stage `P7-R3-OC2`。固定 token 只改变应用层配置，不触发 Driver/HAL 开发。
+`latest_target_connectivity_verified=true`、`target_multimodal_verified=true`、
+`target_ipv4_configuration_persistent=false`、`production_ready=false`、`target_hardware_validated=false`；
+tracking：`DEV-122/124/132`、`ISSUE-024/059`；stage `P7-R3-OC2`。固定 token 和测试会话
+临时 IPv4 只改变应用层/网络配置，不触发 Driver/HAL 开发。
 
 ## P4-R3 voice-first HMI Driver/HAL boundary
 

@@ -19,8 +19,9 @@ Current claims:
 
 - `openclaw_target_integration_implemented=true`
 - `target_multimodal_protocol_implemented=true`
-- `target_multimodal_frontend_bound=false`
-- `target_multimodal_verified=false`
+- `target_multimodal_frontend_bound=true`
+- `target_multimodal_verified=true`
+- `target_ipv4_configuration_persistent=false`
 - `release_routing_enabled=false`
 - `direct_npu_accessed=false`
 - `vehicle_effect_hardware_accessed=false`

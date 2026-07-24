@@ -47,6 +47,16 @@ assert contract["debug_results"]["navigation_status"] == "NAVIGATION_SIMULATED"
 assert contract["debug_results"]["external_dispatch_performed"] is False
 assert contract["debug_results"]["payment_material_accessed"] is False
 assert contract["debug_results"]["vehicle_hardware_accessed"] is False
+hardware = contract["hardware_validation"]
+assert hardware["test_device_serial_alias"] == "testboard"
+assert hardware["testboard_wsl_openclaw_verified"] is True
+assert hardware["production_device_serial_alias"] == "production-board"
+assert hardware["production_target_ipv4_route_available"] is True
+assert hardware["production_target_ipv4_configuration_persistent"] is False
+assert hardware["production_openclaw_ethernet_verified"] is True
+assert hardware["production_openclaw_multimodal_verified"] is True
+assert hardware["production_model_latency_ms"] == 44908
+assert hardware["production_graph_final_revision"] == 77
 claims = contract["claim_state"]
 assert claims["shopping_route_planning_requirement_defined"] is True
 assert claims["shopping_route_planning_debug_software_implemented"] is True
@@ -105,7 +115,9 @@ printf '%s\n' \
   'production_navigation_adapter_wired=false' \
   'production_commerce_adapter_wired=false' \
   'production_payment_implemented=false' \
-  'production_openclaw_ethernet_verified=false' \
+  'production_openclaw_ethernet_verified=true' \
+  'production_openclaw_multimodal_verified=true' \
+  'production_target_ipv4_configuration_persistent=false' \
   'production_ready=false' \
   'target_hardware_validated=false' \
   'implementation_stage=P4-R5-SHOPPING-ROUTE'
