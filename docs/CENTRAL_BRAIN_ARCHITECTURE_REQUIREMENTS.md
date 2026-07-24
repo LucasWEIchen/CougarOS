@@ -4,6 +4,28 @@
 日期：2026-07-20
 状态：Android 13 实际工程基线
 
+## P4-R5 cabin hydration assistance requirement trace
+
+`P4-R4` 已证明受控座舱图片与文字能够进入真实模型交换并形成模拟 Effect，但现有场景把
+`hvac.ventilate` 固定为必要动作，不能表达“座位事实 -> 饮水需求假设 -> 驾驶员确认 -> 商品/POI
+搜索 -> 购买确认/导航确认”的智能链路。`P4-R5` 因此新增十二个仓库软件工作包：
+`P4-R5a..P4-R5l`。
+
+本增量要求模型先产生有证据引用的可见事实和意图假设；年龄、身份、家庭关系和“口渴”不得作为
+纯视觉事实。购买提交与导航启动是两个独立副作用，必须分别绑定当前 target digest 和显式确认，
+且任何确认都不能覆盖 hard safety interlock。Commerce 保持 Tool/Service 能力，禁止放入
+Vehicle Capability catalog。生产 camera/OMS、可信座椅源、导航和商业/支付 adapter 缺失时必须
+返回 typed unavailable，不得静默回退 debug simulation。
+
+详设：[CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)。
+当前 `hydration_assistance_requirement_defined=true`、
+`hydration_assistance_software_implemented=false`、
+`open_repository_software_requirement_count=12`、
+`repository_software_requirements_complete=false`、
+`unclassified_repository_requirement_count=0`、
+`production_ready=false`、`target_hardware_validated=false`；tracking：
+`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+
 ## P4-R1 implementation trace
 
 `S2-SCN-001/S2-GRF-001/S2-EFF-001/S2-SAF-001/S2-UX-003` 要求应用输入能形成可观察的
@@ -200,14 +222,20 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
 | S2-HMI-007 | 语音优先极简 HMI 与末端反馈 | 仅保留场景触发和实时链路；HVAC/Seat 结果以显式 SIMULATED 动画反馈 |
 | S2-HMI-008 | 实时链路中的模型输入/输出可视化 | 文字直接显示；图片等比缩略并与文字同显；允许的驾驶态点击居中放大、点击图外退出 |
+| S2-HMI-009 | 乘员感知驱动的饮水辅助 UX | 显示座位事实、意图假设、独立购买/导航确认及真实事件驱动链路；禁止一次跳到最终结果 |
 | S2-SES-001 | versioned durable Session | P1-W01/P1-W03 contract、P1-W05 facade/Service、P1-W06 Room v4/process-death recovery 已完成 |
 | S2-CTX-001 | typed Context snapshot | typed source/freshness/trust 与 debug composition 软件完成；production source 外部阻塞 |
+| S2-CTX-002 | 多座位多来源 Context 融合 | 四座位独立 occupancy、source/freshness/trust/conflict；unknown/conflict/stale 对区域 Effect fail closed |
 | S2-TWN-001 | Vehicle Digital Twin | debug/test store 与显式 SIMULATED 投影完成；production 禁止 fallback |
+| S2-PER-001 | 有证据的座舱可见事实合同 | 观察与意图分离；只允许有界座位/物体事实、区域、置信度和 evidence digest；禁止身份/年龄字段 |
+| S2-INT-001 | 有证据的意图假设 | 饮水需求只能作为可过期、可拒绝、必须确认的候选假设；模型不能直接授权 Tool/Effect |
 | S2-SCN-001 | versioned scenario catalog | catalog/resolver/compiler + P4-R2 formal debug Orchestration 完成；production publication 外部阻塞 |
 | S2-GRF-001 | durable Agent Graph | typed executor/checkpoint/Room/recovery + P4-R1/P4-R2 composition 完成；production Effect authority 外部阻塞 |
 | S2-SAF-001 | hard safety interlock | fail-closed policy/approval/driver restriction 完成；A user confirmation cannot override this hard interlock；可信 authority 外部阻塞 |
 | S2-EFF-001 | typed Effect lifecycle | intent/observation/approval/undo、durable recovery 与 debug dispatch/readback 完成；production adapter 外部阻塞 |
 | S2-ADP-001 | adapter registry | source/profile/capability/evidence 软件合同与 debug registry 完成；production adapter 外部阻塞 |
+| S2-NAV-001 | 受治理导航 Tool/Adapter | POI 搜索、路线预览、导航启动分离；启动绑定独立确认；production 缺 adapter 时 fail closed |
+| S2-COM-001 | 受治理商品与订单 Tool/Adapter | 商品搜索、订单预览、订单提交分离；购买提交绑定独立确认；支付保持外部空接口 |
 | S2-TOL-001 | retry/timeout/partial failure | deterministic terminal/recovery 软件完成；production owner evidence 外部阻塞 |
 | S2-MEM-001 | memory lifecycle | Working/Profile/Episodic、budget/consent 软件合同与 debug composition 完成；production repository/owner 外部阻塞 |
 | S2-EVT-001 | proactive Event trigger | Event V2、broker/QoS、Trigger/consent/suggestion 软件完成；production middleware/Context owner 外部阻塞 |

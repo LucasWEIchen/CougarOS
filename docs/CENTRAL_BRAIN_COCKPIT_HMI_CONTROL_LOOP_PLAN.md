@@ -8,6 +8,15 @@
 
 目标平台：黑盒 Android 13 座舱域控制器上的 Client2 APK
 
+## P4-R5 饮水辅助 HMI 增量
+
+`P4-R5l` 在现有极简按钮与滚动链路内增加座位事实、饮水假设、三类确认、商品/POI/路线结果和
+明确 `SIMULATED/NOT_DISPATCHED` 反馈。所有 UI 变化必须由 Runtime 事件驱动，禁止使用本地动画
+一次跳到最终完成。座位图只呈现区域和占用状态，不呈现身份或年龄。
+
+完整状态机、十二阶段链路、确认文案和 1920x1080 验收见
+[座舱饮水辅助多模态场景软件详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)。
+
 ## 0. P4-R3 决策覆盖
 
 P4-R3 覆盖本文件中“驾驶员主界面保留四阶段 tab、手动 HVAC/Seat 参数面板和 engineer drawer”的旧要求。

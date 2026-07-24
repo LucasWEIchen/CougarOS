@@ -4,11 +4,23 @@
 
 日期：2026-07-23
 
-状态：Implementation backlog baseline；P4-R4 requirement reopened
+状态：Implementation backlog baseline；P4-R5 requirements open
 
 目标平台：黑盒 Android 13 座舱域控制器
 
 主要语言：Java、AIDL、C；构建/验收脚本使用 Bash；Python AIOS 原型已退役且不得作为兼容参考或测试 oracle
+
+## P4-R5 乘员感知饮水辅助 backlog
+
+`P4-R5a..P4-R5l` 是当前十二个仓库软件开放项，顺序为：frame metadata、Cabin Observation、
+multi-seat Context fusion、Model semantic proposal、Intent hypothesis、Scenario DAG、三类独立确认、
+Tool composition、Navigation、Commerce、occupant-zone Effect 和 Client2 event-driven HMI。
+
+每项的输入、输出、代码变更点、测试和 DoD 见
+[座舱饮水辅助多模态场景软件详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)。
+实现不得通过扩大 `hvac.ventilate` 字符串白名单或 UI 定时器完成。当前
+`p4_r5_open_work_package_count=12`、`repository_software_requirements_complete=false`、
+`production_ready=false`、`target_hardware_validated=false`。
 
 ## 1. 计划摘要
 

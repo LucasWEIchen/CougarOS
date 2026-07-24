@@ -4,6 +4,34 @@
 日期：2026-07-17
 状态：Stage 2 P6 in progress
 
+## 2026-07-24 P4-R5 cabin hydration assistance requirement
+
+状态：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。在已完成 `P4-R4` 受控多模态闭环之后，新增
+`P4-R5a..P4-R5l` 十二个最小工作包，覆盖：输入元数据、座舱观察合同、多座位 Context 融合、
+模型语义输出、意图假设、饮水场景 Graph、三类确认、Tool 组合、导航、Commerce、区域 Effect
+和 Client2 实时 HMI。
+
+计划顺序：
+
+1. `P4-R5a..R5c`：输入、可见事实和四座位 Context；
+2. `P4-R5d..R5e`：模型语义候选和 evidence-bound 饮水假设；
+3. `P4-R5f..R5g`：场景 DAG、饮水帮助/购买/导航独立确认；
+4. `P4-R5h..R5j`：Tool、导航与 Commerce debug/fail-closed adapter；
+5. `P4-R5k..R5l`：区域执行约束、Client2 逐事件 UI 和 Android 13 ARM64 验收。
+
+购买/支付和导航启动不得由模型或一次通用确认授权。真实 OMS/camera、可信座椅源、production
+navigation 和 commerce/payment 为外部空接口；仓库只能提供明确 `SIMULATED` 的搜索/预览和
+fail-closed production adapter。
+
+当前 `hydration_assistance_software_implemented=false`、
+`p4_r5_open_work_package_count=12`、
+`repository_software_requirements_complete=false`、
+`open_repository_software_requirement_count=12`、
+`unclassified_repository_requirement_count=0`、
+`production_ready=false`、`target_hardware_validated=false`。Req IDs：
+`S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、`S2-INT-001`、`S2-NAV-001`、
+`S2-COM-001` 及其依赖；tracking：`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+
 ### 2026-07-19 P4-R1 progress
 
 `P4-R1` 已完成独立 `ICentralBrainOrchestration`、Java SDK protocol negotiation、caller capability/owner

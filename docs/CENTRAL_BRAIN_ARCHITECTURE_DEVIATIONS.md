@@ -4,6 +4,25 @@
 日期：2026-07-20
 状态：Android 13 实际工程基线
 
+## DEV-130 P4-R4 固定动作链不能满足乘员感知饮水辅助
+
+`P4-R4` 的目标是证明图片与文字能够真实进入模型并投影到 HMI，因此场景将
+`hvac.ventilate` 固定为必要动作，只允许可选 `media.pause`。该实现适合验证多模态传输，
+但不具备可见事实、意图假设、购买工具和独立导航确认，不能把它宣称为完整的乘员感知 AIOS。
+
+处理：接受 `P4-R4` 作为已完成的传输与 UI 基础，禁止直接扩大现有动作字符串白名单来模拟
+智能性。新增 `P4-R5a..P4-R5l`，以 Observation、Context fusion、IntentHypothesis、Plan、
+Approval、Tool、Effect 和 HMI 的版本化边界实现。视觉只能报告乘员/饮水容器等事实；年龄、
+身份和口渴是禁止直接断言的结论。购买与导航必须独立确认，支付保持空接口。
+
+该需求重新打开仓库软件完成状态，但不否定 `P4-R4` 的 ARM64 证据：
+`repository_software_requirements_complete=false`、
+`open_repository_software_requirement_count=12`、
+`unclassified_repository_requirement_count=0`、
+`production_ready=false`、`target_hardware_validated=false`。状态：`Accepted Temporary /
+Software Work Classified`。Req IDs：`S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、
+`S2-INT-001`、`S2-NAV-001`、`S2-COM-001`；tracking：`ISSUE-057/058`。
+
 ## DEV-125 S2-TRG-002 缺少需求基线定义
 
 `P6-W06`、Stage 2 backlog、主动建议 UX 合同和检查器已经引用 `S2-TRG-002`，但该 Req ID

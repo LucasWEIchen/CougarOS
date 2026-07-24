@@ -57,7 +57,16 @@ architecture_markers = (
     "Identity --> Orchestration --> Durable",
     "Orchestration --> Context --> Scenario --> Graph",
     "Graph --> Model --> Prompt",
-    "Graph --> Effect",
+    'Observation["Cabin Observation\\nVisible Facts / Seat Evidence"]',
+    'Hypothesis["Intent Hypothesis\\nHydration Support / Evidence"]',
+    'Confirmation["Assistance / Purchase / Navigation\\nIndependent Confirmation"]',
+    'Navigation["Navigation Tool / Adapter\\nPOI / Route / Start"]',
+    'Commerce["Commerce Tool / Adapter\\nSearch / Preview / Commit"]',
+    "Model --> Observation --> Context",
+    "Context --> Hypothesis --> Graph",
+    "Graph --> Confirmation --> Effect",
+    "Tool --> Navigation --> Effect",
+    "Tool --> Commerce --> Effect",
     "RuntimeApi --> Jni --> CAbi --> NpuEmpty",
     'NpuEmpty -. "Vendor SDK / model / evidence required" .-> ProductionModel',
     'Effect -. "production adapter unavailable" .-> VehicleApi',
@@ -82,6 +91,7 @@ required_ids.append("P4-R1")
 required_ids.extend(f"P4-W{i:02d}" for i in range(1, 13))
 required_ids.extend(f"P4-D4{suffix}" for suffix in "abcde")
 required_ids.extend(("P4-R2", "P4-R3", "P4-R4"))
+required_ids.extend(f"P4-R5{suffix}" for suffix in "abcdefghijkl")
 required_ids.extend(f"P5-W{i:02d}" for i in range(1, 11))
 required_ids.append("P5-R1")
 required_ids.extend(f"P6-W{i:02d}" for i in range(1, 7))
@@ -119,8 +129,8 @@ table_rows = [
     if line.startswith("| `P") or line.startswith("| `SCOPE-")
 ]
 expected_header = "| 跟进 ID | 详细需求 | Req IDs | 代码/接口 | 已交付与证据 | 状态 |"
-if readme.count(expected_header) != 14:
-    raise SystemExit("README must use the six-column detailed requirement header 14 times")
+if readme.count(expected_header) != 15:
+    raise SystemExit("README must use the six-column detailed requirement header 15 times")
 if len(table_rows) != len(required_ids):
     raise SystemExit(
         f"README must have one row per smallest work package: rows={len(table_rows)}, "
@@ -211,6 +221,8 @@ for row in table_rows:
         expected_category = "空接口/准入"
     elif item_id == "P7-R3-OC2":
         expected_category = "过渡实现"
+    elif item_id.startswith("P4-R5"):
+        expected_category = "无实现；当前变更点"
     elif re.match(r"^(P2-W0[89]|P2-W1[0-2]|P4-D4|P5-R1|P6-P7-R1|P7-R2|P7-R4-OCDEV|P7-R5-MMDEV)", item_id):
         expected_category = "Debug 实现"
     elif item_id.startswith("P1-") or item_id == "P6-EV2" or item_id.startswith("P9-W"):
@@ -264,6 +276,7 @@ for row in table_rows:
 
     no_source_required = (
         item_id.startswith("P0-") or item_id in {"P4-R4", "P9-W03f", "P9-W03g", "P10-R1"}
+        or item_id.startswith("P4-R5")
         or "-ACT-" in item_id or item_id.startswith(("P8-", "P9-EXT-", "SCOPE-"))
     )
     if not no_source_required and not source_link_present:
@@ -328,7 +341,7 @@ required_claims = (
     "github_source_of_truth=true",
     "maintained_project_files_synced=true",
     "repository_software_requirements_complete=false",
-    "open_repository_software_requirement_count=1",
+    "open_repository_software_requirement_count=12",
     "unclassified_repository_requirement_count=0",
     "python_prototype_runtime_maintained=false",
     "production_ready=false",
