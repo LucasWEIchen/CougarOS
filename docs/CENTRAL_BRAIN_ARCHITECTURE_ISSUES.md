@@ -8,9 +8,10 @@
 
 `ISSUE-033` 的演示 HMI 软件子项已补充 Unity 原生双区温度与正确的座椅展开方向：Android
 温度 overlay 已移除，Cold/Fatigue 在 `testboard` 上通过真实 OpenClaw 链路和视觉复核。
-真实 HVAC/Seat adapter、readback 与 Safety authority 仍由 `ISSUE-023/029/030` 跟踪。
-生产板在最终包部署时未被 Windows ADB 枚举，故新增 `ISSUE-060`，不得借用测试板证据宣称
-生产板复测通过。`production_ready=false`、`target_hardware_validated=false`。
+生产板恢复 ADB 后也以最终配对 APK 通过目标以太 OpenClaw、Unity 原生双区 28.0°C、
+Fatigue 靠背展开和 crash/ANR 检查，`ISSUE-060` 已关闭。真实 HVAC/Seat adapter、
+readback 与 Safety authority 仍由 `ISSUE-023/029/030` 跟踪。
+`production_ready=false`、`target_hardware_validated=false`。
 
 ## P4-R5 issue update
 
@@ -104,7 +105,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-057 | P4-R5 购物与路径规划 debug 软件已完成，包含真实模型、六 Tool、三确认和事件驱动 HMI。 | S2-HMI-009, S2-CTX-002, S2-PER-001, S2-INT-001, S2-NAV-001, S2-COM-001, P4-R5 | Resolved / DEV-131 |
 | ISSUE-058 | 量产 OMS/camera、可信座椅占用、Navigation 和 Commerce/Payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
 | ISSUE-059 | 生产板使用测试会话临时 `169.254.208.100/24` 后已完成目标以太 OpenClaw 验证；厂商/系统尚未提供可启动恢复、受管的持久 IPv4 配置。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Partially Resolved / Persistent Network External |
-| ISSUE-060 | P4-R6 最终 Client2/RenderService 配对 APK 已在 testboard 通过；生产板在部署时未被 ADB 枚举，最终包复测待设备连接恢复。 | S2-HMI-001..004, DEL-001/004, P4-R6 | Open / External Device Connection |
+| ISSUE-060 | P4-R6 最终 Client2/RenderService 配对 APK 已在 testboard 和生产板通过；生产板 ADB 连接恢复，目标以太真实 OpenClaw、Unity 原生双区 28.0°C、靠背展开及 crash/ANR 检查通过。 | S2-HMI-001..004, DEL-001/004, P4-R6 | Resolved / Production Application Retest |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1522,13 +1523,16 @@ cancel/readback、privacy、rollback 和责任人证据。该问题不能由 `P4
 受管 owner。关闭本问题仍需目标网络 owner 提供持久 IPv4 配置和重启后复验。状态：
 `Partially Resolved / Persistent Network External`。
 
-## ISSUE-060 P4-R6 生产板最终包复测等待设备恢复
+## ISSUE-060 P4-R6 生产板最终包复测
 
 P4-R6 的同签 Client2/RenderService APK 已构建并在 Android 13 ARM64 `testboard` 完成真实
-OpenClaw、Unity 原生双区 28.0°C 和座椅展开视觉复核。准备部署生产板时，Windows ADB 列表中
-只出现 `testboard`，预期生产板没有被枚举；重启 ADB server 后仍未恢复。
+OpenClaw、Unity 原生双区 28.0°C 和座椅展开视觉复核。生产板恢复为 `device` 后，基于
+source commit `5da6deb8` 成对安装当前两个 APK；设备端 SHA-256 与仓库构建产物一致。
 
-该状态不能解释为软件失败，也不能解释为生产板通过。关闭条件是生产板恢复为 `device`，随后
-成对安装当前 source commit 生成的两个 APK，复测初始 26.5°C、Cold 双区 28.0°C、Fatigue
-靠背展开、进程重启和 crash/ANR。原始 serial、完整 logcat 和未审查截图不得进入 GitHub。
-状态：`Open / External Device Connection`。
+生产板初始 Unity 原生双区为 26.5°C。Cold 通过目标以太 OpenClaw protocol v3 在 11132 ms
+完成，双区原生温度更新为 28.0°C，Android 温度 overlay 不存在；Fatigue 在 7207 ms 完成，
+左侧 HMI 显示靠背 15°→30° 且顶部向外展开。Runtime 投影始终为
+`simulated_only=true`、`hardware_accessed=false`；Client2/RenderService 冷启动后恢复原生
+双区 26.5°C，测试后无 Central Brain crash/ANR。
+原始 serial、完整 logcat 和未审查截图未进入 GitHub。状态：
+`Resolved / Production Application Retest`。

@@ -880,10 +880,10 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-HMI-001/002/003/004`, `S2-UX-002`, `S2-ADP-001/002`, `S2-SAF-001`, `DEL-004`。
 - **负责模块**：Client2 `CockpitControlCoordinator`、TuanjieView 跨进程触控、RenderService Unity Addressables patch。
 - **前置输入**：已准入的 debug HVAC/Seat Effect、1920x1080 Tuanjie render surface、成对安装的 Client2 和 RenderService debug APK。
-- **输出与验收**：Cold 真实模型终态后 Unity 原生双区由 26.5°C 切换为 28.0°C；Fatigue 靠背顶端远离坐垫并显示 30 度；Android 温度 overlay 不存在。
+- **输出与验收**：Cold 真实模型终态后 Unity 原生双区由 26.5°C 切换为 28.0°C；Fatigue 靠背顶端远离坐垫并显示 30 度；Android 温度 overlay 不存在；testboard 与生产板应用层复测通过。
 - **边界与非目标**：只形成 HMI 仿真状态；不访问 Vehicle/VHAL/CAN/Driver-HAL，不修改 `libtuanjie.so`、厂商 Android 系统镜像或真实 HVAC/Seat target/readback。
 - **代码对应**：Client2/Unity 实现：[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L1263-L1277)；[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L1279-L1307)；[patch_unity_hvac_bundle.py](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/renderservice-central-brain/scripts/patch_unity_hvac_bundle.py#L173-L205)；[patch_unity_hvac_bundle.py](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/renderservice-central-brain/scripts/patch_unity_hvac_bundle.py#L263-L281)；[check_central_brain_unity_native_hvac_seat.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_unity_native_hvac_seat.sh#L20-L50)。
-- **当前状态**：`DONE / TESTBOARD_ARM64_VERIFIED / PRODUCTION_RETEST_BLOCKED`。
+- **当前状态**：`DONE / TESTBOARD_ARM64_VERIFIED / PRODUCTION_BOARD_ARM64_VERIFIED`。
 - **权威依据**：[专项详设](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[偏差登记](CENTRAL_BRAIN_ARCHITECTURE_DEVIATIONS.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
 ## P5 Tool、Skill 与 Memory

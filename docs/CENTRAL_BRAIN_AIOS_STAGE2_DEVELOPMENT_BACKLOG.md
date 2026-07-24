@@ -12,15 +12,15 @@
 
 ## P4-R6 Unity 原生 HVAC 与座椅动画修正
 
-- 状态：`DONE`（仓库软件和 testboard Android 13 ARM64）；生产板最终包复测由 `ISSUE-060` 开放。
+- 状态：`DONE`（仓库软件、testboard 与生产板 Android 13 ARM64 应用层复测）；`ISSUE-060` 已关闭。
 - 模块：Client2 coordinator/XML、`TuanjieView` 输入、RenderService Unity bundle patch、
   配对 APK build/sign/verify。
 - DoD：靠背 15->30 度向后展开；双区 26.5->28.0°C 由 Unity 原生 TextMeshPro 显示；
   Android 温度 overlay 为零；真实 Vehicle/VHAL/CAN 访问为零。
 - 交付：
   [Client2 Unity 原生 HVAC 与座椅动画修复详设](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)。
-- 边界：真实 HVAC/Seat adapter、readback、Safety authority、量产 signer 和生产板最终包复测不由
-  本工作包伪造完成。
+- 边界：真实 HVAC/Seat adapter、readback、Safety authority 和量产 signer 不由本工作包伪造完成；
+  生产板结果只证明普通 Android 应用层 HMI 仿真。
 
 ## P4-R5 座舱购物与路径规划
 
