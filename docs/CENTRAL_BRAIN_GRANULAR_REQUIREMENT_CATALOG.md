@@ -789,9 +789,9 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：`S2-SCN-001`, `S2-GRF-001`, `S2-INT-001`, `S2-TOL-001`。
 - **负责模块**：Scenario manifest/schema/catalog、compiler、Graph runtime 和 checksum。
 - **前置输入**：购物候选、导航能力、Tool allowlist 和确认 policy。
-- **输出与验收**：交付 `scene.cabin.multimodal.assist.v1` v2 的 13 节点 DAG、六 Tool、三确认和冻结摘要。
+- **输出与验收**：交付 `scene.cabin.multimodal.assist.v1` v2 的 13 节点 DAG、六 Tool、三确认和冻结摘要；目录门禁固定该资产为 v2，并保持其他三个内置资产为 v1。
 - **边界与非目标**：兼容场景 ID 不变；无 `effect.execute` 节点；订单和导航确认相互独立。
-- **代码对应**：Debug 实现：[scene.cabin.multimodal.assist.v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.multimodal.assist.v1.json#L1-L40)；[ScenarioManifestParserTest.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/scenario/ScenarioManifestParserTest.java#L1-L40)。
+- **代码对应**：Debug 实现：[scene.cabin.multimodal.assist.v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.multimodal.assist.v1.json#L1-L40)；[ScenarioManifestParserTest.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/test/java/com/centralbrain/runtime/scenario/ScenarioManifestParserTest.java#L1-L40)；[check_central_brain_android_scenario_manifest.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_scenario_manifest.sh#L105-L140)。
 - **当前状态**：`DONE / MANIFEST_V2`。
 - **权威依据**：[购物与路径规划详设](CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
