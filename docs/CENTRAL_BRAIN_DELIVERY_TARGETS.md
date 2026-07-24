@@ -19,7 +19,9 @@ Payment、Navigation adapter 缺失时失败关闭。`testboard` 的 WSL OpenCla
 `shopping_route_planning_requirement_defined=true`、
 `shopping_route_planning_debug_software_implemented=true`、
 `p4_r5_open_work_package_count=0`、
-`production_openclaw_ethernet_verified=false`、
+`production_openclaw_ethernet_verified=true`、
+`production_openclaw_multimodal_verified=true`、
+`production_target_ipv4_configuration_persistent=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、`S2-INT-001`、`S2-NAV-001`、
 `S2-COM-001`；tracking：`DEV-130/131`、`ISSUE-057/058/059`；stage
@@ -2968,9 +2970,10 @@ API 33 ARM64 已验证 Runtime probe 与 Client2 cold scenario 的真实外部�
 
 交付不包含 release credential、TLS、Gateway lifecycle/health owner、Ollama target deployment、direct NPU proof、
 Vendor SDK、Vehicle Effect 或 production installer。固定 token 可从源码/APK 提取，只适用于封闭测试。
-`external_compute_accessed=true`、`fixed_target_credential_active=true`、`latest_target_connectivity_verified=false`、`direct_npu_accessed=false`、
+`external_compute_accessed=true`、`fixed_target_credential_active=true`、`latest_target_connectivity_verified=true`、
+`target_multimodal_verified=true`、`target_ipv4_configuration_persistent=false`、`direct_npu_accessed=false`、
 `production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
-tracking：`DEV-122/124`、`ISSUE-024/044/054`；stage `P7-R3-OC2`。
+tracking：`DEV-122/124/132`、`ISSUE-024/044/059`；stage `P7-R3-OC2`。
 
 ## P4-R3 voice-first HMI delivery
 
@@ -3018,7 +3021,8 @@ tracking：`DEV-127/ISSUE-055`；stage `P7-R5-MMDEV`。
 目标接口交付同步刷新 `CENTRAL_BRAIN_OPENCLAW_INTERFACE_CODE_GUIDE.md`、
 `CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md` 和 target contract v3，只描述 Android 车机通过以太网访问
 `169.254.208.110:18789`。文档覆盖文字、图片及同一 `chat.send` 混合输入；仍明确
-`target_multimodal_frontend_bound=false`、`target_multimodal_verified=false`、
+`target_multimodal_frontend_bound=true`、`target_multimodal_verified=true`、
+`target_ipv4_configuration_persistent=false`、
 `production_media_retention_configured=false`。
 
 ## P4-R4 multimodal model I/O HMI requirement delivery

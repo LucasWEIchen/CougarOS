@@ -5446,8 +5446,9 @@ successful integration evidence remains historical evidence, not proof of curren
 
 `openclaw_target_integration_implemented=true`, `openclaw_target_android13_arm64_verified=true`,
 `client2_openclaw_projection_verified=true`, `fixed_target_credential_active=true`,
-`latest_target_connectivity_verified=false`, `direct_npu_accessed=false`, `production_ready=false`,
-`target_hardware_validated=false`; stage `P7-R3-OC2`, tracking `DEV-122/124` and `ISSUE-024/044/054`.
+`latest_target_connectivity_verified=true`, `target_multimodal_verified=true`,
+`target_ipv4_configuration_persistent=false`, `direct_npu_accessed=false`, `production_ready=false`,
+`target_hardware_validated=false`; stage `P7-R3-OC2`, tracking `DEV-122/124/132` and `ISSUE-024/044/059`.
 
 ## P4-R3 implementation delta: voice-first live HMI
 

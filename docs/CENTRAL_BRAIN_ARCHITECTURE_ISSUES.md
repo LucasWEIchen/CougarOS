@@ -7,9 +7,10 @@
 ## P4-R5 issue update
 
 `ISSUE-057` 已由 `DEV-131` 关闭：`P4-R5a..P4-R5l` 的受控帧 debug 软件、六 Tool、三确认和
-Client2 事件驱动反馈已实现并在 `testboard` 验证。`ISSUE-058` 继续跟踪实时 OMS/camera、可信
-座椅占用、量产 Navigation 和 Commerce/Payment；新增 `ISSUE-059` 跟踪生产板目标以太网无
-IPv4 地址/路由。`production_ready=false`、`target_hardware_validated=false`。
+Client2 事件驱动反馈已实现并在 `testboard` 验证。生产板随后以临时
+`169.254.208.100/24` 配置完成目标以太 OpenClaw v3 多模态与 UI 闭环。`ISSUE-058` 继续跟踪
+实时 OMS/camera、可信座椅占用、量产 Navigation 和 Commerce/Payment；`ISSUE-059` 只继续
+跟踪可启动恢复的持久 IPv4 配置。`production_ready=false`、`target_hardware_validated=false`。
 
 ## P10-R1 issue update
 
@@ -89,12 +90,12 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-051 | P9 durable privacy lifecycle 缺 owner policy、repository enforcement 和目标 evidence。 | S2-MEM-001, S2-SAF-001, P9-W04 | Open |
 | ISSUE-052 | P9 production signer、installer/rollback owner 和受控发布证据不可用。 | S2-REL-001, P9-W05 | Open / External Blocked |
 | ISSUE-053 | P9 target field diagnostics、replacement release 与 owner retest evidence 不可用。 | S2-OBS-001, S2-REL-001, P9-W07 | Open / External Blocked |
-| ISSUE-054 | 当前 Android 可达 OpenClaw 主机，但 18789 端口拒绝连接；固定凭据构建无法完成当前模型回归。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Open / External Service Blocked |
-| ISSUE-055 | 受控帧 debug SDK/Binder 与统一输入摘要已完成；实时语音/相机 owner、history 附件绑定、目标以太网和量产媒体治理仍缺外部接口/证据。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / External Integration |
+| ISSUE-054 | 目标 OpenClaw 18789 已恢复，Android 13 ARM64 经以太完成 protocol v3 多模态回归；Provider 仍是 transitional，未取得量产资格。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Resolved Service / External Qualification |
+| ISSUE-055 | 受控帧 debug SDK/Binder、统一输入摘要及目标以太多模态已完成；实时语音/相机 owner、history 附件绑定和量产媒体治理仍缺外部接口/证据。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / External Integration |
 | ISSUE-056 | Client2 实际模型输入/输出、图片缩略图、居中预览、图外/Back 退出和 ARM64 真实模型 exchange 已完成。 | S2-HMI-003/007/008, S2-MDL-002, S2-OBS-002, P4-R4 | Resolved / DEV-129 |
 | ISSUE-057 | P4-R5 购物与路径规划 debug 软件已完成，包含真实模型、六 Tool、三确认和事件驱动 HMI。 | S2-HMI-009, S2-CTX-002, S2-PER-001, S2-INT-001, S2-NAV-001, S2-COM-001, P4-R5 | Resolved / DEV-131 |
 | ISSUE-058 | 量产 OMS/camera、可信座椅占用、Navigation 和 Commerce/Payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
-| ISSUE-059 | 生产板 `eth0` 无 `169.254.208.0/24` IPv4 地址或路由，无法到达目标 OpenClaw；ADB reverse 不得替代生产以太网证据。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Open / External Network |
+| ISSUE-059 | 生产板使用测试会话临时 `169.254.208.100/24` 后已完成目标以太 OpenClaw 验证；厂商/系统尚未提供可启动恢复、受管的持久 IPv4 配置。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Partially Resolved / Persistent Network External |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1409,23 +1410,21 @@ Runtime probe 和 Client2 projection 已在 API 33 ARM64 通过。ISSUE-044 的 
 
 Issues 保持 Open：固定共享 credential、明文 link-local transport、Gateway health/version、model artifact owner、release signer/profile、
 resource/thermal producer、Ollama migration、direct NPU attribution 和 target qualification 未完成。
-2026-07-20 真机从 `169.254.208.100` 可 ping 通目标，TCP 18789 立即返回 `Connection refused`；因此当前回归未进入
-WebSocket、authentication 或 token validation。恢复条件是算力单元 owner 启动并监听 18789 后重跑 Runtime probe 和 Client2 场景。
+2026-07-24 目标服务已恢复；生产板以测试会话临时 IPv4 完成 WebSocket、authentication、图片+文字模型请求和
+Client2 购物/路线闭环。持久 IPv4 owner 继续由 ISSUE-059 跟踪。
 
-`openclaw_target_android13_arm64_verified=true`（历史）、`latest_target_connectivity_verified=false`、
+`openclaw_target_android13_arm64_verified=true`、`latest_target_connectivity_verified=true`、
+`target_multimodal_verified=true`、`target_ipv4_configuration_persistent=false`、
 `fixed_target_credential_active=true`、`direct_npu_accessed=false`、
 `production_provider_qualified=false`、`production_ready=false`、`target_hardware_validated=false`；
-tracking：`DEV-122/124`；stage `P7-R3-OC2`。
+tracking：`DEV-122/124/132`；stage `P7-R3-OC2`。
 
-## ISSUE-054 OpenClaw target service is not listening
+## ISSUE-054 OpenClaw target service recovery
 
-目标 Android 13 ARM64 的 link-local 路由和 ICMP 可达性正常，但当前 `169.254.208.110:18789` 拒绝 TCP 连接。
-该故障发生在 WebSocket handshake、challenge/auth、prompt、模型推理和 action allowlist 之前，不能通过修改 token、
-Client2 UI 或模型 schema 修复。
-
-状态：`Open / External Service Blocked`。算力基座 owner 需要提供端口监听、服务进程和协议版本证据；恢复后必须执行
-固定目标 build 的 Runtime probe、Cold/Fatigue Client2 调用和无原始 prompt/reply/token 日志检查。此前 2026-07-19 的
-成功 WebSocket v3 证据保留，但不代表 2026-07-20 服务仍在线。
+2026-07-20 的 `Connection refused` 已在 2026-07-24 消失。固定目标 build 经生产板以太完成
+OpenClaw v3 challenge/auth/chat ACK/final、受控图片+文字、三个确认和 Client2 最终投影，且未记录原始
+prompt/reply/token。状态：`Resolved Service / External Qualification`。Provider 的 release 资格、health owner、
+持久网络和 direct NPU 归因不由本 issue 关闭。
 
 ## P7-R4-OCDEV development route update (ISSUE-024/054 unchanged)
 
@@ -1438,25 +1437,20 @@ Client2/SDK/Runtime 同源重建后的 Cold 全链路也已通过，真实模型
 `OrchestrationContract` 规避。
 
 `ISSUE-024` 保持 Open：Vendor NPU、量产模型/artifact owner、资源/热/性能和 direct NPU 归因仍缺失。
-`ISSUE-054` 保持 Open：ADB reverse 不证明 `169.254.208.110:18789` 的当前服务或以太网可用。目标服务恢复后仍须使用
-目标 v3 build 执行 Runtime 和 Client2 复测。
+`ISSUE-054` 后续已由目标 v3 以太复测关闭；本段 ADB reverse 结果仍只证明开发路径。
 
 `development_wsl_openclaw_android13_arm64_verified=true`、`ethernet_validated=false`、
-`latest_target_connectivity_verified=false`、`direct_npu_accessed=false`、`production_ready=false`、
+`latest_target_connectivity_verified=true`、`direct_npu_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`；tracking：`DEV-126`；stage `P7-R4-OCDEV`。
 
 ## ISSUE-055 Frontend voice and image ingress is not bound
 
-Android `OpenClawInferenceEngine` 已支持有界图片附件，目标 `chat.send` 能在同一 RPC 中携带 `message` 和
-`attachments[0]`；但 Client2/前端尚未把语音转写和相机帧通过版本化 SDK/Binder 合同绑定到同一个请求，
-`inputDigest` 尚未强制包含图片 SHA-256，`chat.history` 回退也尚未比较附件摘要。
+受控帧已通过版本化 SDK/Binder、aggregate digest 和单次消费内存存储进入 Client2/Runtime，并在 Android 13
+ARM64 目标以太 `chat.send` 中与文字同请求完成。仍未完成的是实时相机/语音 owner、history 附件摘要绑定和
+量产媒体 retention/consent。状态：`Open / External Live Ingress And Governance`。
 
-状态：`Open / Next Software Increment`。关闭条件：定义媒体 DTO/传输方式、大小/MIME/生命周期/背压和失败码；接入前端
-相机与语音转写；实现 transcript/image aggregate digest 和 history attachment binding；在 Android 13 ARM64 车机通过
-以太网直连目标 OpenClaw，证明同一请求含文字和图片，并保持 action allowlist、无车辆 Effect authority 与脱敏日志。
-非目标网络证据不得关闭该缺口。
-
-`frontend_multimodal_ingress_bound=false`、`android13_arm64_multimodal_verified=false`、
+`frontend_multimodal_ingress_bound=true`、`android13_arm64_multimodal_verified=true`、
+`live_camera_ingress_verified=false`、
 `production_media_retention_configured=false`、`production_ready=false`、`target_hardware_validated=false`；
 tracking：`DEV-127`；stage `P7-R5-MMDEV`。
 

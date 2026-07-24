@@ -174,7 +174,7 @@ POI 搜索、路线约束、路线预览、启动、取消和 readback；缺失�
 - 后端：WSL OpenClaw -> Ollama
 - 证据：真实图片和文字进入模型，三个确认节点及最终 UI 已通过
 
-### 9.2 生产板 `0123456789ABCDEF`
+### 9.2 生产板
 
 - profile：`target_openclaw_transitional`
 - 传输：Android 以太网直连
@@ -182,9 +182,10 @@ POI 搜索、路线约束、路线预览、启动、取消和 readback；缺失�
 - token：由现有 `OpenClawEndpointConfig` 固定
 - 不允许以 ADB reverse 证据替代目标以太网证据
 
-2026-07-24 现场诊断显示生产板 `eth0` 只有 IPv6 link-local 地址，没有
-`169.254.208.0/24` 的 IPv4 地址或路由，`curl` 返回 `Network is unreachable`。因此当前只能证明
-软件构建和失败关闭，不能声明生产 OpenClaw 直连完成。
+2026-07-24 现场先确认生产板 `eth0` 链路 UP 但没有 IPv4。测试会话临时配置
+`169.254.208.100/24` 后，生产板不经 ADB reverse 直连目标 OpenClaw，完成 protocol v3
+图片+文字请求，模型耗时 44908 ms，三个确认节点依次通过并在 Graph revision 77 完成。
+该结果证明目标以太与受控帧多模态链路；不证明厂商系统已经交付持久 IPv4 配置。
 
 ## 10. 验收
 
@@ -209,7 +210,9 @@ POI 搜索、路线约束、路线预览、启动、取消和 readback；缺失�
 `production_commerce_adapter_wired=false`、
 `production_navigation_adapter_wired=false`、
 `production_payment_implemented=false`、
-`production_openclaw_ethernet_verified=false`、
+`production_openclaw_ethernet_verified=true`、
+`production_openclaw_multimodal_verified=true`、
+`production_target_ipv4_configuration_persistent=false`、
 `driver_hal_development_required=false`、
 `production_ready=false`、
 `target_hardware_validated=false`。

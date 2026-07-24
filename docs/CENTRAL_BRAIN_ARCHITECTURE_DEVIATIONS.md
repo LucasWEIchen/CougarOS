@@ -4,6 +4,20 @@
 日期：2026-07-20
 状态：Android 13 实际工程基线
 
+## DEV-132 目标以太验证依赖测试会话临时 IPv4 配置
+
+生产板 `eth0` 链路已 UP，但系统没有下发 IPv4。为完成不经 ADB reverse 的目标验收，本次仅在
+运行中的测试会话临时配置 `169.254.208.100/24`，随后 Android 13 ARM64 直连
+`169.254.208.110:18789`，完成 OpenClaw protocol v3 图片+文字请求、三个独立确认和 Graph
+revision 77；模型耗时 44908 ms。该运行时配置未修改厂商源码、系统镜像或启动配置。
+
+处理：接受为目标以太与多模态软件证据，不接受为量产网络配置证据。持久地址、冲突检测、
+启动恢复、链路故障与 owner 仍由目标系统集成方提供。状态：`Accepted Test Evidence /
+Persistent Configuration Open`。`production_openclaw_ethernet_verified=true`、
+`production_target_ipv4_configuration_persistent=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-MDL-001/002`、`S2-OBS-002`、
+`DEL-004`；tracking：`ISSUE-054/059`。
+
 ## DEV-131 将“饮水服务”纠正为购物服务与路径规划服务
 
 旧 P4-R5 设计把测试图片中的饮水容器提升成了“饮水辅助服务”，混淆了商品类别与业务服务。
@@ -12,12 +26,12 @@
 
 处理：保留兼容场景 ID，资产升级为 v2；删除 HVAC/Media Effect，新增六个 Tool 和购物、订单、
 导航三个独立确认。debug 订单返回 `ORDER_NOT_DISPATCHED`，导航返回
-`NAVIGATION_SIMULATED`；production adapter 仍失败关闭。`testboard` 实际多模态验证完成，
-生产板目标以太网因无 IPv4 地址/路由仍未验证。
+`NAVIGATION_SIMULATED`；production adapter 仍失败关闭。`testboard` 的 WSL 多模态和生产板的
+目标以太 OpenClaw v3 多模态均已验证；生产板 IPv4 仍是测试会话临时配置。
 
-状态：`Resolved / External Network Evidence Open`。`production_ready=false`、
+状态：`Resolved / Persistent Network Configuration Open`。`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-INT-001`、`S2-TOL-001`、
-`S2-NAV-001`、`S2-COM-001`、`S2-HMI-009`；tracking：`ISSUE-057/058/059`。
+`S2-NAV-001`、`S2-COM-001`、`S2-HMI-009`；tracking：`ISSUE-057/058/059`、`DEV-132`。
 
 ## DEV-130 P4-R4 固定动作链不能满足购物与路径规划场景
 

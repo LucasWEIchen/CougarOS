@@ -36,8 +36,8 @@ for marker in \
   '## 10. chat.send 文字与图片 RPC' '"attachments"' \
   'connect.challenge' 'chat.send' 'chat.history' 'chat.abort' \
   'target_multimodal_protocol_implemented=true' \
-  'target_multimodal_frontend_bound=false' \
-  'target_multimodal_verified=false' \
+  'target_multimodal_frontend_bound=true' \
+  'target_multimodal_verified=true' \
   'release_routing_enabled=false'; do
   require_text "$CODE_GUIDE" "$marker"
 done
@@ -139,28 +139,33 @@ assert evidence["abi"] == "arm64-v8a"
 assert evidence["runtime_probe_verified"] is True
 assert evidence["client2_projection_verified"] is True
 assert evidence["text_only_target_evidence"] is True
-assert evidence["multimodal_target_evidence"] is False
+assert evidence["multimodal_target_evidence"] is True
+assert evidence["runtime_probe_latency_ms"] == 44908
+assert evidence["shopping_route_graph_final_revision"] == 77
+assert evidence["shopping_route_approval_count"] == 3
 assert evidence["raw_response_recorded"] is False
 latest = contract["latest_target_retest"]
 assert latest["target_host_reachable_by_icmp"] is True
-assert latest["target_port_18789_listening"] is False
-assert latest["transport_result"] == "CONNECTION_REFUSED"
-assert latest["protocol_or_token_validation_reached"] is False
+assert latest["target_port_18789_listening"] is True
+assert latest["transport_result"] == "OPENCLAW_PROTOCOL_V3_COMPLETED"
+assert latest["protocol_or_token_validation_reached"] is True
 assert latest["target_profile_installed"] is True
-assert latest["client2_transport_failure_projected"] is True
-assert latest["production_model_regression_passed"] is False
+assert latest["client2_transport_failure_projected"] is False
+assert latest["target_ipv4_configuration_persistent"] is False
+assert latest["production_model_regression_passed"] is True
 claims = contract["claim_state"]
 assert claims["openclaw_target_integration_implemented"] is True
 assert claims["target_multimodal_protocol_implemented"] is True
-assert claims["target_multimodal_frontend_bound"] is False
-assert claims["target_multimodal_verified"] is False
+assert claims["target_multimodal_frontend_bound"] is True
+assert claims["target_multimodal_verified"] is True
+assert claims["live_camera_ingress_verified"] is False
 assert claims["production_media_retention_configured"] is False
 assert claims["openclaw_target_android13_arm64_verified"] is True
 assert claims["external_compute_accessed"] is True
 assert claims["direct_npu_accessed"] is False
 assert claims["vehicle_effect_hardware_accessed"] is False
 assert claims["fixed_target_credential_active"] is True
-assert claims["latest_target_connectivity_verified"] is False
+assert claims["latest_target_connectivity_verified"] is True
 assert claims["production_provider_qualified"] is False
 assert claims["production_ready"] is False
 assert claims["target_hardware_validated"] is False
@@ -180,10 +185,10 @@ printf '%s\n' \
   'openclaw_target_android13_arm64_verified=true' \
   'client2_openclaw_projection_verified=true' \
   'target_multimodal_protocol_implemented=true' \
-  'target_multimodal_frontend_bound=false' \
-  'target_multimodal_verified=false' \
+  'target_multimodal_frontend_bound=true' \
+  'target_multimodal_verified=true' \
   'fixed_target_credential_active=true' \
-  'latest_target_connectivity_verified=false' \
+  'latest_target_connectivity_verified=true' \
   'external_compute_accessed=true' \
   'direct_npu_accessed=false' \
   'vehicle_effect_hardware_accessed=false' \

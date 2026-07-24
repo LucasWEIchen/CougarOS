@@ -4071,9 +4071,10 @@ unchanged at the model boundary: it reads `ICentralBrainDevelopmentModelProjecti
 Full protocol, lifecycle and integration guidance is in `CENTRAL_BRAIN_OPENCLAW_TARGET_GATEWAY.md`.
 
 Current `external_compute_accessed=true`, `fixed_target_credential_active=true`,
-`latest_target_connectivity_verified=false`, `direct_npu_accessed=false`, `production_provider_qualified=false`,
+`latest_target_connectivity_verified=true`, `target_multimodal_verified=true`,
+`target_ipv4_configuration_persistent=false`, `direct_npu_accessed=false`, `production_provider_qualified=false`,
 `production_ready=false`, `target_hardware_validated=false`; stage `P7-R3-OC2`, tracking
-`DEV-122/124` and `ISSUE-024/044/054`.
+`DEV-122/124/132` and `ISSUE-024/044/059`.
 
 ## P4-R3 voice-first HMI and live execution interfaces
 
