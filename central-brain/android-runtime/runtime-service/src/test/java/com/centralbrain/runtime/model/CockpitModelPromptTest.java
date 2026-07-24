@@ -40,7 +40,7 @@ public final class CockpitModelPromptTest {
     }
 
     @Test
-    public void multimodalPromptLimitsImageReasoningAndEffects() {
+    public void multimodalPromptLimitsImageReasoningToShoppingAndRouteGoals() {
         CockpitModelPrompt prompt = CockpitModelPrompt.forMultimodal(
                 "c".repeat(64), "处理一下");
 
@@ -50,11 +50,17 @@ public final class CockpitModelPromptTest {
         assertTrue(prompt.getContext().contains("VISIBLE_CABIN_FACTS_ONLY"));
         assertTrue(prompt.getContext().contains(
                 "NO_IDENTITY_OR_SENSITIVE_ATTRIBUTE_INFERENCE"));
-        assertEquals(List.of("hvac.ventilate", "media.pause"),
+        assertTrue(prompt.getContext().contains("shopping_mode=PRODUCT_AND_MERCHANT_SEARCH"));
+        assertEquals(List.of(
+                        "shopping.search_products",
+                        "shopping.prepare_order",
+                        "navigation.plan_purchase_route"),
                 prompt.getAllowedActions());
-        assertEquals(1, prompt.getRequiredActions().size());
-        prompt.validateAdmittedActions(List.of("hvac.ventilate"));
+        assertEquals(2, prompt.getRequiredActions().size());
+        prompt.validateAdmittedActions(List.of(
+                "shopping.search_products",
+                "navigation.plan_purchase_route"));
         assertThrows(IllegalStateException.class, () ->
-                prompt.validateAdmittedActions(List.of("media.pause")));
+                prompt.validateAdmittedActions(List.of("shopping.search_products")));
     }
 }

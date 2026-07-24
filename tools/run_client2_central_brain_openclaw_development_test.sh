@@ -11,6 +11,24 @@ CLIENT2_PACKAGE="com.tuanjie.urasclient2"
 CLIENT2_ACTIVITY="$CLIENT2_PACKAGE/.MainActivity"
 TIMEOUT_SECONDS="${CENTRAL_BRAIN_CLIENT2_OPENCLAW_TIMEOUT_SECONDS:-180}"
 SCENARIO="${CENTRAL_BRAIN_CLIENT2_SCENARIO:-cold}"
+MODEL_ROUTE="${CENTRAL_BRAIN_CLIENT2_MODEL_ROUTE:-development_wsl_openclaw}"
+
+case "$MODEL_ROUTE" in
+  development_wsl_openclaw)
+    build_profile="development_wsl_openclaw"
+    expected_protocol=4
+    expected_transport="ADB_REVERSE"
+    ;;
+  target_openclaw_transitional)
+    build_profile="target_openclaw_transitional"
+    expected_protocol=3
+    expected_transport="TARGET_ETHERNET"
+    ;;
+  *)
+    echo "client2_openclaw_development_test_complete=false reason=INVALID_MODEL_ROUTE" >&2
+    exit 2
+    ;;
+esac
 
 case "$SCENARIO" in
   cold)
@@ -63,7 +81,7 @@ else
 fi
 
 if [[ "${CENTRAL_BRAIN_SKIP_CLIENT2_BUILD:-false}" != "true" ]]; then
-  CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE=development_wsl_openclaw \
+  CENTRAL_BRAIN_MODEL_GATEWAY_PROFILE="$build_profile" \
     "$ROOT/apk-labs/client2-central-brain/scripts/build_debug_apk.sh" >/dev/null
 fi
 for apk in "$RUNTIME_APK" "$CLIENT2_APK"; do
@@ -82,13 +100,22 @@ apk_argument() {
 "${adb[@]}" install -r -d -t "$(apk_argument "$RUNTIME_APK")" >/dev/null
 "${adb[@]}" install -r -d -t "$(apk_argument "$CLIENT2_APK")" >/dev/null
 
-bridge_env=()
-[[ -n "${ANDROID_TRANSPORT_ID:-}" ]] \
-  && bridge_env+=("ANDROID_TRANSPORT_ID=$ANDROID_TRANSPORT_ID")
-[[ -n "${ANDROID_SERIAL:-}" ]] \
-  && bridge_env+=("ANDROID_SERIAL=$ANDROID_SERIAL")
-[[ -n "${ADB_BIN:-}" ]] && bridge_env+=("ADB_BIN=$ADB_BIN")
-env "${bridge_env[@]}" "$ROOT/tools/start_central_brain_wsl_openclaw_bridge.sh" >/dev/null
+if [[ "$MODEL_ROUTE" == "development_wsl_openclaw" ]]; then
+  bridge_env=()
+  [[ -n "${ANDROID_TRANSPORT_ID:-}" ]] \
+    && bridge_env+=("ANDROID_TRANSPORT_ID=$ANDROID_TRANSPORT_ID")
+  [[ -n "${ANDROID_SERIAL:-}" ]] \
+    && bridge_env+=("ANDROID_SERIAL=$ANDROID_SERIAL")
+  [[ -n "${ADB_BIN:-}" ]] && bridge_env+=("ADB_BIN=$ADB_BIN")
+  env "${bridge_env[@]}" "$ROOT/tools/start_central_brain_wsl_openclaw_bridge.sh" >/dev/null
+else
+  "${adb[@]}" reverse --remove tcp:18789 >/dev/null 2>&1 || true
+  if ! "${adb[@]}" shell curl -sS --fail --max-time 5 \
+      "http://169.254.208.110:18789/" >/dev/null; then
+    echo "client2_openclaw_development_test_complete=false reason=TARGET_OPENCLAW_NETWORK_UNREACHABLE" >&2
+    exit 19
+  fi
+fi
 
 android_api="$("${adb[@]}" shell getprop ro.build.version.sdk | tr -d '\r')"
 android_abi="$("${adb[@]}" shell getprop ro.product.cpu.abi | tr -d '\r')"
@@ -131,6 +158,9 @@ fi
 tap_resource "$scenario_button" \
   || { echo "client2_openclaw_development_test_complete=false reason=SCENARIO_TRIGGER_NOT_FOUND" >&2; exit 10; }
 
+shopping_consent_approved=false
+purchase_commit_approved=false
+navigation_start_approved=false
 for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
   logs="$("${adb[@]}" logcat -d -v brief \
     -s CentralBrainOpenClaw:I CbClient2Orchestration:I CbDevModelProjection:I '*:S' \
@@ -142,14 +172,42 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
     echo "client2_openclaw_development_test_complete=false reason=RUNTIME_FAILURE" >&2
     exit 11
   fi
+  if [[ "$SCENARIO" == "multimodal" ]]; then
+    if [[ "$shopping_consent_approved" == "false" ]] \
+        && printf '%s\n' "$logs" | grep -q \
+          'pending_node_id=request_shopping_consent'; then
+      tap_resource centralBrainApproveButton \
+        || { echo "client2_openclaw_development_test_complete=false reason=SHOPPING_CONSENT_BUTTON_MISSING" >&2; exit 15; }
+      shopping_consent_approved=true
+      sleep 1
+      continue
+    fi
+    if [[ "$purchase_commit_approved" == "false" ]] \
+        && printf '%s\n' "$logs" | grep -q \
+          'pending_node_id=request_purchase_confirmation'; then
+      tap_resource centralBrainApproveButton \
+        || { echo "client2_openclaw_development_test_complete=false reason=PURCHASE_CONFIRMATION_BUTTON_MISSING" >&2; exit 16; }
+      purchase_commit_approved=true
+      sleep 1
+      continue
+    fi
+    if [[ "$navigation_start_approved" == "false" ]] \
+        && printf '%s\n' "$logs" | grep -q \
+          'pending_node_id=request_navigation_confirmation'; then
+      tap_resource centralBrainApproveButton \
+        || { echo "client2_openclaw_development_test_complete=false reason=NAVIGATION_CONFIRMATION_BUTTON_MISSING" >&2; exit 17; }
+      navigation_start_approved=true
+      sleep 1
+      continue
+    fi
+  fi
   if printf '%s\n' "$logs" | grep -q \
-      'openclaw_inference_completed=true endpoint_profile=development_wsl_openclaw protocol=4' \
+      "openclaw_inference_completed=true endpoint_profile=${MODEL_ROUTE} protocol=${expected_protocol}" \
       && printf '%s\n' "$logs" | grep -Eq \
       'client2_orchestration_snapshot_projected=true .*model_projection_available=true .*simulated_only=true .*hardware_accessed=false'; then
     ui="$(dump_ui)"
     if ! printf '%s\n' "$ui" | grep -q 'RESULT / COMPLETED' \
-        || ! printf '%s\n' "$ui" | grep -q 'centralBrainActuatorOverlay' \
-        || ! printf '%s\n' "$ui" | grep -q 'VEHICLE BUS NOT ACCESSED'; then
+        || ! printf '%s\n' "$ui" | grep -q 'centralBrainActuatorOverlay'; then
       echo "client2_openclaw_development_test_complete=false reason=HMI_FEEDBACK_INCOMPLETE" >&2
       exit 12
     fi
@@ -160,10 +218,22 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
               'development_model_projection_read=true .*projection_available=true image_consumed=true'; } \
           || ! printf '%s\n' "$ui" | grep -q 'MODEL OUTPUT / IMAGE_CONSUMED' \
           || ! printf '%s\n' "$ui" | grep -q 'AGENT ACTIONS / ALLOWLISTED' \
-          || ! printf '%s\n' "$ui" | grep -q 'MODEL INPUT / BOUND'; then
+          || ! printf '%s\n' "$ui" | grep -q 'MODEL INPUT / BOUND' \
+          || ! printf '%s\n' "$ui" | grep -q '购物与路径规划服务' \
+          || ! printf '%s\n' "$ui" | grep -q '饮用水候选 3 项' \
+          || ! printf '%s\n' "$ui" | grep -q '订单已确认' \
+          || ! printf '%s\n' "$ui" | grep -q 'NOT_DISPATCHED' \
+          || ! printf '%s\n' "$ui" | grep -q '购物路线已启动' \
+          || ! printf '%s\n' "$ui" | grep -q 'UI SIMULATION ONLY' \
+          || [[ "$shopping_consent_approved" != "true" ]] \
+          || [[ "$purchase_commit_approved" != "true" ]] \
+          || [[ "$navigation_start_approved" != "true" ]]; then
         echo "client2_openclaw_development_test_complete=false reason=MULTIMODAL_PROOF_INCOMPLETE" >&2
         exit 14
       fi
+    elif ! printf '%s\n' "$ui" | grep -q 'VEHICLE BUS NOT ACCESSED'; then
+      echo "client2_openclaw_development_test_complete=false reason=VEHICLE_BOUNDARY_INCOMPLETE" >&2
+      exit 18
     fi
     printf '%s\n' "$logs" | grep -E \
       'openclaw_(protocol_stage|inference_(started|completed))=|client2_orchestration_snapshot_projected=true'
@@ -172,11 +242,14 @@ for _ in $(seq 1 "$TIMEOUT_SECONDS"); do
       "scenario=$SCENARIO" \
       'sdk_runtime_client2_same_build=true' \
       'android13_arm64_1920x1080_verified=true' \
-      'transport=ADB_REVERSE' \
-      'real_wsl_openclaw_ollama_accessed=true' \
+      "transport=$expected_transport" \
+      "endpoint_profile=$MODEL_ROUTE" \
+      "openclaw_protocol=$expected_protocol" \
+      "real_wsl_openclaw_ollama_accessed=$([[ \"$MODEL_ROUTE\" == development_wsl_openclaw ]] && echo true || echo false)" \
+      "target_openclaw_ethernet_validated=$([[ \"$MODEL_ROUTE\" == target_openclaw_transitional ]] && echo true || echo false)" \
       'simulated_hmi_effect_verified=true' \
       'vehicle_effect_hardware_accessed=false' \
-      'ethernet_validated=false' \
+      "ethernet_validated=$([[ \"$MODEL_ROUTE\" == target_openclaw_transitional ]] && echo true || echo false)" \
       'production_ready=false' \
       'target_hardware_validated=false'
     exit 0

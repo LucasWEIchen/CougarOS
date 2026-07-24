@@ -120,6 +120,59 @@ public final class SimulatedScenarioEffectCompositionTest {
     }
 
     @Test
+    public void cabinShoppingRunsSixToolsAcrossThreeIndependentConfirmations()
+            throws Exception {
+        Fixture fixture = fixture();
+        SimulatedScenarioEffectComposition.Snapshot assistance =
+                fixture.composition.start(
+                        fixture.inputs.create(
+                                ScenarioKind.CABIN_MULTIMODAL,
+                                DrivingProfile.PARKED),
+                        ScenarioKind.CABIN_MULTIMODAL,
+                        DrivingProfile.PARKED);
+
+        assertEquals("request_shopping_consent",
+                assistance.getPendingNode().getNodeId());
+        assertEquals(0, assistance.getToolInvocationCount());
+
+        SimulatedScenarioEffectComposition.Snapshot purchase =
+                fixture.composition.supplyApprovalOutcome(
+                        assistance.getRunId(),
+                        AgentGraphRuntime.NodeExecutionOutcome.SUCCEEDED);
+        assertEquals("request_purchase_confirmation",
+                purchase.getPendingNode().getNodeId());
+        assertEquals(4, purchase.getToolInvocationCount());
+        assertEquals("preview_purchase_route", purchase.getLastToolNodeId());
+        assertEquals("ROUTE_PREVIEW_READY", purchase.getLastToolStatusCode());
+
+        SimulatedScenarioEffectComposition.Snapshot navigation =
+                fixture.composition.supplyApprovalOutcome(
+                        assistance.getRunId(),
+                        AgentGraphRuntime.NodeExecutionOutcome.SUCCEEDED);
+        assertEquals("request_navigation_confirmation",
+                navigation.getPendingNode().getNodeId());
+        assertEquals(5, navigation.getToolInvocationCount());
+        assertEquals("commit_order", navigation.getLastToolNodeId());
+        assertEquals("ORDER_NOT_DISPATCHED", navigation.getLastToolStatusCode());
+
+        SimulatedScenarioEffectComposition.Snapshot completed =
+                fixture.composition.supplyApprovalOutcome(
+                        assistance.getRunId(),
+                        AgentGraphRuntime.NodeExecutionOutcome.SUCCEEDED);
+        assertEquals(SimulatedScenarioRuntime.SessionState.COMPLETED,
+                completed.getSessionState());
+        assertNull(completed.getPendingNode());
+        assertEquals(6, completed.getToolInvocationCount());
+        assertEquals(3, completed.getApprovalInputCount());
+        assertEquals("start_purchase_navigation", completed.getLastToolNodeId());
+        assertEquals("NAVIGATION_SIMULATED", completed.getLastToolStatusCode());
+        assertEquals(0, completed.getEffectDispatchCount());
+        assertEquals(0, completed.getReadbackAttemptCount());
+        assertEquals(0, completed.getFailureCount());
+        assertFalse(completed.isHardwareAccessed());
+    }
+
+    @Test
     public void requiredEffectFailureFailsGraphClosed() throws Exception {
         Fixture fixture = fixture();
         fixture.composition.setFaultForContractTest(
@@ -215,6 +268,7 @@ public final class SimulatedScenarioEffectCompositionTest {
     private static ScenarioCatalog catalog() throws Exception {
         Map<String, byte[]> assets = new LinkedHashMap<>();
         for (String name : new String[] {
+                "scene.cabin.multimodal.assist.v1.json",
                 "scene.comfort.cold.v1.json",
                 "scene.fatigue.assist.v1.json",
                 "scene.rest.nap.v1.json"

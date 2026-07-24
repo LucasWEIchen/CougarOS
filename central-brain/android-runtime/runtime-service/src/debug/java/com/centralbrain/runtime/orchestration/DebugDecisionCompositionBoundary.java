@@ -806,7 +806,7 @@ final class DebugDecisionCompositionBoundary {
             return VehicleCapability.CapabilityId.SEAT_RECLINE_ANGLE;
         }
         if ("scene.cabin.multimodal.assist.v1".equals(scenarioId)) {
-            return VehicleCapability.CapabilityId.HVAC_FAN_LEVEL;
+            return VehicleCapability.CapabilityId.NAVIGATION_POI;
         }
         throw violation("scenario consent capability is unavailable");
     }

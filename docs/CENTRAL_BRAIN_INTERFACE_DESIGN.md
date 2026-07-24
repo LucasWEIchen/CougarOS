@@ -4,17 +4,16 @@
 
 日期：2026-07-17
 
-## P4-R5 cabin hydration assistance interfaces
+## P4-R5 cabin shopping and route-planning interfaces
 
-P4-R5 新增或演进六组版本化接口：`CabinFrameInputV2`、`CabinObservationBatchV1`、
-`CabinOccupancyContextV1`、`ModelSemanticProposalV2`、`IntentHypothesisV1` 和
-`ConfirmationRequestV1`。Tool family 为 `catalog.water.search.v1`、
-`commerce.order.prepare/commit.v1`、`navigation.poi.search.v1` 和
-`navigation.route.preview/start.v1`。
+P4-R5 在现有多模态 Binder 上组合座舱观察投影、购物语义、场景 Graph 和三次独立确认。
+Runtime Tool 节点为 `search_product_catalog`、`search_purchase_poi`、
+`prepare_order_preview`、`preview_purchase_route`、`commit_order` 和
+`start_purchase_navigation`；Commerce 不进入 Vehicle Capability，饮用水只作为商品类别。
 
 Observation、Hypothesis、Tool invocation、Confirmation 和 Effect 必须保持独立 authority 边界。
 字段、限制、digest、确认绑定和 typed unavailable 语义见
-[座舱饮水辅助多模态场景软件详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)。
+[座舱购物与路径规划多模态场景软件详设](CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md)。
 
 ## P4-R1 Orchestration V1 interface
 

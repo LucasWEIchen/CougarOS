@@ -4,10 +4,10 @@
 
 日期：2026-07-17
 
-## P4-R5 cabin hydration assistance Driver/HAL boundary
+## P4-R5 cabin shopping and route-planning Driver/HAL boundary
 
 `P4-R5a..P4-R5l` 是 Android application/Runtime/SDK/Tool/HMI 软件需求。Observation、Context、
-Hypothesis、Confirmation、Tool manifest、synthetic POI/order preview、Client2 View 和 audit digest
+Shopping intent、Confirmation、Tool manifest、synthetic product/POI/order/route preview、Client2 View 和 audit digest
 不要求修改 Camera HAL、VHAL、CAN、Kernel、Driver、PCIe/NPU 或芯片厂商已刷机软件。
 
 四个 production source/adapter 保持空接口：
@@ -23,7 +23,7 @@ Driver/HAL gap。因此当前 `driver_hal_development_required=false`、
 `driver_hal_accessed=false`、`vehicle_bus_accessed=false`、
 `production_navigation_adapter_wired=false`、`production_commerce_adapter_wired=false`、
 `production_ready=false`、`target_hardware_validated=false`。tracking：
-`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+`DEV-130/131`、`ISSUE-057/058/059`；stage `P4-R5-SHOPPING-ROUTE`。
 
 ## P4-R1 Orchestration Driver/HAL Boundary
 

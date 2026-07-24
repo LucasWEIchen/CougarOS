@@ -24,6 +24,8 @@ import com.centralbrain.sdk.plan.ScenarioPlan;
 import com.centralbrain.sdk.session.ICentralBrainSessionRuntime;
 
 import java.util.Objects;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -93,6 +95,7 @@ public final class OrchestrationRuntimeClient implements
     private String latestUiScenarioId = "";
     private String latestDrivingProfile = "";
     private int approvalInputCount;
+    private final Set<String> publishedShoppingMilestones = new LinkedHashSet<>();
     private long generation;
     private boolean connected;
     private boolean closed;
@@ -180,6 +183,8 @@ public final class OrchestrationRuntimeClient implements
                 return;
             }
             generation++;
+            publishedShoppingMilestones.clear();
+            approvalInputCount = 0;
             start = new PendingStart(
                     generation,
                     requireUuid(sessionId),
@@ -414,12 +419,15 @@ public final class OrchestrationRuntimeClient implements
                         start.uiScenarioId, modelProjection));
             }
         }
+        publishShoppingMilestones(start.uiScenarioId, snapshot);
         CockpitSimulatedScenarioState.Projection projection;
         synchronized (this) {
             if (closed || start.generation != generation) {
                 return;
             }
-            approvalInputCount = Math.min(1, approvalInputCount + approvalIncrement);
+            approvalInputCount = Math.min(
+                    CockpitSimulatedScenarioState.MAX_APPROVAL_COUNT,
+                    approvalInputCount + approvalIncrement);
             projection = validateAndProject(
                     start.uiScenarioId,
                     start.drivingProfile,
@@ -436,6 +444,7 @@ public final class OrchestrationRuntimeClient implements
                 + " plan_revision=" + snapshot.planRevision
                 + " graph_revision=" + snapshot.graphRevision
                 + " effect_count=" + length(snapshot.effects)
+                + " pending_node_id=" + safeToken(snapshot.pendingNodeId)
                 + " model_projection_available=" + (modelProjection != null)
                 + " model_latency_ms="
                 + (modelProjection == null ? 0L : modelProjection.latencyMs)
@@ -608,10 +617,121 @@ public final class OrchestrationRuntimeClient implements
                         || snapshot.pendingCapabilityId.isEmpty())) {
             return "vehicle.seat.recline";
         }
+        if (snapshot.pendingStage == ICentralBrainOrchestration.PENDING_APPROVAL
+                && CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)) {
+            switch (snapshot.pendingNodeId) {
+                case "request_shopping_consent":
+                    return "shopping.assistance_consent";
+                case "request_purchase_confirmation":
+                    return "shopping.purchase_commit";
+                case "request_navigation_confirmation":
+                    return "navigation.route_start";
+                default:
+                    throw new IllegalArgumentException(
+                            "unknown shopping confirmation node");
+            }
+        }
         if (snapshot.pendingStage == ICentralBrainOrchestration.PENDING_UNDO) {
             throw new IllegalArgumentException("undo projection is not exposed by this HMI slice");
         }
         return snapshot.pendingCapabilityId == null ? "" : snapshot.pendingCapabilityId;
+    }
+
+    private void publishShoppingMilestones(
+            String uiScenarioId,
+            OrchestrationSnapshot snapshot) {
+        if (!CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)
+                || snapshot == null) {
+            return;
+        }
+        OrchestrationNode[] nodes = snapshot.nodes == null
+                ? new OrchestrationNode[0] : snapshot.nodes;
+        for (OrchestrationNode node : nodes) {
+            if (node == null || node.state != ICentralBrainOrchestration.NODE_SUCCEEDED
+                    || !publishedShoppingMilestones.add(
+                            node.nodeId + ":" + node.state)) {
+                continue;
+            }
+            switch (node.nodeId) {
+                case "derive_cabin_observations":
+                    milestone(
+                            "PERCEPTION",
+                            "OBSERVED",
+                            "3 occupied seat regions · rear-right drink container visible");
+                    break;
+                case "resolve_shopping_intent":
+                    milestone(
+                            "HYPOTHESIS",
+                            "CONFIRM_REQUIRED",
+                            "Shopping assistance candidate · rear-right occupant");
+                    break;
+                case "search_product_catalog":
+                    milestone(
+                            "SHOPPING",
+                            "PRODUCTS_READY",
+                            "3 beverage candidates · SYNTHETIC");
+                    break;
+                case "search_purchase_poi":
+                    milestone(
+                            "SHOPPING",
+                            "MERCHANTS_READY",
+                            "3 convenience/service-area candidates · SYNTHETIC");
+                    break;
+                case "prepare_order_preview":
+                    milestone(
+                            "ORDER",
+                            "PREPARED",
+                            "Water 500ml ×1 · price pending · SYNTHETIC");
+                    break;
+                case "preview_purchase_route":
+                    milestone(
+                            "ROUTE",
+                            "PREVIEW_READY",
+                            "Nearest candidate 2.4 km / 4 min · SYNTHETIC");
+                    break;
+                case "commit_order":
+                    milestone(
+                            "ORDER",
+                            "NOT_DISPATCHED",
+                            "External shopping/payment adapter unavailable");
+                    break;
+                case "start_purchase_navigation":
+                    milestone(
+                            "NAVIGATION",
+                            "SIMULATED",
+                            "Purchase route started in UI only");
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (snapshot.state == ICentralBrainOrchestration.STATE_WAITING_APPROVAL) {
+            String key = "pending:" + snapshot.pendingNodeId;
+            if (publishedShoppingMilestones.add(key)) {
+                switch (snapshot.pendingNodeId) {
+                    case "request_shopping_consent":
+                        milestone(
+                                "CONFIRMATION",
+                                "ASSISTANCE_REQUIRED",
+                                "Search products, merchants and purchase route?");
+                        break;
+                    case "request_purchase_confirmation":
+                        milestone(
+                                "CONFIRMATION",
+                                "PURCHASE_REQUIRED",
+                                "Water 500ml ×1 · synthetic order preview");
+                        break;
+                    case "request_navigation_confirmation":
+                        milestone(
+                                "CONFIRMATION",
+                                "NAVIGATION_REQUIRED",
+                                "Start synthetic route to selected merchant?");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 
     private static CockpitSimulatedScenarioState.Lifecycle lifecycle(int state) {
@@ -847,5 +967,12 @@ public final class OrchestrationRuntimeClient implements
 
     private static int length(Object[] values) {
         return values == null ? 0 : values.length;
+    }
+
+    private static String safeToken(String value) {
+        if (value == null || value.isEmpty()) {
+            return "NONE";
+        }
+        return value.replaceAll("[^a-zA-Z0-9_.-]", "_");
     }
 }

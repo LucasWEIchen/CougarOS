@@ -30,7 +30,7 @@ required_files=(
   docs/CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md
   docs/CENTRAL_BRAIN_DELIVERY_TARGETS.md
   docs/CENTRAL_BRAIN_DRIVER_INTERFACE_SUPPORT.md
-  docs/CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md
+  docs/CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md
   docs/CENTRAL_BRAIN_NPU_RUNTIME_INTERFACE.md
   docs/CENTRAL_BRAIN_VIRTUALIZATION_SAFETY_CONSTRAINTS.md
   docs/CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md
@@ -144,7 +144,7 @@ fi
 bash "$ROOT_DIR/tools/check_central_brain_python_prototype_retirement.sh"
 bash "$ROOT_DIR/tools/check_central_brain_npu_interface.sh"
 bash "$ROOT_DIR/tools/check_central_brain_virtualization_docs.sh"
-bash "$ROOT_DIR/tools/check_central_brain_android_cabin_hydration_assistance_requirement.sh"
+bash "$ROOT_DIR/tools/check_central_brain_android_cabin_shopping_route_planning.sh"
 
 printf '%s\n' \
   'Central Brain Android delivery docs check passed' \

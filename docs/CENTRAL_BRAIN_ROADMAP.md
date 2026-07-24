@@ -4,33 +4,31 @@
 日期：2026-07-17
 状态：Stage 2 P6 in progress
 
-## 2026-07-24 P4-R5 cabin hydration assistance requirement
+## 2026-07-24 P4-R5 cabin shopping and route-planning implementation
 
-状态：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。在已完成 `P4-R4` 受控多模态闭环之后，新增
-`P4-R5a..P4-R5l` 十二个最小工作包，覆盖：输入元数据、座舱观察合同、多座位 Context 融合、
-模型语义输出、意图假设、饮水场景 Graph、三类确认、Tool 组合、导航、Commerce、区域 Effect
-和 Client2 实时 HMI。
+状态：`DEBUG_SOFTWARE_IMPLEMENTED / PRODUCTION_ADAPTERS_EMPTY`。顶层能力已纠正为购物服务与
+路径规划服务，饮用水只作为当前测试夹具的 `productCategory`。`P4-R5a..P4-R5l` 已在受控图片
+debug 路径中完成：模型 prompt、13 节点场景 v2、六个 Tool、购物/订单/导航三个独立确认、
+订单失败关闭、导航 UI 仿真、Client2 动态确认条和事件驱动反馈。
 
-计划顺序：
+2026-07-24，`testboard` 通过 ADB reverse 实际访问 WSL OpenClaw/Ollama；图片和文字被同一请求
+消费，三个 `pending_node_id` 依次为 `request_shopping_consent`、
+`request_purchase_confirmation`、`request_navigation_confirmation`，最终 Graph revision 77 完成，
+`hardware_accessed=false`。
 
-1. `P4-R5a..R5c`：输入、可见事实和四座位 Context；
-2. `P4-R5d..R5e`：模型语义候选和 evidence-bound 饮水假设；
-3. `P4-R5f..R5g`：场景 DAG、饮水帮助/购买/导航独立确认；
-4. `P4-R5h..R5j`：Tool、导航与 Commerce debug/fail-closed adapter；
-5. `P4-R5k..R5l`：区域执行约束、Client2 逐事件 UI 和 Android 13 ARM64 验收。
+生产板 `0123456789ABCDEF` 的目标 profile 固定直连 `169.254.208.110:18789`。现场检查时
+`eth0` 只有 IPv6 link-local 地址，无 `169.254.208.0/24` IPv4 地址和路由，故生产 OpenClaw
+以太网证据仍由 `ISSUE-059` 阻塞；不得用 ADB reverse 代替。
 
-购买/支付和导航启动不得由模型或一次通用确认授权。真实 OMS/camera、可信座椅源、production
-navigation 和 commerce/payment 为外部空接口；仓库只能提供明确 `SIMULATED` 的搜索/预览和
-fail-closed production adapter。
-
-当前 `hydration_assistance_software_implemented=false`、
-`p4_r5_open_work_package_count=12`、
-`repository_software_requirements_complete=false`、
-`open_repository_software_requirement_count=12`、
-`unclassified_repository_requirement_count=0`、
+当前 `shopping_route_planning_debug_software_implemented=true`、
+`p4_r5_open_work_package_count=0`、
+`production_navigation_adapter_wired=false`、
+`production_commerce_adapter_wired=false`、
+`production_openclaw_ethernet_verified=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、`S2-INT-001`、`S2-NAV-001`、
-`S2-COM-001` 及其依赖；tracking：`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+`S2-COM-001`；tracking：`DEV-130/131`、`ISSUE-057/058/059`；stage
+`P4-R5-SHOPPING-ROUTE`。
 
 ### 2026-07-19 P4-R1 progress
 

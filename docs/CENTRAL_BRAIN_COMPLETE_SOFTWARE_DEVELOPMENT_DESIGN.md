@@ -4,17 +4,16 @@
 
 日期：2026-07-17
 
-## P4-R5 cabin hydration assistance detailed-design index
+## P4-R5 cabin shopping and route-planning detailed-design index
 
 当前新增的 `S2-HMI-009/S2-CTX-002/S2-PER-001/S2-INT-001/S2-NAV-001/S2-COM-001`
 由十二个最小工作包 `P4-R5a..P4-R5l` 承载。权威详设为
-[CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)，
-其中冻结产品判断边界、12 个模块、DTO 字段、Tool family、16 节点 DAG、状态机、错误降级、
-外部空接口、逐包 DoD 和 H01..H14 验收矩阵。
+[CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md](CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md)，
+其中冻结业务服务分类、12 个工作包、模型 allowlist、13 节点 DAG、三次独立确认、Tool 结果、
+外部空接口和双设备验收边界。
 
-该需求重新打开软件完成状态：`repository_software_requirements_complete=false`、
-`open_repository_software_requirement_count=12`。P4-R4 仍是已完成的多模态输入基础，不等于
-P4-R5 的乘员感知智能闭环。
+受控帧 debug 软件已完成并在 `testboard` 验证；生产 Commerce/Navigation adapter 和目标以太网
+仍外部阻塞。P4-R4 是多模态输入基础，P4-R5 负责购物与路径规划编排。
 
 ## P4-R1 Orchestration V1 detailed design
 
