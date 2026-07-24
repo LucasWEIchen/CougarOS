@@ -1,0 +1,34 @@
+{
+  "project": "Central Brain RenderService Unity-native HVAC patch",
+  "package": "com.tuanjie.renderservice",
+  "requirements": [
+    "S2-HMI-001",
+    "S2-HMI-002",
+    "S2-HMI-004",
+    "S2-UX-002",
+    "DEL-004"
+  ],
+  "source_apk": "apks/original/service_20260306_171242.apk",
+  "patched_entry": "assets/aa/HMIAndroid/launcher_assets_all_c93fe44a4d61e1b9545c50b3baddfbd7.bundle",
+  "implementation": {
+    "unity_asset": "UI_Launcher.prefab",
+    "native_temperature_states": [
+      "26.5\u00b0C",
+      "28.0\u00b0C"
+    ],
+    "zones": [
+      "driver",
+      "passenger"
+    ],
+    "control": "UnityEngine.UI.Button persistent SetActive calls"
+  },
+  "hardware_dependencies": {
+    "vehicle_hvac_bus": "reserved interface only",
+    "render_service_runtime": "required"
+  },
+  "non_goals": [
+    "libtuanjie.so engine binary replacement",
+    "vehicle HVAC actuation",
+    "vendor Android system image modification"
+  ]
+}

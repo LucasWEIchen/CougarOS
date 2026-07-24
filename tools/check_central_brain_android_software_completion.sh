@@ -55,6 +55,8 @@ assert contract["validation"]["p4_r4_requirement_gate"] is True
 assert contract["validation"]["p4_r4_implementation"] is True
 assert contract["validation"]["p4_r5_requirement_gate"] is True
 assert contract["validation"]["p4_r5_implementation"] is True
+assert contract["validation"]["p4_r6_requirement_gate"] is True
+assert contract["validation"]["p4_r6_implementation"] is True
 assert contract["validation"]["android13_x86_64_client2_e2e"] is True
 assert contract["validation"]["android13_arm64_completion_retest"] is True
 

@@ -1,8 +1,25 @@
 # 中央大脑架构偏差登记表
 
-版本：0.8
-日期：2026-07-20
+版本：0.9
+日期：2026-07-24
 状态：Android 13 实际工程基线
+
+## DEV-133 Unity 原生 HVAC 状态仍是应用层仿真
+
+P4-R6 为满足原生座舱观感，修改了闭源 RenderService APK 内的 Unity Addressables bundle：
+保留既有双区 26.5°C 状态，增加双区 28.0°C TextMeshPro 状态，并由 Client2 经
+`TuanjieView` 原生触屏通道触发。这比 Android 温度浮层更接近原生 HMI，但仍不是 Vehicle/VHAL
+控制或真实 HVAC readback。`libtuanjie.so`、系统镜像、厂商 Framework/BSP 和车辆总线均未修改。
+
+处理：接受为当前黑盒 Android 13 演示路径的应用层仿真。Client2 与 RenderService APK 必须成对
+构建/安装，UI 继续标识 `SIMULATED`；release/production adapter 缺失时保持失败关闭。`testboard`
+已验证原生双区 28.0°C 与靠背展开方向，生产板最终包复测因 ADB 未枚举登记为 `ISSUE-060`。
+
+状态：`Accepted Temporary / Production Retest External`。
+`unity_native_dual_zone_hvac_state_defined=true`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`APP-001/004`、`S2-HMI-001..004`、
+`S2-ADP-001/002`、`S2-SAF-001`、`DEL-004`；tracking：`ISSUE-019/030/060`。
 
 ## DEV-132 目标以太验证依赖测试会话临时 IPv4 配置
 
@@ -113,6 +130,7 @@ AIDL version/hash 和 checksum manifest；SDK 协商成功时使用 V2，旧 Run
 
 | ID | 当前结论 | 关联 Req ID/跟踪项 | 状态 |
 | --- | --- | --- | --- |
+| DEV-133 | RenderService Unity 原生双区温度改善了演示 HMI，但仍是应用层仿真，不是 Vehicle/VHAL 控制或 readback。 | S2-HMI-001..004, S2-ADP-001/002, ISSUE-019/030/060 | Accepted Temporary |
 | DEV-001 | Python REST/HTTP gateway、旧 Binder/IPC/gRPC 转发层已删除；Android typed Binder 是唯一应用协议主线。 | XSC-006, DEV-026 | Retired |
 | DEV-002 | Python 单进程 gateway/NPU/vehicle-state 聚合实现已删除。 | NV-F-008/011, DEV-026 | Retired |
 | DEV-003 | Python Agent/Skill/Memory contract mock 已删除；Android Runtime 各模块继续独立演进。 | APP-004, NV-F-001, ISSUE-025 | Retired |

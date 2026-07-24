@@ -26,6 +26,7 @@ then rebuilds and signs a debug APK.
 | Live execution projection | `S2-OBS-002` | Ten bounded Runtime/model/effect milestones feed one 32-line scrolling trace. |
 | Typed Binder boundary | `XSC-005`, `XSC-006`, `NV-G-006`, `NV-P-002` | Client2 uses the public SDK/AIDL contract, Runtime package visibility, signature permission and package/current-signer capability policy. |
 | Uni Info Bus / SOA / Governance | `XSC-002`, `XSC-003`, `XSC-005`, `XSC-006` | Runtime remains the single app-facing ingress; Client2 does not bypass it for model or vehicle access. |
+| Unity-native HVAC feedback | `S2-HMI-001/003/004`, `S2-ADP-001` | Client2 sends bounded touchscreen events to the companion RenderService bundle; Android temperature overlays are forbidden. |
 
 ## Commands
 
@@ -89,7 +90,7 @@ right-side overlay in the existing root `FrameLayout`:
 Activity
 ├── full-screen: original TuanjieView containers `view1`, `view2`, `view3`
 ├── floating overlay: 600x760 translucent Central Brain panel in the 1920x1080 safe frame
-├── bottom HVAC setpoint overlays updated by simulated Effect feedback
+├── Unity-native dual-zone HVAC setpoints in the companion RenderService bundle
 ├── left actuator overlay: HVAC and scenario-dependent Seat animation
 └── bottom trigger rail: transparent target over the rendered navigation icon
 ```
@@ -119,8 +120,18 @@ INTENT, CONTEXT, MODEL, PLAN, POLICY, GRAPH, SAFETY, EFFECT and READBACK states.
 `CockpitControlCoordinator` paces the view at 360 ms, retains 32 lines and shows
 MODEL/RUNNING before network I/O. Cold animates 26.5 to 28.0 degrees C. Fatigue
 animates fan 1 to 3 and shows a left-side driver-seat 15 to 30 degree response.
-These are View animations only, continuously labeled `SIMULATED`; no vehicle
+The seat back uses a bottom-center pivot and negative rotation so increasing
+recline moves away from the cushion. Cold also sends two bounded touchscreen
+events through `TuanjieView`; the companion RenderService patch changes the
+driver/passenger Unity-native setpoints from 26.5 to 28.0 degrees C. No Android
+temperature TextView is drawn over Unity. These remain `SIMULATED`; no vehicle
 bus or hardware readback is accessed.
+
+The companion project is
+`apk-labs/renderservice-central-brain`. It patches only the launcher
+Addressables bundle and does not replace `libtuanjie.so` or the Android system
+image. Build and install both signed APKs for this feature. See
+`docs/CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md`.
 
 The four visible XML scenario tags remain stable two-segment UI aliases. A 14-entry exact bridge
 compatibility allowlist still maps all supported aliases to qualified Session IDs before Runtime admission; unknown

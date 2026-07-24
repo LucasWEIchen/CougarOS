@@ -1,14 +1,26 @@
 # Central Brain AIOS Stage 2 开发计划与最小工作包
 
-版本：1.4
+版本：1.5
 
 日期：2026-07-23
 
-状态：Implementation backlog baseline；P4-R5 debug software complete
+状态：Implementation backlog baseline；P4-R5/P4-R6 repository software complete
 
 目标平台：黑盒 Android 13 座舱域控制器
 
 主要语言：Java、AIDL、C；构建/验收脚本使用 Bash；Python AIOS 原型已退役且不得作为兼容参考或测试 oracle
+
+## P4-R6 Unity 原生 HVAC 与座椅动画修正
+
+- 状态：`DONE`（仓库软件和 testboard Android 13 ARM64）；生产板最终包复测由 `ISSUE-060` 开放。
+- 模块：Client2 coordinator/XML、`TuanjieView` 输入、RenderService Unity bundle patch、
+  配对 APK build/sign/verify。
+- DoD：靠背 15->30 度向后展开；双区 26.5->28.0°C 由 Unity 原生 TextMeshPro 显示；
+  Android 温度 overlay 为零；真实 Vehicle/VHAL/CAN 访问为零。
+- 交付：
+  [Client2 Unity 原生 HVAC 与座椅动画修复详设](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)。
+- 边界：真实 HVAC/Seat adapter、readback、Safety authority、量产 signer 和生产板最终包复测不由
+  本工作包伪造完成。
 
 ## P4-R5 座舱购物与路径规划
 

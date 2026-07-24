@@ -8,12 +8,15 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.InputDevice;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -65,6 +68,13 @@ public final class CockpitControlCoordinator implements
     private static final int CHECKPOINT_SCHEMA = 1;
     private static final int MAX_LIVE_TRACE_LINES = 32;
     private static final long LIVE_TRACE_INTERVAL_MS = 360L;
+    private static final float UNITY_REFERENCE_WIDTH = 1920.0f;
+    private static final float UNITY_REFERENCE_HEIGHT = 1080.0f;
+    private static final float UNITY_DRIVER_TEMP_DECREASE_X = 268.54f;
+    private static final float UNITY_DRIVER_TEMP_INCREASE_X = 463.10f;
+    private static final float UNITY_PASSENGER_TEMP_DECREASE_RIGHT = 536.46f;
+    private static final float UNITY_PASSENGER_TEMP_INCREASE_RIGHT = 341.90f;
+    private static final float UNITY_TEMP_BUTTON_BOTTOM = 47.10f;
     private static final Object ACTIVE_LOCK = new Object();
 
     private static WeakReference<CockpitControlCoordinator> active = new WeakReference<>(null);
@@ -130,8 +140,6 @@ public final class CockpitControlCoordinator implements
     private TextView engineerContextView;
     private TextView engineerFaultView;
     private TextView liveTraceView;
-    private TextView driverTemperatureOverlay;
-    private TextView passengerTemperatureOverlay;
     private TextView actuatorTitleView;
     private TextView actuatorStateView;
     private TextView actuatorHvacTemperatureView;
@@ -299,8 +307,6 @@ public final class CockpitControlCoordinator implements
         engineerContextView = findTextView("centralBrainEngineerContextText");
         engineerFaultView = findTextView("centralBrainEngineerFaultText");
         liveTraceView = findTextView("centralBrainLiveTraceText");
-        driverTemperatureOverlay = findTextView("centralBrainDriverTemperatureOverlay");
-        passengerTemperatureOverlay = findTextView("centralBrainPassengerTemperatureOverlay");
         actuatorTitleView = findTextView("centralBrainActuatorTitleText");
         actuatorStateView = findTextView("centralBrainActuatorStateText");
         actuatorHvacTemperatureView = findTextView(
@@ -1066,8 +1072,6 @@ public final class CockpitControlCoordinator implements
     }
 
     private void resetActuatorFeedback() {
-        setText(driverTemperatureOverlay, "26.5°C");
-        setText(passengerTemperatureOverlay, "26.5°C");
         setText(actuatorHvacTemperatureView, "26.5°C");
         setText(actuatorHvacFanView, "风量 1");
         setText(actuatorSeatAngleView, "靠背 15°");
@@ -1237,11 +1241,10 @@ public final class CockpitControlCoordinator implements
         animator.addUpdateListener(value -> {
             float current = (float) value.getAnimatedValue();
             String label = String.format(Locale.ROOT, "%.1f°C", current);
-            setText(driverTemperatureOverlay, label);
-            setText(passengerTemperatureOverlay, label);
             setText(actuatorHvacTemperatureView, label);
         });
         animator.start();
+        mainHandler.postDelayed(() -> setUnityTemperatureState(true), 900L);
     }
 
     private void animateFan(int from, int to) {
@@ -1267,10 +1270,126 @@ public final class CockpitControlCoordinator implements
             if (seatBackView != null) {
                 seatBackView.setPivotX(seatBackView.getWidth() * 0.5f);
                 seatBackView.setPivotY(seatBackView.getHeight());
-                seatBackView.setRotation((current - from) * 1.2f);
+                seatBackView.setRotation(-(current - from) * 1.2f);
             }
         });
         animator.start();
+    }
+
+    private void setUnityTemperatureState(boolean warm) {
+        View renderView = resolveUnityRenderView();
+        if (renderView == null || renderView.getWidth() <= 0 || renderView.getHeight() <= 0) {
+            Log.w(TAG, markers()
+                    + " unity_hvac_native_dispatch=false"
+                    + " unity_hvac_native_reason=render_view_unavailable");
+            return;
+        }
+        float widthScale = renderView.getWidth() / UNITY_REFERENCE_WIDTH;
+        float heightScale = renderView.getHeight() / UNITY_REFERENCE_HEIGHT;
+        float driverX = (warm
+                ? UNITY_DRIVER_TEMP_INCREASE_X
+                : UNITY_DRIVER_TEMP_DECREASE_X) * widthScale;
+        float passengerX = renderView.getWidth() - (warm
+                ? UNITY_PASSENGER_TEMP_INCREASE_RIGHT
+                : UNITY_PASSENGER_TEMP_DECREASE_RIGHT) * widthScale;
+        float buttonY = renderView.getHeight()
+                - UNITY_TEMP_BUTTON_BOTTOM * heightScale;
+        dispatchUnityTap(renderView, driverX, buttonY);
+        mainHandler.postDelayed(
+                () -> dispatchUnityTap(renderView, passengerX, buttonY),
+                520L);
+        Log.i(TAG, markers()
+                + " unity_hvac_native_dispatch=true"
+                + " unity_hvac_native_state=" + (warm ? "28_0" : "26_5")
+                + " unity_hvac_native_zones=driver_passenger"
+                + " unity_hvac_render_size=" + renderView.getWidth()
+                + "x" + renderView.getHeight());
+    }
+
+    private View resolveUnityRenderView() {
+        return findUnityRenderDescendant(findView("view1"));
+    }
+
+    private static View findUnityRenderDescendant(View view) {
+        if (view == null) {
+            return null;
+        }
+        if ("com.unity3d.renderservice.client.TuanjieView".equals(
+                view.getClass().getName())) {
+            return view;
+        }
+        if (!(view instanceof ViewGroup)) {
+            return null;
+        }
+        ViewGroup group = (ViewGroup) view;
+        for (int index = 0; index < group.getChildCount(); index++) {
+            View match = findUnityRenderDescendant(group.getChildAt(index));
+            if (match != null) {
+                return match;
+            }
+        }
+        return null;
+    }
+
+    private void dispatchUnityTap(View renderView, float localX, float localY) {
+        long downTime = SystemClock.uptimeMillis();
+        MotionEvent down = createUnityTouchEvent(
+                downTime, downTime, MotionEvent.ACTION_DOWN, localX, localY);
+        boolean downHandled;
+        try {
+            downHandled = renderView.dispatchTouchEvent(down);
+        } finally {
+            down.recycle();
+        }
+        mainHandler.postDelayed(() -> {
+            long upTime = SystemClock.uptimeMillis();
+            MotionEvent up = createUnityTouchEvent(
+                    downTime, downTime, MotionEvent.ACTION_UP, localX, localY);
+            boolean upHandled;
+            try {
+                upHandled = renderView.dispatchTouchEvent(up);
+            } finally {
+                up.recycle();
+            }
+            Log.i(TAG, markers()
+                    + " unity_hvac_native_tap=true"
+                    + " unity_hvac_native_down_handled=" + downHandled
+                    + " unity_hvac_native_up_handled=" + upHandled
+                    + " unity_hvac_native_x=" + Math.round(localX)
+                    + " unity_hvac_native_y=" + Math.round(localY)
+                    + " unity_hvac_native_press_ms=" + (upTime - downTime));
+        }, 96L);
+    }
+
+    private static MotionEvent createUnityTouchEvent(
+            long downTime,
+            long eventTime,
+            int action,
+            float localX,
+            float localY) {
+        MotionEvent.PointerProperties properties = new MotionEvent.PointerProperties();
+        properties.id = 0;
+        properties.toolType = MotionEvent.TOOL_TYPE_FINGER;
+        MotionEvent.PointerCoords coordinates = new MotionEvent.PointerCoords();
+        coordinates.x = localX;
+        coordinates.y = localY;
+        coordinates.pressure = action == MotionEvent.ACTION_UP ? 0.0f : 1.0f;
+        coordinates.size = 1.0f;
+        return MotionEvent.obtain(
+                downTime,
+                eventTime,
+                action,
+                1,
+                new MotionEvent.PointerProperties[]{properties},
+                new MotionEvent.PointerCoords[]{coordinates},
+                0,
+                0,
+                1.0f,
+                1.0f,
+                -1,
+                0,
+                InputDevice.SOURCE_TOUCHSCREEN,
+                0);
     }
 
     private void finishActuatorAnimation(long delayMs) {

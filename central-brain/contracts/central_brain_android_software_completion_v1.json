@@ -36,7 +36,8 @@
       "model_contract_routing_evaluation_and_resource_admission",
       "privacy_release_driver_safety_and_diagnostics_interfaces",
       "p4_r4_multimodal_model_io_live_hmi",
-      "p4_r5_shopping_and_route_planning_debug_software"
+      "p4_r5_shopping_and_route_planning_debug_software",
+      "p4_r6_unity_native_hvac_and_seat_animation"
     ],
     "software_open": [],
     "external_blocked": [
@@ -65,7 +66,7 @@
     "ISSUE-033", "ISSUE-035", "ISSUE-036", "ISSUE-037", "ISSUE-038", "ISSUE-039",
     "ISSUE-040", "ISSUE-041", "ISSUE-042", "ISSUE-043", "ISSUE-044", "ISSUE-045",
     "ISSUE-046", "ISSUE-047", "ISSUE-048", "ISSUE-049", "ISSUE-051", "ISSUE-052", "ISSUE-053",
-      "ISSUE-054", "ISSUE-055", "ISSUE-058", "ISSUE-059"
+      "ISSUE-054", "ISSUE-055", "ISSUE-058", "ISSUE-059", "ISSUE-060"
     ],
   "software_open_issue_ids": [],
   "suspended_issue_ids": ["ISSUE-050"],
@@ -79,6 +80,8 @@
     "p4_r4_implementation": true,
     "p4_r5_requirement_gate": true,
     "p4_r5_implementation": true,
+    "p4_r6_requirement_gate": true,
+    "p4_r6_implementation": true,
     "p5_p6_p7_p9_contract_probe_gates": true,
     "npu_empty_interface_gate": true,
     "python_retirement_gate": true,

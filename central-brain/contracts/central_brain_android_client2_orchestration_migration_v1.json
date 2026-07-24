@@ -8,7 +8,7 @@
     "XSC-001", "XSC-005", "XSC-006", "DEL-001", "DEL-003", "DEL-004"
   ],
   "client2": {
-    "project_version": "0.19.0",
+    "project_version": "0.20.0",
     "source_set": "debug_reverse_demo",
     "java_source_count": 19,
     "generated_debug_aidl_count": 1,

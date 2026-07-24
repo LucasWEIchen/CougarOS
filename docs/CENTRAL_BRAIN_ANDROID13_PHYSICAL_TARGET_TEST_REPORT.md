@@ -1,10 +1,24 @@
 # Central Brain Android 13 物理目标测试报告
 
-版本：1.3
+版本：1.4
 
-日期：2026-07-15
+日期：2026-07-24
 
-状态：Runtime/Demo/Client2 物理设备应用层验收通过；整机硬件与量产验收未完成
+状态：Runtime/Demo/Client2/RenderService 测试板应用层验收通过；生产板最终包复测等待 ADB 恢复
+
+## P4-R6 Unity-native HVAC/Seat 增量
+
+2026-07-24 在非秘密别名 `testboard` 的 Android 13 ARM64 物理设备上成对安装维护型
+Client2/RenderService APK。真实 OpenClaw Cold 场景完成后，Unity 原生驾驶席和乘员席温区
+均由 26.5°C 切换到 28.0°C，Android 温度 overlay 不存在；Fatigue 座椅靠背由 15 度向
+30 度展开。全程未访问 Vehicle/VHAL/CAN/Driver-HAL。
+
+生产板准备最终部署时未出现在 Windows ADB 设备列表，重启 ADB server 后仍未枚举。故本报告
+只确认 `testboard_android13_arm64_verified=true`，保持
+`production_board_final_package_retest=false`、`production_ready=false`、
+`target_hardware_validated=false`。详设和复测条件见
+[CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)
+与 `ISSUE-060`。
 
 ## 1. 范围与需求
 

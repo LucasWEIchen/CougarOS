@@ -70,11 +70,14 @@ grep -Fq 'modelUnavailableCapabilities' "$BACKEND"
 
 for id in \
   centralBrainTiredButton centralBrainColdButton centralBrainLiveTraceScroll \
-  centralBrainLiveTraceText centralBrainDriverTemperatureOverlay \
-  centralBrainPassengerTemperatureOverlay centralBrainActuatorOverlay \
+  centralBrainLiveTraceText centralBrainActuatorOverlay \
   centralBrainActuatorFanProgress centralBrainSeatFeedbackRegion centralBrainSeatBack; do
   grep -Fq "$id" "$LAYOUT"
 done
+if grep -Eq 'centralBrain(Driver|Passenger)TemperatureOverlay' "$LAYOUT"; then
+  echo "legacy Android temperature overlay remains exposed" >&2
+  exit 1
+fi
 if grep -Eq 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' "$LAYOUT"; then
   echo "legacy multi-stage or manual actuator UI remains exposed" >&2
   exit 1
@@ -85,8 +88,10 @@ grep -Fq 'android:layout_height="760.0dp"' "$LAYOUT"
 grep -Fq 'LIVE_TRACE_INTERVAL_MS = 360L' "$COORDINATOR"
 grep -Fq 'MAX_LIVE_TRACE_LINES = 32' "$COORDINATOR"
 grep -Fq 'animateTemperature(26.5f, 28.0f)' "$COORDINATOR"
+grep -Fq 'setUnityTemperatureState(true)' "$COORDINATOR"
 grep -Fq 'animateFan(1, 3)' "$COORDINATOR"
 grep -Fq 'animateSeat(15.0f, 30.0f)' "$COORDINATOR"
+grep -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' "$COORDINATOR"
 grep -Fq 'setVisible(seatFeedbackRegion, fatigue)' "$COORDINATOR"
 grep -Fq 'onPipelineMilestone' "$CLIENT" "$COORDINATOR"
 grep -Fq 'Demo auto-continue · no authority granted' "$CLIENT"
