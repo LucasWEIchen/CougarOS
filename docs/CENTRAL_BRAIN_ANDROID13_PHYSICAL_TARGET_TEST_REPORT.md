@@ -1,10 +1,10 @@
 # Central Brain Android 13 物理目标测试报告
 
-版本：1.4
+版本：1.5
 
 日期：2026-07-24
 
-状态：Runtime/Demo/Client2/RenderService 测试板应用层验收通过；生产板最终包复测等待 ADB 恢复
+状态：Runtime/Demo/Client2/RenderService 测试板与生产板应用层验收通过
 
 ## P4-R6 Unity-native HVAC/Seat 增量
 
@@ -13,10 +13,17 @@ Client2/RenderService APK。真实 OpenClaw Cold 场景完成后，Unity 原生�
 均由 26.5°C 切换到 28.0°C，Android 温度 overlay 不存在；Fatigue 座椅靠背由 15 度向
 30 度展开。全程未访问 Vehicle/VHAL/CAN/Driver-HAL。
 
-生产板准备最终部署时未出现在 Windows ADB 设备列表，重启 ADB server 后仍未枚举。故本报告
-只确认 `testboard_android13_arm64_verified=true`，保持
-`production_board_final_package_retest=false`、`production_ready=false`、
-`target_hardware_validated=false`。详设和复测条件见
+生产板恢复 ADB 后，基于 source commit `5da6deb8` 成对安装同一最终 APK。设备端文件与构建
+产物 SHA-256 一致：RenderService 为
+`5c19754ff246d55ebd323c44f91e6ab40908bfc6c75812193d8ab30bc20e4079`，Client2 为
+`2776d598c3614ef868e3392f8a11ad60fad6a3f32c4aa22a6f7fdbceeb9e125f`。初始双区 26.5°C；
+Cold 经目标以太 OpenClaw protocol v3 在 11132 ms 完成并更新原生双区 28.0°C；Fatigue
+在 7207 ms 完成，靠背从 15 度向 30 度展开。随后强制停止 Client2/RenderService 并冷启动，
+三个 Central Brain 进程均恢复，Unity 双区回到原生 26.5°C；测试结束无 crash/ANR。
+
+本报告确认 `testboard_android13_arm64_verified=true`、
+`production_board_final_package_retest=true`，同时保持 `production_ready=false`、
+`target_hardware_validated=false`。详设与外部边界见
 [CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)
 与 `ISSUE-060`。
 

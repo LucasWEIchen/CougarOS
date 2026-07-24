@@ -2,7 +2,7 @@
 
 版本：1.0
 日期：2026-07-24
-状态：测试板通过，生产板复测等待 ADB 恢复
+状态：测试板与生产板应用层复测通过
 
 ## 1. 需求与边界
 
@@ -134,8 +134,10 @@ Android 13 ARM64 测试板证据：
 | Fatigue 靠背从 15 度向 30 度展开 | PASS |
 | `vehicle_bus_accessed=false` | PASS |
 
-生产板 `0123456789ABCDEF` 在最终部署阶段未出现在 ADB 列表中，重启
-Windows ADB 后仍未枚举，因此本增量不得声明生产板最终包复测通过。
+生产板恢复 ADB 后成对安装当前最终 Client2/RenderService APK。目标以太 OpenClaw
+Cold/Fatigue 分别在 11132 ms、7207 ms 完成；原生双区 28.0°C、靠背 15°→30° 展开和
+crash/ANR 检查通过；Client2/RenderService 冷启动后双区恢复原生 26.5°C。该结论仅为普通
+Android 应用层 HMI 仿真复测，不是车辆控制验收。
 
 ## 8. 未完成外部项
 

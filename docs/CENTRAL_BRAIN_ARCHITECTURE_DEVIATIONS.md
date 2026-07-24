@@ -13,10 +13,12 @@ P4-R6 为满足原生座舱观感，修改了闭源 RenderService APK 内的 Uni
 
 处理：接受为当前黑盒 Android 13 演示路径的应用层仿真。Client2 与 RenderService APK 必须成对
 构建/安装，UI 继续标识 `SIMULATED`；release/production adapter 缺失时保持失败关闭。`testboard`
-已验证原生双区 28.0°C 与靠背展开方向，生产板最终包复测因 ADB 未枚举登记为 `ISSUE-060`。
+和生产板均已验证原生双区 28.0°C 与靠背展开方向；生产板恢复 ADB 后完成同一最终配对 APK
+复测，`ISSUE-060` 已关闭。
 
-状态：`Accepted Temporary / Production Retest External`。
+状态：`Accepted Temporary / Production Application Retest Complete`。
 `unity_native_dual_zone_hvac_state_defined=true`、
+`production_board_final_package_retest=true`、
 `vehicle_bus_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`APP-001/004`、`S2-HMI-001..004`、
 `S2-ADP-001/002`、`S2-SAF-001`、`DEL-004`；tracking：`ISSUE-019/030/060`。

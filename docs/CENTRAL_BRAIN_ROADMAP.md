@@ -6,18 +6,19 @@
 
 ## 2026-07-24 P4-R6 Unity-native HVAC and seat correction
 
-状态：`REPOSITORY_COMPLETE / TESTBOARD_ARM64_VERIFIED / PRODUCTION_RETEST_BLOCKED`。
+状态：`REPOSITORY_COMPLETE / TESTBOARD_ARM64_VERIFIED / PRODUCTION_BOARD_ARM64_VERIFIED`。
 Fatigue 座椅靠背旋转已改为从 15 度向 30 度展开；Cold 已删除覆盖 Unity 的 Android 双区
 温度 `TextView`，改为维护 RenderService Unity bundle 的原生 26.5/28.0°C 双状态，并由
 Client2 经 `TuanjieView` 触屏通道触发。Client2 与 RenderService 形成配对 APK 交付。
 
 `testboard` 已通过初始双区 26.5°C、真实 OpenClaw Cold 后双区 28.0°C、Fatigue 靠背展开
-和 `vehicle_bus_accessed=false` 验收。生产板在最终部署时未被 ADB 枚举，故只把仓库软件和
-测试板证据标记完成，生产板最终包复测由 `ISSUE-060` 保持开放。
+和 `vehicle_bus_accessed=false` 验收。生产板恢复 ADB 后成对安装相同 SHA-256 的最终
+Client2/RenderService APK；目标以太 OpenClaw Cold 和 Fatigue 分别在 11132 ms、7207 ms
+完成，原生双区 28.0°C、靠背 15°→30° 展开及无 crash/ANR 均通过，`ISSUE-060` 已关闭。
 
 当前 `p4_r6_repository_software_complete=true`、
 `testboard_android13_arm64_verified=true`、
-`production_board_final_package_retest=false`、
+`production_board_final_package_retest=true`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `APP-001/004`、`S2-HMI-001..004`、`S2-UX-002`、`S2-ADP-001/002`、
 `S2-SAF-001`、`DEL-001/004`；tracking：`DEV-133`、`ISSUE-033/060`；stage

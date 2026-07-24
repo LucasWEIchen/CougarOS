@@ -16,9 +16,10 @@
 同时交付幂等 bundle patch、APK 重建/签名脚本、静态门禁和详设。该交付不包含系统镜像、
 `libtuanjie.so`、Vehicle/VHAL/CAN、真实 HVAC/Seat readback 或量产 signer。
 
-`testboard` Android 13 ARM64 验证通过；生产板最终包复测因 ADB 未枚举保持开放。
+`testboard` Android 13 ARM64 验证通过；生产板恢复 ADB 后成对安装同一最终 APK，并通过
+目标以太 OpenClaw Cold/Fatigue、Unity 原生双区 28.0°C、靠背展开和 crash/ANR 复测。
 `p4_r6_repository_software_complete=true`、
-`production_board_final_package_retest=false`、
+`production_board_final_package_retest=true`、
 `vehicle_bus_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-HMI-001..004`、
 `S2-ADP-001/002`、`S2-SAF-001`、`DEL-001/003/004`；tracking：
