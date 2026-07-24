@@ -1,8 +1,22 @@
 # 驱动层接口支持矩阵
 
-版本：2.8
+版本：2.9
 
-日期：2026-07-24
+日期：2026-07-25
+
+## P4-R7 render/HVAC/orbit Driver-HAL boundary
+
+P4-R7 只修改 Client2 Java bridge 和 RenderService Unity Addressables bundle。
+`setRenderScale`、`c2sSendMessage`、TextMeshPro `SetText` 和 Pan recognizer 配置均属于
+现有应用/引擎用户态接口，不访问 Android Car、VehicleProperty、Vendor SOA、CAN、
+device node、sysfs、ioctl、Kernel、Driver 或 HAL。
+
+因此 `driver_hal_development_required=false`、`driver_hal_accessed=false`、
+`vehicle_bus_accessed=false`。真实 HVAC target/readback、座椅和 GPU/Unity 量产标定仍由
+OEM/Vendor 外部接口承担。`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-HMI-001..004`、
+`S2-UX-002/003`、`S2-ADP-001/002`、`DEL-004`；tracking：
+`DEV-134`、`ISSUE-061`。
 
 ## P4-R6 Unity-native HVAC/Seat Driver-HAL boundary
 

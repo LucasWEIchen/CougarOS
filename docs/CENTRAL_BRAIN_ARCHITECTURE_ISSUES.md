@@ -1,8 +1,16 @@
 # 中央大脑架构疑点与风险登记表
 
 版本：0.9
-日期：2026-07-24
+日期：2026-07-25
 状态：Android 13 实际工程基线
+
+## P4-R7 issue update
+
+`ISSUE-061` 跟踪 P4-R7 动态复测。仓库已修复三项回归：Client2 请求 1.5 render scale；
+Unity 双区温度改为 18.0-30.0°C、0.5°C 步进的原生动态文本；Pan recognizer 从 display 2
+改为实际 display 1。两个 APK 已构建并同签，但 `testboard` 仍为 ADB `offline`，所以清晰度、
+温度边界/动画、滑动旋转、车门点击和 crash/ANR 不能宣称通过。生产板暂时下线且未操作。
+`production_ready=false`、`target_hardware_validated=false`。
 
 ## P4-R6 issue update
 
@@ -106,6 +114,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-058 | 量产 OMS/camera、可信座椅占用、Navigation 和 Commerce/Payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
 | ISSUE-059 | 生产板使用测试会话临时 `169.254.208.100/24` 后已完成目标以太 OpenClaw 验证；厂商/系统尚未提供可启动恢复、受管的持久 IPv4 配置。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Partially Resolved / Persistent Network External |
 | ISSUE-060 | P4-R6 最终 Client2/RenderService 配对 APK 已在 testboard 和生产板通过；生产板 ADB 连接恢复，目标以太真实 OpenClaw、Unity 原生双区 28.0°C、靠背展开及 crash/ANR 检查通过。 | S2-HMI-001..004, DEL-001/004, P4-R6 | Resolved / Production Application Retest |
+| ISSUE-061 | P4-R7 代码、bundle 和配对 APK 已完成；`testboard` ADB offline 阻塞清晰度、动态温区、旋转与稳定性 ARM64 复测。 | S2-HMI-001..004, S2-UX-002/003, DEL-004, P4-R7 | Repository Fixed / Testboard Retest Blocked |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1536,3 +1545,17 @@ source commit `5da6deb8` 成对安装当前两个 APK；设备端 SHA-256 与仓
 双区 26.5°C，测试后无 Central Brain crash/ANR。
 原始 serial、完整 logcat 和未审查截图未进入 GitHub。状态：
 `Resolved / Production Application Retest`。
+
+## ISSUE-061 P4-R7 测试板动态复测阻塞
+
+P4-R7 已完成动态 TextMeshPro 双区温度、18.0-30.0°C/0.5°C 状态机、逐级动画、
+`TuanjieView.setRenderScale(1.5)` 请求，以及 Unity Pan recognizer
+`targetDisplay=1`/`raycastCheck=false` 修复。Client2/RenderService APK 已完成构建、
+签名和离线 bundle 检查。
+
+Windows PnP 仍能枚举 `USB\VID_18D1&PID_4EE8\TESTBOARD`，但 Windows ADB 将
+`testboard` 报为 `offline`。重启 ADB server 和 reconnect 均未恢复 adbd 会话；该问题需要
+测试板重新插拔、重启或在设备端重新建立 USB 调试授权。设备恢复前不允许把仓库/离线证据
+提升为 Android 13 ARM64 动态通过。生产板按用户决定暂时下线，不用于替代验收。
+
+状态：`Repository Fixed / Testboard Retest Blocked`。

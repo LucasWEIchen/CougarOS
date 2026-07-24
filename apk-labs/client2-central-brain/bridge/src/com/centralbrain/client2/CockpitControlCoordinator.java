@@ -8,11 +8,9 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.InputDevice;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.KeyEvent;
@@ -75,6 +73,16 @@ public final class CockpitControlCoordinator implements
     private static final float UNITY_PASSENGER_TEMP_DECREASE_RIGHT = 536.46f;
     private static final float UNITY_PASSENGER_TEMP_INCREASE_RIGHT = 341.90f;
     private static final float UNITY_TEMP_BUTTON_BOTTOM = 47.10f;
+    private static final float UNITY_RENDER_SCALE = 1.5f;
+    private static final float UNITY_TEMPERATURE_MIN_C = 18.0f;
+    private static final float UNITY_TEMPERATURE_MAX_C = 30.0f;
+    private static final float UNITY_TEMPERATURE_STEP_C = 0.5f;
+    private static final String UNITY_DRIVER_TEMPERATURE_OBJECT =
+            "CentralBrainDriverTemperature";
+    private static final String UNITY_PASSENGER_TEMPERATURE_OBJECT =
+            "CentralBrainPassengerTemperature";
+    private static final String UNITY_TEMPERATURE_METHOD = "SetText";
+    private static final int UNITY_CONFIGURE_MAX_ATTEMPTS = 12;
     private static final Object ACTIVE_LOCK = new Object();
 
     private static WeakReference<CockpitControlCoordinator> active = new WeakReference<>(null);
@@ -87,6 +95,7 @@ public final class CockpitControlCoordinator implements
     private final Runnable submitHvacRunnable = this::submitPendingHvac;
     private final Runnable submitSeatRunnable = this::submitPendingSeat;
     private final Runnable traceDrainRunnable = this::drainNextTrace;
+    private final Runnable configureUnityRunnable = this::configureUnityIntegration;
     private final ArrayDeque<String> pendingTraceLines = new ArrayDeque<>();
     private final ArrayList<String> displayedTraceLines = new ArrayList<>();
     private final DebugSimulationControllerClient debugSimulationClient;
@@ -198,6 +207,14 @@ public final class CockpitControlCoordinator implements
     private Bitmap modelInputBitmap;
     private final Set<String> admittedModelActions = new LinkedHashSet<>();
     private boolean multimodalConsumptionProved;
+    private View unityRenderView;
+    private int unityConfigureAttempts;
+    private int unityTemperatureAnimationGeneration;
+    private float driverUnityTemperatureC = 26.5f;
+    private float passengerUnityTemperatureC = 26.5f;
+    private float unityTouchDownX;
+    private float unityTouchDownY;
+    private boolean unityTouchTracking;
     private boolean detached;
 
     private CockpitControlCoordinator(Activity activity) {
@@ -255,6 +272,7 @@ public final class CockpitControlCoordinator implements
         }
         debugSimulationClient.connect();
         orchestrationClient.connect();
+        mainHandler.postDelayed(configureUnityRunnable, 1200L);
     }
 
     private void bindViews() {
@@ -1236,15 +1254,24 @@ public final class CockpitControlCoordinator implements
     }
 
     private void animateTemperature(float from, float to) {
-        ValueAnimator animator = ValueAnimator.ofFloat(from, to);
-        animator.setDuration(1800L);
-        animator.addUpdateListener(value -> {
-            float current = (float) value.getAnimatedValue();
-            String label = String.format(Locale.ROOT, "%.1f°C", current);
-            setText(actuatorHvacTemperatureView, label);
-        });
-        animator.start();
-        mainHandler.postDelayed(() -> setUnityTemperatureState(true), 900L);
+        float start = normalizeUnityTemperature(from);
+        float target = normalizeUnityTemperature(to);
+        int generation = ++unityTemperatureAnimationGeneration;
+        int stepCount = Math.round(
+                Math.abs(target - start) / UNITY_TEMPERATURE_STEP_C);
+        float direction = target >= start
+                ? UNITY_TEMPERATURE_STEP_C : -UNITY_TEMPERATURE_STEP_C;
+        for (int index = 0; index <= stepCount; index++) {
+            float value = normalizeUnityTemperature(start + direction * index);
+            long delayMs = index * 360L;
+            mainHandler.postDelayed(() -> {
+                if (detached || generation != unityTemperatureAnimationGeneration) {
+                    return;
+                }
+                setText(actuatorHvacTemperatureView, unityTemperatureLabel(value));
+                setUnityTemperatureForBothZones(value, "scenario_transition");
+            }, delayMs);
+        }
     }
 
     private void animateFan(int from, int to) {
@@ -1276,34 +1303,237 @@ public final class CockpitControlCoordinator implements
         animator.start();
     }
 
-    private void setUnityTemperatureState(boolean warm) {
+    private void configureUnityIntegration() {
+        if (detached) {
+            return;
+        }
         View renderView = resolveUnityRenderView();
-        if (renderView == null || renderView.getWidth() <= 0 || renderView.getHeight() <= 0) {
+        if (renderView == null || renderView.getWidth() <= 0
+                || renderView.getHeight() <= 0) {
+            if (++unityConfigureAttempts < UNITY_CONFIGURE_MAX_ATTEMPTS) {
+                mainHandler.postDelayed(configureUnityRunnable, 500L);
+            }
             Log.w(TAG, markers()
-                    + " unity_hvac_native_dispatch=false"
-                    + " unity_hvac_native_reason=render_view_unavailable");
+                    + " unity_integration_configured=false"
+                    + " unity_integration_reason=render_view_unavailable"
+                    + " unity_integration_attempt=" + unityConfigureAttempts);
+            return;
+        }
+        unityRenderView = renderView;
+        unityConfigureAttempts = 0;
+        renderView.setOnTouchListener((view, event) -> {
+            handleUnityNativeTouch(event);
+            return false;
+        });
+        setUnityRenderScale(renderView);
+        mainHandler.postDelayed(
+                () -> setUnityTemperatureForBothZones(
+                        driverUnityTemperatureC,
+                        "initial_sync"),
+                900L);
+        Log.i(TAG, markers()
+                + " unity_integration_configured=true"
+                + " unity_render_surface=" + renderView.getWidth()
+                + "x" + renderView.getHeight()
+                + " unity_temperature_min_c=" + UNITY_TEMPERATURE_MIN_C
+                + " unity_temperature_max_c=" + UNITY_TEMPERATURE_MAX_C
+                + " unity_temperature_step_c=" + UNITY_TEMPERATURE_STEP_C);
+    }
+
+    private void setUnityRenderScale(View renderView) {
+        try {
+            java.lang.reflect.Method getRenderScale =
+                    renderView.getClass().getMethod("getRenderScale");
+            java.lang.reflect.Method setRenderScale =
+                    renderView.getClass().getMethod("setRenderScale", float.class);
+            Object beforeValue = getRenderScale.invoke(renderView);
+            float before = beforeValue instanceof Number
+                    ? ((Number) beforeValue).floatValue() : 0.0f;
+            setRenderScale.invoke(renderView, UNITY_RENDER_SCALE);
+            mainHandler.postDelayed(() -> {
+                try {
+                    Object afterValue = getRenderScale.invoke(renderView);
+                    float after = afterValue instanceof Number
+                            ? ((Number) afterValue).floatValue() : 0.0f;
+                    Log.i(TAG, markers()
+                            + " unity_render_scale_configured=true"
+                            + " unity_render_scale_before=" + before
+                            + " unity_render_scale_requested=" + UNITY_RENDER_SCALE
+                            + " unity_render_scale_after=" + after);
+                } catch (ReflectiveOperationException failure) {
+                    Log.w(TAG, markers()
+                            + " unity_render_scale_verified=false"
+                            + " unity_render_scale_reason=reflection_failure");
+                }
+            }, 800L);
+        } catch (ReflectiveOperationException failure) {
+            Log.w(TAG, markers()
+                    + " unity_render_scale_configured=false"
+                    + " unity_render_scale_reason=reflection_failure");
+        }
+    }
+
+    private void handleUnityNativeTouch(MotionEvent event) {
+        if (event == null) {
+            return;
+        }
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                unityTouchTracking = true;
+                unityTouchDownX = event.getX();
+                unityTouchDownY = event.getY();
+                return;
+            case MotionEvent.ACTION_CANCEL:
+                unityTouchTracking = false;
+                return;
+            case MotionEvent.ACTION_UP:
+                if (!unityTouchTracking) {
+                    return;
+                }
+                unityTouchTracking = false;
+                float deltaX = event.getX() - unityTouchDownX;
+                float deltaY = event.getY() - unityTouchDownY;
+                float threshold = 18.0f
+                        * activity.getResources().getDisplayMetrics().density;
+                if (deltaX * deltaX + deltaY * deltaY > threshold * threshold) {
+                    return;
+                }
+                handleUnityTemperatureTap(event.getX(), event.getY());
+                return;
+            default:
+        }
+    }
+
+    private void handleUnityTemperatureTap(float localX, float localY) {
+        View renderView = unityRenderView;
+        if (renderView == null || renderView.getWidth() <= 0
+                || renderView.getHeight() <= 0) {
             return;
         }
         float widthScale = renderView.getWidth() / UNITY_REFERENCE_WIDTH;
         float heightScale = renderView.getHeight() / UNITY_REFERENCE_HEIGHT;
-        float driverX = (warm
-                ? UNITY_DRIVER_TEMP_INCREASE_X
-                : UNITY_DRIVER_TEMP_DECREASE_X) * widthScale;
-        float passengerX = renderView.getWidth() - (warm
-                ? UNITY_PASSENGER_TEMP_INCREASE_RIGHT
-                : UNITY_PASSENGER_TEMP_DECREASE_RIGHT) * widthScale;
         float buttonY = renderView.getHeight()
                 - UNITY_TEMP_BUTTON_BOTTOM * heightScale;
-        dispatchUnityTap(renderView, driverX, buttonY);
-        mainHandler.postDelayed(
-                () -> dispatchUnityTap(renderView, passengerX, buttonY),
-                520L);
+        float hitRadiusX = 36.0f * widthScale;
+        float hitRadiusY = 32.0f * heightScale;
+        if (Math.abs(localY - buttonY) > hitRadiusY) {
+            return;
+        }
+        float driverDecreaseX = UNITY_DRIVER_TEMP_DECREASE_X * widthScale;
+        float driverIncreaseX = UNITY_DRIVER_TEMP_INCREASE_X * widthScale;
+        float passengerDecreaseX = renderView.getWidth()
+                - UNITY_PASSENGER_TEMP_DECREASE_RIGHT * widthScale;
+        float passengerIncreaseX = renderView.getWidth()
+                - UNITY_PASSENGER_TEMP_INCREASE_RIGHT * widthScale;
+        if (Math.abs(localX - driverDecreaseX) <= hitRadiusX) {
+            setUnityTemperature(
+                    true,
+                    driverUnityTemperatureC - UNITY_TEMPERATURE_STEP_C,
+                    "manual_decrease");
+        } else if (Math.abs(localX - driverIncreaseX) <= hitRadiusX) {
+            setUnityTemperature(
+                    true,
+                    driverUnityTemperatureC + UNITY_TEMPERATURE_STEP_C,
+                    "manual_increase");
+        } else if (Math.abs(localX - passengerDecreaseX) <= hitRadiusX) {
+            setUnityTemperature(
+                    false,
+                    passengerUnityTemperatureC - UNITY_TEMPERATURE_STEP_C,
+                    "manual_decrease");
+        } else if (Math.abs(localX - passengerIncreaseX) <= hitRadiusX) {
+            setUnityTemperature(
+                    false,
+                    passengerUnityTemperatureC + UNITY_TEMPERATURE_STEP_C,
+                    "manual_increase");
+        }
+    }
+
+    private void setUnityTemperatureForBothZones(float temperatureC, String source) {
+        float normalized = normalizeUnityTemperature(temperatureC);
+        driverUnityTemperatureC = normalized;
+        passengerUnityTemperatureC = normalized;
+        boolean driverSent = sendUnityMessage(
+                UNITY_DRIVER_TEMPERATURE_OBJECT,
+                UNITY_TEMPERATURE_METHOD,
+                unityTemperatureLabel(normalized));
+        boolean passengerSent = sendUnityMessage(
+                UNITY_PASSENGER_TEMPERATURE_OBJECT,
+                UNITY_TEMPERATURE_METHOD,
+                unityTemperatureLabel(normalized));
         Log.i(TAG, markers()
-                + " unity_hvac_native_dispatch=true"
-                + " unity_hvac_native_state=" + (warm ? "28_0" : "26_5")
+                + " unity_hvac_native_dispatch="
+                + (driverSent && passengerSent)
+                + " unity_hvac_native_temperature_c=" + normalized
                 + " unity_hvac_native_zones=driver_passenger"
-                + " unity_hvac_render_size=" + renderView.getWidth()
-                + "x" + renderView.getHeight());
+                + " unity_hvac_native_source=" + source);
+    }
+
+    private void setUnityTemperature(
+            boolean driver,
+            float temperatureC,
+            String source) {
+        float normalized = normalizeUnityTemperature(temperatureC);
+        if (driver) {
+            driverUnityTemperatureC = normalized;
+        } else {
+            passengerUnityTemperatureC = normalized;
+        }
+        String objectName = driver
+                ? UNITY_DRIVER_TEMPERATURE_OBJECT
+                : UNITY_PASSENGER_TEMPERATURE_OBJECT;
+        boolean sent = sendUnityMessage(
+                objectName,
+                UNITY_TEMPERATURE_METHOD,
+                unityTemperatureLabel(normalized));
+        Log.i(TAG, markers()
+                + " unity_hvac_native_dispatch=" + sent
+                + " unity_hvac_native_zone=" + (driver ? "driver" : "passenger")
+                + " unity_hvac_native_temperature_c=" + normalized
+                + " unity_hvac_native_source=" + source);
+    }
+
+    private boolean sendUnityMessage(
+            String objectName,
+            String methodName,
+            String message) {
+        View renderView = unityRenderView != null
+                ? unityRenderView : resolveUnityRenderView();
+        if (renderView == null) {
+            return false;
+        }
+        try {
+            java.lang.reflect.Field serviceField =
+                    renderView.getClass().getDeclaredField("mTuanjieRenderService");
+            serviceField.setAccessible(true);
+            Object service = serviceField.get(renderView);
+            if (service == null) {
+                return false;
+            }
+            java.lang.reflect.Method sendMessage = service.getClass().getMethod(
+                    "c2sSendMessage",
+                    String.class,
+                    String.class,
+                    String.class);
+            sendMessage.invoke(service, objectName, methodName, message);
+            return true;
+        } catch (ReflectiveOperationException failure) {
+            Log.w(TAG, markers()
+                    + " unity_message_dispatch=false"
+                    + " unity_message_reason=reflection_failure");
+            return false;
+        }
+    }
+
+    private static float normalizeUnityTemperature(float temperatureC) {
+        float bounded = Math.max(
+                UNITY_TEMPERATURE_MIN_C,
+                Math.min(UNITY_TEMPERATURE_MAX_C, temperatureC));
+        return Math.round(bounded / UNITY_TEMPERATURE_STEP_C)
+                * UNITY_TEMPERATURE_STEP_C;
+    }
+
+    private static String unityTemperatureLabel(float temperatureC) {
+        return String.format(Locale.ROOT, "%.1f°C", temperatureC);
     }
 
     private View resolveUnityRenderView() {
@@ -1329,67 +1559,6 @@ public final class CockpitControlCoordinator implements
             }
         }
         return null;
-    }
-
-    private void dispatchUnityTap(View renderView, float localX, float localY) {
-        long downTime = SystemClock.uptimeMillis();
-        MotionEvent down = createUnityTouchEvent(
-                downTime, downTime, MotionEvent.ACTION_DOWN, localX, localY);
-        boolean downHandled;
-        try {
-            downHandled = renderView.dispatchTouchEvent(down);
-        } finally {
-            down.recycle();
-        }
-        mainHandler.postDelayed(() -> {
-            long upTime = SystemClock.uptimeMillis();
-            MotionEvent up = createUnityTouchEvent(
-                    downTime, downTime, MotionEvent.ACTION_UP, localX, localY);
-            boolean upHandled;
-            try {
-                upHandled = renderView.dispatchTouchEvent(up);
-            } finally {
-                up.recycle();
-            }
-            Log.i(TAG, markers()
-                    + " unity_hvac_native_tap=true"
-                    + " unity_hvac_native_down_handled=" + downHandled
-                    + " unity_hvac_native_up_handled=" + upHandled
-                    + " unity_hvac_native_x=" + Math.round(localX)
-                    + " unity_hvac_native_y=" + Math.round(localY)
-                    + " unity_hvac_native_press_ms=" + (upTime - downTime));
-        }, 96L);
-    }
-
-    private static MotionEvent createUnityTouchEvent(
-            long downTime,
-            long eventTime,
-            int action,
-            float localX,
-            float localY) {
-        MotionEvent.PointerProperties properties = new MotionEvent.PointerProperties();
-        properties.id = 0;
-        properties.toolType = MotionEvent.TOOL_TYPE_FINGER;
-        MotionEvent.PointerCoords coordinates = new MotionEvent.PointerCoords();
-        coordinates.x = localX;
-        coordinates.y = localY;
-        coordinates.pressure = action == MotionEvent.ACTION_UP ? 0.0f : 1.0f;
-        coordinates.size = 1.0f;
-        return MotionEvent.obtain(
-                downTime,
-                eventTime,
-                action,
-                1,
-                new MotionEvent.PointerProperties[]{properties},
-                new MotionEvent.PointerCoords[]{coordinates},
-                0,
-                0,
-                1.0f,
-                1.0f,
-                -1,
-                0,
-                InputDevice.SOURCE_TOUCHSCREEN,
-                0);
     }
 
     private void finishActuatorAnimation(long delayMs) {
@@ -2404,6 +2573,7 @@ public final class CockpitControlCoordinator implements
             mainHandler.removeCallbacks(submitHvacRunnable);
             mainHandler.removeCallbacks(submitSeatRunnable);
             mainHandler.removeCallbacks(traceDrainRunnable);
+            mainHandler.removeCallbacks(configureUnityRunnable);
             previous = connection;
             connection = null;
         }
@@ -2421,6 +2591,10 @@ public final class CockpitControlCoordinator implements
         if (modelInputBitmap != null) {
             modelInputBitmap.recycle();
             modelInputBitmap = null;
+        }
+        if (unityRenderView != null) {
+            unityRenderView.setOnTouchListener(null);
+            unityRenderView = null;
         }
         debugSimulationClient.close();
         orchestrationClient.close();
@@ -2479,6 +2653,9 @@ public final class CockpitControlCoordinator implements
                 + " cockpit_simulated_safety_interface_reserved=true"
                 + " cockpit_simulated_demo_auto_continue=true"
                 + " cockpit_simulated_actuator_animation=true"
+                + " cockpit_unity_dynamic_temperature=true"
+                + " cockpit_unity_temperature_step_c=0.5"
+                + " cockpit_unity_supersampled_render=true"
                 + " cockpit_simulated_hardware_effect_dispatch_enabled=false"
                 + " cockpit_display_matrix_defined=true"
                 + " cockpit_accessibility_semantics_runtime_owned=true"

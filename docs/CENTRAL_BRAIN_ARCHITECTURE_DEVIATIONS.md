@@ -1,8 +1,25 @@
 # 中央大脑架构偏差登记表
 
 版本：0.9
-日期：2026-07-24
+日期：2026-07-25
 状态：Android 13 实际工程基线
+
+## DEV-134 Unity supersampling 与动态 HVAC 仍是黑盒应用层补丁
+
+P4-R7 在无 Unity 源工程和厂商图形配置源码的条件下，通过 `TuanjieView.setRenderScale(1.5)`
+请求 supersampling，并在 RenderService Addressables bundle 中创建动态 TextMeshPro 温区、
+修正 Pan recognizer display/raycast 配置。这能改善黑盒 APK 的清晰度、调温和旋转体验，
+但不能替代 Unity 源工程中的 URP、纹理、LOD、MSAA 和 GPU 性能标定。
+
+处理：接受为当前 debug 演示路径。真机日志和截图未通过前只标记“requested”，不能标记
+“graphics quality qualified”。动态温度仍是 HMI 仿真，不是 Vehicle/VHAL target/readback；
+生产 adapter 缺失时继续失败关闭。当前测试板 ADB 为 offline，生产板暂时下线。
+
+状态：`Accepted Temporary / Testboard Retest Blocked`。
+`unity_render_scale_1_5_requested=true`、`unity_dynamic_temperature_defined=true`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`APP-004`、`S2-HMI-001..004`、
+`S2-UX-002/003`、`DEL-004`；tracking：`ISSUE-019/030/061`。
 
 ## DEV-133 Unity 原生 HVAC 状态仍是应用层仿真
 
@@ -132,6 +149,7 @@ AIDL version/hash 和 checksum manifest；SDK 协商成功时使用 V2，旧 Run
 
 | ID | 当前结论 | 关联 Req ID/跟踪项 | 状态 |
 | --- | --- | --- | --- |
+| DEV-134 | 1.5 倍渲染请求、动态温区和 Pan recognizer 修复改善黑盒 HMI，但不等于 Unity 图形质量标定或真实车控。 | S2-HMI-001..004, S2-UX-002/003, ISSUE-061 | Accepted Temporary |
 | DEV-133 | RenderService Unity 原生双区温度改善了演示 HMI，但仍是应用层仿真，不是 Vehicle/VHAL 控制或 readback。 | S2-HMI-001..004, S2-ADP-001/002, ISSUE-019/030/060 | Accepted Temporary |
 | DEV-001 | Python REST/HTTP gateway、旧 Binder/IPC/gRPC 转发层已删除；Android typed Binder 是唯一应用协议主线。 | XSC-006, DEV-026 | Retired |
 | DEV-002 | Python 单进程 gateway/NPU/vehicle-state 聚合实现已删除。 | NV-F-008/011, DEV-026 | Retired |

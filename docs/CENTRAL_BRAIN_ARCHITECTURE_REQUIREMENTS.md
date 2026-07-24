@@ -1,8 +1,34 @@
 # 中央大脑架构需求基线
 
 版本：1.1
-日期：2026-07-24
+日期：2026-07-25
 状态：Android 13 实际工程基线
+
+## P4-R7 render fidelity, dynamic HVAC and orbit requirement
+
+`P4-R7` 要求 Client2/RenderService 配对 APK 在 1920x1080 黑盒 Android 13 座舱上：
+
+1. `TuanjieView` 请求 1.5 倍内部渲染尺度，真机必须以日志和截图确认是否被采纳；
+2. 双区温度使用 Unity 原生动态文本，默认 26.5°C、范围 18.0-30.0°C、步进 0.5°C；
+3. 场景调温必须逐级呈现，手动 +/- 与场景输出共享同一状态机；
+4. Unity Pan recognizer 必须绑定 RenderService 实际 `DisplayIndex=1`，滑动旋转不得被
+   Client2 overlay 消费，原车门点击仍须有效。
+
+动态温区由 Client2 调用 RenderService
+`c2sSendMessage(zoneObject, "SetText", temperatureLabel)`，不得恢复 Android 温度覆盖层。
+本要求只形成应用层 HMI 仿真，不修改 `libtuanjie.so`、系统镜像、Framework/BSP 或
+Vehicle/VHAL/CAN/Driver-HAL。测试板离线期间只能声明仓库实现与构建完成，不能声明 ARM64
+动态复测通过。
+
+当前 `unity_dynamic_temperature_defined=true`、
+`unity_temperature_range_18_30=true`、`unity_temperature_step_0_5=true`、
+`unity_orbit_pan_display_binding_corrected=true`、
+`unity_render_scale_1_5_requested=true`、
+`p4_r7_testboard_android13_arm64_verified=false`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`APP-004`、`S2-HMI-001..004`、
+`S2-UX-002/003`、`DEL-004`；tracking：`DEV-134`、`ISSUE-061`；stage
+`P4-R7-RENDER-HVAC-ORBIT`。
 
 ## P4-R6 Unity-native HVAC and seat animation correction
 

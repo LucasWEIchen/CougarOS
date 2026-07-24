@@ -1,8 +1,27 @@
 # Central Brain Android 13 开发路线图
 
 版本：1.2
-日期：2026-07-24
+日期：2026-07-25
 状态：Stage 2 P6 in progress
+
+## 2026-07-25 P4-R7 render fidelity, dynamic HVAC and orbit input
+
+状态：`REPOSITORY_BUILT / TESTBOARD_RETEST_BLOCKED_ADB_OFFLINE`。P4-R7 已将 P4-R6
+固定 26.5/28.0°C 双状态升级为 Unity 原生动态 TextMeshPro，支持双区 18.0-30.0°C、
+0.5°C 步进和 360 ms 逐级动画；Client2 经 RenderService `c2sSendMessage(..., "SetText", ...)`
+更新温区。Unity Pan recognizer 已从错误的 display 2 修正为实际 `DisplayIndex=1`，并关闭
+额外 raycast gate；Client2 的观察型触摸监听不消费事件。`TuanjieView` 请求 1.5 倍渲染尺度。
+
+两个 APK 已完成构建、同签和离线 bundle 检查。`testboard` 当前被 Windows ADB 枚举为
+`offline`，因此清晰度、18/30°C 边界、逐级动画、滑动旋转和车门点击共存的 ARM64 动态复测
+保持开放；生产板按用户决定暂时下线且未操作。
+
+当前 `p4_r7_repository_software_complete=true`、
+`p4_r7_testboard_android13_arm64_verified=false`、
+`production_board_touched=false`、`vehicle_bus_accessed=false`、
+`production_ready=false`、`target_hardware_validated=false`。Req IDs：
+`APP-004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：
+`DEV-134`、`ISSUE-061`；stage `P4-R7-RENDER-HVAC-ORBIT`。
 
 ## 2026-07-24 P4-R6 Unity-native HVAC and seat correction
 

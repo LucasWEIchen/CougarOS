@@ -133,7 +133,19 @@ if [[ -d "$WORK_DIR" ]]; then
   fi
   rg -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' \
     "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
-  rg -q 'unity_hvac_native_dispatch=true' \
+  rg -q 'unity_hvac_native_dispatch=' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -Fq 'UNITY_TEMPERATURE_MIN_C = 18.0f' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -Fq 'UNITY_TEMPERATURE_MAX_C = 30.0f' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -Fq 'UNITY_TEMPERATURE_STEP_C = 0.5f' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -Fq 'UNITY_RENDER_SCALE = 1.5f' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -Fq 'CentralBrainDriverTemperature' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -Fq 'CentralBrainPassengerTemperature' \
     "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
   rg -q 'UI SIMULATION ONLY' "$WORK_DIR/res/layout/main_layout.xml"
   if rg -q 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' \
