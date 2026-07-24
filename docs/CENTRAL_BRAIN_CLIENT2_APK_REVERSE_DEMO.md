@@ -1,7 +1,7 @@
 # Client2 APK Reverse Demo Path
 
-版本：0.4
-日期：2026-07-17
+版本：0.5
+日期：2026-07-24
 
 ## 目标
 
@@ -14,8 +14,10 @@
 | 原始 APK | `apks/original/client2_20260306_170923.apk` |
 | 逆向基线 | `reverse/client2/apktool` |
 | 测试工程 | `apk-labs/client2-central-brain` |
+| RenderService 配对工程 | `apk-labs/renderservice-central-brain` |
 | 生成工作目录 | `builds/client2-central-brain/workdir` |
 | 签名输出 | `builds/client2-central-brain/signed/client2-central-brain.debug.apk` |
+| RenderService 签名输出 | `builds/renderservice-central-brain/signed/renderservice-central-brain.debug.apk` |
 
 `apks/original` 和 `reverse/client2/apktool` 保持基线用途。测试工程每次复制逆向基线到 `builds/client2-central-brain/workdir`，再打补丁、构建和签名，避免污染原始 APK 与原始逆向证据。
 
@@ -61,7 +63,11 @@ Process-local retain state 用于同进程 Activity recreate；app-private Share
 panel visibility、UI/canonical alias、SessionHandle metadata、last sequence 和 resume cursor。用户输入、模型文本、
 summary、reply projection 和车辆 payload 均不持久化。该恢复层是 debug APK 兼容实现，不是量产加密 HMI state store。
 
-该改动不修改 RenderService，不修改 Unity Addressables，不访问真实硬件。它证明 APK 资源 patch、Manifest patch、smali hook、secondary dex、typed Binder、rebuild、zipalign、debug sign 和静态/真机验证链路成立。
+早期增量只修改 Client2。P4-R6 在用户明确要求原生 Unity 温区后增加独立
+`renderservice-central-brain` 维护工程：修改目标 Unity Addressables bundle 的原生双区
+26.5/28.0°C TextMeshPro 状态，不修改 `libtuanjie.so`、Android 系统镜像、厂商 Framework/BSP
+或真实车辆接口。Client2/RenderService 必须同签、成对安装；详见
+[CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)。
 
 ## 架构映射
 
@@ -160,9 +166,10 @@ P4-W05 在同一设备验证完整 Seat controls、heat/vent 互斥、300 ms 单
 ## 已知风险
 
 1. Client2 原始源码不可用，长期维护风险高于源码工程。
-2. Debug 重签名已在当前 API 33 ARM64 测试设备通过 RenderService 画面验证，但不代表生产 signer、OTA/MDM 或量产 allowlist 已批准。
+2. Client2 与 RenderService 的 debug 重签名已在当前 API 33 ARM64 测试板通过配对画面验证，但不代表生产 signer、OTA/MDM 或量产 allowlist 已批准。
 3. RenderService 是 ARM64/Unity/Tuanjie 运行时；x86_64 模拟器证据仍不能替代目标 ARM64 验收。
 4. 底部导航是闭源渲染内容，透明触摸目标依赖当前显示几何；分辨率、density、主题或导航布局变化可能造成触点漂移。
 5. 当前 Client2 已迁移到 Binder/SDK 且无网络 fallback；Runtime deterministic test reply 不代表真实模型或 NPU 已接入 Android 实际工程。
 6. 目标模型、输出预算、目标算力和端到端时延仍须在 Vendor provider 与真实 NPU 可用后独立标定。
 7. KaKaClaw 只作为公开产品概念参考；连续多轮、人格/方言、零代码 Skill、主动触发、真实导航/媒体/车控/ADAS、量产 Skill sandbox 和 Privacy Router 尚未实现，见 ISSUE-020。
+8. Unity bundle 对象名、path ID 和按钮几何依赖当前 RenderService 版本；厂商升级后必须重新做对象审计、幂等 patch 和 ARM64 视觉回归。

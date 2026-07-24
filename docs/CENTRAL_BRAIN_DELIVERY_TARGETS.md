@@ -1,8 +1,28 @@
 # Android 13 座舱域交付目标
 
-版本：3.8
+版本：3.9
 
-日期：2026-07-17
+日期：2026-07-24
+
+## P4-R6 Unity-native HVAC and seat delivery
+
+交付两个必须成对安装的 Android 13 ARM64 debug APK：
+
+1. `client2-central-brain.debug.apk`：修正靠背展开方向，移除 Android 温度 overlay，经
+   `TuanjieView` 触发双区 Unity 状态；
+2. `renderservice-central-brain.debug.apk`：在既有 Unity bundle 中维护原生双区
+   26.5/28.0°C TextMeshPro 状态和 Button `SetActive` 切换。
+
+同时交付幂等 bundle patch、APK 重建/签名脚本、静态门禁和详设。该交付不包含系统镜像、
+`libtuanjie.so`、Vehicle/VHAL/CAN、真实 HVAC/Seat readback 或量产 signer。
+
+`testboard` Android 13 ARM64 验证通过；生产板最终包复测因 ADB 未枚举保持开放。
+`p4_r6_repository_software_complete=true`、
+`production_board_final_package_retest=false`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-HMI-001..004`、
+`S2-ADP-001/002`、`S2-SAF-001`、`DEL-001/003/004`；tracking：
+`DEV-133`、`ISSUE-060`；stage `P4-R6-UNITY-NATIVE-HVAC-SEAT`。
 
 ## P4-R5 cabin shopping and route-planning delivery
 

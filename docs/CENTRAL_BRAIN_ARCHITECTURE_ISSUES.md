@@ -1,8 +1,16 @@
 # 中央大脑架构疑点与风险登记表
 
-版本：0.8
-日期：2026-07-20
+版本：0.9
+日期：2026-07-24
 状态：Android 13 实际工程基线
+
+## P4-R6 issue update
+
+`ISSUE-033` 的演示 HMI 软件子项已补充 Unity 原生双区温度与正确的座椅展开方向：Android
+温度 overlay 已移除，Cold/Fatigue 在 `testboard` 上通过真实 OpenClaw 链路和视觉复核。
+真实 HVAC/Seat adapter、readback 与 Safety authority 仍由 `ISSUE-023/029/030` 跟踪。
+生产板在最终包部署时未被 Windows ADB 枚举，故新增 `ISSUE-060`，不得借用测试板证据宣称
+生产板复测通过。`production_ready=false`、`target_hardware_validated=false`。
 
 ## P4-R5 issue update
 
@@ -69,7 +77,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-030 | 车辆控制 API、权限、area mapping、readback 和 owner 未确定。 | S2-ADP-002 | Open |
 | ISSUE-031 | 场景目录、长期记忆和主动执行的产品/隐私 owner 未确定。 | S2-MEM-001, S2-EVT-001 | Open |
 | ISSUE-032 | Python 原型退役后禁止把已删除 gateway/test oracle 当成 Android fallback。 | DEV-026 | Closed |
-| ISSUE-033 | Client2 意图编排、HVAC/Seat、正式 Orchestration、Effect/readback 和七阶段可观察闭环的软件子项已完成；真实车控与量产 HMI 继续外部跟踪。 | S2-HMI-001..006, DEV-119 | Software Closed / External Integration Open |
+| ISSUE-033 | Client2 意图编排、Unity 原生 HVAC 仿真、正确 Seat 展开、正式 Orchestration、Effect/readback 和七阶段可观察闭环的软件子项已完成；真实车控与量产 HMI 继续外部跟踪。 | S2-HMI-001..006, DEV-119/133 | Software Closed / External Integration Open |
 | ISSUE-034 | Event V2 已增加 opaque terminal cursor、显式 ACK 和 Room durable Session cursor；production middleware 风险转由 ISSUE-046 跟踪。 | S2-EVT-001, P6-EV2 | Closed / Superseded |
 | ISSUE-035 | Client2 process-recreation checkpoint 的 production storage/backup/user owner 未确定。 | S2-UX-001..003, DEV-052 | Open |
 | ISSUE-036 | Tool production owner、health source、artifact trust 与 execution authority 未确定。 | S2-TOL-001, P5-W02..W05 | Open |
@@ -96,6 +104,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-057 | P4-R5 购物与路径规划 debug 软件已完成，包含真实模型、六 Tool、三确认和事件驱动 HMI。 | S2-HMI-009, S2-CTX-002, S2-PER-001, S2-INT-001, S2-NAV-001, S2-COM-001, P4-R5 | Resolved / DEV-131 |
 | ISSUE-058 | 量产 OMS/camera、可信座椅占用、Navigation 和 Commerce/Payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
 | ISSUE-059 | 生产板使用测试会话临时 `169.254.208.100/24` 后已完成目标以太 OpenClaw 验证；厂商/系统尚未提供可启动恢复、受管的持久 IPv4 配置。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Partially Resolved / Persistent Network External |
+| ISSUE-060 | P4-R6 最终 Client2/RenderService 配对 APK 已在 testboard 通过；生产板在部署时未被 ADB 枚举，最终包复测待设备连接恢复。 | S2-HMI-001..004, DEL-001/004, P4-R6 | Open / External Device Connection |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1502,13 +1511,24 @@ registry 必须返回 typed unavailable，不允许静默回退模拟。
 关闭需要分别取得 API/service/property、permission/SELinux、area/schema、freshness、timeout、
 cancel/readback、privacy、rollback 和责任人证据。该问题不能由 `P4-R5` 仓库软件完成自动关闭。
 
-## ISSUE-059 生产板目标 OpenClaw 网络不可达
+## ISSUE-059 生产板目标 OpenClaw 持久网络配置缺失
 
-2026-07-24 在 `0123456789ABCDEF` 上检查：Android 13 ARM64、1920x1080 正常，但 `eth0`
-只有 IPv6 link-local 地址，没有 `169.254.208.0/24` IPv4 地址和路由。访问
-`169.254.208.110:18789` 返回 `Network is unreachable`，尚未进入 TCP、WebSocket、challenge、
-token 或模型阶段。
+2026-07-24 首次检查时，生产板 `eth0` 只有 IPv6 link-local 地址，访问
+`169.254.208.110:18789` 返回 `Network is unreachable`。测试会话随后临时配置
+`169.254.208.100/24`，Android 13 ARM64 已不经 ADB reverse 完成目标以太 OpenClaw v3
+图片+文字、三个确认和最终 HMI 回归。
 
-关闭条件：目标网络 owner 为生产板配置合法 IPv4 地址/路由并确认物理链路；随后用
-`target_openclaw_transitional` 构建在生产板完成图片+文字、三次确认和最终 HMI 回归。禁止把
-ADB reverse 测试结果写为生产以太网验证。状态：`Open / External Network`。
+该证据关闭“当前链路和协议完全不可达”的子项，但不提供可启动恢复、地址冲突管理、故障恢复或
+受管 owner。关闭本问题仍需目标网络 owner 提供持久 IPv4 配置和重启后复验。状态：
+`Partially Resolved / Persistent Network External`。
+
+## ISSUE-060 P4-R6 生产板最终包复测等待设备恢复
+
+P4-R6 的同签 Client2/RenderService APK 已构建并在 Android 13 ARM64 `testboard` 完成真实
+OpenClaw、Unity 原生双区 28.0°C 和座椅展开视觉复核。准备部署生产板时，Windows ADB 列表中
+只出现 `testboard`，预期生产板没有被枚举；重启 ADB server 后仍未恢复。
+
+该状态不能解释为软件失败，也不能解释为生产板通过。关闭条件是生产板恢复为 `device`，随后
+成对安装当前 source commit 生成的两个 APK，复测初始 26.5°C、Cold 双区 28.0°C、Fatigue
+靠背展开、进程重启和 crash/ANR。原始 serial、完整 logcat 和未审查截图不得进入 GitHub。
+状态：`Open / External Device Connection`。

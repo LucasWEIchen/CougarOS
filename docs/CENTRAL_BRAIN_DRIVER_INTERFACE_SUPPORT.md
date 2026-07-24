@@ -1,8 +1,23 @@
 # 驱动层接口支持矩阵
 
-版本：2.7
+版本：2.8
 
-日期：2026-07-17
+日期：2026-07-24
+
+## P4-R6 Unity-native HVAC/Seat Driver-HAL boundary
+
+P4-R6 只修改两个普通 Android 应用 APK：Client2 的 Java/XML/secondary dex，以及 RenderService
+的 Unity Addressables bundle。调用链止于 `TuanjieView` -> RenderService Unity EventSystem，
+不访问 Android Car、VehicleProperty、Vendor SOA、CAN、device node、sysfs、ioctl、PCIe/NPU、
+Kernel、Driver 或 HAL。
+
+真实 HVAC/Seat production adapter 继续为空，必须由 P8 取得 property/service ID、area、type、
+unit、permission、timeout、readback、Safety owner 和版本证据后另行接入。因此当前
+`driver_hal_development_required=false`、`driver_hal_accessed=false`、
+`vehicle_bus_accessed=false`、`production_hvac_adapter_wired=false`、
+`production_seat_adapter_wired=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`NV-F-003..005`、`KH-003/006`、
+`S2-ADP-001/002`、`DEL-004`；tracking：`DEV-133`、`ISSUE-023/029/030/060`。
 
 ## P4-R5 cabin shopping and route-planning Driver/HAL boundary
 

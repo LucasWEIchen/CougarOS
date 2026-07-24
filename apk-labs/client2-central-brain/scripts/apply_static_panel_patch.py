@@ -40,8 +40,6 @@ def patch_layout(work_dir: Path, patch_xml: Path) -> None:
         "@+id/centralBrainLiveTraceText",
         "@+id/centralBrainModelInputThumbnail",
         "@+id/centralBrainImagePreviewOverlay",
-        "@+id/centralBrainDriverTemperatureOverlay",
-        "@+id/centralBrainPassengerTemperatureOverlay",
         "@+id/centralBrainActuatorOverlay",
         "@+id/centralBrainActuatorHvacTemperatureText",
         "@+id/centralBrainActuatorFanProgress",
@@ -52,7 +50,6 @@ def patch_layout(work_dir: Path, patch_xml: Path) -> None:
         "@drawable/central_brain_action_button",
         "@drawable/central_brain_live_trace_background",
         "@drawable/central_brain_effect_feedback_background",
-        "@drawable/central_brain_temperature_overlay",
         "@drawable/central_brain_seat_part",
     ]
     missing = [marker for marker in required_markers if marker not in patched]

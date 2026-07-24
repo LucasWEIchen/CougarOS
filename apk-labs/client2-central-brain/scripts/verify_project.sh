@@ -25,7 +25,6 @@ for resource_file in \
   'central_brain_action_button.xml' \
   'central_brain_live_trace_background.xml' \
   'central_brain_effect_feedback_background.xml' \
-  'central_brain_temperature_overlay.xml' \
   'central_brain_seat_part.xml'; do
   test -f "$PROJECT_DIR/patches/res/drawable/$resource_file"
 done
@@ -86,8 +85,6 @@ if [[ -d "$WORK_DIR" ]]; then
   for surface_id in \
     centralBrainLiveTraceScroll \
     centralBrainLiveTraceText \
-    centralBrainDriverTemperatureOverlay \
-    centralBrainPassengerTemperatureOverlay \
     centralBrainActuatorOverlay \
     centralBrainActuatorTitleText \
     centralBrainActuatorStateText \
@@ -129,6 +126,15 @@ if [[ -d "$WORK_DIR" ]]; then
   rg -q '#80EEF2F3' "$WORK_DIR/res/drawable/central_brain_panel_background.xml"
   rg -q '#E8FFFFFF' "$WORK_DIR/res/drawable/central_brain_action_button.xml"
   rg -q '#B0222B31' "$WORK_DIR/res/drawable/central_brain_live_trace_background.xml"
+  if rg -q 'centralBrain(Driver|Passenger)TemperatureOverlay|central_brain_temperature_overlay' \
+      "$WORK_DIR/res/layout/main_layout.xml"; then
+    echo "Android HVAC temperature overlays must not cover Unity-native controls" >&2
+    exit 1
+  fi
+  rg -Fq 'seatBackView.setRotation(-(current - from) * 1.2f)' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -q 'unity_hvac_native_dispatch=true' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
   rg -q 'UI SIMULATION ONLY' "$WORK_DIR/res/layout/main_layout.xml"
   if rg -q 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' \
       "$WORK_DIR/res/layout/main_layout.xml"; then

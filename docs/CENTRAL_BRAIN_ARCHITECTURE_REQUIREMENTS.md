@@ -1,8 +1,31 @@
 # 中央大脑架构需求基线
 
-版本：1.0
-日期：2026-07-20
+版本：1.1
+日期：2026-07-24
 状态：Android 13 实际工程基线
+
+## P4-R6 Unity-native HVAC and seat animation correction
+
+`P4-R6` 修正 Client2 演示闭环的两个 HMI 语义错误：Fatigue 场景的驾驶席靠背必须从 15 度
+向 30 度展开/后仰；Cold 场景的 28.0°C 必须由 RenderService 的 Unity 原生双区温区显示，
+不得再使用覆盖 Unity 画面的 Android `TextView`。Client2 通过原生 `TuanjieView` 触屏通道
+触发 RenderService 内受维护的 Unity Button 状态；RenderService bundle 保留原生 26.5°C，
+并新增驾驶席和乘员席原生 28.0°C 状态。
+
+该闭环只属于 Android 应用层 HMI 仿真。它不写 Vehicle/VHAL/CAN，不读取真实 HVAC/Seat
+readback，不修改系统镜像、厂商 Framework/BSP 或 `libtuanjie.so`。Client2 与 RenderService
+debug APK 必须成对安装。`testboard` 已完成 Android 13 ARM64、真实 OpenClaw 场景和视觉复核；
+生产板最终包复测因设备未被 ADB 枚举而保持开放。
+
+当前 `seat_recline_expansion_direction_verified=true`、
+`unity_native_dual_zone_hvac_state_defined=true`、
+`android_temperature_overlay_present=false`、
+`testboard_android13_arm64_verified=true`、
+`production_board_final_package_retest=false`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`APP-001/004`、`S2-HMI-001..004`、
+`S2-UX-002`、`S2-ADP-001/002`、`S2-SAF-001`、`DEL-001/004`；tracking：
+`DEV-133`、`ISSUE-033/060`；stage `P4-R6-UNITY-NATIVE-HVAC-SEAT`。
 
 ## P4-R5 cabin shopping and route-planning trace
 
@@ -3113,8 +3136,9 @@ tracking：`DEV-120/128`、`ISSUE-056`。
    绕过 Scenario Catalog/Policy/Safety 或直接调用 adapter。
 4. `S2-OBS-002`：Client2 必须按 Runtime、Intent、Context、Model、Plan、Policy、Graph、Safety、Effect、Readback
    顺序增量投影，模型等待期间立即显示 RUNNING，最多保留 32 行并自动滚动。
-5. `S2-HMI-004/007`：无车身通信时，HVAC 温度/风量和驾驶席角度只通过 Android UI 动画反馈；Cold 由 26.5°C
-   变为 28.0°C，Fatigue 风量 1->3 且座椅 15->30 度。Seat 只在场景实际包含座椅动作时显示。
+5. `S2-HMI-004/007`：无车身通信时，HVAC 温度/风量和驾驶席角度只通过 Android 应用层 HMI 动画反馈；Cold
+   的 26.5°C -> 28.0°C 必须显示在 RenderService 的 Unity 原生双区温区，禁止 Android 温度浮层；Fatigue
+   风量 1->3 且座椅 15->30 度，靠背必须向后展开。Seat 只在场景实际包含座椅动作时显示。
 6. `S2-SAF-001`：所有动画持续标记 `SIMULATED`、未连接车辆总线且不构成实车证据；security executable 保持挂起，
    demo 自动继续不得授予 production authority。
 
@@ -3202,3 +3226,28 @@ Graph/Effect/Readback 完成和风量 1->3 动画。`repository_software_require
 而 `live_camera_ingress_verified=false`、`vehicle_bus_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。详设：
 [CENTRAL_BRAIN_CLIENT2_MULTIMODAL_CONTROL_LOOP.md](CENTRAL_BRAIN_CLIENT2_MULTIMODAL_CONTROL_LOOP.md)。
+
+## P4-R6 Unity-native HVAC and seat animation requirements
+
+1. `APP-001/004/S2-HMI-001/003/004`：Cold 结果必须由 RenderService Unity 原生温区显示；Client2
+   布局和 Java coordinator 不得定义、绑定或更新驾驶席/乘员席 Android 温度 overlay。
+2. `S2-HMI-001/003/S2-ADP-001`：Unity bundle 必须保留既有双区 26.5°C 状态，并以固定 path ID
+   增加双区 28.0°C TextMeshPro 状态；重复构建必须幂等，不能不断复制对象。
+3. `XSC-001/006/S2-HMI-005`：Client2 必须通过现有 `TuanjieView`/RenderService 输入边界触发 Unity
+   Button；触屏事件必须使用 finger、touchscreen、`deviceId=-1` 和成功触屏一致的时间语义。
+4. `S2-HMI-002/003/S2-UX-002`：Fatigue 的驾驶席靠背由 15 度到 30 度时，顶端必须远离坐垫，
+   视觉语义为展开/后仰；不得用增加数值但向坐垫合拢的动画冒充通过。
+5. `S2-SAF-001/S2-ADP-002/DEL-004`：Unity 温度和座椅动画只表示 `SIMULATED` HMI feedback；
+   不得声明 Vehicle/VHAL/CAN、真实 target/readback、Driver/HAL 或量产 Safety authority 已接入。
+6. `DEL-001/003/004`：必须交付可重复构建并同签的 Client2/RenderService APK、静态门禁和 Android 13
+   ARM64 视觉证据；任何未在线设备必须登记为外部复测阻塞，不能从另一设备的证据推断通过。
+
+当前 `p4_r6_repository_software_complete=true`、
+`seat_recline_expansion_direction_verified=true`、
+`unity_native_dual_zone_hvac_state_defined=true`、
+`android_temperature_overlay_present=false`、
+`testboard_android13_arm64_verified=true`、
+`production_board_final_package_retest=false`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。详设：
+[CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)。

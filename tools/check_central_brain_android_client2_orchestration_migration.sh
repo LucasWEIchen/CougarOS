@@ -42,7 +42,7 @@ contract = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert contract["schema_version"] == 1
 assert contract["profile_id"] == "android13-client2-orchestration-migration-v1"
 assert contract["client2"] == {
-    "project_version": "0.19.0",
+    "project_version": "0.20.0",
     "source_set": "debug_reverse_demo",
     "java_source_count": 19,
     "generated_debug_aidl_count": 1,
@@ -98,7 +98,7 @@ assert contract["validation"]["android13_arm64_target_executed"] is False
 assert claims["client2_android13_x86_64_verified"] is True
 
 project = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
-assert project["version"] == "0.19.0"
+assert project["version"] == "0.20.0"
 assert any(item.startswith("DEV-119:") for item in project["tracked_deviations"])
 
 source = pathlib.Path(sys.argv[3]).read_text(encoding="utf-8")
