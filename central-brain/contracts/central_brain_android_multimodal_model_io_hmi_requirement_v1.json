@@ -115,9 +115,10 @@
     "image_thumbnail_rendered": true,
     "image_center_preview_interaction_implemented": true,
     "android13_arm64_model_io_hmi_verified": true,
-    "repository_software_requirements_complete": true,
+    "repository_software_requirements_complete": false,
+    "open_repository_software_requirement_count": 12,
     "production_ready": false,
     "target_hardware_validated": false,
-    "implementation_stage": "P4-R4-IMPLEMENTED-ARM64"
+    "implementation_stage": "P4-R4-IMPLEMENTED-ARM64-P4-R5-OPEN"
   }
 }

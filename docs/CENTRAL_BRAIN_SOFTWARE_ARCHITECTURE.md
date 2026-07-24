@@ -6,6 +6,30 @@
 
 目标平台：黑盒 Android 13 座舱域控制器
 
+## P4-R5 occupant-aware assistance architecture
+
+P4-R5 在现有 Model、Context、Graph、Tool、Effect 和 HMI 之间增加两个明确语义层：
+`CabinObservation` 只承载可见事实，`IntentHypothesis` 只承载有证据且需要确认的候选意图。
+Commerce 是 Tool/Service，不进入 Vehicle Capability；导航被拆成搜索、预览和启动。
+
+```mermaid
+flowchart LR
+  Input["Image + text"] --> Observation["CabinObservation"]
+  Observation --> Context["Multi-seat Context fusion"]
+  Context --> Hypothesis["IntentHypothesis"]
+  Hypothesis --> Approval["Assistance confirmation"]
+  Approval --> Tool["Catalog / POI / Route tools"]
+  Tool --> Purchase["Purchase confirmation"]
+  Tool --> Navigation["Navigation confirmation"]
+  Purchase --> Effect["Effect / readback"]
+  Navigation --> Effect
+  Effect --> HMI["Client2 live trace"]
+```
+
+完整模块、接口和依赖见
+[座舱饮水辅助多模态场景软件详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)。
+当前十二个仓库工作包均为 `SOFTWARE_OPEN`；四个 production source/adapter 保持空接口。
+
 ## P4-R1 runtime orchestration architecture
 
 ```mermaid

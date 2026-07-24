@@ -4,6 +4,28 @@
 
 日期：2026-07-17
 
+## P4-R5 cabin hydration assistance requirement delivery
+
+本增量交付需求合同、十二个最小工作包、接口/状态机/Plan/HMI 详设、README 追踪和静态门禁。
+不交付 Runtime、Client2 或真实 adapter 实现。目标软件路径为：
+
+`图片+文字 -> CabinObservation -> 多座位 Context -> IntentHypothesis -> 饮水帮助确认 ->
+商品/POI/路线预览 -> 购买确认/导航确认 -> Effect/Readback -> Client2 实时链路`。
+
+仓库后续必须提供明确 synthetic 的商品、POI、路线和订单预览；订单 commit、支付和导航 start
+在 production adapter 缺失时返回 typed unavailable。购买和导航确认必须独立，不能复用，
+模型不能授权 Tool 或 Effect。
+
+`hydration_assistance_requirement_defined=true`、
+`hydration_assistance_software_implemented=false`、
+`p4_r5_open_work_package_count=12`、
+`repository_software_requirements_complete=false`、
+`open_repository_software_requirement_count=12`、
+`unclassified_repository_requirement_count=0`、
+`production_ready=false`、`target_hardware_validated=false`。Req IDs：
+`S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、`S2-INT-001`、`S2-NAV-001`、
+`S2-COM-001`；tracking：`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+
 ## Android P4-R1 Orchestration V1 delivery
 
 交付七个 Orchestration AIDL 类型、checksum、Java SDK client、Runtime Binder endpoint、caller capability/owner

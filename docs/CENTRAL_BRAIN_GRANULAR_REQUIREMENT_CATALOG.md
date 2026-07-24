@@ -717,6 +717,162 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **当前状态**：`DONE / ANDROID13_ARM64_CONTROLLED_FRAME_VERIFIED`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[Stage 2 backlog](CENTRAL_BRAIN_AIOS_STAGE2_DEVELOPMENT_BACKLOG.md)；[产品 UX](CENTRAL_BRAIN_AIOS_STAGE2_PRODUCT_UX_PLAN.md)；[接口详设](CENTRAL_BRAIN_INTERFACE_DESIGN.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
 
+<a id="p4-r5a"></a>
+### P4-R5a Multimodal frame metadata v2
+
+- **需求描述**：软件必须交付“Multimodal frame metadata v2”，满足 `APP-004`, `S2-HMI-008`, `S2-PER-001`, `S2-OBS-001`，并以版本化、有界、一次消费且失败关闭的方式绑定帧来源、车辆坐标、采集时间和摘要。
+- **需求追踪**：`APP-004`, `S2-HMI-008`, `S2-PER-001`, `S2-OBS-001`。
+- **负责模块**：Client2 多模态输入、SDK debug AIDL 与 Runtime input store。
+- **前置输入**：当前 Session/scenario、文字、单图 FD、frame ID、source kind、采集时钟和车辆坐标系。
+- **输出与验收**：交付 `CabinFrameInputV2`、receipt、aggregate digest、v1 兼容和过期/重放/清理测试。
+- **边界与非目标**：不接入实时 Camera HAL；source kind 不授予信任；原图不得持久化或进入日志。
+- **代码对应**：无实现；当前变更点：[CockpitMultimodalInput.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitMultimodalInput.java#L19-L45)；[DevelopmentModelInput.aidl](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/debug/aidl/com/centralbrain/sdk/model/DevelopmentModelInput.aidl#L5-L16)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5b"></a>
+### P4-R5b Cabin observation contract
+
+- **需求描述**：软件必须交付“Cabin observation contract”，满足 `S2-PER-001`, `S2-MDL-002`, `S2-SAF-001`, `S2-OBS-001`，将座位占用和可见饮水容器表达为有区域、置信度和 evidence digest 的事实。
+- **需求追踪**：`S2-PER-001`, `S2-MDL-002`, `S2-SAF-001`, `S2-OBS-001`。
+- **负责模块**：Runtime model boundary、SDK DTO/validator 与 observation digest。
+- **前置输入**：已验证 frame digest、模型视觉输出和车辆坐标映射。
+- **输出与验收**：交付 `CabinObservationBatchV1`；覆盖 allowlist、区域、重复 ID、未知字段、敏感字段和 canonical digest 测试。
+- **边界与非目标**：观察不得包含年龄、身份、家庭关系、情绪或“口渴”；自由文本不得直接进入 Context/Effect。
+- **代码对应**：无实现；当前变更点：[StructuredModelOutput.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/StructuredModelOutput.java#L30-L49)；[central_brain_android_cabin_hydration_assistance_requirement_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_cabin_hydration_assistance_requirement_v1.json#L1-L20)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5c"></a>
+### P4-R5c Multi-seat Context fusion
+
+- **需求描述**：软件必须交付“Multi-seat Context fusion”，满足 `S2-CTX-001/002`, `S2-TWN-001`, `S2-SAF-001`，对四座位独立融合视觉和座椅信号，并保留 source、freshness、trust 和 conflict。
+- **需求追踪**：`S2-CTX-001/002`, `S2-TWN-001`, `S2-SAF-001`。
+- **负责模块**：Context builder、Vehicle Digital Twin、source adapter 与 debug input factory。
+- **前置输入**：四区域 `Seat.IsOccupied`、视觉 observation、时间戳、质量和 source assurance。
+- **输出与验收**：交付原子 revision 的 `CabinOccupancyContextV1`，覆盖四座位、stale/missing/conflict 和 vision/sensor/fused 测试。
+- **边界与非目标**：`UNKNOWN/CONFLICT/STALE` 不得授权区域 Effect；一个座位状态不得推导其他座位状态。
+- **代码对应**：无实现；当前变更点：[ContextSnapshot.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/context/ContextSnapshot.java#L15-L43)；[SimulatedScenarioInputFactory.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/scenario/SimulatedScenarioInputFactory.java#L203-L234)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5d"></a>
+### P4-R5d Model semantic proposal v2
+
+- **需求描述**：软件必须交付“Model semantic proposal v2”，满足 `S2-MDL-001/002`, `S2-PER-001`, `S2-INT-001`, `S2-SAF-001`，将模型输出限制为 observation reference、hypothesis candidate 和 semantic goal。
+- **需求追踪**：`S2-MDL-001/002`, `S2-PER-001`, `S2-INT-001`, `S2-SAF-001`。
+- **负责模块**：Cockpit prompt、OpenClaw/Ollama provider、structured output validator 与 decision composition。
+- **前置输入**：文字、图片、座位 Context、允许的语义目标和 frame/scenario digest。
+- **输出与验收**：交付 `ModelSemanticProposalV2`，移除饮水场景强制 HVAC，并拒绝未知 goal、敏感推断和 authority 字段。
+- **边界与非目标**：模型不能生成 Tool receipt、Effect grant、支付授权或导航授权。
+- **代码对应**：无实现；当前变更点：[CockpitModelPrompt.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/CockpitModelPrompt.java#L87-L113)；[StructuredModelOutput.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/model/StructuredModelOutput.java#L155-L186)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5e"></a>
+### P4-R5e Evidence-bound hydration hypothesis
+
+- **需求描述**：软件必须交付“Evidence-bound hydration hypothesis”，满足 `S2-INT-001`, `S2-PER-001`, `S2-CTX-002`, `S2-SAF-001`，把饮水需求表达为可过期、可抑制、必须确认的候选假设。
+- **需求追踪**：`S2-INT-001`, `S2-PER-001`, `S2-CTX-002`, `S2-SAF-001`。
+- **负责模块**：新增 deterministic intent hypothesis resolver 和 reason-code catalog。
+- **前置输入**：已验证 observation、融合 Context 和模型 semantic candidate。
+- **输出与验收**：交付 `IntentHypothesisV1`，覆盖证据充分/不足、空座位、冲突、低置信度、过期和重复输入。
+- **边界与非目标**：首版不存在 `AUTO_EXECUTE`；图片本身不能证明乘员年龄或确定口渴。
+- **代码对应**：无实现；当前变更点：[DebugDecisionCompositionBoundary.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/orchestration/DebugDecisionCompositionBoundary.java#L490-L518)；[central_brain_android_cabin_hydration_assistance_requirement_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_cabin_hydration_assistance_requirement_v1.json#L35-L61)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5f"></a>
+### P4-R5f Hydration scenario DAG
+
+- **需求描述**：软件必须交付“Hydration scenario DAG”，满足 `S2-SCN-001`, `S2-GRF-001`, `S2-INT-001`, `S2-TOL-001`，以新场景承载观察、融合、假设、确认、搜索、预览、提交、验证和总结。
+- **需求追踪**：`S2-SCN-001`, `S2-GRF-001`, `S2-INT-001`, `S2-TOL-001`。
+- **负责模块**：Scenario manifest/schema/catalog、resolver、compiler、Graph runtime 和 probe。
+- **前置输入**：饮水假设、四座位 Context、Tool/Adapter capability snapshot 和确认 policy。
+- **输出与验收**：交付 `scene.cabin.hydration.assist.v1` 的版本化 16 节点 DAG、依赖、能力裁剪、恢复和 checksum。
+- **边界与非目标**：不得修改 P4-R4 现有场景语义；订单和导航分支相互独立。
+- **代码对应**：无实现；当前变更点：[scene.cabin.multimodal.assist.v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/assets/scenarios/scene.cabin.multimodal.assist.v1.json#L1-L20)；[ScenarioPlanCompiler.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/scenario/ScenarioPlanCompiler.java#L24-L48)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5g"></a>
+### P4-R5g Independent assistance purchase navigation confirmations
+
+- **需求描述**：软件必须交付“Independent assistance purchase navigation confirmations”，满足 `S2-SAF-001`, `S2-HMI-003/009`, `S2-NAV-001`, `S2-COM-001`，定义饮水帮助、购买提交和导航启动三个互不兼容的确认。
+- **需求追踪**：`S2-SAF-001`, `S2-HMI-003/009`, `S2-NAV-001`, `S2-COM-001`。
+- **负责模块**：Effect/Approval SDK、Orchestration approval handling、driving UX policy 与 durable metadata。
+- **前置输入**：run/session、confirmation type、target digest、policy、创建/过期时间和 HMI projection。
+- **输出与验收**：交付 `ConfirmationRequestV1` 和一次性 receipt，覆盖类型隔离、过期、重放、跨 Session、target 变化和驾驶限制。
+- **边界与非目标**：用户确认不能覆盖 hard interlock；购买确认不能启动导航，导航确认不能提交订单。
+- **代码对应**：无实现；当前变更点：[OrchestrationRuntimeClient.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/OrchestrationRuntimeClient.java#L209-L215)；[EffectContract.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/central-brain-sdk/src/main/java/com/centralbrain/sdk/effect/EffectContract.java#L215-L254)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5h"></a>
+### P4-R5h Hydration Tool composition
+
+- **需求描述**：软件必须交付“Hydration Tool composition”，满足 `S2-TOL-001`, `S2-NAV-001`, `S2-COM-001`, `S2-SAF-001`，注册并解析商品、订单、POI 和路线 Tool，执行 deadline、cancel、health、idempotency 和 partial failure。
+- **需求追踪**：`S2-TOL-001`, `S2-NAV-001`, `S2-COM-001`, `S2-SAF-001`。
+- **负责模块**：Tool manifest、registry、health resolver、rule solver 和 built-in executor。
+- **前置输入**：semantic goal、版本化 Tool manifest、健康快照、能力、deadline 和确认前置条件。
+- **输出与验收**：交付六个 Tool family 的选择/执行合同，覆盖 signer/digest、stale health、timeout、cancel、幂等和部分失败。
+- **边界与非目标**：Tool 不接收原图；缺 production owner 的 Tool 不得发布或静默回退 debug。
+- **代码对应**：无实现；当前变更点：[ToolManifest.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/tools/ToolManifest.java#L17-L35)；[ToolRuleSolver.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/tools/ToolRuleSolver.java#L13-L31)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5i"></a>
+### P4-R5i Navigation search preview start
+
+- **需求描述**：软件必须交付“Navigation search preview start”，满足 `S2-NAV-001`, `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-002`，拆分 POI 搜索、路线预览和导航启动，并使启动绑定独立确认。
+- **需求追踪**：`S2-NAV-001`, `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-002`。
+- **负责模块**：Navigation Tool、simulated navigation adapter、production empty adapter 和 readback projection。
+- **前置输入**：POI 类别、位置 digest、路线约束、route digest 和导航确认 receipt。
+- **输出与验收**：交付 synthetic POI/route、启动状态和 readback，覆盖路线变化、确认缺失、取消和 adapter unavailable。
+- **边界与非目标**：debug 结果必须标记 synthetic；production 不得使用模拟结果或声称真实导航已启动。
+- **代码对应**：无实现；当前变更点：[SimulatedNavigationEffectAdapter.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/simulation/SimulatedNavigationEffectAdapter.java#L19-L39)；[CapabilityCatalog.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/capability/CapabilityCatalog.java#L74-L87)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5j"></a>
+### P4-R5j Commerce search prepare commit
+
+- **需求描述**：软件必须交付“Commerce search prepare commit”，满足 `S2-COM-001`, `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`，将商品搜索、订单预览和订单提交建模为独立 Tool/Adapter。
+- **需求追踪**：`S2-COM-001`, `S2-SAF-001`, `S2-TOL-001`, `S2-OBS-001`。
+- **负责模块**：新增 Commerce Tool contracts、debug catalog/order preview 和 production empty adapter。
+- **前置输入**：商品类别、数量、候选商户、订单预览 digest 和购买确认 receipt。
+- **输出与验收**：交付 synthetic 商品/订单预览与 fail-closed commit，覆盖库存/价格 unknown、预览过期、确认重放和无日志材料。
+- **边界与非目标**：Commerce 不进入 Vehicle Capability；本阶段不实现真实支付、凭据存储或自动下单。
+- **代码对应**：无实现；当前变更点：[ToolManifest.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/tools/ToolManifest.java#L17-L35)；[central_brain_android_cabin_hydration_assistance_requirement_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_cabin_hydration_assistance_requirement_v1.json#L82-L105)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5k"></a>
+### P4-R5k Occupant-zone Effect gating
+
+- **需求描述**：软件必须交付“Occupant-zone Effect gating”，满足 `S2-CTX-002`, `S2-EFF-001`, `S2-ADP-001/002`, `S2-SAF-001`，使区域 Effect 只面向已占用、fresh 且无冲突的座位。
+- **需求追踪**：`S2-CTX-002`, `S2-EFF-001`, `S2-ADP-001/002`, `S2-SAF-001`。
+- **负责模块**：Scenario effect composition、Capability target、Adapter registry 和 desired/reported readback。
+- **前置输入**：occupancy Context、区域能力、策略、确认结果和执行期间车辆状态。
+- **输出与验收**：交付区域 target 和执行/验证投影，覆盖空座位、冲突、后排 HVAC 不支持、状态变化和 partial/inconclusive。
+- **边界与非目标**：不得把 cabin HVAC 冒充后排分区；UI 动画不得冒充车辆 readback。
+- **代码对应**：无实现；当前变更点：[CapabilityCatalog.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/main/java/com/centralbrain/runtime/vehicle/capability/CapabilityCatalog.java#L15-L44)；[SimulatedScenarioEffectComposition.java](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/android-runtime/runtime-service/src/debug/java/com/centralbrain/runtime/scenario/SimulatedScenarioEffectComposition.java#L24-L52)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
+<a id="p4-r5l"></a>
+### P4-R5l Client2 event-driven hydration HMI
+
+- **需求描述**：软件必须交付“Client2 event-driven hydration HMI”，满足 `S2-HMI-003/007/008/009`, `S2-OBS-002`, `S2-UX-002/003`，实时显示输入、感知、Context、假设、确认、Tool、Plan、Policy、Safety、Effect、Readback 和结果。
+- **需求追踪**：`S2-HMI-003/007/008/009`, `S2-OBS-002`, `S2-UX-002/003`。
+- **负责模块**：Client2 immutable state/reducer/coordinator/XML、Orchestration callback 和 live trace projection。
+- **前置输入**：十二阶段 Runtime 事件、座位区域、确认请求、Tool 结果和执行/readback 状态。
+- **输出与验收**：交付极简按钮、座位图、确认卡、逐条滚动链和明确 SIMULATED 反馈；通过 1920x1080、重建、重复事件和驾驶限制测试。
+- **边界与非目标**：不得使用本地 UI 定时器伪造模型/Tool 完成或一次跳到最终结果；HMI 不持有 authority。
+- **代码对应**：无实现；当前变更点：[CockpitControlCoordinator.java](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java#L899-L930)；[main_layout.central_brain_panel.xml](https://github.com/LucasWEIchen/CougarOS/blob/main/apk-labs/client2-central-brain/patches/main_layout.central_brain_panel.xml#L45-L62)。
+- **当前状态**：`REQUIREMENT_DEFINED / SOFTWARE_OPEN`。
+- **权威依据**：[饮水辅助详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)；[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)；[风险台账](CENTRAL_BRAIN_ARCHITECTURE_ISSUES.md)。
+
 ## P5 Tool、Skill 与 Memory
 
 <a id="p5-w01"></a>
@@ -1356,10 +1512,10 @@ README 的链接必须指向该锚点。本文定义开发和验收所需的最�
 - **需求追踪**：全部已分类 Req IDs。
 - **负责模块**：仓库级需求治理与软件完成度门禁。
 - **前置输入**：全部分类后的 Req ID、工作包状态、专项合同和聚合门禁结果。
-- **输出与验收**：必须能够由专项合同、测试或设备证据复现：`repository_software_requirements_complete=true`、`open_repository_software_requirement_count=0`、`unclassified_repository_requirement_count=0`。
+- **输出与验收**：必须能够由专项合同、测试或设备证据复现：新增 P4-R5 后 `repository_software_requirements_complete=false`、`open_repository_software_requirement_count=12`、`unclassified_repository_requirement_count=0`。
 - **边界与非目标**：仓库软件完成不等于量产激活；OEM Vehicle、Vendor NPU、目标签名/SELinux、目标以太网与资格证据仍为外部阻塞。
 - **代码对应**：聚合门禁：[central_brain_android_software_completion_v1.json](https://github.com/LucasWEIchen/CougarOS/blob/main/central-brain/contracts/central_brain_android_software_completion_v1.json#L2-L20)；[check_central_brain_android_software_completion.sh](https://github.com/LucasWEIchen/CougarOS/blob/main/tools/check_central_brain_android_software_completion.sh#L4-L22)。
-- **当前状态**：`SOFTWARE_COMPLETE / EXTERNAL_PRODUCTION_BLOCKED`。
+- **当前状态**：`REOPENED / P4-R5_SOFTWARE_OPEN`。
 - **权威依据**：[架构需求基线](CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md)；[路线图](CENTRAL_BRAIN_ROADMAP.md)。
 
 ## P3-P7 量产激活剩余项

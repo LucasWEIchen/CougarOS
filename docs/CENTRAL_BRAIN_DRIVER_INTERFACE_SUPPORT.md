@@ -4,6 +4,27 @@
 
 日期：2026-07-17
 
+## P4-R5 cabin hydration assistance Driver/HAL boundary
+
+`P4-R5a..P4-R5l` 是 Android application/Runtime/SDK/Tool/HMI 软件需求。Observation、Context、
+Hypothesis、Confirmation、Tool manifest、synthetic POI/order preview、Client2 View 和 audit digest
+不要求修改 Camera HAL、VHAL、CAN、Kernel、Driver、PCIe/NPU 或芯片厂商已刷机软件。
+
+四个 production source/adapter 保持空接口：
+
+1. live OMS/camera frame provider；
+2. trusted per-seat occupancy source；
+3. production navigation search/preview/start adapter；
+4. production commerce/order/payment adapter。
+
+外部接口缺失时 release 路径必须 typed unavailable，不能自动选择 debug simulator。只有 OEM/Vendor
+公开接口被证明无法满足，并提供 owner/API/ABI/permission/lifecycle 证据后，才登记独立最小
+Driver/HAL gap。因此当前 `driver_hal_development_required=false`、
+`driver_hal_accessed=false`、`vehicle_bus_accessed=false`、
+`production_navigation_adapter_wired=false`、`production_commerce_adapter_wired=false`、
+`production_ready=false`、`target_hardware_validated=false`。tracking：
+`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+
 ## P4-R1 Orchestration Driver/HAL Boundary
 
 `P4-R1` 只使用 Java/AIDL Binder、Room/SQLite、PackageManager-derived caller identity 和现有 debug simulator，

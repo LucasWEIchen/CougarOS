@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "profile_id": "android13-cabin-hydration-assistance-requirement-v1",
+  "maturity": "requirement_defined_software_open",
+  "requirement_ids": [
+    "APP-001",
+    "APP-003",
+    "APP-004",
+    "S2-HMI-003",
+    "S2-HMI-006",
+    "S2-HMI-007",
+    "S2-HMI-008",
+    "S2-HMI-009",
+    "S2-CTX-001",
+    "S2-CTX-002",
+    "S2-TWN-001",
+    "S2-PER-001",
+    "S2-INT-001",
+    "S2-SCN-001",
+    "S2-GRF-001",
+    "S2-SAF-001",
+    "S2-EFF-001",
+    "S2-ADP-001",
+    "S2-ADP-002",
+    "S2-TOL-001",
+    "S2-NAV-001",
+    "S2-COM-001",
+    "S2-MDL-001",
+    "S2-MDL-002",
+    "S2-OBS-001",
+    "S2-OBS-002",
+    "XSC-001",
+    "XSC-005",
+    "XSC-006",
+    "DEL-001",
+    "DEL-003",
+    "DEL-004",
+    "DEL-005"
+  ],
+  "work_packages": [
+    "P4-R5a",
+    "P4-R5b",
+    "P4-R5c",
+    "P4-R5d",
+    "P4-R5e",
+    "P4-R5f",
+    "P4-R5g",
+    "P4-R5h",
+    "P4-R5i",
+    "P4-R5j",
+    "P4-R5k",
+    "P4-R5l"
+  ],
+  "reasoning_boundary": {
+    "visible_fact_contract_required": true,
+    "intent_hypothesis_separate_from_observation": true,
+    "age_identity_family_relation_inference_allowed": false,
+    "thirst_as_direct_visual_fact_allowed": false,
+    "model_can_authorize_tool_or_effect": false,
+    "model_can_authorize_purchase_or_navigation": false,
+    "unknown_or_conflict_fails_closed": true
+  },
+  "seat_context": {
+    "seat_zones": [
+      "ROW1_DRIVER",
+      "ROW1_PASSENGER",
+      "ROW2_LEFT",
+      "ROW2_RIGHT"
+    ],
+    "per_seat_occupancy_required": true,
+    "source_freshness_trust_required": true,
+    "vision_sensor_conflict_state_required": true,
+    "empty_seat_effect_allowed": false,
+    "unknown_or_conflict_seat_effect_allowed": false
+  },
+  "confirmations": {
+    "types": [
+      "ASSISTANCE_CONSENT",
+      "PURCHASE_COMMIT",
+      "NAVIGATION_START"
+    ],
+    "purchase_and_navigation_confirmation_separate": true,
+    "target_digest_binding_required": true,
+    "cross_session_replay_allowed": false,
+    "expired_confirmation_allowed": false,
+    "confirmation_overrides_hard_interlock": false
+  },
+  "tools": {
+    "families": [
+      "catalog.water.search.v1",
+      "commerce.order.prepare.v1",
+      "commerce.order.commit.v1",
+      "navigation.poi.search.v1",
+      "navigation.route.preview.v1",
+      "navigation.route.start.v1"
+    ],
+    "commerce_is_vehicle_capability": false,
+    "raw_image_as_tool_input_allowed": false,
+    "debug_catalog_and_poi_results_must_be_synthetic": true,
+    "production_simulation_fallback_allowed": false
+  },
+  "hmi": {
+    "event_driven_live_trace_required": true,
+    "stages": [
+      "MODEL_INPUT",
+      "PERCEPTION",
+      "CONTEXT",
+      "HYPOTHESIS",
+      "CONFIRMATION",
+      "TOOL",
+      "PLAN",
+      "POLICY",
+      "SAFETY",
+      "EFFECT",
+      "READBACK",
+      "RESULT"
+    ],
+    "single_jump_to_final_result_allowed": false,
+    "seat_zone_projection_required": true,
+    "simulation_label_required": true,
+    "target_display": "1920x1080"
+  },
+  "production_empty_interfaces": [
+    "live_oms_or_camera_frame_provider",
+    "trusted_seat_occupancy_source",
+    "production_navigation_adapter",
+    "production_commerce_and_payment_adapter"
+  ],
+  "claim_state": {
+    "hydration_assistance_requirement_defined": true,
+    "hydration_assistance_software_implemented": false,
+    "p4_r5_open_work_package_count": 12,
+    "repository_software_requirements_complete": false,
+    "open_repository_software_requirement_count": 12,
+    "unclassified_repository_requirement_count": 0,
+    "production_navigation_adapter_wired": false,
+    "production_commerce_adapter_wired": false,
+    "production_payment_implemented": false,
+    "driver_hal_development_required": false,
+    "production_ready": false,
+    "target_hardware_validated": false,
+    "implementation_stage": "P4-R5-REQUIREMENT"
+  }
+}

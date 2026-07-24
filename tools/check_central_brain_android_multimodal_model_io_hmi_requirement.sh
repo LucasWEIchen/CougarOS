@@ -81,12 +81,13 @@ for key in (
     "image_thumbnail_rendered",
     "image_center_preview_interaction_implemented",
     "android13_arm64_model_io_hmi_verified",
-    "repository_software_requirements_complete",
 ):
     assert claims[key] is True
+assert claims["repository_software_requirements_complete"] is False
+assert claims["open_repository_software_requirement_count"] == 12
 assert claims["production_ready"] is False
 assert claims["target_hardware_validated"] is False
-assert claims["implementation_stage"] == "P4-R4-IMPLEMENTED-ARM64"
+assert claims["implementation_stage"] == "P4-R4-IMPLEMENTED-ARM64-P4-R5-OPEN"
 evidence = contract["development_evidence"]
 assert evidence["android_api"] == 33
 assert evidence["abi"] == "arm64-v8a"
@@ -142,7 +143,8 @@ printf '%s\n' \
   'frontend_multimodal_ingress_bound=true' \
   'image_center_preview_interaction_implemented=true' \
   'android13_arm64_model_io_hmi_verified=true' \
-  'repository_software_requirements_complete=true' \
+  'repository_software_requirements_complete=false' \
+  'open_repository_software_requirement_count=12' \
   'production_ready=false' \
   'target_hardware_validated=false' \
-  'implementation_stage=P4-R4-IMPLEMENTED-ARM64'
+  'implementation_stage=P4-R4-IMPLEMENTED-ARM64-P4-R5-OPEN'

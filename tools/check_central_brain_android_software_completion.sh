@@ -3,8 +3,9 @@ set -euo pipefail
 
 # Req IDs: APP-001/003/004/009/010, FW-U-001..008, FW-S-001/003..006,
 # NV-F-001/006/008/009/011/012, NV-G-001..007, NV-P-002/005/007,
-# KH-003/004, S2-UX-001..003, S2-HMI-001..008, S2-SES/CTX/TWN/SCN/GRF/
-# SAF/EFF/ADP/TOL/MEM/EVT/MDL/OBS/REL-001, XSC-001..006, DEL-001/003/004/005.
+# KH-003/004, S2-UX-001..003, S2-HMI-001..009, S2-SES/CTX/TWN/PER/INT/
+# SCN/GRF/SAF/EFF/ADP/TOL/NAV/COM/MEM/EVT/MDL/OBS/REL, XSC-001..006,
+# DEL-001/003/004/005.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONTRACT="$ROOT_DIR/central-brain/contracts/central_brain_android_software_completion_v1.json"
@@ -16,9 +17,9 @@ import sys
 
 contract = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 root = pathlib.Path(sys.argv[2])
-assert contract["schema_version"] == 3
-assert contract["profile_id"] == "android13-repository-software-completion-v3"
-assert contract["maturity"] == "repository_software_complete_external_production_blocked"
+assert contract["schema_version"] == 4
+assert contract["profile_id"] == "android13-repository-software-completion-v4"
+assert contract["maturity"] == "repository_software_open_p4_r5_requirements_defined"
 assert len(contract["requirement_ids"]) == len(set(contract["requirement_ids"]))
 assert contract["classification"]["unclassified_repository_requirements"] == []
 assert contract["phase_state"] == {
@@ -26,7 +27,7 @@ assert contract["phase_state"] == {
     "S2-P1": "SOFTWARE_COMPLETE",
     "S2-P2": "SOFTWARE_COMPLETE",
     "S2-P3": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
-    "S2-P4": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
+    "S2-P4": "SOFTWARE_OPEN_REQUIREMENTS_DEFINED",
     "S2-P5": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P6": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P7": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
@@ -34,11 +35,14 @@ assert contract["phase_state"] == {
     "S2-P9": "SOFTWARE_INTERFACE_COMPLETE_EXTERNAL_QUALIFICATION_BLOCKED",
 }
 claims = contract["claim_state"]
-assert contract["classification"]["software_open"] == []
-assert {"S2-HMI-007", "S2-HMI-008", "S2-MDL-002", "S2-OBS-002"}.issubset(
+assert contract["classification"]["software_open"] == [
+    f"P4-R5{suffix}" for suffix in "abcdefghijkl"]
+assert {"S2-HMI-007", "S2-HMI-008", "S2-HMI-009", "S2-CTX-002",
+        "S2-PER-001", "S2-INT-001", "S2-NAV-001", "S2-COM-001",
+        "S2-MDL-002", "S2-OBS-002"}.issubset(
     contract["requirement_ids"])
-assert claims["repository_software_requirements_complete"] is True
-assert claims["open_repository_software_requirement_count"] == 0
+assert claims["repository_software_requirements_complete"] is False
+assert claims["open_repository_software_requirement_count"] == 12
 assert claims["unclassified_repository_requirement_count"] == 0
 assert claims["security_requirement_suspended"] is True
 for key in (
@@ -47,9 +51,11 @@ for key in (
     "hardware_accessed", "production_ready", "target_hardware_validated",
 ):
     assert claims[key] is False
-assert claims["implementation_stage"] == "P10-R1-P4-R4-COMPLETE"
+assert claims["implementation_stage"] == "P4-R5-REQUIREMENT"
 assert contract["validation"]["p4_r4_requirement_gate"] is True
 assert contract["validation"]["p4_r4_implementation"] is True
+assert contract["validation"]["p4_r5_requirement_gate"] is True
+assert contract["validation"]["p4_r5_implementation"] is False
 assert contract["validation"]["android13_x86_64_client2_e2e"] is True
 assert contract["validation"]["android13_arm64_completion_retest"] is True
 
@@ -96,6 +102,7 @@ bash "$ROOT_DIR/tools/check_central_brain_android_runtime_acceptance.sh" >/dev/n
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_p4_acceptance.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_client2_orchestration_migration.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_multimodal_model_io_hmi_requirement.sh" >/dev/null
+bash "$ROOT_DIR/tools/check_central_brain_android_cabin_hydration_assistance_requirement.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_p5_physical_acceptance.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_p6_physical_acceptance.sh" >/dev/null
 bash "$ROOT_DIR/tools/check_central_brain_android_p7_physical_acceptance.sh" >/dev/null
@@ -107,8 +114,8 @@ bash "$ROOT_DIR/tools/check_central_brain_root_readme.sh" >/dev/null
 
 printf '%s\n' \
   'Central Brain Android repository software completion state check passed' \
-  'repository_software_requirements_complete=true' \
-  'open_repository_software_requirement_count=0' \
+  'repository_software_requirements_complete=false' \
+  'open_repository_software_requirement_count=12' \
   'unclassified_repository_requirement_count=0' \
   'external_activation_requirements_classified=true' \
   'security_requirement_suspended=true' \
@@ -117,4 +124,4 @@ printf '%s\n' \
   'hardware_accessed=false' \
   'production_ready=false' \
   'target_hardware_validated=false' \
-  'implementation_stage=P10-R1-P4-R4-COMPLETE'
+  'implementation_stage=P4-R5-REQUIREMENT'

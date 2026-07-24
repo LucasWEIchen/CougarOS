@@ -4,6 +4,15 @@
 日期：2026-07-20
 状态：Android 13 实际工程基线
 
+## P4-R5 issue update
+
+新增 `ISSUE-057/058`。`ISSUE-057` 跟踪 `P4-R5a..P4-R5l` 十二个已分类但未实现的仓库
+软件包；`ISSUE-058` 跟踪实时 OMS/camera、可信座椅占用、量产导航和 Commerce/支付四类外部
+接口。当前 `repository_software_requirements_complete=false`、
+`open_repository_software_requirement_count=12`、
+`unclassified_repository_requirement_count=0`。P4-R4 的受控多模态 ARM64 证据保持有效，但不能
+被解释为 P4-R5 已实现。
+
 ## P10-R1 issue update
 
 P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Session/Plan/Graph/Effect/readback debug 软件链
@@ -85,6 +94,8 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-054 | 当前 Android 可达 OpenClaw 主机，但 18789 端口拒绝连接；固定凭据构建无法完成当前模型回归。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Open / External Service Blocked |
 | ISSUE-055 | 受控帧 debug SDK/Binder 与统一输入摘要已完成；实时语音/相机 owner、history 附件绑定、目标以太网和量产媒体治理仍缺外部接口/证据。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / External Integration |
 | ISSUE-056 | Client2 实际模型输入/输出、图片缩略图、居中预览、图外/Back 退出和 ARM64 真实模型 exchange 已完成。 | S2-HMI-003/007/008, S2-MDL-002, S2-OBS-002, P4-R4 | Resolved / DEV-129 |
+| ISSUE-057 | 饮水辅助的观察、四座位 Context、意图假设、场景 Graph、确认、Tool、导航、Commerce、区域 Effect 和 HMI 十二个软件包尚未实现。 | S2-HMI-009, S2-CTX-002, S2-PER-001, S2-INT-001, S2-NAV-001, S2-COM-001, P4-R5 | Open / Software Requirement |
+| ISSUE-058 | 量产 OMS/camera、可信座椅占用、导航和 commerce/payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1478,3 +1489,24 @@ UI 风量 1->3；缩略图、居中预览及图外退出通过。状态：`Resol
 
 该关闭不覆盖实时摄像头或目标以太网。它们继续由 `ISSUE-055` 跟踪；
 `production_ready=false`、`target_hardware_validated=false`。
+
+## ISSUE-057 P4-R5 饮水辅助软件工作包未实现
+
+当前图片输入、模型交换和 HMI 预览已经完成，但模型 prompt 仍要求通风，场景只支持驾驶席并固定执行
+HVAC/Media；`StructuredModelOutput` 只接受车辆 capability 参数。仓库不存在独立可见事实合同、
+意图假设、Commerce Tool、导航启动确认或多座位融合。
+
+关闭条件是 `P4-R5a..P4-R5l` 全部实现并通过各自合同/JVM/static/Android 13 ARM64 验收。软件实现
+必须证明调用链逐事件产生，不能使用 UI 定时器一次跳到最终结果。当前
+`hydration_assistance_software_implemented=false`、
+`open_repository_software_requirement_count=12`、
+`repository_software_requirements_complete=false`。tracking：`DEV-130`。
+
+## ISSUE-058 饮水辅助量产外部接口缺失
+
+四类生产依赖尚无确定 owner 和接口：实时 OMS/camera、可信座椅占用源、导航服务、Commerce/支付。
+仓库允许使用受控图片、模拟座椅、合成 POI 和合成订单预览完成软件测试，但 release/production
+registry 必须返回 typed unavailable，不允许静默回退模拟。
+
+关闭需要分别取得 API/service/property、permission/SELinux、area/schema、freshness、timeout、
+cancel/readback、privacy、rollback 和责任人证据。该问题不能由 `P4-R5` 仓库软件完成自动关闭。
