@@ -138,6 +138,12 @@ public final class CockpitControlCoordinator implements
     private TextView actuatorHvacFanView;
     private TextView actuatorSeatAngleView;
     private TextView actuatorMediaView;
+    private TextView shoppingOccupancyView;
+    private TextView shoppingProductView;
+    private TextView shoppingMerchantView;
+    private TextView shoppingOrderView;
+    private TextView shoppingRouteView;
+    private TextView shoppingBoundaryView;
     private TextView modelInputTextView;
     private ImageView modelInputThumbnail;
     private ImageView imagePreview;
@@ -159,10 +165,13 @@ public final class CockpitControlCoordinator implements
     private View panelView;
     private View navigationTrigger;
     private View actuatorOverlay;
+    private View hvacFeedbackRegion;
     private View seatFeedbackRegion;
+    private View shoppingFeedbackRegion;
     private View seatBackView;
     private View modelInputSurface;
     private View imagePreviewOverlay;
+    private View approvalControls;
     private Button engineerDetailButton;
     private Button approveButton;
     private Button rejectButton;
@@ -174,8 +183,7 @@ public final class CockpitControlCoordinator implements
     private boolean coldHvacAnimated;
     private boolean fatigueHvacAnimated;
     private boolean fatigueSeatAnimated;
-    private boolean multimodalHvacAnimated;
-    private boolean multimodalMediaAnimated;
+    private int shoppingFeedbackStage = -1;
     private boolean traceDrainScheduled;
     private String displayedModelReply = "";
     private CockpitMultimodalInput pendingMultimodalInput;
@@ -300,6 +308,12 @@ public final class CockpitControlCoordinator implements
         actuatorHvacFanView = findTextView("centralBrainActuatorHvacFanText");
         actuatorSeatAngleView = findTextView("centralBrainActuatorSeatAngleText");
         actuatorMediaView = findTextView("centralBrainActuatorMediaText");
+        shoppingOccupancyView = findTextView("centralBrainShoppingOccupancyText");
+        shoppingProductView = findTextView("centralBrainShoppingProductText");
+        shoppingMerchantView = findTextView("centralBrainShoppingMerchantText");
+        shoppingOrderView = findTextView("centralBrainShoppingOrderText");
+        shoppingRouteView = findTextView("centralBrainShoppingRouteText");
+        shoppingBoundaryView = findTextView("centralBrainShoppingBoundaryText");
         modelInputTextView = findTextView("centralBrainModelInputText");
         View thumbnail = findView("centralBrainModelInputThumbnail");
         modelInputThumbnail = thumbnail instanceof ImageView ? (ImageView) thumbnail : null;
@@ -307,6 +321,7 @@ public final class CockpitControlCoordinator implements
         imagePreview = preview instanceof ImageView ? (ImageView) preview : null;
         modelInputSurface = findView("centralBrainModelInputSurface");
         imagePreviewOverlay = findView("centralBrainImagePreviewOverlay");
+        approvalControls = findView("centralBrainApprovalControls");
         View traceScroll = findView("centralBrainLiveTraceScroll");
         liveTraceScroll = traceScroll instanceof ScrollView
                 ? (ScrollView) traceScroll : null;
@@ -326,7 +341,9 @@ public final class CockpitControlCoordinator implements
         seatSurface = findView("centralBrainSeatSurface");
         engineerSurface = findView("centralBrainEngineerSurface");
         actuatorOverlay = findView("centralBrainActuatorOverlay");
+        hvacFeedbackRegion = findView("centralBrainHvacFeedbackRegion");
         seatFeedbackRegion = findView("centralBrainSeatFeedbackRegion");
+        shoppingFeedbackRegion = findView("centralBrainShoppingFeedbackRegion");
         seatBackView = findView("centralBrainSeatBack");
         engineerDetailButton = findButton("centralBrainEngineerDetailButton");
         approveButton = findButton("centralBrainApproveButton");
@@ -980,8 +997,7 @@ public final class CockpitControlCoordinator implements
         coldHvacAnimated = false;
         fatigueHvacAnimated = false;
         fatigueSeatAnimated = false;
-        multimodalHvacAnimated = false;
-        multimodalMediaAnimated = false;
+        shoppingFeedbackStage = -1;
         if (liveTraceView != null) {
             liveTraceView.setText("");
         }
@@ -1056,6 +1072,14 @@ public final class CockpitControlCoordinator implements
         setText(actuatorHvacFanView, "风量 1");
         setText(actuatorSeatAngleView, "靠背 15°");
         setText(actuatorMediaView, "媒体 播放中");
+        setText(shoppingOccupancyView, "等待多模态观察");
+        setText(shoppingProductView, "商品候选等待中");
+        setText(shoppingMerchantView, "商户候选等待中");
+        setText(shoppingOrderView, "订单预览等待中");
+        setText(shoppingRouteView, "路线预览等待中");
+        setText(
+                shoppingBoundaryView,
+                "SYNTHETIC · 外部购物、支付和地图接口未接入");
         if (actuatorFanProgress != null) {
             actuatorFanProgress.setProgress(1);
         }
@@ -1072,6 +1096,10 @@ public final class CockpitControlCoordinator implements
     }
 
     private void animateSimulatedEffects(CockpitSimulatedScenarioState simulated) {
+        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(simulated.getUiScenarioId())) {
+            animateShoppingJourney(simulated);
+            return;
+        }
         if (!simulated.hasSnapshot() || simulated.getEffectDispatchCount() == 0) {
             return;
         }
@@ -1109,28 +1137,63 @@ public final class CockpitControlCoordinator implements
             }
             return;
         }
-        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(simulated.getUiScenarioId())
-                && multimodalConsumptionProved) {
-            if (admittedModelActions.contains("hvac.ventilate")
-                    && !multimodalHvacAnimated) {
-                multimodalHvacAnimated = true;
-                setText(actuatorStateView, "模型白名单 HVAC 动作执行中 · SIMULATED");
-                animateFan(1, 3);
-                appendLiveTrace(
-                        "UI EFFECT",
-                        "ANIMATING",
-                        "Agent hvac.ventilate → HVAC fan 1 → 3 · simulated");
-            }
-            if (admittedModelActions.contains("media.pause")
-                    && !multimodalMediaAnimated) {
-                multimodalMediaAnimated = true;
-                setText(actuatorMediaView, "媒体 已暂停");
-                appendLiveTrace(
-                        "UI EFFECT",
-                        "ANIMATING",
-                        "Agent media.pause → playback PAUSED · simulated");
-            }
-            finishActuatorAnimation(1800L);
+    }
+
+    private void animateShoppingJourney(CockpitSimulatedScenarioState simulated) {
+        if (!simulated.hasSnapshot() || !multimodalConsumptionProved) {
+            return;
+        }
+        showActuatorOverlay(simulated.getUiScenarioId());
+        int nextStage = Math.min(
+                CockpitSimulatedScenarioState.MAX_APPROVAL_COUNT,
+                simulated.getApprovalInputCount());
+        if (simulated.getLifecycle() == CockpitSimulatedScenarioState.Lifecycle.COMPLETED) {
+            nextStage = CockpitSimulatedScenarioState.MAX_APPROVAL_COUNT;
+        }
+        if (nextStage == shoppingFeedbackStage) {
+            return;
+        }
+        shoppingFeedbackStage = nextStage;
+        setText(
+                shoppingOccupancyView,
+                "3 个座位区域有人 · 后排右侧可见饮水容器");
+        if (nextStage >= 1) {
+            setText(shoppingProductView, "饮用水候选 3 项 · SYNTHETIC");
+            setText(shoppingMerchantView, "便利店/服务区候选 3 项 · SYNTHETIC");
+            setText(shoppingOrderView, "饮用水 500ml ×1 · 价格待确认");
+            setText(shoppingRouteView, "最近候选 2.4 km · 预计 4 min");
+        }
+        if (nextStage >= 2) {
+            setText(
+                    shoppingOrderView,
+                    "订单已确认 · 外部购物接口未接入 · NOT_DISPATCHED");
+        }
+        if (nextStage >= 3) {
+            setText(
+                    shoppingRouteView,
+                    "购物路线已启动 · UI SIMULATION ONLY");
+        }
+        switch (nextStage) {
+            case 0:
+                setText(actuatorStateView, "等待购物与路径规划服务确认");
+                break;
+            case 1:
+                setText(actuatorStateView, "商品、商户和路线预览完成 · 等待订单确认");
+                break;
+            case 2:
+                setText(actuatorStateView, "订单未外发 · 等待启动购物路线");
+                break;
+            default:
+                setText(actuatorStateView, "购物编排仿真完成 · EXTERNAL ADAPTERS NOT ACCESSED");
+                break;
+        }
+        if (shoppingFeedbackRegion != null) {
+            shoppingFeedbackRegion.animate().cancel();
+            shoppingFeedbackRegion.setAlpha(0.35f);
+            shoppingFeedbackRegion.animate()
+                    .alpha(1.0f)
+                    .setDuration(420L)
+                    .start();
         }
     }
 
@@ -1141,12 +1204,14 @@ public final class CockpitControlCoordinator implements
                 fatigue
                         ? "疲劳关怀执行反馈"
                         : multimodal
-                                ? "多模态座舱执行反馈"
+                                ? "购物与路径规划服务"
                                 : "温度关怀执行反馈");
+        setVisible(hvacFeedbackRegion, !multimodal);
         setVisible(seatFeedbackRegion, fatigue);
+        setVisible(shoppingFeedbackRegion, multimodal);
         if (actuatorOverlay != null) {
             ViewGroup.LayoutParams params = actuatorOverlay.getLayoutParams();
-            int targetHeight = Math.round((fatigue ? 520.0f : 300.0f)
+            int targetHeight = Math.round((fatigue || multimodal ? 520.0f : 300.0f)
                     * activity.getResources().getDisplayMetrics().density);
             if (params != null && params.height != targetHeight) {
                 params.height = targetHeight;
@@ -1697,10 +1762,13 @@ public final class CockpitControlCoordinator implements
         setText(compensationStateView,
                 "Compensation：" + statusLabel(recovery.getCompensationStatus())
                         + " · Undo handle：NOT PUBLISHED");
-        setEnabled(approveButton,
-                simulated.isApprovalInputEnabled() || recovery.isApproveEnabled());
-        setEnabled(rejectButton,
-                simulated.isApprovalInputEnabled() || recovery.isRejectEnabled());
+        boolean approvalInputEnabled =
+                simulated.isApprovalInputEnabled() || recovery.isApproveEnabled();
+        boolean rejectionInputEnabled =
+                simulated.isApprovalInputEnabled() || recovery.isRejectEnabled();
+        setVisible(approvalControls, approvalInputEnabled || rejectionInputEnabled);
+        setEnabled(approveButton, approvalInputEnabled);
+        setEnabled(rejectButton, rejectionInputEnabled);
         setEnabled(retryButton, recovery.isRetryEnabled());
         setEnabled(undoButton, recovery.isUndoEnabled());
     }
@@ -2089,6 +2157,9 @@ public final class CockpitControlCoordinator implements
         if ("manual.seat".equals(scenarioId)) {
             return "手动座椅调整";
         }
+        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(scenarioId)) {
+            return "处理一下";
+        }
         return "";
     }
 
@@ -2117,6 +2188,9 @@ public final class CockpitControlCoordinator implements
         }
         if ("care.fatigue".equals(uiScenarioId)) {
             return "空调风量 / 媒体暂停 / 休息区导航 / 审批后座椅放倒";
+        }
+        if (CockpitMultimodalInput.UI_SCENARIO_ID.equals(uiScenarioId)) {
+            return "购物服务 / 订单预览 / 购买路径规划 / 独立确认";
         }
         return "UNAVAILABLE";
     }

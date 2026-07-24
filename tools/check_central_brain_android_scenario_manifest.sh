@@ -113,6 +113,12 @@ expected_ids = {
     "scene.fatigue.assist.v1",
     "scene.rest.nap.v1",
 }
+expected_versions = {
+    "scene.cabin.multimodal.assist.v1": 2,
+    "scene.comfort.cold.v1": 1,
+    "scene.fatigue.assist.v1": 1,
+    "scene.rest.nap.v1": 1,
+}
 
 def no_duplicates(pairs):
     result = {}
@@ -127,7 +133,9 @@ for path in sorted(asset_dir.glob("scene.*.json")):
     document = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=no_duplicates)
     if set(document) != required_root:
         raise SystemExit(f"Scenario root fields changed: {path.name}: {set(document)}")
-    if document["schemaVersion"] != 1 or document["version"] != 1:
+    if document["schemaVersion"] != 1:
+        raise SystemExit(f"Scenario schema version changed: {path.name}")
+    if document["version"] != expected_versions.get(document["scenarioId"]):
         raise SystemExit(f"Scenario version changed: {path.name}")
     if len(document["planTemplate"]["nodes"]) > 64:
         raise SystemExit(f"Scenario node bound exceeded: {path.name}")

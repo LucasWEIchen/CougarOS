@@ -1,7 +1,7 @@
 {
-  "schema_version": 4,
-  "profile_id": "android13-repository-software-completion-v4",
-  "maturity": "repository_software_open_p4_r5_requirements_defined",
+  "schema_version": 5,
+  "profile_id": "android13-repository-software-completion-v5",
+  "maturity": "repository_software_complete_external_production_blocked",
   "requirement_ids": [
     "APP-001", "APP-003", "APP-004", "APP-009", "APP-010",
     "FW-U-001", "FW-U-002", "FW-U-003", "FW-U-004", "FW-U-005", "FW-U-006", "FW-U-007", "FW-U-008",
@@ -19,7 +19,7 @@
     "S2-P1": "SOFTWARE_COMPLETE",
     "S2-P2": "SOFTWARE_COMPLETE",
     "S2-P3": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
-    "S2-P4": "SOFTWARE_OPEN_REQUIREMENTS_DEFINED",
+    "S2-P4": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P5": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P6": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
     "S2-P7": "SOFTWARE_COMPLETE_EXTERNAL_PRODUCTION_BLOCKED",
@@ -35,22 +35,10 @@
       "event_trigger_consent_and_decision_debug_composition",
       "model_contract_routing_evaluation_and_resource_admission",
       "privacy_release_driver_safety_and_diagnostics_interfaces",
-      "p4_r4_multimodal_model_io_live_hmi"
+      "p4_r4_multimodal_model_io_live_hmi",
+      "p4_r5_shopping_and_route_planning_debug_software"
     ],
-    "software_open": [
-      "P4-R5a",
-      "P4-R5b",
-      "P4-R5c",
-      "P4-R5d",
-      "P4-R5e",
-      "P4-R5f",
-      "P4-R5g",
-      "P4-R5h",
-      "P4-R5i",
-      "P4-R5j",
-      "P4-R5k",
-      "P4-R5l"
-    ],
+    "software_open": [],
     "external_blocked": [
       "oem_vehicle_service_and_readback",
       "trusted_safety_vehicle_dms_and_identity_authorities",
@@ -77,9 +65,9 @@
     "ISSUE-033", "ISSUE-035", "ISSUE-036", "ISSUE-037", "ISSUE-038", "ISSUE-039",
     "ISSUE-040", "ISSUE-041", "ISSUE-042", "ISSUE-043", "ISSUE-044", "ISSUE-045",
     "ISSUE-046", "ISSUE-047", "ISSUE-048", "ISSUE-049", "ISSUE-051", "ISSUE-052", "ISSUE-053",
-    "ISSUE-054", "ISSUE-055", "ISSUE-058"
-  ],
-  "software_open_issue_ids": ["ISSUE-057"],
+      "ISSUE-054", "ISSUE-055", "ISSUE-058", "ISSUE-059"
+    ],
+  "software_open_issue_ids": [],
   "suspended_issue_ids": ["ISSUE-050"],
   "validation": {
     "stage2_design_gate": true,
@@ -90,7 +78,7 @@
     "p4_r4_requirement_gate": true,
     "p4_r4_implementation": true,
     "p4_r5_requirement_gate": true,
-    "p4_r5_implementation": false,
+    "p4_r5_implementation": true,
     "p5_p6_p7_p9_contract_probe_gates": true,
     "npu_empty_interface_gate": true,
     "python_retirement_gate": true,
@@ -98,8 +86,8 @@
     "android13_arm64_completion_retest": true
   },
   "claim_state": {
-    "repository_software_requirements_complete": false,
-    "open_repository_software_requirement_count": 12,
+    "repository_software_requirements_complete": true,
+    "open_repository_software_requirement_count": 0,
     "unclassified_repository_requirement_count": 0,
     "production_vehicle_adapter_wired": false,
     "production_model_provider_wired": false,
@@ -110,6 +98,6 @@
     "hardware_accessed": false,
     "production_ready": false,
     "target_hardware_validated": false,
-    "implementation_stage": "P4-R5-REQUIREMENT"
+    "implementation_stage": "P10-R1"
   }
 }

@@ -27,6 +27,8 @@ public final class SimulatedScenarioRuntime {
             "cougaros.sim.outcome.supplied.v1";
     public static final String SCHEMA_PENDING_APPROVAL =
             "cougaros.sim.pending.approval.v1";
+    public static final String SCHEMA_PENDING_TOOL =
+            "cougaros.sim.pending.tool.v1";
     public static final String SCHEMA_PENDING_EFFECT =
             "cougaros.sim.pending.effect.v1";
     public static final String SCHEMA_PENDING_READBACK =
@@ -378,6 +380,9 @@ public final class SimulatedScenarioRuntime {
                     schemaId = SCHEMA_PENDING_APPROVAL;
                     topic = BoundedEventRuntime.TOPIC_POLICY_DECISION;
                     break;
+                case TOOL:
+                    schemaId = SCHEMA_PENDING_TOOL;
+                    break;
                 case EFFECT:
                     schemaId = SCHEMA_PENDING_EFFECT;
                     break;
@@ -459,6 +464,8 @@ public final class SimulatedScenarioRuntime {
             switch (graph.getPendingNode().getStage()) {
                 case APPROVAL:
                     return SessionState.WAITING_APPROVAL;
+                case TOOL:
+                    return SessionState.WAITING_EFFECT;
                 case EFFECT:
                     return SessionState.WAITING_EFFECT;
                 case READBACK:

@@ -4,27 +4,26 @@
 日期：2026-07-20
 状态：Android 13 实际工程基线
 
-## P4-R5 cabin hydration assistance requirement trace
+## P4-R5 cabin shopping and route-planning trace
 
-`P4-R4` 已证明受控座舱图片与文字能够进入真实模型交换并形成模拟 Effect，但现有场景把
-`hvac.ventilate` 固定为必要动作，不能表达“座位事实 -> 饮水需求假设 -> 驾驶员确认 -> 商品/POI
-搜索 -> 购买确认/导航确认”的智能链路。`P4-R5` 因此新增十二个仓库软件工作包：
-`P4-R5a..P4-R5l`。
+`P4-R5` 将原“饮水辅助”纠正为两个顶层业务服务：购物服务与路径规划服务。饮用水只是当前受控
+图片产生的商品类别，模型不得把年龄、身份、家庭关系、容器为空或口渴作为视觉事实。模型只允许
+提出 `shopping.search_products`、`shopping.prepare_order` 和
+`navigation.plan_purchase_route` 候选；订单提交与导航启动必须分别绑定当前节点 digest 和显式确认。
 
-本增量要求模型先产生有证据引用的可见事实和意图假设；年龄、身份、家庭关系和“口渴”不得作为
-纯视觉事实。购买提交与导航启动是两个独立副作用，必须分别绑定当前 target digest 和显式确认，
-且任何确认都不能覆盖 hard safety interlock。Commerce 保持 Tool/Service 能力，禁止放入
-Vehicle Capability catalog。生产 camera/OMS、可信座椅源、导航和商业/支付 adapter 缺失时必须
-返回 typed unavailable，不得静默回退 debug simulation。
+debug Runtime 已以 `scene.cabin.multimodal.assist.v1` v2 编排 13 个 Context/Model/Policy/
+Approval/Tool/Summary 节点，包含六个购物/路径 Tool 和三个独立确认，不生成 HVAC/Media/车辆
+Effect。Client2 按真实 snapshot 显示商品、商户、订单和路线；订单结果固定
+`ORDER_NOT_DISPATCHED`，导航结果固定 `NAVIGATION_SIMULATED`。生产 Commerce、Payment 和
+Navigation adapter 仍为空接口，禁止静默回退 debug simulation。
 
-详设：[CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)。
-当前 `hydration_assistance_requirement_defined=true`、
-`hydration_assistance_software_implemented=false`、
-`open_repository_software_requirement_count=12`、
-`repository_software_requirements_complete=false`、
-`unclassified_repository_requirement_count=0`、
+详设：[CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md](CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md)。
+当前 `shopping_route_planning_requirement_defined=true`、
+`shopping_route_planning_debug_software_implemented=true`、
+`p4_r5_open_work_package_count=0`、
+`production_openclaw_ethernet_verified=false`、
 `production_ready=false`、`target_hardware_validated=false`；tracking：
-`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+`DEV-130/131`、`ISSUE-057/058/059`；stage `P4-R5-SHOPPING-ROUTE`。
 
 ## P4-R1 implementation trace
 
@@ -222,7 +221,7 @@ source regression。SDK 必须在 action/version/hash 全部匹配时使用 V2�
 | S2-HMI-006 | 意图驱动的 AIOS 主交互 | 自然表达 -> Context -> Plan -> Policy -> Effect -> readback；设备按钮降为次级入口 |
 | S2-HMI-007 | 语音优先极简 HMI 与末端反馈 | 仅保留场景触发和实时链路；HVAC/Seat 结果以显式 SIMULATED 动画反馈 |
 | S2-HMI-008 | 实时链路中的模型输入/输出可视化 | 文字直接显示；图片等比缩略并与文字同显；允许的驾驶态点击居中放大、点击图外退出 |
-| S2-HMI-009 | 乘员感知驱动的饮水辅助 UX | 显示座位事实、意图假设、独立购买/导航确认及真实事件驱动链路；禁止一次跳到最终结果 |
+| S2-HMI-009 | 乘员感知驱动的购物与路径规划 UX | 显示座位事实、购物候选、独立购物/购买/导航确认及真实事件驱动链路；禁止一次跳到最终结果 |
 | S2-SES-001 | versioned durable Session | P1-W01/P1-W03 contract、P1-W05 facade/Service、P1-W06 Room v4/process-death recovery 已完成 |
 | S2-CTX-001 | typed Context snapshot | typed source/freshness/trust 与 debug composition 软件完成；production source 外部阻塞 |
 | S2-CTX-002 | 多座位多来源 Context 融合 | 四座位独立 occupancy、source/freshness/trust/conflict；unknown/conflict/stale 对区域 Effect fail closed |

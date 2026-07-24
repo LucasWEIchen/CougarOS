@@ -83,11 +83,11 @@ for key in (
     "android13_arm64_model_io_hmi_verified",
 ):
     assert claims[key] is True
-assert claims["repository_software_requirements_complete"] is False
-assert claims["open_repository_software_requirement_count"] == 12
+assert claims["repository_software_requirements_complete"] is True
+assert claims["open_repository_software_requirement_count"] == 0
 assert claims["production_ready"] is False
 assert claims["target_hardware_validated"] is False
-assert claims["implementation_stage"] == "P4-R4-IMPLEMENTED-ARM64-P4-R5-OPEN"
+assert claims["implementation_stage"] == "P4-R5-SHOPPING-ROUTE"
 evidence = contract["development_evidence"]
 assert evidence["android_api"] == 33
 assert evidence["abi"] == "arm64-v8a"
@@ -143,8 +143,8 @@ printf '%s\n' \
   'frontend_multimodal_ingress_bound=true' \
   'image_center_preview_interaction_implemented=true' \
   'android13_arm64_model_io_hmi_verified=true' \
-  'repository_software_requirements_complete=false' \
-  'open_repository_software_requirement_count=12' \
+  'repository_software_requirements_complete=true' \
+  'open_repository_software_requirement_count=0' \
   'production_ready=false' \
   'target_hardware_validated=false' \
-  'implementation_stage=P4-R4-IMPLEMENTED-ARM64-P4-R5-OPEN'
+  'implementation_stage=P4-R5-SHOPPING-ROUTE'

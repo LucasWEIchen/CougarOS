@@ -97,12 +97,20 @@ public final class CockpitModelPrompt {
                         "22.0_CELSIUS",
                         "26.5_CELSIUS",
                         "NOT_OBSERVED",
-                        "HVAC,MEDIA")
+                        "SHOPPING,NAVIGATION")
                         + ";image_present=true"
                         + ";image_scope=VISIBLE_CABIN_FACTS_ONLY"
+                        + ";occupancy_scope=FOUR_SEAT_ZONES"
+                        + ";shopping_mode=PRODUCT_AND_MERCHANT_SEARCH"
+                        + ";route_mode=PURCHASE_ROUTE_PREVIEW"
                         + ";privacy_policy=NO_IDENTITY_OR_SENSITIVE_ATTRIBUTE_INFERENCE",
-                List.of("hvac.ventilate", "media.pause"),
-                Set.of("hvac.ventilate"));
+                List.of(
+                        "shopping.search_products",
+                        "shopping.prepare_order",
+                        "navigation.plan_purchase_route"),
+                Set.of(
+                        "shopping.search_products",
+                        "navigation.plan_purchase_route"));
     }
 
     public String systemInstruction() {
@@ -110,6 +118,8 @@ public final class CockpitModelPrompt {
                 + "你只提出候选动作，不能授权Safety或Effect，也不能声称真实车辆已经执行。"
                 + "当前末端反馈仅为UI仿真，安全接口仅保留合同。"
                 + "处理图片时只描述画面中直接可见的座舱事实，不识别人身份，不推断敏感属性。"
+                + "当可见事实支持购物候选时，只能提出商品搜索和购买路径规划目标；"
+                + "不能授权下单、支付或启动导航，这三类副作用由确定性策略和独立确认控制。"
                 + "只输出一个JSON对象，不输出Markdown、代码围栏或解释。";
     }
 

@@ -4,23 +4,37 @@
 日期：2026-07-20
 状态：Android 13 实际工程基线
 
-## DEV-130 P4-R4 固定动作链不能满足乘员感知饮水辅助
+## DEV-131 将“饮水服务”纠正为购物服务与路径规划服务
+
+旧 P4-R5 设计把测试图片中的饮水容器提升成了“饮水辅助服务”，混淆了商品类别与业务服务。
+正确分层是：模型提出购物候选，购物服务负责商品/商户/订单，路径规划服务负责 POI/路线/导航；
+饮用水只是本次夹具的 `productCategory`。
+
+处理：保留兼容场景 ID，资产升级为 v2；删除 HVAC/Media Effect，新增六个 Tool 和购物、订单、
+导航三个独立确认。debug 订单返回 `ORDER_NOT_DISPATCHED`，导航返回
+`NAVIGATION_SIMULATED`；production adapter 仍失败关闭。`testboard` 实际多模态验证完成，
+生产板目标以太网因无 IPv4 地址/路由仍未验证。
+
+状态：`Resolved / External Network Evidence Open`。`production_ready=false`、
+`target_hardware_validated=false`。Req IDs：`S2-INT-001`、`S2-TOL-001`、
+`S2-NAV-001`、`S2-COM-001`、`S2-HMI-009`；tracking：`ISSUE-057/058/059`。
+
+## DEV-130 P4-R4 固定动作链不能满足购物与路径规划场景
 
 `P4-R4` 的目标是证明图片与文字能够真实进入模型并投影到 HMI，因此场景将
 `hvac.ventilate` 固定为必要动作，只允许可选 `media.pause`。该实现适合验证多模态传输，
-但不具备可见事实、意图假设、购买工具和独立导航确认，不能把它宣称为完整的乘员感知 AIOS。
+但不具备可见事实、购物意图、购买工具和独立导航确认，不能把它宣称为完整的乘员感知 AIOS。
 
 处理：接受 `P4-R4` 作为已完成的传输与 UI 基础，禁止直接扩大现有动作字符串白名单来模拟
-智能性。新增 `P4-R5a..P4-R5l`，以 Observation、Context fusion、IntentHypothesis、Plan、
-Approval、Tool、Effect 和 HMI 的版本化边界实现。视觉只能报告乘员/饮水容器等事实；年龄、
+智能性。新增 `P4-R5a..P4-R5l`，以 Observation、Context fusion、Shopping intent、Plan、
+Approval、Tool 和 HMI 的版本化边界实现。视觉只能报告乘员/饮水容器等事实；年龄、
 身份和口渴是禁止直接断言的结论。购买与导航必须独立确认，支付保持空接口。
 
-该需求重新打开仓库软件完成状态，但不否定 `P4-R4` 的 ARM64 证据：
-`repository_software_requirements_complete=false`、
-`open_repository_software_requirement_count=12`、
-`unclassified_repository_requirement_count=0`、
-`production_ready=false`、`target_hardware_validated=false`。状态：`Accepted Temporary /
-Software Work Classified`。Req IDs：`S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、
+P4-R5 debug 软件已经实现，不否定 `P4-R4` 的 ARM64 证据：
+`shopping_route_planning_debug_software_implemented=true`、
+`p4_r5_open_work_package_count=0`、
+`production_ready=false`、`target_hardware_validated=false`。状态：`Resolved /
+Production Adapters External`。Req IDs：`S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、
 `S2-INT-001`、`S2-NAV-001`、`S2-COM-001`；tracking：`ISSUE-057/058`。
 
 ## DEV-125 S2-TRG-002 缺少需求基线定义

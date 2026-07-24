@@ -7,6 +7,7 @@ public final class CockpitSimulatedScenarioState {
     public static final int MAX_EFFECT_COUNT = 16;
     public static final int MAX_EVENT_COUNT = 64;
     public static final int MAX_REVISION = 1_000_000;
+    public static final int MAX_APPROVAL_COUNT = 3;
 
     public enum Lifecycle {
         UNAVAILABLE,
@@ -81,7 +82,8 @@ public final class CockpitSimulatedScenarioState {
                     readbackAttemptCount, MAX_EFFECT_COUNT, "readbackAttemptCount");
             this.readbackMatchCount = count(
                     readbackMatchCount, readbackAttemptCount, "readbackMatchCount");
-            this.approvalInputCount = count(approvalInputCount, 1, "approvalInputCount");
+            this.approvalInputCount = count(
+                    approvalInputCount, MAX_APPROVAL_COUNT, "approvalInputCount");
             this.failureCount = count(failureCount, MAX_EFFECT_COUNT, "failureCount");
             this.assistantDisplayText = bounded(
                     assistantDisplayText, 256, "assistantDisplayText");

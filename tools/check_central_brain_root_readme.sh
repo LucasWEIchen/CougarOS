@@ -58,8 +58,8 @@ architecture_markers = (
     "Orchestration --> Context --> Scenario --> Graph",
     "Graph --> Model --> Prompt",
     'Observation["Cabin Observation\\nVisible Facts / Seat Evidence"]',
-    'Hypothesis["Intent Hypothesis\\nHydration Support / Evidence"]',
-    'Confirmation["Assistance / Purchase / Navigation\\nIndependent Confirmation"]',
+    'Hypothesis["Shopping Intent\\nEvidence Bound / Confirm Required"]',
+    'Confirmation["Shopping / Purchase / Navigation\\nIndependent Confirmation"]',
     'Navigation["Navigation Tool / Adapter\\nPOI / Route / Start"]',
     'Commerce["Commerce Tool / Adapter\\nSearch / Preview / Commit"]',
     "Model --> Observation --> Context",
@@ -222,7 +222,7 @@ for row in table_rows:
     elif item_id == "P7-R3-OC2":
         expected_category = "过渡实现"
     elif item_id.startswith("P4-R5"):
-        expected_category = "无实现；当前变更点"
+        expected_category = "Debug 实现"
     elif re.match(r"^(P2-W0[89]|P2-W1[0-2]|P4-D4|P5-R1|P6-P7-R1|P7-R2|P7-R4-OCDEV|P7-R5-MMDEV)", item_id):
         expected_category = "Debug 实现"
     elif item_id.startswith("P1-") or item_id == "P6-EV2" or item_id.startswith("P9-W"):
@@ -340,8 +340,8 @@ for claim in ("production_ready=false", "target_hardware_validated=false"):
 required_claims = (
     "github_source_of_truth=true",
     "maintained_project_files_synced=true",
-    "repository_software_requirements_complete=false",
-    "open_repository_software_requirement_count=12",
+    "repository_software_requirements_complete=true",
+    "open_repository_software_requirement_count=0",
     "unclassified_repository_requirement_count=0",
     "python_prototype_runtime_maintained=false",
     "production_ready=false",

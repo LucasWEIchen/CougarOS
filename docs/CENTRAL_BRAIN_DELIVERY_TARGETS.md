@@ -4,27 +4,26 @@
 
 日期：2026-07-17
 
-## P4-R5 cabin hydration assistance requirement delivery
+## P4-R5 cabin shopping and route-planning delivery
 
-本增量交付需求合同、十二个最小工作包、接口/状态机/Plan/HMI 详设、README 追踪和静态门禁。
-不交付 Runtime、Client2 或真实 adapter 实现。目标软件路径为：
+交付 13 节点场景 v2、六个购物/路径 Tool、三个独立确认、OpenClaw 购物/路径 prompt、Client2
+动态确认条与实时商品/订单/路线反馈。饮用水只作为商品类别，不存在独立饮水服务。
 
-`图片+文字 -> CabinObservation -> 多座位 Context -> IntentHypothesis -> 饮水帮助确认 ->
-商品/POI/路线预览 -> 购买确认/导航确认 -> Effect/Readback -> Client2 实时链路`。
+`图片+文字 -> 座舱观察 -> 购物候选 -> 购物同意 -> 商品/商户/订单/路线预览 ->
+订单确认 -> NOT_DISPATCHED -> 导航确认 -> UI SIMULATION -> Client2 实时链路`。
 
-仓库后续必须提供明确 synthetic 的商品、POI、路线和订单预览；订单 commit、支付和导航 start
-在 production adapter 缺失时返回 typed unavailable。购买和导航确认必须独立，不能复用，
-模型不能授权 Tool 或 Effect。
+debug 搜索/预览明确为 synthetic；模型不能授权订单、支付、导航或车辆 Effect。生产 Commerce、
+Payment、Navigation adapter 缺失时失败关闭。`testboard` 的 WSL OpenClaw/Ollama 链路已验证；
+生产板目标以太网当前无 IPv4 地址/路由，不能声明生产直连。
 
-`hydration_assistance_requirement_defined=true`、
-`hydration_assistance_software_implemented=false`、
-`p4_r5_open_work_package_count=12`、
-`repository_software_requirements_complete=false`、
-`open_repository_software_requirement_count=12`、
-`unclassified_repository_requirement_count=0`、
+`shopping_route_planning_requirement_defined=true`、
+`shopping_route_planning_debug_software_implemented=true`、
+`p4_r5_open_work_package_count=0`、
+`production_openclaw_ethernet_verified=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `S2-HMI-009`、`S2-CTX-002`、`S2-PER-001`、`S2-INT-001`、`S2-NAV-001`、
-`S2-COM-001`；tracking：`DEV-130/ISSUE-057/058`；stage `P4-R5-REQUIREMENT`。
+`S2-COM-001`；tracking：`DEV-130/131`、`ISSUE-057/058/059`；stage
+`P4-R5-SHOPPING-ROUTE`。
 
 ## Android P4-R1 Orchestration V1 delivery
 

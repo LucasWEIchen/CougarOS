@@ -39,10 +39,20 @@ public final class ScenarioManifestParserTest {
         ScenarioManifest fatigue = catalog.require("scene.fatigue.assist.v1");
         ScenarioManifest multimodal =
                 catalog.require("scene.cabin.multimodal.assist.v1");
-        assertEquals(RiskClass.LOW, multimodal.getRiskClass());
+        assertEquals(2, multimodal.getVersion());
+        assertEquals(RiskClass.HIGH, multimodal.getRiskClass());
         assertTrue(multimodal.getRequiredCapabilities().stream()
-                .anyMatch(capability -> "vehicle.hvac.fan_level".equals(
+                .anyMatch(capability -> "navigation.poi".equals(
                         capability.getCanonicalId())));
+        assertEquals(13, multimodal.getPlanTemplate().getNodes().size());
+        assertEquals(6, multimodal.getPlanTemplate().getNodes().stream()
+                .filter(node -> "tool.invoke".equals(node.getNodeType()))
+                .count());
+        assertEquals(3, multimodal.getPlanTemplate().getNodes().stream()
+                .filter(node -> "approval.interrupt".equals(node.getNodeType()))
+                .count());
+        assertTrue(multimodal.getPlanTemplate().getNodes().stream()
+                .noneMatch(node -> "effect.execute".equals(node.getNodeType())));
         assertEquals(RiskClass.HIGH, fatigue.getRiskClass());
         assertTrue(fatigue.getPlanTemplate().getNodes().stream()
                 .anyMatch(node -> "vehicle.seat.recline".equals(

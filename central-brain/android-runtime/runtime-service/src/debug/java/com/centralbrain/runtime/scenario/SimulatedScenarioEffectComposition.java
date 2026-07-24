@@ -19,9 +19,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.List;
+import java.util.Set;
 
 import com.centralbrain.sdk.plan.ScenarioPlan;
 
@@ -48,6 +50,11 @@ public final class SimulatedScenarioEffectComposition {
         private final int readbackAttemptCount;
         private final int readbackMatchCount;
         private final int approvalInputCount;
+        private final int toolInvocationCount;
+        private final String lastToolNodeId;
+        private final String lastToolStatusCode;
+        private final String lastToolDisplaySummary;
+        private final String lastToolResultDigest;
         private final int failureCount;
         private final String projectionDigest;
         private final String manifestDigest;
@@ -58,6 +65,14 @@ public final class SimulatedScenarioEffectComposition {
             readbackAttemptCount = record.readbackAttemptCount;
             readbackMatchCount = record.readbackMatchCount;
             approvalInputCount = record.approvalInputCount;
+            toolInvocationCount = record.toolInvocationCount;
+            SimulatedShoppingPlanningService.Result lastTool = record.lastToolResult;
+            lastToolNodeId = lastTool == null ? "" : lastTool.getNodeId();
+            lastToolStatusCode = lastTool == null ? "" : lastTool.getStatusCode();
+            lastToolDisplaySummary =
+                    lastTool == null ? "" : lastTool.getDisplaySummary();
+            lastToolResultDigest =
+                    lastTool == null ? "" : lastTool.getResultDigest();
             failureCount = record.failureCount;
             manifestDigest = record.manifestDigest;
             projectionDigest = DurableDigest.sha256(
@@ -68,6 +83,10 @@ public final class SimulatedScenarioEffectComposition {
                     Integer.toString(readbackAttemptCount),
                     Integer.toString(readbackMatchCount),
                     Integer.toString(approvalInputCount),
+                    Integer.toString(toolInvocationCount),
+                    lastToolNodeId,
+                    lastToolStatusCode,
+                    lastToolResultDigest,
                     Integer.toString(failureCount));
         }
 
@@ -121,6 +140,26 @@ public final class SimulatedScenarioEffectComposition {
 
         public int getApprovalInputCount() {
             return approvalInputCount;
+        }
+
+        public int getToolInvocationCount() {
+            return toolInvocationCount;
+        }
+
+        public String getLastToolNodeId() {
+            return lastToolNodeId;
+        }
+
+        public String getLastToolStatusCode() {
+            return lastToolStatusCode;
+        }
+
+        public String getLastToolDisplaySummary() {
+            return lastToolDisplaySummary;
+        }
+
+        public String getLastToolResultDigest() {
+            return lastToolResultDigest;
         }
 
         public int getFailureCount() {
@@ -182,12 +221,16 @@ public final class SimulatedScenarioEffectComposition {
         private final DrivingProfile driving;
         private final String manifestDigest;
         private final Map<String, EffectBinding> effects = new LinkedHashMap<>();
+        private final Map<String, String> approvalDigests = new LinkedHashMap<>();
+        private final Set<String> completedToolNodes = new LinkedHashSet<>();
         private SimulatedScenarioRuntime.Snapshot runtime;
         private String approvalDigest = "";
         private int effectDispatchCount;
         private int readbackAttemptCount;
         private int readbackMatchCount;
         private int approvalInputCount;
+        private int toolInvocationCount;
+        private SimulatedShoppingPlanningService.Result lastToolResult;
         private int failureCount;
 
         private RunRecord(
@@ -206,6 +249,7 @@ public final class SimulatedScenarioEffectComposition {
     private final SimulatedSeatEffectAdapter seat;
     private final SimulatedMediaEffectAdapter media;
     private final SimulatedNavigationEffectAdapter navigation;
+    private final SimulatedShoppingPlanningService shoppingPlanning;
     private final Map<String, RunRecord> runs = new LinkedHashMap<>();
     private RunRecord activeRun;
 
@@ -227,6 +271,7 @@ public final class SimulatedScenarioEffectComposition {
                 simulationClock, FaultInjectionProfile.none());
         navigation = new SimulatedNavigationEffectAdapter(
                 simulationClock, FaultInjectionProfile.none());
+        shoppingPlanning = new SimulatedShoppingPlanningService();
     }
 
     public synchronized Snapshot start(
@@ -273,8 +318,11 @@ public final class SimulatedScenarioEffectComposition {
                     record.runtime.getPlanDigest(),
                     pending.getNodeId(),
                     Integer.toString(record.approvalInputCount));
+            record.approvalDigests.put(
+                    pending.getNodeId(), record.approvalDigest);
         } else {
             record.approvalDigest = "";
+            record.approvalDigests.remove(pending.getNodeId());
         }
         record.runtime = runtime.supplyPendingOutcome(runId, requiredOutcome);
         return advance(record);
@@ -312,6 +360,9 @@ public final class SimulatedScenarioEffectComposition {
             switch (pending.getStage()) {
                 case APPROVAL:
                     return new Snapshot(record);
+                case TOOL:
+                    invokeTool(record, pending);
+                    break;
                 case EFFECT:
                     dispatch(record, pending);
                     break;
@@ -323,6 +374,36 @@ public final class SimulatedScenarioEffectComposition {
             }
         }
         return new Snapshot(record);
+    }
+
+    private void invokeTool(
+            RunRecord record,
+            SimulatedScenarioGraph.PendingNode pending) {
+        AgentGraphRuntime.NodeExecutionOutcome outcome =
+                AgentGraphRuntime.NodeExecutionOutcome.FAILED;
+        record.toolInvocationCount++;
+        try {
+            if (!record.completedToolNodes.add(pending.getNodeId())) {
+                throw violation("shopping Tool node replayed");
+            }
+            SimulatedShoppingPlanningService.Result result =
+                    shoppingPlanning.execute(
+                            pending.getNodeId(),
+                            pending.getInputDigest(),
+                            record.approvalDigests);
+            if (!result.isSynthetic()
+                    || result.isExternalDispatchPerformed()
+                    || result.isPaymentMaterialAccessed()
+                    || result.isVehicleHardwareAccessed()) {
+                throw violation("shopping Tool crossed the simulation boundary");
+            }
+            record.lastToolResult = result;
+            outcome = AgentGraphRuntime.NodeExecutionOutcome.SUCCEEDED;
+        } catch (RuntimeException failure) {
+            record.failureCount++;
+        }
+        record.runtime = runtime.supplyPendingOutcome(
+                record.runtime.getRunId(), outcome);
     }
 
     private void dispatch(

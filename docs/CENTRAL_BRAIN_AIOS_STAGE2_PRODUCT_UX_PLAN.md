@@ -4,20 +4,21 @@
 
 日期：2026-07-23
 
-状态：Approved for implementation planning；P4-R5 requirements added
+状态：P4-R5 debug UX implemented；production adapters external
 
 输入：架构图需求基线、当前 Client2 演示、`CENTRAL_BRAIN_AIOS_OPEN_SOURCE_AND_INDUSTRY_RESEARCH.md`
 
 映射需求：`APP-001`、`APP-003`、`APP-004`、`FW-U-001`、`FW-U-003..007`、`FW-S-001..005`、`NV-F-001`、`NV-F-003..005`、`NV-F-008..012`、`NV-G-003..007`、`NV-P-002`、`XSC-001..006`、`DEL-001`、`DEL-003..005`
 
-## P4-R5 饮水辅助产品增量
+## P4-R5 购物与路径规划产品增量
 
 主交互仍只有场景输入和实时链路。用户点击“处理一下”后，UI 必须逐步显示可见事实、四座位
-Context、饮水辅助假设、驾驶员确认、商品/POI/路线搜索、购买确认、导航确认、执行和 readback。
+Context、购物候选、驾驶员确认、商品/商户/订单/路线搜索、购买确认、导航确认和结果。
 产品不得把“后排乘员手持水瓶”直接写成“儿童口渴”；后者只能作为测试显式标签或等待确认的假设。
 
-确认后允许自动搜索和准备预览，不允许自动提交订单、支付或启动导航。详细 UX、文案、动画和
-驾驶限制见 [座舱饮水辅助多模态场景软件详设](CENTRAL_BRAIN_CABIN_HYDRATION_ASSISTANCE_DESIGN.md)。
+确认后允许自动搜索和准备预览，不允许自动提交订单、支付或启动导航。饮用水只是当前商品类别，
+不是独立服务。详细 UX、文案、动画和驾驶限制见
+[座舱购物与路径规划多模态场景软件详设](CENTRAL_BRAIN_CABIN_SHOPPING_ROUTE_PLANNING_DESIGN.md)。
 
 ## 1. 产品目标
 

@@ -6,12 +6,10 @@
 
 ## P4-R5 issue update
 
-新增 `ISSUE-057/058`。`ISSUE-057` 跟踪 `P4-R5a..P4-R5l` 十二个已分类但未实现的仓库
-软件包；`ISSUE-058` 跟踪实时 OMS/camera、可信座椅占用、量产导航和 Commerce/支付四类外部
-接口。当前 `repository_software_requirements_complete=false`、
-`open_repository_software_requirement_count=12`、
-`unclassified_repository_requirement_count=0`。P4-R4 的受控多模态 ARM64 证据保持有效，但不能
-被解释为 P4-R5 已实现。
+`ISSUE-057` 已由 `DEV-131` 关闭：`P4-R5a..P4-R5l` 的受控帧 debug 软件、六 Tool、三确认和
+Client2 事件驱动反馈已实现并在 `testboard` 验证。`ISSUE-058` 继续跟踪实时 OMS/camera、可信
+座椅占用、量产 Navigation 和 Commerce/Payment；新增 `ISSUE-059` 跟踪生产板目标以太网无
+IPv4 地址/路由。`production_ready=false`、`target_hardware_validated=false`。
 
 ## P10-R1 issue update
 
@@ -94,8 +92,9 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-054 | 当前 Android 可达 OpenClaw 主机，但 18789 端口拒绝连接；固定凭据构建无法完成当前模型回归。 | S2-MDL-001/002, S2-OBS-002, P7-R3-OC2 | Open / External Service Blocked |
 | ISSUE-055 | 受控帧 debug SDK/Binder 与统一输入摘要已完成；实时语音/相机 owner、history 附件绑定、目标以太网和量产媒体治理仍缺外部接口/证据。 | S2-MDL-001/002, S2-SAF-001, S2-OBS-001/002, P7-R5-MMDEV | Open / External Integration |
 | ISSUE-056 | Client2 实际模型输入/输出、图片缩略图、居中预览、图外/Back 退出和 ARM64 真实模型 exchange 已完成。 | S2-HMI-003/007/008, S2-MDL-002, S2-OBS-002, P4-R4 | Resolved / DEV-129 |
-| ISSUE-057 | 饮水辅助的观察、四座位 Context、意图假设、场景 Graph、确认、Tool、导航、Commerce、区域 Effect 和 HMI 十二个软件包尚未实现。 | S2-HMI-009, S2-CTX-002, S2-PER-001, S2-INT-001, S2-NAV-001, S2-COM-001, P4-R5 | Open / Software Requirement |
-| ISSUE-058 | 量产 OMS/camera、可信座椅占用、导航和 commerce/payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
+| ISSUE-057 | P4-R5 购物与路径规划 debug 软件已完成，包含真实模型、六 Tool、三确认和事件驱动 HMI。 | S2-HMI-009, S2-CTX-002, S2-PER-001, S2-INT-001, S2-NAV-001, S2-COM-001, P4-R5 | Resolved / DEV-131 |
+| ISSUE-058 | 量产 OMS/camera、可信座椅占用、Navigation 和 Commerce/Payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
+| ISSUE-059 | 生产板 `eth0` 无 `169.254.208.0/24` IPv4 地址或路由，无法到达目标 OpenClaw；ADB reverse 不得替代生产以太网证据。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Open / External Network |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1490,19 +1489,17 @@ UI 风量 1->3；缩略图、居中预览及图外退出通过。状态：`Resol
 该关闭不覆盖实时摄像头或目标以太网。它们继续由 `ISSUE-055` 跟踪；
 `production_ready=false`、`target_hardware_validated=false`。
 
-## ISSUE-057 P4-R5 饮水辅助软件工作包未实现
+## ISSUE-057 P4-R5 购物与路径规划 debug 软件完成
 
-当前图片输入、模型交换和 HMI 预览已经完成，但模型 prompt 仍要求通风，场景只支持驾驶席并固定执行
-HVAC/Media；`StructuredModelOutput` 只接受车辆 capability 参数。仓库不存在独立可见事实合同、
-意图假设、Commerce Tool、导航启动确认或多座位融合。
+场景 v2 已移除强制 HVAC/Media，增加六个购物/路径 Tool 与购物、订单、导航三个独立确认。
+Client2 的动态确认条和商品/商户/订单/路线反馈均由真实 Orchestration snapshot 驱动。
+`testboard` 已通过 WSL OpenClaw/Ollama 实际图片+文字回归，最终
+`hardware_accessed=false`。状态：`Resolved / DEV-131`。
 
-关闭条件是 `P4-R5a..P4-R5l` 全部实现并通过各自合同/JVM/static/Android 13 ARM64 验收。软件实现
-必须证明调用链逐事件产生，不能使用 UI 定时器一次跳到最终结果。当前
-`hydration_assistance_software_implemented=false`、
-`open_repository_software_requirement_count=12`、
-`repository_software_requirements_complete=false`。tracking：`DEV-130`。
+该关闭只代表仓库 debug 软件和测试板受控帧路径，不代表生产 Commerce、Payment、Navigation、
+OMS、座椅源或目标以太网已接入。`production_ready=false`、`target_hardware_validated=false`。
 
-## ISSUE-058 饮水辅助量产外部接口缺失
+## ISSUE-058 购物与路径规划量产外部接口缺失
 
 四类生产依赖尚无确定 owner 和接口：实时 OMS/camera、可信座椅占用源、导航服务、Commerce/支付。
 仓库允许使用受控图片、模拟座椅、合成 POI 和合成订单预览完成软件测试，但 release/production
@@ -1510,3 +1507,14 @@ registry 必须返回 typed unavailable，不允许静默回退模拟。
 
 关闭需要分别取得 API/service/property、permission/SELinux、area/schema、freshness、timeout、
 cancel/readback、privacy、rollback 和责任人证据。该问题不能由 `P4-R5` 仓库软件完成自动关闭。
+
+## ISSUE-059 生产板目标 OpenClaw 网络不可达
+
+2026-07-24 在 `0123456789ABCDEF` 上检查：Android 13 ARM64、1920x1080 正常，但 `eth0`
+只有 IPv6 link-local 地址，没有 `169.254.208.0/24` IPv4 地址和路由。访问
+`169.254.208.110:18789` 返回 `Network is unreachable`，尚未进入 TCP、WebSocket、challenge、
+token 或模型阶段。
+
+关闭条件：目标网络 owner 为生产板配置合法 IPv4 地址/路由并确认物理链路；随后用
+`target_openclaw_transitional` 构建在生产板完成图片+文字、三次确认和最终 HMI 回归。禁止把
+ADB reverse 测试结果写为生产以太网验证。状态：`Open / External Network`。

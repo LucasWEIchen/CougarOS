@@ -35,6 +35,7 @@ public final class SimulatedScenarioGraph {
     public enum PendingStage {
         NONE,
         APPROVAL,
+        TOOL,
         EFFECT,
         READBACK
     }
@@ -369,6 +370,7 @@ public final class SimulatedScenarioGraph {
 
     private static boolean isAutomaticProjection(String nodeType) {
         return "context.capture".equals(nodeType)
+                || "model.invoke".equals(nodeType)
                 || "policy.evaluate".equals(nodeType)
                 || "summary.render".equals(nodeType);
     }
@@ -376,6 +378,9 @@ public final class SimulatedScenarioGraph {
     private static PendingStage pendingStage(String nodeType) {
         if ("approval.interrupt".equals(nodeType)) {
             return PendingStage.APPROVAL;
+        }
+        if ("tool.invoke".equals(nodeType)) {
+            return PendingStage.TOOL;
         }
         if ("effect.execute".equals(nodeType)) {
             return PendingStage.EFFECT;

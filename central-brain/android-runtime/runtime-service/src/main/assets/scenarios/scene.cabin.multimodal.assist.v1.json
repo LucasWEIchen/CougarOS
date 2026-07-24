@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "scenarioId": "scene.cabin.multimodal.assist.v1",
-  "version": 1,
+  "version": 2,
   "supportedSources": ["HMI_BUTTON", "VOICE", "API"],
-  "supportedZones": ["ROW1_DRIVER"],
+  "supportedZones": ["CABIN", "ROW1_DRIVER", "ROW1_PASSENGER", "ROW2_LEFT", "ROW2_RIGHT"],
   "contextPolicyId": "context.seat-comfort.v1",
   "requiredContext": [
     "Vehicle.Speed",
@@ -12,16 +12,15 @@
     "Vehicle.Cabin.Seat.IsOccupied"
   ],
   "optionalContext": [
-    "Vehicle.Cabin.HVAC.IsAirConditioningActive",
-    "Vehicle.Cabin.HVAC.AmbientAirTemperature"
+    "Vehicle.Cabin.Seat.IsBelted"
   ],
-  "requiredCapabilities": ["vehicle.hvac.power", "vehicle.hvac.fan_level"],
-  "optionalCapabilities": ["media.playback"],
-  "riskClass": "LOW",
+  "requiredCapabilities": ["navigation.poi"],
+  "optionalCapabilities": [],
+  "riskClass": "HIGH",
   "planTemplate": {
     "nodes": [
       {
-        "nodeId": "capture_context",
+        "nodeId": "capture_multimodal_context",
         "nodeType": "context.capture",
         "capabilityId": "",
         "required": true,
@@ -32,7 +31,18 @@
         "policy": {"policyId": "policy.context.capture.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
       },
       {
-        "nodeId": "evaluate_policy",
+        "nodeId": "derive_cabin_observations",
+        "nodeType": "model.invoke",
+        "capabilityId": "",
+        "required": true,
+        "timeoutMs": 120000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.cabin.observation.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+      },
+      {
+        "nodeId": "resolve_shopping_intent",
         "nodeType": "policy.evaluate",
         "capabilityId": "",
         "required": true,
@@ -40,62 +50,106 @@
         "maxAttempts": 1,
         "idempotencyKeyTemplate": "",
         "compensationNodeId": "",
-        "policy": {"policyId": "policy.cabin.multimodal.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+        "policy": {"policyId": "policy.cabin.shopping-intent.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
       },
       {
-        "nodeId": "set_hvac_power",
-        "nodeType": "effect.execute",
-        "capabilityId": "vehicle.hvac.power",
-        "required": true,
-        "timeoutMs": 5000,
-        "maxAttempts": 2,
-        "idempotencyKeyTemplate": "scene.cabin.multimodal.hvac_power",
+        "nodeId": "request_shopping_consent",
+        "nodeType": "approval.interrupt",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 120000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
         "compensationNodeId": "",
-        "policy": {"policyId": "policy.hvac.power.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+        "policy": {"policyId": "policy.shopping.consent.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "ANY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
       },
       {
-        "nodeId": "set_hvac_fan",
-        "nodeType": "effect.execute",
-        "capabilityId": "vehicle.hvac.fan_level",
-        "required": true,
-        "timeoutMs": 5000,
-        "maxAttempts": 2,
-        "idempotencyKeyTemplate": "scene.cabin.multimodal.hvac_fan",
-        "compensationNodeId": "",
-        "policy": {"policyId": "policy.hvac.fan.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
-      },
-      {
-        "nodeId": "pause_media",
-        "nodeType": "effect.execute",
-        "capabilityId": "media.playback",
+        "nodeId": "search_product_catalog",
+        "nodeType": "tool.invoke",
+        "capabilityId": "",
         "required": false,
         "timeoutMs": 3000,
-        "maxAttempts": 2,
-        "idempotencyKeyTemplate": "scene.cabin.multimodal.media_pause",
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "shopping.catalog-search",
         "compensationNodeId": "",
-        "policy": {"policyId": "policy.media.playback.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
+        "policy": {"policyId": "policy.shopping.catalog.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
       },
       {
-        "nodeId": "verify_hvac_power",
-        "nodeType": "effect.verify",
-        "capabilityId": "vehicle.hvac.power",
-        "required": true,
-        "timeoutMs": 5000,
+        "nodeId": "search_purchase_poi",
+        "nodeType": "tool.invoke",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 3000,
         "maxAttempts": 1,
-        "idempotencyKeyTemplate": "scene.cabin.multimodal.verify_hvac_power",
+        "idempotencyKeyTemplate": "shopping.merchant-search",
         "compensationNodeId": "",
-        "policy": {"policyId": "policy.effect.verify.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+        "policy": {"policyId": "policy.shopping.poi.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
       },
       {
-        "nodeId": "verify_hvac_fan",
-        "nodeType": "effect.verify",
-        "capabilityId": "vehicle.hvac.fan_level",
-        "required": true,
-        "timeoutMs": 5000,
+        "nodeId": "prepare_order_preview",
+        "nodeType": "tool.invoke",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 3000,
         "maxAttempts": 1,
-        "idempotencyKeyTemplate": "scene.cabin.multimodal.verify_hvac_fan",
+        "idempotencyKeyTemplate": "shopping.order-preview",
         "compensationNodeId": "",
-        "policy": {"policyId": "policy.effect.verify.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "FAIL_SCENARIO"}
+        "policy": {"policyId": "policy.shopping.order-preview.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "preview_purchase_route",
+        "nodeType": "tool.invoke",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 3000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "navigation.purchase-route-preview",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.navigation.route-preview.v1", "policyVersion": 1, "riskClass": "LOW", "drivingPolicy": "ANY", "approvalRequired": false, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "request_purchase_confirmation",
+        "nodeType": "approval.interrupt",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 120000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.shopping.purchase-confirmation.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "PARKED_ONLY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "commit_order",
+        "nodeType": "tool.invoke",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 3000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "shopping.order-commit",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.shopping.order-commit.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "PARKED_ONLY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "request_navigation_confirmation",
+        "nodeType": "approval.interrupt",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 120000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.navigation.start-confirmation.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "ANY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
+      },
+      {
+        "nodeId": "start_purchase_navigation",
+        "nodeType": "tool.invoke",
+        "capabilityId": "",
+        "required": false,
+        "timeoutMs": 3000,
+        "maxAttempts": 1,
+        "idempotencyKeyTemplate": "navigation.purchase-route-start",
+        "compensationNodeId": "",
+        "policy": {"policyId": "policy.navigation.route-start.v1", "policyVersion": 1, "riskClass": "HIGH", "drivingPolicy": "ANY", "approvalRequired": true, "failureMode": "SKIP_OPTIONAL"}
       },
       {
         "nodeId": "render_summary",
@@ -110,26 +164,42 @@
       }
     ],
     "dependencies": [
-      {"prerequisiteNodeId": "capture_context", "dependentNodeId": "evaluate_policy", "condition": "ON_SUCCESS"},
-      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "set_hvac_power", "condition": "ON_SUCCESS"},
-      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "set_hvac_fan", "condition": "ON_SUCCESS"},
-      {"prerequisiteNodeId": "evaluate_policy", "dependentNodeId": "pause_media", "condition": "ON_SUCCESS"},
-      {"prerequisiteNodeId": "set_hvac_power", "dependentNodeId": "verify_hvac_power", "condition": "ON_SUCCESS"},
-      {"prerequisiteNodeId": "set_hvac_fan", "dependentNodeId": "verify_hvac_fan", "condition": "ON_SUCCESS"},
-      {"prerequisiteNodeId": "verify_hvac_power", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
-      {"prerequisiteNodeId": "verify_hvac_fan", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
-      {"prerequisiteNodeId": "pause_media", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"}
+      {"prerequisiteNodeId": "capture_multimodal_context", "dependentNodeId": "derive_cabin_observations", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "derive_cabin_observations", "dependentNodeId": "resolve_shopping_intent", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "resolve_shopping_intent", "dependentNodeId": "request_shopping_consent", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "request_shopping_consent", "dependentNodeId": "search_product_catalog", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "request_shopping_consent", "dependentNodeId": "search_purchase_poi", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "search_product_catalog", "dependentNodeId": "prepare_order_preview", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "search_purchase_poi", "dependentNodeId": "preview_purchase_route", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "prepare_order_preview", "dependentNodeId": "request_purchase_confirmation", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "preview_purchase_route", "dependentNodeId": "request_purchase_confirmation", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "request_purchase_confirmation", "dependentNodeId": "commit_order", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "request_purchase_confirmation", "dependentNodeId": "request_navigation_confirmation", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "preview_purchase_route", "dependentNodeId": "request_navigation_confirmation", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "request_navigation_confirmation", "dependentNodeId": "start_purchase_navigation", "condition": "ON_SUCCESS"},
+      {"prerequisiteNodeId": "commit_order", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"},
+      {"prerequisiteNodeId": "start_purchase_navigation", "dependentNodeId": "render_summary", "condition": "ON_TERMINAL"}
     ]
   },
   "fallback": {
     "mode": "DEGRADED_OPTIONAL_ONLY",
-    "messageKey": "scenario.cabin.multimodal.partial",
-    "optionalNodeIds": ["pause_media"]
+    "messageKey": "scenario.cabin.shopping.partial",
+    "optionalNodeIds": [
+      "request_shopping_consent",
+      "search_product_catalog",
+      "search_purchase_poi",
+      "prepare_order_preview",
+      "preview_purchase_route",
+      "request_purchase_confirmation",
+      "commit_order",
+      "request_navigation_confirmation",
+      "start_purchase_navigation"
+    ]
   },
   "ui": {
-    "displayKey": "scenario.cabin.multimodal.title",
-    "descriptionKey": "scenario.cabin.multimodal.description",
-    "iconKey": "scenario.icon.cabin",
+    "displayKey": "scenario.cabin.shopping.title",
+    "descriptionKey": "scenario.cabin.shopping.description",
+    "iconKey": "scenario.icon.shopping",
     "sortOrder": 30
   }
 }
