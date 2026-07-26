@@ -93,6 +93,7 @@ required_ids.extend(f"P4-D4{suffix}" for suffix in "abcde")
 required_ids.extend(("P4-R2", "P4-R3", "P4-R4"))
 required_ids.extend(f"P4-R5{suffix}" for suffix in "abcdefghijkl")
 required_ids.append("P4-R6")
+required_ids.append("P4-R7")
 required_ids.extend(f"P5-W{i:02d}" for i in range(1, 11))
 required_ids.append("P5-R1")
 required_ids.extend(f"P6-W{i:02d}" for i in range(1, 7))
@@ -224,7 +225,7 @@ for row in table_rows:
         expected_category = "过渡实现"
     elif item_id.startswith("P4-R5"):
         expected_category = "Debug 实现"
-    elif item_id == "P4-R6":
+    elif item_id in ("P4-R6", "P4-R7"):
         expected_category = "Client2/Unity 实现"
     elif re.match(r"^(P2-W0[89]|P2-W1[0-2]|P4-D4|P5-R1|P6-P7-R1|P7-R2|P7-R4-OCDEV|P7-R5-MMDEV)", item_id):
         expected_category = "Debug 实现"
