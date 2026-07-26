@@ -117,11 +117,16 @@ tools/run_central_brain_wsl_openclaw_multimodal_probe.sh
 
 ```bash
 source env.sh
+ADB_SERVER_PORT=5038 \
 ANDROID_SERIAL=testboard \
 CENTRAL_BRAIN_CLIENT2_SCENARIO=multimodal \
 CENTRAL_BRAIN_CLIENT2_OPENCLAW_TIMEOUT_SECONDS=240 \
 tools/run_client2_central_brain_openclaw_development_test.sh
 ```
+
+`ADB_SERVER_PORT` 只用于当前 Windows ADB server 不在默认 5037 端口的开发环境。模型端口和
+名称也可通过 `CENTRAL_BRAIN_OPENCLAW_MODEL_PORT`、`CENTRAL_BRAIN_OPENCLAW_MODEL`
+覆盖本机前置检查；这些设置不进入量产以太网接口合同。
 
 通过条件还包括 `image_present=true`、固定字节数和 SHA、`image_consumed=true`、模型终态、
 `AGENT ACTIONS / ALLOWLISTED`、Graph/Effect/Readback 完成、UI 模拟执行以及

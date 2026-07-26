@@ -20,6 +20,12 @@ else
   exit 2
 fi
 
+if [[ -n "${ADB_SERVER_PORT:-}" ]]; then
+  [[ "$ADB_SERVER_PORT" =~ ^[0-9]+$ ]] \
+    || { echo "openclaw_development_probe_complete=false reason=INVALID_ADB_SERVER_PORT" >&2; exit 3; }
+  adb_base+=( -P "$ADB_SERVER_PORT" )
+fi
+
 adb=("${adb_base[@]}")
 if [[ -n "${ANDROID_TRANSPORT_ID:-}" ]]; then
   [[ "$ANDROID_TRANSPORT_ID" =~ ^[0-9]+$ ]] \
@@ -42,6 +48,8 @@ bridge_env=()
 [[ -n "${ANDROID_SERIAL:-}" ]] \
   && bridge_env+=("ANDROID_SERIAL=$ANDROID_SERIAL")
 [[ -n "${ADB_BIN:-}" ]] && bridge_env+=("ADB_BIN=$ADB_BIN")
+[[ -n "${ADB_SERVER_PORT:-}" ]] \
+  && bridge_env+=("ADB_SERVER_PORT=$ADB_SERVER_PORT")
 env "${bridge_env[@]}" "$ROOT/tools/start_central_brain_wsl_openclaw_bridge.sh"
 
 if [[ "${CENTRAL_BRAIN_SKIP_ANDROID_BUILD:-false}" != "true" ]]; then

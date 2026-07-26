@@ -67,6 +67,10 @@ Client2 UI
 - `qwen3.6:27b` 必须出现在 `/api/tags`。
 - Windows ADB 位于 `E:\platform-tools`，或通过 `ADB_BIN` 显式指定。
 
+上述 11435/qwen3.6 是已冻结开发合同的默认值。脚本允许通过
+`CENTRAL_BRAIN_OPENCLAW_MODEL_PORT` 和 `CENTRAL_BRAIN_OPENCLAW_MODEL` 选择当前 WSL 已安装
+模型；该覆盖只改变本机开发前置检查，不改变 Android endpoint、OpenClaw 协议或量产 profile。
+
 ## 6. 执行
 
 只有一台 ADB 设备时：
@@ -82,10 +86,30 @@ ANDROID_TRANSPORT_ID=<id> \
   tools/run_central_brain_android_openclaw_development_probe.sh
 ```
 
+当 Windows ADB server 不在默认 5037 端口时，可直接指定 server port 和稳定设备别名：
+
+```bash
+ADB_SERVER_PORT=5038 \
+ANDROID_SERIAL=testboard \
+  tools/run_central_brain_android_openclaw_development_probe.sh
+```
+
 执行 Client2 -> Runtime -> OpenClaw -> Ollama -> UI 仿真末端的完整回归：
 
 ```bash
 ANDROID_TRANSPORT_ID=<id> \
+  tools/run_client2_central_brain_openclaw_development_test.sh
+```
+
+2026-07-26 测试板使用的完整模型覆盖为：
+
+```bash
+ADB_SERVER_PORT=5038 \
+ANDROID_SERIAL=testboard \
+CENTRAL_BRAIN_OPENCLAW_MODEL_PORT=11434 \
+CENTRAL_BRAIN_OPENCLAW_MODEL=qwen3.5:27b-optimized \
+CENTRAL_BRAIN_CLIENT2_SCENARIO=fatigue \
+CENTRAL_BRAIN_CLIENT2_OPENCLAW_TIMEOUT_SECONDS=180 \
   tools/run_client2_central_brain_openclaw_development_test.sh
 ```
 
@@ -142,6 +166,17 @@ Client2 回归还必须在 1920x1080 UI 树中看到 `RESULT / COMPLETED`、`cen
 
 该结果证明开发链路真实调用了 WSL OpenClaw/Ollama；不证明以太网、目标 `169.254.208.110`、direct NPU、
 车辆 Effect、Driver/HAL 或量产发布完成。
+
+## 8.1 2026-07-26 testboard 复测
+
+Windows ADB server 位于 5038，设备别名为 `testboard`。WSL OpenClaw provider 临时适配当前
+Ollama `http://127.0.0.1:11434` 和 `qwen3.5:27b-optimized` 后，Fatigue 全链路通过：
+WebSocket v4 challenge/auth/chat ACK/final 完整，模型延迟 117383 ms，回复 envelope 195 bytes，
+Graph revision 60，3 个白名单模拟 Effect 进入 Client2。UI 显示座椅 15° -> 30° 展开、
+HVAC fan 3、媒体播放和 `VEHICLE BUS NOT ACCESSED`。
+
+本机 `~/.openclaw/openclaw.json` 的 provider 修正属于环境配置，不提交仓库；仓库脚本只增加
+`ADB_SERVER_PORT` 透传。该证据不改变冻结开发合同默认模型，更不改变量产 OpenClaw endpoint。
 
 ## 9. 常见失败
 

@@ -81,7 +81,7 @@ public final class CockpitControlCoordinator implements
             "CentralBrainDriverTemperature";
     private static final String UNITY_PASSENGER_TEMPERATURE_OBJECT =
             "CentralBrainPassengerTemperature";
-    private static final String UNITY_TEMPERATURE_METHOD = "SetText";
+    private static final String UNITY_TEMPERATURE_METHOD = "set_text";
     private static final int UNITY_CONFIGURE_MAX_ATTEMPTS = 12;
     private static final Object ACTIVE_LOCK = new Object();
 
@@ -1326,11 +1326,6 @@ public final class CockpitControlCoordinator implements
             return false;
         });
         setUnityRenderScale(renderView);
-        mainHandler.postDelayed(
-                () -> setUnityTemperatureForBothZones(
-                        driverUnityTemperatureC,
-                        "initial_sync"),
-                900L);
         Log.i(TAG, markers()
                 + " unity_integration_configured=true"
                 + " unity_render_surface=" + renderView.getWidth()

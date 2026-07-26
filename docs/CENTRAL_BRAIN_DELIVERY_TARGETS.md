@@ -2,25 +2,27 @@
 
 版本：3.9
 
-日期：2026-07-25
+日期：2026-07-26
 
 ## P4-R7 render fidelity, dynamic HVAC and orbit delivery
 
 交付两个必须成对安装的 Android 13 ARM64 debug APK：
 
 1. `renderservice-central-brain.debug.apk`，SHA-256
-   `6a7d90b243a6e67ab6fbd119b3f1a3ad37610610bb2d0ec95e5ef21bda30b8af`；
+   `852be3788328ac788de903f9f2173ab296c30b393dbd2857118e3914a758cc88`；
 2. `client2-central-brain.debug.apk`，SHA-256
-   `252b45813948d78b69a4303e4fd0ff261f58ae4c018e36bbc8a6e25bd5697e30`。
+   `71c9176c86bf363a51206ff02c4eed27e9494b4bf6db00028de7bd8fec3901ed`。
 
 两个 APK 的 signer digest 均为
 `2079de9bf19818b40d25acbcd8cb7643549b04a536b057997ef9103e1dc241a1`。
 交付同时包含幂等 Unity bundle patch、Java bridge、静态门禁和 P4-R7 详设。
 
 当前 `p4_r7_repository_software_complete=true`、
-`p4_r7_testboard_android13_arm64_verified=false`。测试板恢复 ADB 后必须验证 1.5 render
-scale 是否被采纳、双区 18.0/30.0°C 边界、0.5°C 逐级动画、车模滑动旋转、车门点击及
-crash/ANR。生产板暂时下线，不在本轮部署。`vehicle_bus_accessed=false`、
+`p4_r7_testboard_partial_verified=true`、`p4_r7_testboard_android13_arm64_verified=false`。
+测试板已验证 1.5 render scale/2880x1620 framebuffer、双区 18.0/30.0°C 边界、0.5°C
+步进、车门点击、座椅展开、真实 WSL OpenClaw/Ollama 闭环及 crash/ANR。测试板无物理触摸
+event node，车模旋转必须在目标触摸硬件上复测。生产板暂时下线，不在本轮部署。
+`vehicle_bus_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `APP-004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：
 `DEV-134`、`ISSUE-061`；stage `P4-R7-RENDER-HVAC-ORBIT`。

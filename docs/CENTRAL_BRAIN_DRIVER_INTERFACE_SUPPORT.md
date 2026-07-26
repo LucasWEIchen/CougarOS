@@ -2,18 +2,20 @@
 
 版本：2.9
 
-日期：2026-07-25
+日期：2026-07-26
 
 ## P4-R7 render/HVAC/orbit Driver-HAL boundary
 
 P4-R7 只修改 Client2 Java bridge 和 RenderService Unity Addressables bundle。
-`setRenderScale`、`c2sSendMessage`、TextMeshPro `SetText` 和 Pan recognizer 配置均属于
-现有应用/引擎用户态接口，不访问 Android Car、VehicleProperty、Vendor SOA、CAN、
+`setRenderScale`、`c2sSendMessage` 和 TextMeshPro `set_text` 均属于现有应用/引擎用户态
+接口；Pan recognizer 保留原厂配置。不访问 Android Car、VehicleProperty、Vendor SOA、CAN、
 device node、sysfs、ioctl、Kernel、Driver 或 HAL。
 
 因此 `driver_hal_development_required=false`、`driver_hal_accessed=false`、
 `vehicle_bus_accessed=false`。真实 HVAC target/readback、座椅和 GPU/Unity 量产标定仍由
-OEM/Vendor 外部接口承担。`production_ready=false`、
+OEM/Vendor 外部接口承担。测试板缺少物理触摸 input event 属于当前测试夹具能力限制；只有
+目标座舱硬件同样缺少 OEM 触摸输入映射时，才升级为厂商输入集成缺口，不在本轮新增 Driver/HAL。
+`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`S2-HMI-001..004`、
 `S2-UX-002/003`、`S2-ADP-001/002`、`DEL-004`；tracking：
 `DEV-134`、`ISSUE-061`。

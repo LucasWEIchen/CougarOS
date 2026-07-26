@@ -22,9 +22,13 @@ rg -q 'CentralBrainDriverTemperature' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
 rg -q 'CentralBrainPassengerTemperature' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
-rg -q '_targetInputDisplay.*=.*1' \
+rg -q '"_targetInputDisplay": 2' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
-rg -q '_eventSystemRaycastCheck.*=.*0' \
+rg -q '"_eventSystemRaycastCheck": 1' \
+  "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
+rg -q '"useFingerPolling": 0' \
+  "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
+rg -q '"vendorConfigurationPreserved": True' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
 rg -q -- '-0.18.*_FaceDilate' \
   "$PROJECT_DIR/scripts/patch_unity_hvac_bundle.py"
@@ -49,4 +53,4 @@ with zipfile.ZipFile(sys.argv[1]) as apk:
 PY
 fi
 
-echo "RenderService dynamic Unity HVAC and orbit-input patch project verified"
+echo "RenderService dynamic Unity HVAC and vendor orbit-input contract verified"

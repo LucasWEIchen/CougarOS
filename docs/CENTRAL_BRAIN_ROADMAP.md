@@ -1,23 +1,34 @@
 # Central Brain Android 13 开发路线图
 
 版本：1.2
-日期：2026-07-25
+日期：2026-07-26
 状态：Stage 2 P6 in progress
 
-## 2026-07-25 P4-R7 render fidelity, dynamic HVAC and orbit input
+## 2026-07-26 P4-R7 render fidelity, dynamic HVAC and orbit input
 
-状态：`REPOSITORY_BUILT / TESTBOARD_RETEST_BLOCKED_ADB_OFFLINE`。P4-R7 已将 P4-R6
+状态：`TESTBOARD_PARTIAL_VERIFIED / ORBIT_BLOCKED_NO_TOUCH_DEVICE`。P4-R7 已将 P4-R6
 固定 26.5/28.0°C 双状态升级为 Unity 原生动态 TextMeshPro，支持双区 18.0-30.0°C、
-0.5°C 步进和 360 ms 逐级动画；Client2 经 RenderService `c2sSendMessage(..., "SetText", ...)`
-更新温区。Unity Pan recognizer 已从错误的 display 2 修正为实际 `DisplayIndex=1`，并关闭
-额外 raycast gate；Client2 的观察型触摸监听不消费事件。`TuanjieView` 请求 1.5 倍渲染尺度。
+0.5°C 步进和 360 ms 逐级动画；Client2 经 RenderService `c2sSendMessage(..., "set_text", ...)`
+更新温区。TextMeshPro 单参数消息已由错误的 `SetText` 修正为 `set_text`。Unity Pan
+recognizer 保留原厂 `targetInputDisplay=2`、raycast=true、finger polling=false；Android
+MotionEvent `displayId=0`、RenderService `DisplayIndex=1` 和 Unity InputSystem target
+不属于同一编号空间，不再依据数值相似性改写。Client2 的观察型触摸监听继续返回 false。
 
-两个 APK 已完成构建、同签和离线 bundle 检查。`testboard` 当前被 Windows ADB 枚举为
-`offline`，因此清晰度、18/30°C 边界、逐级动画、滑动旋转和车门点击共存的 ARM64 动态复测
-保持开放；生产板按用户决定暂时下线且未操作。
+两个 APK 已完成构建、同签、离线 bundle 检查和 `testboard` ARM64 部署。真机确认
+RenderService 采纳 1.5 render scale 并将 framebuffer 提升到 2880x1620；双区初始 26.5°C、
+0.5°C 步进、18.0/30.0°C 边界、驾驶/乘员独立调节、车门点击和 Fatigue 座椅 15° -> 30°
+展开均通过。真实 WSL OpenClaw/Ollama Fatigue 链路完成 3 个 UI 仿真 Effect，模型延迟
+117383 ms，且保持 `VEHICLE BUS NOT ACCESSED`。
+
+车模旋转仍开放：测试板 `/proc/bus/input/devices` 和 `getevent -lp` 只有按键类设备，没有
+物理触摸 event node；ADB 合成 swipe 的 `deviceId=-1/displayId=0` 不能代表厂商 Unity
+InputSystem target。未修改的原厂 RenderService 在同一 ADB swipe 下也不旋转，因此该项是
+测试环境验收阻塞，不是本次 bundle 回归。生产板按用户决定暂时下线且未操作。
 
 当前 `p4_r7_repository_software_complete=true`、
 `p4_r7_testboard_android13_arm64_verified=false`、
+`p4_r7_testboard_partial_verified=true`、
+`p4_r7_orbit_physical_touch_verified=false`、
 `production_board_touched=false`、`vehicle_bus_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：
 `APP-004`、`S2-HMI-001..004`、`S2-UX-002/003`、`DEL-004`；tracking：

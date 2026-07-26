@@ -28,15 +28,19 @@ grep -Fq 'UNITY_TEMPERATURE_STEP_C = 0.5f' "$COORDINATOR"
 grep -Fq 'CentralBrainDriverTemperature' "$COORDINATOR"
 grep -Fq 'CentralBrainPassengerTemperature' "$COORDINATOR"
 grep -Fq '"c2sSendMessage"' "$COORDINATOR"
-grep -Fq 'UNITY_TEMPERATURE_METHOD = "SetText"' "$COORDINATOR"
+grep -Fq 'UNITY_TEMPERATURE_METHOD = "set_text"' "$COORDINATOR"
 grep -Fq 'return false;' "$COORDINATOR"
 grep -Fq '"driver": "CentralBrainDriverTemperature"' \
   "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
 grep -Fq '"passenger": "CentralBrainPassengerTemperature"' \
   "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq 'component_tree["_targetInputDisplay"] = 1' \
+grep -Fq '"_targetInputDisplay": 2' \
   "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
-grep -Fq 'component_tree["_eventSystemRaycastCheck"] = 0' \
+grep -Fq '"_eventSystemRaycastCheck": 1' \
+  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
+grep -Fq '"useFingerPolling": 0' \
+  "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
+grep -Fq '"vendorConfigurationPreserved": True' \
   "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
 grep -Fq '(key, -0.18 if key == "_FaceDilate" else value)' \
   "$RENDER_PROJECT/scripts/patch_unity_hvac_bundle.py"
@@ -55,7 +59,7 @@ printf '%s\n' \
   'unity_dynamic_temperature_defined=true' \
   'unity_temperature_range_18_30=true' \
   'unity_temperature_step_0_5=true' \
-  'unity_orbit_pan_display_binding_corrected=true' \
+  'unity_vendor_orbit_input_preserved=true' \
   'unity_render_scale_1_5_requested=true' \
   'android_temperature_overlay_present=false' \
   'vehicle_bus_accessed=false' \

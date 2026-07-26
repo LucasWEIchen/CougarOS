@@ -147,6 +147,8 @@ if [[ -d "$WORK_DIR" ]]; then
     "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
   rg -Fq 'CentralBrainPassengerTemperature' \
     "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
+  rg -Fq 'UNITY_TEMPERATURE_METHOD = "set_text"' \
+    "$PROJECT_DIR/bridge/src/com/centralbrain/client2/CockpitControlCoordinator.java"
   rg -q 'UI SIMULATION ONLY' "$WORK_DIR/res/layout/main_layout.xml"
   if rg -q 'centralBrain(StageNavigation|IntentTab|PlanTab|ExecutionTab|ResultTab|DeviceDrawer|HvacPowerButton|SeatHeatUpButton)' \
       "$WORK_DIR/res/layout/main_layout.xml"; then

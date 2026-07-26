@@ -1,15 +1,18 @@
 # 中央大脑架构疑点与风险登记表
 
 版本：0.9
-日期：2026-07-25
+日期：2026-07-26
 状态：Android 13 实际工程基线
 
 ## P4-R7 issue update
 
-`ISSUE-061` 跟踪 P4-R7 动态复测。仓库已修复三项回归：Client2 请求 1.5 render scale；
-Unity 双区温度改为 18.0-30.0°C、0.5°C 步进的原生动态文本；Pan recognizer 从 display 2
-改为实际 display 1。两个 APK 已构建并同签，但 `testboard` 仍为 ADB `offline`，所以清晰度、
-温度边界/动画、滑动旋转、车门点击和 crash/ANR 不能宣称通过。生产板暂时下线且未操作。
+`ISSUE-061` 跟踪 P4-R7 旋转验收。仓库已修复并在 `testboard` 验证 1.5 render scale、
+2880x1620 framebuffer、18.0-30.0°C/0.5°C Unity 原生动态温区、车门点击、座椅展开和
+真实 WSL OpenClaw/Ollama Fatigue UI 仿真闭环。Pan recognizer 保留原厂配置，不再把
+Android MotionEvent、RenderService display 和 Unity InputSystem target 的编号混用。
+
+`testboard` 没有物理触摸 event node，ADB 合成 swipe 无法触发原厂或修改后 RenderService
+的 Unity Pan recognizer，因此只阻塞车模旋转的物理触摸验收。生产板暂时下线且未操作。
 `production_ready=false`、`target_hardware_validated=false`。
 
 ## P4-R6 issue update
@@ -114,7 +117,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-058 | 量产 OMS/camera、可信座椅占用、Navigation 和 Commerce/Payment owner/API/permission/readback 未取得，生产接口必须保持 unavailable。 | S2-ADP-002, S2-NAV-001, S2-COM-001, P4-R5/P8 | Open / External Integration |
 | ISSUE-059 | 生产板使用测试会话临时 `169.254.208.100/24` 后已完成目标以太 OpenClaw 验证；厂商/系统尚未提供可启动恢复、受管的持久 IPv4 配置。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Partially Resolved / Persistent Network External |
 | ISSUE-060 | P4-R6 最终 Client2/RenderService 配对 APK 已在 testboard 和生产板通过；生产板 ADB 连接恢复，目标以太真实 OpenClaw、Unity 原生双区 28.0°C、靠背展开及 crash/ANR 检查通过。 | S2-HMI-001..004, DEL-001/004, P4-R6 | Resolved / Production Application Retest |
-| ISSUE-061 | P4-R7 代码、bundle 和配对 APK 已完成；`testboard` ADB offline 阻塞清晰度、动态温区、旋转与稳定性 ARM64 复测。 | S2-HMI-001..004, S2-UX-002/003, DEL-004, P4-R7 | Repository Fixed / Testboard Retest Blocked |
+| ISSUE-061 | P4-R7 清晰度、动态温区、车门、座椅、真实模型链和稳定性已在 `testboard` 通过；测试板无物理触摸 event node，ADB swipe 连原厂 APK 也不能验证 Unity 旋转。 | S2-HMI-001..004, S2-UX-002/003, DEL-004, P4-R7 | Testboard Partial / Physical Touch Retest Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1546,16 +1549,22 @@ source commit `5da6deb8` 成对安装当前两个 APK；设备端 SHA-256 与仓
 原始 serial、完整 logcat 和未审查截图未进入 GitHub。状态：
 `Resolved / Production Application Retest`。
 
-## ISSUE-061 P4-R7 测试板动态复测阻塞
+## ISSUE-061 P4-R7 物理触摸旋转验收开放
 
-P4-R7 已完成动态 TextMeshPro 双区温度、18.0-30.0°C/0.5°C 状态机、逐级动画、
-`TuanjieView.setRenderScale(1.5)` 请求，以及 Unity Pan recognizer
-`targetDisplay=1`/`raycastCheck=false` 修复。Client2/RenderService APK 已完成构建、
-签名和离线 bundle 检查。
+P4-R7 已完成动态 TextMeshPro 双区温度、18.0-30.0°C/0.5°C 状态机、逐级动画和
+`TuanjieView.setRenderScale(1.5)` 请求。`testboard` 恢复在线后已成对安装 APK，并确认
+RenderService 采用 1.5 render scale/2880x1620 framebuffer、双区初始值和独立边界调节、
+车门点击、Fatigue 座椅 15° -> 30° 展开以及无 crash/ANR。真实 WSL
+OpenClaw/Ollama Fatigue 回归也完成 3 个模拟 Effect，未访问车辆总线。
 
-Windows PnP 仍能枚举 `USB\VID_18D1&PID_4EE8\TESTBOARD`，但 Windows ADB 将
-`testboard` 报为 `offline`。重启 ADB server 和 reconnect 均未恢复 adbd 会话；该问题需要
-测试板重新插拔、重启或在设备端重新建立 USB 调试授权。设备恢复前不允许把仓库/离线证据
-提升为 Android 13 ARM64 动态通过。生产板按用户决定暂时下线，不用于替代验收。
+对旋转链的诊断显示，测试板只暴露 `gpio-keys` 和 `madev`，没有物理触摸
+`/dev/input/event*`；`adb shell input swipe` 生成的虚拟 MotionEvent 为
+`deviceId=-1/displayId=0`。同一合成滑动在未修改的原厂 RenderService 上也不能触发旋转。
+将该 displayId 反射改写为 2 又被 Android 13 hidden API policy 拒绝，且该临时方案已删除。
+最终 bundle 保留并门禁原厂 Pan 配置：`targetInputDisplay=2`、raycast=true、
+finger polling=false。
 
-状态：`Repository Fixed / Testboard Retest Blocked`。
+关闭条件：在带真实触摸屏输入、且映射到厂商 Unity InputSystem target 的目标硬件上，验证
+连续滑动改变车模朝向，同时车门点击继续有效。生产板暂时下线，不用于替代验收。
+
+状态：`Testboard Partial / Physical Touch Retest Open`。

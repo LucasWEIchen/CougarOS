@@ -222,20 +222,29 @@ def create_dynamic_temperature(
     return ids["go"]
 
 
-def patch_pan_recognizer(ctx: BundleContext) -> dict:
+def verify_vendor_pan_recognizer(ctx: BundleContext) -> dict:
     _, recognizers_go_tree = find_game_object(ctx, INPUT_RECOGNIZERS_GO)
     component_id, component_tree = components(ctx, recognizers_go_tree)[
         PAN_RECOGNIZER_CLASS
     ]
-    component_tree["_targetInputDisplay"] = 1
-    component_tree["_eventSystemRaycastCheck"] = 0
-    ctx.save(component_id, component_tree)
+    expected = {
+        "_targetInputDisplay": 2,
+        "_eventSystemRaycastCheck": 1,
+        "useFingerPolling": 0,
+    }
+    actual = {key: component_tree[key] for key in expected}
+    if actual != expected:
+        raise RuntimeError(
+            f"Unexpected vendor Pan recognizer contract: {actual}"
+        )
     return {
         "componentPathId": component_id,
         "targetInputDisplay": component_tree["_targetInputDisplay"],
         "eventSystemRaycastCheck": bool(
             component_tree["_eventSystemRaycastCheck"]
         ),
+        "useFingerPolling": bool(component_tree["useFingerPolling"]),
+        "vendorConfigurationPreserved": True,
     }
 
 
@@ -277,7 +286,7 @@ def patch_bundle(input_path: Path, output_path: Path) -> dict:
     passenger_base_tree["m_IsActive"] = False
     ctx.save(driver_base_id, driver_base_tree)
     ctx.save(passenger_base_id, passenger_base_tree)
-    pan_result = patch_pan_recognizer(ctx)
+    pan_result = verify_vendor_pan_recognizer(ctx)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="central-brain-unity-hvac-") as tmp:
@@ -317,6 +326,9 @@ def patch_bundle(input_path: Path, output_path: Path) -> dict:
             "targetInputDisplay": verified_pan_tree["_targetInputDisplay"],
             "eventSystemRaycastCheck": bool(
                 verified_pan_tree["_eventSystemRaycastCheck"]
+            ),
+            "useFingerPolling": bool(
+                verified_pan_tree["useFingerPolling"]
             ),
         },
     }
