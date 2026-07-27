@@ -1,8 +1,76 @@
 # 车载中央大脑接口设计
 
-版本：3.4
+版本：3.5
 
-日期：2026-07-17
+日期：2026-07-27
+
+状态：`INTERFACE_DESIGN_BASELINE_READY / P4_R7_IMPLEMENTATION_DRAFT /
+PRODUCTION_ACTIVATION_EXTERNAL_BLOCKED`
+
+## 接口文档收口
+
+本文件定义当前 Android 13 AIOS 的 Java、AIDL、C ABI、厂商用户态桥和运维接口。P4-R7
+接口作为设计合同发布到 `main`，对应实现仍位于 Draft PR #130。缺少 OEM/Vendor 证据的
+production adapter 只发布 unavailable 合同，不发布可执行默认实现。
+
+```text
+architecture_document_set_ready=true
+p4_r7_design_published_on_main=true
+p4_r7_implementation_draft=true
+p4_r7_main_implementation_merged=false
+external_activation_requirements_classified=true
+production_ready=false
+target_hardware_validated=false
+```
+
+## P4-R7 render/HVAC/orbit interfaces
+
+| Interface | Caller -> callee | Contract | Failure semantics |
+| --- | --- | --- | --- |
+| `setRenderScale(float)` | Client2 -> `TuanjieView` | attach 后仅对 Client2/DisplayIndex1 请求 1.5；Client1 保持 1.0 | 反射/API 缺失只报告未采用，不改系统图形配置 |
+| `c2sSendMessage(object,method,value)` | Client2 -> RenderService | object 为固定双区 TextMeshPro 名称；method 固定 `set_text`；value 为 18.0-30.0°C、0.5°C 量化字符串 | Binder/反射失败不生成 applied/readback |
+| `c2sOnTouchEvent(MotionEvent)` | Client2 `TuanjieView` -> RenderService | 保留 `TOOL_TYPE_FINGER`、`SOURCE_TOUCHSCREEN` 和原厂事件路由 | 合成 ADB 事件不得作为物理触摸验收 |
+| vendor Pan contract | Unity InputSystem | `targetInputDisplay=2`、raycast=true、finger polling=false | 构建发现漂移即失败，不自动 patch 猜测值 |
+| render-stack recovery CLI | 测试/部署 -> Android ActivityManager | Client1 d2/index0 必须先于 Client2 d0/index1；验证双 Surface 和 framebuffer | 任一 precheck/启动/结构证据失败即非零退出 |
+
+温度内部接口：
+
+```java
+animateTemperature(float from, float to)
+setUnityTemperatureForBothZones(float temperatureC, String source)
+setUnityTemperature(boolean driverZone, float temperatureC, String source)
+```
+
+它们是 Client2 私有 HMI reducer 接口，不属于 SDK、AIDL 或车辆控制 API。`source` 只用于
+有界 trace，不能成为 authority。温度状态变化不允许写 Vehicle/VHAL/CAN。
+
+恢复 CLI：
+
+```bash
+ADB_SERVER_PORT=<port> \
+ANDROID_SERIAL=<selector> \
+bash tools/recover_central_brain_android_client1_render_session.sh
+```
+
+该 CLI 当前只存在于 Draft PR #130；在硬件 PR 合并前，`main` 仅冻结其接口和失败语义，
+不得把上述命令当作主线已交付工具。
+
+成功必须同时输出 `cockpit_render_stack_recovered=true`、
+`client1_started_before_client2=true`、Render index 0/1、1920x720、1920x1080、
+2880x1620 和无数据清除标记。`FLAG_SECURE` 屏幕的视觉结果不属于该 CLI 的可判定输出。
+
+## P4-R6 Unity-native HVAC/Seat interfaces
+
+P4-R6 的 `setUnityTemperatureState`/Unity Button 离散 26.5/28.0 路径已由 P4-R7 动态
+`set_text` 取代，不得作为并行接口恢复。座椅动画仍由 Client2 私有 reducer 接口消费受准入的
+simulated Seat Effect，15° 到 30° 使用负 rotation。真实生产接口预留如下：
+
+| Empty production interface | Required external evidence |
+| --- | --- |
+| HVAC target/readback adapter | property/service ID、area、type、unit、permission、timeout、readback owner |
+| Seat target/readback adapter | capability、range、interlock、trusted vehicle state、Safety owner |
+
+证据不完整时返回 typed unavailable；不得自动回退到 UI simulation。
 
 ## P4-R5 cabin shopping and route-planning interfaces
 

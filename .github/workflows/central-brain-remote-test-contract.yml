@@ -138,5 +138,6 @@ jobs:
           bash tools/check_central_brain_android_ollama_gateway.sh
           bash tools/check_central_brain_android_openclaw_development_gateway.sh
           bash tools/check_central_brain_android_openclaw_target_gateway.sh
+          bash tools/check_central_brain_aios_architecture_document_readiness.sh
           bash tools/check_central_brain_root_readme.sh
           bash tools/check_central_brain_android_software_completion.sh

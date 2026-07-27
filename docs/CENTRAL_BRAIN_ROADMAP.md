@@ -1,8 +1,37 @@
 # Central Brain Android 13 开发路线图
 
-版本：1.2
-日期：2026-07-24
-状态：Stage 2 P6 in progress
+版本：1.3
+日期：2026-07-27
+状态：`ARCHITECTURE_BASELINE_READY / P4_R7_IMPLEMENTATION_DRAFT /
+PRODUCTION_ACTIVATION_EXTERNAL_BLOCKED`
+
+## 2026-07-27 AIOS 架构文档收口
+
+总体架构、完整软件详设和接口设计已同步到 P4-R7 设计，模块用例图和 GitHub 首页架构图已纳入
+Client1/Client2/共享 RenderService、动态 Unity HVAC、OpenClaw 过渡 Provider、多模态输入和
+外部空接口。P4-R7 Java、Unity、APK、恢复和硬件测试实现仍位于 Draft PR #130，未进入
+`main`。三份主文档统一声明：
+
+```text
+architecture_document_set_ready=true
+p4_r7_design_published_on_main=true
+p4_r7_implementation_draft=true
+p4_r7_main_implementation_merged=false
+external_activation_requirements_classified=true
+production_ready=false
+target_hardware_validated=false
+```
+
+该状态表示软件架构已经形成可供工程师开发、评审和外部集成的基线，不表示 P4-R7 实现或
+量产激活完成。P4-R7 实现、P8/P9/OEM/Vendor 项、副屏视觉复验和物理触摸验收继续在 Draft
+PR #130 及其 Issues、Deviations、Delivery 与 Driver/HAL 文档中跟踪。
+
+## 2026-07-27 P4-R7 design publication
+
+`CENTRAL_BRAIN_CLIENT2_RENDER_FIDELITY_HVAC_ORBIT.md` 已作为设计文件发布到 `main`。实现分支：
+`codex/p4-r7-testboard-render-hvac-orbit`；Draft PR：
+`https://github.com/LucasWEIchen/CougarOS/pull/130`。在该 PR 合并前，本文中的 P4-R7 接口、
+framebuffer 和设备结果均属于 Draft 实现证据，不属于 `main` 软件交付。
 
 ## 2026-07-24 P4-R6 Unity-native HVAC and seat correction
 

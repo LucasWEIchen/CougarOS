@@ -1,10 +1,119 @@
 # 车载中央大脑软件架构设计
 
-版本：3.5
+版本：3.6
 
-日期：2026-07-20
+日期：2026-07-27
 
 目标平台：黑盒 Android 13 座舱域控制器
+
+状态：`ARCHITECTURE_DOCUMENT_BASELINE_READY / P4_R7_IMPLEMENTATION_DRAFT /
+PRODUCTION_ACTIVATION_EXTERNAL_BLOCKED`
+
+## 文档就绪结论与权威关系
+
+本文件是 Central Brain AIOS 的总体软件架构主文档。`main` 已完成 P4-R6 及此前工作包的
+归类；P4-R7 设计已在本文发布，但 Java、Unity、APK、恢复和硬件测试实现仍位于 Draft
+PR #130。本文可作为 Android 13 软件工程师继续开发、集成和评审的架构基线，但不能据此
+宣称 P4-R7 实现已进入 `main`。
+
+“架构基线 Ready”不表示量产 Ready。Vehicle/VHAL、真实 HVAC/Seat readback、可信车辆状态、
+实时 Camera/OMS、Navigation/Commerce、生产 Model Provider/Vendor NPU、量产签名、隐私 owner、
+发布 owner、72h/性能/故障目标证据均保持空接口或外部阻塞。
+
+| 优先级 | 文档 | 作用 |
+| --- | --- | --- |
+| 1 | `CENTRAL_BRAIN_ARCHITECTURE_REQUIREMENTS.md` | 架构图需求、Req ID 与强制边界 |
+| 2 | 本文件 | 分层、进程、authority、数据流和部署总架构 |
+| 3 | `CENTRAL_BRAIN_COMPLETE_SOFTWARE_DEVELOPMENT_DESIGN.md` | 类、状态机、存储、线程和模块实现详设 |
+| 4 | `CENTRAL_BRAIN_INTERFACE_DESIGN.md` | Java/AIDL/C/运维接口与失败语义 |
+| 5 | 专项详设 | P4-R5/R6/R7、OpenClaw、多模态等增量的局部权威设计 |
+| 6 | Roadmap、Catalog、Issues、Deviations、Delivery | 当前状态、证据、偏差、风险和交付物 |
+
+发生冲突时按上述顺序解决语义冲突；状态和证据不得从高层设计推断，必须读取第 6 类文档。
+
+当前统一标记：
+
+```text
+architecture_document_set_ready=true
+p4_r7_design_published_on_main=true
+p4_r7_implementation_draft=true
+p4_r7_main_implementation_merged=false
+external_activation_requirements_classified=true
+production_vehicle_adapter_wired=false
+production_model_provider_wired=false
+production_ready=false
+target_hardware_validated=false
+```
+
+文档一致性门禁：
+
+```bash
+bash tools/check_central_brain_aios_architecture_document_readiness.sh
+```
+
+## P4-R7 双屏渲染、动态 HVAC 与触摸架构
+
+P4-R7 将黑盒座舱 HMI 固化为两个 Android Client 和一个共享 RenderService。Android display ID、
+RenderService DisplayIndex 和 Unity InputSystem target 是三个独立编号空间：
+
+```mermaid
+flowchart LR
+  C1["Client1 副屏\nAndroid d2"] --> R0["RenderService DisplayIndex0\n1920x720"]
+  C2["Client2 主屏\nAndroid d0"] --> R1["RenderService DisplayIndex1\n1920x1080"]
+  R1 --> Scale["setRenderScale(1.5)\n2880x1620 framebuffer"]
+  C2 --> Temp["18.0-30.0 C / 0.5 C reducer"]
+  Temp --> Message["c2sSendMessage(..., set_text, label)"]
+  Message --> Unity["Unity TextMeshPro 双区温区"]
+  Touch["真实物理触摸"] --> VendorPan["原厂 Pan recognizer"]
+  VendorPan --> R1
+```
+
+共享服务冷启动必须先建立 Client1/DisplayIndex0，再建立 Client2/DisplayIndex1。安装或重启
+RenderService 后，恢复工具依次停止 Client2、Client1、RenderService，再按上述顺序启动；
+它不清应用数据、不修改系统分区。结构门禁验证双 Activity、双 Surface、三个 framebuffer 和
+`combinedDispMask=3`。Client1 副屏为 `FLAG_SECURE`，ADB 空截图不是视觉验收证据。
+
+动态温度由 Client2 reducer 持有 desired HMI 状态。场景输出和手动 +/- 共用
+18.0-30.0°C、0.5°C 量化状态机；每 360 ms 逐级调用 Unity TextMeshPro `set_text`。它只投影
+UI 仿真，不是 Vehicle target/readback。Unity Pan recognizer 保留原厂
+`targetInputDisplay=2`、raycast=true、finger polling=false；不得用 ADB 合成 swipe 代替
+物理触摸验收。
+
+该 HMI 增量不改变模型分层：开发环境使用 WSL OpenClaw/Ollama，目标网络当前使用
+`target_openclaw_transitional` WebSocket v3 Provider。后者已经通过文字和图片调用，但仍是
+过渡 Provider，不得标记为生产模型或 NPU 直连。
+
+权威专项文档：
+[P4-R7 渲染、动态温区与旋转详设](CENTRAL_BRAIN_CLIENT2_RENDER_FIDELITY_HVAC_ORBIT.md)。
+当前 `p4_r7_repository_software_complete=false`、
+`p4_r7_implementation_draft=true`、`p4_r7_main_implementation_merged=false`。Draft PR #130
+已记录 render-session、生产板结构和目标模型证据，但这些证据不改变 `main` 的实现状态。
+`p4_r7_client1_visual_render_retest=false`、`p4_r7_orbit_physical_touch_verified=false`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。
+
+## P4-R6 Unity 原生 HVAC 与座椅架构
+
+P4-R6 删除覆盖 Unity 的 Android 温度 TextView，把 Cold 反馈迁入 RenderService Unity
+Addressables，并修正 Fatigue 座椅靠背的展开方向。P4-R7 已将 P4-R6 的 26.5/28.0 双状态
+升级为连续动态 TextMeshPro；P4-R6 继续作为座椅方向、应用层边界和配对 APK 演进基线。
+
+```text
+validated simulated Effect
+  -> CockpitControlCoordinator
+  -> HVAC desired reducer / Seat animation reducer
+  -> TuanjieView / RenderService Unity EventSystem
+  -> Unity-native HVAC + Android seat animation
+  -> simulated readback projection
+```
+
+真实 HVAC/Seat adapter、Vehicle property、area mapping、Safety authority 和 readback 不在此
+路径内。权威专项文档：
+[P4-R6 Unity 原生 HVAC 与座椅详设](CENTRAL_BRAIN_CLIENT2_UNITY_NATIVE_HVAC_SEAT_PATCH.md)。
+当前 `p4_r6_repository_software_complete=true`、
+`production_hvac_adapter_wired=false`、`production_seat_adapter_wired=false`、
+`vehicle_bus_accessed=false`、`production_ready=false`、
+`target_hardware_validated=false`。
 
 ## P4-R5 shopping and route-planning architecture
 
