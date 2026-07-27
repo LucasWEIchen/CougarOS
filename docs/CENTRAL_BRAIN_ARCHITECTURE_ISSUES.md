@@ -17,11 +17,13 @@ Android MotionEvent、RenderService display 和 Unity InputSystem target 的编�
 framebuffer 和 crash/ANR 复验；它暴露 1920x1080 物理触摸设备，但尚无真实手指滑动的
 车模朝向变化与车门点击联合证据。
 
-`ISSUE-062` 跟踪 RenderService 替换后的 Client1 副屏恢复。根因不是 Client1 未安装或
-Activity 启动失败，而是旧 Client1 任务仍为 resumed 时没有重新建立 RenderService 渲染
-会话。生产板冷启动 Client1 后已恢复 Android `displayId=2`、RenderService
-`DisplayIndex=0`、1920x720 Surface 和双路 `combinedDispMask=3`。恢复工具已纳入远端合同，
-不清数据且不重启 Client2。stage `P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`。
+`ISSUE-062` 跟踪 RenderService 替换后的 Client1 副屏恢复和视觉复验。根因不是 Client1
+未安装、Activity 启动失败或 Client1 APK 资源差异，而是共享 RenderService 会话没有按
+Client1/DisplayIndex0、Client2/DisplayIndex1 顺序完整重建。生产板按序冷启动已恢复
+1920x720、1920x1080、2880x1620 framebuffer、双 Surface 和 `combinedDispMask=3`。恢复工具
+已纳入远端合同，会重启两个客户端和 RenderService，但不清任何数据、不修改系统分区。
+副屏 `FLAG_SECURE` 下的最终外观仍待现场确认。stage
+`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`。
 `production_ready=false`、`target_hardware_validated=false`。
 
 ## P4-R6 issue update
@@ -127,7 +129,7 @@ P4-R2 已完成 Client2 到正式 Orchestration SDK V1 的迁移，仓库内 Ses
 | ISSUE-059 | 生产板使用测试会话临时 `169.254.208.100/24` 后已完成目标以太 OpenClaw 验证；厂商/系统尚未提供可启动恢复、受管的持久 IPv4 配置。 | S2-MDL-001/002, S2-OBS-002, DEL-004, P4-R5/P7 | Partially Resolved / Persistent Network External |
 | ISSUE-060 | P4-R6 最终 Client2/RenderService 配对 APK 已在 testboard 和生产板通过；生产板 ADB 连接恢复，目标以太真实 OpenClaw、Unity 原生双区 28.0°C、靠背展开及 crash/ANR 检查通过。 | S2-HMI-001..004, DEL-001/004, P4-R6 | Resolved / Production Application Retest |
 | ISSUE-061 | P4-R7 已在生产板完成目标以太真实模型三场景、1.5 render scale/2880x1620 和稳定性复验；生产板有物理触摸 event node，但尚缺真实手指滑动车模与车门联合验收。 | S2-HMI-001..004, S2-UX-002/003, DEL-004, P4-R7 | Production Application Partial / Physical Touch Retest Open |
-| ISSUE-062 | RenderService 替换后 Client1 旧任务仍 resumed，但副屏渲染会话未恢复；生产板冷启动验证和无数据清除恢复工具已完成。 | APP-001/004, S2-HMI-001, DEL-004, P4-R7 | Resolved / Production Application Retest |
+| ISSUE-062 | RenderService 替换后 Client1 旧任务仍 resumed；单 Client1 重启后仍报告背景/渲染异常，现已改为共享渲染栈按 Client1→Client2 顺序冷启动并通过结构门禁，副屏现场视觉复验开放。 | APP-001/004, S2-HMI-001, DEL-004, P4-R7 | Production Structural Pass / Visual Retest Open |
 
 ## ISSUE-019 Client2 APK patch 验收边界
 
@@ -1590,14 +1592,24 @@ finger polling=false。
 症状：生产板更新 RenderService 后，Client1 包、进程和副屏 Activity 均存在，但用户看到
 Client1 没有正常拉起。Activity 状态本身不能证明 Tuanjie/Unity 渲染会话已重新建立。
 
-诊断：Client1 原任务位于 Android `displayId=2`。冷启动后日志确认其创建 1920x720 Surface，
-以 RenderService `DisplayIndex=0` 注册，收到 `onServiceStartRenderView`，服务端持续报告
-`combinedDispMask=3`；Client1、Client2 和 RenderService 进程均存活，无 crash/ANR。
+诊断：Client1 原任务位于 Android `displayId=2`。首次只冷启动 Client1 后日志确认其创建
+1920x720 Surface、以 RenderService `DisplayIndex=0` 注册并收到回调，但用户仍看到背景和
+渲染异常。已安装 Client1 与原始 APK 的资源、DEX、native library entry 完全一致，只有
+HOME/DEFAULT manifest intent 差异，且 signer 一致。未发现 shader、texture、material 或
+Addressables 加载错误。更可能的原因是共享 RenderService 先前已由 Client2/DisplayIndex1
+初始化，单独恢复 Client1 没有重建完整共享渲染状态。
 
-修复：`recover_central_brain_android_client1_render_session.sh` 在确认 Client1、
-RenderService 和副屏存在后，只 force-stop Client1 并通过 `am start -W --display 2` 冷启动。
-随后验证 Client1 PID、副屏 resumed Activity 和 SurfaceFlinger Surface。脚本不执行
-`pm clear`、不卸载包、不重启 Client2、不修改系统分区，也不输出设备序列号。
+修复：`recover_central_brain_android_client1_render_session.sh` 在确认三个包和 display 0/2
+存在后，停止 Client2、Client1 和 RenderService；先将 Client1 启动到 Android
+`displayId=2` 并建立 RenderService `DisplayIndex=0`，再将 Client2 启动到 Android
+`displayId=0` 并建立 RenderService `DisplayIndex=1`。生产板门禁确认两个进程、两个 resumed
+Activity、两个 Surface、1920x720/1920x1080 framebuffer、主屏 2880x1620 framebuffer 和
+`combinedDispMask=3`。脚本不执行 `pm clear`、不卸载包、不修改系统分区，也不输出设备序列号。
+
+验收边界：副屏为 `FLAG_SECURE`，ADB screencap 为空是平台策略，不能用来判断画面成功或失败。
+当前结构/日志复验通过，背景、构图、清晰度和动画仍需用户在副屏现场确认。若按序冷启动后
+仍异常，下一步才进行原始 RenderService 与当前 RenderService 的受控 A/B，不先推断 bundle
+修改无回归。
 
 stage：`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`。状态：
-`Resolved / Production Application Retest`。
+`Production Structural Pass / Visual Retest Open`。

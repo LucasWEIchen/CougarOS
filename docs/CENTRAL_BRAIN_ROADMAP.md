@@ -29,11 +29,15 @@ ARM64、1920x1080 生产板，安装后 APK SHA-256 与本地交付物逐包一�
 被 RenderService 采纳并创建 2880x1620 framebuffer；三个应用进程存活且无 crash/ANR。
 
 生产板首次部署后，Client1 旧任务虽然仍显示为 resumed，但 RenderService 替换造成的旧渲染
-会话没有恢复。冷启动 Client1 后已重新绑定副屏 Android `displayId=2`、RenderService
-`DisplayIndex=0` 和 1920x720 Surface，服务端 `combinedDispMask=3`。新增
-`recover_central_brain_android_client1_render_session.sh`，只重启 Client1 进程、不清数据、
-不重启 Client2，并验证副屏 Activity 和 Surface。tracking：`ISSUE-062`；stage
-`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`。
+会话没有恢复。首次只冷启动 Client1 虽恢复 Activity/Surface，用户仍报告背景和渲染异常；
+APK 内容对比确认已安装 Client1 与原始包除 HOME 启动 intent 外一致，未发现 Client1
+资源/代码差异。诊断进一步收敛到共享 RenderService 的会话初始化顺序。恢复工具现会停止
+Client2、Client1 和 RenderService，再严格按 Client1 副屏 Android `displayId=2` /
+RenderService `DisplayIndex=0`、Client2 主屏 Android `displayId=0` / RenderService
+`DisplayIndex=1` 的顺序冷启动。生产板已验证独立 1920x720、1920x1080 和主屏
+2880x1620 framebuffer、双 Activity/Surface、`combinedDispMask=3`；不清除任何应用数据，
+不修改系统分区。副屏带 `FLAG_SECURE`，最终背景和渲染外观仍待现场视觉确认。
+tracking：`ISSUE-062`；stage `P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`。
 
 车模旋转仍开放：测试板 `/proc/bus/input/devices` 和 `getevent -lp` 只有按键类设备，没有
 物理触摸 event node；ADB 合成 swipe 的 `deviceId=-1/displayId=0` 不能代表厂商 Unity
@@ -46,6 +50,7 @@ InputSystem target。未修改的原厂 RenderService 在同一 ADB swipe 下也
 `p4_r7_testboard_partial_verified=true`、
 `p4_r7_production_android13_arm64_partial_verified=true`、
 `p4_r7_client1_render_session_recovery_verified=true`、
+`p4_r7_client1_visual_render_retest=false`、
 `p4_r7_orbit_physical_touch_verified=false`、
 `production_board_deployed=true`、`vehicle_bus_accessed=false`、
 `production_ready=false`、`target_hardware_validated=false`。Req IDs：

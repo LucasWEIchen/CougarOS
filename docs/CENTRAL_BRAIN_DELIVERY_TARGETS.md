@@ -32,15 +32,20 @@ ANDROID_SERIAL=<device-selector> \
 bash tools/recover_central_brain_android_client1_render_session.sh
 ```
 
-该步骤默认将 Client1 启动到 Android `displayId=2`，验证 resumed Activity 和
-SurfaceFlinger Surface，不清除应用数据、不重启 Client2。生产板已验证
-`client1_render_session_recovered=true`。stage：
+该步骤会停止 Client2、Client1 和 RenderService，先将 Client1 启动到 Android
+`displayId=2` / RenderService `DisplayIndex=0`，再将 Client2 启动到 Android
+`displayId=0` / RenderService `DisplayIndex=1`。门禁验证两个 resumed Activity、两个
+SurfaceFlinger Surface、1920x720/1920x1080 原生 framebuffer、主屏 2880x1620 超采样
+framebuffer 和 `combinedDispMask=3`。它不清除任一应用数据、不修改系统分区。生产板已验证
+`cockpit_render_stack_recovered=true` 和 `client1_started_before_client2=true`；副屏因
+`FLAG_SECURE` 无法由 ADB 截图，背景和渲染外观仍需现场视觉复验。stage：
 `P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`；tracking：`ISSUE-062`。
 
 当前 `p4_r7_repository_software_complete=true`、
 `p4_r7_testboard_partial_verified=true`、`p4_r7_testboard_android13_arm64_verified=false`、
 `p4_r7_production_android13_arm64_partial_verified=true`、
-`p4_r7_client1_render_session_recovery_verified=true`。
+`p4_r7_client1_render_session_recovery_verified=true`、
+`p4_r7_client1_visual_render_retest=false`。
 测试板已验证 1.5 render scale/2880x1620 framebuffer、双区 18.0/30.0°C 边界、0.5°C
 步进、车门点击、座椅展开、真实 WSL OpenClaw/Ollama 闭环及 crash/ANR。测试板无物理触摸
 event node。生产板已完成三包哈希一致部署、目标以太 OpenClaw Cold/Fatigue/multimodal

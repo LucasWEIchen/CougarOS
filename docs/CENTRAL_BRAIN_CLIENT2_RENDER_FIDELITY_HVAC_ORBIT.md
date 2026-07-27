@@ -196,10 +196,26 @@ Client1 surface=1920x720
 combinedDispMask=3
 ```
 
-仓库通过 `recover_central_brain_android_client1_render_session.sh` 固化恢复动作。它只
-force-stop Client1，再通过 `am start -W --display 2` 启动；随后验证 PID、resumed Activity
-和 SurfaceFlinger Surface。它不清数据、不重启 Client2、不修改 RenderService 或系统分区。
-stage：`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`；tracking：`ISSUE-062`。
+首次恢复只 force-stop Client1，虽然恢复了 Activity 和 Surface，用户仍报告背景和渲染异常。
+已安装 Client1 与原始 Client1 的 APK entry 长度、压缩长度和 CRC 全部一致，唯一内容差异是
+AndroidManifest 增加 HOME/DEFAULT 启动 intent，且 signer 一致。因此 Client1 资源或代码
+不是本轮异常来源。共享 RenderService 已先由 Client2/DisplayIndex1 初始化，是更符合日志
+证据的会话状态风险。
+
+仓库通过 `recover_central_brain_android_client1_render_session.sh` 固化完整恢复动作：
+
+1. 确认 Client1、Client2、RenderService 和 Android display 0/2 均存在；
+2. 依次 force-stop Client2、Client1 和 RenderService；
+3. 先通过 `am start -W --display 2` 启动 Client1，等待 DisplayIndex0 会话；
+4. 再通过 `am start -W --display 0` 启动 Client2，等待 DisplayIndex1 会话；
+5. 验证 PID、双 resumed Activity、双 Surface、1920x720/1920x1080 framebuffer、
+   主屏 2880x1620 framebuffer 和 `combinedDispMask=3`。
+
+2026-07-27 生产板执行该流程通过，且 `client1_started_before_client2=true`。脚本不执行
+`pm clear`、不卸载包、不修改系统分区。Client2 会被重启以重建共享渲染栈，但数据不清除。
+副屏带 `FLAG_SECURE`，ADB screencap 为空不能作为黑屏证据，也不能替代现场视觉确认；当前
+`client1_visual_render_retest=false`。stage：
+`P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`；tracking：`ISSUE-062`。
 
 生产复验使用 `target_openclaw_transitional`，通过车机以太直接访问 OpenClaw。日志只保留
 协议阶段、时延、长度和图片哈希，不记录原始提示词、回复、图片或凭据。OpenClaw 是外部

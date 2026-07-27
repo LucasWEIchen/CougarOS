@@ -30,10 +30,15 @@ ADB 合成 swipe 提升为物理触摸旋转证据。
 Effect；OpenClaw 外部算力访问不等于 NPU 直连或车辆执行器访问。
 
 RenderService APK 被替换或进程被重启后，部署流程必须重新建立 Client1 副屏渲染会话。恢复
-动作必须将 `com.tuanjie.urasclient/.MainActivity` 显式启动到 Android `displayId=2`，验证
-进程、resumed Activity 和 SurfaceFlinger Surface；不得清除 Client1 数据，不得为了恢复
-Client1 重启 Client2，不得把 Android `displayId=2` 与 RenderService `DisplayIndex=0`
-混为同一编号空间。stage `P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`，tracking：`ISSUE-062`。
+动作必须先停止 Client2、Client1 和共享 RenderService，再将
+`com.tuanjie.urasclient/.MainActivity` 显式启动到 Android `displayId=2`，等待其先建立
+RenderService `DisplayIndex=0` / 1920x720 会话，随后才将 Client2 启动到 Android
+`displayId=0` 并建立 RenderService `DisplayIndex=1` / 1920x1080 会话。门禁必须验证两个
+进程、两个 resumed Activity、两个 SurfaceFlinger Surface、主屏 2880x1620 超采样 framebuffer
+和 `combinedDispMask=3`。恢复允许重启两个应用进程和 RenderService，但不得清除任一应用
+数据、不得修改系统分区，也不得把 Android display ID 与 RenderService DisplayIndex 混为
+同一编号空间。副屏最终画面必须现场视觉验收，不能用 `FLAG_SECURE` 显示上的空 screencap
+判定黑屏或成功。stage `P4-R7-CLIENT1-RENDER-SESSION-RECOVERY`，tracking：`ISSUE-062`。
 
 当前 `unity_dynamic_temperature_defined=true`、
 `unity_temperature_range_18_30=true`、`unity_temperature_step_0_5=true`、
@@ -42,6 +47,7 @@ Client1 重启 Client2，不得把 Android `displayId=2` 与 RenderService `Disp
 `p4_r7_testboard_partial_verified=true`、
 `p4_r7_production_android13_arm64_partial_verified=true`、
 `p4_r7_client1_render_session_recovery_verified=true`、
+`p4_r7_client1_visual_render_retest=false`、
 `p4_r7_testboard_android13_arm64_verified=false`、
 `vehicle_bus_accessed=false`、`production_ready=false`、
 `target_hardware_validated=false`。Req IDs：`APP-001/004`、`S2-HMI-001..004`、
