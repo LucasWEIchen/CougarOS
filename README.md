@@ -39,7 +39,7 @@ flowchart LR
 | 范围 | 状态 |
 | --- | --- |
 | 仓库软件合同与主模块 | 已形成 |
-| P4-R7 HMI 实现 | 独立 Draft，尚未进入 `main` |
+| P4-R7 HMI 实现 | 当前 Draft 分支已包含，尚未进入 `main` |
 | 生产 Model Provider | 待量产准入 |
 | 真实 Vehicle/NPU Adapter | 外部接口阻塞 |
 | 生产签名、隐私、安全和目标资格 | 待 owner 与目标证据 |
